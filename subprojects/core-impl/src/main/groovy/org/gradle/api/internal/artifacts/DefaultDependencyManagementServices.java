@@ -50,7 +50,7 @@ import org.gradle.api.internal.artifacts.repositories.DefaultResolverFactory;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.externalresource.ByUrlCachedExternalResourceIndex;
 import org.gradle.api.internal.externalresource.ivy.ArtifactAtRepositoryCachedExternalResourceIndex;
-import org.gradle.api.internal.externalresource.local.ivy.LocallyAvailableResourceFinderBuilder;
+import org.gradle.api.internal.externalresource.local.ivy.LocallyAvailableResourceFinderFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.internal.filestore.UniquePathFileStore;
@@ -227,16 +227,10 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
     }
 
     protected RepositoryTransportFactory createRepositoryTransportFactory() {
-        LocallyAvailableResourceFinderBuilder cacheBuilder = new LocallyAvailableResourceFinderBuilder(
+        LocallyAvailableResourceFinderFactory finderFactory = new LocallyAvailableResourceFinderFactory(
                 get(ArtifactCacheMetaData.class), get(LocalMavenRepositoryLocator.class), get(ArtifactRevisionIdFileStore.class)
         );
-        cacheBuilder.addCurrent();
-        cacheBuilder.addMilestone8and9();
-        cacheBuilder.addMilestone7();
-        cacheBuilder.addMilestone6();
-        cacheBuilder.addMilestone3();
-        cacheBuilder.addMavenLocal();
-        return new RepositoryTransportFactory(cacheBuilder.build(), get(ProgressLoggerFactory.class),
+        return new RepositoryTransportFactory(finderFactory.create(), get(ProgressLoggerFactory.class),
                 get(ArtifactRevisionIdFileStore.class), get(ByUrlCachedExternalResourceIndex.class));
     }
 
