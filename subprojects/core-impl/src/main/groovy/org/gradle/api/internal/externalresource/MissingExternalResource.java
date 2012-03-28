@@ -18,6 +18,9 @@ package org.gradle.api.internal.externalresource;
 import java.io.IOException;
 import java.io.InputStream;
 
+/**
+ * Sentinel for representing that there is no resource at some source location.
+ */
 public class MissingExternalResource extends AbstractExternalResource {
     private final String source;
 

@@ -26,6 +26,11 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+/**
+ * Used when we find a file locally that matches the checksum of some external resource.
+ *
+ * It saves us downloading the file, but we don't get any metadata for it.
+ */
 public class LocalFileStandInExternalResource extends AbstractExternalResource {
 
     private final File localFile;
