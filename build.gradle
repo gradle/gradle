@@ -411,7 +411,7 @@ task nightlyBuild {
 
 gradle.taskGraph.whenReady {graph ->
     if (graph.hasTask(ciBuild)) {
-        subprojects { reportsDirName = "$rootProject.reportsDir/${path.replaceFirst(':', '').replaceAll(':', '.')}" }
+        subprojects { reporting.baseDir "$rootProject.reporting.baseDir/${path.replaceFirst(':', '').replaceAll(':', '.')}" }
     }
 }
 
