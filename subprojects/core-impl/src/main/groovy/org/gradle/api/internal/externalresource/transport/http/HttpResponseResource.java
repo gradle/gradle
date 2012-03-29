@@ -42,7 +42,7 @@ class HttpResponseResource extends AbstractExternalResource {
         this.source = source;
         this.response = response;
 
-        this.metaData = new DefaultExternalResourceMetaData(source, getLastModified(), getContentLength(), null);
+        this.metaData = new DefaultExternalResourceMetaData(source, getLastModified(), getContentLength(), getEtag(response));
     }
 
     public String getName() {
@@ -106,4 +106,8 @@ class HttpResponseResource extends AbstractExternalResource {
         EntityUtils.consume(response.getEntity());
     }
 
+    private static String getEtag(HttpResponse response) {
+        Header etagHeader = response.getFirstHeader(HttpHeaders.ETAG);
+        return etagHeader == null ? null : etagHeader.getValue();
+    }
 }
