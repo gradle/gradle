@@ -16,19 +16,27 @@
 
 package org.gradle.internal.nativeplatform.filesystem;
 
-import org.jruby.ext.posix.POSIX;
-import org.jruby.ext.posix.POSIXFactory;
-import org.jruby.ext.posix.POSIXHandler;
+import org.jruby.ext.posix.*;
 
 import java.io.File;
 import java.io.InputStream;
 import java.io.PrintStream;
 
 public class PosixUtil {
-    private static final POSIX POSIX = PosixWrapper.wrap(POSIXFactory.getPOSIX(new POSIXHandlerImpl(), true));
+    private static final POSIX POSIX = FallbackAwarePosixFactory.getPOSIX();
 
     public static POSIX current() {
         return POSIX;
+    }
+
+    private static class FallbackAwarePosixFactory{
+        public static POSIX getPOSIX() {
+            POSIX posix = POSIXFactory.getPOSIX(new POSIXHandlerImpl(), true);
+            if(posix instanceof JavaPOSIX || posix instanceof WindowsPOSIX){
+                return new FallbackPOSIX();
+            }
+            return posix;
+        }
     }
 
     private static class POSIXHandlerImpl implements POSIXHandler {
