@@ -16,11 +16,12 @@
 package org.gradle.api.internal.artifacts.repositories.transport;
 
 import org.apache.ivy.plugins.resolver.AbstractResolver;
+import org.gradle.api.internal.artifacts.repositories.ExternalResourceRepository;
 
 import java.net.URI;
 
 public interface RepositoryTransport {
-    ResourceCollection getRepositoryAccessor();
+    ExternalResourceRepository getRepository();
 
     void configureCacheManager(AbstractResolver resolver);
 

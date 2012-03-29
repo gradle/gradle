@@ -21,6 +21,8 @@ import org.apache.http.HttpResponse;
 import org.apache.http.impl.cookie.DateUtils;
 import org.apache.http.util.EntityUtils;
 import org.gradle.api.internal.externalresource.AbstractExternalResource;
+import org.gradle.api.internal.externalresource.DefaultExternalResourceMetaData;
+import org.gradle.api.internal.externalresource.ExternalResourceMetaData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,11 +35,14 @@ class HttpResponseResource extends AbstractExternalResource {
     private final String method;
     private final String source;
     private final HttpResponse response;
+    private final ExternalResourceMetaData metaData;
 
     public HttpResponseResource(String method, String source, HttpResponse response) {
         this.method = method;
         this.source = source;
         this.response = response;
+
+        this.metaData = new DefaultExternalResourceMetaData(source, getLastModified(), getContentLength(), null);
     }
 
     public String getName() {
@@ -47,6 +52,10 @@ class HttpResponseResource extends AbstractExternalResource {
     @Override
     public String toString() {
         return String.format("Http %s Resource: %s", method, source);
+    }
+
+    public ExternalResourceMetaData getMetaData() {
+        return metaData;
     }
 
     public long getLastModified() {

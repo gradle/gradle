@@ -21,14 +21,14 @@ import org.apache.ivy.plugins.repository.Repository;
 import org.apache.ivy.plugins.repository.TransferListener;
 import org.apache.ivy.plugins.resolver.AbstractResolver;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
-import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
-import org.gradle.api.internal.externalresource.CachedExternalResourceIndex;
-import org.gradle.api.internal.filestore.FileStore;
+import org.gradle.api.internal.artifacts.repositories.ExternalResourceRepository;
 import org.gradle.api.internal.artifacts.repositories.ProgressLoggingTransferListener;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.DownloadingRepositoryCacheManager;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.LocalFileRepositoryCacheManager;
 import org.gradle.api.internal.artifacts.repositories.transport.file.FileTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.http.HttpTransport;
+import org.gradle.api.internal.externalresource.CachedExternalResourceIndex;
+import org.gradle.api.internal.filestore.FileStore;
 import org.gradle.logging.ProgressLoggerFactory;
 
 import java.net.URI;
@@ -37,21 +37,16 @@ public class RepositoryTransportFactory {
     private final TransferListener transferListener;
     private final RepositoryCacheManager downloadingCacheManager;
     private final RepositoryCacheManager localCacheManager;
-    private final LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder;
-    private final CachedExternalResourceIndex<String> byUrlCachedExternalResourceIndex;
 
-    public RepositoryTransportFactory(
-            LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder, ProgressLoggerFactory progressLoggerFactory,
+    public RepositoryTransportFactory(ProgressLoggerFactory progressLoggerFactory,
             FileStore<ArtifactRevisionId> fileStore, CachedExternalResourceIndex<String> byUrlCachedExternalResourceIndex) {
-        this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
-        this.byUrlCachedExternalResourceIndex = byUrlCachedExternalResourceIndex;
         this.transferListener = new ProgressLoggingTransferListener(progressLoggerFactory, RepositoryTransport.class);
         this.downloadingCacheManager = new DownloadingRepositoryCacheManager("downloading", fileStore, byUrlCachedExternalResourceIndex);
         this.localCacheManager = new LocalFileRepositoryCacheManager("local");
     }
 
     public RepositoryTransport createHttpTransport(String name, PasswordCredentials credentials) {
-        return decorate(new HttpTransport(name, credentials, locallyAvailableResourceFinder, byUrlCachedExternalResourceIndex, downloadingCacheManager));
+        return decorate(new HttpTransport(name, credentials, downloadingCacheManager));
     }
 
     public RepositoryTransport createFileTransport(String name) {
@@ -91,10 +86,10 @@ public class RepositoryTransportFactory {
             delegate.configureCacheManager(resolver);
         }
 
-        public ResourceCollection getRepositoryAccessor() {
-            ResourceCollection resourceCollection = delegate.getRepositoryAccessor();
-            attachListener(resourceCollection);
-            return resourceCollection;
+        public ExternalResourceRepository getRepository() {
+            ExternalResourceRepository repository = delegate.getRepository();
+            attachListener(repository);
+            return repository;
         }
 
         public String convertToPath(URI uri) {

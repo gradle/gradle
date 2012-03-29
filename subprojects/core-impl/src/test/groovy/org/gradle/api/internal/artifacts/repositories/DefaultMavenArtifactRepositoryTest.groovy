@@ -31,7 +31,10 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
     final PasswordCredentials credentials = Mock()
     final RepositoryTransportFactory transportFactory = Mock()
     final RepositoryCacheManager cacheManager = Mock()
-    final DefaultMavenArtifactRepository repository = new DefaultMavenArtifactRepository(resolver, credentials, transportFactory)
+    final LocallyAvailableResourceFinder locallyAvailableResourceFinder = Mock()
+    final CachedExternalResourceIndex cachedExternalResourceIndex = Mock()
+
+    final DefaultMavenArtifactRepository repository = new DefaultMavenArtifactRepository(resolver, credentials, transportFactory, locallyAvailableResourceFinder, cachedExternalResourceIndex)
 
     def "creates local repository"() {
         given:
@@ -102,7 +105,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
     }
 
     private HttpTransport createHttpTransport(String repo, PasswordCredentials credentials) {
-        return new HttpTransport(repo, credentials, Mock(LocallyAvailableResourceFinder), Mock(CachedExternalResourceIndex), cacheManager)
+        return new HttpTransport(repo, credentials, cacheManager)
     }
 
     def "fails when no root url specified"() {

@@ -28,6 +28,10 @@ public class DefaultExternalResourceMetaData implements ExternalResourceMetaData
     private final long contentLength;
     private final String etag;
 
+    public DefaultExternalResourceMetaData(String location, long lastModified, long contentLength, @Nullable String etag) {
+        this(location, lastModified > 0 ? new Date(lastModified) : null, contentLength, etag);
+    }
+    
     public DefaultExternalResourceMetaData(String location, @Nullable Date lastModified, long contentLength, @Nullable String etag) {
         this.location = location;
         this.lastModified = lastModified;

@@ -16,13 +16,11 @@
 package org.gradle.api.internal.artifacts.repositories.transport.http;
 
 import org.apache.ivy.core.cache.RepositoryCacheManager;
-import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.plugins.resolver.AbstractResolver;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
-import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
-import org.gradle.api.internal.artifacts.repositories.transport.ResourceCollection;
+import org.gradle.api.internal.artifacts.repositories.DefaultExternalResourceRepository;
+import org.gradle.api.internal.artifacts.repositories.ExternalResourceRepository;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
-import org.gradle.api.internal.externalresource.CachedExternalResourceIndex;
 
 import java.net.URI;
 
@@ -30,26 +28,18 @@ public class HttpTransport implements RepositoryTransport {
     private final String name;
     private final PasswordCredentials credentials;
     private final RepositoryCacheManager repositoryCacheManager;
-    private final LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder;
-    private final CachedExternalResourceIndex<String> byUrlCachedExternalResourceIndex;
 
-    public HttpTransport(
-            String name, PasswordCredentials credentials,
-            LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder,
-            CachedExternalResourceIndex<String> byUrlCachedExternalResourceIndex,
-            RepositoryCacheManager repositoryCacheManager) {
+    public HttpTransport(String name, PasswordCredentials credentials, RepositoryCacheManager repositoryCacheManager) {
         this.name = name;
         this.credentials = credentials;
-        this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
-        this.byUrlCachedExternalResourceIndex = byUrlCachedExternalResourceIndex;
         this.repositoryCacheManager = repositoryCacheManager;
     }
 
-    public ResourceCollection getRepositoryAccessor() {
-        HttpSettings httpSettings = new DefaultHttpSettings(credentials);
-        HttpResourceCollection repository = new HttpResourceCollection(httpSettings, locallyAvailableResourceFinder, byUrlCachedExternalResourceIndex);
-        repository.setName(name);
-        return repository;
+    public ExternalResourceRepository getRepository() {
+        HttpClientHelper http = new HttpClientHelper(new DefaultHttpSettings(credentials));
+        return new DefaultExternalResourceRepository(
+                name, new HttpResourceAccessor(http), new HttpResourceUploader(http), new HttpResourceLister()
+        );
     }
 
     public void configureCacheManager(AbstractResolver resolver) {

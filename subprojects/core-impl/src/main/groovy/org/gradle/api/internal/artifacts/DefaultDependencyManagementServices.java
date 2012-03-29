@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts;
 
+import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.gradle.StartParameter;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
@@ -50,6 +51,7 @@ import org.gradle.api.internal.artifacts.repositories.DefaultResolverFactory;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.externalresource.ByUrlCachedExternalResourceIndex;
 import org.gradle.api.internal.externalresource.ivy.ArtifactAtRepositoryCachedExternalResourceIndex;
+import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 import org.gradle.api.internal.externalresource.local.ivy.LocallyAvailableResourceFinderFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.IdentityFileResolver;
@@ -226,12 +228,17 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         return new DefaultLocalMavenRepositoryLocator(new DefaultMavenFileLocations(), SystemProperties.asMap(), System.getenv());
     }
 
-    protected RepositoryTransportFactory createRepositoryTransportFactory() {
+    protected LocallyAvailableResourceFinder<ArtifactRevisionId> createArtifactRevisionIdLocallyAvailableResourceFinder() {
         LocallyAvailableResourceFinderFactory finderFactory = new LocallyAvailableResourceFinderFactory(
                 get(ArtifactCacheMetaData.class), get(LocalMavenRepositoryLocator.class), get(ArtifactRevisionIdFileStore.class)
         );
-        return new RepositoryTransportFactory(finderFactory.create(), get(ProgressLoggerFactory.class),
-                get(ArtifactRevisionIdFileStore.class), get(ByUrlCachedExternalResourceIndex.class));
+        
+        return finderFactory.create();
+    }
+    protected RepositoryTransportFactory createRepositoryTransportFactory() {
+        return new RepositoryTransportFactory(
+                get(ProgressLoggerFactory.class), get(ArtifactRevisionIdFileStore.class), get(ByUrlCachedExternalResourceIndex.class)
+        );
     }
 
     private class DefaultDependencyResolutionServices implements DependencyResolutionServices {
@@ -262,11 +269,14 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
 
         private DefaultRepositoryHandler createRepositoryHandler() {
             Instantiator instantiator = parent.get(Instantiator.class);
-            ResolverFactory resolverFactory = new DefaultResolverFactory(
+            @SuppressWarnings("unchecked") ResolverFactory resolverFactory = new DefaultResolverFactory(
                     get(LocalMavenRepositoryLocator.class),
                     fileResolver,
                     instantiator,
-                    get(RepositoryTransportFactory.class));
+                    get(RepositoryTransportFactory.class),
+                    get(LocallyAvailableResourceFinder.class),
+                    get(ByUrlCachedExternalResourceIndex.class)
+                    );
             return instantiator.newInstance(DefaultRepositoryHandler.class, resolverFactory, instantiator);
         }
 

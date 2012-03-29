@@ -19,7 +19,8 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 import org.apache.ivy.plugins.resolver.DependencyResolver
 import spock.lang.Specification
 import org.apache.ivy.plugins.resolver.AbstractPatternsBasedResolver
-import org.gradle.api.internal.artifacts.repositories.ResourceCollectionResolver
+
+import org.gradle.api.internal.artifacts.repositories.ExternalResourceResolver
 
 public class DependencyResolverIdentifierTest extends Specification {
     def "uses dependency resolver name"() {
@@ -73,10 +74,10 @@ public class DependencyResolverIdentifierTest extends Specification {
 
     def "dependency resolvers of type ResourceCollectionResolver are differentiated by their patterns"() {
         given:
-        ResourceCollectionResolver resolver1 = Mock()
-        ResourceCollectionResolver resolver1a = Mock()
-        ResourceCollectionResolver resolver2 = Mock()
-        ResourceCollectionResolver resolver2a = Mock()
+        ExternalResourceResolver resolver1 = Mock()
+        ExternalResourceResolver resolver1a = Mock()
+        ExternalResourceResolver resolver2 = Mock()
+        ExternalResourceResolver resolver2a = Mock()
 
         when:
         resolver1.ivyPatterns >> ['ivy1', 'ivy2']
@@ -114,8 +115,8 @@ public class DependencyResolverIdentifierTest extends Specification {
 
     def "dependency resolvers of type ResourceCollectionResolver are differentiated by m2compatible flag"() {
         given:
-        ResourceCollectionResolver resolver1 = Mock()
-        ResourceCollectionResolver resolver2 = Mock()
+        ExternalResourceResolver resolver1 = Mock()
+        ExternalResourceResolver resolver2 = Mock()
 
         when:
         resolver1.ivyPatterns >> ['ivy1']

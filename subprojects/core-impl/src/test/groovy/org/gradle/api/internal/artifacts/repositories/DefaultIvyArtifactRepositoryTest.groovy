@@ -19,9 +19,8 @@ import org.apache.ivy.core.cache.RepositoryCacheManager
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
-import org.gradle.api.internal.artifacts.repositories.transport.file.FileResourceCollection
+import org.gradle.api.internal.artifacts.repositories.transport.file.FileExternalResourceRepository
 import org.gradle.api.internal.artifacts.repositories.transport.file.FileTransport
-import org.gradle.api.internal.artifacts.repositories.transport.http.HttpResourceCollection
 import org.gradle.api.internal.artifacts.repositories.transport.http.HttpTransport
 import org.gradle.api.internal.externalresource.CachedExternalResourceIndex
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder
@@ -33,7 +32,11 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
     final PasswordCredentials credentials = Mock()
     final RepositoryTransportFactory transportFactory = Mock()
     final RepositoryCacheManager cacheManager = Mock()
-    final DefaultIvyArtifactRepository repository = new DefaultIvyArtifactRepository(fileResolver, credentials, transportFactory)
+    final LocallyAvailableResourceFinder locallyAvailableResourceFinder = Mock()
+    final CachedExternalResourceIndex cachedExternalResourceIndex = Mock()
+    final DefaultIvyArtifactRepository repository = new DefaultIvyArtifactRepository(
+            fileResolver, credentials, transportFactory, locallyAvailableResourceFinder, cachedExternalResourceIndex
+    )
 
     def "cannot create a resolver for url with unknown scheme"() {
         repository.name = 'name'
@@ -82,8 +85,8 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         def resolver = repository.createResolver()
 
         then:
-        resolver instanceof ResourceCollectionResolver
-        resolver.repository instanceof HttpResourceCollection
+        resolver instanceof ExternalResourceResolver
+        resolver.repository instanceof ExternalResourceRepository
         resolver.name == 'name'
         resolver.artifactPatterns == ['http://host/[organisation]/[artifact]-[revision].[ext]', 'http://other/[module]/[artifact]-[revision].[ext]'] as List
         resolver.ivyPatterns == ['http://host/[module]/ivy-[revision].xml'] as List
@@ -105,8 +108,8 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         def resolver = repository.createResolver()
 
         then:
-        resolver instanceof ResourceCollectionResolver
-        resolver.repository instanceof FileResourceCollection
+        resolver instanceof ExternalResourceResolver
+        resolver.repository instanceof FileExternalResourceRepository
         resolver.name == 'name'
         resolver.artifactPatterns == ["${file.absolutePath}/[organisation]/[artifact]-[revision].[ext]", "${file.absolutePath}/[organisation]/[module]/[artifact]-[revision].[ext]"] as List
         resolver.ivyPatterns == ["${file.absolutePath}/[organisation]/[module]/ivy-[revision].xml"] as List
@@ -124,8 +127,8 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         def resolver = repository.createResolver()
 
         then:
-        resolver instanceof ResourceCollectionResolver
-        resolver.repository instanceof HttpResourceCollection
+        resolver instanceof ExternalResourceResolver
+        resolver.repository instanceof ExternalResourceRepository
         resolver.name == 'name'
         resolver.artifactPatterns == ['http://host/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])'] as List
         resolver.ivyPatterns == ["http://host/[organisation]/[module]/[revision]/ivy-[revision].xml"] as List
@@ -144,8 +147,8 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         def resolver = repository.createResolver()
 
         then:
-        resolver instanceof ResourceCollectionResolver
-        resolver.repository instanceof HttpResourceCollection
+        resolver instanceof ExternalResourceResolver
+        resolver.repository instanceof ExternalResourceRepository
         resolver.name == 'name'
         resolver.artifactPatterns == ['http://host/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])'] as List
         resolver.ivyPatterns == ["http://host/[organisation]/[module]/[revision]/ivy-[revision].xml"] as List
@@ -168,8 +171,8 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         def resolver = repository.createResolver()
 
         then:
-        resolver instanceof ResourceCollectionResolver
-        resolver.repository instanceof HttpResourceCollection
+        resolver instanceof ExternalResourceResolver
+        resolver.repository instanceof ExternalResourceRepository
         resolver.name == 'name'
         resolver.artifactPatterns == ['http://host/[module]/[revision]/[artifact](.[ext])'] as List
         resolver.ivyPatterns == ["http://host/[module]/[revision]/ivy.xml"] as List
@@ -189,8 +192,8 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         def resolver = repository.createResolver()
 
         then:
-        resolver instanceof ResourceCollectionResolver
-        resolver.repository instanceof HttpResourceCollection
+        resolver instanceof ExternalResourceResolver
+        resolver.repository instanceof ExternalResourceRepository
         resolver.name == 'name'
         resolver.artifactPatterns == ['http://host/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])', 'http://host/[other]/artifact'] as List
         resolver.ivyPatterns == ["http://host/[organisation]/[module]/[revision]/ivy-[revision].xml", 'http://host/[other]/ivy'] as List
@@ -230,7 +233,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
     }
 
     private HttpTransport createHttpTransport(String name, PasswordCredentials credentials) {
-        return new HttpTransport(name, credentials, Mock(LocallyAvailableResourceFinder), Mock(CachedExternalResourceIndex), cacheManager)
+        return new HttpTransport(name, credentials, cacheManager)
     }
 
 }

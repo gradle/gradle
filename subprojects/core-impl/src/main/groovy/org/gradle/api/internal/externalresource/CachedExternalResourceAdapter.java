@@ -15,15 +15,20 @@
  */
 package org.gradle.api.internal.externalresource;
 
-import org.gradle.api.internal.artifacts.repositories.transport.http.HttpResourceCollection;
-import org.gradle.util.hash.HashValue;
+import org.apache.ivy.util.CopyProgressListener;
+import org.gradle.api.internal.externalresource.transfer.ExternalResourceAccessor;
+
+import java.io.File;
+import java.io.IOException;
 
 public class CachedExternalResourceAdapter extends LocalFileStandInExternalResource {
     private final CachedExternalResource cachedExternalResource;
+    private final ExternalResourceAccessor accessor;
 
-    public CachedExternalResourceAdapter(String source, CachedExternalResource cachedExternalResource, HttpResourceCollection resourceCollection) {
-        super(source, cachedExternalResource.getCachedFile(), resourceCollection);
+    public CachedExternalResourceAdapter(String source, CachedExternalResource cachedExternalResource, ExternalResourceAccessor accessor) {
+        super(source, cachedExternalResource.getCachedFile());
         this.cachedExternalResource = cachedExternalResource;
+        this.accessor = accessor;
     }
 
     @Override
@@ -39,8 +44,24 @@ public class CachedExternalResourceAdapter extends LocalFileStandInExternalResou
         return cachedExternalResource.getContentLength();
     }
 
-    @Override
-    protected HashValue getLocalFileSha1() {
-        return cachedExternalResource.getSha1();
+    public void writeTo(File destination, CopyProgressListener progress) throws IOException {
+        try {
+            super.writeTo(destination, progress);
+        } catch (IOException e) {
+            downloadResourceDirect(destination, progress);
+            return;
+        }
+
+        // If the checksum of the downloaded file does not match the cached artifact, download it directly.
+        // This may be the case if the cached artifact was changed before copying
+        if (!getSha1(destination).equals(getLocalFileSha1())) {
+            downloadResourceDirect(destination, progress);
+        }
     }
+
+    private void downloadResourceDirect(File destination, CopyProgressListener progress) throws IOException {
+        // Perform a regular download, without considering external caches
+        accessor.getResource(getName()).writeTo(destination, progress);
+    }
+
 }

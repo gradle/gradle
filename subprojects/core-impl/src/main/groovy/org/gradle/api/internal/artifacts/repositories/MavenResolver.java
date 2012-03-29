@@ -19,6 +19,7 @@ import org.apache.ivy.core.IvyPatternHelper;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
+import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
@@ -29,6 +30,8 @@ import org.apache.ivy.util.ContextualSAXHandler;
 import org.apache.ivy.util.Message;
 import org.apache.ivy.util.XMLHelper;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
+import org.gradle.api.internal.externalresource.CachedExternalResourceIndex;
+import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
@@ -39,7 +42,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.*;
 
-public class MavenResolver extends ResourceCollectionResolver implements PatternBasedResolver {
+public class MavenResolver extends ExternalResourceResolver implements PatternBasedResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenResolver.class);
 
     private static final String M2_PER_MODULE_PATTERN = "[revision]/[artifact]-[revision](-[classifier]).[ext]";
@@ -52,8 +55,10 @@ public class MavenResolver extends ResourceCollectionResolver implements Pattern
     private boolean usepoms = true;
     private boolean useMavenMetadata = true;
 
-    public MavenResolver(String name, URI rootUri, RepositoryTransport transport) {
-        super(name, transport.getRepositoryAccessor());
+    public MavenResolver(String name, URI rootUri, RepositoryTransport transport,
+                         LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder,
+                         CachedExternalResourceIndex<String> cachedExternalResourceIndex) {
+        super(name, transport.getRepository(), locallyAvailableResourceFinder, cachedExternalResourceIndex);
         transport.configureCacheManager(this);
 
         this.transport = transport;

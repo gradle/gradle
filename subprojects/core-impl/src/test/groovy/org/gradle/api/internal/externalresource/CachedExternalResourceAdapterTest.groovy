@@ -15,9 +15,8 @@
  */
 package org.gradle.api.internal.externalresource;
 
-
 import org.apache.ivy.util.CopyProgressListener
-import org.gradle.api.internal.artifacts.repositories.transport.http.HttpResourceCollection
+import org.gradle.api.internal.externalresource.transfer.ExternalResourceAccessor
 import org.gradle.util.TemporaryFolder
 import org.gradle.util.hash.HashUtil
 import org.gradle.util.hash.HashValue
@@ -27,7 +26,7 @@ import spock.lang.Specification
 public class CachedExternalResourceAdapterTest extends Specification {
     @Rule final TemporaryFolder tmpDir = new TemporaryFolder()
 
-    HttpResourceCollection httpResourceCollection = Mock()
+    ExternalResourceAccessor accessor = Mock()
     CachedExternalResource cachedExternalResource = Mock()
     CopyProgressListener progress = Mock()
     CachedExternalResourceAdapter cachedResource
@@ -38,7 +37,7 @@ public class CachedExternalResourceAdapterTest extends Specification {
     def setup() {
         cachedExternalResource.cachedFile >> origin
         cachedExternalResource.sha1 >> { HashUtil.createHash(origin, "SHA1") }
-        cachedResource = new CachedExternalResourceAdapter("resource-source", cachedExternalResource, httpResourceCollection)
+        cachedResource = new CachedExternalResourceAdapter("resource-source", cachedExternalResource, accessor)
     }
 
     def "delegates to cached artifact"() {
@@ -77,7 +76,7 @@ public class CachedExternalResourceAdapterTest extends Specification {
         cachedExternalResource.sha1 >> new HashValue("1234")
 
         and:
-        httpResourceCollection.getResource("resource-source") >> resource
+        accessor.getResource("resource-source") >> resource
         resource.writeTo(destination, progress)
     }
 }

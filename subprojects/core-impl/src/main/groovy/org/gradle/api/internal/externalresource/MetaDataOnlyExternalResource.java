@@ -13,26 +13,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.externalresource;
 
+import org.apache.ivy.util.CopyProgressListener;
+
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
-/**
- * Sentinel for representing that there is no resource at some source location.
- */
-public class MissingExternalResource extends AbstractExternalResource {
-    private final String source;
-    private final ExternalResourceMetaData metaData;
+public class MetaDataOnlyExternalResource extends AbstractExternalResource {
 
-    public MissingExternalResource(String source) {
+    private final ExternalResourceMetaData metaData;
+    private final String source;
+    private final boolean local;
+
+    public MetaDataOnlyExternalResource(String source, ExternalResourceMetaData metaData) {
+        this(source, metaData, false);
+    }
+
+    public MetaDataOnlyExternalResource(String source, ExternalResourceMetaData metaData, boolean local) {
         this.source = source;
-        this.metaData = new DefaultExternalResourceMetaData(source, -1, -1, null);
+        this.metaData = metaData;
+        this.local = local;
+    }
+
+    public void writeTo(File destination, CopyProgressListener progress) throws IOException {
+        throw new UnsupportedOperationException();
+    }
+
+    public ExternalResourceMetaData getMetaData() {
+        return metaData;
     }
 
     @Override
     public String toString() {
-        return "MissingResource: " + getName();
+        return "MetaDataOnlyResource: " + getName();
     }
 
     public String getName() {
@@ -40,7 +56,7 @@ public class MissingExternalResource extends AbstractExternalResource {
     }
 
     public boolean exists() {
-        return false;
+        return true;
     }
 
     public long getLastModified() {
@@ -52,14 +68,11 @@ public class MissingExternalResource extends AbstractExternalResource {
     }
 
     public boolean isLocal() {
-        throw new UnsupportedOperationException();
+        return local;
     }
 
     public InputStream openStream() throws IOException {
         throw new UnsupportedOperationException();
     }
 
-    public ExternalResourceMetaData getMetaData() {
-        return this.metaData;
-    }
 }

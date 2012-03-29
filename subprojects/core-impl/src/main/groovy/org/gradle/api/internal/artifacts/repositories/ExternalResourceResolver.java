@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.report.DownloadReport;
 import org.apache.ivy.core.resolve.DownloadOptions;
@@ -38,8 +39,9 @@ import org.apache.ivy.util.ChecksumHelper;
 import org.apache.ivy.util.FileUtil;
 import org.apache.ivy.util.Message;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactOriginWithMetaData;
-import org.gradle.api.internal.artifacts.repositories.transport.ResourceCollection;
-import org.gradle.api.internal.externalresource.ExternalResource;
+import org.gradle.api.internal.externalresource.*;
+import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceCandidates;
+import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
 import org.slf4j.Logger;
@@ -48,30 +50,31 @@ import org.slf4j.LoggerFactory;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
-public class ResourceCollectionResolver extends BasicResolver {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ResourceCollectionResolver.class);
+public class ExternalResourceResolver extends BasicResolver {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ExternalResourceResolver.class);
 
     private final TemporaryFileProvider temporaryFileProvider = new TmpDirTemporaryFileProvider();
     private List<String> ivyPatterns = new ArrayList<String>();
     private List<String> artifactPatterns = new ArrayList<String>();
     private boolean m2compatible;
-    private final ResourceCollection repository;
+    private final ExternalResourceRepository repository;
+    private final LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder;
+    private final CachedExternalResourceIndex<String> cachedExternalResourceIndex;
 
-    public ResourceCollectionResolver(String name, ResourceCollection repository) {
+    public ExternalResourceResolver(String name,
+                                    ExternalResourceRepository repository,
+                                    LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder,
+                                    CachedExternalResourceIndex<String> cachedExternalResourceIndex
+    ) {
         setName(name);
         this.repository = repository;
+        this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
+        this.cachedExternalResourceIndex = cachedExternalResourceIndex;
     }
 
-    protected ResourceCollection getRepository() {
+    protected ExternalResourceRepository getRepository() {
         return repository;
     }
 
@@ -305,11 +308,22 @@ public class ResourceCollectionResolver extends BasicResolver {
     }
 
     protected Resource getResource(String source) throws IOException {
-        return repository.getResource(source);
+        ExternalResource resource = repository.getResource(source);
+        return resource == null ? new MissingExternalResource(source) : resource;
     }
 
     protected Resource getResource(String source, Artifact target, boolean forDownload) throws IOException {
-        return repository.getResource(source, target.getId(), forDownload);
+        if (forDownload) {
+            ArtifactRevisionId arid = target.getId();
+            LocallyAvailableResourceCandidates localCandidates = locallyAvailableResourceFinder.findCandidates(arid);
+            CachedExternalResource cached = cachedExternalResourceIndex.lookup(source);
+            ExternalResource resource = repository.getResource(source, localCandidates, cached);
+            return resource == null ? new MissingExternalResource(source) : resource;
+        } else {
+            // TODO - there's a potential problem here in that we don't carry correct isLocal data in MetaDataOnlyExternalResource
+            ExternalResourceMetaData metaData = repository.getResourceMetaData(source);
+            return metaData == null ? new MissingExternalResource(source) : new MetaDataOnlyExternalResource(source, metaData);
+        }
     }
 
     protected String[] listVersions(ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact) {
@@ -324,7 +338,12 @@ public class ResourceCollectionResolver extends BasicResolver {
         if (destination.getParentFile() != null) {
             destination.getParentFile().mkdirs();
         }
-        repository.downloadResource(resource, destination);
+
+        if (!(resource instanceof ExternalResource)) {
+            throw new IllegalArgumentException("Can only download ExternalResource");
+        }
+
+        repository.downloadResource((ExternalResource) resource, destination);
         return destination.length();
     }
 
@@ -369,7 +388,7 @@ public class ResourceCollectionResolver extends BasicResolver {
     }
 
     private void putChecksum(Artifact artifact, File src, String destination, boolean overwrite,
-                               String algorithm) throws IOException {
+                             String algorithm) throws IOException {
         File csFile = temporaryFileProvider.createTemporaryFile("ivytemp", algorithm);
         try {
             FileUtil.copy(new ByteArrayInputStream(ChecksumHelper.computeAsString(src, algorithm)

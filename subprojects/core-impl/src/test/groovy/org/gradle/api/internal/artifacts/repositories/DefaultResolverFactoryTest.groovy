@@ -30,6 +30,8 @@ import org.jmock.integration.junit4.JMock
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder
+import org.gradle.api.internal.externalresource.CachedExternalResourceIndex
 
 /**
  * @author Hans Dockter
@@ -46,7 +48,13 @@ class DefaultResolverFactoryTest {
     final LocalMavenRepositoryLocator localMavenRepoLocator = context.mock(LocalMavenRepositoryLocator.class)
     final FileResolver fileResolver = context.mock(FileResolver.class)
     final RepositoryTransportFactory transportFactory = context.mock(RepositoryTransportFactory.class)
-    final DefaultResolverFactory factory = new DefaultResolverFactory(localMavenRepoLocator, fileResolver, new DirectInstantiator(), transportFactory)
+    final LocallyAvailableResourceFinder locallyAvailableResourceFinder = context.mock(LocallyAvailableResourceFinder.class)
+    final CachedExternalResourceIndex cachedExternalResourceIndex = context.mock(CachedExternalResourceIndex);
+
+
+    final DefaultResolverFactory factory = new DefaultResolverFactory(
+            localMavenRepoLocator, fileResolver, new DirectInstantiator(), transportFactory, locallyAvailableResourceFinder, cachedExternalResourceIndex
+    )
 
     @Before public void setup() {
         context.checking {

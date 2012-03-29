@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.externalresource;
 
-import org.apache.ivy.util.CopyProgressListener;
-import org.gradle.api.internal.artifacts.repositories.transport.http.HttpResourceCollection;
 import org.gradle.util.hash.HashUtil;
 import org.gradle.util.hash.HashValue;
 
@@ -35,12 +33,10 @@ public class LocalFileStandInExternalResource extends AbstractExternalResource {
 
     private final File localFile;
     private final String source;
-    private final HttpResourceCollection resourceCollection;
 
-    public LocalFileStandInExternalResource(String source, File localFile, HttpResourceCollection resourceCollection) {
+    public LocalFileStandInExternalResource(String source, File localFile) {
         this.source = source;
         this.localFile = localFile;
-        this.resourceCollection = resourceCollection;
     }
 
     public String getName() {
@@ -67,31 +63,19 @@ public class LocalFileStandInExternalResource extends AbstractExternalResource {
         return new FileInputStream(localFile);
     }
 
-    public void writeTo(File destination, CopyProgressListener progress) throws IOException {
-        try {
-            super.writeTo(destination, progress);
-        } catch (IOException e) {
-            downloadResourceDirect(destination, progress);
-            return;
-        }
-
-        // If the checksum of the downloaded file does not match the cached artifact, download it directly.
-        // This may be the case if the cached artifact was changed before copying
-        if (!getSha1(destination).equals(getLocalFileSha1())) {
-            downloadResourceDirect(destination, progress);
-        }
+    public ExternalResourceMetaData getMetaData() {
+        return new DefaultExternalResourceMetaData(source, getLastModified(), getContentLength(), null);
     }
 
-    private void downloadResourceDirect(File destination, CopyProgressListener progress) throws IOException {
-        // Perform a regular download, without considering external caches
-        resourceCollection.getResource(source).writeTo(destination, progress);
+    protected File getLocalFile() {
+        return localFile;
     }
 
-    private HashValue getSha1(File contentFile) {
+    protected HashValue getSha1(File contentFile) {
         return HashUtil.createHash(contentFile, "SHA1");
     }
 
     protected HashValue getLocalFileSha1() {
-        return getSha1(localFile);
+        return getSha1(getLocalFile());
     }
 }

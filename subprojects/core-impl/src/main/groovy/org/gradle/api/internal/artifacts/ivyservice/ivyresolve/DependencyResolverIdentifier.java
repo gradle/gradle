@@ -17,7 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.apache.ivy.plugins.resolver.AbstractPatternsBasedResolver;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.gradle.api.internal.artifacts.repositories.ResourceCollectionResolver;
+import org.gradle.api.internal.artifacts.repositories.ExternalResourceResolver;
 import org.gradle.util.GUtil;
 import org.gradle.util.hash.HashUtil;
 
@@ -33,11 +33,11 @@ public class DependencyResolverIdentifier {
 
         List<String> parts = new ArrayList<String>();
         parts.add(resolver.getClass().getName());
-        if (resolver instanceof ResourceCollectionResolver) {
-            ResourceCollectionResolver resourceCollectionResolver = (ResourceCollectionResolver) resolver;
-            parts.add(joinPatterns(resourceCollectionResolver.getIvyPatterns()));
-            parts.add(joinPatterns(resourceCollectionResolver.getArtifactPatterns()));
-            if (resourceCollectionResolver.isM2compatible()) {
+        if (resolver instanceof ExternalResourceResolver) {
+            ExternalResourceResolver externalResourceResolver = (ExternalResourceResolver) resolver;
+            parts.add(joinPatterns(externalResourceResolver.getIvyPatterns()));
+            parts.add(joinPatterns(externalResourceResolver.getArtifactPatterns()));
+            if (externalResourceResolver.isM2compatible()) {
                 parts.add("m2compatible");
             }
         } else if (resolver instanceof AbstractPatternsBasedResolver) {

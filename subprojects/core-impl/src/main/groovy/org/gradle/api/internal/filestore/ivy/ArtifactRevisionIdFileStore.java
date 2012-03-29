@@ -35,7 +35,9 @@ public class ArtifactRevisionIdFileStore extends GroupedAndNamedUniqueFileStore<
     private static Transformer<String, ArtifactRevisionId> toTransformer(final String pattern) {
         return new Transformer<String, ArtifactRevisionId>() {
             public String transform(ArtifactRevisionId id) {
-                return IvyPatternHelper.substitute(pattern, new DefaultArtifact(id, null, null, false));
+                String substitute = pattern;
+                substitute = IvyPatternHelper.substituteToken(substitute, "organisation", id.getModuleRevisionId().getOrganisation().replace('/', '.'));
+                return IvyPatternHelper.substitute(substitute, new DefaultArtifact(id, null, null, false));
             }
         };
     }
