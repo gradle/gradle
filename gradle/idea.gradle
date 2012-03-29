@@ -24,19 +24,37 @@ idea {
 
     project {
         wildcards += ['?*.gradle']
+
         jdkName = '1.6'
         languageLevel = '1.5'
 
         ipr {
 
-            // Exclude resource directories from compilation and add them back in as classpath resources
             withXml { provider ->
+                // Exclude resource directories from compilation and add them back in as classpath resources
                 def node = provider.asNode()
                 def compilerConfig = node.component.find { it.'@name' == 'CompilerConfiguration' }
                 def exclude = compilerConfig.appendNode('excludeFromCompile')
-                Collection resourceDirs = groovyProjects().collect { project -> project.sourceSets*.resources*.srcDirs }.flatten()
-                resourceDirs.each {
+                Collection resourceFolder = groovyProjects().collect { project -> project.sourceSets*.resources*.srcDirs }.flatten()
+                resourceFolder.each {
                     exclude.appendNode('directory', [url: "file://\$PROJECT_DIR\$/${rootProject.relativePath(it)}", includeSubdirectories: true])
+                }
+
+
+                 // exclude jdk7/** from compilation if current jvm is not JDK7
+                if (!Jvm.current().isJava7()) {
+                    def jdk7PackagePattern = ~/jdk7/
+                    Collection sourceDirs = groovyProjects().collect { project -> project.sourceSets*.allSource*.srcDirs }.flatten()
+                    def findAndExcludeJdk7PackageFolder = { packageFolder ->
+                        if (jdk7PackagePattern.matcher(packageFolder.name).find()) {
+                            exclude.appendNode('directory', [url: "file://\$PROJECT_DIR\$/${rootProject.relativePath(packageFolder)}", includeSubdirectories: true])
+                        }
+                    }
+                    sourceDirs.each { sourceFolder ->
+                        if (sourceFolder.exists()) {
+                            sourceFolder.eachFileRecurse(findAndExcludeJdk7PackageFolder)
+                        }
+                    }
                 }
             }
 
