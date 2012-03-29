@@ -52,7 +52,7 @@ public class FilePermissionHandlerFactory {
         try {
             LibC libc = (LibC) Native.loadLibrary("c", LibC.class);
             return new LibcChmod(libc);
-        } catch (Throwable e) {
+        } catch (LinkageError e) {
             return new EmptyChmod();
         }
     }
