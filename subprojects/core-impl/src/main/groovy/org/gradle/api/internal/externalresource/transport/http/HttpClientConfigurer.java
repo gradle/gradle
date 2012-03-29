@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.repositories.transport.http;
+package org.gradle.api.internal.externalresource.transport.http;
 
 import org.apache.http.HttpRequest;
 import org.apache.http.auth.AuthScope;
@@ -28,8 +28,8 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.ProxySelectorRoutePlanner;
 import org.apache.http.protocol.HttpContext;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
-import org.gradle.api.internal.artifacts.repositories.transport.http.ntlm.NTLMCredentials;
-import org.gradle.api.internal.artifacts.repositories.transport.http.ntlm.NTLMSchemeFactory;
+import org.gradle.api.internal.externalresource.transport.http.ntlm.NTLMCredentials;
+import org.gradle.api.internal.externalresource.transport.http.ntlm.NTLMSchemeFactory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;

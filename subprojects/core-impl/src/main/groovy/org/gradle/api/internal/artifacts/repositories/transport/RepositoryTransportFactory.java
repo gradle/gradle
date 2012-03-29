@@ -25,8 +25,8 @@ import org.gradle.api.internal.artifacts.repositories.ExternalResourceRepository
 import org.gradle.api.internal.artifacts.repositories.ProgressLoggingTransferListener;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.DownloadingRepositoryCacheManager;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.LocalFileRepositoryCacheManager;
-import org.gradle.api.internal.artifacts.repositories.transport.file.FileTransport;
-import org.gradle.api.internal.artifacts.repositories.transport.http.HttpTransport;
+import org.gradle.api.internal.externalresource.transport.file.FileTransport;
+import org.gradle.api.internal.externalresource.transport.http.HttpTransport;
 import org.gradle.api.internal.externalresource.CachedExternalResourceIndex;
 import org.gradle.api.internal.filestore.FileStore;
 import org.gradle.logging.ProgressLoggerFactory;

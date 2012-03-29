@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.repositories.transport.http;
+package org.gradle.api.internal.externalresource.transport.http;
 
 import org.apache.ivy.util.url.ApacheURLLister;
 import org.gradle.api.internal.externalresource.transfer.ExternalResourceLister;

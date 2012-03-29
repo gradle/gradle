@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.repositories.transport.http.ntlm;
+package org.gradle.api.internal.externalresource.transport.http.ntlm;
 
 import jcifs.ntlmssp.Type1Message;
 import jcifs.ntlmssp.Type2Message;

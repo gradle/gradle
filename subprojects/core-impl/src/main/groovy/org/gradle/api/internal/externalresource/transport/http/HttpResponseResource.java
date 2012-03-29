@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.repositories.transport.http;
+package org.gradle.api.internal.externalresource.transport.http;
 
 import org.apache.http.Header;
 import org.apache.http.HttpHeaders;

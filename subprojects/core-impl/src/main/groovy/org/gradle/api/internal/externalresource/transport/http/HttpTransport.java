@@ -13,29 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.repositories.transport.file;
+package org.gradle.api.internal.externalresource.transport.http;
 
 import org.apache.ivy.core.cache.RepositoryCacheManager;
 import org.apache.ivy.plugins.resolver.AbstractResolver;
+import org.gradle.api.artifacts.repositories.PasswordCredentials;
+import org.gradle.api.internal.artifacts.repositories.DefaultExternalResourceRepository;
 import org.gradle.api.internal.artifacts.repositories.ExternalResourceRepository;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 
-import java.io.File;
 import java.net.URI;
 
-public class FileTransport implements RepositoryTransport {
+public class HttpTransport implements RepositoryTransport {
     private final String name;
+    private final PasswordCredentials credentials;
     private final RepositoryCacheManager repositoryCacheManager;
 
-    public FileTransport(String name, RepositoryCacheManager repositoryCacheManager) {
+    public HttpTransport(String name, PasswordCredentials credentials, RepositoryCacheManager repositoryCacheManager) {
         this.name = name;
+        this.credentials = credentials;
         this.repositoryCacheManager = repositoryCacheManager;
     }
 
     public ExternalResourceRepository getRepository() {
-        FileExternalResourceRepository fileRepository = new FileExternalResourceRepository();
-        fileRepository.setName(name);
-        return fileRepository;
+        HttpClientHelper http = new HttpClientHelper(new DefaultHttpSettings(credentials));
+        return new DefaultExternalResourceRepository(
+                name, new HttpResourceAccessor(http), new HttpResourceUploader(http), new HttpResourceLister()
+        );
     }
 
     public void configureCacheManager(AbstractResolver resolver) {
@@ -43,7 +47,7 @@ public class FileTransport implements RepositoryTransport {
     }
 
     public String convertToPath(URI uri) {
-        return normalisePath(new File(uri).getAbsolutePath());
+        return normalisePath(uri.toString());
     }
 
     private String normalisePath(String path) {

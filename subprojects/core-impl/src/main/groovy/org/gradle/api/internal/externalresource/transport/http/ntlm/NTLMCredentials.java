@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.repositories.transport.http.ntlm;
+package org.gradle.api.internal.externalresource.transport.http.ntlm;
 
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 

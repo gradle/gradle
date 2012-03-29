@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.repositories.transport.http;
+package org.gradle.api.internal.externalresource.transport.http;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.util.EntityUtils;

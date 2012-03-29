@@ -19,8 +19,8 @@ import org.apache.ivy.core.cache.RepositoryCacheManager
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
-import org.gradle.api.internal.artifacts.repositories.transport.file.FileTransport
-import org.gradle.api.internal.artifacts.repositories.transport.http.HttpTransport
+import org.gradle.api.internal.externalresource.transport.file.FileTransport
+import org.gradle.api.internal.externalresource.transport.http.HttpTransport
 import org.gradle.api.internal.file.FileResolver
 import spock.lang.Specification
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder
