@@ -21,7 +21,7 @@ import java.io.File;
 
 public interface LocallyAvailableResource {
 
-    File getOrigin();
+    File getFile();
 
     HashValue getSha1();
 

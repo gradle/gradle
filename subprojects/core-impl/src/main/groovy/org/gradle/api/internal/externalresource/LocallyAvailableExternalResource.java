@@ -23,7 +23,7 @@ public class LocallyAvailableExternalResource extends LocalFileStandInExternalRe
     private final LocallyAvailableResource locallyAvailableResource;
 
     public LocallyAvailableExternalResource(String source, LocallyAvailableResource locallyAvailableResource) {
-        super(source, locallyAvailableResource.getOrigin());
+        super(source, locallyAvailableResource.getFile());
         this.locallyAvailableResource = locallyAvailableResource;
     }
 

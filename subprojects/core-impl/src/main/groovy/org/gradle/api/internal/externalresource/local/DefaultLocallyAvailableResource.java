@@ -37,7 +37,7 @@ public class DefaultLocallyAvailableResource implements LocallyAvailableResource
         this.sha1 = sha1;
     }
 
-    public File getOrigin() {
+    public File getFile() {
         return origin;
     }
 

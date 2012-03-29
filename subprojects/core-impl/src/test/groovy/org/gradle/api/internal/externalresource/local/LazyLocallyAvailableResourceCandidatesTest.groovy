@@ -47,7 +47,7 @@ class LazyLocallyAvailableResourceCandidatesTest extends Specification {
         def candidate = candidates.findByHashValue(HashUtil.sha1("def".bytes))
 
         then:
-        candidate.origin.name == "def"
+        candidate.file.name == "def"
         0 * factory.create()
     }
     
