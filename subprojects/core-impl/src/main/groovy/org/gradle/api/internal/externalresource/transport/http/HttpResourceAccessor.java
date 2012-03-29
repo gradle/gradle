@@ -140,24 +140,6 @@ public class HttpResourceAccessor implements ExternalResourceAccessor {
         return false;
     }
 
-    private ExternalResource findCachedResourceBySha1(String source, LocallyAvailableResourceCandidates candidates) {
-        String checksumType = "SHA-1";
-        String checksumUrl = source + ".sha1";
-
-        HashValue sha1 = downloadSha1(checksumUrl);
-        if (sha1 == null) {
-            LOGGER.info("Checksum {} unavailable. [HTTP GET: {}]", checksumType, checksumUrl);
-        } else {
-            LocallyAvailableResource locallyAvailable = candidates.findByHashValue(sha1);
-            if (locallyAvailable != null) {
-                return new LocallyAvailableExternalResource(source, locallyAvailable);
-            }
-
-            LOGGER.info("Checksum {} did not match any locally available resources: [HTTP GET: {}]", checksumType, checksumUrl);
-        }
-        return null;
-    }
-
     private HashValue getChecksumFor(String source) {
         String checksumUrl = source + ".sha1";
         return downloadSha1(checksumUrl);
