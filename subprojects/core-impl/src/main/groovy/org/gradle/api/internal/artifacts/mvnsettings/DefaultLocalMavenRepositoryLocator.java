@@ -59,7 +59,7 @@ public class DefaultLocalMavenRepositoryLocator implements LocalMavenRepositoryL
             String placeholder = matcher.group(1);
             String replacement = placeholder.startsWith("env.") ? environmentVariables.get(placeholder.substring(4)) : systemProperties.get(placeholder);
             if (replacement == null) {
-                throw new CannotLocateLocalMavenRepositoryException(String.format("Cannot resolve placeholder '%s' in value '%s'", placeholder, replacement));
+                throw new CannotLocateLocalMavenRepositoryException(String.format("Cannot resolve placeholder '%s' in value '%s'", placeholder, value));
             }
             matcher.appendReplacement(result, Matcher.quoteReplacement(replacement));
         }
