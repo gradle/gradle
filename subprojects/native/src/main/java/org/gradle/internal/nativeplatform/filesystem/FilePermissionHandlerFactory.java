@@ -32,9 +32,7 @@ public class FilePermissionHandlerFactory {
     private static final Logger LOGGER = LoggerFactory.getLogger(FilePermissionHandlerFactory.class);
 
     public static FilePermissionHandler createDefaultFilePermissionHandler() {
-        if (OperatingSystem.current().isWindows()) {
-            return new WindowsFilePermissionHandler();
-        } else if (Jvm.current().isJava7()) {
+        if (Jvm.current().isJava7() && !OperatingSystem.current().isWindows()) {
             try {
                 String jdkFilePermissionclass = "org.gradle.internal.nativeplatform.filesystem.jdk7.PosixJdk7FilePermissionHandler";
                 FilePermissionHandler jdk7FilePermissionHandler =

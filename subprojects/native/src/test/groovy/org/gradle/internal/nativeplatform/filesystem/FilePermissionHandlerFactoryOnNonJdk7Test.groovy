@@ -29,11 +29,19 @@ public class FilePermissionHandlerFactoryOnNonJdk7Test extends Specification {
     @Rule TemporaryFolder temporaryFolder
 
     @Requires(TestPrecondition.WINDOWS)
-    def "createDefaultFilePermissionHandler creates WindowsFilePermissionHandler on Windows OS"() {
+    def "createChmod creates EmptyChmod instance on Windows OS"() {
         when:
-        def handler = FilePermissionHandlerFactory.createDefaultFilePermissionHandler()
+        def chmod = FilePermissionHandlerFactory.createChmod()
         then:
-        handler instanceof WindowsFilePermissionHandler
+        chmod instanceof FilePermissionHandlerFactory.EmptyChmod
+    }
+
+    @Requires(TestPrecondition.WINDOWS)
+    def "createDefaultFilePermissionHandler creates ComposedFilePermissionHandler with disabled Chmod on Windows OS"() {
+        when:
+        def chmod = FilePermissionHandlerFactory.createChmod()
+        then:
+        chmod instanceof FilePermissionHandlerFactory.EmptyChmod
     }
 
     @Requires(TestPrecondition.NOT_WINDOWS)

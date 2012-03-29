@@ -19,20 +19,36 @@ package org.gradle.internal.nativeplatform.filesystem
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Specification
+import org.junit.Rule
+import org.junit.rules.TemporaryFolder
 
 @Requires(TestPrecondition.JDK7)
-class FilePermissionHandlerFactoryOnJdk7Test extends Specification{
+class FilePermissionHandlerFactoryOnJdk7Test extends Specification {
+
+    @Rule TemporaryFolder temporaryFolder
 
     @Requires(TestPrecondition.WINDOWS)
-    def "createDefaultFilePermissionHandler creates WindowsFilePermissionHandler on Windows OS"(){
+    def "createChmod creates EmptyChmod instance on Windows OS"() {
         when:
-        def handler = FilePermissionHandlerFactory.createDefaultFilePermissionHandler()
+        def chmod = FilePermissionHandlerFactory.createChmod()
         then:
-        handler instanceof WindowsFilePermissionHandler
+        chmod instanceof FilePermissionHandlerFactory.EmptyChmod
+    }
+
+    @Requires(TestPrecondition.WINDOWS)
+    def "createDefaultFilePermissionHandler creates ComposedFilePermissionHandler with disabled Chmod on Windows OS"() {
+        def File file = temporaryFolder.newFile()
+        def handler = FilePermissionHandlerFactory.createDefaultFilePermissionHandler()
+        when:
+        handler.chmod(file, mode);
+        then:
+        644 == handler.getUnixMode(file);
+        where:
+        mode << [0722, 0644, 0744, 0755]
     }
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
-    def "createDefaultFilePermissionHandler creates Jdk7PosixFilePermissionHandler on JDK7 with Posix Fs"(){
+    def "createDefaultFilePermissionHandler creates Jdk7PosixFilePermissionHandler on JDK7 with Posix Fs"() {
         when:
         def handler = FilePermissionHandlerFactory.createDefaultFilePermissionHandler()
         then:
@@ -40,17 +56,17 @@ class FilePermissionHandlerFactoryOnJdk7Test extends Specification{
     }
 
     @Requires(TestPrecondition.UNKNOWN_OS)
-        def "createDefaultFilePermissionHandler creates ComposedFilePermissionHandler with disabled Chmod on Unknown OS"() {
-            setup:
-            def File file = temporaryFolder.newFile()
-            def handler = FilePermissionHandlerFactory.createDefaultFilePermissionHandler()
-            def originalMode = handler.getUnixMode(file);
-            when:
-            handler.chmod(file, mode);
-            then:
-            originalMode == handler.getUnixMode(file);
-            where:
-            mode << [0722, 0644, 0744, 0755]
-        }
+    def "createDefaultFilePermissionHandler creates ComposedFilePermissionHandler with disabled Chmod on Unknown OS"() {
+        setup:
+        def File file = temporaryFolder.newFile()
+        def handler = FilePermissionHandlerFactory.createDefaultFilePermissionHandler()
+        def originalMode = handler.getUnixMode(file);
+        when:
+        handler.chmod(file, mode);
+        then:
+        originalMode == handler.getUnixMode(file);
+        where:
+        mode << [0722, 0644, 0744, 0755]
+    }
 
 }
