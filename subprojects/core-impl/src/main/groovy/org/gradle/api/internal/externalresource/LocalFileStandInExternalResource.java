@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.externalresource;
 
+import org.gradle.api.internal.externalresource.metadata.DefaultExternalResourceMetaData;
+import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 import org.gradle.util.hash.HashUtil;
 import org.gradle.util.hash.HashValue;
 

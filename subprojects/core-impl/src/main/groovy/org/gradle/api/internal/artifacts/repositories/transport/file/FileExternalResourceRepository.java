@@ -21,7 +21,7 @@ import org.gradle.api.internal.artifacts.repositories.ExternalResourceRepository
 import org.gradle.api.internal.externalresource.cached.CachedExternalResource;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.ExternalResourceIvyResourceAdapter;
-import org.gradle.api.internal.externalresource.ExternalResourceMetaData;
+import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceCandidates;
 
 import java.io.File;

@@ -16,7 +16,7 @@
 package org.gradle.api.internal.externalresource.cached;
 
 import org.gradle.api.Nullable;
-import org.gradle.api.internal.externalresource.ExternalResourceMetaData;
+import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 
 import java.io.File;
 

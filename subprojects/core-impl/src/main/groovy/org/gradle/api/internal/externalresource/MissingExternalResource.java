@@ -15,6 +15,9 @@
  */
 package org.gradle.api.internal.externalresource;
 
+import org.gradle.api.internal.externalresource.metadata.DefaultExternalResourceMetaData;
+import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
+
 import java.io.IOException;
 import java.io.InputStream;
 

@@ -27,7 +27,7 @@ import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
 import org.gradle.api.internal.externalresource.cached.DefaultCachedExternalResourceIndex
-import org.gradle.api.internal.externalresource.DefaultExternalResourceMetaData
+import org.gradle.api.internal.externalresource.metadata.DefaultExternalResourceMetaData
 
 class DefaultArtifactResolutionCacheTest extends Specification {
 

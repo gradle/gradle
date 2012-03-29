@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.externalresource;
+package org.gradle.api.internal.externalresource.metadata;
 
 import org.gradle.api.Nullable;
 

@@ -24,6 +24,7 @@ import org.junit.Rule
 import spock.lang.Specification
 import org.gradle.api.internal.externalresource.cached.CachedExternalResourceAdapter
 import org.gradle.api.internal.externalresource.cached.CachedExternalResource
+import org.gradle.api.internal.externalresource.metadata.DefaultExternalResourceMetaData
 
 public class CachedExternalResourceAdapterTest extends Specification {
     @Rule final TemporaryFolder tmpDir = new TemporaryFolder()

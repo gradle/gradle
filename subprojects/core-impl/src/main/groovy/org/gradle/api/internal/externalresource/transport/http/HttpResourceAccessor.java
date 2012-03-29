@@ -24,6 +24,7 @@ import org.gradle.api.internal.externalresource.cached.CachedExternalResource;
 import org.gradle.api.internal.externalresource.cached.CachedExternalResourceAdapter;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResource;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceCandidates;
+import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 import org.gradle.api.internal.externalresource.transfer.ExternalResourceAccessor;
 import org.gradle.util.hash.HashValue;
 import org.slf4j.Logger;
