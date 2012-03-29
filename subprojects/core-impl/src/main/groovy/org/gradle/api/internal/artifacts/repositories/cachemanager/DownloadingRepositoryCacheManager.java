@@ -34,7 +34,7 @@ import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.apache.ivy.util.Message;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactOriginWithMetaData;
 import org.gradle.api.internal.artifacts.repositories.EnhancedArtifactDownloadReport;
-import org.gradle.api.internal.externalresource.CachedExternalResourceIndex;
+import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex;
 import org.gradle.api.internal.externalresource.DefaultExternalResourceMetaData;
 import org.gradle.api.internal.filestore.FileStore;
 

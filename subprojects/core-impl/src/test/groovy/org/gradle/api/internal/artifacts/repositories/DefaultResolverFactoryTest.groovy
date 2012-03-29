@@ -31,7 +31,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder
-import org.gradle.api.internal.externalresource.CachedExternalResourceIndex
+import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex
 
 /**
  * @author Hans Dockter

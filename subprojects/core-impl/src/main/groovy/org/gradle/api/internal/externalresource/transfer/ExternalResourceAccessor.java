@@ -17,7 +17,7 @@
 package org.gradle.api.internal.externalresource.transfer;
 
 import org.gradle.api.Nullable;
-import org.gradle.api.internal.externalresource.CachedExternalResource;
+import org.gradle.api.internal.externalresource.cached.CachedExternalResource;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.ExternalResourceMetaData;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceCandidates;

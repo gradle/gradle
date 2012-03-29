@@ -22,6 +22,8 @@ import org.gradle.util.hash.HashUtil
 import org.gradle.util.hash.HashValue
 import org.junit.Rule
 import spock.lang.Specification
+import org.gradle.api.internal.externalresource.cached.CachedExternalResourceAdapter
+import org.gradle.api.internal.externalresource.cached.CachedExternalResource
 
 public class CachedExternalResourceAdapterTest extends Specification {
     @Rule final TemporaryFolder tmpDir = new TemporaryFolder()

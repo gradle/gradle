@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.repositories;
 
 import org.apache.ivy.plugins.repository.Repository;
 import org.gradle.api.Nullable;
-import org.gradle.api.internal.externalresource.CachedExternalResource;
+import org.gradle.api.internal.externalresource.cached.CachedExternalResource;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.ExternalResourceMetaData;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceCandidates;

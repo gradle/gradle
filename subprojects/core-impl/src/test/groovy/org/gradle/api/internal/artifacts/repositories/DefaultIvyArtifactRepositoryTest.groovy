@@ -22,7 +22,7 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.artifacts.repositories.transport.file.FileExternalResourceRepository
 import org.gradle.api.internal.externalresource.transport.file.FileTransport
 import org.gradle.api.internal.externalresource.transport.http.HttpTransport
-import org.gradle.api.internal.externalresource.CachedExternalResourceIndex
+import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder
 import org.gradle.api.internal.file.FileResolver
 import spock.lang.Specification

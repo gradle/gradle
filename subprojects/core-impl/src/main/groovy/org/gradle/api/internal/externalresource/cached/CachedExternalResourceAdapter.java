@@ -13,21 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.externalresource;
+package org.gradle.api.internal.externalresource.cached;
 
 import org.apache.ivy.util.CopyProgressListener;
+import org.gradle.api.internal.externalresource.LocalFileStandInExternalResource;
 import org.gradle.api.internal.externalresource.transfer.ExternalResourceAccessor;
 
 import java.io.File;
 import java.io.IOException;
 
+/**
+ * Creates an ExternalResource from something that has been cached locally.
+ */
 public class CachedExternalResourceAdapter extends LocalFileStandInExternalResource {
     private final CachedExternalResource cachedExternalResource;
     private final ExternalResourceAccessor accessor;
 
-    public CachedExternalResourceAdapter(String source, CachedExternalResource cachedExternalResource, ExternalResourceAccessor accessor) {
-        super(source, cachedExternalResource.getCachedFile());
-        this.cachedExternalResource = cachedExternalResource;
+    public CachedExternalResourceAdapter(String source, CachedExternalResource cached, ExternalResourceAccessor accessor) {
+        super(source, cached.getCachedFile());
+        this.cachedExternalResource = cached;
         this.accessor = accessor;
     }
 

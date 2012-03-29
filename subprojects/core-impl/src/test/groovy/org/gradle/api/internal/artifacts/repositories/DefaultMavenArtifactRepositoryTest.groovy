@@ -24,7 +24,7 @@ import org.gradle.api.internal.externalresource.transport.http.HttpTransport
 import org.gradle.api.internal.file.FileResolver
 import spock.lang.Specification
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder
-import org.gradle.api.internal.externalresource.CachedExternalResourceIndex
+import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex
 
 class DefaultMavenArtifactRepositoryTest extends Specification {
     final FileResolver resolver = Mock()

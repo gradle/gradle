@@ -17,7 +17,7 @@ package org.gradle.api.internal.artifacts.repositories;
 
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
-import org.gradle.api.internal.externalresource.CachedExternalResourceIndex;
+import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 
 import java.net.URI;

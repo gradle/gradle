@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.externalresource;
+package org.gradle.api.internal.externalresource.cached;
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
+import org.gradle.api.internal.externalresource.ExternalResourceMetaData;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.Factory;
 import org.gradle.util.TimeProvider;

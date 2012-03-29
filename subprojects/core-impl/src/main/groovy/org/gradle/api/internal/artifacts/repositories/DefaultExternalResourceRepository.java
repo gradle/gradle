@@ -21,7 +21,7 @@ import org.apache.ivy.plugins.repository.AbstractRepository;
 import org.apache.ivy.plugins.repository.BasicResource;
 import org.apache.ivy.plugins.repository.RepositoryCopyProgressListener;
 import org.apache.ivy.plugins.repository.TransferEvent;
-import org.gradle.api.internal.externalresource.CachedExternalResource;
+import org.gradle.api.internal.externalresource.cached.CachedExternalResource;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.ExternalResourceMetaData;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceCandidates;

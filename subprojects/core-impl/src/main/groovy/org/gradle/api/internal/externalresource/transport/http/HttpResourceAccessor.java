@@ -20,6 +20,8 @@ import org.apache.http.HttpResponse;
 import org.apache.http.util.EntityUtils;
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.externalresource.*;
+import org.gradle.api.internal.externalresource.cached.CachedExternalResource;
+import org.gradle.api.internal.externalresource.cached.CachedExternalResourceAdapter;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResource;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceCandidates;
 import org.gradle.api.internal.externalresource.transfer.ExternalResourceAccessor;

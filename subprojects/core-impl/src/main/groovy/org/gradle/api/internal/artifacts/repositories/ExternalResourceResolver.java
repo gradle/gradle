@@ -40,6 +40,8 @@ import org.apache.ivy.util.FileUtil;
 import org.apache.ivy.util.Message;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactOriginWithMetaData;
 import org.gradle.api.internal.externalresource.*;
+import org.gradle.api.internal.externalresource.cached.CachedExternalResource;
+import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceCandidates;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 import org.gradle.api.internal.file.TemporaryFileProvider;

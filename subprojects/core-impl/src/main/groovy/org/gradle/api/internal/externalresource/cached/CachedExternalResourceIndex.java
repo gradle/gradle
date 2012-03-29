@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.externalresource;
+package org.gradle.api.internal.externalresource.cached;
 
 import org.gradle.api.Nullable;
+import org.gradle.api.internal.externalresource.ExternalResourceMetaData;
 
 import java.io.File;
 

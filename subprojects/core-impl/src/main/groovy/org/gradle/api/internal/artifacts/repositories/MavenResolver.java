@@ -30,7 +30,7 @@ import org.apache.ivy.util.ContextualSAXHandler;
 import org.apache.ivy.util.Message;
 import org.apache.ivy.util.XMLHelper;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
-import org.gradle.api.internal.externalresource.CachedExternalResourceIndex;
+import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

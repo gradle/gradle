@@ -49,7 +49,7 @@ import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenFileLocations;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.repositories.DefaultResolverFactory;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
-import org.gradle.api.internal.externalresource.ByUrlCachedExternalResourceIndex;
+import org.gradle.api.internal.externalresource.cached.ByUrlCachedExternalResourceIndex;
 import org.gradle.api.internal.externalresource.ivy.ArtifactAtRepositoryCachedExternalResourceIndex;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 import org.gradle.api.internal.externalresource.local.ivy.LocallyAvailableResourceFinderFactory;
