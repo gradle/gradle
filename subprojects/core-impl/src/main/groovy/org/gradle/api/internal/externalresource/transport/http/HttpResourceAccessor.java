@@ -19,20 +19,22 @@ package org.gradle.api.internal.externalresource.transport.http;
 import org.apache.http.HttpResponse;
 import org.apache.http.util.EntityUtils;
 import org.gradle.api.Nullable;
-import org.gradle.api.internal.externalresource.*;
+import org.gradle.api.internal.externalresource.ExternalResource;
+import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 import org.gradle.api.internal.externalresource.cached.CachedExternalResource;
 import org.gradle.api.internal.externalresource.cached.CachedExternalResourceAdapter;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResource;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceCandidates;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
+import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaDataCompare;
 import org.gradle.api.internal.externalresource.transfer.ExternalResourceAccessor;
+import org.gradle.internal.Factory;
 import org.gradle.util.hash.HashValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 public class HttpResourceAccessor implements ExternalResourceAccessor {
@@ -61,7 +63,7 @@ public class HttpResourceAccessor implements ExternalResourceAccessor {
             if (remoteChecksum != null) {
                 LocallyAvailableResource local = localCandidates.findByHashValue(remoteChecksum);
                 if (local != null) {
-                    LOGGER.info("Found locally available resource with matching checksum: [{}, {}]", source, local.getOrigin());
+                    LOGGER.info("Found locally available resource with matching checksum: [{}, {}]", source, local.getFile());
                     return new LocallyAvailableExternalResource(source, local);
                 }
             }
@@ -121,23 +123,14 @@ public class HttpResourceAccessor implements ExternalResourceAccessor {
         openResources.clear();
     }
 
-    private boolean isUnchanged(String source, CachedExternalResource cached) {
-        ExternalResourceMetaData metaData = cached.getExternalResourceMetaData();
-        if (metaData != null) {
-            Date cacheLastModified = metaData.getLastModified();
-            long cacheContentLength = metaData.getContentLength();
-
-            if (cacheLastModified != null && cacheContentLength > 0) {
-                ExternalResourceMetaData remoteMetaData = getMetaDataInternal(source);
-
-                if (remoteMetaData != null && remoteMetaData.getContentLength() > 0 && remoteMetaData.getLastModified() != null) {
-                    return remoteMetaData.getContentLength() == cacheContentLength
-                            && remoteMetaData.getLastModified().equals(cacheLastModified);
-                }
-            }
-        }
-
-        return false;
+    private boolean isUnchanged(final String source, CachedExternalResource cached) {
+        return ExternalResourceMetaDataCompare.isDefinitelyUnchanged(
+                cached.getExternalResourceMetaData(),
+                new Factory<ExternalResourceMetaData>() {
+                    public ExternalResourceMetaData create() {
+                        return getMetaDataInternal(source);
+                    }
+                });
     }
 
     private HashValue getChecksumFor(String source) {
