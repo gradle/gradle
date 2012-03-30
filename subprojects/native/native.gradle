@@ -10,7 +10,10 @@ dependencies {
     compile libraries.commons_io
     compile libraries.slf4j_api
     compile libraries.jna
-    compile module('org.jruby.ext.posix:jna-posix:1.0.3') {
+    compile module('org.jruby.ext.posix:jnr-posix:1.1.8') {
+        dependency libraries.jna
+    }
+    compile module('org.jruby.extras:constantine:0.7') {
         dependency libraries.jna
     }
     compile module('org.fusesource.jansi:jansi:1.2.1') {

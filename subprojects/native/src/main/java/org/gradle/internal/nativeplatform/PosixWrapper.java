@@ -28,9 +28,10 @@ import java.io.IOException;
 public class PosixWrapper {
 
     public static POSIX wrap(POSIX posix) {
-        if (posix instanceof JavaPOSIX) {
+        String name = posix.getClass().getSimpleName();
+        if ("JavaPOSIX".equals(name)) {
             return new ChmodDisabledFallbackPOSIX(posix);
-        } else if (posix instanceof WindowsPOSIX) {
+        } else if ("WindowsPOSIX".equals("name")) {
             return new FilePermissionFallbackPOSIX(posix);
         } else {
             return posix;
@@ -263,6 +264,46 @@ public class PosixWrapper {
 
         public void errno(int value) {
             delegate.errno(value);
+        }
+
+        public LibC libc() {
+            return delegate.libc();
+        }
+
+        public boolean isNative() {
+            return delegate.isNative();
+        }
+
+        public String getenv(String name) {
+            return delegate.getenv(name);
+        }
+
+        public int setenv(String name, String value, int i) {
+            return delegate.setenv(name, value, i);
+        }
+
+        public int unsetenv(String name) {
+            return delegate.unsetenv(name);
+        }
+
+        public int exec(String cmd, String... args) {
+            return delegate.exec(cmd, args);
+        }
+
+        public int exec(String cmd, String[] args, String[] env) {
+            return delegate.exec(cmd, args, env);
+        }
+
+        public int execv(String cmd, String[] args) {
+            return delegate.execv(cmd, args);
+        }
+
+        public int execve(String cmd, String[] args, String[] env) {
+            return delegate.execve(cmd, args, env);
+        }
+
+        public FileStat allocateStat() {
+            return delegate.allocateStat();
         }
     }
 
