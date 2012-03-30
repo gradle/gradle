@@ -126,6 +126,10 @@ class MavenModule {
     TestFile getPomFile() {
         return moduleDir.file("$artifactId-${publishArtifactVersion}.pom")
     }
+    
+    TestFile getMetaDataFile() {
+        moduleDir.file("maven-metadata.xml")
+    }
 
     TestFile getArtifactFile() {
         return artifactFile([:])
@@ -255,6 +259,55 @@ class MavenModule {
         hashFile.text = HashUtil.createHash(file, algorithm.toUpperCase()).asHexString()
         return hashFile
     }
+
+    public expectMetaDataGet(HttpServer server, prefix = null) {
+        server.expectGet(metadataPath(prefix), metaDataFile)
+    }
+
+    public metadataPath(prefix = null) {
+        path(prefix, "maven-metadata.xml")
+    }
+
+    public expectPomHead(HttpServer server, prefix = null) {
+        server.expectHead(pomPath(prefix), pomFile)
+    }
+
+    public pomPath(prefix = null) {
+        path(prefix, pomFile.name)
+    }
+
+    public expectPomSha1Get(HttpServer server, prefix = null) {
+        server.expectGet(pomSha1Path(prefix), sha1File(pomFile))
+    }
+
+    public pomSha1Path(prefix = null) {
+        pomPath(prefix) + ".sha1"
+    }
+
+    public expectArtifactHead(HttpServer server, prefix = null) {
+        server.expectHead(artifactPath(prefix), artifactFile)
+    }
+
+    public expectArtifactGet(HttpServer server, prefix = null) {
+        server.expectGet(artifactPath(prefix), pomFile)
+    }
+
+    public artifactPath(prefix = null) {
+        path(prefix, artifactFile.name)
+    }
+
+    public expectArtifactSha1Get(HttpServer server, prefix = null) {
+        server.expectGet(artifactSha1Path(prefix), sha1File(artifactFile))
+    }
+
+    public artifactSha1Path(prefix = null) {
+        artifactPath(prefix) + ".sha1"
+    }
+
+    public path(prefix = null, String filename) {
+        "${prefix == null ? "" : prefix}/${groupId.replace('.', '/')}/${artifactId}/${version}/${filename}"
+    }
+
 }
 
 class MavenPom {

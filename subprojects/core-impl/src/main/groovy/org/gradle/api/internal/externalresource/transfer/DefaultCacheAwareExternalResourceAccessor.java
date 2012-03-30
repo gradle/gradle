@@ -45,19 +45,6 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
     public ExternalResource getResource(final String source, @Nullable LocallyAvailableResourceCandidates localCandidates, @Nullable CachedExternalResource cached) throws IOException {
         LOGGER.debug("Constructing external resource: {}", source);
 
-        // Do we have any artifacts in the cache with the same checksum
-        boolean hasLocalCandidates = localCandidates != null && !localCandidates.isNone();
-        if (hasLocalCandidates) {
-            HashValue remoteChecksum = delegate.getResourceSha1(source);
-            if (remoteChecksum != null) {
-                LocallyAvailableResource local = localCandidates.findByHashValue(remoteChecksum);
-                if (local != null) {
-                    LOGGER.info("Found locally available resource with matching checksum: [{}, {}]", source, local.getFile());
-                    return new LocallyAvailableExternalResource(source, local);
-                }
-            }
-        }
-
         // Is the cached version still current
         if (cached != null) {
             boolean isUnchanged = ExternalResourceMetaDataCompare.isDefinitelyUnchanged(
@@ -76,6 +63,19 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
             if (isUnchanged) {
                 LOGGER.info("Cached resource is up-to-date (lastModified: {}). [HTTP: {}]", cached.getExternalLastModified(), source);
                 return new CachedExternalResourceAdapter(source, cached, delegate);
+            }
+        }
+
+        // Do we have any artifacts in the cache with the same checksum
+        boolean hasLocalCandidates = localCandidates != null && !localCandidates.isNone();
+        if (hasLocalCandidates) {
+            HashValue remoteChecksum = delegate.getResourceSha1(source);
+            if (remoteChecksum != null) {
+                LocallyAvailableResource local = localCandidates.findByHashValue(remoteChecksum);
+                if (local != null) {
+                    LOGGER.info("Found locally available resource with matching checksum: [{}, {}]", source, local.getFile());
+                    return new LocallyAvailableExternalResource(source, local);
+                }
             }
         }
 

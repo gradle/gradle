@@ -172,6 +172,51 @@ class IvyModule {
     IvyDescriptor getIvy() {
         return new IvyDescriptor(ivyFile)
     }
+
+    public expectIvyHead(HttpServer server, prefix = null) {
+        server.expectHead(ivyPath(prefix), ivyFile)
+    }
+
+    public expectIvyGet(HttpServer server, prefix = null) {
+        server.expectGet(ivyPath(prefix), ivyFile)
+    }
+
+    public ivyPath(prefix = null) {
+        path(prefix, ivyFile.name)
+    }
+
+    public expectIvySha1Get(HttpServer server, prefix = null) {
+        server.expectGet(ivySha1Path(prefix), sha1File(ivyFile))
+    }
+
+    public ivySha1Path(prefix = null) {
+        ivyPath(prefix) + ".sha1"
+    }
+
+    public expectArtifactHead(HttpServer server, prefix = null) {
+        server.expectHead(artifactPath(prefix), jarFile)
+    }
+
+    public expectArtifactGet(HttpServer server, prefix = null) {
+        server.expectGet(artifactPath(prefix), jarFile)
+    }
+
+    public artifactPath(prefix = null) {
+        path(prefix, jarFile.name)
+    }
+
+    public expectArtifactSha1Get(HttpServer server, prefix = null) {
+        server.expectGet(artifactSha1Path(prefix), sha1File(jarFile))
+    }
+
+    public artifactSha1Path(prefix = null) {
+        artifactPath(prefix) + ".sha1"
+    }
+
+    public path(prefix = null, String filename) {
+        "${prefix == null ? "" : prefix}/${organisation}/${module}/${revision}/${filename}"
+    }
+
 }
 
 class IvyDescriptor {

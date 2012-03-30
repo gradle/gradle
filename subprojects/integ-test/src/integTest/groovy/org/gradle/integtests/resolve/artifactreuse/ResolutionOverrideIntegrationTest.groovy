@@ -130,8 +130,8 @@ task retrieve(type: Sync) {
 
         when:
         server.resetExpectations()
-        server.expectGet('/org/name/projectA/1.2/projectA-1.2.pom.sha1', module.sha1File(module.pomFile))
-        server.expectGet('/org/name/projectA/1.2/projectA-1.2.jar', module.artifactFile)
+        module.expectPomHead(server)
+        module.expectArtifactGet(server)
 
         then:
         executer.withArguments("--refresh-dependencies")

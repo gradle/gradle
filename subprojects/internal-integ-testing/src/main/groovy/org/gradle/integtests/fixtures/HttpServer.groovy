@@ -19,6 +19,7 @@ import java.security.Principal
 import java.util.zip.GZIPOutputStream
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
+import org.gradle.util.hash.HashUtil
 import org.junit.rules.ExternalResource
 import org.mortbay.jetty.handler.AbstractHandler
 import org.mortbay.jetty.handler.HandlerCollection
@@ -35,6 +36,26 @@ class HttpServer extends ExternalResource {
     private final HandlerCollection collection = new HandlerCollection()
     private Throwable failure
     private TestUserRealm realm
+    
+    enum EtagStrategy {
+        NONE({ null }),
+        RAW_SHA1_HEX({ HashUtil.sha1(it as byte[]).asHexString() })
+        
+        private final Closure generator
+        
+        EtagStrategy(Closure generator) {
+            this.generator = generator
+        }
+        
+        String generate(byte[] bytes) {
+            generator.call(bytes)                        
+        }
+    }
+
+    // Can be an EtagStrategy, or a closure that receives a byte[] and returns an etag string, or anything that gets toString'd
+    def etags = EtagStrategy.NONE
+
+    boolean sendLastModified = true
 
     HttpServer() {
         HandlerCollection handlers = new HandlerCollection()
@@ -221,10 +242,30 @@ class HttpServer extends ExternalResource {
     }
 
     private sendFile(HttpServletResponse response, File file, Long lastModified, Long contentLength) {
-        response.setDateHeader(HttpHeaders.LAST_MODIFIED, lastModified ?: file.lastModified())
+        if (lastModified) {
+            response.setDateHeader(HttpHeaders.LAST_MODIFIED, lastModified ?: file.lastModified())
+        }
         response.setContentLength((contentLength ?: file.length()) as int)
         response.setContentType(new MimeTypes().getMimeByExtension(file.name).toString())
+        addEtag(response, file.bytes, etags)
         response.outputStream << new FileInputStream(file)
+    }
+
+    private addEtag(HttpServletResponse response, byte[] bytes, etagStrategy) {
+        if (etagStrategy != null) {
+            String value
+            if (etags instanceof EtagStrategy) {
+                value = etags.generate(bytes)
+            } else if (etagStrategy instanceof Closure) {
+                value = etagStrategy.call(bytes)
+            } else {
+                value = etagStrategy.toString()
+            }
+
+            if (value != null) {
+                response.addHeader(HttpHeaders.ETAG, value)
+            }
+        }
     }
 
     private sendDirectoryListing(HttpServletResponse response, File directory) {

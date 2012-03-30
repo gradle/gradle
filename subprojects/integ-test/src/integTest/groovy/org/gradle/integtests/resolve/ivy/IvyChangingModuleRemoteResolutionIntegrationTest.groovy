@@ -171,10 +171,12 @@ task retrieve(type: Copy) {
 
         server.resetExpectations()
         // Server will be hit to get updated versions
-        server.expectGet('/repo/group/projectA/1.1/ivy-1.1.xml.sha1', module.sha1File(module.ivyFile))
-        server.expectGet('/repo/group/projectA/1.1/projectA-1.1.jar.sha1', module.sha1File(module.jarFile))
-        server.expectHead('/repo/group/projectA/1.1/projectA-1.1.jar', module.jarFile)
-        server.expectGet('/repo/group/projectA/1.1/projectA-1.1.jar', module.jarFile)
+        module.expectIvyHead(server, '/repo')
+        module.expectIvySha1Get(server, '/repo')
+        module.expectIvyGet(server, '/repo')
+        module.expectArtifactHead(server, '/repo')
+        module.expectArtifactSha1Get(server, '/repo')
+        module.expectArtifactGet(server, '/repo')
 
         run 'retrieve'
 

@@ -308,7 +308,7 @@ task retrieve(type: Sync) {
 
         when: "Server handles requests"
         server.resetExpectations()
-        expectReuseModuleArtifacts(module, '/repo')
+        expectChangedProbe('/repo', module, false)
 
         // Retrieve again with zero timeout should check for updated snapshot
         and:
@@ -552,15 +552,30 @@ project('resolve') {
         }
     }
 
-    private expectReuseModuleArtifacts(MavenModule module, def prefix) {
+    private expectReuseModuleArtifacts(MavenModule module, def prefix, boolean metaDataMatch) {
         def moduleName = module.artifactId;
         server.expectGet("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/maven-metadata.xml", module.moduleDir.file("maven-metadata.xml"))
+        
         server.expectGet("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/${module.pomFile.name}.sha1", module.sha1File(module.pomFile))
         // TODO - should only ask for metadata once
         server.expectGet("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/maven-metadata.xml", module.moduleDir.file("maven-metadata.xml"))
         server.expectGet("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/${module.artifactFile.name}.sha1", module.sha1File(module.artifactFile))
     }
 
+    private expectChangedProbe(prefix, MavenModule module, boolean expectSha1) {
+        module.expectMetaDataGet(server, prefix)
+        module.expectPomHead(server, prefix)
+        if (expectSha1) {
+            module.expectPomSha1Get(server, prefix)
+        }
+
+        module.expectMetaDataGet(server, prefix)
+        module.expectArtifactHead(server, prefix)
+        if (expectSha1) {
+            module.expectArtifactSha1Get(server, prefix)
+        }
+    }
+    
     private expectModuleMissing(MavenModule module, def prefix) {
         def moduleName = module.artifactId;
         server.expectGetMissing("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/maven-metadata.xml")
@@ -569,4 +584,6 @@ project('resolve') {
         server.expectGetMissing("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/maven-metadata.xml")
         server.expectHeadMissing("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/${moduleName}-1.0-SNAPSHOT.jar")
     }
+
+
 }
