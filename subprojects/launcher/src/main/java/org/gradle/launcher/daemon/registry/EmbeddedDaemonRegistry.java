@@ -18,6 +18,7 @@ package org.gradle.launcher.daemon.registry;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.CompositeStoppable;
+import org.gradle.internal.Stoppable;
 import org.gradle.launcher.daemon.server.Daemon;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.messaging.remote.Address;
@@ -39,7 +40,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * by the time they are returned to the caller. Clients must therefore be prepared for this and expect connection failures, either through
  * the endpoint disappearing or becoming busy between asking for idle daemons and trying to connect.
  */
-public class EmbeddedDaemonRegistry implements DaemonRegistry {
+public class EmbeddedDaemonRegistry implements DaemonRegistry, Stoppable {
 
     private final Map<Address, DaemonInfo> daemonInfos = new ConcurrentHashMap<Address, DaemonInfo>();
     private final List<Daemon> daemons = new ArrayList<Daemon>();
@@ -133,7 +134,7 @@ public class EmbeddedDaemonRegistry implements DaemonRegistry {
         daemon.start();
     }
 
-    public void stopDaemons() {
+    public void stop() {
         List<Daemon> daemonsToStop;
         
         daemonsLock.lock();

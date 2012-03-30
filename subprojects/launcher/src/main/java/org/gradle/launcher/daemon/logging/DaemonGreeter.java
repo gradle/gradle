@@ -18,20 +18,18 @@ package org.gradle.launcher.daemon.logging;
 
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.GradleException;
+import org.gradle.api.internal.DocumentationRegistry;
 
-import java.io.PrintStream;
 import java.util.List;
 
 /**
  * by Szczepan Faber, created at: 1/19/12
  */
 public class DaemonGreeter {
-    
-    public void sendGreetingAndClose(PrintStream output) {
-        synchronized (output) {
-            output.println(DaemonMessages.PROCESS_STARTED);
-            output.close();
-        }
+    private final DocumentationRegistry documentationRegistry;
+
+    public DaemonGreeter(DocumentationRegistry documentationRegistry) {
+        this.documentationRegistry = documentationRegistry;
     }
 
     public void verifyGreetingReceived(Process process) {
@@ -64,7 +62,9 @@ public class DaemonGreeter {
         StringBuilder sb = new StringBuilder();
         sb.append("This problem might be caused by incorrect configuration of the daemon.\n");
         sb.append("For example, an unrecognized jvm option is used.\n");
-        sb.append("Please refer to the user guide chapter on the daemon.\n");
+        sb.append("Please refer to the user guide chapter on the daemon at ");
+        sb.append(documentationRegistry.getDocumentationFor("gradle_daemon"));
+        sb.append("\n");
         sb.append("Please read below process output to find out more:\n");
         sb.append("-----------------------\n");
 

@@ -15,11 +15,12 @@
  */
 package org.gradle.launcher.daemon.client;
 
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.context.DaemonContextBuilder;
+import org.gradle.launcher.daemon.logging.DaemonGreeter;
 import org.gradle.launcher.daemon.registry.DaemonDir;
-import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
 
 import java.io.InputStream;
@@ -28,27 +29,24 @@ import java.io.InputStream;
  * Takes care of instantiating and wiring together the services required by the daemon client.
  */
 public class DaemonClientServices extends DaemonClientServicesSupport {
-    private final ServiceRegistry registryServices;
     private final DaemonParameters daemonParameters;
 
     public DaemonClientServices(ServiceRegistry loggingServices, DaemonParameters daemonParameters, InputStream buildStandardInput) {
         super(loggingServices, buildStandardInput);
         this.daemonParameters = daemonParameters;
-        this.registryServices = new DaemonRegistryServices(daemonParameters.getBaseDir());
-        add(registryServices);
-    }
-
-    // here to satisfy DaemonClientServicesSupport contract
-    protected DaemonRegistry createDaemonRegistry() {
-        return registryServices.get(DaemonRegistry.class);
+        add(new DaemonRegistryServices(daemonParameters.getBaseDir()));
     }
 
     public DaemonStarter createDaemonStarter() {
-        return new DefaultDaemonStarter(registryServices.get(DaemonDir.class), daemonParameters);
+        return new DefaultDaemonStarter(get(DaemonDir.class), daemonParameters, get(DaemonGreeter.class));
+    }
+
+    protected DaemonGreeter createDaemonGreeter() {
+        return new DaemonGreeter(get(DocumentationRegistry.class));
     }
 
     protected void configureDaemonContextBuilder(DaemonContextBuilder builder) {
-        builder.setDaemonRegistryDir(registryServices.get(DaemonDir.class).getBaseDir());
+        builder.setDaemonRegistryDir(get(DaemonDir.class).getBaseDir());
         builder.useDaemonParameters(daemonParameters);
     }
 

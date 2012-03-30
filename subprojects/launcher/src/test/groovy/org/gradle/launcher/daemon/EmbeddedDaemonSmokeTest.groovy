@@ -18,7 +18,6 @@ package org.gradle.launcher.daemon
 import org.gradle.configuration.GradleLauncherMetaData
 import org.gradle.launcher.daemon.client.DaemonClient
 import org.gradle.launcher.daemon.client.EmbeddedDaemonClientServices
-import org.gradle.launcher.daemon.registry.DaemonRegistry
 import org.gradle.launcher.exec.DefaultBuildActionParameters
 import org.gradle.tooling.internal.provider.ConfiguringBuildAction
 import org.gradle.tooling.internal.provider.ExecuteBuildAction
@@ -41,7 +40,7 @@ class EmbeddedDaemonSmokeTest extends Specification {
     def "run build"() {
         given:
         def action = new ConfiguringBuildAction(projectDirectory: temp.dir, searchUpwards: false, tasks: ['echo'],
-                action: new ExecuteBuildAction())
+                gradleUserHomeDir: temp.createDir("user-home"), action: new ExecuteBuildAction())
         def parameters = new DefaultBuildActionParameters(new GradleLauncherMetaData(), new Date().time, System.properties, System.getenv(), temp.dir)
         
         and:
@@ -65,7 +64,7 @@ class EmbeddedDaemonSmokeTest extends Specification {
     }
     
     def cleanup() {
-        daemonClientServices.get(DaemonRegistry).stopDaemons()
+        daemonClientServices?.close()
     }
 
 }

@@ -22,7 +22,6 @@ import org.gradle.api.logging.Logging;
 import org.gradle.launcher.daemon.configuration.DaemonServerConfiguration;
 import org.gradle.launcher.daemon.configuration.DefaultDaemonServerConfiguration;
 import org.gradle.launcher.daemon.context.DaemonContext;
-import org.gradle.launcher.daemon.logging.DaemonGreeter;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.server.Daemon;
 import org.gradle.launcher.daemon.server.DaemonServices;
@@ -165,7 +164,7 @@ public class DaemonMain extends EntryPoint {
         System.setErr(printStream);
         System.setIn(new ByteArrayInputStream(new byte[0]));
 
-        new DaemonGreeter().sendGreetingAndClose(originalOut);
+        originalOut.println(DaemonMessages.PROCESS_STARTED);
         originalOut.close();
         originalErr.close();
 

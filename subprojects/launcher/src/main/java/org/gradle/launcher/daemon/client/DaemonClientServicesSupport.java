@@ -15,6 +15,9 @@
  */
 package org.gradle.launcher.daemon.client;
 
+import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.GradleDistributionLocator;
+import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.nativeplatform.ProcessEnvironment;
@@ -89,7 +92,11 @@ abstract public class DaemonClientServicesSupport extends DefaultServiceRegistry
         return new DefaultDaemonConnector(get(DaemonRegistry.class), get(OutgoingConnector.class), get(DaemonStarter.class));
     }
 
-    abstract protected DaemonRegistry createDaemonRegistry();
-    
-    abstract protected DaemonStarter createDaemonStarter();
+    protected DocumentationRegistry createDocumentationRegistry() {
+        return new DocumentationRegistry(get(GradleDistributionLocator.class));
+    }
+
+    protected DefaultModuleRegistry createModuleRegistry() {
+        return new DefaultModuleRegistry();
+    }
 }

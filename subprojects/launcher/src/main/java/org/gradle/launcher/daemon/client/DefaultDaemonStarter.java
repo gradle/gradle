@@ -39,10 +39,12 @@ public class DefaultDaemonStarter implements DaemonStarter {
 
     private final DaemonDir daemonDir;
     private final DaemonParameters daemonParameters;
+    private DaemonGreeter daemonGreeter;
 
-    public DefaultDaemonStarter(DaemonDir daemonDir, DaemonParameters daemonParameters) {
+    public DefaultDaemonStarter(DaemonDir daemonDir, DaemonParameters daemonParameters, DaemonGreeter daemonGreeter) {
         this.daemonDir = daemonDir;
         this.daemonParameters = daemonParameters;
+        this.daemonGreeter = daemonGreeter;
     }
 
     public String startDaemon() {
@@ -89,7 +91,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
             workingDir.mkdirs();
             ProcessParentingInitializer.intitialize();
             Process process = new ProcessBuilder(args).redirectErrorStream(true).directory(workingDir).start();
-            new DaemonGreeter().verifyGreetingReceived(process);
+            daemonGreeter.verifyGreetingReceived(process);
 
             process.getOutputStream().close();
             process.getErrorStream().close();
