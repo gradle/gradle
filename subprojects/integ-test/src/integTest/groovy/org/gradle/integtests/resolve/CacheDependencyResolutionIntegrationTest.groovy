@@ -99,8 +99,10 @@ project('b') {
         server.expectGet('/repo-a/org.gradle/testproject/1.0/ivy-1.0.xml', module1.ivyFile)
         server.expectGet('/repo-a/org.gradle/testproject/1.0/testproject-1.0.jar', module1.jarFile)
 
+        module2.expectIvyHead(server, "/repo-b")
         server.expectGet('/repo-b/org.gradle/testproject/1.0/ivy-1.0.xml.sha1', module2.sha1File(module2.ivyFile))
         server.expectGet('/repo-b/org.gradle/testproject/1.0/ivy-1.0.xml', module2.ivyFile)
+        module2.expectArtifactHead(server, "/repo-b")
         server.expectGet('/repo-b/org.gradle/testproject/1.0/testproject-1.0.jar.sha1', module2.sha1File(module2.jarFile))
         server.expectGet('/repo-b/org.gradle/testproject/1.0/testproject-1.0.jar', module2.jarFile)
 

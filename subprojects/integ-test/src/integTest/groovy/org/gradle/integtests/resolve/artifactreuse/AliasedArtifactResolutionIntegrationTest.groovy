@@ -28,6 +28,12 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractDependencyResolut
     MavenModule projectB
     IvyModule ivyProjectB
 
+    def mRepo1 = "/mavenRepo1"
+    def mRepo2 = "/mavenRepo2"
+
+    def iRepo1 = "/ivyRepo1"
+    def iRepo2 = "/ivyRepo2"
+
     def "setup"() {
         init()
         projectB = mavenRepo().module('org.name', 'projectB').publish()
@@ -43,7 +49,9 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractDependencyResolut
         succeedsWith 'mavenRepository1'
 
         when:
+        projectB.expectPomHead(server, "/mavenRepo2")
         server.expectGet('/mavenRepo2/org/name/projectB/1.0/projectB-1.0.pom.sha1', projectB.sha1File(projectB.pomFile))
+        projectB.expectArtifactHead(server, "/mavenRepo2")
         server.expectGet('/mavenRepo2/org/name/projectB/1.0/projectB-1.0.jar.sha1', projectB.sha1File(projectB.artifactFile))
 
         then:
@@ -59,7 +67,9 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractDependencyResolut
         succeedsWith 'ivyRepository1'
 
         when:
+        ivyProjectB.expectIvyHead(server, iRepo2)
         server.expectGet('/ivyRepo2/org.name/projectB/1.0/ivy-1.0.xml.sha1', ivyProjectB.sha1File(ivyProjectB.ivyFile))
+        ivyProjectB.expectArtifactHead(server, iRepo2)
         server.expectGet('/ivyRepo2/org.name/projectB/1.0/projectB-1.0.jar.sha1', projectB.sha1File(projectB.artifactFile))
 
         then:
@@ -76,6 +86,7 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractDependencyResolut
 
         when:
         server.expectGet('/ivyRepo1/org.name/projectB/1.0/ivy-1.0.xml', ivyProjectB.ivyFile)
+        ivyProjectB.expectArtifactHead(server, iRepo1)
         server.expectGet('/ivyRepo1/org.name/projectB/1.0/projectB-1.0.jar.sha1', projectB.sha1File(projectB.artifactFile))
 
         then:
@@ -92,6 +103,7 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractDependencyResolut
 
         when:
         server.expectGet('/mavenRepo1/org/name/projectB/1.0/projectB-1.0.pom', projectB.pomFile)
+        projectB.expectArtifactHead(server, mRepo1)
         server.expectGet('/mavenRepo1/org/name/projectB/1.0/projectB-1.0.jar.sha1', projectB.sha1File(projectB.artifactFile))
 
         then:
@@ -120,8 +132,10 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractDependencyResolut
         succeedsWith 'mavenRepository1'
 
         when:
+        projectB.expectPomHead(server, "/mavenRepo2")
         server.expectGetMissing('/mavenRepo2/org/name/projectB/1.0/projectB-1.0.pom.sha1')
         server.expectGet('/mavenRepo2/org/name/projectB/1.0/projectB-1.0.pom', projectB.pomFile)
+        projectB.expectArtifactHead(server, "/mavenRepo2")
         server.expectGetMissing('/mavenRepo2/org/name/projectB/1.0/projectB-1.0.jar.sha1')
         server.expectGet('/mavenRepo2/org/name/projectB/1.0/projectB-1.0.jar', projectB.artifactFile)
 
@@ -138,8 +152,10 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractDependencyResolut
         succeedsWith 'mavenRepository1'
 
         when:
+        projectB.expectPomHead(server, mRepo2)
         server.expectGet('/mavenRepo2/org/name/projectB/1.0/projectB-1.0.pom.sha1', projectB.md5File(projectB.pomFile))
         server.expectGet('/mavenRepo2/org/name/projectB/1.0/projectB-1.0.pom', projectB.pomFile)
+        projectB.expectArtifactHead(server, mRepo2)
         server.expectGet('/mavenRepo2/org/name/projectB/1.0/projectB-1.0.jar.sha1', projectB.md5File(projectB.artifactFile))
         server.expectGet('/mavenRepo2/org/name/projectB/1.0/projectB-1.0.jar', projectB.artifactFile)
 

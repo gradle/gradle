@@ -45,31 +45,43 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
     public ExternalResource getResource(final String source, @Nullable LocallyAvailableResourceCandidates localCandidates, @Nullable CachedExternalResource cached) throws IOException {
         LOGGER.debug("Constructing external resource: {}", source);
 
-        // Is the cached version still current
+        // If we have no caching options, just get the thing directly
+        if (cached == null && (localCandidates == null || localCandidates.isNone())) {
+            return delegate.getResource(source);
+        }
+
+        // We might be able to use a cached/locally available version
+
+        // Get the metadata first to see if it's there
+        final ExternalResourceMetaData remoteMetaData = delegate.getMetaData(source);
+        if (remoteMetaData == null) {
+            return null;
+        }
+                
+        // Is the cached version still current?
         if (cached != null) {
             boolean isUnchanged = ExternalResourceMetaDataCompare.isDefinitelyUnchanged(
                     cached.getExternalResourceMetaData(),
                     new Factory<ExternalResourceMetaData>() {
                         public ExternalResourceMetaData create() {
-                            try {
-                                return delegate.getMetaData(source);
-                            } catch (IOException e) {
-                                return null;
-                            }
+                            return remoteMetaData;
                         }
                     }
             );
 
             if (isUnchanged) {
                 LOGGER.info("Cached resource is up-to-date (lastModified: {}). [HTTP: {}]", cached.getExternalLastModified(), source);
+                // TODO - should we use the remote metadata? It may be “better”
                 return new CachedExternalResourceAdapter(source, cached, delegate);
             }
         }
 
-        // Do we have any artifacts in the cache with the same checksum
+        // Either no cached, or it's changed. See if we can find something local with the same checksum
         boolean hasLocalCandidates = localCandidates != null && !localCandidates.isNone();
         if (hasLocalCandidates) {
+            // The “remote” may have already given us the checksum
             HashValue remoteChecksum = delegate.getResourceSha1(source);
+
             if (remoteChecksum != null) {
                 LocallyAvailableResource local = localCandidates.findByHashValue(remoteChecksum);
                 if (local != null) {
@@ -79,6 +91,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
             }
         }
 
+        // All local/cached options failed, get directly
         return delegate.getResource(source);
     }
 

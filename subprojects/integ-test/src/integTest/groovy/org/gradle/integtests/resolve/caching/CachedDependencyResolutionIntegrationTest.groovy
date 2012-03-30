@@ -103,6 +103,13 @@ task retrieve(type: Copy) {
         module.expectArtifactGet(server)
     }
 
+    void headThenSha1Requests() {
+        module.expectIvyHead(server)
+        module.expectIvySha1Get(server)
+
+        module.expectArtifactHead(server)
+        module.expectArtifactSha1Get(server)
+    }
 
     void unchangedResolve() {
         resolve()
@@ -160,14 +167,14 @@ task retrieve(type: Copy) {
         initialResolve()
 
         expect:
-        sha1OnlyRequests()
+        headThenSha1Requests()
         unchangedResolve()
 
         when:
         change()
 
         then:
-        sha1ThenGetRequests()
+        headSha1ThenGetRequests()
         changedResolve()
     }
 
