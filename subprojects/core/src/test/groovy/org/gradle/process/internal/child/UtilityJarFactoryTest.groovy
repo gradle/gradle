@@ -25,28 +25,16 @@ public class UtilityJarFactoryTest extends Specification {
     @Rule final TemporaryFolder tmpDir = new TemporaryFolder()
     private def UtilityJarFactory factory = new UtilityJarFactory()
 
-    def "creates classpath jar with relative urls in manifest"() {
+    def "creates classpath jar with urls in manifest"() {
+        def tmpDirPath = tmpDir.dir.toURI().rawPath
         def jarFile = tmpDir.file("mydir/jarfile.jar").createFile()
-        def classpathFiles = [tmpDir.file('mydir/jar1.jar'), tmpDir.file('mydir/nested/jar2.jar')]
+        def classpathFiles = [tmpDir.file('mydir/jar1.jar'), tmpDir.file('mydir/nested/jar2.jar'), tmpDir.file('different/jar1.jar')]
 
         when:
         factory.createClasspathJarFile(jarFile, classpathFiles);
 
         then:
-        getManifestClassPath(jarFile) == "jar1.jar nested/jar2.jar"
-    }
-
-    def "creates classpath jar with absolute urls in manifest"() {
-        def jarFile = tmpDir.file("mydir/jarfile.jar").createFile()
-
-        when:
-        def tmpDirPath = tmpDir.dir.toURI().rawPath
-        def file1 = tmpDir.file('different/jar1.jar')
-        def file2 = tmpDir.file('different/nested/jar2.jar')
-        factory.createClasspathJarFile(jarFile, [file1, file2]);
-
-        then:
-        getManifestClassPath(jarFile) == "${tmpDirPath}different/jar1.jar ${tmpDirPath}different/nested/jar2.jar"
+        getManifestClassPath(jarFile) == "jar1.jar nested/jar2.jar ${tmpDirPath}different/jar1.jar"
     }
 
     private def getManifestClassPath(def jarFile) {

@@ -17,18 +17,13 @@
 package org.gradle.process.internal.child;
 
 import org.gradle.api.UncheckedIOException;
-import org.gradle.util.GUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.gradle.api.internal.classpath.ManifestUtil;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.URI;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
@@ -36,7 +31,6 @@ import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 
 class UtilityJarFactory {
-    private static final Logger LOGGER = LoggerFactory.getLogger(UtilityJarFactory.class);
 
     /**
      * Creates an empty jar file that contains a manifest with a Class-path entry that will load the supplied classpath.
@@ -59,24 +53,7 @@ class UtilityJarFactory {
     }
 
     private String createManifestClasspath(File jarFile, Collection<File> classpath) {
-        List<String> paths = new ArrayList<String>(classpath.size());
-        for (File file : classpath) {
-            String path = constructRelativeClasspathUri(jarFile, file);
-            paths.add(path);
-        }
-
-        String manifestClasspath = GUtil.join(paths, " ");
-        // TODO:DAZ Remove this logging
-        LOGGER.debug("Worker Process manifest classpath: {}", manifestClasspath);
-        return manifestClasspath;
-    }
-
-    // TODO:DAZ The returned URI will only be relative if the file is contained in the jarfile directory. Otherwise, an absolute URI is returned.
-    private String constructRelativeClasspathUri(File jarFile, File file) {
-        URI jarFileUri = jarFile.getParentFile().toURI();
-        URI fileUri = file.toURI();
-        URI relativeUri = jarFileUri.relativize(fileUri);
-        return relativeUri.getRawPath();
+        return ManifestUtil.createManifestClasspath(jarFile, classpath);
     }
 
     private void writeManifestOnlyJarFile(File file, Manifest manifest) throws IOException {
