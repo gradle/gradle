@@ -18,7 +18,7 @@ package org.gradle.internal.nativeplatform.filesystem
 
 import spock.lang.Specification
 import org.junit.Rule
-import org.junit.rules.TemporaryFolder
+import org.gradle.util.TemporaryFolder
 
 class FallbackFileStatTest extends Specification {
 
@@ -26,7 +26,7 @@ class FallbackFileStatTest extends Specification {
 
     def "mode() returns FileSystem.DEFAULT_FILE_MODE for files"() {
         setup:
-        def testfile = temporaryFolder.newFile()
+        def testfile = temporaryFolder.createFile("testFile")
         FallbackFileStat fallbackFileStat = new FallbackFileStat(testfile.absolutePath)
         expect:
         FileSystem.DEFAULT_FILE_MODE == fallbackFileStat.mode()
@@ -34,7 +34,7 @@ class FallbackFileStatTest extends Specification {
 
     def "mode() returns FileSystem.DEFAULT_DIR_MODE for directories"() {
         setup:
-        def testfolder = temporaryFolder.newFolder()
+        def testfolder = temporaryFolder.createDir()
         FallbackFileStat fallbackFileStat = new FallbackFileStat(testfolder.absolutePath)
         expect:
         FileSystem.DEFAULT_DIR_MODE == fallbackFileStat.mode()

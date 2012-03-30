@@ -20,23 +20,23 @@ import spock.lang.Specification
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition;
 
-public class PosixUtilTest extends Specification{
+public class PosixUtilTest extends Specification {
 
     @Requires(TestPrecondition.UNKNOWN_OS)
-    def "PosixUtil.current returns FallbackPOSIX on Unknown OS"(){
+    def "PosixUtil.current returns FallbackPOSIX on Unknown OS"() {
         expect:
-            PosixUtil.current() instanceof FallbackPOSIX
+        PosixUtil.current() instanceof FallbackPOSIX
     }
 
     @Requires(TestPrecondition.WINDOWS)
-    def "PosixUtil.current returns FallbackPOSIX on WindowsOS"(){
+    def "PosixUtil.current returns FallbackPOSIX on WindowsOS"() {
         expect:
-            PosixUtil.current() instanceof FallbackPOSIX
+        PosixUtil.current() instanceof FallbackPOSIX
     }
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
-    def "PosixUtil.current returns no FallbackPOSIX on Macosx and Unix"(){
+    def "PosixUtil.current returns no FallbackPOSIX on Macosx and Unix"() {
         expect:
-            !(PosixUtil.current() instanceof FallbackPOSIX)
+        !(PosixUtil.current() instanceof FallbackPOSIX)
     }
 }

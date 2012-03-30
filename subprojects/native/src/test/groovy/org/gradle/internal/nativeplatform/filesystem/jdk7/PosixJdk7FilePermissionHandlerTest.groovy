@@ -21,16 +21,18 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import com.google.common.io.Files
 import org.gradle.internal.nativeplatform.filesystem.FilePermissionHandlerFactory
+import org.junit.Rule
+import org.gradle.util.TemporaryFolder
 
 
 class PosixJdk7FilePermissionHandlerTest extends Specification {
 
+    @Rule TemporaryFolder temporaryFolder
+
     @Requires(TestPrecondition.NOT_WINDOWS)
     def "test chmod on non windows platforms with JDK7"() {
         setup:
-        def File dir = Files.createTempDir();
-        def File file = new File(dir, "f")
-        Files.touch(file)
+        def file = temporaryFolder.createFile("testFile")
         def handler = FilePermissionHandlerFactory.createDefaultFilePermissionHandler()
         when:
         handler.chmod(file, mode);

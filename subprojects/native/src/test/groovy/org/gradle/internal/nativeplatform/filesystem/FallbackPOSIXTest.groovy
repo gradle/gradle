@@ -17,8 +17,8 @@
 package org.gradle.internal.nativeplatform.filesystem
 
 import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
+import org.gradle.util.TemporaryFolder
 
 class FallbackPOSIXTest extends Specification {
 
@@ -28,7 +28,7 @@ class FallbackPOSIXTest extends Specification {
 
     def "returns 0 on chmod calls"() {
         setup:
-        def testFile = tempFolder.newFile();
+        def testFile = tempFolder.createFile("testFile");
         expect:
         0 == posix.chmod(testFile.absolutePath, mode)
         where:
@@ -37,7 +37,7 @@ class FallbackPOSIXTest extends Specification {
 
     def "stat() returns instance of FallbackStat"() {
         setup:
-        def testFile = tempFolder.newFile();
+        def testFile = tempFolder.createDir();
         when:
         def stat = posix.stat(testFile.absolutePath)
         then:

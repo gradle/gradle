@@ -22,7 +22,8 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class CommonFileSystemTest extends Specification {
-    @Rule TemporaryFolder tmpDir = new TemporaryFolder()
+    @Rule TemporaryFolder tmpDir
+
     def fs = FileSystems.default
     
     def "unix permissions cannot be read on non existing file"() {

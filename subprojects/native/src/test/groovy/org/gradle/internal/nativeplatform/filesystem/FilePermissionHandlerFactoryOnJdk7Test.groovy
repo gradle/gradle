@@ -20,7 +20,7 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Specification
 import org.junit.Rule
-import org.junit.rules.TemporaryFolder
+import org.gradle.util.TemporaryFolder
 
 @Requires(TestPrecondition.JDK7)
 class FilePermissionHandlerFactoryOnJdk7Test extends Specification {
@@ -37,7 +37,7 @@ class FilePermissionHandlerFactoryOnJdk7Test extends Specification {
 
     @Requires(TestPrecondition.WINDOWS)
     def "createDefaultFilePermissionHandler creates ComposedFilePermissionHandler with disabled Chmod on Windows OS"() {
-        def File file = temporaryFolder.newFile()
+        def File file = temporaryFolder.createFile("testFile")
         def handler = FilePermissionHandlerFactory.createDefaultFilePermissionHandler()
         when:
         handler.chmod(file, mode);
@@ -58,7 +58,7 @@ class FilePermissionHandlerFactoryOnJdk7Test extends Specification {
     @Requires(TestPrecondition.UNKNOWN_OS)
     def "createDefaultFilePermissionHandler creates ComposedFilePermissionHandler with disabled Chmod on Unknown OS"() {
         setup:
-        def File file = temporaryFolder.newFile()
+        def File file = temporaryFolder.createFile("testFile")
         def handler = FilePermissionHandlerFactory.createDefaultFilePermissionHandler()
         def originalMode = handler.getUnixMode(file);
         when:

@@ -20,8 +20,8 @@ package org.gradle.internal.nativeplatform.filesystem;
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Specification
-import org.junit.rules.TemporaryFolder
 import org.junit.Rule
+import org.gradle.util.TemporaryFolder
 
 @Requires(TestPrecondition.NOT_JDK7)
 public class FilePermissionHandlerFactoryOnNonJdk7Test extends Specification {
@@ -55,7 +55,7 @@ public class FilePermissionHandlerFactoryOnNonJdk7Test extends Specification {
     @Requires(TestPrecondition.FILE_PERMISSIONS)
     def "createDefaultFilePermissionHandler creates ComposedFilePermissionHandler with enabled Chmod on Unknown OS"() {
         setup:
-        def file = temporaryFolder.newFile()
+        def file = temporaryFolder.createFile("testFile")
         def handler = FilePermissionHandlerFactory.createDefaultFilePermissionHandler()
         when:
         handler.chmod(file, mode);
@@ -69,7 +69,7 @@ public class FilePermissionHandlerFactoryOnNonJdk7Test extends Specification {
     def "Throws IOException for failed chmod calls"() {
         setup:
         def handler = FilePermissionHandlerFactory.createDefaultFilePermissionHandler()
-        def notExistingFile = new File(temporaryFolder.newFolder(), "nonexisting.file");
+        def notExistingFile = new File(temporaryFolder.createDir(), "nonexisting.file");
         when:
         handler.chmod(notExistingFile, 622);
         then:
@@ -80,7 +80,7 @@ public class FilePermissionHandlerFactoryOnNonJdk7Test extends Specification {
     @Requires(TestPrecondition.UNKNOWN_OS)
     def "createDefaultFilePermissionHandler creates ComposedFilePermissionHandler with disabled Chmod on Unknown OS"() {
         setup:
-        def file = temporaryFolder.newFile()
+        def file = temporaryFolder.createFile("testFile")
 
         def handler = FilePermissionHandlerFactory.createDefaultFilePermissionHandler()
         def originalMode = handler.getUnixMode(file);
