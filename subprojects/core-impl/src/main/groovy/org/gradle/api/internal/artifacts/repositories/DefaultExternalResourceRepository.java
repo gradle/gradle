@@ -25,9 +25,7 @@ import org.gradle.api.internal.externalresource.cached.CachedExternalResource;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceCandidates;
-import org.gradle.api.internal.externalresource.transfer.ExternalResourceAccessor;
-import org.gradle.api.internal.externalresource.transfer.ExternalResourceLister;
-import org.gradle.api.internal.externalresource.transfer.ExternalResourceUploader;
+import org.gradle.api.internal.externalresource.transfer.*;
 import org.gradle.internal.UncheckedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,11 +43,15 @@ public class DefaultExternalResourceRepository extends AbstractRepository implem
     private final ExternalResourceUploader uploader;
     private final ExternalResourceLister lister;
 
+    private final CacheAwareExternalResourceAccessor cacheAwareAccessor;
+
     public DefaultExternalResourceRepository(String name, ExternalResourceAccessor accessor, ExternalResourceUploader uploader, ExternalResourceLister lister) {
         setName(name);
         this.accessor = accessor;
         this.uploader = uploader;
         this.lister = lister;
+
+        this.cacheAwareAccessor = new DefaultCacheAwareExternalResourceAccessor(accessor);
     }
 
     public ExternalResource getResource(String source) throws IOException {
@@ -57,7 +59,7 @@ public class DefaultExternalResourceRepository extends AbstractRepository implem
     }
 
     public ExternalResource getResource(String source, LocallyAvailableResourceCandidates localCandidates, CachedExternalResource cached) throws IOException{
-        return accessor.getResource(source, localCandidates, cached);
+        return cacheAwareAccessor.getResource(source, localCandidates, cached);
     }
 
     public ExternalResourceMetaData getResourceMetaData(String source) throws IOException {
