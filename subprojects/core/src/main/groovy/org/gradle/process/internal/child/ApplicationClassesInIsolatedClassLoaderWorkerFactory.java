@@ -33,11 +33,11 @@ import java.util.concurrent.Callable;
  *
  * <p>Class loader hierarchy:</p>
  * <pre>
- *                                bootstrap
+ *                              jvm bootstrap
  *                                   |
  *                   +---------------+----------------+
  *                   |                                |
- *                 system                         application
+ *               jvm system                       application
  *  (ImplementationClassLoaderWorker, logging)        |
  *                   |                                |
  *                filter                           filter

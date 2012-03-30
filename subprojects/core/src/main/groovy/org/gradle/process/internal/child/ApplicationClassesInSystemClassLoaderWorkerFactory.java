@@ -36,11 +36,11 @@ import java.util.concurrent.Callable;
  *
  * <p>Class loader hierarchy:</p>
  * <pre>
- *                              bootstrap
+ *                            jvm bootstrap
  *                                 |
  *                +----------------+--------------+
  *                |                               |
- *              system                      worker bootstrap
+ *            jvm system                      worker bootstrap
  *  (GradleWorkerMain, application) (SystemApplicationClassLoaderWorker, logging)
  *                |                   (ImplementationClassLoaderWorker)
  *                |                               |
