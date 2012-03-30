@@ -25,12 +25,51 @@ import java.io.IOException;
 
 public interface ExternalResourceAccessor {
 
-    ExternalResource getResource(String source) throws IOException;
-
+    /**
+     * Obtain the resource at the given location.
+     *
+     * If the resource does not exist, this method should return null.
+     *
+     * If the resource may exist but can't be accessed due to some configuration issue, the implementation
+     * may either return null or throw an {@link IOException} to indicate a fatal condition.
+     *
+     * @param location The address of the resource to obtain
+     * @return The resource if it exists, otherwise null
+     * @throws IOException If the resource may exist, but not could be obtained for some reason
+     */
     @Nullable
-    HashValue getResourceSha1(String source);
+    ExternalResource getResource(String location) throws IOException;
 
+    /**
+     * Obtain the SHA-1 checksum for the resource at the given location.
+     *
+     * Implementation is optional. If it is not feasible to obtain this without reading the
+     * entire resource, implementations should return null.
+     *
+     * @param location The address of the resource to obtain the sha-1 of
+     * @return The sha-1 if it can be cheaply obtained, otherwise null.
+     */
     @Nullable
-    ExternalResourceMetaData getMetaData(String source) throws IOException;
+    HashValue getResourceSha1(String location);
+
+    /**
+     * Obtains only the metadata about the resource.
+     *
+     * If it is determined that the resource does not exist, this method should return null.
+     *
+     * If it is not possible to determine whether the resource exists or not, this method should
+     * return a metadata instance with null/non value values (e.g. -1 for content length) to indicate
+     * that the resource may indeed exist, but the metadata for it cannot be obtained.
+     *
+     * If the resource may exist but can't be accessed due to some configuration issue, the implementation
+     * may either return an empty metadata object or throw an {@link IOException} to indicate a fatal condition.
+     *
+     * @param location The location of the resource to obtain the metadata for
+     * @return The available metadata if possible, an “empty” metadata object if the
+     *         metadata can't be reliably be obtained, null if the resource doesn't exist
+     * @throws IOException If the resource may exist, but not could be obtained for some reason
+     */
+    @Nullable
+    ExternalResourceMetaData getMetaData(String location) throws IOException;
     
 }
