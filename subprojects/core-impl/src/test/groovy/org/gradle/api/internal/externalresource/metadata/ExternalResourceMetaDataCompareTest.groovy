@@ -17,8 +17,8 @@
 package org.gradle.api.internal.externalresource.metadata
 
 import org.gradle.internal.Factory
-import spock.lang.Specification
 import spock.lang.Shared
+import spock.lang.Specification
 import spock.lang.Unroll
 
 class ExternalResourceMetaDataCompareTest extends Specification {
@@ -40,9 +40,10 @@ class ExternalResourceMetaDataCompareTest extends Specification {
         0 * factory.create()
     }
 
-    @Unroll "always unchanged with incomplete local metadata"() {
+    @Unroll
+    "always unchanged with incomplete local metadata"() {
         given:
-        configureMetadata(local, lastModified, contentLength)
+        configureMetadata(local, etag, lastModified, contentLength)
 
         when:
         compare(local, factory)
@@ -52,16 +53,17 @@ class ExternalResourceMetaDataCompareTest extends Specification {
         0 * factory.create()
 
         where:
-        lastModified | contentLength
-        null         | -1
-        now          | -1
-        null         | -1
+        etag | lastModified | contentLength
+        null | null         | -1
+        null | now          | -1
+        null | null         | -1
     }
 
-    @Unroll "always unchanged with incomplete remote metadata"() {
+    @Unroll
+    "always unchanged with incomplete remote metadata"() {
         given:
         configureMetadata(local)
-        configureMetadata(remote, lastModified, contentLength)
+        configureMetadata(remote, null, lastModified, contentLength)
 
         when:
         compare(local, factory)
@@ -92,7 +94,7 @@ class ExternalResourceMetaDataCompareTest extends Specification {
     def "is unchanged if everything is equal"() {
         given:
         configureMetadata(local)
-        configureMetadata(remote)
+        configureMetadataForEtagMatch(remote)
 
         when:
         compare(local, remote)
@@ -101,17 +103,62 @@ class ExternalResourceMetaDataCompareTest extends Specification {
         unchanged
     }
 
-    def configureMetadata(ExternalResourceMetaData metaData, Date lastModified = now, long contentLength = 100) {
+    def "matching etags are enough to be considered equal"() {
+        given:
+        configureMetadata(local, "abc", null, -1)
+        configureMetadataForEtagMatch(remote, "abc")
+
+        when:
+        compare(local, remote)
+
+        then:
+        unchanged
+    }
+
+    def "non matching etags, no mod date, but matching content length does not match"() {
+        given:
+        configureMetadata(local, "abc", null, 10)
+        configureMetadataForEtagMatch(remote, "cde")
+
+        when:
+        compare(local, remote)
+
+        then:
+        !unchanged
+    }
+
+    def "non matching etags, matching mod date, but different content length does not match"() {
+        given:
+        configureMetadata(local, "abc", now, -1)
+        configureMetadataForEtagMatch(remote, "cde")
+
+        when:
+        compare(local, remote)
+
+        then:
+        !unchanged
+    }
+
+    def configureMetadata(ExternalResourceMetaData metaData, String etag = "abc", Date lastModified = now, long contentLength = 100) {
         interaction {
+            1 * metaData.getEtag() >> etag
+
             1 * metaData.getLastModified() >> lastModified
-            if (lastModified) {
-                1 * metaData.getContentLength() >> contentLength    
+            if (lastModified != null || etag != null) {
+                1 * metaData.getContentLength() >> contentLength
             } else {
                 0 * metaData.getContentLength()
             }
         }
     }
 
+    def configureMetadataForEtagMatch(ExternalResourceMetaData metaData, String etag = "abc") {
+        interaction {
+            1 * metaData.getEtag() >> etag
+            0 * metaData.getLastModified()
+            0 * metaData.getContentLength()
+        }
+    }
     boolean compare(ExternalResourceMetaData local, ExternalResourceMetaData remote) {
         compare(local, new Factory() {
             def create() { remote }

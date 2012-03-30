@@ -242,7 +242,7 @@ class HttpServer extends ExternalResource {
     }
 
     private sendFile(HttpServletResponse response, File file, Long lastModified, Long contentLength) {
-        if (lastModified) {
+        if (sendLastModified) {
             response.setDateHeader(HttpHeaders.LAST_MODIFIED, lastModified ?: file.lastModified())
         }
         response.setContentLength((contentLength ?: file.length()) as int)

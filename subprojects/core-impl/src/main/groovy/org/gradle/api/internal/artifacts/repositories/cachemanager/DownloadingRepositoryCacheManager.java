@@ -34,8 +34,10 @@ import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.apache.ivy.util.Message;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactOriginWithMetaData;
 import org.gradle.api.internal.artifacts.repositories.EnhancedArtifactDownloadReport;
+import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex;
 import org.gradle.api.internal.externalresource.metadata.DefaultExternalResourceMetaData;
+import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 import org.gradle.api.internal.filestore.FileStore;
 
 import java.io.File;
@@ -104,13 +106,12 @@ public class DownloadingRepositoryCacheManager extends AbstractRepositoryCacheMa
         resourceDownloader.download(artifact, artifactRef.getResource(), tempFile);
 
         File fileInFileStore = fileStore.add(artifact.getId(), tempFile);
-        
-        String url = artifactRef.getResource().getName();
-        long lastModifiedTimestamp = artifactRef.getResource().getLastModified();
-        Date lastModified = lastModifiedTimestamp > 0 ? new Date(lastModifiedTimestamp) : null;
-        artifactUrlCachedResolutionIndex.store(artifactRef.getResource().getName(), fileInFileStore, new DefaultExternalResourceMetaData(
-                url, lastModified, artifactRef.getResource().getContentLength(), null)
-        );
+
+        if (artifactRef.getResource() instanceof ExternalResource) {
+            ExternalResource resource = (ExternalResource) artifactRef.getResource();
+            ExternalResourceMetaData metaData = resource.getMetaData();
+            artifactUrlCachedResolutionIndex.store(metaData.getLocation(), fileInFileStore, metaData);
+        }
 
         return fileInFileStore;
     }
