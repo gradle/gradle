@@ -56,6 +56,7 @@ class HttpServer extends ExternalResource {
     def etags = EtagStrategy.NONE
 
     boolean sendLastModified = true
+    boolean sendSha1Header = false
 
     HttpServer() {
         HandlerCollection handlers = new HandlerCollection()
@@ -247,6 +248,9 @@ class HttpServer extends ExternalResource {
         }
         response.setContentLength((contentLength ?: file.length()) as int)
         response.setContentType(new MimeTypes().getMimeByExtension(file.name).toString())
+        if (sendSha1Header) {
+            response.addHeader("X-Checksum-Sha1", HashUtil.sha1(file).asHexString())
+        }
         addEtag(response, file.bytes, etags)
         response.outputStream << new FileInputStream(file)
     }

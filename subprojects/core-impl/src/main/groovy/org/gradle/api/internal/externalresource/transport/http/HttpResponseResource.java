@@ -23,6 +23,7 @@ import org.apache.http.util.EntityUtils;
 import org.gradle.api.internal.externalresource.AbstractExternalResource;
 import org.gradle.api.internal.externalresource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
+import org.gradle.util.hash.HashValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +43,7 @@ class HttpResponseResource extends AbstractExternalResource {
         this.source = source;
         this.response = response;
 
-        this.metaData = new DefaultExternalResourceMetaData(source, getLastModified(), getContentLength(), getEtag(response), null);
+        this.metaData = new DefaultExternalResourceMetaData(source, getLastModified(), getContentLength(), getEtag(response), getSha1(response));
     }
 
     public String getName() {
@@ -109,5 +110,10 @@ class HttpResponseResource extends AbstractExternalResource {
     private static String getEtag(HttpResponse response) {
         Header etagHeader = response.getFirstHeader(HttpHeaders.ETAG);
         return etagHeader == null ? null : etagHeader.getValue();
+    }
+    
+    private static HashValue getSha1(HttpResponse response) {
+        Header sha1Header = response.getFirstHeader("X-Checksum-Sha1");
+        return sha1Header == null ? null : new HashValue(sha1Header.getValue());
     }
 }

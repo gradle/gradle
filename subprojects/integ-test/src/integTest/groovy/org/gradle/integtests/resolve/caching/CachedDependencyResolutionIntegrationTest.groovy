@@ -111,6 +111,14 @@ task retrieve(type: Copy) {
         module.expectArtifactSha1Get(server)
     }
 
+    void headThenGetRequests() {
+        module.expectIvyHead(server)
+        module.expectIvyGet(server)
+
+        module.expectArtifactHead(server)
+        module.expectArtifactGet(server)
+    }
+
     void unchangedResolve() {
         resolve()
         downloaded.assertHasNotChangedSince(lastState)
@@ -176,6 +184,24 @@ task retrieve(type: Copy) {
         then:
         headSha1ThenGetRequests()
         changedResolve()
+    }
+
+    def "no need for sha1 request if we get it in the metadata"() {
+        given:
+        server.sendSha1Header = true
+        initialResolve()
+
+        expect:
+        headOnlyRequests()
+        unchangedResolve()
+
+        when:
+        change()
+
+        then:
+        headThenGetRequests()
+        changedResolve()
+
     }
 
 }

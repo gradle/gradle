@@ -272,6 +272,10 @@ class MavenModule {
         server.expectHead(pomPath(prefix), pomFile)
     }
 
+    public expectPomGet(HttpServer server, prefix = null) {
+        server.expectGet(pomPath(prefix), pomFile)
+    }
+
     public pomPath(prefix = null) {
         path(prefix, pomFile.name)
     }

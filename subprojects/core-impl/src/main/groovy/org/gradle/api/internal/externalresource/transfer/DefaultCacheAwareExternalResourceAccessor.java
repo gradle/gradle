@@ -80,7 +80,11 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
         boolean hasLocalCandidates = localCandidates != null && !localCandidates.isNone();
         if (hasLocalCandidates) {
             // The “remote” may have already given us the checksum
-            HashValue remoteChecksum = delegate.getResourceSha1(source);
+            HashValue remoteChecksum = remoteMetaData.getSha1();
+
+            if (remoteChecksum == null) {
+                remoteChecksum = delegate.getResourceSha1(source);
+            }
 
             if (remoteChecksum != null) {
                 LocallyAvailableResource local = localCandidates.findByHashValue(remoteChecksum);
