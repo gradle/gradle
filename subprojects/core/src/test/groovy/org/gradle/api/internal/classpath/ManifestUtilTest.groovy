@@ -76,7 +76,23 @@ public class ManifestUtilTest extends Specification {
 
     def "returns empty classpath for jar without manifest"() {
         when:
-        createJarWithClasspath(null)
+        createJar()
+
+        then:
+        ManifestUtil.parseManifestClasspath(jarFile) == []
+    }
+
+    def "returns empty classpath for jar with manifest without Class-Path"() {
+        when:
+        createJar(manifestWithClasspath(null))
+
+        then:
+        ManifestUtil.parseManifestClasspath(jarFile) == []
+    }
+
+    def "returns empty classpath for jar with manifest with empty Class-Path"() {
+        when:
+        createJar(manifestWithClasspath(""))
 
         then:
         ManifestUtil.parseManifestClasspath(jarFile) == []
@@ -84,16 +100,16 @@ public class ManifestUtilTest extends Specification {
 
     def "returns classpath for jar with manifest"() {
         when:
-        createJarWithClasspath('foo.jar')
+        createJar(manifestWithClasspath('foo.jar'))
 
         then:
         ManifestUtil.parseManifestClasspath(jarFile) == [new File(jarFile.parentFile, 'foo.jar').toURI()]
     }
-    
+
     def "returned classpath URI is absolute and can be used to locate file"() {
         when:
         def classpathFile = tmpDir.createFile("mydir/foo.jar")
-        createJarWithClasspath('foo.jar')
+        createJar(manifestWithClasspath('foo.jar'))
 
         and:
         def classpathURI = ManifestUtil.parseManifestClasspath(jarFile)[0]
@@ -102,21 +118,27 @@ public class ManifestUtilTest extends Specification {
         new File(classpathURI).absoluteFile == classpathFile.absoluteFile
     }
 
-    private def createJarWithClasspath(def manifestClasspath) throws IOException {
+    private def createJar(def manifest = null) throws IOException {
         def jarOutputStream
 
-        if (manifestClasspath == null) {
+        if (manifest == null) {
             jarOutputStream = new JarOutputStream(new FileOutputStream(jarFile))
         } else {
-            Manifest manifest = new Manifest();
-            Attributes attributes = manifest.getMainAttributes();
-            attributes.put(Attributes.Name.MANIFEST_VERSION, "1.0");
-            attributes.putValue("Class-Path", manifestClasspath);
             jarOutputStream = new JarOutputStream(new FileOutputStream(jarFile), manifest)
         }
 
         jarOutputStream.putNextEntry(new ZipEntry("META-INF/"));
         jarOutputStream.close();
+    }
+
+    private def manifestWithClasspath(def manifestClasspath) {
+        Manifest manifest = new Manifest();
+        Attributes attributes = manifest.getMainAttributes();
+        attributes.put(Attributes.Name.MANIFEST_VERSION, "1.0");
+        if (manifestClasspath != null) {
+            attributes.putValue("Class-Path", manifestClasspath);
+        }
+        return manifest
     }
 
 }

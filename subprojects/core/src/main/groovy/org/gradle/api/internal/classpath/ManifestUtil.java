@@ -16,9 +16,8 @@
 
 package org.gradle.api.internal.classpath;
 
+import org.gradle.api.UncheckedIOException;
 import org.gradle.util.GUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,9 +28,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
+import java.util.zip.ZipException;
 
 public class ManifestUtil {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ManifestUtil.class);
     private static final String[] EMPTY = new String[0];
 
     public static String createManifestClasspath(File jarFile, Collection<File> classpath) {
@@ -41,10 +40,7 @@ public class ManifestUtil {
             paths.add(path);
         }
 
-        String manifestClasspath = GUtil.join(paths, " ");
-        // TODO:DAZ Remove this logging
-        LOGGER.debug("Worker Process manifest classpath: {}", manifestClasspath);
-        return manifestClasspath;
+        return GUtil.join(paths, " ");
     }
 
     // TODO:DAZ The returned URI will only be relative if the file is contained in the jarfile directory. Otherwise, an absolute URI is returned.
@@ -63,32 +59,42 @@ public class ManifestUtil {
                 uri = jarFile.toURI().resolve(uri);
                 manifestClasspath.add(uri);
             } catch (URISyntaxException e) {
-                LOGGER.warn("Invalid URI found in manifest classpath: " + value);
-                // TODO:DAZ Should we be warning here?
+                throw new UncheckedIOException(e);
             }
         }
         return manifestClasspath;
     }
 
     private static String[] readManifestClasspathString(File classpathFile) {
-        if (!classpathFile.exists() || !classpathFile.isFile()) {
-            return EMPTY;
-        }
         try {
-            Manifest manifest = new JarFile(classpathFile).getManifest();
+            Manifest manifest = findManifest(classpathFile);
             if (manifest == null) {
                 return EMPTY;
             }
             String classpathEntry = manifest.getMainAttributes().getValue("Class-Path");
-            if (classpathEntry == null) {
+            if (classpathEntry == null || classpathEntry.trim().length() == 0) {
                 return EMPTY;
             }
             return classpathEntry.split(" ");
         } catch (IOException e) {
-            LOGGER.info("Failed to read manifest Class-Path from {}: {}", classpathFile, e);
-            return EMPTY;
+            throw new UncheckedIOException(e);
         }
     }
 
-
+    /*
+     * The manifest if this is a jar file and has a manifest, null otherwise.
+     */
+    private static Manifest findManifest(File possibleJarFile) throws IOException {
+        if (!possibleJarFile.exists() || !possibleJarFile.isFile()) {
+            return null;
+        }
+        JarFile jarFile;
+        try {
+            jarFile = new JarFile(possibleJarFile);
+        } catch (ZipException e) {
+            // Not a zip file
+            return null;
+        }
+        return jarFile.getManifest();
+    }
 }
