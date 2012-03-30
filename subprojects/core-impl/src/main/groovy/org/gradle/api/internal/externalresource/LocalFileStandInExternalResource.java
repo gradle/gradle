@@ -35,6 +35,8 @@ public class LocalFileStandInExternalResource extends AbstractExternalResource {
 
     private final File localFile;
     private final String source;
+    private HashValue sha1;
+    private ExternalResourceMetaData metaData;
 
     public LocalFileStandInExternalResource(String source, File localFile) {
         this.source = source;
@@ -66,7 +68,10 @@ public class LocalFileStandInExternalResource extends AbstractExternalResource {
     }
 
     public ExternalResourceMetaData getMetaData() {
-        return new DefaultExternalResourceMetaData(source, getLastModified(), getContentLength(), null);
+        if (metaData == null) {
+            metaData = new DefaultExternalResourceMetaData(source, getLastModified(), getContentLength(), null, getLocalFileSha1());
+        }
+        return metaData;
     }
 
     protected File getLocalFile() {
@@ -78,6 +83,9 @@ public class LocalFileStandInExternalResource extends AbstractExternalResource {
     }
 
     protected HashValue getLocalFileSha1() {
-        return getSha1(getLocalFile());
+        if (sha1 == null) {
+            sha1 = getSha1(getLocalFile());
+        }
+        return sha1;
     }
 }

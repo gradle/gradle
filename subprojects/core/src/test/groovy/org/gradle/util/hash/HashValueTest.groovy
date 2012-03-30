@@ -47,6 +47,14 @@ class HashValueTest extends Specification {
         "FFF"                              | "3vv"
     }
 
+    def "can roundtrip compact sha1 representation"() {
+        given:
+        def hash = new HashValue("1234")
+        
+        expect:
+        hash.equals(new HashValue(hash.asHexString()))
+    }
+    
     def "creates short MD5 for string input"() {
         expect:
         HashUtil.createCompactMD5("") == "6k3m6dj3o0m82ej009j3mfggju"

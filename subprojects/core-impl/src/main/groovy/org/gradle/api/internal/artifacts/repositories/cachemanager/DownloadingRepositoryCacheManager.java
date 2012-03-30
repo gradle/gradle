@@ -36,14 +36,12 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactOriginWit
 import org.gradle.api.internal.artifacts.repositories.EnhancedArtifactDownloadReport;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex;
-import org.gradle.api.internal.externalresource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 import org.gradle.api.internal.filestore.FileStore;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
-import java.util.Date;
 
 /**
  * A cache manager for remote repositories, that downloads files and stores them in the FileStore provided.
@@ -71,10 +69,7 @@ public class DownloadingRepositoryCacheManager extends AbstractRepositoryCacheMa
         try {
             ResolvedResource artifactRef = resourceResolver.resolve(artifact);
             if (artifactRef != null) {
-                ArtifactOrigin origin = new ArtifactOriginWithMetaData(
-                        artifact, artifactRef.getResource().isLocal(), artifactRef.getResource().getName(),
-                        artifactRef.getLastModified(), artifactRef.getResource().getContentLength(), null
-                );
+                ArtifactOrigin origin = new ArtifactOriginWithMetaData(artifact, artifactRef.getResource());
                 if (listener != null) {
                     listener.startArtifactDownload(this, artifactRef, artifact, origin);
                 }

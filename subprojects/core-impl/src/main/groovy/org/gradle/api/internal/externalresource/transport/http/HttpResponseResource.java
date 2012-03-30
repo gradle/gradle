@@ -42,7 +42,7 @@ class HttpResponseResource extends AbstractExternalResource {
         this.source = source;
         this.response = response;
 
-        this.metaData = new DefaultExternalResourceMetaData(source, getLastModified(), getContentLength(), getEtag(response));
+        this.metaData = new DefaultExternalResourceMetaData(source, getLastModified(), getContentLength(), getEtag(response), null);
     }
 
     public String getName() {

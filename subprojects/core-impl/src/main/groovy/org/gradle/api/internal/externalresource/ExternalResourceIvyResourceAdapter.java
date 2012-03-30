@@ -74,6 +74,6 @@ public class ExternalResourceIvyResourceAdapter implements ExternalResource {
     }
 
     public ExternalResourceMetaData getMetaData() {
-        return new DefaultExternalResourceMetaData(delegate.getName(), getLastModified(), getContentLength(), null);
+        return new DefaultExternalResourceMetaData(delegate.getName(), getLastModified(), getContentLength(), null, null);
     }
 }

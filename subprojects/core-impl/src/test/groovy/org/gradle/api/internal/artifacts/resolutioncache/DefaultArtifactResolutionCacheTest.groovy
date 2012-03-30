@@ -56,7 +56,7 @@ class DefaultArtifactResolutionCacheTest extends Specification {
         def artifactFile = tmp.createFile("artifact") << "content"
         
         when:
-        index.store(key, artifactFile, new DefaultExternalResourceMetaData(artifactUrl, lastModified, 100, null))
+        index.store(key, artifactFile, new DefaultExternalResourceMetaData(artifactUrl, lastModified, 100, null, null))
         
         then:
         def cached = index.lookup(key)
