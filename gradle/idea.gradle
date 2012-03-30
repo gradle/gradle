@@ -34,32 +34,32 @@ idea {
                 // Exclude resource directories from compilation and add them back in as classpath resources
                 def node = provider.asNode()
                 def compilerConfig = node.component.find { it.'@name' == 'CompilerConfiguration' }
-                def exclude = compilerConfig.appendNode('excludeFromCompile')
+                def exclude = compilerConfig.excludeFromCompile
+                if (exclude) {
+                    compilerConfig.remove(exclude)
+                }
+                exclude = compilerConfig.appendNode('excludeFromCompile')
                 Collection resourceFolder = groovyProjects().collect { project -> project.sourceSets*.resources*.srcDirs }.flatten()
                 resourceFolder.each {
-                    exclude.appendNode('directory', [url: "file://\$PROJECT_DIR\$/${rootProject.relativePath(it)}", includeSubdirectories: true])
+                    if (it.exists()) {
+                        exclude.appendNode('directory', [url: "file://\$PROJECT_DIR\$/${rootProject.relativePath(it)}", includeSubdirectories: true])
+                    }
                 }
 
-
-                 // exclude jdk7/** from compilation if current jvm is not JDK7
+                // exclude jdk7/** from compilation if current jvm is not JDK7
                 if (!Jvm.current().isJava7()) {
-                    def jdk7PackagePattern = ~/jdk7/
                     Collection sourceDirs = groovyProjects().collect { project -> project.sourceSets*.allSource*.srcDirs }.flatten()
                     def findAndExcludeJdk7PackageFolder = { packageFolder ->
-                        if (jdk7PackagePattern.matcher(packageFolder.name).find()) {
+                        if (packageFolder.name == 'jdk7') {
                             exclude.appendNode('directory', [url: "file://\$PROJECT_DIR\$/${rootProject.relativePath(packageFolder)}", includeSubdirectories: true])
                         }
                     }
                     sourceDirs.each { sourceFolder ->
                         if (sourceFolder.exists()) {
-                            sourceFolder.eachFileRecurse(findAndExcludeJdk7PackageFolder)
+                            sourceFolder.eachDirRecurse(findAndExcludeJdk7PackageFolder)
                         }
                     }
                 }
-            }
-
-            withXml { provider ->
-                def node = provider.asNode()
 
                 // Use git
                 def vcsConfig = node.component.find { it.'@name' == 'VcsDirectoryMappings' }
