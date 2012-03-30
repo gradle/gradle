@@ -152,7 +152,7 @@ public class PreviousGradleVersionExecuter extends AbstractGradleExecuter implem
     }
 
     private URL getBinDistributionUrl() {
-        return new URL(new DistributionLocator().getDistributionFor(version))
+        return new DistributionLocator().getDistributionFor(version).toURL()
     }
 
     def TestFile getGradleHomeDir() {

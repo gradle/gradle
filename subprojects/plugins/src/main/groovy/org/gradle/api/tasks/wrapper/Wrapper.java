@@ -219,7 +219,7 @@ public class Wrapper extends DefaultTask {
         if (distributionUrl != null) {
             return distributionUrl;
         } else if (gradleVersion != null) {
-            return locator.getDistributionFor(gradleVersion);
+            return locator.getDistributionFor(gradleVersion).toString();
         } else {
             return null;
         }

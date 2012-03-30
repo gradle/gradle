@@ -18,7 +18,6 @@ package org.gradle.tooling.internal.consumer;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutFactory;
-import org.gradle.internal.UncheckedException;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.tooling.GradleConnectionException;
@@ -29,7 +28,6 @@ import org.gradle.wrapper.*;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -84,12 +82,7 @@ public class DistributionFactory {
     }
 
     private Distribution getDownloadedDistribution(String gradleVersion) {
-        URI distUri;
-        try {
-            distUri = new URI(new DistributionLocator().getDistributionFor(GradleVersion.version(gradleVersion)));
-        } catch (URISyntaxException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
+        URI distUri = new DistributionLocator().getDistributionFor(GradleVersion.version(gradleVersion));
         return getDistribution(distUri);
     }
 

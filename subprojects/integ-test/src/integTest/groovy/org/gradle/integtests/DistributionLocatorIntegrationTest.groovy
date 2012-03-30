@@ -39,8 +39,8 @@ class DistributionLocatorIntegrationTest extends Specification {
         urlExist(locator.getDistributionFor(GradleVersion.version("1.0-milestone-7-20111216000006+0100")))
     }
 
-    void urlExist(String url) {
-        HttpURLConnection connection = new URL(url).openConnection()
+    void urlExist(URI url) {
+        HttpURLConnection connection = url.toURL().openConnection()
         connection.requestMethod = "HEAD"
         connection.connect()
         assert connection.responseCode == 200

@@ -15,15 +15,20 @@
  */
 package org.gradle.util;
 
+import org.gradle.internal.UncheckedException;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+
 public class DistributionLocator {
     private static final String RELEASE_REPOSITORY = "http://services.gradle.org/distributions";
     private static final String SNAPSHOT_REPOSITORY = "http://services.gradle.org/distributions-snapshots";
 
-    public String getDistributionFor(GradleVersion version) {
+    public URI getDistributionFor(GradleVersion version) {
         return getDistribution(getDistributionRepository(version), version, "gradle", "bin");
     }
 
-    public String getDistributionRepository(GradleVersion version) {
+    private String getDistributionRepository(GradleVersion version) {
         if (version.isSnapshot()) {
             return SNAPSHOT_REPOSITORY;
         } else {
@@ -31,8 +36,12 @@ public class DistributionLocator {
         }
     }
 
-    public String getDistribution(String repositoryUrl, GradleVersion version, String archiveName,
-                                  String archiveClassifier) {
-        return String.format("%s/%s-%s-%s.zip", repositoryUrl, archiveName, version.getVersion(), archiveClassifier);
+    private URI getDistribution(String repositoryUrl, GradleVersion version, String archiveName,
+                                   String archiveClassifier) {
+        try {
+            return new URI(String.format("%s/%s-%s-%s.zip", repositoryUrl, archiveName, version.getVersion(), archiveClassifier));
+        } catch (URISyntaxException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
     }
 }
