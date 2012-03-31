@@ -19,7 +19,6 @@ package org.gradle.internal.nativeplatform.filesystem.jdk7
 import spock.lang.Specification
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import com.google.common.io.Files
 import org.gradle.internal.nativeplatform.filesystem.FilePermissionHandlerFactory
 import org.junit.Rule
 import org.gradle.util.TemporaryFolder
