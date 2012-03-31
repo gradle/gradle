@@ -92,6 +92,7 @@ public class AbstractCopyTaskTest extends AbstractTaskTest {
         }
 
         @Override
+        @SuppressWarnings("deprecation")
         public FileCollection getDefaultSource() {
             return defaultSource;
         }

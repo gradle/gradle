@@ -71,7 +71,6 @@ public class DefaultResolvedDependencyTest {
 
     @Test
     public void getParentArtifacts() {
-        Set<ResolvedArtifact> someModuleArtifacts = toSet(createArtifact("someResolvedArtifact"));
         DefaultResolvedDependency resolvedDependency = createResolvedDependency();
 
         Set<ResolvedArtifact> parent1SpecificArtifacts = toSet(createArtifact("parent1Specific"));
@@ -156,8 +155,9 @@ public class DefaultResolvedDependencyTest {
         Set<ResolvedArtifact> childParent2SpecificArtifacts = toSet(createArtifact("childParent2Specific"));
         createAndAddParent("childParent2", child, childParent2SpecificArtifacts);
 
-        assertThat(resolvedDependency.getAllArtifacts(parentResolvedDependency1),
-                equalTo(GUtil.addSets(parent1SpecificArtifacts, childParent1SpecificArtifacts, childParent2SpecificArtifacts)));
+        @SuppressWarnings("unchecked")
+        Set<ResolvedArtifact> allArtifacts = GUtil.addSets(parent1SpecificArtifacts, childParent1SpecificArtifacts, childParent2SpecificArtifacts);
+        assertThat(resolvedDependency.getAllArtifacts(parentResolvedDependency1), equalTo(allArtifacts));
     }
 
     @Test

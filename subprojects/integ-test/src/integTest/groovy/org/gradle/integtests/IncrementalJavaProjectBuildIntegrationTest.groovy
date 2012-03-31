@@ -59,7 +59,7 @@ class IncrementalJavaProjectBuildIntegrationTest {
 
         jar.assertHasNotChangedSince(snapshot);
 
-        executer.withArguments("-Crebuild").withTasks("jar").run();
+        executer.withArguments("--rerun-tasks").withTasks("jar").run();
 
         jar.assertHasChangedSince(snapshot);
         snapshot = jar.snapshot();

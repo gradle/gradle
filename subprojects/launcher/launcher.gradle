@@ -54,7 +54,7 @@ class StartScriptGenerator extends DefaultTask {
     def generate() {
         logging.captureStandardOutput(LogLevel.INFO)
         def factory = services.get(ClassLoaderFactory)
-        def classLoader = factory.createIsolatedClassLoader(classpath.collect { it.toURI().toURL() })
+        def classLoader = factory.createIsolatedClassLoader(classpath.collect { it.toURI() })
         def generator = classLoader.loadClass('org.gradle.api.internal.plugins.StartScriptGenerator').newInstance()
         generator.applicationName = 'Gradle'
         generator.optsEnvironmentVar = 'GRADLE_OPTS'
