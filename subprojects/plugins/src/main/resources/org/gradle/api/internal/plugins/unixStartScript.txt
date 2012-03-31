@@ -68,10 +68,10 @@ cd "\$SAVED"
 CLASSPATH=$classpath
 
 # Check if a script for setting environmental variables exists
-if [ -r "$APP_HOME/bin/setenv.sh" ]; then
-  . "$APP_HOME/bin/setenv.sh"
-elif [ -r "$APP_HOME/setenv.sh" ]; then
-  . "$APP_HOME/setenv.sh"
+if [ -r "\$APP_HOME/bin/setenv.sh" ]; then
+  . "\$APP_HOME/bin/setenv.sh"
+elif [ -r "\$APP_HOME/setenv.sh" ]; then
+  . "\$APP_HOME/setenv.sh"
 fi
 
 # Determine the Java command to use to start the JVM.
