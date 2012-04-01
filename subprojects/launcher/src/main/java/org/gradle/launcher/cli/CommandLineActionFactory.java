@@ -22,8 +22,6 @@ import org.gradle.cli.CommandLineConverter;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.configuration.GradleLauncherMetaData;
-import org.gradle.initialization.DefaultCommandLineConverter;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.exec.ExceptionReportingAction;
 import org.gradle.launcher.exec.ExecutionListener;
@@ -56,15 +54,16 @@ public class CommandLineActionFactory {
         ServiceRegistry loggingServices = createLoggingServices();
 
         LoggingConfiguration loggingConfiguration = new LoggingConfiguration();
-        Action<ExecutionListener> action = new WithLogging(loggingServices, args, loggingConfiguration, new ParseAndBuildAction(loggingServices, args));
 
-        return new ExceptionReportingAction(action,
+        return new ExceptionReportingAction(
+                new WithLogging(loggingServices, args, loggingConfiguration,
+                        new ParseAndBuildAction(loggingServices, args)),
                 new BuildExceptionReporter(loggingServices.get(StyledTextOutputFactory.class), loggingConfiguration, clientMetaData()));
     }
 
     protected void createActionFactories(ServiceRegistry loggingServices, Collection<CommandLineAction> actions) {
         actions.add(new GuiActionsFactory());
-        actions.add(new BuildActionsFactory(loggingServices, new DefaultCommandLineConverter()));
+        actions.add(new BuildActionsFactory(loggingServices));
     }
 
     private static GradleLauncherMetaData clientMetaData() {
@@ -116,18 +115,6 @@ public class CommandLineActionFactory {
             System.err.println(e.getMessage());
             showUsage(System.err, parser);
             executionListener.onFailure(e);
-        }
-    }
-
-    private static class BrokenAction implements Runnable {
-        private final Throwable throwable;
-
-        private BrokenAction(Throwable throwable) {
-            this.throwable = throwable;
-        }
-
-        public void run() {
-            throw UncheckedException.throwAsUncheckedException(throwable);
         }
     }
 
@@ -209,8 +196,6 @@ public class CommandLineActionFactory {
                 action = createAction(actions, parser, commandLine);
             } catch (CommandLineArgumentException e) {
                 action = new CommandLineParseFailureAction(parser, e);
-            } catch (Throwable t) {
-                action = new ActionAdapter(new BrokenAction(t));
             }
 
             action.execute(executionListener);
