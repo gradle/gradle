@@ -46,44 +46,20 @@ public class CommandLineActionFactory {
     private static final String VERSION = "v";
 
     /**
-     * <p>Converts the given command-line arguments to a {@code Runnable} action which performs the action requested by the
-     * command-line args. Does not have any side-effects. Each action will call the supplied {@link
-     * org.gradle.launcher.exec.ExecutionListener} once it has completed.</p>
-     *
-     * <p>Implementation note: attempt to defer as much as possible until action execution time.</p>
+     * <p>Converts the given command-line arguments to an {@link Action} which performs the action requested by the
+     * command-line args.
      *
      * @param args The command-line arguments.
      * @return The action to execute.
      */
     public Action<ExecutionListener> convert(List<String> args) {
-
         ServiceRegistry loggingServices = createLoggingServices();
-        List<CommandLineAction> actions = new ArrayList<CommandLineAction>();
-        actions.add(new BuiltInActions());
-        createActionFactories(loggingServices, actions);
-
-        CommandLineParser parser = new CommandLineParser();
-        for (CommandLineAction action : actions) {
-            action.configureCommandLineParser(parser);
-        }
 
         LoggingConfiguration loggingConfiguration = new LoggingConfiguration();
-        Action<ExecutionListener> action;
-        try {
-            ParsedCommandLine commandLine = parser.parse(args);
-            @SuppressWarnings("unchecked")
-            CommandLineConverter<LoggingConfiguration> loggingConfigurationConverter = (CommandLineConverter<LoggingConfiguration>)loggingServices.get(CommandLineConverter.class);
-            loggingConfigurationConverter.convert(commandLine, loggingConfiguration);
-            action = createAction(actions, parser, commandLine);
-        } catch (CommandLineArgumentException e) {
-            action = new CommandLineParseFailureAction(parser, e);
-        } catch (Throwable t) {
-            action = new ActionAdapter(new BrokenAction(t));
-        }
+        Action<ExecutionListener> action = new WithLogging(loggingServices, args, loggingConfiguration, new ParseAndBuildAction(loggingServices, args));
 
-        return new WithLoggingAction(loggingConfiguration, loggingServices,
-                new ExceptionReportingAction(action,
-                        new BuildExceptionReporter(loggingServices.get(StyledTextOutputFactory.class), loggingConfiguration, clientMetaData())));
+        return new ExceptionReportingAction(action,
+                new BuildExceptionReporter(loggingServices.get(StyledTextOutputFactory.class), loggingConfiguration, clientMetaData()));
     }
 
     protected void createActionFactories(ServiceRegistry loggingServices, Collection<CommandLineAction> actions) {
@@ -97,16 +73,6 @@ public class CommandLineActionFactory {
 
     public ServiceRegistry createLoggingServices() {
         return LoggingServiceRegistry.newCommandLineProcessLogging();
-    }
-
-    private Action<ExecutionListener> createAction(Iterable<CommandLineAction> factories, CommandLineParser parser, ParsedCommandLine commandLine) {
-        for (CommandLineAction factory : factories) {
-            Action<ExecutionListener> action = factory.createAction(parser, commandLine);
-            if (action != null) {
-                return action;
-            }
-        }
-        throw new UnsupportedOperationException("No action factory for specified command-line arguments.");
     }
 
     private static void showUsage(PrintStream out, CommandLineParser parser) {
@@ -183,23 +149,81 @@ public class CommandLineActionFactory {
         }
     }
 
-    static class WithLoggingAction implements Action<ExecutionListener> {
-        private final LoggingConfiguration loggingConfiguration;
+    private static class WithLogging implements Action<ExecutionListener> {
         private final ServiceRegistry loggingServices;
+        private final List<String> args;
+        private final LoggingConfiguration loggingConfiguration;
         private final Action<ExecutionListener> action;
 
-        public WithLoggingAction(LoggingConfiguration loggingConfiguration, ServiceRegistry loggingServices, Action<ExecutionListener> action) {
-            this.loggingConfiguration = loggingConfiguration;
+        WithLogging(ServiceRegistry loggingServices, List<String> args, LoggingConfiguration loggingConfiguration, Action<ExecutionListener> action) {
             this.loggingServices = loggingServices;
+            this.args = args;
+            this.loggingConfiguration = loggingConfiguration;
             this.action = action;
         }
 
         public void execute(ExecutionListener executionListener) {
+            CommandLineConverter<LoggingConfiguration> loggingConfigurationConverter = (CommandLineConverter<LoggingConfiguration>)loggingServices.get(CommandLineConverter.class);
+            CommandLineParser parser = new CommandLineParser();
+            loggingConfigurationConverter.configure(parser);
+            parser.allowUnknownOptions();
+            parser.allowMixedSubcommandsAndOptions();
+            try {
+                ParsedCommandLine parsedCommandLine = parser.parse(args);
+                loggingConfigurationConverter.convert(parsedCommandLine, loggingConfiguration);
+            } catch (CommandLineArgumentException e) {
+                // Ignore
+            }
+
             LoggingManagerInternal loggingManager = loggingServices.getFactory(LoggingManagerInternal.class).create();
             loggingManager.setLevel(loggingConfiguration.getLogLevel());
             loggingManager.colorStdOutAndStdErr(loggingConfiguration.isColorOutput());
             loggingManager.start();
+
             action.execute(executionListener);
+        }
+    }
+
+    private class ParseAndBuildAction implements Action<ExecutionListener> {
+        private final ServiceRegistry loggingServices;
+        private final List<String> args;
+
+        private ParseAndBuildAction(ServiceRegistry loggingServices, List<String> args) {
+            this.loggingServices = loggingServices;
+            this.args = args;
+        }
+
+        public void execute(ExecutionListener executionListener) {
+            List<CommandLineAction> actions = new ArrayList<CommandLineAction>();
+            actions.add(new BuiltInActions());
+            createActionFactories(loggingServices, actions);
+
+            CommandLineParser parser = new CommandLineParser();
+            for (CommandLineAction action : actions) {
+                action.configureCommandLineParser(parser);
+            }
+
+            Action<ExecutionListener> action;
+            try {
+                ParsedCommandLine commandLine = parser.parse(args);
+                action = createAction(actions, parser, commandLine);
+            } catch (CommandLineArgumentException e) {
+                action = new CommandLineParseFailureAction(parser, e);
+            } catch (Throwable t) {
+                action = new ActionAdapter(new BrokenAction(t));
+            }
+
+            action.execute(executionListener);
+        }
+
+        private Action<ExecutionListener> createAction(Iterable<CommandLineAction> factories, CommandLineParser parser, ParsedCommandLine commandLine) {
+            for (CommandLineAction factory : factories) {
+                Action<ExecutionListener> action = factory.createAction(parser, commandLine);
+                if (action != null) {
+                    return action;
+                }
+            }
+            throw new UnsupportedOperationException("No action factory for specified command-line arguments.");
         }
     }
 }

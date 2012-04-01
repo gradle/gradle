@@ -21,7 +21,6 @@ import org.gradle.cli.CommandLineConverter
 import org.gradle.cli.CommandLineParser
 import org.gradle.internal.Factory
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.launcher.exec.ExceptionReportingAction
 import org.gradle.launcher.exec.ExecutionListener
 import org.gradle.logging.internal.OutputEventListener
 import org.gradle.logging.internal.StreamingStyledTextOutput
@@ -64,7 +63,6 @@ class CommandLineActionFactoryTest extends Specification {
         _ * loggingServices.get(ProgressLoggerFactory) >> progressLoggerFactory
         _ * loggingServices.get(CommandLineConverter) >> loggingConfigurationConverter
         _ * loggingServices.get(OutputEventListener) >> Mock(OutputEventListener)
-        _ * loggingConfigurationConverter.convert(!null) >> new LoggingConfiguration()
         Factory<LoggingManagerInternal> loggingManagerFactory = Mock()
         _ * loggingServices.getFactory(LoggingManagerInternal) >> loggingManagerFactory
         _ * loggingManagerFactory.create() >> loggingManager
@@ -81,27 +79,42 @@ class CommandLineActionFactoryTest extends Specification {
         def action = factory.convert(["--some-option"])
 
         then:
-        action instanceof CommandLineActionFactory.WithLoggingAction
-        action.action instanceof ExceptionReportingAction
-        action.action.action == rawAction
+        action
 
-        and:
+        when:
+        action.execute(executionListener)
+
+        then:
         1 * actionFactory1.configureCommandLineParser(!null) >> { CommandLineParser parser -> parser.option("some-option") }
         1 * actionFactory2.configureCommandLineParser(!null)
         1 * actionFactory1.createAction(!null, !null) >> rawAction
-        0 * actionFactory1._
-        0 * actionFactory2._
-        0 * executionListener._
+        1 * rawAction.execute(executionListener)
+    }
+
+    def "configures logging before parsing command-line"() {
+        Action<ExecutionListener> rawAction = Mock()
+
+        when:
+        def action = factory.convert([])
+
+        then:
+        action
+
+        when:
+        action.execute(executionListener)
+
+        then:
+        1 * loggingManager.start()
+
+        and:
+        1 * actionFactory1.configureCommandLineParser(!null)
+        1 * actionFactory2.configureCommandLineParser(!null)
+        1 * actionFactory1.createAction(!null, !null) >> rawAction
     }
 
     def "reports command-line parse failure"() {
         when:
         def action = factory.convert(['--broken'])
-
-        then:
-        1 * actionFactory1.configureCommandLineParser(!null) >> {CommandLineParser parser -> parser.option('some-option')}
-
-        when:
         action.execute(executionListener)
 
         then:
@@ -111,7 +124,7 @@ class CommandLineActionFactoryTest extends Specification {
         outputs.stdErr.contains('--some-option')
 
         and:
-        1 * loggingManager.start()
+        1 * actionFactory1.configureCommandLineParser(!null) >> {CommandLineParser parser -> parser.option('some-option')}
         1 * executionListener.onFailure({it instanceof CommandLineArgumentException})
         0 * executionListener._
     }
@@ -121,12 +134,6 @@ class CommandLineActionFactoryTest extends Specification {
 
         when:
         def action = factory.convert(['--some-option'])
-
-        then:
-        1 * actionFactory1.configureCommandLineParser(!null) >> {CommandLineParser parser -> parser.option('some-option')}
-        1 * actionFactory1.createAction(!null, !null) >> { throw failure }
-
-        when:
         action.execute(executionListener)
 
         then:
@@ -136,8 +143,27 @@ class CommandLineActionFactoryTest extends Specification {
         outputs.stdErr.contains('--some-option')
 
         and:
-        1 * loggingManager.start()
+        1 * actionFactory1.configureCommandLineParser(!null) >> {CommandLineParser parser -> parser.option('some-option')}
+        1 * actionFactory1.createAction(!null, !null) >> { throw failure }
         1 * executionListener.onFailure(failure)
+        0 * executionListener._
+    }
+
+    def "ignores failure to parse logging configuration"() {
+        when:
+        def action = factory.convert(["--logging=broken"])
+        action.execute(executionListener)
+
+        then:
+        outputs.stdErr.contains('--logging')
+        outputs.stdErr.contains('USAGE: gradle [option...] [task...]')
+        outputs.stdErr.contains('--help')
+        outputs.stdErr.contains('--some-option')
+
+        and:
+        1 * loggingConfigurationConverter.configure(!null) >> {CommandLineParser parser -> parser.option("logging").hasArgument()}
+        1 * actionFactory1.configureCommandLineParser(!null) >> {CommandLineParser parser -> parser.option('some-option')}
+        1 * executionListener.onFailure({it instanceof CommandLineArgumentException})
         0 * executionListener._
     }
 
@@ -146,18 +172,13 @@ class CommandLineActionFactoryTest extends Specification {
 
         when:
         def action = factory.convert([])
-
-        then:
-        1 * actionFactory1.createAction(!null, !null) >> { throw failure }
-
-        when:
         action.execute(executionListener)
 
         then:
         outputs.stdErr.contains('<broken>')
 
         and:
-        1 * loggingManager.start()
+        1 * actionFactory1.createAction(!null, !null) >> { throw failure }
         1 * executionListener.onFailure(failure)
         0 * executionListener._
     }
@@ -165,11 +186,6 @@ class CommandLineActionFactoryTest extends Specification {
     def "displays usage message"() {
         when:
         def action = factory.convert([option])
-
-        then:
-        1 * actionFactory1.configureCommandLineParser(!null) >> {CommandLineParser parser -> parser.option('some-option')}
-
-        when:
         action.execute(executionListener)
 
         then:
@@ -178,7 +194,7 @@ class CommandLineActionFactoryTest extends Specification {
         outputs.stdOut.contains('--some-option')
 
         and:
-        1 * loggingManager.start()
+        1 * actionFactory1.configureCommandLineParser(!null) >> {CommandLineParser parser -> parser.option('some-option')}
         0 * executionListener._
 
         where:
