@@ -37,7 +37,7 @@ class CommandLineJavaCompilerArgumentsGeneratorTest extends Specification {
 
         then:
         0 * tempFileProvider._
-        Lists.newArrayList(args) == ["-J-Xmx256m", "-classpath", spec.classpath.asPath, *spec.source*.path]
+        Lists.newArrayList(args) == ["-J-Xmx256m", "-g", "-classpath", spec.classpath.asPath, *spec.source*.path]
     }
 
     def "creates arguments file if arguments get too long"() {
@@ -52,7 +52,7 @@ class CommandLineJavaCompilerArgumentsGeneratorTest extends Specification {
         Lists.newArrayList(args) == ["-J-Xmx256m", "@$argsFile"]
 
         and: "args file contains remaining arguments (one per line, quoted)"
-        argsFile.readLines() == [quote("-classpath"), quote("$spec.classpath.asPath"), *(spec.source*.path.collect { quote(it) })]
+        argsFile.readLines() == [quote("-g"), quote("-classpath"), quote("$spec.classpath.asPath"), *(spec.source*.path.collect { quote(it) })]
     }
 
     def createCompileSpec(numFiles) {
