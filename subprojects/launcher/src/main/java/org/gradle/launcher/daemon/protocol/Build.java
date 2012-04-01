@@ -45,10 +45,11 @@ public class Build extends Command {
     
     public StartParameter getStartParameter() {
         if (startParameter == null) {
-            startParameter = new StartParameter();
             if (action instanceof InitializationAware) {
                 InitializationAware initializationAware = (InitializationAware) action;
-                initializationAware.configureStartParameter(startParameter);
+                startParameter = initializationAware.configureStartParameter();
+            } else {
+                startParameter = new StartParameter();
             }
         }
         

@@ -36,10 +36,12 @@ public class EmbeddedGradleLauncherActionExecuter implements GradleLauncherActio
     }
 
     public <T> T execute(GradleLauncherAction<T> action, ProviderOperationParameters actionParameters) {
-        StartParameter startParameter = new StartParameter();
+        StartParameter startParameter;
         if (action instanceof InitializationAware) {
             InitializationAware initializationAware = (InitializationAware) action;
-            initializationAware.configureStartParameter(startParameter);
+            startParameter = initializationAware.configureStartParameter();
+        } else {
+            startParameter = new StartParameter();
         }
         GradleLauncher gradleLauncher = gradleLauncherFactory.newInstance(startParameter);
         BuildResult result = action.run(gradleLauncher);

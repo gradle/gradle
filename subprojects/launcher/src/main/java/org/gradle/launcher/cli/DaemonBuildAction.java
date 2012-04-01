@@ -15,10 +15,11 @@
  */
 package org.gradle.launcher.cli;
 
-import org.gradle.cli.ParsedCommandLine;
+import org.gradle.StartParameter;
 import org.gradle.initialization.BuildClientMetaData;
-import org.gradle.launcher.daemon.client.DaemonClient;
+import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
+import org.gradle.launcher.exec.GradleLauncherActionExecuter;
 import org.gradle.util.GUtil;
 
 import java.io.File;
@@ -26,17 +27,17 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class DaemonBuildAction implements Runnable {
-    private final DaemonClient client;
-    private final ParsedCommandLine args;
+    private final GradleLauncherActionExecuter<BuildActionParameters> executer;
+    private final StartParameter startParameter;
     private final File currentDir;
     private final BuildClientMetaData clientMetaData;
     private final long startTime;
     private final Map<String, String> systemProperties;
     private final Map<String, String> envVariables;
 
-    public DaemonBuildAction(DaemonClient client, ParsedCommandLine args, File currentDir, BuildClientMetaData clientMetaData, long startTime, Map<?, ?> systemProperties, Map<String, String> envVariables) {
-        this.client = client;
-        this.args = args;
+    public DaemonBuildAction(GradleLauncherActionExecuter<BuildActionParameters> executer, StartParameter startParameter, File currentDir, BuildClientMetaData clientMetaData, long startTime, Map<?, ?> systemProperties, Map<String, String> envVariables) {
+        this.executer = executer;
+        this.startParameter = startParameter;
         this.currentDir = currentDir;
         this.clientMetaData = clientMetaData;
         this.startTime = startTime;
@@ -46,6 +47,6 @@ public class DaemonBuildAction implements Runnable {
     }
 
     public void run() {
-        client.execute(new ExecuteBuildAction(currentDir, args), new DefaultBuildActionParameters(clientMetaData, startTime, systemProperties, envVariables, currentDir));
+        executer.execute(new ExecuteBuildAction(startParameter), new DefaultBuildActionParameters(clientMetaData, startTime, systemProperties, envVariables, currentDir));
     }
 }

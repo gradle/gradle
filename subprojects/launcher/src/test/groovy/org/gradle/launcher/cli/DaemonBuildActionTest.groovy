@@ -15,22 +15,21 @@
  */
 package org.gradle.launcher.cli
 
-import org.gradle.cli.ParsedCommandLine
+import org.gradle.StartParameter
 import org.gradle.initialization.BuildClientMetaData
-import org.gradle.launcher.daemon.client.DaemonClient
 import org.gradle.launcher.exec.BuildActionParameters
-
+import org.gradle.launcher.exec.GradleLauncherActionExecuter
 import spock.lang.Specification
 
 class DaemonBuildActionTest extends Specification {
-    final DaemonClient client = Mock()
-    final ParsedCommandLine commandLine = Mock()
+    final GradleLauncherActionExecuter<BuildActionParameters> client = Mock()
+    final StartParameter startParameter = Mock()
     final BuildClientMetaData clientMetaData = Mock()
     final File currentDir = new File('current-dir')
     final long startTime = 90
     final Map<String, String> systemProperties = [key: 'value']
     final Map<String, String> envVariables = [key2: 'value2']
-    final DaemonBuildAction action = new DaemonBuildAction(client, commandLine, currentDir, clientMetaData, startTime, systemProperties, envVariables)
+    final DaemonBuildAction action = new DaemonBuildAction(client, startParameter, currentDir, clientMetaData, startTime, systemProperties, envVariables)
 
     def runsBuildUsingDaemon() {
         when:
@@ -39,8 +38,7 @@ class DaemonBuildActionTest extends Specification {
         then:
         1 * client.execute({!null}, {!null}) >> { args ->
             ExecuteBuildAction action = args[0]
-            assert action.currentDir == currentDir
-            assert action.args == commandLine
+            assert action.startParameter == startParameter
             BuildActionParameters build = args[1]
             assert build.clientMetaData == clientMetaData
             assert build.startTime == startTime

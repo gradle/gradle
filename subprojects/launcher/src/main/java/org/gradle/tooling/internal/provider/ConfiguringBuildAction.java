@@ -52,7 +52,8 @@ class ConfiguringBuildAction<T> implements GradleLauncherAction<T>, Initializati
         this.action = action;
     }
 
-    public void configureStartParameter(StartParameter startParameter) {
+    public StartParameter configureStartParameter() {
+        StartParameter startParameter = new StartParameter();
         startParameter.setProjectDir(projectDirectory);
         if (gradleUserHomeDir != null) {
             startParameter.setGradleUserHomeDir(gradleUserHomeDir);
@@ -86,6 +87,7 @@ class ConfiguringBuildAction<T> implements GradleLauncherAction<T>, Initializati
         }
 
         startParameter.setShowStacktrace(ShowStacktrace.ALWAYS);
+        return startParameter;
     }
 
     public BuildResult run(GradleLauncher launcher) {

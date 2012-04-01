@@ -27,18 +27,12 @@ import spock.lang.Specification
  * by Szczepan Faber, created at: 3/6/12
  */
 class ConfiguringBuildActionTest extends Specification {
-
     @Rule TemporaryFolder temp
-    def start = new StartParameter()
 
     def "allows configuring the start parameter with build arguments"() {
-        given:
-        start.projectProperties == [:]
-        !start.dryRun
-
         when:
         def action = new ConfiguringBuildAction(arguments: ['-PextraProperty=foo', '-m'])
-        action.configureStartParameter(start)
+        def start = action.configureStartParameter()
 
         then:
         start.projectProperties['extraProperty'] == 'foo'
@@ -51,7 +45,7 @@ class ConfiguringBuildActionTest extends Specification {
 
         when:
         def action = new ConfiguringBuildAction(projectDirectory: projectDir, arguments: ['-p', 'otherDir'])
-        action.configureStartParameter(start)
+        def start = action.configureStartParameter()
 
         then:
         start.projectDir == new File(projectDir, "otherDir")
@@ -65,7 +59,7 @@ class ConfiguringBuildActionTest extends Specification {
         when:
         def action = new ConfiguringBuildAction(gradleUserHomeDir: dotGradle, projectDirectory: projectDir, 
                 arguments: ['-g', 'otherDir'])
-        action.configureStartParameter(start)
+        def start = action.configureStartParameter()
 
         then:
         start.gradleUserHomeDir == new File(projectDir, "otherDir")
@@ -74,7 +68,7 @@ class ConfiguringBuildActionTest extends Specification {
     def "can overwrite searchUpwards via build arguments"() {
         when:
         def action = new ConfiguringBuildAction(arguments: ['-u'])
-        action.configureStartParameter(start)
+        def start = action.configureStartParameter()
 
         then:
         !start.isSearchUpwards()

@@ -23,6 +23,7 @@ import org.gradle.launcher.exec.InitializationAware
 import org.gradle.tooling.internal.protocol.BuildExceptionVersion1
 import org.gradle.tooling.internal.provider.input.ProviderOperationParameters
 import spock.lang.Specification
+import org.gradle.StartParameter
 
 class EmbeddedGradleLauncherActionExecuterTest extends Specification {
     final ProviderOperationParameters parameters = Mock()
@@ -46,14 +47,15 @@ class EmbeddedGradleLauncherActionExecuterTest extends Specification {
 
     def actionCanConfigureStartParameters() {
         TestAction action = Mock()
+        def StartParameter startParameter = new StartParameter()
 
         when:
         def result = executer.execute(action, parameters)
 
         then:
         result == 'result'
-        1 * gradleLauncherFactory.newInstance(!null) >> gradleLauncher
-        1 * action.configureStartParameter(!null)
+        1 * action.configureStartParameter() >> startParameter
+        1 * gradleLauncherFactory.newInstance(startParameter) >> gradleLauncher
         1 * action.run(gradleLauncher) >> buildResult
         1 * action.result >> 'result'
     }
