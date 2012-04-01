@@ -19,5 +19,5 @@ package org.gradle.api.plugins.quality.internal.findbugs;
 import org.gradle.internal.Stoppable;
 
 public interface FindBugsDaemon extends Stoppable {
-    FindBugsResult execute(FindBugsSpec spec);
+    FindBugsResult execute();
 }

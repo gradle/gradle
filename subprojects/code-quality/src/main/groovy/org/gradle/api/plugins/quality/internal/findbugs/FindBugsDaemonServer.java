@@ -19,7 +19,6 @@ package org.gradle.api.plugins.quality.internal.findbugs;
 import org.gradle.api.Action;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.internal.UncheckedException;
 import org.gradle.process.internal.WorkerProcessContext;
 
 import java.io.ByteArrayOutputStream;
@@ -29,40 +28,34 @@ import java.lang.reflect.Method;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
-public class FindBugsDaemonServer implements Action<WorkerProcessContext>, FindBugsDaemonServerProtocol, Serializable {
+public class FindBugsDaemonServer implements Action<WorkerProcessContext>, Serializable {
     private static final Logger LOGGER = Logging.getLogger(FindBugsDaemon.class);
 
-    private volatile FindBugsDaemonClientProtocol client;
     private volatile CountDownLatch stop;
+    private FindBugsSpec spec;
+
+    public FindBugsDaemonServer(FindBugsSpec spec){
+        this.spec = spec;
+    }
 
     public void execute(WorkerProcessContext context) {
-        client = context.getServerConnection().addOutgoing(FindBugsDaemonClientProtocol.class);
-        stop = new CountDownLatch(1);
-        context.getServerConnection().addIncoming(FindBugsDaemonServerProtocol.class, this);
-        try {
-            stop.await();
-        } catch (InterruptedException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
+        final FindBugsResult result = execute();
+        final FindBugsDaemonClientProtocol clientProtocol = context.getServerConnection().addOutgoing(FindBugsDaemonClientProtocol.class);
+        clientProtocol.executed(result);
     }
 
-    public void stop() {
-        stop.countDown();
-    }
-
-    public void execute(FindBugsSpec spec) {
+    public FindBugsResult execute() {
         try {
-            LOGGER.info("Executing findbugs in daemon.");
+            LOGGER.info("Executing findbugs daemon.");
             LOGGER.debug("Running findbugs specification {}", spec);
             String findbugsOutput = runFindbugs(spec);
             LOGGER.debug(findbugsOutput);
-            final FindBugsResult findBugsResultFromOutput = createFindBugsResultFromOutput(findbugsOutput);
             LOGGER.info("Successfully executed in findbugs daemon.");
-            client.executed(findBugsResultFromOutput);
+            return createFindBugsResultFromOutput(findbugsOutput);
         } catch (Throwable t) {
             LOGGER.info("Exception executing {} in findbugs daemon:", t);
-            client.executed(new FindBugsResult(true)); //TODO RG: handle errors in findbugs.
         }
+        return new FindBugsResult(true); //TODO RG: handle errors in findbugs.
     }
 
     private FindBugsResult createFindBugsResultFromOutput(String findbugsOutput) {

@@ -16,8 +16,6 @@
 
 package org.gradle.api.plugins.quality.internal.findbugs
 
-import org.gradle.BuildAdapter
-import org.gradle.BuildResult
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.logging.Logger
@@ -27,71 +25,30 @@ import org.gradle.process.internal.WorkerProcess
 import org.gradle.process.internal.WorkerProcessBuilder
 
 class FindBugsDaemonManager {
-    private static final Logger LOGGER = Logging.getLogger(FindBugsDaemonManager.class)
+    private final Logger logger = Logging.getLogger(getClass())
 
-    private static final FindBugsDaemonManager INSTANCE = new FindBugsDaemonManager();
-
-    private volatile FindBugsDaemon client;
-    private volatile WorkerProcess process;
-
-    public static FindBugsDaemonManager getInstance() {
-        return INSTANCE;
-    }
-
-    public FindBugsDaemon getDaemon(ProjectInternal project, findBugsClasspath) {
-        if (client != null) {
-            stop();
-        }
-        if (client == null) {
-            startDaemon(project, findBugsClasspath);
-            stopDaemonOnceBuildFinished(project);
-        }
-        return client;
-    }
-
-    public void stop() {
-        if (client == null) {
-            return;
-        }
-
-        LOGGER.info("Stopping Gradle findbugs daemon.");
-
-        client.stop();
-        client = null;
-        process.waitForStop();
-        process = null;
-
-        LOGGER.info("Gradle findbugs daemon stopped.");
-    }
-
-    private void startDaemon(ProjectInternal project, FileCollection findBugsClasspath) {
-        LOGGER.info("Starting Gradle findbugs daemon.");
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(findBugsClasspath);
+    public FindBugsResult runDaemon(ProjectInternal project, FileCollection findBugsClasspath, FindBugsSpec spec) {
+        logger.info("Starting Gradle findbugs daemon.");
+        if (logger.isDebugEnabled()) {
+            logger.debug(findBugsClasspath.asPath);
         }
 
         WorkerProcessBuilder builder = project.getServices().getFactory(WorkerProcessBuilder.class).create();
         builder.setLogLevel(project.getGradle().getStartParameter().getLogLevel());
         builder.applicationClasspath(findBugsClasspath);   //findbugs classpath
         builder.sharedPackages(Arrays.asList("edu.umd.cs.findbugs"));
-
         JavaExecHandleBuilder javaCommand = builder.getJavaCommand();
         javaCommand.setWorkingDir(project.getRootProject().getProjectDir());
-        process = builder.worker(new FindBugsDaemonServer()).build();
+
+        WorkerProcess process = builder.worker(new FindBugsDaemonServer(spec)).build();
         process.start();
-        FindBugsDaemonServerProtocol server = process.getConnection().addOutgoing(FindBugsDaemonServerProtocol.class);
-        client = new FindBugsDaemonClient(server);
-        process.getConnection().addIncoming(FindBugsDaemonClientProtocol.class, client);
 
-        LOGGER.info("Gradle findbugs daemon started.");
-    }
+        FindBugsDaemonClient clientCallBack = new FindBugsDaemonClient()
+        process.connection.addIncoming(FindBugsDaemonClientProtocol.class, clientCallBack);
+        FindBugsResult result = clientCallBack.getResult();
+        process.waitForStop();
+        logger.info("Gradle findbugs daemon stopped.");
 
-    private void stopDaemonOnceBuildFinished(ProjectInternal project) {
-        project.getGradle().addBuildListener(new BuildAdapter() {
-            @Override
-            public void buildFinished(BuildResult result) {
-                stop();
-            }
-        });
+        return result;
     }
 }

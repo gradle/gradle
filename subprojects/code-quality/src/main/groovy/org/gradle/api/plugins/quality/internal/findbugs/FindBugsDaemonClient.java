@@ -21,33 +21,21 @@ import org.gradle.internal.UncheckedException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.SynchronousQueue;
 
-public class FindBugsDaemonClient implements FindBugsDaemon, FindBugsDaemonClientProtocol {
+public class FindBugsDaemonClient implements FindBugsDaemonClientProtocol {
 
-    private FindBugsDaemonServerProtocol server;
     private final BlockingQueue<FindBugsResult> findbugsResults = new SynchronousQueue<FindBugsResult>();
 
-    public FindBugsDaemonClient(FindBugsDaemonServerProtocol server) {
-        this.server = server;
-    }
-
-
-    public void stop() {
-        server.stop();
-    }
-
-
-    public FindBugsResult execute(FindBugsSpec args) {
-        server.execute(args);
+    public void executed(FindBugsResult result) {
         try {
-            return findbugsResults.take();
+            findbugsResults.put(result);
         } catch (InterruptedException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
-    public void executed(FindBugsResult result) {
+    public FindBugsResult getResult() {
         try {
-            findbugsResults.put(result);
+            return findbugsResults.take();
         } catch (InterruptedException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }

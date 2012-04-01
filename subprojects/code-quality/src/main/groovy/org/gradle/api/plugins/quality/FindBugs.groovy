@@ -19,9 +19,9 @@ import org.gradle.api.GradleException
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.Instantiator
 import org.gradle.api.plugins.quality.internal.FindBugsReportsImpl
-import org.gradle.api.plugins.quality.internal.findbugs.FindBugsDaemon
 import org.gradle.api.plugins.quality.internal.findbugs.FindBugsDaemonManager
 import org.gradle.api.plugins.quality.internal.findbugs.FindBugsResult
+import org.gradle.api.plugins.quality.internal.findbugs.FindBugsSpec
 import org.gradle.api.plugins.quality.internal.findbugs.FindBugsSpecBuilder
 import org.gradle.api.reporting.Reporting
 import org.gradle.api.reporting.SingleFileReport
@@ -106,9 +106,10 @@ class FindBugs extends SourceTask implements VerificationTask, Reporting<FindBug
                 .withDebugging(logger.isDebugEnabled())
                 .configureReports(reports)
 
-        FindBugsDaemonManager manager = FindBugsDaemonManager.getInstance();
-        FindBugsDaemon daemon = manager.getDaemon(getProject(), getFindbugsClasspath())
-        FindBugsResult findbugsResult = daemon.execute(argumentBuilder.build());
+        FindBugsSpec spec = argumentBuilder.build()
+        FindBugsDaemonManager manager = new FindBugsDaemonManager();
+        FindBugsResult findbugsResult = manager.runDaemon(getProject(), getFindbugsClasspath(), spec)
+//        Thread.sleep(20000)
         evaluateResult(findbugsResult);
     }
 
