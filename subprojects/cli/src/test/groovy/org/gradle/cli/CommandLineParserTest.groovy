@@ -341,7 +341,7 @@ class CommandLineParserTest extends Specification {
         parser.option('another-long-option').hasDescription('this is a long option')
         parser.option('z', 'y', 'last-option', 'end-option').hasDescription('this is the last option')
         parser.option('B')
-        def outstr = new ByteArrayOutputStream()
+        def outstr = new StringWriter()
 
         expect:
         parser.printUsage(outstr)
@@ -359,7 +359,7 @@ class CommandLineParserTest extends Specification {
         parser.option('b').deprecated('will be removed')
         parser.option('c').hasDescription('option c').experimental()
         parser.option('d').experimental()
-        def outstr = new ByteArrayOutputStream()
+        def outstr = new StringWriter()
 
         expect:
         parser.printUsage(outstr)
