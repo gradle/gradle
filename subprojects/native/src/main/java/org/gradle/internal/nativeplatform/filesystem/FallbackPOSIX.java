@@ -26,6 +26,8 @@ import java.io.IOException;
 
 public class FallbackPOSIX implements POSIX {
 
+    static final int ENOTSUP = 1;
+
     public int chmod(String filename, int mode) {
         return 0;
     }
@@ -195,7 +197,7 @@ public class FallbackPOSIX implements POSIX {
     }
 
     public int symlink(String oldpath, String newpath) {
-        return 0;
+        return ENOTSUP;
     }
 
     public int umask(int mask) {

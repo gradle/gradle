@@ -19,6 +19,7 @@ package org.gradle.internal.nativeplatform.filesystem
 import org.junit.Rule
 import spock.lang.Specification
 import org.gradle.util.TemporaryFolder
+import org.jruby.ext.posix.POSIX
 
 class FallbackPOSIXTest extends Specification {
 
@@ -44,8 +45,8 @@ class FallbackPOSIXTest extends Specification {
         stat instanceof FallbackFileStat
     }
 
-    def "returns 0 for symlink calls"() {
+    def "returns errno code 1 (ENOTSUP) for symlink calls"() {
         expect:
-        0 == posix.symlink("/old/path", "new/path")
+        1 == posix.symlink("/old/path", "new/path")
     }
 }
