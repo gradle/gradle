@@ -15,11 +15,10 @@
  */
 package org.gradle.cli;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ParsedCommandLineOption implements Serializable {
+public class ParsedCommandLineOption {
     private final List<String> values = new ArrayList<String>();
 
     public String getValue() {

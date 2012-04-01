@@ -15,10 +15,9 @@
  */
 package org.gradle.cli;
 
-import java.io.Serializable;
 import java.util.*;
 
-public class ParsedCommandLine implements Serializable {
+public class ParsedCommandLine {
     private final Map<String, ParsedCommandLineOption> optionsByString = new HashMap<String, ParsedCommandLineOption>();
     private final Set<String> presentOptions = new HashSet<String>();
     private final List<String> extraArguments = new ArrayList<String>();

@@ -160,7 +160,7 @@ public class CommandLineParser {
      *
      * @param out The output stream to write to.
      */
-    public void printUsage(OutputStream out) {
+    public void printUsage(Appendable out) {
         Formatter formatter = new Formatter(out);
         Set<CommandLineOption> orderedOptions = new TreeSet<CommandLineOption>(new OptionComparator());
         orderedOptions.addAll(optionsByString.values());
