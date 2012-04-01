@@ -22,6 +22,8 @@ import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Specification
+import org.gradle.util.ClasspathUtil
+import org.gradle.tooling.model.Element
 
 /**
  * by Szczepan Faber, created at: 1/5/12
@@ -70,7 +72,10 @@ public class Sample {
         def fileManager = compiler.getStandardFileManager(null, null, null);
 
         def location = ("javax.tools.StandardLocation" as Class).CLASS_OUTPUT
-        fileManager.setLocation(location, Arrays.asList(temp.dir));
+        fileManager.setLocation(location, [temp.dir]);
+
+        location = ("javax.tools.StandardLocation" as Class).CLASS_PATH
+        fileManager.setLocation(location, [ClasspathUtil.getClasspathForClass(Element)]);
 
         def checkDiagnostic = { diagnostic ->
             if (diagnostic.kind.name() == 'ERROR') {
