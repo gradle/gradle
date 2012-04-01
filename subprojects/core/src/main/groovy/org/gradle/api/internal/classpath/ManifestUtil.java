@@ -95,6 +95,10 @@ public class ManifestUtil {
             // Not a zip file
             return null;
         }
-        return jarFile.getManifest();
+        try {
+            return jarFile.getManifest();
+        } finally {
+            jarFile.close();
+        }
     }
 }
