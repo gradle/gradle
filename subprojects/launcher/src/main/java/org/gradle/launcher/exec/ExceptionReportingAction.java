@@ -15,14 +15,13 @@
  */
 package org.gradle.launcher.exec;
 
-import org.gradle.BuildExceptionReporter;
 import org.gradle.api.Action;
 
 public class ExceptionReportingAction implements Action<ExecutionListener> {
     private final Action<ExecutionListener> action;
-    private final BuildExceptionReporter reporter;
+    private final Action<Throwable> reporter;
 
-    public ExceptionReportingAction(Action<ExecutionListener> action, BuildExceptionReporter reporter) {
+    public ExceptionReportingAction(Action<ExecutionListener> action, Action<Throwable> reporter) {
         this.action = action;
         this.reporter = reporter;
     }
@@ -33,7 +32,7 @@ public class ExceptionReportingAction implements Action<ExecutionListener> {
         } catch (ReportedException e) {
             executionListener.onFailure(e.getCause());
         } catch (Throwable t) {
-            reporter.reportException(t);
+            reporter.execute(t);
             executionListener.onFailure(t);
         }
     }

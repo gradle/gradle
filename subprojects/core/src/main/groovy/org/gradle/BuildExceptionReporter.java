@@ -16,6 +16,7 @@
 package org.gradle;
 
 import org.codehaus.groovy.runtime.StackTraceUtils;
+import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.LocationAwareException;
 import org.gradle.api.logging.LogLevel;
@@ -37,7 +38,7 @@ import static org.gradle.logging.StyledTextOutput.Style.*;
 /**
  * A {@link BuildListener} which reports the build exception, if any.
  */
-public class BuildExceptionReporter extends BuildAdapter {
+public class BuildExceptionReporter extends BuildAdapter implements Action<Throwable> {
     private enum ExceptionStyle {
         NONE, SANITIZED, FULL
     }
@@ -58,10 +59,10 @@ public class BuildExceptionReporter extends BuildAdapter {
             return;
         }
 
-        reportException(failure);
+        execute(failure);
     }
 
-    public void reportException(Throwable failure) {
+    public void execute(Throwable failure) {
         FailureDetails details = new FailureDetails(failure);
         if (failure instanceof GradleException) {
             reportBuildFailure((GradleException) failure, details);

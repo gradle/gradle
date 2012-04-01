@@ -46,6 +46,7 @@ import org.gradle.util.GradleVersion;
 import java.io.File;
 import java.io.PrintStream;
 import java.lang.management.ManagementFactory;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -72,29 +73,23 @@ public class CommandLineActionFactory {
      * @return The action to execute.
      */
     public Action<ExecutionListener> convert(List<String> args) {
+
+        ServiceRegistry loggingServices = createLoggingServices();
+        List<CommandLineAction> actions = Arrays.asList(new BuiltInActions(), new GuiActions(), new BuildActions(loggingServices));
+
         CommandLineParser parser = new CommandLineParser();
-
-        CommandLineConverter<StartParameter> startParameterConverter = createStartParameterConverter();
-        startParameterConverter.configure(parser);
-
-        parser.option(HELP, "?", "help").hasDescription("Shows this help message.");
-        parser.option(VERSION, "version").hasDescription("Print version info.");
-        parser.option(GUI).hasDescription("Launches the Gradle GUI.");
-        parser.option(FOREGROUND).hasDescription("Starts the Gradle daemon in the foreground.").experimental();
-        parser.option(DAEMON).hasDescription("Uses the Gradle daemon to run the build. Starts the daemon if not running.");
-        parser.option(NO_DAEMON).hasDescription("Do not use the Gradle daemon to run the build.");
-        parser.option(STOP).hasDescription("Stops the Gradle daemon if it is running.");
+        for (CommandLineAction action : actions) {
+            action.configureCommandLineParser(parser);
+        }
 
         LoggingConfiguration loggingConfiguration = new LoggingConfiguration();
-        ServiceRegistry loggingServices = createLoggingServices();
-
         Action<ExecutionListener> action;
         try {
             ParsedCommandLine commandLine = parser.parse(args);
             @SuppressWarnings("unchecked")
             CommandLineConverter<LoggingConfiguration> loggingConfigurationConverter = (CommandLineConverter<LoggingConfiguration>)loggingServices.get(CommandLineConverter.class);
             loggingConfigurationConverter.convert(commandLine, loggingConfiguration);
-            action = createAction(parser, commandLine, startParameterConverter, loggingServices);
+            action = createAction(actions, parser, commandLine);
         } catch (CommandLineArgumentException e) {
             action = new CommandLineParseFailureAction(parser, e);
         }
@@ -116,36 +111,14 @@ public class CommandLineActionFactory {
         return LoggingServiceRegistry.newCommandLineProcessLogging();
     }
 
-    private Action<ExecutionListener> createAction(CommandLineParser parser, final ParsedCommandLine commandLine, CommandLineConverter<StartParameter> startParameterConverter, final ServiceRegistry loggingServices) {
-        if (commandLine.hasOption(HELP)) {
-            return new ActionAdapter(new ShowUsageAction(parser));
+    private Action<ExecutionListener> createAction(Iterable<CommandLineAction> factories, CommandLineParser parser, ParsedCommandLine commandLine) {
+        for (CommandLineAction factory : factories) {
+            Action<ExecutionListener> action = factory.createAction(parser, commandLine);
+            if (action != null) {
+                return action;
+            }
         }
-        if (commandLine.hasOption(VERSION)) {
-            return new ActionAdapter(new ShowVersionAction());
-        }
-        if (commandLine.hasOption(GUI)) {
-            return new ActionAdapter(new ShowGuiAction());
-        }
-
-        final StartParameter startParameter = new StartParameter();
-        startParameterConverter.convert(commandLine, startParameter);
-        DaemonParameters daemonParameters = constructDaemonParameters(startParameter);
-        if (commandLine.hasOption(FOREGROUND)) {
-            ForegroundDaemonConfiguration conf = new ForegroundDaemonConfiguration(
-                    daemonParameters.getUid(), daemonParameters.getBaseDir(), daemonParameters.getIdleTimeout());
-            return new ActionAdapter(new ForegroundDaemonMain(conf));
-        }
-
-        if (commandLine.hasOption(STOP)) {
-            return stopAllDaemons(daemonParameters, loggingServices);
-        }
-        if (useDaemon(commandLine, daemonParameters)) {
-            return runBuildWithDaemon(commandLine, daemonParameters, loggingServices);
-        }
-        if (canUseCurrentProcess(daemonParameters)) {
-            return runBuildInProcess(loggingServices, startParameter);
-        }
-        return runBuildInSingleUseDaemon(commandLine, daemonParameters, loggingServices);
+        throw new UnsupportedOperationException("No action factory for specified command-line arguments.");
     }
 
     private DaemonParameters constructDaemonParameters(StartParameter startParameter) {
@@ -223,6 +196,77 @@ public class CommandLineActionFactory {
         out.println();
         parser.printUsage(out);
         out.println();
+    }
+
+    private static class BuiltInActions implements CommandLineAction {
+        public void configureCommandLineParser(CommandLineParser parser) {
+            parser.option(HELP, "?", "help").hasDescription("Shows this help message.");
+            parser.option(VERSION, "version").hasDescription("Print version info.");
+        }
+
+        public Action<ExecutionListener> createAction(CommandLineParser parser, ParsedCommandLine commandLine) {
+            if (commandLine.hasOption(HELP)) {
+                return new ActionAdapter(new ShowUsageAction(parser));
+            }
+            if (commandLine.hasOption(VERSION)) {
+                return new ActionAdapter(new ShowVersionAction());
+            }
+            return null;
+        }
+    }
+
+    private static class GuiActions implements CommandLineAction {
+        public void configureCommandLineParser(CommandLineParser parser) {
+            parser.option(GUI).hasDescription("Launches the Gradle GUI.");
+        }
+
+        public Action<ExecutionListener> createAction(CommandLineParser parser, ParsedCommandLine commandLine) {
+            if (commandLine.hasOption(GUI)) {
+                return new ActionAdapter(new ShowGuiAction());
+            }
+            return null;
+        }
+    }
+
+    private class BuildActions implements CommandLineAction {
+        private final ServiceRegistry loggingServices;
+        private final CommandLineConverter<StartParameter> startParameterConverter;
+
+        private BuildActions(ServiceRegistry loggingServices) {
+            this.loggingServices = loggingServices;
+            startParameterConverter = createStartParameterConverter();
+        }
+
+        public void configureCommandLineParser(CommandLineParser parser) {
+            startParameterConverter.configure(parser);
+
+            parser.option(FOREGROUND).hasDescription("Starts the Gradle daemon in the foreground.").experimental();
+            parser.option(DAEMON).hasDescription("Uses the Gradle daemon to run the build. Starts the daemon if not running.");
+            parser.option(NO_DAEMON).hasDescription("Do not use the Gradle daemon to run the build.");
+            parser.option(STOP).hasDescription("Stops the Gradle daemon if it is running.");
+        }
+
+        public Action<ExecutionListener> createAction(CommandLineParser parser, ParsedCommandLine commandLine) {
+            final StartParameter startParameter = new StartParameter();
+            startParameterConverter.convert(commandLine, startParameter);
+            DaemonParameters daemonParameters = constructDaemonParameters(startParameter);
+            if (commandLine.hasOption(FOREGROUND)) {
+                ForegroundDaemonConfiguration conf = new ForegroundDaemonConfiguration(
+                        daemonParameters.getUid(), daemonParameters.getBaseDir(), daemonParameters.getIdleTimeout());
+                return new ActionAdapter(new ForegroundDaemonMain(conf));
+            }
+
+            if (commandLine.hasOption(STOP)) {
+                return stopAllDaemons(daemonParameters, loggingServices);
+            }
+            if (useDaemon(commandLine, daemonParameters)) {
+                return runBuildWithDaemon(commandLine, daemonParameters, loggingServices);
+            }
+            if (canUseCurrentProcess(daemonParameters)) {
+                return runBuildInProcess(loggingServices, startParameter);
+            }
+            return runBuildInSingleUseDaemon(commandLine, daemonParameters, loggingServices);
+        }
     }
 
     private static class CommandLineParseFailureAction implements Action<ExecutionListener> {

@@ -16,14 +16,14 @@
 package org.gradle.launcher.cli
 
 import org.gradle.BuildResult
-import org.gradle.GradleLauncher
 import org.gradle.StartParameter
 import org.gradle.cli.CommandLineArgumentException
 import org.gradle.cli.CommandLineConverter
-import org.gradle.initialization.GradleLauncherFactory
 import org.gradle.internal.Factory
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.launcher.daemon.bootstrap.DaemonMain
+import org.gradle.launcher.daemon.configuration.DaemonParameters
 import org.gradle.launcher.exec.ExceptionReportingAction
 import org.gradle.launcher.exec.ExecutionListener
 import org.gradle.logging.LoggingConfiguration
@@ -38,8 +38,6 @@ import org.junit.Rule
 import spock.lang.Specification
 
 import static org.gradle.launcher.cli.CommandLineActionFactory.*
-import org.gradle.internal.os.OperatingSystem
-import org.gradle.launcher.daemon.configuration.DaemonParameters
 
 class CommandLineActionFactoryTest extends Specification {
     @Rule
@@ -50,8 +48,6 @@ class CommandLineActionFactoryTest extends Specification {
     TemporaryFolder tmpDir = new TemporaryFolder();
     final ExecutionListener buildCompleter = Mock()
     final CommandLineConverter<StartParameter> startParameterConverter = Mock()
-    final GradleLauncherFactory gradleLauncherFactory = Mock()
-    final GradleLauncher gradleLauncher = Mock()
     final BuildResult buildResult = Mock()
     final ServiceRegistry loggingServices = Mock()
     final CommandLineConverter<LoggingConfiguration> loggingConfigurationConverter = Mock()

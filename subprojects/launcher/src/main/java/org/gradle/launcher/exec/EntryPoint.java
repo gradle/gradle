@@ -15,13 +15,17 @@
  */
 package org.gradle.launcher.exec;
 
+import org.gradle.BuildExceptionReporter;
 import org.gradle.api.Action;
+import org.gradle.configuration.GradleLauncherMetaData;
+import org.gradle.logging.LoggingConfiguration;
+import org.gradle.logging.internal.StreamingStyledTextOutputFactory;
 
 /**
  * An entry point is the point at which execution will never return from.
  * <p>
  * It's purpose is to consistently apply our completion logic of forcing the JVM
- * to exit at a certain point instead of waiting for all threads to die and to provide
+ * to exit at a certain point instead of waiting for all threads to die, and to provide
  * some consistent unhandled exception catching.
  * <p>
  * Entry points may be nested, as is the case when a foreground daemon is started.
@@ -36,7 +40,21 @@ abstract public class EntryPoint implements Runnable {
      * Unless the createCompleter() method is overridden, the JVM will exit before returning from this method.
      */
     public void run() {
-        Execution.execute(createAction(), createCompleter(), createErrorHandler());
+        RecordingExecutionListener listener = new RecordingExecutionListener();
+        try {
+            doAction(listener);
+        } catch (Throwable e) {
+            createErrorHandler().execute(e);
+            listener.onFailure(e);
+        }
+
+        Throwable failure = listener.getFailure();
+        ExecutionCompleter completer = createCompleter();
+        if (failure == null) {
+            completer.complete();
+        } else {
+            completer.completeWithFailure(failure);
+        }
     }
 
     protected ExecutionCompleter createCompleter() {
@@ -44,19 +62,21 @@ abstract public class EntryPoint implements Runnable {
     }
 
     protected Action<Throwable> createErrorHandler() {
-        return new LogErrorAction();
+        return new BuildExceptionReporter(new StreamingStyledTextOutputFactory(System.err), new LoggingConfiguration(), new GradleLauncherMetaData());
     }
 
-    protected Action<ExecutionListener> createAction() {
-        return new Action<ExecutionListener>() {
-            public void execute(ExecutionListener listener) {
-                doAction(listener);
-            }
-        };
-    }
-    
-    protected void doAction(ExecutionListener listener) {
-        // empty impl
+    protected abstract void doAction(ExecutionListener listener);
+
+    private static class RecordingExecutionListener implements ExecutionListener {
+        private Throwable failure;
+
+        public void onFailure(Throwable failure) {
+            this.failure = failure;
+        }
+
+        public Throwable getFailure() {
+            return failure;
+        }
     }
 
 }

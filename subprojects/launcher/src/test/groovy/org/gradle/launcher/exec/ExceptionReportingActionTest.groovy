@@ -15,14 +15,13 @@
  */
 package org.gradle.launcher.exec
 
-import org.gradle.BuildExceptionReporter
 import org.gradle.api.Action
 import spock.lang.Specification
 
 class ExceptionReportingActionTest extends Specification {
     final Action<ExecutionListener> target = Mock()
     final ExecutionListener listener = Mock()
-    final BuildExceptionReporter reporter = Mock()
+    final Action<Throwable> reporter = Mock()
     final ExceptionReportingAction action = new ExceptionReportingAction(target, reporter)
 
     def executesAction() {
@@ -42,7 +41,7 @@ class ExceptionReportingActionTest extends Specification {
 
         then:
         1 * target.execute(listener) >> { throw failure }
-        1 * reporter.reportException(failure)
+        1 * reporter.execute(failure)
         1 * listener.onFailure(failure)
         0 * _._
     }
