@@ -72,7 +72,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
             if (isUnchanged) {
                 LOGGER.info("Cached resource is up-to-date (lastModified: {}). [HTTP: {}]", cached.getExternalLastModified(), location);
                 // TODO - should we use the remote metadata? It may be “better”
-                return new CachedExternalResourceAdapter(location, cached, delegate);
+                return new CachedExternalResourceAdapter(location, cached, delegate, remoteMetaData);
             }
         }
 
@@ -90,7 +90,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
                 LocallyAvailableResource local = localCandidates.findByHashValue(remoteChecksum);
                 if (local != null) {
                     LOGGER.info("Found locally available resource with matching checksum: [{}, {}]", location, local.getFile());
-                    return new LocallyAvailableExternalResource(location, local);
+                    return new LocallyAvailableExternalResource(location, local, remoteMetaData);
                 }
             }
         }
