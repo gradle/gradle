@@ -42,18 +42,18 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
         this.delegate = delegate;
     }
 
-    public ExternalResource getResource(final String source, @Nullable LocallyAvailableResourceCandidates localCandidates, @Nullable CachedExternalResource cached) throws IOException {
-        LOGGER.debug("Constructing external resource: {}", source);
+    public ExternalResource getResource(final String location, @Nullable LocallyAvailableResourceCandidates localCandidates, @Nullable CachedExternalResource cached) throws IOException {
+        LOGGER.debug("Constructing external resource: {}", location);
 
         // If we have no caching options, just get the thing directly
         if (cached == null && (localCandidates == null || localCandidates.isNone())) {
-            return delegate.getResource(source);
+            return delegate.getResource(location);
         }
 
         // We might be able to use a cached/locally available version
 
         // Get the metadata first to see if it's there
-        final ExternalResourceMetaData remoteMetaData = delegate.getMetaData(source);
+        final ExternalResourceMetaData remoteMetaData = delegate.getMetaData(location);
         if (remoteMetaData == null) {
             return null;
         }
@@ -70,9 +70,9 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
             );
 
             if (isUnchanged) {
-                LOGGER.info("Cached resource is up-to-date (lastModified: {}). [HTTP: {}]", cached.getExternalLastModified(), source);
+                LOGGER.info("Cached resource is up-to-date (lastModified: {}). [HTTP: {}]", cached.getExternalLastModified(), location);
                 // TODO - should we use the remote metadata? It may be “better”
-                return new CachedExternalResourceAdapter(source, cached, delegate, remoteMetaData);
+                return new CachedExternalResourceAdapter(location, cached, delegate);
             }
         }
 
@@ -83,20 +83,20 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
             HashValue remoteChecksum = remoteMetaData.getSha1();
 
             if (remoteChecksum == null) {
-                remoteChecksum = delegate.getResourceSha1(source);
+                remoteChecksum = delegate.getResourceSha1(location);
             }
 
             if (remoteChecksum != null) {
                 LocallyAvailableResource local = localCandidates.findByHashValue(remoteChecksum);
                 if (local != null) {
-                    LOGGER.info("Found locally available resource with matching checksum: [{}, {}]", source, local.getFile());
-                    return new LocallyAvailableExternalResource(source, local, remoteMetaData);
+                    LOGGER.info("Found locally available resource with matching checksum: [{}, {}]", location, local.getFile());
+                    return new LocallyAvailableExternalResource(location, local);
                 }
             }
         }
 
         // All local/cached options failed, get directly
-        return delegate.getResource(source);
+        return delegate.getResource(location);
     }
 
 }
