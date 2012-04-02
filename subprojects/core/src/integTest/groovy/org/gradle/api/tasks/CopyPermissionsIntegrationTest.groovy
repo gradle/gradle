@@ -23,10 +23,33 @@ import org.gradle.util.TestPrecondition
 @Requires(TestPrecondition.FILE_PERMISSIONS)
 class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
 
+
+    def "file permissions of a file are preserved in copy action"() {
+        given:
+        def testSourceFile = file("reference.txt") << 'test file"'
+        testSourceFile.permissions = mode
+        and:
+        buildFile << """
+        import static java.lang.Integer.toOctalString
+        task copy(type: Copy) {
+            from "reference.txt"
+            into ("build/tmp")
+        }
+        """
+        
+        when:
+        run "copy"
+        then:
+        file("build/tmp/reference.txt").permissions == mode
+        where:
+        mode << ['rwxr--r-x']
+    }
+
+    
     def "fileMode can be modified in copy task"() {
         given:
-        file("reference.txt") << 'test file"'
-
+        def testFile = file("reference.txt") << 'test file"'
+        testFile.permissions = "rwxrwxrwx"
         and:
         buildFile << """
         import static java.lang.Integer.toOctalString
@@ -35,20 +58,17 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
             into ("build/tmp")
             fileMode = $mode
         }
-
-        ${verifyPermissionsTask(mode)}
         """
-
         when:
-        run "verifyPermissions"
-
+        run "copy"
         then:
-        noExceptionThrown()
-
+        file("build/tmp/reference.txt").permissions == mode
         where:
-        mode << [0755, 0777]
-
+        mode << ['rwxr--r-x', 'rwx-wx-wx']
     }
+    
+    
+
 
     def "fileMode can be modified in copy action"() {
         given:
@@ -79,13 +99,9 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
 
     }
 
-    String verifyPermissionsTask(int mode) {
-        """task verifyPermissions(dependsOn: copy) << {
-                fileTree("build/tmp").visit{
-                    assert toOctalString($mode) == toOctalString(it.mode)
-                }
-           }
-        """
+    def hasFilePermissions(String filePath, String permissions){
+        def targetFile = file(filePath)
+        targetFile.exists();
+        targetFile.permissions == '---------'
     }
-
 }
