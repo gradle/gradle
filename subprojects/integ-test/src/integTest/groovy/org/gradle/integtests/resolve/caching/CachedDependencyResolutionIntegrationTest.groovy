@@ -201,7 +201,24 @@ task retrieve(type: Copy) {
         then:
         headThenGetRequests()
         changedResolve()
-
     }
+
+    def "no need for sha1 request if we know the etag is sha1"() {
+        given:
+        server.etags = HttpServer.EtagStrategy.NEXUS_ENCODED_SHA1
+        initialResolve()
+
+        expect:
+        headOnlyRequests()
+        unchangedResolve()
+
+        when:
+        change()
+
+        then:
+        headThenGetRequests()
+        changedResolve()
+    }
+
 
 }

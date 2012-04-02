@@ -39,7 +39,8 @@ class HttpServer extends ExternalResource {
     
     enum EtagStrategy {
         NONE({ null }),
-        RAW_SHA1_HEX({ HashUtil.sha1(it as byte[]).asHexString() })
+        RAW_SHA1_HEX({ HashUtil.sha1(it as byte[]).asHexString() }),
+        NEXUS_ENCODED_SHA1({ "{SHA1{" + HashUtil.sha1(it as byte[]).asHexString() + "}}" })
         
         private final Closure generator
         
