@@ -19,16 +19,16 @@ package org.gradle.api.plugins.quality.internal.findbugs
 import edu.umd.cs.findbugs.IFindBugsEngine
 import spock.lang.Specification
 
-class FindBugsDaemonServerTest extends Specification {
+class FindBugsExecuterTest extends Specification {
 
-    def FindBugsDaemonServer findBugsDaemonServer = new FindBugsDaemonServer();
+    def FindBugsExecuter findBugsExecuter = new FindBugsExecuter();
 
     def "FindBugsResult contains bugCount from FindBugsEngine"() {
         setup:
         IFindBugsEngine findbugs = Mock(IFindBugsEngine)
         findbugs.bugCount >> 1;
         when:
-        def result = findBugsDaemonServer.createFindbugsResult(findbugs)
+        def result = findBugsExecuter.createFindbugsResult(findbugs)
         then:
         result.bugCount == 1
     }
@@ -38,7 +38,7 @@ class FindBugsDaemonServerTest extends Specification {
         IFindBugsEngine findbugs = Mock(IFindBugsEngine)
         findbugs.errorCount >> 1;
         when:
-        def result = findBugsDaemonServer.createFindbugsResult(findbugs)
+        def result = findBugsExecuter.createFindbugsResult(findbugs)
         then:
         result.errorCount == 1
     }
@@ -48,7 +48,7 @@ class FindBugsDaemonServerTest extends Specification {
         IFindBugsEngine findbugs = Mock(IFindBugsEngine)
         findbugs.missingClassCount >> 1;
         when:
-        def result = findBugsDaemonServer.createFindbugsResult(findbugs)
+        def result = findBugsExecuter.createFindbugsResult(findbugs)
         then:
         result.missingClassCount == 1
     }

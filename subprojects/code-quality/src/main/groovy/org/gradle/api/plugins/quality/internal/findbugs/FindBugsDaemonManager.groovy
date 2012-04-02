@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+
+
 package org.gradle.api.plugins.quality.internal.findbugs
 
 import org.gradle.api.file.FileCollection
@@ -33,6 +35,19 @@ class FindBugsDaemonManager {
             logger.debug(findBugsClasspath.asPath);
         }
 
+        WorkerProcess process = createWorkerProcess(project, findBugsClasspath, spec);
+        process.start();
+
+        FindBugsDaemonClient clientCallBack = new FindBugsDaemonClient()
+        process.connection.addIncoming(FindBugsDaemonClientProtocol.class, clientCallBack);
+        FindBugsResult result = clientCallBack.getResult();
+
+        process.waitForStop();
+        logger.info("Gradle findbugs daemon stopped.");
+        return result;
+    }
+
+    private WorkerProcess createWorkerProcess(ProjectInternal project, FileCollection findBugsClasspath, FindBugsSpec spec) {
         WorkerProcessBuilder builder = project.getServices().getFactory(WorkerProcessBuilder.class).create();
         builder.setLogLevel(project.getGradle().getStartParameter().getLogLevel());
         builder.applicationClasspath(findBugsClasspath);   //findbugs classpath
@@ -40,15 +55,7 @@ class FindBugsDaemonManager {
         JavaExecHandleBuilder javaCommand = builder.getJavaCommand();
         javaCommand.setWorkingDir(project.getRootProject().getProjectDir());
 
-        WorkerProcess process = builder.worker(new FindBugsDaemonServer(spec)).build();
-        process.start();
-
-        FindBugsDaemonClient clientCallBack = new FindBugsDaemonClient()
-        process.connection.addIncoming(FindBugsDaemonClientProtocol.class, clientCallBack);
-        FindBugsResult result = clientCallBack.getResult();
-        process.waitForStop();
-        logger.info("Gradle findbugs daemon stopped.");
-
-        return result;
+        WorkerProcess process = builder.worker(new FindBugsDaemonServer(spec)).build()
+        return process
     }
 }
