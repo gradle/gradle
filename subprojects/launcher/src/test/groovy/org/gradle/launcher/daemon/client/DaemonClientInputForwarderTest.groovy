@@ -24,6 +24,7 @@ import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
+import org.gradle.util.IdGenerator
 
 class DaemonClientInputForwarderTest extends ConcurrentSpecification {
 
@@ -53,7 +54,7 @@ class DaemonClientInputForwarderTest extends ConcurrentSpecification {
     def forwarder
 
     def createForwarder() {
-        forwarder = new DaemonClientInputForwarder(inputStream, dispatch, executorFactory, bufferSize)
+        forwarder = new DaemonClientInputForwarder(inputStream, dispatch, executorFactory, {12} as IdGenerator, bufferSize)
         forwarder.start()
     }
     

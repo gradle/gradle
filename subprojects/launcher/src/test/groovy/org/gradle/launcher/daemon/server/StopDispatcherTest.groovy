@@ -19,13 +19,14 @@ package org.gradle.launcher.daemon.server
 import org.gradle.launcher.daemon.client.StopDispatcher
 import org.gradle.messaging.remote.internal.Connection
 import spock.lang.Specification
+import org.gradle.util.IdGenerator
 
 /**
  * @author: Szczepan Faber, created at: 9/13/11
  */
 public class StopDispatcherTest extends Specification {
 
-    def dispatcher = new StopDispatcher()
+    def dispatcher = new StopDispatcher({12} as IdGenerator)
     def connection = Mock(Connection)
 
     def "ignores failed dispatch and does not receive"() {

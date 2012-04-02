@@ -16,23 +16,18 @@
 package org.gradle.launcher.daemon.protocol;
 
 import java.io.Serializable;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class Command implements Serializable {
+    private final Object identifier;
 
-    private static final AtomicInteger SEQUENCER = new AtomicInteger(1);
-
-    private final String identifier;
-
-    public Command() {
-        //unique only within the process but this should be enough
-        this.identifier = System.currentTimeMillis() + "-" + SEQUENCER.getAndIncrement();
+    public Command(Object identifier) {
+        this.identifier = identifier;
     }
 
     /**
      * @return an id that is guaranteed to be unique in the same process
      */
-    public String getIdentifier() {
+    public Object getIdentifier() {
         return identifier;
     }
 

@@ -29,7 +29,8 @@ public class Build extends Command {
 
     private transient StartParameter startParameter;
         
-    public Build(GradleLauncherAction<?> action, BuildActionParameters parameters) {
+    public Build(Object identifier, GradleLauncherAction<?> action, BuildActionParameters parameters) {
+        super(identifier);
         this.action = action;
         this.parameters = parameters;
     }

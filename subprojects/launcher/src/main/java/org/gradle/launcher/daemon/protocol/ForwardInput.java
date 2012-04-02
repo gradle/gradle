@@ -18,7 +18,8 @@ package org.gradle.launcher.daemon.protocol;
 public class ForwardInput extends IoCommand {
     private final byte[] bytes;
     
-    public ForwardInput(byte[] bytes) {
+    public ForwardInput(Object identifier, byte[] bytes) {
+        super(identifier);
         this.bytes = bytes;
     }
     

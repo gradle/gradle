@@ -18,11 +18,12 @@ package org.gradle.launcher.daemon.client;
 
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
-import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.logging.internal.OutputEventListener;
+import org.gradle.messaging.concurrent.ExecutorFactory;
+import org.gradle.util.IdGenerator;
 
 import java.io.InputStream;
 
@@ -34,6 +35,12 @@ public class StopDaemonClientServices extends DaemonClientServices {
     @Override
     protected DaemonClient createDaemonClient() {
         Spec<DaemonContext> matchAll = Specs.satisfyAll();
-        return new DaemonClient(get(DaemonConnector.class), get(BuildClientMetaData.class), get(OutputEventListener.class), matchAll, getBuildStandardInput());
+        return new DaemonClient(
+                get(DaemonConnector.class),
+                get(OutputEventListener.class),
+                matchAll,
+                getBuildStandardInput(),
+                get(ExecutorFactory.class),
+                get(IdGenerator.class));
     }
 }

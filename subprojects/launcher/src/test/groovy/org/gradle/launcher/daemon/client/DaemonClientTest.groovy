@@ -16,23 +16,23 @@
 package org.gradle.launcher.daemon.client
 
 import org.gradle.api.specs.Spec
-import org.gradle.initialization.BuildClientMetaData
 import org.gradle.initialization.GradleLauncherAction
 import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.exec.BuildActionParameters
 import org.gradle.logging.internal.OutputEventListener
 import org.gradle.messaging.remote.internal.Connection
-import spock.lang.Specification
+import org.gradle.util.ConcurrentSpecification
+import org.gradle.util.IdGenerator
 import org.gradle.launcher.daemon.protocol.*
 
-class DaemonClientTest extends Specification {
+class DaemonClientTest extends ConcurrentSpecification {
     final DaemonConnector connector = Mock()
     final DaemonConnection daemonConnection = Mock()
     final Connection<Object> connection = Mock()
-    final BuildClientMetaData metaData = Mock()
     final OutputEventListener outputEventListener = Mock()
     final Spec<DaemonContext> compatibilitySpec = Mock()
-    final DaemonClient client = new DaemonClient(connector, metaData, outputEventListener, compatibilitySpec, System.in)
+    final IdGenerator<?> idGenerator = {12} as IdGenerator
+    final DaemonClient client = new DaemonClient(connector, outputEventListener, compatibilitySpec, new ByteArrayInputStream(new byte[0]), executorFactory, idGenerator)
 
     def setup() {
         daemonConnection.getConnection() >> connection

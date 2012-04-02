@@ -16,5 +16,7 @@
 package org.gradle.launcher.daemon.protocol;
 
 abstract public class IoCommand extends Command {
-
+    protected IoCommand(Object identifier) {
+        super(identifier);
+    }
 }

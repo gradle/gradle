@@ -22,10 +22,10 @@ import org.gradle.internal.Stoppable;
 import org.gradle.launcher.daemon.protocol.CloseInput;
 import org.gradle.launcher.daemon.protocol.ForwardInput;
 import org.gradle.launcher.daemon.protocol.IoCommand;
-import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.messaging.concurrent.ExecutorFactory;
 import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.messaging.remote.internal.InputForwarder;
+import org.gradle.util.IdGenerator;
 
 import java.io.InputStream;
 import java.util.concurrent.locks.Lock;
@@ -47,18 +47,20 @@ public class DaemonClientInputForwarder implements Stoppable {
     private final InputStream inputStream;
     private final Dispatch<? super IoCommand> dispatch;
     private final ExecutorFactory executorFactory;
+    private final IdGenerator<?> idGenerator;
     private final int bufferSize;
 
     private InputForwarder forwarder;
 
-    public DaemonClientInputForwarder(InputStream inputStream, Dispatch<? super IoCommand> dispatch) {
-        this(inputStream, dispatch, new DefaultExecutorFactory(), DEFAULT_BUFFER_SIZE);
+    public DaemonClientInputForwarder(InputStream inputStream, Dispatch<? super IoCommand> dispatch, ExecutorFactory executorFactory, IdGenerator<?> idGenerator) {
+        this(inputStream, dispatch, executorFactory, idGenerator, DEFAULT_BUFFER_SIZE);
     }
 
-    public DaemonClientInputForwarder(InputStream inputStream, Dispatch<? super IoCommand> dispatch, ExecutorFactory executorFactory, int bufferSize) {
+    public DaemonClientInputForwarder(InputStream inputStream, Dispatch<? super IoCommand> dispatch, ExecutorFactory executorFactory, IdGenerator<?> idGenerator, int bufferSize) {
         this.inputStream = inputStream;
         this.dispatch = dispatch;
         this.executorFactory = executorFactory;
+        this.idGenerator = idGenerator;
         this.bufferSize = bufferSize;
     }
 
@@ -74,13 +76,13 @@ public class DaemonClientInputForwarder implements Stoppable {
                     if (LOGGER.isDebugEnabled()) {
                         LOGGER.debug("Forwarding input to daemon: '{}'", input.replace("\n", "\\n"));
                     }                    
-                    dispatch.dispatch(new ForwardInput(input.getBytes()));
+                    dispatch.dispatch(new ForwardInput(idGenerator.generateId(), input.getBytes()));
                 }
             };
 
             Runnable onFinish = new Runnable() {
                 public void run() {
-                    CloseInput message = new CloseInput();
+                    CloseInput message = new CloseInput(idGenerator.generateId());
                     LOGGER.debug("Dispatching close input message: {}", message);
                     dispatch.dispatch(message);
                 }

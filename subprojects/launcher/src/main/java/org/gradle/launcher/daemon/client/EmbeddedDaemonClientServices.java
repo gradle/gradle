@@ -34,7 +34,6 @@ import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.internal.OutputEvent;
 import org.gradle.logging.internal.OutputEventListener;
-import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.messaging.concurrent.ExecutorFactory;
 
 import java.io.File;
@@ -92,10 +91,6 @@ public class EmbeddedDaemonClientServices extends DaemonClientServicesSupport {
     protected void configureDaemonContextBuilder(DaemonContextBuilder builder) {
         builder.setUid(UUID.randomUUID().toString());
         builder.setDaemonRegistryDir(new DaemonDir(new DaemonParameters().getBaseDir()).getRegistry());
-    }
-
-    protected ExecutorFactory createExecutorFactory() {
-        return new DefaultExecutorFactory();
     }
 
     protected DaemonServerConnector createDaemonServerConnector() {
