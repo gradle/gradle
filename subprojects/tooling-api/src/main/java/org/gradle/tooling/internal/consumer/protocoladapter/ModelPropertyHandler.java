@@ -28,19 +28,24 @@ import java.lang.reflect.Method;
  */
 public class ModelPropertyHandler {
 
+    private final VersionDetails versionDetails;
+
+    public ModelPropertyHandler(VersionDetails versionDetails) {
+        this.versionDetails = versionDetails;
+    }
+
     /**
      * @param method getter for the property
      * @param delegate object that contain the property
-     * @param versionDetails version details
      * @return whether this handler should provide the return value for given property.
      */
-    public boolean shouldHandle(Method method, Object delegate, VersionDetails versionDetails) {
+    public boolean shouldHandle(Method method, Object delegate) {
         return method.getName().equals("getGradleProject")
                 && delegate instanceof EclipseProjectVersion3
                 && !versionDetails.supportsGradleProjectModel();
     }
 
-    public DefaultGradleProject getPropertyValue(Method method, Object delegate, VersionDetails versionDetails) {
+    public DefaultGradleProject getPropertyValue(Method method, Object delegate) {
         return new GradleProjectConverter().convert((EclipseProjectVersion3) delegate);
     }
 }

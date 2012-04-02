@@ -16,7 +16,6 @@
 package org.gradle.tooling.internal.consumer.protocoladapter;
 
 import org.gradle.internal.UncheckedException;
-import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.internal.Exceptions;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
@@ -27,28 +26,27 @@ import java.util.*;
 public class ProtocolToModelAdapter {
 
     private final TargetTypeProvider targetTypeProvider = new TargetTypeProvider();
-    private final ModelPropertyHandler handler = new ModelPropertyHandler();
 
-    public <T, S> T adapt(Class<T> targetType, S protocolObject, VersionDetails versionDetails) {
+    public <T, S> T adapt(Class<T> targetType, S protocolObject, ModelPropertyHandler modelPropertyHandler) {
         Class<T> target = targetTypeProvider.getTargetType(targetType, protocolObject);
         if (target.isInstance(protocolObject)) {
             return target.cast(protocolObject);
         }
-        Object proxy = Proxy.newProxyInstance(target.getClassLoader(), new Class<?>[]{target}, new InvocationHandlerImpl(protocolObject, versionDetails));
+        Object proxy = Proxy.newProxyInstance(target.getClassLoader(), new Class<?>[]{target}, new InvocationHandlerImpl(protocolObject, modelPropertyHandler));
         return target.cast(proxy);
     }
 
     private class InvocationHandlerImpl implements InvocationHandler {
         private final Object delegate;
-        private final VersionDetails versionDetails;
+        private final ModelPropertyHandler modelPropertyHandler;
         private final Map<Method, Method> methods = new HashMap<Method, Method>();
         private final Map<String, Object> properties = new HashMap<String, Object>();
         private final Method equalsMethod;
         private final Method hashCodeMethod;
 
-        public InvocationHandlerImpl(Object delegate, VersionDetails versionDetails) {
+        public InvocationHandlerImpl(Object delegate, ModelPropertyHandler modelPropertyHandler) {
             this.delegate = delegate;
-            this.versionDetails = versionDetails;
+            this.modelPropertyHandler = modelPropertyHandler;
             try {
                 equalsMethod = Object.class.getMethod("equals", Object.class);
                 hashCodeMethod = Object.class.getMethod("hashCode");
@@ -93,8 +91,8 @@ public class ProtocolToModelAdapter {
                 }
 
                 Object value;
-                if (handler.shouldHandle(method, delegate, versionDetails)) {
-                    value = handler.getPropertyValue(method, delegate, versionDetails);
+                if (modelPropertyHandler.shouldHandle(method, delegate)) {
+                    value = modelPropertyHandler.getPropertyValue(method, delegate);
                 } else {
                     value = doInvokeMethod(method, params);
                 }
@@ -171,7 +169,7 @@ public class ProtocolToModelAdapter {
                 if (((Class) targetType).isPrimitive()) {
                     return value;
                 }
-                return adapt((Class) targetType, value, versionDetails);
+                return adapt((Class) targetType, value, modelPropertyHandler);
             }
             throw new UnsupportedOperationException(String.format("Cannot convert object of %s to %s.", value.getClass(), targetType));
         }

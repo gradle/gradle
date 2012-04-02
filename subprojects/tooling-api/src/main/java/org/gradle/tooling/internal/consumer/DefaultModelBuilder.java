@@ -21,6 +21,7 @@ import org.gradle.tooling.ProgressListener;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.internal.consumer.async.AsyncConnection;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
+import org.gradle.tooling.internal.consumer.protocoladapter.ModelPropertyHandler;
 import org.gradle.tooling.internal.consumer.protocoladapter.ProtocolToModelAdapter;
 import org.gradle.tooling.model.Model;
 import org.gradle.tooling.model.UnsupportedMethodException;
@@ -104,7 +105,8 @@ public class DefaultModelBuilder<T extends Model, P> implements ModelBuilder<T> 
         }
 
         public void onComplete(P result) {
-            handler.onComplete(adapter.adapt(modelType, result, connection.getVersionDetails()));
+            ModelPropertyHandler propertyHandler = new ModelPropertyHandler(connection.getVersionDetails());
+            handler.onComplete(adapter.adapt(modelType, result, propertyHandler));
         }
 
         public void onFailure(GradleConnectionException failure) {
