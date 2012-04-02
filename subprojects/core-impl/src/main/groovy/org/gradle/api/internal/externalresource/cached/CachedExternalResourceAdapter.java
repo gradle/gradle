@@ -17,6 +17,7 @@ package org.gradle.api.internal.externalresource.cached;
 
 import org.apache.ivy.util.CopyProgressListener;
 import org.gradle.api.internal.externalresource.LocalFileStandInExternalResource;
+import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 import org.gradle.api.internal.externalresource.transfer.ExternalResourceAccessor;
 
 import java.io.File;
@@ -26,26 +27,30 @@ import java.io.IOException;
  * Creates an ExternalResource from something that has been cached locally.
  */
 public class CachedExternalResourceAdapter extends LocalFileStandInExternalResource {
-    private final CachedExternalResource cachedExternalResource;
+    private final CachedExternalResource cached;
     private final ExternalResourceAccessor accessor;
 
     public CachedExternalResourceAdapter(String source, CachedExternalResource cached, ExternalResourceAccessor accessor) {
-        super(source, cached.getCachedFile());
-        this.cachedExternalResource = cached;
+        this(source, cached, accessor, null);
+    }
+
+    public CachedExternalResourceAdapter(String source, CachedExternalResource cached, ExternalResourceAccessor accessor, ExternalResourceMetaData metaData) {
+        super(source, cached.getCachedFile(), metaData);
+        this.cached = cached;
         this.accessor = accessor;
     }
 
     @Override
     public String toString() {
-        return "CachedResource: " + cachedExternalResource.getCachedFile() + " for " + getName();
+        return "CachedResource: " + cached.getCachedFile() + " for " + getName();
     }
 
     public long getLastModified() {
-        return cachedExternalResource.getExternalLastModifiedAsTimestamp();
+        return cached.getExternalLastModifiedAsTimestamp();
     }
 
     public long getContentLength() {
-        return cachedExternalResource.getContentLength();
+        return cached.getContentLength();
     }
 
     public void writeTo(File destination, CopyProgressListener progress) throws IOException {

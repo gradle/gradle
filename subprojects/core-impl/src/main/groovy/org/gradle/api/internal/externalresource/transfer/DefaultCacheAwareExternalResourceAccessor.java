@@ -57,7 +57,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
         if (remoteMetaData == null) {
             return null;
         }
-                
+
         // Is the cached version still current?
         if (cached != null) {
             boolean isUnchanged = ExternalResourceMetaDataCompare.isDefinitelyUnchanged(
@@ -72,7 +72,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
             if (isUnchanged) {
                 LOGGER.info("Cached resource is up-to-date (lastModified: {}). [HTTP: {}]", cached.getExternalLastModified(), source);
                 // TODO - should we use the remote metadata? It may be “better”
-                return new CachedExternalResourceAdapter(source, cached, delegate);
+                return new CachedExternalResourceAdapter(source, cached, delegate, remoteMetaData);
             }
         }
 

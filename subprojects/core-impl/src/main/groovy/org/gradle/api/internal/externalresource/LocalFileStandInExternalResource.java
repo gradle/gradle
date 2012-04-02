@@ -39,8 +39,13 @@ public class LocalFileStandInExternalResource extends AbstractExternalResource {
     private ExternalResourceMetaData metaData;
 
     public LocalFileStandInExternalResource(String source, File localFile) {
+        this(source, localFile, null);
+    }
+
+    public LocalFileStandInExternalResource(String source, File localFile, ExternalResourceMetaData metaData) {
         this.source = source;
         this.localFile = localFile;
+        this.metaData = metaData;
     }
 
     public String getName() {
