@@ -36,7 +36,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
             into ("build/tmp")
         }
         """
-        
+
         when:
         run "copy"
         then:
@@ -45,29 +45,35 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
         mode << ['rwxr--r-x']
     }
 
-    
     def "fileMode can be modified in copy task"() {
         given:
-        def testFile = file("reference.txt") << 'test file"'
-        testFile.permissions = "rwxrwxrwx"
+
+        file("reference.txt") << 'test file"'
         and:
         buildFile << """
-        import static java.lang.Integer.toOctalString
-        task copy(type: Copy) {
-            from "reference.txt"
-            into ("build/tmp")
-            fileMode = $mode
-        }
-        """
+             import static java.lang.Integer.toOctalString
+             task copy(type: Copy) {
+                 from "reference.txt"
+                 into ("build/tmp")
+                 fileMode = $mode
+             }
+
+            ${verifyPermissionsTask(mode)}
+            """
+
         when:
-        run "copy"
+        run "verifyPermissions"
+
         then:
-        file("build/tmp/reference.txt").permissions == mode
+        noExceptionThrown()
+
         where:
-        mode << ['rwxr--r-x', 'rwx-wx-wx']
+        mode << [0755, 0777]
+
     }
-    
-    
+
+
+
 
 
     def "fileMode can be modified in copy action"() {
@@ -99,9 +105,12 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
 
     }
 
-    def hasFilePermissions(String filePath, String permissions){
-        def targetFile = file(filePath)
-        targetFile.exists();
-        targetFile.permissions == '---------'
+    String verifyPermissionsTask(int mode) {
+        """task verifyPermissions(dependsOn: copy) << {
+                fileTree("build/tmp").visit{
+                    assert toOctalString($mode) == toOctalString(it.mode)
+                }
+           }
+        """
     }
 }
