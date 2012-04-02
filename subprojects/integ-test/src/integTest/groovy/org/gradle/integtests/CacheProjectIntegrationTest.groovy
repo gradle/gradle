@@ -108,6 +108,18 @@ class CacheProjectIntegrationTest {
         assert dependenciesCache.isDirectory() && dependenciesCache.listFiles().length > 0
     }
 
+    @Test
+    public void "does not rebuild artifact cache when run with --cache rebuild"() {
+        createLargeBuildScript()
+        testBuild("hello1", "Hello 1")
+
+        TestFile dependenciesCache = findDependencyCacheDir()
+        assert dependenciesCache.isDirectory() && dependenciesCache.listFiles().length > 0
+
+        modifyLargeBuildScript()
+        testBuild("newTask", "I am new", "-Crebuild")
+        assert dependenciesCache.isDirectory() && dependenciesCache.listFiles().length > 0
+    }
 
     @Test
     public void "does not rebuild artifact cache when run with --rerun-tasks"() {
