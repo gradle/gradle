@@ -13,12 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests.resolve.artifactreuse
+package org.gradle.integtests.resolve.caching
 
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
+import org.gradle.plugins.ide.eclipse.EclipseClasspathFixture
 import org.gradle.util.SetSystemProperties
 import org.hamcrest.Matchers
 import org.junit.Rule
+import spock.lang.Ignore
+import spock.lang.Issue
 
 class ResolutionOverrideIntegrationTest extends AbstractDependencyResolutionTest {
     @Rule
@@ -138,6 +141,61 @@ task retrieve(type: Sync) {
         succeeds 'retrieve'
         file('libs').assertHasDescendants('projectA-1.2.jar')
     }
+
+    @Issue('GRADLE-2206')
+    @Ignore // Test exposes broken functionality
+    def "will recover from missing source artifact when run with --refresh-dependencies"() {
+        given:
+        server.start()
+
+        def projectA = mavenRepo().module('group', 'projectA', '1.0')
+        projectA.artifact(classifier: 'sources')
+        projectA.publish()
+        def sourceJar = projectA.artifactFile(classifier: 'sources')
+
+        buildFile << """
+apply plugin: 'java'
+apply plugin: 'eclipse'
+repositories {
+    maven { url 'http://localhost:${server.port}/repo1' }
+}
+dependencies {
+    compile 'group:projectA:1.0'
+}
+task listJars << {
+    assert configurations.compile.collect { it.name } == ['projectA-1.0.jar']
+}
+"""
+        and:
+        def eclipseClasspath = new EclipseClasspathFixture(distribution.testDir, distribution.userHomeDir)
+
+        when:
+        server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.pom', projectA.pomFile)
+        server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.jar', projectA.artifactFile)
+        server.expectGetMissing('/repo1/group/projectA/1.0/projectA-1.0-sources.jar')
+
+        and:
+        succeeds 'eclipseClasspath'
+
+        then:
+        eclipseClasspath.libs.size() == 1
+        eclipseClasspath.libs[0].assertHasNoSource()
+
+        when: "Dependencies are refreshed"
+        server.resetExpectations()
+        server.expectHead('/repo1/group/projectA/1.0/projectA-1.0.pom', projectA.pomFile)
+        server.expectHead('/repo1/group/projectA/1.0/projectA-1.0.jar', projectA.artifactFile)
+        server.expectGet('/repo1/group/projectA/1.0/projectA-1.0-sources.jar', sourceJar)
+
+        and:
+        executer.withArguments('--refresh-dependencies')
+        succeeds 'eclipseClasspath'
+        
+        then:
+        eclipseClasspath.libs.size() == 1
+        eclipseClasspath.libs[0].assertHasCachedSource('group', 'projectA', '1.0')
+    }
+
 
     public void "will not expire cache entries when run with offline flag"() {
 
