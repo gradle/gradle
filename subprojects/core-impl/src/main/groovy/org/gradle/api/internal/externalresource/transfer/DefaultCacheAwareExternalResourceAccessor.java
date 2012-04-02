@@ -90,7 +90,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
                 LocallyAvailableResource local = localCandidates.findByHashValue(remoteChecksum);
                 if (local != null) {
                     LOGGER.info("Found locally available resource with matching checksum: [{}, {}]", source, local.getFile());
-                    return new LocallyAvailableExternalResource(source, local);
+                    return new LocallyAvailableExternalResource(source, local, remoteMetaData);
                 }
             }
         }
