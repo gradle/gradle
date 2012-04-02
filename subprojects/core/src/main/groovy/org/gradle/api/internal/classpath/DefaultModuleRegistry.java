@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.classpath;
 
-import com.google.common.collect.Iterables;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.GradleDistributionLocator;
 import org.gradle.util.ClassPath;
@@ -42,7 +41,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 /**
- * Determines the classpath for a module by looking for a 'project-classpath.properties' resource with 'name' set to the name of the module.
+ * Determines the classpath for a module by looking for a '${module}-classpath.properties' resource with 'name' set to the name of the module.
  */
 public class DefaultModuleRegistry implements ModuleRegistry, GradleDistributionLocator {
     private final ClassLoader classLoader;
@@ -269,7 +268,10 @@ public class DefaultModuleRegistry implements ModuleRegistry, GradleDistribution
             this.implementationClasspath = new DefaultClassPath(implementationClasspath);
             this.runtimeClasspath = new DefaultClassPath(runtimeClasspath);
             this.modules = modules;
-            this.classpath = new DefaultClassPath(Iterables.concat(implementationClasspath, runtimeClasspath));
+            Set<File> classpath = new LinkedHashSet<File>();
+            classpath.addAll(implementationClasspath);
+            classpath.addAll(runtimeClasspath);
+            this.classpath = new DefaultClassPath(classpath);
         }
 
         @Override
