@@ -22,5 +22,6 @@ import java.net.URLClassLoader;
 public class MySystemClassLoader extends URLClassLoader {
     public MySystemClassLoader(ClassLoader parent) {
         super(new URL[0], parent);
+        System.setProperty("using.custom.class.loader", "true");
     }
 }

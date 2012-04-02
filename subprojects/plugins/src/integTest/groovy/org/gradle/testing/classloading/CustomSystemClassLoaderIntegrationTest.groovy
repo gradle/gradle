@@ -30,6 +30,6 @@ public class CustomSystemClassLoaderIntegrationTest extends AbstractIntegrationT
 
         JUnitTestExecutionResult result = new JUnitTestExecutionResult(testDir)
         result.assertTestClassesExecuted('org.gradle.JUnitTest')
-        result.testClass('org.gradle.JUnitTest').assertTestPassed('ok')
+        result.testClass('org.gradle.JUnitTest').assertTestPassed('mySystemClassLoaderIsUsed')
     }
 }
