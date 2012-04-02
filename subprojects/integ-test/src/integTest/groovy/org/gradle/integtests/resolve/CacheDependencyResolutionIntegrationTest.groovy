@@ -13,9 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests.resolve.caching
-
-import org.gradle.integtests.resolve.AbstractDependencyResolutionTest;
+package org.gradle.integtests.resolve;
 
 
 public class CacheDependencyResolutionIntegrationTest extends AbstractDependencyResolutionTest {
