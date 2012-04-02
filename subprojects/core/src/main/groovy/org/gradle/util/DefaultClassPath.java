@@ -20,21 +20,23 @@ import java.io.File;
 import java.io.Serializable;
 import java.net.URI;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-
-import static com.google.common.collect.Iterables.concat;
-import static com.google.common.collect.Lists.newArrayList;
 
 public class DefaultClassPath implements ClassPath, Serializable {
     private final List<File> files;
 
     public DefaultClassPath(Iterable<File> files) {
-        this.files = newArrayList(files);
+        this.files = new ArrayList<File>();
+        for (File file : files) {
+            this.files.add(file);
+        }
     }
     
     public DefaultClassPath(File... files) {
-        this.files = newArrayList(files);
+        this(Arrays.asList(files));
     }
 
     public boolean isEmpty() {
@@ -72,5 +74,12 @@ public class DefaultClassPath implements ClassPath, Serializable {
             return this;
         }
         return new DefaultClassPath(concat(files, other));
+    }
+
+    private Iterable<File> concat(List<File> files1, Collection<File> files2) {
+        List<File> result = new ArrayList<File>();
+        result.addAll(files1);
+        result.addAll(files2);
+        return result;
     }
 }
