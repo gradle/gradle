@@ -64,12 +64,14 @@ public class DefaultCommandLineConverterTest {
     private StartParameter actualStartParameter;
     private boolean expectedProfile;
     private File expectedProjectCacheDir;
-
+    private boolean expectedRefreshDependencies;
+    private boolean expectedRerunTasks;
     private final DefaultCommandLineConverter commandLineConverter = new DefaultCommandLineConverter();
     private boolean expectedContinue;
     private boolean expectedOffline;
     private RefreshOptions expectedRefreshOptions = RefreshOptions.NONE;
-    
+    private boolean expectedRecompileScripts;
+
     @Test
     public void withoutAnyOptions() {
         checkConversion();
@@ -102,7 +104,10 @@ public class DefaultCommandLineConverterTest {
         assertEquals(expectedProfile, startParameter.isProfile());
         assertEquals(expectedContinue, startParameter.isContinueOnFailure());
         assertEquals(expectedOffline, startParameter.isOffline());
+        assertEquals(expectedRecompileScripts, startParameter.isRecompileScripts());
+        assertEquals(expectedRerunTasks, startParameter.isRerunTasks());
         assertEquals(expectedRefreshOptions, startParameter.getRefreshOptions());
+        assertEquals(expectedRefreshDependencies, startParameter.isRefreshDependencies());
         assertEquals(expectedProjectCacheDir, startParameter.getProjectCacheDir());
     }
 
@@ -242,6 +247,12 @@ public class DefaultCommandLineConverterTest {
         checkConversion("-s");
     }
 
+    @Test
+    public void withRerunTasks() {
+        expectedRerunTasks = true;
+        checkConversion("--rerun-tasks");
+    }
+
     @Test(expected = CommandLineArgumentException.class)
     public void withShowStacktraceAndShowFullStacktraceShouldThrowCommandLineArgumentEx() {
         checkConversion("-sf");
@@ -341,16 +352,13 @@ public class DefaultCommandLineConverterTest {
 
     @Test
     public void withRefreshDependencies() {
+        expectedRefreshDependencies = true;
         checkConversion("--refresh-dependencies");
     }
 
     @Test
-    public void withRerunTasks() {
-        checkConversion("--rerun-tasks");
-    }
-
-    @Test
     public void withRecompileScripts() {
+        expectedRecompileScripts = true;
         checkConversion("--recompile-scripts");
     }
 
