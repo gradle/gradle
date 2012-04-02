@@ -17,10 +17,45 @@
 package org.gradle.api.internal.externalresource.transfer
 
 import spock.lang.Specification
+import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceCandidates
+import org.gradle.api.internal.externalresource.cached.CachedExternalResource
+import org.gradle.api.internal.externalresource.ExternalResource
+import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData
+import org.gradle.util.hash.HashValue
+import org.gradle.api.internal.externalresource.local.LocallyAvailableResource
+import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource
 
 class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
 
     def "will use sha1 from metadata for finding candidates if available"() {
+        given:
+        def accessor = Mock(ExternalResourceAccessor)
+        def cache = new DefaultCacheAwareExternalResourceAccessor(accessor)
+        
+        and:
+        def location = "location"
+        def localCandidates = Mock(LocallyAvailableResourceCandidates)
+        def cached = Mock(CachedExternalResource)
+        def resource = Mock(ExternalResource)
+        def sha1 = HashValue.parse("abc")
+        def cachedMetaData = Mock(ExternalResourceMetaData)
+        def remoteMetaData = Mock(ExternalResourceMetaData)
+        def localCandidate = Mock(LocallyAvailableResource)
+        
+        and:
+        cached.getExternalResourceMetaData() >> cachedMetaData
+        accessor.getMetaData(location) >> remoteMetaData
+        localCandidates.isNone() >> false
+        remoteMetaData.sha1 >> sha1
+        
+        when:
+        def foundResource = cache.getResource(location, localCandidates, cached)
 
+        then:
+        0 * accessor.getResourceSha1(_)
+        1 * localCandidates.findByHashValue(sha1) >> localCandidate
+
+        and:
+        foundResource instanceof LocallyAvailableExternalResource
     }
 }
