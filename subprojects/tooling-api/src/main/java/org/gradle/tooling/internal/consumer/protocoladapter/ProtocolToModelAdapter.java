@@ -13,15 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.internal.consumer;
+package org.gradle.tooling.internal.consumer.protocoladapter;
 
 import org.gradle.internal.UncheckedException;
-import org.gradle.tooling.internal.consumer.converters.GradleProjectConverter;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
-import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
 import org.gradle.tooling.model.DomainObjectSet;
-import org.gradle.tooling.model.idea.IdeaModuleDependency;
-import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency;
 import org.gradle.tooling.model.internal.Exceptions;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
 
@@ -30,34 +26,16 @@ import java.util.*;
 
 public class ProtocolToModelAdapter {
 
-    Map<String, Class<?>> configuredTargetTypes = new HashMap<String, Class<?>>();
-
-    public ProtocolToModelAdapter() {
-        configuredTargetTypes.put(IdeaSingleEntryLibraryDependency.class.getCanonicalName(), IdeaSingleEntryLibraryDependency.class);
-        configuredTargetTypes.put(IdeaModuleDependency.class.getCanonicalName(), IdeaModuleDependency.class);
-    }
+    private final TargetTypeProvider targetTypeProvider = new TargetTypeProvider();
+    private final ModelPropertyHandler handler = new ModelPropertyHandler();
 
     public <T, S> T adapt(Class<T> targetType, S protocolObject, VersionDetails versionDetails) {
-        Class<T> target = guessTarget(targetType, protocolObject);
+        Class<T> target = targetTypeProvider.getTargetType(targetType, protocolObject);
         if (target.isInstance(protocolObject)) {
             return target.cast(protocolObject);
         }
         Object proxy = Proxy.newProxyInstance(target.getClassLoader(), new Class<?>[]{target}, new InvocationHandlerImpl(protocolObject, versionDetails));
         return target.cast(proxy);
-    }
-
-    /**
-     * occasionally we want to use preconfigured target type instead of passed target type.
-     */
-    private <T, S> Class<T> guessTarget(Class<T> targetType, S protocolObject) {
-        Class<?>[] interfaces = protocolObject.getClass().getInterfaces();
-        for (Class<?> i : interfaces) {
-            if (configuredTargetTypes.containsKey(i.getName())) {
-                return (Class<T>) configuredTargetTypes.get(i.getName());
-            }
-        }
-
-        return targetType;
     }
 
     private class InvocationHandlerImpl implements InvocationHandler {
@@ -115,10 +93,8 @@ public class ProtocolToModelAdapter {
                 }
 
                 Object value;
-                if (method.getName().equals("getGradleProject")
-                        && delegate instanceof EclipseProjectVersion3
-                        && !versionDetails.supportsGradleProjectModel()) {
-                    value = new GradleProjectConverter().convert((EclipseProjectVersion3) delegate);
+                if (handler.shouldHandle(method, delegate, versionDetails)) {
+                    value = handler.getPropertyValue(method, delegate, versionDetails);
                 } else {
                     value = doInvokeMethod(method, params);
                 }

@@ -24,6 +24,7 @@ import org.gradle.tooling.internal.consumer.connection.LazyConnection;
 import org.gradle.tooling.internal.consumer.connection.LoggingInitializerConnection;
 import org.gradle.tooling.internal.consumer.connection.ProgressLoggingConnection;
 import org.gradle.tooling.internal.consumer.loader.ToolingImplementationLoader;
+import org.gradle.tooling.internal.consumer.protocoladapter.ProtocolToModelAdapter;
 
 public class ConnectionFactory {
     private final ProtocolToModelAdapter adapter = new ProtocolToModelAdapter();
