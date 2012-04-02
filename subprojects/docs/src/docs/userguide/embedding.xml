@@ -77,6 +77,16 @@
         </para>
     </section>
 
+    <section id='sec:Daemon'>
+        <title>Tooling API and the Gradle Build Daemon</title>
+        <para>Please take a look at <xref linkend="gradle_daemon"/>.
+            The Tooling API uses the daemon all the time, e.g. you cannot officially use the Tooling API without the daemon.
+            This means that subsequent calls to the Tooling API, be it model building requests or task executing requests
+            can be executed in the same long-living process. <xref linkend="gradle_daemon"/> contains more details about the daemon,
+            specifically information on situations when new daemons are forked.
+        </para>
+    </section>
+
     <section id='sec:Quickstart'>
         <title>Quickstart</title>
         <para>Since the tooling API is an interface for a programmer most of the documentation lives in Javadoc/Groovydoc.
