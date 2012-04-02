@@ -18,7 +18,6 @@ package org.gradle.process.internal.child;
 
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.file.TemporaryFileProvider;
-import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
 import org.gradle.messaging.remote.Address;
 import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.process.internal.launcher.BootstrapClassLoaderWorker;
@@ -54,7 +53,7 @@ import java.util.concurrent.Callable;
  * </pre>
  */
 public class ApplicationClassesInSystemClassLoaderWorkerFactory implements WorkerFactory {
-    private final TemporaryFileProvider temporaryFileProvider = new TmpDirTemporaryFileProvider();
+    private final TemporaryFileProvider temporaryFileProvider;
     private final Object workerId;
     private final String displayName;
     private final WorkerProcessBuilder processBuilder;
@@ -65,13 +64,14 @@ public class ApplicationClassesInSystemClassLoaderWorkerFactory implements Worke
 
     public ApplicationClassesInSystemClassLoaderWorkerFactory(Object workerId, String displayName, WorkerProcessBuilder processBuilder,
                                                               List<URL> implementationClassPath, Address serverAddress,
-                                                              ClassPathRegistry classPathRegistry) {
+                                                              ClassPathRegistry classPathRegistry, TemporaryFileProvider temporaryFileProvider) {
         this.workerId = workerId;
         this.displayName = displayName;
         this.processBuilder = processBuilder;
         this.implementationClassPath = implementationClassPath;
         this.serverAddress = serverAddress;
         this.classPathRegistry = classPathRegistry;
+        this.temporaryFileProvider = temporaryFileProvider;
         classpathJarFile = createClasspathJarFile(processBuilder);
     }
 

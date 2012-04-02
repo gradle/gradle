@@ -17,11 +17,13 @@
 package org.gradle.process.internal;
 
 import org.gradle.api.internal.ClassPathRegistry;
-import org.gradle.internal.Factory;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.internal.Factory;
 import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.MessagingServer;
+import org.gradle.process.ExecResult;
 import org.gradle.process.internal.child.ApplicationClassesInIsolatedClassLoaderWorkerFactory;
 import org.gradle.process.internal.child.ApplicationClassesInSystemClassLoaderWorkerFactory;
 import org.gradle.process.internal.child.WorkerFactory;
@@ -73,7 +75,8 @@ public class DefaultWorkerProcessFactory implements Factory<WorkerProcessBuilder
                 throw new IllegalStateException("No worker action specified for this worker process.");
             }
 
-            final DefaultWorkerProcess workerProcess = new DefaultWorkerProcess(120, TimeUnit.SECONDS);
+            final TmpDirTemporaryFileProvider tmpFileProvider = new TmpDirTemporaryFileProvider();
+            final DefaultWorkerProcess workerProcess = new DeleteFilesOnStopWorkerProcess(120, TimeUnit.SECONDS, tmpFileProvider);
             Address localAddress = server.accept(workerProcess.getConnectAction());
 
             // Build configuration for GradleWorkerMain
@@ -84,7 +87,7 @@ public class DefaultWorkerProcessFactory implements Factory<WorkerProcessBuilder
             WorkerFactory workerFactory;
             if (isLoadApplicationInSystemClassLoader()) {
                 workerFactory = new ApplicationClassesInSystemClassLoaderWorkerFactory(id, displayName, this,
-                        implementationClassPath, localAddress, classPathRegistry);
+                        implementationClassPath, localAddress, classPathRegistry, tmpFileProvider);
             } else {
                 workerFactory = new ApplicationClassesInIsolatedClassLoaderWorkerFactory(id, displayName, this,
                         implementationClassPath, localAddress, classPathRegistry);
@@ -105,6 +108,24 @@ public class DefaultWorkerProcessFactory implements Factory<WorkerProcessBuilder
             workerProcess.setExecHandle(execHandle);
 
             return workerProcess;
+        }
+    }
+
+    private static class DeleteFilesOnStopWorkerProcess extends DefaultWorkerProcess {
+        private final TmpDirTemporaryFileProvider temporaryFileProvider;
+
+        public DeleteFilesOnStopWorkerProcess(int connectTimeoutSeconds, TimeUnit connectTimeoutUnits, TmpDirTemporaryFileProvider temporaryFileProvider) {
+            super(connectTimeoutSeconds, connectTimeoutUnits);
+            this.temporaryFileProvider = temporaryFileProvider;
+        }
+
+        @Override
+        public ExecResult waitForStop() {
+            try {
+                return super.waitForStop();
+            } finally {
+                temporaryFileProvider.deleteAllCreated();
+            }
         }
     }
 }
