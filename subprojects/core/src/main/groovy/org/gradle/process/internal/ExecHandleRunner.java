@@ -16,7 +16,6 @@
 
 package org.gradle.process.internal;
 
-import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.util.DisconnectableInputStream;
 
 import java.io.InputStream;
@@ -60,7 +59,7 @@ public class ExecHandleRunner implements Runnable {
             ExecOutputHandleRunner standardOutputRunner;
             ExecOutputHandleRunner errorOutputRunner;
             ExecOutputHandleRunner standardInputRunner;
-            InputStream instr = new DisconnectableInputStream(execHandle.getStandardInput(), new DefaultExecutorFactory());
+            InputStream instr = new DisconnectableInputStream(execHandle.getStandardInput());
             Process process;
 
             // This big fat static lock is here for windows. When starting multiple processes concurrently, the stdout

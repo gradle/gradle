@@ -64,7 +64,7 @@ public class InputForwarder implements Stoppable {
                 throw new IllegalStateException("input forwarder has already been started");
             }
 
-            disconnectableInput = new DisconnectableInputStream(input, executorFactory, bufferSize);
+            disconnectableInput = new DisconnectableInputStream(input, bufferSize);
             outputBuffer = new LineBufferingOutputStream(forwardTo, true, bufferSize);
 
             forwardingExecuter = executorFactory.create("forward input");
