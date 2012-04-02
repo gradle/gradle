@@ -15,8 +15,6 @@
  */
 package org.gradle.launcher.daemon.protocol;
 
-import org.gradle.initialization.BuildClientMetaData;
-
 import java.io.Serializable;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -24,17 +22,11 @@ public class Command implements Serializable {
 
     private static final AtomicInteger SEQUENCER = new AtomicInteger(1);
 
-    private final BuildClientMetaData clientMetaData;
     private final String identifier;
 
-    public Command(BuildClientMetaData clientMetaData) {
-        this.clientMetaData = clientMetaData;
+    public Command() {
         //unique only within the process but this should be enough
         this.identifier = System.currentTimeMillis() + "-" + SEQUENCER.getAndIncrement();
-    }
-
-    public BuildClientMetaData getClientMetaData() {
-        return clientMetaData;
     }
 
     /**

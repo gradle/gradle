@@ -40,7 +40,7 @@ public class SingleUseDaemonClient extends DaemonClient {
     @Override
     public <T> T execute(GradleLauncherAction<T> action, BuildActionParameters parameters) {
         LOGGER.warn("Note: in order to honour the org.gradle.jvmargs and/or org.gradle.java.home values specified for this build, it is necessary to fork a new JVM.");
-        LOGGER.warn("This forked JVM is effectively a single-use daemon process. In order to avoid the slowdown associated with this extra process, you might want to consider running Gradle with --daemon.");
+        LOGGER.warn("In order to avoid the slowdown associated with this extra process, you might want to consider running Gradle with the daemon enabled.");
         Build build = new BuildAndStop(action, parameters);
 
         DaemonConnection daemonConnection = connector.createConnection();

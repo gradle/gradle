@@ -18,7 +18,6 @@ package org.gradle.launcher.daemon.client;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.launcher.daemon.protocol.Stop;
 import org.gradle.messaging.remote.internal.Connection;
 
@@ -29,11 +28,11 @@ public class StopDispatcher {
 
     private static final Logger LOGGER = Logging.getLogger(StopDispatcher.class);
 
-    public void dispatch(BuildClientMetaData clientMetaData, Connection<Object> connection) {
+    public void dispatch(Connection<Object> connection) {
         //At the moment if we cannot communicate with the daemon we assume it is stopped and print a message to the user
         try {
             try {
-                connection.dispatch(new Stop(clientMetaData));
+                connection.dispatch(new Stop());
             } catch (Exception e) {
                 LOGGER.lifecycle("Unable to send the Stop command to one of the daemons. The daemon has already stopped or crashed.");
                 LOGGER.debug("Unable to send Stop.", e);

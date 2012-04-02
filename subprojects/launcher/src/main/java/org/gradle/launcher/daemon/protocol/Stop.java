@@ -15,10 +15,5 @@
  */
 package org.gradle.launcher.daemon.protocol;
 
-import org.gradle.initialization.BuildClientMetaData;
-
 public class Stop extends Command {
-    public Stop(BuildClientMetaData clientMetaData) {
-        super(clientMetaData);
-    }
 }

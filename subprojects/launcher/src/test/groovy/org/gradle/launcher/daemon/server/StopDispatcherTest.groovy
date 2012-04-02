@@ -16,10 +16,9 @@
 
 package org.gradle.launcher.daemon.server
 
-import org.gradle.initialization.BuildClientMetaData
+import org.gradle.launcher.daemon.client.StopDispatcher
 import org.gradle.messaging.remote.internal.Connection
 import spock.lang.Specification
-import org.gradle.launcher.daemon.client.StopDispatcher
 
 /**
  * @author: Szczepan Faber, created at: 9/13/11
@@ -28,14 +27,13 @@ public class StopDispatcherTest extends Specification {
 
     def dispatcher = new StopDispatcher()
     def connection = Mock(Connection)
-    def meta = Mock(BuildClientMetaData)
 
     def "ignores failed dispatch and does not receive"() {
         given:
         connection.dispatch(_) >> { throw new RuntimeException("Cannot dispatch") }
 
         when:
-        dispatcher.dispatch(meta, connection)
+        dispatcher.dispatch(connection)
 
         then:
         0 * connection.receive()
@@ -47,7 +45,7 @@ public class StopDispatcherTest extends Specification {
         connection.receive() >> { throw new RuntimeException("Cannot dispatch") }
 
         when:
-        dispatcher.dispatch(meta, connection)
+        dispatcher.dispatch(connection)
 
         then:
         1 * connection.dispatch(_)

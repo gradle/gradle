@@ -15,12 +15,6 @@
  */
 package org.gradle.launcher.daemon.protocol;
 
-import org.gradle.initialization.BuildClientMetaData;
-
 abstract public class IoCommand extends Command {
-
-    public IoCommand(BuildClientMetaData clientMetaData) {
-        super(clientMetaData);
-    }
 
 }

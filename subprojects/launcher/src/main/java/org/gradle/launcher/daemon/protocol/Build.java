@@ -30,7 +30,6 @@ public class Build extends Command {
     private transient StartParameter startParameter;
         
     public Build(GradleLauncherAction<?> action, BuildActionParameters parameters) {
-        super(parameters.getClientMetaData());
         this.action = action;
         this.parameters = parameters;
     }

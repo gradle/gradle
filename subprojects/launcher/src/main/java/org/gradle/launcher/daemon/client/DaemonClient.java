@@ -85,7 +85,7 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
         LOGGER.lifecycle("Stopping daemon(s).");
         //iterate and stop all daemons
         while (connection != null) {
-            new StopDispatcher().dispatch(clientMetaData, connection.getConnection());
+            new StopDispatcher().dispatch(connection.getConnection());
             LOGGER.lifecycle("Gradle daemon stopped.");
             connection = connector.maybeConnect(compatibilitySpec);
         }
@@ -140,7 +140,7 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
     }
 
     private Result monitorBuild(Build build, DaemonDiagnostics diagnostics, Connection<Object> connection) {
-        DaemonClientInputForwarder inputForwarder = new DaemonClientInputForwarder(buildStandardInput, build.getClientMetaData(), connection);
+        DaemonClientInputForwarder inputForwarder = new DaemonClientInputForwarder(buildStandardInput, connection);
         try {
             inputForwarder.start();
             int objectsReceived = 0;
