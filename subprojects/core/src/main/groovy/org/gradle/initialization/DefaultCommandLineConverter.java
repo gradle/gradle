@@ -145,7 +145,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         }
 
         if (options.hasOption(NO_OPT)) {
-            startParameter.setNoOpt(true);
+            startParameter.setRerunTasks(true);
         }
 
         if (options.hasOption(RERUN_TASKS)) {

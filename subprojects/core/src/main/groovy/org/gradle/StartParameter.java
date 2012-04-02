@@ -60,7 +60,6 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     private File buildFile;
     private List<File> initScripts = new ArrayList<File>();
     private boolean dryRun;
-    private boolean noOpt;
     private boolean rerunTasks;
     private boolean profile;
     private boolean continueOnFailure;
@@ -125,7 +124,6 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         startParameter.setColorOutput(isColorOutput());
         startParameter.setShowStacktrace(getShowStacktrace());
         startParameter.dryRun = dryRun;
-        startParameter.noOpt = noOpt;
         startParameter.rerunTasks = rerunTasks;
         startParameter.recompileScripts = recompileScripts;
         startParameter.profile = profile;
@@ -371,12 +369,25 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         this.dryRun = dryRun;
     }
 
+    /**
+     * Returns task optimization disabled flag.
+     *
+     * @deprecated Use #isRerunTasks instead.
+     * */
     public boolean isNoOpt() {
-        return noOpt;
+        DeprecationLogger.nagUserOfReplacedMethod("isNoOpt", "isRerunTasks");
+        return rerunTasks;
     }
 
+   /**
+    * Get task optimization disabled.
+    *
+    * @param noOpt The boolean value for disabling task optimsation.
+    * @deprecated Use #setRefreshDependencies(boolean) instead.
+    */
     public void setNoOpt(boolean noOpt) {
-        this.noOpt = noOpt;
+        DeprecationLogger.nagUserOfReplacedMethod("setNoOpt(boolean)", "setRerunTasks(boolean)");
+        this.rerunTasks = noOpt;
     }
 
     /**
@@ -507,6 +518,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
 
     /**
      * Supplies the refresh options to use for the build.
+     * @deprecated Use #setRefreshDependencies(boolean) instead.
      */
     public void setRefreshOptions(RefreshOptions refreshOptions) {
         DeprecationLogger.nagUserOfReplacedMethod("setRefreshOptions(RefreshOptions)", "setRefreshDependencies(boolean)");
@@ -515,6 +527,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
 
     /**
      * Returns the refresh options used for the build.
+     * @deprecated Use #isRefreshDependencies instead.
      */
     public RefreshOptions getRefreshOptions() {
         DeprecationLogger.nagUserOfReplacedMethod("getRefreshOptions()", "isRefreshDependencies()");
@@ -580,7 +593,6 @@ public class StartParameter extends LoggingConfiguration implements Serializable
                 + ", buildFile=" + buildFile
                 + ", initScripts=" + initScripts
                 + ", dryRun=" + dryRun
-                + ", noOpt=" + noOpt
                 + ", rerunTasks=" + rerunTasks
                 + ", recompileScripts=" + recompileScripts
                 + ", offline=" + offline
