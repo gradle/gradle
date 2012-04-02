@@ -383,7 +383,6 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      *
      * @deprecated Use #isRerunTasks instead.
      * */
-
     @Deprecated
     public boolean isNoOpt() {
         return rerunTasks;
