@@ -16,7 +16,6 @@
 package org.gradle;
 
 import org.gradle.cli.CommandLineArgumentException;
-import org.gradle.util.DeprecationLogger;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -35,7 +34,6 @@ public class RefreshOptions implements Serializable {
     private final List<Option> options;
 
     public RefreshOptions(List<Option> options) {
-        DeprecationLogger.nagUserWith("The class RefreshOptions has been deprecated and will be removed in the next version of Gradle. Please use the commandline option '--refresh-dependencies' instead.");
         this.options = options;
     }
 

@@ -22,7 +22,6 @@ import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.gradle.internal.SystemProperties;
 import org.gradle.logging.LoggingConfiguration;
-import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
@@ -357,8 +356,8 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      *  Returns the configured CacheUsage.
      *  @deprecated Use #isRecompileScripts and/or #isRerunTasks instead.
      * */
+    @Deprecated
     public CacheUsage getCacheUsage() {
-        DeprecationLogger.nagUserWith("The getCacheUsage method has been deprecated and will be removed in the next version of Gradle. Please use the istRecompileScripts and/or isRerunTasks() method instead.");
         return cacheUsage;
     }
 
@@ -366,8 +365,8 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      *  Sets the Cache usage.
      *  @deprecated Use #setRecompileScripts and/or #setRerunTasks instead.
      * */
+    @Deprecated
     public void setCacheUsage(CacheUsage cacheUsage) {
-        DeprecationLogger.nagUserWith("The setCacheUsage(CacheUsage) method has been deprecated and will be removed in the next version of Gradle. Please use the setRecompileScripts(boolean) and/or setRerunTasks(boolean) method instead.");
         this.cacheUsage = cacheUsage;
     }
 
@@ -384,8 +383,9 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      *
      * @deprecated Use #isRerunTasks instead.
      * */
+
+    @Deprecated
     public boolean isNoOpt() {
-        DeprecationLogger.nagUserOfReplacedMethod("isNoOpt", "isRerunTasks");
         return rerunTasks;
     }
 
@@ -395,8 +395,8 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     * @param noOpt The boolean value for disabling task optimsation.
     * @deprecated Use #setRefreshDependencies(boolean) instead.
     */
+    @Deprecated
     public void setNoOpt(boolean noOpt) {
-        DeprecationLogger.nagUserOfReplacedMethod("setNoOpt(boolean)", "setRerunTasks(boolean)");
         this.rerunTasks = noOpt;
     }
 
@@ -530,8 +530,8 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      * Supplies the refresh options to use for the build.
      * @deprecated Use #setRefreshDependencies(boolean) instead.
      */
+    @Deprecated
     public void setRefreshOptions(RefreshOptions refreshOptions) {
-        DeprecationLogger.nagUserOfReplacedMethod("setRefreshOptions(RefreshOptions)", "setRefreshDependencies(boolean)");
         this.refreshDependencies = refreshOptions.refreshDependencies();
     }
 
@@ -539,8 +539,8 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      * Returns the refresh options used for the build.
      * @deprecated Use #isRefreshDependencies instead.
      */
+    @Deprecated
     public RefreshOptions getRefreshOptions() {
-        DeprecationLogger.nagUserOfReplacedMethod("getRefreshOptions()", "isRefreshDependencies()");
         RefreshOptions options = isRefreshDependencies() ? new RefreshOptions(Arrays.asList(RefreshOptions.Option.DEPENDENCIES)) : RefreshOptions.NONE;
         return options;
     }

@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.project;
 
-import org.gradle.CacheUsage;
 import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Module;
@@ -125,13 +124,8 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
 
     protected CacheRepository createCacheRepository() {
         CacheFactory factory = get(CacheFactory.class);
-        CacheUsage cacheUsage = DeprecationLogger.whileDisabled(new Factory<CacheUsage>() {
-            public CacheUsage create() {
-                return startParameter.getCacheUsage();  //To change body of implemented methods use File | Settings | File Templates.
-            }
-        });
         return new DefaultCacheRepository(startParameter.getGradleUserHomeDir(), startParameter.getProjectCacheDir(),
-                cacheUsage, factory);
+                startParameter.getCacheUsage(), factory);
     }
     
     protected ProjectEvaluator createProjectEvaluator() {
