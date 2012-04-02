@@ -22,6 +22,7 @@ import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.gradle.internal.SystemProperties;
 import org.gradle.logging.LoggingConfiguration;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
@@ -64,7 +65,6 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     private boolean profile;
     private boolean continueOnFailure;
     private boolean offline;
-    private RefreshOptions refreshOptions = RefreshOptions.NONE;
     private File projectCacheDir;
     private boolean refreshDependencies;
     private boolean recompileScripts;
@@ -132,7 +132,6 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         startParameter.projectCacheDir = projectCacheDir;
         startParameter.continueOnFailure = continueOnFailure;
         startParameter.offline = offline;
-        startParameter.refreshOptions = refreshOptions;
         startParameter.refreshDependencies = refreshDependencies;
         return startParameter;
     }
@@ -153,7 +152,6 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         startParameter.profile = profile;
         startParameter.continueOnFailure = continueOnFailure;
         startParameter.offline = offline;
-        startParameter.refreshOptions = refreshOptions;
         startParameter.rerunTasks = rerunTasks;
         startParameter.recompileScripts = recompileScripts;
         startParameter.refreshDependencies = refreshDependencies;
@@ -511,14 +509,17 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      * Supplies the refresh options to use for the build.
      */
     public void setRefreshOptions(RefreshOptions refreshOptions) {
-        this.refreshOptions = refreshOptions;
+        DeprecationLogger.nagUserOfReplacedMethod("setRefreshOptions(RefreshOptions)", "setRefreshDependencies(boolean)");
+        this.refreshDependencies = refreshOptions.refreshDependencies();
     }
 
     /**
      * Returns the refresh options used for the build.
      */
     public RefreshOptions getRefreshOptions() {
-        return refreshOptions;
+        DeprecationLogger.nagUserOfReplacedMethod("getRefreshOptions()", "isRefreshDependencies()");
+        RefreshOptions options = isRefreshDependencies() ? new RefreshOptions(Arrays.asList(RefreshOptions.Option.DEPENDENCIES)) : RefreshOptions.NONE;
+        return options;
     }
 
     /**

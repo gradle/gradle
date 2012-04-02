@@ -353,6 +353,7 @@ public class DefaultCommandLineConverterTest {
     @Test
     public void withRefreshDependencies() {
         expectedRefreshDependencies = true;
+        expectedRefreshOptions = new RefreshOptions(asList(RefreshOptions.Option.DEPENDENCIES));
         checkConversion("--refresh-dependencies");
     }
 
@@ -364,7 +365,8 @@ public class DefaultCommandLineConverterTest {
 
     @Test
     public void withRefreshDependenciesSet() {
-        expectedRefreshOptions = new RefreshOptions(asList(RefreshOptions.Option.DEPENDENCIES));
+        expectedRefreshDependencies = true;
+        expectedRefreshOptions = new RefreshOptions(Arrays.asList(RefreshOptions.Option.DEPENDENCIES));
         checkConversion("--refresh", "dependencies");
     }
 

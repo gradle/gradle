@@ -16,7 +16,6 @@
 package org.gradle.initialization;
 
 import org.gradle.CacheUsage;
-import org.gradle.RefreshOptions;
 import org.gradle.StartParameter;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.initialization.Settings;
@@ -27,6 +26,7 @@ import org.gradle.internal.nativeplatform.filesystem.FileSystems;
 import org.gradle.logging.LoggingConfiguration;
 import org.gradle.logging.internal.LoggingCommandLineConverter;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -173,8 +173,15 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         }
 
         if (options.hasOption(REFRESH)) {
-            RefreshOptions refreshOptions = RefreshOptions.fromCommandLineOptions(options.option(REFRESH).getValues());
-            startParameter.setRefreshOptions(refreshOptions);
+            //as refreshoptions is deprecated redirect refresh dependencies to --refresh-dependencies
+            final List<String> refreshOptions = options.option(REFRESH).getValues();
+            for(String refreshOption : refreshOptions){
+                if(refreshOption.equalsIgnoreCase("dependencies")){
+                    startParameter.setRefreshDependencies(true);
+                }else{
+                    throw new CommandLineArgumentException(String.format("Unknown refresh option '%s' specified.", refreshOption));
+                }
+            }
         }
 
         if (options.hasOption(REFRESH_DEPENDENCIES)) {
