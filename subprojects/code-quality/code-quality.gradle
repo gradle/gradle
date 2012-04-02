@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+apply from: "$rootDir/gradle/providedConfiguration.gradle"
+
 dependencies {
     groovy libraries.groovy
 
@@ -20,6 +22,13 @@ dependencies {
     compile project(':plugins')
 
     compile libraries.slf4j_api
+
+    // minimal dependencies to make our code compile
+    // we don't ship these dependencies because findbugs plugin will download them (and more) at runtime
+    provided "com.google.code.findbugs:findbugs:2.0.0@jar"
+    provided "com.google.code.findbugs:bcel:2.0.0@jar"
+    provided "dom4j:dom4j:1.6.1@jar"
+    provided "jaxen:jaxen:1.1.1@jar"
 }
 
 useTestFixtures()

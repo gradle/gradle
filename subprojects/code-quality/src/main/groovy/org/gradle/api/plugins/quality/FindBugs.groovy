@@ -109,26 +109,20 @@ class FindBugs extends SourceTask implements VerificationTask, Reporting<FindBug
         FindBugsSpec spec = argumentBuilder.build()
         FindBugsDaemonManager manager = new FindBugsDaemonManager();
         FindBugsResult findbugsResult = manager.runDaemon(getProject(), getFindbugsClasspath(), spec)
-//        Thread.sleep(20000)
         evaluateResult(findbugsResult);
     }
 
     void evaluateResult(FindBugsResult findbugsResult) {
-        //TODO handle errors in findbugs
-        if (findbugsResult.bugsFound && !ignoreFailures) {
+        if (findbugsResult.errorCount){
+            throw new GradleException("FindBugs encountered an error. Run with --debug to get more information.")
+        }
+        if (findbugsResult.bugCount && !ignoreFailures) {
             SingleFileReport reportSetup = reports.firstEnabled
             if (reports.firstEnabled) {
                 throw new GradleException("FindBugs rule violations were found. See the report at ${reportSetup.destination}.")
             } else {
                 throw new GradleException("FindBugs rule violations were found.")
             }
-        }
-
-    }
-
-    protected void addUnlessEmpty(Object ant, FileCollection files, String nodeName) {
-        if (!files.empty) {
-          files.addToAntBuilder(ant, nodeName)
         }
     }
 }

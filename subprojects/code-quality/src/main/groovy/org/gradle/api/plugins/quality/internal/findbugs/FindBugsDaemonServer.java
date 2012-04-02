@@ -16,15 +16,19 @@
 
 package org.gradle.api.plugins.quality.internal.findbugs;
 
+import edu.umd.cs.findbugs.FindBugs;
+import edu.umd.cs.findbugs.FindBugs2;
+import edu.umd.cs.findbugs.IFindBugsEngine;
+import edu.umd.cs.findbugs.TextUICommandLine;
 import org.gradle.api.Action;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.process.internal.WorkerProcessContext;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.io.Serializable;
-import java.lang.reflect.Method;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
@@ -34,7 +38,7 @@ public class FindBugsDaemonServer implements Action<WorkerProcessContext>, Seria
     private volatile CountDownLatch stop;
     private FindBugsSpec spec;
 
-    public FindBugsDaemonServer(FindBugsSpec spec){
+    public FindBugsDaemonServer(FindBugsSpec spec) {
         this.spec = spec;
     }
 
@@ -45,54 +49,53 @@ public class FindBugsDaemonServer implements Action<WorkerProcessContext>, Seria
     }
 
     public FindBugsResult execute() {
+        LOGGER.info("Executing findbugs daemon.");
         try {
-            LOGGER.info("Executing findbugs daemon.");
-            LOGGER.debug("Running findbugs specification {}", spec);
-            String findbugsOutput = runFindbugs(spec);
-            LOGGER.debug(findbugsOutput);
-            LOGGER.info("Successfully executed in findbugs daemon.");
-            return createFindBugsResultFromOutput(findbugsOutput);
-        } catch (Throwable t) {
-            LOGGER.info("Exception executing {} in findbugs daemon:", t);
-        }
-        return new FindBugsResult(true); //TODO RG: handle errors in findbugs.
-    }
-
-    private FindBugsResult createFindBugsResultFromOutput(String findbugsOutput) {
-        if (findbugsOutput.contains("Warnings generated: ")) {
-            return new FindBugsResult(true);
-        } else {
-            return new FindBugsResult(false);
+            return runFindbugs(spec);
+        } catch (Exception e) {
+            LOGGER.warn(e.getMessage());
+            return new FindBugsResult(0, 0, 1); //mark result with error count 1
         }
     }
 
-    private String runFindbugs(FindBugsSpec spec) throws Exception {
+    private FindBugsResult runFindbugs(FindBugsSpec spec) throws IOException, InterruptedException {
         final ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
         final PrintStream origOut = System.out;
         final PrintStream origErr = System.err;
-
         try {
 
+            LOGGER.debug("Running findbugs specification {}", spec);
             final List<String> args = spec.getArguments();
             String[] strArray = new String[args.size()];
             args.toArray(strArray);
-            final Class<?> findbugs2 = getClass().getClassLoader().loadClass("edu.umd.cs.findbugs.FindBugs2");
-            final Method findbugsMain = findbugs2.getMethod("main", strArray.getClass());
-
             // TODO RG: replace ByteArrayOutputStream by OutputStream that handles logging directly.
             // TODO RG: use seperate streams for out and err.
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             System.setOut(new PrintStream(baos));
             System.setErr(new PrintStream(baos));
+            Thread.currentThread().setContextClassLoader(FindBugs2.class.getClassLoader());
 
-            System.setProperty("findbugs.debug", Boolean.toString(spec.isDebugEnabled()));
-            Thread.currentThread().setContextClassLoader(findbugs2.getClassLoader());
-            findbugsMain.invoke(null, new Object[]{strArray});
-            return baos.toString();
+            FindBugs2 findBugs2 = new FindBugs2();
+            TextUICommandLine commandLine = new TextUICommandLine();
+
+            FindBugs.processCommandLine(commandLine, strArray, findBugs2);
+            findBugs2.execute();
+
+            LOGGER.debug(baos.toString());
+            LOGGER.info("Successfully executed in findbugs daemon.");
+
+            return createFindbugsResult(findBugs2);
         } finally {
             System.setOut(origOut);
             System.setErr(origErr);
             Thread.currentThread().setContextClassLoader(contextClassLoader);
         }
+    }
+
+    FindBugsResult createFindbugsResult(IFindBugsEngine findBugs) {
+        int bugCount = findBugs.getBugCount();
+        int missingClassCount = findBugs.getMissingClassCount();
+        int errorCount = findBugs.getErrorCount();
+        return new FindBugsResult(bugCount, missingClassCount, errorCount);
     }
 }
