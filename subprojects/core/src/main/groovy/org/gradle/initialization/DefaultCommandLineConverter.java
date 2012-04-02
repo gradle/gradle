@@ -22,9 +22,11 @@ import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.file.BaseDirFileResolver;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.cli.*;
+import org.gradle.internal.Factory;
 import org.gradle.internal.nativeplatform.filesystem.FileSystems;
 import org.gradle.logging.LoggingConfiguration;
 import org.gradle.logging.internal.LoggingCommandLineConverter;
+import org.gradle.util.DeprecationLogger;
 
 import java.util.List;
 import java.util.Map;
@@ -89,7 +91,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         return new StartParameter();
     }
 
-    public StartParameter convert(ParsedCommandLine options, StartParameter startParameter) throws CommandLineArgumentException {
+    public StartParameter convert(final ParsedCommandLine options, final StartParameter startParameter) throws CommandLineArgumentException {
         loggingConfigurationCommandLineConverter.convert(options, startParameter);
         FileResolver resolver = new BaseDirFileResolver(FileSystems.getDefault(), startParameter.getCurrentDir());
 
@@ -122,7 +124,17 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
 
         if (options.hasOption(CACHE)) {
             try {
-                startParameter.setCacheUsage(CacheUsage.fromString(options.option(CACHE).getValue()));
+                final CacheUsage cacheUsage =  DeprecationLogger.whileDisabled(new Factory<CacheUsage>() {
+                    public CacheUsage create() {
+                        return CacheUsage.fromString(options.option(CACHE).getValue());  //To change body of implemented methods use File | Settings | File Templates.
+                    }
+                });
+                DeprecationLogger.whileDisabled(new Factory<Void>() {
+                    public Void create() {
+                        startParameter.setCacheUsage(cacheUsage);
+                        return null;
+                    }
+                });
             } catch (InvalidUserDataException e) {
                 throw new CommandLineArgumentException(e.getMessage());
             }

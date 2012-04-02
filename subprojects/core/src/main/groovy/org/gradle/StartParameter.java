@@ -353,11 +353,21 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         return this;
     }
 
+    /**
+     *  Returns the configured CacheUsage.
+     *  @deprecated Use #isRecompileScripts and/or #isRerunTasks instead.
+     * */
     public CacheUsage getCacheUsage() {
+        DeprecationLogger.nagUserWith("The getCacheUsage method has been deprecated and will be removed in the next version of Gradle. Please use the istRecompileScripts and/or isRerunTasks() method instead.");
         return cacheUsage;
     }
 
+    /**
+     *  Sets the Cache usage.
+     *  @deprecated Use #setRecompileScripts and/or #setRerunTasks instead.
+     * */
     public void setCacheUsage(CacheUsage cacheUsage) {
+        DeprecationLogger.nagUserWith("The setCacheUsage(CacheUsage) method has been deprecated and will be removed in the next version of Gradle. Please use the setRecompileScripts(boolean) and/or setRerunTasks(boolean) method instead.");
         this.cacheUsage = cacheUsage;
     }
 

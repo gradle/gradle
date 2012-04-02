@@ -16,10 +16,12 @@
 package org.gradle;
 
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.util.DeprecationLogger;
 
 /**
  * <p>{@code CacheUsage} specifies how compiled scripts should be cached.</p>
- * 
+ *
+ * @deprecated This enum has been deprecated. Use StartParameter#isRerunTasks() and StartParameter#isRecompileScripts() instead.
  * @author Hans Dockter
  */
 public enum CacheUsage {
@@ -27,6 +29,7 @@ public enum CacheUsage {
 
     public static CacheUsage fromString(String usagestr) {
         try {
+            DeprecationLogger.nagUserWith("CacheUsage has been deprecated and will be removed in the next version of Gradle. Use StartParameter.setRerunTask(boolean) or StartParameter.setRecompileScripts(boolean) instead.");
             return valueOf(usagestr.toUpperCase());
         } catch (IllegalArgumentException e) {
             throw new InvalidUserDataException(String.format("Unknown cache usage '%s' specified.", usagestr));
