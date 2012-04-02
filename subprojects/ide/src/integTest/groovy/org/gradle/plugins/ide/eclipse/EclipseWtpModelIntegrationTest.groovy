@@ -18,7 +18,6 @@ package org.gradle.plugins.ide.eclipse
 
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry
-import org.gradle.plugins.ide.eclipse.model.EclipseWtp
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
@@ -453,8 +452,6 @@ project(':contrib') {
               apply plugin: 'eclipse-wtp'
             }
 
-            eclipse.wtp.useLibrariesContainer()
-
             repositories { mavenCentral() }
 
             dependencies {
@@ -467,15 +464,15 @@ project(':contrib') {
         executer.withTasks("eclipse").run()
 
         //then the container is configured
-        assert getClasspathFile().text.contains(EclipseWtp.WEB_LIBS_CONTAINER)
+        assert getClasspathFile().text.contains(EclipseWtpPlugin.WEB_LIBS_CONTAINER)
     }
 
     @Test
     @Issue("GRADLE-1974")
-    void "the web container is not present by default"() {
+    void "the web container is not present without war+wtp combo"() {
         //given
         file("build.gradle") << """
-            apply plugin: 'war'
+            apply plugin: 'java' //anything but not war
             apply plugin: 'eclipse-wtp'
         """
 
@@ -483,7 +480,7 @@ project(':contrib') {
         executer.withTasks("eclipse").run()
 
         //then container is added only once:
-        assert !getClasspathFile().text.contains(EclipseWtp.WEB_LIBS_CONTAINER)
+        assert !getClasspathFile().text.contains(EclipseWtpPlugin.WEB_LIBS_CONTAINER)
     }
 
     @Test

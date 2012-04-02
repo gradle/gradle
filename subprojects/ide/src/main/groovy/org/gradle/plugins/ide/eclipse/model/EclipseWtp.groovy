@@ -51,11 +51,6 @@ import org.gradle.util.ConfigureUtil
 class EclipseWtp {
 
     /**
-     * Default name of eclipse 'Web App Libraries' container.
-     */
-    static final String WEB_LIBS_CONTAINER = 'org.eclipse.jst.j2ee.internal.web.container'
-
-    /**
      * Configures wtp component.
      * <p>
      * For examples see docs for {@link EclipseWtpComponent}
@@ -78,13 +73,6 @@ class EclipseWtp {
      */
     void component(Closure action) {
         ConfigureUtil.configure(action, component)
-    }
-
-    /**
-     * Whether to add the libraries container to the Eclipse java build path.
-     */
-    void useLibrariesContainer() {
-        eclipseClasspath.containers WEB_LIBS_CONTAINER
     }
 
     /**

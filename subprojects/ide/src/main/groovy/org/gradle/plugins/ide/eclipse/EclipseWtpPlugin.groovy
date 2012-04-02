@@ -34,6 +34,7 @@ class EclipseWtpPlugin extends IdePlugin {
 
     static final String ECLIPSE_WTP_COMPONENT_TASK_NAME = "eclipseWtpComponent"
     static final String ECLIPSE_WTP_FACET_TASK_NAME = "eclipseWtpFacet"
+    static final String WEB_LIBS_CONTAINER = 'org.eclipse.jst.j2ee.internal.web.container'
 
     @Override protected String getLifecycleTaskName() {
         return "eclipseWtp"
@@ -62,6 +63,8 @@ class EclipseWtpPlugin extends IdePlugin {
 
     private void configureEclipseClasspathForWarPlugin(Project project) {
         project.plugins.withType(WarPlugin) {
+            project.eclipse.classpath.containers WEB_LIBS_CONTAINER
+
             project.eclipse.classpath.file.whenMerged { Classpath classpath ->
                 for (entry in classpath.entries) {
                     if (entry instanceof AbstractLibrary) {
