@@ -107,6 +107,37 @@ public interface LongRunningOperation {
     LongRunningOperation setJvmArguments(String... jvmArguments);
 
     /**
+     * Specify the command line build arguments. Useful mostly for running tasks via {@link BuildLauncher}.
+     * <p>
+     * Be aware that not all of the Gradle command line options are supported!
+     * Only the build arguments that configure the build execution are supported.
+     * They are modelled in the Gradle API via {@link org.gradle.StartParameter}.
+     * Examples of supported build arguments: '--info', '-u', '-p'.
+     * The command line instructions that are actually separate commands (like '-?', '-v') are not supported.
+     * Some other instructions like '--daemon' are also not supported - the tooling API always runs with the daemon.
+     * <p>
+     * If you specify unknown or unsupported command line option the {@link org.gradle.tooling.exceptions.UnsupportedBuildArgumentException}
+     * will be thrown but only at the time when you execute the operation, i.e. {@link BuildLauncher#run()} or {@link ModelBuilder#get()}.
+     * <p>
+     * For the list of all Gradle command line options please refer to the user guide
+     * or take a look at the output of the 'gradle -?' command. Supported arguments are those modelled by
+     * {@link org.gradle.StartParameter}.
+     * <p>
+     * The arguments can potentially override some other settings you have configured.
+     * For example, the project directory or Gradle user home directory that are configured
+     * in the {@link GradleConnector}.
+     * Also, the task names configured by {@link BuildLauncher#forTasks(String...)} can be overridden
+     * if you happen to specify other tasks via the build arguments.
+     * <p>
+     * See the example in the docs for {@link BuildLauncher}
+     *
+     * @param arguments gradle command line arguments
+     * @return this
+     * @since 1.0-rc-1
+     */
+    LongRunningOperation withArguments(String ... arguments);
+
+    /**
      * Adds a progress listener which will receive progress events as the operation runs.
      *
      * @param listener The listener

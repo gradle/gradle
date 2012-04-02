@@ -67,6 +67,11 @@ public interface ModelBuilder<T extends Model> extends LongRunningOperation {
     /**
      * {@inheritDoc}
      */
+    ModelBuilder<T> withArguments(String ... arguments);
+
+    /**
+     * {@inheritDoc}
+     */
     ModelBuilder<T> setStandardOutput(OutputStream outputStream);
 
     /**

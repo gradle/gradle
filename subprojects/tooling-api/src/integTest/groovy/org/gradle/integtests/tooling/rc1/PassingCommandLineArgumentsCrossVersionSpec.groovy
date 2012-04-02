@@ -24,6 +24,7 @@ import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.exceptions.UnsupportedBuildArgumentException
+import org.gradle.tooling.model.GradleProject
 
 @MinToolingApiVersion('current')
 @MinTargetGradleVersion('current')
@@ -31,21 +32,19 @@ class PassingCommandLineArgumentsCrossVersionSpec extends ToolingApiSpecificatio
 
 //    We don't want to validate *all* command line options here, just enough to make sure passing through works.
 
-    def "understands project properties"() {
+    def "understands project properties for building model"() {
         given:
         dist.file("build.gradle") << """
-        task printProperty << {
-            file('extraProperty.txt') << project.getProperty('extraProperty')
-        }
+        description = project.getProperty('theDescription')
 """
 
         when:
-        withConnection { ProjectConnection it ->
-            it.newBuild().forTasks('printProperty').withArguments('-PextraProperty=heyJoe').run()
+        GradleProject project = withConnection { ProjectConnection it ->
+            it.model(GradleProject).withArguments('-PtheDescription=heyJoe').get()
         }
 
         then:
-        dist.file('extraProperty.txt').text.contains('heyJoe')
+        project.description == 'heyJoe'
     }
 
     def "understands system properties"() {

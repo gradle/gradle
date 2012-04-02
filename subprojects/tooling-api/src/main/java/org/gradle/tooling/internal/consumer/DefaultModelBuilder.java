@@ -67,6 +67,11 @@ public class DefaultModelBuilder<T extends Model, P> implements ModelBuilder<T> 
         });
     }
 
+    public DefaultModelBuilder<T, P> withArguments(String... arguments) {
+        operationParameters.setArguments(arguments);
+        return this;
+    }
+
     public DefaultModelBuilder<T, P> setStandardOutput(OutputStream outputStream) {
         operationParameters.setStandardOutput(outputStream);
         return this;
