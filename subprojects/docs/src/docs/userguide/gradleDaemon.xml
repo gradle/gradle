@@ -82,6 +82,11 @@
                 <listitem>If the daemon process is currently busy running some job, a brand new daemon process will be started.</listitem>
                 <listitem>We fork a separate daemon process per java home. So even if there is some idle daemon waiting
                     for build requests but you happen to run build with a different java home then a brand new daemon will be forked.</listitem>
+                <listitem>We fork a separate daemon process if the jvm arguments for the build are sufficiently different.
+                    For example we will not fork a new daemon if a some system property has changed.
+                    However if -Xmx memory setting change or some fundamental immutable system property changes (e.g. file.encoding)
+                    then new daemon will be forked.
+                </listitem>
                 <listitem>At the moment daemon is coupled with particular version of Gradle.
                     This means that even if some daemon is idle but you are running the build
                     with a different version of Gradle, a new daemon will be started.

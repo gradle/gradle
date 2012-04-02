@@ -49,6 +49,9 @@ public class JvmOptions {
         this.bootstrapClasspath = new DefaultConfigurableFileCollection(resolver, null);
     }
 
+    /**
+     * @return all jvm args including system properties
+     */
     public List<String> getAllJvmArgs() {
         List<String> args = new LinkedList<String>();
         for (Map.Entry<String, Object> entry : getSystemProperties().entrySet()) {
