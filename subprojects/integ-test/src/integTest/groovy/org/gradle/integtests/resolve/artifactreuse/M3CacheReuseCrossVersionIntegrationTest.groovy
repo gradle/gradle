@@ -61,6 +61,7 @@ task retrieve(type: Sync) {
         when:
         server.resetExpectations()
         server.expectGet("/org/name/projectB/1.0/projectB-1.0.pom", projectB.pomFile)
+        projectB.expectArtifactHead(server)
         server.expectGet("/org/name/projectB/1.0/projectB-1.0.jar.sha1", projectB.sha1File(projectB.artifactFile))
 
         and:
