@@ -64,7 +64,7 @@ public class BlockingApplication {
         } catch (InterruptedException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         } catch (InvocationTargetException e) {
-            throw UncheckedException.throwAsUncheckedException(e.getCause());
+            throw UncheckedException.unwrapAndRethrow(e);
         }
 
         //the calling thread will now block until the caller is complete.
