@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.repositories;
 
+import com.google.common.collect.Lists;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.FileSystemResolver;
 import org.gradle.api.InvalidUserDataException;
@@ -27,8 +28,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
-
-import static org.gradle.util.GUtil.toList;
 
 public class DefaultFlatDirArtifactRepository implements FlatDirectoryArtifactRepository, ArtifactRepositoryInternal {
     private final FileResolver fileResolver;
@@ -54,7 +53,7 @@ public class DefaultFlatDirArtifactRepository implements FlatDirectoryArtifactRe
     }
 
     public void setDirs(Iterable<?> dirs) {
-        this.dirs = toList(dirs);
+        this.dirs = Lists.newArrayList(dirs);
     }
 
     public void dir(Object dir) {

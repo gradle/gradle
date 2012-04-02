@@ -19,13 +19,11 @@ import org.apache.commons.io.output.CloseShieldOutputStream;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.process.BaseExecSpec;
-import org.gradle.util.GUtil;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -48,7 +46,10 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
     public abstract List<String> getAllArguments();
 
     public List<String> getCommandLine() {
-        return GUtil.addLists(Collections.singleton(getExecutable()), getAllArguments());
+        List<String> commandLine = new ArrayList<String>();
+        commandLine.add(getExecutable());
+        commandLine.addAll(getAllArguments());
+        return commandLine;
     }
 
     public AbstractExecHandleBuilder setStandardInput(InputStream inputStream) {

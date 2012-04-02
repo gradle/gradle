@@ -35,8 +35,6 @@ import static org.junit.Assert.assertEquals
  */
 @RunWith(JMock)
 class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTest {
-    static final String TEST_REPO_URL = 'http://www.gradle.org'
-
     private DefaultRepositoryHandler repositoryHandler
 
     public ArtifactRepositoryContainer createResolverContainer() {

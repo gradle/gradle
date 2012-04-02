@@ -16,6 +16,7 @@
 
 package org.gradle.process.internal;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.process.ExecSpec;
@@ -45,7 +46,7 @@ public class ExecHandleBuilder extends AbstractExecHandleBuilder implements Exec
     }
 
     public ExecSpec commandLine(Iterable<?> args) {
-        List<Object> argsList = GUtil.addLists(args);
+        List<Object> argsList = Lists.newArrayList(args);
         executable(argsList.get(0));
         setArgs(argsList.subList(1, argsList.size()));
         return this;

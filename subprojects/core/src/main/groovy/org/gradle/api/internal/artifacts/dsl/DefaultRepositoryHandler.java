@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.dsl;
 
+import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.Action;
@@ -29,7 +30,6 @@ import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
 import org.gradle.api.internal.artifacts.repositories.FixedResolverArtifactRepository;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
-import org.gradle.util.GUtil;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -109,7 +109,7 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
             return (List<Object>) object;
         }
         if (object instanceof Iterable) {
-            return GUtil.addLists((Iterable) object);
+            return Lists.newArrayList((Iterable<Object>) object);
         }
         return Collections.singletonList(object);
     }

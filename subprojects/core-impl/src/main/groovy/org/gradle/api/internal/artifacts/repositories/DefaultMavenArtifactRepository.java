@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.repositories;
 
+import com.google.common.collect.Lists;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.InvalidUserDataException;
@@ -27,9 +28,10 @@ import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFi
 import org.gradle.api.internal.file.FileResolver;
 
 import java.net.URI;
-import java.util.*;
-
-import static org.gradle.util.GUtil.toList;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 public class DefaultMavenArtifactRepository extends AbstractAuthenticationSupportedRepository implements MavenArtifactRepository, ArtifactRepositoryInternal {
     private final FileResolver fileResolver;
@@ -75,11 +77,11 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     }
 
     public void artifactUrls(Object... urls) {
-        additionalUrls.addAll(Arrays.asList(urls));
+        additionalUrls.addAll(Lists.newArrayList(urls));
     }
 
     public void setArtifactUrls(Iterable<?> urls) {
-        additionalUrls = toList(urls);
+        additionalUrls = Lists.newArrayList(urls);
     }
 
     public DependencyResolver createResolver() {

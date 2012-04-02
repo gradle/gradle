@@ -15,9 +15,8 @@
  */
 package org.gradle.api.specs;
 
-import org.gradle.util.GUtil;
+import com.google.common.collect.Lists;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -31,11 +30,11 @@ abstract public class CompositeSpec<T> implements Spec<T> {
     private List<Spec<? super T>> specs;
 
     protected CompositeSpec(Spec<? super T>... specs) {
-        this.specs = Arrays.asList(specs);
+        this.specs = Lists.newArrayList(specs);
     }
 
     protected CompositeSpec(Iterable<? extends Spec<? super T>> specs) {
-        this.specs = GUtil.addLists(specs);
+        this.specs = Lists.newArrayList(specs);
     }
 
     public List<Spec<? super T>> getSpecs() {

@@ -39,7 +39,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.gradle.util.GUtil.toList;
+import static com.google.common.collect.Lists.newArrayList;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -264,7 +264,7 @@ public class DefaultArtifactPomTest {
     }
 
     private <T> T singleItem(Iterable<? extends T> collection) {
-        List<T> elements = toList(collection);
+        List<T> elements = newArrayList(collection);
         assertThat(elements.size(), equalTo(1));
         return elements.get(0);
     }

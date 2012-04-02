@@ -87,10 +87,13 @@ public class TaskReportTaskTest {
             allowing(project).getDefaultTasks();
             will(returnValue(testDefaultTasks));
 
-            one(taskContainer).iterator();
+            allowing(taskContainer).size();
+            will(returnValue(4));
+
+            allowing(taskContainer).iterator();
             will(returnIterator(toLinkedSet(task2, task3, task4, task1)));
 
-            one(implicitTasks).iterator();
+            allowing(implicitTasks).iterator();
             will(returnIterator(toLinkedSet()));
 
             allowing(taskContainer).getRules();
@@ -139,10 +142,13 @@ public class TaskReportTaskTest {
             allowing(project).getDefaultTasks();
             will(returnValue(defaultTasks));
 
-            one(taskContainer).iterator();
+            allowing(taskContainer).size();
+            will(returnValue(0));
+
+            allowing(taskContainer).iterator();
             will(returnIterator(toLinkedSet()));
 
-            one(implicitTasks).iterator();
+            allowing(implicitTasks).iterator();
             will(returnIterator(toLinkedSet()));
 
             one(taskContainer).getRules();

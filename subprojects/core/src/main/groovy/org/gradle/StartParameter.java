@@ -16,12 +16,13 @@
 
 package org.gradle;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.gradle.internal.SystemProperties;
 import org.gradle.logging.LoggingConfiguration;
 import org.gradle.util.GFileUtils;
-import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.io.Serializable;
@@ -242,7 +243,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      * @param taskNames the names of the tasks to execute in this build.
      */
     public void setTaskNames(Iterable<String> taskNames) {
-        this.taskNames = GUtil.toList(taskNames);
+        this.taskNames = Lists.newArrayList(taskNames);
     }
 
     /**
@@ -260,7 +261,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      * @param excludedTaskNames The task names. Can be null.
      */
     public void setExcludedTaskNames(Iterable<String> excludedTaskNames) {
-        this.excludedTaskNames = GUtil.toSet(excludedTaskNames);
+        this.excludedTaskNames = Sets.newLinkedHashSet(excludedTaskNames);
     }
 
     /**

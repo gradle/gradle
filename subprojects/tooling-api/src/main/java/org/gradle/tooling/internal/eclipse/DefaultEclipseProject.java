@@ -15,10 +15,10 @@
  */
 package org.gradle.tooling.internal.eclipse;
 
+import com.google.common.collect.Lists;
 import org.gradle.tooling.internal.protocol.ExternalDependencyVersion1;
 import org.gradle.tooling.internal.protocol.eclipse.*;
 import org.gradle.tooling.model.GradleProject;
-import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.io.Serializable;
@@ -45,7 +45,7 @@ public class DefaultEclipseProject implements EclipseProjectVersion3, Serializab
         this.description = description;
         this.projectDirectory = projectDirectory;
         this.tasks = Collections.emptyList();
-        this.children = GUtil.toList(children);
+        this.children = Lists.newArrayList(children);
         this.classpath = Collections.emptyList();
         this.sourceDirectories = Collections.emptyList();
         this.projectDependencies = Collections.emptyList();

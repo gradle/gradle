@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.classpath;
 
+import com.google.common.collect.Iterables;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.GradleDistributionLocator;
 import org.gradle.util.ClassPath;
@@ -268,7 +269,7 @@ public class DefaultModuleRegistry implements ModuleRegistry, GradleDistribution
             this.implementationClasspath = new DefaultClassPath(implementationClasspath);
             this.runtimeClasspath = new DefaultClassPath(runtimeClasspath);
             this.modules = modules;
-            this.classpath = new DefaultClassPath(GUtil.addSets(implementationClasspath, runtimeClasspath));
+            this.classpath = new DefaultClassPath(Iterables.concat(implementationClasspath, runtimeClasspath));
         }
 
         @Override

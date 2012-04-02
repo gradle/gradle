@@ -15,7 +15,7 @@
  */
 package org.gradle.profile;
 
-import org.gradle.util.GUtil;
+import com.google.common.collect.Lists;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -28,7 +28,7 @@ public class CompositeOperation<T extends Operation> extends Operation implement
     private List<T> children = new ArrayList<T>();
 
     public CompositeOperation(Iterable<? extends T> children) {
-        this.children = GUtil.addLists(children);
+        this.children = Lists.newArrayList(children);
     }
 
     public List<T> getOperations() {
