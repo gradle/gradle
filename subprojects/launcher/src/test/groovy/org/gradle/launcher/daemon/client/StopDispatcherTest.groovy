@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.server
+package org.gradle.launcher.daemon.client
 
-import org.gradle.launcher.daemon.client.StopDispatcher
 import org.gradle.messaging.remote.internal.Connection
-import spock.lang.Specification
 import org.gradle.util.IdGenerator
+import spock.lang.Specification
 
 /**
  * @author: Szczepan Faber, created at: 9/13/11
