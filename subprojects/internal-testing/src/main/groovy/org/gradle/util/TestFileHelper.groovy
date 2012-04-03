@@ -23,6 +23,9 @@ import static org.hamcrest.Matchers.equalTo
 import static org.junit.Assert.assertThat
 import static org.junit.Assert.assertTrue
 import org.apache.tools.ant.Project
+import org.apache.tools.ant.taskdefs.Zip
+import org.apache.tools.ant.taskdefs.Tar
+import org.apache.tools.ant.types.EnumeratedAttribute
 
 class TestFileHelper {
     TestFile file
@@ -67,7 +70,7 @@ class TestFileHelper {
     void untarTo(File target, boolean nativeTools) {
         if (nativeTools && isUnix()) {
             target.mkdirs()
-            def builder = new ProcessBuilder(['tar', '-xf', file.absolutePath])
+            def builder = new ProcessBuilder(['tar', '-xpf', file.absolutePath])
             builder.directory(target)
             def process = builder.start()
             process.consumeProcessOutput()
@@ -158,5 +161,35 @@ class TestFileHelper {
         return [out: output, error: error]
     }
 
-    public void setPermissions ( ) {
-    }}
+    public void zipTo(TestFile zipFile, boolean nativeTools) {
+        if (nativeTools && isUnix()) {
+            def process = ['zip', zipFile.absolutePath, "-r", file.name].execute(null, zipFile.parentFile)
+
+
+            process.consumeProcessOutput(System.out, System.err)
+            assertThat(process.waitFor(), equalTo(0))
+        } else {
+            Zip zip = new Zip();
+            zip.setBasedir(file);
+            zip.setDestFile(zipFile);
+            zip.setProject(new Project());
+            zip.execute();
+        }
+
+    }
+
+    public void tarTo(TestFile tarFile, boolean nativeTools) {
+        if (nativeTools && isUnix()) {
+            def process = ['tar', "-cf", tarFile.absolutePath, file.name].execute(null, tarFile.parentFile)
+            process.consumeProcessOutput(System.out, System.err)
+            assertThat(process.waitFor(), equalTo(0))
+        } else {
+            Tar tar = new Tar();
+            tar.setBasedir(file);
+            tar.setDestFile(tarFile);
+            tar.setCompression((Tar.TarCompressionMethod) EnumeratedAttribute.getInstance(Tar.TarCompressionMethod.class, "gzip"));
+            tar.setProject(new Project())
+            tar.execute()
+        }
+    }
+}
