@@ -17,7 +17,6 @@ package org.gradle.launcher.daemon.server.exec;
 
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.protocol.Command;
-import org.gradle.launcher.daemon.server.DaemonStateCoordinator;
 import org.gradle.messaging.remote.internal.DisconnectAwareConnection;
 
 import java.util.LinkedList;
@@ -36,18 +35,18 @@ public class DaemonCommandExecution {
     final private DisconnectAwareConnection<Object> connection;
     final private Command command;
     final private DaemonContext daemonContext;
-    final private DaemonStateCoordinator daemonStateCoordinator;
+    final private DaemonStateControl daemonStateControl;
     final private List<DaemonCommandAction> actions;
 
     private Throwable exception;
     private Object result;
     private final List<Runnable> finalizers = new LinkedList<Runnable>();
 
-    public DaemonCommandExecution(DisconnectAwareConnection<Object> connection, Command command, DaemonContext daemonContext, DaemonStateCoordinator daemonStateCoordinator, List<DaemonCommandAction> actions) {
+    public DaemonCommandExecution(DisconnectAwareConnection<Object> connection, Command command, DaemonContext daemonContext, DaemonStateControl daemonStateControl, List<DaemonCommandAction> actions) {
         this.connection = connection;
         this.command = command;
         this.daemonContext = daemonContext;
-        this.daemonStateCoordinator = daemonStateCoordinator;
+        this.daemonStateControl = daemonStateControl;
 
         this.actions = new LinkedList<DaemonCommandAction>(actions);
     }
@@ -69,8 +68,8 @@ public class DaemonCommandExecution {
         return daemonContext;
     }
 
-    public DaemonStateCoordinator getDaemonStateCoordinator() {
-        return daemonStateCoordinator;
+    public DaemonStateControl getDaemonStateControl() {
+        return daemonStateControl;
     }
 
     /**
