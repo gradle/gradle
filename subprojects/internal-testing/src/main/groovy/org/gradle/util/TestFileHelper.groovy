@@ -17,15 +17,14 @@ package org.gradle.util
 
 import java.util.zip.ZipInputStream
 import org.apache.commons.lang.StringUtils
+import org.apache.tools.ant.Project
 import org.apache.tools.ant.taskdefs.Expand
+import org.apache.tools.ant.taskdefs.Tar
 import org.apache.tools.ant.taskdefs.Untar
+import org.apache.tools.ant.taskdefs.Zip
 import static org.hamcrest.Matchers.equalTo
 import static org.junit.Assert.assertThat
 import static org.junit.Assert.assertTrue
-import org.apache.tools.ant.Project
-import org.apache.tools.ant.taskdefs.Zip
-import org.apache.tools.ant.taskdefs.Tar
-import org.apache.tools.ant.types.EnumeratedAttribute
 
 class TestFileHelper {
     TestFile file
