@@ -22,8 +22,8 @@ import org.gradle.cli.CommandLineConverter;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.configuration.GradleLauncherMetaData;
-import org.gradle.initialization.DefaultBuildRequestMetaData;
 import org.gradle.initialization.DefaultCommandLineConverter;
+import org.gradle.initialization.DefaultGradleLauncherFactory;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonMain;
 import org.gradle.launcher.daemon.client.DaemonClient;
@@ -33,7 +33,9 @@ import org.gradle.launcher.daemon.client.StopDaemonClientServices;
 import org.gradle.launcher.daemon.configuration.CurrentProcess;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.configuration.ForegroundDaemonConfiguration;
+import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.ExecutionListener;
+import org.gradle.launcher.exec.GradleLauncherActionExecuter;
 
 import java.io.File;
 import java.lang.management.ManagementFactory;
@@ -82,7 +84,7 @@ class BuildActionsFactory implements CommandLineAction {
             return runBuildWithDaemon(startParameter, daemonParameters, loggingServices);
         }
         if (canUseCurrentProcess(daemonParameters)) {
-            return runBuildInProcess(loggingServices, startParameter);
+            return runBuildInProcess(startParameter, daemonParameters, loggingServices);
         }
         return runBuildInSingleUseDaemon(startParameter, daemonParameters, loggingServices);
     }
@@ -121,8 +123,9 @@ class BuildActionsFactory implements CommandLineAction {
         return currentProcess.configureForBuild(requiredBuildParameters);
     }
 
-    private Action<ExecutionListener> runBuildInProcess(ServiceRegistry loggingServices, StartParameter startParameter) {
-        return new RunBuildAction(startParameter, loggingServices, new DefaultBuildRequestMetaData(clientMetaData(), getBuildStartTime()));
+    private Action<ExecutionListener> runBuildInProcess(StartParameter startParameter, DaemonParameters daemonParameters, ServiceRegistry loggingServices) {
+        InProcessGradleLauncherActionExecuter executer = new InProcessGradleLauncherActionExecuter(new DefaultGradleLauncherFactory(loggingServices));
+        return daemonBuildAction(startParameter, daemonParameters, executer);
     }
 
     private Action<ExecutionListener> runBuildInSingleUseDaemon(StartParameter startParameter, DaemonParameters daemonParameters, ServiceRegistry loggingServices) {
@@ -141,9 +144,9 @@ class BuildActionsFactory implements CommandLineAction {
         return daemonBuildAction(startParameter, daemonParameters, client);
     }
 
-    private Action<ExecutionListener> daemonBuildAction(StartParameter startParameter, DaemonParameters daemonParameters, DaemonClient client) {
+    private Action<ExecutionListener> daemonBuildAction(StartParameter startParameter, DaemonParameters daemonParameters, GradleLauncherActionExecuter<BuildActionParameters> executer) {
         return new ActionAdapter(
-                new DaemonBuildAction(client, startParameter, getWorkingDir(), clientMetaData(), getBuildStartTime(), daemonParameters.getEffectiveSystemProperties(), System.getenv()));
+                new DaemonBuildAction(executer, startParameter, getWorkingDir(), clientMetaData(), getBuildStartTime(), daemonParameters.getEffectiveSystemProperties(), System.getenv()));
     }
 
     private long getBuildStartTime() {
