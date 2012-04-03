@@ -19,6 +19,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.GradleLauncherFactory;
+import org.gradle.launcher.cli.InProcessGradleLauncherActionExecuter;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.protocol.Build;
 import org.gradle.launcher.exec.ReportedException;
@@ -40,9 +41,9 @@ public class ExecuteBuild extends BuildCommandOnly {
 
     protected void doBuild(DaemonCommandExecution execution, Build build) {
         LOGGER.info("Executing build with daemon context: {}", execution.getDaemonContext());
-        
+        InProcessGradleLauncherActionExecuter executer = new InProcessGradleLauncherActionExecuter(launcherFactory);
         try {
-            execution.setResult(build.run(launcherFactory));
+            execution.setResult(executer.execute(build.getAction(), build.getParameters()));
         } catch (GradleException e) {
             /*
                 We have to wrap in a ReportedException so the other side doesn't re-log this exception, because it's already

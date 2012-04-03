@@ -20,6 +20,7 @@ import org.gradle.initialization.BuildClientMetaData
 import org.gradle.launcher.exec.BuildActionParameters
 import org.gradle.launcher.exec.GradleLauncherActionExecuter
 import spock.lang.Specification
+import org.gradle.api.logging.LogLevel
 
 class DaemonBuildActionTest extends Specification {
     final GradleLauncherActionExecuter<BuildActionParameters> client = Mock()
@@ -36,6 +37,7 @@ class DaemonBuildActionTest extends Specification {
         action.run()
 
         then:
+        startParameter.logLevel >> LogLevel.ERROR
         1 * client.execute({!null}, {!null}) >> { args ->
             ExecuteBuildAction action = args[0]
             assert action.startParameter == startParameter

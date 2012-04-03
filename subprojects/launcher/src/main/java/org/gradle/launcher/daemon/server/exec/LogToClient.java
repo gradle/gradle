@@ -38,7 +38,7 @@ class LogToClient extends BuildCommandOnly {
     }
 
     protected void doBuild(final DaemonCommandExecution execution, Build build) {
-        final LogLevel buildLogLevel = build.getStartParameter().getLogLevel();
+        final LogLevel buildLogLevel = build.getParameters().getLogLevel();
         OutputEventListener listener = new OutputEventListener() {
             public void onOutput(OutputEvent event) {
                 try {

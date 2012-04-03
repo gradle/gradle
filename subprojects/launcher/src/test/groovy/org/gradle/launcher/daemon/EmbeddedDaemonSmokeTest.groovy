@@ -24,6 +24,7 @@ import org.gradle.tooling.internal.provider.ExecuteBuildAction
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
+import org.gradle.api.logging.LogLevel
 
 /**
  * Exercises the basic mechanics using an embedded daemon.
@@ -41,7 +42,7 @@ class EmbeddedDaemonSmokeTest extends Specification {
         given:
         def action = new ConfiguringBuildAction(projectDirectory: temp.dir, searchUpwards: false, tasks: ['echo'],
                 gradleUserHomeDir: temp.createDir("user-home"), action: new ExecuteBuildAction())
-        def parameters = new DefaultBuildActionParameters(new GradleLauncherMetaData(), new Date().time, System.properties, System.getenv(), temp.dir)
+        def parameters = new DefaultBuildActionParameters(new GradleLauncherMetaData(), new Date().time, System.properties, System.getenv(), temp.dir, LogLevel.LIFECYCLE)
         
         and:
         def outputFile = temp.file("output.txt")

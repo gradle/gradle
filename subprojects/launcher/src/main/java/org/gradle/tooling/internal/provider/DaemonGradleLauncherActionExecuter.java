@@ -39,7 +39,7 @@ public class DaemonGradleLauncherActionExecuter implements GradleLauncherActionE
 
     public <T> T execute(GradleLauncherAction<T> action, ProviderOperationParameters actionParameters) {
         BuildActionParameters parameters = new DefaultBuildActionParameters(new GradleLauncherMetaData(), actionParameters.getStartTime(),
-                this.parameters.getEffectiveSystemProperties(), System.getenv(), new File(System.getProperty("user.dir")));
+                this.parameters.getEffectiveSystemProperties(), System.getenv(), new File(System.getProperty("user.dir")), actionParameters.getBuildLogLevel());
         try {
             return client.execute(action, parameters);
         } catch (ReportedException e) {

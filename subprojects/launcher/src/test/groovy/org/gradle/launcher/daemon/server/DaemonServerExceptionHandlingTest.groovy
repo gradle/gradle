@@ -35,6 +35,7 @@ import org.gradle.messaging.concurrent.ExecutorFactory
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
+import org.gradle.api.logging.LogLevel
 
 /**
  * by Szczepan Faber, created at: 12/21/11
@@ -42,7 +43,7 @@ import spock.lang.Specification
 class DaemonServerExceptionHandlingTest extends Specification {
 
     @Rule TemporaryFolder temp = new TemporaryFolder()
-    def parameters = new DefaultBuildActionParameters(new GradleLauncherMetaData(), 0, new HashMap(System.properties), [:], temp.dir)
+    def parameters = new DefaultBuildActionParameters(new GradleLauncherMetaData(), 0, new HashMap(System.properties), [:], temp.dir, LogLevel.ERROR)
 
     static class DummyLauncherAction implements GradleLauncherAction, Serializable {
         Object someState

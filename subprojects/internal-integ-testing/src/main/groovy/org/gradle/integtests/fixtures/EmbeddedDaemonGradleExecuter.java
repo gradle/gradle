@@ -16,6 +16,7 @@
 package org.gradle.integtests.fixtures;
 
 import org.gradle.StartParameter;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.launcher.cli.ExecuteBuildAction;
@@ -96,7 +97,7 @@ public class EmbeddedDaemonGradleExecuter extends AbstractGradleExecuter {
     }
 
     private BuildActionParameters createBuildActionParameters() {
-        return new DefaultBuildActionParameters(daemonClientServices.get(BuildClientMetaData.class), getStartTime(), System.getProperties(), getEnvironmentVars(), getWorkingDir());
+        return new DefaultBuildActionParameters(daemonClientServices.get(BuildClientMetaData.class), getStartTime(), System.getProperties(), getEnvironmentVars(), getWorkingDir(), LogLevel.LIFECYCLE);
     }
 
     private long getStartTime() {
