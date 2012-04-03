@@ -93,7 +93,7 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "file and directory permissions are preserved for unpacked #taskName archives"() {
         given:
-        TestFile testDir = createDir('testDir') {
+        TestFile testDir = createDir('testdir') {
             mode = dirMode
             file('reference.txt').mode = fileMode
         }
