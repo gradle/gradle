@@ -184,7 +184,6 @@ class TestFileHelper {
             Tar tar = new Tar();
             tar.setBasedir(file);
             tar.setDestFile(tarFile);
-            tar.setCompression((Tar.TarCompressionMethod) EnumeratedAttribute.getInstance(Tar.TarCompressionMethod.class, "gzip"));
             tar.setProject(new Project())
             tar.execute()
         }
