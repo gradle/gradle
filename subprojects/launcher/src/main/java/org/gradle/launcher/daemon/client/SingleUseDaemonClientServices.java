@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.daemon.client;
 
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.service.ServiceRegistry;
@@ -41,6 +42,7 @@ public class SingleUseDaemonClientServices extends DaemonClientServices {
                 matchNone,
                 getBuildStandardInput(),
                 get(ExecutorFactory.class),
-                get(IdGenerator.class));
+                get(IdGenerator.class),
+                get(DocumentationRegistry.class));
     }
 }
