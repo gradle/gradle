@@ -164,8 +164,6 @@ class TestFileHelper {
     public void zipTo(TestFile zipFile, boolean nativeTools) {
         if (nativeTools && isUnix()) {
             def process = ['zip', zipFile.absolutePath, "-r", file.name].execute(null, zipFile.parentFile)
-
-
             process.consumeProcessOutput(System.out, System.err)
             assertThat(process.waitFor(), equalTo(0))
         } else {
@@ -175,7 +173,6 @@ class TestFileHelper {
             zip.setProject(new Project());
             zip.execute();
         }
-
     }
 
     public void tarTo(TestFile tarFile, boolean nativeTools) {

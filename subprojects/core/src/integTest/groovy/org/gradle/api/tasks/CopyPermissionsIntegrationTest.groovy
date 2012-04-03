@@ -18,14 +18,12 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
-import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestFile
 import org.gradle.util.TestPrecondition
-import org.junit.Rule
 
-@Requires(TestPrecondition.FILE_PERMISSIONS)
 class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
 
+    @Requires(TestPrecondition.FILE_PERMISSIONS)
     def "file permissions are preserved in copy action"() {
         given:
         def testSourceFile = file("reference.txt") << 'test file"'
@@ -46,6 +44,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
         mode << [0746]
     }
 
+    @Requires(TestPrecondition.FILE_PERMISSIONS)
     def "directory permissions are preserved in copy action"() {
         given:
         TestFile parent = getTestDir().createDir("testparent")
@@ -68,6 +67,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
         mode << [0755, 0776]
     }
 
+    @Requires(TestPrecondition.FILE_PERMISSIONS)
     def "fileMode can be modified in copy task"() {
         given:
 
@@ -91,6 +91,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
         mode << [0755, 0776]
     }
 
+    @Requires(TestPrecondition.FILE_PERMISSIONS)
     def "fileMode can be modified in copy action"() {
         given:
         file("reference.txt") << 'test file"'
@@ -116,6 +117,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
 
     }
 
+    @Requires(TestPrecondition.FILE_PERMISSIONS)
     def "dirMode can be modified in copy task"() {
         given:
         TestFile parent = getTestDir().createDir("testparent")
@@ -125,12 +127,12 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
         child.mode = 0777
         and:
         buildFile << """
-                task copy(type: Copy) {
-                    from "testparent"
-                    into ("build/tmp")
-                    dirMode = $mode
-                }
-                """
+            task copy(type: Copy) {
+                from "testparent"
+                into ("build/tmp")
+                dirMode = $mode
+            }
+            """
         when:
         run "copy"
         then:
