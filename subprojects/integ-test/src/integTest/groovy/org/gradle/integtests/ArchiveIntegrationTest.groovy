@@ -15,11 +15,12 @@
  */
 
 
-package org.gradle.api.tasks
+package org.gradle.integtests
 
-import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.util.TestFile
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import org.junit.Test
 import static org.hamcrest.Matchers.equalTo
@@ -277,6 +278,8 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
                 into('scripts') {
                     from 'test'
                     include '**/*.sh'
+                    dirMode = 0750
+                    fileMode = 0754
                 }
                 destinationDir = buildDir
                 archiveName = 'test.zip'
@@ -294,6 +297,11 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
                 'scripts/dir2/script.sh')
 
         expandDir.file('prefix/dir1/renamed_file1.txt').assertContents(equalTo('[abc]'))
+
+        if (TestPrecondition.FILE_PERMISSIONS.fulfilled) {
+            expandDir.file('scripts/dir2').assertPermissions(equalTo("rwxr-x---"))
+            expandDir.file('scripts/dir2/script.sh').assertPermissions(equalTo("rwxr-xr--"))
+        }
     }
 
     @Test public void canCreateATarArchive() {
@@ -317,6 +325,8 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
                 from('test') {
                     include '**/*.sh'
                     into 'scripts'
+                    fileMode = 0754
+                    dirMode = 0750
                 }
                 destinationDir = buildDir
                 archiveName = 'test.tar'
@@ -330,6 +340,11 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
         expandDir.assertHasDescendants('dir1/file1.txt', 'file1.txt', 'dir2/file2.txt', 'scripts/dir2/script.sh')
 
         expandDir.file('dir1/file1.txt').assertContents(equalTo('[abc]'))
+
+        if (TestPrecondition.FILE_PERMISSIONS.fulfilled) {
+            expandDir.file('scripts/dir2').assertPermissions(equalTo("rwxr-x---"))
+            expandDir.file('scripts/dir2/script.sh').assertPermissions(equalTo("rwxr-xr--"))
+        }
     }
 
     @Test public void canCreateATgzArchive() {
