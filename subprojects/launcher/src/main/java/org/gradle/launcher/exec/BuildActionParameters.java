@@ -15,7 +15,6 @@
  */
 package org.gradle.launcher.exec;
 
-import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.BuildRequestMetaData;
 
 import java.io.File;
@@ -24,8 +23,6 @@ import java.util.Map;
 
 public interface BuildActionParameters extends Serializable {
     BuildRequestMetaData getBuildRequestMetaData();
-
-    BuildClientMetaData getClientMetaData();
 
     Map<String, String> getSystemProperties();
 

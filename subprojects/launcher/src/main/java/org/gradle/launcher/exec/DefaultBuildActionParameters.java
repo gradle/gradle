@@ -47,10 +47,6 @@ public class DefaultBuildActionParameters implements BuildActionParameters, Seri
         return new DefaultBuildRequestMetaData(clientMetaData, startTime);
     }
 
-    public BuildClientMetaData getClientMetaData() {
-        return clientMetaData;
-    }
-
     public Map<String, String> getSystemProperties() {
         return systemProperties;
     }
