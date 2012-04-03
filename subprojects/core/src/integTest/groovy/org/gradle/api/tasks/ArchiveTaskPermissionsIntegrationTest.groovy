@@ -52,7 +52,6 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
         taskName | fileMode | dirMode | unpackMethod
         "Zip"    | 0746     | 0777    | "unzipTo"
         "Tar"    | 0746     | 0777    | "untarTo"
-        "Jar"    | 0746     | 0777    | "unzipTo"
     }
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
