@@ -30,6 +30,7 @@ import spock.lang.Specification
 import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient
 import org.gradle.launcher.daemon.client.DaemonClient
+import org.gradle.launcher.exec.InProcessGradleLauncherActionExecuter
 
 class BuildActionsFactoryTest extends Specification {
     @Rule
@@ -189,19 +190,19 @@ class BuildActionsFactoryTest extends Specification {
 
     void isDaemon(def action) {
         assert action instanceof ActionAdapter
-        assert action.action instanceof DaemonBuildAction
+        assert action.action instanceof RunBuildAction
         assert action.action.executer instanceof DaemonClient
     }
 
     void isInProcess(def action) {
         assert action instanceof ActionAdapter
-        assert action.action instanceof DaemonBuildAction
+        assert action.action instanceof RunBuildAction
         assert action.action.executer instanceof InProcessGradleLauncherActionExecuter
     }
 
     void isSingleUseDaemon(def action) {
         assert action instanceof ActionAdapter
-        assert action.action instanceof DaemonBuildAction
+        assert action.action instanceof RunBuildAction
         assert action.action.executer instanceof SingleUseDaemonClient
     }
 }

@@ -19,7 +19,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.GradleLauncherFactory;
-import org.gradle.launcher.cli.InProcessGradleLauncherActionExecuter;
+import org.gradle.launcher.exec.InProcessGradleLauncherActionExecuter;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.protocol.Build;
 import org.gradle.launcher.exec.ReportedException;

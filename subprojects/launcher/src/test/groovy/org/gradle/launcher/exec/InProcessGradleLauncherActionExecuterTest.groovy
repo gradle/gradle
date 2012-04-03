@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.cli
+package org.gradle.launcher.exec
 
 import spock.lang.Specification
 import org.gradle.initialization.GradleLauncherFactory
 import org.gradle.initialization.GradleLauncherAction
-import org.gradle.launcher.exec.InitializationAware
-import org.gradle.launcher.exec.BuildActionParameters
+
 import org.gradle.initialization.BuildRequestMetaData
 import org.gradle.GradleLauncher
 import org.gradle.BuildResult
-import org.gradle.launcher.exec.ReportedException
+
 import org.gradle.StartParameter
 
 class InProcessGradleLauncherActionExecuterTest extends Specification {

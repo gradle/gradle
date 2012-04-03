@@ -26,7 +26,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-public class DaemonBuildAction implements Runnable {
+public class RunBuildAction implements Runnable {
     private final GradleLauncherActionExecuter<BuildActionParameters> executer;
     private final StartParameter startParameter;
     private final File currentDir;
@@ -35,7 +35,7 @@ public class DaemonBuildAction implements Runnable {
     private final Map<String, String> systemProperties;
     private final Map<String, String> envVariables;
 
-    public DaemonBuildAction(GradleLauncherActionExecuter<BuildActionParameters> executer, StartParameter startParameter, File currentDir, BuildClientMetaData clientMetaData, long startTime, Map<?, ?> systemProperties, Map<String, String> envVariables) {
+    public RunBuildAction(GradleLauncherActionExecuter<BuildActionParameters> executer, StartParameter startParameter, File currentDir, BuildClientMetaData clientMetaData, long startTime, Map<?, ?> systemProperties, Map<String, String> envVariables) {
         this.executer = executer;
         this.startParameter = startParameter;
         this.currentDir = currentDir;

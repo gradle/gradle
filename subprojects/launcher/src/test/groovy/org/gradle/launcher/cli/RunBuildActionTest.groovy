@@ -22,7 +22,7 @@ import org.gradle.launcher.exec.GradleLauncherActionExecuter
 import spock.lang.Specification
 import org.gradle.api.logging.LogLevel
 
-class DaemonBuildActionTest extends Specification {
+class RunBuildActionTest extends Specification {
     final GradleLauncherActionExecuter<BuildActionParameters> client = Mock()
     final StartParameter startParameter = Mock()
     final BuildClientMetaData clientMetaData = Mock()
@@ -30,7 +30,7 @@ class DaemonBuildActionTest extends Specification {
     final long startTime = 90
     final Map<String, String> systemProperties = [key: 'value']
     final Map<String, String> envVariables = [key2: 'value2']
-    final DaemonBuildAction action = new DaemonBuildAction(client, startParameter, currentDir, clientMetaData, startTime, systemProperties, envVariables)
+    final RunBuildAction action = new RunBuildAction(client, startParameter, currentDir, clientMetaData, startTime, systemProperties, envVariables)
 
     def runsBuildUsingDaemon() {
         when:

@@ -36,6 +36,7 @@ import org.gradle.launcher.daemon.configuration.ForegroundDaemonConfiguration;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.ExecutionListener;
 import org.gradle.launcher.exec.GradleLauncherActionExecuter;
+import org.gradle.launcher.exec.InProcessGradleLauncherActionExecuter;
 
 import java.io.File;
 import java.lang.management.ManagementFactory;
@@ -146,7 +147,7 @@ class BuildActionsFactory implements CommandLineAction {
 
     private Action<ExecutionListener> daemonBuildAction(StartParameter startParameter, DaemonParameters daemonParameters, GradleLauncherActionExecuter<BuildActionParameters> executer) {
         return new ActionAdapter(
-                new DaemonBuildAction(executer, startParameter, getWorkingDir(), clientMetaData(), getBuildStartTime(), daemonParameters.getEffectiveSystemProperties(), System.getenv()));
+                new RunBuildAction(executer, startParameter, getWorkingDir(), clientMetaData(), getBuildStartTime(), daemonParameters.getEffectiveSystemProperties(), System.getenv()));
     }
 
     private long getBuildStartTime() {
