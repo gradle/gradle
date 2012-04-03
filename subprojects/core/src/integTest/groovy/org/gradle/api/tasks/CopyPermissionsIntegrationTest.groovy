@@ -18,19 +18,22 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
+import org.gradle.util.TemporaryFolder
+import org.gradle.util.TestFile
 import org.gradle.util.TestPrecondition
+import org.junit.Rule
 
 @Requires(TestPrecondition.FILE_PERMISSIONS)
 class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
 
+    @Rule TemporaryFolder temporaryFolder
 
-    def "file permissions of a file are preserved in copy action"() {
+    def "file permissions are preserved in copy action"() {
         given:
         def testSourceFile = file("reference.txt") << 'test file"'
         testSourceFile.permissions = mode
         and:
         buildFile << """
-        import static java.lang.Integer.toOctalString
         task copy(type: Copy) {
             from "reference.txt"
             into ("build/tmp")
@@ -45,36 +48,52 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
         mode << ['rwxr--r-x']
     }
 
+    def "directory permissions are preserved in copy action"() {
+        given:
+        TestFile parent = getTestDir().createDir("testparent")
+        TestFile child = parent.createDir("testchild")
+        child.file("reference.txt") << "test file"
+
+        child.permissions = mode
+        and:
+        buildFile << """
+            task copy(type: Copy) {
+                from "testparent"
+                into ("build/tmp")
+            }
+            """
+        when:
+        run "copy"
+        then:
+        file("build/tmp/testchild").permissions == mode
+        where:
+        mode << ['rwxr-xr-x', 'rwxrwxrw-']
+    }
+
     def "fileMode can be modified in copy task"() {
         given:
 
         file("reference.txt") << 'test file"'
+        file("reference.txt").setPermissions("rwxrwxrwx")
         and:
         buildFile << """
-             import static java.lang.Integer.toOctalString
              task copy(type: Copy) {
                  from "reference.txt"
                  into ("build/tmp")
                  fileMode = $mode
              }
-
-            ${verifyPermissionsTask(mode)}
             """
-
         when:
-        run "verifyPermissions"
+        run "copy"
 
         then:
-        noExceptionThrown()
+        file("build/tmp/reference.txt").permissions == permissionString
 
         where:
-        mode << [0755, 0777]
-
+        mode | permissionString
+        0755 | 'rwxr-xr-x'
+        0776 | 'rwxrwxrw-'
     }
-
-
-
-
 
     def "fileMode can be modified in copy action"() {
         given:
@@ -82,7 +101,6 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         buildFile << """
-            import static java.lang.Integer.toOctalString
             task copy << {
                 copy {
                     from 'reference.txt'
@@ -90,27 +108,41 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
                     fileMode = $mode
                 }
             }
-
-            ${verifyPermissionsTask(mode)}
             """
 
         when:
-        run "verifyPermissions"
+        run "copy"
 
         then:
-        noExceptionThrown()
-
+        file("build/tmp/reference.txt").permissions == permissionString
         where:
-        mode << [0755, 0777]
-
+        mode | permissionString
+        0755 | 'rwxr-xr-x'
+        0777 | 'rwxrwxrwx'
     }
 
-    String verifyPermissionsTask(int mode) {
-        """task verifyPermissions(dependsOn: copy) << {
-                fileTree("build/tmp").visit{
-                    assert toOctalString($mode) == toOctalString(it.mode)
+    def "dirMode can be modified in copy task"() {
+        given:
+        TestFile parent = getTestDir().createDir("testparent")
+        TestFile child = parent.createDir("testchild")
+        child.file("reference.txt") << "test file"
+
+        child.permissions = "rwxrwxrwx"
+        and:
+        buildFile << """
+                task copy(type: Copy) {
+                    from "testparent"
+                    into ("build/tmp")
+                    dirMode = $mode
                 }
-           }
-        """
+                """
+        when:
+        run "copy"
+        then:
+        file("build/tmp/testchild").permissions == permissionString
+        where:
+        mode | permissionString
+        0755 | 'rwxr-xr-x'
+        0776 | 'rwxrwxrw-'
     }
 }
