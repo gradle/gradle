@@ -18,6 +18,7 @@ package org.gradle.internal.nativeplatform.filesystem;
 
 import com.sun.jna.LastErrorException;
 import com.sun.jna.Native;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.nativeplatform.jna.LibC;
 import org.gradle.internal.os.OperatingSystem;
@@ -33,13 +34,13 @@ public class FilePermissionHandlerFactory {
 
     public static FilePermissionHandler createDefaultFilePermissionHandler() {
         if (Jvm.current().isJava7() && !OperatingSystem.current().isWindows()) {
+            String jdkFilePermissionclass = "org.gradle.internal.nativeplatform.filesystem.jdk7.PosixJdk7FilePermissionHandler";
             try {
-                String jdkFilePermissionclass = "org.gradle.internal.nativeplatform.filesystem.jdk7.PosixJdk7FilePermissionHandler";
-                FilePermissionHandler jdk7FilePermissionHandler =
-                        (FilePermissionHandler) FilePermissionHandler.class.getClassLoader().loadClass(jdkFilePermissionclass).newInstance();
-                return jdk7FilePermissionHandler;
+                return (FilePermissionHandler) FilePermissionHandler.class.getClassLoader().loadClass(jdkFilePermissionclass).newInstance();
+            } catch (ClassNotFoundException e) {
+                LOGGER.warn(String.format("Unable to load %s. Continuing with fallback.", jdkFilePermissionclass));
             } catch (Exception e) {
-                LOGGER.warn("Unable to load Jdk7FilePermissionHandler", e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         }
         ComposableFilePermissionHandler.Chmod chmod = createChmod();
