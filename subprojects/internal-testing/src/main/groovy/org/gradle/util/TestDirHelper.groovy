@@ -34,6 +34,10 @@ class TestDirHelper {
         file
     }
 
+    def setMode(int mode) {
+        baseDir.mode = mode
+    }
+
     def methodMissing(String name, Object args) {
         if (args.length == 1 && args[0] instanceof Closure) {
             baseDir.file(name).create(args[0])
