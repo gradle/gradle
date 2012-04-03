@@ -112,7 +112,11 @@ class TestFileHelper {
 
     void setPermissions(String permissions) {
         int m = toMode(permissions)
-        def process = ["chmod", Integer.toOctalString(m), file.absolutePath].execute()
+        setMode(m)
+    }
+
+    void setMode(int mode) {
+        def process = ["chmod", Integer.toOctalString(mode), file.absolutePath].execute()
         def error = process.errorStream.text
         def retval = process.waitFor()
         if (retval != 0) {
@@ -153,4 +157,6 @@ class TestFileHelper {
         }
         return [out: output, error: error]
     }
-}
+
+    public void setPermissions ( ) {
+    }}

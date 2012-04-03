@@ -26,12 +26,10 @@ import org.junit.Rule
 @Requires(TestPrecondition.FILE_PERMISSIONS)
 class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
 
-    @Rule TemporaryFolder temporaryFolder
-
     def "file permissions are preserved in copy action"() {
         given:
         def testSourceFile = file("reference.txt") << 'test file"'
-        testSourceFile.permissions = mode
+        testSourceFile.mode = mode
         and:
         buildFile << """
         task copy(type: Copy) {
@@ -43,9 +41,9 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
         when:
         run "copy"
         then:
-        file("build/tmp/reference.txt").permissions == mode
+        file("build/tmp/reference.txt").mode == mode
         where:
-        mode << ['rwxr--r-x']
+        mode << [0746]
     }
 
     def "directory permissions are preserved in copy action"() {
@@ -54,7 +52,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
         TestFile child = parent.createDir("testchild")
         child.file("reference.txt") << "test file"
 
-        child.permissions = mode
+        child.mode = mode
         and:
         buildFile << """
             task copy(type: Copy) {
@@ -65,16 +63,16 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
         when:
         run "copy"
         then:
-        file("build/tmp/testchild").permissions == mode
+        file("build/tmp/testchild").mode == mode
         where:
-        mode << ['rwxr-xr-x', 'rwxrwxrw-']
+        mode << [0755, 0776]
     }
 
     def "fileMode can be modified in copy task"() {
         given:
 
         file("reference.txt") << 'test file"'
-        file("reference.txt").setPermissions("rwxrwxrwx")
+        file("reference.txt").mode = 0777
         and:
         buildFile << """
              task copy(type: Copy) {
@@ -87,12 +85,10 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
         run "copy"
 
         then:
-        file("build/tmp/reference.txt").permissions == permissionString
+        file("build/tmp/reference.txt").mode == mode
 
         where:
-        mode | permissionString
-        0755 | 'rwxr-xr-x'
-        0776 | 'rwxrwxrw-'
+        mode << [0755, 0776]
     }
 
     def "fileMode can be modified in copy action"() {
@@ -114,11 +110,10 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
         run "copy"
 
         then:
-        file("build/tmp/reference.txt").permissions == permissionString
+        file("build/tmp/reference.txt").mode == mode
         where:
-        mode | permissionString
-        0755 | 'rwxr-xr-x'
-        0777 | 'rwxrwxrwx'
+        mode << [0755, 0776]
+
     }
 
     def "dirMode can be modified in copy task"() {
@@ -127,7 +122,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
         TestFile child = parent.createDir("testchild")
         child.file("reference.txt") << "test file"
 
-        child.permissions = "rwxrwxrwx"
+        child.mode = 0777
         and:
         buildFile << """
                 task copy(type: Copy) {
@@ -139,10 +134,8 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
         when:
         run "copy"
         then:
-        file("build/tmp/testchild").permissions == permissionString
+        file("build/tmp/testchild").mode == mode
         where:
-        mode | permissionString
-        0755 | 'rwxr-xr-x'
-        0776 | 'rwxrwxrw-'
+        mode << [0755, 0776]
     }
 }

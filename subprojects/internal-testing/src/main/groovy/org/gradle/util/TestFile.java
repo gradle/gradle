@@ -351,6 +351,12 @@ public class TestFile extends File implements TestFileContext {
         return this;
     }
 
+    public TestFile setMode(int mode) {
+        assertExists();
+        new TestFileHelper(this).setMode(mode);
+        return this;
+    }
+
     public int getMode() {
         assertExists();
         return new TestFileHelper(this).getMode();
