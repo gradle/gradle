@@ -41,8 +41,7 @@ public class DaemonGreeter {
                     + " Most likely the daemon process cannot be started.", e);
         }
 
-        String lastMessage = lines.get(lines.size() - 1);
-        if (!lastMessage.equals(DaemonMessages.PROCESS_STARTED)) {
+        if (lines.isEmpty() || !lines.get(lines.size() - 1).equals(DaemonMessages.PROCESS_STARTED)) {
             // consider waiting a bit for the exit value
             // if exit value not provided warn that the daemon didn't exit
             int exitValue;
