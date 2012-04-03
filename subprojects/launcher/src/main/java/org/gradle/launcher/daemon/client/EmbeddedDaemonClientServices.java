@@ -98,6 +98,6 @@ public class EmbeddedDaemonClientServices extends DaemonClientServicesSupport {
     }
 
     protected DaemonStarter createDaemonStarter() {
-        return new EmbeddedDaemonStarter((EmbeddedDaemonRegistry)get(DaemonRegistry.class), getFactory(Daemon.class));
+        return new EmbeddedDaemonStarter(getFactory(Daemon.class));
     }
 }
