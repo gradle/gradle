@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,14 @@
  */
 
 
-package org.gradle.integtests
+package org.gradle.api.tasks
 
-import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.TestResources
 import org.gradle.util.TestFile
-import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import org.junit.Test
 import static org.hamcrest.Matchers.equalTo
-import static org.junit.Assert.assertThat
 
 public class ArchiveIntegrationTest extends AbstractIntegrationTest {
     @Test public void canCopyFromAZip() {
@@ -149,7 +147,7 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
         file('dest').assertHasDescendants('someDir/1.txt')
     }
 
-     @Test public void "knows compression of the tar"() {
+    @Test public void "knows compression of the tar"() {
         TestFile tar = file()
         tar.tbzTo(file('test.tbz2'))
 
@@ -223,38 +221,6 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
         testFile('build/test.zip').assertDoesNotExist()
     }
 
-    @Test public void canCreateAnEmptyJar() {
-        testFile('build.gradle') << '''
-            task jar(type: Jar) {
-                from 'test'
-                destinationDir = buildDir
-                archiveName = 'test.jar'
-}
-'''
-
-        inTestDirectory().withTasks('jar').run()
-
-        TestFile expandDir = testFile('expanded')
-        testFile('build/test.jar').unzipTo(expandDir)
-        expandDir.assertHasDescendants('META-INF/MANIFEST.MF')
-
-        expandDir.file('META-INF/MANIFEST.MF').assertContents(equalTo('Manifest-Version: 1.0\r\n\r\n'))
-    }
-
-    @Test public void cannotCreateAnEmptyTar() {
-        testFile('build.gradle') << '''
-            task tar(type: Tar) {
-                from 'test'
-                destinationDir = buildDir
-                archiveName = 'test.tar'
-}
-'''
-
-        inTestDirectory().withTasks('tar').run()
-
-        testFile('build/test.tar').assertDoesNotExist()
-    }
-
     @Test public void canCreateAZipArchive() {
         createDir('test') {
             dir1 {
@@ -278,8 +244,6 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
                 into('scripts') {
                     from 'test'
                     include '**/*.sh'
-                    dirMode = 0750
-                    fileMode = 0754
                 }
                 destinationDir = buildDir
                 archiveName = 'test.zip'
@@ -297,11 +261,6 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
                 'scripts/dir2/script.sh')
 
         expandDir.file('prefix/dir1/renamed_file1.txt').assertContents(equalTo('[abc]'))
-
-        if (TestPrecondition.FILE_PERMISSIONS.fulfilled) {
-            expandDir.file('scripts/dir2').assertPermissions(equalTo("rwxr-x---"))
-            expandDir.file('scripts/dir2/script.sh').assertPermissions(equalTo("rwxr-xr--"))
-        }
     }
 
     @Test public void canCreateATarArchive() {
@@ -325,8 +284,6 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
                 from('test') {
                     include '**/*.sh'
                     into 'scripts'
-                    fileMode = 0754
-                    dirMode = 0750
                 }
                 destinationDir = buildDir
                 archiveName = 'test.tar'
@@ -340,11 +297,6 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
         expandDir.assertHasDescendants('dir1/file1.txt', 'file1.txt', 'dir2/file2.txt', 'scripts/dir2/script.sh')
 
         expandDir.file('dir1/file1.txt').assertContents(equalTo('[abc]'))
-
-        if (TestPrecondition.FILE_PERMISSIONS.fulfilled) {
-            expandDir.file('scripts/dir2').assertPermissions(equalTo("rwxr-x---"))
-            expandDir.file('scripts/dir2/script.sh').assertPermissions(equalTo("rwxr-xr--"))
-        }
     }
 
     @Test public void canCreateATgzArchive() {
@@ -403,213 +355,6 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
         TestFile expandDir = testFile('expanded')
         testFile('build/test.tbz2').untarTo(expandDir)
         expandDir.assertHasDescendants('dir1/file1.txt', 'file1.txt', 'dir2/file2.txt')
-    }
-
-    @Test public void canCreateAJarArchiveWithDefaultManifest() {
-        createDir('test') {
-            dir1 {
-                file 'file1.txt'
-            }
-        }
-        createDir('meta-inf') {
-            file 'file1.txt'
-            dir2 {
-                file 'file2.txt'
-            }
-        }
-
-        testFile('build.gradle') << '''
-            task jar(type: Jar) {
-                from 'test'
-                metaInf {
-                    from 'meta-inf'
-                }
-                destinationDir = buildDir
-                archiveName = 'test.jar'
-            }
-'''
-
-        inTestDirectory().withTasks('jar').run()
-
-        TestFile expandDir = testFile('expanded')
-        testFile('build/test.jar').unzipTo(expandDir)
-        expandDir.assertHasDescendants('META-INF/MANIFEST.MF', 'META-INF/file1.txt', 'META-INF/dir2/file2.txt', 'dir1/file1.txt')
-
-        expandDir.file('META-INF/MANIFEST.MF').assertContents(equalTo('Manifest-Version: 1.0\r\n\r\n'))
-    }
-
-    @Test public void metaInfSpecsAreIndependentOfOtherSpec() {
-        createDir('test') {
-            dir1 {
-                file 'ignored.xml'
-                file 'file1.txt'
-            }
-        }
-        createDir('meta-inf') {
-            dir2 {
-                file 'ignored.txt'
-                file 'file2.xml'
-            }
-        }
-        createDir('meta-inf2') {
-            file 'file2.txt'
-            file 'file2.xml'
-        }
-
-        testFile('build.gradle') << '''
-            task jar(type: Jar) {
-                from 'test'
-                include '**/*.txt'
-                metaInf {
-                    from 'meta-inf'
-                    include '**/*.xml'
-                }
-                metaInf {
-                    from 'meta-inf2'
-                    into 'dir3'
-                }
-                destinationDir = buildDir
-                archiveName = 'test.jar'
-            }
-'''
-
-        inTestDirectory().withTasks('jar').run()
-
-        TestFile expandDir = testFile('expanded')
-        testFile('build/test.jar').unzipTo(expandDir)
-        expandDir.assertHasDescendants(
-                'META-INF/MANIFEST.MF',
-                'META-INF/dir2/file2.xml',
-                'META-INF/dir3/file2.txt',
-                'META-INF/dir3/file2.xml',
-                'dir1/file1.txt')
-    }
-
-    @Test public void canCreateAWarArchiveWithNoWebXml() {
-        createDir('content') {
-            content1 {
-                file 'file1.jsp'
-            }
-        }
-        createDir('web-inf') {
-            webinf1 {
-                file 'file1.txt'
-            }
-        }
-        createDir('meta-inf') {
-            metainf1 {
-                file 'file2.txt'
-            }
-        }
-        createDir('classes') {
-            org {
-                gradle {
-                    file 'resource.txt'
-                    file 'Person.class'
-                }
-            }
-        }
-        createZip("lib.jar") {
-            file "Dependency.class"
-        }
-
-        testFile('build.gradle') << '''
-            task war(type: War) {
-                from 'content'
-                metaInf {
-                    from 'meta-inf'
-                }
-                webInf {
-                    from 'web-inf'
-                }
-                classpath 'classes'
-                classpath 'lib.jar'
-                destinationDir = buildDir
-                archiveName = 'test.war'
-            }
-'''
-
-        inTestDirectory().withTasks('war').run()
-
-        TestFile expandDir = testFile('expanded')
-        testFile('build/test.war').unzipTo(expandDir)
-        expandDir.assertHasDescendants(
-                'META-INF/MANIFEST.MF',
-                'META-INF/metainf1/file2.txt',
-                'content1/file1.jsp',
-                'WEB-INF/lib/lib.jar',
-                'WEB-INF/classes/org/gradle/resource.txt',
-                'WEB-INF/classes/org/gradle/Person.class',
-                'WEB-INF/webinf1/file1.txt')
-
-        expandDir.file('META-INF/MANIFEST.MF').assertContents(equalTo('Manifest-Version: 1.0\r\n\r\n'))
-    }
-
-    @Test public void canCreateAWarArchiveWithWebXml() {
-        testFile('some.xml') << '<web/>'
-        createDir('web-inf') {
-            webinf1 {
-                file 'file1.txt'
-            }
-        }
-
-        testFile('build.gradle') << '''
-            task war(type: War) {
-                webInf {
-                    from 'web-inf'
-                    exclude '**/*.xml'
-                }
-                webXml = file('some.xml')
-                destinationDir = buildDir
-                archiveName = 'test.war'
-            }
-'''
-
-        inTestDirectory().withTasks('war').run()
-
-        TestFile expandDir = testFile('expanded')
-        testFile('build/test.war').unzipTo(expandDir)
-        expandDir.assertHasDescendants(
-                'META-INF/MANIFEST.MF',
-                'WEB-INF/web.xml',
-                'WEB-INF/webinf1/file1.txt')
-    }
-
-    @Test public void canAddFilesToWebInfDir() {
-        createDir('web-inf') {
-            webinf1 {
-                file 'file1.txt'
-                file 'ignore.xml'
-            }
-        }
-        createDir('web-inf2') {
-            file 'file2.txt'
-        }
-
-        testFile('build.gradle') << '''
-            task war(type: War) {
-                webInf {
-                    from 'web-inf'
-                    exclude '**/*.xml'
-                }
-                webInf {
-                    from 'web-inf2'
-                    into 'dir2'
-                    include '**/file2*'
-                }
-                destinationDir = buildDir
-                archiveName = 'test.war'
-            }
-'''
-
-        inTestDirectory().withTasks('war').run()
-
-        TestFile expandDir = testFile('expanded')
-        testFile('build/test.war').unzipTo(expandDir)
-        expandDir.assertHasDescendants(
-                'META-INF/MANIFEST.MF',
-                'WEB-INF/webinf1/file1.txt',
-                'WEB-INF/dir2/file2.txt')
     }
 
     @Test public void canCreateArchivesAndExplodedImageFromSameSpec() {
@@ -735,47 +480,6 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
         TestFile expandDir = testFile('expanded')
         testFile('build/test.zip').unzipTo(expandDir)
         expandDir.assertHasDescendants('shared/zip.txt', 'zipdir1/file1.txt', 'shared/tar.txt', 'tardir1/file1.txt', 'shared/dir.txt', 'dir1/file1.txt')
-    }
-
-    @Test public void usesManifestFromJarTaskWhenMergingJars() {
-        createDir('src1') {
-            dir1 { file 'file1.txt' }
-        }
-        createDir('src2') {
-            dir2 { file 'file2.txt' }
-        }
-        testFile('build.gradle') << '''
-        task jar1(type: Jar) {
-            from 'src1'
-            destinationDir = buildDir
-            archiveName = 'test1.zip'
-            manifest { attributes(attr: 'jar1') }
-        }
-        task jar2(type: Jar) {
-            from 'src2'
-            destinationDir = buildDir
-            archiveName = 'test2.zip'
-            manifest { attributes(attr: 'jar2') }
-        }
-        task jar(type: Jar) {
-            dependsOn jar1, jar2
-            from zipTree(jar1.archivePath), zipTree(jar2.archivePath)
-            manifest { attributes(attr: 'value') }
-            destinationDir = buildDir
-            archiveName = 'test.zip'
-        }
-        '''
-
-        inTestDirectory().withTasks('jar').run()
-        TestFile jar = testFile('build/test.zip')
-
-        def manifest = jar.manifest
-        println manifest.mainAttributes
-        assertThat(manifest.mainAttributes.getValue('attr'), equalTo('value'))
-
-        TestFile expandDir = testFile('expected')
-        jar.unzipTo(expandDir)
-        expandDir.assertHasDescendants('dir1/file1.txt', 'dir2/file2.txt', 'META-INF/MANIFEST.MF')
     }
 
     private def createZip(String name, Closure cl) {
