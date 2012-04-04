@@ -73,7 +73,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
         }else{
             return DeprecationLogger.whileDisabled(new Factory<FileCollection>() {
                 public FileCollection create() {
-                    return getDefaultSource(); //To change body of implemented methods use File | Settings | File Templates.
+                    return getDefaultSource();
                 }
             });
         }
