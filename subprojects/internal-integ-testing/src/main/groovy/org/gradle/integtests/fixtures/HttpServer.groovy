@@ -385,7 +385,14 @@ class HttpServer extends ExternalResource {
     }
 
     int getPort() {
-        return server.connectors[0].localPort
+        def port = server.connectors[0].localPort
+        if (port < 0) {
+            throw new RuntimeException("""No port available for HTTP server. Still starting perhaps?
+connector: ${server.connectors[0]}
+state: ${server.connectors[0].dump()}
+""")
+        }
+        return port
     }
 
     static class TestUserRealm implements UserRealm {
