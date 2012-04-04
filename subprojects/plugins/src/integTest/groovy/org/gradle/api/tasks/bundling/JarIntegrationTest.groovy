@@ -17,7 +17,6 @@
 package org.gradle.api.tasks.bundling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.TestFile
 import static org.hamcrest.Matchers.equalTo
 
 class JarIntegrationTest extends AbstractIntegrationSpec {
@@ -172,15 +171,10 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         then:
         def jar = file('build/test.zip')
         def manifest = jar.manifest
-        manifest.mainAttributes.getValue('attr') ==  'value'
+        manifest.mainAttributes.getValue('attr') == 'value'
 
         def expandDir = file('expected')
         jar.unzipTo(expandDir)
         expandDir.assertHasDescendants('dir1/file1.txt', 'dir2/file2.txt', 'META-INF/MANIFEST.MF')
-    }
-
-    private def createDir(String name, Closure cl) {
-        TestFile root = file(name)
-        root.create(cl)
     }
 }

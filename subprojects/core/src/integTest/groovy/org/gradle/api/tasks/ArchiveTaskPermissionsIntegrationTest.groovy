@@ -118,9 +118,4 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
         "Zip"    | 0762     | 0753    | "zipTo"    | "zipTree"
         "Tar"    | 0762     | 0753    | "tarTo"    | "tarTree"
     }
-
-    private def createDir(String name, Closure cl) {
-        TestFile root = file(name)
-        root.create(cl)
-    }
 }

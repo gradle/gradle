@@ -134,4 +134,17 @@ class AbstractIntegrationSpec extends Specification {
         executer.withUserHomeDir(distribution.getUserHomeDir())
         return new GradleBackedArtifactBuilder(executer, getTestDir().file("artifacts"))
     }
+
+
+    def createZip(String name, Closure cl) {
+        TestFile zipRoot = file("${name}.root")
+        TestFile zip = file(name)
+        zipRoot.create(cl)
+        zipRoot.zipTo(zip)
+    }
+
+    def createDir(String name, Closure cl) {
+        TestFile root = file(name)
+        root.create(cl)
+    }
 }

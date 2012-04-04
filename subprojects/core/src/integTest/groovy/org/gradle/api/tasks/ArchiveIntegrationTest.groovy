@@ -17,15 +17,16 @@
 
 package org.gradle.api.tasks
 
-import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.util.TestFile
 import org.junit.Rule
-import org.junit.Test
 import static org.hamcrest.Matchers.equalTo
 
-public class ArchiveIntegrationTest extends AbstractIntegrationTest {
-    @Test public void canCopyFromAZip() {
+public class ArchiveIntegrationTest extends AbstractIntegrationSpec {
+
+    def canCopyFromAZip() {
+        given:
         createZip('test.zip') {
             subdir1 {
                 file 'file1.txt'
@@ -35,21 +36,22 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
                 file 'file2.xml'
             }
         }
-
-        testFile('build.gradle') << '''
+        and:
+        buildFile << '''
             task copy(type: Copy) {
                 from zipTree('test.zip')
                 exclude '**/*.xml'
                 into 'dest'
             }
 '''
-
-        inTestDirectory().withTasks('copy').run()
-
-        testFile('dest').assertHasDescendants('subdir1/file1.txt', 'subdir2/file2.txt')
+        when:
+        run 'copy'
+        then:
+        file('dest').assertHasDescendants('subdir1/file1.txt', 'subdir2/file2.txt')
     }
 
-    @Test public void canCopyFromATar() {
+    def canCopyFromATar() {
+        given:
         createTar('test.tar') {
             subdir1 {
                 file 'file1.txt'
@@ -59,21 +61,22 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
                 file 'file2.xml'
             }
         }
-
-        testFile('build.gradle') << '''
+        and:
+        buildFile << '''
             task copy(type: Copy) {
                 from tarTree('test.tar')
                 exclude '**/*.xml'
                 into 'dest'
             }
 '''
-
-        inTestDirectory().withTasks('copy').run()
-
-        testFile('dest').assertHasDescendants('subdir1/file1.txt', 'subdir2/file2.txt')
+        when:
+        run 'copy'
+        then:
+        file('dest').assertHasDescendants('subdir1/file1.txt', 'subdir2/file2.txt')
     }
 
-    @Test public void "handles gzip compressed tars"() {
+    def "handles gzip compressed tars"() {
+        given:
         TestFile tar = file()
         tar.create {
             someDir {
@@ -82,21 +85,22 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
             }
         }
         tar.tgzTo(file('test.tgz'))
-
-        file('build.gradle') << '''
+        and:
+        buildFile << '''
             task copy(type: Copy) {
                 from tarTree('test.tgz')
                 exclude '**/2.txt'
                 into 'dest'
             }
 '''
-
-        inTestDirectory().withTasks('copy').run()
-
+        when:
+        run 'copy'
+        then:
         file('dest').assertHasDescendants('someDir/1.txt')
     }
 
-    @Test public void "allows user to provide a custom resource for the tarTree"() {
+    def "allows user to provide a custom resource for the tarTree"() {
+        given:
         TestFile tar = file()
         tar.create {
             someDir {
@@ -104,8 +108,8 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
             }
         }
         tar.tarTo(file('test.tar'))
-
-        file('build.gradle') << '''
+        and:
+        buildFile << '''
             def res = new ReadableResource() {
                 InputStream read() { new FileInputStream(file('test.tar')) }
                 String getBaseName() { "foo" }
@@ -118,13 +122,14 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
                 into 'dest'
             }
 '''
-
-        inTestDirectory().withTasks('copy').run()
-
+        when:
+        run 'copy'
+        then:
         file('dest').assertHasDescendants('someDir/1.txt')
     }
 
-    @Test public void "handles bzip2 compressed tars"() {
+    def "handles bzip2 compressed tars"() {
+        given:
         TestFile tar = file()
         tar.create {
             someDir {
@@ -133,25 +138,26 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
             }
         }
         tar.tbzTo(file('test.tbz2'))
-
-        file('build.gradle') << '''
+        and:
+        buildFile << '''
             task copy(type: Copy) {
                 from tarTree('test.tbz2')
                 exclude '**/2.txt'
                 into 'dest'
             }
 '''
-
-        inTestDirectory().withTasks('copy').run()
-
+        when:
+        run 'copy'
+        then:
         file('dest').assertHasDescendants('someDir/1.txt')
     }
 
-    @Test public void "knows compression of the tar"() {
+    def "knows compression of the tar"() {
+        given:
         TestFile tar = file()
         tar.tbzTo(file('test.tbz2'))
-
-        file('build.gradle') << '''
+        and:
+        buildFile << '''
             task myTar(type: Tar) {
                 assert compression == Compression.NONE
 
@@ -163,10 +169,12 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
             }
 '''
 
-        inTestDirectory().withTasks('myTar').run()
+        expect:
+        run 'myTar'
     }
 
-    @Test public void "can choose compression method for tarTree"() {
+    def "can choose compression method for tarTree"() {
+        given:
         TestFile tar = file()
         tar.create {
             someDir {
@@ -177,51 +185,55 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
         //file extension is non-standard:
         tar.tbzTo(file('test.ext'))
 
-        file('build.gradle') << '''
+        and:
+        buildFile << '''
             task copy(type: Copy) {
                 from tarTree(resources.bzip2('test.ext'))
                 exclude '**/2.txt'
                 into 'dest'
             }
 '''
-
-        inTestDirectory().withTasks('copy').run()
-
+        when:
+        run 'copy'
+        then:
         file('dest').assertHasDescendants('someDir/1.txt')
     }
 
     @Rule public final TestResources resources = new TestResources()
 
-    @Test public void "tarTreeFailsGracefully"() {
-        file('build.gradle') << '''
+    def "tarTreeFailsGracefully"() {
+        given:
+        buildFile << '''
             task copy(type: Copy) {
                 //the input file comes from the resources to make sure it is truly improper 'tar', see GRADLE-1952
                 from tarTree('compressedTarWithWrongExtension.tar')
                 into 'dest'
             }
 '''
-
-        def failure = inTestDirectory().withTasks('copy').runWithFailure()
-
+        when:
+        def failure = runAndFail('copy')
+        then:
         assert failure.error.contains("Unable to expand TAR")
         assert failure.error.contains("compression based on the file extension")
     }
 
-    @Test public void cannotCreateAnEmptyZip() {
-        testFile('build.gradle') << '''
+    def cannotCreateAnEmptyZip() {
+        given:
+        buildFile << '''
             task zip(type: Zip) {
                 from 'test'
                 destinationDir = buildDir
                 archiveName = 'test.zip'
-}
-'''
-
-        inTestDirectory().withTasks('zip').run()
-
-        testFile('build/test.zip').assertDoesNotExist()
+            }
+        '''
+        when:
+        run 'zip'
+        then:
+        file('build/test.zip').assertDoesNotExist()
     }
 
-    @Test public void canCreateAZipArchive() {
+    def canCreateAZipArchive() {
+        given:
         createDir('test') {
             dir1 {
                 file('file1.txt').write("abc")
@@ -232,8 +244,8 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
                 file 'script.sh'
             }
         }
-
-        testFile('build.gradle') << '''
+        and:
+        buildFile << '''
             task zip(type: Zip) {
                 into('prefix') {
                     from 'test'
@@ -248,12 +260,12 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
                 destinationDir = buildDir
                 archiveName = 'test.zip'
             }
-'''
-
-        inTestDirectory().withTasks('zip').run()
-
-        TestFile expandDir = testFile('expanded')
-        testFile('build/test.zip').usingNativeTools().unzipTo(expandDir)
+        '''
+        when:
+        run 'zip'
+        then:
+        def expandDir = file('expanded')
+        file('build/test.zip').unzipTo(expandDir)
         expandDir.assertHasDescendants(
                 'prefix/dir1/renamed_file1.txt',
                 'prefix/renamed_file1.txt',
@@ -263,7 +275,8 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
         expandDir.file('prefix/dir1/renamed_file1.txt').assertContents(equalTo('[abc]'))
     }
 
-    @Test public void canCreateATarArchive() {
+    def canCreateATarArchive() {
+        given:
         createDir('test') {
             dir1 {
                 file('file1.txt').write 'abc'
@@ -274,8 +287,8 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
                 file 'script.sh'
             }
         }
-
-        testFile('build.gradle') << '''
+        and:
+        buildFile << '''
             task tar(type: Tar) {
                 from('test') {
                     include '**/*.txt'
@@ -289,17 +302,18 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
                 archiveName = 'test.tar'
             }
 '''
-
-        inTestDirectory().withTasks('tar').run()
-
-        TestFile expandDir = testFile('expanded')
-        testFile('build/test.tar').usingNativeTools().untarTo(expandDir)
+        when:
+        run 'tar'
+        then:
+        def expandDir = file('expanded')
+        file('build/test.tar').untarTo(expandDir)
         expandDir.assertHasDescendants('dir1/file1.txt', 'file1.txt', 'dir2/file2.txt', 'scripts/dir2/script.sh')
 
         expandDir.file('dir1/file1.txt').assertContents(equalTo('[abc]'))
     }
 
-    @Test public void canCreateATgzArchive() {
+    def canCreateATgzArchive() {
+        given:
         createDir('test') {
             dir1 {
                 file 'file1.txt'
@@ -310,8 +324,8 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
                 file 'ignored.xml'
             }
         }
-
-        testFile('build.gradle') << '''
+        and:
+        buildFile << '''
             task tar(type: Tar) {
                 compression = Compression.GZIP
                 from 'test'
@@ -320,15 +334,16 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
                 archiveName = 'test.tgz'
             }
 '''
-
-        inTestDirectory().withTasks('tar').run()
-
-        TestFile expandDir = testFile('expanded')
-        testFile('build/test.tgz').untarTo(expandDir)
+        when:
+        run 'tar'
+        then:
+        def expandDir = file('expanded')
+        file('build/test.tgz').untarTo(expandDir)
         expandDir.assertHasDescendants('dir1/file1.txt', 'file1.txt', 'dir2/file2.txt')
     }
 
-    @Test public void canCreateATbzArchive() {
+    def canCreateATbzArchive() {
+        given:
         createDir('test') {
             dir1 {
                 file 'file1.txt'
@@ -339,8 +354,8 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
                 file 'ignored.xml'
             }
         }
-
-        testFile('build.gradle') << '''
+        and:
+        buildFile << '''
             task tar(type: Tar) {
                 compression = Compression.BZIP2
                 from 'test'
@@ -349,15 +364,16 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
                 archiveName = 'test.tbz2'
             }
 '''
-
-        inTestDirectory().withTasks('tar').run()
-
-        TestFile expandDir = testFile('expanded')
-        testFile('build/test.tbz2').untarTo(expandDir)
+        when:
+        run 'tar'
+        then:
+        def expandDir = file('expanded')
+        file('build/test.tbz2').untarTo(expandDir)
         expandDir.assertHasDescendants('dir1/file1.txt', 'file1.txt', 'dir2/file2.txt')
     }
 
-    @Test public void canCreateArchivesAndExplodedImageFromSameSpec() {
+    def canCreateArchivesAndExplodedImageFromSameSpec() {
+        given:
         createDir('test') {
             dir1 {
                 file 'file1.txt'
@@ -368,8 +384,8 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
                 file 'ignored.xml'
             }
         }
-
-        testFile('build.gradle') << '''
+        and:
+        buildFile << '''
             def distImage = copySpec {
                 include '**/*.txt'
                 from('test/dir1') {
@@ -390,17 +406,19 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
                 with distImage
             }
 '''
-
-        inTestDirectory().withTasks('copy', 'zip').run()
-        testFile('build/exploded').assertHasDescendants(
+        when:
+        run 'copy', 'zip'
+        then:
+        file('build/exploded').assertHasDescendants(
                 'lib/file1.txt', 'src/dir3/file2.txt'
         )
-        TestFile expandDir = testFile('expanded')
-        testFile('build/test.zip').unzipTo(expandDir)
+        def expandDir = file('expanded')
+        file('build/test.zip').unzipTo(expandDir)
         expandDir.assertHasDescendants('prefix/lib/file1.txt', 'prefix/src/dir3/file2.txt')
     }
 
-    @Test public void canCreateExplodedImageFromArchiveTask() {
+    def canCreateExplodedImageFromArchiveTask() {
+        given:
         createDir('test') {
             dir1 {
                 file 'file1.txt'
@@ -411,8 +429,8 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
                 file 'ignored.xml'
             }
         }
-
-        testFile('build.gradle') << '''
+        and:
+        buildFile << '''
             task zip(type: Zip) {
                 destinationDir = file('build')
                 archiveName = 'test.zip'
@@ -428,18 +446,20 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
                 into 'build/copy'
                 with zip.rootSpec
             }
-'''
-
-        inTestDirectory().withTasks('explodedZip', 'copyFromRootSpec').run()
-        testFile('build/exploded').assertHasDescendants(
+        '''
+        when:
+        run 'explodedZip', 'copyFromRootSpec'
+        then:
+        file('build/exploded').assertHasDescendants(
                 'prefix/dir1/file1.txt', 'prefix/dir2/dir3/file2.txt'
         )
-        testFile('build/copy').assertHasDescendants(
+        file('build/copy').assertHasDescendants(
                 'prefix/dir1/file1.txt', 'prefix/dir2/dir3/file2.txt'
         )
     }
 
-    @Test public void canMergeArchivesIntoAnotherZip() {
+    def canMergeArchivesIntoAnotherZip() {
+        given:
         createZip('test.zip') {
             shared {
                 file 'zip.txt'
@@ -464,8 +484,8 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
                 file 'file1.txt'
             }
         }
-
-        testFile('build.gradle') << '''
+        and:
+        buildFile << '''
         task zip(type: Zip) {
             from zipTree('test.zip')
             from tarTree('test.tar')
@@ -474,30 +494,18 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
             archiveName = 'test.zip'
         }
         '''
-
-        inTestDirectory().withTasks('zip').run()
-
-        TestFile expandDir = testFile('expanded')
-        testFile('build/test.zip').unzipTo(expandDir)
+        when:
+        run 'zip'
+        then:
+        def expandDir = file('expanded')
+        file('build/test.zip').unzipTo(expandDir)
         expandDir.assertHasDescendants('shared/zip.txt', 'zipdir1/file1.txt', 'shared/tar.txt', 'tardir1/file1.txt', 'shared/dir.txt', 'dir1/file1.txt')
     }
 
-    private def createZip(String name, Closure cl) {
-        TestFile zipRoot = testFile("${name}.root")
-        TestFile zip = testFile(name)
-        zipRoot.create(cl)
-        zipRoot.zipTo(zip)
-    }
-
-    private def createTar(String name, Closure cl) {
-        TestFile tarRoot = testFile("${name}.root")
-        TestFile tar = testFile(name)
+    def createTar(String name, Closure cl) {
+        TestFile tarRoot = file("${name}.root")
+        TestFile tar = file(name)
         tarRoot.create(cl)
         tarRoot.tarTo(tar)
-    }
-
-    private def createDir(String name, Closure cl) {
-        TestFile root = testFile(name)
-        root.create(cl)
     }
 }

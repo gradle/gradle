@@ -17,7 +17,6 @@
 package org.gradle.api.tasks.bundling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.TestFile
 import static org.hamcrest.Matchers.equalTo
 
 class WarTaskIntegrationTest extends AbstractIntegrationSpec {
@@ -149,17 +148,5 @@ class WarTaskIntegrationTest extends AbstractIntegrationSpec {
                 'META-INF/MANIFEST.MF',
                 'WEB-INF/webinf1/file1.txt',
                 'WEB-INF/dir2/file2.txt')
-    }
-
-    private def createDir(String name, Closure cl) {
-        TestFile root = file(name)
-        root.create(cl)
-    }
-
-    private def createZip(String name, Closure cl) {
-        TestFile zipRoot = file("${name}.root")
-        TestFile zip = file(name)
-        zipRoot.create(cl)
-        zipRoot.zipTo(zip)
     }
 }
