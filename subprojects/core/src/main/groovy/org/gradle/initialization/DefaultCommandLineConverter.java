@@ -16,19 +16,17 @@
 package org.gradle.initialization;
 
 import org.gradle.CacheUsage;
+import org.gradle.RefreshOptions;
 import org.gradle.StartParameter;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.file.BaseDirFileResolver;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.cli.*;
-import org.gradle.internal.Factory;
 import org.gradle.internal.nativeplatform.filesystem.FileSystems;
 import org.gradle.logging.LoggingConfiguration;
 import org.gradle.logging.internal.LoggingCommandLineConverter;
-import org.gradle.util.DeprecationLogger;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -124,17 +122,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
 
         if (options.hasOption(CACHE)) {
             try {
-                final CacheUsage cacheUsage =  DeprecationLogger.whileDisabled(new Factory<CacheUsage>() {
-                    public CacheUsage create() {
-                        return CacheUsage.fromString(options.option(CACHE).getValue());  //To change body of implemented methods use File | Settings | File Templates.
-                    }
-                });
-                DeprecationLogger.whileDisabled(new Factory<Void>() {
-                    public Void create() {
-                        startParameter.setCacheUsage(cacheUsage);
-                        return null;
-                    }
-                });
+                startParameter.setCacheUsage(CacheUsage.fromString(options.option(CACHE).getValue()));
             } catch (InvalidUserDataException e) {
                 throw new CommandLineArgumentException(e.getMessage());
             }
@@ -157,7 +145,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         }
 
         if (options.hasOption(NO_OPT)) {
-            startParameter.setRerunTasks(true);
+            startParameter.setNoOpt(true);
         }
 
         if (options.hasOption(RERUN_TASKS)) {
@@ -185,15 +173,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         }
 
         if (options.hasOption(REFRESH)) {
-            //as refreshoptions is deprecated redirect refresh dependencies to --refresh-dependencies
-            final List<String> refreshOptions = options.option(REFRESH).getValues();
-            for(String refreshOption : refreshOptions){
-                if(refreshOption.equalsIgnoreCase("dependencies")){
-                    startParameter.setRefreshDependencies(true);
-                }else{
-                    throw new CommandLineArgumentException(String.format("Unknown refresh option '%s' specified.", refreshOption));
-                }
-            }
+            startParameter.setRefreshOptions(RefreshOptions.fromCommandLineOptions(options.option(REFRESH).getValues()));
         }
 
         if (options.hasOption(REFRESH_DEPENDENCIES)) {

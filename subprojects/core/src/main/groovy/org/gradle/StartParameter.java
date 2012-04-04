@@ -354,7 +354,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
 
     /**
      *  Returns the configured CacheUsage.
-     *  @deprecated Use #isRecompileScripts and/or #isRerunTasks instead.
+     *  @deprecated Use {@link #isRecompileScripts} and/or {@link #isRerunTasks} instead.
      * */
     @Deprecated
     public CacheUsage getCacheUsage() {
@@ -363,7 +363,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
 
     /**
      *  Sets the Cache usage.
-     *  @deprecated Use #setRecompileScripts and/or #setRerunTasks instead.
+     *  @deprecated Use {@link #setRecompileScripts} and/or {@link #setRerunTasks} instead.
      * */
     @Deprecated
     public void setCacheUsage(CacheUsage cacheUsage) {
@@ -381,7 +381,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     /**
      * Returns task optimization disabled flag.
      *
-     * @deprecated Use #isRerunTasks instead.
+     * @deprecated Use {@link #isRerunTasks} instead.
      * */
     @Deprecated
     public boolean isNoOpt() {
@@ -391,8 +391,8 @@ public class StartParameter extends LoggingConfiguration implements Serializable
    /**
     * Get task optimization disabled.
     *
-    * @param noOpt The boolean value for disabling task optimsation.
-    * @deprecated Use #setRefreshDependencies(boolean) instead.
+    * @param noOpt The boolean value for disabling task optimization.
+    * @deprecated Use {@link #setRefreshDependencies(boolean)} instead.
     */
     @Deprecated
     public void setNoOpt(boolean noOpt) {
@@ -527,7 +527,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
 
     /**
      * Supplies the refresh options to use for the build.
-     * @deprecated Use #setRefreshDependencies(boolean) instead.
+     * @deprecated Use {@link #setRefreshDependencies(boolean)} instead.
      */
     @Deprecated
     public void setRefreshOptions(RefreshOptions refreshOptions) {
@@ -536,12 +536,11 @@ public class StartParameter extends LoggingConfiguration implements Serializable
 
     /**
      * Returns the refresh options used for the build.
-     * @deprecated Use #isRefreshDependencies instead.
+     * @deprecated Use {@link #isRefreshDependencies} instead.
      */
     @Deprecated
     public RefreshOptions getRefreshOptions() {
-        RefreshOptions options = isRefreshDependencies() ? new RefreshOptions(Arrays.asList(RefreshOptions.Option.DEPENDENCIES)) : RefreshOptions.NONE;
-        return options;
+        return isRefreshDependencies() ? new RefreshOptions(Arrays.asList(RefreshOptions.Option.DEPENDENCIES)) : RefreshOptions.NONE;
     }
 
     /**

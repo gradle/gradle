@@ -39,7 +39,7 @@ import java.io.File;
  * directory defaults to the directory containing the settings file.</p>
  *
  * <p>When a project is included in the build, a {@link ProjectDescriptor} is created. You can use this descriptor to
- * change the default vaules for several properties of the project.</p>
+ * change the default values for several properties of the project.</p>
  *
  * <h3>Using Settings in a Settings File</h3>
  *

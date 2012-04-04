@@ -83,7 +83,7 @@ public class ShortCircuitTaskArtifactStateRepositoryTest {
 
         TaskArtifactState state = repository.getStateFor(task);
 
-        startParameter.setNoOpt(true);
+        startParameter.setRerunTasks(true);
         assertFalse(state.isUpToDate());
     }
 

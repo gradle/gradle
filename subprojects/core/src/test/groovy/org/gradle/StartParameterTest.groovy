@@ -50,7 +50,6 @@ class StartParameterTest {
         testObj.logLevel = LogLevel.WARN
         testObj.colorOutput = false
         testObj.continueOnFailure = true
-        testObj.refreshOptions = RefreshOptions.fromCommandLineOptions(['dependencies'])
         testObj.rerunTasks = true;
         testObj.refreshDependencies = true;
         testObj.recompileScripts = true;

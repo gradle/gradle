@@ -25,7 +25,7 @@ import java.util.List;
 
 /**
  * The options supplied by a user to refresh dependencies and other external resources.
- * @deprecated Use Commandline Option '--refresh-dependencies' instead.
+ * @deprecated Use {@link StartParameter#setRefreshDependencies(boolean)} instead.
  */
 @Deprecated
 public class RefreshOptions implements Serializable {
