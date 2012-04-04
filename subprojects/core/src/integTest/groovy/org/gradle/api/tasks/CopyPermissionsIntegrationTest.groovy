@@ -145,8 +145,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
     def "file permissions are not preserved on OS without permission support"() {
         given:
         def testSourceFile = file("reference.txt") << 'test file"'
-        testSourceFile.setReadable(false, false)
-        testSourceFile.setExecutable(false, false)
+        testSourceFile.setReadOnly()
         and:
         buildFile << """
         task copy(type: Copy) {
@@ -159,7 +158,6 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
         run "copy"
         then:
         def testTargetFile = file("build/tmp/reference.txt")
-        testTargetFile.canRead() == true
-        testTargetFile.canExecute() == true
+        testTargetFile.canWrite() == true
     }
 }

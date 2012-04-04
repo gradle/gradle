@@ -123,13 +123,14 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "file and directory permissions are not preserved when dealing with #taskName archives on OS with no permission support"() {
         given:
-        TestFile testDir = createDir('testdir') {
-            def testFile = file('reference.txt')
-            testFile.setExecutable(true, false)
-            testFile.setReadable(true, false)
+        TestFile testDir = createDir('root') {
+            def testDir = testdir{
+                def testFile = file('reference.txt')
+                testFile.setReadOnly()
+            }
+            testDir.setReadOnly()
         }
-        testDir.setExecutable(true, false)
-        testDir.setReadable(true, false)
+        testDir.setReadOnly()
         def archName = "test.${taskName.toLowerCase()}"
         testDir."$packMethod"(file(archName))
         and:
@@ -139,18 +140,15 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
                 into 'unpacked'
             }
             """
-
         when:
         run "unpack"
-        and:
         then:
-        def testOutputDir = file("unpacked/testdir")
-        testOutputDir.canExecute() == false
-        testOutputDir.canRead() == false
 
         def testOutputFile = file("unpacked/testdir/reference.txt")
-        testOutputFile.canExecute() == false
-        testOutputFile.canRead() == false
+        testOutputFile.canWrite()
+
+        def testOutputDir = file("unpacked/testdir")
+        testOutputDir.canWrite()
 
         where:
         taskName | packMethod | treeMethod
