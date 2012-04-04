@@ -1,3 +1,5 @@
+import com.sun.xml.internal.rngom.ast.builder.BuildException
+
 configurations {
     classycle
 }
@@ -18,12 +20,16 @@ sourceSets.all { sourceSet ->
             }
             ant.taskdef(name: "classycleDependencyCheck", classname: "classycle.ant.DependencyCheckingTask", classpath: configurations.classycle.asPath)
             reportFile.parentFile.mkdirs()
-            ant.classycleDependencyCheck(reportFile: reportFile, failOnUnwantedDependencies: true, mergeInnerClasses: true,
-                """
-                    check absenceOfPackageCycles > 1 in org.gradle.*
-                """
-            ) {
-                fileset(dir: sourceSet.output.classesDir)
+            try {
+                ant.classycleDependencyCheck(reportFile: reportFile, failOnUnwantedDependencies: true, mergeInnerClasses: true,
+                    """
+                        check absenceOfPackageCycles > 1 in org.gradle.*
+                    """
+                ) {
+                    fileset(dir: sourceSet.output.classesDir)
+                }
+            } catch(Exception e) {
+                throw new RuntimeException("Classycle check failed: $e.message. See report at $reportFile", e)
             }
         }
     }

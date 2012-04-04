@@ -17,7 +17,7 @@
 package org.gradle.launcher.cli;
 
 import org.gradle.api.Action;
-import org.gradle.launcher.exec.ExecutionListener;
+import org.gradle.launcher.bootstrap.ExecutionListener;
 
 class ActionAdapter implements Action<ExecutionListener> {
     private final Runnable action;

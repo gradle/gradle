@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.launcher.exec;
+package org.gradle.launcher.cli;
 
 import org.gradle.api.Action;
+import org.gradle.launcher.bootstrap.ExecutionListener;
+import org.gradle.launcher.exec.ReportedException;
 
 public class ExceptionReportingAction implements Action<ExecutionListener> {
     private final Action<ExecutionListener> action;

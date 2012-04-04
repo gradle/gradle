@@ -16,6 +16,8 @@
 
 package org.gradle.launcher;
 
+import org.gradle.launcher.bootstrap.ProcessBootstrap;
+
 /**
  * @author Steven Devijver, Hans Dockter
  */

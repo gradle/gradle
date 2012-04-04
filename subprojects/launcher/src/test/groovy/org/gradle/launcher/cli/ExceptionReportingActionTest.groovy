@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.launcher.exec
+package org.gradle.launcher.cli
 
 import org.gradle.api.Action
 import spock.lang.Specification
+import org.gradle.launcher.bootstrap.ExecutionListener
+import org.gradle.launcher.exec.ReportedException
 
 class ExceptionReportingActionTest extends Specification {
     final Action<ExecutionListener> target = Mock()

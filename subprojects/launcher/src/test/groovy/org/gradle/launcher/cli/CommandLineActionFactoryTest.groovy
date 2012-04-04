@@ -21,7 +21,7 @@ import org.gradle.cli.CommandLineConverter
 import org.gradle.cli.CommandLineParser
 import org.gradle.internal.Factory
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.launcher.exec.ExecutionListener
+import org.gradle.launcher.bootstrap.ExecutionListener
 import org.gradle.logging.internal.OutputEventListener
 import org.gradle.logging.internal.StreamingStyledTextOutput
 import org.gradle.util.GradleVersion

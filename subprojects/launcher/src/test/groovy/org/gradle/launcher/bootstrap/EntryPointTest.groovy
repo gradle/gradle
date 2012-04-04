@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.exec
+package org.gradle.launcher.bootstrap
 
 import spock.lang.Specification
 import org.gradle.api.Action

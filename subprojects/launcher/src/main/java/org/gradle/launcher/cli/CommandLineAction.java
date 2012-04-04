@@ -19,7 +19,7 @@ package org.gradle.launcher.cli;
 import org.gradle.api.Action;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
-import org.gradle.launcher.exec.ExecutionListener;
+import org.gradle.launcher.bootstrap.ExecutionListener;
 
 public interface CommandLineAction {
     /**

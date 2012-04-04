@@ -16,8 +16,8 @@
 package org.gradle.launcher;
 
 import org.gradle.launcher.cli.CommandLineActionFactory;
-import org.gradle.launcher.exec.EntryPoint;
-import org.gradle.launcher.exec.ExecutionListener;
+import org.gradle.launcher.bootstrap.EntryPoint;
+import org.gradle.launcher.bootstrap.ExecutionListener;
 
 import java.util.Arrays;
 

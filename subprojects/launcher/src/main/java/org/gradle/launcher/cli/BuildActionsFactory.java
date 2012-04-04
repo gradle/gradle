@@ -34,7 +34,7 @@ import org.gradle.launcher.daemon.configuration.CurrentProcess;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.configuration.ForegroundDaemonConfiguration;
 import org.gradle.launcher.exec.BuildActionParameters;
-import org.gradle.launcher.exec.ExecutionListener;
+import org.gradle.launcher.bootstrap.ExecutionListener;
 import org.gradle.launcher.exec.GradleLauncherActionExecuter;
 import org.gradle.launcher.exec.InProcessGradleLauncherActionExecuter;
 

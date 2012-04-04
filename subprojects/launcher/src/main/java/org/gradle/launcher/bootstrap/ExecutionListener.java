@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.launcher.exec;
+package org.gradle.launcher.bootstrap;
 
 /**
  * Allows an execution action to provide status information to the execution context.

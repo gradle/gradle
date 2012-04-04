@@ -13,14 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.launcher.exec;
+package org.gradle.launcher.bootstrap;
 
-public class ProcessCompleter implements ExecutionCompleter {
-    public void complete() {
-        System.exit(0);
-    }
-
-    public void completeWithFailure(Throwable t) {
-        System.exit(1);
-    }
+public interface ExecutionCompleter {
+    void complete();
+    void completeWithFailure(Throwable t);
 }

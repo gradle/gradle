@@ -20,7 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.gradleplugin.userinterface.swing.standalone.BlockingApplication;
-import org.gradle.launcher.exec.ExecutionListener;
+import org.gradle.launcher.bootstrap.ExecutionListener;
 
 class GuiActionsFactory implements CommandLineAction {
     private static final String GUI = "gui";
