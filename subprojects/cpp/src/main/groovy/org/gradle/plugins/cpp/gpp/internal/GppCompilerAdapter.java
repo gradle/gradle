@@ -15,22 +15,34 @@
  */
 package org.gradle.plugins.cpp.gpp.internal;
 
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.plugins.binaries.model.Binary;
 import org.gradle.plugins.binaries.model.internal.CompilerAdapter;
 import org.gradle.plugins.cpp.gpp.GppCompileSpec;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
 
 /**
  * Compiler adapter for g++
  */
 public class GppCompilerAdapter implements CompilerAdapter<GppCompileSpec> {
-    public static final String NAME = "gpp";
-    private final GppCompiler compiler;
 
-    public GppCompilerAdapter(ProjectInternal project) {
+    private static final Logger LOGGER = LoggerFactory.getLogger(GppCompilerAdapter.class);
+
+    public static final String NAME = "gpp";
+    private Compiler<GppCompileSpec> compiler;
+    private boolean searched;
+    private String version;
+    private final Transformer<String, File> versionDeterminer;
+
+    public GppCompilerAdapter(ProjectInternal project, Transformer<String, File> versionDeterminer) {
         compiler = new GppCompiler(project.getFileResolver());
+        this.versionDeterminer = versionDeterminer;
     }
 
     public String getName() {
@@ -43,10 +55,29 @@ public class GppCompilerAdapter implements CompilerAdapter<GppCompileSpec> {
     }
 
     public boolean isAvailable() {
-        return OperatingSystem.current().findInPath(GppCompiler.EXECUTABLE) != null;
+        String version = getVersion();
+        return version != null;
     }
 
     public Compiler<GppCompileSpec> createCompiler(Binary binary) {
         return compiler;
+    }
+
+    private String getVersion() {
+        if (!searched) {
+            searched = true;
+            version = determineVersion();
+            if (version == null) {
+                LOGGER.info("Did not find {} on system", GppCompiler.EXECUTABLE);
+            } else {
+                LOGGER.info("Found {} with version {}", GppCompiler.EXECUTABLE, version);
+            }
+        }
+        return version;
+    }
+
+    private String determineVersion() {
+        File binary = OperatingSystem.current().findInPath(GppCompiler.EXECUTABLE);
+        return binary == null ? null : versionDeterminer.transform(binary);
     }
 }

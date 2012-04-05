@@ -20,6 +20,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.plugins.binaries.BinariesPlugin
 import org.gradle.plugins.binaries.model.CompilerRegistry
 import org.gradle.plugins.cpp.gpp.internal.GppCompilerAdapter
+import org.gradle.plugins.cpp.gpp.internal.version.GppVersionDeterminer
 
 /**
  * A {@link Plugin} which makes the <a href="http://gcc.gnu.org/">GNU G++ compiler</a> available for compiling C/C++ code.
@@ -28,7 +29,7 @@ class GppCompilerPlugin implements Plugin<ProjectInternal> {
 
     void apply(ProjectInternal project) {
         project.plugins.apply(BinariesPlugin)
-        project.extensions.getByType(CompilerRegistry).add(new GppCompilerAdapter(project))
+        project.extensions.getByType(CompilerRegistry).add(new GppCompilerAdapter(project, new GppVersionDeterminer()))
     }
 
 }
