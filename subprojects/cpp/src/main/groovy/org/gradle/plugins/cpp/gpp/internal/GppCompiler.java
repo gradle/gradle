@@ -18,6 +18,7 @@ package org.gradle.plugins.cpp.gpp.internal;
 
 import org.gradle.internal.Factory;
 import org.gradle.plugins.cpp.compiler.internal.ArgWriter;
+import org.gradle.plugins.cpp.compiler.internal.CommandLinCppCompilerArgumentsApplicator;
 import org.gradle.plugins.cpp.compiler.internal.CommandLineCppCompiler;
 import org.gradle.plugins.cpp.compiler.internal.CommandLineCppCompilerArgumentsToOptionFile;
 import org.gradle.plugins.cpp.gpp.GppCompileSpec;
@@ -27,10 +28,18 @@ import java.io.File;
 
 public class GppCompiler extends CommandLineCppCompiler<GppCompileSpec> {
 
-    public GppCompiler(File executable, Factory<ExecAction> execActionFactory) {
-        super(executable, execActionFactory, new CommandLineCppCompilerArgumentsToOptionFile<GppCompileSpec>(
-                ArgWriter.unixStyleFactory(), new GppCompileSpecToArguments()
-        ));
+    public GppCompiler(File executable, Factory<ExecAction> execActionFactory, boolean useCommandFile) {
+        super(executable, execActionFactory, useCommandFile ? viaCommandFile() : withoutCommandFile());
+    }
+
+    private static CommandLinCppCompilerArgumentsApplicator<GppCompileSpec> withoutCommandFile() {
+        return new CommandLinCppCompilerArgumentsApplicator<GppCompileSpec>(new GppCompileSpecToArguments());
+    }
+
+    private static CommandLineCppCompilerArgumentsToOptionFile<GppCompileSpec> viaCommandFile() {
+        return new CommandLineCppCompilerArgumentsToOptionFile<GppCompileSpec>(
+            ArgWriter.unixStyleFactory(), new GppCompileSpecToArguments()
+        );
     }
 
 }

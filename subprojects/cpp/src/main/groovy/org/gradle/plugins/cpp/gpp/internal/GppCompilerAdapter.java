@@ -69,7 +69,21 @@ public class GppCompilerAdapter extends CommandLineCppCompilerAdapter<GppCompile
     }
 
     public Compiler<GppCompileSpec> createCompiler(Binary binary) {
-        return new GppCompiler(getExecutable(), getExecActionFactory());
+        String version = getVersion();
+        if (version == null) {
+            throw new IllegalStateException("Cannot create gpp compiler when it is not available");
+        }
+        
+        String[] components = version.split("\\.");
+
+        int majorVersion;
+        try {
+            majorVersion = Integer.valueOf(components[0]);
+        } catch (NumberFormatException e) {
+            throw new IllegalStateException(String.format("Unable to determine major g++ version from version number {}", version), e);
+        }
+
+        return new GppCompiler(getExecutable(), getExecActionFactory(), majorVersion >= 4);
     }
 
     private String getVersion() {
