@@ -52,6 +52,7 @@ public class FilePermissionHandlerFactory {
             LibC libc = (LibC) Native.loadLibrary("c", LibC.class);
             return new LibcChmod(libc);
         } catch (LinkageError e) {
+            LOGGER.debug("Unable to load LibC library. Falling back to EmptyChmod implementation.");
             return new EmptyChmod();
         }
     }

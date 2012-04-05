@@ -17,12 +17,15 @@
 package org.gradle.internal.nativeplatform.filesystem;
 
 import org.jruby.ext.posix.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.InputStream;
 import java.io.PrintStream;
 
 public class PosixUtil {
+    private static final Logger LOGGER = LoggerFactory.getLogger(PosixUtil.class);
     private static final POSIX POSIX = FallbackAwarePosixFactory.getPOSIX();
 
     public static POSIX current() {
@@ -33,8 +36,11 @@ public class PosixUtil {
         public static POSIX getPOSIX() {
             POSIX posix = POSIXFactory.getPOSIX(new POSIXHandlerImpl(), true);
             if(posix instanceof JavaPOSIX || posix instanceof WindowsPOSIX){
+                LOGGER.debug("Falling back to use FallbackPOSIX implementation.");
                 return new FallbackPOSIX();
             }
+            LOGGER.debug("Using implementation.");
+
             return posix;
         }
     }

@@ -153,11 +153,12 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
             into ("build/tmp")
         }
         """
-
         when:
+        withDebugLogging()
         run "copy"
         then:
         def testTargetFile = file("build/tmp/reference.txt")
-        testTargetFile.canWrite() == true
+        testTargetFile.exists()
+        testTargetFile.canWrite()
     }
 }
