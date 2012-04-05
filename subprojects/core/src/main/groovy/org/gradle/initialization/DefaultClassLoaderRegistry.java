@@ -16,10 +16,8 @@
 
 package org.gradle.initialization;
 
-import org.apache.tools.ant.Project;
-import org.gradle.internal.jvm.Jvm;
-import org.gradle.util.ClassPath;
 import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.util.*;
 
 import java.io.File;
@@ -32,11 +30,11 @@ public class DefaultClassLoaderRegistry implements ClassLoaderRegistry {
     private final ClassLoader pluginsClassLoader;
 
     public DefaultClassLoaderRegistry(ClassPathRegistry classPathRegistry, ClassLoaderFactory classLoaderFactory) {
-        // Add in tools.jar to the Ant classloader
-        ClassLoader antClassLoader = Project.class.getClassLoader();
+        // Add in tools.jar to the systemClassloader parent
         File toolsJar = Jvm.current().getToolsJar();
         if (toolsJar != null) {
-            ClasspathUtil.addUrl((URLClassLoader) antClassLoader, GFileUtils.toURLs(Collections.singleton(toolsJar)));
+            final ClassLoader systemClassLoaderParent = ClassLoader.getSystemClassLoader().getParent();
+            ClasspathUtil.addUrl((URLClassLoader) systemClassLoaderParent, GFileUtils.toURLs(Collections.singleton(toolsJar)));
         }
 
         ClassLoader runtimeClassLoader = getClass().getClassLoader();
