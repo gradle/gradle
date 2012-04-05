@@ -25,7 +25,7 @@ import org.gradle.plugins.cpp.gpp.GppCompileSpec;
 import java.io.File;
 import java.io.PrintWriter;
 
-class VisualCppCompiler extends OptionFileCommandLineCppCompiler {
+class VisualCppCompiler extends OptionFileCommandLineCppCompiler<GppCompileSpec> {
     static final String EXECUTABLE = "cl.exe";
 
     VisualCppCompiler(FileResolver fileResolver) {

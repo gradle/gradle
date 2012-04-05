@@ -18,7 +18,7 @@ package org.gradle.plugins.cpp.compiler.internal;
 
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.plugins.cpp.gpp.GppCompileSpec;
+import org.gradle.plugins.cpp.internal.CppCompileSpec;
 import org.gradle.process.internal.ExecAction;
 
 import java.io.File;
@@ -28,13 +28,13 @@ import java.io.PrintWriter;
 /**
  * A C++ compiler that uses an option file to pass command-line options to the compiler.
  */
-public abstract class OptionFileCommandLineCppCompiler extends CommandLineCppCompiler {
+public abstract class OptionFileCommandLineCppCompiler<T extends CppCompileSpec> extends CommandLineCppCompiler<T> {
     protected OptionFileCommandLineCppCompiler(FileResolver fileResolver) {
         super(fileResolver);
     }
 
     @Override
-    protected void configure(ExecAction compiler, GppCompileSpec spec) {
+    protected void configure(ExecAction compiler, T spec) {
         File optionsFile = new File(spec.getWorkDir(), "compiler-options.txt");
         try {
             PrintWriter writer = new PrintWriter(optionsFile);
@@ -50,5 +50,6 @@ public abstract class OptionFileCommandLineCppCompiler extends CommandLineCppCom
         compiler.args("@" + optionsFile.getAbsolutePath());
     }
 
-    protected abstract void writeOptions(GppCompileSpec spec, PrintWriter writer);
+
+    protected abstract void writeOptions(T spec, PrintWriter writer);
 }

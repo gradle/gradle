@@ -18,24 +18,23 @@ package org.gradle.plugins.cpp.compiler.internal;
 
 import groovy.lang.Closure;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.internal.tasks.compile.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.plugins.cpp.gpp.GppCompileSpec;
+import org.gradle.plugins.cpp.internal.CppCompileSpec;
 import org.gradle.process.internal.DefaultExecAction;
 import org.gradle.process.internal.ExecAction;
 
 import java.io.File;
 
-public abstract class CommandLineCppCompiler implements Compiler<GppCompileSpec> {
+public abstract class CommandLineCppCompiler<T extends CppCompileSpec> implements CppCompiler<T> {
     private final FileResolver fileResolver;
 
     public CommandLineCppCompiler(FileResolver fileResolver) {
         this.fileResolver = fileResolver;
     }
 
-    public WorkResult execute(GppCompileSpec spec) {
+    public WorkResult execute(T spec) {
         File workDir = spec.getWorkDir();
 
         ensureDirsExist(workDir, spec.getOutputFile().getParentFile());
@@ -54,7 +53,7 @@ public abstract class CommandLineCppCompiler implements Compiler<GppCompileSpec>
         return new SimpleWorkResult(true);
     }
 
-    protected abstract void configure(ExecAction compiler, GppCompileSpec spec);
+    protected abstract void configure(ExecAction compiler, T spec);
 
     protected abstract String getExecutable();
 

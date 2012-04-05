@@ -26,7 +26,7 @@ import org.gradle.plugins.cpp.gpp.GppCompileSpec;
 import java.io.File;
 import java.io.PrintWriter;
 
-public class GppCompiler extends OptionFileCommandLineCppCompiler {
+public class GppCompiler extends OptionFileCommandLineCppCompiler<GppCompileSpec> {
     static final String EXECUTABLE = "g++";
 
     public GppCompiler(FileResolver fileResolver) {
