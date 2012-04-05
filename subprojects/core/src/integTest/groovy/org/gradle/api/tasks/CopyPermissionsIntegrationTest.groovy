@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestFile
 import org.gradle.util.TestPrecondition
+import static org.junit.Assert.assertTrue
 
 class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
 
@@ -141,11 +142,11 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
         mode << [0755, 0776]
     }
 
-    @Requires(TestPrecondition.NO_FILE_PERMISSIONS)
+    @Requires(TestPrecondition.WINDOWS)
     def "file permissions are not preserved on OS without permission support"() {
         given:
         def testSourceFile = file("reference.txt") << 'test file"'
-        testSourceFile.setReadOnly()
+        assertTrue testSourceFile.setReadOnly()
         and:
         buildFile << """
         task copy(type: Copy) {

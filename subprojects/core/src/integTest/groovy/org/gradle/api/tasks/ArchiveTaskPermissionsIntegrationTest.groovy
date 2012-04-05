@@ -21,6 +21,7 @@ import org.gradle.util.Requires
 import org.gradle.util.TestFile
 import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
+import static org.junit.Assert.assertTrue
 
 class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
 
@@ -119,14 +120,14 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
         "Tar"    | 0762     | 0753    | "tarTo"    | "tarTree"
     }
 
-    @Requires(TestPrecondition.NO_FILE_PERMISSIONS)
+    @Requires(TestPrecondition.WINDOWS)
     @Unroll
     def "file and directory permissions are not preserved when dealing with #taskName archives on OS with no permission support"() {
         given:
         TestFile testDir = createDir('root') {
             def testDir = testdir{
                 def testFile = file('reference.txt')
-                testFile.setReadOnly()
+                assertTrue testFile.setReadOnly()
             }
             testDir.setReadOnly()
         }
