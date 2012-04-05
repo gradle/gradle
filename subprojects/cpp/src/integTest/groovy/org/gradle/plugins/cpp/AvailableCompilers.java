@@ -72,7 +72,7 @@ public class AvailableCompilers {
     }
 
     static private CompilerCandidate findGpp(String versionPrefix) {
-        String name = String.format("g++ [%s]", versionPrefix);
+        String name = String.format("g++ (%s)", versionPrefix);
         GppVersionDeterminer versionDeterminer = new GppVersionDeterminer();
         for (File candidate : OperatingSystem.current().findAllInPath("g++")) {
             if (versionDeterminer.transform(candidate).startsWith(versionPrefix)) {
