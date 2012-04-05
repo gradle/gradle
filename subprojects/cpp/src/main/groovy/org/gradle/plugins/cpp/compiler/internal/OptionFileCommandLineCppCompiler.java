@@ -17,7 +17,7 @@
 package org.gradle.plugins.cpp.compiler.internal;
 
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.Factory;
 import org.gradle.plugins.cpp.internal.CppCompileSpec;
 import org.gradle.process.internal.ExecAction;
 
@@ -29,8 +29,9 @@ import java.io.PrintWriter;
  * A C++ compiler that uses an option file to pass command-line options to the compiler.
  */
 public abstract class OptionFileCommandLineCppCompiler<T extends CppCompileSpec> extends CommandLineCppCompiler<T> {
-    protected OptionFileCommandLineCppCompiler(FileResolver fileResolver) {
-        super(fileResolver);
+
+    protected OptionFileCommandLineCppCompiler(File executable, Factory<ExecAction> execActionFactory) {
+        super(executable, execActionFactory);
     }
 
     @Override

@@ -17,21 +17,21 @@
 package org.gradle.plugins.cpp.compiler.internal;
 
 import groovy.lang.Closure;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.compile.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.Factory;
 import org.gradle.plugins.cpp.internal.CppCompileSpec;
-import org.gradle.process.internal.DefaultExecAction;
 import org.gradle.process.internal.ExecAction;
 
 import java.io.File;
 
 public abstract class CommandLineCppCompiler<T extends CppCompileSpec> implements CppCompiler<T> {
-    private final FileResolver fileResolver;
+    private final File executable;
+    private final Factory<ExecAction> execActionFactory;
 
-    public CommandLineCppCompiler(FileResolver fileResolver) {
-        this.fileResolver = fileResolver;
+    public CommandLineCppCompiler(File executable, Factory<ExecAction> execActionFactory) {
+        this.executable = executable;
+        this.execActionFactory = execActionFactory;
     }
 
     public WorkResult execute(T spec) {
@@ -39,8 +39,8 @@ public abstract class CommandLineCppCompiler<T extends CppCompileSpec> implement
 
         ensureDirsExist(workDir, spec.getOutputFile().getParentFile());
 
-        ExecAction compiler = new DefaultExecAction(fileResolver);
-        compiler.executable(OperatingSystem.current().findInPath(getExecutable()));
+        ExecAction compiler = execActionFactory.create();
+        compiler.executable(executable);
         compiler.workingDir(workDir);
 
         configure(compiler, spec);
@@ -54,8 +54,6 @@ public abstract class CommandLineCppCompiler<T extends CppCompileSpec> implement
     }
 
     protected abstract void configure(ExecAction compiler, T spec);
-
-    protected abstract String getExecutable();
 
     private void ensureDirsExist(File... dirs) {
         for (File dir : dirs) {

@@ -16,26 +16,21 @@
 
 package org.gradle.plugins.cpp.gpp.internal;
 
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.Factory;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.plugins.binaries.model.LibraryCompileSpec;
 import org.gradle.plugins.cpp.compiler.internal.ArgWriter;
 import org.gradle.plugins.cpp.compiler.internal.OptionFileCommandLineCppCompiler;
 import org.gradle.plugins.cpp.gpp.GppCompileSpec;
+import org.gradle.process.internal.ExecAction;
 
 import java.io.File;
 import java.io.PrintWriter;
 
 public class GppCompiler extends OptionFileCommandLineCppCompiler<GppCompileSpec> {
-    static final String EXECUTABLE = "g++";
 
-    public GppCompiler(FileResolver fileResolver) {
-        super(fileResolver);
-    }
-
-    @Override
-    protected String getExecutable() {
-        return EXECUTABLE;
+    public GppCompiler(File executable, Factory<ExecAction> execActionFactory) {
+        super(executable, execActionFactory);
     }
 
     @Override
