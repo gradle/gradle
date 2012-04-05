@@ -14,20 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.cpp.internal;
+package org.gradle.plugins.cpp.compiler.internal;
 
-import groovy.lang.Closure;
-import org.gradle.plugins.binaries.model.internal.BinaryCompileSpec;
-import org.gradle.plugins.cpp.compiler.capability.StandardCppCompiler;
-
-import java.io.File;
-import java.util.List;
-
-public interface CppCompileSpec extends StandardCppCompiler, BinaryCompileSpec {
-
-    File getWorkDir();
-
-    // This needs to go
-    List<Closure> getSettings();
+public interface ArgCollector {
+    
+    ArgCollector args(Object... args);
 
 }

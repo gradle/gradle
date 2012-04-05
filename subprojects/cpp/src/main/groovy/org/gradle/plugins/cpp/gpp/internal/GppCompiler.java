@@ -16,52 +16,30 @@
 
 package org.gradle.plugins.cpp.gpp.internal;
 
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.internal.os.OperatingSystem;
-import org.gradle.plugins.binaries.model.LibraryCompileSpec;
+import org.gradle.internal.Factory;
 import org.gradle.plugins.cpp.compiler.internal.ArgWriter;
-import org.gradle.plugins.cpp.compiler.internal.OptionFileCommandLineCppCompiler;
+import org.gradle.plugins.cpp.compiler.internal.CommandLinCppCompilerArgumentsApplicator;
+import org.gradle.plugins.cpp.compiler.internal.CommandLineCppCompiler;
+import org.gradle.plugins.cpp.compiler.internal.CommandLineCppCompilerArgumentsToOptionFile;
 import org.gradle.plugins.cpp.gpp.GppCompileSpec;
+import org.gradle.process.internal.ExecAction;
 
 import java.io.File;
-import java.io.PrintWriter;
 
-public class GppCompiler extends OptionFileCommandLineCppCompiler {
-    static final String EXECUTABLE = "g++";
+public class GppCompiler extends CommandLineCppCompiler<GppCompileSpec> {
 
-    public GppCompiler(FileResolver fileResolver) {
-        super(fileResolver);
+    public GppCompiler(File executable, Factory<ExecAction> execActionFactory, boolean useCommandFile) {
+        super(executable, execActionFactory, useCommandFile ? viaCommandFile() : withoutCommandFile());
     }
 
-    @Override
-    protected String getExecutable() {
-        return EXECUTABLE;
+    private static CommandLinCppCompilerArgumentsApplicator<GppCompileSpec> withoutCommandFile() {
+        return new CommandLinCppCompilerArgumentsApplicator<GppCompileSpec>(new GppCompileSpecToArguments());
     }
 
-    @Override
-    protected void writeOptions(GppCompileSpec spec, PrintWriter w) {
-        ArgWriter argWriter = ArgWriter.unixStyle(w);
-        argWriter.args("-o", spec.getOutputFile().getAbsolutePath());
-        if (spec instanceof LibraryCompileSpec) {
-            LibraryCompileSpec librarySpec = (LibraryCompileSpec) spec;
-            argWriter.args("-shared");
-            if (!OperatingSystem.current().isWindows()) {
-                argWriter.args("-fPIC");
-                if (OperatingSystem.current().isMacOsX()) {
-                    argWriter.args("-Wl,-install_name," + librarySpec.getInstallName());
-                } else {
-                    argWriter.args("-Wl,-soname," + librarySpec.getInstallName());
-                }
-            }
-        }
-        for (File file : spec.getIncludeRoots()) {
-            argWriter.args("-I", file.getAbsolutePath());
-        }
-        for (File file : spec.getSource()) {
-            argWriter.args(file.getAbsolutePath());
-        }
-        for (File file : spec.getLibs()) {
-            argWriter.args(file.getAbsolutePath());
-        }
+    private static CommandLineCppCompilerArgumentsToOptionFile<GppCompileSpec> viaCommandFile() {
+        return new CommandLineCppCompilerArgumentsToOptionFile<GppCompileSpec>(
+            ArgWriter.unixStyleFactory(), new GppCompileSpecToArguments()
+        );
     }
+
 }

@@ -16,18 +16,20 @@
 
 package org.gradle.plugins.cpp.msvcpp.internal;
 
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.Compiler;
+import org.gradle.internal.Factory;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.plugins.binaries.model.Binary;
-import org.gradle.plugins.binaries.model.internal.CompilerAdapter;
+import org.gradle.plugins.cpp.compiler.internal.CommandLineCppCompilerAdapter;
 import org.gradle.plugins.cpp.gpp.GppCompileSpec;
+import org.gradle.process.internal.ExecAction;
 
-public class VisualCppCompilerAdapter implements CompilerAdapter<GppCompileSpec> {
-    private final VisualCppCompiler compiler;
+public class VisualCppCompilerAdapter extends CommandLineCppCompilerAdapter<GppCompileSpec> {
 
-    public VisualCppCompilerAdapter(ProjectInternal project) {
-        compiler = new VisualCppCompiler(project.getFileResolver());
+    static final String EXECUTABLE = "cl.exe";
+
+    public VisualCppCompilerAdapter(OperatingSystem operatingSystem, Factory<ExecAction> execActionFactory) {
+        super(EXECUTABLE, operatingSystem, execActionFactory);
     }
 
     public String getName() {
@@ -36,15 +38,14 @@ public class VisualCppCompilerAdapter implements CompilerAdapter<GppCompileSpec>
 
     @Override
     public String toString() {
-        return String.format("Visual C++ (%s)", OperatingSystem.current().getExecutableName(VisualCppCompiler.EXECUTABLE));
+        return String.format("Visual C++ (%s)", getOperatingSystem().getExecutableName(EXECUTABLE));
     }
 
     public boolean isAvailable() {
-        OperatingSystem operatingSystem = OperatingSystem.current();
-        return operatingSystem.isWindows() && operatingSystem.findInPath(VisualCppCompiler.EXECUTABLE) != null;
+        return getOperatingSystem().isWindows() && super.isAvailable();
     }
 
     public Compiler<GppCompileSpec> createCompiler(Binary binary) {
-        return compiler;
+        return new VisualCppCompiler(getExecutable(), getExecActionFactory());
     }
 }
