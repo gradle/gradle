@@ -20,6 +20,7 @@ import com.google.common.base.Joiner;
 import org.gradle.integtests.fixtures.AbstractMultiTestRunner;
 import org.gradle.internal.nativeplatform.*;
 import org.gradle.internal.nativeplatform.services.NativeServices;
+import org.gradle.internal.os.OperatingSystem;
 
 import java.io.File;
 import java.util.List;
@@ -42,9 +43,12 @@ public class CppIntegrationTestRunner extends AbstractMultiTestRunner {
         private static final ProcessEnvironment PROCESS_ENVIRONMENT = new NativeServices().get(ProcessEnvironment.class);
         private final AvailableCompilers.CompilerCandidate compiler;
         private String originalPath;
+        private final String pathVarName;
+
 
         public CompilerExecution(AvailableCompilers.CompilerCandidate compiler) {
             this.compiler = compiler;
+            this.pathVarName = !OperatingSystem.current().isWindows() ? "Path" : "PATH";
         }
 
         @Override
@@ -62,11 +66,13 @@ public class CppIntegrationTestRunner extends AbstractMultiTestRunner {
             System.out.println(String.format("Using compiler %s", compiler.getDisplayName()));
 
             String compilerPath = Joiner.on(File.pathSeparator).join(compiler.getPathEntries());
+
+
             if (compilerPath.length() > 0) {
-                originalPath = System.getenv("Path");
+                originalPath = System.getenv(pathVarName);
                 String path = compilerPath + File.pathSeparator + originalPath;
                 System.out.println(String.format("Using path %s", path));
-                PROCESS_ENVIRONMENT.setEnvironmentVariable("Path", path);
+                PROCESS_ENVIRONMENT.setEnvironmentVariable(pathVarName, path);
             }
 
             for (Map.Entry<String, String> entry : compiler.getEnvironmentVars().entrySet()) {
@@ -78,7 +84,7 @@ public class CppIntegrationTestRunner extends AbstractMultiTestRunner {
         @Override
         protected void after() {
             if (originalPath != null) {
-                PROCESS_ENVIRONMENT.setEnvironmentVariable("Path", originalPath);
+                PROCESS_ENVIRONMENT.setEnvironmentVariable(pathVarName, originalPath);
             }
         }
     }
