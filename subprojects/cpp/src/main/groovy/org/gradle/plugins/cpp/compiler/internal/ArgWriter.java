@@ -16,10 +16,12 @@
 
 package org.gradle.plugins.cpp.compiler.internal;
 
+import org.gradle.api.Transformer;
+
 import java.io.PrintWriter;
 import java.util.regex.Pattern;
 
-public class ArgWriter {
+public class ArgWriter implements ArgCollector {
     private static final Pattern WHITESPACE = Pattern.compile("\\s");
     private final PrintWriter writer;
     private final boolean backslashEscape;
@@ -33,8 +35,24 @@ public class ArgWriter {
         return new ArgWriter(writer, true);
     }
 
+    public static Transformer<ArgWriter, PrintWriter> unixStyleFactory() {
+        return new Transformer<ArgWriter, PrintWriter>() {
+            public ArgWriter transform(PrintWriter original) {
+                return unixStyle(original);
+            }
+        };
+    }
+
     public static ArgWriter windowsStyle(PrintWriter writer) {
         return new ArgWriter(writer, false);
+    }
+
+    public static Transformer<ArgWriter, PrintWriter> windowsStyleFactory() {
+        return new Transformer<ArgWriter, PrintWriter>() {
+            public ArgWriter transform(PrintWriter original) {
+                return windowsStyle(original);
+            }
+        };
     }
 
     /**

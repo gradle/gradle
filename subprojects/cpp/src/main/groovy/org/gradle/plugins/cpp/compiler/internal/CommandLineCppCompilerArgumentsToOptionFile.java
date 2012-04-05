@@ -16,31 +16,32 @@
 
 package org.gradle.plugins.cpp.compiler.internal;
 
+import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.internal.Factory;
 import org.gradle.plugins.cpp.internal.CppCompileSpec;
-import org.gradle.process.internal.ExecAction;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Collections;
 
-/**
- * A C++ compiler that uses an option file to pass command-line options to the compiler.
- */
-public abstract class OptionFileCommandLineCppCompiler<T extends CppCompileSpec> extends CommandLineCppCompiler<T> {
+public class CommandLineCppCompilerArgumentsToOptionFile<T extends CppCompileSpec> implements Transformer<Iterable<String>, T> {
 
-    protected OptionFileCommandLineCppCompiler(File executable, Factory<ExecAction> execActionFactory) {
-        super(executable, execActionFactory);
+    private final Transformer<ArgWriter, PrintWriter> argWriterFactory;
+    private final CompileSpecToArguments<T> toArguments;
+
+    public CommandLineCppCompilerArgumentsToOptionFile(Transformer<ArgWriter, PrintWriter> argWriterFactory, CompileSpecToArguments<T> toArguments) {
+        this.argWriterFactory = argWriterFactory;
+        this.toArguments = toArguments;
     }
 
-    @Override
-    protected void configure(ExecAction compiler, T spec) {
+    public Iterable<String> transform(T spec) {
         File optionsFile = new File(spec.getWorkDir(), "compiler-options.txt");
         try {
             PrintWriter writer = new PrintWriter(optionsFile);
+            ArgWriter argWriter = argWriterFactory.transform(writer);
             try {
-                writeOptions(spec, writer);
+                toArguments.collectArguments(spec, argWriter);
             } finally {
                 writer.close();
             }
@@ -48,9 +49,6 @@ public abstract class OptionFileCommandLineCppCompiler<T extends CppCompileSpec>
             throw new UncheckedIOException(String.format("Could not write compiler options file '%s'.", optionsFile.getAbsolutePath()), e);
         }
 
-        compiler.args("@" + optionsFile.getAbsolutePath());
+        return Collections.singletonList(String.format("@%s", optionsFile.getAbsolutePath()));
     }
-
-
-    protected abstract void writeOptions(T spec, PrintWriter writer);
 }

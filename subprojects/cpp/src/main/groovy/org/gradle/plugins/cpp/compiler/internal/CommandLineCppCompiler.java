@@ -17,6 +17,7 @@
 package org.gradle.plugins.cpp.compiler.internal;
 
 import groovy.lang.Closure;
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.compile.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.Factory;
@@ -25,13 +26,15 @@ import org.gradle.process.internal.ExecAction;
 
 import java.io.File;
 
-public abstract class CommandLineCppCompiler<T extends CppCompileSpec> implements CppCompiler<T> {
+public class CommandLineCppCompiler<T extends CppCompileSpec> implements CppCompiler<T> {
     private final File executable;
     private final Factory<ExecAction> execActionFactory;
+    private final Transformer<Iterable<String>, T> toArguments;
 
-    public CommandLineCppCompiler(File executable, Factory<ExecAction> execActionFactory) {
+    public CommandLineCppCompiler(File executable, Factory<ExecAction> execActionFactory, Transformer<Iterable<String>, T> toArguments) {
         this.executable = executable;
         this.execActionFactory = execActionFactory;
+        this.toArguments = toArguments;
     }
 
     public WorkResult execute(T spec) {
@@ -43,7 +46,8 @@ public abstract class CommandLineCppCompiler<T extends CppCompileSpec> implement
         compiler.executable(executable);
         compiler.workingDir(workDir);
 
-        configure(compiler, spec);
+        compiler.args(toArguments.transform(spec));
+
         // Apply all of the settings
         for (Closure closure : spec.getSettings()) {
             closure.call(compiler);
@@ -52,8 +56,6 @@ public abstract class CommandLineCppCompiler<T extends CppCompileSpec> implement
         compiler.execute();
         return new SimpleWorkResult(true);
     }
-
-    protected abstract void configure(ExecAction compiler, T spec);
 
     private void ensureDirsExist(File... dirs) {
         for (File dir : dirs) {

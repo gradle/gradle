@@ -17,39 +17,20 @@
 package org.gradle.plugins.cpp.msvcpp.internal;
 
 import org.gradle.internal.Factory;
-import org.gradle.plugins.binaries.model.LibraryCompileSpec;
 import org.gradle.plugins.cpp.compiler.internal.ArgWriter;
-import org.gradle.plugins.cpp.compiler.internal.OptionFileCommandLineCppCompiler;
+import org.gradle.plugins.cpp.compiler.internal.CommandLineCppCompiler;
+import org.gradle.plugins.cpp.compiler.internal.CommandLineCppCompilerArgumentsToOptionFile;
 import org.gradle.plugins.cpp.gpp.GppCompileSpec;
 import org.gradle.process.internal.ExecAction;
 
 import java.io.File;
-import java.io.PrintWriter;
 
-class VisualCppCompiler extends OptionFileCommandLineCppCompiler<GppCompileSpec> {
+class VisualCppCompiler extends CommandLineCppCompiler<GppCompileSpec> {
 
     VisualCppCompiler(File executable, Factory<ExecAction> execActionFactory) {
-        super(executable, execActionFactory);
+        super(executable, execActionFactory, new CommandLineCppCompilerArgumentsToOptionFile<GppCompileSpec>(
+                ArgWriter.windowsStyleFactory(), new VisualCppCompileSpecToArguments()
+        ));
     }
 
-    @Override
-    protected void writeOptions(GppCompileSpec spec, PrintWriter writer) {
-        ArgWriter argsWriter = ArgWriter.windowsStyle(writer);
-        argsWriter.args("/nologo");
-        argsWriter.args("/EHsc");
-        argsWriter.args("/Fe" + spec.getOutputFile().getAbsolutePath());
-        if (spec instanceof LibraryCompileSpec) {
-            argsWriter.args("/LD");
-        }
-        for (File file : spec.getIncludeRoots()) {
-            argsWriter.args("/I", file.getAbsolutePath());
-        }
-        for (File file : spec.getSource()) {
-            argsWriter.args(file);
-        }
-        // Link options need to be on one line in the options file
-        for (File file : spec.getLibs()) {
-            argsWriter.args("/link", file.getAbsolutePath().replaceFirst("\\.dll$", ".lib"));
-        }
-    }
 }
