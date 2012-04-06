@@ -419,7 +419,7 @@
     <section>
         <title>Third party plugins</title>
         <para>You can find a list of external plugins on the
-            <ulink url="http://gradle.codehaus.org/Plugins">wiki</ulink>.
+            <ulink url="http://wiki.gradle.org/display/GRADLE/Plugins">wiki</ulink>.
         </para>
     </section>
 </chapter>
