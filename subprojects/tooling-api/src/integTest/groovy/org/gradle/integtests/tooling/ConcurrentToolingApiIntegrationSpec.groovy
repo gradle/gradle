@@ -58,7 +58,7 @@ class ConcurrentToolingApiIntegrationSpec extends Specification {
 
         when:
         threads.times {
-            concurrent.start { useToolingApi(dist) }
+            concurrent.start { useToolingApi(new GradleDistribution()) }
         }
 
         then:

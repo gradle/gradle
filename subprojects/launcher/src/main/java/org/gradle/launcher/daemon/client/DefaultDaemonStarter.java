@@ -16,6 +16,7 @@
 package org.gradle.launcher.daemon.client;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.internal.Operation;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -24,10 +25,12 @@ import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.logging.DaemonGreeter;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.process.internal.ProcessParentingInitializer;
+import org.gradle.util.Clock;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -85,17 +88,26 @@ public class DefaultDaemonStarter implements DaemonStarter {
         return daemonParameters.getUid();
     }
 
-    private void startProcess(List<String> args, File workingDir) {
+    private void startProcess(final List<String> args, final File workingDir) {
         LOGGER.info("Starting daemon process: workingDir = {}, daemonArgs: {}", workingDir, args);
         try {
             workingDir.mkdirs();
-            ProcessParentingInitializer.intitialize();
-            Process process = new ProcessBuilder(args).redirectErrorStream(true).directory(workingDir).start();
-            daemonGreeter.verifyGreetingReceived(process);
+            Clock clock = new Clock();
 
-            process.getOutputStream().close();
-            process.getErrorStream().close();
-            process.getInputStream().close();
+            ProcessParentingInitializer.intitialize(new Operation() {
+                public void execute() {
+                    try {
+                        Process process = new ProcessBuilder(args).redirectErrorStream(true).directory(workingDir).start();
+                        daemonGreeter.verifyGreetingReceived(process);
+                        process.getOutputStream().close();
+                        process.getErrorStream().close();
+                        process.getInputStream().close();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            });
+            LOGGER.info("Starting the daemon process took {}.", clock.getTime());
         } catch (GradleException e) {
             throw e;
         } catch (Exception e) {
