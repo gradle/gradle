@@ -20,11 +20,13 @@ package org.gradle.plugins.cpp.msvcpp
 
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.internal.Factory
 import org.gradle.plugins.binaries.BinariesPlugin
-
 import org.gradle.plugins.binaries.model.CompilerRegistry
-
 import org.gradle.plugins.cpp.msvcpp.internal.VisualCppCompilerAdapter
+import org.gradle.process.internal.ExecAction
+import org.gradle.process.internal.DefaultExecAction
+import org.gradle.internal.os.OperatingSystem
 
 /**
  * A {@link Plugin} which makes the Microsoft Visual C++ compiler available to compile C/C++ code.
@@ -32,6 +34,13 @@ import org.gradle.plugins.cpp.msvcpp.internal.VisualCppCompilerAdapter
 class MicrosoftVisualCppPlugin implements Plugin<ProjectInternal> {
     void apply(ProjectInternal project) {
         project.plugins.apply(BinariesPlugin)
-        project.extensions.getByType(CompilerRegistry).add(new VisualCppCompilerAdapter(project))
+        project.extensions.getByType(CompilerRegistry).add(new VisualCppCompilerAdapter(
+                OperatingSystem.current(),
+                new Factory<ExecAction>() {
+                    ExecAction create() {
+                        new DefaultExecAction(project.fileResolver)
+                    }
+                }
+        ))
     }
 }

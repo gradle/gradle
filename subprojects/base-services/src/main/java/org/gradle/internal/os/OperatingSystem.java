@@ -18,6 +18,7 @@ package org.gradle.internal.os;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -103,7 +104,20 @@ public abstract class OperatingSystem {
         return null;
     }
 
-    List<File> getPath() {
+    public List<File> findAllInPath(String name) {
+        List<File> all = new LinkedList<File>();
+
+        for (File dir : getPath()) {
+            File candidate = new File(dir, name);
+            if (candidate.isFile()) {
+                all.add(candidate);
+            }
+        }
+
+        return all;
+    }
+    
+    List<File> getPath() {                       
         String path = System.getenv("PATH");
         if (path == null) {
             return Collections.emptyList();

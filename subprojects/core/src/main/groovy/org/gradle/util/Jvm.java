@@ -90,4 +90,8 @@ public class Jvm implements JavaInfo {
     public boolean isIbmJvm() {
         return jvm.isIbmJvm();
     }
+    
+    public String toString(){
+        return jvm.toString();
+    }
 }
