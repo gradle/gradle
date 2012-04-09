@@ -67,7 +67,7 @@ public class DaemonGroovyCompiler implements Compiler<GroovyJavaJointCompileSpec
         // is compatible with Gradle's current Ant version.
         Collection<File> antFiles = project.getServices().get(ClassPathRegistry.class).getClassPath("ANT").getAsFiles();
         Iterable<File> groovyFiles = Iterables.concat(spec.getGroovyClasspath(), antFiles);
-        List<String> groovyPackages = Arrays.asList("groovy", "org.codehaus.groovy", "groovyjarjarantlr", "groovyjarjarasm", "groovyjarjarcommonscli", "org.apache.tools.ant");
+        List<String> groovyPackages = Arrays.asList("groovy", "org.codehaus.groovy", "groovyjarjarantlr", "groovyjarjarasm", "groovyjarjarcommonscli", "org.apache.tools.ant", "com.sun.tools.javac");
         return new DaemonForkOptions(options.getMemoryInitialSize(), options.getMemoryMaximumSize(),
                 Collections.<String>emptyList(), groovyFiles, groovyPackages);
     }
