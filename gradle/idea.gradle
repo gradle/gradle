@@ -46,18 +46,23 @@ idea {
                     }
                 }
 
-                // exclude jdk7/** from compilation if current jvm is not JDK7
-                if (!Jvm.current().isJava7()) {
-                    Collection sourceDirs = groovyProjects().collect { project -> project.sourceSets*.allSource*.srcDirs }.flatten()
-                    def findAndExcludeJdk7PackageFolder = { packageFolder ->
-                        if (packageFolder.name == 'jdk7') {
-                            exclude.appendNode('directory', [url: "file://\$PROJECT_DIR\$/${rootProject.relativePath(packageFolder)}", includeSubdirectories: true])
+                // exclude java version specific classes from compilation when not compilable with current java version
+                def excludeSource = { version, sourceFolder ->
+                    if (sourceFolder.exists()) {
+                        sourceFolder.eachDirRecurse { packageFolder ->
+                            if (packageFolder.name == version) {
+                                exclude.appendNode('directory', [url: "file://\$PROJECT_DIR\$/${rootProject.relativePath(packageFolder)}", includeSubdirectories: true])
+                            }
                         }
                     }
-                    sourceDirs.each { sourceFolder ->
-                        if (sourceFolder.exists()) {
-                            sourceFolder.eachDirRecurse(findAndExcludeJdk7PackageFolder)
-                        }
+                }
+                Collection sourceDirs = groovyProjects().collect { project -> project.sourceSets*.allSource*.srcDirs }.flatten()
+                sourceDirs.each { sourceFolder ->
+                    if (!Jvm.current().isJava7()) {
+                        excludeSource("jdk7", sourceFolder)
+                    }
+                    if (!Jvm.current().isJava6Compatible()) {
+                        excludeSource("jdk6", sourceFolder)
                     }
                 }
 
