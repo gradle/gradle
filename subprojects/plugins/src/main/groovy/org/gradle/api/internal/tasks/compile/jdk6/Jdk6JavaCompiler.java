@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.tasks.compile.jdk6;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.compile.*;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
