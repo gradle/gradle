@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.tasks.compile.jdk6;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.compile.*;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
@@ -48,6 +49,9 @@ public class Jdk6JavaCompiler implements Compiler<JavaCompileSpec>, Serializable
     private JavaCompiler.CompilationTask createCompileTask(JavaCompileSpec spec) {
         List<String> options = new JavaCompilerArgumentsBuilder(spec).build();
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+        if(compiler==null){
+            throw new RuntimeException("Cannot find System Java Compiler. Ensure that you have installed a JDK (not just a JRE) and configured your JAVA_HOME system variable to point to the according directory.");
+        }
         CompileOptions compileOptions = spec.getCompileOptions();
         StandardJavaFileManager fileManager = compiler.getStandardFileManager(null, null, compileOptions.getEncoding() != null ? Charset.forName(compileOptions.getEncoding()) : null);
         Iterable<? extends JavaFileObject> compilationUnits = fileManager.getJavaFileObjectsFromFiles(spec.getSource());
