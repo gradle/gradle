@@ -22,6 +22,9 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.compile.ForkOptions;
 import org.gradle.internal.UncheckedException;
 
+import java.io.File;
+import java.util.Collections;
+
 public class DaemonJavaCompiler implements Compiler<JavaCompileSpec> {
     private final ProjectInternal project;
     private final Compiler<JavaCompileSpec> delegate;
@@ -34,7 +37,8 @@ public class DaemonJavaCompiler implements Compiler<JavaCompileSpec> {
     public WorkResult execute(JavaCompileSpec spec) {
         ForkOptions forkOptions = spec.getCompileOptions().getForkOptions();
         DaemonForkOptions daemonForkOptions = new DaemonForkOptions(
-                forkOptions.getMemoryInitialSize(), forkOptions.getMemoryMaximumSize(), forkOptions.getJvmArgs());
+                forkOptions.getMemoryInitialSize(), forkOptions.getMemoryMaximumSize(), forkOptions.getJvmArgs(),
+                Collections.<File>emptyList(), Collections.singleton("com.sun.tools.javac"));
         CompilerDaemon daemon = CompilerDaemonManager.getInstance().getDaemon(project, daemonForkOptions);
         CompileResult result = daemon.execute(delegate, spec);
         if (result.isSuccess()) {
