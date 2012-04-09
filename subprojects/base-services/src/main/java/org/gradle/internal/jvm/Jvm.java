@@ -170,7 +170,11 @@ public class Jvm implements JavaInfo {
     }
 
     public boolean isJava6Compatible() {
-        return isJava6() || isJava7();
+        return isJava6() || isJava7Compatible();
+    }
+
+    public boolean isJava7Compatible() {
+        return isJava7();
     }
 
     /**

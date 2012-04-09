@@ -54,6 +54,7 @@ class JvmTest extends Specification {
         expect:
         jvm.java5Compatible
         !jvm.java6Compatible
+        !jvm.java7Compatible
     }
 
     def "uses system property to determine if compatible with Java 6"() {
@@ -62,6 +63,16 @@ class JvmTest extends Specification {
         expect:
         jvm.java5Compatible
         jvm.java6Compatible
+        !jvm.java7Compatible
+    }
+
+    def "uses system property to determine if compatible with Java 7"() {
+        System.properties['java.version'] = '1.7'
+
+        expect:
+        jvm.java5Compatible
+        jvm.java6Compatible
+        jvm.java7Compatible
     }
 
     def "looks for runtime Jar in Java home directory"() {
