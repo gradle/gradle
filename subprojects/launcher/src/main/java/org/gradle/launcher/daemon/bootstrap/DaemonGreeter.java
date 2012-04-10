@@ -35,23 +35,22 @@ public class DaemonGreeter {
     }
 
     public DaemonDiagnostics waitUntilDaemonReady(Process process) {
-        List<String> lines;
-        try {
-            lines = IOUtils.readLines(process.getInputStream());
-        } catch (Exception e) {
-            throw new GradleException("Unable to get a greeting message from the daemon process."
-                    + " Most likely the daemon process cannot be started.", e);
-        }
+        DaemonProcess daemonProcess = new DaemonProcess(process);
+        return parseDaemonOutput(daemonProcess);
+    }
+
+    DaemonDiagnostics parseDaemonOutput(DaemonProcess daemonProcess) {
+        List<String> lines = daemonProcess.readInputStreamLines();
 
         if (lines.isEmpty() || !lines.get(lines.size() - 1).startsWith(DaemonMessages.ABOUT_TO_CLOSE_STREAMS)) {
             // consider waiting a bit for the exit value
             // if exit value not provided warn that the daemon didn't exit
             int exitValue;
             try {
-                exitValue = process.exitValue();
+                exitValue = daemonProcess.exitValue();
             } catch (IllegalThreadStateException e) {
                 throw new GradleException(
-                    DaemonMessages.UNABLE_TO_START_DAEMON + " However, it appears the process hasn't exited yet."
+                    DaemonMessages.UNABLE_TO_START_DAEMON + " However, it appears the process hasn't exited yet as we couldn't get its exit value."
                     + "\n" + processOutput(lines));
             }
             throw new GradleException(DaemonMessages.UNABLE_TO_START_DAEMON + " The exit value was: " + exitValue + "."
@@ -59,6 +58,26 @@ public class DaemonGreeter {
         }
         String lastLine = lines.get(lines.size() - 1);
         return new DaemonStartupCommunication().readDiagnostics(lastLine);
+    }
+
+    static class DaemonProcess {
+        private Process process;
+        public DaemonProcess(Process process) {
+            this.process = process;
+        }
+
+        public List<String> readInputStreamLines() {
+            try {
+                return IOUtils.readLines(process.getInputStream());
+            } catch (Exception e) {
+                throw new GradleException("Unable to get a greeting message from the daemon process."
+                        + " Most likely the daemon process cannot be started.", e);
+            }
+        }
+
+        public int exitValue() throws IllegalThreadStateException {
+            return process.exitValue();
+        }
     }
 
     private String processOutput(List<String> lines) {
