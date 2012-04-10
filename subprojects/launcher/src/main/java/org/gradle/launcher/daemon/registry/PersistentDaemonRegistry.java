@@ -16,6 +16,8 @@
 
 package org.gradle.launcher.daemon.registry;
 
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.cache.DefaultSerializer;
 import org.gradle.cache.PersistentStateCache;
 import org.gradle.cache.internal.FileLockManager;
@@ -39,6 +41,8 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
     private final SimpleStateCache<DaemonRegistryContent> cache;
     private final Lock lock = new ReentrantLock();
     private final File registryFile;
+
+    private static final Logger LOGGER = Logging.getLogger(PersistentDaemonRegistry.class);
 
     public PersistentDaemonRegistry(File registryFile, FileLockManager fileLockManager) {
         this.registryFile = registryFile;
@@ -99,6 +103,7 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
 
     public void remove(final Address address) {
         lock.lock();
+        LOGGER.debug("Removing daemon address: {}", address);
         try {
             cache.update(new PersistentStateCache.UpdateAction<DaemonRegistryContent>() {
                 public DaemonRegistryContent update(DaemonRegistryContent oldValue) {
@@ -114,6 +119,7 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
 
     public void markBusy(final Address address) {
         lock.lock();
+        LOGGER.debug("Marking busy by address: {}", address);
         try {
             cache.update(new PersistentStateCache.UpdateAction<DaemonRegistryContent>() {
                 public DaemonRegistryContent update(DaemonRegistryContent oldValue) {
@@ -130,6 +136,7 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
 
     public void markIdle(final Address address) {
         lock.lock();
+        LOGGER.debug("Marking idle by address: {}", address);
         try {
             cache.update(new PersistentStateCache.UpdateAction<DaemonRegistryContent>() {
                 public DaemonRegistryContent update(DaemonRegistryContent oldValue) {
@@ -145,6 +152,7 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
 
     public synchronized void store(final Address address, final DaemonContext daemonContext, final String password) {
         lock.lock();
+        LOGGER.debug("Storing daemon address: {}, context: {}", address, daemonContext);
         try {
             cache.update(new PersistentStateCache.UpdateAction<DaemonRegistryContent>() {
                 public DaemonRegistryContent update(DaemonRegistryContent oldValue) {
