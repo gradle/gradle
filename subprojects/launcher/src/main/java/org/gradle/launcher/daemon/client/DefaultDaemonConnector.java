@@ -21,6 +21,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.UncheckedException;
 import org.gradle.launcher.daemon.context.DaemonContext;
+import org.gradle.launcher.daemon.diagnostics.DaemonProcessInfo;
 import org.gradle.launcher.daemon.registry.DaemonInfo;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.messaging.remote.internal.ConnectException;
@@ -81,7 +82,8 @@ public class DefaultDaemonConnector implements DaemonConnector {
             }
 
             try {
-                return connectToDaemon(daemonInfo);
+                //TODO SF some overlap between the DaemonConnection and DaemonProcessInfo
+                return connectToDaemon(daemonInfo, new DaemonProcessInfo(daemonInfo.getContext().getUid(), null));
             } catch (ConnectException e) {
                 //this means the daemon died without removing its address from the registry
                 //we can safely remove this address now
@@ -97,8 +99,8 @@ public class DefaultDaemonConnector implements DaemonConnector {
 
     public DaemonConnection createConnection() {
         LOGGER.info("Starting Gradle daemon");
-        final String uid = daemonStarter.startDaemon();
-        LOGGER.debug("Started Gradle Daemon with UID = {}", uid);
+        final DaemonProcessInfo processInfo = daemonStarter.startDaemon();
+        LOGGER.debug("Started Gradle Daemon: {}", processInfo);
         long expiry = System.currentTimeMillis() + connectTimeout;
         do {
             try {
@@ -106,34 +108,35 @@ public class DefaultDaemonConnector implements DaemonConnector {
             } catch (InterruptedException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
-            DaemonConnection daemonConnection = connectToDaemonWithId(uid);
+            DaemonConnection daemonConnection = connectToDaemonWithId(processInfo);
             if (daemonConnection != null) {
                 return daemonConnection;
             }
         } while (System.currentTimeMillis() < expiry);
 
-        throw new GradleException("Timeout waiting to connect to Gradle daemon.");
+        throw new GradleException("Timeout waiting to connect to Gradle daemon.\n" + processInfo.describe());
     }
 
-    private DaemonConnection connectToDaemonWithId(String uid) throws ConnectException {
+    private DaemonConnection connectToDaemonWithId(DaemonProcessInfo processInfo) throws ConnectException {
         // Look for 'our' daemon among the busy daemons - a daemon will start in busy state so that nobody else will grab it.
         for (DaemonInfo daemonInfo : daemonRegistry.getBusy()) {
-            if (daemonInfo.getContext().getUid().equals(uid)) {
+            if (daemonInfo.getContext().getUid().equals(processInfo.getUid())) {
                 try {
                     // TODO:DAZ We should verify the connection using the original daemon constraint
-                    return connectToDaemon(daemonInfo);
+                    return connectToDaemon(daemonInfo, processInfo);
                 } catch (ConnectException e) {
                     // this means the daemon died without removing its address from the registry
                     // since we have never successfully connected we assume the daemon is dead and remove this address now
                     daemonRegistry.remove(daemonInfo.getAddress());
-                    throw new GradleException("The forked daemon process died before we could connect");
+                    throw new GradleException("The forked daemon process died before we could connect.\n" + processInfo.describe());
+                    //TODO SF after the refactorings add some coverage for visibility of the daemon tail.
                 }
             }
         }
         return null;
     }
 
-    private DaemonConnection connectToDaemon(DaemonInfo daemonInfo) {
-        return new DaemonConnection(daemonInfo.getContext().getUid(), connector.connect(daemonInfo.getAddress()), daemonInfo.getPassword());
+    private DaemonConnection connectToDaemon(DaemonInfo daemonInfo, DaemonProcessInfo processInfo) {
+        return new DaemonConnection(daemonInfo.getContext().getUid(), connector.connect(daemonInfo.getAddress()), daemonInfo.getPassword(), processInfo);
     }
 }

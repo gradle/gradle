@@ -122,7 +122,8 @@ public class DaemonMain extends EntryPoint {
 
     protected void daemonStarted(Long pid, File daemonLog) {
         //directly printing to the stream to avoid log level filtering.
-        originalOut.println(DaemonMessages.ABOUT_TO_CLOSE_STREAMS);
+        //TODO SF improve
+        originalOut.println(DaemonMessages.ABOUT_TO_CLOSE_STREAMS + ";" + pid + ";" + daemonLog);
         originalOut.close();
         originalErr.close();
 

@@ -16,10 +16,10 @@
 
 package org.gradle.process.internal;
 
-import org.gradle.api.internal.Operation;
 import org.gradle.api.internal.concurrent.Synchronizer;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.Factory;
 import org.gradle.internal.nativeplatform.jna.WindowsHandlesManipulator;
 import org.gradle.internal.os.OperatingSystem;
 
@@ -40,8 +40,8 @@ public class ProcessParentingInitializer {
      * If the process has been already initialized then the method does nothing.
      */
     public static void intitialize() {
-        ProcessParentingInitializer.intitialize(new Operation() {
-            public void execute() {} //no op
+        ProcessParentingInitializer.intitialize(new Factory<Object>() {
+            public Object create() { return null; } //no op
         });
     }
     
@@ -57,30 +57,30 @@ public class ProcessParentingInitializer {
      * to make sure it started properly and then return or throw. For example, the operation can consume daemon outputs
      * until the daemon closes them.
      * <p>
+     * operation parameter is a Factory so that your spawning operation can return value should you need it.
+     * <p>
      * If the parent process has been already initialized then the method simply executes the operation.
      */
-    public static void intitialize(final Operation operation) {
+    public static <T> T intitialize(final Factory<T> operation) {
         if (initialized) {
-            operation.execute();
-            return;
+            return operation.create();
         }
-        synchronizer.synchronize(new Operation() {
-            public void execute() {
+        return synchronizer.synchronize(new Factory<T>() {
+            public T create() {
                 if (initialized) {
-                    operation.execute();
-                    return;
+                    return operation.create();
                 }
                 try {
                     //make sure the the children will be fully detached on windows:
                     if (OperatingSystem.current().isWindows()) {
                         new WindowsHandlesManipulator().uninheritStandardStreams();
                     }
-                    operation.execute();
+                    return operation.create();
                 } finally {
                     //even if initialization fails we don't want it to re-run
                     initialized = true;
+                    LOGGER.info("An attempt to initialize for well behaving parent process finished.");
                 }
-                LOGGER.info("An attempt to initialize for well behaving parent process finished.");
             }
         });
     }

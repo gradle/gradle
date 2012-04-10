@@ -16,6 +16,8 @@
 
 package org.gradle.launcher.daemon.diagnostics;
 
+import org.gradle.util.GFileUtils;
+
 import java.io.File;
 import java.io.Serializable;
 
@@ -40,5 +42,26 @@ public class DaemonDiagnostics implements Serializable {
 
     public File getDaemonLog() {
         return daemonLog;
+    }
+
+    @Override
+    public String toString() {
+        return "{"
+                + "pid=" + pid
+                + ", daemonLog=" + daemonLog
+                + '}';
+    }
+
+    public String tailDaemonLog() {
+        //TODO SF - make safe
+        return "----- Daemon log file tail - " + getDaemonLog().getName() + " -----\n"
+            + GFileUtils.tail(getDaemonLog(), 20)
+            + "\n----- End of daemon log -----\n";
+    }
+
+    public String describe() {
+        return "Daemon pid: " + pid + "\n"
+             + "  log file: " + daemonLog + "\n"
+             + tailDaemonLog();
     }
 }

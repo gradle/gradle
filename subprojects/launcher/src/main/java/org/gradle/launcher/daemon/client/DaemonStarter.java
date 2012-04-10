@@ -15,6 +15,8 @@
  */
 package org.gradle.launcher.daemon.client;
 
+import org.gradle.launcher.daemon.diagnostics.DaemonProcessInfo;
+
 public interface DaemonStarter {
-    String startDaemon();
+    DaemonProcessInfo startDaemon();
 }
