@@ -29,8 +29,8 @@ public class AvailableCompilers {
             compilers.add(findVisualCpp());
             compilers.add(findMinGW());
         } else {
-            compilers.add(findGpp("3"));
-            compilers.add(findGpp("4"));
+            compilers.add(findGpp("3", "/opt/gcc/3.4.6/g++"));
+            compilers.add(findGpp("4", null));
         }
         return compilers;
     }
@@ -71,12 +71,19 @@ public class AvailableCompilers {
         return new UnavailableCompiler("mingw");
     }
 
-    static private CompilerCandidate findGpp(String versionPrefix) {
+    static private CompilerCandidate findGpp(String versionPrefix, String hardcodedFallback) {
         String name = String.format("g++ (%s)", versionPrefix);
         GppVersionDeterminer versionDeterminer = new GppVersionDeterminer();
         for (File candidate : OperatingSystem.current().findAllInPath("g++")) {
             if (versionDeterminer.transform(candidate).startsWith(versionPrefix)) {
                 return new InstalledCompiler(name, candidate.getParentFile());
+            }
+        }
+
+        if (hardcodedFallback != null) {
+            File fallback = new File(hardcodedFallback);
+            if (fallback.isFile()) {
+                return new InstalledCompiler(name, fallback.getParentFile());
             }
         }
 
