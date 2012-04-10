@@ -85,7 +85,7 @@ public class ClassFileExtractionManager {
         }
     }
 
-    boolean extractClassFile(final String className) {
+    private boolean extractClassFile(final String className) {
         boolean classFileExtracted = false;
 
         final File extractedClassFile = tempFile();
@@ -122,7 +122,7 @@ public class ClassFileExtractionManager {
         return classFileExtracted;
     }
 
-    String classNamePackage(final String className) {
+    private String classNamePackage(final String className) {
         final int lastSlashIndex = className.lastIndexOf('/');
 
         if (lastSlashIndex == -1) {
@@ -132,7 +132,7 @@ public class ClassFileExtractionManager {
         }
     }
 
-    File tempFile() {
+    private File tempFile() {
         try {
             final File tempFile = File.createTempFile("jar_extract_", "_tmp", tempDir);
             tempFile.deleteOnExit();
