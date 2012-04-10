@@ -30,8 +30,9 @@ public class OnDemandFileAccess extends AbstractFileAccess {
         this.manager = manager;
     }
 
-    public <T> T readFromFile(Factory<? extends T> action) throws LockTimeoutException {
+    public <T> T readFromFile(Factory<? extends T> action) throws LockTimeoutException, FileIntegrityViolationException {
         FileLock lock = manager.lock(targetFile, FileLockManager.LockMode.Shared, displayName);
+        ensureUnlockedCleanly(lock);
         try {
             return lock.readFromFile(action);
         } finally {
@@ -39,12 +40,20 @@ public class OnDemandFileAccess extends AbstractFileAccess {
         }
     }
 
-    public void writeToFile(Runnable action) throws LockTimeoutException {
+    public void writeToFile(Runnable action) throws LockTimeoutException, FileIntegrityViolationException {
         FileLock lock = manager.lock(targetFile, FileLockManager.LockMode.Exclusive, displayName);
+        ensureUnlockedCleanly(lock);
         try {
             lock.writeToFile(action);
         } finally {
             lock.close();
+        }
+    }
+
+    // We are assuming here that this file is always written to with lock management
+    private void ensureUnlockedCleanly(FileLock lock) {
+        if (targetFile.length() > 0 && !lock.getUnlockedCleanly()) {
+            throw new FileIntegrityViolationException(String.format("The lock for file %s was not unlocked cleanly", targetFile));
         }
     }
 }

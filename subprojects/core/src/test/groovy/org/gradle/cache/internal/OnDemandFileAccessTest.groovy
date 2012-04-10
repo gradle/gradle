@@ -15,15 +15,27 @@
  */
 package org.gradle.cache.internal
 
-import org.gradle.internal.Factory
 import org.gradle.cache.internal.FileLockManager.LockMode
+import org.gradle.internal.Factory
+import org.gradle.internal.nativeplatform.ProcessEnvironment
+import org.gradle.internal.nativeplatform.services.NativeServices
+import org.gradle.util.TemporaryFolder
+import org.junit.Rule
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class OnDemandFileAccessTest extends Specification {
     final FileLockManager manager = Mock()
     final FileLock targetLock = Mock()
-    final File file = new File("some-target-file")
-    final OnDemandFileAccess lock = new OnDemandFileAccess(file, "some-lock", manager)
+
+    @Rule TemporaryFolder dir = new TemporaryFolder()
+    OnDemandFileAccess lock
+    File file
+
+    def setup() {
+        file = dir.file("some-target-file")
+        lock = new OnDemandFileAccess(file, "some-lock", manager)
+    }
 
     def "acquires shared lock to read file"() {
         def action = {} as Factory
@@ -32,6 +44,7 @@ class OnDemandFileAccessTest extends Specification {
         lock.readFromFile(action)
 
         then:
+        !file.exists()
         1 * manager.lock(file, LockMode.Shared, "some-lock") >> targetLock
         1 * targetLock.readFromFile(action)
         1 * targetLock.close()
@@ -45,9 +58,61 @@ class OnDemandFileAccessTest extends Specification {
         lock.writeToFile(action)
 
         then:
+        !file.exists()
         1 * manager.lock(file, LockMode.Exclusive, "some-lock") >> targetLock
         1 * targetLock.writeToFile(action)
         1 * targetLock.close()
         0 * targetLock._
+    }
+
+    @Unroll "throws exception on read if not clean unlock - #operation"() {
+        given:
+        file.text = "abc"
+        1 * manager.lock(file, _, _) >> targetLock
+        1 * targetLock.getUnlockedCleanly() >> false
+
+        when:
+        lock."$operation"(arg)
+
+        then:
+        thrown FileIntegrityViolationException
+
+        where:
+        operation      | arg
+        "readFromFile" | {} as Factory
+        "writeToFile"  | {} as Runnable
+    }
+
+    def "can read from file"() {
+        given:
+        def access = access(file)
+
+        expect:
+        access.readFromFile { assert !file.exists(); true }
+
+        when:
+        access.writeToFile { file << "aaa" }
+
+        then:
+        access.readFromFile { file.text } == "aaa"
+    }
+
+    def "can write to file"() {
+        given:
+        def access = access(file)
+
+        when:
+        access.writeToFile { file << "aaa" }
+
+        then:
+        access.readFromFile { file.text } == "aaa"
+    }
+
+    FileLockManager createManager() {
+        new DefaultFileLockManager(new DefaultProcessMetaDataProvider(new NativeServices().get(ProcessEnvironment)))
+    }
+
+    FileAccess access(File file, FileLockManager manager = createManager()) {
+        new OnDemandFileAccess(file, "some-lock", manager)
     }
 }

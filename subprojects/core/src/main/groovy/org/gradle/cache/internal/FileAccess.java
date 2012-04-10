@@ -31,8 +31,9 @@ public interface FileAccess {
      *
      * @throws LockTimeoutException On timeout acquiring lock, if required.
      * @throws IllegalStateException When this lock has been closed.
+     * @throws FileIntegrityViolationException If the integrity of the file cannot be guaranteed
      */
-    <T> T readFromFile(Callable<? extends T> action) throws LockTimeoutException;
+    <T> T readFromFile(Callable<? extends T> action) throws LockTimeoutException, FileIntegrityViolationException;
 
     /**
      * Runs the given action under a shared or exclusive lock on the target file.
@@ -42,8 +43,9 @@ public interface FileAccess {
      *
      * @throws LockTimeoutException On timeout acquiring lock, if required.
      * @throws IllegalStateException When this lock has been closed.
+     * @throws FileIntegrityViolationException If the integrity of the file cannot be guaranteed
      */
-    <T> T readFromFile(Factory<? extends T> action) throws LockTimeoutException;
+    <T> T readFromFile(Factory<? extends T> action) throws LockTimeoutException, FileIntegrityViolationException;
 
     /**
      * Runs the given action under an exclusive lock on the target file. If the given action fails, the lock is marked as uncleanly unlocked.
@@ -54,6 +56,7 @@ public interface FileAccess {
      *
      * @throws LockTimeoutException On timeout acquiring lock, if required.
      * @throws IllegalStateException When this lock has been closed.
+     * @throws FileIntegrityViolationException If the integrity of the file cannot be guaranteed
      */
-    void writeToFile(Runnable action) throws LockTimeoutException;
+    void writeToFile(Runnable action) throws LockTimeoutException, FileIntegrityViolationException;
 }
