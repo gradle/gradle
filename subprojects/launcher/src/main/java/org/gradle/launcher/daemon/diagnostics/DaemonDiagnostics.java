@@ -55,10 +55,18 @@ public class DaemonDiagnostics implements Serializable {
                 + '}';
     }
 
-    public String tailDaemonLog() {
-        //TODO SF - make safe
+    private String tailDaemonLog() {
+        try {
+            String tail = GFileUtils.tail(getDaemonLog(), 20);
+            return formatTail(tail);
+        } catch (GFileUtils.TailReadingException e) {
+            return "Unable to read the tail from file: " + getDaemonLog().getAbsolutePath();
+        }
+    }
+
+    private String formatTail(String tail) {
         return "----- Daemon log file tail - " + getDaemonLog().getName() + " -----\n"
-            + GFileUtils.tail(getDaemonLog(), 20)
+            + tail
             + "\n----- End of daemon log -----\n";
     }
 
