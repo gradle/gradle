@@ -38,12 +38,29 @@ task prepareVersionsInfo {
         def url = "http://services.gradle.org/versions/all"
         logger.info "Getting the released versions from: $url"
 
-        def json = new URL("http://services.gradle.org/versions/all").text
-        def destFile = new File(ext.destDir, "all-released-versions.json")
-        assert destDir.mkdirs() || destDir.exists()
-        destFile.text = json
+        def theUrl = "http://services.gradle.org/versions/all"
+        def json
+        try {
+            json = new URL(theUrl).text
+        } catch (UnknownHostException e) {
+            if (gradle.startParameter.offline) {
+                logger.warn("Unable to acquire versions info. I've tried this url: '$theUrl'.\n"
+                    + "Without the version information certain integration tests may fail or use outdated version details.\n"
+                    + "Since you are running with --offline this is just a warning.")
+            } else {
+                throw new GradleException("Unable to acquire versions info. I've tried this url: '$theUrl'.\n"
+                    + "If you don't have the network connection please run with '--offline' or exclude this task from execution via '-x'."
+                    , e)
+            }
+        }
 
-        logger.info "Saved released versions information in: $destFile"
+        if (json) {
+            def destFile = new File(ext.destDir, "all-released-versions.json")
+            assert destDir.mkdirs() || destDir.exists()
+            destFile.text = json
+
+            logger.info "Saved released versions information in: $destFile"
+        }
     }
 }
 
