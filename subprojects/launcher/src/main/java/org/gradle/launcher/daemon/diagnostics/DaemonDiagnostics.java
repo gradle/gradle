@@ -30,6 +30,7 @@ public class DaemonDiagnostics implements Serializable {
 
     private final Long pid;
     private final File daemonLog;
+    private final static int TAIL_SIZE = 20;
 
     public DaemonDiagnostics(File daemonLog, Long pid) {
         this.daemonLog = daemonLog;
@@ -57,7 +58,7 @@ public class DaemonDiagnostics implements Serializable {
 
     private String tailDaemonLog() {
         try {
-            String tail = GFileUtils.tail(getDaemonLog(), 20);
+            String tail = GFileUtils.tail(getDaemonLog(), TAIL_SIZE);
             return formatTail(tail);
         } catch (GFileUtils.TailReadingException e) {
             return "Unable to read the tail from file: " + getDaemonLog().getAbsolutePath();
@@ -65,9 +66,9 @@ public class DaemonDiagnostics implements Serializable {
     }
 
     private String formatTail(String tail) {
-        return "----- Daemon log file tail - " + getDaemonLog().getName() + " -----\n"
+        return "----- Last  " + TAIL_SIZE + " lines from daemon log file - " + getDaemonLog().getName() + " -----\n"
             + tail
-            + "\n----- End of daemon log -----\n";
+            + "----- End of the daemon log -----\n";
     }
 
     public String describe() {

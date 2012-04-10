@@ -183,17 +183,12 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
         //we can try sending something to the daemon and try out if he is really dead or use jps
         //if he's really dead we should deregister it if it is not already deregistered.
         //if the daemon is not dead we might continue receiving from him (and try to find the bug in messaging infrastructure)
-        int daemonLogLines = 20;
         LOGGER.error("The message received from the daemon indicates that the daemon has disappeared."
-                + "\nDaemon pid: " + diagnostics.getPid()
-                + "\nDaemon log: " + diagnostics.getDaemonLog()
                 + "\nBuild request sent: " + build
-                + "\nAttempting to read last " + daemonLogLines + " lines from the daemon log...");
+                + "\nAttempting to read last messages from the daemon log...");
 
         try {
-            String tail = GFileUtils.tail(diagnostics.getDaemonLog(), daemonLogLines);
-            LOGGER.error("Last " + daemonLogLines + " lines from " + diagnostics.getDaemonLog().getName() + ":"
-                    + "\n----------\n" + tail + "----------\n");
+            LOGGER.error(diagnostics.describe());
         } catch (GFileUtils.TailReadingException e) {
             LOGGER.error("Unable to read from the daemon log file because of: " + e);
             LOGGER.debug("Problem reading the daemon log file.", e);
