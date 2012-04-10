@@ -53,7 +53,12 @@ public class CppIntegrationTestRunner extends AbstractMultiTestRunner {
 
         @Override
         protected boolean isEnabled() {
-            return compiler.isAvailable();
+            return compiler.isAvailable() && canDoNecessaryEnvironmentManipulation();
+        }
+
+        private boolean canDoNecessaryEnvironmentManipulation() {
+            return (compiler.getEnvironmentVars().isEmpty() && compiler.getPathEntries().isEmpty())
+                    || PROCESS_ENVIRONMENT.maybeSetEnvironmentVariable(pathVarName, System.getenv(pathVarName));
         }
 
         @Override
