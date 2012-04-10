@@ -24,7 +24,7 @@ import org.gradle.launcher.daemon.bootstrap.DaemonGreeter;
 import org.gradle.launcher.daemon.bootstrap.GradleDaemon;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
-import org.gradle.launcher.daemon.diagnostics.DaemonProcessInfo;
+import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.process.internal.ProcessParentingInitializer;
 import org.gradle.util.Clock;
@@ -52,7 +52,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
         this.daemonGreeter = daemonGreeter;
     }
 
-    public DaemonProcessInfo startDaemon() {
+    public DaemonStartupInfo startDaemon() {
         DefaultModuleRegistry registry = new DefaultModuleRegistry();
         Set<File> bootstrapClasspath = new LinkedHashSet<File>();
         bootstrapClasspath.addAll(registry.getModule("gradle-launcher").getImplementationClasspath().getAsFiles());
@@ -87,7 +87,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
 
         DaemonDiagnostics diagnostics = startProcess(daemonArgs, daemonDir.getVersionedDir());
 
-        return new DaemonProcessInfo(daemonParameters.getUid(), diagnostics);
+        return new DaemonStartupInfo(daemonParameters.getUid(), diagnostics);
     }
 
     private DaemonDiagnostics startProcess(final List<String> args, final File workingDir) {

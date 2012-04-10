@@ -19,12 +19,12 @@ package org.gradle.launcher.daemon.diagnostics;
 /**
  * by Szczepan Faber, created at 4/6/12
  */
-public class DaemonProcessInfo {
+public class DaemonStartupInfo {
 
     private String uid;
     private DaemonDiagnostics diagnostics;
 
-    public DaemonProcessInfo(String uid, DaemonDiagnostics diagnostics) {
+    public DaemonStartupInfo(String uid, DaemonDiagnostics diagnostics) {
         this.uid = uid;
         this.diagnostics = diagnostics;
     }

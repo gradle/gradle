@@ -18,7 +18,7 @@ package org.gradle.launcher.daemon.client
 import org.gradle.api.specs.Spec
 import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.daemon.context.DefaultDaemonContext
-import org.gradle.launcher.daemon.diagnostics.DaemonProcessInfo
+import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo
 import org.gradle.launcher.daemon.registry.EmbeddedDaemonRegistry
 import org.gradle.messaging.remote.Address
 import org.gradle.messaging.remote.internal.Connection
@@ -66,7 +66,7 @@ class DefaultDaemonConnectorTest extends Specification {
         def address = createAddress(daemonNum)
         registry.store(address, context, "password")
         registry.markBusy(address)
-        return new DaemonProcessInfo(daemonNum.toString(), null);
+        return new DaemonStartupInfo(daemonNum.toString(), null);
     }
 
     def startIdleDaemon() {

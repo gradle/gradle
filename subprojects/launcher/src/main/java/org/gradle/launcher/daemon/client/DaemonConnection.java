@@ -15,7 +15,7 @@
  */
 package org.gradle.launcher.daemon.client;
 
-import org.gradle.launcher.daemon.diagnostics.DaemonProcessInfo;
+import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
 import org.gradle.messaging.remote.internal.Connection;
 
 /**
@@ -26,13 +26,13 @@ public class DaemonConnection {
     private final String uid;
     private final Connection<Object> connection;
     private final String password;
-    private DaemonProcessInfo processInfo;
+    private DaemonDiagnostics diagnostics;
 
-    public DaemonConnection(String uid, Connection<Object> connection, String password, DaemonProcessInfo info) {
+    public DaemonConnection(String uid, Connection<Object> connection, String password, DaemonDiagnostics diagnostics) {
         this.uid = uid;
         this.connection = connection;
         this.password = password;
-        this.processInfo = info;
+        this.diagnostics = diagnostics;
     }
 
     public String getUid() {
@@ -47,7 +47,10 @@ public class DaemonConnection {
         return this.password;
     }
 
-    public DaemonProcessInfo getProcessInfo() {
-        return processInfo;
+    /**
+     * @return diagnostics. Can be null - it means we don't have process diagnostics.
+     */
+    public DaemonDiagnostics getDaemonDiagnostics() {
+        return diagnostics;
     }
 }
