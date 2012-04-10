@@ -22,6 +22,7 @@ package org.gradle.launcher.daemon.logging;
 public class DaemonMessages {
     
     public final static String PROCESS_STARTED = "Daemon server started.";
+    public final static String ABOUT_TO_CLOSE_STREAMS = "Daemon started. About to close the streams. Daemon details: ";
     public final static String STARTED_RELAYING_LOGS = "The client will now receive all logging from the daemon (pid: ";
     public final static String UNABLE_TO_START_DAEMON = "Unable to start the daemon process.";
     public final static String STARTED_EXECUTING_COMMAND = "Starting executing command: ";

@@ -37,6 +37,11 @@ public class ForegroundDaemonMain extends DaemonMain {
     }
 
     @Override
+    protected void daemonStarted(Long pid, File daemonLog) {
+        //don't do anything
+    }
+
+    @Override
     protected Daemon startDaemon(DaemonServices daemonServices) {
         Daemon daemon = super.startDaemon(daemonServices);
         daemonServices.get(DaemonRegistry.class).markIdle(daemon.getAddress());

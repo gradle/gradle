@@ -18,7 +18,6 @@ package org.gradle.launcher.daemon.server;
 import org.gradle.api.Action;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.ConnectEvent;
@@ -66,8 +65,6 @@ public class DaemonTcpServerConnector implements DaemonServerConnector {
 
             // Hold the lock until we actually start accepting connections for the case when stop is called from another
             // thread while we are in the middle here.
-
-            LOGGER.lifecycle(DaemonMessages.PROCESS_STARTED);
 
             Action<ConnectEvent<Connection<Object>>> connectEvent = new Action<ConnectEvent<Connection<Object>>>() {
                 public void execute(ConnectEvent<Connection<Object>> connectionConnectEvent) {
