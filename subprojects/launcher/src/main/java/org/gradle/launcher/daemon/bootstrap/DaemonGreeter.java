@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.logging;
+package org.gradle.launcher.daemon.bootstrap;
 
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
+import org.gradle.launcher.daemon.logging.DaemonMessages;
 
-import java.io.File;
 import java.util.List;
 
 /**
@@ -58,10 +58,7 @@ public class DaemonGreeter {
                     + "\n" + processOutput(lines));
         }
         String lastLine = lines.get(lines.size() - 1);
-        String[] split = lastLine.split(";");
-        long pid = Long.valueOf(split[1]); //TODO SF some error reporting and tidy up
-        String daemonLog = split[2];
-        return new DaemonDiagnostics(new File(daemonLog), pid);
+        return new DaemonStartupCommunication().readDiagnostics(lastLine);
     }
 
     private String processOutput(List<String> lines) {

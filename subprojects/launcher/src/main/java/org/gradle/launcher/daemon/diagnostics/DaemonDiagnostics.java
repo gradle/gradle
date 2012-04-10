@@ -36,6 +36,9 @@ public class DaemonDiagnostics implements Serializable {
         this.pid = pid;
     }
 
+    /**
+     * @return pid. Can be null, it means the daemon was not able to identify its pid.
+     */
     public Long getPid() {
         return pid;
     }
