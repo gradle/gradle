@@ -15,23 +15,20 @@
  */
 package org.gradle.messaging.remote.internal;
 
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
-
 import org.gradle.internal.UncheckedException;
-import org.gradle.messaging.dispatch.Receive;
-import org.gradle.messaging.dispatch.AsyncReceive;
-import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.messaging.concurrent.AsyncStoppable;
 import org.gradle.messaging.concurrent.StoppableExecutor;
+import org.gradle.messaging.dispatch.AsyncReceive;
+import org.gradle.messaging.dispatch.Dispatch;
+import org.gradle.messaging.dispatch.Receive;
 
-import java.util.Collection;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedList;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.CountDownLatch;
 
 /**
  * Continuously consumes from on or more receivers, serialising to an in memory buffer for synchronous consumption.
@@ -40,7 +37,7 @@ import java.util.concurrent.CountDownLatch;
  * guarantee is made to deliver messages from different sources in chronological order when multiple multiple receive instances
  * are being consumed from.
  * <p>
- * The buffer is bounded, the size of which is specified at construction or defaulting to {@value DEFAULT_BUFFER_SIZE}.
+ * The buffer is bounded, the size of which is specified at construction or defaulting to {@value #DEFAULT_BUFFER_SIZE}.
  * If the buffer fills, the receive threads will block until space becomes available. If a stop is initiated while
  * a thread is waiting for free space in the buffer after having received a message, that message will be discarded.
  * <p>
@@ -54,7 +51,6 @@ public class EagerReceiveBuffer<T> implements Receive<T>, AsyncStoppable {
         Init, Started, Stopping, Stopped
     }
 
-    private static final Logger LOGGER = Logging.getLogger(EagerReceiveBuffer.class);
     private static final int DEFAULT_BUFFER_SIZE = 200;
 
     private final Lock lock = new ReentrantLock();
