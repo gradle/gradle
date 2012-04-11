@@ -27,7 +27,7 @@ import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.logging.StandardOutputRedirector;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
-import org.gradle.util.IdGenerator;
+import org.gradle.internal.id.IdGenerator;
 import org.gradle.util.ReflectionUtil;
 import org.testng.ITestListener;
 import org.testng.TestNG;

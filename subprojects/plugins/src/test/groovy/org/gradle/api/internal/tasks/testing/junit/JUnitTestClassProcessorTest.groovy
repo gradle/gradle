@@ -22,7 +22,7 @@ import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.api.internal.tasks.testing.TestStartEvent
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo
 import org.gradle.util.JUnit4GroovyMockery
-import org.gradle.util.LongIdGenerator
+import org.gradle.internal.id.LongIdGenerator
 import org.gradle.util.TemporaryFolder
 import org.jmock.integration.junit4.JMock
 import org.junit.Before

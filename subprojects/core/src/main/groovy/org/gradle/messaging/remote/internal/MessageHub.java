@@ -16,6 +16,7 @@
 package org.gradle.messaging.remote.internal;
 
 import org.gradle.internal.CompositeStoppable;
+import org.gradle.internal.id.IdGenerator;
 import org.gradle.messaging.concurrent.AsyncStoppable;
 import org.gradle.messaging.concurrent.ExecutorFactory;
 import org.gradle.messaging.concurrent.StoppableExecutor;
@@ -23,7 +24,6 @@ import org.gradle.messaging.dispatch.DiscardingFailureHandler;
 import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.messaging.dispatch.DispatchFailureHandler;
 import org.gradle.messaging.remote.internal.protocol.EndOfStreamEvent;
-import org.gradle.util.IdGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

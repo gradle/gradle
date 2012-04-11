@@ -17,6 +17,7 @@
 package org.gradle.process.internal;
 
 import org.gradle.api.Action;
+import org.gradle.internal.id.IdGenerator;
 import org.gradle.util.ClassPath;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.file.FileResolver;
@@ -27,7 +28,6 @@ import org.gradle.messaging.remote.MessagingServer;
 import org.gradle.messaging.remote.internal.inet.SocketInetAddress;
 import org.gradle.process.internal.child.IsolatedApplicationClassLoaderWorker;
 import org.gradle.process.internal.launcher.GradleWorkerMain;
-import org.gradle.util.IdGenerator;
 import org.hamcrest.Matchers;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;

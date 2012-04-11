@@ -27,7 +27,7 @@ import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.ConnectEvent;
 import org.gradle.messaging.remote.internal.protocol.ChannelAvailable;
 import org.gradle.messaging.remote.internal.protocol.DiscoveryMessage;
-import org.gradle.util.IdGenerator;
+import org.gradle.internal.id.IdGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

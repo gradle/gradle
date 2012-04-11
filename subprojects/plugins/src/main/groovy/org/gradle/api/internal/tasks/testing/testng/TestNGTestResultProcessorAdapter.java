@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.testing.testng;
 import com.google.common.collect.Maps;
 import org.gradle.api.internal.tasks.testing.*;
 import org.gradle.api.tasks.testing.TestResult;
-import org.gradle.util.IdGenerator;
+import org.gradle.internal.id.IdGenerator;
 import org.testng.ITestContext;
 import org.testng.ITestListener;
 import org.testng.ITestNGMethod;

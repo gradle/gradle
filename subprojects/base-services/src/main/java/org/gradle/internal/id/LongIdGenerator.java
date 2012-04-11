@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.util;
 
-import java.util.UUID;
+package org.gradle.internal.id;
 
-public class UUIDGenerator implements IdGenerator<UUID> {
-    public UUID generateId() {
-        return UUID.randomUUID();
+import java.util.concurrent.atomic.AtomicLong;
+
+public class LongIdGenerator implements IdGenerator<Long> {
+    private final AtomicLong nextId = new AtomicLong(1);
+
+    public Long generateId() {
+        return nextId.getAndIncrement();
     }
 }

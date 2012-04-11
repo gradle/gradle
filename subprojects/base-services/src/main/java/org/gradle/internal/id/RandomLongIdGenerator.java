@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.util;
+package org.gradle.internal.id;
 
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.Random;
 
-public class LongIdGenerator implements IdGenerator<Long> {
-    private final AtomicLong nextId = new AtomicLong(1);
+public class RandomLongIdGenerator implements IdGenerator<Long> {
+    private final Random random = new Random();
 
     public Long generateId() {
-        return nextId.getAndIncrement();
+        return random.nextLong();
     }
 }

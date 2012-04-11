@@ -19,13 +19,13 @@ import org.gradle.api.Action;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Stoppable;
+import org.gradle.internal.id.IdGenerator;
 import org.gradle.launcher.daemon.protocol.CloseInput;
 import org.gradle.launcher.daemon.protocol.ForwardInput;
 import org.gradle.launcher.daemon.protocol.IoCommand;
 import org.gradle.messaging.concurrent.ExecutorFactory;
 import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.messaging.remote.internal.InputForwarder;
-import org.gradle.util.IdGenerator;
 
 import java.io.InputStream;
 import java.util.concurrent.locks.Lock;

@@ -20,7 +20,7 @@ import org.gradle.api.Action
 import org.gradle.api.logging.Logging
 import org.gradle.messaging.remote.internal.DefaultMessageSerializer
 import org.gradle.util.ConcurrentSpecification
-import org.gradle.util.UUIDGenerator
+import org.gradle.internal.id.UUIDGenerator
 import spock.lang.Ignore
 import spock.lang.Timeout
 import static java.util.Collections.synchronizedList

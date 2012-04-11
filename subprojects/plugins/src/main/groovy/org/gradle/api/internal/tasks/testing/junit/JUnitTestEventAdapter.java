@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.testing.junit;
 import org.gradle.api.internal.tasks.testing.*;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.concurrent.ThreadSafe;
-import org.gradle.util.IdGenerator;
+import org.gradle.internal.id.IdGenerator;
 import org.gradle.util.TimeProvider;
 import org.junit.runner.Description;
 import org.junit.runner.notification.Failure;

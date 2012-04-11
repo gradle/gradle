@@ -20,7 +20,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.launcher.daemon.protocol.Stop;
 import org.gradle.messaging.remote.internal.Connection;
-import org.gradle.util.IdGenerator;
+import org.gradle.internal.id.IdGenerator;
 
 /**
  * @author: Szczepan Faber, created at: 9/13/11

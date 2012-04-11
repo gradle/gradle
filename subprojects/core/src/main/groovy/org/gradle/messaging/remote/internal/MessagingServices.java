@@ -15,6 +15,7 @@
  */
 package org.gradle.messaging.remote.internal;
 
+import org.gradle.internal.id.UUIDGenerator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.CompositeStoppable;
 import org.gradle.messaging.concurrent.DefaultExecutorFactory;
@@ -26,8 +27,7 @@ import org.gradle.messaging.remote.MessagingServer;
 import org.gradle.messaging.remote.internal.inet.*;
 import org.gradle.messaging.remote.internal.protocol.DiscoveryMessage;
 import org.gradle.messaging.remote.internal.protocol.DiscoveryProtocolSerializer;
-import org.gradle.util.IdGenerator;
-import org.gradle.util.UUIDGenerator;
+import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.UncheckedException;
 import org.slf4j.LoggerFactory;
 

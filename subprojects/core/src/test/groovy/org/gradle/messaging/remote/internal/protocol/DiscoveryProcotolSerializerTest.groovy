@@ -16,7 +16,7 @@
 package org.gradle.messaging.remote.internal.protocol
 
 import org.gradle.messaging.remote.internal.inet.MultiChoiceAddress
-import org.gradle.util.UUIDGenerator
+import org.gradle.internal.id.UUIDGenerator
 import spock.lang.Shared
 import spock.lang.Specification
 import org.gradle.messaging.remote.internal.MessageOriginator

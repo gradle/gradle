@@ -22,7 +22,7 @@ import org.gradle.launcher.exec.BuildActionParameters
 import org.gradle.logging.internal.OutputEventListener
 import org.gradle.messaging.remote.internal.Connection
 import org.gradle.util.ConcurrentSpecification
-import org.gradle.util.IdGenerator
+import org.gradle.internal.id.IdGenerator
 import org.gradle.launcher.daemon.protocol.*
 
 class DaemonClientTest extends ConcurrentSpecification {

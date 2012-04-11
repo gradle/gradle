@@ -17,7 +17,7 @@
 package org.gradle.launcher.daemon.client
 
 import org.gradle.messaging.remote.internal.Connection
-import org.gradle.util.IdGenerator
+import org.gradle.internal.id.IdGenerator
 import spock.lang.Specification
 
 /**

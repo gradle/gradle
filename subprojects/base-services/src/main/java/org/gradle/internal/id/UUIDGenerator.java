@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.internal.id;
 
-package org.gradle.util;
+import java.util.UUID;
 
-/**
- * Generates a sequence of unique ids of type T. Implementations must be thread-safe.
- */
-public interface IdGenerator<T> {
-    /**
-     * Generates a new id. Values must be serializable.
-     *
-     * @return The id. Must not return null. Must not return a given value more than once.
-     */
-    T generateId();
+public class UUIDGenerator implements IdGenerator<UUID> {
+    public UUID generateId() {
+        return UUID.randomUUID();
+    }
 }

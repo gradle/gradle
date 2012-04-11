@@ -17,13 +17,13 @@
 package org.gradle.api.internal.tasks.testing.junit;
 
 import org.gradle.api.AntBuilder;
+import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.api.internal.tasks.testing.AbstractTestFrameworkTest;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.junit.report.TestReporter;
 import org.gradle.api.tasks.testing.junit.JUnitOptions;
 import org.gradle.messaging.actor.ActorFactory;
-import org.gradle.util.IdGenerator;
 import org.jmock.Expectations;
 import org.junit.Before;
 

@@ -17,11 +17,11 @@
 package org.gradle.api.internal.tasks.testing.testng;
 
 import org.gradle.api.JavaVersion;
+import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.api.internal.tasks.testing.AbstractTestFrameworkTest;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.tasks.testing.testng.TestNGOptions;
-import org.gradle.util.IdGenerator;
 import org.jmock.Expectations;
 import org.junit.Before;
 

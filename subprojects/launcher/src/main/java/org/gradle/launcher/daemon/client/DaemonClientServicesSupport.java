@@ -18,6 +18,7 @@ package org.gradle.launcher.daemon.client;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.GradleDistributionLocator;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
+import org.gradle.internal.id.*;
 import org.gradle.internal.nativeplatform.ProcessEnvironment;
 import org.gradle.internal.nativeplatform.services.NativeServices;
 import org.gradle.internal.service.DefaultServiceRegistry;
@@ -32,10 +33,9 @@ import org.gradle.messaging.concurrent.ExecutorFactory;
 import org.gradle.messaging.remote.internal.DefaultMessageSerializer;
 import org.gradle.messaging.remote.internal.OutgoingConnector;
 import org.gradle.messaging.remote.internal.inet.TcpOutgoingConnector;
-import org.gradle.util.CompositeIdGenerator;
-import org.gradle.util.IdGenerator;
-import org.gradle.util.LongIdGenerator;
-import org.gradle.util.UUIDGenerator;
+import org.gradle.internal.id.CompositeIdGenerator;
+import org.gradle.internal.id.LongIdGenerator;
+import org.gradle.internal.id.UUIDGenerator;
 
 import java.io.InputStream;
 

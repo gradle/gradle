@@ -30,7 +30,7 @@ import org.gradle.process.internal.child.WorkerFactory;
 import org.gradle.process.internal.launcher.GradleWorkerMain;
 import org.gradle.util.ClasspathUtil;
 import org.gradle.util.GUtil;
-import org.gradle.util.IdGenerator;
+import org.gradle.internal.id.IdGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

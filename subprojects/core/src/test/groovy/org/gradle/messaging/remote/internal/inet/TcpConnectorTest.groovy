@@ -19,7 +19,7 @@ import org.gradle.api.Action
 import org.gradle.messaging.remote.internal.ConnectException
 import org.gradle.messaging.remote.internal.DefaultMessageSerializer
 import org.gradle.util.ConcurrentSpecification
-import org.gradle.util.UUIDGenerator
+import org.gradle.internal.id.UUIDGenerator
 
 class TcpConnectorTest extends ConcurrentSpecification {
     final def serializer = new DefaultMessageSerializer<String>(getClass().classLoader)

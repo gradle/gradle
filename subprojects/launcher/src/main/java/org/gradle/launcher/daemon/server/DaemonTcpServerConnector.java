@@ -18,6 +18,7 @@ package org.gradle.launcher.daemon.server;
 import org.gradle.api.Action;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.id.UUIDGenerator;
 import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.ConnectEvent;
@@ -26,7 +27,6 @@ import org.gradle.messaging.remote.internal.DefaultMessageSerializer;
 import org.gradle.messaging.remote.internal.SynchronizedDispatch;
 import org.gradle.messaging.remote.internal.inet.InetAddressFactory;
 import org.gradle.messaging.remote.internal.inet.TcpIncomingConnector;
-import org.gradle.util.UUIDGenerator;
 
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;

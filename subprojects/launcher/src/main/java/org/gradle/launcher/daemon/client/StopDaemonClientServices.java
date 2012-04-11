@@ -18,12 +18,12 @@ package org.gradle.launcher.daemon.client;
 
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.messaging.concurrent.ExecutorFactory;
-import org.gradle.util.IdGenerator;
 
 import java.io.InputStream;
 
