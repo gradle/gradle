@@ -16,10 +16,10 @@
 package org.gradle.messaging.remote.internal;
 
 import org.gradle.internal.CompositeStoppable;
+import org.gradle.internal.TrueTimeProvider;
 import org.gradle.internal.UncheckedException;
 import org.gradle.messaging.concurrent.AsyncStoppable;
 import org.gradle.messaging.dispatch.*;
-import org.gradle.util.TrueTimeProvider;
 
 import java.util.LinkedList;
 import java.util.concurrent.CountDownLatch;

@@ -20,7 +20,7 @@ import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.Factory;
-import org.gradle.util.TimeProvider;
+import org.gradle.internal.TimeProvider;
 
 import java.io.File;
 import java.io.Serializable;

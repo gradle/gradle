@@ -18,7 +18,7 @@ package org.gradle.api.internal.externalresource.ivy;
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.externalresource.cached.DefaultCachedExternalResourceIndex;
-import org.gradle.util.TimeProvider;
+import org.gradle.internal.TimeProvider;
 
 import java.io.File;
 

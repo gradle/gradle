@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.dynamicversions;
 
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.gradle.util.TimeProvider;
+import org.gradle.internal.TimeProvider;
 
 import java.io.Serializable;
 

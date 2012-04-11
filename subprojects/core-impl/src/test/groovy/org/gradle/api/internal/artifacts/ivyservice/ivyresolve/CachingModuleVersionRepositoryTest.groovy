@@ -32,7 +32,7 @@ import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData
 import org.gradle.api.internal.externalresource.metadata.DefaultExternalResourceMetaData
-import org.gradle.util.TrueTimeProvider
+import org.gradle.internal.TrueTimeProvider
 
 class CachingModuleVersionRepositoryTest extends Specification {
 

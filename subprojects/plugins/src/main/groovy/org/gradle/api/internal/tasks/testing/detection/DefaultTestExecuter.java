@@ -27,9 +27,9 @@ import org.gradle.api.internal.tasks.testing.processors.RestartEveryNTestClassPr
 import org.gradle.api.internal.tasks.testing.processors.TestMainAction;
 import org.gradle.api.internal.tasks.testing.worker.ForkingTestClassProcessor;
 import org.gradle.api.tasks.testing.Test;
+import org.gradle.internal.TrueTimeProvider;
 import org.gradle.messaging.actor.ActorFactory;
 import org.gradle.process.internal.WorkerProcessBuilder;
-import org.gradle.util.TrueTimeProvider;
 
 /**
  * The default test class scanner factory.

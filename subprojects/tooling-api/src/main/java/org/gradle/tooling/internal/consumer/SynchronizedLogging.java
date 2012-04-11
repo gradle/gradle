@@ -19,11 +19,11 @@ package org.gradle.tooling.internal.consumer;
 import org.gradle.api.internal.Operation;
 import org.gradle.api.internal.concurrent.Synchronizer;
 import org.gradle.internal.Factory;
+import org.gradle.internal.TrueTimeProvider;
 import org.gradle.listener.DefaultListenerManager;
 import org.gradle.listener.ListenerManager;
 import org.gradle.logging.internal.DefaultProgressLoggerFactory;
 import org.gradle.logging.internal.ProgressListener;
-import org.gradle.util.TrueTimeProvider;
 
 /**
  * Thread safe logging provider that needs to be initialized before use.

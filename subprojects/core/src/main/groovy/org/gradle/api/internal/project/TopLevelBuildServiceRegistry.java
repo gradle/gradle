@@ -44,6 +44,8 @@ import org.gradle.groovy.scripts.ScriptExecutionListener;
 import org.gradle.groovy.scripts.internal.*;
 import org.gradle.initialization.*;
 import org.gradle.internal.Factory;
+import org.gradle.internal.TimeProvider;
+import org.gradle.internal.TrueTimeProvider;
 import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;

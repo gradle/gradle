@@ -16,8 +16,6 @@
 package org.gradle.launcher.daemon.server;
 
 import org.gradle.api.Action;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.internal.id.UUIDGenerator;
 import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.messaging.remote.Address;
@@ -35,9 +33,6 @@ import java.util.concurrent.locks.ReentrantLock;
  * Opens a TCP connection for clients to connect to to communicate with a daemon.
  */
 public class DaemonTcpServerConnector implements DaemonServerConnector {
-
-    private static final Logger LOGGER = Logging.getLogger(DaemonServerConnector.class);
-
     final private TcpIncomingConnector<Object> incomingConnector;
 
     private boolean started;

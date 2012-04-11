@@ -31,7 +31,7 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptor
 import org.gradle.api.internal.externalresource.cached.CachedExternalResource;
 import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex;
 import org.gradle.api.internal.externalresource.ivy.ArtifactAtRepositoryKey;
-import org.gradle.util.TimeProvider;
+import org.gradle.internal.TimeProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

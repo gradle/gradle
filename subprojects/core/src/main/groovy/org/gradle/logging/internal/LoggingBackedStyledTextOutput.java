@@ -18,8 +18,8 @@ package org.gradle.logging.internal;
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.internal.TimeProvider;
 import org.gradle.util.LineBufferingOutputStream;
-import org.gradle.util.TimeProvider;
 
 import java.io.IOException;
 import java.util.ArrayList;

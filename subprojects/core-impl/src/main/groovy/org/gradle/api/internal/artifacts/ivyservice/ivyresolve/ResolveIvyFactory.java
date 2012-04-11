@@ -30,7 +30,7 @@ import org.gradle.api.internal.externalresource.ivy.ArtifactAtRepositoryKey;
 import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache;
-import org.gradle.util.TimeProvider;
+import org.gradle.internal.TimeProvider;
 import org.gradle.util.WrapUtil;
 
 import java.util.List;

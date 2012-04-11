@@ -18,7 +18,7 @@ package org.gradle.logging.internal
 
 import org.gradle.api.logging.LogLevel
 import spock.lang.Specification
-import org.gradle.util.TimeProvider
+import org.gradle.internal.TimeProvider
 
 class PrintStreamLoggingSystemTest extends Specification {
     private final OutputStream original = new ByteArrayOutputStream()

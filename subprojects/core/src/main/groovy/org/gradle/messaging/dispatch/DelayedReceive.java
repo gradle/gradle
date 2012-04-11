@@ -16,8 +16,8 @@
 package org.gradle.messaging.dispatch;
 
 import org.gradle.internal.Stoppable;
+import org.gradle.internal.TimeProvider;
 import org.gradle.internal.UncheckedException;
-import org.gradle.util.TimeProvider;
 
 import java.util.Date;
 import java.util.Iterator;

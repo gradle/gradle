@@ -22,7 +22,7 @@ import org.gradle.cache.internal.CacheFactory
 import org.gradle.cache.internal.DefaultCacheRepository
 import org.gradle.testfixtures.internal.InMemoryCacheFactory
 import org.gradle.util.TemporaryFolder
-import org.gradle.util.TimeProvider
+import org.gradle.internal.TimeProvider
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll

@@ -20,7 +20,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository;
 import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.util.TimeProvider;
+import org.gradle.internal.TimeProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

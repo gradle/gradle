@@ -17,17 +17,17 @@ package org.gradle.messaging.remote.internal.inet
 
 import java.util.concurrent.atomic.AtomicInteger
 import org.gradle.api.Action
-import org.gradle.api.logging.Logging
+import org.gradle.internal.id.UUIDGenerator
 import org.gradle.messaging.remote.internal.DefaultMessageSerializer
 import org.gradle.util.ConcurrentSpecification
-import org.gradle.internal.id.UUIDGenerator
+import org.slf4j.LoggerFactory
 import spock.lang.Ignore
 import spock.lang.Timeout
 import static java.util.Collections.synchronizedList
 
 class TcpConnectorConcurrencyTest extends ConcurrentSpecification {
 
-    final static LOGGER = Logging.getLogger(TcpConnectorConcurrencyTest)
+    final static LOGGER = LoggerFactory.getLogger(TcpConnectorConcurrencyTest)
 
     //sharing serializer adds extra flavor...
     final serializer = new DefaultMessageSerializer<Object>(getClass().classLoader)

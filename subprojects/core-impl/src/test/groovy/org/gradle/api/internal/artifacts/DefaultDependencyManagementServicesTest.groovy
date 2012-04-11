@@ -34,7 +34,7 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.listener.ListenerManager
 import org.gradle.logging.LoggingManagerInternal
 import org.gradle.logging.ProgressLoggerFactory
-import org.gradle.util.TimeProvider
+import org.gradle.internal.TimeProvider
 import spock.lang.Specification
 
 class DefaultDependencyManagementServicesTest extends Specification {

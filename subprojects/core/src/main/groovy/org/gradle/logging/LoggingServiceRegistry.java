@@ -19,14 +19,14 @@ package org.gradle.logging;
 import org.gradle.StartParameter;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.internal.Factory;
+import org.gradle.internal.TimeProvider;
+import org.gradle.internal.TrueTimeProvider;
 import org.gradle.internal.nativeplatform.NoOpTerminalDetector;
 import org.gradle.internal.nativeplatform.TerminalDetector;
 import org.gradle.internal.nativeplatform.jna.JnaBootPathConfigurer;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.logging.internal.*;
 import org.gradle.logging.internal.slf4j.Slf4jLoggingConfigurer;
-import org.gradle.util.TimeProvider;
-import org.gradle.util.TrueTimeProvider;
 
 /**
  * A {@link org.gradle.internal.service.ServiceRegistry} implementation which provides the logging services.

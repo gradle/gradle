@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
-import org.gradle.util.TimeProvider;
+import org.gradle.internal.TimeProvider;
 
 import java.io.Serializable;
 

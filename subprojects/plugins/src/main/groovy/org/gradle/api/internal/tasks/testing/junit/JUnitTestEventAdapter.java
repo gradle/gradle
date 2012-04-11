@@ -18,9 +18,9 @@ package org.gradle.api.internal.tasks.testing.junit;
 
 import org.gradle.api.internal.tasks.testing.*;
 import org.gradle.api.tasks.testing.TestResult;
+import org.gradle.internal.TimeProvider;
 import org.gradle.internal.concurrent.ThreadSafe;
 import org.gradle.internal.id.IdGenerator;
-import org.gradle.util.TimeProvider;
 import org.junit.runner.Description;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;

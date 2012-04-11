@@ -16,6 +16,9 @@
 
 package org.gradle.util;
 
+import org.gradle.internal.TimeProvider;
+import org.gradle.internal.TrueTimeProvider;
+
 /**
  * @author Hans Dockter
  */

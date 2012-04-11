@@ -17,7 +17,7 @@ package org.gradle.logging.internal
 
 import spock.lang.Specification
 import org.gradle.logging.ProgressLoggerFactory
-import org.gradle.util.TimeProvider
+import org.gradle.internal.TimeProvider
 
 class DefaultProgressLoggerFactoryTest extends Specification {
     private final ProgressListener progressListener = Mock()
