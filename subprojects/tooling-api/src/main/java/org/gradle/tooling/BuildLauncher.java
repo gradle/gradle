@@ -31,7 +31,7 @@ import java.io.OutputStream;
  * <li>Create an instance of {@code BuildLauncher} by calling {@link org.gradle.tooling.ProjectConnection#newBuild()}.
  * <li>Configure the launcher as appropriate.
  * <li>Call either {@link #run()} or {@link #run(ResultHandler)} to execute the build.
- * <li>Optionally, you can reuse the launcher to launcher additional builds.
+ * <li>Optionally, you can reuse the launcher to launch additional builds.
  * </ul>
  *
  * Example:
@@ -131,7 +131,7 @@ public interface BuildLauncher extends LongRunningOperation {
     BuildLauncher addProgressListener(ProgressListener listener);
 
     /**
-     * Execute the build, blocking until it is complete.
+     * Executes the build, blocking until it is complete.
      *
      * @throws UnsupportedVersionException When the target Gradle version does not support the features required for this build.
      * @throws org.gradle.tooling.exceptions.UnsupportedOperationConfigurationException
@@ -147,7 +147,7 @@ public interface BuildLauncher extends LongRunningOperation {
             BuildException, UnsupportedVersionException;
 
     /**
-     * Launchers the build. This method returns immediately, and the result is later passed to the given handler.
+     * Launches the build. This method returns immediately, and the result is later passed to the given handler.
      *
      * @param handler The handler to supply the result to.
      * @throws IllegalStateException When the connection has been closed or is closing.
