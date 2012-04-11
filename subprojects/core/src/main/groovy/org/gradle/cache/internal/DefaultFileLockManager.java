@@ -133,7 +133,7 @@ public class DefaultFileLockManager implements FileLockManager {
         }
 
         public void writeToFile(Runnable action) throws LockTimeoutException, FileIntegrityViolationException {
-            assertOpenAndIntegral();
+            assertOpen();
             try {
                 // TODO - need to escalate without releasing lock
                 java.nio.channels.FileLock updateLock = null;
