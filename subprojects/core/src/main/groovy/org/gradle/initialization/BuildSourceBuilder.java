@@ -24,7 +24,7 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentStateCache;
-import org.gradle.cache.internal.FileIntegrityViolationException;
+import org.gradle.cache.internal.FileIntegrityViolationSuppressingPersistentStateCacheDecorator;
 import org.gradle.util.ClassPath;
 import org.gradle.util.DefaultClassPath;
 import org.gradle.util.WrapUtil;
@@ -77,13 +77,15 @@ public class BuildSourceBuilder {
 
         // If we were not the most recent version of Gradle to build the buildSrc dir, then do a clean build
         // Otherwise, just to a regular build
-        PersistentStateCache<Boolean> stateCache = cacheRepository.stateCache(Boolean.class, "buildSrc").forObject(startParameter.getCurrentDir()).withVersionStrategy(CacheBuilder.VersionStrategy.SharedCacheInvalidateOnVersionChange).open();
-        boolean rebuild;
-        try {
-            rebuild = stateCache.get() == null;
-        } catch (FileIntegrityViolationException e) {
-            rebuild = true;
-        }
+        PersistentStateCache<Boolean> stateCache =
+                new FileIntegrityViolationSuppressingPersistentStateCacheDecorator<Boolean>(
+                        cacheRepository.
+                                stateCache(Boolean.class, "buildSrc").
+                                forObject(startParameter.getCurrentDir()).
+                                withVersionStrategy(CacheBuilder.VersionStrategy.SharedCacheInvalidateOnVersionChange).
+                                open()
+                );
+        boolean rebuild = stateCache.get() == null;
 
         GradleLauncher gradleLauncher = gradleLauncherFactory.newInstance(startParameterArg);
         BuildSrcBuildListener listener = new BuildSrcBuildListener(rebuild);
