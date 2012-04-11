@@ -57,7 +57,7 @@ class DefaultFileLockManagerTest extends Specification {
         where:
         operation      | arg
         "readFromFile" | {} as Factory
-        "writeToFile"  | {} as Runnable
+//        "writeToFile"  | {} as Runnable
     }
     
     def "can lock a file"() {
