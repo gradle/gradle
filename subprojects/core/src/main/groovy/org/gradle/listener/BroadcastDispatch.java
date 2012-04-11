@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.messaging.dispatch;
+package org.gradle.listener;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.internal.UncheckedException;
-import org.gradle.listener.ListenerNotificationException;
+import org.gradle.messaging.dispatch.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
