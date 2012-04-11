@@ -15,7 +15,7 @@
  */
 package org.gradle.messaging.remote.internal.inet;
 
-import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.UncheckedException;
 import org.gradle.messaging.remote.internal.Connection;
 import org.gradle.messaging.remote.internal.MessageIOException;
 import org.gradle.messaging.remote.internal.MessageSerializer;
@@ -39,7 +39,7 @@ public class MulticastConnection<T> implements Connection<T> {
             socket = new MulticastSocket(address.getPort());
             socket.joinGroup(address.getAddress());
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
         localAddress = new SocketInetAddress(socket.getInetAddress(), socket.getLocalPort());
     }

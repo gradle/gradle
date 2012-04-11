@@ -15,11 +15,10 @@
  */
 package org.gradle.messaging.remote.internal;
 
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
-
 import org.gradle.internal.UncheckedException;
 import org.gradle.messaging.concurrent.StoppableExecutor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -35,7 +34,7 @@ import java.util.concurrent.CountDownLatch;
  */
 public class DisconnectAwareConnectionDecorator<T> extends DelegatingConnection<T> implements DisconnectAwareConnection<T> {
 
-    private static final Logger LOGGER = Logging.getLogger(DisconnectAwareConnectionDecorator.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DisconnectAwareConnectionDecorator.class);
     private static final int DEFAULT_BUFFER_SIZE = 200;
 
     private final Lock actionLock = new ReentrantLock();

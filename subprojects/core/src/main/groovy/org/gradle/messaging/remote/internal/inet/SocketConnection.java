@@ -17,8 +17,8 @@
 package org.gradle.messaging.remote.internal.inet;
 
 import com.google.common.base.Objects;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.CompositeStoppable;
+import org.gradle.internal.UncheckedException;
 import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.internal.Connection;
 import org.gradle.messaging.remote.internal.MessageIOException;
@@ -50,7 +50,7 @@ public class SocketConnection<T> implements Connection<T> {
             outstr = new DataOutputStream(new SocketOutputStream(socket));
             instr = new DataInputStream(new SocketInputStream(socket));
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
         InetSocketAddress localSocketAddress = (InetSocketAddress) socket.socket().getLocalSocketAddress();
         localAddress = new SocketInetAddress(localSocketAddress.getAddress(), localSocketAddress.getPort());

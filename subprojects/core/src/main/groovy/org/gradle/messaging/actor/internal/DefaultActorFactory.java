@@ -16,7 +16,6 @@
 
 package org.gradle.messaging.actor.internal;
 
-import org.gradle.api.logging.Logging;
 import org.gradle.internal.CompositeStoppable;
 import org.gradle.internal.Stoppable;
 import org.gradle.internal.concurrent.ThreadSafe;
@@ -25,6 +24,7 @@ import org.gradle.messaging.actor.ActorFactory;
 import org.gradle.messaging.concurrent.ExecutorFactory;
 import org.gradle.messaging.concurrent.StoppableExecutor;
 import org.gradle.messaging.dispatch.*;
+import org.slf4j.LoggerFactory;
 
 import java.util.IdentityHashMap;
 import java.util.Map;
@@ -135,7 +135,7 @@ public class DefaultActorFactory implements ActorFactory, Stoppable {
 
         public NonBlockingActor(Object targetObject) {
             executor = executorFactory.create(String.format("Dispatch %s", targetObject));
-            failureHandler = new ExceptionTrackingFailureHandler(Logging.getLogger(NonBlockingActor.class));
+            failureHandler = new ExceptionTrackingFailureHandler(LoggerFactory.getLogger(NonBlockingActor.class));
             dispatch = new AsyncDispatch<MethodInvocation>(executor,
                     new FailureHandlingDispatch<MethodInvocation>(
                             new ReflectionDispatch(targetObject),
