@@ -58,6 +58,10 @@ public class InMemoryCacheFactory implements CacheFactory {
             action.run();
         }
 
+        public void writeFile(Runnable action) throws LockTimeoutException {
+            action.run();
+        }
+
         public void close() {
         }
     }

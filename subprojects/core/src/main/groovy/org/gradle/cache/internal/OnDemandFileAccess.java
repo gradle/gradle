@@ -48,4 +48,12 @@ public class OnDemandFileAccess extends AbstractFileAccess {
         }
     }
 
+    public void writeFile(Runnable action) throws LockTimeoutException {
+        FileLock lock = manager.lock(targetFile, FileLockManager.LockMode.Exclusive, displayName);
+        try {
+            lock.writeFile(action);
+        } finally {
+            lock.close();
+        }
+    }
 }

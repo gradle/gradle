@@ -42,8 +42,7 @@ class DefaultFileLockManagerTest extends Specification {
 
     @Unroll "#operation throws integrity exception when not cleanly unlocked file"() {
         given:
-        def file = tmpDir.createFile("file.txt")
-        file.text = "abc"
+        def file = unlockUncleanly("file.txt")
         
         and:
         def lock = lock(LockMode.Shared, file)
@@ -58,6 +57,20 @@ class DefaultFileLockManagerTest extends Specification {
         operation      | arg
         "readFile" | {} as Factory
         "updateFile"  | {} as Runnable
+    }
+
+    def "writeFile does not throw integrity exception when not cleanly unlocked file"() {
+        given:
+        def file = unlockUncleanly("file.txt")
+
+        and:
+        def lock = lock(LockMode.Shared, file)
+
+        when:
+        lock.writeFile {  }
+
+        then:
+        notThrown FileIntegrityViolationException
     }
 
     def "can lock a file"() {
@@ -363,5 +376,11 @@ class DefaultFileLockManagerTest extends Specification {
 
     private FileLock lock(LockMode lockMode, File file = tmpDir.file("state.bin")) {
         return manager.lock(file, lockMode, "foo")
+    }
+
+    private File unlockUncleanly(String name) {
+        def file = tmpDir.createFile(name)
+        file.text = "abc"
+        file
     }
 }

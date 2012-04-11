@@ -132,6 +132,15 @@ public class DefaultFileLockManager implements FileLockManager {
 
         public void updateFile(Runnable action) throws LockTimeoutException, FileIntegrityViolationException {
             assertOpenAndIntegral();
+            withExclusiveLock(action);
+        }
+
+        public void writeFile(Runnable action) throws LockTimeoutException {
+            assertOpen();
+            withExclusiveLock(action);
+        }
+
+        private void withExclusiveLock(Runnable action) {
             try {
                 // TODO - need to escalate without releasing lock
                 java.nio.channels.FileLock updateLock = null;

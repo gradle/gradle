@@ -50,7 +50,7 @@ class OnDemandFileAccessTest extends Specification {
         0 * targetLock._
     }
 
-    def "acquires exclusive lock to write to file"() {
+    def "acquires exclusive lock to update file"() {
         def action = {} as Runnable
 
         when:
@@ -60,6 +60,20 @@ class OnDemandFileAccessTest extends Specification {
         !file.exists()
         1 * manager.lock(file, LockMode.Exclusive, "some-lock") >> targetLock
         1 * targetLock.updateFile(action)
+        1 * targetLock.close()
+        0 * targetLock._
+    }
+
+    def "acquires exclusive lock to write file"() {
+        def action = {} as Runnable
+
+        when:
+        lock.writeFile(action)
+
+        then:
+        !file.exists()
+        1 * manager.lock(file, LockMode.Exclusive, "some-lock") >> targetLock
+        1 * targetLock.writeFile(action)
         1 * targetLock.close()
         0 * targetLock._
     }
@@ -78,15 +92,16 @@ class OnDemandFileAccessTest extends Specification {
         access.readFile { file.text } == "aaa"
     }
 
-    def "can write to file"() {
+    def "can write and update"() {
         given:
         def access = access(file)
 
         when:
-        access.updateFile { file << "aaa" }
+        access.writeFile { file << "1" }
+        access.updateFile { file << "2" }
 
         then:
-        access.readFile { file.text } == "aaa"
+        access.readFile { file.text } == "12"
     }
 
     FileLockManager createManager() {

@@ -59,4 +59,17 @@ public interface FileAccess {
      * @throws FileIntegrityViolationException If the integrity of the file cannot be guaranteed (never thrown if target is a directory)
      */
     void updateFile(Runnable action) throws LockTimeoutException, FileIntegrityViolationException;
+
+    /**
+     * Runs the given action under an exclusive lock on the target file, without checking it's integrity. If the given action fails, the lock is marked as uncleanly unlocked.
+     *
+     * <p>This method should be used when it is of no consequence if the target was not previously unlocked, e.g. the content is being replaced.
+     *
+     * <p>Besides not performing integrity checking, this method shares the locking semantics of {@link #updateFile(Runnable)}
+     *
+     * @throws LockTimeoutException On timeout acquiring lock, if required.
+     * @throws IllegalStateException When this lock has been closed.
+     */
+    void writeFile(Runnable action) throws LockTimeoutException;
+
 }

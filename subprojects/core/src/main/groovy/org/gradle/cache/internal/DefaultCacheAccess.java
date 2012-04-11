@@ -284,6 +284,10 @@ public class DefaultCacheAccess implements CacheAccess {
         public void updateFile(Runnable action) throws LockTimeoutException {
             getLock().updateFile(action);
         }
+
+        public void writeFile(Runnable action) throws LockTimeoutException {
+            getLock().writeFile(action);
+        }
     }
 
 }
