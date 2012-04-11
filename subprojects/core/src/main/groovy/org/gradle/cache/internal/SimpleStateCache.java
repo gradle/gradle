@@ -43,7 +43,7 @@ public class SimpleStateCache<T> implements PersistentStateCache<T> {
     }
 
     public void set(final T newValue) {
-        fileAccess.updateFile(new Runnable() {
+        fileAccess.writeFile(new Runnable() {
             public void run() {
                 serialize(newValue);
             }

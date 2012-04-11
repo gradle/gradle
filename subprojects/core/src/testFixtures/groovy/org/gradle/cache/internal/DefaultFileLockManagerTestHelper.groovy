@@ -20,9 +20,13 @@ import org.gradle.internal.nativeplatform.services.NativeServices
 import org.gradle.internal.nativeplatform.ProcessEnvironment
 
 abstract class DefaultFileLockManagerTestHelper {
-    
+
     private static class AnException extends RuntimeException {}
-    
+
+    static FileAccess createOnDemandFileLock(File file) {
+        new OnDemandFileAccess(file, "test", DefaultFileLockManagerTestHelper.createDefaultFileLockManager())
+    }
+
     static void unlockUncleanly(File target) {
         def lock = createDefaultFileLock(target)
         try {
@@ -53,4 +57,12 @@ abstract class DefaultFileLockManagerTestHelper {
         new File(target.absolutePath + ".lock")
     }
 
+    static boolean isIntegrityViolated(File file) {
+        try {
+            createOnDemandFileLock(file).readFile { }
+            false
+        } catch (FileIntegrityViolationException e) {
+            true
+        }
+    }
 }

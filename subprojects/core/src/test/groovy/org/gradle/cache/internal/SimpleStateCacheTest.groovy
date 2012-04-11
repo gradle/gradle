@@ -21,12 +21,18 @@ import org.gradle.cache.Serializer
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
+import static org.gradle.cache.internal.DefaultFileLockManagerTestHelper.isIntegrityViolated
+import static org.gradle.cache.internal.DefaultFileLockManagerTestHelper.*
 
 class SimpleStateCacheTest extends Specification {
     @Rule public TemporaryFolder tmpDir = new TemporaryFolder()
     final FileAccess fileAccess = Mock()
-    final Serializer<String> serializer = new DefaultSerializer<String>()
-    final SimpleStateCache<String> cache = new SimpleStateCache<String>(tmpDir.file("state.bin"), fileAccess, serializer)
+    final File file = tmpDir.file("state.bin")
+    final SimpleStateCache<String> cache = createStateCache(fileAccess)
+
+    private SimpleStateCache createStateCache(FileAccess fileAccess, File file = file, Serializer serializer = new DefaultSerializer()) {
+        return new SimpleStateCache(file, fileAccess, serializer)
+    }
 
     def "returns null when file does not exist"() {
         when:
@@ -42,7 +48,7 @@ class SimpleStateCacheTest extends Specification {
         cache.set('some value')
 
         then:
-        1 * fileAccess.updateFile(!null) >> { it[0].run() }
+        1 * fileAccess.writeFile(!null) >> { it[0].run() }
         tmpDir.file('state.bin').assertIsFile()
 
         when:
@@ -58,7 +64,7 @@ class SimpleStateCacheTest extends Specification {
         cache.set("foo")
 
         then:
-        1 * fileAccess.updateFile(!null) >> { it[0].run() }
+        1 * fileAccess.writeFile(!null) >> { it[0].run() }
 
         when:
         cache.update({ value ->
@@ -93,5 +99,28 @@ class SimpleStateCacheTest extends Specification {
         then:
         result == "bar"
         1 * fileAccess.readFile(!null) >> { it[0].create() }
+    }
+    
+    def "can set value when file integrity is violated"() {
+        given:
+        def cache = createStateCache(createOnDemandFileLock(file))
+        
+        and:
+        cache.set "a"
+        
+        expect:
+        cache.get() == "a"
+        
+        when:
+        unlockUncleanly(file)
+
+        then:
+        isIntegrityViolated(file)
+
+        when:
+        cache.set "b"
+
+        then:
+        cache.get() == "b"
     }
 }
