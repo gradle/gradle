@@ -65,23 +65,6 @@ class OnDemandFileAccessTest extends Specification {
         0 * targetLock._
     }
 
-    @Unroll "throws exception on read if not clean unlock - #operation"() {
-        given:
-        file.text = "abc"
-        def access = access(file)
-
-        when:
-        access."$operation"(arg)
-
-        then:
-        thrown FileIntegrityViolationException
-
-        where:
-        operation      | arg
-        "readFromFile" | {} as Factory
-//        "writeToFile"  | {} as Runnable
-    }
-
     def "can read from file"() {
         given:
         def access = access(file)

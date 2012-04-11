@@ -26,16 +26,13 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.Set;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * Uses file system locks on a lock file per target file. Each lock file is made up of 2 regions:
  *
- * <ul>
- *     <li>State region: 1 byte version field, 1 byte clean flag.</li>
- *     <li>Owner information region: 1 byte version field, utf-8 encoded owner process id, utf-8 encoded owner operation display name.</li>
- * </ul>
+ * <ul> <li>State region: 1 byte version field, 1 byte clean flag.</li> <li>Owner information region: 1 byte version field, utf-8 encoded owner process id, utf-8 encoded owner operation display
+ * name.</li> </ul>
  */
 public class DefaultFileLockManager implements FileLockManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFileLockManager.class);
@@ -92,12 +89,13 @@ public class DefaultFileLockManager implements FileLockManager {
             } else {
                 lockFile = new File(target.getParentFile(), target.getName() + ".lock");
             }
+
             lockFile.getParentFile().mkdirs();
             lockFile.createNewFile();
             lockFileAccess = new RandomAccessFile(lockFile, "rw");
             try {
                 lock = lock(mode);
-                integrityViolated = target.length() > 0 && !getUnlockedCleanly();
+                integrityViolated = target.isFile() && target.length() > 0 && !getUnlockedCleanly();
             } catch (Throwable t) {
                 // Also releases any locks
                 lockFileAccess.close();
@@ -110,21 +108,21 @@ public class DefaultFileLockManager implements FileLockManager {
         }
 
         public boolean getUnlockedCleanly() {
-            return readFromFile(new Callable<Boolean>() {
-                public Boolean call() throws Exception {
-                    try {
-                        lockFileAccess.seek(STATE_REGION_POS + 1);
-                        if (!lockFileAccess.readBoolean()) {
-                            // Process has crashed while updating target file
-                            return false;
-                        }
-                    } catch (EOFException e) {
-                        // Process has crashed writing to lock file
-                        return false;
-                    }
-                    return true;
+            assertOpen();
+            try {
+                lockFileAccess.seek(STATE_REGION_POS + 1);
+                if (!lockFileAccess.readBoolean()) {
+                    // Process has crashed while updating target file
+                    return false;
                 }
-            });
+            } catch (EOFException e) {
+                // Process has crashed writing to lock file
+                return false;
+            } catch (Exception e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+
+            return true;
         }
 
         public <T> T readFromFile(Factory<? extends T> action) throws LockTimeoutException, FileIntegrityViolationException {
@@ -133,7 +131,7 @@ public class DefaultFileLockManager implements FileLockManager {
         }
 
         public void writeToFile(Runnable action) throws LockTimeoutException, FileIntegrityViolationException {
-            assertOpen();
+            assertOpenAndIntegral();
             try {
                 // TODO - need to escalate without releasing lock
                 java.nio.channels.FileLock updateLock = null;
@@ -231,7 +229,7 @@ public class DefaultFileLockManager implements FileLockManager {
                                 throw new IllegalStateException(String.format("Unexpected lock protocol found in lock file '%s' for %s.", lockFile, displayName));
                             }
                             ownerPid = lockFileAccess.readUTF();
-                            ownerOperation= lockFileAccess.readUTF();
+                            ownerOperation = lockFileAccess.readUTF();
                         }
                     } finally {
                         informationRegionLock.release();

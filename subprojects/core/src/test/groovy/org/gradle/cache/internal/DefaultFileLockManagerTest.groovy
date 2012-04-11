@@ -40,7 +40,7 @@ class DefaultFileLockManagerTest extends Specification {
         metaDataProvider.processDisplayName >> 'process'
     }
 
-    @Unroll "#operation throws integrity exception when not cleanly unlocked"() {
+    @Unroll "#operation throws integrity exception when not cleanly unlocked file"() {
         given:
         def file = tmpDir.createFile("file.txt")
         file.text = "abc"
@@ -57,9 +57,9 @@ class DefaultFileLockManagerTest extends Specification {
         where:
         operation      | arg
         "readFromFile" | {} as Factory
-//        "writeToFile"  | {} as Runnable
+        "writeToFile"  | {} as Runnable
     }
-    
+
     def "can lock a file"() {
         when:
         def lock = manager.lock(tmpDir.createFile("file.txt"), LockMode.Shared, "lock")
