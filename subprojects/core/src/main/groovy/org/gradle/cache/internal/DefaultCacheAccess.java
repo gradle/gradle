@@ -277,12 +277,12 @@ public class DefaultCacheAccess implements CacheAccess {
     }
 
     private class UnitOfWorkFileAccess extends AbstractFileAccess {
-        public <T> T readFromFile(Factory<? extends T> action) throws LockTimeoutException {
-            return getLock().readFromFile(action);
+        public <T> T readFile(Factory<? extends T> action) throws LockTimeoutException {
+            return getLock().readFile(action);
         }
 
-        public void writeToFile(Runnable action) throws LockTimeoutException {
-            getLock().writeToFile(action);
+        public void updateFile(Runnable action) throws LockTimeoutException {
+            getLock().updateFile(action);
         }
     }
 

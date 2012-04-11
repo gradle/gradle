@@ -61,7 +61,7 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
         boolean valid = determineIfCacheIsValid(getLock());
         if (!valid) {
             // Escalate to exclusive lock and rebuild the cache
-            getLock().writeToFile(new Runnable() {
+            getLock().updateFile(new Runnable() {
                 public void run() {
                     buildCacheDir(initAction, getLock());
                 }

@@ -33,7 +33,7 @@ public class MultiProcessSafePersistentIndexedCache<K, V> implements PersistentI
 
     public V get(final K key) {
         final PersistentIndexedCache<K, V> cache = getCache();
-        return fileAccess.readFromFile(new Factory<V>() {
+        return fileAccess.readFile(new Factory<V>() {
             public V create() {
                 return cache.get(key);
             }
@@ -42,7 +42,7 @@ public class MultiProcessSafePersistentIndexedCache<K, V> implements PersistentI
 
     public void put(final K key, final V value) {
         final PersistentIndexedCache<K, V> cache = getCache();
-        fileAccess.writeToFile(new Runnable() {
+        fileAccess.updateFile(new Runnable() {
             public void run() {
                 cache.put(key, value);
             }
@@ -51,7 +51,7 @@ public class MultiProcessSafePersistentIndexedCache<K, V> implements PersistentI
 
     public void remove(final K key) {
         final PersistentIndexedCache<K, V> cache = getCache();
-        fileAccess.writeToFile(new Runnable() {
+        fileAccess.updateFile(new Runnable() {
             public void run() {
                 cache.remove(key);
             }
@@ -68,7 +68,7 @@ public class MultiProcessSafePersistentIndexedCache<K, V> implements PersistentI
     public void close() {
         if (cache != null) {
             try {
-                fileAccess.writeToFile(new Runnable() {
+                fileAccess.updateFile(new Runnable() {
                     public void run() {
                         cache.close();
                     }
@@ -81,7 +81,7 @@ public class MultiProcessSafePersistentIndexedCache<K, V> implements PersistentI
 
     private PersistentIndexedCache<K, V> getCache() {
         if (cache == null) {
-            fileAccess.writeToFile(new Runnable() {
+            fileAccess.updateFile(new Runnable() {
                 public void run() {
                     cache = factory.create();
                 }

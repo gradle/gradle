@@ -56,8 +56,8 @@ class DefaultFileLockManagerTest extends Specification {
 
         where:
         operation      | arg
-        "readFromFile" | {} as Factory
-        "writeToFile"  | {} as Runnable
+        "readFile" | {} as Factory
+        "updateFile"  | {} as Runnable
     }
 
     def "can lock a file"() {
@@ -111,7 +111,7 @@ class DefaultFileLockManagerTest extends Specification {
     def "existing lock is unlocked cleanly after writeToFile() has been called"() {
         when:
         def lock = manager.lock(tmpDir.createFile("file.txt"), LockMode.Exclusive, "lock")
-        lock.writeToFile({} as Runnable)
+        lock.updateFile({} as Runnable)
 
         then:
         lock.unlockedCleanly
@@ -132,7 +132,7 @@ class DefaultFileLockManagerTest extends Specification {
 
         when:
         def lock = manager.lock(tmpDir.createFile("file.txt"), LockMode.Exclusive, "lock")
-        lock.writeToFile({throw failure} as Runnable)
+        lock.updateFile({throw failure} as Runnable)
 
         then:
         RuntimeException e = thrown()
@@ -198,7 +198,7 @@ class DefaultFileLockManagerTest extends Specification {
         lock.close()
 
         when:
-        lock.readFromFile({} as Factory)
+        lock.readFile({} as Factory)
 
         then:
         thrown(IllegalStateException)
@@ -210,7 +210,7 @@ class DefaultFileLockManagerTest extends Specification {
         lock.close()
 
         when:
-        lock.writeToFile({} as Runnable)
+        lock.updateFile({} as Runnable)
 
         then:
         thrown(IllegalStateException)

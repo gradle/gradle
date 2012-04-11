@@ -139,10 +139,10 @@ class DefaultCacheAccessTest extends Specification {
             cache.get("key")
         }
         1 * lockManager.lock(lockFile, Exclusive, "<display-name>", "some operation") >> lock
-        _ * lock.readFromFile(_)
+        _ * lock.readFile(_)
 
         and:
-        _ * lock.writeToFile(_)
+        _ * lock.updateFile(_)
         1 * lock.close()
         0 * _._
     }
@@ -162,8 +162,8 @@ class DefaultCacheAccessTest extends Specification {
         1 * action.create() >> {
             cache.get("key")
         }
-        _ * lock.readFromFile(_)
-        _ * lock.writeToFile(_)
+        _ * lock.readFile(_)
+        _ * lock.updateFile(_)
 
         and:
         0 * _._
@@ -188,8 +188,8 @@ class DefaultCacheAccessTest extends Specification {
         }
         1 * longRunningAction.create()
         2 * lockManager.lock(lockFile, Exclusive, "<display-name>", "some operation") >> lock
-        _ * lock.readFromFile(_)
-        _ * lock.writeToFile(_)
+        _ * lock.readFile(_)
+        _ * lock.updateFile(_)
         2 * lock.close()
         0 * _._
     }
@@ -256,8 +256,8 @@ class DefaultCacheAccessTest extends Specification {
         }
         1 * lockManager.lock(lockFile, Exclusive, "<display-name>", "some operation") >> lock
         1 * lockManager.lock(lockFile, Exclusive, "<display-name>", "nested 2") >> lock
-        _ * lock.readFromFile(_)
-        _ * lock.writeToFile(_)
+        _ * lock.readFile(_)
+        _ * lock.updateFile(_)
         2 * lock.close()
         0 * _._
     }
@@ -284,8 +284,8 @@ class DefaultCacheAccessTest extends Specification {
         }
         1 * nestedAction.create()
         1 * lockManager.lock(lockFile, Exclusive, "<display-name>", "some operation") >> lock
-        _ * lock.readFromFile(_)
-        _ * lock.writeToFile(_)
+        _ * lock.readFile(_)
+        _ * lock.updateFile(_)
         1 * lock.close()
         0 * _._
     }
@@ -310,8 +310,8 @@ class DefaultCacheAccessTest extends Specification {
             cache.get("key")
         }
         1 * lockManager.lock(lockFile, Exclusive, "<display-name>", "some operation") >> lock
-        _ * lock.readFromFile(_)
-        _ * lock.writeToFile(_)
+        _ * lock.readFile(_)
+        _ * lock.updateFile(_)
         1 * lock.close()
         0 * _._
     }
@@ -331,10 +331,10 @@ class DefaultCacheAccessTest extends Specification {
             cache.get("key")
         }
         1 * lockManager.lock(lockFile, Exclusive, "<display-name>", "some operation") >> lock
-        _ * lock.readFromFile(_)
+        _ * lock.readFile(_)
 
         and:
-        _ * lock.writeToFile(_) >> {Runnable runnable -> runnable.run()}
+        _ * lock.updateFile(_) >> {Runnable runnable -> runnable.run()}
         1 * backingCache.close()
         1 * lock.close()
         0 * _._
@@ -343,8 +343,8 @@ class DefaultCacheAccessTest extends Specification {
     def "closes caches on close when initial lock mode is not none"() {
         given:
         1 * lockManager.lock(lockFile, Exclusive, "<display-name>") >> lock
-        _ * lock.readFromFile(_) >> {Factory factory -> factory.create()}
-        _ * lock.writeToFile(_) >> {Runnable runnable -> runnable.run()}
+        _ * lock.readFile(_) >> {Factory factory -> factory.create()}
+        _ * lock.updateFile(_) >> {Runnable runnable -> runnable.run()}
 
         and:
         manager.open(Exclusive)
@@ -355,8 +355,8 @@ class DefaultCacheAccessTest extends Specification {
         manager.close()
 
         then:
-        _ * lock.readFromFile(_) >> {Factory factory -> factory.create()}
-        _ * lock.writeToFile(_) >> {Runnable runnable -> runnable.run()}
+        _ * lock.readFile(_) >> {Factory factory -> factory.create()}
+        _ * lock.updateFile(_) >> {Runnable runnable -> runnable.run()}
         1 * backingCache.close()
         1 * lock.close()
         0 * _._

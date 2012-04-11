@@ -125,12 +125,12 @@ public class DefaultFileLockManager implements FileLockManager {
             return true;
         }
 
-        public <T> T readFromFile(Factory<? extends T> action) throws LockTimeoutException, FileIntegrityViolationException {
+        public <T> T readFile(Factory<? extends T> action) throws LockTimeoutException, FileIntegrityViolationException {
             assertOpenAndIntegral();
             return action.create();
         }
 
-        public void writeToFile(Runnable action) throws LockTimeoutException, FileIntegrityViolationException {
+        public void updateFile(Runnable action) throws LockTimeoutException, FileIntegrityViolationException {
             assertOpenAndIntegral();
             try {
                 // TODO - need to escalate without releasing lock

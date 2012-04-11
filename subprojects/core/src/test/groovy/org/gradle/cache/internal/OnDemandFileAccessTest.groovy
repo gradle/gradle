@@ -22,7 +22,6 @@ import org.gradle.internal.nativeplatform.services.NativeServices
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class OnDemandFileAccessTest extends Specification {
     final FileLockManager manager = Mock()
@@ -41,12 +40,12 @@ class OnDemandFileAccessTest extends Specification {
         def action = {} as Factory
 
         when:
-        lock.readFromFile(action)
+        lock.readFile(action)
 
         then:
         !file.exists()
         1 * manager.lock(file, LockMode.Shared, "some-lock") >> targetLock
-        1 * targetLock.readFromFile(action)
+        1 * targetLock.readFile(action)
         1 * targetLock.close()
         0 * targetLock._
     }
@@ -55,12 +54,12 @@ class OnDemandFileAccessTest extends Specification {
         def action = {} as Runnable
 
         when:
-        lock.writeToFile(action)
+        lock.updateFile(action)
 
         then:
         !file.exists()
         1 * manager.lock(file, LockMode.Exclusive, "some-lock") >> targetLock
-        1 * targetLock.writeToFile(action)
+        1 * targetLock.updateFile(action)
         1 * targetLock.close()
         0 * targetLock._
     }
@@ -70,13 +69,13 @@ class OnDemandFileAccessTest extends Specification {
         def access = access(file)
 
         expect:
-        access.readFromFile { assert !file.exists(); true }
+        access.readFile { assert !file.exists(); true }
 
         when:
-        access.writeToFile { file << "aaa" }
+        access.updateFile { file << "aaa" }
 
         then:
-        access.readFromFile { file.text } == "aaa"
+        access.readFile { file.text } == "aaa"
     }
 
     def "can write to file"() {
@@ -84,10 +83,10 @@ class OnDemandFileAccessTest extends Specification {
         def access = access(file)
 
         when:
-        access.writeToFile { file << "aaa" }
+        access.updateFile { file << "aaa" }
 
         then:
-        access.readFromFile { file.text } == "aaa"
+        access.readFile { file.text } == "aaa"
     }
 
     FileLockManager createManager() {
