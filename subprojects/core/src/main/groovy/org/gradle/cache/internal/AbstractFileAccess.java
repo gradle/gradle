@@ -21,7 +21,7 @@ import org.gradle.internal.UncheckedException;
 import java.util.concurrent.Callable;
 
 public abstract class AbstractFileAccess implements FileAccess {
-    public <T> T readFromFile(final Callable<? extends T> action) throws LockTimeoutException {
+    public <T> T readFromFile(final Callable<? extends T> action) throws LockTimeoutException, FileIntegrityViolationException {
         return readFromFile(new Factory<T>() {
             public T create() {
                 try {

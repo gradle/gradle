@@ -25,6 +25,7 @@ import org.gradle.util.TestPrecondition
 
 import org.junit.Rule
 import spock.lang.Specification
+import spock.lang.Unroll
 
 /**
  * @author: Szczepan Faber, created at: 8/30/11
@@ -39,6 +40,26 @@ class DefaultFileLockManagerTest extends Specification {
         metaDataProvider.processDisplayName >> 'process'
     }
 
+    @Unroll "#operation throws integrity exception when not cleanly unlocked"() {
+        given:
+        def file = tmpDir.createFile("file.txt")
+        file.text = "abc"
+        
+        and:
+        def lock = lock(LockMode.Shared, file)
+        
+        when:
+        lock."$operation"(arg)
+        
+        then:
+        thrown FileIntegrityViolationException
+
+        where:
+        operation      | arg
+        "readFromFile" | {} as Factory
+        "writeToFile"  | {} as Runnable
+    }
+    
     def "can lock a file"() {
         when:
         def lock = manager.lock(tmpDir.createFile("file.txt"), LockMode.Shared, "lock")
@@ -340,7 +361,7 @@ class DefaultFileLockManagerTest extends Specification {
         }
     }
 
-    private FileLock lock(LockMode lockMode) {
-        return manager.lock(tmpDir.file("state.bin"), lockMode, "foo")
+    private FileLock lock(LockMode lockMode, File file = tmpDir.file("state.bin")) {
+        return manager.lock(file, lockMode, "foo")
     }
 }

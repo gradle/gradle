@@ -80,6 +80,7 @@ public class DefaultFileLockManager implements FileLockManager {
         private final String operationDisplayName;
         private java.nio.channels.FileLock lock;
         private RandomAccessFile lockFileAccess;
+        private final boolean integrityViolated;
 
         public DefaultFileLock(File target, LockMode mode, String displayName, String operationDisplayName) throws Throwable {
             this.target = target;
@@ -96,6 +97,7 @@ public class DefaultFileLockManager implements FileLockManager {
             lockFileAccess = new RandomAccessFile(lockFile, "rw");
             try {
                 lock = lock(mode);
+                integrityViolated = target.length() > 0 && !getUnlockedCleanly();
             } catch (Throwable t) {
                 // Also releases any locks
                 lockFileAccess.close();
@@ -125,13 +127,13 @@ public class DefaultFileLockManager implements FileLockManager {
             });
         }
 
-        public <T> T readFromFile(Factory<? extends T> action) throws LockTimeoutException {
-            assertOpen();
+        public <T> T readFromFile(Factory<? extends T> action) throws LockTimeoutException, FileIntegrityViolationException {
+            assertOpenAndIntegral();
             return action.create();
         }
 
-        public void writeToFile(Runnable action) {
-            assertOpen();
+        public void writeToFile(Runnable action) throws LockTimeoutException, FileIntegrityViolationException {
+            assertOpenAndIntegral();
             try {
                 // TODO - need to escalate without releasing lock
                 java.nio.channels.FileLock updateLock = null;
@@ -158,6 +160,13 @@ public class DefaultFileLockManager implements FileLockManager {
         private void assertOpen() {
             if (lock == null) {
                 throw new IllegalStateException("This lock has been closed.");
+            }
+        }
+
+        private void assertOpenAndIntegral() {
+            assertOpen();
+            if (integrityViolated) {
+                throw new FileIntegrityViolationException(String.format("The file '%s' was not unlocked cleanly", target));
             }
         }
 

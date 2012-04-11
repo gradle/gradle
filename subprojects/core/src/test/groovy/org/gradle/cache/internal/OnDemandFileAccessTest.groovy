@@ -68,11 +68,10 @@ class OnDemandFileAccessTest extends Specification {
     @Unroll "throws exception on read if not clean unlock - #operation"() {
         given:
         file.text = "abc"
-        1 * manager.lock(file, _, _) >> targetLock
-        1 * targetLock.getUnlockedCleanly() >> false
+        def access = access(file)
 
         when:
-        lock."$operation"(arg)
+        access."$operation"(arg)
 
         then:
         thrown FileIntegrityViolationException
