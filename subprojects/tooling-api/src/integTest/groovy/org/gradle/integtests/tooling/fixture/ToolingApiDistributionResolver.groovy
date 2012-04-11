@@ -63,7 +63,9 @@ class ToolingApiDistributionResolver {
 
     private DependencyResolutionServices createResolutionServices() {
         GlobalServicesRegistry globalRegistry = new GlobalServicesRegistry()
-        TopLevelBuildServiceRegistry topLevelRegistry = new TopLevelBuildServiceRegistry(globalRegistry, new StartParameter())
+        StartParameter startParameter = new StartParameter()
+        startParameter.gradleUserHomeDir = currentGradleDistribution.userHomeDir
+        TopLevelBuildServiceRegistry topLevelRegistry = new TopLevelBuildServiceRegistry(globalRegistry, startParameter)
         ProjectInternalServiceRegistry projectRegistry = new ProjectInternalServiceRegistry(topLevelRegistry, HelperUtil.createRootProject())
         projectRegistry.get(DependencyResolutionServices)
     }
