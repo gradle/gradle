@@ -17,7 +17,7 @@
 package org.gradle.process.internal.child;
 
 import org.gradle.api.Action;
-import org.gradle.util.ClassLoaderObjectInputStream;
+import org.gradle.internal.io.ClassLoaderObjectInputStream;
 
 import java.io.ByteArrayInputStream;
 import java.util.concurrent.Callable;

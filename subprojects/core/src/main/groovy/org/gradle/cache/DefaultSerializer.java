@@ -15,7 +15,7 @@
  */
 package org.gradle.cache;
 
-import org.gradle.util.ClassLoaderObjectInputStream;
+import org.gradle.internal.io.ClassLoaderObjectInputStream;
 
 import java.io.*;
 

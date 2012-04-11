@@ -14,22 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.messaging.remote.internal;
+package org.gradle.launcher.daemon.server;
 
 import org.gradle.api.internal.Operation;
 import org.gradle.api.internal.concurrent.Synchronizer;
+import org.gradle.messaging.remote.internal.Connection;
 
 /**
  * Connection decorator that synchronizes dispatching.
  * <p>
  * by Szczepan Faber, created at: 2/27/12
  */
-public class SynchronizedDispatch<T> implements Connection<T> {
+public class SynchronizedDispatchConnection<T> implements Connection<T> {
     
     private final Synchronizer sync = new Synchronizer();
     private final Connection<T> delegate;
 
-    public SynchronizedDispatch(Connection<T> delegate) {
+    public SynchronizedDispatchConnection(Connection<T> delegate) {
         this.delegate = delegate;
     }
     

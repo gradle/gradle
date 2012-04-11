@@ -25,7 +25,6 @@ import org.gradle.launcher.daemon.protocol.ForwardInput;
 import org.gradle.launcher.daemon.protocol.IoCommand;
 import org.gradle.messaging.concurrent.ExecutorFactory;
 import org.gradle.messaging.dispatch.Dispatch;
-import org.gradle.messaging.remote.internal.InputForwarder;
 
 import java.io.InputStream;
 import java.util.concurrent.locks.Lock;

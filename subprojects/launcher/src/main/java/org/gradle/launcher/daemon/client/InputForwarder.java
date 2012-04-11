@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.messaging.remote.internal;
+package org.gradle.launcher.daemon.client;
 
 import org.gradle.api.Action;
 import org.gradle.internal.Stoppable;
