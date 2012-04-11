@@ -52,7 +52,7 @@ class BuildSourceBuilderTest {
     FileCollection configurationMock = context.mock(FileCollection.class)
     TestFile rootDir = tmpDir.createDir('root')
     File testBuildSrcDir = rootDir.file('buildSrc').createDir()
-    Set testDependencies
+    List testDependencies
     StartParameter expectedStartParameter
     CacheRepository cacheRepository = context.mock(CacheRepository.class)
     PersistentStateCache stateCache = context.mock(PersistentStateCache.class)
@@ -72,7 +72,7 @@ class BuildSourceBuilderTest {
             allowing(convention).getPlugin(EmbeddableJavaProject);
             will(returnValue(projectMetaInfo))
             allowing(projectMetaInfo).getRuntimeClasspath(); will(returnValue(configurationMock))
-            allowing(configurationMock).getFiles(); will(returnValue(testDependencies))
+            allowing(configurationMock).getFiles(); will(returnValue(testDependencies as Set))
         }
         expectedBuildResult = new BuildResult(build, null)
     }
@@ -89,7 +89,7 @@ class BuildSourceBuilderTest {
         expectValueWrittenToCache()
         
         createBuildFile()
-        Set<File> actualClasspath = buildSourceBuilder.createBuildSourceClasspath(expectedStartParameter)
+        def actualClasspath = buildSourceBuilder.createBuildSourceClasspath(expectedStartParameter).asFiles
         assertEquals(testDependencies, actualClasspath)
     }
 
@@ -104,14 +104,14 @@ class BuildSourceBuilderTest {
         }
         expectValueWrittenToCache()
 
-        Set actualClasspath = buildSourceBuilder.createBuildSourceClasspath(expectedStartParameter)
+        def actualClasspath = buildSourceBuilder.createBuildSourceClasspath(expectedStartParameter).asFiles
         assertEquals(testDependencies, actualClasspath)
     }
 
     @Test public void testCreateClasspathWhenBuildSrcDirDoesNotExist() {
         expectedStartParameter = expectedStartParameter.newInstance()
         expectedStartParameter.setCurrentDir(new File('nonexisting'));
-        assertEquals([] as Set, buildSourceBuilder.createBuildSourceClasspath(expectedStartParameter))
+        assertEquals([], buildSourceBuilder.createBuildSourceClasspath(expectedStartParameter).asFiles)
     }
 
     private expectValueFetchedFromCache(def value) {
