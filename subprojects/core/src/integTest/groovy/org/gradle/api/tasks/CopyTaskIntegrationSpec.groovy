@@ -17,9 +17,8 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Issue
-import spock.lang.FailsWith
 import org.gradle.internal.os.OperatingSystem
+import spock.lang.Issue
 
 class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
 
