@@ -20,6 +20,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.DefaultSerializer;
 import org.gradle.cache.PersistentStateCache;
+import org.gradle.cache.internal.FileIntegrityViolationSuppressingPersistentStateCacheDecorator;
 import org.gradle.cache.internal.FileLockManager;
 import org.gradle.cache.internal.OnDemandFileAccess;
 import org.gradle.cache.internal.SimpleStateCache;
@@ -38,7 +39,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * @author: Szczepan Faber, created at: 8/18/11
  */
 public class PersistentDaemonRegistry implements DaemonRegistry {
-    private final SimpleStateCache<DaemonRegistryContent> cache;
+    private final PersistentStateCache<DaemonRegistryContent> cache;
     private final Lock lock = new ReentrantLock();
     private final File registryFile;
 
@@ -46,13 +47,15 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
 
     public PersistentDaemonRegistry(File registryFile, FileLockManager fileLockManager) {
         this.registryFile = registryFile;
-        cache = new SimpleStateCache<DaemonRegistryContent>(
-                registryFile,
-                new OnDemandFileAccess(
+        cache = new FileIntegrityViolationSuppressingPersistentStateCacheDecorator<DaemonRegistryContent>(
+                new SimpleStateCache<DaemonRegistryContent>(
                         registryFile,
-                        "daemon addresses registry",
-                        fileLockManager),
-                new DefaultSerializer<DaemonRegistryContent>());
+                        new OnDemandFileAccess(
+                                registryFile,
+                                "daemon addresses registry",
+                                fileLockManager),
+                        new DefaultSerializer<DaemonRegistryContent>()
+                ));
     }
 
     public List<DaemonInfo> getAll() {
