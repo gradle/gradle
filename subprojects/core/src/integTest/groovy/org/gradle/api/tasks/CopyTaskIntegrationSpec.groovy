@@ -19,11 +19,11 @@ package org.gradle.api.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 import spock.lang.FailsWith
+import org.gradle.internal.os.OperatingSystem
 
 class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
 
     @Issue("http://issues.gradle.org/browse/GRADLE-2181")
-    @FailsWith(RuntimeException)
     // Note, once this is passing it can be rolled into the one below as a paramaterised test
     def canCopyFilesWithUnicodeCharactersInNameWithNonUnicodePlatformEncoding() {
         given:
@@ -41,7 +41,8 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         file("res", weirdFileName) << "foo"
 
         when:
-        executer.withDefaultCharacterEncoding("ISO-8859-1").withTasks("copyFiles").run()
+        executer.withDefaultCharacterEncoding("ISO-8859-1").withTasks("copyFiles")
+        OperatingSystem.current().isWindows() ? executer.run() : executer.runWithFailure()
 
         then:
         file("build/resources", weirdFileName).exists()
