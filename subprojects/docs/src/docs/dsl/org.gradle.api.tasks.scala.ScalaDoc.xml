@@ -14,7 +14,7 @@
             </tr>
             <tr>
                 <td>classpath</td>
-                <td><literal>project.sourceSets.main.classes + project.sourceSets.main.compileClasspath</literal></td>
+                <td><literal>project.sourceSets.main.output + project.sourceSets.main.compileClasspath</literal></td>
             </tr>
             <tr>
                 <td>scalaClasspath</td>
