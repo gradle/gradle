@@ -974,7 +974,7 @@
                     <literal>classpath</literal>
                 </td>
                 <td><apilink class="org.gradle.api.file.FileCollection"/></td>
-                <td><literal>sourceSets.main.classes + sourceSets.main.compileClasspath</literal></td>
+                <td><literal>sourceSets.main.output + sourceSets.main.compileClasspath</literal></td>
             </tr>
             <tr>
                 <td><literal>source</literal></td>
