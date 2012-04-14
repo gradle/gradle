@@ -65,6 +65,7 @@ public class ProcessParentingInitializer {
         if (initialized) {
             return operation.create();
         }
+        //TODO SF the interface can be deleted.
         return synchronizer.synchronize(new Factory<T>() {
             public T create() {
                 if (initialized) {

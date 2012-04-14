@@ -51,4 +51,6 @@ public interface ExecHandle {
     void addListener(ExecHandleListener listener);
 
     void removeListener(ExecHandleListener listener);
+
+    void startDaemon();
 }

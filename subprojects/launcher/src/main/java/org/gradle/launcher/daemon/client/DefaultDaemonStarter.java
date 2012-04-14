@@ -19,20 +19,21 @@ import org.gradle.api.GradleException;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.internal.Factory;
 import org.gradle.launcher.daemon.bootstrap.DaemonGreeter;
 import org.gradle.launcher.daemon.bootstrap.GradleDaemon;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
 import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
 import org.gradle.launcher.daemon.registry.DaemonDir;
-import org.gradle.process.internal.ProcessParentingInitializer;
+import org.gradle.process.internal.ExecHandle;
+import org.gradle.process.internal.ExecHandleBuilder;
 import org.gradle.util.Clock;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -95,20 +96,21 @@ public class DefaultDaemonStarter implements DaemonStarter {
         Clock clock = new Clock();
         try {
             workingDir.mkdirs();
-            return ProcessParentingInitializer.intitialize(new Factory<DaemonDiagnostics>() {
-                public DaemonDiagnostics create() {
-                    try {
-                        Process process = new ProcessBuilder(args).redirectErrorStream(true).directory(workingDir).start();
-                        DaemonDiagnostics out = daemonGreeter.waitUntilDaemonReady(process);
-                        process.getOutputStream().close();
-                        process.getErrorStream().close();
-                        process.getInputStream().close();
-                        return out;
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-            });
+            ExecHandleBuilder builder = new ExecHandleBuilder();
+
+            builder.commandLine(args);
+            builder.setWorkingDir(workingDir);
+            builder.setStandardInput(new ByteArrayInputStream(new byte[0]));
+
+            //TODO SF improve: the exec handle, the way we retrieve output, the way we parse output.
+            ByteArrayOutputStream output = new ByteArrayOutputStream();
+            builder.setStandardOutput(output);
+            builder.setErrorOutput(output);
+
+            ExecHandle handle = builder.build();
+            handle.startDaemon();
+
+            return daemonGreeter.parseDaemonOutput(output.toString());
         } catch (GradleException e) {
             throw e;
         } catch (Exception e) {

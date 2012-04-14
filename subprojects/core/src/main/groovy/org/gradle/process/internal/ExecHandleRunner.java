@@ -84,6 +84,12 @@ public class ExecHandleRunner implements Runnable {
 
             execHandle.started();
 
+            if (execHandle.isDaemon()) {
+                instr.close();
+                execHandle.finished(0);
+                return;
+            }
+
             exitCode = process.waitFor();
             instr.close();
         } catch (Throwable t) {

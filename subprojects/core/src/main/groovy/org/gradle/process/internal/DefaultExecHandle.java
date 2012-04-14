@@ -97,6 +97,7 @@ public class DefaultExecHandle implements ExecHandle {
     private final Condition stateChange;
 
     private final StoppableExecutor executor;
+    private final StoppableExecutor streamsProcessor;
 
     /**
      * State of this ExecHandle.
@@ -113,6 +114,7 @@ public class DefaultExecHandle implements ExecHandle {
     private final ListenerBroadcast<ExecHandleListener> broadcast;
 
     private final ExecHandleShutdownHookAction shutdownHookAction;
+    private boolean daemon;
 
     DefaultExecHandle(String displayName, File directory, String command, List<String> arguments,
                       Map<String, String> environment, OutputStream standardOutput, OutputStream errorOutput,
@@ -129,6 +131,7 @@ public class DefaultExecHandle implements ExecHandle {
         this.stateChange = lock.newCondition();
         this.state = ExecHandleState.INIT;
         executor = new DefaultExecutorFactory().create(String.format("Run %s", displayName));
+        streamsProcessor = new DefaultExecutorFactory().create(String.format("Drain outputs and pass input to process: %s", displayName));
         shutdownHookAction = new ExecHandleShutdownHookAction(this);
         broadcast = new AsyncListenerBroadcast<ExecHandleListener>(ExecHandleListener.class, executor);
         broadcast.addAll(listeners);
@@ -223,6 +226,7 @@ public class DefaultExecHandle implements ExecHandle {
         broadcast.getSource().executionFinished(this, result);
         broadcast.stop();
         executor.requestStop();
+        streamsProcessor.requestStop();
     }
 
     public ExecHandle start() {
@@ -236,7 +240,7 @@ public class DefaultExecHandle implements ExecHandle {
 
             execResult = null;
 
-            execHandleRunner = new ExecHandleRunner(this, executor);
+            execHandleRunner = new ExecHandleRunner(this, streamsProcessor);
 
             executor.execute(execHandleRunner);
 
@@ -276,6 +280,7 @@ public class DefaultExecHandle implements ExecHandle {
 
     public ExecResult waitForFinish() {
         executor.stop();
+        streamsProcessor.stop();
 
         lock.lock();
         try {
@@ -284,6 +289,13 @@ public class DefaultExecHandle implements ExecHandle {
         } finally {
             lock.unlock();
         }
+    }
+
+    public void startDaemon() {
+        this.daemon = true;
+        start();
+        streamsProcessor.stop();
+        executor.stop();
     }
 
     void started() {
@@ -319,6 +331,10 @@ public class DefaultExecHandle implements ExecHandle {
 
     public void removeListener(ExecHandleListener listener) {
         broadcast.remove(listener);
+    }
+
+    public boolean isDaemon() {
+        return daemon;
     }
 
     private class ExecResultImpl implements ExecResult {

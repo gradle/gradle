@@ -27,14 +27,15 @@ import spock.lang.Specification
 class DaemonGreeterTest extends Specification {
 
     DocumentationRegistry registry = Mock()
-    DaemonGreeter.DaemonProcess process = Mock()
 
     def "parses the process output"() {
         given:
-        process.readInputStreamLines() >> ["hey", "joe", new DaemonStartupCommunication().daemonStartedMessage(12, new File("12.log"))]
+        def output = """hey joe!
+another line of output...
+${new DaemonStartupCommunication().daemonStartedMessage(12, new File("12.log"))}"""
 
         when:
-        def diagnostics = new DaemonGreeter(registry).parseDaemonOutput(process)
+        def diagnostics = new DaemonGreeter(registry).parseDaemonOutput(output)
 
         then:
         diagnostics.pid == 12
@@ -43,10 +44,11 @@ class DaemonGreeterTest extends Specification {
 
     def "shouts if daemon did not start"() {
         given:
-        process.readInputStreamLines() >> ["hey joe!", "the daemon does not seem to start..."]
+        def output = """hey joe!
+another line of output..."""
 
         when:
-        new DaemonGreeter(registry).parseDaemonOutput(process)
+        new DaemonGreeter(registry).parseDaemonOutput(output)
 
         then:
         def ex = thrown(GradleException)
@@ -55,11 +57,8 @@ class DaemonGreeterTest extends Specification {
     }
 
     def "shouts if daemon broke completely..."() {
-        given:
-        process.readInputStreamLines() >> []
-
         when:
-        new DaemonGreeter(registry).parseDaemonOutput(process)
+        new DaemonGreeter(registry).parseDaemonOutput("")
 
         then:
         def ex = thrown(GradleException)
