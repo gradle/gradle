@@ -66,7 +66,11 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         OutputListenerImpl errorListener = new OutputListenerImpl();
         BuildListenerImpl buildListener = new BuildListenerImpl();
         BuildResult result = doRun(outputListener, errorListener, buildListener);
-        result.rethrowFailure();
+        try {
+            result.rethrowFailure();
+        } catch (Exception e) {
+            throw new UnexpectedBuildFailure(e);
+        }
         return new InProcessExecutionResult(buildListener.executedTasks, buildListener.skippedTasks,
                 outputListener.toString(), errorListener.toString());
     }
