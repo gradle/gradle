@@ -13,18 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests;
+package org.gradle.integtests
 
-import org.gradle.integtests.fixtures.AbstractIntegrationTest;
-import org.junit.Test;
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-public class GroovyProjectIntegrationTest extends AbstractIntegrationTest {
-    @Test
-    public void handlesJavaSourceOnly() {
-        testFile("src/main/java/somepackage/SomeClass.java").writelns("public class SomeClass { }");
-        testFile("build.gradle").writelns("apply plugin: 'groovy'");
-        testFile("settings.gradle").write("rootProject.name='javaOnly'");
-        inTestDirectory().withTasks("build").run();
-        testFile("build/libs/javaOnly.jar").assertExists();
+class GroovyProjectIntegrationTest extends AbstractIntegrationSpec {
+    
+    def handlesJavaSourceOnly() {
+        given:
+        buildFile << "apply plugin: 'groovy'"
+
+        and:
+        file("src/main/java/somepackage/SomeClass.java") << "public class SomeClass { }"
+        file("settings.gradle") << "rootProject.name='javaOnly'"
+        
+        when:
+        run "build"
+
+        then:
+        file("build/libs/javaOnly.jar").exists()
     }
 }
