@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Issue
+import spock.lang.FailsWith
 
 class GroovyProjectIntegrationTest extends AbstractIntegrationSpec {
     
@@ -33,4 +35,31 @@ class GroovyProjectIntegrationTest extends AbstractIntegrationSpec {
         then:
         file("build/libs/javaOnly.jar").exists()
     }
+
+    @Issue("http://issues.gradle.org/browse/GRADLE-2232")
+    @FailsWith(RuntimeException)
+    def "can extend GroovyTestCase"() {
+        when:
+        buildFile << """
+            apply plugin: 'groovy'
+            repositories {
+                mavenCentral()
+            }
+            dependencies {
+                groovy localGroovy()
+                testCompile "junit:junit:4.10"
+            }
+        """
+        
+        and:
+        file("src/test/groovy/Test.groovy") << """
+            class SomethingElse extends GroovyTestCase {
+                void testIt() {}
+            }
+        """
+
+        then:
+        succeeds "test"
+    }
+
 }
