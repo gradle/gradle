@@ -47,4 +47,12 @@ class ApiGroovyCompilerIntegrationTest extends AbstractIntegrationSpec {
         then:
         noExceptionThrown()
     }
+
+    def "canUseAstTransformWrittenInGroovy"() {
+        when:
+        inDirectory(resources.dir).withTasks("test").run()
+
+        then:
+        noExceptionThrown()
+    }
 }
