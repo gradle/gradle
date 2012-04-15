@@ -1,4 +1,4 @@
 import org.codehaus.groovy.transform.GroovyASTTransformationClass;
 
-@GroovyASTTransformationClass(classes = {MagicFieldTransform.class})
+@GroovyASTTransformationClass({"MagicFieldTransform"})
 public @interface MagicField {}

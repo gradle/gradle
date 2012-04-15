@@ -53,4 +53,17 @@ class SamplesGroovyOldVersionsIntegrationTest {
         // Check jar exists
         groovyProjectDir.file("build/libs/groovy-1.6.7.jar").assertIsFile()
     }
+
+    @Test
+    public void groovy174() {
+        TestFile groovyProjectDir = dist.samplesDir.file('groovy/groovy-1.7.4')
+        executer.inDirectory(groovyProjectDir).withTasks('clean', 'build').run()
+
+        // Check tests have run
+        JUnitTestExecutionResult result = new JUnitTestExecutionResult(groovyProjectDir)
+        result.assertTestClassesExecuted('org.gradle.PersonTest')
+
+        // Check jar exists
+        groovyProjectDir.file("build/libs/groovy-1.7.4.jar").assertIsFile()
+    }
 }
