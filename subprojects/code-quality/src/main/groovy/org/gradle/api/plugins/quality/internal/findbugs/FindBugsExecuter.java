@@ -44,7 +44,7 @@ public class FindBugsExecuter implements Serializable {
             String[] strArray = new String[args.size()];
             args.toArray(strArray);
             // TODO RG: replace ByteArrayOutputStream by OutputStream that handles logging directly.
-            // TODO RG: use seperate streams for out and err.
+            // TODO RG: use separate streams for out and err.
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             System.setOut(new PrintStream(baos));
             System.setErr(new PrintStream(baos));
