@@ -34,6 +34,7 @@ public class GroovyForkOptionsTest {
     @Test public void testCompileOptions() {
         assertNull(forkOptions.memoryInitialSize)
         assertNull(forkOptions.memoryMaximumSize)
+        assertTrue(forkOptions.jvmArgs.empty)
     }
 
     @Test public void testOptionMap() {

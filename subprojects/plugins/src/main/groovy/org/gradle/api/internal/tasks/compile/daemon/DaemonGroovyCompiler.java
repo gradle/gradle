@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.compile.daemon;
 
 import com.google.common.collect.Iterables;
+
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.Compiler;
@@ -29,7 +30,6 @@ import org.gradle.internal.UncheckedException;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 public class DaemonGroovyCompiler implements Compiler<GroovyJavaJointCompileSpec> {
@@ -69,6 +69,6 @@ public class DaemonGroovyCompiler implements Compiler<GroovyJavaJointCompileSpec
         Iterable<File> groovyFiles = Iterables.concat(spec.getGroovyClasspath(), antFiles);
         List<String> groovyPackages = Arrays.asList("groovy", "org.codehaus.groovy", "groovyjarjarantlr", "groovyjarjarasm", "groovyjarjarcommonscli", "org.apache.tools.ant", "com.sun.tools.javac");
         return new DaemonForkOptions(options.getMemoryInitialSize(), options.getMemoryMaximumSize(),
-                Collections.<String>emptyList(), groovyFiles, groovyPackages);
+                options.getJvmArgs(), groovyFiles, groovyPackages);
     }
 }

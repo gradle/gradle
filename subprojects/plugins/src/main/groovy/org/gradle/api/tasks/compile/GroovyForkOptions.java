@@ -15,6 +15,11 @@
  */
 package org.gradle.api.tasks.compile;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+
+import java.util.List;
+
 /**
  * Fork options for Groovy compilation.
  *
@@ -25,6 +30,13 @@ public class GroovyForkOptions extends AbstractOptions {
 
     private String memoryInitialSize;
 
+    private String memoryMaximumSize;
+
+    /**
+     * Any additional JVM arguments for the compiler process.
+     */
+    private List<String> jvmArgs = Lists.newArrayList();
+
     public String getMemoryInitialSize() {
         return memoryInitialSize;
     }
@@ -33,13 +45,23 @@ public class GroovyForkOptions extends AbstractOptions {
         this.memoryInitialSize = memoryInitialSize;
     }
 
-    private String memoryMaximumSize;
-
     public String getMemoryMaximumSize() {
         return memoryMaximumSize;
     }
 
     public void setMemoryMaximumSize(String memoryMaximumSize) {
         this.memoryMaximumSize = memoryMaximumSize;
+    }
+
+    public List<String> getJvmArgs() {
+        return jvmArgs;
+    }
+
+    public void setJvmArgs(List<String> jvmArgs) {
+        this.jvmArgs = jvmArgs;
+    }
+
+    public List<String> excludedFieldsFromOptionMap() {
+        return ImmutableList.of("jvmArgs");
     }
 }
