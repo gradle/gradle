@@ -1,0 +1,10 @@
+apply plugin: "groovy"
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    groovy localGroovy()
+    testCompile "junit:junit:4.10"
+}
