@@ -43,7 +43,7 @@ public class FindBugsDaemonServer implements Action<WorkerProcessContext>, Seria
             FindBugsExecuter findBugsExecuter = new FindBugsExecuter(this);
             return findBugsExecuter.runFindbugs(spec);
         } catch (Exception e) {
-            LOGGER.warn("Exception occured while running FindBugs.", e);
+            LOGGER.warn("Exception occurred while running FindBugs.", e);
             return new FindBugsResult(0, 0, 1); //mark result with error count 1
         }
     }
