@@ -17,12 +17,12 @@ package org.gradle.api.internal.tasks.compile.daemon;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Sets;
+
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Nullable;
 
 import java.io.File;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 
 public class DaemonForkOptions {
@@ -77,7 +77,7 @@ public class DaemonForkOptions {
     public DaemonForkOptions mergeWith(DaemonForkOptions other) {
         String mergedMinHeapSize = mergeHeapSize(minHeapSize, other.minHeapSize);
         String mergedMaxHeapSize = mergeHeapSize(maxHeapSize, other.maxHeapSize);
-        Set<String> mergedJvmArgs = getNormalizedJvmArgs(this.jvmArgs);
+        Set<String> mergedJvmArgs = getNormalizedJvmArgs(jvmArgs);
         mergedJvmArgs.addAll(getNormalizedJvmArgs(other.getJvmArgs()));
         Set<File> mergedClasspath = getNormalizedClasspath(classpath);
         mergedClasspath.addAll(getNormalizedClasspath(other.classpath));
@@ -111,7 +111,7 @@ public class DaemonForkOptions {
     }
     
     private Set<String> getNormalizedJvmArgs(Iterable<String> jvmArgs) {
-        Set<String> normalized = new HashSet<String>();
+        Set<String> normalized = Sets.newLinkedHashSet();
         for (String jvmArg : jvmArgs) {
             normalized.add(jvmArg.trim());
         }
@@ -119,11 +119,11 @@ public class DaemonForkOptions {
     }
     
     private Set<File> getNormalizedClasspath(Iterable<File> classpath) {
-        return Sets.newHashSet(classpath);
+        return Sets.newLinkedHashSet(classpath);
     }
     
     private Set<String> getNormalizedSharedPackages(Iterable<String> allowedPackages) {
-        return Sets.newHashSet(allowedPackages);
+        return Sets.newLinkedHashSet(allowedPackages);
     }
     
     public String toString() {

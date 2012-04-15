@@ -107,6 +107,6 @@ public class ForkOptions extends AbstractOptions {
     }
 
     public List<String> excludedFieldsFromOptionMap() {
-        return ImmutableList.of("jvmArgs", "useAntForking", "useCompilerDaemon");
+        return ImmutableList.of("jvmArgs");
     }
 }

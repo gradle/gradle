@@ -87,6 +87,7 @@ public class CompilerDaemonManager {
         JavaExecHandleBuilder javaCommand = builder.getJavaCommand();
         javaCommand.setMinHeapSize(forkOptions.getMinHeapSize());
         javaCommand.setMaxHeapSize(forkOptions.getMaxHeapSize());
+        javaCommand.setJvmArgs(forkOptions.getJvmArgs());
         javaCommand.setWorkingDir(project.getRootProject().getProjectDir());
         process = builder.worker(new CompilerDaemonServer()).build();
         process.start();
