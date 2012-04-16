@@ -26,14 +26,15 @@ import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.exceptions.UnsupportedBuildArgumentException
 import org.gradle.tooling.model.GradleProject
 
-@MinToolingApiVersion('current')
-@MinTargetGradleVersion('current')
+@MinToolingApiVersion("current")
+@MinTargetGradleVersion("current")
 class PassingCommandLineArgumentsCrossVersionSpec extends ToolingApiSpecification {
 
 //    We don't want to validate *all* command line options here, just enough to make sure passing through works.
 
     def "understands project properties for building model"() {
         given:
+        toolingApi.verboseLogging = false //sanity check, see GRADLE-2226
         dist.file("build.gradle") << """
         description = project.getProperty('theDescription')
 """
@@ -83,7 +84,6 @@ class PassingCommandLineArgumentsCrossVersionSpec extends ToolingApiSpecificatio
     def "can use custom log level"() {
         //logging infrastructure is not installed when running in-process to avoid issues
         toolingApi.isEmbedded = false
-        toolingApi.verboseLogging = false
 
         given:
         dist.file("build.gradle") << """

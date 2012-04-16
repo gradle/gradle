@@ -50,7 +50,7 @@ public class ParsedCommandLine {
         }
         return output.toString();
     }
-    
+
     /**
      * Returns true if the given option is present in this command-line.
      *
@@ -60,6 +60,21 @@ public class ParsedCommandLine {
     public boolean hasOption(String option) {
         option(option);
         return presentOptions.contains(option);
+    }
+
+    /**
+     * See also {@link #hasOption}.
+     *
+     * @param logLevelOptions the options to check
+     * @return true if any of the passed options is present
+     */
+    public boolean hasAnyOption(Collection<String> logLevelOptions) {
+        for (String option : logLevelOptions) {
+            if (hasOption(option)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
