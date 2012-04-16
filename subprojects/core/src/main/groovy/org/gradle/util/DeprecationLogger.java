@@ -15,6 +15,7 @@
  */
 package org.gradle.util;
 
+import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.runtime.StackTraceUtils;
 import org.gradle.internal.Factory;
 import org.slf4j.Logger;
@@ -29,6 +30,7 @@ public class DeprecationLogger {
     private static final Set<String> PLUGINS = Collections.synchronizedSet(new HashSet<String>());
     private static final Set<String> TASKS = Collections.synchronizedSet(new HashSet<String>());
     private static final Set<String> METHODS = Collections.synchronizedSet(new HashSet<String>());
+    private static final Set<String> DYNAMIC_PROPERTIES = Collections.synchronizedSet(new HashSet<String>());
     private static final Set<String> PROPERTIES = Collections.synchronizedSet(new HashSet<String>());
     private static final Set<String> NAMED_PARAMETERS = Collections.synchronizedSet(new HashSet<String>());
     
@@ -53,6 +55,7 @@ public class DeprecationLogger {
         METHODS.clear();
         PROPERTIES.clear();
         NAMED_PARAMETERS.clear();
+        DYNAMIC_PROPERTIES.clear();
     }
 
     public static void nagUserOfReplacedPlugin(String pluginName, String replacement) {
@@ -153,5 +156,22 @@ public class DeprecationLogger {
     
     public static void setLogTrace(boolean flag) {
         LOG_TRACE.set(flag);
+    }
+
+    public static void nagUserAboutDynamicProperty(String propertyName, Object target, Object value) {
+        if (!isEnabled()) {
+            return;
+        }
+        nagUserWith("\nDynamic properties have been deprecated."
+                + "\nSee: *** http://gradle.org/docs/current/dsl/org.gradle.api.plugins.ExtraPropertiesExtension.html ***");
+
+        String propertyWithClass = target.getClass().getName() + "." + propertyName;
+        if (DYNAMIC_PROPERTIES.add(propertyWithClass)) {
+            String propertyWithTarget = String.format("\"%s\" on \"%s\"", propertyName, target);
+            String theValue = (value==null)? "null" : StringUtils.abbreviate(value.toString(), 25);
+            nagUserWith(String.format("Deprecated dynamic property: %s, value: \"%s\".", propertyWithTarget, theValue));
+        } else {
+            nagUserWith(String.format("Deprecated dynamic property \"%s\" created in multiple locations.", propertyName));
+        }
     }
 }
