@@ -14,7 +14,7 @@
   ~ limitations under the License.
   -->
 <chapter id='build_environment'>
-    <title>The build environment</title>
+    <title>The Build Environment</title>
 
     <section id="sec:gradle_configuration_properties">
         <title>Configuring the build environment via gradle.properties</title>

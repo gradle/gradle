@@ -48,12 +48,7 @@ public class ExtraPropertiesDynamicObjectAdapter extends BeanDynamicObject {
     @Override
     public void setProperty(String name, Object value) throws MissingPropertyException {
         if (!dynamicOwner.hasProperty(name)) {
-
-            DeprecationLogger.nagUserWith(
-                    String.format(
-                            "Dynamic properties have been deprecated (property \"%s\" on the object \"%s\" with value \"%s\" created).\nSee: %s",
-                            name, delegate, value, "http://gradle.org/docs/current/dsl/org.gradle.api.plugins.ExtraPropertiesExtension.html")
-            );
+            DeprecationLogger.nagUserAboutDynamicProperty(name, delegate, value);
         }
 
         super.setProperty(name, value);
