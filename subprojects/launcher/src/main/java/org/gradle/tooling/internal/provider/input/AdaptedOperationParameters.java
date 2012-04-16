@@ -17,6 +17,8 @@
 package org.gradle.tooling.internal.provider.input;
 
 import org.gradle.api.logging.LogLevel;
+import org.gradle.cli.CommandLineParser;
+import org.gradle.cli.ParsedCommandLine;
 import org.gradle.logging.LoggingConfiguration;
 import org.gradle.logging.internal.LoggingCommandLineConverter;
 import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1;
@@ -65,13 +67,17 @@ public class AdaptedOperationParameters implements ProviderOperationParameters {
     }
 
     public LogLevel getBuildLogLevel() {
-        boolean verbose = getVerboseLogging();
-        if (verbose) {
+        LoggingCommandLineConverter converter = new LoggingCommandLineConverter();
+        CommandLineParser parser = new CommandLineParser().allowUnknownOptions();
+        converter.configure(parser);
+        ParsedCommandLine parsedCommandLine = parser.parse(getArguments());
+        //configure verbosely only if arguments do not specify any log level.
+        if (getVerboseLogging() && !parsedCommandLine.hasAnyOption(converter.getLogLevelOptions())) {
             return LogLevel.DEBUG;
-        } else {
-            LoggingConfiguration loggingConfiguration = new LoggingCommandLineConverter().convert(getArguments());
-            return loggingConfiguration.getLogLevel();
         }
+
+        LoggingConfiguration loggingConfiguration = converter.convert(parsedCommandLine);
+        return loggingConfiguration.getLogLevel();
     }
 
     public boolean getVerboseLogging() {
