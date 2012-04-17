@@ -40,12 +40,17 @@ public class ExecHandleBuilder extends AbstractExecHandleBuilder implements Exec
         super(fileResolver);
     }
 
+    public ExecHandleBuilder executable(Object executable) {
+        super.executable(executable);
+        return this;
+    }
+
     public ExecHandleBuilder commandLine(Object... arguments) {
         commandLine(Arrays.asList(arguments));
         return this;
     }
 
-    public ExecSpec commandLine(Iterable<?> args) {
+    public ExecHandleBuilder commandLine(Iterable<?> args) {
         List<Object> argsList = Lists.newArrayList(args);
         executable(argsList.get(0));
         setArgs(argsList.subList(1, argsList.size()));
@@ -68,7 +73,7 @@ public class ExecHandleBuilder extends AbstractExecHandleBuilder implements Exec
         return this;
     }
 
-    public ExecSpec args(Iterable<?> args) {
+    public ExecHandleBuilder args(Iterable<?> args) {
         GUtil.addToCollection(arguments, args);
         return this;
     }
@@ -95,6 +100,18 @@ public class ExecHandleBuilder extends AbstractExecHandleBuilder implements Exec
     @Override
     public ExecHandleBuilder setIgnoreExitValue(boolean ignoreExitValue) {
         super.setIgnoreExitValue(ignoreExitValue);
+        return this;
+    }
+
+    @Override
+    public ExecHandleBuilder workingDir(Object dir) {
+        super.workingDir(dir);
+        return this;
+    }
+
+    @Override
+    public ExecHandleBuilder setDisplayName(String displayName) {
+        super.setDisplayName(displayName);
         return this;
     }
 }

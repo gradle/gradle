@@ -100,8 +100,9 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
         return displayName == null ? String.format("command '%s'", getExecutable()) : displayName;
     }
 
-    public void setDisplayName(String displayName) {
+    public AbstractExecHandleBuilder setDisplayName(String displayName) {
         this.displayName = displayName;
+        return this;
     }
 
     public AbstractExecHandleBuilder listener(ExecHandleListener listener) {

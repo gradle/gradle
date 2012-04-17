@@ -18,7 +18,7 @@ package org.gradle.process.internal;
 
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.process.ExecResult;
-import org.gradle.process.internal.streams.StreamsForwarder;
+import org.gradle.util.GUtil;
 import org.gradle.util.TemporaryFolder;
 import org.junit.Rule;
 import org.junit.Test;
@@ -26,7 +26,7 @@ import org.junit.Test;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.List;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
@@ -43,18 +43,10 @@ public class DefaultExecHandleTest {
     public void testCanForkProcess() throws IOException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
-        DefaultExecHandle execHandle = new DefaultExecHandle(
-                "display-name",
-                tmpDir.getDir(),
-                Jvm.current().getJavaExecutable().getAbsolutePath(),
-                Arrays.asList(
-                        "-cp",
-                        System.getProperty("java.class.path"),
-                        TestApp.class.getName(),
-                        "arg1", "arg2"), System.getenv(),
-                new StreamsForwarder(out),
-                Collections.<ExecHandleListener>emptyList(),
-                false);
+        ExecHandle execHandle = handle()
+                .args(args(TestApp.class, "arg1", "arg2"))
+                .setStandardOutput(out)
+                .build();
 
         ExecResult result = execHandle.start().waitForFinish();
         assertEquals(ExecHandleState.SUCCEEDED, execHandle.getState());
@@ -63,19 +55,19 @@ public class DefaultExecHandleTest {
         result.assertNormalExitValue();
     }
 
+    private ExecHandleBuilder handle() {
+        return new ExecHandleBuilder()
+                .executable(Jvm.current().getJavaExecutable().getAbsolutePath())
+                .workingDir(tmpDir.getDir());
+    }
+
+    private List args(Class mainClass, String ... args) {
+        return GUtil.flattenElements("-cp", System.getProperty("java.class.path"), mainClass.getName(), args);
+    }
+
     @Test
     public void testProcessCanHaveNonZeroExitCode() throws IOException {
-        DefaultExecHandle execHandle = new DefaultExecHandle(
-                "display-name",
-                tmpDir.getDir(),
-                Jvm.current().getJavaExecutable().getAbsolutePath(),
-                Arrays.asList(
-                        "-cp",
-                        System.getProperty("java.class.path"),
-                        BrokenApp.class.getName()), System.getenv(),
-                new StreamsForwarder(),
-                Collections.<ExecHandleListener>emptyList(),
-                false);
+        ExecHandle execHandle = handle().args(args(BrokenApp.class)).build();
 
         ExecResult result = execHandle.start().waitForFinish();
         assertEquals(ExecHandleState.FAILED, execHandle.getState());
@@ -84,43 +76,25 @@ public class DefaultExecHandleTest {
             result.assertNormalExitValue();
             fail();
         } catch (ExecException e) {
-            assertEquals("Display-name finished with (non-zero) exit value 72.", e.getMessage());
+            assertTrue(e.getMessage().contains("finished with (non-zero) exit value 72."));
         }
     }
 
     @Test
     public void testThrowsExceptionWhenProcessCannotBeStarted() throws IOException {
-        DefaultExecHandle execHandle = new DefaultExecHandle(
-                "display-name",
-                tmpDir.getDir(),
-                "no_such_command",
-                Arrays.asList("arg"),
-                System.getenv(),
-                new StreamsForwarder(),
-                Collections.<ExecHandleListener>emptyList(),
-                false);
+        ExecHandle execHandle = handle().setDisplayName("awesome process").executable("no_such_command").build();
 
         try {
             execHandle.start();
             fail();
         } catch (ExecException e) {
-            assertEquals("A problem occurred starting display-name.", e.getMessage());
+            assertEquals("A problem occurred starting awesome process.", e.getMessage());
         }
     }
 
     @Test
     public void testAbort() throws IOException {
-        DefaultExecHandle execHandle = new DefaultExecHandle(
-                "display-name",
-                tmpDir.getDir(),
-                Jvm.current().getJavaExecutable().getAbsolutePath(),
-                Arrays.asList(
-                        "-cp",
-                        System.getProperty("java.class.path"),
-                        SlowApp.class.getName()), System.getenv(),
-                new StreamsForwarder(),
-                Collections.<ExecHandleListener>emptyList(),
-                false);
+        ExecHandle execHandle = handle().args(args(SlowApp.class)).build();
 
         execHandle.start();
         execHandle.abort();
