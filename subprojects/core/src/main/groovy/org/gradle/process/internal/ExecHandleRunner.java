@@ -75,7 +75,8 @@ public class ExecHandleRunner implements Runnable {
 
             if (execHandle.isDaemon()) {
                 streamsForwarder.close();
-                execHandle.finished(0);
+                waitForStreamsEOF();
+                execHandle.demonized();
                 return;
             }
 
@@ -93,7 +94,7 @@ public class ExecHandleRunner implements Runnable {
         }
     }
 
-    public void stop() {
+    public void waitForStreamsEOF() {
         executor.stop();
     }
 }

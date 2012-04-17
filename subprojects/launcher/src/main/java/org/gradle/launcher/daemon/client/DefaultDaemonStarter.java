@@ -98,6 +98,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
             workingDir.mkdirs();
             ExecHandleBuilder builder = new ExecHandleBuilder();
 
+            builder.daemon();
             builder.commandLine(args);
             builder.setWorkingDir(workingDir);
             builder.setStandardInput(new ByteArrayInputStream(new byte[0]));
@@ -108,7 +109,8 @@ public class DefaultDaemonStarter implements DaemonStarter {
             builder.setErrorOutput(output);
 
             ExecHandle handle = builder.build();
-            handle.startDaemon();
+            handle.start();
+            handle.waitForFinish();
 
             return daemonGreeter.parseDaemonOutput(output.toString());
         } catch (GradleException e) {

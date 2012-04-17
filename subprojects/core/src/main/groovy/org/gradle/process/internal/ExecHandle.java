@@ -46,11 +46,14 @@ public interface ExecHandle {
 
     void abort();
 
+    /**
+     * Waits for the process to finish or the daemon process to get demonized.
+     *
+     * @return result
+     */
     ExecResult waitForFinish();
 
     void addListener(ExecHandleListener listener);
 
     void removeListener(ExecHandleListener listener);
-
-    void startDaemon();
 }

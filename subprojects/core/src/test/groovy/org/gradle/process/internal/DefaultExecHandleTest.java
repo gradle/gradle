@@ -53,8 +53,8 @@ public class DefaultExecHandleTest {
                         TestApp.class.getName(),
                         "arg1", "arg2"), System.getenv(),
                 new StreamsForwarder(out),
-                Collections.<ExecHandleListener>emptyList()
-        );
+                Collections.<ExecHandleListener>emptyList(),
+                false);
 
         ExecResult result = execHandle.start().waitForFinish();
         assertEquals(ExecHandleState.SUCCEEDED, execHandle.getState());
@@ -74,8 +74,8 @@ public class DefaultExecHandleTest {
                         System.getProperty("java.class.path"),
                         BrokenApp.class.getName()), System.getenv(),
                 new StreamsForwarder(),
-                Collections.<ExecHandleListener>emptyList()
-        );
+                Collections.<ExecHandleListener>emptyList(),
+                false);
 
         ExecResult result = execHandle.start().waitForFinish();
         assertEquals(ExecHandleState.FAILED, execHandle.getState());
@@ -97,8 +97,8 @@ public class DefaultExecHandleTest {
                 Arrays.asList("arg"),
                 System.getenv(),
                 new StreamsForwarder(),
-                Collections.<ExecHandleListener>emptyList()
-        );
+                Collections.<ExecHandleListener>emptyList(),
+                false);
 
         try {
             execHandle.start();
@@ -119,8 +119,8 @@ public class DefaultExecHandleTest {
                         System.getProperty("java.class.path"),
                         SlowApp.class.getName()), System.getenv(),
                 new StreamsForwarder(),
-                Collections.<ExecHandleListener>emptyList()
-        );
+                Collections.<ExecHandleListener>emptyList(),
+                false);
 
         execHandle.start();
         execHandle.abort();

@@ -112,7 +112,8 @@ public class DefaultExecHandle implements ExecHandle {
     private boolean daemon;
 
     DefaultExecHandle(String displayName, File directory, String command, List<String> arguments,
-                      Map<String, String> environment, StreamsForwarder streamsForwarder, List<ExecHandleListener> listeners) {
+                      Map<String, String> environment, StreamsForwarder streamsForwarder,
+                      List<ExecHandleListener> listeners, boolean daemon) {
         this.displayName = displayName;
         this.directory = directory;
         this.command = command;
@@ -126,6 +127,7 @@ public class DefaultExecHandle implements ExecHandle {
         shutdownHookAction = new ExecHandleShutdownHookAction(this);
         broadcast = new AsyncListenerBroadcast<ExecHandleListener>(ExecHandleListener.class, executor);
         broadcast.addAll(listeners);
+        this.daemon = daemon;
     }
 
     public File getDirectory() {
@@ -258,7 +260,7 @@ public class DefaultExecHandle implements ExecHandle {
 
     public ExecResult waitForFinish() {
         executor.stop();
-        execHandleRunner.stop();
+        execHandleRunner.waitForStreamsEOF();
 
         lock.lock();
         try {
@@ -269,11 +271,8 @@ public class DefaultExecHandle implements ExecHandle {
         }
     }
 
-    public void startDaemon() {
-        this.daemon = true;
-        start();
-        execHandleRunner.stop();
-        executor.stop();
+    void demonized() {
+        setEndStateInfo(ExecHandleState.DEMONIZED, 0, null);
     }
 
     void started() {
