@@ -249,10 +249,13 @@ public class DefaultExecHandle implements ExecHandle {
             if (state == ExecHandleState.SUCCEEDED) {
                 return;
             }
-            if (!stateIn(ExecHandleState.STARTED)) {
+            if (!stateIn(ExecHandleState.STARTED, ExecHandleState.DEMONIZED)) {
                 throw new IllegalStateException("not in started state!");
             }
             this.execHandleRunner.abortProcess();
+            if (state == ExecHandleState.DEMONIZED) {
+                aborted(0);
+            }
         } finally {
             lock.unlock();
         }
