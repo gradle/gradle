@@ -20,8 +20,10 @@ import java.io.File;
 
 public interface FileLock extends Closeable, FileAccess {
     /**
-     * Returns true if the most recent {@link #updateFile(Runnable)} by any process succeeded (ie a process did not crash while updating
-     * the target file). Returns false if {@link #updateFile(Runnable)} has never been called for the target file.
+     * Returns true if the most recent mutation method ({@link #updateFile(Runnable)} or {@link #writeFile(Runnable)} attempted by any process succeeded
+     * (ie a process did not crash while updating the target file).
+     *
+     * Returns false if no mutation method has been called for the target file.
      */
     boolean getUnlockedCleanly();
 

@@ -25,6 +25,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+/**
+ * An immutable classpath.
+ */
 public class DefaultClassPath implements ClassPath, Serializable {
     private final List<File> files;
 

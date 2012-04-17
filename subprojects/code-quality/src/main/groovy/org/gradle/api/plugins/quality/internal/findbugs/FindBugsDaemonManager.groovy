@@ -13,28 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
 package org.gradle.api.plugins.quality.internal.findbugs
 
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.logging.Logger
-import org.gradle.api.logging.Logging
 import org.gradle.process.internal.JavaExecHandleBuilder
 import org.gradle.process.internal.WorkerProcess
 import org.gradle.process.internal.WorkerProcessBuilder
 
 class FindBugsDaemonManager {
-    private final Logger logger = Logging.getLogger(getClass())
-
     public FindBugsResult runDaemon(ProjectInternal project, FileCollection findBugsClasspath, FindBugsSpec spec) {
-        logger.info("Starting Gradle findbugs daemon.");
-        if (logger.isDebugEnabled()) {
-            logger.debug(findBugsClasspath.asPath);
-        }
-
         WorkerProcess process = createWorkerProcess(project, findBugsClasspath, spec);
         process.start();
 
@@ -43,7 +31,6 @@ class FindBugsDaemonManager {
         FindBugsResult result = clientCallBack.getResult();
 
         process.waitForStop();
-        logger.info("Gradle findbugs daemon stopped.");
         return result;
     }
 

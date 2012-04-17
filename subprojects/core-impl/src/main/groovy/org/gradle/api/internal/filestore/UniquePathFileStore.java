@@ -71,7 +71,7 @@ public class UniquePathFileStore implements FileStore<String>, FileStoreSearcher
     private void saveIntoFileStore(File contentFile, File storageFile) {
         File parentDir = storageFile.getParentFile();
         if (!parentDir.mkdirs() && !parentDir.exists()) {
-            throw new GradleException(String.format("Unabled to create filestore directory %s", parentDir));
+            throw new GradleException(String.format("Unable to create filestore directory %s", parentDir));
         }
         if (!contentFile.renameTo(storageFile)) {
             throw new GradleException(String.format("Failed to copy downloaded content into storage file: %s", storageFile));
