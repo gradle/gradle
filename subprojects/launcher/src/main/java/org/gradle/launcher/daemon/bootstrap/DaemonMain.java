@@ -122,6 +122,7 @@ public class DaemonMain extends EntryPoint {
 
     protected void daemonStarted(Long pid, File daemonLog) {
         //directly printing to the stream to avoid log level filtering.
+        //TODO SF - this needs a static lock (ci detected the problem).
         new DaemonStartupCommunication().printDaemonStarted(originalOut, pid, daemonLog);
         originalOut.close();
         originalErr.close();
