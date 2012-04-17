@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.process.internal;
+package org.gradle.process.internal.streams;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.CompositeStoppable;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.concurrent.Executor;
 
 /**
  * @author Tom Eyckmans
@@ -54,6 +56,14 @@ public class ExecOutputHandleRunner implements Runnable {
         } catch (Throwable t) {
             LOGGER.error(String.format("Could not %s.", displayName), t);
         }
+    }
+
+    public void run(Executor executor) {
+        executor.execute(this);
+    }
+
+    public void closeInput() throws IOException {
+        inputStream.close();
     }
 
     @Override

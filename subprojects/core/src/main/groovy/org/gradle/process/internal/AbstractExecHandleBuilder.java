@@ -19,6 +19,7 @@ import org.apache.commons.io.output.CloseShieldOutputStream;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.process.BaseExecSpec;
+import org.gradle.process.internal.streams.StreamsForwarder;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -117,6 +118,6 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
         }
 
         return new DefaultExecHandle(getDisplayName(), getWorkingDir(), executable, getAllArguments(), getActualEnvironment(),
-                standardOutput, errorOutput, input, listeners);
+                new StreamsForwarder(standardOutput, errorOutput, input), listeners);
     }
 }

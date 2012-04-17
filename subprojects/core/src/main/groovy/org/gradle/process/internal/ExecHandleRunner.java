@@ -16,9 +16,8 @@
 
 package org.gradle.process.internal;
 
-import org.gradle.util.DisconnectableInputStream;
+import org.gradle.process.internal.streams.StreamsForwarder;
 
-import java.io.InputStream;
 import java.util.concurrent.Executor;
 
 /**
@@ -32,11 +31,13 @@ public class ExecHandleRunner implements Runnable {
     private final Object lock;
     private Process process;
     private boolean aborted;
+    private final StreamsForwarder streamsForwarder;
 
-    public ExecHandleRunner(DefaultExecHandle execHandle, Executor threadPool) {
+    public ExecHandleRunner(DefaultExecHandle execHandle, Executor threadPool, StreamsForwarder streamsForwarder) {
         if (execHandle == null) {
             throw new IllegalArgumentException("execHandle == null!");
         }
+        this.streamsForwarder = streamsForwarder;
         this.processBuilderFactory = new ProcessBuilderFactory();
         this.execHandle = execHandle;
         this.lock = new Object();
@@ -56,42 +57,29 @@ public class ExecHandleRunner implements Runnable {
         ProcessBuilder processBuilder = processBuilderFactory.createProcessBuilder(execHandle);
         int exitCode;
         try {
-            ExecOutputHandleRunner standardOutputRunner;
-            ExecOutputHandleRunner errorOutputRunner;
-            ExecOutputHandleRunner standardInputRunner;
-            InputStream instr = new DisconnectableInputStream(execHandle.getStandardInput());
             Process process;
 
             // This big fat static lock is here for windows. When starting multiple processes concurrently, the stdout
             // and stderr streams for some of the processes get stuck
             synchronized (START_LOCK) {
                 process = processBuilder.start();
-
-                standardOutputRunner = new ExecOutputHandleRunner("read process standard output",
-                        process.getInputStream(), execHandle.getStandardOutput());
-                errorOutputRunner = new ExecOutputHandleRunner("read process error output", process.getErrorStream(),
-                        execHandle.getErrorOutput());
-                standardInputRunner = new ExecOutputHandleRunner("write process standard input",
-                        instr, process.getOutputStream());
+                streamsForwarder.connectStreams(process);
             }
             synchronized (lock) {
                 this.process = process;
             }
 
-            threadPool.execute(standardInputRunner);
-            threadPool.execute(standardOutputRunner);
-            threadPool.execute(errorOutputRunner);
-
+            streamsForwarder.start(threadPool);
             execHandle.started();
 
             if (execHandle.isDaemon()) {
-                instr.close();
+                streamsForwarder.close();
                 execHandle.finished(0);
                 return;
             }
 
             exitCode = process.waitFor();
-            instr.close();
+            streamsForwarder.close();
         } catch (Throwable t) {
             execHandle.failed(t);
             return;

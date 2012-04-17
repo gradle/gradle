@@ -26,10 +26,9 @@ import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.messaging.concurrent.StoppableExecutor;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.shutdown.ShutdownHookActionRegister;
+import org.gradle.process.internal.streams.StreamsForwarder;
 
 import java.io.File;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -84,10 +83,7 @@ public class DefaultExecHandle implements ExecHandle {
      * The variables to set in the environment the executable is run in.
      */
     private final Map<String, String> environment;
-
-    private final OutputStream standardOutput;
-    private final OutputStream errorOutput;
-    private final InputStream standardInput;
+    private final StreamsForwarder streamsForwarder;
 
     /**
      * Lock to guard all mutable state
@@ -117,16 +113,13 @@ public class DefaultExecHandle implements ExecHandle {
     private boolean daemon;
 
     DefaultExecHandle(String displayName, File directory, String command, List<String> arguments,
-                      Map<String, String> environment, OutputStream standardOutput, OutputStream errorOutput,
-                      InputStream standardInput, List<ExecHandleListener> listeners) {
+                      Map<String, String> environment, StreamsForwarder streamsForwarder, List<ExecHandleListener> listeners) {
         this.displayName = displayName;
         this.directory = directory;
         this.command = command;
         this.arguments = arguments;
         this.environment = environment;
-        this.standardOutput = standardOutput;
-        this.errorOutput = errorOutput;
-        this.standardInput = standardInput;
+        this.streamsForwarder = streamsForwarder;
         this.lock = new ReentrantLock();
         this.stateChange = lock.newCondition();
         this.state = ExecHandleState.INIT;
@@ -156,18 +149,6 @@ public class DefaultExecHandle implements ExecHandle {
 
     public Map<String, String> getEnvironment() {
         return Collections.unmodifiableMap(environment);
-    }
-
-    public OutputStream getStandardOutput() {
-        return standardOutput;
-    }
-
-    public OutputStream getErrorOutput() {
-        return errorOutput;
-    }
-
-    public InputStream getStandardInput() {
-        return standardInput;
     }
 
     public ExecHandleState getState() {
@@ -240,7 +221,7 @@ public class DefaultExecHandle implements ExecHandle {
 
             execResult = null;
 
-            execHandleRunner = new ExecHandleRunner(this, streamsProcessor);
+            execHandleRunner = new ExecHandleRunner(this, streamsProcessor, streamsForwarder);
 
             executor.execute(execHandleRunner);
 
