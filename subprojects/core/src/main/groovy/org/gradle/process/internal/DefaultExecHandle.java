@@ -93,7 +93,6 @@ public class DefaultExecHandle implements ExecHandle {
     private final Condition stateChange;
 
     private final StoppableExecutor executor;
-    private final StoppableExecutor streamsProcessor;
 
     /**
      * State of this ExecHandle.
@@ -124,7 +123,6 @@ public class DefaultExecHandle implements ExecHandle {
         this.stateChange = lock.newCondition();
         this.state = ExecHandleState.INIT;
         executor = new DefaultExecutorFactory().create(String.format("Run %s", displayName));
-        streamsProcessor = new DefaultExecutorFactory().create(String.format("Drain outputs and pass input to process: %s", displayName));
         shutdownHookAction = new ExecHandleShutdownHookAction(this);
         broadcast = new AsyncListenerBroadcast<ExecHandleListener>(ExecHandleListener.class, executor);
         broadcast.addAll(listeners);
@@ -207,7 +205,6 @@ public class DefaultExecHandle implements ExecHandle {
         broadcast.getSource().executionFinished(this, result);
         broadcast.stop();
         executor.requestStop();
-        streamsProcessor.requestStop();
     }
 
     public ExecHandle start() {
@@ -221,7 +218,7 @@ public class DefaultExecHandle implements ExecHandle {
 
             execResult = null;
 
-            execHandleRunner = new ExecHandleRunner(this, streamsProcessor, streamsForwarder);
+            execHandleRunner = new ExecHandleRunner(this, streamsForwarder);
 
             executor.execute(execHandleRunner);
 
@@ -253,7 +250,7 @@ public class DefaultExecHandle implements ExecHandle {
             if (!stateIn(ExecHandleState.STARTED)) {
                 throw new IllegalStateException("not in started state!");
             }
-            this.execHandleRunner.stopWaiting();
+            this.execHandleRunner.abortProcess();
         } finally {
             lock.unlock();
         }
@@ -261,7 +258,7 @@ public class DefaultExecHandle implements ExecHandle {
 
     public ExecResult waitForFinish() {
         executor.stop();
-        streamsProcessor.stop();
+        execHandleRunner.stop();
 
         lock.lock();
         try {
@@ -275,7 +272,7 @@ public class DefaultExecHandle implements ExecHandle {
     public void startDaemon() {
         this.daemon = true;
         start();
-        streamsProcessor.stop();
+        execHandleRunner.stop();
         executor.stop();
     }
 
@@ -316,6 +313,10 @@ public class DefaultExecHandle implements ExecHandle {
 
     public boolean isDaemon() {
         return daemon;
+    }
+
+    public String getDisplayName() {
+        return displayName;
     }
 
     private class ExecResultImpl implements ExecResult {

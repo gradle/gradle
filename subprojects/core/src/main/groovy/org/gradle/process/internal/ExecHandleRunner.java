@@ -16,9 +16,9 @@
 
 package org.gradle.process.internal;
 
+import org.gradle.messaging.concurrent.DefaultExecutorFactory;
+import org.gradle.messaging.concurrent.StoppableExecutor;
 import org.gradle.process.internal.streams.StreamsForwarder;
-
-import java.util.concurrent.Executor;
 
 /**
  * @author Tom Eyckmans
@@ -27,13 +27,13 @@ public class ExecHandleRunner implements Runnable {
     private static final Object START_LOCK = new Object();
     private final ProcessBuilderFactory processBuilderFactory;
     private final DefaultExecHandle execHandle;
-    private final Executor threadPool;
+    private final StoppableExecutor executor;
     private final Object lock;
     private Process process;
     private boolean aborted;
     private final StreamsForwarder streamsForwarder;
 
-    public ExecHandleRunner(DefaultExecHandle execHandle, Executor threadPool, StreamsForwarder streamsForwarder) {
+    public ExecHandleRunner(DefaultExecHandle execHandle, StreamsForwarder streamsForwarder) {
         if (execHandle == null) {
             throw new IllegalArgumentException("execHandle == null!");
         }
@@ -41,10 +41,11 @@ public class ExecHandleRunner implements Runnable {
         this.processBuilderFactory = new ProcessBuilderFactory();
         this.execHandle = execHandle;
         this.lock = new Object();
-        this.threadPool = threadPool;
+        this.executor = new DefaultExecutorFactory()
+                .create(String.format("Forward streams with process: %s", execHandle.getDisplayName()));
     }
 
-    public void stopWaiting() {
+    public void abortProcess() {
         synchronized (lock) {
             aborted = true;
             if (process != null) {
@@ -69,7 +70,7 @@ public class ExecHandleRunner implements Runnable {
                 this.process = process;
             }
 
-            streamsForwarder.start(threadPool);
+            streamsForwarder.start(executor);
             execHandle.started();
 
             if (execHandle.isDaemon()) {
@@ -90,5 +91,9 @@ public class ExecHandleRunner implements Runnable {
         } else {
             execHandle.finished(exitCode);
         }
+    }
+
+    public void stop() {
+        executor.stop();
     }
 }
