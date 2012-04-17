@@ -11,9 +11,6 @@ buildscript {
     }
 }
 // END SNIPPET use-task
-buildscript {
-   configurations.classpath.resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
-}
 apply plugin: 'greeting'
 // END SNIPPET use-plugin
 // START SNIPPET use-task
