@@ -162,8 +162,7 @@ public class DeprecationLogger {
         if (!isEnabled()) {
             return;
         }
-        nagUserWith("\nDynamic properties have been deprecated."
-                + "\nSee: *** http://gradle.org/docs/current/dsl/org.gradle.api.plugins.ExtraPropertiesExtension.html ***");
+        nagUserWith("Dynamic properties are deprecated: http://gradle.org/docs/current/dsl/org.gradle.api.plugins.ExtraPropertiesExtension.html");
 
         String propertyWithClass = target.getClass().getName() + "." + propertyName;
         if (DYNAMIC_PROPERTIES.add(propertyWithClass)) {
