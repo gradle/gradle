@@ -15,13 +15,12 @@
  */
 package org.gradle.process.internal;
 
-import org.apache.commons.io.output.CloseShieldOutputStream;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.process.BaseExecSpec;
+import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.process.internal.streams.StreamsForwarder;
 
-import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -33,15 +32,16 @@ import java.util.List;
 public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOptions implements BaseExecSpec {
     private OutputStream standardOutput;
     private OutputStream errorOutput;
-    private InputStream input = new ByteArrayInputStream(new byte[0]);
+    private InputStream input;
     private String displayName;
     private final List<ExecHandleListener> listeners = new ArrayList<ExecHandleListener>();
     boolean ignoreExitValue;
 
     public AbstractExecHandleBuilder(FileResolver fileResolver) {
         super(fileResolver);
-        standardOutput = new CloseShieldOutputStream(System.out);
-        errorOutput = new CloseShieldOutputStream(System.err);
+        standardOutput = SafeStreams.systemOut();
+        errorOutput = SafeStreams.systemErr();
+        input = SafeStreams.emptyInput();
     }
 
     public abstract List<String> getAllArguments();

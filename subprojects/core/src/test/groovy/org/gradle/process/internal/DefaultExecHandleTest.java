@@ -16,21 +16,21 @@
 
 package org.gradle.process.internal;
 
-import org.apache.commons.io.output.CloseShieldOutputStream;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.process.ExecResult;
+import org.gradle.process.internal.streams.StreamsForwarder;
 import org.gradle.util.TemporaryFolder;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.*;
-import static org.hamcrest.Matchers.*;
 
 /**
  * @author Tom Eyckmans
@@ -52,9 +52,7 @@ public class DefaultExecHandleTest {
                         System.getProperty("java.class.path"),
                         TestApp.class.getName(),
                         "arg1", "arg2"), System.getenv(),
-                out,
-                System.err,
-                new ByteArrayInputStream(new byte[0]),
+                new StreamsForwarder(out),
                 Collections.<ExecHandleListener>emptyList()
         );
 
@@ -75,9 +73,7 @@ public class DefaultExecHandleTest {
                         "-cp",
                         System.getProperty("java.class.path"),
                         BrokenApp.class.getName()), System.getenv(),
-                new CloseShieldOutputStream(System.out),
-                new CloseShieldOutputStream(System.err),
-                new ByteArrayInputStream(new byte[0]),
+                new StreamsForwarder(),
                 Collections.<ExecHandleListener>emptyList()
         );
 
@@ -100,9 +96,7 @@ public class DefaultExecHandleTest {
                 "no_such_command",
                 Arrays.asList("arg"),
                 System.getenv(),
-                System.out,
-                System.err,
-                new ByteArrayInputStream(new byte[0]),
+                new StreamsForwarder(),
                 Collections.<ExecHandleListener>emptyList()
         );
 
@@ -124,9 +118,7 @@ public class DefaultExecHandleTest {
                         "-cp",
                         System.getProperty("java.class.path"),
                         SlowApp.class.getName()), System.getenv(),
-                new CloseShieldOutputStream(System.out),
-                new CloseShieldOutputStream(System.err),
-                new ByteArrayInputStream(new byte[0]),
+                new StreamsForwarder(),
                 Collections.<ExecHandleListener>emptyList()
         );
 

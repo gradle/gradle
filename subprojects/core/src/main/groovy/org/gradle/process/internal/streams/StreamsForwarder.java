@@ -38,6 +38,14 @@ public class StreamsForwarder {
         this.input = input;
     }
 
+    public StreamsForwarder(OutputStream standardOutput) {
+        this(standardOutput, SafeStreams.systemErr(), SafeStreams.emptyInput());
+    }
+
+    public StreamsForwarder() {
+        this(SafeStreams.systemOut(), SafeStreams.systemErr(), SafeStreams.emptyInput());
+    }
+
     public void start(Executor executor) {
         executor.execute(standardInputRunner);
         executor.execute(errorOutputRunner);
