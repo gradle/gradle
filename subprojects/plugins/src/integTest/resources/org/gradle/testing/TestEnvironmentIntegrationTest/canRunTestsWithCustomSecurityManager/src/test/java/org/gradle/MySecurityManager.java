@@ -6,7 +6,6 @@ import static org.junit.Assert.assertEquals;
 
 public class MySecurityManager extends SecurityManager {
     public MySecurityManager() {
-        assertEquals(ClassLoader.getSystemClassLoader(), getClass().getClassLoader());
         assertEquals(getClass().getName(), System.getProperty("java.security.manager"));
     }
 
