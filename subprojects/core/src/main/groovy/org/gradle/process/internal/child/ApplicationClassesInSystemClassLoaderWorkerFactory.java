@@ -74,6 +74,10 @@ public class ApplicationClassesInSystemClassLoaderWorkerFactory implements Worke
 
     public void prepareJavaCommand(JavaExecSpec execSpec) {
         execSpec.classpath(classPathRegistry.getClassPath("WORKER_MAIN").getAsFiles());
+        Object requestedSecurityManager = execSpec.getSystemProperties().get("java.security.manager");
+        if (requestedSecurityManager != null) {
+            execSpec.systemProperty("org.gradle.security.manager", requestedSecurityManager);
+        }
         execSpec.systemProperty("java.security.manager", BootstrapSecurityManager.class.getName());
         try {
             ByteArrayOutputStream stdin = new ByteArrayOutputStream();

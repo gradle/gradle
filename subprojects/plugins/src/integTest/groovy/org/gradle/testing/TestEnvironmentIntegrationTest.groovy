@@ -17,16 +17,14 @@
 package org.gradle.testing
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.junit.Rule
-import org.gradle.integtests.fixtures.TestResources
-import org.junit.Test
 import org.gradle.integtests.fixtures.JUnitTestExecutionResult
+import org.gradle.integtests.fixtures.TestResources
+import org.junit.Rule
 
 class TestEnvironmentIntegrationTest extends AbstractIntegrationSpec {
     @Rule public final TestResources resources = new TestResources()
 
-    @Test
-    public void canRunTestsWithCustomSystemClassLoader() {
+    def canRunTestsWithCustomSystemClassLoader() {
         when:
         run 'test'
 
@@ -36,8 +34,7 @@ class TestEnvironmentIntegrationTest extends AbstractIntegrationSpec {
         result.testClass('org.gradle.JUnitTest').assertTestPassed('mySystemClassLoaderIsUsed')
     }
 
-    @Test
-    public void canRunTestsWithCustomSystemClassLoaderAndJavaAgent() {
+    def canRunTestsWithCustomSystemClassLoaderAndJavaAgent() {
         when:
         run 'test'
 
@@ -47,8 +44,17 @@ class TestEnvironmentIntegrationTest extends AbstractIntegrationSpec {
         result.testClass('org.gradle.JUnitTest').assertTestPassed('mySystemClassLoaderIsUsed')
     }
 
-    @Test
-    public void canRunTestsWithJMockitLoadedWithJavaAgent() {
+    def canRunTestsWithCustomSecurityManager() {
+        when:
+        run 'test'
+
+        then:
+        def result = new JUnitTestExecutionResult(testDir)
+        result.assertTestClassesExecuted('org.gradle.JUnitTest')
+        result.testClass('org.gradle.JUnitTest').assertTestPassed('mySecurityManagerIsUsed')
+    }
+
+    def canRunTestsWithJMockitLoadedWithJavaAgent() {
         when:
         run 'test'
 
