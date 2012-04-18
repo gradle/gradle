@@ -16,17 +16,18 @@
 
 package org.gradle.process.internal.child;
 
+import com.google.common.io.ByteStreams;
+import com.google.common.io.InputSupplier;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.ClassPathRegistry;
-import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.messaging.remote.Address;
+import org.gradle.process.JavaExecSpec;
 import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.process.internal.launcher.BootstrapClassLoaderWorker;
 import org.gradle.util.GUtil;
 
-import java.io.File;
+import java.io.*;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -53,40 +54,45 @@ import java.util.concurrent.Callable;
  * </pre>
  */
 public class ApplicationClassesInSystemClassLoaderWorkerFactory implements WorkerFactory {
-    private final TemporaryFileProvider temporaryFileProvider;
     private final Object workerId;
     private final String displayName;
     private final WorkerProcessBuilder processBuilder;
     private final List<URL> implementationClassPath;
     private final Address serverAddress;
     private final ClassPathRegistry classPathRegistry;
-    private final File classpathJarFile;
 
     public ApplicationClassesInSystemClassLoaderWorkerFactory(Object workerId, String displayName, WorkerProcessBuilder processBuilder,
                                                               List<URL> implementationClassPath, Address serverAddress,
-                                                              ClassPathRegistry classPathRegistry, TemporaryFileProvider temporaryFileProvider) {
+                                                              ClassPathRegistry classPathRegistry) {
         this.workerId = workerId;
         this.displayName = displayName;
         this.processBuilder = processBuilder;
         this.implementationClassPath = implementationClassPath;
         this.serverAddress = serverAddress;
         this.classPathRegistry = classPathRegistry;
-        this.temporaryFileProvider = temporaryFileProvider;
-        classpathJarFile = createClasspathJarFile(processBuilder);
     }
 
-    private File createClasspathJarFile(WorkerProcessBuilder processBuilder) {
-        File classpathJarFile = temporaryFileProvider.createTemporaryFile("GradleWorkerProcess", "classpath.jar");
-        new UtilityJarFactory().createClasspathJarFile(classpathJarFile, processBuilder.getApplicationClasspath());
-        classpathJarFile.deleteOnExit();
-        return classpathJarFile;
-    }
-
-    public Collection<File> getSystemClasspath() {
-        List<File> systemClasspath = new ArrayList<File>();
-        systemClasspath.addAll(classPathRegistry.getClassPath("WORKER_MAIN").getAsFiles());
-        systemClasspath.add(classpathJarFile);
-        return systemClasspath;
+    public void prepareJavaCommand(JavaExecSpec execSpec) {
+        execSpec.classpath(classPathRegistry.getClassPath("WORKER_MAIN").getAsFiles());
+        execSpec.systemProperty("java.security.manager", BootstrapSecurityManager.class.getName());
+        try {
+            ByteArrayOutputStream stdin = new ByteArrayOutputStream();
+            DataOutputStream outstr = new DataOutputStream(stdin);
+            outstr.writeInt(processBuilder.getApplicationClasspath().size());
+            for (File file : processBuilder.getApplicationClasspath()) {
+                outstr.writeUTF(file.getAbsolutePath());
+            }
+            outstr.close();
+            final InputStream originalStdin = execSpec.getStandardInput();
+            InputStream input = ByteStreams.join(ByteStreams.newInputStreamSupplier(stdin.toByteArray()), new InputSupplier<InputStream>() {
+                public InputStream getInput() throws IOException {
+                    return originalStdin;
+                }
+            }).getInput();
+            execSpec.setStandardInput(input);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     public Callable<?> create() {

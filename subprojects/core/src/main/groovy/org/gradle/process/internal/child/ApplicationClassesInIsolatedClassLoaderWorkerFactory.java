@@ -18,10 +18,10 @@ package org.gradle.process.internal.child;
 
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.messaging.remote.Address;
+import org.gradle.process.JavaExecSpec;
 import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.util.GFileUtils;
 
-import java.io.File;
 import java.net.URI;
 import java.net.URL;
 import java.util.Collection;
@@ -69,8 +69,8 @@ public class ApplicationClassesInIsolatedClassLoaderWorkerFactory implements Wor
         this.classPathRegistry = classPathRegistry;
     }
 
-    public Collection<File> getSystemClasspath() {
-        return classPathRegistry.getClassPath("WORKER_PROCESS").getAsFiles();
+    public void prepareJavaCommand(JavaExecSpec execSpec) {
+        execSpec.classpath(classPathRegistry.getClassPath("WORKER_PROCESS").getAsFiles());
     }
 
     public Callable<?> create() {
