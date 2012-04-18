@@ -22,10 +22,15 @@ import org.junit.Rule
 import spock.lang.Specification
 
 import java.security.AllPermission
+import java.security.Permission
 
 class BootstrapSecurityManagerTest extends Specification {
     @Rule SetSystemProperties systemProperties
     @Rule RedirectStdIn stdIn
+
+    def cleanup() {
+        System.securityManager = null
+    }
 
     def "reads classpath from System.in and sets up system classpath on first permission check"() {
         def entry1 = new File("a.jar")
@@ -33,12 +38,7 @@ class BootstrapSecurityManagerTest extends Specification {
         TestClassLoader cl = Mock()
 
         given:
-        def out = new ByteArrayOutputStream()
-        def dataOut = new DataOutputStream(out)
-        dataOut.writeInt(2)
-        dataOut.writeUTF(entry1.absolutePath)
-        dataOut.writeUTF(entry2.absolutePath)
-        System.in = new ByteArrayInputStream(out.toByteArray())
+        System.in = createStdInContent(entry1, entry2)
 
         when:
         def securityManager = new BootstrapSecurityManager(cl)
@@ -63,6 +63,29 @@ class BootstrapSecurityManagerTest extends Specification {
         System.getProperty("java.class.path") == [entry1.absolutePath, entry2.absolutePath].join(File.pathSeparator)
     }
 
+    def "installs custom SecurityManager"() {
+        System.setProperty("org.gradle.security.manager", TestSecurityManager.class.name)
+        URLClassLoader cl = new URLClassLoader([] as URL[], getClass().classLoader)
+
+        given:
+        System.in = createStdInContent()
+
+        when:
+        def securityManager = new BootstrapSecurityManager(cl)
+        securityManager.checkPermission(new AllPermission())
+
+        then:
+        System.securityManager instanceof TestSecurityManager
+    }
+
+    def createStdInContent(File... classpath) {
+        def out = new ByteArrayOutputStream()
+        def dataOut = new DataOutputStream(out)
+        dataOut.writeInt(classpath.length)
+        classpath.each { dataOut.writeUTF(it.absolutePath) }
+        return new ByteArrayInputStream(out.toByteArray())
+    }
+
     static class TestClassLoader extends URLClassLoader {
         TestClassLoader(URL[] urls) {
             super(urls)
@@ -70,6 +93,12 @@ class BootstrapSecurityManagerTest extends Specification {
 
         @Override
         void addURL(URL url) {
+        }
+    }
+
+    static class TestSecurityManager extends SecurityManager {
+        @Override
+        void checkPermission(Permission permission) {
         }
     }
 }

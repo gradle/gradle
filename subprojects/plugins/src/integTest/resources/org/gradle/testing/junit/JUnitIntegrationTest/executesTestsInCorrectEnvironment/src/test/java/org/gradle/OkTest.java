@@ -41,6 +41,12 @@ public class OkTest {
         // check working dir
         assertEquals(System.getProperty("projectDir"), System.getProperty("user.dir"));
 
+        // check sys properties
+        assertEquals("value", System.getProperty("testSysProperty"));
+
+        // check env vars
+        assertEquals("value", System.getenv("TEST_ENV_VAR"));
+
         // check classloader and classpath
         assertSame(ClassLoader.getSystemClassLoader(), getClass().getClassLoader());
         assertSame(getClass().getClassLoader(), Thread.currentThread().getContextClassLoader());
@@ -61,11 +67,8 @@ public class OkTest {
         } catch (ClassNotFoundException e) {
         }
 
-        // check sys properties
-        assertEquals("value", System.getProperty("testSysProperty"));
-
-        // check env vars
-        assertEquals("value", System.getenv("TEST_ENV_VAR"));
+        // check other environmental stuff
+        assertNull(System.getSecurityManager());
 
         // check stdout and stderr and logging
         System.out.println("This is test stdout");
