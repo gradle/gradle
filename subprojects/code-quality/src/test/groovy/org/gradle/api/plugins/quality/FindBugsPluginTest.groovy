@@ -20,6 +20,7 @@ import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.ReportingBasePlugin
 import org.gradle.api.tasks.SourceSet
 import org.gradle.util.HelperUtil
+import org.gradle.api.InvalidUserDataException
 import spock.lang.Specification
 import static org.gradle.util.Matchers.dependsOn
 import static org.hamcrest.Matchers.*
@@ -28,8 +29,14 @@ import static spock.util.matcher.HamcrestSupport.that
 class FindBugsPluginTest extends Specification {
     Project project = HelperUtil.createRootProject()
 
+    // We consistently need files that actually exist
+    File includeFile
+    File excludeFile
+
     def setup() {
         project.plugins.apply(FindBugsPlugin)
+        includeFile = File.createTempFile("include", "txt")
+        excludeFile = File.createTempFile("exclude", "txt")
     }
 
     def "applies reporting-base plugin"() {
@@ -78,6 +85,12 @@ class FindBugsPluginTest extends Specification {
             assert classes.empty // no classes to analyze
             assert reports.xml.destination == project.file("build/reports/findbugs/${sourceSet.name}.xml")
             assert ignoreFailures == false
+            assert effort == null
+            assert reportLevel == null
+            assert visitors == null
+            assert omitVisitors == null
+            assert excludeFilter == null
+            assert includeFilter == null
         }
     }
 
@@ -93,6 +106,12 @@ class FindBugsPluginTest extends Specification {
         task.pluginClasspath == project.configurations.findbugsPlugins
         task.reports.xml.destination == project.file("build/reports/findbugs/custom.xml")
         task.ignoreFailures == false
+        task.effort == null
+        task.reportLevel == null
+        task.visitors == null
+        task.omitVisitors == null
+        task.excludeFilter == null
+        task.includeFilter == null
     }
 
     def "adds findbugs tasks to check lifecycle task"() {
@@ -119,6 +138,12 @@ class FindBugsPluginTest extends Specification {
             sourceSets = [project.sourceSets.main]
             reportsDir = project.file("findbugs-reports")
             ignoreFailures = true
+            effort = 'min'
+            reportLevel = 'high'
+            visitors = ['org.gradle.Class']
+            omitVisitors = ['org.gradle.Interface']
+            excludeFilter = excludeFile
+            includeFilter = includeFile
         }
 
         expect:
@@ -138,6 +163,12 @@ class FindBugsPluginTest extends Specification {
             assert findbugsClasspath == project.configurations.findbugs
             assert reports.xml.destination == project.file("findbugs-reports/${sourceSet.name}.xml")
             assert ignoreFailures == true
+            assert effort == 'min'
+            assert reportLevel == 'high'
+            assert visitors == ['org.gradle.Class']
+            assert omitVisitors == ['org.gradle.Interface']
+            assert excludeFilter == excludeFile
+            assert includeFilter == includeFile
         }
     }
     
@@ -146,6 +177,12 @@ class FindBugsPluginTest extends Specification {
         project.findbugs {
             reportsDir = project.file("findbugs-reports")
             ignoreFailures = true
+            effort = 'min'
+            reportLevel = 'high'
+            visitors = ['org.gradle.Class']
+            omitVisitors = ['org.gradle.Interface']
+            excludeFilter = excludeFile
+            includeFilter = includeFile
         }
 
         expect:
@@ -157,6 +194,12 @@ class FindBugsPluginTest extends Specification {
         task.pluginClasspath == project.configurations.findbugsPlugins
         task.reports.xml.destination == project.file("findbugs-reports/custom.xml")
         task.ignoreFailures == true
+        task.effort == 'min'
+        task.reportLevel == 'high'
+        task.visitors == ['org.gradle.Class']
+        task.omitVisitors == ['org.gradle.Interface']
+        task.excludeFilter == excludeFile
+        task.includeFilter == includeFile
     }
 
     def "can configure reporting"() {
@@ -176,5 +219,144 @@ class FindBugsPluginTest extends Specification {
 
         then:
         notThrown()
+    }
+    
+
+    private FindBugs setupWithMain() {
+        project.plugins.apply(JavaBasePlugin)
+        project.sourceSets {
+            main
+        }
+
+        // Fake classes input
+        project.findbugsMain.classes = project.files(".")
+
+        project.findbugsMain
+    }
+
+    def "can generate spec"() {
+        def task = setupWithMain()
+
+        when:
+        task.generateSpec()
+
+        then:
+        notThrown()
+    }
+
+    def "can configure optional arguments"() {
+        def task = setupWithMain()
+
+        task.effort = 'min'
+        task.reportLevel = 'high'
+        task.visitors = ['Check1','Check2'] as Set
+        task.omitVisitors = ['Check3','Check4'] as Set
+
+        expect:
+        hasArgument(task, '-effort:min')
+        hasArgument(task, '-high')
+        hasArgument(task, '-visitors') && hasArgument(task,'Check1,Check2') 
+    }
+
+    private boolean hasArgument(task, Closure closure) {
+        return task.generateSpec().getArguments().any(closure)
+    }
+
+    private boolean hasArgument(task, String contains) {
+        return hasArgument(task) { it.contains(contains) }
+    }
+
+    def "can configure effort optional parameter"() {
+        def task = setupWithMain()
+
+        expect: !hasArgument(task,'-effort')
+
+        when: task.effort = 'min'
+        then: hasArgument(task, '-effort:min')
+
+        when: task.effort = 'default'
+        then: hasArgument(task, '-effort:default') 
+
+        when: task.effort = 'max'
+        then: hasArgument(task, '-effort:max')
+
+        when:
+            task.effort = 'invalid'
+            task.generateSpec()
+        then:
+            thrown(InvalidUserDataException)
+    }
+
+    def "can configure reportLevel optional parameter"() {
+        def task = setupWithMain()
+
+        //expect: !hasArgument(task.optionalArguments().containsKey('reportLevel')
+
+        when: task.reportLevel = 'experimental'
+        then: hasArgument(task, '-experimental')
+
+        when: task.reportLevel = 'low'
+        then: hasArgument(task, '-low')
+
+        when: task.reportLevel = 'medium'
+        then: hasArgument(task, '-medium')
+
+        when: task.reportLevel = 'high'
+        then: hasArgument(task, '-high')
+
+        when:
+            task.reportLevel = 'invalid'
+            task.generateSpec()
+        then:
+            thrown(InvalidUserDataException)
+    }
+
+    def "can configure visitor optional parameters"(String paramName) {
+        def task = setupWithMain()
+
+        expect: !hasArgument(task, "-${paramName}")
+
+        when: task[paramName] = []
+        then: !hasArgument(task, "-${paramName}")
+
+        when: task[paramName] = ['Check1']
+        then: 
+            hasArgument(task, "-${paramName}") 
+            hasArgument(task, 'Check1')
+
+        when: task[paramName] = ['Check1','Check2']
+        then:
+            hasArgument(task, "-${paramName}")
+            hasArgument(task, 'Check1,Check2')
+
+        when: task[paramName] = ['Check1,Check2', 'Check3']
+        then:
+            hasArgument(task, "-${paramName}")
+            hasArgument(task, 'Check1,Check2,Check3')
+
+        where: paramName << ['visitors','omitVisitors']
+    }
+
+    def "can configure filters optional parameter"(String paramName) {
+        def task = setupWithMain()
+
+        expect: !hasArgument(task, "-${paramName}")
+
+        when:
+            task["${paramName}Filter"] = project.file('shouldNotExist.txt')
+            task.generateSpec()
+        then: thrown(InvalidUserDataException)
+
+        when:
+        File validFile = File.createTempFile(paramName, "txt")
+        task["${paramName}Filter"] = validFile
+
+        then:
+        println task.generateSpec().getArguments()
+        hasArgument(task, "-${paramName}")
+        hasArgument(task, validFile.getPath())
+
+        where: paramName << ['include', 'exclude']
+
     }
 }

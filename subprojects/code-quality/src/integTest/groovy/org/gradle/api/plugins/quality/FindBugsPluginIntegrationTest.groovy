@@ -35,8 +35,8 @@ class FindBugsPluginIntegrationTest extends WellBehavedPluginTest {
         goodCode()
         expect:
         succeeds("check")
-		file("build/reports/findbugs/main.xml").assertContents(containsClass("org.gradle.Class1"))
-		file("build/reports/findbugs/test.xml").assertContents(containsClass("org.gradle.Class1Test"))
+        file("build/reports/findbugs/main.xml").assertContents(containsClass("org.gradle.Class1"))
+        file("build/reports/findbugs/test.xml").assertContents(containsClass("org.gradle.Class1Test"))
     }
 
     void "analyze bad code"() {
@@ -44,9 +44,9 @@ class FindBugsPluginIntegrationTest extends WellBehavedPluginTest {
 
         expect:
         fails("check")
-		failure.assertHasDescription("Execution failed for task ':findbugsMain'")
+        failure.assertHasDescription("Execution failed for task ':findbugsMain'")
         failure.assertThatCause(startsWith("FindBugs rule violations were found. See the report at"))
-		file("build/reports/findbugs/main.xml").assertContents(containsClass("org.gradle.Class1"))
+        file("build/reports/findbugs/main.xml").assertContents(containsClass("org.gradle.Class1"))
     }
 
     def "is incremental"() {
@@ -81,7 +81,37 @@ class FindBugsPluginIntegrationTest extends WellBehavedPluginTest {
 
         failure.assertHasCause "Findbugs tasks can only have one report enabled"
     }
-    
+
+    def "can use optional arguments"() {
+        given:
+        buildFile << """
+            findbugsMain {
+                effort 'min'
+                reportLevel 'high'
+                includeFilter file('include.xml')
+                excludeFilter file('exclude.xml')
+                visitors = ['FindDeadLocalStores', 'UnreadFields']
+                omitVisitors = ['WaitInLoop', 'UnnecessaryMath']
+            }
+            findbugsMain.reports {
+                xml.enabled true
+            }
+        """
+
+        and:
+        goodCode()
+        badCode()
+
+        and:
+        writeFilterFile('include.xml', '.*')
+        writeFilterFile('exclude.xml', 'org\\.gradle\\.Bad.*')
+
+        expect:
+        succeeds("check")
+        file("build/reports/findbugs/main.xml").assertContents(containsClass("org.gradle.Class1"))
+        file("build/reports/findbugs/test.xml").assertContents(containsClass("org.gradle.Class1Test"))
+    }
+
     def "can generate html reports"() {
         given:
         buildFile << """
@@ -126,6 +156,13 @@ class FindBugsPluginIntegrationTest extends WellBehavedPluginTest {
         file("src/test/java/org/gradle/Class1Test.java") << "package org.gradle; class Class1Test { public boolean isFoo(Object arg) { return true; } }"
     }
 
+    private badCode() {
+        // Has DM_EXIT
+        file('src/main/java/org/gradle/BadClass2.java') << 'package org.gradle; class BaseClass2 { public boolean isFoo(Object arg) { System.exit(1); return true; } }'
+        // Has ES_COMPARING_PARAMETER_STRING_WITH_EQ
+        file('src/test/java/org/gradle/BadClass2Test.java') << 'package org.gradle; class BadClass2Test { public boolean isFoo(Object arg) { return "true"=="false"; } }'
+    }
+
     private Matcher<String> containsClass(String className) {
         containsLine(containsString(className.replace(".", File.separator)))
     }
@@ -139,5 +176,15 @@ class FindBugsPluginIntegrationTest extends WellBehavedPluginTest {
             mavenCentral()
         }
         """
+    }
+
+    private void writeFilterFile(String filename, String className) {
+        file(filename) << """
+            <FindBugsFilter>
+            <Match>
+                <Class name="${className}" />
+            </Match>
+            </FindBugsFilter>
+            """
     }
 }
