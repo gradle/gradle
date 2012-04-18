@@ -39,12 +39,18 @@ public class BootstrapSecurityManager extends SecurityManager {
     }
 
     @Override
-    public synchronized void checkPermission(Permission permission) {
-        if (initialised) {
-            return;
-        }
+    public void checkPermission(Permission permission) {
+        synchronized (this) {
+            if (initialised) {
+                return;
+            }
+            if (System.in == null) {
+                // Still starting up
+                return;
+            }
 
-        initialised = true;
+            initialised = true;
+        }
 
         System.clearProperty("java.security.manager");
         System.setSecurityManager(null);
@@ -79,7 +85,7 @@ public class BootstrapSecurityManager extends SecurityManager {
                 Class<?> aClass = systemClassLoader.loadClass(secManagerType);
                 securityManager = (SecurityManager) aClass.newInstance();
             } catch (Exception e) {
-                throw new RuntimeException(String.format("Could not create an instance of '%s' specified for system SecurityManager.", secManagerType), e);
+                throw new RuntimeException("Could not create an instance of '" + secManagerType + "' specified for system SecurityManager.", e);
             }
             System.setSecurityManager(securityManager);
         }
