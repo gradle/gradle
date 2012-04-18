@@ -18,12 +18,10 @@ package org.gradle.process.internal;
 
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.Factory;
 import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.MessagingServer;
-import org.gradle.process.ExecResult;
 import org.gradle.process.internal.child.ApplicationClassesInIsolatedClassLoaderWorkerFactory;
 import org.gradle.process.internal.child.ApplicationClassesInSystemClassLoaderWorkerFactory;
 import org.gradle.process.internal.child.WorkerFactory;
@@ -37,7 +35,6 @@ import org.slf4j.LoggerFactory;
 import java.io.ByteArrayInputStream;
 import java.net.URL;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 public class DefaultWorkerProcessFactory implements Factory<WorkerProcessBuilder> {
@@ -75,8 +72,7 @@ public class DefaultWorkerProcessFactory implements Factory<WorkerProcessBuilder
                 throw new IllegalStateException("No worker action specified for this worker process.");
             }
 
-            final TmpDirTemporaryFileProvider tmpFileProvider = new TmpDirTemporaryFileProvider();
-            final DefaultWorkerProcess workerProcess = new DeleteFilesOnStopWorkerProcess(120, TimeUnit.SECONDS, tmpFileProvider);
+            DefaultWorkerProcess workerProcess = new DefaultWorkerProcess(120, TimeUnit.SECONDS);
             Address localAddress = server.accept(workerProcess.getConnectAction());
 
             // Build configuration for GradleWorkerMain
@@ -87,21 +83,19 @@ public class DefaultWorkerProcessFactory implements Factory<WorkerProcessBuilder
             WorkerFactory workerFactory;
             if (isLoadApplicationInSystemClassLoader()) {
                 workerFactory = new ApplicationClassesInSystemClassLoaderWorkerFactory(id, displayName, this,
-                        implementationClassPath, localAddress, classPathRegistry, tmpFileProvider);
+                        implementationClassPath, localAddress, classPathRegistry);
             } else {
                 workerFactory = new ApplicationClassesInIsolatedClassLoaderWorkerFactory(id, displayName, this,
                         implementationClassPath, localAddress, classPathRegistry);
             }
-            Callable<?> workerMain = workerFactory.create();
-            byte[] config = GUtil.serialize(workerMain);
 
             LOGGER.debug("Creating {}", displayName);
             LOGGER.debug("Using application classpath {}", getApplicationClasspath());
             LOGGER.debug("Using implementation classpath {}", implementationClassPath);
 
             JavaExecHandleBuilder javaCommand = getJavaCommand();
-            javaCommand.classpath(workerFactory.getSystemClasspath());
-            javaCommand.setStandardInput(new ByteArrayInputStream(config));
+            attachStdInContent(workerFactory, javaCommand);
+            workerFactory.prepareJavaCommand(javaCommand);
             javaCommand.setDisplayName(displayName);
             ExecHandle execHandle = javaCommand.build();
 
@@ -109,23 +103,10 @@ public class DefaultWorkerProcessFactory implements Factory<WorkerProcessBuilder
 
             return workerProcess;
         }
-    }
 
-    private static class DeleteFilesOnStopWorkerProcess extends DefaultWorkerProcess {
-        private final TmpDirTemporaryFileProvider temporaryFileProvider;
-
-        public DeleteFilesOnStopWorkerProcess(int connectTimeoutSeconds, TimeUnit connectTimeoutUnits, TmpDirTemporaryFileProvider temporaryFileProvider) {
-            super(connectTimeoutSeconds, connectTimeoutUnits);
-            this.temporaryFileProvider = temporaryFileProvider;
-        }
-
-        @Override
-        public ExecResult waitForStop() {
-            try {
-                return super.waitForStop();
-            } finally {
-                temporaryFileProvider.deleteAllCreated();
-            }
+        private void attachStdInContent(WorkerFactory workerFactory, JavaExecHandleBuilder javaCommand) {
+            ByteArrayInputStream stdinContent = new ByteArrayInputStream(GUtil.serialize(workerFactory.create()));
+            javaCommand.setStandardInput(stdinContent);
         }
     }
 }

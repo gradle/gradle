@@ -19,9 +19,11 @@ import java.util.logging.LogManager
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.tooling.model.GradleProject
+import org.gradle.util.RedirectStdIn
+import org.junit.Rule
 
 class GlobalLoggingManipulationIntegrationTest extends AbstractIntegrationSpec {
-
+    @Rule RedirectStdIn stdIn
     final ToolingApi toolingApi = new ToolingApi(distribution)
 
     def "tooling api does not replace standard streams"() {
