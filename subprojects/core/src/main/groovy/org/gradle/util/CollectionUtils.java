@@ -16,8 +16,8 @@
 package org.gradle.util;
 
 import com.google.common.collect.Lists;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.Transformer;
+import org.gradle.api.specs.Spec;
 
 import java.util.*;
 
@@ -72,4 +72,28 @@ public abstract class CollectionUtils {
         }
         return result;
     }
+    
+    public static <E> List<E> compact(List<E> list) {
+        boolean foundAtLeastOneNull = false;
+        List<E> compacted = null;
+        int i = 0;
+        
+        for (E element : list) {
+            if (element == null) {
+                if (!foundAtLeastOneNull) {
+                    compacted = new ArrayList<E>(list.size());
+                    if (i > 0) {
+                        compacted.addAll(list.subList(0, i));
+                    }
+                }
+                foundAtLeastOneNull = true;
+            } else if (foundAtLeastOneNull) {
+                compacted.add(element);
+            }
+            ++i;
+        }
+
+        return foundAtLeastOneNull ? compacted : list;
+    }
+
 }
