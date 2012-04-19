@@ -18,10 +18,11 @@ package org.gradle.integtests.resolve.artifactreuse
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.gradle.integtests.fixtures.HttpServer
 import org.gradle.integtests.fixtures.MavenRepository
-import org.gradle.integtests.fixtures.TargetGradleVersions
-import org.junit.Rule
 
-@TargetGradleVersions('1.0-milestone-6+')
+import org.junit.Rule
+import org.gradle.integtests.fixtures.TargetVersions
+
+@TargetVersions('1.0-milestone-6+')
 class CacheReuseCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
     @Rule public final HttpServer server = new HttpServer()
 

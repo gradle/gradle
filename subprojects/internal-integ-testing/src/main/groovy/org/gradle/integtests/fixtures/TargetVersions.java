@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.compile.daemon;
+package org.gradle.integtests.fixtures;
 
-import org.gradle.api.internal.tasks.compile.CompileSpec;
-import org.gradle.api.internal.tasks.compile.Compiler;
+import java.lang.annotation.*;
 
-/**
- * A service that executes compilers in a (potentially) long-lived process.
- */
-public interface CompilerDaemon {
-    <T extends CompileSpec> CompileResult execute(Compiler<T> compiler, T spec);
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+@Inherited
+public @interface TargetVersions {
+    String[] value();
 }

@@ -17,12 +17,13 @@ package org.gradle.api.internal.tasks.compile.daemon;
 
 import org.gradle.api.internal.tasks.compile.CompileSpec;
 import org.gradle.api.internal.tasks.compile.Compiler;
+import org.gradle.internal.Stoppable;
 import org.gradle.internal.UncheckedException;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.SynchronousQueue;
 
-public class CompilerDaemonClient implements CompilerDaemon, CompilerDaemonClientProtocol {
+public class CompilerDaemonClient implements CompilerDaemon, CompilerDaemonClientProtocol, Stoppable {
     private final DaemonForkOptions forkOptions;
     private final CompilerDaemonServerProtocol server;
     private final BlockingQueue<CompileResult> compileResults = new SynchronousQueue<CompileResult>();
