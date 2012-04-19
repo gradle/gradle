@@ -35,9 +35,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Requires Groovy 1.6 or higher (see comment in JavaAwareGroovyCompilationUnit).
- */
 public class ApiGroovyCompiler implements Compiler<GroovyJavaJointCompileSpec>, Serializable {
     private final Compiler<JavaCompileSpec> javaCompiler;
 
@@ -73,7 +70,7 @@ public class ApiGroovyCompiler implements Compiler<GroovyJavaJointCompileSpec>, 
         groovyCompilerClassLoader.allowPackage("groovy");
 
         // AST transforms need their own class loader that shares compiler classes with the compiler itself
-        GroovyClassLoader astTransformClassLoader = new GroovyClassLoader(groovyCompilerClassLoader, null);
+        final GroovyClassLoader astTransformClassLoader = new GroovyClassLoader(groovyCompilerClassLoader, null);
         // can't delegate to compileClasspathLoader because this would result in ASTTransformation interface
         // (which is implemented by the transform class) being loaded by compileClasspathClassLoader (which is
         // where the transform class is loaded from)
@@ -81,7 +78,12 @@ public class ApiGroovyCompiler implements Compiler<GroovyJavaJointCompileSpec>, 
             astTransformClassLoader.addClasspath(file.getPath());
         }
 
-        JavaAwareGroovyCompilationUnit unit = new JavaAwareGroovyCompilationUnit(configuration, compileClasspathClassLoader, astTransformClassLoader);
+        JavaAwareCompilationUnit unit = new JavaAwareCompilationUnit(configuration, compileClasspathClassLoader) {
+            @Override
+            public GroovyClassLoader getTransformLoader() {
+                return astTransformClassLoader;
+            }
+        };
         unit.addSources(Iterables.toArray(spec.getSource(), File.class));
         unit.setCompilerFactory(new org.codehaus.groovy.tools.javac.JavaCompilerFactory() {
             public JavaCompiler createCompiler(final CompilerConfiguration config) {

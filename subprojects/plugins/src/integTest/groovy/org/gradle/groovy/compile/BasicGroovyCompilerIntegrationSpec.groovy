@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 import org.gradle.integtests.fixtures.TargetVersions
 
-@TargetVersions(['1.6.9', '1.7.10', '1.8.6'])
+@TargetVersions(['1.5.8', '1.6.9', '1.7.10', '1.8.6'])
 abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegrationSpec {
     @Rule TestResources resources = new TestResources()
 
@@ -51,6 +51,10 @@ dependencies { groovy 'org.codehaus.groovy:groovy:$version' }
     }
 
     def "canUseBuiltInAstTransform"() {
+        if (version.startsWith('1.5.')) {
+            return
+        }
+
         when:
         run("test")
 
@@ -59,6 +63,10 @@ dependencies { groovy 'org.codehaus.groovy:groovy:$version' }
     }
 
     def "canUseThirdPartyAstTransform"() {
+        if (version.startsWith('1.5.')) {
+            return
+        }
+
         when:
         run("test")
 
@@ -67,6 +75,10 @@ dependencies { groovy 'org.codehaus.groovy:groovy:$version' }
     }
 
     def "canUseAstTransformWrittenInGroovy"() {
+        if (version.startsWith('1.5.')) {
+            return
+        }
+
         when:
         run("test")
 
