@@ -62,6 +62,12 @@ public class DefaultOsgiManifest extends DefaultManifest implements OsgiManifest
             for (Map.Entry<String, Attributes> ent : getSections().entrySet()) {
                 effectiveManifest.attributes(ent.getValue(), ent.getKey());
             }
+            if (classesDir != null) {
+                long mod = classesDir.lastModified();
+                if (mod > 0) {
+                    effectiveManifest.getAttributes().put(Analyzer.BND_LASTMODIFIED, mod);
+                }
+            }
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
@@ -91,6 +97,7 @@ public class DefaultOsgiManifest extends DefaultManifest implements OsgiManifest
         }
 
         analyzer.setJar(getClassesDir());
+
         analyzer.setClasspath(getClasspath().getFiles().toArray(new File[getClasspath().getFiles().size()]));
     }
 

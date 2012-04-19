@@ -46,4 +46,56 @@ class OsgiPluginIntegrationSpec extends AbstractIntegrationSpec {
         then:
         file("build/tmp/jar/MANIFEST.MF").text.contains("Bundle-Version: 2.0")
     }
+
+    @Issue("http://issues.gradle.org/browse/GRADLE-2237")
+    def "jar task remains incremental"() {
+        given:
+        // Unsure why, but this problem doesn't show if we don't wait a little bit
+        // before the next execution.
+        //
+        // The value that's used is comes from aQute.lib.osgi.Analyzer#calcManifest()
+        // and is set to the current time. I don't have an explanation for why the sleep is needed.
+        // It needs to be about 1000 on my machine.
+        def sleepTime = 1000
+
+        buildFile << """
+            apply plugin: "java"
+            apply plugin: "osgi"
+
+            jar {
+                manifest {
+                    instruction "Bnd-LastModified", "123"
+                }
+            }
+        """
+
+        and:
+        file("src/main/java/Thing.java") << "public class Thing {}"
+
+        when:
+        run "jar"
+        
+        then:
+        ":jar" in nonSkippedTasks
+        
+        when:
+        sleep sleepTime
+        run "jar"
+
+        then:
+        ":jar" in skippedTasks
+
+        when:
+        sleep sleepTime
+        run "clean", "jar"
+
+        then:
+        ":jar" in nonSkippedTasks
+    }
+
+    private waitForMinimumBndLastModifiedInterval() {
+
+        sleep 1000
+    }
+
 }
