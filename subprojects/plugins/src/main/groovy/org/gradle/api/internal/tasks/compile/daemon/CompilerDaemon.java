@@ -17,12 +17,10 @@ package org.gradle.api.internal.tasks.compile.daemon;
 
 import org.gradle.api.internal.tasks.compile.CompileSpec;
 import org.gradle.api.internal.tasks.compile.Compiler;
-import org.gradle.internal.Stoppable;
 
 /**
  * A service that executes compilers in a (potentially) long-lived process.
  */
-public interface CompilerDaemon extends Stoppable {
+public interface CompilerDaemon {
     <T extends CompileSpec> CompileResult execute(Compiler<T> compiler, T spec);
-    boolean isCompatibleWith(DaemonForkOptions required);
 }

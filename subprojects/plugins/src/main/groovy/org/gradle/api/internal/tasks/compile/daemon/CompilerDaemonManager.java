@@ -33,7 +33,7 @@ import java.io.File;
  * Controls the lifecycle of the compiler daemon and provides access to it.
  */
 @NotThreadSafe
-public class CompilerDaemonManager {
+public class CompilerDaemonManager implements CompilerDaemonFactory {
     private static final Logger LOGGER = Logging.getLogger(CompilerDaemonManager.class);
     private static final CompilerDaemonManager INSTANCE = new CompilerDaemonManager();
     

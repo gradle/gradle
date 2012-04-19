@@ -27,7 +27,6 @@ import org.gradle.api.tasks.compile.ForkOptions;
 import org.gradle.api.tasks.compile.GroovyForkOptions;
 import org.gradle.internal.UncheckedException;
 
-import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -35,15 +34,17 @@ import java.util.List;
 public class DaemonGroovyCompiler implements Compiler<GroovyJavaJointCompileSpec> {
     private final ProjectInternal project;
     private final Compiler<GroovyJavaJointCompileSpec> delegate;
+    private final CompilerDaemonFactory daemonFactory;
 
-    public DaemonGroovyCompiler(ProjectInternal project, Compiler<GroovyJavaJointCompileSpec> delegate) {
+    public DaemonGroovyCompiler(ProjectInternal project, Compiler<GroovyJavaJointCompileSpec> delegate, CompilerDaemonFactory daemonFactory) {
         this.project = project;
         this.delegate = delegate;
+        this.daemonFactory = daemonFactory;
     }
 
     public WorkResult execute(GroovyJavaJointCompileSpec spec) {
         DaemonForkOptions daemonForkOptions = createDaemonForkOptions(spec);
-        CompilerDaemon daemon = CompilerDaemonManager.getInstance().getDaemon(project, daemonForkOptions);
+        CompilerDaemon daemon = daemonFactory.getDaemon(project, daemonForkOptions);
         CompileResult result = daemon.execute(delegate, spec);
         if (result.isSuccess()) {
             return result;

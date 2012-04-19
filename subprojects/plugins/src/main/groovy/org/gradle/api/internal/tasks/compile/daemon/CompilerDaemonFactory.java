@@ -13,17 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.groovy.compile
 
-class InProcessGroovyCompilerIntegrationTest extends BasicGroovyCompilerIntegrationSpec {
+package org.gradle.api.internal.tasks.compile.daemon;
 
-    def compilerConfiguration() {
-'''
-    tasks.withType(GroovyCompile) {
-        groovyOptions.useAnt = false
-        groovyOptions.fork = false
-    }
-'''
-    }
+import org.gradle.api.internal.project.ProjectInternal;
 
+public interface CompilerDaemonFactory {
+    CompilerDaemon getDaemon(ProjectInternal project, DaemonForkOptions forkOptions);
 }
