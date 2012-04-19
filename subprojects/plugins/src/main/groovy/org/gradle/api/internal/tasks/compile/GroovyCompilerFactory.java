@@ -25,8 +25,11 @@ import org.gradle.api.internal.tasks.compile.daemon.DaemonGroovyCompiler;
 import org.gradle.api.internal.tasks.compile.daemon.InProcessCompilerDaemonFactory;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.compile.GroovyCompileOptions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class GroovyCompilerFactory {
+    private static final Logger LOGGER = LoggerFactory.getLogger(GroovyCompilerFactory.class);
     private final ProjectInternal project;
     private final IsolatedAntBuilder antBuilder;
     private final ClassPathRegistry classPathRegistry;
@@ -40,6 +43,15 @@ public class GroovyCompilerFactory {
     }
 
     Compiler<GroovyJavaJointCompileSpec> create(GroovyCompileOptions groovyOptions, CompileOptions javaOptions) {
+        // Some sanity checking of options
+        if (groovyOptions.isUseAnt() && !javaOptions.isUseAnt()) {
+            LOGGER.warn("When groovyOptions.useAnt is enabled, options.useAnt must also be enabled. Ignoring options.useAnt = false.");
+            javaOptions.setUseAnt(true);
+        } else if (!groovyOptions.isUseAnt() && javaOptions.isUseAnt()) {
+            LOGGER.warn("When groovyOptions.useAnt is disabled, options.useAnt must also be disabled. Ignoring options.useAnt = true.");
+            javaOptions.setUseAnt(false);
+        }
+
         if (groovyOptions.isUseAnt()) {
             return new AntGroovyCompiler(antBuilder, classPathRegistry);
         }
