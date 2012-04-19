@@ -1,15 +1,11 @@
-import groovy.transform.ToString
-
 import org.junit.Test
+import TestDelegate
 
-@ToString
 class UseBuiltInTransformTest {
-    String foo = "foo value"
-    int bar = 42
+    @Delegate final TestDelegate delegate = new TestDelegate()
 
     @Test
     void transformHasBeenApplied() {
-        assert toString().contains("foo value")
-        assert toString().contains("42")
+        assert doStuff("hi") == "[hi]"
     }
 }

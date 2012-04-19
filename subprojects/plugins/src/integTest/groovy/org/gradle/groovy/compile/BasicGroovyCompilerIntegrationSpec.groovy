@@ -15,13 +15,15 @@
  */
 package org.gradle.groovy.compile
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ExecutionResult
+import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
-import org.gradle.integtests.fixtures.ExecutionResult
+import org.gradle.integtests.fixtures.TargetVersions
 
-abstract class BasicGroovyCompilerIntegrationSpec extends AbstractIntegrationSpec {
-    @Rule TestResources resources = new TestResources("GroovyCompilerIntegrationTest")
+@TargetVersions(['1.6.9', '1.7.10', '1.8.6'])
+abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegrationSpec {
+    @Rule TestResources resources = new TestResources()
 
     def setup() {
         executer.withArguments("-i")
@@ -29,7 +31,12 @@ abstract class BasicGroovyCompilerIntegrationSpec extends AbstractIntegrationSpe
 
     @Override
     protected ExecutionResult run(String... tasks) {
+        buildFile << """
+dependencies { groovy 'org.codehaus.groovy:groovy:$version' }
+"""
         buildFile << compilerConfiguration()
+
+        println "->> USING BUILD FILE: ${buildFile.text}"
         super.run(tasks)
     }
 

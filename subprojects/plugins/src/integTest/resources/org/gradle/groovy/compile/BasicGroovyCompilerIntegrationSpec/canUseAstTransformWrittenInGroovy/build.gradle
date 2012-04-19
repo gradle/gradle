@@ -5,6 +5,5 @@ repositories {
 }
 
 dependencies {
-    groovy localGroovy()
     testCompile "junit:junit:4.10"
 }

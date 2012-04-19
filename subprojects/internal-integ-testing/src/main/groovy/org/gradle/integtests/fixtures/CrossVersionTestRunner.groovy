@@ -21,6 +21,8 @@ import org.gradle.util.GradleVersion
  * <p>Executes instances of {@link CrossVersionIntegrationSpec} against each previous Gradle version.
  *
  * <p>Sets the {@link CrossVersionIntegrationSpec#previous} property of the test instance before executing it.
+ *
+ * <p>A test class can be annotated with {@link TargetVersions} to specify the set of versions the test is compatible with.
  */
 class CrossVersionTestRunner extends AbstractCompatibilityTestRunner {
     CrossVersionTestRunner(Class<? extends CrossVersionIntegrationSpec> target) {
@@ -51,7 +53,7 @@ class CrossVersionTestRunner extends AbstractCompatibilityTestRunner {
 
         @Override
         protected boolean isEnabled() {
-            TargetGradleVersions targetGradleVersions = target.getAnnotation(TargetGradleVersions)
+            TargetVersions targetGradleVersions = target.getAnnotation(TargetVersions)
             if (!targetGradleVersions) {
                 return true
             }
