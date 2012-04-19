@@ -17,11 +17,11 @@ package org.gradle.api.internal.plugins.osgi;
 
 import aQute.lib.osgi.Analyzer;
 import org.gradle.api.file.FileCollection;
-import org.gradle.internal.Factory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.java.archives.Attributes;
 import org.gradle.api.java.archives.internal.DefaultManifest;
 import org.gradle.api.plugins.osgi.OsgiManifest;
+import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
@@ -35,14 +35,6 @@ import java.util.jar.Manifest;
  * @author Hans Dockter
  */
 public class DefaultOsgiManifest extends DefaultManifest implements OsgiManifest {
-    private String symbolicName;
-    private String name;
-    private String version;
-    private String description;
-    private String license;
-    private String vendor;
-    private String docURL;
-
     private File classesDir;
 
     private Factory<ContainedVersionAnalyzer> analyzerFactory = new DefaultAnalyzerFactory();
@@ -62,7 +54,8 @@ public class DefaultOsgiManifest extends DefaultManifest implements OsgiManifest
         try {
             setAnalyzerProperties(analyzer);
             Manifest osgiManifest = analyzer.calcManifest();
-            for (Map.Entry<Object, Object> entry : osgiManifest.getMainAttributes().entrySet()) {
+            java.util.jar.Attributes attributes = osgiManifest.getMainAttributes();
+            for (Map.Entry<Object, Object> entry : attributes.entrySet()) {
                 effectiveManifest.attributes(WrapUtil.toMap(entry.getKey().toString(), (String) entry.getValue()));
             }
             effectiveManifest.attributes(this.getAttributes());
@@ -88,29 +81,26 @@ public class DefaultOsgiManifest extends DefaultManifest implements OsgiManifest
                     "*, !org.apache.ant.*, !org.junit.*, !org.jmock.*, !org.easymock.*, !org.mockito.*");
         }
         if (!instructionNames.contains(Analyzer.EXPORT_PACKAGE)) {
-            analyzer.setProperty(Analyzer.EXPORT_PACKAGE, "*;-noimport:=false;version=" + version);
+            analyzer.setProperty(Analyzer.EXPORT_PACKAGE, "*;-noimport:=false;version=" + getVersion());
         }
         for (String instructionName : instructionNames) {
             String list = createPropertyStringFromList(instructionValue(instructionName));
-            analyzer.setProperty(instructionName, list);
+            if (list != null && list.length() > 0) {
+                analyzer.setProperty(instructionName, list);
+            }
         }
 
-        setProperty(analyzer, Analyzer.BUNDLE_VERSION, getVersion());
-        setProperty(analyzer, Analyzer.BUNDLE_SYMBOLICNAME, getSymbolicName());
-        setProperty(analyzer, Analyzer.BUNDLE_NAME, getName());
-        setProperty(analyzer, Analyzer.BUNDLE_DESCRIPTION, getDescription());
-        setProperty(analyzer, Analyzer.BUNDLE_LICENSE, getLicense());
-        setProperty(analyzer, Analyzer.BUNDLE_VENDOR, getVendor());
-        setProperty(analyzer, Analyzer.BUNDLE_DOCURL, getDocURL());
         analyzer.setJar(getClassesDir());
         analyzer.setClasspath(getClasspath().getFiles().toArray(new File[getClasspath().getFiles().size()]));
     }
 
-    private void setProperty(Analyzer analyzer, String key, String value) {
-        if (value == null) {
-            return;
+    private String instructionValueString(String instructionName) {
+        List<String> values = instructionValue(instructionName);
+        if (values == null || values.isEmpty()) {
+            return null;
+        } else {
+            return createPropertyStringFromList(values);
         }
-        analyzer.setProperty(key, value);
     }
 
     public List<String> instructionValue(String instructionName) {
@@ -133,72 +123,83 @@ public class DefaultOsgiManifest extends DefaultManifest implements OsgiManifest
         return this;
     }
 
+    public OsgiManifest instructionReplace(String name, String... values) {
+        if (values.length == 0 || (values.length == 1 && values[0] == null)) {
+            instructions.remove(name);
+        } else {
+            if (instructions.get(name) == null) {
+                instructions.put(name, new ArrayList<String>());
+            }
+            List<String> instructionsForName = instructions.get(name);
+            instructionsForName.clear();
+            Collections.addAll(instructionsForName, values);
+        }
+
+        return this;
+    }
+
     public Map<String, List<String>> getInstructions() {
         return instructions;
     }
 
-    public void setInstructions(Map<String, List<String>> instructions) {
-        this.instructions = instructions;
-    }
-
     private String createPropertyStringFromList(List<String> valueList) {
-        return GUtil.join(valueList, ",");
+        return valueList == null || valueList.isEmpty() ? null : GUtil.join(valueList, ",");
     }
 
     public String getSymbolicName() {
-        return symbolicName;
+        return instructionValueString(Analyzer.BUNDLE_SYMBOLICNAME);
     }
 
     public void setSymbolicName(String symbolicName) {
-        this.symbolicName = symbolicName;
+        instructionReplace(Analyzer.BUNDLE_SYMBOLICNAME, symbolicName);
     }
 
     public String getName() {
-        return name;
+        return instructionValueString(Analyzer.BUNDLE_NAME);
     }
 
     public void setName(String name) {
-        this.name = name;
+        instructionReplace(Analyzer.BUNDLE_NAME, name);
     }
 
     public String getVersion() {
-        return version;
+        return instructionValueString(Analyzer.BUNDLE_VERSION);
     }
 
     public void setVersion(String version) {
-        this.version = version;
+        instructionReplace(Analyzer.BUNDLE_VERSION, version);
     }
 
     public String getDescription() {
-        return description;
+        return instructionValueString(Analyzer.BUNDLE_DESCRIPTION);
     }
 
     public void setDescription(String description) {
-        this.description = description;
+        instructionReplace(Analyzer.BUNDLE_DESCRIPTION, description);
     }
 
     public String getLicense() {
-        return license;
+        return instructionValueString(Analyzer.BUNDLE_LICENSE);
     }
 
     public void setLicense(String license) {
-        this.license = license;
+        instructionReplace(Analyzer.BUNDLE_LICENSE, license);
     }
 
     public String getVendor() {
-        return vendor;
+        return instructionValueString(Analyzer.BUNDLE_VENDOR);
     }
 
     public void setVendor(String vendor) {
-        this.vendor = vendor;
+        instructionReplace(Analyzer.BUNDLE_VENDOR, vendor);
     }
 
     public String getDocURL() {
-        return docURL;
+        return instructionValueString(Analyzer.BUNDLE_DOCURL);
     }
 
     public void setDocURL(String docURL) {
-        this.docURL = docURL;
+        instructionReplace(Analyzer.BUNDLE_DOCURL, docURL);
     }
 
     public File getClassesDir() {

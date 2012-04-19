@@ -44,6 +44,7 @@ public interface OsgiManifest extends org.gradle.api.java.archives.Manifest {
      * @param values
      * @return this
      * @see #instructionFirst(String, String...)
+     * @see #instructionReplace(String, String...)
      */
     OsgiManifest instruction(String name, String... values);
 
@@ -54,9 +55,22 @@ public interface OsgiManifest extends org.gradle.api.java.archives.Manifest {
      * @param name Name of the instruction.
      * @param values The values for the instruction.
      * @return this
-     * @see #instructionFirst(String, String...)
+     * @see #instruction(String, String...)
+     * @see #instructionReplace(String, String...)
      */
     OsgiManifest instructionFirst(String name, String... values);
+
+    /**
+     * Sets the values for an instruction. If the instruction does not exists, it is created. If it does exists, the
+     * values replace the existing values.
+     *
+     * @param name Name of the instruction.
+     * @param values The values for the instruction.
+     * @return this
+     * @see #instruction(String, String...)
+     * @see #instructionFirst(String, String...)
+     */
+    OsgiManifest instructionReplace(String name, String... values);
 
     /**
      * Returns all exisiting instruction.

@@ -1,7 +1,7 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
- * Licensed under the Apache License, Version 2.0 (the "License")
+ * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -23,6 +23,7 @@ import org.gradle.api.java.archives.Attributes
 import org.gradle.api.java.archives.internal.DefaultAttributes
 import org.gradle.api.java.archives.internal.DefaultManifest
 import org.gradle.internal.Factory
+import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -35,11 +36,21 @@ class DefaultOsgiManifestTest extends Specification {
     private static final String ANOTHER_ARBITRARY_ATTRIBUTE = "Serious-Attribute"
 
     DefaultOsgiManifest osgiManifest
-    
+
     Factory<ContainedVersionAnalyzer> analyzerFactoryMock = Mock(Factory)
     ContainedVersionAnalyzer analyzerMock = Mock(ContainedVersionAnalyzer)
 
     FileResolver fileResolver = Mock(FileResolver)
+
+    @Shared specialFields = [
+            ["description", Analyzer.BUNDLE_DESCRIPTION],
+            ["docURL", Analyzer.BUNDLE_DOCURL],
+            ["license", Analyzer.BUNDLE_LICENSE],
+            ["name", Analyzer.BUNDLE_NAME],
+            ["symbolicName", Analyzer.BUNDLE_SYMBOLICNAME],
+            ["vendor", Analyzer.BUNDLE_VENDOR],
+            ["version", Analyzer.BUNDLE_VERSION]
+    ]
 
     def setup() {
         osgiManifest = new DefaultOsgiManifest(fileResolver)
@@ -55,7 +66,8 @@ class DefaultOsgiManifestTest extends Specification {
         osgiManifest.analyzerFactory != null
     }
 
-    @Unroll "set then get - #field"() {
+    @Unroll
+    "set then get - #field"() {
         given:
         def testValue = "testValue"
 
@@ -66,7 +78,63 @@ class DefaultOsgiManifestTest extends Specification {
         osgiManifest."$field" == testValue
 
         where:
-        field <<  ["description", "docURL", "license", "name", "symbolicName", "vendor", "version"]
+        field << specialFields.collect { it[0] }
+    }
+
+    @Unroll
+    "can mix and match properties and instructions - #field"(String field, String name) {
+        given:
+        def testValue = "testValue"
+
+        when:
+        osgiManifest.instruction(name, testValue)
+
+        then:
+        osgiManifest."$field" == testValue
+        osgiManifest.instructionValue(name) == [testValue]
+
+        when:
+        testValue = "changed"
+
+        and:
+        osgiManifest."$field" = testValue
+
+        then:
+        osgiManifest."$field" == testValue
+        osgiManifest.instructionValue(name) == [testValue]
+
+        when:
+        osgiManifest.instruction(name, "other")
+
+        then:
+        osgiManifest."$field" == "$testValue,other"
+
+        where:
+        [field, name] << specialFields
+    }
+
+    @Unroll
+    "can set modelled properties with instruction - #name"(String field, String name) {
+        given:
+        setUpOsgiManifest()
+        def testValue = "testValue"
+
+        when:
+        osgiManifest.instructionReplace(name, testValue)
+
+        and:
+        prepareMock()
+        
+        then:
+        def effectiveManifest = osgiManifest.getEffectiveManifest()
+        effectiveManifest.attributes[name] == testValue
+
+        where:
+        [field, name] << specialFields
+    }
+
+    private DefaultOsgiManifest createManifest() {
+        return new DefaultOsgiManifest(fileResolver)
     }
 
     def addInstruction() {
@@ -75,7 +143,7 @@ class DefaultOsgiManifestTest extends Specification {
         String instructionValue1 = "value1"
         String instructionValue2 = "value2"
         String instructionValue3 = "value3"
-        
+
         expect:
         osgiManifest.is osgiManifest.instruction(testInstructionName, instructionValue1, instructionValue2)
         osgiManifest.instructions[testInstructionName] == [instructionValue1, instructionValue2]
@@ -127,13 +195,13 @@ class DefaultOsgiManifestTest extends Specification {
         DefaultManifest manifest = osgiManifest.getEffectiveManifest()
         DefaultManifest defaultManifest = getDefaultManifestWithOsgiValues()
         DefaultManifest expectedManifest = new DefaultManifest(fileResolver).attributes(defaultManifest.getAttributes())
-        for(Map.Entry<String, Attributes> ent : defaultManifest.getSections().entrySet()) {
+        for (Map.Entry<String, Attributes> ent: defaultManifest.getSections().entrySet()) {
             expectedManifest.attributes(ent.getValue(), ent.getKey())
         }
 
         then:
         manifest.attributes == expectedManifest.attributes
-        manifest.sections ==  expectedManifest.sections
+        manifest.sections == expectedManifest.sections
     }
 
     def merge() {
@@ -148,7 +216,7 @@ class DefaultOsgiManifestTest extends Specification {
         osgiManifest.from(otherManifest)
         DefaultManifest defaultManifest = getDefaultManifestWithOsgiValues()
         DefaultManifest expectedManifest = new DefaultManifest(fileResolver).attributes(defaultManifest.getAttributes())
-        for(Map.Entry<String, Attributes> ent : defaultManifest.getSections().entrySet()) {
+        for (Map.Entry<String, Attributes> ent: defaultManifest.getSections().entrySet()) {
             expectedManifest.attributes(ent.getValue(), ent.getKey())
         }
         expectedManifest.attributes(otherManifest.getAttributes())
@@ -221,11 +289,12 @@ class DefaultOsgiManifestTest extends Specification {
             testManifest.getMainAttributes().putValue(Analyzer.BUNDLE_LICENSE, osgiManifest.getLicense())
             testManifest.getMainAttributes().putValue(Analyzer.BUNDLE_VENDOR, osgiManifest.getVendor())
             testManifest.getMainAttributes().putValue(Analyzer.BUNDLE_DOCURL, osgiManifest.getDocURL())
+            testManifest.getMainAttributes().putValue(Analyzer.BUNDLE_VERSION, osgiManifest.getVersion())
             testManifest.getMainAttributes().putValue(Analyzer.EXPORT_PACKAGE, osgiManifest.instructionValue(Analyzer.EXPORT_PACKAGE).join(","))
             testManifest.getMainAttributes().putValue(Analyzer.IMPORT_PACKAGE, osgiManifest.instructionValue(Analyzer.IMPORT_PACKAGE).join(","))
 
             _ * analyzerMock.calcManifest() >> testManifest
-            0 * analyzerMock._(*_)
+
         }
     }
 
@@ -236,6 +305,7 @@ class DefaultOsgiManifestTest extends Specification {
         manifest.getAttributes().put(Analyzer.BUNDLE_DESCRIPTION, osgiManifest.getDescription())
         manifest.getAttributes().put(Analyzer.BUNDLE_LICENSE, osgiManifest.getLicense())
         manifest.getAttributes().put(Analyzer.BUNDLE_VENDOR, osgiManifest.getVendor())
+        manifest.getAttributes().put(Analyzer.BUNDLE_VERSION, osgiManifest.getVersion())
         manifest.getAttributes().put(Analyzer.BUNDLE_DOCURL, osgiManifest.getDocURL())
         manifest.getAttributes().put(Analyzer.EXPORT_PACKAGE, osgiManifest.instructionValue(Analyzer.EXPORT_PACKAGE).join(","))
         manifest.getAttributes().put(Analyzer.IMPORT_PACKAGE, osgiManifest.instructionValue(Analyzer.IMPORT_PACKAGE).join(","))
