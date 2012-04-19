@@ -116,7 +116,7 @@ class FindBugs extends SourceTask implements VerificationTask, Reporting<FindBug
         if (findbugsResult.errorCount){
             throw new GradleException("FindBugs encountered an error. Run with --debug to get more information.")
         }
-        if (findbugsResult.bugCount && !ignoreFailures) {
+        if (findbugsResult.bugCount && !getIgnoreFailures()) {
             SingleFileReport reportSetup = reports.firstEnabled
             if (reports.firstEnabled) {
                 throw new GradleException("FindBugs rule violations were found. See the report at ${reportSetup.destination}.")
