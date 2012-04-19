@@ -13,20 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.groovy.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
-
 import org.junit.Rule
+import org.gradle.integtests.fixtures.ExecutionResult
 
-class ApiGroovyCompilerIntegrationTest extends AbstractIntegrationSpec {
-    @Rule TestResources resources = new TestResources()
+abstract class BasicGroovyCompilerIntegrationSpec extends AbstractIntegrationSpec {
+    @Rule TestResources resources = new TestResources("GroovyCompilerIntegrationTest")
+
+    def setup() {
+        executer.withArguments("-i")
+    }
+
+    @Override
+    protected ExecutionResult run(String... tasks) {
+        buildFile << compilerConfiguration()
+        super.run(tasks)
+    }
+
+    abstract compilerConfiguration()
 
     def "canCompileAgainstGroovyClassThatDependsOnExternalClass"() {
         when:
-        inDirectory(resources.dir).withTasks("test").run()
+        run("test")
 
         then:
         noExceptionThrown()
@@ -34,7 +45,7 @@ class ApiGroovyCompilerIntegrationTest extends AbstractIntegrationSpec {
 
     def "canUseBuiltInAstTransform"() {
         when:
-        inDirectory(resources.dir).withTasks("test").run()
+        run("test")
 
         then:
         noExceptionThrown()
@@ -42,7 +53,7 @@ class ApiGroovyCompilerIntegrationTest extends AbstractIntegrationSpec {
 
     def "canUseThirdPartyAstTransform"() {
         when:
-        inDirectory(resources.dir).withTasks("test").run()
+        run("test")
 
         then:
         noExceptionThrown()
@@ -50,9 +61,10 @@ class ApiGroovyCompilerIntegrationTest extends AbstractIntegrationSpec {
 
     def "canUseAstTransformWrittenInGroovy"() {
         when:
-        inDirectory(resources.dir).withTasks("test").run()
+        run("test")
 
         then:
         noExceptionThrown()
     }
+
 }
