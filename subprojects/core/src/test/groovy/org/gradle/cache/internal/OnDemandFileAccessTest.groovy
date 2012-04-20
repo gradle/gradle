@@ -81,6 +81,7 @@ class OnDemandFileAccessTest extends Specification {
     def "can read from file"() {
         given:
         def access = access(file)
+        access.writeFile({})
 
         expect:
         access.readFile { assert !file.exists(); true }
