@@ -38,12 +38,7 @@ public class FileIntegrityViolationSuppressingPersistentStateCacheDecorator<T> i
         delegate.set(newValue);
     }
 
-    public void update(final UpdateAction<T> updateAction) {
-        try {
-            delegate.update(updateAction);
-        } catch (FileIntegrityViolationException e) {
-            T newValue = updateAction.update(null);
-            set(newValue);
-        }
+    public void update(UpdateAction<T> updateAction) {
+        delegate.update(updateAction);
     }
 }

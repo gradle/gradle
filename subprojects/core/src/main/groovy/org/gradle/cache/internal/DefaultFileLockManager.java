@@ -77,7 +77,7 @@ public class DefaultFileLockManager implements FileLockManager {
         private final String operationDisplayName;
         private java.nio.channels.FileLock lock;
         private RandomAccessFile lockFileAccess;
-        private boolean integrityViolated;
+        private final boolean integrityViolated;
 
         public DefaultFileLock(File target, LockMode mode, String displayName, String operationDisplayName) throws Throwable {
             this.target = target;
@@ -95,7 +95,7 @@ public class DefaultFileLockManager implements FileLockManager {
             lockFileAccess = new RandomAccessFile(lockFile, "rw");
             try {
                 lock = lock(mode);
-                integrityViolated = !getUnlockedCleanly();
+                integrityViolated = target.isFile() && target.length() > 0 && !getUnlockedCleanly();
             } catch (Throwable t) {
                 // Also releases any locks
                 lockFileAccess.close();
@@ -153,7 +153,6 @@ public class DefaultFileLockManager implements FileLockManager {
                     markDirty();
                     action.run();
                     markClean();
-                    integrityViolated = false;
                 } finally {
                     if (mode != LockMode.Exclusive) {
                         updateLock.release();
