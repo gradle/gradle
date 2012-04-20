@@ -16,25 +16,49 @@
 
 package org.gradle.util;
 
-import org.apache.commons.lang.reflect.FieldUtils;
 import org.gradle.internal.UncheckedException;
 
+import java.lang.reflect.Method;
+
+/**
+ * Simple implementations of some reflection capabilities. In contrast to {@link ReflectionUtil},
+ * this class doesn't make use of Groovy.
+ */
 public class JavaReflectionUtil {
-    // TODO: use setter instead of field
-    public static void setProperty(Object target, String property, Object value) {
+    public static Object readProperty(Object target, String property) {
         try {
-            FieldUtils.writeDeclaredField(target, property, value, true);
-        } catch (IllegalAccessException e) {
-            throw new UncheckedException(e);
+            Method getterMethod;
+            try {
+                getterMethod = target.getClass().getMethod(toMethodName("get", property));
+            } catch (NoSuchMethodException e) {
+                try {
+                    getterMethod = target.getClass().getMethod(toMethodName("is", property));
+                } catch (NoSuchMethodException e2) {
+                    throw e;
+                }
+            }
+            return getterMethod.invoke(target);
+        } catch (Exception e) {
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
-    // TODO: use getter instead of field
-    public static Object getProperty(Object target, String property) {
+    public static void writeProperty(Object target, String property, Object value) {
         try {
-            return FieldUtils.readDeclaredField(target, property, true);
-        } catch (IllegalAccessException e) {
-            throw new UncheckedException(e);
+            String setterName = toMethodName("set", property);
+            for (Method method: target.getClass().getMethods()) {
+                if (!method.getName().equals(setterName)) { continue; }
+                if (method.getParameterTypes().length != 1) { continue; }
+                method.invoke(target, value);
+                return;
+            }
+            throw new NoSuchMethodException(String.format("could not find setter method '%s'", setterName));
+        } catch (Exception e) {
+            throw UncheckedException.throwAsUncheckedException(e);
         }
+    }
+
+    private static String toMethodName(String prefix, String propertyName) {
+        return prefix + Character.toUpperCase(propertyName.charAt(0)) + propertyName.substring(1);
     }
 }

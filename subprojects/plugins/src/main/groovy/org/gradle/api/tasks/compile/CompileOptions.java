@@ -239,7 +239,7 @@ public class CompileOptions extends AbstractOptions {
         return compiler;
     }
 
-    void setCompiler(String compiler) {
+    public void setCompiler(String compiler) {
         DeprecationLogger.nagUserOfDiscontinuedProperty("CompileOptions.compiler", "To use an alternative compiler, "
                 + "set 'CompileOptions.fork' to 'true', and 'CompileOptions.forkOptions.executable' to the path of the compiler executable.");
         this.compiler = compiler;
@@ -320,7 +320,7 @@ public class CompileOptions extends AbstractOptions {
     /**
      * Convenience method to set fork options with named parameter syntax.
      */
-    CompileOptions fork(Map<String, Object> forkArgs) {
+    public CompileOptions fork(Map<String, Object> forkArgs) {
         fork = true;
         forkOptions.define(forkArgs);
         return this;
@@ -329,7 +329,7 @@ public class CompileOptions extends AbstractOptions {
     /**
      * Convenience method to set debug options with named parameter syntax.
      */
-    CompileOptions debug(Map<String, Object> debugArgs) {
+    public CompileOptions debug(Map<String, Object> debugArgs) {
         debug = true;
         debugOptions.define(debugArgs);
         return this;
@@ -340,7 +340,7 @@ public class CompileOptions extends AbstractOptions {
      * a list of valid properties.  Calling this method will enable use
      * of the depend task during a compile.
      */
-    CompileOptions depend(Map<String, Object> dependArgs) {
+    public CompileOptions depend(Map<String, Object> dependArgs) {
         useDepend = true;
         dependOptions.define(dependArgs);
         return this;
