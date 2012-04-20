@@ -47,7 +47,7 @@ public interface ExecHandle {
     void abort();
 
     /**
-     * Waits for the process to finish or the daemon process to get demonized.
+     * Waits for the process to finish.
      *
      * @return result
      */
@@ -56,4 +56,10 @@ public interface ExecHandle {
     void addListener(ExecHandleListener listener);
 
     void removeListener(ExecHandleListener listener);
+
+    /**
+     * Waits until: the child process closes its outputs (std and err) and the child stops consuming the input.
+     * Effectively, the method blocks until process becomes a daemon that can can outlive the parent.
+     */
+    void detach();
 }

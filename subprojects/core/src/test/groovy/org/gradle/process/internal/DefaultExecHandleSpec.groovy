@@ -90,24 +90,35 @@ class DefaultExecHandleSpec extends Specification {
         result.exitValue != 0
     }
 
-    void "forks daemon"() {
-        def execHandle = handle().daemon().args(args(DaemonApp.class)).build();
+    void "forks daemon and aborts it"() {
+        def execHandle = handle().args(args(DaemonApp.class)).build();
 
         when:
         execHandle.start();
-        def result = execHandle.waitForFinish();
+        execHandle.detach();
 
         then:
-        execHandle.state == ExecHandleState.DEMONIZED
-        result.exitValue == 0
+        execHandle.state == ExecHandleState.DETACHED
 
-        //TODO SF
-//        when:
-//        execHandle.abort()
-//
-//        then:
-//        execHandle.state == ExecHandleState.ABORTED
-//        result.exitValue == 0
+        when:
+        execHandle.abort()
+        def result = execHandle.waitForFinish()
+
+        then:
+        execHandle.state == ExecHandleState.ABORTED
+        result.exitValue != 0
+    }
+
+    //TODO SF - we should check if detached process is still operational.
+    void "detach does not rethrow daemon failure"() {
+        def execHandle = handle().args(args(BrokenApp.class)).build();
+
+        when:
+        execHandle.start();
+        execHandle.detach();
+
+        then:
+        execHandle.state == ExecHandleState.DETACHED
     }
 
     private ExecHandleBuilder handle() {

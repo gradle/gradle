@@ -36,7 +36,6 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
     private String displayName;
     private final List<ExecHandleListener> listeners = new ArrayList<ExecHandleListener>();
     boolean ignoreExitValue;
-    private boolean daemon;
 
     public AbstractExecHandleBuilder(FileResolver fileResolver) {
         super(fileResolver);
@@ -113,23 +112,15 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
         return this;
     }
 
-    /**
-     * Configures the spawned process to be a daemon. See {@link org.gradle.process.internal.ExecHandle#waitForFinish()}
-     *
-     * @return this
-     */
-    public AbstractExecHandleBuilder daemon() {
-        this.daemon = true;
-        return this;
-    }
-    
     public ExecHandle build() {
         String executable = getExecutable();
         if (StringUtils.isEmpty(executable)) {
             throw new IllegalStateException("execCommand == null!");
         }
 
+        StreamsForwarder forwarder = new StreamsForwarder(standardOutput, errorOutput, input,
+                String.format("Forward streams with process: %s", getDisplayName()));
         return new DefaultExecHandle(getDisplayName(), getWorkingDir(), executable, getAllArguments(), getActualEnvironment(),
-                new StreamsForwarder(standardOutput, errorOutput, input), listeners, daemon);
+                forwarder, listeners);
     }
 }

@@ -16,44 +16,53 @@
 
 package org.gradle.process.internal.streams;
 
+import org.gradle.internal.Stoppable;
+import org.gradle.messaging.concurrent.DefaultExecutorFactory;
+import org.gradle.messaging.concurrent.StoppableExecutor;
 import org.gradle.util.DisconnectableInputStream;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.concurrent.Executor;
 
 /**
  * by Szczepan Faber, created at: 4/17/12
  */
-public class StreamsForwarder {
+public class StreamsForwarder implements Stoppable {
 
     private final OutputStream standardOutput;
     private final OutputStream errorOutput;
     private final InputStream input;
+    private StoppableExecutor executor;
 
-    public StreamsForwarder(OutputStream standardOutput, OutputStream errorOutput, InputStream input) {
+    public StreamsForwarder(OutputStream standardOutput, OutputStream errorOutput, InputStream input, String displayName) {
         this.standardOutput = standardOutput;
         this.errorOutput = errorOutput;
         this.input = input;
+        this.executor = new DefaultExecutorFactory().create(displayName);
     }
 
     public StreamsForwarder(OutputStream standardOutput) {
-        this(standardOutput, SafeStreams.systemErr(), SafeStreams.emptyInput());
+        this(standardOutput, SafeStreams.systemErr(), SafeStreams.emptyInput(), "Forward streams with process.");
     }
 
     public StreamsForwarder() {
-        this(SafeStreams.systemOut(), SafeStreams.systemErr(), SafeStreams.emptyInput());
+        this(SafeStreams.systemOut(), SafeStreams.systemErr(), SafeStreams.emptyInput(), "Forward streams with process.");
     }
 
-    public void start(Executor executor) {
+    public void start() {
         executor.execute(standardInputRunner);
         executor.execute(errorOutputRunner);
         executor.execute(standardOutputRunner);
     }
 
-    public void close() throws IOException {
-        standardInputRunner.closeInput();
+    public void stop() {
+        try {
+            standardInputRunner.closeInput();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        executor.stop();
     }
 
     private ExecOutputHandleRunner standardOutputRunner;

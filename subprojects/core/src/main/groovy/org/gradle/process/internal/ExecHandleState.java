@@ -25,6 +25,6 @@ public enum ExecHandleState {
     STARTED,
     ABORTED,
     FAILED,
-    DEMONIZED,
+    DETACHED,
     SUCCEEDED
 }

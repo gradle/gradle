@@ -42,23 +42,16 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  * <h3>State flows</h3>
  *
- * <p>The ExecHandle has very strict state control.
- * The following state flows are allowed:</p>
- *
- * Normal state flow:
- * <ul><li>INIT -> STARTED -> SUCCEEDED</li></ul>
- * Failure state flows:
  * <ul>
- * <li>INIT -> FAILED</li>
- * <li>INIT -> STARTED -> FAILED</li>
+ *   <li>INIT -> STARTED -> [SUCCEEDED|FAILED|ABORTED|DETACHED]</li>
+ *   <li>INIT -> FAILED</li>
+ *   <li>INIT -> STARTED -> DETACHED -> ABORTED</li>
  * </ul>
- * Aborted state flow:
- * <ul><li>INIT -> STARTED -> ABORTED</li></ul>
  *
  * State is controlled on all control methods:
  * <ul>
- * <li>{@link #start()} can only be called when the state is NOT {@link ExecHandleState#STARTED}</li>
- * <li>{@link #abort()} can only be called when the state is {@link ExecHandleState#STARTED}</li>
+ * <li>{@link #start()} allowed when state is INIT</li>
+ * <li>{@link #abort()} allowed when state is STARTED or DETACHED</li>
  * </ul>
  *
  * @author Tom Eyckmans
@@ -109,11 +102,10 @@ public class DefaultExecHandle implements ExecHandle {
     private final ListenerBroadcast<ExecHandleListener> broadcast;
 
     private final ExecHandleShutdownHookAction shutdownHookAction;
-    private boolean daemon;
 
     DefaultExecHandle(String displayName, File directory, String command, List<String> arguments,
                       Map<String, String> environment, StreamsForwarder streamsForwarder,
-                      List<ExecHandleListener> listeners, boolean daemon) {
+                      List<ExecHandleListener> listeners) {
         this.displayName = displayName;
         this.directory = directory;
         this.command = command;
@@ -127,7 +119,6 @@ public class DefaultExecHandle implements ExecHandle {
         shutdownHookAction = new ExecHandleShutdownHookAction(this);
         broadcast = new AsyncListenerBroadcast<ExecHandleListener>(ExecHandleListener.class, executor);
         broadcast.addAll(listeners);
-        this.daemon = daemon;
     }
 
     public File getDirectory() {
@@ -183,8 +174,10 @@ public class DefaultExecHandle implements ExecHandle {
         ShutdownHookActionRegister.removeAction(shutdownHookAction);
 
         ExecResultImpl result;
+        ExecHandleState previousState;
         lock.lock();
         try {
+            previousState = getState();
             ExecException wrappedException = null;
             if (failureCause != null) {
                 if (this.state == ExecHandleState.STARTING) {
@@ -202,9 +195,11 @@ public class DefaultExecHandle implements ExecHandle {
             lock.unlock();
         }
 
-        LOGGER.debug("Process finished (code: {}) for {}.", exitCode, displayName);
+        LOGGER.debug("Process: {} is now: {}; (code: {})", displayName, state, exitCode);
 
-        broadcast.getSource().executionFinished(this, result);
+        if (previousState != ExecHandleState.DETACHED) {
+            broadcast.getSource().executionFinished(this, result);
+        }
         broadcast.stop();
         executor.requestStop();
     }
@@ -221,8 +216,7 @@ public class DefaultExecHandle implements ExecHandle {
             execResult = null;
 
             execHandleRunner = new ExecHandleRunner(this, streamsForwarder);
-
-            executor.execute(execHandleRunner);
+            execHandleRunner.start();
 
             while (getState() == ExecHandleState.STARTING) {
                 try {
@@ -249,21 +243,18 @@ public class DefaultExecHandle implements ExecHandle {
             if (state == ExecHandleState.SUCCEEDED) {
                 return;
             }
-            if (!stateIn(ExecHandleState.STARTED, ExecHandleState.DEMONIZED)) {
-                throw new IllegalStateException("not in started state!");
+            if (!stateIn(ExecHandleState.STARTED, ExecHandleState.DETACHED)) {
+                throw new IllegalStateException("not in started or detached state!");
             }
             this.execHandleRunner.abortProcess();
-            if (state == ExecHandleState.DEMONIZED) {
-                aborted(0);
-            }
         } finally {
             lock.unlock();
         }
     }
 
     public ExecResult waitForFinish() {
+        execHandleRunner.waitForFinish();
         executor.stop();
-        execHandleRunner.waitForStreamsEOF();
 
         lock.lock();
         try {
@@ -274,13 +265,16 @@ public class DefaultExecHandle implements ExecHandle {
         }
     }
 
-    void demonized() {
-        setEndStateInfo(ExecHandleState.DEMONIZED, 0, null);
+    public void detach() {
+        execHandleRunner.waitForStreamsEOF();
+    }
+
+    void detached() {
+        setEndStateInfo(ExecHandleState.DETACHED, 0, null);
     }
 
     void started() {
         ShutdownHookActionRegister.addAction(shutdownHookAction);
-
         setState(ExecHandleState.STARTED);
         broadcast.getSource().executionStarted(this);
     }
@@ -311,10 +305,6 @@ public class DefaultExecHandle implements ExecHandle {
 
     public void removeListener(ExecHandleListener listener) {
         broadcast.remove(listener);
-    }
-
-    public boolean isDaemon() {
-        return daemon;
     }
 
     public String getDisplayName() {

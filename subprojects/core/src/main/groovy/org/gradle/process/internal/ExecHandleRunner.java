@@ -17,17 +17,17 @@
 package org.gradle.process.internal;
 
 import org.gradle.messaging.concurrent.DefaultExecutorFactory;
-import org.gradle.messaging.concurrent.StoppableExecutor;
 import org.gradle.process.internal.streams.StreamsForwarder;
+
+import java.util.concurrent.Executor;
 
 /**
  * @author Tom Eyckmans
  */
-public class ExecHandleRunner implements Runnable {
+public class ExecHandleRunner {
     private static final Object START_LOCK = new Object();
     private final ProcessBuilderFactory processBuilderFactory;
     private final DefaultExecHandle execHandle;
-    private final StoppableExecutor executor;
     private final Object lock;
     private Process process;
     private boolean aborted;
@@ -41,8 +41,6 @@ public class ExecHandleRunner implements Runnable {
         this.processBuilderFactory = new ProcessBuilderFactory();
         this.execHandle = execHandle;
         this.lock = new Object();
-        this.executor = new DefaultExecutorFactory()
-                .create(String.format("Forward streams with process: %s", execHandle.getDisplayName()));
     }
 
     public void abortProcess() {
@@ -54,34 +52,49 @@ public class ExecHandleRunner implements Runnable {
         }
     }
 
-    public void run() {
-        ProcessBuilder processBuilder = processBuilderFactory.createProcessBuilder(execHandle);
+    public void start() {
+        Executor executor = new DefaultExecutorFactory()
+                .create(String.format("Forward streams with process: %s", execHandle.getDisplayName()));
+
+        executor.execute(new Runnable() {
+            public void run() {
+                ProcessBuilder processBuilder = processBuilderFactory.createProcessBuilder(execHandle);
+                try {
+                    Process process;
+
+                    // This big fat static lock is here for windows. When starting multiple processes concurrently, the stdout
+                    // and stderr streams for some of the processes get stuck
+                    synchronized (START_LOCK) {
+                        process = processBuilder.start();
+                        streamsForwarder.connectStreams(process);
+                    }
+                    synchronized (lock) {
+                        ExecHandleRunner.this.process = process;
+                    }
+
+                    streamsForwarder.start();
+                    execHandle.started();
+                } catch (Throwable t) {
+                    execHandle.failed(t);
+                }
+            }
+        });
+    }
+
+    public void waitForStreamsEOF() {
+        try {
+            streamsForwarder.stop();
+            execHandle.detached();
+        } catch (Throwable t) {
+            execHandle.failed(t);
+        }
+    }
+
+    public void waitForFinish() {
         int exitCode;
         try {
-            Process process;
-
-            // This big fat static lock is here for windows. When starting multiple processes concurrently, the stdout
-            // and stderr streams for some of the processes get stuck
-            synchronized (START_LOCK) {
-                process = processBuilder.start();
-                streamsForwarder.connectStreams(process);
-            }
-            synchronized (lock) {
-                this.process = process;
-            }
-
-            streamsForwarder.start(executor);
-            execHandle.started();
-
-            if (execHandle.isDaemon()) {
-                streamsForwarder.close();
-                waitForStreamsEOF();
-                execHandle.demonized();
-                return;
-            }
-
             exitCode = process.waitFor();
-            streamsForwarder.close();
+            streamsForwarder.stop();
         } catch (Throwable t) {
             execHandle.failed(t);
             return;
@@ -92,9 +105,5 @@ public class ExecHandleRunner implements Runnable {
         } else {
             execHandle.finished(exitCode);
         }
-    }
-
-    public void waitForStreamsEOF() {
-        executor.stop();
     }
 }

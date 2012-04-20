@@ -114,10 +114,4 @@ public class ExecHandleBuilder extends AbstractExecHandleBuilder implements Exec
         super.setDisplayName(displayName);
         return this;
     }
-
-    @Override
-    public ExecHandleBuilder daemon() {
-        super.daemon();
-        return this;
-    }
 }
