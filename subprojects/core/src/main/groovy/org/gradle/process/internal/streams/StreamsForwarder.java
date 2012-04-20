@@ -33,26 +33,31 @@ public class StreamsForwarder implements Stoppable {
     private final OutputStream standardOutput;
     private final OutputStream errorOutput;
     private final InputStream input;
+    private final boolean readErrorStream;
     private StoppableExecutor executor;
 
-    public StreamsForwarder(OutputStream standardOutput, OutputStream errorOutput, InputStream input, String displayName) {
+    public StreamsForwarder(OutputStream standardOutput, OutputStream errorOutput, InputStream input,
+                            boolean readErrorStream, String displayName) {
         this.standardOutput = standardOutput;
         this.errorOutput = errorOutput;
         this.input = input;
+        this.readErrorStream = readErrorStream;
         this.executor = new DefaultExecutorFactory().create(displayName);
     }
 
     public StreamsForwarder(OutputStream standardOutput) {
-        this(standardOutput, SafeStreams.systemErr(), SafeStreams.emptyInput(), "Forward streams with process.");
+        this(standardOutput, SafeStreams.systemErr(), SafeStreams.emptyInput(), true, "Forward streams with process.");
     }
 
     public StreamsForwarder() {
-        this(SafeStreams.systemOut(), SafeStreams.systemErr(), SafeStreams.emptyInput(), "Forward streams with process.");
+        this(SafeStreams.systemOut(), SafeStreams.systemErr(), SafeStreams.emptyInput(), true, "Forward streams with process.");
     }
 
     public void start() {
         executor.execute(standardInputRunner);
-        executor.execute(errorOutputRunner);
+        if (readErrorStream) {
+            executor.execute(errorOutputRunner);
+        }
         executor.execute(standardOutputRunner);
     }
 

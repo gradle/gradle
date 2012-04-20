@@ -31,10 +31,12 @@ class DefaultExecHandleSpec extends Specification {
     void "forks process"() {
         given:
         def out = new ByteArrayOutputStream();
+        def err = new ByteArrayOutputStream();
 
         def execHandle = handle()
                 .args(args(TestApp.class, "arg1", "arg2"))
                 .setStandardOutput(out)
+                .setErrorOutput(err)
                 .build();
 
         when:
@@ -43,7 +45,8 @@ class DefaultExecHandleSpec extends Specification {
         then:
         execHandle.state == ExecHandleState.SUCCEEDED
         result.exitValue == 0
-        out.toString() == "args: [arg1, arg2]"
+        out.toString() == "output args: [arg1, arg2]"
+        err.toString() == "error args: [arg1, arg2]"
         result.assertNormalExitValue()
     }
 
@@ -121,6 +124,18 @@ class DefaultExecHandleSpec extends Specification {
         execHandle.state == ExecHandleState.DETACHED
     }
 
+    void "can redirect error stream"() {
+        def out = new ByteArrayOutputStream()
+        def execHandle = handle().args(args(TestApp.class)).setStandardOutput(out).redirectErrorStream().build();
+
+        when:
+        execHandle.start();
+        execHandle.waitForFinish()
+
+        then:
+        ["output args", "error args"].each { out.toString().contains(it) }
+    }
+
     private ExecHandleBuilder handle() {
         new ExecHandleBuilder()
                 .executable(Jvm.current().getJavaExecutable().getAbsolutePath())
@@ -133,7 +148,8 @@ class DefaultExecHandleSpec extends Specification {
 
     public static class TestApp {
         public static void main(String[] args) {
-            System.out.print("args: " + Arrays.asList(args));
+            System.out.print("output args: " + Arrays.asList(args));
+            System.err.print("error args: " + Arrays.asList(args));
         }
     }
 

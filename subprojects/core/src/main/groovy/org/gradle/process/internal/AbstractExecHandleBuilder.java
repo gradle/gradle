@@ -36,6 +36,7 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
     private String displayName;
     private final List<ExecHandleListener> listeners = new ArrayList<ExecHandleListener>();
     boolean ignoreExitValue;
+    boolean redirectErrorStream;
 
     public AbstractExecHandleBuilder(FileResolver fileResolver) {
         super(fileResolver);
@@ -118,9 +119,15 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
             throw new IllegalStateException("execCommand == null!");
         }
 
-        StreamsForwarder forwarder = new StreamsForwarder(standardOutput, errorOutput, input,
+        boolean shouldReadErrorStream = !redirectErrorStream;
+        StreamsForwarder forwarder = new StreamsForwarder(standardOutput, errorOutput, input, shouldReadErrorStream,
                 String.format("Forward streams with process: %s", getDisplayName()));
         return new DefaultExecHandle(getDisplayName(), getWorkingDir(), executable, getAllArguments(), getActualEnvironment(),
-                forwarder, listeners);
+                forwarder, listeners, redirectErrorStream);
+    }
+
+    public AbstractExecHandleBuilder redirectErrorStream() {
+        this.redirectErrorStream = true;
+        return this;
     }
 }

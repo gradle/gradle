@@ -56,7 +56,7 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  * @author Tom Eyckmans
  */
-public class DefaultExecHandle implements ExecHandle {
+public class DefaultExecHandle implements ExecHandle, ProcessSettings {
     private static final Logger LOGGER = Logging.getLogger(DefaultExecHandle.class);
     private final String displayName;
     /**
@@ -77,6 +77,7 @@ public class DefaultExecHandle implements ExecHandle {
      */
     private final Map<String, String> environment;
     private final StreamsForwarder streamsForwarder;
+    private final boolean redirectErrorStream;
 
     /**
      * Lock to guard all mutable state
@@ -105,13 +106,14 @@ public class DefaultExecHandle implements ExecHandle {
 
     DefaultExecHandle(String displayName, File directory, String command, List<String> arguments,
                       Map<String, String> environment, StreamsForwarder streamsForwarder,
-                      List<ExecHandleListener> listeners) {
+                      List<ExecHandleListener> listeners, boolean redirectErrorStream) {
         this.displayName = displayName;
         this.directory = directory;
         this.command = command;
         this.arguments = arguments;
         this.environment = environment;
         this.streamsForwarder = streamsForwarder;
+        this.redirectErrorStream = redirectErrorStream;
         this.lock = new ReentrantLock();
         this.stateChange = lock.newCondition();
         this.state = ExecHandleState.INIT;
@@ -309,6 +311,10 @@ public class DefaultExecHandle implements ExecHandle {
 
     public String getDisplayName() {
         return displayName;
+    }
+
+    public boolean getRedirectErrorStream() {
+        return redirectErrorStream;
     }
 
     private class ExecResultImpl implements ExecResult {

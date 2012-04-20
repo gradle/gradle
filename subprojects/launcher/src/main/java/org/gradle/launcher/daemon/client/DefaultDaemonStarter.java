@@ -31,7 +31,6 @@ import org.gradle.util.Clock;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.util.ArrayList;
@@ -100,12 +99,12 @@ public class DefaultDaemonStarter implements DaemonStarter {
 
             builder.commandLine(args);
             builder.setWorkingDir(workingDir);
-            builder.setStandardInput(new ByteArrayInputStream(new byte[0]));
+            builder.noStandardInput();
+            builder.redirectErrorStream();
 
             //TODO SF improve: the exec handle, the way we retrieve output, the way we parse output.
             ByteArrayOutputStream output = new ByteArrayOutputStream();
             builder.setStandardOutput(output);
-            builder.setErrorOutput(output);
 
             ExecHandle handle = builder.build();
 
