@@ -19,7 +19,6 @@ package org.gradle.process.internal;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.internal.UncheckedException;
 import org.gradle.listener.AsyncListenerBroadcast;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.messaging.concurrent.DefaultExecutorFactory;
@@ -33,7 +32,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -84,8 +82,6 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
      */
     private final Lock lock;
 
-    private final Condition stateChange;
-
     private final StoppableExecutor executor;
 
     /**
@@ -115,7 +111,6 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
         this.streamsForwarder = streamsForwarder;
         this.redirectErrorStream = redirectErrorStream;
         this.lock = new ReentrantLock();
-        this.stateChange = lock.newCondition();
         this.state = ExecHandleState.INIT;
         executor = new DefaultExecutorFactory().create(String.format("Run %s", displayName));
         shutdownHookAction = new ExecHandleShutdownHookAction(this);
@@ -157,7 +152,6 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
         lock.lock();
         try {
             this.state = state;
-            stateChange.signalAll();
         } finally {
             lock.unlock();
         }
@@ -207,26 +201,16 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
     }
 
     public ExecHandle start() {
-        ProcessParentingInitializer.intitialize();
         lock.lock();
         try {
+            ProcessParentingInitializer.intitialize();
             if (!stateIn(ExecHandleState.INIT)) {
                 throw new IllegalStateException("already started!");
             }
             setState(ExecHandleState.STARTING);
 
-            execResult = null;
-
             execHandleRunner = new ExecHandleRunner(this, streamsForwarder);
             execHandleRunner.start();
-
-            while (getState() == ExecHandleState.STARTING) {
-                try {
-                    stateChange.await();
-                } catch (InterruptedException e) {
-                    throw new UncheckedException(e);
-                }
-            }
 
             if (execResult != null) {
                 execResult.rethrowFailure();

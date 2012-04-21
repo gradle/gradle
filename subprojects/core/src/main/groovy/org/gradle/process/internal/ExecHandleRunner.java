@@ -16,10 +16,7 @@
 
 package org.gradle.process.internal;
 
-import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.process.internal.streams.StreamsForwarder;
-
-import java.util.concurrent.Executor;
 
 /**
  * @author Tom Eyckmans
@@ -53,32 +50,25 @@ public class ExecHandleRunner {
     }
 
     public void start() {
-        Executor executor = new DefaultExecutorFactory()
-                .create(String.format("Forward streams with process: %s", execHandle.getDisplayName()));
+        ProcessBuilder processBuilder = processBuilderFactory.createProcessBuilder(execHandle);
+        try {
+            Process process;
 
-        executor.execute(new Runnable() {
-            public void run() {
-                ProcessBuilder processBuilder = processBuilderFactory.createProcessBuilder(execHandle);
-                try {
-                    Process process;
-
-                    // This big fat static lock is here for windows. When starting multiple processes concurrently, the stdout
-                    // and stderr streams for some of the processes get stuck
-                    synchronized (START_LOCK) {
-                        process = processBuilder.start();
-                        streamsForwarder.connectStreams(process);
-                    }
-                    synchronized (lock) {
-                        ExecHandleRunner.this.process = process;
-                    }
-
-                    streamsForwarder.start();
-                    execHandle.started();
-                } catch (Throwable t) {
-                    execHandle.failed(t);
-                }
+            // This big fat static lock is here for windows. When starting multiple processes concurrently, the stdout
+            // and stderr streams for some of the processes get stuck
+            synchronized (START_LOCK) {
+                process = processBuilder.start();
+                streamsForwarder.connectStreams(process);
             }
-        });
+            synchronized (lock) {
+                this.process = process;
+            }
+
+            streamsForwarder.start();
+            execHandle.started();
+        } catch (Throwable t) {
+            execHandle.failed(t);
+        }
     }
 
     public void waitForStreamsEOF() {
