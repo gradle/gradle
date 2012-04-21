@@ -21,10 +21,6 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 
-import java.util.List;
-
-import static java.util.Arrays.asList;
-
 /**
  * by Szczepan Faber, created at: 1/19/12
  */
@@ -36,17 +32,16 @@ public class DaemonGreeter {
     }
 
     public DaemonDiagnostics parseDaemonOutput(String output) {
-        List<String> lines = asList(output.split("\n"));
-
-        if (lines.isEmpty() || !lines.get(lines.size() - 1).startsWith(DaemonMessages.ABOUT_TO_CLOSE_STREAMS)) {
+        if (!output.contains(DaemonMessages.ABOUT_TO_CLOSE_STREAMS)) {
             throw new GradleException(DaemonMessages.UNABLE_TO_START_DAEMON
-                    + "\n" + processOutput(lines));
+                    + "\n" + processOutput(output));
         }
-        String lastLine = lines.get(lines.size() - 1);
+        String[] lines = output.split("\n");
+        String lastLine =  lines[lines.length-1];
         return new DaemonStartupCommunication().readDiagnostics(lastLine);
     }
 
-    private String processOutput(List<String> lines) {
+    private String processOutput(String output) {
         StringBuilder sb = new StringBuilder();
         sb.append("This problem might be caused by incorrect configuration of the daemon.\n");
         sb.append("For example, an unrecognized jvm option is used.\n");
@@ -55,10 +50,7 @@ public class DaemonGreeter {
         sb.append("\n");
         sb.append("Please read below process output to find out more:\n");
         sb.append("-----------------------\n");
-
-        for (String line : lines) {
-            sb.append(line).append("\n");
-        }
+        sb.append(output);
         return sb.toString();
     }
 }
