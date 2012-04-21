@@ -31,7 +31,7 @@ public interface FileAccess {
      *
      * @throws LockTimeoutException On timeout acquiring lock, if required.
      * @throws IllegalStateException When this lock has been closed.
-     * @throws FileIntegrityViolationException If the integrity of the file cannot be guaranteed (never thrown if target is a directory)
+     * @throws FileIntegrityViolationException If the integrity of the file cannot be guaranteed (i.e. {@link #writeFile(Runnable)} has never been called)
      */
     <T> T readFile(Callable<? extends T> action) throws LockTimeoutException, FileIntegrityViolationException;
 
@@ -43,7 +43,7 @@ public interface FileAccess {
      *
      * @throws LockTimeoutException On timeout acquiring lock, if required.
      * @throws IllegalStateException When this lock has been closed.
-     * @throws FileIntegrityViolationException If the integrity of the file cannot be guaranteed (never thrown if target is a directory)
+     * @throws FileIntegrityViolationException If the integrity of the file cannot be guaranteed (i.e. {@link #writeFile(Runnable)} has never been called)
      */
     <T> T readFile(Factory<? extends T> action) throws LockTimeoutException, FileIntegrityViolationException;
 
@@ -56,7 +56,7 @@ public interface FileAccess {
      *
      * @throws LockTimeoutException On timeout acquiring lock, if required.
      * @throws IllegalStateException When this lock has been closed.
-     * @throws FileIntegrityViolationException If the integrity of the file cannot be guaranteed (never thrown if target is a directory)
+     * @throws FileIntegrityViolationException If the integrity of the file cannot be guaranteed (i.e. {@link #writeFile(Runnable)} has never been called)
      */
     void updateFile(Runnable action) throws LockTimeoutException, FileIntegrityViolationException;
 
