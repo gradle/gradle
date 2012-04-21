@@ -76,7 +76,7 @@ public class MultiProcessSafePersistentIndexedCache<K, V> implements PersistentI
     public void close() {
         if (cache != null) {
             try {
-                fileAccess.updateFile(new Runnable() {
+                fileAccess.writeFile(new Runnable() {
                     public void run() {
                         cache.close();
                     }
