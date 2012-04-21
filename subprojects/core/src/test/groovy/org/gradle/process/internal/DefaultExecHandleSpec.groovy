@@ -132,16 +132,17 @@ class DefaultExecHandleSpec extends Specification {
         execHandle.state == ExecHandleState.SUCCEEDED
     }
 
-    //TODO SF - we should check if detached process is still operational.
-    void "detach does not rethrow daemon failure"() {
+    void "detach detects when process did not start or died prematurely"() {
         def execHandle = handle().args(args(BrokenApp.class)).build();
 
         when:
         execHandle.start();
-        execHandle.detach();
+        def detachResult = execHandle.detach();
 
         then:
-        execHandle.state == ExecHandleState.DETACHED
+        execHandle.state == ExecHandleState.FAILED
+        detachResult.processCompleted
+        detachResult.execResult.exitValue == 72
     }
 
     void "can redirect error stream"() {

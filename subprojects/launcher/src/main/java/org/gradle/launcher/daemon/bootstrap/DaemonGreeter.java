@@ -20,6 +20,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
+import org.gradle.process.internal.DetachResult;
 
 /**
  * by Szczepan Faber, created at: 1/19/12
@@ -31,25 +32,30 @@ public class DaemonGreeter {
         this.documentationRegistry = documentationRegistry;
     }
 
-    public DaemonDiagnostics parseDaemonOutput(String output) {
+    public DaemonDiagnostics parseDaemonOutput(String output, DetachResult detachResult) {
         if (!output.contains(DaemonMessages.ABOUT_TO_CLOSE_STREAMS)) {
-            throw new GradleException(DaemonMessages.UNABLE_TO_START_DAEMON
-                    + "\n" + processOutput(output));
+            throw new GradleException(prepareMessage(output, detachResult));
         }
         String[] lines = output.split("\n");
         String lastLine =  lines[lines.length-1];
         return new DaemonStartupCommunication().readDiagnostics(lastLine);
     }
 
-    private String processOutput(String output) {
+    private String prepareMessage(String output, DetachResult detachResult) {
         StringBuilder sb = new StringBuilder();
-        sb.append("This problem might be caused by incorrect configuration of the daemon.\n");
-        sb.append("For example, an unrecognized jvm option is used.\n");
-        sb.append("Please refer to the user guide chapter on the daemon at ");
+        sb.append(DaemonMessages.UNABLE_TO_START_DAEMON);
+        if (detachResult.isProcessCompleted()) {
+            sb.append("\nThe process has exited with value: ");
+            sb.append(detachResult.getExecResult().getExitValue()).append(".");
+        } else {
+            sb.append("\nThe process may still be running.");
+        }
+        sb.append("\nThis problem might be caused by incorrect configuration of the daemon.");
+        sb.append("\nFor example, an unrecognized jvm option is used.");
+        sb.append("\nPlease refer to the user guide chapter on the daemon at ");
         sb.append(documentationRegistry.getDocumentationFor("gradle_daemon"));
-        sb.append("\n");
-        sb.append("Please read below process output to find out more:\n");
-        sb.append("-----------------------\n");
+        sb.append("\nPlease read below process output to find out more:");
+        sb.append("\n-----------------------\n");
         sb.append(output);
         return sb.toString();
     }

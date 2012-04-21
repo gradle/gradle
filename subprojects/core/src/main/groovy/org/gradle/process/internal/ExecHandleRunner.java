@@ -71,9 +71,16 @@ public class ExecHandleRunner {
         }
     }
 
-    public void waitForStreamsEOF() {
+    public void waitUntilDemonized() {
         try {
             streamsForwarder.stop();
+            try {
+                int exitValue = process.exitValue();
+                execHandle.finished(exitValue);
+                return;
+            } catch (IllegalThreadStateException e) {
+                //cool, it means the process is still running.
+            }
             execHandle.detached();
         } catch (Throwable t) {
             execHandle.failed(t);

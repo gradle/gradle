@@ -25,6 +25,7 @@ import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
 import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
 import org.gradle.launcher.daemon.registry.DaemonDir;
+import org.gradle.process.internal.DetachResult;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.ExecHandleBuilder;
 import org.gradle.util.Clock;
@@ -109,9 +110,9 @@ public class DefaultDaemonStarter implements DaemonStarter {
             ExecHandle handle = builder.build();
 
             handle.start();
-            handle.detach();
+            DetachResult detachResult = handle.detach();
 
-            return daemonGreeter.parseDaemonOutput(output.toString());
+            return daemonGreeter.parseDaemonOutput(output.toString(), detachResult);
         } catch (GradleException e) {
             throw e;
         } catch (Exception e) {

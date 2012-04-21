@@ -170,13 +170,13 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
         ShutdownHookActionRegister.removeAction(shutdownHookAction);
 
         ExecResultImpl result;
-        ExecHandleState previousState;
+        ExecHandleState currentState;
         lock.lock();
         try {
-            previousState = getState();
+            currentState = this.state;
             ExecException wrappedException = null;
             if (failureCause != null) {
-                if (this.state == ExecHandleState.STARTING) {
+                if (currentState == ExecHandleState.STARTING) {
                     wrappedException = new ExecException(String.format("A problem occurred starting %s.",
                             displayName), failureCause);
                 } else {
@@ -193,7 +193,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
 
         LOGGER.debug("Process: {} is now: {}; (code: {})", displayName, state, exitCode);
 
-        if (previousState != ExecHandleState.DETACHED) {
+        if (currentState != ExecHandleState.DETACHED) {
             broadcast.getSource().executionFinished(this, result);
         }
         broadcast.stop();
@@ -251,8 +251,14 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
         }
     }
 
-    public void detach() {
-        execHandleRunner.waitForStreamsEOF();
+    public DetachResult detach() {
+        execHandleRunner.waitUntilDemonized();
+        lock.lock();
+        try {
+            return new DetachResultImpl(execResult);
+        } finally {
+            lock.unlock();
+        }
     }
 
     void detached() {
@@ -326,6 +332,22 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
                 throw failure;
             }
             return this;
+        }
+    }
+
+    public static class DetachResultImpl implements DetachResult {
+        private final ExecResult execResult;
+
+        public DetachResultImpl(ExecResult execResult) {
+            this.execResult = execResult;
+        }
+
+        public ExecResult getExecResult() {
+            return execResult;
+        }
+
+        public boolean isProcessCompleted() {
+            return execResult!=null;
         }
     }
 }

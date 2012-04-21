@@ -19,6 +19,8 @@ package org.gradle.launcher.daemon.bootstrap
 import org.gradle.api.GradleException
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.launcher.daemon.logging.DaemonMessages
+import org.gradle.process.ExecResult
+import org.gradle.process.internal.DetachResult
 import spock.lang.Specification
 
 /**
@@ -35,7 +37,7 @@ another line of output...
 ${new DaemonStartupCommunication().daemonStartedMessage(12, new File("12.log"))}"""
 
         when:
-        def diagnostics = new DaemonGreeter(registry).parseDaemonOutput(output)
+        def diagnostics = new DaemonGreeter(registry).parseDaemonOutput(output, Mock(DetachResult))
 
         then:
         diagnostics.pid == 12
@@ -47,18 +49,23 @@ ${new DaemonStartupCommunication().daemonStartedMessage(12, new File("12.log"))}
         def output = """hey joe!
 another line of output..."""
 
+        DetachResult detachResult = Mock()
+        detachResult.isProcessCompleted() >> true
+        detachResult.execResult >> { def out = Mock(ExecResult); out.exitValue >> -233; out }
+
         when:
-        new DaemonGreeter(registry).parseDaemonOutput(output)
+        new DaemonGreeter(registry).parseDaemonOutput(output, detachResult);
 
         then:
         def ex = thrown(GradleException)
         ex.message.contains(DaemonMessages.UNABLE_TO_START_DAEMON)
         ex.message.contains("hey joe!")
+        ex.message.contains("-233")
     }
 
     def "shouts if daemon broke completely..."() {
         when:
-        new DaemonGreeter(registry).parseDaemonOutput("")
+        new DaemonGreeter(registry).parseDaemonOutput("", Mock(DetachResult))
 
         then:
         def ex = thrown(GradleException)

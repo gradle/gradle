@@ -60,6 +60,8 @@ public interface ExecHandle {
     /**
      * Waits until: the child process closes its outputs (std and err) and the child stops consuming the input.
      * Effectively, the method blocks until process becomes a daemon that can can outlive the parent.
+     * <p>
+     * The child may not start or die too quickly - use the result from this method to find out more.
      */
-    void detach();
+    DetachResult detach();
 }
