@@ -23,6 +23,8 @@ import org.gradle.process.ExecSpec;
 import org.gradle.util.GUtil;
 
 import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -123,6 +125,16 @@ public class ExecHandleBuilder extends AbstractExecHandleBuilder implements Exec
 
     public ExecHandleBuilder redirectErrorStream() {
         super.redirectErrorStream();
+        return this;
+    }
+
+    public ExecHandleBuilder setStandardOutput(OutputStream outputStream) {
+        super.setStandardOutput(outputStream);
+        return this;
+    }
+
+    public ExecHandleBuilder setStandardInput(InputStream inputStream) {
+        super.setStandardInput(inputStream);
         return this;
     }
 }

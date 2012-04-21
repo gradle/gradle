@@ -94,13 +94,15 @@ class DefaultExecHandleSpec extends Specification {
     }
 
     void "forks daemon and aborts it"() {
-        def execHandle = handle().args(args(DaemonApp.class)).build();
+        def output = new ByteArrayOutputStream()
+        def execHandle = handle().setStandardOutput(output).args(args(SlowDaemonApp.class)).build();
 
         when:
         execHandle.start();
         execHandle.detach();
 
         then:
+        output.toString().contains "I'm the daemon"
         execHandle.state == ExecHandleState.DETACHED
 
         when:
@@ -110,6 +112,24 @@ class DefaultExecHandleSpec extends Specification {
         then:
         execHandle.state == ExecHandleState.ABORTED
         result.exitValue != 0
+    }
+
+    void "can detach and then wait for finish"() {
+        def out = new ByteArrayOutputStream()
+        def execHandle = handle().setStandardOutput(out).args(args(FastDaemonApp.class)).build();
+
+        when:
+        execHandle.start();
+        execHandle.detach();
+
+        then:
+        out.toString().contains "I'm the daemon"
+
+        when:
+        execHandle.waitForFinish()
+
+        then:
+        execHandle.state == ExecHandleState.SUCCEEDED
     }
 
     //TODO SF - we should check if detached process is still operational.
@@ -165,11 +185,20 @@ class DefaultExecHandleSpec extends Specification {
         }
     }
 
-    public static class DaemonApp {
+    public static class SlowDaemonApp {
         public static void main(String[] args) throws InterruptedException {
+            System.out.println("I'm the daemon");
             System.out.close();
             System.err.close();
             Thread.sleep(10000L);
+        }
+    }
+
+    public static class FastDaemonApp {
+        public static void main(String[] args) throws InterruptedException {
+            System.out.println("I'm the daemon");
+            System.out.close();
+            System.err.close();
         }
     }
 }
