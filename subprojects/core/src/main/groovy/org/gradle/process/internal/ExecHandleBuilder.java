@@ -137,4 +137,9 @@ public class ExecHandleBuilder extends AbstractExecHandleBuilder implements Exec
         super.setStandardInput(inputStream);
         return this;
     }
+
+    public ExecHandleBuilder listener(ExecHandleListener listener) {
+        super.listener(listener);
+        return this;
+    }
 }

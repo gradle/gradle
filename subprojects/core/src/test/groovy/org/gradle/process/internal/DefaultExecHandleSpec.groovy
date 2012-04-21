@@ -16,7 +16,9 @@
 
 package org.gradle.process.internal;
 
+
 import org.gradle.internal.jvm.Jvm
+import org.gradle.process.ExecResult
 import org.gradle.util.GUtil
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
@@ -93,6 +95,20 @@ class DefaultExecHandleSpec extends Specification {
         result.exitValue != 0
     }
 
+    void "clients can listen to notifications"() {
+        ExecHandleListener listener = Mock()
+        def execHandle = handle().listener(listener).args(args(TestApp.class)).build();
+
+        when:
+        execHandle.start();
+        execHandle.waitForFinish()
+
+        then:
+        1 * listener.executionStarted(execHandle)
+        1 * listener.executionFinished(execHandle, _ as ExecResult)
+        0 * listener._
+    }
+
     void "forks daemon and aborts it"() {
         def output = new ByteArrayOutputStream()
         def execHandle = handle().setStandardOutput(output).args(args(SlowDaemonApp.class)).build();
@@ -116,7 +132,8 @@ class DefaultExecHandleSpec extends Specification {
 
     void "can detach and then wait for finish"() {
         def out = new ByteArrayOutputStream()
-        def execHandle = handle().setStandardOutput(out).args(args(FastDaemonApp.class)).build();
+        ExecHandleListener listener = Mock()
+        def execHandle = handle().listener(listener).setStandardOutput(out).args(args(FastDaemonApp.class)).build();
 
         when:
         execHandle.start();
@@ -124,6 +141,8 @@ class DefaultExecHandleSpec extends Specification {
 
         then:
         out.toString().contains "I'm the daemon"
+        1 * listener.executionStarted(execHandle)
+        0 * listener._
 
         when:
         execHandle.waitForFinish()

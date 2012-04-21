@@ -166,7 +166,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
         }
     }
 
-    private void setEndStateInfo(ExecHandleState state, int exitCode, Throwable failureCause) {
+    private void setEndStateInfo(ExecHandleState newState, int exitCode, Throwable failureCause) {
         ShutdownHookActionRegister.removeAction(shutdownHookAction);
 
         ExecResultImpl result;
@@ -184,16 +184,16 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
                             "A problem occurred waiting for %s to complete.", displayName), failureCause);
                 }
             }
-            setState(state);
+            setState(newState);
             execResult = new ExecResultImpl(exitCode, wrappedException);
             result = execResult;
         } finally {
             lock.unlock();
         }
 
-        LOGGER.debug("Process: {} is now: {}; (code: {})", displayName, state, exitCode);
+        LOGGER.debug("Process: {} is now: {}; (code: {})", displayName, newState, exitCode);
 
-        if (currentState != ExecHandleState.DETACHED) {
+        if (currentState != ExecHandleState.DETACHED && newState != ExecHandleState.DETACHED) {
             broadcast.getSource().executionFinished(this, result);
         }
         broadcast.stop();
