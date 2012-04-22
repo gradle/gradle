@@ -27,86 +27,122 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Fork options for Java compilation.
+ * Fork options for Java compilation. Only take effect if {@code CompileOptions.fork} is {@code true}.
  *
  * @author Hans Dockter
  */
 public class ForkOptions extends AbstractOptions {
     private static final long serialVersionUID = 0;
 
-    /**
-     * The executable to use to fork the compiler.
-     */
-    @Input @Optional
     private String executable;
 
+    private String memoryInitialSize;
+
+    private String memoryMaximumSize;
+
+    private String tempDir;
+
+    private List<String> jvmArgs = Lists.newArrayList();
+
+    /**
+     * Returns the compiler executable to be used. If set,
+     * a new compiler process will be forked for every compile task.
+     * Defaults to {@code null}.
+     */
+    @Input
+    @Optional
     public String getExecutable() {
         return executable;
     }
 
+    /**
+     * Sets the compiler executable to be used. If set,
+     * a new compiler process will be forked for every compile task.
+     * Defaults to {@code null}.
+     */
     public void setExecutable(String executable) {
         this.executable = executable;
     }
 
     /**
-     * The initial heap size for the compiler process.
+     * Returns the initial heap size for the compiler process.
+     * Defaults to {@code null}, in which case the JVM's default will be used.
      */
-    private String memoryInitialSize;
-
     public String getMemoryInitialSize() {
         return memoryInitialSize;
     }
 
+    /**
+     * Sets the initial heap size for the compiler process.
+     * Defaults to {@code null}, in which case the JVM's default will be used.
+     */
     public void setMemoryInitialSize(String memoryInitialSize) {
         this.memoryInitialSize = memoryInitialSize;
     }
 
     /**
-     * The maximum heap size for the compiler process.
+     * Returns the maximum heap size for the compiler process.
+     * Defaults to {@code null}, in which case the JVM's default will be used.
      */
-    private String memoryMaximumSize;
-
     public String getMemoryMaximumSize() {
         return memoryMaximumSize;
     }
 
+    /**
+     * Sets the maximum heap size for the compiler process.
+     * Defaults to {@code null}, in which case the JVM's default will be used.
+     */
     public void setMemoryMaximumSize(String memoryMaximumSize) {
         this.memoryMaximumSize = memoryMaximumSize;
     }
 
     /**
-   * Directory for temporary files. Only used if compilation is done by an
-   * underlying Ant javac task, happens in a forked process, and the command
-   * line args length exceeds 4k. Defaults to <tt>java.io.tmpdir</tt>.
-   */
-    private String tempDir;
-
+     * Returns the directory used for temporary files that may be created to pass
+     * command line arguments to the compiler process. Defaults to {@code null},
+     * in which case the directory will be chosen automatically.
+     */
     public String getTempDir() {
         return tempDir;
     }
 
+    /**
+     * Sets the directory used for temporary files that may be created to pass
+     * command line arguments to the compiler process. Defaults to {@code null},
+     * in which case the directory will be chosen automatically.
+     */
     public void setTempDir(String tempDir) {
         this.tempDir = tempDir;
     }
 
     /**
-     * Any additional JVM arguments for the compiler process.
+     * Returns any additional JVM arguments for the compiler process.
+     * Defaults to the empty list.
      */
-    private List<String> jvmArgs = Lists.newArrayList();
-
+    @Input
+    @Optional
     public List<String> getJvmArgs() {
         return jvmArgs;
     }
 
+    /**
+     * Sets any additional JVM arguments for the compiler process.
+     * Defaults to the empty list.
+     */
     public void setJvmArgs(List<String> jvmArgs) {
         this.jvmArgs = jvmArgs;
     }
 
-    public Map<String, String> fieldName2AntMap() {
+    /**
+     * Internal method.
+     */
+    protected Map<String, String> fieldName2AntMap() {
         return ImmutableMap.of("tempDir", "tempdir");
     }
 
-    public List<String> excludedFieldsFromOptionMap() {
+    /**
+     * Internal method.
+     */
+    protected List<String> excludedFieldsFromOptionMap() {
         return ImmutableList.of("jvmArgs");
     }
 }
