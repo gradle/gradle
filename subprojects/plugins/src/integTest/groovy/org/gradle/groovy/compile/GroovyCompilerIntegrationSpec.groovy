@@ -15,26 +15,41 @@
  */
 package org.gradle.groovy.compile
 
-import org.gradle.integtests.fixtures.TargetVersions
-
-@TargetVersions(['1.6.9', '1.7.10', '1.8.6'])
-class AntForkingGroovyCompilerIntegrationTest extends GroovyCompilerIntegrationSpec {
-
-    @Override
-    def String compilerConfiguration() {
-        '''
-    tasks.withType(GroovyCompile) {
-        groovyOptions.useAnt = true
-        groovyOptions.fork = true
-    }
-'''
-    }
-
-    @Override
-    String getCompileErrorOutput() {
-        if (version.startsWith('1.8')) {
-            return output
+abstract class GroovyCompilerIntegrationSpec extends BasicGroovyCompilerIntegrationSpec {
+    def "canUseBuiltInAstTransform"() {
+        if (version.startsWith('1.5.')) {
+            return
         }
-        return errorOutput
+
+        when:
+        run("test")
+
+        then:
+        noExceptionThrown()
     }
+
+    def "canUseThirdPartyAstTransform"() {
+        if (version.startsWith('1.5.')) {
+            return
+        }
+
+        when:
+        run("test")
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "canUseAstTransformWrittenInGroovy"() {
+        if (version.startsWith('1.5.')) {
+            return
+        }
+
+        when:
+        run("test")
+
+        then:
+        noExceptionThrown()
+    }
+
 }

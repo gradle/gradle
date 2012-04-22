@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 import org.gradle.integtests.fixtures.TargetVersions
+import org.gradle.integtests.fixtures.ExecutionFailure
 
 @TargetVersions(['1.5.8', '1.6.9', '1.7.10', '1.8.6'])
 abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegrationSpec {
@@ -29,18 +30,13 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         executer.withArguments("-i")
     }
 
-    @Override
-    protected ExecutionResult run(String... tasks) {
-        buildFile << """
-dependencies { groovy 'org.codehaus.groovy:groovy:$version' }
-"""
-        buildFile << compilerConfiguration()
+    def "badCodeBreaksBuild"() {
+        when:
+        runAndFail("classes")
 
-        println "->> USING BUILD FILE: ${buildFile.text}"
-        super.run(tasks)
+        then:
+        compileErrorOutput.contains 'expecting an identifier, found \'interface\''
     }
-
-    abstract compilerConfiguration()
 
     def "canCompileAgainstGroovyClassThatDependsOnExternalClass"() {
         when:
@@ -50,40 +46,30 @@ dependencies { groovy 'org.codehaus.groovy:groovy:$version' }
         noExceptionThrown()
     }
 
-    def "canUseBuiltInAstTransform"() {
-        if (version.startsWith('1.5.')) {
-            return
-        }
-
-        when:
-        run("test")
-
-        then:
-        noExceptionThrown()
+    @Override
+    protected ExecutionResult run(String... tasks) {
+        tweakBuildFile()
+        return super.run(tasks)
     }
 
-    def "canUseThirdPartyAstTransform"() {
-        if (version.startsWith('1.5.')) {
-            return
-        }
-
-        when:
-        run("test")
-
-        then:
-        noExceptionThrown()
+    @Override
+    protected ExecutionFailure runAndFail(String... tasks) {
+        tweakBuildFile()
+        return super.runAndFail(tasks)
     }
 
-    def "canUseAstTransformWrittenInGroovy"() {
-        if (version.startsWith('1.5.')) {
-            return
-        }
+    private void tweakBuildFile() {
+        buildFile << """
+dependencies { groovy 'org.codehaus.groovy:groovy:$version' }
+"""
+        buildFile << compilerConfiguration()
 
-        when:
-        run("test")
-
-        then:
-        noExceptionThrown()
+        println "->> USING BUILD FILE: ${buildFile.text}"
     }
 
+    abstract String compilerConfiguration()
+
+    String getCompileErrorOutput() {
+        return errorOutput
+    }
 }

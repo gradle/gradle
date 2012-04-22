@@ -15,9 +15,9 @@
  */
 package org.gradle.groovy.compile
 
-class InProcessGroovyCompilerIntegrationTest extends BasicGroovyCompilerIntegrationSpec {
+class InProcessGroovyCompilerIntegrationTest extends GroovyCompilerIntegrationSpec {
 
-    def compilerConfiguration() {
+    def String compilerConfiguration() {
 '''
     tasks.withType(GroovyCompile) {
         groovyOptions.useAnt = false

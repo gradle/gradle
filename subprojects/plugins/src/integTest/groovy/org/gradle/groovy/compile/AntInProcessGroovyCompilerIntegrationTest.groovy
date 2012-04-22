@@ -15,19 +15,18 @@
  */
 package org.gradle.groovy.compile
 
-import spock.lang.Ignore
-
-@Ignore
 class AntInProcessGroovyCompilerIntegrationTest extends BasicGroovyCompilerIntegrationSpec {
+    def setup() {
+        executer.withForkingExecuter()
+    }
 
     @Override
-    def compilerConfiguration() {
-'''
+    def String compilerConfiguration() {
+    '''
     tasks.withType(GroovyCompile) {
         groovyOptions.useAnt = true
         groovyOptions.fork = false
     }
 '''
     }
-
 }
