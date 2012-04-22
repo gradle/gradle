@@ -28,6 +28,7 @@ import org.gradle.api.tasks.compile.GroovyForkOptions;
 import org.gradle.internal.UncheckedException;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -64,12 +65,21 @@ public class DaemonGroovyCompiler implements Compiler<GroovyJavaJointCompileSpec
 
     private DaemonForkOptions createGroovyForkOptions(GroovyJavaJointCompileSpec spec) {
         GroovyForkOptions options = spec.getGroovyCompileOptions().getForkOptions();
+
+        // Junit is part of the Groovy API, so we need to include it in the Groovy implementation
+        List<File> additionalJars = new ArrayList<File>();
+        for (File file : spec.getClasspath()) {
+            if (file.getName().matches("junit(-.*)\\.jar")) {
+                additionalJars.add(file);
+            }
+        }
+
         // Ant is optional dependency of groovy(-all) module but mandatory dependency of Groovy compiler;
         // that's why we add it here. The following assumes that any Groovy compiler version supported by Gradle
         // is compatible with Gradle's current Ant version.
         Collection<File> antFiles = project.getServices().get(ClassPathRegistry.class).getClassPath("ANT").getAsFiles();
-        Iterable<File> groovyFiles = Iterables.concat(spec.getGroovyClasspath(), antFiles);
-        List<String> groovyPackages = Arrays.asList("groovy", "org.codehaus.groovy", "groovyjarjarantlr", "groovyjarjarasm", "groovyjarjarcommonscli", "org.apache.tools.ant", "com.sun.tools.javac");
+        Iterable<File> groovyFiles = Iterables.concat(spec.getGroovyClasspath(), antFiles, additionalJars);
+        List<String> groovyPackages = Arrays.asList("groovy", "org.codehaus.groovy", "groovyjarjarantlr", "groovyjarjarasm", "groovyjarjarcommonscli", "org.apache.tools.ant", "com.sun.tools.javac", "junit", "org.junit");
         return new DaemonForkOptions(options.getMemoryInitialSize(), options.getMemoryMaximumSize(),
                 options.getJvmArgs(), groovyFiles, groovyPackages);
     }
