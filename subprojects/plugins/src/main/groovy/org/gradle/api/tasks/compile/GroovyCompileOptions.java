@@ -31,148 +31,202 @@ import java.util.Map;
 public class GroovyCompileOptions extends AbstractOptions {
     private static final long serialVersionUID = 0;
 
-    /**
-     * Tells whether the compilation task should fail if compile errors occurred. Defaults to <tt>true</tt>.
-     */
     private boolean failOnError = true;
 
+    private boolean verbose;
+
+    private boolean listFiles;
+
+    private String encoding = "UTF-8";
+
+    private boolean fork = true;
+
+    private boolean keepStubs;
+
+    private GroovyForkOptions forkOptions = new GroovyForkOptions();
+
+    private boolean stacktrace;
+
+    private boolean useAnt;
+
+    private boolean includeJavaRuntime;
+
+    private File stubDir;
+
+    /**
+     * Tells whether the compilation task should fail if compile errors occurred. Defaults to (@code true}.
+     */
     public boolean isFailOnError() {
         return failOnError;
     }
 
+    /**
+     * Sets whether the compilation task should fail if compile errors occurred. Defaults to (@code true}.
+     */
     public void setFailOnError(boolean failOnError) {
         this.failOnError = failOnError;
     }
 
     /**
-     * Tells whether to turn on verbose output. Defaults to <tt>false</tt>.
+     * Tells whether to turn on verbose output. Defaults to (@code false}.
      */
-    private boolean verbose;
-
     public boolean isVerbose() {
         return verbose;
     }
 
+    /**
+     * Sets whether to turn on verbose output. Defaults to (@code false}.
+     */
     public void setVerbose(boolean verbose) {
         this.verbose = verbose;
     }
 
     /**
-     * Tells whether to print which source files are to be compiled. Defaults to <tt>false</tt>.
+     * Tells whether to print which source files are to be compiled. Defaults to (@code false}.
      */
-    private boolean listFiles;
-
     public boolean isListFiles() {
         return listFiles;
     }
 
+    /**
+     * Sets whether to print which source files are to be compiled. Defaults to (@code false}.
+     */
     public void setListFiles(boolean listFiles) {
         this.listFiles = listFiles;
     }
 
     /**
-     * The source encoding. Defaults to <tt>UTF-8</tt>.
+     * Tells the source encoding. Defaults to (@code UTF-8}.
      */
     @Input
-    private String encoding = "UTF-8";
-
     public String getEncoding() {
         return encoding;
     }
 
+    /**
+     * Sets the source encoding. Defaults to (@code UTF-8}.
+     */
     public void setEncoding(String encoding) {
         this.encoding = encoding;
     }
 
     /**
-     * Tells whether to run the Groovy compiler in a separate process. Defaults to <tt>true</tt>.
+     * Tells whether to run the Groovy compiler in a separate process. Defaults to (@code true}.
      */
-    private boolean fork = true;
-
     public boolean isFork() {
         return fork;
     }
 
+    /**
+     * Sets whether to run the Groovy compiler in a separate process. Defaults to (@code true}.
+     */
     public void setFork(boolean fork) {
         this.fork = fork;
     }
 
     /**
-     * Options for running the Groovy compiler in a separate process. These options only take effect
-     * if <tt>fork</tt> is set to <tt>true</tt>.
+     * Returns options for running the Groovy compiler in a separate process. These options only take effect
+     * if (@code fork} is set to (@code true}.
      */
-    private GroovyForkOptions forkOptions = new GroovyForkOptions();
-
     public GroovyForkOptions getForkOptions() {
         return forkOptions;
     }
 
+    /**
+     * Sets options for running the Groovy compiler in a separate process. These options only take effect
+     * if (@code fork} is set to (@code true}.
+     */
     public void setForkOptions(GroovyForkOptions forkOptions) {
         this.forkOptions = forkOptions;
     }
 
     /**
-     * Tells whether the Java runtime should be put on the compiler's compile class path. Defaults to <tt>false</tt>.
+     * Tells whether to print a stack trace when the compiler hits a problem (like a compile error).
+     * Defaults to (@code false}.
+     */
+    public boolean isStacktrace() {
+        return stacktrace;
+    }
+
+    /**
+     * Sets whether to print a stack trace when the compiler hits a problem (like a compile error).
+     * Defaults to (@code false}.
+     */
+    public void setStacktrace(boolean stacktrace) {
+        this.stacktrace = stacktrace;
+    }
+
+    /**
+     * Tells whether the groovyc Ant task should be used over Gradle's own Groovy compiler integration.
+     * Defaults to (@code false}.
      */
     @Input
-    private boolean includeJavaRuntime;
+    public boolean isUseAnt() {
+        return useAnt;
+    }
 
+    /**
+     * Sets whether the groovyc Ant task should be used over Gradle's own Groovy compiler integration.
+     * Defaults to (@code false}.
+     */
+    public void setUseAnt(boolean useAnt) {
+        this.useAnt = useAnt;
+    }
+
+    /**
+     * Tells whether the Java runtime should be put on the compile class path. Only takes effect if
+     * {@code useAnt} is (@code true}. Defaults to (@code false}.
+     */
+    @Input
     public boolean isIncludeJavaRuntime() {
         return includeJavaRuntime;
     }
 
+    /**
+     * Sets whether the Java runtime should be put on the compile class path. Only takes effect if
+     * {@code useAnt} is (@code true}. Defaults to (@code false}.
+     */
     public void setIncludeJavaRuntime(boolean includeJavaRuntime) {
         this.includeJavaRuntime = includeJavaRuntime;
     }
 
     /**
-     * Tells whether to print a stack trace when the compiler hits a problem (like a compile error).
-     * Defaults to <tt>false</tt>.
+     * Returns the directory where Java stubs for Groovy classes will be stored during Java/Groovy joint
+     * compilation. Defaults to (@code null}, in which case a temporary directory will be used.
      */
-    private boolean stacktrace;
-
-    public boolean isStacktrace() {
-        return stacktrace;
-    }
-
-    public void setStacktrace(boolean stacktrace) {
-        this.stacktrace = stacktrace;
-    }
-
-    private boolean useAnt;
-
-    public boolean isUseAnt() {
-        return useAnt;
-    }
-
-    public void setUseAnt(boolean useAnt) {
-        this.useAnt = useAnt;
-    }
-
-    private File stubDir;
-
     public File getStubDir() {
         return stubDir;
     }
 
+    /**
+     * Sets the directory where Java stubs for Groovy classes will be stored during Java/Groovy joint
+     * compilation. Defaults to (@code null}, in which case a temporary directory will be used.
+     */
     public void setStubDir(File stubDir) {
         this.stubDir = stubDir;
     }
 
-    private boolean keepStubs;
-
+    /**
+     * Tells whether Java stubs for Groovy classes generated during Java/Groovy joint compilation
+     * should be kept after compilation has completed. Useful for joint compilation debugging purposes.
+     * Defaults to (@code false}.
+     */
     public boolean isKeepStubs() {
         return keepStubs;
     }
 
+    /**
+     * Sets whether Java stubs for Groovy classes generated during Java/Groovy joint compilation
+     * should be kept after compilation has completed. Useful for joint compilation debugging purposes.
+     * Defaults to (@code false}.
+     */
     public void setKeepStubs(boolean keepStubs) {
         this.keepStubs = keepStubs;
     }
 
     /**
-     * Shortcut for setting both <tt>fork</tt> and <tt>forkOptions</tt>.
-     *
-     * @param forkArgs fork options in map notation
+     * Convenience method to set (@link ForkOptions} with named parameter syntax.
+     * Calling this method will set {@code fork} to {@code true}.
      */
     public GroovyCompileOptions fork(Map forkArgs) {
         fork = true;
@@ -180,14 +234,23 @@ public class GroovyCompileOptions extends AbstractOptions {
         return this;
     }
 
-    public List<String> excludedFieldsFromOptionMap() {
+    /**
+     * Internal method.
+     */
+    protected List<String> excludedFieldsFromOptionMap() {
         return ImmutableList.of("forkOptions", "useAnt", "stubDir", "keepStubs");
     }
 
-    public Map<String, String> fieldName2AntMap() {
+    /**
+     * Internal method.
+     */
+    protected Map<String, String> fieldName2AntMap() {
         return ImmutableMap.of("failOnError", "failonerror", "listFiles", "listfiles");
     }
 
+    /**
+     * Internal method.
+     */
     public Map<String, Object> optionMap() {
         Map<String, Object> map = super.optionMap();
         map.putAll(forkOptions.optionMap());
