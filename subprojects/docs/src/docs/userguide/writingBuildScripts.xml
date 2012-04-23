@@ -150,14 +150,17 @@
         <section id='sec:extra_properties'>
             <title>Extra properties</title>
             <para>All enhanced objects in Gradle's domain model can hold extra user-defined properties. This includes, but is not limited to, projects, tasks,
-                and source sets. Extra properties can be added, read and set via the owning object's <literal>ext</literal> property.
+                and source sets. Extra properties can be added, read and set via the owning object's <literal>ext</literal> property. Alternatively, an
+                <literal>ext</literal> block can be used to add multiple properties at once.
             </para>
             <sample id="extraProperties" dir="userguide/tutorial/extraProperties" title="Using extra properties">
-                <sourcefile file="build.gradle" snippet="sourceSetProperty"/>
+                <sourcefile file="build.gradle" snippet="extraProperties"/>
+                <output args="-q printProperties"/>
             </sample>
-            <para>In this example, a property named <literal>purpose</literal> is added to all source sets by setting <literal>ext.purpose</literal> to
-                <literal>null</literal> (<literal>null</literal> is a permissible value). Once the property has been added, it can be read and set like
-                a predefined property. Alternatively, <literal>ext.</literal> can be used as well.
+            <para>In this example, an <literal>ext</literal> block adds two extra properties to the <literal>project</literal> object. Additionally,
+                a property named <literal>purpose</literal> is added to each source set by setting <literal>ext.purpose</literal> to
+                <literal>null</literal> (<literal>null</literal> is a permissible value). Once the properties have been added, they can be read and set like
+                predefined properties, and qualifying them (as in <literal>ext.emailNotification</literal>) is optional.
             </para>
             <para>By requiring special syntax for adding a property, Gradle can fail fast when an attempt is made to set a (predefined or extra) property
                 but the property is misspelled or does not exist.

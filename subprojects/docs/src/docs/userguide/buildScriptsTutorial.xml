@@ -165,8 +165,8 @@
             and set like a predefined task property.
         </para>
         <sample id="extraTaskProperties" dir="userguide/tutorial/extraProperties" title="Adding extra properties to a task">
-            <sourcefile file="build.gradle" snippet="taskProperty"/>
-            <output args="-q showProps"/>
+            <sourcefile file="build.gradle" snippet="taskProperties"/>
+            <output args="-q printTaskProperties"/>
         </sample>
         Extra properties aren't limited to tasks. You can read more about them in <xref linkend='sec:extra_properties'/>.
     </section>
