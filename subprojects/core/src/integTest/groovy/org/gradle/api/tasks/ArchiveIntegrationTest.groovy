@@ -52,6 +52,24 @@ public class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         file('dest').assertHasDescendants('subdir1/file1.txt', 'subdir2/file2.txt')
     }
 
+    def cannotCreateAnEmptyTar() {
+        given:
+        buildFile << """
+            task tar(type: Tar) {
+                from 'test'
+                destinationDir = buildDir
+                archiveName = 'test.tar'
+            }
+            """
+        when:
+        run "tar"
+
+        then:
+        file('build/test.tar').assertDoesNotExist()
+    }
+
+
+
     def canCopyFromATar() {
         given:
         createTar('test.tar') {

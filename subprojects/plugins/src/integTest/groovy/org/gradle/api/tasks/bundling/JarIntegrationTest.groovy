@@ -39,23 +39,6 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         expandDir.file('META-INF/MANIFEST.MF').assertContents(equalTo('Manifest-Version: 1.0\r\n\r\n'))
     }
 
-    def cannotCreateAnEmptyTar() {
-        given:
-        buildFile << """
-                task tar(type: Tar) {
-                    from 'test'
-                    destinationDir = buildDir
-                    archiveName = 'test.tar'
-        }
-        """
-        when:
-        run "tar"
-
-        then:
-        file('build/test.tar').assertDoesNotExist()
-    }
-
-
     def canCreateAJarArchiveWithDefaultManifest() {
         given:
         createDir('test') {
