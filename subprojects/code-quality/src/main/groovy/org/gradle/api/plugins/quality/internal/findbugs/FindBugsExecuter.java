@@ -28,10 +28,8 @@ import java.io.Serializable;
 import java.util.List;
 
 public class FindBugsExecuter implements Serializable {
-    private final FindBugsDaemonServer findBugsDaemonServer;
 
-    public FindBugsExecuter(FindBugsDaemonServer findBugsDaemonServer) {
-        this.findBugsDaemonServer = findBugsDaemonServer;
+    public FindBugsExecuter() {
     }
 
     FindBugsResult runFindbugs(FindBugsSpec spec) throws IOException, InterruptedException {
@@ -39,7 +37,6 @@ public class FindBugsExecuter implements Serializable {
         final PrintStream origOut = System.out;
         final PrintStream origErr = System.err;
         try {
-//            FindBugsDaemonServer.LOGGER.debug("Running findbugs specification {}", spec);
             final List<String> args = spec.getArguments();
             String[] strArray = new String[args.size()];
             args.toArray(strArray);
@@ -55,8 +52,6 @@ public class FindBugsExecuter implements Serializable {
             FindBugs.processCommandLine(commandLine, strArray, findBugs2);
             findBugs2.execute();
 
-//            FindBugsDaemonServer.LOGGER.debug(baos.toString());
-//            FindBugsDaemonServer.LOGGER.info("Successfully executed in findbugs daemon.");
             return createFindbugsResult(findBugs2);
         } finally {
             System.setOut(origOut);

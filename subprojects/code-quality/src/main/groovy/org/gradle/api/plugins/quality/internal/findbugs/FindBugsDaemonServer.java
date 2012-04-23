@@ -40,11 +40,11 @@ public class FindBugsDaemonServer implements Action<WorkerProcessContext>, Seria
     public FindBugsResult execute() {
         LOGGER.info("Executing findbugs daemon.");
         try {
-            FindBugsExecuter findBugsExecuter = new FindBugsExecuter(this);
+            FindBugsExecuter findBugsExecuter = new FindBugsExecuter();
             return findBugsExecuter.runFindbugs(spec);
         } catch (Exception e) {
             LOGGER.warn("Exception occurred while running FindBugs.", e);
-            return new FindBugsResult(0, 0, 1); //mark result with error count 1
+            return new FindBugsResult(0, 0, 1, e); //mark result with error count 1
         }
     }
 }
