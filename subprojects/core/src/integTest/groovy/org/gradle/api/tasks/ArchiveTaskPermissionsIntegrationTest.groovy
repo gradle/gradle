@@ -31,8 +31,8 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
         given:
         createDir('parent') {
             child {
-                mode = dirMode
-                file('reference.txt').mode = fileMode
+                mode = 0777
+                file('reference.txt').mode = 0746
             }
         }
         def archName = "test.${taskName.toLowerCase()}"
@@ -47,12 +47,12 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
         run "pack"
         file(archName).usingNativeTools()."$unpackMethod"(file("build"))
         then:
-        file("build/child").mode == dirMode
-        file("build/child/reference.txt").mode == fileMode
+        file("build/child").mode == 0777
+        file("build/child/reference.txt").mode == 0746
         where:
-        taskName | fileMode | dirMode | unpackMethod
-        "Zip"    | 0746     | 0777    | "unzipTo"
-        "Tar"    | 0746     | 0777    | "untarTo"
+        taskName | unpackMethod
+        "Zip"    | "unzipTo"
+        "Tar"    | "untarTo"
     }
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
@@ -71,8 +71,8 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
                 task pack(type: $taskName) {
                     archiveName = "$archName"
-                    fileMode = $fileMode
-                    dirMode = $dirMode
+                    fileMode = 0774
+                    dirMode = 0756
                     from 'parent'
                 }
                 """
@@ -81,12 +81,12 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
         and:
         file(archName).usingNativeTools()."$unpackMethod"(file("build"))
         then:
-        file("build/child").mode == dirMode
-        file("build/child/reference.txt").mode == fileMode
+        file("build/child").mode == 0756
+        file("build/child/reference.txt").mode == 0774
         where:
-        taskName | fileMode | dirMode | unpackMethod
-        "Zip"    | 0774     | 0756    | "unzipTo"
-        "Tar"    | 0774     | 0756    | "untarTo"
+        taskName | unpackMethod
+        "Zip"    | "unzipTo"
+        "Tar"    | "untarTo"
 
     }
 
@@ -95,8 +95,8 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
     def "file and directory permissions are preserved for unpacked #taskName archives"() {
         given:
         TestFile testDir = createDir('testdir') {
-            mode = dirMode
-            file('reference.txt').mode = fileMode
+            mode = 0753
+            file('reference.txt').mode = 0762
         }
         def archName = "test.${taskName.toLowerCase()}"
         testDir.usingNativeTools()."$packMethod"(file(archName))
@@ -112,12 +112,12 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
         run "unpack"
         and:
         then:
-        file("unpacked/testdir").mode == dirMode
-        file("unpacked/testdir/reference.txt").mode == fileMode
+        file("unpacked/testdir").mode == 0753
+        file("unpacked/testdir/reference.txt").mode == 0762
         where:
-        taskName | fileMode | dirMode | packMethod | treeMethod
-        "Zip"    | 0762     | 0753    | "zipTo"    | "zipTree"
-        "Tar"    | 0762     | 0753    | "tarTo"    | "tarTree"
+        taskName | packMethod | treeMethod
+        "Zip"    | "zipTo"    | "zipTree"
+        "Tar"    | "tarTo"    | "tarTree"
     }
 
     @Requires(TestPrecondition.WINDOWS)
