@@ -19,7 +19,7 @@ import org.gradle.api.GradleException
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.Instantiator
 import org.gradle.api.plugins.quality.internal.FindBugsReportsImpl
-import org.gradle.api.plugins.quality.internal.findbugs.FindBugsDaemonManager
+import org.gradle.api.plugins.quality.internal.findbugs.FindBugsWorkerManager
 import org.gradle.api.plugins.quality.internal.findbugs.FindBugsResult
 import org.gradle.api.plugins.quality.internal.findbugs.FindBugsSpec
 import org.gradle.api.plugins.quality.internal.findbugs.FindBugsSpecBuilder
@@ -107,8 +107,8 @@ class FindBugs extends SourceTask implements VerificationTask, Reporting<FindBug
                 .configureReports(reports)
 
         FindBugsSpec spec = argumentBuilder.build()
-        FindBugsDaemonManager manager = new FindBugsDaemonManager();
-        FindBugsResult findbugsResult = manager.runDaemon(getProject(), getFindbugsClasspath(), spec)
+        FindBugsWorkerManager manager = new FindBugsWorkerManager();
+        FindBugsResult findbugsResult = manager.runWorker(getProject(), getFindbugsClasspath(), spec)
         evaluateResult(findbugsResult);
     }
 

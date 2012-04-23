@@ -21,13 +21,13 @@ import org.gradle.process.internal.JavaExecHandleBuilder
 import org.gradle.process.internal.WorkerProcess
 import org.gradle.process.internal.WorkerProcessBuilder
 
-class FindBugsDaemonManager {
-    public FindBugsResult runDaemon(ProjectInternal project, FileCollection findBugsClasspath, FindBugsSpec spec) {
+class FindBugsWorkerManager {
+    public FindBugsResult runWorker(ProjectInternal project, FileCollection findBugsClasspath, FindBugsSpec spec) {
         WorkerProcess process = createWorkerProcess(project, findBugsClasspath, spec);
         process.start();
 
-        FindBugsDaemonClient clientCallBack = new FindBugsDaemonClient()
-        process.connection.addIncoming(FindBugsDaemonClientProtocol.class, clientCallBack);
+        FindBugsWorkerClient clientCallBack = new FindBugsWorkerClient()
+        process.connection.addIncoming(FindBugsWorkerClientProtocol.class, clientCallBack);
         FindBugsResult result = clientCallBack.getResult();
 
         process.waitForStop();
@@ -42,7 +42,7 @@ class FindBugsDaemonManager {
         JavaExecHandleBuilder javaCommand = builder.getJavaCommand();
         javaCommand.setWorkingDir(project.getRootProject().getProjectDir());
 
-        WorkerProcess process = builder.worker(new FindBugsDaemonServer(spec)).build()
+        WorkerProcess process = builder.worker(new FindBugsWorkerServer(spec)).build()
         return process
     }
 }

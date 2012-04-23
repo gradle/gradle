@@ -23,22 +23,22 @@ import org.gradle.process.internal.WorkerProcessContext;
 
 import java.io.Serializable;
 
-public class FindBugsDaemonServer implements Action<WorkerProcessContext>, Serializable {
-    private static final Logger LOGGER = Logging.getLogger(FindBugsDaemonServer.class);
+public class FindBugsWorkerServer implements Action<WorkerProcessContext>, Serializable {
+    private static final Logger LOGGER = Logging.getLogger(FindBugsWorkerServer.class);
     private FindBugsSpec spec;
 
-    public FindBugsDaemonServer(FindBugsSpec spec) {
+    public FindBugsWorkerServer(FindBugsSpec spec) {
         this.spec = spec;
     }
 
     public void execute(WorkerProcessContext context) {
         final FindBugsResult result = execute();
-        final FindBugsDaemonClientProtocol clientProtocol = context.getServerConnection().addOutgoing(FindBugsDaemonClientProtocol.class);
+        final FindBugsWorkerClientProtocol clientProtocol = context.getServerConnection().addOutgoing(FindBugsWorkerClientProtocol.class);
         clientProtocol.executed(result);
     }
 
     public FindBugsResult execute() {
-        LOGGER.info("Executing findbugs daemon.");
+        LOGGER.info("Executing findbugs worker.");
         try {
             FindBugsExecuter findBugsExecuter = new FindBugsExecuter();
             return findBugsExecuter.runFindbugs(spec);

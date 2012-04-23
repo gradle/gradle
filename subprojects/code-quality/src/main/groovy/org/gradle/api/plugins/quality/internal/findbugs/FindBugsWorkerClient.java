@@ -21,7 +21,7 @@ import org.gradle.internal.UncheckedException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.SynchronousQueue;
 
-public class FindBugsDaemonClient implements FindBugsDaemonClientProtocol {
+public class FindBugsWorkerClient implements FindBugsWorkerClientProtocol {
 
     private final BlockingQueue<FindBugsResult> findbugsResults = new SynchronousQueue<FindBugsResult>();
 
