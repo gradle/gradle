@@ -536,7 +536,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
 
     /**
      * Returns the refresh options used for the build.
-     * @deprecated Use {@link #isRefreshDependencies} instead.
+     * @deprecated Use {@link #isRefreshDependencies()} instead.
      */
     @Deprecated
     public RefreshOptions getRefreshOptions() {
@@ -544,14 +544,14 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     }
 
     /**
-     * Specifies whether the depencendies should be refreshed..
+     * Specifies whether the dependencies should be refreshed..
      */
     public boolean isRefreshDependencies() {
         return refreshDependencies;
     }
 
     /**
-     * Specifies whether the depencendies should be refreshed..
+     * Specifies whether the dependencies should be refreshed..
      */
     public void setRefreshDependencies(boolean refreshDependencies) {
         this.refreshDependencies = refreshDependencies;
