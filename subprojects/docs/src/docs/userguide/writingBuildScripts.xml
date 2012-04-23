@@ -160,7 +160,7 @@
             <para>In this example, an <literal>ext</literal> block adds two extra properties to the <literal>project</literal> object. Additionally,
                 a property named <literal>purpose</literal> is added to each source set by setting <literal>ext.purpose</literal> to
                 <literal>null</literal> (<literal>null</literal> is a permissible value). Once the properties have been added, they can be read and set like
-                predefined properties, and qualifying them (as in <literal>ext.emailNotification</literal>) is optional.
+                predefined properties.
             </para>
             <para>By requiring special syntax for adding a property, Gradle can fail fast when an attempt is made to set a (predefined or extra) property
                 but the property is misspelled or does not exist.
