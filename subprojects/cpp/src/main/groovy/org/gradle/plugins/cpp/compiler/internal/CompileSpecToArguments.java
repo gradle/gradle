@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.cpp.compiler.internal;
 
+import org.gradle.api.internal.tasks.compile.ArgCollector;
 import org.gradle.plugins.cpp.internal.CppCompileSpec;
 
 public interface CompileSpecToArguments<T extends CppCompileSpec> {

@@ -17,6 +17,7 @@
 package org.gradle.plugins.cpp.compiler.internal;
 
 import groovy.lang.Closure;
+import org.gradle.api.internal.tasks.compile.ArgCollector;
 import org.gradle.api.internal.tasks.compile.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.Factory;
