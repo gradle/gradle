@@ -26,8 +26,8 @@ import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.exceptions.UnsupportedBuildArgumentException
 import org.gradle.tooling.model.GradleProject
 
-@MinToolingApiVersion("current")
-@MinTargetGradleVersion("current")
+@MinToolingApiVersion("1.0-rc-1")
+@MinTargetGradleVersion("1.0-rc-2")
 class PassingCommandLineArgumentsCrossVersionSpec extends ToolingApiSpecification {
 
 //    We don't want to validate *all* command line options here, just enough to make sure passing through works.
