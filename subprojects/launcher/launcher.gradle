@@ -27,6 +27,10 @@ jar {
     }
 }
 
+test {
+    forkEvery = 10
+}
+
 task startScripts(type: StartScriptGenerator) {
     startScriptsDir = new File("$buildDir/startScripts")
     classpath = configurations.startScriptGenerator
