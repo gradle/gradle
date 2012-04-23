@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.idea;
 
+import org.gradle.tooling.model.ExternalGradleModule;
 import org.gradle.tooling.model.idea.IdeaDependencyScope;
 import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency;
 
@@ -32,6 +33,7 @@ public class DefaultIdeaSingleEntryLibraryDependency implements IdeaSingleEntryL
     private File javadoc;
     private Boolean exported;
     private IdeaDependencyScope scope;
+    private ExternalGradleModule externalGradleModule;
 
     public File getFile() {
         return file;
@@ -78,6 +80,10 @@ public class DefaultIdeaSingleEntryLibraryDependency implements IdeaSingleEntryL
         return this;
     }
 
+    public ExternalGradleModule getExternalGradleModule() {
+        return externalGradleModule;
+    }
+
     @Override
     public String toString() {
         return "IdeaLibraryDependency{"
@@ -85,7 +91,13 @@ public class DefaultIdeaSingleEntryLibraryDependency implements IdeaSingleEntryL
                 + ", source=" + source
                 + ", javadoc=" + javadoc
                 + ", exported=" + exported
+                + ", externalGradleModule=" + externalGradleModule
                 + ", scope='" + scope + '\''
                 + '}';
+    }
+
+    public DefaultIdeaSingleEntryLibraryDependency setExternalGradleModule(ExternalGradleModule externalGradleModule) {
+        this.externalGradleModule = externalGradleModule;
+        return this;
     }
 }

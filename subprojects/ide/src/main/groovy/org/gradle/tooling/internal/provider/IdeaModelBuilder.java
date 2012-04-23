@@ -20,6 +20,8 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.plugins.ide.idea.IdeaPlugin;
 import org.gradle.plugins.ide.idea.model.*;
+import org.gradle.plugins.ide.internal.model.ExternalSingleEntryModuleLibrary;
+import org.gradle.tooling.internal.gradle.DefaultExternalGradleModule;
 import org.gradle.tooling.internal.idea.*;
 import org.gradle.tooling.internal.protocol.InternalIdeaProject;
 import org.gradle.tooling.internal.protocol.ProjectVersion3;
@@ -82,7 +84,20 @@ public class IdeaModelBuilder implements BuildsModel {
         Set<Dependency> resolved = ideaModule.resolveDependencies();
         List<IdeaDependency> dependencies = new LinkedList<IdeaDependency>();
         for (Dependency dependency : resolved) {
-            if (dependency instanceof SingleEntryModuleLibrary) {
+            if (dependency instanceof ExternalSingleEntryModuleLibrary) {
+                //TODO SF remove this duplication
+                ExternalSingleEntryModuleLibrary d = (ExternalSingleEntryModuleLibrary) dependency;
+                IdeaDependency defaultDependency = new DefaultIdeaSingleEntryLibraryDependency()
+                        .setFile(d.getLibraryFile())
+                        .setSource(d.getSourceFile())
+                        .setJavadoc(d.getJavadocFile())
+                        .setScope(new DefaultIdeaDependencyScope(d.getScope()))
+                        .setExported(d.getExported())
+                        .setExternalGradleModule(new DefaultExternalGradleModule(d.getId()));
+                dependencies.add(defaultDependency);
+            } else if (dependency instanceof SingleEntryModuleLibrary) {
+                //TODO SF we need to model better the difference between external and other dependencies.
+                // it looks like IdeaSingleEntryLibraryDependency is not always 'external' which is inconsistent with the type hierarchy
                 SingleEntryModuleLibrary d = (SingleEntryModuleLibrary) dependency;
                 IdeaDependency defaultDependency = new DefaultIdeaSingleEntryLibraryDependency()
                         .setFile(d.getLibraryFile())

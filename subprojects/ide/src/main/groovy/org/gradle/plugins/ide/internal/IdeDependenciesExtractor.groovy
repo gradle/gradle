@@ -39,6 +39,8 @@ class IdeDependenciesExtractor {
         File file
         File sourceFile
         File javadocFile
+
+        ModuleVersionIdentifier id
     }
 
     static class UnresolvedIdeRepoFileDependency extends IdeRepoFileDependency {
@@ -85,10 +87,11 @@ class IdeDependenciesExtractor {
 
         Map<String, File> javadocFiles = downloadJavadoc ? getFiles(confContainer.detachedConfiguration(javadocDependencies as Dependency[]), "javadoc") : [:]
 
-        resolvedExternalDependencies(plusConfigurations, minusConfigurations).each { File binaryFile, Configuration conf ->
-            File sourceFile = sourceFiles[binaryFile.name]
-            File javadocFile = javadocFiles[binaryFile.name]
-            out << new IdeRepoFileDependency( file: binaryFile, sourceFile: sourceFile, javadocFile: javadocFile, declaredConfiguration: conf)
+        resolvedExternalDependencies(plusConfigurations, minusConfigurations).each { InternalDependency dependency ->
+            File sourceFile = sourceFiles[dependency.file.name]
+            File javadocFile = javadocFiles[dependency.file.name]
+            out << new IdeRepoFileDependency( file: dependency.file, sourceFile: sourceFile, javadocFile: javadocFile,
+                    declaredConfiguration: dependency.configuration, id: dependency.id)
         }
 
         unresolvedExternalDependencies(plusConfigurations, minusConfigurations) { config, dep ->
@@ -132,19 +135,29 @@ class IdeDependenciesExtractor {
         }
     }
 
-    private Map<File, Configuration> resolvedExternalDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
-        LinkedHashMap<File, Configuration> fileToConf = [:]
+    class InternalDependency {
+        Configuration configuration
+        File file
+        ModuleVersionIdentifier id
+    }
+
+    Collection<InternalDependency> resolvedExternalDependencies(
+            Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
+        LinkedHashMap<File, InternalDependency> out = [:]
         for (plusConfiguration in plusConfigurations) {
-            for (file in plusConfiguration.resolvedConfiguration.lenientConfiguration.getFiles( { it instanceof ExternalDependency } as Spec)) {
-                fileToConf[file] = plusConfiguration
+            def lenient = plusConfiguration.resolvedConfiguration.lenientConfiguration
+            for (ResolvedArtifact artifact in lenient.getArtifacts( { it instanceof ExternalDependency } as Spec)) {
+                out[artifact.file] = new InternalDependency(
+                        configuration: plusConfiguration, file: artifact.file, id: artifact.moduleVersion.id)
             }
         }
         for (minusConfiguration in minusConfigurations) {
-            for (file in minusConfiguration.resolvedConfiguration.lenientConfiguration.getFiles({ it instanceof ExternalDependency } as Spec)) {
-                fileToConf.remove(file)
+            def lenient = minusConfiguration.resolvedConfiguration.lenientConfiguration
+            for (ResolvedArtifact artifact in lenient.getArtifacts({ it instanceof ExternalDependency } as Spec)) {
+                out.remove(artifact.file)
             }
         }
-        fileToConf
+        out.values()
     }
 
     private Set<ResolvedDependency> resolveDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
