@@ -25,7 +25,7 @@ class ScriptExecuter extends ExecHandleBuilder {
     ExecHandle build() {
         if (OperatingSystem.current().isWindows()) {
             def theArgs = ['/c', executable.replace('/', File.separator)] + getArgs()
-            args = theArgs //split purposefully to avoid weird windows CI issue
+            setArgs(theArgs) //split purposefully to avoid weird windows CI issue
             executable = 'cmd'
         } else {
             executable = "${workingDir}/${executable}"
