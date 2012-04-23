@@ -31,6 +31,11 @@ class AntForkingGroovyCompilerIntegrationTest extends GroovyCompilerIntegrationS
     }
 
     @Override
+    String getCompilationFailureMessage() {
+        return "Forked groovyc returned error code: 1"
+    }
+
+    @Override
     String getCompileErrorOutput() {
         if (version.startsWith('1.8')) {
             return output

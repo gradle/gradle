@@ -89,7 +89,8 @@ public class ApiGroovyCompiler implements Compiler<GroovyJavaJointCompileSpec>, 
         try {
             unit.compile();
         } catch (org.codehaus.groovy.control.CompilationFailedException e) {
-            throw new CompilationFailedException(e.getMessage());
+            System.err.println(e.getMessage());
+            throw new CompilationFailedException();
         }
 
         return new SimpleWorkResult(true);

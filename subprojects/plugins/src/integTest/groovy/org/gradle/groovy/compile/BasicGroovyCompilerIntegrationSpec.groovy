@@ -35,7 +35,18 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         runAndFail("classes")
 
         then:
-        compileErrorOutput.contains 'expecting an identifier, found \'interface\''
+        compileErrorOutput.contains 'unable to resolve class Unknown1'
+        compileErrorOutput.contains 'unable to resolve class Unknown2'
+        failure.assertHasCause(compilationFailureMessage)
+    }
+
+    def "badJavaCodeBreaksBuild"() {
+        when:
+        runAndFail("classes")
+
+        then:
+        compileErrorOutput.contains 'illegal start of type'
+        failure.assertHasCause(compilationFailureMessage)
     }
 
     def "canCompileAgainstGroovyClassThatDependsOnExternalClass"() {
@@ -68,6 +79,10 @@ dependencies { groovy 'org.codehaus.groovy:groovy:$version' }
     }
 
     abstract String compilerConfiguration()
+
+    String getCompilationFailureMessage() {
+        return "Compilation failed; see the compiler error output for details."
+    }
 
     String getCompileErrorOutput() {
         return errorOutput

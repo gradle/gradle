@@ -1,6 +1,5 @@
 
-class BrokenClass extends interface {
-    void testSomething() {
-        assert getName() == "testSomething"
-    }
+class BrokenClass {
+    Unknown1 field1
+    Unknown2 field2
 }
