@@ -16,7 +16,7 @@
 
 
 
-package org.gradle.integtests.tooling.rc1
+package org.gradle.integtests.tooling.r10rc1
 
 import org.gradle.integtests.tooling.fixture.ConfigurableOperation
 import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
