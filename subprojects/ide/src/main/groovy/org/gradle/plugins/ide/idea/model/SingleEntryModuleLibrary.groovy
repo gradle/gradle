@@ -24,7 +24,6 @@ class SingleEntryModuleLibrary extends ModuleLibrary {
     /**
      * Creates single entry module library
      *
-     * @param libraryFile jar or class folder
      * @param library a path to jar or class folder in idea format
      * @param javadoc a path to javadoc jar or javadoc folder
      * @param source a path to source jar or source folder
@@ -38,7 +37,6 @@ class SingleEntryModuleLibrary extends ModuleLibrary {
     /**
      * Creates single entry module library
      *
-     * @param libraryFile jar or class folder
      * @param library a path to jar or class folder in Path format
      * @param scope scope
      * @return
