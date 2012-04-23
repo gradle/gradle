@@ -72,6 +72,7 @@ class FindBugsPlugin extends AbstractCodeQualityPlugin<FindBugs> {
     protected void configureTaskDefaults(FindBugs task, String baseName) {
         task.with {
             pluginClasspath = project.configurations['findbugsPlugins']
+            ignoreFailures = { extension.ignoreFailures }
         }
         task.conventionMapping.with {
             findbugsClasspath = {
@@ -83,7 +84,6 @@ class FindBugsPlugin extends AbstractCodeQualityPlugin<FindBugs> {
                 }
                 config
             }
-            ignoreFailures = { extension.ignoreFailures }
         }
         task.reports.all { Report report ->
             report.conventionMapping.with {

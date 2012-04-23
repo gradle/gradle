@@ -57,6 +57,9 @@ class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
 
     @Override
     protected void configureTaskDefaults(Pmd task, String baseName) {
+        task.with {
+            ignoreFailures = { extension.ignoreFailures }
+        }
         task.conventionMapping.with {
             pmdClasspath = {
                 def config = project.configurations['pmd']
@@ -69,7 +72,6 @@ class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
             }
             ruleSets = { extension.ruleSets }
             ruleSetFiles = { extension.ruleSetFiles }
-            ignoreFailures = { extension.ignoreFailures }
 
             task.reports.all { report ->
                 report.conventionMapping.with {
