@@ -32,7 +32,7 @@ import java.io.File;
 public class CommandLineJavaCompiler implements Compiler<JavaCompileSpec> {
     private static final Logger LOGGER = LoggerFactory.getLogger(CommandLineJavaCompiler.class);
 
-    private final CommandLineJavaCompilerArgumentsGenerator argumentsGenerator;
+    private final CompileSpecToArguments<JavaCompileSpec> argumentsGenerator;
     private final File workingDir;
 
     public CommandLineJavaCompiler(TemporaryFileProvider tempFileProvider, File workingDir) {
@@ -44,18 +44,17 @@ public class CommandLineJavaCompiler implements Compiler<JavaCompileSpec> {
         String executable = spec.getCompileOptions().getForkOptions().getExecutable();
         LOGGER.info("Compiling with Java command line compiler '{}'.", executable);
 
-        Iterable<String> args = argumentsGenerator.generate(spec);
-        ExecHandle handle = createCompilerHandle(executable, args);
+        ExecHandle handle = createCompilerHandle(executable, spec);
         executeCompiler(handle);
 
         return new SimpleWorkResult(true);
     }
 
-    private ExecHandle createCompilerHandle(String executable, Iterable<String> args) {
+    private ExecHandle createCompilerHandle(String executable, JavaCompileSpec spec) {
         ExecHandleBuilder builder = new ExecHandleBuilder();
         builder.setWorkingDir(workingDir);
         builder.setExecutable(executable);
-        builder.setArgs(args);
+        argumentsGenerator.collectArguments(spec, new ExecSpecBackedArgCollector(builder));
         builder.setIgnoreExitValue(true);
         return builder.build();
     }

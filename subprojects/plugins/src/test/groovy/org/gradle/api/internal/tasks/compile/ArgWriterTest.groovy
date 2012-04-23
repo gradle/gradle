@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.cpp.compiler.internal
+package org.gradle.api.internal.tasks.compile
 
 import spock.lang.Specification
-import static org.gradle.util.TextUtil.*
 
-class ArgWriterSpec extends Specification {
+import static org.gradle.util.TextUtil.toPlatformLineSeparators
+
+class ArgWriterTest extends Specification {
     final StringWriter writer = new StringWriter()
     final PrintWriter printWriter = new PrintWriter(writer, true)
     final ArgWriter argWriter = ArgWriter.unixStyle(printWriter)

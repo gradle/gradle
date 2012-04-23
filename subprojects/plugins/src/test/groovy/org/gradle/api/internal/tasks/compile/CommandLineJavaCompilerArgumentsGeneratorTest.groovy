@@ -52,7 +52,7 @@ class CommandLineJavaCompilerArgumentsGeneratorTest extends Specification {
         Lists.newArrayList(args) == ["-J-Xmx256m", "@$argsFile"]
 
         and: "args file contains remaining arguments (one per line, quoted)"
-        argsFile.readLines() == [quote("-g"), quote("-classpath"), quote("$spec.classpath.asPath"), *(spec.source*.path.collect { quote(it) })]
+        argsFile.readLines() == ["-g", "-classpath", quote("$spec.classpath.asPath"), *(spec.source*.path.collect { quote(it) })]
     }
 
     def createCompileSpec(numFiles) {
@@ -66,7 +66,7 @@ class CommandLineJavaCompilerArgumentsGeneratorTest extends Specification {
     }
 
     def createFiles(numFiles) {
-        (1..numFiles).collect { new File("/foo/bar/File$it") }
+        (1..numFiles).collect { new File("/foo bar/File$it") }
     }
 
     def quote(arg) {

@@ -19,6 +19,7 @@ package org.gradle.plugins.cpp.compiler.internal;
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.tasks.compile.ArgCollector;
+import org.gradle.api.internal.tasks.compile.ArgWriter;
 import org.gradle.api.internal.tasks.compile.CompileSpecToArguments;
 import org.gradle.plugins.cpp.internal.CppCompileSpec;
 

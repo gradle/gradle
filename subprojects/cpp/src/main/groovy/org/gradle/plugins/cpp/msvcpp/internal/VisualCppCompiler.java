@@ -17,7 +17,7 @@
 package org.gradle.plugins.cpp.msvcpp.internal;
 
 import org.gradle.internal.Factory;
-import org.gradle.plugins.cpp.compiler.internal.ArgWriter;
+import org.gradle.api.internal.tasks.compile.ArgWriter;
 import org.gradle.plugins.cpp.compiler.internal.CommandLineCppCompiler;
 import org.gradle.plugins.cpp.compiler.internal.CommandLineCppCompilerArgumentsToOptionFile;
 import org.gradle.plugins.cpp.gpp.GppCompileSpec;

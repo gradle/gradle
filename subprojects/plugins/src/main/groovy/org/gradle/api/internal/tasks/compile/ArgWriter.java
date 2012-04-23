@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.cpp.compiler.internal;
+package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.tasks.compile.ArgCollector;
 
 import java.io.PrintWriter;
 import java.util.regex.Pattern;
