@@ -15,14 +15,17 @@
  */
 package org.gradle.groovy.compile
 
-import spock.lang.Ignore
+import org.gradle.integtests.fixtures.TargetVersions
 
-@Ignore
+@TargetVersions(['1.6.9', '1.7.10', '1.8.6'])
 class AntInProcessGroovyCompilerIntegrationTest extends BasicGroovyCompilerIntegrationSpec {
+    def setup() {
+        executer.withForkingExecuter()
+    }
 
     @Override
-    def compilerConfiguration() {
-'''
+    def String compilerConfiguration() {
+    '''
     tasks.withType(GroovyCompile) {
         groovyOptions.useAnt = true
         groovyOptions.fork = false
@@ -30,4 +33,8 @@ class AntInProcessGroovyCompilerIntegrationTest extends BasicGroovyCompilerInteg
 '''
     }
 
+    @Override
+    String getCompilationFailureMessage() {
+        return "Compilation Failed"
+    }
 }
