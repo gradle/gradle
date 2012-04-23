@@ -34,6 +34,7 @@ import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter;
 import org.gradle.api.internal.tasks.testing.results.TestLogger;
 import org.gradle.api.internal.tasks.testing.results.TestSummaryListener;
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
+import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.util.PatternFilterable;
@@ -388,7 +389,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         TestSummaryListener listener = new TestSummaryListener(LoggerFactory.getLogger(Test.class));
         addTestListener(listener);
         addTestListener(new TestLogger(getServices().get(ProgressLoggerFactory.class)));
-        addTestOutputListener(new StandardStreamsLogger(LoggerFactory.getLogger(Test.class), testLogging));
+        addTestOutputListener(new StandardStreamsLogger(Logging.getLogger(Test.class), testLogging));
 
         TestResultProcessor resultProcessor = new TestListenerAdapter(
                 getTestListenerBroadcaster().getSource(), testOutputListenerBroadcaster.getSource());

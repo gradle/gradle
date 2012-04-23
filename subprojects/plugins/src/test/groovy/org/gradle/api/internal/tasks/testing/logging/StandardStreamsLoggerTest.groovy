@@ -21,7 +21,8 @@ import org.gradle.api.internal.tasks.testing.DefaultTestDescriptor
 import org.gradle.api.internal.tasks.testing.DefaultTestOutputEvent
 import org.gradle.api.tasks.testing.TestLogging
 import org.gradle.api.tasks.testing.TestOutputEvent.Destination
-import org.slf4j.Logger
+import org.gradle.api.logging.Logger
+
 import spock.lang.Specification
 
 /**
@@ -52,15 +53,15 @@ public class StandardStreamsLoggerTest extends Specification {
         streamsLogger.onOutput(test, event)
 
         then:
-        1 * logger.info({ it.contains("should bark") })
-        1 * logger.info({ it.contains("woof!")})
+        1 * logger.lifecycle({ it.contains("should bark") })
+        1 * logger.lifecycle({ it.contains("woof!")})
 
         when:
         streamsLogger.onOutput(test, event)
         streamsLogger.onOutput(test, event)
 
         then:
-        2 * logger.info({ !it.contains("should bark") && it.contains("woof!")})
+        2 * logger.lifecycle({ !it.contains("should bark") && it.contains("woof!")})
     }
 
     def "includes header once per series of output events"() {
@@ -74,18 +75,18 @@ public class StandardStreamsLoggerTest extends Specification {
         streamsLogger.onOutput(test, event)
 
         then:
-        1 * logger.info({ it.contains("should bark") })
-        2 * logger.info({ !it.contains("should bark") && it.contains("woof!")})
-        0 * logger._
+        1 * logger.lifecycle({ it.contains("should bark") })
+        2 * logger.lifecycle({ !it.contains("should bark") && it.contains("woof!") })
+        0 * _
 
         when:
         streamsLogger.onOutput(testTwo, eventTwo)
         streamsLogger.onOutput(testTwo, eventTwo)
 
         then:
-        1 * logger.info({ it.contains("should growl") })
-        2 * logger.info({ !it.contains("should growl") && it.contains("grrr!")})
-        0 * logger._
+        1 * logger.lifecycle({ it.contains("should growl") })
+        2 * logger.lifecycle({ !it.contains("should growl") && it.contains("grrr!") })
+        0 * _
 
         when:
         //let's say test one is still pushing some output, include the header accordingly
@@ -93,9 +94,9 @@ public class StandardStreamsLoggerTest extends Specification {
         streamsLogger.onOutput(test, event)
 
         then:
-        1 * logger.info({ it.contains("should bark") })
-        2 * logger.info({ !it.contains("should bark") && it.contains("woof!")})
-        0 * logger._
+        1 * logger.lifecycle({ it.contains("should bark") })
+        2 * logger.lifecycle({ !it.contains("should bark") && it.contains("woof!") })
+        0 * _
     }
 
     def "uses error level for errors"() {
@@ -106,8 +107,8 @@ public class StandardStreamsLoggerTest extends Specification {
         streamsLogger.onOutput(test, event)
 
         then:
-        1 * logger.info({ it.contains("should bark")})
-        1 * logger.error({ it.contains("boom!")})
-        0 * logger._
+        1 * logger.lifecycle({ it.contains("should bark") })
+        1 * logger.error({ it.contains("boom!") })
+        0 * _
     }
 }

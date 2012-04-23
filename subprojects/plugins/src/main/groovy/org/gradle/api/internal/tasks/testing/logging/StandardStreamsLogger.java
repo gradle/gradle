@@ -16,11 +16,11 @@
 package org.gradle.api.internal.tasks.testing.logging;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.logging.Logger;
 import org.gradle.api.tasks.testing.TestDescriptor;
 import org.gradle.api.tasks.testing.TestLogging;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestOutputListener;
-import org.slf4j.Logger;
 
 /**
  * Test output listener that logs extra stuff based on the logging configuration
@@ -41,10 +41,10 @@ public class StandardStreamsLogger implements TestOutputListener {
         if (logging.getShowStandardStreams()) {
             if (!testDescriptor.equals(currentTestDescriptor)) {
                 currentTestDescriptor = testDescriptor;
-                logger.info(StringUtils.capitalize(testDescriptor.toString() + " output:"));
+                logger.lifecycle(StringUtils.capitalize(testDescriptor.toString() + " output:"));
             }
             if (outputEvent.getDestination() == TestOutputEvent.Destination.StdOut) {
-                logger.info(outputEvent.getMessage());
+                logger.lifecycle(outputEvent.getMessage());
             } else if (outputEvent.getDestination() == TestOutputEvent.Destination.StdErr) {
                 logger.error(outputEvent.getMessage());
             }
