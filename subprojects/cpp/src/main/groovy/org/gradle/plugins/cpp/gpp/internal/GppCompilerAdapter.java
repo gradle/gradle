@@ -80,7 +80,7 @@ public class GppCompilerAdapter extends CommandLineCppCompilerAdapter<GppCompile
         try {
             majorVersion = Integer.valueOf(components[0]);
         } catch (NumberFormatException e) {
-            throw new IllegalStateException(String.format("Unable to determine major g++ version from version number {}", version), e);
+            throw new IllegalStateException(String.format("Unable to determine major g++ version from version number %s.", version), e);
         }
 
         return new GppCompiler(getExecutable(), getExecActionFactory(), majorVersion >= 4);

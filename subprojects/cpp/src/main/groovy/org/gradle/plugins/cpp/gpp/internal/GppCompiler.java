@@ -18,7 +18,6 @@ package org.gradle.plugins.cpp.gpp.internal;
 
 import org.gradle.internal.Factory;
 import org.gradle.plugins.cpp.compiler.internal.ArgWriter;
-import org.gradle.plugins.cpp.compiler.internal.CommandLinCppCompilerArgumentsApplicator;
 import org.gradle.plugins.cpp.compiler.internal.CommandLineCppCompiler;
 import org.gradle.plugins.cpp.compiler.internal.CommandLineCppCompilerArgumentsToOptionFile;
 import org.gradle.plugins.cpp.gpp.GppCompileSpec;
@@ -32,8 +31,8 @@ public class GppCompiler extends CommandLineCppCompiler<GppCompileSpec> {
         super(executable, execActionFactory, useCommandFile ? viaCommandFile() : withoutCommandFile());
     }
 
-    private static CommandLinCppCompilerArgumentsApplicator<GppCompileSpec> withoutCommandFile() {
-        return new CommandLinCppCompilerArgumentsApplicator<GppCompileSpec>(new GppCompileSpecToArguments());
+    private static GppCompileSpecToArguments withoutCommandFile() {
+        return new GppCompileSpecToArguments();
     }
 
     private static CommandLineCppCompilerArgumentsToOptionFile<GppCompileSpec> viaCommandFile() {
