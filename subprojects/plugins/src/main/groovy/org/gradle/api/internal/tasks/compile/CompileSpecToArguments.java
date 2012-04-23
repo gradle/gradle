@@ -14,13 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.cpp.compiler.internal;
+package org.gradle.api.internal.tasks.compile;
 
-import org.gradle.api.internal.tasks.compile.ArgCollector;
-import org.gradle.plugins.cpp.internal.CppCompileSpec;
-
-public interface CompileSpecToArguments<T extends CppCompileSpec> {
-    
+public interface CompileSpecToArguments<T> {
     public void collectArguments(T spec, ArgCollector collector);
-
 }

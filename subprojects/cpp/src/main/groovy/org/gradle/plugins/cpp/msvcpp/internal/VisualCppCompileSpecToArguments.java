@@ -18,7 +18,7 @@ package org.gradle.plugins.cpp.msvcpp.internal;
 
 import org.gradle.plugins.binaries.model.LibraryCompileSpec;
 import org.gradle.api.internal.tasks.compile.ArgCollector;
-import org.gradle.plugins.cpp.compiler.internal.CompileSpecToArguments;
+import org.gradle.api.internal.tasks.compile.CompileSpecToArguments;
 import org.gradle.plugins.cpp.gpp.GppCompileSpec;
 
 import java.io.File;
