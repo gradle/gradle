@@ -20,7 +20,6 @@ import org.gradle.api.Project
 import org.gradle.plugins.ide.idea.model.IdeaModule
 import org.gradle.plugins.ide.idea.model.SingleEntryModuleLibrary
 import org.gradle.plugins.ide.internal.IdeDependenciesExtractor
-import org.gradle.plugins.ide.internal.model.ExternalSingleEntryModuleLibrary
 
 /**
  * @author Szczepan Faber, created at: 4/1/11
@@ -73,8 +72,8 @@ class IdeaDependenciesProvider {
                     ideaModule.downloadSources, ideaModule.downloadJavadoc)
 
             repoFileDependencies.each {
-                moduleLibraries << new ExternalSingleEntryModuleLibrary(
-                    getPath(it.file), getPath(it.javadocFile), getPath(it.sourceFile), scopeName, it.id)
+                moduleLibraries << new SingleEntryModuleLibrary(
+                    getPath(it.file), getPath(it.javadocFile), getPath(it.sourceFile), scopeName)
             }
         }
 

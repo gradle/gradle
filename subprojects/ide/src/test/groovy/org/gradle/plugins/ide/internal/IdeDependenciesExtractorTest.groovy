@@ -19,7 +19,6 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.LenientConfiguration
 import org.gradle.api.artifacts.ResolvedConfiguration
-import spock.lang.Ignore
 import spock.lang.Specification
 
 class IdeDependenciesExtractorTest extends Specification {
@@ -28,13 +27,12 @@ class IdeDependenciesExtractorTest extends Specification {
     final ResolvedConfiguration resolvedConfiguration = Mock()
     final LenientConfiguration lenientConfiguration = Mock()
 
-    @Ignore //TODO SF figure out how (and if) to test it. I'd rather have a different kind of test.
     def "returns dependency entries in the order they were resolved in"() {
         given:
         def actualDependencies = [module('a'), module('b'), module('c'), module('d'), module('z')] as LinkedHashSet
         configuration.resolvedConfiguration >> resolvedConfiguration
         resolvedConfiguration.lenientConfiguration >> lenientConfiguration
-        lenientConfiguration.getArtifacts(_) >> actualDependencies
+        lenientConfiguration.getFiles(_) >> actualDependencies
         lenientConfiguration.unresolvedModuleDependencies >> []
 
         when:

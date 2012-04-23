@@ -50,13 +50,4 @@ public interface LenientConfiguration {
      */
     public Set<File> getFiles(Spec<? super Dependency> dependencySpec);
 
-    /**
-     * Gets successfully resolved artifacts for dependencies that match given dependency spec.
-     * <p>
-     * TODO SF We need to pair and model the successfully and unsuccessfully resolved artifacts much better.
-     *
-     * @param dependencySpec dependency spec
-     * @return
-     */
-    Set<ResolvedArtifact> getArtifacts(Spec<? super Dependency> dependencySpec);
 }

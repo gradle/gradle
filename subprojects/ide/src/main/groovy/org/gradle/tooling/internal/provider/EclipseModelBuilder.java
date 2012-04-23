@@ -97,7 +97,7 @@ public class EclipseModelBuilder implements BuildsModel {
         final List<EclipseSourceDirectoryVersion1> sourceDirectories = new LinkedList<EclipseSourceDirectoryVersion1>();
 
         for (ClasspathEntry entry : entries) {
-            if (entry instanceof Library) { //TODO SF - find out why we rule out Variable here
+            if (entry instanceof Library) {
                 AbstractLibrary library = (AbstractLibrary) entry;
                 final File file = library.getLibrary().getFile();
                 final File source = library.getSourcePath() == null ? null : library.getSourcePath().getFile();
