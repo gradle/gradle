@@ -15,12 +15,11 @@
  */
 package org.gradle.api.tasks.util;
 
-import org.gradle.api.specs.Spec;
+import groovy.lang.Closure;
 import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.specs.Spec;
 
 import java.util.Set;
-
-import groovy.lang.Closure;
 
 /**
  * <p>A {@code PatternFilterable} represents some file container which Ant-style include and exclude patterns or specs
@@ -192,14 +191,23 @@ public interface PatternFilterable {
 
     /**
      * Adds an exclude spec. This method may be called multiple times to append new specs.The given closure is passed a
-     * {@link org.gradle.api.file.FileTreeElement} as its parameter.
+     * {@link org.gradle.api.file.FileTreeElement} as its parameter. The closure should return true or false. Example:
+     *
+     * <pre autoTested='true'>
+     * copySpec {
+     *   from 'source'
+     *   into 'destination'
+     *   //an example of excluding files from certain configuration:
+     *   exclude { it.file in configurations.someConf.files }
+     * }
+     * </pre>
      *
      * If excludes are not provided, then no files will be excluded. If excludes are provided, then files must not match
      * any exclude pattern to be processed.
      *
      * @param excludeSpec the spec to add
      * @return this
-     * @see PatternFilterable Pattern Format
+     * @see FileTreeElement
      */
     PatternFilterable exclude(Closure excludeSpec);
 }
