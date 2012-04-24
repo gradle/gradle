@@ -22,7 +22,7 @@ import org.junit.Rule
 
 class MavenRemoteDependencyResolutionIntegrationTest extends AbstractDependencyResolutionTest {
     @Rule public final TestResources resources = new TestResources();
-\
+
     def canResolveDependenciesFromMultipleMavenRepositories() {
         given:
         List expectedFiles = ['sillyexceptions-1.0.1.jar', 'repotest-1.0.jar', 'testdep-1.0.jar', 'testdep2-1.0.jar',
