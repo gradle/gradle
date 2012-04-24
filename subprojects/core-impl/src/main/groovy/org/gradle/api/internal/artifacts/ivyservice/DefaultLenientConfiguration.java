@@ -20,6 +20,7 @@ import org.gradle.api.internal.CachingDirectedGraphWalker;
 import org.gradle.api.internal.DirectedGraphWithEdgeValues;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException;
 import org.gradle.api.specs.Spec;
+import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.util.*;
@@ -91,14 +92,51 @@ public class DefaultLenientConfiguration implements ResolvedConfigurationBuilder
     }
 
     public Set<File> getFiles(Spec<? super Dependency> dependencySpec) {
-        return getFiles(dependencySpec, new LenientArtifactToFileResolver());
-    }
-    
-    public Set<File> getFilesStrict(Spec<? super Dependency> dependencySpec) {
-        return getFiles(dependencySpec, new ArtifactFileResolver());
+        Set<ResolvedArtifact> artifacts = getArtifacts(dependencySpec);
+        return getFiles(artifacts);
     }
 
-    private Set<File> getFiles(Spec<? super Dependency> dependencySpec, ArtifactFileResolver artifactFileResolver) {
+    public Set<File> getFilesStrict(Spec<? super Dependency> dependencySpec) {
+        Set<ResolvedArtifact> artifacts = getAllArtifacts(dependencySpec);
+        return getFiles(artifacts);
+    }
+
+    /**
+     * Recursive but excludes unsuccessfully resolved artifacts.
+     *
+     * @param dependencySpec dependency spec
+     */
+    public Set<ResolvedArtifact> getArtifacts(Spec<? super Dependency> dependencySpec) {
+        Set<ResolvedArtifact> allArtifacts = getAllArtifacts(dependencySpec);
+        return CollectionUtils.filter(allArtifacts, new Spec<ResolvedArtifact>() {
+            public boolean isSatisfiedBy(ResolvedArtifact element) {
+                try {
+                    File file = element.getFile();
+                    return file != null;
+                } catch (ArtifactResolveException e) {
+                    return false;
+                }
+            }
+        });
+    }
+
+    private Set<File> getFiles(Set<ResolvedArtifact> artifacts) {
+        Set<File> files = new LinkedHashSet<File>();
+        for (ResolvedArtifact artifact : artifacts) {
+            File depFile = artifact.getFile();
+            if (depFile != null) {
+                files.add(depFile);
+            }
+        }
+        return files;
+    }
+
+    /**
+     * Recursive, includes unsuccessfully resolved artifacts
+     *
+     * @param dependencySpec dependency spec
+     */
+    public Set<ResolvedArtifact> getAllArtifacts(Spec<? super Dependency> dependencySpec) {
         Set<ResolvedDependency> firstLevelModuleDependencies = getFirstLevelModuleDependencies(dependencySpec);
 
         Set<ResolvedArtifact> artifacts = new LinkedHashSet<ResolvedArtifact>();
@@ -109,15 +147,7 @@ public class DefaultLenientConfiguration implements ResolvedConfigurationBuilder
         }
 
         artifacts.addAll(walker.findValues());
-
-        Set<File> files = new LinkedHashSet<File>();
-        for (ResolvedArtifact artifact : artifacts) {
-            File depFile = artifactFileResolver.getFile(artifact);
-            if (depFile != null) {
-                files.add(depFile);
-            }
-        }
-        return files;
+        return artifacts;
     }
 
     private static class ResolvedDependencyArtifactsGraph implements DirectedGraphWithEdgeValues<ResolvedDependency, ResolvedArtifact> {
@@ -131,20 +161,4 @@ public class DefaultLenientConfiguration implements ResolvedConfigurationBuilder
             values.addAll(to.getParentArtifacts(from));
         }
     }
-
-    private static class ArtifactFileResolver {
-        public File getFile(ResolvedArtifact artifact) {
-            return artifact.getFile();
-        }
-    }
-    
-    private static class LenientArtifactToFileResolver extends ArtifactFileResolver {
-        public File getFile(ResolvedArtifact artifact) {
-            try {
-                return super.getFile(artifact);
-            } catch (ArtifactResolveException e) {
-                return null;
-            }
-        }
-    }    
 }
