@@ -19,6 +19,7 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.tasks.Delete
+import org.gradle.internal.jvm.Jvm
 import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
@@ -40,7 +41,7 @@ class IdeaPluginTest extends Specification {
         ideaProjectTask instanceof GenerateIdeaProject
         ideaProjectTask.outputFile == new File(project.projectDir, project.name + ".ipr")
         ideaProjectTask.ideaProject.modules == [project.idea.module, childProject.idea.module]
-        ideaProjectTask.ideaProject.jdkName == "1.6"
+        ideaProjectTask.ideaProject.jdkName == Jvm.current().getShortJavaName()
         ideaProjectTask.ideaProject.languageLevel.level == "JDK_1_6"
 
         childProject.tasks.findByName('ideaProject') == null
@@ -84,7 +85,6 @@ class IdeaPluginTest extends Specification {
         project.apply(plugin: 'java')
 
         then:
-        project.idea.project.jdkName == project.sourceCompatibility.toString()
         project.idea.project.languageLevel.level == new IdeaLanguageLevel(project.sourceCompatibility).level
 
         def configurations = project.configurations
