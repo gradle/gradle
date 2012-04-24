@@ -33,6 +33,6 @@ sourceSets {
 task printProperties << {
     println springVersion
     println emailNotification
-    sourceSets.matching { it.purpose == "production" }.each { println it }
+    sourceSets.matching { it.purpose == "production" }.each { println it.name }
 }
 // END SNIPPET extraProperties
