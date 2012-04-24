@@ -187,13 +187,13 @@ test {
     testLogging.showStandardStreams = true
 }
 """
-        when: "run without '-i'"
-        def result = executer.setAllowExtraLogging(false).withTasks('test').run()
+        when: "run with quiet"
+        def result = executer.withArguments("-q").withTasks('test'). run()
         then:
         !result.output.contains('output from foo')
 
-        when: "run with '-i'"
-        result = executer.withTasks('cleanTest', 'test').withArguments('-i').run()
+        when: "run with lifecycle"
+        result = executer.setAllowExtraLogging(false).withTasks('cleanTest', 'test').run()
 
         then:
         result.output.contains('output from foo')
