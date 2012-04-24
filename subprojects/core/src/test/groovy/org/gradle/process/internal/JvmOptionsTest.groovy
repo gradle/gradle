@@ -20,6 +20,7 @@ package org.gradle.process.internal
 
 import org.gradle.api.internal.file.IdentityFileResolver
 import spock.lang.Specification
+import org.gradle.process.JavaForkOptions
 
 /**
  * by Szczepan Faber, created at: 2/13/12
@@ -74,6 +75,14 @@ class JvmOptionsTest extends Specification {
     def "provides managed jvm args"() {
         expect:
         parse("-Xms1G -XX:-PrintClassHistogram -Dfile.encoding=UTF-8 -Dfoo.encoding=blah").managedJvmArgs == ["-Xms1G", "-Dfile.encoding=UTF-8"]
+    }
+
+    def "copyTo respects defaultFileEncoding"(){
+        JavaForkOptions target = Mock(JavaForkOptions)
+        when:
+        parse("-Dfile.encoding=UTF-8 -Dfoo.encoding=blah -Dfile.encoding=UTF-16").copyTo(target)
+        then:
+        1 * target.setDefaultCharacterEncoding( "UTF-16")
     }
 
     private JvmOptions createOpts() {

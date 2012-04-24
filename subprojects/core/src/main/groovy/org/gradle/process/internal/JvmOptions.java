@@ -300,6 +300,7 @@ public class JvmOptions {
         target.setBootstrapClasspath(bootstrapClasspath);
         target.setEnableAssertions(assertionsEnabled);
         target.setDebug(debug);
+        target.setDefaultCharacterEncoding(defaultCharacterEncoding);
     }
 
     public static List<String> fromString(String input) {
