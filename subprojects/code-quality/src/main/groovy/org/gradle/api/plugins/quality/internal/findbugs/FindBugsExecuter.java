@@ -21,9 +21,7 @@ import edu.umd.cs.findbugs.FindBugs2;
 import edu.umd.cs.findbugs.IFindBugsEngine;
 import edu.umd.cs.findbugs.TextUICommandLine;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.io.Serializable;
 import java.util.List;
 
@@ -34,19 +32,12 @@ public class FindBugsExecuter implements Serializable {
 
     FindBugsResult runFindbugs(FindBugsSpec spec) throws IOException, InterruptedException {
         final ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
-        final PrintStream origOut = System.out;
-        final PrintStream origErr = System.err;
         try {
             final List<String> args = spec.getArguments();
             String[] strArray = new String[args.size()];
             args.toArray(strArray);
-            // TODO RG: replace ByteArrayOutputStream by OutputStream that handles logging directly.
-            // TODO RG: use separate streams for out and err.
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            System.setOut(new PrintStream(baos));
-            System.setErr(new PrintStream(baos));
-            Thread.currentThread().setContextClassLoader(FindBugs2.class.getClassLoader());
 
+            Thread.currentThread().setContextClassLoader(FindBugs2.class.getClassLoader());
             FindBugs2 findBugs2 = new FindBugs2();
             TextUICommandLine commandLine = new TextUICommandLine();
             FindBugs.processCommandLine(commandLine, strArray, findBugs2);
@@ -54,8 +45,6 @@ public class FindBugsExecuter implements Serializable {
 
             return createFindbugsResult(findBugs2);
         } finally {
-            System.setOut(origOut);
-            System.setErr(origErr);
             Thread.currentThread().setContextClassLoader(contextClassLoader);
         }
     }

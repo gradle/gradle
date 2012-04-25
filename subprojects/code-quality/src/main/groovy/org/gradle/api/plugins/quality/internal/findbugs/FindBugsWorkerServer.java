@@ -38,7 +38,7 @@ public class FindBugsWorkerServer implements Action<WorkerProcessContext>, Seria
     }
 
     public FindBugsResult execute() {
-        LOGGER.info("Executing findbugs worker.");
+        LOGGER.debug("Executing findbugs worker.");
         try {
             FindBugsExecuter findBugsExecuter = new FindBugsExecuter();
             return findBugsExecuter.runFindbugs(spec);

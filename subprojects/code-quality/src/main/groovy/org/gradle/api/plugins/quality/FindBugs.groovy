@@ -26,6 +26,7 @@ import org.gradle.api.plugins.quality.internal.findbugs.FindBugsSpecBuilder
 import org.gradle.api.reporting.Reporting
 import org.gradle.api.reporting.SingleFileReport
 import org.gradle.api.tasks.*
+import org.gradle.api.logging.LogLevel
 
 /**
  * Analyzes code with <a href="http://findbugs.sourceforge.net">FindBugs</a>.
@@ -108,6 +109,10 @@ class FindBugs extends SourceTask implements VerificationTask, Reporting<FindBug
 
         FindBugsSpec spec = argumentBuilder.build()
         FindBugsWorkerManager manager = new FindBugsWorkerManager();
+
+        logging.captureStandardOutput(LogLevel.DEBUG)
+        logging.captureStandardError(LogLevel.DEBUG)
+
         FindBugsResult findbugsResult = manager.runWorker(getProject(), getFindbugsClasspath(), spec)
         evaluateResult(findbugsResult);
     }
