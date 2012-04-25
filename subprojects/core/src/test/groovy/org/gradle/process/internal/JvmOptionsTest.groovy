@@ -21,6 +21,7 @@ package org.gradle.process.internal
 import org.gradle.api.internal.file.IdentityFileResolver
 import spock.lang.Specification
 import org.gradle.process.JavaForkOptions
+import java.nio.charset.Charset
 
 /**
  * by Szczepan Faber, created at: 2/13/12
@@ -75,6 +76,46 @@ class JvmOptionsTest extends Specification {
     def "provides managed jvm args"() {
         expect:
         parse("-Xms1G -XX:-PrintClassHistogram -Dfile.encoding=UTF-8 -Dfoo.encoding=blah").managedJvmArgs == ["-Xms1G", "-Dfile.encoding=UTF-8"]
+        parse("-Xms1G -XX:-PrintClassHistogram -Xmx2G -Dfoo.encoding=blah").managedJvmArgs == ["-Xms1G", "-Xmx2G", "-Dfile.encoding=UTF-8"]
+    }
+
+    def "file encoding can be set as systemproperty"() {
+        JvmOptions opts = createOpts()
+        when:
+        opts.systemProperty("file.encoding", "ISO-8859-1")
+        then:
+        opts.allJvmArgs.contains("-Dfile.encoding=ISO-8859-1");
+    }
+
+    def "file encoding can be set via defaultFileEncoding property"() {
+        JvmOptions opts = createOpts()
+        when:
+        opts.defaultCharacterEncoding = "ISO-8859-1"
+        then:
+        opts.allJvmArgs.contains("-Dfile.encoding=ISO-8859-1");
+    }
+
+    def "last file encoding definition is used"() {
+        JvmOptions opts = createOpts()
+        when:
+        opts.systemProperty("file.encoding", "ISO-8859-1");
+        opts.defaultCharacterEncoding = "ISO-8859-2"
+        then:
+        !opts.allJvmArgs.contains("-Dfile.encoding=ISO-8859-1");
+        opts.allJvmArgs.contains("-Dfile.encoding=ISO-8859-2");
+
+        when:
+        opts.defaultCharacterEncoding = "ISO-8859-2"
+        opts.systemProperty("file.encoding", "ISO-8859-1")
+        then:
+        !opts.allJvmArgs.contains("-Dfile.encoding=ISO-8859-2")
+        opts.allJvmArgs.contains("-Dfile.encoding=ISO-8859-1");
+    }
+
+    def "file.encoding arg has default value"() {
+        String defaultCharset = Charset.defaultCharset().name()
+        expect:
+        createOpts().allJvmArgs.contains("-Dfile.encoding=${defaultCharset}".toString());
     }
 
     def "copyTo respects defaultFileEncoding"(){
