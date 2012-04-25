@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.dsl;
 
 import org.codehaus.groovy.control.CompilationUnit;
+import org.gradle.api.internal.artifacts.StatementLabelsScriptTransformer;
 import org.gradle.groovy.scripts.Transformer;
 
 public class BuildScriptTransformer implements Transformer {
@@ -31,10 +32,8 @@ public class BuildScriptTransformer implements Transformer {
 
     public void register(CompilationUnit compilationUnit) {
         classpathScriptTransformer.invert().register(compilationUnit);
-        TaskDefinitionScriptTransformer taskDefinitionScriptTransformer = new TaskDefinitionScriptTransformer();
-        taskDefinitionScriptTransformer.register(compilationUnit);
-        // TODO - remove this
-        FixMainScriptTransformer fixMainScriptTransformer = new FixMainScriptTransformer();
-        fixMainScriptTransformer.register(compilationUnit);
+        new TaskDefinitionScriptTransformer().register(compilationUnit);
+        new FixMainScriptTransformer().register(compilationUnit); // TODO - remove this
+        new StatementLabelsScriptTransformer().register(compilationUnit);
     }
 }
