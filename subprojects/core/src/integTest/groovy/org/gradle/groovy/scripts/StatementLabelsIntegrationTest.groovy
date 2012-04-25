@@ -40,6 +40,21 @@ version: '1.0'
         output.contains("version")
     }
 
+    def "all usages of statement labels are flagged"() {
+        buildFile << """
+version: '1.0'
+group = "foo"
+description: "bar"
+        """
+
+        expect:
+        succeeds("tasks")
+        output.contains("Usage of statement labels in build scripts has been deprecated")
+        output.contains("version")
+        !output.contains("group")
+        output.contains("description")
+    }
+
     def "nested use of statement label in build script is flagged"() {
         buildFile << """
 task compile(type: Compile) {
