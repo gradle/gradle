@@ -15,9 +15,7 @@
  */
 package org.gradle.messaging.remote.internal;
 
-import org.gradle.api.GradleException;
-
-public class MessageIOException extends GradleException {
+public class MessageIOException extends RuntimeException {
     public MessageIOException(String message, Throwable cause) {
         super(message, cause);
     }

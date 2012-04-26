@@ -15,9 +15,7 @@
  */
 package org.gradle.messaging.remote.internal;
 
-import org.gradle.api.GradleException;
-
-public class ConnectException extends GradleException {
+public class ConnectException extends RuntimeException {
     public ConnectException(String message, Throwable cause) {
         super(message, cause);
     }

@@ -46,7 +46,7 @@ public class InetAddressFactory {
             }
             return addresses;
         } catch (Exception e) {
-            throw new GradleException("Could not determine the local IP addresses for this machine.", e);
+            throw new RuntimeException("Could not determine the local IP addresses for this machine.", e);
         }
     }
 
@@ -72,7 +72,7 @@ public class InetAddressFactory {
             }
             return addresses;
         } catch (Exception e) {
-            throw new GradleException("Could not determine the remote IP addresses for this machine.", e);
+            throw new RuntimeException("Could not determine the remote IP addresses for this machine.", e);
         }
     }
 }

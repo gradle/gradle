@@ -71,7 +71,7 @@ public class TcpOutgoingConnector<T> implements OutgoingConnector<T> {
             throw new ConnectException(String.format("Could not connect to server %s. Tried addresses: %s.",
                     destinationAddress, candidateAddresses), e);
         } catch (Exception e) {
-            throw new GradleException(String.format("Could not connect to server %s. Tried addresses: %s.",
+            throw new RuntimeException(String.format("Could not connect to server %s. Tried addresses: %s.",
                     destinationAddress, candidateAddresses), e);
         }
     }
