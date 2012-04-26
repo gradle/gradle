@@ -16,7 +16,6 @@
 
 package org.gradle.messaging.remote.internal.inet;
 
-import org.gradle.api.GradleException;
 import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.internal.ConnectException;
 import org.gradle.messaging.remote.internal.Connection;

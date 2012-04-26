@@ -1,1 +1,8 @@
+dependencies {
+    groovy libraries.groovy
+    compile project(':baseServices')
+    compile libraries.slf4j_api
+    compile libraries.guava
+}
 
+useTestFixtures()

@@ -15,8 +15,6 @@
  */
 package org.gradle.messaging.remote.internal.inet;
 
-import org.gradle.api.GradleException;
-
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.util.ArrayList;
