@@ -128,6 +128,16 @@ public class TestFile extends File implements TestFileContext {
         }
     }
 
+    public TestFile[] listFiles() {
+        File[] children = super.listFiles();
+        TestFile[] files = new TestFile[children.length];
+        for (int i = 0; i < children.length; i++) {
+            File child = children[i];
+            files[i] = new TestFile(child);
+        }
+        return files;
+    }
+
     public String getText() {
         assertIsFile();
         try {

@@ -100,14 +100,11 @@ class DistributionIntegrationTest {
         // Top level files
         contentsDir.file('LICENSE').assertIsFile()
 
-        // Libs
-        assertIsGradleJar(contentsDir.file("lib/gradle-cli-${version}.jar"))
-        assertIsGradleJar(contentsDir.file("lib/gradle-core-${version}.jar"))
-        assertIsGradleJar(contentsDir.file("lib/gradle-ui-${version}.jar"))
-        assertIsGradleJar(contentsDir.file("lib/gradle-launcher-${version}.jar"))
-        assertIsGradleJar(contentsDir.file("lib/gradle-tooling-api-${version}.jar"))
+        // Core libs
+        def coreLibs = contentsDir.file("lib").listFiles().findAll { it.name.startsWith("gradle-") }
+        assert coreLibs.size() == 10
+        coreLibs.each { assertIsGradleJar(it) }
         def wrapperJar = contentsDir.file("lib/gradle-wrapper-${version}.jar")
-        assertIsGradleJar(wrapperJar)
         assert wrapperJar.length() < 20 * 1024; // wrapper needs to be small. Let's check it's smaller than some arbitrary 'small' limit
 
         // Plugins
