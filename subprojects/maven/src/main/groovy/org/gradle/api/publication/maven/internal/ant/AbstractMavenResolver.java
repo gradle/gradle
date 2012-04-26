@@ -176,16 +176,16 @@ public abstract class AbstractMavenResolver implements MavenResolver, Dependency
     }
 
     public void commitPublishTransaction() throws IOException {
-        InstallDeployTaskSupport installDeployTaskSupport = createPreConfiguredTask(AntUtil.createProject());
         Set<MavenDeployment> mavenDeployments = getArtifactPomContainer().createDeployableFilesInfos();
-        mavenSettingsSupplier.supply(installDeployTaskSupport);
         for (MavenDeployment mavenDeployment : mavenDeployments) {
+            InstallDeployTaskSupport installDeployTaskSupport = createPreConfiguredTask(AntUtil.createProject());
+            mavenSettingsSupplier.supply(installDeployTaskSupport);
             beforeDeploymentActions.execute(mavenDeployment);
             addPomAndArtifact(installDeployTaskSupport, mavenDeployment);
             execute(installDeployTaskSupport);
+            mavenSettingsSupplier.done();
+            settings = ((CustomInstallDeployTaskSupport) installDeployTaskSupport).getSettings();
         }
-        mavenSettingsSupplier.done();
-        settings = ((CustomInstallDeployTaskSupport) installDeployTaskSupport).getSettings();
     }
 
     private void execute(InstallDeployTaskSupport deployTask) {
