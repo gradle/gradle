@@ -25,10 +25,12 @@ import org.codehaus.groovy.tools.javac.JavaAwareCompilationUnit;
 import org.codehaus.groovy.tools.javac.JavaCompiler;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.util.DefaultClassPath;
 import org.gradle.util.FilteringClassLoader;
 
 import java.io.File;
 import java.io.Serializable;
+import java.net.URLClassLoader;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -59,10 +61,8 @@ public class ApiGroovyCompiler implements Compiler<GroovyJavaJointCompileSpec>, 
         // would end up on the compile class path of every compile task for that source set, which may not be desirable.
         spec.setClasspath(Iterables.concat(spec.getClasspath(), Collections.singleton(spec.getDestinationDir())));
 
-        GroovyClassLoader compileClasspathClassLoader = new GroovyClassLoader(null, null);
-        for (File file : spec.getClasspath()) {
-            compileClasspathClassLoader.addClasspath(file.getPath());
-        }
+        URLClassLoader classPathLoader = new TransformingClassLoader(new DefaultClassPath(spec.getClasspath()));
+        GroovyClassLoader compileClasspathClassLoader = new GroovyClassLoader(classPathLoader, null);
 
         FilteringClassLoader groovyCompilerClassLoader = new FilteringClassLoader(GroovyClassLoader.class.getClassLoader());
         groovyCompilerClassLoader.allowPackage("org.codehaus.groovy");
@@ -114,4 +114,5 @@ public class ApiGroovyCompiler implements Compiler<GroovyJavaJointCompileSpec>, 
 
         return new SimpleWorkResult(true);
     }
+
 }

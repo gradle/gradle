@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.compile.daemon;
 
 import com.google.common.collect.Iterables;
-
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.Compiler;
@@ -28,7 +27,6 @@ import org.gradle.api.tasks.compile.GroovyForkOptions;
 import org.gradle.internal.UncheckedException;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
