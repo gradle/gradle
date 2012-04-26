@@ -25,9 +25,12 @@ import org.codehaus.groovy.tools.javac.JavaAwareCompilationUnit;
 import org.codehaus.groovy.tools.javac.JavaCompiler;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.util.DefaultClassPath;
+import org.gradle.util.FilteringClassLoader;
 
 import java.io.File;
 import java.io.Serializable;
+import java.net.URLClassLoader;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -58,12 +61,28 @@ public class ApiGroovyCompiler implements Compiler<GroovyJavaJointCompileSpec>, 
         // would end up on the compile class path of every compile task for that source set, which may not be desirable.
         spec.setClasspath(Iterables.concat(spec.getClasspath(), Collections.singleton(spec.getDestinationDir())));
 
-        GroovyClassLoader compileClasspathClassLoader = new GroovyClassLoader(GroovyClassLoader.class.getClassLoader(), null);
+        URLClassLoader classPathLoader = new TransformingClassLoader(new DefaultClassPath(spec.getClasspath()));
+        GroovyClassLoader compileClasspathClassLoader = new GroovyClassLoader(classPathLoader, null);
+
+        FilteringClassLoader groovyCompilerClassLoader = new FilteringClassLoader(GroovyClassLoader.class.getClassLoader());
+        groovyCompilerClassLoader.allowPackage("org.codehaus.groovy");
+        groovyCompilerClassLoader.allowPackage("groovy");
+
+        // AST transforms need their own class loader that shares compiler classes with the compiler itself
+        final GroovyClassLoader astTransformClassLoader = new GroovyClassLoader(groovyCompilerClassLoader, null);
+        // can't delegate to compileClasspathLoader because this would result in ASTTransformation interface
+        // (which is implemented by the transform class) being loaded by compileClasspathClassLoader (which is
+        // where the transform class is loaded from)
         for (File file : spec.getClasspath()) {
-            compileClasspathClassLoader.addClasspath(file.getPath());
+            astTransformClassLoader.addClasspath(file.getPath());
         }
 
-        JavaAwareCompilationUnit unit = new JavaAwareCompilationUnit(configuration, compileClasspathClassLoader);
+        JavaAwareCompilationUnit unit = new JavaAwareCompilationUnit(configuration, compileClasspathClassLoader) {
+            @Override
+            public GroovyClassLoader getTransformLoader() {
+                return astTransformClassLoader;
+            }
+        };
         unit.addSources(Iterables.toArray(spec.getSource(), File.class));
         unit.setCompilerFactory(new org.codehaus.groovy.tools.javac.JavaCompilerFactory() {
             public JavaCompiler createCompiler(final CompilerConfiguration config) {
@@ -95,4 +114,5 @@ public class ApiGroovyCompiler implements Compiler<GroovyJavaJointCompileSpec>, 
 
         return new SimpleWorkResult(true);
     }
+
 }
