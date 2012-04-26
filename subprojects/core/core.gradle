@@ -25,6 +25,7 @@ dependencies {
 
     publishCompile libraries.slf4j_api
     publishCompile project(":baseServices")
+    publishCompile project(":messaging")
 
     compile libraries.asm
     compile libraries.ant
