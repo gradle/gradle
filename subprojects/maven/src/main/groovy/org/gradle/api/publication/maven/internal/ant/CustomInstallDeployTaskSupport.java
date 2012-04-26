@@ -26,4 +26,5 @@ public interface CustomInstallDeployTaskSupport {
     Settings getSettings();
     Project getProject();
     AttachedArtifact createAttach();
+    void clearAttachedArtifactsList();
 }

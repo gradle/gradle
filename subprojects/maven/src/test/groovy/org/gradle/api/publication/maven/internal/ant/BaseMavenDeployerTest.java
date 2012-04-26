@@ -83,21 +83,18 @@ public class BaseMavenDeployerTest extends AbstractMavenResolverTest {
     protected void checkTransaction(final Set<DefaultMavenDeployment> defaultMavenDeployments, AttachedArtifact attachedArtifact, PublishArtifact classifierArtifact) throws IOException, PlexusContainerException {
         final Set<File> protocolJars = WrapUtil.toLinkedSet(new File("jar1"), new File("jar1"));
         context.checking(new Expectations() {{
-            for (DefaultMavenDeployment defaultMavenDeployment : defaultMavenDeployments) {
                 allowing(configurationStub).resolve();
-                                will(returnValue(protocolJars));
-                                allowing(deployTaskFactoryMock).create();
-                                will(returnValue(getInstallDeployTask()));
-                                allowing(deployTaskMock).getContainer();
-                                will(returnValue(plexusContainerMock));
-                                for (File protocolProviderJar : protocolJars) {
-                                    one(plexusContainerMock).addJarResource(protocolProviderJar);
-                                }
-                                one(deployTaskMock).setUniqueVersion(mavenDeployer.isUniqueVersion());
-                                one(deployTaskMock).addRemoteRepository(testRepository);
-                                one(deployTaskMock).addRemoteSnapshotRepository(testSnapshotRepository);
-            }
-
+                will(returnValue(protocolJars));
+                allowing(deployTaskFactoryMock).create();
+                will(returnValue(getInstallDeployTask()));
+                allowing(deployTaskMock).getContainer();
+                will(returnValue(plexusContainerMock));
+                for (File protocolProviderJar : protocolJars) {
+                    one(plexusContainerMock).addJarResource(protocolProviderJar);
+                }
+                one(deployTaskMock).setUniqueVersion(mavenDeployer.isUniqueVersion());
+                one(deployTaskMock).addRemoteRepository(testRepository);
+                one(deployTaskMock).addRemoteSnapshotRepository(testSnapshotRepository);
         }});
         super.checkTransaction(defaultMavenDeployments, attachedArtifact, classifierArtifact);
     }

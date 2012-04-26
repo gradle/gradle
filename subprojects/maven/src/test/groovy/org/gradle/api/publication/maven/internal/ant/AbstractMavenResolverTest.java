@@ -109,6 +109,7 @@ public abstract class AbstractMavenResolverTest {
 
         context.checking(new Expectations() {
             {
+                allowing((CustomInstallDeployTaskSupport) getInstallDeployTask()).clearAttachedArtifactsList();
                 allowing((CustomInstallDeployTaskSupport) getInstallDeployTask()).getSettings();
                 will(returnValue(mavenSettingsMock));
                 allowing((CustomInstallDeployTaskSupport) getInstallDeployTask()).getProject();
@@ -137,8 +138,8 @@ public abstract class AbstractMavenResolverTest {
     protected void checkTransaction(final Set<DefaultMavenDeployment> defaultMavenDeployments, final AttachedArtifact attachedArtifact, PublishArtifact classifierArtifact) throws IOException, PlexusContainerException {
         context.checking(new Expectations() {
             {
+                one(getInstallDeployTask()).setProject(with(any(Project.class)));
                 for (DefaultMavenDeployment defaultMavenDeployment : defaultMavenDeployments) {
-                    one(getInstallDeployTask()).setProject(with(any(Project.class)));
                     one(getInstallDeployTask()).setFile(defaultMavenDeployment.getMainArtifact().getFile());
                     one(getInstallDeployTask()).addPom(with(pomMatcher(defaultMavenDeployment.getPomArtifact().getFile(), getInstallDeployTask().getProject())));
                     one(loggingManagerMock).captureStandardOutput(LogLevel.INFO);
@@ -147,9 +148,9 @@ public abstract class AbstractMavenResolverTest {
                     one(getInstallDeployTask()).execute();
                     one(loggingManagerMock).stop();
                     will(returnValue(loggingManagerMock));
-                    one(getMavenResolver().mavenSettingsSupplier).supply(getInstallDeployTask());
-                    one(getMavenResolver().mavenSettingsSupplier).done();
                 }
+                one(getMavenResolver().mavenSettingsSupplier).supply(getInstallDeployTask());
+                one(getMavenResolver().mavenSettingsSupplier).done();
             }
         });
         getMavenResolver().commitPublishTransaction();
