@@ -22,11 +22,11 @@ import org.slf4j.Logger
 import spock.lang.Specification
 import static org.junit.Assert.assertTrue
 
-public class TestSummaryListenerTest extends Specification {
+public class TestProgressLoggerTest extends Specification {
     
     def logger = Mock(Logger.class)
     def failure = new RuntimeException()
-    def listener = new TestSummaryListener(logger)
+    def listener = new TestProgressLogger(logger)
 
     def "logs successful tests"() {
         when:
