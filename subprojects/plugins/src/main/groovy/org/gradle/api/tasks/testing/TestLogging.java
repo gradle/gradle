@@ -16,22 +16,68 @@
 
 package org.gradle.api.tasks.testing;
 
+import groovy.lang.Closure;
+
+import org.gradle.api.Action;
+import org.gradle.util.ConfigureUtil;
+
 /**
- * Configures logging of the test execution, e.g. whether the std err / out should be eagerly shown
+ * Configuration options for logging test related information to the console.
  */
-public interface TestLogging {
+public class TestLogging {
+    private TestTraceLogging traces = new TestTraceLogging();
+    private TestExceptionLogging exceptions = new TestExceptionLogging();
+    private boolean showStandardStreams;
+
+    public TestTraceLogging getTraces() {
+        return traces;
+    }
+
+    public void setTraces(TestTraceLogging traces) {
+        this.traces = traces;
+    }
+
+    public void traces(Action<TestTraceLogging> action) {
+        traces.setEnabled(true);
+        action.execute(traces);
+    }
+
+    public void traces(Closure<?> closure) {
+        traces.setEnabled(true);
+        ConfigureUtil.configure(closure, traces);
+    }
+
+    public TestExceptionLogging getExceptions() {
+        return exceptions;
+    }
+
+    public void setExceptions(TestExceptionLogging exceptions) {
+        this.exceptions = exceptions;
+    }
+
+    public void exceptions(Action<TestExceptionLogging> action) {
+        exceptions.setEnabled(true);
+        action.execute(exceptions);
+    }
+
+    public void exceptions(Closure<?> closure) {
+        exceptions.setEnabled(true);
+        ConfigureUtil.configure(closure, exceptions);
+    }
+
+    /**
+     * Whether to show eagerly the standard stream events. Standard output is printed at INFO level, standard error at ERROR level.
+     */
+    public boolean getShowStandardStreams() {
+        return showStandardStreams;
+    }
 
     /**
      * Whether to show eagerly the standard stream events. Standard output is printed at INFO level, standard error at ERROR level.
      *
      * @param standardStreams to configure
-     * @return this logging instance
      */
-    TestLogging setShowStandardStreams(boolean standardStreams);
-
-    /**
-     * Whether to show eagerly the standard stream events. Standard output is printed at INFO level, standard error at ERROR level.
-     */
-    boolean getShowStandardStreams();
-
+    public void setShowStandardStreams(boolean standardStreams) {
+        this.showStandardStreams = standardStreams;
+    }
 }

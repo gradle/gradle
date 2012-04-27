@@ -28,29 +28,29 @@ import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.detection.DefaultTestExecuter;
 import org.gradle.api.internal.tasks.testing.detection.TestExecuter;
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
-import org.gradle.api.internal.tasks.testing.logging.DefaultTestLogging;
 import org.gradle.api.internal.tasks.testing.logging.StandardStreamsLogger;
-import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter;
-import org.gradle.api.internal.tasks.testing.results.TestLogger;
-import org.gradle.api.internal.tasks.testing.results.TestSummaryListener;
+import org.gradle.api.internal.tasks.testing.results.*;
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.UncheckedException;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.listener.ListenerManager;
 import org.gradle.logging.ProgressLoggerFactory;
+import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.messaging.actor.ActorFactory;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.DefaultJavaForkOptions;
 import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.util.ConfigureUtil;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -61,7 +61,7 @@ import java.util.Set;
  * <p>
  * An example with a blend of various settings
  * <pre autoTested=''>
- * apply plugin: 'java' //so that 'test' task is added
+ * apply plugin: 'java' // adds 'test' task
  *
  * test {
  *   //configuring a system property for tests
@@ -106,7 +106,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     private int maxParallelForks = 1;
     private ListenerBroadcast<TestListener> testListenerBroadcaster;
     private final ListenerBroadcast<TestOutputListener> testOutputListenerBroadcaster;
-    private final TestLogging testLogging = new DefaultTestLogging();
+    private final TestLogging testLogging = new TestLogging();
 
     public Test() {
         testListenerBroadcaster = getServices().get(ListenerManager.class).createAnonymousBroadcaster(
@@ -386,9 +386,14 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
 
     @TaskAction
     public void executeTests() {
-        TestSummaryListener listener = new TestSummaryListener(LoggerFactory.getLogger(Test.class));
-        addTestListener(listener);
-        addTestListener(new TestLogger(getServices().get(ProgressLoggerFactory.class)));
+        OutputEventListener outputListener = getServices().get(OutputEventListener.class);
+        ProgressLoggerFactory progressLoggerFactory = getServices().get(ProgressLoggerFactory.class);
+        TestCountLogger testCountLogger = new TestCountLogger(progressLoggerFactory);
+
+        addTestListener(new TestTraceLogger(outputListener, testLogging.getTraces()));
+        addTestListener(new TestExceptionLogger(outputListener, testLogging.getExceptions()));
+        addTestListener(testCountLogger);
+
         addTestOutputListener(new StandardStreamsLogger(Logging.getLogger(Test.class), testLogging));
 
         TestResultProcessor resultProcessor = new TestListenerAdapter(
@@ -399,9 +404,21 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         
         testFramework = null;
 
-        if (!getIgnoreFailures() && listener.hadFailures()) {
-            throw new GradleException("There were failing tests. See the report at " + getTestReportDir() + ".");
+        if (!getIgnoreFailures() && testCountLogger.hadFailures()) {
+            throw new GradleException("There were failing tests. See the report at " + getTestReportUrl() + ".");
         }
+    }
+
+    private String getTestReportUrl() {
+        // File.toURI().toString() leads to an URL like this on Mac: file:/reports/index.html
+        // This URL is not recognized by the Mac terminal (too few leading slashes). We solve
+        // this be creating an URI with an empty authority.
+        try {
+            return new URI("file", "", getTestReportDir() + "/index.html", null, null).toString();
+        } catch (URISyntaxException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+
     }
 
     /**
