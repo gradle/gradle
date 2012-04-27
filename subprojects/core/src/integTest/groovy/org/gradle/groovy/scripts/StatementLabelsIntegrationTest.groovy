@@ -57,9 +57,11 @@ description: "bar"
 
     def "nested use of statement label in build script is flagged"() {
         buildFile << """
-task compile(type: Compile) {
-    options.with {
-        fork: true
+def foo() {
+    1.times {
+      for (i in 1..1) {
+        another: "label"
+      }
     }
 }
         """
@@ -67,7 +69,7 @@ task compile(type: Compile) {
         expect:
         succeeds("tasks")
         output.contains("Usage of statement labels in build scripts has been deprecated")
-        output.contains("fork")
+        output.contains("label")
     }
 
     def "use of statement label in class inside build script is allowed"() {
