@@ -18,9 +18,13 @@ package org.gradle.api.tasks.testing;
 
 import org.gradle.util.GUtil;
 
+import java.util.Arrays;
+import java.util.EnumSet;
+import java.util.Set;
+
 public class TestExceptionLogging {
     private boolean enabled;
-    private StackTraceFormat stackTraceFormat = StackTraceFormat.TRUNCATED;
+    private Set<StackTraceFilter> stackTraceFilters = EnumSet.of(StackTraceFilter.TRUNCATE);
     private PackageFormat packageFormat = PackageFormat.SHORT;
 
     public boolean isEnabled() {
@@ -35,16 +39,16 @@ public class TestExceptionLogging {
         enabled = flag;
     }
 
-    public StackTraceFormat getStackTraceFormat() {
-        return stackTraceFormat;
+    public Set<StackTraceFilter> getStackTraceFilters() {
+        return stackTraceFilters;
     }
 
-    public void setStackTraceFormat(Object stackTraceFormat) {
-        this.stackTraceFormat = convertFormat(stackTraceFormat);
+    public void setStackTraceFilters(Set<Object> filters) {
+        stackTraceFilters = convertStackTraceFilters(filters);
     }
 
-    public void stackTraceFormat(Object format) {
-        this.stackTraceFormat = convertFormat(format);
+    public void stackTraceFilters(Object... filters) {
+        stackTraceFilters.addAll(convertStackTraceFilters(Arrays.asList(filters)));
     }
 
     public PackageFormat getPackageFormat() {
@@ -59,8 +63,16 @@ public class TestExceptionLogging {
         this.packageFormat = convertPackageFormat(packageFormat);
     }
 
-    private StackTraceFormat convertFormat(Object format) {
-        return StackTraceFormat.valueOf(GUtil.toConstant(format.toString()));
+    private Set<StackTraceFilter> convertStackTraceFilters(Iterable<Object> filters) {
+        Set<StackTraceFilter> converted = EnumSet.noneOf(StackTraceFilter.class);
+        for (Object filter : filters) {
+            if (filter instanceof StackTraceFilter) {
+                converted.add((StackTraceFilter) filter);
+            } else {
+                converted.add(StackTraceFilter.valueOf(GUtil.toConstant(filter.toString())));
+            }
+        }
+        return converted;
     }
 
     private PackageFormat convertPackageFormat(Object packageFormat) {

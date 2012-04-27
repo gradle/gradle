@@ -16,6 +16,6 @@
 
 package org.gradle.api.tasks.testing;
 
-public enum StackTraceFormat {
-    NONE, ENTRY_POINT, FILTERED, TRUNCATED, FULL
+public enum StackTraceFilter {
+    HIDE, ENTRY_POINT, TRUNCATE, GROOVY
 }
