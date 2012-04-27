@@ -16,7 +16,8 @@
 
 package org.gradle.process.internal;
 
-import org.apache.commons.lang.StringUtils;
+import com.google.common.base.Joiner;
+
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
@@ -55,6 +56,7 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class DefaultExecHandle implements ExecHandle, ProcessSettings {
     private static final Logger LOGGER = Logging.getLogger(DefaultExecHandle.class);
+
     private final String displayName;
     /**
      * The working directory of the process.
@@ -167,7 +169,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
         }
     }
 
-    private void setEndStateInfo(ExecHandleState newState, int exitCode, Throwable failureCause) {
+    private void setEndStateInfo(ExecHandleState newState, int exitValue, Throwable failureCause) {
         ShutdownHookActionRegister.removeAction(shutdownHookAction);
 
         ExecResultImpl result;
@@ -178,21 +180,21 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
             ExecException wrappedException = null;
             if (failureCause != null) {
                 if (currentState == ExecHandleState.STARTING) {
-                    wrappedException = new ExecException(String.format("A problem occurred starting %s.",
+                    wrappedException = new ExecException(String.format("A problem occurred starting process '%s'",
                             displayName), failureCause);
                 } else {
                     wrappedException = new ExecException(String.format(
-                            "A problem occurred waiting for %s to complete.", displayName), failureCause);
+                            "A problem occurred waiting for process '%s' to complete.", displayName), failureCause);
                 }
             }
             setState(newState);
-            execResult = new ExecResultImpl(exitCode, wrappedException);
+            execResult = new ExecResultImpl(exitValue, wrappedException);
             result = execResult;
         } finally {
             lock.unlock();
         }
 
-        LOGGER.debug("Process: {} was: {}; is now: {}; Result: {}", displayName, currentState, newState, execResult);
+        LOGGER.info("Process '{}' finished with exit value {} (state: {})", displayName, exitValue, newState);
 
         if (currentState != ExecHandleState.DETACHED && newState != ExecHandleState.DETACHED) {
             broadcast.getSource().executionFinished(this, result);
@@ -201,11 +203,16 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
     }
 
     public ExecHandle start() {
+        LOGGER.info("Starting process '{}'. Working directory: {} Command: {}",
+                displayName, directory, command + ' ' + Joiner.on(' ').useForNull("null").join(arguments));
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Environment for process '{}': {}", displayName, environment);
+        }
         lock.lock();
         try {
             ProcessParentingInitializer.intitialize();
             if (!stateIn(ExecHandleState.INIT)) {
-                throw new IllegalStateException("already started!");
+                throw new IllegalStateException(String.format("Cannot start process '%s' because it has already been started", displayName));
             }
             setState(ExecHandleState.STARTING);
 
@@ -216,7 +223,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
                 execResult.rethrowFailure();
             }
 
-            LOGGER.debug("Started {}.", displayName);
+            LOGGER.info("Successfully started process '{}'", displayName);
         } finally {
             lock.unlock();
         }
@@ -230,7 +237,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
                 return;
             }
             if (!stateIn(ExecHandleState.STARTED, ExecHandleState.DETACHED)) {
-                throw new IllegalStateException("not in started or detached state!");
+                throw new IllegalStateException(String.format("Cannot abort process '%s' because it is not in started or detached state", displayName));
             }
             this.execHandleRunner.abortProcess();
         } finally {
@@ -294,7 +301,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
 
     void aborted(int exitCode) {
         if (exitCode == 0) {
-            // This can happen on windows
+            // This can happen on Windows
             exitCode = -1;
         }
         setEndStateInfo(ExecHandleState.ABORTED, exitCode, null);
@@ -339,7 +346,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
 
         public ExecResult assertNormalExitValue() throws ExecException {
             if (exitValue != 0) {
-                throw new ExecException(String.format("%s finished with (non-zero) exit value %d.", StringUtils.capitalize(displayName), exitValue));
+                throw new ExecException(String.format("Process '%s' finished with non-zero exit value %d", displayName, exitValue));
             }
             return this;
         }

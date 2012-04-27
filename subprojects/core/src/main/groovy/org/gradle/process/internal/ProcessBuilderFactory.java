@@ -16,9 +16,6 @@
 
 package org.gradle.process.internal;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -29,32 +26,18 @@ import java.util.Map;
  * @author Tom Eyckmans
  */
 public class ProcessBuilderFactory {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ProcessBuilderFactory.class);
-
     public ProcessBuilder createProcessBuilder(ProcessSettings processSettings) {
-        final List<String> commandWithArguments = new ArrayList<String>();
-        final String command = processSettings.getCommand();
-        commandWithArguments.add(command);
-        final List<String> arguments = processSettings.getArguments();
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("creating process builder for {}", processSettings);
-            LOGGER.debug("in directory {}", processSettings.getDirectory());
-            int argumentIndex = 0;
-            for (String argument : arguments) {
-                LOGGER.debug("with argument#{} = {}", argumentIndex, argument);
-                argumentIndex++;
-            }
-        }
-        commandWithArguments.addAll(arguments);
-        
-        final ProcessBuilder processBuilder = new ProcessBuilder(commandWithArguments);
+        List<String> commandWithArguments = new ArrayList<String>();
+        commandWithArguments.add(processSettings.getCommand());
+        commandWithArguments.addAll(processSettings.getArguments());
 
+        ProcessBuilder processBuilder = new ProcessBuilder(commandWithArguments);
         processBuilder.directory(processSettings.getDirectory());
-        final Map<String, String> environment = processBuilder.environment();
+        processBuilder.redirectErrorStream(processSettings.getRedirectErrorStream());
+
+        Map<String, String> environment = processBuilder.environment();
         environment.clear();
         environment.putAll(processSettings.getEnvironment());
-
-        processBuilder.redirectErrorStream(processSettings.getRedirectErrorStream());
 
         return processBuilder;
     }
