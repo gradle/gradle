@@ -24,18 +24,21 @@ import org.gradle.logging.ProgressLoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TestLogger implements TestListener {
+public class TestCountLogger implements TestListener {
     private final ProgressLoggerFactory factory;
-    private final Logger logger;
     private ProgressLogger progressLogger;
+    private final Logger logger; // TODO: still needed, or can progressLogger do this as well?
+
     private long totalTests;
     private long failedTests;
+    private long skippedTests;
+    private boolean hadFailures;
 
-    public TestLogger(ProgressLoggerFactory factory) {
-        this(factory, LoggerFactory.getLogger(TestLogger.class));
+    public TestCountLogger(ProgressLoggerFactory factory) {
+        this(factory, LoggerFactory.getLogger(TestCountLogger.class));
     }
 
-    TestLogger(ProgressLoggerFactory factory, Logger logger) {
+    TestCountLogger(ProgressLoggerFactory factory, Logger logger) {
         this.factory = factory;
         this.logger = logger;
     }
@@ -46,6 +49,7 @@ public class TestLogger implements TestListener {
     public void afterTest(TestDescriptor testDescriptor, TestResult result) {
         totalTests += result.getTestCount();
         failedTests += result.getFailedTestCount();
+        skippedTests += result.getSkippedTestCount();
         progressLogger.progress(summary());
     }
 
@@ -55,7 +59,13 @@ public class TestLogger implements TestListener {
         builder.append(" completed");
         if (failedTests > 0) {
             builder.append(", ");
-            append(builder, failedTests, "failure");
+            builder.append(failedTests);
+            builder.append(" failed");
+        }
+        if (skippedTests > 0) {
+            builder.append(", ");
+            builder.append(skippedTests);
+            builder.append(" skipped");
         }
         return builder.toString();
     }
@@ -71,7 +81,7 @@ public class TestLogger implements TestListener {
 
     public void beforeSuite(TestDescriptor suite) {
         if (suite.getParent() == null) {
-            progressLogger = factory.newOperation(TestLogger.class);
+            progressLogger = factory.newOperation(TestCountLogger.class);
             progressLogger.setDescription("Run tests");
             progressLogger.started();
         }
@@ -83,6 +93,14 @@ public class TestLogger implements TestListener {
                 logger.error(summary());
             }
             progressLogger.completed();
+
+            if (result.getResultType() == TestResult.ResultType.FAILURE) {
+                hadFailures = true;
+            }
         }
+    }
+
+    public boolean hadFailures() {
+        return hadFailures;
     }
 }

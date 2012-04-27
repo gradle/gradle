@@ -14,30 +14,32 @@
  * limitations under the License.
  */
 
-
-
 package org.gradle.api.internal.tasks.testing.results
 
-import spock.lang.Specification
 import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.logging.ProgressLogger
 import org.gradle.api.tasks.testing.TestDescriptor
 import org.gradle.api.tasks.testing.TestResult
 import org.slf4j.Logger
 
-class TestLoggerTest extends Specification {
+import spock.lang.Specification
+
+class TestCountLoggerTest extends Specification {
     private final ProgressLoggerFactory factory = Mock()
     private final ProgressLogger progressLogger = Mock()
     private final TestDescriptor rootSuite = suite(true)
     private final Logger errorLogger = Mock()
-    private final TestLogger logger = new TestLogger(factory, errorLogger)
+    private final TestCountLogger logger = new TestCountLogger(factory, errorLogger)
+
+    def setup() {
+        factory.newOperation(TestCountLogger) >> progressLogger
+    }
 
     def startsProgressLoggerWhenRootSuiteIsStartedAndStopsWhenRootSuiteIsCompleted() {
         when:
         logger.beforeSuite(rootSuite)
 
         then:
-        1 * factory.newOperation(TestLogger) >> progressLogger
         1 * progressLogger.started()
 
         when:
@@ -51,7 +53,6 @@ class TestLoggerTest extends Specification {
         TestDescriptor test1 = test()
         TestDescriptor test2 = test()
 
-        1 * factory.newOperation(TestLogger) >> progressLogger
         logger.beforeSuite(rootSuite)
 
         when:
@@ -77,7 +78,6 @@ class TestLoggerTest extends Specification {
         TestDescriptor test1 = test()
         TestDescriptor test2 = test()
 
-        1 * factory.newOperation(TestLogger) >> progressLogger
         logger.beforeSuite(rootSuite)
 
         when:
@@ -90,20 +90,19 @@ class TestLoggerTest extends Specification {
         logger.afterTest(test2, result(true))
 
         then:
-        1 * progressLogger.progress('2 tests completed, 1 failure')
+        1 * progressLogger.progress('2 tests completed, 1 failed')
 
         when:
         logger.afterSuite(rootSuite, result())
 
         then:
-        1 * errorLogger.error('2 tests completed, 1 failure')
+        1 * errorLogger.error('2 tests completed, 1 failed')
         1 * progressLogger.completed()
     }
 
     def ignoresSuitesOtherThanTheRootSuite() {
         TestDescriptor suite = suite()
 
-        1 * factory.newOperation(TestLogger) >> progressLogger
         logger.beforeSuite(rootSuite)
 
         when:
@@ -120,16 +119,33 @@ class TestLoggerTest extends Specification {
         1 * progressLogger.completed()
     }
 
-    private def test() {
+    def "remembers whether root suite reported failure"() {
+        when:
+        logger.beforeSuite(rootSuite)
+        logger.afterSuite(rootSuite, result())
+
+        then:
+        !logger.hadFailures()
+
+        when:
+        logger.beforeSuite(rootSuite)
+        logger.afterSuite(rootSuite, result(true))
+
+        then:
+        logger.hadFailures()
+    }
+
+    private test() {
         [:] as TestDescriptor
     }
     
-    private def suite(boolean root = false) {
+    private suite(boolean root = false) {
         [getParent: {root ? null : [:] as TestDescriptor}] as TestDescriptor
     }
 
-    private def result(boolean failed = false) {
-        [getTestCount: { 1L }, getFailedTestCount: { failed ? 1L : 0L}] as TestResult
+    private result(boolean failed = false) {
+        [getTestCount: { 1L }, getFailedTestCount: { failed ? 1L : 0L }, getSkippedTestCount: { 0L },
+                getResultType: { failed ? TestResult.ResultType.FAILURE : TestResult.ResultType.SUCCESS }] as TestResult
     }
 }
 
