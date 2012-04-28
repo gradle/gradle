@@ -19,6 +19,7 @@ package org.gradle.process.internal;
 
 import org.gradle.internal.jvm.Jvm
 import org.gradle.process.ExecResult
+import org.gradle.process.internal.streams.StreamsHandler
 import org.gradle.util.GUtil
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
@@ -177,6 +178,26 @@ class DefaultExecHandleSpec extends Specification {
 
         then:
         ["output args", "error args"].each { out.toString().contains(it) }
+    }
+
+    void "exec handle collaborates with streams handler"() {
+        given:
+        def streamsHandler = Mock(StreamsHandler)
+        def execHandle = handle().args(args(TestApp.class)).setDisplayName("foo proc").streamsHandler(streamsHandler).build();
+
+        when:
+        execHandle.start()
+
+        then:
+        1 * streamsHandler.connectStreams(_ as Process, "foo proc")
+        1 * streamsHandler.start()
+
+        when:
+        execHandle.waitForFinish()
+
+        then:
+        1 * streamsHandler.stop()
+        0 * streamsHandler._
     }
 
     private ExecHandleBuilder handle() {
