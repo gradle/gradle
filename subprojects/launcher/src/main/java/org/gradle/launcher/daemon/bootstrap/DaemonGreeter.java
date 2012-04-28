@@ -33,11 +33,12 @@ public class DaemonGreeter {
     }
 
     public DaemonDiagnostics parseDaemonOutput(String output, DetachResult detachResult) {
-        if (!output.contains(DaemonMessages.ABOUT_TO_CLOSE_STREAMS)) {
+        if (!new DaemonStartupCommunication().containsGreeting(output)) {
             throw new GradleException(prepareMessage(output, detachResult));
         }
         String[] lines = output.split("\n");
-        String lastLine =  lines[lines.length-1];
+        //TODO SF don't assume it is the last line
+        String lastLine = lines[lines.length-1];
         return new DaemonStartupCommunication().readDiagnostics(lastLine);
     }
 

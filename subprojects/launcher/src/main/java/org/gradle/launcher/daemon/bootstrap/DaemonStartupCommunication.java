@@ -42,14 +42,26 @@ public class DaemonStartupCommunication {
     }
 
     String daemonStartedMessage(Long pid, File daemonLog) {
-        return DaemonMessages.ABOUT_TO_CLOSE_STREAMS + DELIM + pid + DELIM + daemonLog;
+        return daemonGreeting() + DELIM + pid + DELIM + daemonLog;
     }
 
     public DaemonDiagnostics readDiagnostics(String message) {
+        //TODO SF dont assume the message has correct format
         String[] split = message.split(DELIM);
         String pidString = split[1];
         Long pid = pidString.equals("null")? null : Long.valueOf(pidString);
         File daemonLog = new File(split[2]);
         return new DaemonDiagnostics(daemonLog, pid);
+    }
+
+    public boolean containsGreeting(String message) {
+        if (message == null) {
+            throw new IllegalArgumentException("Unable to detect the daemon greeting because the input message is null!");
+        }
+        return message.contains(daemonGreeting());
+    }
+
+    private static String daemonGreeting() {
+        return DaemonMessages.ABOUT_TO_CLOSE_STREAMS;
     }
 }

@@ -50,4 +50,15 @@ class DaemonStartupCommunicationSpec extends Specification {
         diagnostics.pid == null
         diagnostics.daemonLog == dummyFile
     }
+
+    def "knows if a message contains a greeting"() {
+        expect:
+        !comm.containsGreeting("foo")
+        comm.containsGreeting(comm.daemonStartedMessage(null, new File("foo")))
+
+        when:
+        comm.containsGreeting(null)
+        then:
+        thrown(IllegalArgumentException)
+    }
 }
