@@ -107,8 +107,9 @@ public class DaemonMain extends EntryPoint {
 
         Daemon daemon = startDaemon(daemonServices);
 
-        LOGGER.lifecycle(DaemonMessages.PROCESS_STARTED);
-        daemonStarted(daemonContext.getPid(), daemonLog);
+        Long pid = daemonContext.getPid();
+        LOGGER.lifecycle(DaemonMessages.PROCESS_STARTED + ((pid == null)? "":" Pid: " + pid + "."));
+        daemonStarted(pid, daemonLog);
 
         try {
             daemon.awaitIdleTimeout(configuration.getIdleTimeout());
