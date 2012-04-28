@@ -22,6 +22,7 @@ import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.messaging.concurrent.StoppableExecutor;
 import org.gradle.process.internal.streams.StreamsHandler;
 
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Scanner;
@@ -32,32 +33,42 @@ import java.util.Scanner;
 public class DaemonOutputConsumer implements StreamsHandler {
 
     private final static Logger LOGGER = Logging.getLogger(DaemonOutputConsumer.class);
-    //TODO SF add some lifecycle validation, coverage, exception handling
 
+    private StringWriter output;
     private StoppableExecutor executor;
-    private final StringWriter output = new StringWriter();
     private Runnable streamConsumer;
+    DaemonStartupCommunication startupCommunication = new DaemonStartupCommunication();
+    private String processOutput;
 
     public void start() {
         if (executor == null || streamConsumer == null) {
-            throw new IllegalStateException("Cannot start handling streams. #connectStreams not called first.");
+            throw new IllegalStateException("Cannot start consuming daemon output because streams have not been connected first.");
         }
         LOGGER.debug("Starting consuming the daemon process output.");
+        output = new StringWriter();
         executor.execute(streamConsumer);
     }
 
     public void connectStreams(final Process process, String processName) {
+        if (process == null || processName == null) {
+            throw new IllegalArgumentException("Cannot connect streams because provided process or its name is null");
+        }
+        final InputStream inputStream = process.getInputStream();
+        connectStreams(inputStream, processName);
+    }
+
+    void connectStreams(final InputStream inputStream, String processName) {
         executor = new DefaultExecutorFactory().create("Read output from: " + processName);
         streamConsumer = new Runnable() {
             public void run() {
-                Scanner scanner = new Scanner(process.getInputStream());
+                Scanner scanner = new Scanner(inputStream);
                 PrintWriter printer = new PrintWriter(output);
                 try {
                     while (scanner.hasNext()) {
                         String line = scanner.nextLine();
                         LOGGER.debug("daemon out: {}", line);
                         printer.println(line);
-                        if (new DaemonStartupCommunication().containsGreeting(line)) {
+                        if (startupCommunication.containsGreeting(line)) {
                             break;
                         }
                     }
@@ -69,10 +80,17 @@ public class DaemonOutputConsumer implements StreamsHandler {
     }
 
     public String getProcessOutput() {
-        return output.toString();
+        if (processOutput == null) {
+            throw new IllegalArgumentException("Unable to get process output as consuming has not finished yet.");
+        }
+        return processOutput;
     }
 
     public void stop() {
+        if (executor == null || output == null) {
+            throw new IllegalArgumentException("Unable to stop output consumer. Was it started?.");
+        }
         executor.stop();
+        processOutput = output.toString();
     }
 }
