@@ -16,7 +16,7 @@
 
 package org.gradle.process.internal;
 
-import org.gradle.process.internal.streams.StreamsForwarder;
+import org.gradle.process.internal.streams.StreamsHandler;
 
 /**
  * @author Tom Eyckmans
@@ -28,13 +28,13 @@ public class ExecHandleRunner {
     private final Object lock;
     private Process process;
     private boolean aborted;
-    private final StreamsForwarder streamsForwarder;
+    private final StreamsHandler streamsHandler;
 
-    public ExecHandleRunner(DefaultExecHandle execHandle, StreamsForwarder streamsForwarder) {
+    public ExecHandleRunner(DefaultExecHandle execHandle, StreamsHandler streamsHandler) {
         if (execHandle == null) {
             throw new IllegalArgumentException("execHandle == null!");
         }
-        this.streamsForwarder = streamsForwarder;
+        this.streamsHandler = streamsHandler;
         this.processBuilderFactory = new ProcessBuilderFactory();
         this.execHandle = execHandle;
         this.lock = new Object();
@@ -58,13 +58,13 @@ public class ExecHandleRunner {
             // and stderr streams for some of the processes get stuck
             synchronized (START_LOCK) {
                 process = processBuilder.start();
-                streamsForwarder.connectStreams(process);
+                streamsHandler.connectStreams(process, execHandle.getDisplayName());
             }
             synchronized (lock) {
                 this.process = process;
             }
 
-            streamsForwarder.start();
+            streamsHandler.start();
             execHandle.started();
         } catch (Throwable t) {
             execHandle.failed(t);
@@ -73,7 +73,7 @@ public class ExecHandleRunner {
 
     public void waitUntilDemonized() {
         try {
-            streamsForwarder.stop();
+            streamsHandler.stop();
             try {
                 int exitValue = process.exitValue();
                 execHandle.finished(exitValue);
@@ -91,7 +91,7 @@ public class ExecHandleRunner {
         int exitCode;
         try {
             exitCode = process.waitFor();
-            streamsForwarder.stop();
+            streamsHandler.stop();
         } catch (Throwable t) {
             execHandle.failed(t);
             return;

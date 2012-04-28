@@ -25,7 +25,7 @@ import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.messaging.concurrent.StoppableExecutor;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.shutdown.ShutdownHookActionRegister;
-import org.gradle.process.internal.streams.StreamsForwarder;
+import org.gradle.process.internal.streams.StreamsHandler;
 
 import java.io.File;
 import java.util.Arrays;
@@ -74,7 +74,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
      * The variables to set in the environment the executable is run in.
      */
     private final Map<String, String> environment;
-    private final StreamsForwarder streamsForwarder;
+    private final StreamsHandler streamsHandler;
     private final boolean redirectErrorStream;
 
     /**
@@ -101,14 +101,14 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
     private final ExecHandleShutdownHookAction shutdownHookAction;
 
     DefaultExecHandle(String displayName, File directory, String command, List<String> arguments,
-                      Map<String, String> environment, StreamsForwarder streamsForwarder,
+                      Map<String, String> environment, StreamsHandler streamsHandler,
                       List<ExecHandleListener> listeners, boolean redirectErrorStream) {
         this.displayName = displayName;
         this.directory = directory;
         this.command = command;
         this.arguments = arguments;
         this.environment = environment;
-        this.streamsForwarder = streamsForwarder;
+        this.streamsHandler = streamsHandler;
         this.redirectErrorStream = redirectErrorStream;
         this.lock = new ReentrantLock();
         this.state = ExecHandleState.INIT;
@@ -209,7 +209,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
             }
             setState(ExecHandleState.STARTING);
 
-            execHandleRunner = new ExecHandleRunner(this, streamsForwarder);
+            execHandleRunner = new ExecHandleRunner(this, streamsHandler);
             execHandleRunner.start();
 
             if (execResult != null) {

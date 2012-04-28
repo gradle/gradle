@@ -24,20 +24,22 @@ import org.gradle.launcher.daemon.bootstrap.GradleDaemon;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
 import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
+import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.registry.DaemonDir;
+import org.gradle.messaging.concurrent.DefaultExecutorFactory;
+import org.gradle.messaging.concurrent.StoppableExecutor;
 import org.gradle.process.internal.DetachResult;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.ExecHandleBuilder;
+import org.gradle.process.internal.streams.StreamsHandler;
 import org.gradle.util.Clock;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.*;
 
 public class DefaultDaemonStarter implements DaemonStarter {
 
@@ -100,25 +102,68 @@ public class DefaultDaemonStarter implements DaemonStarter {
 
             builder.commandLine(args);
             builder.setWorkingDir(workingDir);
-            builder.noStandardInput();
             builder.redirectErrorStream();
 
-            //TODO SF improve: the exec handle, the way we retrieve output, the way we parse output.
-            ByteArrayOutputStream output = new ByteArrayOutputStream();
-            builder.setStandardOutput(output);
+            DaemonOutputConsumer outputConsumer = new DaemonOutputConsumer();
+            builder.streamsHandler(outputConsumer);
 
             ExecHandle handle = builder.build();
 
             handle.start();
+            LOGGER.debug("Gradle daemon process is starting. Waiting for the daemon to detach...");
             DetachResult detachResult = handle.detach();
+            LOGGER.debug("Gradle daemon process is now detached.");
 
-            return daemonGreeter.parseDaemonOutput(output.toString(), detachResult);
+            return daemonGreeter.parseDaemonOutput(outputConsumer.output.toString(), detachResult);
         } catch (GradleException e) {
             throw e;
         } catch (Exception e) {
             throw new GradleException("Could not start Gradle daemon.", e);
         } finally {
             LOGGER.info("An attempt to start the daemon took {}.", clock.getTime());
+        }
+    }
+
+    private static class DaemonOutputConsumer implements StreamsHandler {
+
+        //TODO SF add some lifecycle validation, coverage, exception handling and merge with daemonGreeter
+
+        private StoppableExecutor executor;
+        StringWriter output = new StringWriter();
+        private Runnable streamGobbler;
+
+        public void start() {
+            if (executor == null || streamGobbler == null) {
+                throw new IllegalStateException("Cannot start handling streams. #connectStreams not called first.");
+            }
+            LOGGER.debug("Starting consuming the daemon process output.");
+            executor.execute(streamGobbler);
+        }
+
+        public void connectStreams(final Process process, String processName) {
+            executor = new DefaultExecutorFactory().create("Read output from: " + processName);
+            streamGobbler = new Runnable() {
+                public void run() {
+                    Scanner scanner = new Scanner(process.getInputStream());
+                    PrintWriter printer = new PrintWriter(output);
+                    try {
+                        while (scanner.hasNext()) {
+                            String line = scanner.nextLine();
+                            LOGGER.debug("daemon out: {}", line);
+                            printer.println(line);
+                            if (line.contains(DaemonMessages.ABOUT_TO_CLOSE_STREAMS)) {
+                                break;
+                            }
+                        }
+                    } finally {
+                        scanner.close();
+                    }
+                }
+            };
+        }
+
+        public void stop() {
+            executor.stop();
         }
     }
 }

@@ -20,6 +20,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.process.BaseExecSpec;
 import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.process.internal.streams.StreamsForwarder;
+import org.gradle.process.internal.streams.StreamsHandler;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -37,6 +38,7 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
     private final List<ExecHandleListener> listeners = new ArrayList<ExecHandleListener>();
     boolean ignoreExitValue;
     boolean redirectErrorStream;
+    private StreamsHandler streamsHandler;
 
     public AbstractExecHandleBuilder(FileResolver fileResolver) {
         super(fileResolver);
@@ -120,10 +122,21 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
         }
 
         boolean shouldReadErrorStream = !redirectErrorStream;
-        StreamsForwarder forwarder = new StreamsForwarder(standardOutput, errorOutput, input, shouldReadErrorStream,
+        StreamsHandler effectiveHandler;
+        //TODO SF add some coverge in the exec handle spec
+        if (this.streamsHandler != null) {
+            effectiveHandler = this.streamsHandler;
+        } else {
+            effectiveHandler = new StreamsForwarder(standardOutput, errorOutput, input, shouldReadErrorStream,
                 String.format("Forward streams with process: %s", getDisplayName()));
+        }
         return new DefaultExecHandle(getDisplayName(), getWorkingDir(), executable, getAllArguments(), getActualEnvironment(),
-                forwarder, listeners, redirectErrorStream);
+                effectiveHandler, listeners, redirectErrorStream);
+    }
+
+    public AbstractExecHandleBuilder streamsHandler(StreamsHandler streamsHandler) {
+        this.streamsHandler = streamsHandler;
+        return this;
     }
 
     public AbstractExecHandleBuilder redirectErrorStream() {

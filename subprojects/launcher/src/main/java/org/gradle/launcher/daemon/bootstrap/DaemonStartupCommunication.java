@@ -16,6 +16,8 @@
 
 package org.gradle.launcher.daemon.bootstrap;
 
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 
@@ -28,9 +30,15 @@ import java.io.PrintStream;
 public class DaemonStartupCommunication {
 
     private static final String DELIM = ";:"; //this very simple delim should be safe for any kind of path.
+    private static final Logger LOGGER = Logging.getLogger(DaemonStartupCommunication.class);
 
     public void printDaemonStarted(PrintStream target, Long pid, File daemonLog) {
         target.println(daemonStartedMessage(pid, daemonLog));
+        //ibm vm 1.6 + windows XP gotchas:
+        //we need to print something else to the stream after we print the daemon greeting.
+        //without it, the parent hangs without receiving the message above (flushing does not help).
+        LOGGER.debug("Completed writing the daemon greeting. Closing streams...");
+        //btw. the ibm vm+winXP also has some issues detecting closed streams by the child but we handle this problem differently.
     }
 
     String daemonStartedMessage(Long pid, File daemonLog) {

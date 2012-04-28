@@ -28,7 +28,7 @@ import java.io.OutputStream;
 /**
  * by Szczepan Faber, created at: 4/17/12
  */
-public class StreamsForwarder implements Stoppable {
+public class StreamsForwarder implements Stoppable, StreamsHandler {
 
     private final OutputStream standardOutput;
     private final OutputStream errorOutput;
@@ -74,7 +74,7 @@ public class StreamsForwarder implements Stoppable {
     private ExecOutputHandleRunner errorOutputRunner;
     private ExecOutputHandleRunner standardInputRunner;
 
-    public void connectStreams(Process process) {
+    public void connectStreams(Process process, String processName) {
         InputStream instr = new DisconnectableInputStream(input);
 
         standardOutputRunner = new ExecOutputHandleRunner("read process standard output",
