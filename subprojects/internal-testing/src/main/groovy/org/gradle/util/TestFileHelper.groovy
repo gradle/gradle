@@ -140,12 +140,42 @@ class TestFileHelper {
         return toMode(getPermissions())
     }
 
+    void delete() {
+        deleteRecursive(file)
+    }
+
+    private void deleteRecursive(File file) {
+        println "=> DELETING $file"
+        if (file.isDirectory()) {
+            for (String child: file.list()) {
+                deleteRecursive(new File(file, child))
+            }
+            file.delete()
+        } else if (file.exists()) {
+            unlink(file)
+        }
+    }
+
+    private void unlink(File file) {
+        if (isUnix()) {
+            println "UNLINK $file.absolutePath"
+            def process = ["unlink", file.absolutePath].execute()
+            def error = process.errorStream.text
+            def retval = process.waitFor()
+            if (retval != 0) {
+                throw new RuntimeException("Could not unlink '$file': $error")
+            }
+        } else {
+            file.delete()
+        }
+    }
+
     String readLink() {
         def process = ["readlink", file.absolutePath].execute()
         def error = process.errorStream.text
         def retval = process.waitFor()
         if (retval != 0) {
-            throw new RuntimeException("Could not set permissions for '$file': $error")
+            throw new RuntimeException("Could not read link '$file': $error")
         }
         return process.inputStream.text.trim()
     }

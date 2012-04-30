@@ -431,8 +431,12 @@ public class TestFile extends File implements TestFileContext {
         return new TestFile(this, path).createDir();
     }
 
+    /**
+     * Deletes this directory, if it exists. Does not follow links.
+     * @return this
+     */
     public TestFile deleteDir() {
-        FileUtils.deleteQuietly(this);
+        new TestFileHelper(this).delete();
         return this;
     }
 
