@@ -422,7 +422,7 @@ public class CompileOptions extends AbstractOptions {
     }
 
     /**
-     * Convenience method to set (@link ForkOptions} with named parameter syntax.
+     * Convenience method to set {@link ForkOptions} with named parameter syntax.
      * Calling this method will set {@code fork} to {@code true}.
      */
     public CompileOptions fork(Map<String, Object> forkArgs) {
@@ -432,7 +432,7 @@ public class CompileOptions extends AbstractOptions {
     }
 
     /**
-     * Convenience method to set (@link DebugOptions} with named parameter syntax.
+     * Convenience method to set {@link DebugOptions} with named parameter syntax.
      * Calling this method will set {@code debug} to {@code true}.
      */
     public CompileOptions debug(Map<String, Object> debugArgs) {

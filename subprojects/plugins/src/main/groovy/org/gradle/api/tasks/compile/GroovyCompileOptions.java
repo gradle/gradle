@@ -54,49 +54,49 @@ public class GroovyCompileOptions extends AbstractOptions {
     private File stubDir;
 
     /**
-     * Tells whether the compilation task should fail if compile errors occurred. Defaults to (@code true}.
+     * Tells whether the compilation task should fail if compile errors occurred. Defaults to {@code true}.
      */
     public boolean isFailOnError() {
         return failOnError;
     }
 
     /**
-     * Sets whether the compilation task should fail if compile errors occurred. Defaults to (@code true}.
+     * Sets whether the compilation task should fail if compile errors occurred. Defaults to {@code true}.
      */
     public void setFailOnError(boolean failOnError) {
         this.failOnError = failOnError;
     }
 
     /**
-     * Tells whether to turn on verbose output. Defaults to (@code false}.
+     * Tells whether to turn on verbose output. Defaults to {@code false}.
      */
     public boolean isVerbose() {
         return verbose;
     }
 
     /**
-     * Sets whether to turn on verbose output. Defaults to (@code false}.
+     * Sets whether to turn on verbose output. Defaults to {@code false}.
      */
     public void setVerbose(boolean verbose) {
         this.verbose = verbose;
     }
 
     /**
-     * Tells whether to print which source files are to be compiled. Defaults to (@code false}.
+     * Tells whether to print which source files are to be compiled. Defaults to {@code false}.
      */
     public boolean isListFiles() {
         return listFiles;
     }
 
     /**
-     * Sets whether to print which source files are to be compiled. Defaults to (@code false}.
+     * Sets whether to print which source files are to be compiled. Defaults to {@code false}.
      */
     public void setListFiles(boolean listFiles) {
         this.listFiles = listFiles;
     }
 
     /**
-     * Tells the source encoding. Defaults to (@code UTF-8}.
+     * Tells the source encoding. Defaults to {@code UTF-8}.
      */
     @Input
     public String getEncoding() {
@@ -104,21 +104,21 @@ public class GroovyCompileOptions extends AbstractOptions {
     }
 
     /**
-     * Sets the source encoding. Defaults to (@code UTF-8}.
+     * Sets the source encoding. Defaults to {@code UTF-8}.
      */
     public void setEncoding(String encoding) {
         this.encoding = encoding;
     }
 
     /**
-     * Tells whether to run the Groovy compiler in a separate process. Defaults to (@code true}.
+     * Tells whether to run the Groovy compiler in a separate process. Defaults to {@code true}.
      */
     public boolean isFork() {
         return fork;
     }
 
     /**
-     * Sets whether to run the Groovy compiler in a separate process. Defaults to (@code true}.
+     * Sets whether to run the Groovy compiler in a separate process. Defaults to {@code true}.
      */
     public void setFork(boolean fork) {
         this.fork = fork;
@@ -126,7 +126,7 @@ public class GroovyCompileOptions extends AbstractOptions {
 
     /**
      * Returns options for running the Groovy compiler in a separate process. These options only take effect
-     * if (@code fork} is set to (@code true}.
+     * if {@code fork} is set to {@code true}.
      */
     public GroovyForkOptions getForkOptions() {
         return forkOptions;
@@ -134,7 +134,7 @@ public class GroovyCompileOptions extends AbstractOptions {
 
     /**
      * Sets options for running the Groovy compiler in a separate process. These options only take effect
-     * if (@code fork} is set to (@code true}.
+     * if {@code fork} is set to {@code true}.
      */
     public void setForkOptions(GroovyForkOptions forkOptions) {
         this.forkOptions = forkOptions;
@@ -142,7 +142,7 @@ public class GroovyCompileOptions extends AbstractOptions {
 
     /**
      * Tells whether to print a stack trace when the compiler hits a problem (like a compile error).
-     * Defaults to (@code false}.
+     * Defaults to {@code false}.
      */
     public boolean isStacktrace() {
         return stacktrace;
@@ -150,7 +150,7 @@ public class GroovyCompileOptions extends AbstractOptions {
 
     /**
      * Sets whether to print a stack trace when the compiler hits a problem (like a compile error).
-     * Defaults to (@code false}.
+     * Defaults to {@code false}.
      */
     public void setStacktrace(boolean stacktrace) {
         this.stacktrace = stacktrace;
@@ -158,7 +158,7 @@ public class GroovyCompileOptions extends AbstractOptions {
 
     /**
      * Tells whether the groovyc Ant task should be used over Gradle's own Groovy compiler integration.
-     * Defaults to (@code false}.
+     * Defaults to {@code false}.
      */
     @Input
     public boolean isUseAnt() {
@@ -167,7 +167,7 @@ public class GroovyCompileOptions extends AbstractOptions {
 
     /**
      * Sets whether the groovyc Ant task should be used over Gradle's own Groovy compiler integration.
-     * Defaults to (@code false}.
+     * Defaults to {@code false}.
      */
     public void setUseAnt(boolean useAnt) {
         this.useAnt = useAnt;
@@ -175,7 +175,7 @@ public class GroovyCompileOptions extends AbstractOptions {
 
     /**
      * Tells whether the Java runtime should be put on the compile class path. Only takes effect if
-     * {@code useAnt} is (@code true}. Defaults to (@code false}.
+     * {@code useAnt} is {@code true}. Defaults to {@code false}.
      */
     @Input
     public boolean isIncludeJavaRuntime() {
@@ -184,7 +184,7 @@ public class GroovyCompileOptions extends AbstractOptions {
 
     /**
      * Sets whether the Java runtime should be put on the compile class path. Only takes effect if
-     * {@code useAnt} is (@code true}. Defaults to (@code false}.
+     * {@code useAnt} is {@code true}. Defaults to {@code false}.
      */
     public void setIncludeJavaRuntime(boolean includeJavaRuntime) {
         this.includeJavaRuntime = includeJavaRuntime;
@@ -192,7 +192,7 @@ public class GroovyCompileOptions extends AbstractOptions {
 
     /**
      * Returns the directory where Java stubs for Groovy classes will be stored during Java/Groovy joint
-     * compilation. Defaults to (@code null}, in which case a temporary directory will be used.
+     * compilation. Defaults to {@code null}, in which case a temporary directory will be used.
      */
     public File getStubDir() {
         return stubDir;
@@ -200,7 +200,7 @@ public class GroovyCompileOptions extends AbstractOptions {
 
     /**
      * Sets the directory where Java stubs for Groovy classes will be stored during Java/Groovy joint
-     * compilation. Defaults to (@code null}, in which case a temporary directory will be used.
+     * compilation. Defaults to {@code null}, in which case a temporary directory will be used.
      */
     public void setStubDir(File stubDir) {
         this.stubDir = stubDir;
@@ -209,7 +209,7 @@ public class GroovyCompileOptions extends AbstractOptions {
     /**
      * Tells whether Java stubs for Groovy classes generated during Java/Groovy joint compilation
      * should be kept after compilation has completed. Useful for joint compilation debugging purposes.
-     * Defaults to (@code false}.
+     * Defaults to {@code false}.
      */
     public boolean isKeepStubs() {
         return keepStubs;
@@ -218,14 +218,14 @@ public class GroovyCompileOptions extends AbstractOptions {
     /**
      * Sets whether Java stubs for Groovy classes generated during Java/Groovy joint compilation
      * should be kept after compilation has completed. Useful for joint compilation debugging purposes.
-     * Defaults to (@code false}.
+     * Defaults to {@code false}.
      */
     public void setKeepStubs(boolean keepStubs) {
         this.keepStubs = keepStubs;
     }
 
     /**
-     * Convenience method to set (@link ForkOptions} with named parameter syntax.
+     * Convenience method to set {@link ForkOptions} with named parameter syntax.
      * Calling this method will set {@code fork} to {@code true}.
      */
     public GroovyCompileOptions fork(Map forkArgs) {
