@@ -34,6 +34,7 @@ class JreJavaHomeIntegratonTest extends AbstractIntegrationSpec {
         def jreJavaHome = AvailableJavaHomes.bestJreAlternative
         writeJavaTestSource("src/main/java");
         file('build.gradle') << """
+        println "Used JRE: $jreJavaHome"
         apply plugin:'java'
         compileJava{
             options.fork = ${forkMode}
@@ -58,6 +59,7 @@ class JreJavaHomeIntegratonTest extends AbstractIntegrationSpec {
         writeJavaTestSource("src/main/groovy")
         writeGroovyTestSource("src/main/groovy")
         file('build.gradle') << """
+            println "Used JRE: $jreJavaHome"
             apply plugin:'groovy'
             dependencies{
                 groovy localGroovy()
@@ -87,6 +89,7 @@ class JreJavaHomeIntegratonTest extends AbstractIntegrationSpec {
         writeJavaTestSource("src/main/scala")
         writeScalaTestSource("src/main/scala")
         file('build.gradle') << """
+                println "Used JRE: $jreJavaHome"
                 apply plugin:'scala'
 
                 repositories {
