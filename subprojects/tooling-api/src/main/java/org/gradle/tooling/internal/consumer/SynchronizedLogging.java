@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.api.internal.Operation;
 import org.gradle.api.internal.concurrent.Synchronizer;
 import org.gradle.internal.Factory;
 import org.gradle.internal.TrueTimeProvider;
@@ -58,8 +57,8 @@ public class SynchronizedLogging implements LoggingProvider {
     }
 
     public void init() {
-        synchronizer.synchronize(new Operation() {
-            public void execute() {
+        synchronizer.synchronize(new Runnable() {
+            public void run() {
                 DefaultListenerManager manager = new DefaultListenerManager();
                 listenerManager.set(manager);
                 progressLoggerFactory.set(new DefaultProgressLoggerFactory(manager.getBroadcaster(ProgressListener.class), new TrueTimeProvider()));

@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.concurrent;
 
-import org.gradle.api.internal.Operation;
 import org.gradle.internal.Factory;
 
 import java.util.concurrent.locks.Lock;
@@ -35,10 +34,10 @@ public class Synchronizer {
         }
     }
 
-    public void synchronize(Operation operation) {
+    public void synchronize(Runnable operation) {
         lock.lock();
         try {
-            operation.execute();
+            operation.run();
         } finally {
             lock.unlock();
         }

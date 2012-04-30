@@ -16,7 +16,6 @@
 
 package org.gradle.launcher.daemon.server;
 
-import org.gradle.api.internal.Operation;
 import org.gradle.api.internal.concurrent.Synchronizer;
 import org.gradle.messaging.remote.internal.Connection;
 
@@ -39,8 +38,8 @@ public class SynchronizedDispatchConnection<T> implements Connection<T> {
     }
 
     public void dispatch(final T message) {
-        sync.synchronize(new Operation() {
-            public void execute() {
+        sync.synchronize(new Runnable() {
+            public void run() {
                 delegate.dispatch(message);
             }
         });
