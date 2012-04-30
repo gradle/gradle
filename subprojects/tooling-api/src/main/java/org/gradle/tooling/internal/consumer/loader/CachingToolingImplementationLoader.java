@@ -18,23 +18,21 @@ package org.gradle.tooling.internal.consumer.loader;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
+import org.gradle.util.ClassPath;
 
-import java.io.File;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Set;
 
 public class CachingToolingImplementationLoader implements ToolingImplementationLoader {
     private final ToolingImplementationLoader loader;
-    private final Map<Set<File>, ConsumerConnection> connections = new HashMap<Set<File>, ConsumerConnection>();
+    private final Map<ClassPath, ConsumerConnection> connections = new HashMap<ClassPath, ConsumerConnection>();
 
     public CachingToolingImplementationLoader(ToolingImplementationLoader loader) {
         this.loader = loader;
     }
 
     public ConsumerConnection create(Distribution distribution, ProgressLoggerFactory progressLoggerFactory, boolean verboseLogging) {
-        Set<File> classpath = new LinkedHashSet<File>(distribution.getToolingImplementationClasspath(progressLoggerFactory));
+        ClassPath classpath = distribution.getToolingImplementationClasspath(progressLoggerFactory);
 
         ConsumerConnection connection = connections.get(classpath);
         if (connection == null) {

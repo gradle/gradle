@@ -25,6 +25,7 @@ import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import org.slf4j.Logger
 import spock.lang.Specification
+import org.gradle.util.DefaultClassPath
 
 class DefaultToolingImplementationLoaderTest extends Specification {
     @Rule public final TemporaryFolder tmpDir = new TemporaryFolder()
@@ -34,14 +35,13 @@ class DefaultToolingImplementationLoaderTest extends Specification {
     def usesMetaInfServiceToDetermineFactoryImplementation() {
         given:
         def loader = new DefaultToolingImplementationLoader()
-        distribution.getToolingImplementationClasspath(loggerFactory) >> ([
+        distribution.getToolingImplementationClasspath(loggerFactory) >> new DefaultClassPath(
                 getToolingApiResourcesDir(),
                 ClasspathUtil.getClasspathForClass(TestConnection.class),
                 ClasspathUtil.getClasspathForClass(ActorFactory.class),
                 ClasspathUtil.getClasspathForClass(Logger.class),
                 getVersionResourcesDir(),
-                ClasspathUtil.getClasspathForClass(GradleVersion.class)
-        ] as Set)
+                ClasspathUtil.getClasspathForClass(GradleVersion.class))
 
         when:
         def adaptedConnection = loader.create(distribution, loggerFactory, true)
@@ -70,7 +70,7 @@ class DefaultToolingImplementationLoaderTest extends Specification {
         then:
         UnsupportedVersionException e = thrown()
         e.message == "The specified <dist-display-name> is not supported by this tooling API version (${GradleVersion.current().version}, protocol version 4)"
-        _ * distribution.getToolingImplementationClasspath(loggerFactory) >> ([] as Set)
+        _ * distribution.getToolingImplementationClasspath(loggerFactory) >> new DefaultClassPath()
         _ * distribution.displayName >> '<dist-display-name>'
     }
 }

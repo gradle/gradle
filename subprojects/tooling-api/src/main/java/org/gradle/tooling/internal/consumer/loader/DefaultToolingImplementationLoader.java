@@ -26,9 +26,6 @@ import org.gradle.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.net.URL;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -70,11 +67,10 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
     }
 
     private ClassLoader createImplementationClassLoader(Distribution distribution, ProgressLoggerFactory progressLoggerFactory) {
-        Set<File> implementationClasspath = distribution.getToolingImplementationClasspath(progressLoggerFactory);
+        ClassPath implementationClasspath = distribution.getToolingImplementationClasspath(progressLoggerFactory);
         LOGGER.debug("Using tooling provider classpath: {}", implementationClasspath);
-        URL[] urls = GFileUtils.toURLArray(implementationClasspath);
         FilteringClassLoader filteringClassLoader = new FilteringClassLoader(classLoader);
         filteringClassLoader.allowPackage("org.gradle.tooling.internal.protocol");
-        return new MutableURLClassLoader(filteringClassLoader, urls);
+        return new MutableURLClassLoader(filteringClassLoader, implementationClasspath.getAsURLArray());
     }
 }

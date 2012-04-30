@@ -55,4 +55,23 @@ class DefaultClassPathTest extends Specification {
         (cp + [file2]).asFiles == [file1, file2]
         (cp + []).is(cp)
     }
+    
+    def "classpaths are equal when the contain the same sequence of files"() {
+        def file1 = new File("a.jar")
+        def file2 = new File("b.jar")
+        def file3 = new File("c.jar")
+        def cp = new DefaultClassPath(file1, file2)
+        def same = new DefaultClassPath(file1, file2)
+        def differentOrder = new DefaultClassPath(file2, file1)
+        def missing = new DefaultClassPath(file2)
+        def extra = new DefaultClassPath(file1, file2, file3)
+        def different = new DefaultClassPath(file3)
+
+        expect:
+        cp Matchers.strictlyEqual(same)
+        cp != differentOrder
+        cp != missing
+        cp != extra
+        cp != different
+    }
 }

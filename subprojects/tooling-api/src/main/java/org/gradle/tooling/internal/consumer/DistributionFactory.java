@@ -21,6 +21,8 @@ import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.tooling.GradleConnectionException;
+import org.gradle.util.ClassPath;
+import org.gradle.util.DefaultClassPath;
 import org.gradle.util.DistributionLocator;
 import org.gradle.util.GradleVersion;
 import org.gradle.wrapper.*;
@@ -98,7 +100,7 @@ public class DistributionFactory {
             return String.format("Gradle distribution '%s'", wrapperConfiguration.getDistribution());
         }
 
-        public Set<File> getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory) {
+        public ClassPath getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory) {
             if (installedDistribution == null) {
                 File installDir;
                 try {
@@ -149,7 +151,7 @@ public class DistributionFactory {
             return displayName;
         }
 
-        public Set<File> getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory) {
+        public ClassPath getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory) {
             ProgressLogger progressLogger = progressLoggerFactory.newOperation(DistributionFactory.class);
             progressLogger.setDescription("Validate distribution");
             progressLogger.started();
@@ -160,7 +162,7 @@ public class DistributionFactory {
             }
         }
 
-        private Set<File> getToolingImpl() {
+        private ClassPath getToolingImpl() {
             if (!gradleHomeDir.exists()) {
                 throw new IllegalArgumentException(String.format("The specified %s does not exist.", locationDisplayName));
             }
@@ -177,7 +179,7 @@ public class DistributionFactory {
                     files.add(file);
                 }
             }
-            return files;
+            return new DefaultClassPath(files);
         }
     }
 
@@ -186,8 +188,8 @@ public class DistributionFactory {
             return "Gradle classpath distribution";
         }
 
-        public Set<File> getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory) {
-            return new DefaultModuleRegistry().getFullClasspath();
+        public ClassPath getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory) {
+            return new DefaultClassPath(new DefaultModuleRegistry().getFullClasspath());
         }
     }
 }

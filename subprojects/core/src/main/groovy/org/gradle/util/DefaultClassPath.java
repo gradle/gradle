@@ -85,4 +85,21 @@ public class DefaultClassPath implements ClassPath, Serializable {
         result.addAll(files2);
         return result;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj == null || obj.getClass() != getClass()) {
+            return false;
+        }
+        DefaultClassPath other = (DefaultClassPath) obj;
+        return files.equals(other.files);
+    }
+
+    @Override
+    public int hashCode() {
+        return files.hashCode();
+    }
 }

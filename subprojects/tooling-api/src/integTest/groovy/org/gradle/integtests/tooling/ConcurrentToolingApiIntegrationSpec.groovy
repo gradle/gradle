@@ -32,6 +32,7 @@ import org.gradle.tooling.model.idea.IdeaProject
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
+import org.gradle.util.ClassPath
 
 @Issue("GRADLE-1933")
 class ConcurrentToolingApiIntegrationSpec extends Specification {
@@ -268,7 +269,7 @@ project.description = text
             return 'mock'
         }
 
-        Set<File> getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory) {
+        ClassPath getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory) {
             def o = progressLoggerFactory.newOperation("mock")
             operation(o)
             o.started()

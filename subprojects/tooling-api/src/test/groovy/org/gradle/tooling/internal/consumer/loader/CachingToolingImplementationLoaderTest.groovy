@@ -19,6 +19,7 @@ import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.tooling.internal.consumer.Distribution
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection
 import spock.lang.Specification
+import org.gradle.util.DefaultClassPath
 
 class CachingToolingImplementationLoaderTest extends Specification {
     final ToolingImplementationLoader target = Mock()
@@ -35,7 +36,7 @@ class CachingToolingImplementationLoaderTest extends Specification {
         then:
         impl == connection
         1 * target.create(distribution, loggerFactory, true) >> connection
-        _ * distribution.getToolingImplementationClasspath(loggerFactory) >> ([new File('a.jar')] as Set)
+        _ * distribution.getToolingImplementationClasspath(loggerFactory) >> new DefaultClassPath(new File('a.jar'))
         0 * _._
     }
 
@@ -51,7 +52,7 @@ class CachingToolingImplementationLoaderTest extends Specification {
         impl == connection
         impl2 == connection
         1 * target.create(distribution, loggerFactory, true) >> connection
-        _ * distribution.getToolingImplementationClasspath(loggerFactory) >> ([new File('a.jar')] as Set)
+        _ * distribution.getToolingImplementationClasspath(loggerFactory) >> { new DefaultClassPath(new File('a.jar')) }
         0 * _._
     }
 
@@ -70,8 +71,8 @@ class CachingToolingImplementationLoaderTest extends Specification {
         impl2 == connection2
         1 * target.create(distribution1, loggerFactory, true) >> connection1
         1 * target.create(distribution2, loggerFactory, false) >> connection2
-        _ * distribution1.getToolingImplementationClasspath(loggerFactory) >> ([new File('a.jar')] as Set)
-        _ * distribution2.getToolingImplementationClasspath(loggerFactory) >> ([new File('b.jar')] as Set)
+        _ * distribution1.getToolingImplementationClasspath(loggerFactory) >> new DefaultClassPath(new File('a.jar'))
+        _ * distribution2.getToolingImplementationClasspath(loggerFactory) >> new DefaultClassPath(new File('b.jar'))
         0 * _._
     }
 }

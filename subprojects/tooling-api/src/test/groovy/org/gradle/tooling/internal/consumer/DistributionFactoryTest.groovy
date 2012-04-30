@@ -71,7 +71,7 @@ class DistributionFactoryTest extends Specification {
 
         expect:
         def dist = factory.getDistribution(tmpDir.dir)
-        dist.getToolingImplementationClasspath(progressLoggerFactory) == [libA, libB] as Set
+        dist.getToolingImplementationClasspath(progressLoggerFactory).asFiles as Set == [libA, libB] as Set
     }
 
     def failsWhenInstallationDirectoryDoesNotExist() {
@@ -127,7 +127,7 @@ class DistributionFactoryTest extends Specification {
         def dist = factory.getDistribution(zipFile.toURI())
 
         expect:
-        dist.getToolingImplementationClasspath(progressLoggerFactory).collect { it.name } as Set == ['a.jar', 'b.jar'] as Set
+        dist.getToolingImplementationClasspath(progressLoggerFactory).asFiles.name as Set == ['a.jar', 'b.jar'] as Set
     }
 
     def reportsZipDownload() {
