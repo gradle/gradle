@@ -25,10 +25,12 @@ import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Specification
+import spock.lang.Timeout
 
 /**
- * @author Tom Eyckmans
+ * @author Tom Eyckmans, Szczepan Faber
  */
+@Timeout(60000)
 class DefaultExecHandleSpec extends Specification {
     @Rule final TemporaryFolder tmpDir = new TemporaryFolder();
 
@@ -132,6 +134,24 @@ class DefaultExecHandleSpec extends Specification {
         result.exitValue != 0
     }
 
+    void "detaching does not trigger 'finished' notification"() {
+        def out = new ByteArrayOutputStream()
+        ExecHandleListener listener = Mock()
+        def execHandle = handle().listener(listener).setStandardOutput(out).args(args(SlowDaemonApp.class)).build();
+
+        when:
+        execHandle.start();
+        execHandle.detach();
+
+        then:
+        out.toString().contains "I'm the daemon"
+        1 * listener.executionStarted(execHandle)
+        0 * listener.executionFinished(_, _)
+
+        cleanup:
+        execHandle.abort()
+    }
+
     void "can detach and then wait for finish"() {
         def out = new ByteArrayOutputStream()
         ExecHandleListener listener = Mock()
@@ -143,8 +163,6 @@ class DefaultExecHandleSpec extends Specification {
 
         then:
         out.toString().contains "I'm the daemon"
-        1 * listener.executionStarted(execHandle)
-        0 * listener._
 
         when:
         execHandle.waitForFinish()
