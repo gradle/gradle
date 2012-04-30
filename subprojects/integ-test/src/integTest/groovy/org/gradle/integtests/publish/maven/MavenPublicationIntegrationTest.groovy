@@ -110,7 +110,7 @@ uploadArchives {
    		        authentication(userName: "testuser", password: "secret")
 	        }
             addFilter('main') {artifact, file ->
-		        artifact.name.endsWith("-tests")
+		        !artifact.name.endsWith("-tests")
 		    }
 			addFilter('tests') {artifact, file ->
 			    artifact.name.endsWith("-tests")
