@@ -15,19 +15,17 @@
  */
 package org.gradle.integtests
 
+import org.apache.tools.ant.taskdefs.Chmod
 import org.gradle.integtests.fixtures.ExecutionFailure
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.nativeplatform.filesystem.FileSystems
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.util.PreconditionVerifier
-import org.gradle.util.Requires
-import org.gradle.util.TestFile
-import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import org.junit.Test
+import org.gradle.util.*
+import org.gradle.internal.jvm.Jvm
 
 public class CommandLineIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
@@ -186,7 +184,10 @@ public class CommandLineIntegrationTest {
         def binDir = dist.gradleHomeDir.file('bin')
         def newScript = binDir.file(OperatingSystem.current().getScriptName('my app'))
         binDir.file(OperatingSystem.current().getScriptName('gradle')).copyTo(newScript)
-        newScript.permissions = "rwx------"
+        def chmod = new Chmod()
+        chmod.file = newScript
+        chmod.perm = "700"
+        AntUtil.execute(chmod)
 
         def result = executer.usingExecutable(newScript.absolutePath).withTasks("help").run()
         assert result.output.contains("my app")
