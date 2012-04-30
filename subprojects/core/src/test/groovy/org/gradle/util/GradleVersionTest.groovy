@@ -30,10 +30,15 @@ import org.gradle.internal.jvm.Jvm
 class GradleVersionTest extends Specification {
     final GradleVersion version = GradleVersion.current()
 
-    def currentVersionHasNonNullVersionAndBuildTime() {
+    def currentVersionHasNonNullVersion() {
         expect:
         version.version
-        version.buildTime
+    }
+
+    @Issue("http://issues.gradle.org/browse/GRADLE-1892")
+    def "build time should always print in UTC"() {
+        expect:
+        version.buildTime.endsWith("UTC")
     }
 
     def equalsAndHashCode() {
@@ -42,28 +47,68 @@ class GradleVersionTest extends Specification {
         GradleVersion.version('0.9') != GradleVersion.version('1.0')
     }
 
-    def canConstructPatchVersion() {
-        when:
-        def version = GradleVersion.version('1.0-milestone-2')
-        def patch = GradleVersion.version('1.0-milestone-2a')
-        def nextPatch = GradleVersion.version('1.0-milestone-2b')
-        def nextMilestone = GradleVersion.version('1.0-milestone-3')
+    def canConstructVersionFromString(String version) {
+        expect:
+        def gradleVersion = GradleVersion.version(version)
+        gradleVersion.version == version
+        gradleVersion.toString() == "Gradle ${version}"
 
-        then:
-        version < patch
-        patch < nextPatch
-        nextPatch < nextMilestone
-
-        patch > version
-        nextPatch > patch
-        nextMilestone > nextPatch
+        where:
+        version << [
+                '1.0',
+                '12.4.5.67',
+                '1.0-milestone-5',
+                '1.0-milestone-5a',
+                '3.2-rc-2',
+        ]
     }
 
-    def canConstructSnapshotVersion() {
+    def versionsWithTimestampAreConsideredSnapshots(String version) {
         expect:
-        GradleVersion.version('0.9-20101220110000+1100').snapshot
-        GradleVersion.version('0.9-20101220110000-0800').snapshot
-        !GradleVersion.version('0.9-rc-1').snapshot
+        def gradleVersion = GradleVersion.version(version)
+        gradleVersion.version == version
+        gradleVersion.snapshot
+
+        where:
+        version << [
+                '0.9-20101220110000+1100',
+                '0.9-20101220110000-0800',
+                '1.2-20120501110000'
+        ]
+    }
+
+    def versionsWithoutTimestampAreNotConsideredSnapshots(String version) {
+        expect:
+        !GradleVersion.version(version).snapshot
+
+        where:
+        version << [
+                '0.9-milestone-5',
+                '2.1-rc-1',
+                '1.2',
+                '1.2.1']
+    }
+
+    def canOnlyQueryVersionStringForUnrecognizedVersion(String version) {
+        def gradleVersion = GradleVersion.version(version)
+
+        expect:
+        gradleVersion.version == version
+        gradleVersion.snapshot
+
+        when:
+        gradleVersion > GradleVersion.version('1.2')
+
+        then:
+        IllegalArgumentException e = thrown()
+        e.message == "Cannot compare unrecognized Gradle version '${version}'."
+
+        where:
+        version << [
+                'abc',
+                '3.0-status-5-master',
+                'user-master',
+        ]
     }
 
     def canCompareMajorVersions() {
@@ -127,6 +172,21 @@ class GradleVersionTest extends Specification {
         '1.0'             | '1.0-rc-7'
     }
 
+    def canComparePatchVersion() {
+        expect:
+        GradleVersion.version(a) > GradleVersion.version(b)
+        GradleVersion.version(b) < GradleVersion.version(a)
+        GradleVersion.version(a) == GradleVersion.version(a)
+        GradleVersion.version(b) == GradleVersion.version(b)
+
+        where:
+        a                  | b
+        '1.0-milestone-2a' | '1.0-milestone-2'
+        '1.0-milestone-2b' | '1.0-milestone-2a'
+        '1.0-milestone-3'  | '1.0-milestone-2b'
+        '1.0'              | '1.0-milestone-2b'
+    }
+
     def canCompareSnapshotVersions() {
         expect:
         GradleVersion.version(a) > GradleVersion.version(b)
@@ -139,20 +199,11 @@ class GradleVersionTest extends Specification {
         '0.9-20101220110000+1100' | '0.9-20101220100000+1100'
         '0.9-20101220110000+1000' | '0.9-20101220100000+1100'
         '0.9-20101220110000-0100' | '0.9-20101220100000+0000'
+        '0.9-20101220110000'      | '0.9-20101220100000'
+        '0.9-20101220110000'      | '0.9-20101220110000+0100'
+        '0.9-20101220110000-0100' | '0.9-20101220110000'
         '0.9'                     | '0.9-20101220100000+1000'
-    }
-
-    @Issue("http://issues.gradle.org/browse/GRADLE-1892")
-    def "build time should always print in UTC"() {
-        expect:
-        version.buildTime.endsWith("UTC")
-    }
-    
-    
-    def defaultValuesForGradleVersion() {
-        expect:
-        version.version != null
-        version.buildTime != null
+        '0.9'                     | '0.9-20101220100000'
     }
 
     def prettyPrint() {

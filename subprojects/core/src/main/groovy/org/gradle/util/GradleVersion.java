@@ -20,7 +20,6 @@ import groovy.lang.GroovySystem;
 import org.apache.ivy.Ivy;
 import org.apache.tools.ant.Main;
 import org.gradle.api.GradleException;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
@@ -46,7 +45,7 @@ import java.util.regex.Pattern;
  */
 public class GradleVersion implements Comparable<GradleVersion> {
     public final static String URL = "http://www.gradle.org";
-    private final static Pattern VERSION_PATTERN = Pattern.compile("(\\d+(\\.\\d+)+)(-(\\p{Alpha}+)-(\\d+[a-z]?))?(-(\\d{14}[-+]\\d{4}))?");
+    private final static Pattern VERSION_PATTERN = Pattern.compile("(\\d+(\\.\\d+)+)(-(\\p{Alpha}+)-(\\d+[a-z]?))?(-(\\d{14}([-+]\\d{4})?))?");
 
     private final String version;
     private final String buildTime;
@@ -93,8 +92,13 @@ public class GradleVersion implements Comparable<GradleVersion> {
         this.buildTime = buildTime == null ? null : formatBuildTime(buildTime);
         Matcher matcher = VERSION_PATTERN.matcher(version);
         if (!matcher.matches()) {
-            throw new InvalidUserDataException(String.format("Unexpected Gradle version '%s'.", version));
+            // Unrecognized version
+            versionPart = null;
+            snapshot = null;
+            stage = null;
+            return;
         }
+
         versionPart = matcher.group(1);
 
         if (matcher.group(3) != null) {
@@ -114,7 +118,13 @@ public class GradleVersion implements Comparable<GradleVersion> {
 
         if (matcher.group(7) != null) {
             try {
-                snapshot = new SimpleDateFormat("yyyyMMddHHmmssZ").parse(matcher.group(7)).getTime();
+                if (matcher.group(8) != null) {
+                    snapshot = new SimpleDateFormat("yyyyMMddHHmmssZ").parse(matcher.group(7)).getTime();
+                } else {
+                    SimpleDateFormat format = new SimpleDateFormat("yyyyMMddHHmmss");
+                    format.setTimeZone(TimeZone.getTimeZone("UTC"));
+                    snapshot = format.parse(matcher.group(7)).getTime();
+                }
             } catch (ParseException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
@@ -143,10 +153,13 @@ public class GradleVersion implements Comparable<GradleVersion> {
     }
 
     public boolean isSnapshot() {
-        return snapshot != null;
+        return versionPart == null || snapshot != null;
     }
 
     public int compareTo(GradleVersion gradleVersion) {
+        assertCanQueryParts();
+        gradleVersion.assertCanQueryParts();
+
         String[] majorVersionParts = versionPart.split("\\.");
         String[] otherMajorVersionParts = gradleVersion.versionPart.split("\\.");
         for (int i = 0; i < majorVersionParts.length && i < otherMajorVersionParts.length; i++) {
@@ -190,6 +203,12 @@ public class GradleVersion implements Comparable<GradleVersion> {
         }
 
         return 0;
+    }
+
+    private void assertCanQueryParts() {
+        if (versionPart == null) {
+            throw new IllegalArgumentException(String.format("Cannot compare unrecognized Gradle version '%s'.", version));
+        }
     }
 
     @Override
