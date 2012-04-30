@@ -121,20 +121,17 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
             throw new IllegalStateException("execCommand == null!");
         }
 
-        StreamsHandler effectiveHandler = getEffectiveStreamsHandler();
-        return new DefaultExecHandle(getDisplayName(), getWorkingDir(), executable, getAllArguments(), getActualEnvironment(),
-                effectiveHandler, listeners, redirectErrorStream);
-    }
-
-    private StreamsHandler getEffectiveStreamsHandler() {
+        boolean shouldReadErrorStream = !redirectErrorStream;
         StreamsHandler effectiveHandler;
+        //TODO SF add some coverge in the exec handle spec
         if (this.streamsHandler != null) {
             effectiveHandler = this.streamsHandler;
         } else {
-            boolean shouldReadErrorStream = !redirectErrorStream;
-            effectiveHandler = new StreamsForwarder(standardOutput, errorOutput, input, shouldReadErrorStream);
+            effectiveHandler = new StreamsForwarder(standardOutput, errorOutput, input, shouldReadErrorStream,
+                String.format("Forward streams with process: %s", getDisplayName()));
         }
-        return effectiveHandler;
+        return new DefaultExecHandle(getDisplayName(), getWorkingDir(), executable, getAllArguments(), getActualEnvironment(),
+                effectiveHandler, listeners, redirectErrorStream);
     }
 
     public AbstractExecHandleBuilder streamsHandler(StreamsHandler streamsHandler) {
