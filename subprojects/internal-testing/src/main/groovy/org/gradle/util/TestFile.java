@@ -432,7 +432,7 @@ public class TestFile extends File implements TestFileContext {
     }
 
     public TestFile deleteDir() {
-        FileUtils.deleteQuietly(this);
+        new TestFileHelper(this).delete(useNativeTools);
         return this;
     }
 

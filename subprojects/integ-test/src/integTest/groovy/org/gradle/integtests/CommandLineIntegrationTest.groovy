@@ -15,7 +15,6 @@
  */
 package org.gradle.integtests
 
-import org.apache.tools.ant.taskdefs.Chmod
 import org.gradle.integtests.fixtures.ExecutionFailure
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
@@ -177,6 +176,9 @@ public class CommandLineIntegrationTest {
 
         def result = executer.usingExecutable(script.absolutePath).withTasks("help").run()
         assert result.output.contains("my app")
+
+        // Don't follow links when cleaning up test files
+        dist.temporaryFolder.dir.usingNativeTools().deleteDir()
     }
 
     @Test
@@ -184,10 +186,7 @@ public class CommandLineIntegrationTest {
         def binDir = dist.gradleHomeDir.file('bin')
         def newScript = binDir.file(OperatingSystem.current().getScriptName('my app'))
         binDir.file(OperatingSystem.current().getScriptName('gradle')).copyTo(newScript)
-        def chmod = new Chmod()
-        chmod.file = newScript
-        chmod.perm = "700"
-        AntUtil.execute(chmod)
+        newScript.permissions = 'rwx------'
 
         def result = executer.usingExecutable(newScript.absolutePath).withTasks("help").run()
         assert result.output.contains("my app")

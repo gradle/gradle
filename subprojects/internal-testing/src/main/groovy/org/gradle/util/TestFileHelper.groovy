@@ -25,6 +25,7 @@ import org.apache.tools.ant.taskdefs.Zip
 import static org.hamcrest.Matchers.equalTo
 import static org.junit.Assert.assertThat
 import static org.junit.Assert.assertTrue
+import org.apache.commons.io.FileUtils
 
 class TestFileHelper {
     TestFile file
@@ -113,6 +114,9 @@ class TestFileHelper {
     }
 
     void setPermissions(String permissions) {
+        if (!isUnix()) {
+            return
+        }
         int m = toMode(permissions)
         setMode(m)
     }
@@ -140,12 +144,25 @@ class TestFileHelper {
         return toMode(getPermissions())
     }
 
+    void delete(boolean nativeTools) {
+        if (isUnix() && nativeTools) {
+            def process = ["rm", "-rf", file.absolutePath].execute()
+            def error = process.errorStream.text
+            def retval = process.waitFor()
+            if (retval != 0) {
+                throw new RuntimeException("Could not delete '$file': $error")
+            }
+        } else {
+            FileUtils.deleteQuietly(file);
+        }
+    }
+
     String readLink() {
         def process = ["readlink", file.absolutePath].execute()
         def error = process.errorStream.text
         def retval = process.waitFor()
         if (retval != 0) {
-            throw new RuntimeException("Could not set permissions for '$file': $error")
+            throw new RuntimeException("Could not read link '$file': $error")
         }
         return process.inputStream.text.trim()
     }
