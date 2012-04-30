@@ -16,7 +16,6 @@
 package org.gradle.tooling.model.internal;
 
 import org.gradle.tooling.model.DomainObjectSet;
-import org.gradle.util.GUtil;
 
 import java.util.*;
 
@@ -24,7 +23,9 @@ public class ImmutableDomainObjectSet<T> extends AbstractSet<T> implements Domai
     private final Set<T> elements = new LinkedHashSet<T>();
 
     public ImmutableDomainObjectSet(Iterable<? extends T> elements) {
-        GUtil.addToCollection(this.elements, elements);
+        for (T element : elements) {
+            this.elements.add(element);
+        }
     }
 
     @Override
