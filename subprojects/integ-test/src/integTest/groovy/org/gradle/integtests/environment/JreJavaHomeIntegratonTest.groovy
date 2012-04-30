@@ -17,9 +17,8 @@
 package org.gradle.integtests.environment
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.IgnoreIf
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-
+import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
 /**
@@ -34,7 +33,7 @@ class JreJavaHomeIntegratonTest extends AbstractIntegrationSpec {
         def jreJavaHome = AvailableJavaHomes.bestJreAlternative
         writeJavaTestSource("src/main/java");
         file('build.gradle') << """
-        println "Used JRE: $jreJavaHome"
+        println "Used JRE: ${jreJavaHome.absolutePath.replace(File.separator, '/')}"
         apply plugin:'java'
         compileJava{
             options.fork = ${forkMode}
@@ -59,7 +58,7 @@ class JreJavaHomeIntegratonTest extends AbstractIntegrationSpec {
         writeJavaTestSource("src/main/groovy")
         writeGroovyTestSource("src/main/groovy")
         file('build.gradle') << """
-            println "Used JRE: $jreJavaHome"
+            println "Used JRE: ${jreJavaHome.absolutePath.replace(File.separator, '/')}"
             apply plugin:'groovy'
             dependencies{
                 groovy localGroovy()
@@ -89,7 +88,7 @@ class JreJavaHomeIntegratonTest extends AbstractIntegrationSpec {
         writeJavaTestSource("src/main/scala")
         writeScalaTestSource("src/main/scala")
         file('build.gradle') << """
-                println "Used JRE: $jreJavaHome"
+                println "Used JRE: ${jreJavaHome.absolutePath.replace(File.separator, '/')}"
                 apply plugin:'scala'
 
                 repositories {
