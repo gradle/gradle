@@ -19,7 +19,7 @@ package org.gradle.api.tasks.compile;
 import com.google.common.collect.Maps;
 import org.gradle.api.Nullable;
 import org.gradle.internal.UncheckedException;
-import org.gradle.util.JavaReflectionUtil;
+import org.gradle.internal.reflect.JavaReflectionUtil;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;

@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.util;
+package org.gradle.internal.reflect;
 
 import spock.lang.Specification
-import org.gradle.internal.UncheckedException;
+import org.gradle.internal.UncheckedException
 
 class JavaReflectionUtilTest extends Specification {
     def myProperties = new MyProperties()
