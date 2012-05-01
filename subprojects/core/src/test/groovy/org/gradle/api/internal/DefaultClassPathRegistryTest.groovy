@@ -17,7 +17,7 @@
 package org.gradle.api.internal
 
 import spock.lang.Specification
-import org.gradle.util.ClassPath
+import org.gradle.internal.classpath.ClassPath
 
 class DefaultClassPathRegistryTest extends Specification {
     final ClassPathProvider provider1 = Mock()

@@ -21,10 +21,10 @@ import org.gradle.api.internal.ClassPathProvider;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
+import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.process.internal.launcher.BootstrapClassLoaderWorker;
 import org.gradle.process.internal.launcher.GradleWorkerMain;
-import org.gradle.util.ClassPath;
-import org.gradle.util.DefaultClassPath;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;

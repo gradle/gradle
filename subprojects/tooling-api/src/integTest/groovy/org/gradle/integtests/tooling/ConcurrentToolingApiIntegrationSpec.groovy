@@ -32,7 +32,7 @@ import org.gradle.tooling.model.idea.IdeaProject
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
-import org.gradle.util.ClassPath
+import org.gradle.internal.classpath.ClassPath
 
 @Issue("GRADLE-1933")
 class ConcurrentToolingApiIntegrationSpec extends Specification {

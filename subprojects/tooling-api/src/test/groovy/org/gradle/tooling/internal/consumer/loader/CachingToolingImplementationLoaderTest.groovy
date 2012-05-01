@@ -19,7 +19,7 @@ import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.tooling.internal.consumer.Distribution
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection
 import spock.lang.Specification
-import org.gradle.util.DefaultClassPath
+import org.gradle.internal.classpath.DefaultClassPath
 
 class CachingToolingImplementationLoaderTest extends Specification {
     final ToolingImplementationLoader target = Mock()

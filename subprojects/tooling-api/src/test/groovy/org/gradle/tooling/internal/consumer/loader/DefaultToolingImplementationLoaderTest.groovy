@@ -25,7 +25,7 @@ import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import org.slf4j.Logger
 import spock.lang.Specification
-import org.gradle.util.DefaultClassPath
+import org.gradle.internal.classpath.DefaultClassPath
 
 class DefaultToolingImplementationLoaderTest extends Specification {
     @Rule public final TemporaryFolder tmpDir = new TemporaryFolder()

@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.classpath;
 
-import org.gradle.util.ClassPath;
+import org.gradle.internal.classpath.ClassPath;
 
 import java.util.Set;
 

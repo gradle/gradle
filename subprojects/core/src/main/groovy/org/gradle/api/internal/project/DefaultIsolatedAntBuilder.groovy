@@ -20,6 +20,7 @@ import org.gradle.api.internal.project.ant.AntLoggingAdapter
 import org.gradle.api.internal.project.ant.BasicAntBuilder
 import org.gradle.util.*
 import org.gradle.internal.jvm.Jvm
+import org.gradle.internal.classpath.DefaultClassPath
 
 class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
     private final Map<List<File>, ClassLoader> baseClassloaders = [:]

@@ -17,9 +17,9 @@ package org.gradle.api.internal.classpath;
 
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.GradleDistributionLocator;
-import org.gradle.util.ClassPath;
+import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.util.ClasspathUtil;
-import org.gradle.util.DefaultClassPath;
 import org.gradle.util.GUtil;
 
 import java.io.File;

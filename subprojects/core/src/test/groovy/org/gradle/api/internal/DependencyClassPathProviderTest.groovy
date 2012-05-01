@@ -19,7 +19,7 @@ import org.gradle.api.internal.classpath.Module
 import org.gradle.api.internal.classpath.ModuleRegistry
 import spock.lang.Specification
 import org.gradle.api.internal.classpath.PluginModuleRegistry
-import org.gradle.util.DefaultClassPath
+import org.gradle.internal.classpath.DefaultClassPath
 
 class DependencyClassPathProviderTest extends Specification {
     final ModuleRegistry moduleRegistry = Mock()

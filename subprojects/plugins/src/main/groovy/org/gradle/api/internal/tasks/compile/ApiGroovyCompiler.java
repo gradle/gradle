@@ -25,7 +25,7 @@ import org.codehaus.groovy.tools.javac.JavaAwareCompilationUnit;
 import org.codehaus.groovy.tools.javac.JavaCompiler;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.util.DefaultClassPath;
+import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.util.FilteringClassLoader;
 
 import java.io.File;

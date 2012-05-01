@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.compile
 import spock.lang.Specification
 import org.codehaus.groovy.transform.GroovyASTTransformationClass
 import org.gradle.util.ClasspathUtil
-import org.gradle.util.DefaultClassPath
+import org.gradle.internal.classpath.DefaultClassPath
 
 class TransformingClassLoaderTest extends Specification {
     TransformingClassLoader loader

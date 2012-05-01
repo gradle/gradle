@@ -17,10 +17,10 @@
 package org.gradle.process.internal.child;
 
 import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.messaging.remote.Address;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.process.internal.WorkerProcessBuilder;
-import org.gradle.util.DefaultClassPath;
 
 import java.net.URI;
 import java.net.URL;

@@ -15,10 +15,10 @@
  */
 package org.gradle.tooling.internal.consumer.loader;
 
+import org.gradle.internal.classpath.ClassPath;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
-import org.gradle.util.ClassPath;
 
 import java.util.HashMap;
 import java.util.Map;

@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal;
 
-import org.gradle.util.ClassPath;
+import org.gradle.internal.classpath.ClassPath;
 
 import java.util.ArrayList;
 import java.util.Arrays;

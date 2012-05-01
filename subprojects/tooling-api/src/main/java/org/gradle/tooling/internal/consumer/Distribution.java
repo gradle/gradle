@@ -15,8 +15,8 @@
  */
 package org.gradle.tooling.internal.consumer;
 
+import org.gradle.internal.classpath.ClassPath;
 import org.gradle.logging.ProgressLoggerFactory;
-import org.gradle.util.ClassPath;
 
 public interface Distribution {
     String getDisplayName();

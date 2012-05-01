@@ -17,6 +17,8 @@
 package org.gradle.initialization;
 
 import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.util.*;
 

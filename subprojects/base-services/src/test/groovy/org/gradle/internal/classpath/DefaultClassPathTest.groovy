@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.gradle.util
+package org.gradle.internal.classpath
 
 import spock.lang.Specification
+import org.gradle.util.Matchers
 
 class DefaultClassPathTest extends Specification {
     def "can add classpaths together"() {
