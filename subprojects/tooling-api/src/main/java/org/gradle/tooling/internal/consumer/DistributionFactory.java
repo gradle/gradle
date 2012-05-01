@@ -15,7 +15,7 @@
  */
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.api.internal.classpath.DefaultModuleRegistry;
+import org.gradle.api.internal.classpath.EffectiveClassPath;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.logging.ProgressLogger;
@@ -189,7 +189,7 @@ public class DistributionFactory {
         }
 
         public ClassPath getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory) {
-            return new DefaultClassPath(new DefaultModuleRegistry().getFullClasspath());
+            return new EffectiveClassPath(getClass().getClassLoader());
         }
     }
 }
