@@ -43,23 +43,4 @@ class ReflectionUtil {
             return false
         }
     }
-
-    static Class<?> getWrapperTypeForPrimitiveType(Class<?> type) {
-        if (type == Boolean.TYPE) {
-            return Boolean.class;
-        } else if (type == Long.TYPE) {
-            return Long.class;
-        } else if (type == Integer.TYPE) {
-            return Integer.class;
-        } else if (type == Short.TYPE) {
-            return Short.class;
-        } else if (type == Byte.TYPE) {
-            return Byte.class;
-        } else if (type == Float.TYPE) {
-            return Float.class;
-        } else if (type == Double.TYPE) {
-            return Double.class;
-        }
-        throw new IllegalArgumentException(String.format("Don't know how wrapper type for primitive type %s.", type));
-    }
 }

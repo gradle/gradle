@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
+import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.ReflectionUtil;
 import org.objectweb.asm.*;
@@ -549,7 +550,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             Type boxedType = null;
             if (getter.getReturnType().isPrimitive()) {
                 // Box value
-                boxedType = Type.getType(ReflectionUtil.getWrapperTypeForPrimitiveType(getter.getReturnType()));
+                boxedType = Type.getType(JavaReflectionUtil.getWrapperTypeForPrimitiveType(getter.getReturnType()));
                 String valueOfMethodDescriptor = Type.getMethodDescriptor(boxedType, new Type[]{returnType});
                 methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, boxedType.getInternalName(), "valueOf", valueOfMethodDescriptor);
             }

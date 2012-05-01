@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,13 @@
 package org.gradle.api.internal;
 
 import org.gradle.internal.UncheckedException;
-import org.gradle.util.ReflectionUtil;
+import org.gradle.internal.reflect.JavaReflectionUtil;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class DirectInstantiator implements Instantiator {
     public <T> T newInstance(Class<T> type, Object... params) {
@@ -53,7 +55,7 @@ public class DirectInstantiator implements Instantiator {
             Object param = params[i];
             Class<?> parameterType = constructor.getParameterTypes()[i];
             if (parameterType.isPrimitive()) {
-                if (!ReflectionUtil.getWrapperTypeForPrimitiveType(parameterType).isInstance(param)) {
+                if (!JavaReflectionUtil.getWrapperTypeForPrimitiveType(parameterType).isInstance(param)) {
                     return false;
                 }
             } else {
