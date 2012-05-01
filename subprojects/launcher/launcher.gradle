@@ -7,6 +7,7 @@ configurations {
 dependencies {
     groovy libraries.groovy
 
+    compile project(':baseServices')
     compile project(':core')
     compile project(':cli')
     compile project(':ui')
@@ -23,7 +24,7 @@ useTestFixtures()
 jar {
     manifest.mainAttributes('Main-Class': "org.gradle.launcher.GradleMain")
     doFirst {
-        jar.manifest.mainAttributes('Class-Path': "${project(':core').jar.archivePath.name}")
+        jar.manifest.mainAttributes('Class-Path': "${project(':core').jar.archivePath.name} ${project(':baseServices').jar.archivePath.name}")
     }
 }
 
