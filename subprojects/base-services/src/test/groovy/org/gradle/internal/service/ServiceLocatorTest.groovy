@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.util
+package org.gradle.internal.service
 
 import spock.lang.Specification
-import org.gradle.internal.service.UnknownServiceException
 
 class ServiceLocatorTest extends Specification {
     final ClassLoader classLoader = Mock()

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.util;
+package org.gradle.internal.service;
 
-import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.Factory;
+import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.service.ServiceLookupException;
-import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.service.UnknownServiceException;
 
 import java.io.BufferedReader;
 import java.io.IOException;

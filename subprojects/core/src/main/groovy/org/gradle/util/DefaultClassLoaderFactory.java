@@ -17,6 +17,7 @@ package org.gradle.util;
 
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.service.ServiceLocator;
 
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.parsers.DocumentBuilderFactory;
