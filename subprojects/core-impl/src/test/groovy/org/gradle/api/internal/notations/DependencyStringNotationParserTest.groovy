@@ -18,7 +18,7 @@ package org.gradle.api.internal.notations;
 
 
 import org.gradle.api.artifacts.DependencyArtifact
-import org.gradle.api.internal.DirectInstantiator
+import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.api.internal.artifacts.dependencies.DefaultClientModule
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.util.HelperUtil

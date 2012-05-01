@@ -18,7 +18,7 @@ package org.gradle.plugins.binaries.model.internal;
 import com.google.common.base.Joiner;
 import org.gradle.api.Action;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
-import org.gradle.api.internal.Instantiator;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.plugins.binaries.model.Binary;
 import org.gradle.plugins.binaries.model.Compiler;

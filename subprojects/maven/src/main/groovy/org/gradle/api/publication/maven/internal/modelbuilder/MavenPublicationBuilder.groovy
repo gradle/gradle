@@ -17,7 +17,7 @@
 package org.gradle.api.publication.maven.internal.modelbuilder
 
 import org.gradle.api.Project
-import org.gradle.api.internal.Instantiator
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.publication.maven.MavenPublication
 import org.gradle.api.publication.maven.internal.model.DefaultMavenArtifact

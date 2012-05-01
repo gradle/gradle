@@ -41,7 +41,7 @@ import static org.junit.Assert.*;
 
 @RunWith(JMock.class)
 public class DefaultNamedDomainObjectSetTest {
-    private final Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator());
+    private final org.gradle.internal.reflect.Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new org.gradle.internal.reflect.DirectInstantiator());
     private final Namer<Bean> namer = new Namer<Bean>() { public String determineName(Bean bean) { return bean.name; } };
     @SuppressWarnings("unchecked")
     private final DefaultNamedDomainObjectSet<Bean> container = instantiator.newInstance(DefaultNamedDomainObjectSet.class, Bean.class, instantiator, namer);

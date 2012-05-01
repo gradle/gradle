@@ -16,7 +16,7 @@
 package org.gradle.api.plugins.quality
 
 import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.Instantiator
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.api.internal.project.IsolatedAntBuilder
 import org.gradle.api.plugins.quality.internal.PmdReportsImpl
 import org.gradle.api.reporting.Reporting

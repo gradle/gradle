@@ -18,7 +18,7 @@ package org.gradle.api.reporting.internal;
 
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.Instantiator;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.reporting.Report;

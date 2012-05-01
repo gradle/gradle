@@ -15,8 +15,8 @@
  */
 package org.gradle.groovy.scripts;
 
-import org.gradle.api.internal.DirectInstantiator;
-import org.gradle.api.internal.Instantiator;
+import org.gradle.internal.reflect.DirectInstantiator;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.groovy.scripts.internal.ScriptClassCompiler;
 import org.gradle.groovy.scripts.internal.ScriptRunnerFactory;
 

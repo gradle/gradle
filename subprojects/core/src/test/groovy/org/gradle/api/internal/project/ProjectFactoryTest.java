@@ -21,7 +21,6 @@ import org.gradle.StartParameter;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.Instantiator;
 import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.groovy.scripts.UriScriptSource;
 import org.gradle.internal.Factory;
@@ -59,7 +58,7 @@ public class ProjectFactoryTest {
     private RepositoryHandler repositoryHandler = context.mock(RepositoryHandler.class);
     private StartParameter startParameterStub = new StartParameter();
     private ServiceRegistryFactory serviceRegistryFactory = new TestTopLevelBuildServiceRegistry(new GlobalTestServices(), startParameterStub, rootDir);
-    private Instantiator instantiatorMock = serviceRegistryFactory.get(Instantiator.class);
+    private org.gradle.internal.reflect.Instantiator instantiatorMock = serviceRegistryFactory.get(org.gradle.internal.reflect.Instantiator.class);
     private GradleInternal gradle = context.mock(GradleInternal.class);
 
     private ProjectFactory projectFactory;

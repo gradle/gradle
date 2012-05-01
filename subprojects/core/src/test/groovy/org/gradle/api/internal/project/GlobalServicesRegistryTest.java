@@ -117,7 +117,7 @@ public class GlobalServicesRegistryTest {
     
     @Test
     public void providesAnInstantiator() {
-        assertThat(registry.get(Instantiator.class), instanceOf(ClassGeneratorBackedInstantiator.class));
+        assertThat(registry.get(org.gradle.internal.reflect.Instantiator.class), instanceOf(ClassGeneratorBackedInstantiator.class));
     }
 
     @Test

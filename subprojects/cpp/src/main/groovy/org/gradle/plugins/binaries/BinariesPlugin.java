@@ -17,7 +17,7 @@ package org.gradle.plugins.binaries;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.internal.FactoryNamedDomainObjectContainer;
-import org.gradle.api.internal.Instantiator;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.api.internal.ReflectiveNamedDomainObjectFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.BasePlugin;

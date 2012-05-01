@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal;
 
+import org.gradle.internal.reflect.Instantiator;
+
 public class ClassGeneratorBackedInstantiator implements Instantiator {
     private final ClassGenerator classGenerator;
     private final Instantiator instantiator;

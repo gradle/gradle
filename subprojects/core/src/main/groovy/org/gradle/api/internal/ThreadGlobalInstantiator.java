@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal;
 
+import org.gradle.internal.reflect.DirectInstantiator;
+import org.gradle.internal.reflect.Instantiator;
+
 import java.util.Stack;
 
 /**

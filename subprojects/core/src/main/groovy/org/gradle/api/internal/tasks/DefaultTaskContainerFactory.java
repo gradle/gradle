@@ -17,7 +17,7 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.Project;
 import org.gradle.internal.Factory;
-import org.gradle.api.internal.Instantiator;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 
 public class DefaultTaskContainerFactory implements Factory<TaskContainerInternal> {

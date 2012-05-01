@@ -16,7 +16,7 @@
 package org.gradle.api.internal.notations;
 
 
-import org.gradle.api.internal.DirectInstantiator
+import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.api.internal.artifacts.ProjectDependenciesBuildInstruction
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.project.ProjectInternal

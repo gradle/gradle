@@ -90,8 +90,8 @@ public class ProjectInternalServiceRegistryTest {
             will(returnValue(pluginRegistry));
             allowing(parent).get(DependencyManagementServices.class);
             will(returnValue(dependencyManagementServices));
-            allowing(parent).get(Instantiator.class);
-            will(returnValue(new DirectInstantiator()));
+            allowing(parent).get(org.gradle.internal.reflect.Instantiator.class);
+            will(returnValue(new org.gradle.internal.reflect.DirectInstantiator()));
             allowing(parent).get(FileSystem.class);
             will(returnValue(context.mock(FileSystem.class)));
         }});

@@ -15,12 +15,12 @@
  */
 package org.gradle.util;
 
-import org.gradle.api.internal.DirectInstantiator;
+import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.Factory;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceLookupException;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.UnknownServiceException;
-import org.gradle.api.internal.Instantiator;
 
 import java.io.BufferedReader;
 import java.io.IOException;

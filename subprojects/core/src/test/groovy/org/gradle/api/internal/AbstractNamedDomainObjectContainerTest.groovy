@@ -20,6 +20,8 @@ import org.junit.Test
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
 import static org.junit.Assert.fail
+import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.reflect.DirectInstantiator
 
 class AbstractNamedDomainObjectContainerTest {
     private final Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator())

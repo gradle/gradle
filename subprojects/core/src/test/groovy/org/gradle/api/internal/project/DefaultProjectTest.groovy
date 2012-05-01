@@ -55,6 +55,7 @@ import org.gradle.api.*
 import org.gradle.api.internal.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
+import org.gradle.internal.reflect.Instantiator
 
 /**
  * @author Hans Dockter

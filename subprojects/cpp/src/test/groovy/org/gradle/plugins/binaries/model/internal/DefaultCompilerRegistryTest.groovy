@@ -16,7 +16,7 @@
 
 package org.gradle.plugins.binaries.model.internal
 
-import org.gradle.api.internal.DirectInstantiator
+import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.api.internal.tasks.compile.Compiler
 import org.gradle.plugins.binaries.model.Binary
 import spock.lang.Specification

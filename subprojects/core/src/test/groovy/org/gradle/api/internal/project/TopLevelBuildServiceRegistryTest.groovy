@@ -54,6 +54,7 @@ import org.gradle.initialization.*
 import static org.hamcrest.Matchers.instanceOf
 import static org.hamcrest.Matchers.sameInstance
 import static org.junit.Assert.assertThat
+import org.gradle.internal.reflect.Instantiator
 
 public class TopLevelBuildServiceRegistryTest extends Specification {
     @Rule

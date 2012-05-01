@@ -17,7 +17,7 @@ package org.gradle.api.internal;
 
 public class TestContainer extends AbstractNamedDomainObjectContainer<TestObject> {
 
-    public TestContainer(Instantiator instantiator) {
+    public TestContainer(org.gradle.internal.reflect.Instantiator instantiator) {
         super(TestObject.class, instantiator, new DynamicPropertyNamer());
     }
 

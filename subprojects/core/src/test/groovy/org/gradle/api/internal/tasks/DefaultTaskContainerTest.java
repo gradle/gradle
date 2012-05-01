@@ -20,7 +20,6 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Rule;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
-import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
@@ -45,7 +44,7 @@ public class DefaultTaskContainerTest {
     private final ITaskFactory taskFactory = context.mock(ITaskFactory.class);
     private final ProjectInternal project = context.mock(ProjectInternal.class, "<project>");
     private int taskCount;
-    private final DefaultTaskContainer container = new DefaultTaskContainer(project, context.mock(Instantiator.class), taskFactory);
+    private final DefaultTaskContainer container = new DefaultTaskContainer(project, context.mock(org.gradle.internal.reflect.Instantiator.class), taskFactory);
 
     @Test
     public void addsTaskWithMap() {

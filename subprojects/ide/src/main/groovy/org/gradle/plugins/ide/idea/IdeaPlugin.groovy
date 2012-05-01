@@ -18,7 +18,7 @@ package org.gradle.plugins.ide.idea;
 
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
-import org.gradle.api.internal.Instantiator
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.internal.jvm.Jvm
 import org.gradle.plugins.ide.api.XmlFileContentMerger

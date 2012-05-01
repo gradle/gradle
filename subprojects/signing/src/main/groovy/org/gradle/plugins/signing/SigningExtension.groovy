@@ -32,7 +32,7 @@ import org.gradle.plugins.signing.signatory.pgp.PgpSignatoryProvider
 import java.util.concurrent.Callable
 import org.gradle.api.artifacts.maven.MavenDeployment
 import org.gradle.util.ConfigureUtil
-import org.gradle.api.internal.Instantiator
+import org.gradle.internal.reflect.Instantiator
 
 /**
  * The global signing configuration for a project.

@@ -22,6 +22,8 @@ import groovy.lang.*;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.plugins.ExtensionAware;
+import org.gradle.internal.reflect.DirectInstantiator;
+import org.gradle.internal.reflect.Instantiator;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
