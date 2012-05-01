@@ -24,16 +24,18 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.List;
+import java.util.Collection;
 
 public class DefaultClassLoaderFactory implements ClassLoaderFactory {
-    public ClassLoader createIsolatedClassLoader(ClassPath classPath) {
-        return createIsolatedClassLoader(classPath.getAsURIs());
+    public ClassLoader createIsolatedClassLoader(Iterable<URI> uris) {
+        return doCreateIsolatedClassLoader(GFileUtils.urisToUrls(uris));
     }
 
-    public ClassLoader createIsolatedClassLoader(Iterable<URI> uris) {
-        List<URL> classpath = GFileUtils.urisToUrls(uris);
+    public ClassLoader createIsolatedClassLoader(ClassPath classPath) {
+        return doCreateIsolatedClassLoader(classPath.getAsURLs());
+    }
 
+    private ClassLoader doCreateIsolatedClassLoader(Collection<URL> classpath) {
         // This piece of ugliness copies the JAXP (ie XML API) provider, if any, from the system ClassLoader. Here's why:
         //
         // 1. When looking for a provider, JAXP looks for a service resource in the context ClassLoader, which is our isolated ClassLoader. If our classpath above does not contain a

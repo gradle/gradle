@@ -28,7 +28,7 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
-import org.gradle.util.GFileUtils;
+import org.gradle.util.DefaultClassPath;
 import org.mortbay.jetty.Connector;
 import org.mortbay.jetty.RequestLog;
 import org.mortbay.jetty.Server;
@@ -163,7 +163,7 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
         for (File additionalRuntimeJar : getAdditionalRuntimeJars()) {
             additionalClasspath.add(additionalRuntimeJar);
         }
-        URLClassLoader jettyClassloader = new URLClassLoader(GFileUtils.toURLArray(additionalClasspath), originalClassloader);
+        URLClassLoader jettyClassloader = new URLClassLoader(new DefaultClassPath(additionalClasspath).getAsURLArray(), originalClassloader);
         try {
             Thread.currentThread().setContextClassLoader(jettyClassloader);
             startJetty();

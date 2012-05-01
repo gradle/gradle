@@ -22,7 +22,6 @@ import org.gradle.util.*;
 
 import java.io.File;
 import java.net.URLClassLoader;
-import java.util.Collections;
 
 public class DefaultClassLoaderRegistry implements ClassLoaderRegistry {
     private final FilteringClassLoader rootClassLoader;
@@ -34,7 +33,7 @@ public class DefaultClassLoaderRegistry implements ClassLoaderRegistry {
         File toolsJar = Jvm.current().getToolsJar();
         if (toolsJar != null) {
             final ClassLoader systemClassLoaderParent = ClassLoader.getSystemClassLoader().getParent();
-            ClasspathUtil.addUrl((URLClassLoader) systemClassLoaderParent, GFileUtils.toURLs(Collections.singleton(toolsJar)));
+            ClasspathUtil.addUrl((URLClassLoader) systemClassLoaderParent, new DefaultClassPath(toolsJar).getAsURLs());
         }
 
         ClassLoader runtimeClassLoader = getClass().getClassLoader();

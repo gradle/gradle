@@ -16,8 +16,11 @@
 
 package org.gradle.util;
 
+import org.gradle.internal.UncheckedException;
+
 import java.io.File;
 import java.io.Serializable;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
@@ -47,7 +50,11 @@ public class DefaultClassPath implements ClassPath, Serializable {
     }
 
     public Collection<URI> getAsURIs() {
-        return GFileUtils.toURIs(files);
+        List<URI> urls = new ArrayList<URI>();
+        for (File file : files) {
+            urls.add(file.toURI());
+        }
+        return urls;
     }
 
     public Collection<File> getAsFiles() {
@@ -55,11 +62,20 @@ public class DefaultClassPath implements ClassPath, Serializable {
     }
 
     public URL[] getAsURLArray() {
-        return GFileUtils.toURLArray(files);
+        Collection<URL> result = getAsURLs();
+        return result.toArray(new URL[result.size()]);
     }
 
     public Collection<URL> getAsURLs() {
-        return GFileUtils.toURLs(files);
+        List<URL> urls = new ArrayList<URL>();
+        for (File file : files) {
+            try {
+                urls.add(file.toURI().toURL());
+            } catch (MalformedURLException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        }
+        return urls;
     }
 
     public ClassPath plus(ClassPath other) {

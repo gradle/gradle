@@ -20,12 +20,11 @@ import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.messaging.remote.Address;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.process.internal.WorkerProcessBuilder;
-import org.gradle.util.GFileUtils;
+import org.gradle.util.DefaultClassPath;
 
 import java.net.URI;
 import java.net.URL;
 import java.util.Collection;
-import java.util.List;
 import java.util.concurrent.Callable;
 
 /**
@@ -74,7 +73,7 @@ public class ApplicationClassesInIsolatedClassLoaderWorkerFactory implements Wor
     }
 
     public Callable<?> create() {
-        List<URI> applicationClassPath = GFileUtils.toURIs(processBuilder.getApplicationClasspath());
+        Collection<URI> applicationClassPath = new DefaultClassPath(processBuilder.getApplicationClasspath()).getAsURIs();
         ActionExecutionWorker injectedWorker = new ActionExecutionWorker(processBuilder.getWorker(), workerId,
                 displayName, serverAddress);
         ImplementationClassLoaderWorker worker = new ImplementationClassLoaderWorker(processBuilder.getLogLevel(),

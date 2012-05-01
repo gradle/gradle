@@ -65,8 +65,7 @@ class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
             if (toolsJar) {
                 fullClasspath += toolsJar
             }
-            List<URI> classpathUrls = fullClasspath.collect { it.toURI() }
-            baseLoader = classLoaderFactory.createIsolatedClassLoader(classpathUrls)
+            baseLoader = classLoaderFactory.createIsolatedClassLoader(new DefaultClassPath(fullClasspath))
             baseClassloaders[baseClasspath] = baseLoader
         }
 
