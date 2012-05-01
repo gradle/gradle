@@ -16,7 +16,7 @@
 
 package org.gradle.launcher.daemon.server;
 
-import org.gradle.api.internal.concurrent.Synchronizer;
+import org.gradle.internal.concurrent.Synchronizer;
 import org.gradle.messaging.remote.internal.Connection;
 
 /**

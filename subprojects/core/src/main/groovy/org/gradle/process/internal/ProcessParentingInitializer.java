@@ -16,7 +16,7 @@
 
 package org.gradle.process.internal;
 
-import org.gradle.api.internal.concurrent.Synchronizer;
+import org.gradle.internal.concurrent.Synchronizer;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Factory;

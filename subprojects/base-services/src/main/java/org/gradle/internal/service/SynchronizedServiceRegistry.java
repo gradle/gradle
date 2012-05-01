@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.concurrent;
+package org.gradle.internal.service;
 
 import org.gradle.internal.Factory;
-import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.service.UnknownServiceException;
+import org.gradle.internal.concurrent.Synchronizer;
 
 /**
  * by Szczepan Faber, created at: 11/24/11

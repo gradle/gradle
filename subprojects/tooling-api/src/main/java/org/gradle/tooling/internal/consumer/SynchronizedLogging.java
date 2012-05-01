@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.api.internal.concurrent.Synchronizer;
+import org.gradle.internal.concurrent.Synchronizer;
 import org.gradle.internal.Factory;
 import org.gradle.internal.TrueTimeProvider;
 import org.gradle.listener.DefaultListenerManager;

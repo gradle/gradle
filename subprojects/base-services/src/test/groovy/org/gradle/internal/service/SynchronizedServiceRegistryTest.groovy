@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.concurrent;
+package org.gradle.internal.service;
 
 
-import org.gradle.internal.service.ServiceRegistry
 import spock.lang.Specification
 
 /**
