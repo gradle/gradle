@@ -42,7 +42,7 @@ public class SynchronizedServiceRegistry implements ServiceRegistry {
     public <T> Factory<T> getFactory(final Class<T> type) throws UnknownServiceException {
         return synchronizer.synchronize(new Factory<Factory<T>>() {
             public Factory<T> create() {
-                return delegate.getFactory(type);
+                return new SynchronizedFactory<T>(delegate.getFactory(type));
             }
         });
     }
@@ -53,5 +53,17 @@ public class SynchronizedServiceRegistry implements ServiceRegistry {
                 return delegate.newInstance(type);
             }
         });
+    }
+
+    private class SynchronizedFactory<T> implements Factory<T> {
+        private final Factory<T> delegateFactory;
+
+        public SynchronizedFactory(Factory<T> delegateFactory) {
+            this.delegateFactory = delegateFactory;
+        }
+
+        public T create() {
+            return synchronizer.synchronize(delegateFactory);
+        }
     }
 }
