@@ -41,7 +41,7 @@ class TaskReportContainerIntegTest extends AbstractIntegrationSpec {
 
             class TestTask extends DefaultTask {
                 @Nested
-                TaskReportContainer reports = project.services.get(org.gradle.api.internal.Instantiator).newInstance(TestTaskReportContainer, this)
+                TaskReportContainer reports = project.services.get(org.gradle.internal.reflect.Instantiator).newInstance(TestTaskReportContainer, this)
 
                 @TaskAction
                 def doStuff() {
