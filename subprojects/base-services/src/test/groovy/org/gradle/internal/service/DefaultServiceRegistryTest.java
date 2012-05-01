@@ -117,7 +117,7 @@ public class DefaultServiceRegistryTest {
         try {
             registry.get(Object.class);
             fail();
-        } catch (IllegalArgumentException e) {
+        } catch (ServiceLookupException e) {
             assertThat(e.getMessage(), equalTo("Multiple services of type Object available in RegistryWithAmbiguousFactoryMethods."));
         }
     }
@@ -140,7 +140,7 @@ public class DefaultServiceRegistryTest {
         try {
             new RegistryWithDecoratorMethods();
             fail();
-        } catch (IllegalArgumentException e) {
+        } catch (ServiceLookupException e) {
             assertThat(e.getMessage(), equalTo("Cannot use decorator methods when no parent registry is provided."));
         }
     }
@@ -217,7 +217,7 @@ public class DefaultServiceRegistryTest {
         try {
             registry.getFactory(Object.class);
             fail();
-        } catch (IllegalArgumentException e) {
+        } catch (ServiceLookupException e) {
             assertThat(e.getMessage(), equalTo("Multiple factories for objects of type Object available in RegistryWithAmbiguousFactoryMethods."));
         }
     }

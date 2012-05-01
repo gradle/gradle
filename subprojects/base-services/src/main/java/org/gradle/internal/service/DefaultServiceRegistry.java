@@ -100,7 +100,7 @@ public class DefaultServiceRegistry implements ServiceRegistry {
                     && method.getReturnType() != Void.class
                     && method.getParameterTypes()[0].equals(method.getReturnType())) {
                 if (parent == null) {
-                    throw new IllegalArgumentException("Cannot use decorator methods when no parent registry is provided.");
+                    throw new ServiceLookupException("Cannot use decorator methods when no parent registry is provided.");
                 }
                 if (decoratorMethods.add(method.getName())) {
                     ownServices.add(new DecoratorMethodService(method));
@@ -205,7 +205,7 @@ public class DefaultServiceRegistry implements ServiceRegistry {
                 Factory<T> factory = provider.getFactory(type);
                 if (factory != null) {
                     if (match != null) {
-                        throw new IllegalArgumentException(String.format("Multiple factories for objects of type %s available in %s.", type.getSimpleName(), DefaultServiceRegistry.this.toString()));
+                        throw new ServiceLookupException(String.format("Multiple factories for objects of type %s available in %s.", type.getSimpleName(), DefaultServiceRegistry.this.toString()));
                     }
                     match = factory;
                 }
@@ -219,7 +219,7 @@ public class DefaultServiceRegistry implements ServiceRegistry {
                 T service = provider.getService(serviceType);
                 if (service != null) {
                     if (match != null) {
-                        throw new IllegalArgumentException(String.format("Multiple services of type %s available in %s.", serviceType.getSimpleName(), DefaultServiceRegistry.this.toString()));
+                        throw new ServiceLookupException(String.format("Multiple services of type %s available in %s.", serviceType.getSimpleName(), DefaultServiceRegistry.this.toString()));
                     }
                     match = service;
                 }

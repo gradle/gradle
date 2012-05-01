@@ -17,6 +17,7 @@ package org.gradle.util;
 
 import org.gradle.api.internal.DirectInstantiator;
 import org.gradle.internal.Factory;
+import org.gradle.internal.service.ServiceLookupException;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.UnknownServiceException;
 import org.gradle.api.internal.Instantiator;
@@ -79,7 +80,7 @@ public class ServiceLocator implements ServiceRegistry {
         try {
             implementationClassName = findServiceImplementationClassName(serviceType);
         } catch (Exception e) {
-            throw new RuntimeException(String.format("Could not determine implementation class for service '%s'.", serviceType.getName()), e);
+            throw new ServiceLookupException(String.format("Could not determine implementation class for service '%s'.", serviceType.getName()), e);
         }
         if (implementationClassName == null) {
             return null;
@@ -91,7 +92,7 @@ public class ServiceLocator implements ServiceRegistry {
             }
             return implClass.asSubclass(serviceType);
         } catch (Throwable t) {
-            throw new RuntimeException(String.format("Could not load implementation class '%s' for service '%s'.", implementationClassName, serviceType.getName()), t);
+            throw new ServiceLookupException(String.format("Could not load implementation class '%s' for service '%s'.", implementationClassName, serviceType.getName()), t);
         }
     }
 
