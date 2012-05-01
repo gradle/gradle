@@ -1,6 +1,8 @@
 /*
  * Adds an 'integTest' source set, which contains the integration tests for the project.
  */
+import org.gradle.build.integtest.IntegTestPlugin
+
 apply plugin: 'java'
 rootProject.apply plugin: IntegTestPlugin
 
@@ -101,38 +103,4 @@ task integTest(type: Test) {
 
 tasks.findByName("check")?.dependsOn(integTest)
 
-class IntegTestPlugin implements Plugin<Project> {
-    public void apply(Project project) {
-        project.convention.plugins.integTest = new IntegTestConvention(project)
-    }
-}
 
-class IntegTestConvention {
-    private final Project project
-    final List integTests = []
-
-    IntegTestConvention(Project project) {
-        this.project = project
-    }
-
-    String getIntegTestMode() {
-        if (!project.tasks.findByName('ciBuild') || !project.gradle.taskGraph.populated) {
-            return null
-        }
-        if (project.isCIBuild() || project.isReleaseBuild() ) {
-            return 'forking'
-        }
-        return System.getProperty("org.gradle.integtest.executer") ?: 'embedded'
-    }
-
-    File getIntegTestUserDir() {
-        return project.file('intTestHomeDir')
-    }
-
-    File getIntegTestImageDir() {
-        if (!project.tasks.findByName('intTestImage')) {
-            return null
-        }
-        return project.intTestImage.destinationDir
-    }
-}

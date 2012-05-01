@@ -16,8 +16,9 @@
 
 import org.gradle.build.Version
 import org.gradle.build.Install
-import org.gradle.build.Git
+import org.gradle.build.Tag
 import org.gradle.build.Releases
+import org.gradle.build.TestReportAggregator
 
 /**
  * For building Gradle you usually don't need to specify any properties. Only certain functionality of the Gradle requires
@@ -496,43 +497,3 @@ def pluginProjects() {
     }
 }
 
-class TestReportAggregator extends Copy {
-    def projects
-
-    File testResultsDir
-
-    @OutputDirectory
-    File testReportDir
-
-    def TestReportAggregator() {
-        dependsOn { testTasks }
-        from { inputTestResultDirs }
-        into { testResultsDir }
-    }
-
-    @TaskAction
-    def aggregate() {
-        def report = new org.gradle.api.internal.tasks.testing.junit.report.DefaultTestReport(testReportDir: testReportDir, testResultsDir: testResultsDir)
-        report.generateReport()
-    }
-
-    def getTestTasks() {
-        projects.collect { it.tasks.withType(Test) }.flatten()
-    }
-
-    def getInputTestResultDirs() {
-        testTasks*.testResultsDir
-    }
-
-}
-
-class Tag extends DefaultTask {
-    @TaskAction
-    def tagNow() {
-        def version = project.version
-        def git = new Git(project)
-        git.checkNoModifications()
-        git.tag("REL_$version", "Release $version")
-        git.branch("RB_$version")
-    }
-}
