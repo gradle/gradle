@@ -179,7 +179,7 @@ project.description = text
         dist.file("build2/build.gradle") << "task foo2"
 
         when:
-        def allProgress = new CopyOnWriteArrayList<>()
+        def allProgress = new CopyOnWriteArrayList<String>()
 
         concurrent.start {
             def connector = toolingApi.connector()
