@@ -33,6 +33,7 @@ import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
 import org.gradle.internal.classpath.ClassPath
+import java.util.concurrent.CopyOnWriteArrayList
 
 @Issue("GRADLE-1933")
 class ConcurrentToolingApiIntegrationSpec extends Specification {
@@ -178,7 +179,7 @@ project.description = text
         dist.file("build2/build.gradle") << "task foo2"
 
         when:
-        def allProgress = []
+        def allProgress = new CopyOnWriteArrayList<>()
 
         concurrent.start {
             def connector = toolingApi.connector()
