@@ -18,6 +18,7 @@ package org.gradle.build
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.testing.Test;
 
 class TestReportAggregator extends Copy {
     def projects
