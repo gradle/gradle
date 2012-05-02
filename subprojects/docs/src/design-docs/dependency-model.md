@@ -4,27 +4,44 @@ This is a proposal for a rethinking of the Gradle dependency management and publ
 
 # Why?
 
-* To come up with a concrete plan for solving dependency management problems for projects that are not simply 'build my jar' projects. For example, projects that build and publish C/C++ binaries, Javascript libraries, and so on.
-* To provide a richer model that will allow projects to collaborate through the dependency management system, making these projects less coupled at configuration time. This will allow us to introduce some nice performance and scalability features.
+* To come up with a concrete plan for solving dependency management problems for projects that are not simply 'build my jar' projects. For example,
+  projects that build and publish C/C++ binaries, Javascript libraries, and so on.
+* To provide a richer model that will allow projects to collaborate through the dependency management system, making these projects less coupled at
+  configuration time. This will allow us to introduce some nice performance and scalability features.
 * To allow Gradle to move beyond simply building things, and into release management, promotion, deployment and so on.
 
 # Overview
 
-The main design approach taken here is to promote *software components* as the most important concept in dependency management, and indeed Gradle as a whole. A software component is a logical piece of software, published as a number of binary artefacts. A component might be a library that runs on the JVM, a native executable, or a Javascript library. Software teams develop, test, release, publish, deploy and collaborate through software components. Producing working software components is the main purpose of any development team. Our model should reflect this.
+The main design approach taken here is to promote *software components* as the most important concept in dependency management, and indeed Gradle
+as a whole. A software component is a logical piece of software, published as a number of binary artefacts. A component might be a library that
+runs on the JVM, a native executable, or a Javascript library. Software teams develop, test, release, publish, deploy and collaborate through
+software components. Producing working software components is the main purpose of any development team. Our model should reflect this.
 
-The distinction here with our existing approach is that we explicitly model each software component, rather than implicitly describing them through modules and dependency configurations. This moves the model closer to the reality of the development world, and decouples many of the plugins that operate on components from the dependency management model. A component definition can be assembled from various sources, not just a module meta-data descriptor.
+The distinction here with our existing approach is that we explicitly model each software component, rather than implicitly describing them through
+modules and dependency configurations. This moves the model closer to the reality of the development world, and decouples build logic (including
+plugins) that operate on components from the dependency management model. A component definition can be assembled from various sources, not just a
+module meta-data descriptor.
 
-A second approach taken here is to strongly type the software components. We model, for example, a JVM library, a J2EE application, a native executable, and so on. For each such component type, there will be a corresponding strongly typed DSL element (i.e. a Java interface) to represent this. Build logic will use these DSL elements to interact with the component, either for defining the outgoing components produced by the project, or to query the incoming components used by the project.
+A second approach taken here is to strongly type the software components. We model, for example, a JVM library, a J2EE application, a native executable,
+and so on. For each such component type, there will be a corresponding strongly typed DSL element (i.e. a Java interface) to represent this. Build
+logic will use these DSL elements to interact with the component, either for defining the outgoing components produced by the project, or to query the
+incoming components used by the project.
 
-Each component type will have a well defined mapping to various binary repository formats. These mappings (or schemas) will be versioned, so that we can evolve these schemas over time.
+Each component type will have a well defined mapping to various binary repository formats. These mappings (or schemas) will be versioned, so that we
+can evolve these schemas over time.
 
-The distinction here with our existing approach is that we use concrete types to represent components, both in build logic code and to exchange between projects, instead of the overly abstract module and dependency configuration concepts.
+The distinction here with our existing approach is that we use concrete types to represent components, both in build logic code and to exchange between
+projects, instead of the overly abstract module and dependency configuration concepts. We also decouple the component definition from the mapping to
+a binary repository, so that multiple mappings are possible.
 
 Similarly, artefacts and dependencies will be strongly typed. For example, we will model explicitly a JAR, native dynamic library, or a signature.
 
-This modelling will provide conventions that can be shared between teams, and taken advantage of by tooling. This rich model allows all kinds of interesting plugins to be developed.
+This modelling will provide conventions that can be shared between teams, and taken advantage of by tooling. This rich model allows all kinds of
+interesting plugins to be developed.
 
-Finally, we add a little more structure to projects and their relationships. Now, a project becomes a container for software components. A project knows how to build the components that it contains. Projects can also do other things to components, such as release, test, publish, install or deploy them.
+Finally, we add a little more structure to projects and their relationships. Now, a project becomes a container for software components. A project
+knows how to build the components that it contains. Projects can also do other things to components, such as release, test, publish, install or deploy
+them.
 
 Dependencies are no longer between projects, but between components. In fact, projects will no longer have any dependencies at all.
 
@@ -44,9 +61,10 @@ A logical component, such as a JVM library, a native executable, or a Javascript
 
 A software component has multiple versions. A version represents some implementation of the component at a particular point in time.
 
-Some component types mandate a particular versioning scheme. For example, Jigsaw modules and OSGi bundle must have a version that conforms to a particular grammar. Android applications have an integer version code and a version string.
+Some component types mandate a particular versioning scheme. For example, Jigsaw modules and OSGi bundle must have a version that conforms to
+a particular grammar. Android applications have an integer version code and a version string.
 
-* A version has a human consumable version string.
+* A version has a human consumable version string. A version string is not necessarily unique.
 * A version has a Gradle-assigned unique identifier.
 * A version is built from a set of source revisions or branches.
 * A version built by a CI server usually has a unique build number.
@@ -55,7 +73,8 @@ Some component types mandate a particular versioning scheme. For example, Jigsaw
 
 #### Versioning scheme
 
-A versioning scheme defines the semantics of the version string, such as how versions can be compared to each other, and what compatibility constraints are applied.
+A versioning scheme defines the semantics of the version string, such as how versions can be compared to each other, and what compatibility
+constraints are relevant to the version string.
 
 ### Release
 
@@ -63,7 +82,9 @@ A release is-a version, with some special meaning.
 
 ### Variant
 
-A variant is some variation of the component that is functionally equivalent, but can only be used in certain constrained ways. Some examples of variants are: a native executable compiled for 64-bit windows, or a non-minified Javascript library, or a JVM library compiled into java 6 byte code. A variant might also represent a WAR tailored for the QA environment.
+A variant is some variation of the component that is functionally equivalent, but can only be used in certain constrained ways. Some examples of
+variants are: a native executable compiled for 64-bit windows, or a non-minified Javascript library, or a JVM library compiled into java 6 byte code.
+A variant might also represent a WAR tailored for the QA environment.
 
 * A software component version has one or more variants.
 * The set of available variants is implied by the component type.
@@ -74,7 +95,8 @@ TODO: Are there a few concepts here?
 
 ### Packaging
 
-Packaging represents how the component is assembled into artefacts. For example, a web application might be packaged as a WAR, or as a command-line application with an embedded web container, or as an installer that installs a JVM, web container and the web application. Or all of these.
+Packaging represents how the component is assembled into artefacts. For example, a web application might be packaged as a WAR, or as a command-line
+application with an embedded web container, or as an installer that installs a JVM, web container and the web application. Or all of these.
 
 * A software component version variant has one or more packagings.
 * The set of available packagings is implied by the component type.
@@ -82,7 +104,8 @@ Packaging represents how the component is assembled into artefacts. For example,
 
 ### Usage
 
-A usage is some way that a component can be used. For example, a JVM library is used to compile a client component, to compile and execute the client's unit tests, and at runtime.
+A usage is some way that a component can be used. For example, a JVM library is used to compile a client component, to compile and execute the client's
+unit tests, and at runtime.
 
 * A software component version variant has one or more usages.
 * The set of available usages is implied by the component type.
@@ -108,9 +131,11 @@ An artefact is a binary resource. For example, a jar file or native executable.
 
 ### Bundle
 
-A bundle is-an artefact that includes some other software component. For example, a WAR that includes a JVM library in its WEB-INF/lib folder, or a native executable that is linked against a static library.
+A bundle is-an artefact that includes some other software component. For example, a WAR that includes a JVM library in its WEB-INF/lib folder,
+or a native executable that is linked against a static library.
 
-Generally, this means that a bundle includes some of its dependencies, and that the environment into which the bundle is deployed in must provide the remaining dependencies.
+Generally, this means that a bundle includes some of its dependencies, and that the environment in which the bundle is later used in must provide
+the remaining dependencies.
 
 A bundle may subsequently be bundled into a larger bundle.
 
@@ -119,7 +144,8 @@ A bundle may subsequently be bundled into a larger bundle.
 
 ### Auxiliary artifact
 
-An artefact that provides some information about the software component, that is usage and variant independent. For example, a source or API documentation archive. Also includes signature and checksum artefacts.
+An artefact that provides some information about the software component, that is usage and variant independent. For example, a source or API
+documentation archive. Also includes signature and checksum artefacts.
 
 ### Meta-data artifact
 
@@ -133,7 +159,8 @@ A dependency is a reference to another software component which is required by t
 * A given usage implies a set of zero or more dependencies.
 * A given (usage, dependency) implies a usage from the target component.
 
-Some artefact types encode meta-data about their dependencies. For example, a Jigsaw module or OSGi bundle includes information about the other modules/bundles that are required. A native binary includes information about which native libraries are required.
+Some artefact types encode meta-data about their dependencies. For example, a Jigsaw module or OSGi bundle includes information about the other
+modules/bundles that are required. A native binary includes information about which shared libraries are required at runtime.
 
 ## Publication
 
@@ -144,7 +171,8 @@ A publication is the binary representation of a component in a repository.
 
 ## Project
 
-A project is a container for software components. A project knows how to perform the various lifecycle steps for the components it contains. For example, a project may build, release and deploy a component.
+A project is a container for software components. A project knows how to perform the various lifecycle steps for the components it owns.
+For example, a project may build, release and deploy a component.
 
 * A project builds zero or more components.
 * A component build is built by exactly one project.
@@ -154,7 +182,7 @@ A project is a container for software components. A project knows how to perform
 
 Listed below are some of the concrete types of the abstract types defined above:
 
-(note: we won't necessarily model all of these, they are listed here more to validate the abstract model above)
+(note: we won't necessarily model all of these, they are listed here to flesh out the abstract model above)
 
 ## JVM component
 
@@ -343,26 +371,31 @@ test fixtures have an API and an implementation?
 
 ## Gradle
 
-We should think about introducing a native Gradle component descriptor. This would describe a component build. Probably as an XML file, with a versioned schema per component type, or perhaps group of components, along with an extensible 'define your own' component type.
+We should think about introducing a native Gradle component descriptor. This would describe a component build. Probably as an XML file, with a
+versioned schema per component type, or perhaps group of components, along with an extensible 'define your own' component type.
 
-This descriptor would be published as an artefact of the component build, regardless of whether the build is being published to ivy or maven or some other repository.
+This descriptor would be published as an artefact of the component build, regardless of whether the build is being published to ivy or maven or some
+other repository.
 
 ## Ivy
 
 A few options:
+
 1. Map a project to an ivy module, encode each (component, usage, variant) as an Ivy configuration.
 2. Map each (component, variant) to an ivy module, encode each usage as an Ivy configuration.
 3. Map each component to an ivy module, encode each (usage, variant) as an Ivy configuration.
 4. Map each component to an ivy module, encode each usage as an Ivy configuration. Fail if > 1 variant.
-5. Map each component to an ivy module, encode each usage as an Ivy configuration. Attach variant to each artefact. Fail if any usage does not have the same set of dependencies for every variant.
+5. Map each component to an ivy module, encode each usage as an Ivy configuration. Attach variant to each artefact. Fail if any usage does not have
+   the same set of dependencies for every variant.
+6. Map each component to an ivy module. Map each variant to an ivy module as well.
 
-The mapping for each component type will be versioned, with the mapping version included in the ivy.xml as an extra attribute.
+The mapping for each component type will be versioned, with the mapping version included in the `ivy.xml` as an extra attribute.
 
 ## Maven
 
-Similar to above, except encoding using hardcoded scopes + artefact classifiers.
+Similar to above, except encoding using hardcoded scopes + artefact classifiers. Can only really map JVM components.
 
-The mapping for each component type will be versioned, with the mapping version included in the pom.xml somehow (perhaps in the {{<properties>}} section).
+The mapping for each component type will be versioned, with the mapping version included in the pom.xml somehow (perhaps in the `<properties>` section).
 
 # DSL
 
@@ -390,13 +423,16 @@ Task rules:
 * `assemble` - builds all components
 * `publish` - builds and publishes all publications.
 
-Applying a convention plugin (java, cpp-exe, application, war, etc) would add components of the appropriate type. The java plugin would add a java library, war plugin would add a web application, and so on.
+Applying a convention plugin (java, cpp-exe, application, war, etc) would add components of the appropriate type. The java plugin would add a java
+library, war plugin would add a web application, and so on.
 
-Applying the maven plugin would add a maven-style publication for each component, and probably define publish tasks that attach each maven publication to each maven repository.
+Applying the maven plugin would add a maven-style publication for each component, and probably define publish tasks that attach each maven publication
+to each maven repository.
 
 Applying the ivy plugin would add an ivy-style publication for each component, and the appropriate publish tasks.
 
-Applying the signing base plugin (whether that's the current signing plugin or a new one) would add the capability to sign Publications (or probably PublishArtifactSet more generally), but not actually add any signatures. Applying the signing convention plugin , would add signatures to each remote publication.
+Applying the signing base plugin (whether that's the current signing plugin or a new one) would add the capability to sign Publications (or probably
+PublishArtifactSet more generally), but not actually add any signatures. Applying the signing convention plugin , would add signatures to each remote publication.
 
 
 # Other stuff to consider
@@ -404,8 +440,10 @@ Applying the signing base plugin (whether that's the current signing plugin or a
 * Network and web services are a usage, and should be considered as a runtime dependency.
 * A component that provides a web service may publish wsdl descriptors or a client library or both.
 * A component has a lifecycle.
-* A component may have an API, or more generally, a contract for its behaviour. Contracts are versioned, and can be used in dependency declarations to select compatible builds. Contracts are strongly typed (e.g. wsdl, com idl, java API, db schema).
-* A component generally has a runtime dependency on external configuration. Like other dependencies, some of this configuration may be bundled into the artefacts, and some will need to be provided by the environment at runtime.
+* A component may have an API, or more generally, a contract for its behaviour. Contracts are versioned, and can be used in dependency declarations to
+  select compatible builds. Contracts are strongly typed (e.g. wsdl, com idl, java API, db schema).
+* A component generally has a runtime dependency on external configuration. Like other dependencies, some of this configuration may be bundled into
+  the artefacts, and some will need to be provided by the environment at runtime.
 * Interop with other ivy and maven mappings.
 * Backwards compatibility:
     * Consuming ivy/maven modules published by older Gradle versions, by Maven, and with hand-coded ivy.xml meta-data.
