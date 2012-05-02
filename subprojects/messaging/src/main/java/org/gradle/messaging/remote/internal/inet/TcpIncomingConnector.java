@@ -104,8 +104,9 @@ public class TcpIncomingConnector<T> implements IncomingConnector<T>, AsyncStopp
                     while (true) {
                         SocketChannel socket = serverSocket.accept();
                         InetSocketAddress remoteSocketAddress = (InetSocketAddress) socket.socket().getRemoteSocketAddress();
-                        if (!allowRemote && !localAddresses.contains(remoteSocketAddress.getAddress())) {
-                            LOGGER.error("Cannot accept connection from remote address {}.", remoteSocketAddress.getAddress());
+                        InetAddress remoteInetAddress = remoteSocketAddress.getAddress();
+                        if (!allowRemote && !(localAddresses.contains(remoteInetAddress) || remoteAddresses.contains(remoteInetAddress))) {
+                            LOGGER.error("Cannot accept connection from remote address {}.", remoteInetAddress);
                             socket.close();
                             continue;
                         }
