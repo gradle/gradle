@@ -22,14 +22,17 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.file.CompositeFileTree;
 import org.gradle.api.internal.file.collections.DefaultFileCollectionResolveContext;
-import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileTreeAdapter;
+import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.internal.tasks.testing.TestFramework;
+import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.api.internal.tasks.testing.detection.TestExecuter;
+import org.gradle.api.internal.tasks.testing.detection.TestFrameworkDetector;
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
 import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter;
 import org.gradle.api.tasks.AbstractConventionTaskTest;
+import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.TestClosure;
@@ -44,6 +47,7 @@ import org.junit.Before;
 import org.junit.runner.RunWith;
 
 import java.io.File;
+import java.lang.ref.WeakReference;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -143,6 +147,46 @@ public class TestTest extends AbstractConventionTaskTest {
 
         FileTree classFiles = test.getCandidateClassFiles();
         assertIsDirectoryTree(classFiles, toSet("include"), toSet("exclude"));
+    }
+
+    @org.junit.Test
+    public void testSetsTestFrameworkToNullAfterExecution() {
+        configureTask();
+        // using a jmock generated mock for testFramework does not work here as it is referenced
+        // by jmock holds some references.
+
+        test.useTestFramework(new TestFramework() {
+
+            public TestFrameworkDetector getDetector() {
+                return null;
+            }
+
+            public void report() {
+            }
+
+            public TestFrameworkOptions getOptions() {
+                return null;
+            }
+
+            public WorkerTestClassProcessorFactory getProcessorFactory() {
+                return null;
+            }
+
+            public org.gradle.api.Action<WorkerProcessBuilder> getWorkerConfigurationAction() {
+                return null;
+            }
+        });
+        context.checking(new Expectations() {{
+            one(testExecuterMock).execute(with(sameInstance(test)), with(notNullValue(TestListenerAdapter.class)));
+        }});
+
+        WeakReference<TestFramework> weakRef = new WeakReference<TestFramework>(test.getTestFramework());
+        test.executeTests();
+
+        System.gc(); //explicit gc should normally be avoided, but necessary here.
+
+        assertNull(weakRef.get());
+
     }
 
     @org.junit.Test
@@ -309,7 +353,7 @@ public class TestTest extends AbstractConventionTaskTest {
     private void configureTask() {
         test.useTestFramework(testFrameworkMock);
         test.setTestExecuter(testExecuterMock);
-        
+
         test.setTestClassesDir(classesDir);
         test.setTestResultsDir(resultsDir);
         test.setTestReportDir(reportDir);

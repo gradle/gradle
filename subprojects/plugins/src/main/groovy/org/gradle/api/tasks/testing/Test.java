@@ -396,6 +396,8 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         testExecuter.execute(this, resultProcessor);
 
         testFramework.report();
+        
+        testFramework = null;
 
         if (!getIgnoreFailures() && listener.hadFailures()) {
             throw new GradleException("There were failing tests. See the report at " + getTestReportDir() + ".");
