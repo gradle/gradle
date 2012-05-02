@@ -88,24 +88,31 @@ class DefaultExecutorFactoryTest extends MultithreadedTestCase {
 
     @Test
     public void stopRethrowsFirstExecutionException() {
-        Runnable runnable = context.mock(Runnable.class)
-        RuntimeException failure = new RuntimeException()
+        Runnable runnable1 = context.mock(Runnable.class)
+        Runnable runnable2 = context.mock(Runnable.class)
+        RuntimeException failure1 = new RuntimeException()
+        RuntimeException failure2 = new RuntimeException()
 
         context.checking {
-            one(runnable).run()
+            one(runnable1).run()
             will {
-                throw failure
+                throw failure1
+            }
+            one(runnable2).run()
+            will {
+                throw failure2
             }
         }
 
         def executor = factory.create('<display-name>')
-        executor.execute(runnable)
+        executor.execute(runnable1)
+        executor.execute(runnable2)
 
         try {
             executor.stop()
             fail()
         } catch (RuntimeException e) {
-            assertThat(e, sameInstance(failure))
+            assertThat(e, sameInstance(failure1))
         }
     }
 

@@ -19,15 +19,16 @@ package org.gradle.messaging.concurrent;
 import org.gradle.internal.CompositeStoppable;
 import org.gradle.internal.Stoppable;
 import org.gradle.internal.UncheckedException;
-import org.gradle.messaging.dispatch.DispatchException;
-import org.gradle.messaging.dispatch.ExceptionTrackingFailureHandler;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Set;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class DefaultExecutorFactory implements ExecutorFactory, Stoppable {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultExecutorFactory.class);
     private final Set<StoppableExecutorImpl> executors = new CopyOnWriteArraySet<StoppableExecutorImpl>();
 
     public void stop() {
@@ -50,12 +51,11 @@ public class DefaultExecutorFactory implements ExecutorFactory, Stoppable {
 
     private class StoppableExecutorImpl implements StoppableExecutor {
         private final ExecutorService executor;
-        private final ExceptionTrackingFailureHandler failureHandler;
         private final ThreadLocal<Runnable> executing = new ThreadLocal<Runnable>();
+        private final AtomicReference<Throwable> failure = new AtomicReference<Throwable>();
 
         public StoppableExecutorImpl(ExecutorService executor) {
             this.executor = executor;
-            failureHandler = new ExceptionTrackingFailureHandler(LoggerFactory.getLogger(StoppableExecutorImpl.class));
         }
 
         public void execute(final Runnable command) {
@@ -65,7 +65,9 @@ public class DefaultExecutorFactory implements ExecutorFactory, Stoppable {
                     try {
                         command.run();
                     } catch (Throwable throwable) {
-                        failureHandler.dispatchFailed(command, throwable);
+                        if (!failure.compareAndSet(null, throwable)) {
+                            LOGGER.error(String.format("Failed to execute %s.", command), throwable);
+                        }
                     } finally {
                         executing.set(null);
                     }
@@ -95,10 +97,8 @@ public class DefaultExecutorFactory implements ExecutorFactory, Stoppable {
                 } catch (InterruptedException e) {
                     throw new UncheckedException(e);
                 }
-                try {
-                    failureHandler.stop();
-                } catch (DispatchException e) {
-                    throw UncheckedException.throwAsUncheckedException(e.getCause());
+                if (failure.get() != null) {
+                    throw UncheckedException.throwAsUncheckedException(failure.get());
                 }
             } finally {
                 executors.remove(this);
