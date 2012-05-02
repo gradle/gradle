@@ -389,7 +389,8 @@ class HttpServer extends ExternalResource {
         if (port < 0) {
             throw new RuntimeException("""No port available for HTTP server. Still starting perhaps?
 connector: ${server.connectors[0]}
-state: ${server.connectors[0].dump()}
+connector state: ${server.connectors[0].dump()}
+server state: ${server.dump()}
 """)
         }
         return port
