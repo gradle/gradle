@@ -17,7 +17,7 @@
 package org.gradle.messaging.dispatch;
 
 import org.gradle.internal.UncheckedException;
-import org.gradle.messaging.concurrent.AsyncStoppable;
+import org.gradle.internal.concurrent.AsyncStoppable;
 
 import java.util.ArrayList;
 import java.util.List;

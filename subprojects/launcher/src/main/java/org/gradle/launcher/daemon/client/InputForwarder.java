@@ -18,10 +18,10 @@ package org.gradle.launcher.daemon.client;
 import org.gradle.api.Action;
 import org.gradle.internal.Stoppable;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.util.DisconnectableInputStream;
 import org.gradle.util.LineBufferingOutputStream;
-import org.gradle.messaging.concurrent.ExecutorFactory;
-import org.gradle.messaging.concurrent.StoppableExecutor;
 
 import java.io.IOException;
 import java.io.InputStream;

@@ -18,8 +18,8 @@ package org.gradle.launcher.daemon.bootstrap;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.messaging.concurrent.DefaultExecutorFactory;
-import org.gradle.messaging.concurrent.StoppableExecutor;
+import org.gradle.internal.concurrent.DefaultExecutorFactory;
+import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.process.internal.streams.StreamsHandler;
 
 import java.io.InputStream;

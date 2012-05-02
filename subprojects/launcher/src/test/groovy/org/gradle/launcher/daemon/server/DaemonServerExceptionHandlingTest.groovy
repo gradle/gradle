@@ -31,7 +31,7 @@ import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter
 import org.gradle.launcher.daemon.server.exec.ForwardClientInput
 import org.gradle.launcher.exec.DefaultBuildActionParameters
 import org.gradle.logging.LoggingManagerInternal
-import org.gradle.messaging.concurrent.ExecutorFactory
+import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification

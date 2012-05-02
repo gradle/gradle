@@ -17,6 +17,7 @@ package org.gradle.launcher.daemon.client;
 
 import org.gradle.initialization.DefaultGradleLauncherFactory;
 import org.gradle.internal.Factory;
+import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.nativeplatform.ProcessEnvironment;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
@@ -34,7 +35,6 @@ import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.internal.OutputEvent;
 import org.gradle.logging.internal.OutputEventListener;
-import org.gradle.messaging.concurrent.ExecutorFactory;
 
 import java.io.File;
 import java.util.UUID;

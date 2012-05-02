@@ -35,8 +35,8 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.listener.DefaultListenerManager
 import org.gradle.listener.ListenerManager
 import org.gradle.logging.LoggingManagerInternal
-import org.gradle.messaging.concurrent.DefaultExecutorFactory
-import org.gradle.messaging.concurrent.ExecutorFactory
+import org.gradle.internal.concurrent.DefaultExecutorFactory
+import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.messaging.remote.MessagingServer
 import org.gradle.process.internal.DefaultWorkerProcessFactory
 import org.gradle.process.internal.WorkerProcessBuilder

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.messaging.concurrent;
+package org.gradle.internal.concurrent;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;

@@ -15,11 +15,11 @@
  */
 package org.gradle.messaging.remote.internal;
 
+import org.gradle.internal.concurrent.DefaultExecutorFactory;
+import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.id.UUIDGenerator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.CompositeStoppable;
-import org.gradle.messaging.concurrent.DefaultExecutorFactory;
-import org.gradle.messaging.concurrent.ExecutorFactory;
 import org.gradle.internal.Stoppable;
 import org.gradle.messaging.dispatch.DiscardingFailureHandler;
 import org.gradle.messaging.remote.MessagingClient;

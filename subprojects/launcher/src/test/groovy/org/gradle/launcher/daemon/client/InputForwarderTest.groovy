@@ -16,7 +16,7 @@
 package org.gradle.launcher.daemon.client
 
 import org.gradle.api.Action
-import org.gradle.messaging.concurrent.DefaultExecutorFactory
+import org.gradle.internal.concurrent.DefaultExecutorFactory
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 import static org.gradle.util.TextUtil.*

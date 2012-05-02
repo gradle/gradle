@@ -17,8 +17,8 @@
 package org.gradle.process.internal.streams;
 
 import org.gradle.internal.Stoppable;
-import org.gradle.messaging.concurrent.DefaultExecutorFactory;
-import org.gradle.messaging.concurrent.StoppableExecutor;
+import org.gradle.internal.concurrent.DefaultExecutorFactory;
+import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.util.DisconnectableInputStream;
 
 import java.io.IOException;

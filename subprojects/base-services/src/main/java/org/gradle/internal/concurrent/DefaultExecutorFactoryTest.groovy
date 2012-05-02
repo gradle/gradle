@@ -16,7 +16,7 @@
 
 
 
-package org.gradle.messaging.concurrent
+package org.gradle.internal.concurrent
 
 import static org.hamcrest.Matchers.*
 
@@ -29,6 +29,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import static org.junit.Assert.*
 import java.util.concurrent.TimeUnit
+import org.gradle.internal.concurrent.DefaultExecutorFactory
 
 @RunWith(JMock)
 class DefaultExecutorFactoryTest extends MultithreadedTestCase {
@@ -110,9 +111,9 @@ class DefaultExecutorFactoryTest extends MultithreadedTestCase {
 
         try {
             executor.stop()
-            fail()
+            org.junit.Assert.fail()
         } catch (RuntimeException e) {
-            assertThat(e, sameInstance(failure1))
+            org.junit.Assert.assertThat(e, org.hamcrest.Matchers.sameInstance(failure1))
         }
     }
 
@@ -133,9 +134,9 @@ class DefaultExecutorFactoryTest extends MultithreadedTestCase {
         expectTimesOut(500, TimeUnit.MILLISECONDS) {
             try {
                 executor.stop(500, TimeUnit.MILLISECONDS)
-                fail()
+                org.junit.Assert.fail()
             } catch (IllegalStateException e) {
-                assertThat(e.message, equalTo('Timeout waiting for concurrent jobs to complete.'))
+                org.junit.Assert.assertThat(e.message, org.hamcrest.Matchers.equalTo('Timeout waiting for concurrent jobs to complete.'))
             }
         }
     }
@@ -157,9 +158,9 @@ class DefaultExecutorFactoryTest extends MultithreadedTestCase {
 
         try {
             executor.stop()
-            fail()
+            org.junit.Assert.fail()
         } catch (IllegalStateException e) {
-            assertThat(e.message, equalTo('Cannot stop this executor from an executor thread.'))
+            org.junit.Assert.assertThat(e.message, org.hamcrest.Matchers.equalTo('Cannot stop this executor from an executor thread.'))
         }
 
     }

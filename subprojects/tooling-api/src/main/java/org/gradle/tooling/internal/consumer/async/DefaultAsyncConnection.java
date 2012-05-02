@@ -15,8 +15,8 @@
  */
 package org.gradle.tooling.internal.consumer.async;
 
-import org.gradle.messaging.concurrent.ExecutorFactory;
-import org.gradle.messaging.concurrent.StoppableExecutor;
+import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;

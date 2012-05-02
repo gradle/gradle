@@ -19,9 +19,9 @@ package org.gradle.launcher.daemon.server;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Stoppable;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.launcher.daemon.server.exec.DaemonCommandExecution;
 import org.gradle.launcher.daemon.server.exec.DaemonStateControl;
-import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 
 import java.util.Date;
 import java.util.concurrent.locks.Condition;

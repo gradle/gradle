@@ -17,8 +17,8 @@ package org.gradle.messaging.remote.internal;
 
 import org.gradle.internal.CompositeStoppable;
 import org.gradle.internal.Stoppable;
-import org.gradle.messaging.concurrent.ExecutorFactory;
-import org.gradle.messaging.concurrent.StoppableExecutor;
+import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.messaging.dispatch.*;
 
 import java.util.HashSet;

@@ -16,8 +16,8 @@
 package org.gradle.messaging.remote.internal;
 
 import org.gradle.internal.UncheckedException;
-import org.gradle.messaging.concurrent.AsyncStoppable;
-import org.gradle.messaging.concurrent.StoppableExecutor;
+import org.gradle.internal.concurrent.AsyncStoppable;
+import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.messaging.dispatch.AsyncReceive;
 import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.messaging.dispatch.Receive;

@@ -16,7 +16,7 @@
 package org.gradle.messaging.remote.internal;
 
 import org.gradle.internal.UncheckedException;
-import org.gradle.messaging.concurrent.StoppableExecutor;
+import org.gradle.internal.concurrent.StoppableExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -21,8 +21,8 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.Condition
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
-import org.gradle.messaging.concurrent.ExecutorFactory
-import org.gradle.messaging.concurrent.StoppableExecutor
+import org.gradle.internal.concurrent.ExecutorFactory
+import org.gradle.internal.concurrent.StoppableExecutor
 import org.junit.rules.ExternalResource
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

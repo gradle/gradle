@@ -16,8 +16,8 @@
 package org.gradle.util;
 
 import org.gradle.internal.UncheckedException;
-import org.gradle.messaging.concurrent.DefaultExecutorFactory;
-import org.gradle.messaging.concurrent.ExecutorFactory;
+import org.gradle.internal.concurrent.DefaultExecutorFactory;
+import org.gradle.internal.concurrent.ExecutorFactory;
 
 import java.io.IOException;
 import java.io.InputStream;

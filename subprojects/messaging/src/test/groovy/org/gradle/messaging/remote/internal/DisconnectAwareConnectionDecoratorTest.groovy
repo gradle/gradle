@@ -15,7 +15,7 @@
  */
 package org.gradle.messaging.remote.internal
 
-import org.gradle.messaging.concurrent.DefaultExecutorFactory
+import org.gradle.internal.concurrent.DefaultExecutorFactory
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.CountDownLatch
 
