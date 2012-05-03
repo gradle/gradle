@@ -328,7 +328,7 @@ public class DefaultFileLockManager implements FileLockManager {
         }
 
         private java.nio.channels.FileLock lockInformationRegion(LockMode lockMode, long timeout) throws IOException, InterruptedException {
-            return lockRegion(lockMode, timeout, INFORMATION_REGION_POS, Integer.MAX_VALUE - INFORMATION_REGION_POS);
+            return lockRegion(lockMode, timeout, INFORMATION_REGION_POS, 8190 - INFORMATION_REGION_POS);
         }
 
         private java.nio.channels.FileLock lockRegion(FileLockManager.LockMode lockMode, long timeout, long start, long size) throws IOException, InterruptedException {

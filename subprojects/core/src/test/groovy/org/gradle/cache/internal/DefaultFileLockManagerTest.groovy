@@ -16,6 +16,7 @@
 
 package org.gradle.cache.internal
 
+import org.apache.commons.lang.RandomStringUtils
 import org.gradle.cache.internal.FileLockManager.LockMode
 import org.gradle.internal.Factory
 import org.gradle.util.Requires
@@ -25,7 +26,6 @@ import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
-
 import static org.gradle.cache.internal.FileLockManager.LockMode.Exclusive
 import static org.gradle.cache.internal.FileLockManager.LockMode.Shared
 
@@ -52,23 +52,24 @@ class DefaultFileLockManagerTest extends Specification {
         metaDataProvider.processDisplayName >> 'process'
     }
 
-    @Unroll "#operation throws integrity exception when not cleanly unlocked file"() {
+    @Unroll
+    "#operation throws integrity exception when not cleanly unlocked file"() {
         given:
         unlockUncleanly()
-        
+
         and:
         def lock = createLock()
-        
+
         when:
         lock."$operation"(arg)
-        
+
         then:
         thrown FileIntegrityViolationException
 
         where:
-        operation      | arg
-        "readFile" | {} as Factory
-        "updateFile"  | {} as Runnable
+        operation    | arg
+        "readFile"   | {} as Factory
+        "updateFile" | {} as Runnable
     }
 
     def "writeFile does not throw integrity exception when not cleanly unlocked file"() {
@@ -76,7 +77,7 @@ class DefaultFileLockManagerTest extends Specification {
         unlockUncleanly()
 
         when:
-        createLock().writeFile {  }
+        createLock().writeFile { }
 
         then:
         notThrown FileIntegrityViolationException
@@ -367,6 +368,17 @@ class DefaultFileLockManagerTest extends Specification {
 
         where:
         mode << [Shared, Exclusive]
+    }
+
+    def "fails to acquire lock on lock with lock information > 8kb"() {
+        when:
+        manager.lock(testFileLock, LockMode.Exclusive, "123", RandomStringUtils.randomAlphanumeric(8100))
+        then:
+        notThrown(IllegalStateException)
+        when:
+        manager.lock(testFileLock, LockMode.Exclusive, "123", RandomStringUtils.randomAlphanumeric(8200))
+        then:
+        thrown(IllegalStateException)
     }
 
     private void isEmptyLockFile(TestFile lockFile) {
