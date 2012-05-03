@@ -272,6 +272,8 @@ public class DefaultFileLockManager implements FileLockManager {
                     if (informationRegionLock == null) {
                         throw new IllegalStateException(String.format("Timeout waiting to lock the information region for lock %s", displayName));
                     }
+                    // check that the length of the reserved region is enough for storing our content
+                    assertInformationFitsInRegion(informationRegionLock.size(), metaDataProvider.getProcessIdentifier(), operationDisplayName);
                     try {
                         lockFileAccess.seek(INFORMATION_REGION_POS);
                         lockFileAccess.writeByte(INFORMATION_REGION_PROTOCOL);
@@ -289,6 +291,36 @@ public class DefaultFileLockManager implements FileLockManager {
 
             LOGGER.debug("Lock acquired.");
             return stateRegionLock;
+        }
+
+        private void assertInformationFitsInRegion(long givenSize, String... uftStrings) {
+            int informationsize = 1; // The protocol information byte
+            for (String utfString : uftStrings) {
+                informationsize += calculateUtfSize(utfString);
+            }
+            if (givenSize < informationsize) {
+                throw new IllegalStateException(String.format("locked information region for %s to small to contain content", displayName));
+            }
+        }
+
+        /**
+         * This logic for counting used bytes of UTF encoded String is taken from
+         *
+         * @link java.io.DataOutputStream#writeUTF(String, java.io.DataOutput)
+         */
+        private int calculateUtfSize(String string) {
+            int utflen = 2; //first two bytes giving the number of bytes to follow.
+            for (int i = 0; i < string.length(); i++) {
+                final char c = string.charAt(i);
+                if ((c >= 0x0001) && (c <= 0x007F)) {
+                    utflen++;
+                } else if (c > 0x07FF) {
+                    utflen += 3;
+                } else {
+                    utflen += 2;
+                }
+            }
+            return utflen;
         }
 
         private java.nio.channels.FileLock lockStateRegion(LockMode lockMode, long timeout) throws IOException, InterruptedException {
