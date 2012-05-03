@@ -16,10 +16,11 @@
 
 package org.gradle.messaging.actor;
 
+import org.gradle.internal.Stoppable;
 import org.gradle.internal.concurrent.ThreadSafe;
+import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.messaging.dispatch.DispatchException;
 import org.gradle.messaging.dispatch.MethodInvocation;
-import org.gradle.messaging.dispatch.StoppableDispatch;
 
 /**
  * <p>An {@code Actor} dispatches method calls to a target object in a thread-safe manner. Methods are called either by
@@ -43,7 +44,7 @@ import org.gradle.messaging.dispatch.StoppableDispatch;
  *
  * <p>All implementations of this interface must be thread-safe.</p>
  */
-public interface Actor extends StoppableDispatch<MethodInvocation>, ThreadSafe {
+public interface Actor extends Dispatch<MethodInvocation>, Stoppable, ThreadSafe {
     /**
      * Creates a proxy which delivers method calls to the target object.
      *

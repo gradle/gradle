@@ -21,7 +21,6 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.StoppableExecutor;
-import org.gradle.listener.AsyncListenerBroadcast;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.shutdown.ShutdownHookActionRegister;
@@ -114,7 +113,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
         this.state = ExecHandleState.INIT;
         executor = new DefaultExecutorFactory().create(String.format("Run %s", displayName));
         shutdownHookAction = new ExecHandleShutdownHookAction(this);
-        broadcast = new AsyncListenerBroadcast<ExecHandleListener>(ExecHandleListener.class, executor);
+        broadcast = new ListenerBroadcast<ExecHandleListener>(ExecHandleListener.class);
         broadcast.addAll(listeners);
     }
 
@@ -196,7 +195,6 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
         if (currentState != ExecHandleState.DETACHED && newState != ExecHandleState.DETACHED) {
             broadcast.getSource().executionFinished(this, result);
         }
-        broadcast.stop();
         executor.requestStop();
     }
 

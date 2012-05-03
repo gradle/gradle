@@ -29,7 +29,7 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class BroadcastDispatch<T> implements StoppableDispatch<MethodInvocation> {
+public class BroadcastDispatch<T> implements Dispatch<MethodInvocation> {
     private static final Logger LOGGER = LoggerFactory.getLogger(BroadcastDispatch.class);
     private final Class<T> type;
     private final Map<Object, Dispatch<MethodInvocation>> handlers
@@ -96,9 +96,6 @@ public class BroadcastDispatch<T> implements StoppableDispatch<MethodInvocation>
         } catch (DispatchException t) {
             throw new ListenerNotificationException(getErrorMessage(), t.getCause());
         }
-    }
-
-    public void stop() {
     }
 
     private class ClosureInvocationHandler implements Dispatch<MethodInvocation> {

@@ -30,7 +30,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * {@link #dispatch} queue the message. Worker threads deliver the messages in the order they have been received to one
  * of a pool of delegate {@link org.gradle.messaging.dispatch.Dispatch} instances.</p>
  */
-public class AsyncDispatch<T> implements StoppableDispatch<T>, AsyncStoppable {
+public class AsyncDispatch<T> implements Dispatch<T>, AsyncStoppable {
     private enum State {
         Init, Stopped
     }
