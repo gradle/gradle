@@ -20,6 +20,8 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import spock.lang.IgnoreIf
 import spock.lang.Unroll
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 /**
  * This test is used to check the correct behaviour of gradle when java home is pointing to a JRE.
@@ -113,6 +115,21 @@ class JreJavaHomeIntegratonTest extends AbstractIntegrationSpec {
 
         where:
         forkMode << [false, true]
+    }
+
+    @Requires(TestPrecondition.WINDOWS)
+    def "java compilation works when gradle is started with no java_home defined"() {
+        given:
+        writeJavaTestSource("src/main/java");
+        file('build.gradle') << """
+                apply plugin:'java'
+                """
+        def envVars = System.getenv().findAll { it.key != 'JAVA_HOME' || it.key != 'Path'}
+        envVars.put("Path", "C:\\Windows\\System32")
+        when:
+        executer.withEnvironmentVars(envVars).withTasks("compileJava").run()
+        then:
+        file("build/classes/main/org/test/JavaClazz.class").exists()
     }
 
 
