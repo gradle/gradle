@@ -370,13 +370,13 @@ class DefaultFileLockManagerTest extends Specification {
         mode << [Shared, Exclusive]
     }
 
-    def "fails to acquire lock on lock with lock information > 8kb"() {
+    def "fails to acquire lock with lock information > 1k"() {
         when:
-        manager.lock(testFileLock, LockMode.Exclusive, "123", RandomStringUtils.randomAlphanumeric(8100))
+        manager.lock(testFileLock, LockMode.Exclusive, "123", RandomStringUtils.randomAlphanumeric(700))
         then:
         notThrown(IllegalStateException)
         when:
-        manager.lock(testFileLock, LockMode.Exclusive, "123", RandomStringUtils.randomAlphanumeric(8200))
+        manager.lock(testFileLock, LockMode.Exclusive, "123", RandomStringUtils.randomAlphanumeric(1100))
         then:
         thrown(IllegalStateException)
     }

@@ -42,6 +42,7 @@ public class DefaultFileLockManager implements FileLockManager {
     private static final int STATE_REGION_POS = 0;
     private static final byte INFORMATION_REGION_PROTOCOL = 2;
     private static final int INFORMATION_REGION_POS = STATE_REGION_POS + STATE_REGION_SIZE;
+    public static final int INFORMATION_REGION_SIZE = 1024;
     private final Set<File> lockedFiles = new CopyOnWriteArraySet<File>();
     private final ProcessMetaDataProvider metaDataProvider;
 
@@ -328,7 +329,7 @@ public class DefaultFileLockManager implements FileLockManager {
         }
 
         private java.nio.channels.FileLock lockInformationRegion(LockMode lockMode, long timeout) throws IOException, InterruptedException {
-            return lockRegion(lockMode, timeout, INFORMATION_REGION_POS, 8190 - INFORMATION_REGION_POS);
+            return lockRegion(lockMode, timeout, INFORMATION_REGION_POS, INFORMATION_REGION_SIZE - INFORMATION_REGION_POS);
         }
 
         private java.nio.channels.FileLock lockRegion(FileLockManager.LockMode lockMode, long timeout, long start, long size) throws IOException, InterruptedException {
