@@ -772,7 +772,6 @@ public interface Project extends Comparable<Project>, ExtensionAware {
      * queried. The file tree is also live, so that it scans for files each time the contents of the file tree are
      * queried.</p>
      *
-     * @deprecated Use {@link #fileTree(Object,Closure)} instead.
      * @param baseDir The base directory of the file tree. Evaluated as for {@link #file(Object)}.
      * @return the file tree. Never returns null.
      */
@@ -831,9 +830,11 @@ public interface Project extends Comparable<Project>, ExtensionAware {
      * queried. The file tree is also live, so that it scans for files each time the contents of the file tree are
      * queried.</p>
      *
+     * @deprecated Use {@link #fileTree(Object,Closure)} instead.
      * @param closure Closure to configure the {@code ConfigurableFileTree} object
      * @return the configured file tree. Never returns null.
      */
+    @Deprecated
     ConfigurableFileTree fileTree(Closure closure);
 
     /**
