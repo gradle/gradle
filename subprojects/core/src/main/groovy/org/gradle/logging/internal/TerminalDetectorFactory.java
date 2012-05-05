@@ -37,7 +37,7 @@ public class TerminalDetectorFactory {
             jnaBootPathConfigurer.configure();
             return new NativeServices().get(TerminalDetector.class);
         } catch (NativeIntegrationUnavailableException e) {
-            LOGGER.info("Unable to initialise the native integration for current platform: " + OperatingSystem.current() + ". Details: " + e.getMessage());
+            LOGGER.debug("Unable to initialise the native integration for current platform: " + OperatingSystem.current() + ". Details: " + e.getMessage());
             return new NoOpTerminalDetector();
         }
     }
