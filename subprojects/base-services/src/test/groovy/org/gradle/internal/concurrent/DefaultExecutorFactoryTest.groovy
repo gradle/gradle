@@ -13,23 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
 package org.gradle.internal.concurrent
 
-import static org.hamcrest.Matchers.*
-
-import java.util.concurrent.ExecutorService
 import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.MultithreadedTestCase
 import org.jmock.integration.junit4.JMock
 import org.junit.After
 import org.junit.Test
 import org.junit.runner.RunWith
-import static org.junit.Assert.*
+
+import java.util.concurrent.ExecutorService
 import java.util.concurrent.TimeUnit
-import org.gradle.internal.concurrent.DefaultExecutorFactory
 
 @RunWith(JMock)
 class DefaultExecutorFactoryTest extends MultithreadedTestCase {
