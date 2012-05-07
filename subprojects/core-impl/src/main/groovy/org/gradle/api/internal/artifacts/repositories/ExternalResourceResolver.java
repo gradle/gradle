@@ -204,11 +204,7 @@ public class ExternalResourceResolver extends BasicResolver {
                     continue;
                 }
                 ModuleDescriptor md = parsedResource.getResolvedModuleRevision().getDescriptor();
-                if (md.isDefault()) {
-                    LOGGER.debug(name + ": default md rejected by version matcher requiring module descriptor: " + description);
-                    discardResource(resource);
-                    continue;
-                } else if (!versionMatcher.accept(mrid, md)) {
+                if (!versionMatcher.accept(mrid, md)) {
                     LOGGER.debug(name + ": md rejected by version matcher: " + description);
                     discardResource(resource);
                     continue;
