@@ -16,6 +16,8 @@
 
 package org.gradle.process.internal;
 
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.process.internal.streams.StreamsHandler;
 
 import java.util.concurrent.locks.Lock;
@@ -26,13 +28,15 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class ExecHandleRunner {
     private static final Object START_LOCK = new Object();
+    private static final Logger LOGGER = Logging.getLogger(ExecHandleRunner.class);
+
     private final ProcessBuilderFactory processBuilderFactory;
     private final DefaultExecHandle execHandle;
     private final Lock lock = new ReentrantLock();
-    private final StreamsHandler streamsHandler;
 
     private Process process;
     private boolean aborted;
+    private final StreamsHandler streamsHandler;
 
     public ExecHandleRunner(DefaultExecHandle execHandle, StreamsHandler streamsHandler) {
         if (execHandle == null) {
@@ -84,36 +88,71 @@ public class ExecHandleRunner {
         }
     }
 
-    public void waitUntilDemonized() {
-        try {
-            streamsHandler.stop();
-            try {
-                int exitValue = process.exitValue();
-                execHandle.finished(exitValue);
-                return;
-            } catch (IllegalThreadStateException e) {
-                //cool, it means the process is still running.
+    public void waitUntilStreamsHandled() {
+        Runnable waitFor = new Runnable() {
+            public void run() {
+                Integer exitValue;
+                try {
+                    LOGGER.debug("waiting until streams are handled...");
+                    streamsHandler.stop();
+                    exitValue = exitValue();
+                } catch (Throwable t) {
+                    execHandle.failed(t);
+                    return;
+                }
+                if (exitValue != null) {
+                    LOGGER.debug("Completed waiting for streams handling. The process already exited with: " + exitValue);
+                    completed(exitValue);
+                } else {
+                    LOGGER.debug("Completed waiting for streams handling. The process still runs.");
+                    execHandle.detached();
+                }
             }
-            execHandle.detached();
-        } catch (Throwable t) {
-            execHandle.failed(t);
-        }
+        };
+        new TimeKeepingExecuter().execute(waitFor, abortOnTimeout(), execHandle.getTimeout(), "Handling streams for: " + execHandle.getDisplayName());
     }
 
     public void waitForFinish() {
-        int exitCode;
-        try {
-            exitCode = process.waitFor();
-            streamsHandler.stop();
-        } catch (Throwable t) {
-            execHandle.failed(t);
-            return;
-        }
+        Runnable waitFor = new Runnable() {
+            public void run() {
+                int exitCode;
+                try {
+                    LOGGER.debug("waiting until completed {}", execHandle.getDisplayName());
+                    exitCode = process.waitFor();
+                    LOGGER.debug("waiting until streams are handled...");
+                    streamsHandler.stop();
+                } catch (Throwable t) {
+                    execHandle.failed(t);
+                    return;
+                }
+                completed(exitCode);
+            }
+        };
+        new TimeKeepingExecuter().execute(waitFor, abortOnTimeout(), execHandle.getTimeout(), "Running: " + execHandle.getDisplayName());
+    }
 
-        if (aborted) {
-            execHandle.aborted(exitCode);
-        } else {
-            execHandle.finished(exitCode);
+    private Integer exitValue() {
+        try {
+            return process.exitValue();
+        } catch (IllegalThreadStateException e) {
+            //the process is still running.
+            return null;
         }
+    }
+
+    private void completed(int exitValue) {
+        if (aborted) {
+            execHandle.aborted(exitValue);
+        } else {
+            execHandle.finished(exitValue);
+        }
+    }
+
+    private Runnable abortOnTimeout() {
+        return new Runnable() {
+            public void run() {
+                abortProcess();
+            }
+        };
     }
 }

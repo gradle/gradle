@@ -56,6 +56,22 @@ class DefaultExecHandleSpec extends Specification {
         result.assertNormalExitValue()
     }
 
+    void "waiting for process returns quickly if process already completed"() {
+        given:
+        def execHandle = handle()
+                .args(args(TestApp.class))
+                .build();
+
+        def handle = execHandle.start()
+
+        when:
+        handle.waitForFinish();
+        handle.waitForFinish();
+
+        then:
+        execHandle.state == ExecHandleState.SUCCEEDED
+    }
+
     void "understands when application exits with non-zero"() {
         given:
         def execHandle = handle().args(args(BrokenApp.class)).build();
@@ -152,10 +168,9 @@ class DefaultExecHandleSpec extends Specification {
         execHandle.abort()
     }
 
-    void "can detach and then wait for finish"() {
+    void "can detach from long daemon and then wait for finish"() {
         def out = new ByteArrayOutputStream()
-        ExecHandleListener listener = Mock()
-        def execHandle = handle().listener(listener).setStandardOutput(out).args(args(FastDaemonApp.class)).build();
+        def execHandle = handle().setStandardOutput(out).args(args(SlowDaemonApp.class, "200")).build();
 
         when:
         execHandle.start();
@@ -165,6 +180,19 @@ class DefaultExecHandleSpec extends Specification {
         out.toString().contains "I'm the daemon"
 
         when:
+        execHandle.waitForFinish()
+
+        then:
+        execHandle.state == ExecHandleState.SUCCEEDED
+    }
+
+    void "can detach from fast app then wait for finish"() {
+        def out = new ByteArrayOutputStream()
+        def execHandle = handle().setStandardOutput(out).args(args(TestApp.class)).build();
+
+        when:
+        execHandle.start();
+        execHandle.detach();
         execHandle.waitForFinish()
 
         then:
@@ -218,9 +246,37 @@ class DefaultExecHandleSpec extends Specification {
         0 * streamsHandler._
     }
 
+    void "exec handle can detach with timeout"() {
+        given:
+        def execHandle = handle().args(args(SlowApp.class)).setTimeout(1).build();
+
+        when:
+        execHandle.start()
+        def detachResult = execHandle.detach()
+
+        then:
+        detachResult.processCompleted
+        detachResult.execResult.exitValue != 0
+        execHandle.state == ExecHandleState.ABORTED
+    }
+
+    void "exec handle can wait with timeout"() {
+        given:
+        def execHandle = handle().args(args(SlowApp.class)).setTimeout(1).build();
+
+        when:
+        execHandle.start()
+        def result = execHandle.waitForFinish()
+
+        then:
+        result.exitValue != 0
+        execHandle.state == ExecHandleState.ABORTED
+    }
+
     private ExecHandleBuilder handle() {
         new ExecHandleBuilder()
                 .executable(Jvm.current().getJavaExecutable().getAbsolutePath())
+                .setTimeout(20000) //sanity timeout
                 .workingDir(tmpDir.getDir());
     }
 
@@ -252,7 +308,8 @@ class DefaultExecHandleSpec extends Specification {
             System.out.println("I'm the daemon");
             System.out.close();
             System.err.close();
-            Thread.sleep(10000L);
+            int napTime = (args.length == 0) ? 10000L : Integer.valueOf(args[0])
+            Thread.sleep(napTime);
         }
     }
 
