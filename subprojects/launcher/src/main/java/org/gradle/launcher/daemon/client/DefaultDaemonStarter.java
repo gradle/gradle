@@ -19,6 +19,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.launcher.daemon.DaemonExecHandleBuilder;
 import org.gradle.launcher.daemon.bootstrap.DaemonGreeter;
 import org.gradle.launcher.daemon.bootstrap.DaemonOutputConsumer;
 import org.gradle.launcher.daemon.bootstrap.GradleDaemon;
@@ -28,7 +29,6 @@ import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.process.internal.DetachResult;
 import org.gradle.process.internal.ExecHandle;
-import org.gradle.process.internal.ExecHandleBuilder;
 import org.gradle.util.Clock;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
@@ -96,18 +96,9 @@ public class DefaultDaemonStarter implements DaemonStarter {
         Clock clock = new Clock();
         try {
             workingDir.mkdirs();
-            ExecHandleBuilder builder = new ExecHandleBuilder();
-
-            builder.commandLine(args);
-            builder.setWorkingDir(workingDir);
-            builder.redirectErrorStream();
-            builder.setTimeout(30000);
-            builder.setDisplayName("Gradle build daemon");
 
             DaemonOutputConsumer outputConsumer = new DaemonOutputConsumer();
-            builder.streamsHandler(outputConsumer);
-
-            ExecHandle handle = builder.build();
+            ExecHandle handle = new DaemonExecHandleBuilder().build(args, workingDir, outputConsumer);
 
             handle.start();
             LOGGER.debug("Gradle daemon process is starting. Waiting for the daemon to detach...");
