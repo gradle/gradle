@@ -158,14 +158,6 @@ public class Jvm implements JavaInfo {
     }
 
     /**
-     * @return short name of the system java, example: "1.6"
-     */
-    public String getShortJavaName() {
-        String ver = SystemProperties.getJavaVersion();
-        return ver.length() >= 3? ver.substring(0, 3) : ver;
-    }
-
-    /**
      * @return the {@link JavaVersion} information
      */
     public JavaVersion getJavaVersion() {

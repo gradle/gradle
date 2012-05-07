@@ -16,7 +16,6 @@
 
 package org.gradle.internal.jvm
 
-import org.gradle.internal.SystemProperties
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.TemporaryFolder
@@ -47,11 +46,6 @@ class JvmTest extends Specification {
         5       | 6      | 7
         6       | 7      | 5
         7       | 5      | 6
-    }
-
-    def "provides short java name"() {
-        expect:
-        SystemProperties.javaVersion.startsWith(Jvm.current().shortJavaName)
     }
 
     def "looks for runtime Jar in Java home directory"() {

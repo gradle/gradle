@@ -18,9 +18,8 @@ package org.gradle.plugins.ide.idea;
 
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
-import org.gradle.internal.reflect.Instantiator
 import org.gradle.api.plugins.JavaPlugin
-import org.gradle.internal.jvm.Jvm
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.plugins.ide.api.XmlFileContentMerger
 import org.gradle.plugins.ide.idea.internal.IdeaNameDeduper
 import org.gradle.plugins.ide.internal.IdePlugin
@@ -112,7 +111,7 @@ class IdeaPlugin extends IdePlugin {
                 model.project = ideaProject
 
                 ideaProject.outputFile = new File(project.projectDir, project.name + ".ipr")
-                ideaProject.conventionMapping.jdkName = { Jvm.current().getShortJavaName() }
+                ideaProject.conventionMapping.jdkName = { JavaVersion.current().toString() }
                 ideaProject.conventionMapping.languageLevel = { new IdeaLanguageLevel(JavaVersion.VERSION_1_6) }
                 ideaProject.wildcards = ['!?*.java', '!?*.groovy'] as Set
                 ideaProject.conventionMapping.modules = {
