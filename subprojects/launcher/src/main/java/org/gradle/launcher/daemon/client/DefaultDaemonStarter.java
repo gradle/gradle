@@ -101,6 +101,8 @@ public class DefaultDaemonStarter implements DaemonStarter {
             builder.commandLine(args);
             builder.setWorkingDir(workingDir);
             builder.redirectErrorStream();
+            builder.setTimeout(30000);
+            builder.setDisplayName("Gradle build daemon");
 
             DaemonOutputConsumer outputConsumer = new DaemonOutputConsumer();
             builder.streamsHandler(outputConsumer);

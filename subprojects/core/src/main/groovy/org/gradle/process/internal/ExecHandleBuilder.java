@@ -142,4 +142,9 @@ public class ExecHandleBuilder extends AbstractExecHandleBuilder implements Exec
         super.listener(listener);
         return this;
     }
+
+    public ExecHandleBuilder setTimeout(int timeoutMillis) {
+        super.setTimeout(timeoutMillis);
+        return this;
+    }
 }

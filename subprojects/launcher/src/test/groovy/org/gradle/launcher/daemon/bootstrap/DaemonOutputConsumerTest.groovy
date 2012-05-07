@@ -77,7 +77,7 @@ class DaemonOutputConsumerTest extends Specification {
 
     def "starting is required"() {
         when:
-        consumer.connectStreams(new ByteArrayInputStream('hey Joe!'.bytes) , "cool process")
+        consumer.connectStreams(new ByteArrayInputStream(new byte[0]) , "cool process")
 
         then:
         illegalStateReportedWhen {consumer.stop()}
@@ -86,7 +86,7 @@ class DaemonOutputConsumerTest extends Specification {
 
     def "stopping is required"() {
         when:
-        consumer.connectStreams(new ByteArrayInputStream('hey Joe!'.bytes) , "cool process")
+        consumer.connectStreams(new ByteArrayInputStream(new byte[0]) , "cool process")
         consumer.start()
 
         then:
@@ -96,7 +96,7 @@ class DaemonOutputConsumerTest extends Specification {
     void illegalStateReportedWhen(Closure action) {
         try {
             action()
-            assert false : "Looking for IllegalArgumentException"
-        } catch (IllegalArgumentException) {}
+            assert false
+        } catch (IllegalStateException) {}
     }
 }

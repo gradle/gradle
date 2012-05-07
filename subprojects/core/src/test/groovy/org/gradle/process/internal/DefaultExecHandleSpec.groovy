@@ -25,10 +25,12 @@ import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Specification
+import spock.lang.Timeout
 
 /**
- * @author Tom Eyckmans
+ * @author Tom Eyckmans, Szczepan Faber
  */
+@Timeout(60)
 class DefaultExecHandleSpec extends Specification {
     @Rule final TemporaryFolder tmpDir = new TemporaryFolder();
 
@@ -52,6 +54,22 @@ class DefaultExecHandleSpec extends Specification {
         out.toString() == "output args: [arg1, arg2]"
         err.toString() == "error args: [arg1, arg2]"
         result.assertNormalExitValue()
+    }
+
+    void "waiting for process returns quickly if process already completed"() {
+        given:
+        def execHandle = handle()
+                .args(args(TestApp.class))
+                .build();
+
+        def handle = execHandle.start()
+
+        when:
+        handle.waitForFinish();
+        handle.waitForFinish();
+
+        then:
+        execHandle.state == ExecHandleState.SUCCEEDED
     }
 
     void "understands when application exits with non-zero"() {
@@ -132,10 +150,10 @@ class DefaultExecHandleSpec extends Specification {
         result.exitValue != 0
     }
 
-    void "can detach and then wait for finish"() {
+    void "detaching does not trigger 'finished' notification"() {
         def out = new ByteArrayOutputStream()
         ExecHandleListener listener = Mock()
-        def execHandle = handle().listener(listener).setStandardOutput(out).args(args(FastDaemonApp.class)).build();
+        def execHandle = handle().listener(listener).setStandardOutput(out).args(args(SlowDaemonApp.class)).build();
 
         when:
         execHandle.start();
@@ -144,9 +162,37 @@ class DefaultExecHandleSpec extends Specification {
         then:
         out.toString().contains "I'm the daemon"
         1 * listener.executionStarted(execHandle)
-        0 * listener._
+        0 * listener.executionFinished(_, _)
+
+        cleanup:
+        execHandle.abort()
+    }
+
+    void "can detach from long daemon and then wait for finish"() {
+        def out = new ByteArrayOutputStream()
+        def execHandle = handle().setStandardOutput(out).args(args(SlowDaemonApp.class, "200")).build();
 
         when:
+        execHandle.start();
+        execHandle.detach();
+
+        then:
+        out.toString().contains "I'm the daemon"
+
+        when:
+        execHandle.waitForFinish()
+
+        then:
+        execHandle.state == ExecHandleState.SUCCEEDED
+    }
+
+    void "can detach from fast app then wait for finish"() {
+        def out = new ByteArrayOutputStream()
+        def execHandle = handle().setStandardOutput(out).args(args(TestApp.class)).build();
+
+        when:
+        execHandle.start();
+        execHandle.detach();
         execHandle.waitForFinish()
 
         then:
@@ -200,9 +246,37 @@ class DefaultExecHandleSpec extends Specification {
         0 * streamsHandler._
     }
 
+    @Timeout(2)
+    void "exec handle can detach with timeout"() {
+        given:
+        def execHandle = handle().args(args(SlowApp.class)).setTimeout(1).build();
+
+        when:
+        execHandle.start()
+        def result = execHandle.detach()
+
+        then:
+        result
+        //the timeout does not hit
+    }
+
+    void "exec handle can wait with timeout"() {
+        given:
+        def execHandle = handle().args(args(SlowApp.class)).setTimeout(1).build();
+
+        when:
+        execHandle.start()
+        def result = execHandle.waitForFinish()
+
+        then:
+        result.exitValue != 0
+        execHandle.state == ExecHandleState.ABORTED
+    }
+
     private ExecHandleBuilder handle() {
         new ExecHandleBuilder()
                 .executable(Jvm.current().getJavaExecutable().getAbsolutePath())
+                .setTimeout(20000) //sanity timeout
                 .workingDir(tmpDir.getDir());
     }
 
@@ -234,7 +308,8 @@ class DefaultExecHandleSpec extends Specification {
             System.out.println("I'm the daemon");
             System.out.close();
             System.err.close();
-            Thread.sleep(10000L);
+            int napTime = (args.length == 0) ? 10000L : Integer.valueOf(args[0])
+            Thread.sleep(napTime);
         }
     }
 
