@@ -71,8 +71,36 @@ public enum JavaVersion {
         return toVersion(SystemProperties.getJavaVersion());
     }
 
+    public boolean isJava5() {
+        return getName().startsWith("1.5");
+    }
+
+    public boolean isJava6() {
+        return getName().startsWith("1.6");
+    }
+
+    public boolean isJava7() {
+        return getName().startsWith("1.7");
+    }
+
+    public boolean isJava5Compatible() {
+        return isJava5() || isJava6Compatible();
+    }
+
+    public boolean isJava6Compatible() {
+        return isJava6() || isJava7Compatible();
+    }
+
+    public boolean isJava7Compatible() {
+        return isJava7();
+    }
+
     @Override
     public String toString() {
+        return getName();
+    }
+
+    private String getName() {
         return name().substring("VERSION_".length()).replace('_', '.');
     }
 }

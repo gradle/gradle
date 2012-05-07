@@ -15,9 +15,14 @@
  */
 package org.gradle.api;
 
-import spock.lang.Specification;
+
+import org.gradle.util.SetSystemProperties
+import org.junit.Rule
+import spock.lang.Specification
 
 public class JavaVersionSpec extends Specification {
+
+    @Rule SetSystemProperties sysProp = new SetSystemProperties()
     
     def toStringReturnsVersion() {
         expect:
@@ -100,5 +105,32 @@ public class JavaVersionSpec extends Specification {
         } catch (IllegalArgumentException e) {
             assert e.getMessage() == "Could not determine java version from '" + value + "'."
         }
+    }
+
+    def "uses system property to determine if compatible with Java 5"() {
+        System.properties['java.version'] = '1.5'
+
+        expect:
+        JavaVersion.current().java5Compatible
+        !JavaVersion.current().java6Compatible
+        !JavaVersion.current().java7Compatible
+    }
+
+    def "uses system property to determine if compatible with Java 6"() {
+        System.properties['java.version'] = '1.6'
+
+        expect:
+        JavaVersion.current().java5Compatible
+        JavaVersion.current().java6Compatible
+        !JavaVersion.current().java7Compatible
+    }
+
+    def "uses system property to determine if compatible with Java 7"() {
+        System.properties['java.version'] = '1.7'
+
+        expect:
+        JavaVersion.current().java5Compatible
+        JavaVersion.current().java6Compatible
+        JavaVersion.current().java7Compatible
     }
 }

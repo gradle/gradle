@@ -18,7 +18,10 @@ package org.gradle.integtests.fixtures;
 
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.util.*;
+import org.gradle.util.GradleVersion;
+import org.gradle.util.TemporaryFolder;
+import org.gradle.util.TestFile;
+import org.gradle.util.TestFileContext;
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
@@ -65,7 +68,7 @@ public class GradleDistribution implements MethodRule, TestFileContext, BasicGra
 
     public boolean worksWith(Jvm jvm) {
         // Works with anything >= Java 5
-        return jvm.isJava5Compatible();
+        return jvm.getJavaVersion().isJava5Compatible();
     }
 
     public boolean worksWith(OperatingSystem os) {

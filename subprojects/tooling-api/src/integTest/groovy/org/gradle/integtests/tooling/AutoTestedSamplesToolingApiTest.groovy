@@ -16,19 +16,19 @@
 
 package org.gradle.integtests.tooling
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AutoTestedSamplesUtil
-import org.gradle.internal.jvm.Jvm
+import org.gradle.tooling.model.Element
+import org.gradle.util.ClasspathUtil
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Specification
-import org.gradle.util.ClasspathUtil
-import org.gradle.tooling.model.Element
 
 /**
  * by Szczepan Faber, created at: 1/5/12
  */
-@IgnoreIf({!Jvm.current().java6Compatible})
+@IgnoreIf({!JavaVersion.current().java6Compatible})
 public class AutoTestedSamplesToolingApiTest extends Specification {
 
     @Rule public final TemporaryFolder temp = new TemporaryFolder()

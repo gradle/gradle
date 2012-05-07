@@ -38,9 +38,9 @@ class JvmTest extends Specification {
         System.properties['java.version'] = "1.$version" as String
 
         expect:
-        jvm."java$version"
-        !jvm."java$other1"
-        !jvm."java$other2"
+        jvm.javaVersion."java$version"
+        !jvm.javaVersion."java$other1"
+        !jvm.javaVersion."java$other2"
 
         where:
         version | other1 | other2
@@ -52,33 +52,6 @@ class JvmTest extends Specification {
     def "provides short java name"() {
         expect:
         SystemProperties.javaVersion.startsWith(Jvm.current().shortJavaName)
-    }
-
-    def "uses system property to determine if compatible with Java 5"() {
-        System.properties['java.version'] = '1.5'
-
-        expect:
-        jvm.java5Compatible
-        !jvm.java6Compatible
-        !jvm.java7Compatible
-    }
-
-    def "uses system property to determine if compatible with Java 6"() {
-        System.properties['java.version'] = '1.6'
-
-        expect:
-        jvm.java5Compatible
-        jvm.java6Compatible
-        !jvm.java7Compatible
-    }
-
-    def "uses system property to determine if compatible with Java 7"() {
-        System.properties['java.version'] = '1.7'
-
-        expect:
-        jvm.java5Compatible
-        jvm.java6Compatible
-        jvm.java7Compatible
     }
 
     def "looks for runtime Jar in Java home directory"() {

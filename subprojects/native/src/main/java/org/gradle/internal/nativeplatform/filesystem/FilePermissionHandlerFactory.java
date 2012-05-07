@@ -18,8 +18,8 @@ package org.gradle.internal.nativeplatform.filesystem;
 
 import com.sun.jna.LastErrorException;
 import com.sun.jna.Native;
+import org.gradle.api.JavaVersion;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.nativeplatform.jna.LibC;
 import org.gradle.internal.os.OperatingSystem;
 import org.slf4j.Logger;
@@ -33,7 +33,7 @@ public class FilePermissionHandlerFactory {
     private static final Logger LOGGER = LoggerFactory.getLogger(FilePermissionHandlerFactory.class);
 
     public static FilePermissionHandler createDefaultFilePermissionHandler() {
-        if (Jvm.current().isJava7() && !OperatingSystem.current().isWindows()) {
+        if (JavaVersion.current().isJava7() && !OperatingSystem.current().isWindows()) {
             String jdkFilePermissionclass = "org.gradle.internal.nativeplatform.filesystem.jdk7.PosixJdk7FilePermissionHandler";
             try {
                 return (FilePermissionHandler) FilePermissionHandler.class.getClassLoader().loadClass(jdkFilePermissionclass).newInstance();

@@ -15,9 +15,9 @@
  */
 package org.gradle.integtests.fixtures;
 
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.util.GFileUtils;
-import org.gradle.internal.jvm.Jvm;
 
 import java.io.File;
 
@@ -36,9 +36,9 @@ abstract public class AvailableJavaHomes {
 
         // Use environment variables
         File javaHome = null;
-        if (jvm.isJava6Compatible()) {
+        if (jvm.getJavaVersion().isJava6Compatible()) {
             javaHome = firstAvailable("15", "17");
-        } else if (jvm.isJava5Compatible()) {
+        } else if (jvm.getJavaVersion().isJava5Compatible()) {
             javaHome = firstAvailable("16", "17");
         }
         if (javaHome != null) {
@@ -72,10 +72,10 @@ abstract public class AvailableJavaHomes {
             File[] files = installedJavas.listFiles();
             for (File file : files) {
                 if (file.getName().startsWith("jdk")) {
-                    if (jvm.isJava6() && !file.getName().contains("1.6")) {
+                    if (jvm.getJavaVersion().isJava6() && !file.getName().contains("1.6")) {
                         return file;
                     }
-                    if (jvm.isJava7() && !file.getName().contains("1.7")) {
+                    if (jvm.getJavaVersion().isJava7() && !file.getName().contains("1.7")) {
                         return file;
                     }
                 }
@@ -90,9 +90,9 @@ abstract public class AvailableJavaHomes {
 
         // Use environment variables
         File jreHome = null;
-        if (jvm.isJava6Compatible()) {
+        if (jvm.getJavaVersion().isJava6Compatible()) {
             jreHome = firstAvailableJRE("15", "17");
-        } else if (jvm.isJava5Compatible()) {
+        } else if (jvm.getJavaVersion().isJava5Compatible()) {
             jreHome = firstAvailableJRE();
         }
         if (jreHome != null) {
@@ -126,10 +126,10 @@ abstract public class AvailableJavaHomes {
             File[] files = installedJavas.listFiles();
             for (File file : files) {
                 if (file.getName().startsWith("jre")) {
-                    if (jvm.isJava6() && !file.getName().contains("1.6")) {
+                    if (jvm.getJavaVersion().isJava6() && !file.getName().contains("1.6")) {
                         return file;
                     }
-                    if (jvm.isJava7() && !file.getName().contains("1.7")) {
+                    if (jvm.getJavaVersion().isJava7() && !file.getName().contains("1.7")) {
                         return file;
                     }
                 }

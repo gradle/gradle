@@ -48,23 +48,23 @@ public class Jvm implements JavaInfo {
     }
 
     public boolean isJava5() {
-        return jvm.isJava5();
+        return jvm.getJavaVersion().isJava5();
     }
 
     public boolean isJava6() {
-        return jvm.isJava6();
+        return jvm.getJavaVersion().isJava6();
     }
 
     public boolean isJava7() {
-        return jvm.isJava7();
+        return jvm.getJavaVersion().isJava7();
     }
 
     public boolean isJava5Compatible() {
-        return jvm.isJava5Compatible();
+        return jvm.getJavaVersion().isJava5Compatible();
     }
 
     public boolean isJava6Compatible() {
-        return jvm.isJava6Compatible();
+        return jvm.getJavaVersion().isJava6Compatible();
     }
 
     public File getJavaHome() {
