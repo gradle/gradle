@@ -18,6 +18,9 @@ package org.gradle.process.internal;
 
 import org.gradle.process.internal.streams.StreamsHandler;
 
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 /**
  * @author Tom Eyckmans
  */
@@ -25,10 +28,11 @@ public class ExecHandleRunner {
     private static final Object START_LOCK = new Object();
     private final ProcessBuilderFactory processBuilderFactory;
     private final DefaultExecHandle execHandle;
-    private final Object lock;
+    private final Lock lock = new ReentrantLock();
+    private final StreamsHandler streamsHandler;
+
     private Process process;
     private boolean aborted;
-    private final StreamsHandler streamsHandler;
 
     public ExecHandleRunner(DefaultExecHandle execHandle, StreamsHandler streamsHandler) {
         if (execHandle == null) {
@@ -37,15 +41,17 @@ public class ExecHandleRunner {
         this.streamsHandler = streamsHandler;
         this.processBuilderFactory = new ProcessBuilderFactory();
         this.execHandle = execHandle;
-        this.lock = new Object();
     }
 
     public void abortProcess() {
-        synchronized (lock) {
+        lock.lock();
+        try {
             aborted = true;
             if (process != null) {
                 process.destroy();
             }
+        } finally {
+            lock.unlock();
         }
     }
 
@@ -60,14 +66,21 @@ public class ExecHandleRunner {
                 process = processBuilder.start();
                 streamsHandler.connectStreams(process, execHandle.getDisplayName());
             }
-            synchronized (lock) {
-                this.process = process;
-            }
+            setProcess(process);
 
             streamsHandler.start();
             execHandle.started();
         } catch (Throwable t) {
             execHandle.failed(t);
+        }
+    }
+
+    private void setProcess(Process process) {
+        lock.lock();
+        try {
+            this.process = process;
+        } finally {
+            lock.unlock();
         }
     }
 
