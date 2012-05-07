@@ -63,6 +63,7 @@ public class TimeKeepingExecuter {
                 try {
                     condition.await(timeoutMillis, TimeUnit.MILLISECONDS);
                     if (!completed) {
+                        LOGGER.debug("Timeout ({} millis) hit while running {}.", timeoutMillis, displayName);
                         onTimeout.run();
                     }
                 } catch (InterruptedException e) {

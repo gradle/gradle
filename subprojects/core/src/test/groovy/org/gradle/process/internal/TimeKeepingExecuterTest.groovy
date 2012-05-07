@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+
+
 package org.gradle.process.internal
 
 import spock.lang.Specification
@@ -22,7 +24,7 @@ import spock.lang.Timeout
 /**
  * by Szczepan Faber, created at: 4/29/12
  */
-@Timeout(20000)
+@Timeout(20)
 class TimeKeepingExecuterTest extends Specification {
 
     def executer = new TimeKeepingExecuter()

@@ -368,6 +368,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
             return execResult;
         }
 
+        //TODO SF - improve execResult does not mean the process has completed.
         public boolean isProcessCompleted() {
             return execResult!=null;
         }
