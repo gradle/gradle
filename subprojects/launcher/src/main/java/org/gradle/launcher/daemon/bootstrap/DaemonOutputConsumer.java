@@ -40,6 +40,14 @@ public class DaemonOutputConsumer implements StreamsHandler {
     DaemonStartupCommunication startupCommunication = new DaemonStartupCommunication();
     private String processOutput;
 
+    public void connectStreams(final Process process, String processName) {
+        if (process == null || processName == null) {
+            throw new IllegalArgumentException("Cannot connect streams because provided process or its name is null");
+        }
+        final InputStream inputStream = process.getInputStream();
+        connectStreams(inputStream, processName);
+    }
+
     public void start() {
         if (executor == null || streamConsumer == null) {
             throw new IllegalStateException("Cannot start consuming daemon output because streams have not been connected first.");
@@ -47,14 +55,6 @@ public class DaemonOutputConsumer implements StreamsHandler {
         LOGGER.debug("Starting consuming the daemon process output.");
         output = new StringWriter();
         executor.execute(streamConsumer);
-    }
-
-    public void connectStreams(final Process process, String processName) {
-        if (process == null || processName == null) {
-            throw new IllegalArgumentException("Cannot connect streams because provided process or its name is null");
-        }
-        final InputStream inputStream = process.getInputStream();
-        connectStreams(inputStream, processName);
     }
 
     void connectStreams(final InputStream inputStream, String processName) {
@@ -81,14 +81,14 @@ public class DaemonOutputConsumer implements StreamsHandler {
 
     public String getProcessOutput() {
         if (processOutput == null) {
-            throw new IllegalArgumentException("Unable to get process output as consuming has not finished yet.");
+            throw new IllegalStateException("Unable to get process output as consuming has not finished yet.");
         }
         return processOutput;
     }
 
     public void stop() {
         if (executor == null || output == null) {
-            throw new IllegalArgumentException("Unable to stop output consumer. Was it started?.");
+            throw new IllegalStateException("Unable to stop output consumer. Was it started?.");
         }
         executor.stop();
         processOutput = output.toString();
