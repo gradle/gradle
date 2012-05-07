@@ -17,8 +17,8 @@ package org.gradle.api;
 
 import org.gradle.internal.SystemProperties;
 
-import java.util.regex.Pattern;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * An enumeration of Java versions.
