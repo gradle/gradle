@@ -32,6 +32,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -139,15 +140,18 @@ public class DefaultPersistentDirectoryCacheTest {
     @Test
     public void exceptionThrownIfValidCacheCannotBeInitd() {
         TestFile dir = createCacheDir();
-        final CacheValidator invalidator = context.mock(CacheValidator.class);
 
         context.checking(new Expectations() {{
             allowing(action).execute(with(notNullValue(PersistentCache.class)));
-            allowing(invalidator).isValid();
-            will(returnValue(false));
         }});
 
-        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, "<display-name>", CacheUsage.ON, invalidator, properties, LockMode.Shared, action, lockManager);
+        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, "<display-name>", CacheUsage.ON, null, properties, LockMode.Shared, action, lockManager) {
+            @Override
+            protected boolean determineIfCacheIsValid(FileLock lock) throws IOException {
+                return false;
+            }
+        };
+
         try {
             cache.open();
             fail("expected exception");

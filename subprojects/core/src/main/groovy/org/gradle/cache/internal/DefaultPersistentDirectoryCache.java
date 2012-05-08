@@ -103,7 +103,8 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
         didRebuild = true;
     }
 
-    private boolean determineIfCacheIsValid(FileLock lock) throws IOException {
+    // made protected for DefaultPersistentDirectoryCacheTest.exceptionThrownIfValidCacheCannotBeInitd
+    protected boolean determineIfCacheIsValid(FileLock lock) throws IOException {
         if (!didRebuild) {
             if (cacheUsage != CacheUsage.ON) {
                 LOGGER.debug("Invalidating {} as cache usage is set to rebuild.", this);
