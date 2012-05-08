@@ -16,8 +16,11 @@
 package org.gradle.launcher.daemon.context
 
 import org.gradle.internal.nativeplatform.ProcessEnvironment
+import org.gradle.internal.nativeplatform.filesystem.FileSystems
 import org.gradle.util.ConfigureUtil
+import org.gradle.util.Requires
 import org.gradle.util.TemporaryFolder
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -65,6 +68,19 @@ class DaemonCompatibilitySpecSpec extends Specification {
 
         expect:
         !compatible
+    }
+
+    @Requires(TestPrecondition.SYMLINKS)
+    def "contexts with symlinked javaHome are compatible"() {
+        File dir = tmp.createDir("a")
+        File link = tmp.file("link")
+        FileSystems.default.createSymbolicLink(link, dir)
+
+        client { javaHome = dir }
+        server { javaHome = link }
+
+        expect:
+        compatible
     }
 
     def "contexts with same daemon opts are compatible"() {
