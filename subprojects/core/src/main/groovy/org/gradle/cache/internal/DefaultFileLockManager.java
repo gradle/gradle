@@ -81,6 +81,10 @@ public class DefaultFileLockManager implements FileLockManager {
         private boolean integrityViolated;
 
         public DefaultFileLock(File target, LockMode mode, String displayName, String operationDisplayName) throws Throwable {
+            if (mode == LockMode.None) {
+                throw new UnsupportedOperationException("Locking mode None is not supported.");
+            }
+
             this.target = target;
             this.mode = mode;
             this.displayName = displayName;
