@@ -69,7 +69,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
             return connection;
         }
 
-        return createConnection();
+        return createConnection(constraint);
     }
 
     private DaemonConnection findConnection(List<DaemonInfo> daemonInfos, Spec<? super DaemonContext> constraint) {
@@ -97,7 +97,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
         return null;
     }
 
-    public DaemonConnection createConnection() {
+    public DaemonConnection createConnection(Spec<? super DaemonContext> constraint) {
         LOGGER.info("Starting Gradle daemon");
         final DaemonStartupInfo startupInfo = daemonStarter.startDaemon();
         LOGGER.debug("Started Gradle Daemon: {}", startupInfo);
@@ -108,7 +108,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
             } catch (InterruptedException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
-            DaemonConnection daemonConnection = connectToDaemonWithId(startupInfo);
+            DaemonConnection daemonConnection = connectToDaemonWithId(startupInfo, constraint);
             if (daemonConnection != null) {
                 return daemonConnection;
             }
@@ -117,12 +117,17 @@ public class DefaultDaemonConnector implements DaemonConnector {
         throw new GradleException("Timeout waiting to connect to Gradle daemon.\n" + startupInfo.describe());
     }
 
-    private DaemonConnection connectToDaemonWithId(DaemonStartupInfo startupInfo) throws ConnectException {
+    private DaemonConnection connectToDaemonWithId(DaemonStartupInfo startupInfo, Spec<? super DaemonContext> constraint) throws ConnectException {
         // Look for 'our' daemon among the busy daemons - a daemon will start in busy state so that nobody else will grab it.
         for (DaemonInfo daemonInfo : daemonRegistry.getBusy()) {
             if (daemonInfo.getContext().getUid().equals(startupInfo.getUid())) {
                 try {
-                    // TODO:DAZ We should verify the connection using the original daemon constraint
+                    if (!constraint.isSatisfiedBy(daemonInfo.getContext())) {
+                        throw new GradleException("Internal error - please report it. The newly created daemon process has a different context than expected."
+                                + "\n It won't be possible to reconnect to this daemon. Context mismatch: "
+                                + "\n Wanted: " + constraint
+                                + "\n Actual: " + daemonInfo.getContext());
+                    }
                     return connectToDaemon(daemonInfo, startupInfo.getDiagnostics());
                 } catch (ConnectException e) {
                     // this means the daemon died without removing its address from the registry

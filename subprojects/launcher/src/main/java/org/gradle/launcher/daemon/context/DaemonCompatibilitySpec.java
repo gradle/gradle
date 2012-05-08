@@ -17,6 +17,8 @@ package org.gradle.launcher.daemon.context;
 
 import org.gradle.api.specs.Spec;
 
+import static org.gradle.util.GFileUtils.canonicalise;
+
 public class DaemonCompatibilitySpec implements Spec<DaemonContext> {
 
     private final DaemonContext desiredContext;
@@ -26,7 +28,7 @@ public class DaemonCompatibilitySpec implements Spec<DaemonContext> {
     }
 
     public boolean isSatisfiedBy(DaemonContext potentialContext) {
-        return potentialContext.getJavaHome().equals(desiredContext.getJavaHome())
+        return canonicalise(potentialContext.getJavaHome()).equals(canonicalise(desiredContext.getJavaHome()))
                 && potentialContext.getDaemonOpts().containsAll(desiredContext.getDaemonOpts())
                 && potentialContext.getDaemonOpts().size() == desiredContext.getDaemonOpts().size();
     }

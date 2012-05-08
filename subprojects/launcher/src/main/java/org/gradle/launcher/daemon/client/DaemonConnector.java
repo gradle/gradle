@@ -37,6 +37,6 @@ public interface DaemonConnector {
      */
     public DaemonConnection connect(Spec<? super DaemonContext> constraint);
 
-    public DaemonConnection createConnection();
+    public DaemonConnection createConnection(Spec<? super DaemonContext> constraint);
 
 }
