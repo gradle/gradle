@@ -86,7 +86,7 @@ public class DefaultFileLockManager implements FileLockManager {
             }
 
             this.target = target;
-            this.mode = mode;
+
             this.displayName = displayName;
             this.operationDisplayName = operationDisplayName;
             if (target.isDirectory()) {
@@ -106,6 +106,8 @@ public class DefaultFileLockManager implements FileLockManager {
                 lockFileAccess.close();
                 throw t;
             }
+
+            this.mode = lock.isShared() ? LockMode.Shared : LockMode.Exclusive;
         }
 
         public boolean isLockFile(File file) {
