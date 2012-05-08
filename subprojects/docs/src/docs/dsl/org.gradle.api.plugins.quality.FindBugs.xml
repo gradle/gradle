@@ -5,7 +5,7 @@
             <thead>
                 <tr>
                     <td>Name</td>
-                    <td>Default with <literal>pmd</literal> plugin</td>
+                    <td>Default with <literal>findbugs</literal> plugin</td>
                 </tr>
             </thead>
             <tr>
