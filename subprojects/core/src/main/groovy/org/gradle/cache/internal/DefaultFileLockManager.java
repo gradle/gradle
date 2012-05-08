@@ -151,6 +151,7 @@ public class DefaultFileLockManager implements FileLockManager {
                     updateLock = lock(LockMode.Exclusive);
                 }
                 try {
+                    integrityViolated = true;
                     markDirty();
                     action.run();
                     markClean();

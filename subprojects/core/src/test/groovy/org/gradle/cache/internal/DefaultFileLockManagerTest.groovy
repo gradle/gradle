@@ -158,6 +158,25 @@ class DefaultFileLockManagerTest extends Specification {
         notThrown FileIntegrityViolationException
     }
 
+    def "integrity violation exception is thrown after a failed write"() {
+        given:
+        def e = new RuntimeException()
+        def lock = createLock()
+
+        when:
+        lock.writeFile {}
+        lock.updateFile { throw e }
+
+        then:
+        thrown RuntimeException
+
+        when:
+        lock.readFile({})
+
+        then:
+        thrown FileIntegrityViolationException
+    }
+
     def "existing lock is unlocked cleanly after writeToFile() has been called"() {
         when:
         def lock = this.createLock()
