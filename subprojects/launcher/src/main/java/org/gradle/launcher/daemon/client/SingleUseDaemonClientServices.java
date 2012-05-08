@@ -17,7 +17,7 @@
 package org.gradle.launcher.daemon.client;
 
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.ExplainingSpec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.id.IdGenerator;
@@ -35,7 +35,7 @@ public class SingleUseDaemonClientServices extends DaemonClientServices {
 
     @Override
     protected DaemonClient createDaemonClient() {
-        Spec<DaemonContext> matchNone = Specs.satisfyNone();
+        ExplainingSpec<DaemonContext> matchNone = Specs.satisfyNone();
         return new SingleUseDaemonClient(
                 get(DaemonConnector.class),
                 get(OutputEventListener.class),

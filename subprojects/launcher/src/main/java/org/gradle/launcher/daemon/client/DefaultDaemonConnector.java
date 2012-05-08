@@ -18,7 +18,7 @@ package org.gradle.launcher.daemon.client;
 import org.gradle.api.GradleException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.ExplainingSpec;
 import org.gradle.internal.UncheckedException;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
@@ -59,11 +59,11 @@ public class DefaultDaemonConnector implements DaemonConnector {
         return daemonRegistry;
     }
 
-    public DaemonConnection maybeConnect(Spec<? super DaemonContext> constraint) {
+    public DaemonConnection maybeConnect(ExplainingSpec<DaemonContext> constraint) {
         return findConnection(daemonRegistry.getAll(), constraint);
     }
 
-    public DaemonConnection connect(Spec<? super DaemonContext> constraint) {
+    public DaemonConnection connect(ExplainingSpec<DaemonContext> constraint) {
         DaemonConnection connection = findConnection(daemonRegistry.getIdle(), constraint);
         if (connection != null) {
             return connection;
@@ -72,13 +72,12 @@ public class DefaultDaemonConnector implements DaemonConnector {
         return createConnection(constraint);
     }
 
-    private DaemonConnection findConnection(List<DaemonInfo> daemonInfos, Spec<? super DaemonContext> constraint) {
+    private DaemonConnection findConnection(List<DaemonInfo> daemonInfos, ExplainingSpec<DaemonContext> constraint) {
         for (DaemonInfo daemonInfo : daemonInfos) {
             if (!constraint.isSatisfiedBy(daemonInfo.getContext())) {
                 LOGGER.debug("Found daemon (address: {}, idle: {}) however it's context does not match the desired criteria.\n"
-                        + "  Wanted: {}.\n"
-                        + "  Found:  {}.\n"
-                        + "  Looking for a different daemon...", daemonInfo.getAddress(), daemonInfo.isIdle(), constraint, daemonInfo.getContext());
+                        + constraint.whyUnsatisfied(daemonInfo.getContext()) + "\n"
+                        + "  Looking for a different daemon...", daemonInfo.getAddress(), daemonInfo.isIdle());
                 continue;
             }
 
@@ -97,7 +96,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
         return null;
     }
 
-    public DaemonConnection createConnection(Spec<? super DaemonContext> constraint) {
+    public DaemonConnection createConnection(ExplainingSpec<DaemonContext> constraint) {
         LOGGER.info("Starting Gradle daemon");
         final DaemonStartupInfo startupInfo = daemonStarter.startDaemon();
         LOGGER.debug("Started Gradle Daemon: {}", startupInfo);
@@ -117,16 +116,15 @@ public class DefaultDaemonConnector implements DaemonConnector {
         throw new GradleException("Timeout waiting to connect to Gradle daemon.\n" + startupInfo.describe());
     }
 
-    private DaemonConnection connectToDaemonWithId(DaemonStartupInfo startupInfo, Spec<? super DaemonContext> constraint) throws ConnectException {
+    private DaemonConnection connectToDaemonWithId(DaemonStartupInfo startupInfo, ExplainingSpec<DaemonContext> constraint) throws ConnectException {
         // Look for 'our' daemon among the busy daemons - a daemon will start in busy state so that nobody else will grab it.
         for (DaemonInfo daemonInfo : daemonRegistry.getBusy()) {
             if (daemonInfo.getContext().getUid().equals(startupInfo.getUid())) {
                 try {
                     if (!constraint.isSatisfiedBy(daemonInfo.getContext())) {
                         throw new GradleException("Internal error - please report it. The newly created daemon process has a different context than expected."
-                                + "\n It won't be possible to reconnect to this daemon. Context mismatch: "
-                                + "\n Wanted: " + constraint
-                                + "\n Actual: " + daemonInfo.getContext());
+                                + "\nIt won't be possible to reconnect to this daemon. Context mismatch: "
+                                + "\n" + constraint.whyUnsatisfied(daemonInfo.getContext()));
                     }
                     return connectToDaemon(daemonInfo, startupInfo.getDiagnostics());
                 } catch (ConnectException e) {

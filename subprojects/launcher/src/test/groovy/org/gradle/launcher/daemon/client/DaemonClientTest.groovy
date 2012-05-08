@@ -15,14 +15,13 @@
  */
 package org.gradle.launcher.daemon.client
 
-import org.gradle.api.specs.Spec
 import org.gradle.initialization.GradleLauncherAction
-import org.gradle.launcher.daemon.context.DaemonContext
+import org.gradle.internal.id.IdGenerator
+import org.gradle.launcher.daemon.context.DaemonCompatibilitySpec
 import org.gradle.launcher.exec.BuildActionParameters
 import org.gradle.logging.internal.OutputEventListener
 import org.gradle.messaging.remote.internal.Connection
 import org.gradle.util.ConcurrentSpecification
-import org.gradle.internal.id.IdGenerator
 import org.gradle.launcher.daemon.protocol.*
 
 class DaemonClientTest extends ConcurrentSpecification {
@@ -30,7 +29,7 @@ class DaemonClientTest extends ConcurrentSpecification {
     final DaemonConnection daemonConnection = Mock()
     final Connection<Object> connection = Mock()
     final OutputEventListener outputEventListener = Mock()
-    final Spec<DaemonContext> compatibilitySpec = Mock()
+    final DaemonCompatibilitySpec compatibilitySpec = Mock()
     final IdGenerator<?> idGenerator = {12} as IdGenerator
     final DaemonClient client = new DaemonClient(connector, outputEventListener, compatibilitySpec, new ByteArrayInputStream(new byte[0]), executorFactory, idGenerator)
 

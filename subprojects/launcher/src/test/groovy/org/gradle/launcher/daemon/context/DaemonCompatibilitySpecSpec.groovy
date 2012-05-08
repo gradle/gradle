@@ -53,13 +53,18 @@ class DaemonCompatibilitySpecSpec extends Specification {
         createContext(serverConfigure)
     }
 
-    boolean isCompatible() {
+    private boolean isCompatible() {
         new DaemonCompatibilitySpec(clientContext).isSatisfiedBy(serverContext)
+    }
+
+    private String getUnsatisfiedReason() {
+        new DaemonCompatibilitySpec(clientContext).whyUnsatisfied(serverContext)
     }
 
     def "default contexts are compatible"() {
         expect:
         compatible
+        !unsatisfiedReason
     }
 
     def "contexts with different java homes are incompatible"() {
@@ -68,6 +73,7 @@ class DaemonCompatibilitySpecSpec extends Specification {
 
         expect:
         !compatible
+        unsatisfiedReason.contains "Java home is different"
     }
 
     @Requires(TestPrecondition.SYMLINKS)
@@ -105,6 +111,7 @@ class DaemonCompatibilitySpecSpec extends Specification {
 
         expect:
         !compatible
+        unsatisfiedReason.contains "At least one daemon option is different"
     }
 
     def "contexts with different daemon opts are incompatible"() {

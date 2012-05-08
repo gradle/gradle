@@ -17,7 +17,7 @@ package org.gradle.launcher.daemon.client;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.ExplainingSpec;
 import org.gradle.initialization.GradleLauncherAction;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -58,14 +58,14 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
     private static final Logger LOGGER = Logging.getLogger(DaemonClient.class);
     private final DaemonConnector connector;
     private final OutputEventListener outputEventListener;
-    private final Spec<DaemonContext> compatibilitySpec;
+    private final ExplainingSpec<DaemonContext> compatibilitySpec;
     private final InputStream buildStandardInput;
     private final ExecutorFactory executorFactory;
     private final IdGenerator<?> idGenerator;
 
     //TODO SF - outputEventListener and buildStandardInput are per-build settings
     //so down the road we should refactor the code accordingly and potentially attach them to BuildActionParameters
-    public DaemonClient(DaemonConnector connector, OutputEventListener outputEventListener, Spec<DaemonContext> compatibilitySpec,
+    public DaemonClient(DaemonConnector connector, OutputEventListener outputEventListener, ExplainingSpec<DaemonContext> compatibilitySpec,
                         InputStream buildStandardInput, ExecutorFactory executorFactory, IdGenerator<?> idGenerator) {
         this.connector = connector;
         this.outputEventListener = outputEventListener;
