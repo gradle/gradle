@@ -20,9 +20,7 @@ dependencies {
     compile libraries.jcip
 }
 
-// BELOW WILL FAIL when we start building with 1.1
-// To fix it just change 'Jvm' to 'JavaVersion' and remove this comment.
-// Thanks for your cooperation.
+// TODO SF, replace with JavaVersion when 1.1 rc is building gradle
 if (!Jvm.current().isJava7()) {
     sourceSets.main.java.exclude '**/jdk7/**'
     sourceSets.test.groovy.exclude '**/jdk7/**'
