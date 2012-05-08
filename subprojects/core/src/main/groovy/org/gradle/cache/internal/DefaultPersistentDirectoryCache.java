@@ -18,6 +18,7 @@ package org.gradle.cache.internal;
 import org.gradle.CacheUsage;
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.CacheValidator;
 import org.gradle.cache.PersistentCache;
 import org.gradle.util.GFileUtils;
@@ -61,7 +62,11 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
 
     protected void init() throws IOException {
         boolean valid = determineIfCacheIsValid(getLock());
+        int tries = 3;
         while (!valid) {
+            if (--tries < 0) {
+                throw new CacheOpenException(String.format("Failed to init valid cache for %s", this));
+            }
             withExclusiveLock(new Action<FileLock>() {
                 public void execute(final FileLock fileLock) {
                     boolean exclusiveLockValid;

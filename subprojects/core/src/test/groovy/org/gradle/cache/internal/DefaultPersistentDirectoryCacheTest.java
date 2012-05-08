@@ -38,6 +38,7 @@ import java.util.Properties;
 
 import static org.gradle.cache.internal.FileLockManager.LockMode;
 import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
@@ -133,6 +134,26 @@ public class DefaultPersistentDirectoryCacheTest {
         DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, "<display-name>", CacheUsage.ON, invalidator, properties, LockMode.Shared, action, lockManager);
         cache.open();
         assertThat(loadProperties(dir.file("cache.properties")), equalTo(properties));
+    }
+
+    @Test
+    public void exceptionThrownIfValidCacheCannotBeInitd() {
+        TestFile dir = createCacheDir();
+        final CacheValidator invalidator = context.mock(CacheValidator.class);
+
+        context.checking(new Expectations() {{
+            allowing(action).execute(with(notNullValue(PersistentCache.class)));
+            allowing(invalidator).isValid();
+            will(returnValue(false));
+        }});
+
+        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, "<display-name>", CacheUsage.ON, invalidator, properties, LockMode.Shared, action, lockManager);
+        try {
+            cache.open();
+            fail("expected exception");
+        } catch (CacheOpenException e) {
+            assertNotNull(e); // to make block not empty
+        }
     }
 
     @Test
