@@ -79,8 +79,11 @@ class DaemonCompatibilitySpecSpec extends Specification {
     @Requires(TestPrecondition.SYMLINKS)
     def "contexts with symlinked javaHome are compatible"() {
         File dir = tmp.createDir("a")
-        File link = tmp.file("link")
+        File link = new File(tmp.dir, "link")
         FileSystems.default.createSymbolicLink(link, dir)
+
+        assert dir != link
+        assert dir.canonicalFile == link.canonicalFile
 
         client { javaHome = dir }
         server { javaHome = link }
