@@ -391,9 +391,10 @@ class DefaultCacheFactoryTest extends Specification {
         CacheValidator validator = Mock()
 
         when:
-        def cache = factory1.open(tmpDir.dir, null, CacheUsage.ON, validator, [prop: 'value'], FileLockManager.LockMode.Exclusive, null)
+        def cache = factory1.open(tmpDir.dir, null, CacheUsage.ON, validator, [prop: 'value'], FileLockManager.LockMode.Shared, null)
 
         then:
+        validator.isValid() >>> [false, true]
         cache != null
     }
 }

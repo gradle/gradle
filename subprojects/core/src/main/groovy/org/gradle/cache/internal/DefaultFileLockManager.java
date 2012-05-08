@@ -139,35 +139,25 @@ public class DefaultFileLockManager implements FileLockManager {
 
         public void updateFile(Runnable action) throws LockTimeoutException, FileIntegrityViolationException {
             assertOpenAndIntegral();
-            withExclusiveLock(action);
+            doWriteAction(action);
         }
 
         public void writeFile(Runnable action) throws LockTimeoutException {
             assertOpen();
-            withExclusiveLock(action);
+            doWriteAction(action);
         }
 
-        private void withExclusiveLock(Runnable action) {
+        private void doWriteAction(Runnable action) {
+            if (mode != LockMode.Exclusive) {
+                throw new InsufficientLockModeException("An exclusive lock is required for this operation");
+            }
+
             try {
-                // TODO - need to escalate without releasing lock
-                java.nio.channels.FileLock updateLock = null;
-                if (mode != LockMode.Exclusive) {
-                    lock.release();
-                    lock = null;
-                    updateLock = lock(LockMode.Exclusive);
-                }
-                try {
-                    integrityViolated = true;
-                    markDirty();
-                    action.run();
-                    markClean();
-                    integrityViolated = false;
-                } finally {
-                    if (mode != LockMode.Exclusive) {
-                        updateLock.release();
-                        lock = lock(mode);
-                    }
-                }
+                integrityViolated = true;
+                markDirty();
+                action.run();
+                markClean();
+                integrityViolated = false;
             } catch (Throwable t) {
                 throw UncheckedException.throwAsUncheckedException(t);
             }
@@ -222,6 +212,10 @@ public class DefaultFileLockManager implements FileLockManager {
                 lock = null;
                 lockFileAccess = null;
             }
+        }
+
+        public LockMode getMode() {
+            return mode;
         }
 
         private java.nio.channels.FileLock lock(FileLockManager.LockMode lockMode) throws Throwable {

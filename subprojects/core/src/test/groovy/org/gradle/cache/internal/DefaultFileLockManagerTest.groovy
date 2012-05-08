@@ -77,7 +77,7 @@ class DefaultFileLockManagerTest extends Specification {
         unlockUncleanly()
 
         when:
-        createLock().writeFile { }
+        createLock(Exclusive).writeFile { }
 
         then:
         notThrown FileIntegrityViolationException
@@ -133,7 +133,7 @@ class DefaultFileLockManagerTest extends Specification {
 
     def "file is 'invalid' unless a valid lock file exists"() {
         given:
-        def lock = createLock()
+        def lock = createLock(Exclusive)
 
         when:
         lock.readFile({})
@@ -179,7 +179,7 @@ class DefaultFileLockManagerTest extends Specification {
 
     def "existing lock is unlocked cleanly after writeToFile() has been called"() {
         when:
-        def lock = this.createLock()
+        def lock = this.createLock(Exclusive)
         lock.writeFile({})
         lock.updateFile({} as Runnable)
 
@@ -391,13 +391,39 @@ class DefaultFileLockManagerTest extends Specification {
 
     def "fails to acquire lock with lock information > 1k"() {
         when:
-        manager.lock(testFileLock, LockMode.Exclusive, "123", RandomStringUtils.randomAlphanumeric(700))
+        manager.lock(testFileLock, Exclusive, "123", RandomStringUtils.randomAlphanumeric(700))
         then:
         notThrown(IllegalStateException)
         when:
-        manager.lock(testFileLock, LockMode.Exclusive, "123", RandomStringUtils.randomAlphanumeric(1100))
+        manager.lock(testFileLock, Exclusive, "123", RandomStringUtils.randomAlphanumeric(1100))
         then:
         thrown(IllegalStateException)
+    }
+
+    def "require exclusive lock for writing"() {
+        given:
+        def lock = createLock(Shared)
+
+        when:
+        lock.writeFile {}
+
+        then:
+        thrown InsufficientLockModeException
+    }
+
+    def "require exclusive lock for updating"() {
+        given:
+        def writeLock = createLock(Exclusive)
+        writeLock.writeFile {}
+        writeLock.close()
+
+        def lock = createLock(Shared)
+
+        when:
+        lock.updateFile {}
+
+        then:
+        thrown InsufficientLockModeException
     }
 
     private void isEmptyLockFile(TestFile lockFile) {

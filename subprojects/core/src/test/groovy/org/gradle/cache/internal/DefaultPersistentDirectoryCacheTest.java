@@ -123,8 +123,11 @@ public class DefaultPersistentDirectoryCacheTest {
 
         context.checking(new Expectations() {{
             one(action).execute(with(notNullValue(PersistentCache.class)));
-            one(invalidator).isValid();
+            exactly(2).of(invalidator).isValid();
             will(returnValue(false));
+            allowing(invalidator).isValid();
+            will(returnValue(true));
+
         }});
 
         DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, "<display-name>", CacheUsage.ON, invalidator, properties, LockMode.Shared, action, lockManager);

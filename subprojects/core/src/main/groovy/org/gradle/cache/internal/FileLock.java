@@ -36,4 +36,9 @@ public interface FileLock extends Closeable, FileAccess {
      * Closes this lock, releasing the lock and any resources associated with it.
      */
     void close();
+
+    /**
+     * The actual mode of the lock. May be different to what was requested.
+     */
+    FileLockManager.LockMode getMode();
 }

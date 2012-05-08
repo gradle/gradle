@@ -15,11 +15,9 @@
  */
 package org.gradle.cache.internal;
 
+import org.gradle.api.Action;
+import org.gradle.cache.*;
 import org.gradle.internal.Factory;
-import org.gradle.cache.CacheOpenException;
-import org.gradle.cache.PersistentCache;
-import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.cache.Serializer;
 
 import java.io.File;
 import java.io.IOException;
@@ -40,13 +38,15 @@ public class DefaultPersistentDirectoryStore implements PersistentCache {
 
     public DefaultPersistentDirectoryStore open() {
         dir.mkdirs();
-        cacheAccess = new DefaultCacheAccess(displayName, getLockTarget(), lockManager);
+        cacheAccess = createCacheAccess();
         try {
             cacheAccess.open(lockMode);
             try {
                 init();
             } catch (Throwable throwable) {
-                cacheAccess.close();
+                if (cacheAccess != null) {
+                    cacheAccess.close();
+                }
                 throw throwable;
             }
         } catch (Throwable e) {
@@ -55,6 +55,31 @@ public class DefaultPersistentDirectoryStore implements PersistentCache {
 
         return this;
     }
+
+    private DefaultCacheAccess createCacheAccess() {
+        return new DefaultCacheAccess(displayName, getLockTarget(), lockManager);
+    }
+
+    protected void withExclusiveLock(Action<FileLock> action) {
+        if (cacheAccess != null && (cacheAccess.getFileLock().getMode() == FileLockManager.LockMode.Exclusive)) {
+            action.execute(getLock());
+        } else {
+            boolean reopen = cacheAccess != null;
+            close();
+            DefaultCacheAccess exclusiveAccess = createCacheAccess();
+            exclusiveAccess.open(FileLockManager.LockMode.Exclusive);
+            try {
+                action.execute(exclusiveAccess.getFileLock());
+            } finally {
+                exclusiveAccess.close();
+            }
+            if (reopen) {
+                cacheAccess = createCacheAccess();
+                cacheAccess.open(lockMode);
+            }
+        }
+    }
+
 
     protected File getLockTarget() {
         return dir;

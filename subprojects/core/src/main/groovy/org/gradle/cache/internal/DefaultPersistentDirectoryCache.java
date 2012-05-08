@@ -17,6 +17,7 @@ package org.gradle.cache.internal;
 
 import org.gradle.CacheUsage;
 import org.gradle.api.Action;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.cache.CacheValidator;
 import org.gradle.cache.PersistentCache;
 import org.gradle.util.GFileUtils;
@@ -38,6 +39,7 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
     private final CacheUsage cacheUsage;
     private final Action<? super PersistentCache> initAction;
     private final CacheValidator validator;
+    private boolean didRebuild;
 
     public DefaultPersistentDirectoryCache(File dir, String displayName, CacheUsage cacheUsage, CacheValidator validator, Map<String, ?> properties, LockMode lockMode, Action<? super PersistentCache> initAction, FileLockManager lockManager) {
         super(dir, displayName, lockMode, lockManager);
@@ -59,13 +61,26 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
 
     protected void init() throws IOException {
         boolean valid = determineIfCacheIsValid(getLock());
-        if (!valid) {
-            // Escalate to exclusive lock and rebuild the cache
-            getLock().writeFile(new Runnable() {
-                public void run() {
-                    buildCacheDir(initAction, getLock());
+        while (!valid) {
+            withExclusiveLock(new Action<FileLock>() {
+                public void execute(final FileLock fileLock) {
+                    boolean exclusiveLockValid;
+                    try {
+                        exclusiveLockValid = determineIfCacheIsValid(fileLock);
+                    } catch (IOException e) {
+                        throw new UncheckedIOException(e);
+                    }
+
+                    if (!exclusiveLockValid) {
+                        fileLock.writeFile(new Runnable() {
+                            public void run() {
+                                buildCacheDir(initAction, fileLock);
+                            }
+                        });
+                    }
                 }
             });
+            valid = determineIfCacheIsValid(getLock());
         }
     }
 
@@ -80,10 +95,11 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
             initAction.execute(this);
         }
         GUtil.saveProperties(properties, propertiesFile);
+        didRebuild = true;
     }
 
     private boolean determineIfCacheIsValid(FileLock lock) throws IOException {
-        if (cacheUsage != CacheUsage.ON) {
+        if (cacheUsage != CacheUsage.ON && !didRebuild) {
             LOGGER.debug("Invalidating {} as cache usage is set to rebuild.", this);
             return false;
         }

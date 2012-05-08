@@ -26,39 +26,32 @@ public interface FileAccess {
     /**
      * Runs the given action under a shared or exclusive lock on the target file.
      *
-     * <p>If an exclusive or shared lock is already held, the lock level is not changed and the action is executed. If no lock is already held,
-     * a shared lock is acquired, the action executed, and the lock released. This method blocks until the lock can be acquired.
-     *
      * @throws LockTimeoutException On timeout acquiring lock, if required.
      * @throws IllegalStateException When this lock has been closed.
      * @throws FileIntegrityViolationException If the integrity of the file cannot be guaranteed (i.e. {@link #writeFile(Runnable)} has never been called)
+     * @throws InsufficientLockModeException If the held lock is not at least a shared lock (e.g. LockMode.NONE)
      */
-    <T> T readFile(Callable<? extends T> action) throws LockTimeoutException, FileIntegrityViolationException;
+    <T> T readFile(Callable<? extends T> action) throws LockTimeoutException, FileIntegrityViolationException, InsufficientLockModeException;
 
     /**
      * Runs the given action under a shared or exclusive lock on the target file.
      *
-     * <p>If an exclusive or shared lock is already held, the lock level is not changed and the action is executed. If no lock is already held,
-     * a shared lock is acquired, the action executed, and the lock released. This method blocks until the lock can be acquired.
-     *
      * @throws LockTimeoutException On timeout acquiring lock, if required.
      * @throws IllegalStateException When this lock has been closed.
      * @throws FileIntegrityViolationException If the integrity of the file cannot be guaranteed (i.e. {@link #writeFile(Runnable)} has never been called)
+     * @throws InsufficientLockModeException If the held lock is not at least a shared lock (e.g. LockMode.NONE)
      */
-    <T> T readFile(Factory<? extends T> action) throws LockTimeoutException, FileIntegrityViolationException;
+    <T> T readFile(Factory<? extends T> action) throws LockTimeoutException, FileIntegrityViolationException, InsufficientLockModeException;
 
     /**
      * Runs the given action under an exclusive lock on the target file. If the given action fails, the lock is marked as uncleanly unlocked.
      *
-     * <p>If an exclusive lock is already held, the lock level is not changed and the action is executed. If a shared lock is already held,
-     * the lock is escalated to an exclusive lock, and reverted back to a shared lock when the action completes. If no lock is already held, an
-     * exclusive lock is acquired, the action executed, and the lock released.
-     *
      * @throws LockTimeoutException On timeout acquiring lock, if required.
      * @throws IllegalStateException When this lock has been closed.
      * @throws FileIntegrityViolationException If the integrity of the file cannot be guaranteed (i.e. {@link #writeFile(Runnable)} has never been called)
+     * @throws InsufficientLockModeException If the held lock is not an exclusive lock.
      */
-    void updateFile(Runnable action) throws LockTimeoutException, FileIntegrityViolationException;
+    void updateFile(Runnable action) throws LockTimeoutException, FileIntegrityViolationException, InsufficientLockModeException;
 
     /**
      * Runs the given action under an exclusive lock on the target file, without checking it's integrity. If the given action fails, the lock is marked as uncleanly unlocked.
@@ -69,7 +62,8 @@ public interface FileAccess {
      *
      * @throws LockTimeoutException On timeout acquiring lock, if required.
      * @throws IllegalStateException When this lock has been closed.
+     * @throws InsufficientLockModeException If the held lock is not an exclusive lock.
      */
-    void writeFile(Runnable action) throws LockTimeoutException;
+    void writeFile(Runnable action) throws LockTimeoutException, InsufficientLockModeException;
 
 }
