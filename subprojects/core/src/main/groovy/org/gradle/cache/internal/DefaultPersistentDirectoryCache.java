@@ -104,13 +104,15 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
     }
 
     private boolean determineIfCacheIsValid(FileLock lock) throws IOException {
-        if (cacheUsage != CacheUsage.ON && !didRebuild) {
-            LOGGER.debug("Invalidating {} as cache usage is set to rebuild.", this);
-            return false;
-        }
-        if (validator!=null && !validator.isValid()) {
-            LOGGER.debug("Invalidating {} as cache validator return false.", this);
-            return false;
+        if (!didRebuild) {
+            if (cacheUsage != CacheUsage.ON) {
+                LOGGER.debug("Invalidating {} as cache usage is set to rebuild.", this);
+                return false;
+            }
+            if (validator!=null && !validator.isValid()) {
+                LOGGER.debug("Invalidating {} as cache validator return false.", this);
+                return false;
+            }
         }
 
         if (!lock.getUnlockedCleanly()) {
