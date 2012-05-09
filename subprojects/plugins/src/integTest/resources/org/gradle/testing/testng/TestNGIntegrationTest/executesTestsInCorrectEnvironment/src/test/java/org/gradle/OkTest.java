@@ -27,6 +27,10 @@ public class OkTest {
         // check env vars
         assertEquals("value", System.getenv("TEST_ENV_VAR"));
 
+        // check other environmental stuff
+        assertEquals("Test worker", Thread.currentThread().getName());
+        assertNull(System.getSecurityManager());
+
         // check logging
         System.out.println("stdout");
         System.err.println("stderr");

@@ -93,10 +93,12 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
     }
 
     public void startProcessing() {
+        Thread.currentThread().setName("Test worker");
         processor.startProcessing(resultProcessor);
     }
 
     public void processTestClass(final TestClassRunInfo testClass) {
+        Thread.currentThread().setName("Test worker");
         try {
             processor.processTestClass(testClass);
         } finally {
@@ -106,6 +108,7 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
     }
 
     public void stop() {
+        Thread.currentThread().setName("Test worker");
         try {
             processor.stop();
         } finally {
