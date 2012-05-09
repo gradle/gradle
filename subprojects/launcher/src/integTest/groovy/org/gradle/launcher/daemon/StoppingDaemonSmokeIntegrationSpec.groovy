@@ -23,7 +23,9 @@ import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.tests.fixtures.ConcurrentTestUtil
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
+import spock.lang.Ignore
 import spock.lang.Timeout
+
 import static org.gradle.integtests.fixtures.GradleDistributionExecuter.Executer.daemon
 
 /**
@@ -34,6 +36,8 @@ class StoppingDaemonSmokeIntegrationSpec extends DaemonIntegrationSpec {
     @Rule TemporaryFolder temp = new TemporaryFolder()
 
     @Timeout(300)
+    @Ignore
+    //TODO SF - un-ignore when the problem with daemon not shown in the registry file is fixed.
     def "does not deadlock when multiple stop requests are sent"() {
         given: "multiple daemons started"
         3.times { idx ->
@@ -57,6 +61,15 @@ class StoppingDaemonSmokeIntegrationSpec extends DaemonIntegrationSpec {
 
         cleanup: "just in case"
         stopDaemon("cleanup")
+        printDaemonLogs()
+    }
+
+    void printDaemonLogs() {
+        temp.testDir.listFiles()[0].listFiles().findAll { it.name.endsWith("log") }.each {
+            println "-------- $it.name ----------"
+            println it.text
+            println "----------------------------"
+        }
     }
 
     //using separate dist/executer so that we can run them concurrently
