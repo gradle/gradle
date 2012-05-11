@@ -43,7 +43,7 @@ repositories {
 dependencies {
     compile 'foo.bar:coolLib:2.0'
     compile 'unresolved.org:funLib:1.0'
-//    compile files('yetAnotherJar.jar')
+    compile files('yetAnotherJar.jar')
 }
 """
         when:
@@ -52,7 +52,7 @@ dependencies {
         def libs = module.dependencies
 
         then:
-        libs.size() == 2
+        libs.size() == 3
 
         ExternalDependency coolLib = libs.find { it.externalGradleModule?.name == 'coolLib' }
         coolLib.externalGradleModule.group == 'foo.bar'
@@ -63,5 +63,8 @@ dependencies {
         funLib.externalGradleModule.group == 'unresolved.org'
         funLib.externalGradleModule.name == 'funLib'
         funLib.externalGradleModule.version == '1.0'
+
+        ExternalDependency yetAnotherJar = libs.find { it.externalGradleModule == null }
+        yetAnotherJar.file.name == 'yetAnotherJar.jar'
     }
 }

@@ -85,13 +85,16 @@ public class IdeaModelBuilder implements BuildsModel {
         for (Dependency dependency : resolved) {
             if (dependency instanceof SingleEntryModuleLibrary) {
                 SingleEntryModuleLibrary d = (SingleEntryModuleLibrary) dependency;
-                IdeaDependency defaultDependency = new DefaultIdeaSingleEntryLibraryDependency()
+                DefaultIdeaSingleEntryLibraryDependency defaultDependency = new DefaultIdeaSingleEntryLibraryDependency()
                         .setFile(d.getLibraryFile())
                         .setSource(d.getSourceFile())
                         .setJavadoc(d.getJavadocFile())
                         .setScope(new DefaultIdeaDependencyScope(d.getScope()))
-                        .setExported(d.getExported())
-                        .setExternalGradleModule(new DefaultExternalGradleModule(d.getId()));
+                        .setExported(d.getExported());
+
+                if (d.getId() != null) {
+                    defaultDependency.setExternalGradleModule(new DefaultExternalGradleModule(d.getId()));
+                }
                 dependencies.add(defaultDependency);
             } else if (dependency instanceof ModuleDependency) {
                 ModuleDependency d = (ModuleDependency) dependency;
