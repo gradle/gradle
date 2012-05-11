@@ -22,6 +22,7 @@ import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.tasks.Upload;
 
 import java.io.File;
+import java.util.concurrent.Callable;
 
 public class UploadRule extends AbstractRule {
 
@@ -45,13 +46,17 @@ public class UploadRule extends AbstractRule {
         }
     }
 
-    private Upload createUploadTask(String name, final Configuration configuration, Project project) {
+    private Upload createUploadTask(String name, final Configuration configuration, final Project project) {
         Upload upload = project.getTasks().add(name, Upload.class);
         upload.setDescription(String.format("Uploads all artifacts belonging to %s", configuration));
         upload.setGroup(BasePlugin.UPLOAD_GROUP);
         upload.setConfiguration(configuration);
         upload.setUploadDescriptor(true);
-        upload.setDescriptorDestination(new File(project.getBuildDir(), "ivy.xml"));
+        upload.getConventionMapping().map("descriptorDestination", new Callable<File>() {
+            public File call() throws Exception {
+                return new File(project.getBuildDir(), "ivy.xml");
+            }
+        });
         return upload;
     }
 
