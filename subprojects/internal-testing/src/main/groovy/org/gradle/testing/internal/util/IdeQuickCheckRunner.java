@@ -26,7 +26,7 @@ public class IdeQuickCheckRunner {
         Process process = null;
 
         try {
-            ProcessBuilder builder = new ProcessBuilder().command("./gradlew", "quickCheck", "--daemon");
+            ProcessBuilder builder = new ProcessBuilder().command("./gradlew", "quickCheck", "--daemon", "--offline");
             process = builder.start();
             final Process finalProcess = process;
             Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
