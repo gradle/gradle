@@ -33,14 +33,7 @@ class TimeKeepingExecuterTest extends Specification {
 
     def "timeout hits before operation ends"() {
         when:
-        executer.execute(longOperation(10000), markTimeouted(), 1000, "foo")
-        then:
-        timeouted
-    }
-
-    def "timeout hits before operation starts"() {
-        when:
-        executer.execute(longOperation(10000), markTimeouted(), 1, "foo")
+        executer.execute(longOperation(10000), markTimeouted(), 100, "foo")
         then:
         timeouted
     }
@@ -61,6 +54,16 @@ class TimeKeepingExecuterTest extends Specification {
         then:
         def ex = thrown(RuntimeException)
         ex.message == "Boo!"
+    }
+
+    def "if the timeout hits before operation starts the operation runs without timeout"() {
+        //Supporting this use fully don't make sense
+        //but let's make sure the infrastructure handles it gracefully.
+        when:
+        markTimeouted()
+        executer.execute(longOperation(50), {} as Runnable, 1, "foo")
+        then:
+        !timeouted
     }
 
     Runnable markTimeouted() {

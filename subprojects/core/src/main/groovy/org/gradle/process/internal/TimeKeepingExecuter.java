@@ -55,12 +55,12 @@ public class TimeKeepingExecuter {
     private Runnable withTimeout(final Runnable onTimeout, final int timeoutMillis) {
         return new Runnable() {
             public void run() {
-                lock.lock();
-                if (completed) {
-                    //already done? excellent!
-                    return;
-                }
                 try {
+                    lock.lock();
+                    if (completed) {
+                        //already done? excellent!
+                        return;
+                    }
                     condition.await(timeoutMillis, TimeUnit.MILLISECONDS);
                     if (!completed) {
                         LOGGER.debug("Timeout ({} millis) hit while running {}.", timeoutMillis, displayName);
