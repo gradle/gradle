@@ -17,6 +17,7 @@
 package org.gradle.api.specs
 
 import spock.lang.Specification
+import spock.lang.Issue
 
 class SpecsTest extends Specification {
 
@@ -29,5 +30,16 @@ class SpecsTest extends Specification {
         expect:
         !spec.isSatisfiedBy(5)
         spec.isSatisfiedBy(15)
+    }
+
+    @Issue("GRADLE-2288")
+    def "closure specs use groovy truth"() {
+        def spec = Specs.convertClosureToSpec {
+            it
+        }
+
+        expect:
+        !spec.isSatisfiedBy("")
+        spec.isSatisfiedBy([1,2,3])
     }
 }

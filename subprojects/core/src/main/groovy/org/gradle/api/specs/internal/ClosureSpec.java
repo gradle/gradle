@@ -17,6 +17,7 @@
 package org.gradle.api.specs.internal;
 
 import groovy.lang.Closure;
+import org.codehaus.groovy.runtime.InvokerHelper;
 import org.gradle.api.specs.Spec;
 
 public class ClosureSpec<T> implements Spec<T> {
@@ -29,6 +30,6 @@ public class ClosureSpec<T> implements Spec<T> {
 
     public boolean isSatisfiedBy(T element) {
         Object value = closure.call(element);
-        return value == null ? false : ((Boolean) value).booleanValue();
+        return (Boolean)InvokerHelper.invokeMethod(value, "asBoolean", null);
     }
 }
