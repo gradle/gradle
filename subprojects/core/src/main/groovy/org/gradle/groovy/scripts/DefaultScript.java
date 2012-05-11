@@ -120,15 +120,16 @@ public abstract class DefaultScript extends BasicScript {
     }
 
     public ConfigurableFileTree fileTree(Object baseDir) {
-        return fileOperations.fileTree((Object)baseDir);
+        return fileOperations.fileTree(baseDir);
     }
 
-    public ConfigurableFileTree fileTree(Map args) {
+    public ConfigurableFileTree fileTree(Map<String, ?> args) {
         return fileOperations.fileTree(args);
     }
 
     public ConfigurableFileTree fileTree(Closure closure) {
         DeprecationLogger.nagUserWith("fileTree(Closure) is a deprecated method. Use fileTree((Object){ baseDir }) to have the closure used as the file tree base directory");
+        //noinspection deprecation
         return fileOperations.fileTree(closure);
     }
 
