@@ -21,10 +21,7 @@ import org.gradle.util.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.EOFException;
-import java.io.File;
-import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.io.*;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -295,34 +292,14 @@ public class DefaultFileLockManager implements FileLockManager {
             return stateRegionLock;
         }
 
-        private void assertInformationFitsInRegion(long givenSize, String... uftStrings) {
+        private void assertInformationFitsInRegion(long givenSize, String... uftStrings) throws UnsupportedEncodingException {
             int informationsize = 1; // The protocol information byte
             for (String utfString : uftStrings) {
-                informationsize += calculateUtfSize(utfString);
+                informationsize += utfString.getBytes("utf-8").length;
             }
             if (givenSize < informationsize) {
                 throw new IllegalStateException(String.format("locked information region for %s to small to contain content", displayName));
             }
-        }
-
-        /**
-         * This logic for counting used bytes of UTF encoded String is taken from
-         *
-         * @link java.io.DataOutputStream#writeUTF(String, java.io.DataOutput)
-         */
-        private int calculateUtfSize(String string) {
-            int utflen = 2; //first two bytes giving the number of bytes to follow.
-            for (int i = 0; i < string.length(); i++) {
-                final char c = string.charAt(i);
-                if ((c >= 0x0001) && (c <= 0x007F)) {
-                    utflen++;
-                } else if (c > 0x07FF) {
-                    utflen += 3;
-                } else {
-                    utflen += 2;
-                }
-            }
-            return utflen;
         }
 
         private java.nio.channels.FileLock lockStateRegion(LockMode lockMode, long timeout) throws IOException, InterruptedException {
