@@ -31,11 +31,11 @@ import static org.apache.commons.collections.CollectionUtils.subtract;
  */
 public class ConfigureUtil {
 
-    public static <T> T configureByMap(Map<String, ?> properties, T delegate) {
+    public static <T> T configureByMap(Map<?, ?> properties, T delegate) {
         DynamicObject dynamicObject = DynamicObjectUtil.asDynamicObject(delegate);
 
-        for (Map.Entry<String, ?> entry : properties.entrySet()) {
-            String name = entry.getKey();
+        for (Map.Entry<?, ?> entry : properties.entrySet()) {
+            String name = entry.getKey().toString();
             Object value = entry.getValue();
 
             if (dynamicObject.hasProperty(name)) {
