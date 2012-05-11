@@ -19,8 +19,8 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.LenientConfiguration
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.specs.Specs
-import org.gradle.integtests.fixtures.MavenRepository
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.MavenRepository
 import org.gradle.util.HelperUtil
 import org.junit.Before
 import org.junit.Test
@@ -47,7 +47,7 @@ public class ResolvedConfigurationIntegrationTest extends AbstractIntegrationTes
 
         project.dependencies {
             compile 'org.foo:hiphop:1.0'
-            compile 'org.foo:hiphopxx:1.0' //does not exist
+            compile 'unresolved.org:hiphopxx:3.0' //does not exist
             compile childProject
 
             compile 'org.foo:rock:1.0' //contains unresolved transitive dependency
@@ -64,8 +64,8 @@ public class ResolvedConfigurationIntegrationTest extends AbstractIntegrationTes
         assert resolved.find { it.moduleName == 'child' }
 
         assert unresolved.size() == 2
-        assert unresolved.find { it.id.contains 'hiphopxx' }
-        assert unresolved.find { it.id.contains 'some unresolved dependency' }
+        assert unresolved.find { it.identifier.group == 'unresolved.org' && it.identifier.name == 'hiphopxx' && it.identifier.version == '3.0' }
+        assert unresolved.find { it.identifier.name == 'some unresolved dependency' }
     }
 
     public MavenRepository maven(File repo) {
@@ -108,6 +108,6 @@ public class ResolvedConfigurationIntegrationTest extends AbstractIntegrationTes
 
         assert resolved.size() == 0
         assert unresolved.size() == 1
-        assert unresolved.find { it.id.contains 'hiphopxx' }
+        assert unresolved.find { it.identifier.name == 'hiphopxx' }
     }
 }

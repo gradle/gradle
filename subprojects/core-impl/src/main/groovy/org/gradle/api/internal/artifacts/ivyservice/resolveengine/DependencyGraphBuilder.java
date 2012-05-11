@@ -154,7 +154,7 @@ public class DependencyGraphBuilder {
         public void attachFailures(ResolvedConfigurationBuilder result) {
             for (Map.Entry<ModuleRevisionId, BrokenDependency> entry : failuresByRevisionId.entrySet()) {
                 Collection<List<ModuleRevisionId>> paths = calculatePaths(entry);
-                result.addUnresolvedDependency(new DefaultUnresolvedDependency(entry.getKey().toString(), entry.getValue().failure.withIncomingPaths(paths)));
+                result.addUnresolvedDependency(new DefaultUnresolvedDependency(entry.getKey(), entry.getValue().failure.withIncomingPaths(paths)));
             }
         }
 

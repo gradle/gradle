@@ -509,7 +509,7 @@ class DependencyGraphBuilderTest extends Specification {
         then:
         result.unresolvedModuleDependencies.size() == 1
         def unresolved = result.unresolvedModuleDependencies.iterator().next()
-        unresolved.id == 'group#c;1.0'
+        unresolved.identifier == new DefaultModuleVersionIdentifier('group', 'c', '1.0')
         unresolved.problem instanceof ModuleVersionResolveException
 
         when:
@@ -539,7 +539,7 @@ class DependencyGraphBuilderTest extends Specification {
         then:
         result.unresolvedModuleDependencies.size() == 1
         def unresolved = result.unresolvedModuleDependencies.iterator().next()
-        unresolved.id == 'group#unknown;1.0'
+        unresolved.identifier == new DefaultModuleVersionIdentifier('group', 'unknown', '1.0')
         unresolved.problem instanceof ModuleVersionResolveException
 
         when:
@@ -568,7 +568,7 @@ class DependencyGraphBuilderTest extends Specification {
         then:
         result.unresolvedModuleDependencies.size() == 1
         def unresolved = result.unresolvedModuleDependencies.iterator().next()
-        unresolved.id == 'group#c;1.0'
+        unresolved.identifier == new DefaultModuleVersionIdentifier('group', 'c', '1.0')
         unresolved.problem instanceof ModuleVersionResolveException
 
         when:
@@ -598,7 +598,7 @@ class DependencyGraphBuilderTest extends Specification {
         then:
         result.unresolvedModuleDependencies.size() == 1
         def unresolved = result.unresolvedModuleDependencies.iterator().next()
-        unresolved.id == 'group#c;1.0'
+        unresolved.identifier == new DefaultModuleVersionIdentifier('group', 'c', '1.0')
         unresolved.problem instanceof ModuleVersionNotFoundException
 
         when:
@@ -628,7 +628,7 @@ class DependencyGraphBuilderTest extends Specification {
         then:
         result.unresolvedModuleDependencies.size() == 1
         def unresolved = result.unresolvedModuleDependencies.iterator().next()
-        unresolved.id == 'group#c;1.0'
+        unresolved.identifier == new DefaultModuleVersionIdentifier('group', 'c', '1.0')
         unresolved.problem instanceof ModuleVersionResolveException
 
         when:
@@ -657,7 +657,7 @@ class DependencyGraphBuilderTest extends Specification {
         then:
         result.unresolvedModuleDependencies.size() == 1
         def unresolved = result.unresolvedModuleDependencies.iterator().next()
-        unresolved.id == 'group#c;1.0'
+        unresolved.identifier == new DefaultModuleVersionIdentifier('group', 'c', '1.0')
         unresolved.problem instanceof ModuleVersionResolveException
 
         when:

@@ -21,9 +21,19 @@ package org.gradle.api.artifacts;
 public interface UnresolvedDependency {
 
     /**
+     * Deprecated. Please use {@link #getIdentifier()}
+     * <p>
      * Returns the identifier of the dependency, for example group:name:version
      */
+    @Deprecated
     String getId();
+
+    /**
+     * The module identifier of the dependency
+     *
+     * @since 1.1-rc-1
+     */
+    ModuleVersionIdentifier getIdentifier();
 
     /**
      * the exception that is the cause of unresolved state

@@ -22,18 +22,19 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.ExternalDependency
 import org.gradle.tooling.model.idea.IdeaProject
 
-@MinToolingApiVersion('1.1-rc-1')
-@MinTargetGradleVersion('1.1-rc-1')
-class ToolingApiProvidesGradleModulesCrossVersionSpec extends ToolingApiSpecification {
+@MinToolingApiVersion('current')
+@MinTargetGradleVersion('current')
+class ExternalGradleModulesCrossVersionSpec extends ToolingApiSpecification {
 
     def "idea libraries contain gradle module information"() {
         def fakeRepo = dist.file("repo")
+        new MavenRepository(fakeRepo).module("foo.bar", "coolLib", 2.0).publish()
 
-        def dependency = new MavenRepository(fakeRepo).module("foo.bar", "coolLib", 2.0)
-        dependency.publish()
+        dist.file("yetAnotherJar.jar").createFile()
 
         dist.file('build.gradle').text = """
 apply plugin: 'java'
+apply plugin: 'idea'
 
 repositories {
     maven { url "${fakeRepo.toURI()}" }
@@ -41,8 +42,8 @@ repositories {
 
 dependencies {
     compile 'foo.bar:coolLib:2.0'
-    //TODO SF add support for unresolved dependencies:
-//    compile 'unresolved.org:funLib:1.0'
+    compile 'unresolved.org:funLib:1.0'
+//    compile files('yetAnotherJar.jar')
 }
 """
         when:
@@ -51,10 +52,16 @@ dependencies {
         def libs = module.dependencies
 
         then:
-        libs.size() == 1
-        ExternalDependency lib = libs[0]
-        lib.externalGradleModule.group == 'foo.bar'
-        lib.externalGradleModule.name == 'coolLib'
-        lib.externalGradleModule.version == '2.0'
+        libs.size() == 2
+
+        ExternalDependency coolLib = libs.find { it.externalGradleModule?.name == 'coolLib' }
+        coolLib.externalGradleModule.group == 'foo.bar'
+        coolLib.externalGradleModule.name == 'coolLib'
+        coolLib.externalGradleModule.version == '2.0'
+
+        ExternalDependency funLib = libs.find { it.externalGradleModule?.name == 'funLib' }
+        funLib.externalGradleModule.group == 'unresolved.org'
+        funLib.externalGradleModule.name == 'funLib'
+        funLib.externalGradleModule.version == '1.0'
     }
 }

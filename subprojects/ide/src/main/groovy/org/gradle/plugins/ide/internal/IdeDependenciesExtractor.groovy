@@ -92,26 +92,29 @@ class IdeDependenciesExtractor {
             out << dependency
         }
 
-        unresolvedExternalDependencies(plusConfigurations, minusConfigurations) { config, dep ->
-            out << new UnresolvedIdeRepoFileDependency(problem: dep.problem, file: new File("unresolved dependency - $dep.id"), declaredConfiguration: config)
-        }
+        out.addAll(unresolvedExternalDependencies(plusConfigurations, minusConfigurations))
 
         out
     }
 
-    private void unresolvedExternalDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations, Closure action) {
-        def unresolved = new LinkedHashMap<String, Map>()
+    private Collection<UnresolvedIdeRepoFileDependency> unresolvedExternalDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
+        def unresolved = new LinkedHashMap<String, UnresolvedIdeRepoFileDependency>()
         for (c in plusConfigurations) {
             def deps = c.resolvedConfiguration.lenientConfiguration.unresolvedModuleDependencies
-            deps.each { unresolved[it.id] = [dep: it, config: c] }
+            deps.each {
+                unresolved[it.identifier] = new UnresolvedIdeRepoFileDependency(
+                    file: new File(unresolvedFileName(it)), declaredConfiguration: c, id: it.identifier)
+            }
         }
         for (c in minusConfigurations) {
             def deps = c.resolvedConfiguration.lenientConfiguration.unresolvedModuleDependencies
-            deps.each { unresolved.remove(it.id) }
+            deps.each { unresolved.remove(it.identifier) }
         }
-        unresolved.values().each {
-            action.call(it.config, it.dep)
-        }
+        unresolved.values()
+    }
+
+    private String unresolvedFileName(UnresolvedDependency dep) {
+        "unresolved dependency - $dep.identifier.group:$dep.identifier.name:$dep.identifier.version"
     }
 
     List<IdeLocalFileDependency> extractLocalFileDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
