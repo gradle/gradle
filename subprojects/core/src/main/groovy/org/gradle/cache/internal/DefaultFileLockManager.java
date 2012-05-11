@@ -39,7 +39,7 @@ public class DefaultFileLockManager implements FileLockManager {
     private static final int STATE_REGION_POS = 0;
     private static final byte INFORMATION_REGION_PROTOCOL = 2;
     private static final int INFORMATION_REGION_POS = STATE_REGION_POS + STATE_REGION_SIZE;
-    public static final int INFORMATION_REGION_SIZE = 1024;
+    public static final int INFORMATION_REGION_SIZE = 2048;
     private final Set<File> lockedFiles = new CopyOnWriteArraySet<File>();
     private final ProcessMetaDataProvider metaDataProvider;
 
