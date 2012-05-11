@@ -39,6 +39,7 @@ class IdeDependenciesExtractor {
         File file
         File sourceFile
         File javadocFile
+        ModuleVersionIdentifier id
     }
 
     static class UnresolvedIdeRepoFileDependency extends IdeRepoFileDependency {
@@ -85,10 +86,10 @@ class IdeDependenciesExtractor {
 
         Map<String, File> javadocFiles = downloadJavadoc ? getFiles(confContainer.detachedConfiguration(javadocDependencies as Dependency[]), "javadoc") : [:]
 
-        resolvedExternalDependencies(plusConfigurations, minusConfigurations).each { File binaryFile, Configuration conf ->
-            File sourceFile = sourceFiles[binaryFile.name]
-            File javadocFile = javadocFiles[binaryFile.name]
-            out << new IdeRepoFileDependency( file: binaryFile, sourceFile: sourceFile, javadocFile: javadocFile, declaredConfiguration: conf)
+        resolvedExternalDependencies(plusConfigurations, minusConfigurations).each { IdeRepoFileDependency dependency ->
+            dependency.sourceFile = sourceFiles[dependency.file.name]
+            dependency.javadocFile = javadocFiles[dependency.file.name]
+            out << dependency
         }
 
         unresolvedExternalDependencies(plusConfigurations, minusConfigurations) { config, dep ->
@@ -132,19 +133,19 @@ class IdeDependenciesExtractor {
         }
     }
 
-    private Map<File, Configuration> resolvedExternalDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
-        LinkedHashMap<File, Configuration> fileToConf = [:]
+    protected Collection<IdeRepoFileDependency> resolvedExternalDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
+        LinkedHashMap<File, IdeRepoFileDependency> out = [:]
         for (plusConfiguration in plusConfigurations) {
-            for (file in plusConfiguration.resolvedConfiguration.lenientConfiguration.getFiles( { it instanceof ExternalDependency } as Spec)) {
-                fileToConf[file] = plusConfiguration
+            for (artifact in plusConfiguration.resolvedConfiguration.lenientConfiguration.getArtifacts({ it instanceof ExternalDependency } as Spec)) {
+                out[artifact.file] = new IdeRepoFileDependency( file: artifact.file, declaredConfiguration: plusConfiguration, id: artifact.moduleVersion.id)
             }
         }
         for (minusConfiguration in minusConfigurations) {
-            for (file in minusConfiguration.resolvedConfiguration.lenientConfiguration.getFiles({ it instanceof ExternalDependency } as Spec)) {
-                fileToConf.remove(file)
+            for (artifact in minusConfiguration.resolvedConfiguration.lenientConfiguration.getArtifacts({ it instanceof ExternalDependency } as Spec)) {
+                out.remove(artifact.file)
             }
         }
-        fileToConf
+        out.values()
     }
 
     private Set<ResolvedDependency> resolveDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {

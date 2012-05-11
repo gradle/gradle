@@ -41,4 +41,13 @@ public interface ExternalDependency extends Dependency {
      * @return The Javadoc file. Returns null when the Javadoc is not available for this dependency.
      */
     File getJavadoc();
+
+    /**
+     * Returns the gradle module information about this dependency.
+     *
+     * @return Gradle module information.
+     *      May be null - it means the external dependency was not a remote-repository dependency.
+     * @since 1.1-rc-1
+     */
+    ExternalGradleModule getExternalGradleModule();
 }

@@ -72,8 +72,10 @@ class IdeaDependenciesProvider {
                     ideaModule.downloadSources, ideaModule.downloadJavadoc)
 
             repoFileDependencies.each {
-                moduleLibraries << new SingleEntryModuleLibrary(
-                    getPath(it.file), getPath(it.javadocFile), getPath(it.sourceFile), scopeName)
+                def library = new SingleEntryModuleLibrary(
+                        getPath(it.file), getPath(it.javadocFile), getPath(it.sourceFile), scopeName)
+                library.id = it.id
+                moduleLibraries << library
             }
         }
 
