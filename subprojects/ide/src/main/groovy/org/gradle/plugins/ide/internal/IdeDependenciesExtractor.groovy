@@ -114,7 +114,7 @@ class IdeDependenciesExtractor {
     }
 
     private String unresolvedFileName(UnresolvedDependency dep) {
-        "unresolved dependency - $dep.identifier.group:$dep.identifier.name:$dep.identifier.version"
+        "unresolved dependency - $dep.identifier.group $dep.identifier.name $dep.identifier.version"
     }
 
     List<IdeLocalFileDependency> extractLocalFileDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
