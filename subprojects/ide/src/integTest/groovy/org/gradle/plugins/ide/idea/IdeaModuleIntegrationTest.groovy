@@ -252,6 +252,61 @@ idea.module {
     }
 
     @Test
+    void "respects external dependencies order"() {
+        //given
+        def repoDir = file("repo")
+        maven(repoDir).module("org.gradle", "artifact1").publish()
+        maven(repoDir).module("org.gradle", "artifact2").publish()
+
+        //when
+        runIdeaTask """
+apply plugin: 'java'
+apply plugin: 'idea'
+
+repositories {
+    maven { url "${repoDir.toURI()}" }
+}
+
+dependencies {
+    compile 'org.gradle:artifact1:1.0'
+    compile 'org.gradle:artifact2:1.0'
+}
+"""
+        def content = getFile([:], 'root.iml').text
+
+        //then
+        def a1 = content.indexOf("artifact1")
+        def a2 = content.indexOf("artifact2")
+
+        assert [a1, a2] == [a1, a2].sort()
+    }
+
+    @Test
+    void "respects local dependencies order"() {
+        //given
+        file('artifact1.jar').createNewFile()
+        file('artifact2.jar').createNewFile()
+
+        //when
+        runIdeaTask """
+apply plugin: 'java'
+apply plugin: 'idea'
+
+dependencies {
+    compile files('artifact1.jar')
+    compile files('artifact2.jar')
+}
+"""
+        def content = getFile([:], 'root.iml').text
+
+        //then
+        def a1 = content.indexOf("artifact1")
+        def a2 = content.indexOf("artifact2")
+
+        assert [a1, a2] == [a1, a2].sort()
+    }
+
+    @Test
     void doesNotBreakWhenSomeDependenciesCannotBeResolved() {
         //given
         def repoDir = file("repo")
