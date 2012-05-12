@@ -72,6 +72,8 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
         testNg.setOutputDirectory(testReportDir.getAbsolutePath());
         testNg.setDefaultSuiteName(options.getSuiteName());
         testNg.setDefaultTestName(options.getTestName());
+        testNg.setParallel(options.getParallel());
+        testNg.setThreadCount(options.getThreadCount());
         try {
             ReflectionUtil.invoke(testNg, "setAnnotations", options.getAnnotations());
         } catch (MissingMethodException e) {
