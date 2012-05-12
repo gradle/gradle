@@ -28,47 +28,31 @@ import org.gradle.tooling.model.idea.IdeaProject
 class ExternalGradleModulesCrossVersionSpec extends ToolingApiSpecification {
 
     def "idea libraries contain gradle module information"() {
-        def fakeRepo = dist.file("repo")
-        new MavenRepository(fakeRepo).module("foo.bar", "coolLib", 2.0).publish()
+        given:
+        prepareBuild()
 
-        dist.file("yetAnotherJar.jar").createFile()
-
-        dist.file('build.gradle').text = """
-apply plugin: 'java'
-
-repositories {
-    maven { url "${fakeRepo.toURI()}" }
-}
-
-dependencies {
-    compile 'foo.bar:coolLib:2.0'
-    compile 'unresolved.org:funLib:1.0'
-    compile files('yetAnotherJar.jar')
-}
-"""
         when:
         IdeaProject project = withConnection { connection -> connection.getModel(IdeaProject.class) }
         def module = project.modules[0]
         def libs = module.dependencies
 
         then:
-        libs.size() == 3
-
-        ExternalDependency coolLib = libs.find { it.externalGradleModule?.name == 'coolLib' }
-        coolLib.externalGradleModule.group == 'foo.bar'
-        coolLib.externalGradleModule.name == 'coolLib'
-        coolLib.externalGradleModule.version == '2.0'
-
-        ExternalDependency funLib = libs.find { it.externalGradleModule?.name == 'funLib' }
-        funLib.externalGradleModule.group == 'unresolved.org'
-        funLib.externalGradleModule.name == 'funLib'
-        funLib.externalGradleModule.version == '1.0'
-
-        ExternalDependency yetAnotherJar = libs.find { it.externalGradleModule == null }
-        yetAnotherJar.file.name == 'yetAnotherJar.jar'
+        containModuleInfo(libs)
     }
 
     def "eclipse libraries contain gradle module information"() {
+        given:
+        prepareBuild()
+
+        when:
+        EclipseProject project = withConnection { connection -> connection.getModel(EclipseProject.class) }
+        def libs = project.classpath
+
+        then:
+        containModuleInfo(libs)
+    }
+
+    private void prepareBuild() {
         def fakeRepo = dist.file("repo")
         new MavenRepository(fakeRepo).module("foo.bar", "coolLib", 2.0).publish()
 
@@ -87,24 +71,22 @@ dependencies {
     compile files('yetAnotherJar.jar')
 }
 """
-        when:
-        EclipseProject project = withConnection { connection -> connection.getModel(EclipseProject.class) }
-        def libs = project.classpath
+    }
 
-        then:
-        libs.size() == 3
+    private void containModuleInfo(libs) {
+        assert libs.size() == 3
 
         ExternalDependency coolLib = libs.find { it.externalGradleModule?.name == 'coolLib' }
-        coolLib.externalGradleModule.group == 'foo.bar'
-        coolLib.externalGradleModule.name == 'coolLib'
-        coolLib.externalGradleModule.version == '2.0'
+        assert coolLib.externalGradleModule.group == 'foo.bar'
+        assert coolLib.externalGradleModule.name == 'coolLib'
+        assert coolLib.externalGradleModule.version == '2.0'
 
         ExternalDependency funLib = libs.find { it.externalGradleModule?.name == 'funLib' }
-        funLib.externalGradleModule.group == 'unresolved.org'
-        funLib.externalGradleModule.name == 'funLib'
-        funLib.externalGradleModule.version == '1.0'
+        assert funLib.externalGradleModule.group == 'unresolved.org'
+        assert funLib.externalGradleModule.name == 'funLib'
+        assert funLib.externalGradleModule.version == '1.0'
 
         ExternalDependency yetAnotherJar = libs.find { it.externalGradleModule == null }
-        yetAnotherJar.file.name == 'yetAnotherJar.jar'
+        assert yetAnotherJar.file.name == 'yetAnotherJar.jar'
     }
 }
