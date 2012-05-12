@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.ide.eclipse.model.internal
 
+import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.plugins.ide.internal.IdeDependenciesExtractor
 import org.gradle.plugins.ide.internal.IdeDependenciesExtractor.IdeLocalFileDependency
 import org.gradle.plugins.ide.internal.IdeDependenciesExtractor.IdeProjectDependency
@@ -54,12 +55,12 @@ class ClasspathFactory {
             dependenciesExtractor.extractRepoFileDependencies(
                     classpath.project.configurations, classpath.plusConfigurations, classpath.minusConfigurations, classpath.downloadSources, classpath.downloadJavadoc)
             .each { IdeRepoFileDependency it ->
-                entries << createLibraryEntry(it.file, it.sourceFile, it.javadocFile, it.declaredConfiguration.name, classpath)
+                entries << createLibraryEntry(it.file, it.sourceFile, it.javadocFile, it.declaredConfiguration.name, classpath, it.id)
             }
 
             dependenciesExtractor.extractLocalFileDependencies(classpath.plusConfigurations, classpath.minusConfigurations)
             .each { IdeLocalFileDependency it ->
-                entries << createLibraryEntry(it.file, null, null, it.declaredConfiguration.name, classpath)
+                entries << createLibraryEntry(it.file, null, null, it.declaredConfiguration.name, classpath, null)
             }
         }
     }
@@ -84,22 +85,22 @@ class ClasspathFactory {
         return entries
     }
 
-    private AbstractLibrary createLibraryEntry(File binary, File source, File javadoc, String declaredConfigurationName, EclipseClasspath classpath) {
+    private AbstractLibrary createLibraryEntry(
+            File binary, File source, File javadoc, String declaredConfigurationName, EclipseClasspath classpath,
+            ModuleVersionIdentifier id) {
         def referenceFactory = classpath.fileReferenceFactory
-        
+
         def binaryRef = referenceFactory.fromFile(binary)
         def sourceRef = referenceFactory.fromFile(source)
         def javadocRef = referenceFactory.fromFile(javadoc);
-        def out
-        if (binaryRef.relativeToPathVariable) {
-            out = new Variable(binaryRef)
-        } else {
-            out = new Library(binaryRef)
-        }
+
+        AbstractLibrary out = binaryRef.relativeToPathVariable? new Variable(binaryRef) : new Library(binaryRef)
+
         out.javadocPath = javadocRef
         out.sourcePath = sourceRef
         out.exported = true
         out.declaredConfigurationName = declaredConfigurationName
+        out.id = id
         out
     }
 }
