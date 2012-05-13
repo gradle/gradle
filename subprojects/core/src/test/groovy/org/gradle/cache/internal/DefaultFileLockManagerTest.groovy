@@ -390,6 +390,7 @@ class DefaultFileLockManagerTest extends Specification {
         mode << [Shared, Exclusive]
     }
 
+    @Requires(TestPrecondition.NO_FILE_LOCK_ON_OPEN)
     def "long descriptor strings are trimmed when written to information region"() {
         setup:
         def customMetaDataProvider = Mock(ProcessMetaDataProvider)
