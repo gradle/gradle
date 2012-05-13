@@ -40,6 +40,7 @@ public class DefaultFileLockManager implements FileLockManager {
     private static final byte INFORMATION_REGION_PROTOCOL = 2;
     private static final int INFORMATION_REGION_POS = STATE_REGION_POS + STATE_REGION_SIZE;
     public static final int INFORMATION_REGION_SIZE = 2048;
+    public static final int INFORMATION_REGION_DESCR_CHUNK_LIMIT = 340;
     private final Set<File> lockedFiles = new CopyOnWriteArraySet<File>();
     private final ProcessMetaDataProvider metaDataProvider;
 
@@ -272,12 +273,11 @@ public class DefaultFileLockManager implements FileLockManager {
                         throw new IllegalStateException(String.format("Timeout waiting to lock the information region for lock %s", displayName));
                     }
                     // check that the length of the reserved region is enough for storing our content
-                    assertInformationFitsInRegion(informationRegionLock.size(), metaDataProvider.getProcessIdentifier(), operationDisplayName);
                     try {
                         lockFileAccess.seek(INFORMATION_REGION_POS);
                         lockFileAccess.writeByte(INFORMATION_REGION_PROTOCOL);
-                        lockFileAccess.writeUTF(metaDataProvider.getProcessIdentifier());
-                        lockFileAccess.writeUTF(operationDisplayName);
+                        lockFileAccess.writeUTF(trimIfNecessary(metaDataProvider.getProcessIdentifier()));
+                        lockFileAccess.writeUTF(trimIfNecessary(operationDisplayName));
                         lockFileAccess.setLength(lockFileAccess.getFilePointer());
                     } finally {
                         informationRegionLock.release();
@@ -292,13 +292,11 @@ public class DefaultFileLockManager implements FileLockManager {
             return stateRegionLock;
         }
 
-        private void assertInformationFitsInRegion(long givenSize, String... uftStrings) throws UnsupportedEncodingException {
-            int informationsize = 1; // The protocol information byte
-            for (String utfString : uftStrings) {
-                informationsize += utfString.getBytes("utf-8").length;
-            }
-            if (givenSize < informationsize) {
-                throw new IllegalStateException(String.format("locked information region for %s to small to contain content", displayName));
+        private String trimIfNecessary(String inputString) {
+            if(inputString.length() > INFORMATION_REGION_DESCR_CHUNK_LIMIT){
+                return inputString.substring(0, INFORMATION_REGION_DESCR_CHUNK_LIMIT);
+            }else{
+                return inputString;
             }
         }
 

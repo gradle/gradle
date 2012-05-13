@@ -26,6 +26,7 @@ import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
+
 import static org.gradle.cache.internal.FileLockManager.LockMode.Exclusive
 import static org.gradle.cache.internal.FileLockManager.LockMode.Shared
 
@@ -389,16 +390,18 @@ class DefaultFileLockManagerTest extends Specification {
         mode << [Shared, Exclusive]
     }
 
-    def "fails to acquire lock with lock information > 2k"() {
+    def "long descriptor strings are trimmed when written to information region"() {
+        setup:
+        def customMetaDataProvider = Mock(ProcessMetaDataProvider)
+        def processIdentifier = RandomStringUtils.randomAlphanumeric(1000)
+        1 * customMetaDataProvider.processIdentifier >> processIdentifier
+        def customManager = new DefaultFileLockManager(customMetaDataProvider)
+        def operationalDisplayName = RandomStringUtils.randomAlphanumeric(1000)
         when:
-        def lock = manager.lock(testFileLock, Exclusive, "123", RandomStringUtils.randomAlphanumeric(1700))
+        customManager.lock(testFile, Exclusive, "targetDisplayName", operationalDisplayName)
         then:
         notThrown(IllegalStateException)
-        lock.close()
-        when:
-        manager.lock(testFileLock, Exclusive, "123", RandomStringUtils.randomAlphanumeric(2100))
-        then:
-        thrown(IllegalStateException)
+        isVersion2LockFile(testFileLock, processIdentifier.substring(0, DefaultFileLockManager.INFORMATION_REGION_DESCR_CHUNK_LIMIT), operationalDisplayName.substring(0, DefaultFileLockManager.INFORMATION_REGION_DESCR_CHUNK_LIMIT))
     }
 
     def "require exclusive lock for writing"() {
@@ -441,15 +444,15 @@ class DefaultFileLockManagerTest extends Specification {
         }
     }
 
-    private void isVersion2LockFile(TestFile lockFile) {
+    private void isVersion2LockFile(TestFile lockFile, String processIdentifier = "123", String operationalName = 'operation') {
         assert lockFile.isFile()
         assert lockFile.length() > 3
         lockFile.withDataInputStream { str ->
             assert str.readByte() == 1
             assert !str.readBoolean()
             assert str.readByte() == 2
-            assert str.readUTF() == '123'
-            assert str.readUTF() == 'operation'
+            assert str.readUTF() == processIdentifier
+            assert str.readUTF() == operationalName
             assert str.read() < 0
         }
     }
