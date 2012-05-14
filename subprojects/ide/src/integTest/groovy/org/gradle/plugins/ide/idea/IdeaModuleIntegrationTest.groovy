@@ -307,6 +307,30 @@ dependencies {
     }
 
     @Test
+    void "works with artifacts without group and version"() {
+        //given
+        testFile('repo/hibernate-core.jar').createFile()
+
+        //when
+        runIdeaTask """
+apply plugin: 'java'
+apply plugin: 'idea'
+
+repositories {
+  flatDir dirs: 'repo'
+}
+
+dependencies {
+    compile files(':hibernate-core:')
+}
+"""
+        def content = getFile([:], 'root.iml').text
+
+        //then
+        content.contains 'hibernate-core'
+    }
+
+    @Test
     void doesNotBreakWhenSomeDependenciesCannotBeResolved() {
         //given
         def repoDir = file("repo")
