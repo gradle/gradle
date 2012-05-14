@@ -16,8 +16,8 @@
 
 package org.gradle.launcher.daemon.client;
 
-import org.gradle.api.specs.ExplainingSpec;
-import org.gradle.api.specs.Specs;
+import org.gradle.api.internal.specs.ExplainingSpec;
+import org.gradle.api.internal.specs.ExplainingSpecs;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.service.ServiceRegistry;
@@ -34,7 +34,7 @@ public class StopDaemonClientServices extends DaemonClientServices {
 
     @Override
     protected DaemonClient createDaemonClient() {
-        ExplainingSpec<DaemonContext> matchAll = Specs.satisfyAll();
+        ExplainingSpec<DaemonContext> matchAll = ExplainingSpecs.satisfyAll();
         return new DaemonClient(
                 get(DaemonConnector.class),
                 get(OutputEventListener.class),

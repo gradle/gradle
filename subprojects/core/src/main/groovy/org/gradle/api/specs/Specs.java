@@ -28,32 +28,24 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public class Specs {
-    public static final ExplainingSpec<Object> SATISFIES_ALL = new ExplainingSpec<Object>() {
+    public static final Spec<Object> SATISFIES_ALL = new Spec<Object>() {
         public boolean isSatisfiedBy(Object element) {
             return true;
         }
-
-        public String whyUnsatisfied(Object element) {
-            return null;
-        }
     };
 
-    public static <T> ExplainingSpec<T> satisfyAll() {
-        return (ExplainingSpec<T>)SATISFIES_ALL;
+    public static <T> Spec<T> satisfyAll() {
+        return (Spec<T>)SATISFIES_ALL;
     }
 
-    public static final ExplainingSpec<Object> SATISFIES_NONE = new ExplainingSpec<Object>() {
+    public static final Spec<Object> SATISFIES_NONE = new Spec<Object>() {
         public boolean isSatisfiedBy(Object element) {
             return false;
         }
-
-        public String whyUnsatisfied(Object element) {
-            return "Never satisfies any.";
-        }
     };
-    
-    public static <T> ExplainingSpec<T> satisfyNone() {
-        return (ExplainingSpec<T>)SATISFIES_NONE;
+
+    public static <T> Spec<T> satisfyNone() {
+        return (Spec<T>)SATISFIES_NONE;
     }
 
     public static <T> Spec<T> convertClosureToSpec(final Closure cl) {

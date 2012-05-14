@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.specs;
+package org.gradle.api.internal.specs;
+
+import org.gradle.api.specs.Spec;
 
 /**
  * A predicate against objects of type T that can explain the unsatisfied reason.

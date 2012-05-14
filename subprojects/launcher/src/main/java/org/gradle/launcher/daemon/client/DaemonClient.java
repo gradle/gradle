@@ -15,9 +15,9 @@
  */
 package org.gradle.launcher.daemon.client;
 
+import org.gradle.api.internal.specs.ExplainingSpec;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.specs.ExplainingSpec;
 import org.gradle.initialization.GradleLauncherAction;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorFactory;

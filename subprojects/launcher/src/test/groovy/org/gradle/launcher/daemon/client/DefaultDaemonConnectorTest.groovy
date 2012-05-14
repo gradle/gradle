@@ -16,8 +16,8 @@
 package org.gradle.launcher.daemon.client
 
 import org.gradle.api.GradleException
-import org.gradle.api.specs.ExplainingSpec
-import org.gradle.api.specs.Specs
+import org.gradle.api.internal.specs.ExplainingSpec
+import org.gradle.api.internal.specs.ExplainingSpecs
 import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.daemon.context.DefaultDaemonContext
 import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo
@@ -169,7 +169,7 @@ class DefaultDaemonConnectorTest extends Specification {
 
     def "connect() will fail early if newly started daemon fails the compatibility spec"() {
         when:
-        connector.connect(Specs.satisfyNone())
+        connector.connect(ExplainingSpecs.satisfyNone())
 
         then:
         thrown(GradleException)

@@ -15,7 +15,7 @@
  */
 package org.gradle.launcher.daemon.client;
 
-import org.gradle.api.specs.ExplainingSpec;
+import org.gradle.api.internal.specs.ExplainingSpec;
 import org.gradle.launcher.daemon.context.DaemonContext;
 
 /**

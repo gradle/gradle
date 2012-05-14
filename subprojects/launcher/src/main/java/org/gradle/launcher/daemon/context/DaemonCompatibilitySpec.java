@@ -15,7 +15,7 @@
  */
 package org.gradle.launcher.daemon.context;
 
-import org.gradle.api.specs.ExplainingSpec;
+import org.gradle.api.internal.specs.ExplainingSpec;
 
 import static org.gradle.util.GFileUtils.canonicalise;
 
