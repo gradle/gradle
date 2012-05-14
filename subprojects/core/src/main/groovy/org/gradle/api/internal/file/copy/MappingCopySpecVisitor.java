@@ -123,13 +123,13 @@ public class MappingCopySpecVisitor extends DelegatingCopySpecVisitor {
                 return super.copyTo(target);
             } else {
                 final boolean copied = fileDetails.copyTo(target);
-                adaptPermissionSpecs(target);
+                adaptPermissions(target);
                 return copied;
             }
         }
 
-        private void adaptPermissionSpecs(File target) {
-            final Integer specMode = getSpecMode();
+        private void adaptPermissions(File target) {
+            final Integer specMode = getMode();
             if(specMode !=null){
                 try {
                     FileSystems.getDefault().chmod(target, specMode);

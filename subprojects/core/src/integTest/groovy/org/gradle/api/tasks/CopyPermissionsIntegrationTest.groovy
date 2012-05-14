@@ -53,14 +53,13 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
         and:
         buildFile << """
             task copy(type: Copy) {
-                from"reference.txt"
+                from "reference.txt"
                 eachFile {
 		            it.setMode(0755)
 	            }
                 into ("build/tmp")
             }
             """
-
         when:
         run "copy"
         then:
