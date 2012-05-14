@@ -172,6 +172,10 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                     classLoader);
             return urlClassLoader.loadClass(source.getClassName()).asSubclass(scriptBaseClass);
         } catch (Exception e) {
+            File expectedClassFile = new File(scriptCacheDir, source.getClassName()+".class");
+            if(!expectedClassFile.exists()){
+                throw new GradleException(String.format("Could not load compiled classes for %s from cache. Expected class file %s does not exist.", source.getDisplayName(), expectedClassFile.getAbsolutePath()), e);
+            }
             throw new GradleException(String.format("Could not load compiled classes for %s from cache.", source.getDisplayName()), e);
         }
     }
