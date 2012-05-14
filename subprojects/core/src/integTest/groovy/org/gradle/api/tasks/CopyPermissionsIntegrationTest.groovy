@@ -46,6 +46,28 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
+    def "file permissions can be modfied with eachFile closure"() {
+        given:
+        def testSourceFile = file("reference.txt") << 'test file"'
+        testSourceFile.mode = 0746
+        and:
+        buildFile << """
+            task copy(type: Copy) {
+                from"reference.txt"
+                eachFile {
+		            it.setMode(0755)
+	            }
+                into ("build/tmp")
+            }
+            """
+
+        when:
+        run "copy"
+        then:
+        file("build/tmp/reference.txt").mode == 0755
+    }
+
+    @Requires(TestPrecondition.FILE_PERMISSIONS)
     def "directory permissions are preserved in copy action"() {
         given:
         TestFile parent = getTestDir().createDir("testparent")
