@@ -321,13 +321,13 @@ repositories {
 }
 
 dependencies {
-    compile files(':hibernate-core:')
+    compile ':hibernate-core:'
 }
 """
         def content = getFile([:], 'root.iml').text
 
         //then
-        content.contains 'hibernate-core'
+        content.contains 'hibernate-core.jar'
     }
 
     @Test
