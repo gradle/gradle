@@ -56,7 +56,7 @@ class JreJavaHomeGroovyIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Requires(TestPrecondition.WINDOWS)
-    def "groovy compiler works when gradle is started with no java_home defined in forking mode = #forkMode and useAnt = #useAnt"() {
+    def "groovy compiler works when gradle is started with no JAVA_HOME defined in forking mode = #forkMode and useAnt = #useAnt"() {
         given:
         writeJavaTestSource("src/main/groovy")
         writeGroovyTestSource("src/main/groovy")

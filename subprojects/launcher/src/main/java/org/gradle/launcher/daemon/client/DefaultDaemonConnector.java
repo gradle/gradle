@@ -122,7 +122,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
             if (daemonInfo.getContext().getUid().equals(startupInfo.getUid())) {
                 try {
                     if (!constraint.isSatisfiedBy(daemonInfo.getContext())) {
-                        throw new GradleException("Internal error - please report it. The newly created daemon process has a different context than expected."
+                        throw new GradleException("The newly created daemon process has a different context than expected."
                                 + "\nIt won't be possible to reconnect to this daemon. Context mismatch: "
                                 + "\n" + constraint.whyUnsatisfied(daemonInfo.getContext()));
                     }

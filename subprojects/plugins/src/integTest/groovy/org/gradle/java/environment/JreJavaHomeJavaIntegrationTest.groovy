@@ -50,7 +50,7 @@ class JreJavaHomeJavaIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Requires(TestPrecondition.WINDOWS)
-    def "java compilation works in forking mode = #forkMode and useAnt = #useAnt when gradle is started with no java_home defined"() {
+    def "java compilation works in forking mode = #forkMode and useAnt = #useAnt when gradle is started with no JAVA_HOME defined"() {
         given:
         writeJavaTestSource("src/main/java");
         file('build.gradle') << """

@@ -63,7 +63,7 @@ public enum JavaVersion {
     }
 
     /**
-     * Provides the JavaVersion of the current used JVM  {@code JavaVersion}.
+     * Returns the version of the current JVM.
      *
      * @return The version of the current JVM.
      */
@@ -72,15 +72,15 @@ public enum JavaVersion {
     }
 
     public boolean isJava5() {
-        return getName().startsWith("1.5");
+        return this == VERSION_1_5;
     }
 
     public boolean isJava6() {
-        return getName().startsWith("1.6");
+        return this == VERSION_1_6;
     }
 
     public boolean isJava7() {
-        return getName().startsWith("1.7");
+        return this == VERSION_1_7;
     }
 
     public boolean isJava5Compatible() {

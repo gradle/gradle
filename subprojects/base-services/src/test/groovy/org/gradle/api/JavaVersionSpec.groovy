@@ -111,6 +111,11 @@ public class JavaVersionSpec extends Specification {
         System.properties['java.version'] = '1.5'
 
         expect:
+        JavaVersion.current().java5
+        !JavaVersion.current().java6
+        !JavaVersion.current().java7
+
+        and:
         JavaVersion.current().java5Compatible
         !JavaVersion.current().java6Compatible
         !JavaVersion.current().java7Compatible
@@ -120,6 +125,11 @@ public class JavaVersionSpec extends Specification {
         System.properties['java.version'] = '1.6'
 
         expect:
+        !JavaVersion.current().java5
+        JavaVersion.current().java6
+        !JavaVersion.current().java7
+
+        and:
         JavaVersion.current().java5Compatible
         JavaVersion.current().java6Compatible
         !JavaVersion.current().java7Compatible
@@ -129,6 +139,11 @@ public class JavaVersionSpec extends Specification {
         System.properties['java.version'] = '1.7'
 
         expect:
+        !JavaVersion.current().java5
+        !JavaVersion.current().java6
+        JavaVersion.current().java7
+
+        and:
         JavaVersion.current().java5Compatible
         JavaVersion.current().java6Compatible
         JavaVersion.current().java7Compatible

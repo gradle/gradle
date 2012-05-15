@@ -398,10 +398,11 @@ class DefaultFileLockManagerTest extends Specification {
         1 * customMetaDataProvider.processIdentifier >> processIdentifier
         def customManager = new DefaultFileLockManager(customMetaDataProvider)
         def operationalDisplayName = RandomStringUtils.randomAlphanumeric(1000)
+
         when:
         customManager.lock(testFile, Exclusive, "targetDisplayName", operationalDisplayName)
+
         then:
-        notThrown(IllegalStateException)
         isVersion2LockFile(testFileLock, processIdentifier.substring(0, DefaultFileLockManager.INFORMATION_REGION_DESCR_CHUNK_LIMIT), operationalDisplayName.substring(0, DefaultFileLockManager.INFORMATION_REGION_DESCR_CHUNK_LIMIT))
     }
 
@@ -448,6 +449,7 @@ class DefaultFileLockManagerTest extends Specification {
     private void isVersion2LockFile(TestFile lockFile, String processIdentifier = "123", String operationalName = 'operation') {
         assert lockFile.isFile()
         assert lockFile.length() > 3
+        assert lockFile.length() <= 2048
         lockFile.withDataInputStream { str ->
             assert str.readByte() == 1
             assert !str.readBoolean()
