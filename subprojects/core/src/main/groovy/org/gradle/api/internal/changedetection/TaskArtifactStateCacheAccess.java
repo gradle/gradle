@@ -17,7 +17,7 @@ package org.gradle.api.internal.changedetection;
 
 import org.gradle.internal.Factory;
 import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.cache.Serializer;
+import org.gradle.messaging.serialize.Serializer;
 
 public interface TaskArtifactStateCacheAccess {
     /**

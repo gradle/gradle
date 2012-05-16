@@ -21,6 +21,7 @@ import org.gradle.internal.Factory;
 import org.gradle.api.internal.changedetection.InMemoryIndexedCache;
 import org.gradle.cache.*;
 import org.gradle.cache.internal.*;
+import org.gradle.messaging.serialize.Serializer;
 
 import java.io.File;
 import java.util.Collections;

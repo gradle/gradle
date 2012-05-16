@@ -16,7 +16,7 @@
 package org.gradle.cache.internal.btree;
 
 import org.gradle.cache.DefaultSerializer;
-import org.gradle.cache.Serializer;
+import org.gradle.messaging.serialize.Serializer;
 import org.gradle.util.TemporaryFolder;
 import org.gradle.util.TestFile;
 import org.junit.Before;

@@ -18,6 +18,7 @@ package org.gradle.cache.internal;
 import org.gradle.api.Action;
 import org.gradle.cache.*;
 import org.gradle.internal.Factory;
+import org.gradle.messaging.serialize.Serializer;
 
 import java.io.File;
 import java.io.IOException;

@@ -16,6 +16,7 @@
 package org.gradle.cache;
 
 import org.gradle.internal.io.ClassLoaderObjectInputStream;
+import org.gradle.messaging.serialize.Serializer;
 
 import java.io.*;
 

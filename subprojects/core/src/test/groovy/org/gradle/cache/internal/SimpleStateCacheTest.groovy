@@ -17,7 +17,7 @@ package org.gradle.cache.internal
 
 import org.gradle.cache.DefaultSerializer
 import org.gradle.cache.PersistentStateCache
-import org.gradle.cache.Serializer
+import org.gradle.messaging.serialize.Serializer
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification

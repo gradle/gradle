@@ -16,7 +16,7 @@
 package org.gradle.cache.internal
 
 import org.gradle.internal.Factory
-import org.gradle.cache.Serializer
+import org.gradle.messaging.serialize.Serializer
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule

@@ -15,6 +15,8 @@
  */
 package org.gradle.cache;
 
+import org.gradle.messaging.serialize.Serializer;
+
 import java.util.Map;
 
 public interface ObjectCacheBuilder<E, T> extends CacheBuilder<T> {

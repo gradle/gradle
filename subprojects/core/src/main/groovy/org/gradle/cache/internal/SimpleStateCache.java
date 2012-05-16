@@ -19,7 +19,7 @@ package org.gradle.cache.internal;
 import org.gradle.api.GradleException;
 import org.gradle.internal.Factory;
 import org.gradle.cache.PersistentStateCache;
-import org.gradle.cache.Serializer;
+import org.gradle.messaging.serialize.Serializer;
 
 import java.io.*;
 
