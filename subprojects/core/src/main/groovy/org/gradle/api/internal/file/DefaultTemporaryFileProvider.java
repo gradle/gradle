@@ -18,6 +18,7 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.Nullable;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.Factory;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
 
@@ -29,6 +30,14 @@ public class DefaultTemporaryFileProvider implements TemporaryFileProvider {
 
     public DefaultTemporaryFileProvider(FileSource baseDir) {
         this.baseDir = baseDir;
+    }
+
+    public DefaultTemporaryFileProvider(final Factory<File> fileFactory) {
+        this(new FileSource() {
+            public File get() {
+                return fileFactory.create();
+            }
+        });
     }
 
     public File newTemporaryFile(String... path) {

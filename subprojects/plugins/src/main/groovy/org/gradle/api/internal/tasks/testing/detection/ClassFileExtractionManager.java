@@ -18,9 +18,7 @@ package org.gradle.api.internal.tasks.testing.detection;
 import org.apache.commons.lang.text.StrBuilder;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.file.DefaultTemporaryFileProvider;
-import org.gradle.api.internal.file.FileSource;
 import org.gradle.api.internal.file.TemporaryFileProvider;
-import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
 import org.gradle.internal.Factory;
 import org.gradle.util.JarUtil;
 import org.slf4j.Logger;
@@ -43,13 +41,7 @@ public class ClassFileExtractionManager {
     private final TemporaryFileProvider tempDirProvider;
 
     public ClassFileExtractionManager(final Factory<File> tempDirFactory) {
-        // unfortunately Task doesn't implement TemporaryFileProvider, even though it uses it internally
-        // simulating it here, using what Tasks do provide, i.e. Factory<File>
-        tempDirProvider = new DefaultTemporaryFileProvider(new FileSource() {
-            public File get() {
-                return tempDirFactory.create();
-            }
-        });
+        tempDirProvider = new DefaultTemporaryFileProvider(tempDirFactory);
         packageJarFilesMappings = new HashMap<String, Set<File>>();
         extractedJarClasses = new HashMap<String, File>();
         unextractableClasses = new TreeSet<String>();
