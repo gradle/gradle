@@ -35,6 +35,11 @@ task multiGroovy(type: ProjectGeneratorTask, description: 'Generates a multi-pro
     groovyProject = true
 }
 
+task largeMulti(type: ProjectGeneratorTask, description: 'Generates a large multi-project build') {
+    projects = 800
+    sourceFiles = 100
+}
+
 def generators = tasks.withType(ProjectGeneratorTask)
 generators.all {
     group = 'Project setup'
