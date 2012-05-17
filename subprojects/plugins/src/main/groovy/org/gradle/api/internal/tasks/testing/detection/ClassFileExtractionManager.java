@@ -17,6 +17,11 @@ package org.gradle.api.internal.tasks.testing.detection;
 
 import org.apache.commons.lang.text.StrBuilder;
 import org.gradle.api.GradleException;
+import org.gradle.api.internal.file.DefaultTemporaryFileProvider;
+import org.gradle.api.internal.file.FileSource;
+import org.gradle.api.internal.file.TemporaryFileProvider;
+import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
+import org.gradle.internal.Factory;
 import org.gradle.util.JarUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,10 +40,16 @@ public class ClassFileExtractionManager {
     private final Map<String, Set<File>> packageJarFilesMappings;
     private final Map<String, File> extractedJarClasses;
     private final Set<String> unextractableClasses;
-    private final File tempDir;
+    private final TemporaryFileProvider tempDirProvider;
 
-    public ClassFileExtractionManager(File tempDir) {
-        this.tempDir = tempDir;
+    public ClassFileExtractionManager(final Factory<File> tempDirFactory) {
+        // unfortunately Task doesn't implement TemporaryFileProvider, even though it uses it internally
+        // simulating it here, using what Tasks do provide, i.e. Factory<File>
+        tempDirProvider = new DefaultTemporaryFileProvider(new FileSource() {
+            public File get() {
+                return tempDirFactory.create();
+            }
+        });
         packageJarFilesMappings = new HashMap<String, Set<File>>();
         extractedJarClasses = new HashMap<String, File>();
         unextractableClasses = new TreeSet<String>();
@@ -133,12 +144,6 @@ public class ClassFileExtractionManager {
     }
 
     private File tempFile() {
-        try {
-            final File tempFile = File.createTempFile("jar_extract_", "_tmp", tempDir);
-            tempFile.deleteOnExit();
-            return tempFile;
-        } catch (IOException e) {
-            throw new GradleException("failed to create temp file to extract class from jar into", e);
-        }
+        return tempDirProvider.createTemporaryFile("jar_extract_", "_tmp"); // Could throw UncheckedIOException
     }
 }
