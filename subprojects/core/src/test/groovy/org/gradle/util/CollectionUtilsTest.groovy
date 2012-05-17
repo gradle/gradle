@@ -75,4 +75,17 @@ class CollectionUtilsTest extends Specification {
         compact(l).is l
 
     }
+
+    def "list stringize"() {
+        expect:
+        stringize([1,2,3]) == ["1", "2", "3"]
+        stringize([]) == []
+    }
+
+    def "stringize"() {
+        expect:
+        stringize(["c", "b", "a"], new TreeSet<String>()) == ["a", "b", "c"] as Set
+    }
+
+
 }

@@ -96,4 +96,12 @@ public abstract class CollectionUtils {
         return foundAtLeastOneNull ? compacted : list;
     }
 
+    public static <C extends Collection<String>> C stringize(Iterable<?> source, C destination) {
+        return collect(source, destination, new ToStringTransformer());
+    }
+
+    public static List<String> stringize(List<?> source) {
+        return stringize(source, new ArrayList<String>(source.size()));
+    }
+
 }
