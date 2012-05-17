@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.testing.testng;
 
 import org.gradle.api.JavaVersion;
+import org.gradle.internal.Factory;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.api.internal.tasks.testing.AbstractTestFrameworkTest;
@@ -47,6 +48,11 @@ public class TestNGTestFrameworkTest extends AbstractTestFrameworkTest {
         testngOptionsMock = context.mock(TestNGOptions.class);
         idGeneratorMock = context.mock(IdGenerator.class);
         serviceRegistry = context.mock(ServiceRegistry.class);
+        final Factory<File> temporaryDirFactory = new Factory<File>() {
+            public File create() {
+                return temporaryDir;
+            }
+        };
 
         final JavaVersion sourceCompatibility = JavaVersion.VERSION_1_5;
         context.checking(new Expectations() {{
@@ -55,6 +61,7 @@ public class TestNGTestFrameworkTest extends AbstractTestFrameworkTest {
             allowing(testMock).getTestClassesDir(); will(returnValue(testClassesDir));
             allowing(testMock).getClasspath(); will(returnValue(classpathMock));
             allowing(testMock).getTemporaryDir(); will(returnValue(temporaryDir));
+            allowing(testMock).getTemporaryDirFactory(); will(returnValue(temporaryDirFactory));
         }});
     }
 
