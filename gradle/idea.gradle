@@ -243,9 +243,9 @@ idea {
         runManagerConfig.append(new XmlParser().parseText('''
             <configuration default="false" name="Gradle Precommit Check" type="Application" factoryName="Application">
               <extension name="coverage" enabled="false" merge="false" />
-              <option name="MAIN_CLASS_NAME" value="org.gradle.testing.internal.util.IdeQuickCheckRunner" />
+              <option name="MAIN_CLASS_NAME" value="org.gradle.testing.internal.util.GradlewRunner" />
               <option name="VM_PARAMETERS" value="" />
-              <option name="PROGRAM_PARAMETERS" value="" />
+              <option name="PROGRAM_PARAMETERS" value="quickCheck --daemon" />
               <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$" />
               <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
               <option name="ALTERNATIVE_JRE_PATH" value="" />

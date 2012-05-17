@@ -16,17 +16,20 @@
 
 package org.gradle.testing.internal.util;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PrintWriter;
+import java.io.*;
 
-public class IdeQuickCheckRunner {
+public class GradlewRunner {
     public static void main(String[] args) {
         Process process = null;
 
+        String[] combinedArgs = new String[1 + args.length];
+
+        File gradlew = new File("gradlew");
+        combinedArgs[0] = gradlew.getAbsolutePath();
+        System.arraycopy(args, 0, combinedArgs, 1, args.length);
+
         try {
-            ProcessBuilder builder = new ProcessBuilder().command("./gradlew", "quickCheck", "--daemon", "--offline");
+            ProcessBuilder builder = new ProcessBuilder().command(combinedArgs);
             process = builder.start();
             final Process finalProcess = process;
             Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
