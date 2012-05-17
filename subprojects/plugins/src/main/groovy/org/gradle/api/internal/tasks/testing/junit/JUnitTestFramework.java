@@ -46,7 +46,7 @@ public class JUnitTestFramework implements TestFramework {
         this.testTask = testTask;
         reporter = new DefaultTestReport();
         options = new JUnitOptions();
-        detector = new JUnitDetector(testTask.getTestClassesDir(), testTask.getClasspath(), new ClassFileExtractionManager(testTask.getTemporaryDir()));
+        detector = new JUnitDetector(testTask.getTestClassesDir(), testTask.getClasspath(), new ClassFileExtractionManager(testTask.getTemporaryDirFactory()));
     }
 
     public WorkerTestClassProcessorFactory getProcessorFactory() {
