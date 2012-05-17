@@ -34,7 +34,7 @@ abstract class WellBehavedPluginTest extends AbstractIntegrationSpec {
 
     def "plugin does not force creation of build dir during configuration"() {
         given:
-        buildFile << "apply plugin: '${getPluginId()}'"
+        applyPlugin()
 
         when:
         run "tasks"
@@ -45,9 +45,13 @@ abstract class WellBehavedPluginTest extends AbstractIntegrationSpec {
 
     def "plugin can build with empty project"() {
         given:
-        buildFile << "apply plugin: '${getPluginId()}'"
+        applyPlugin()
 
         expect:
         succeeds mainTask
+    }
+
+    protected applyPlugin(File target = buildFile) {
+        target << "apply plugin: '${getPluginId()}'\n"
     }
 }

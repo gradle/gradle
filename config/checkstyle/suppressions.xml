@@ -21,4 +21,9 @@
     <suppress checks="Javadoc.*"
               files=".*[/\\]subprojects[/\\]internal-.+[/\\]src[/\\]main[/\\].+"/>
 
+    <!-- JavaScript plugin is incubating -->
+    <suppress checks="Javadoc.*"
+              files=".*[/\\]subprojects[/\\]javascript[/\\].+"/>
+
+
 </suppressions>
