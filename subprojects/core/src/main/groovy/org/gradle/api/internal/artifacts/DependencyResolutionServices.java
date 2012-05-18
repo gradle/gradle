@@ -31,4 +31,6 @@ public interface DependencyResolutionServices {
     ArtifactHandler getArtifactHandler();
 
     Factory<ArtifactPublicationServices> getPublishServicesFactory();
+
+    ResolverFactory getResolverFactory();
 }

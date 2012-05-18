@@ -250,6 +250,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         private ConfigurationContainerInternal configurationContainer;
         private DependencyHandler dependencyHandler;
         private DefaultArtifactHandler artifactHandler;
+        private ResolverFactory resolverFactory;
 
         private DefaultDependencyResolutionServices(ServiceRegistry parent, FileResolver fileResolver, DependencyMetaDataProvider dependencyMetaDataProvider, ProjectFinder projectFinder, DomainObjectContext domainObjectContext) {
             this.parent = parent;
@@ -266,17 +267,26 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
             return repositoryHandler;
         }
 
+        public ResolverFactory getResolverFactory() {
+            if (resolverFactory == null) {
+                Instantiator instantiator = parent.get(Instantiator.class);
+                //noinspection unchecked
+                resolverFactory = new DefaultResolverFactory(
+                        get(LocalMavenRepositoryLocator.class),
+                        fileResolver,
+                        instantiator,
+                        get(RepositoryTransportFactory.class),
+                        get(LocallyAvailableResourceFinder.class),
+                        get(ByUrlCachedExternalResourceIndex.class)
+                );
+            }
+
+            return resolverFactory;
+        }
+
         private DefaultRepositoryHandler createRepositoryHandler() {
             Instantiator instantiator = parent.get(Instantiator.class);
-            @SuppressWarnings("unchecked") ResolverFactory resolverFactory = new DefaultResolverFactory(
-                    get(LocalMavenRepositoryLocator.class),
-                    fileResolver,
-                    instantiator,
-                    get(RepositoryTransportFactory.class),
-                    get(LocallyAvailableResourceFinder.class),
-                    get(ByUrlCachedExternalResourceIndex.class)
-                    );
-            return instantiator.newInstance(DefaultRepositoryHandler.class, resolverFactory, instantiator);
+            return instantiator.newInstance(DefaultRepositoryHandler.class, getResolverFactory(), instantiator);
         }
 
         public ConfigurationContainerInternal getConfigurationContainer() {
