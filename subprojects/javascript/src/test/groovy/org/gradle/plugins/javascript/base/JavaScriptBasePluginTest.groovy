@@ -19,6 +19,7 @@ package org.gradle.plugins.javascript.base
 import org.gradle.api.Project
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
+import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 
 class JavaScriptBasePluginTest extends Specification {
 
@@ -45,6 +46,13 @@ class JavaScriptBasePluginTest extends Specification {
     def "extension is available"() {
         expect:
         extension != null
+    }
+
+    def "can get public repo"() {
+        expect:
+        extension.gradlePublicJavaScriptRepository instanceof MavenArtifactRepository
+        MavenArtifactRepository repo = extension.gradlePublicJavaScriptRepository as MavenArtifactRepository
+        repo.url.toString() == JavaScriptExtension.GRADLE_PUBLIC_JAVASCRIPT_REPO_URL
     }
 
 }

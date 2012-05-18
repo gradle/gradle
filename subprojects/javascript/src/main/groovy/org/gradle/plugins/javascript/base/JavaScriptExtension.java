@@ -16,8 +16,27 @@
 
 package org.gradle.plugins.javascript.base;
 
+import org.gradle.api.artifacts.repositories.ArtifactRepository;
+import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
+import org.gradle.api.internal.artifacts.ResolverFactory;
+
 public class JavaScriptExtension {
 
     public static final String NAME = "javaScript";
+
+    public static final String GRADLE_PUBLIC_JAVASCRIPT_REPO_URL = "http://repo.gradle.org/gradle/javascript-public";
+
+    private final ResolverFactory resolverFactory;
+
+    public JavaScriptExtension(ResolverFactory resolverFactory) {
+        this.resolverFactory = resolverFactory;
+    }
+
+    public ArtifactRepository getGradlePublicJavaScriptRepository() {
+        MavenArtifactRepository repo = resolverFactory.createMavenRepository();
+        repo.setUrl(GRADLE_PUBLIC_JAVASCRIPT_REPO_URL);
+        repo.setName("Gradle Public JavaScript Repository");
+        return repo;
+    }
 
 }
