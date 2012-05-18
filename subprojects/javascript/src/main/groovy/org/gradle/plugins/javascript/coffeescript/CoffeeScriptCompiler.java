@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-dependencies {
-    groovy libraries.groovy
+package org.gradle.plugins.javascript.coffeescript;
 
-    compile "org.mozilla:rhino:1.7R3"
-    compile project(':core'), project(":plugins")
+import org.gradle.api.tasks.WorkResult;
+
+public interface CoffeeScriptCompiler {
+
+    WorkResult compile(CoffeeScriptCompileSpec spec);
 
 }
-
-useTestFixtures()

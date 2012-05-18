@@ -14,12 +14,19 @@
  * limitations under the License.
  */
 
-dependencies {
-    groovy libraries.groovy
+package org.gradle.plugins.javascript.coffeescript;
 
-    compile "org.mozilla:rhino:1.7R3"
-    compile project(':core'), project(":plugins")
+import java.io.Serializable;
 
+public class CoffeeScriptCompileOptions implements Serializable {
+
+    private String encoding = "UTF-8";
+
+    public String getEncoding() {
+        return encoding;
+    }
+
+    public void setEncoding(String encoding) {
+        this.encoding = encoding;
+    }
 }
-
-useTestFixtures()

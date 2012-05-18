@@ -30,11 +30,13 @@ class CoffeeScriptBasePluginIntegrationTest extends WellBehavedPluginTest {
         "coffeescript-base"
     }
 
-    def "can download coffeescript by default"() {
-        given:
+    def setup() {
         addApplyPluginScript(buildFile)
         addGradlePublicJsRepoScript(buildFile)
+    }
 
+    def "can download coffeescript by default"() {
+        given:
         buildFile << """
             task resolve(type: Copy) {
                 from javaScript.coffeeScript.js
@@ -49,5 +51,40 @@ class CoffeeScriptBasePluginIntegrationTest extends WellBehavedPluginTest {
         def js = file("deps/coffee-script-js-1.3.3.js")
         js.exists()
         js.text.contains("CoffeeScript Compiler")
+    }
+
+    def "can compile coffeescript"() {
+        given:
+        file("src/main/coffeescript/dir1/thing1.coffee") << "number = 1"
+        file("src/main/coffeescript/dir2/thing2.coffee") << "number = 2"
+
+        buildFile << """
+            repositories.mavenCentral()
+            task compile(type: ${CoffeeScriptCompile.name}) {
+                destinationDir file("build/compiled/js")
+                source fileTree("src/main/coffeescript")
+            }
+        """
+
+        when:
+        run "compile"
+
+        then:
+        ":compile" in nonSkippedTasks
+
+        and:
+        def f1 = file("build/compiled/js/dir1/thing1.js")
+        f1.exists()
+        f1.text.startsWith("(function() {")
+
+        def f2 = file("build/compiled/js/dir2/thing2.js")
+        f2.exists()
+        f2.text.startsWith("(function() {")
+
+        when:
+        run "compile"
+
+        then:
+        ":compile" in skippedTasks
     }
 }

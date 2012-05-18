@@ -14,12 +14,16 @@
  * limitations under the License.
  */
 
-dependencies {
-    groovy libraries.groovy
+package org.gradle.plugins.javascript.rhino.worker;
 
-    compile "org.mozilla:rhino:1.7R3"
-    compile project(':core'), project(":plugins")
+import java.io.Serializable;
+
+public interface RhinoWorkerClientProtocol {
+
+    void initialisationError(Exception e);
+
+    void receiveResult(Serializable result);
+
+    void executionError(Exception e);
 
 }
-
-useTestFixtures()

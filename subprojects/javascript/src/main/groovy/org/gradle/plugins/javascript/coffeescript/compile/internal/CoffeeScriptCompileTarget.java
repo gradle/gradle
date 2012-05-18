@@ -14,12 +14,28 @@
  * limitations under the License.
  */
 
-dependencies {
-    groovy libraries.groovy
+package org.gradle.plugins.javascript.coffeescript.compile.internal;
 
-    compile "org.mozilla:rhino:1.7R3"
-    compile project(':core'), project(":plugins")
+import org.gradle.api.file.RelativePath;
 
+import java.io.File;
+import java.io.Serializable;
+
+public class CoffeeScriptCompileTarget implements Serializable {
+
+    private final File file;
+    private final RelativePath relativePath;
+
+    public CoffeeScriptCompileTarget(File file, RelativePath relativePath) {
+        this.file = file;
+        this.relativePath = relativePath;
+    }
+
+    public File getFile() {
+        return file;
+    }
+
+    public RelativePath getRelativePath() {
+        return relativePath;
+    }
 }
-
-useTestFixtures()
