@@ -22,7 +22,7 @@
             </tr>
             <tr>
                 <td>groovyClasspath</td>
-                <td><literal>project.configuations.groovy</literal></td>
+                <td><literal>project.configurations.groovy</literal></td>
             </tr>
         </table>
     </section>
