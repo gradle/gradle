@@ -67,6 +67,11 @@ public class ApiGroovyCompiler implements Compiler<GroovyJavaJointCompileSpec>, 
         FilteringClassLoader groovyCompilerClassLoader = new FilteringClassLoader(GroovyClassLoader.class.getClassLoader());
         groovyCompilerClassLoader.allowPackage("org.codehaus.groovy");
         groovyCompilerClassLoader.allowPackage("groovy");
+        // Disallow classes from Groovy Jar that reference external classes. Such classes must be loaded from astTransformClassLoader,
+        // or a NoClassDefFoundError will occur. Essentially this is drawing a line between the Groovy compiler and the Groovy
+        // library, albeit only for selected classes that run a high risk of being statically referenced from a transform.
+        groovyCompilerClassLoader.disallowClass("groovy.util.GroovyTestCase");
+        groovyCompilerClassLoader.disallowClass("groovy.servlet.GroovyServlet");
 
         // AST transforms need their own class loader that shares compiler classes with the compiler itself
         final GroovyClassLoader astTransformClassLoader = new GroovyClassLoader(groovyCompilerClassLoader, null);
