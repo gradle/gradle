@@ -88,18 +88,18 @@ class DefaultExecHandleSpec extends Specification {
 
         then:
         def e = thrown(ExecException)
-        e.message.contains "finished with (non-zero) exit value 72."
+        e.message.contains "finished with non-zero exit value 72"
     }
 
     void "start fails when process cannot be started"() {
-        def execHandle = handle().setDisplayName("awesome process").executable("no_such_command").build();
+        def execHandle = handle().setDisplayName("awesome").executable("no_such_command").build();
 
         when:
         execHandle.start();
 
         then:
         def e = thrown(ExecException)
-        e.message == "A problem occurred starting awesome process."
+        e.message == "A problem occurred starting process 'awesome'"
     }
 
     void "aborts process"() {
