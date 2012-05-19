@@ -106,10 +106,6 @@ class TestNGIntegrationTest {
         result.testClass('org.gradle.BrokenAfterSuite').assertConfigMethodFailed('cleanup')
         result.testClass('org.gradle.TestWithBrokenMethodDependency').assertTestFailed('broken', equalTo('broken'))
         result.testClass('org.gradle.TestWithBrokenMethodDependency').assertTestSkipped('okTest')
-        assertThat(execution.error, containsString('Test org.gradle.BadTest FAILED'))
-        assertThat(execution.error, containsString('Test org.gradle.TestWithBrokenSetup FAILED'))
-        assertThat(execution.error, containsString('Test org.gradle.BrokenAfterSuite FAILED'))
-        assertThat(execution.error, containsString('Test org.gradle.TestWithBrokenMethodDependency FAILED'))
     }
 
     @Issue("GRADLE-1532")

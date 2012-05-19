@@ -126,16 +126,6 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
         failure.assertHasDescription("Execution failed for task ':test'.");
         failure.assertThatCause(startsWith('There were failing tests.'));
 
-        assert containsLine(failure.getError(), 'Test org.gradle.BrokenTest FAILED');
-        assert containsLine(failure.getError(), 'Test org.gradle.BrokenBefore FAILED');
-        assert containsLine(failure.getError(), 'Test org.gradle.BrokenAfter FAILED');
-        assert containsLine(failure.getError(), 'Test org.gradle.BrokenBeforeAndAfter FAILED');
-        assert containsLine(failure.getError(), 'Test org.gradle.BrokenBeforeClass FAILED');
-        assert containsLine(failure.getError(), 'Test org.gradle.BrokenAfterClass FAILED');
-        assert containsLine(failure.getError(), 'Test org.gradle.BrokenConstructor FAILED');
-        assert containsLine(failure.getError(), 'Test org.gradle.BrokenException FAILED');
-        assert containsLine(failure.getError(), 'Test org.gradle.Unloadable FAILED');
-
         JUnitTestExecutionResult result = new JUnitTestExecutionResult(testDir)
         result.assertTestClassesExecuted(
                 'org.gradle.ClassWithBrokenRunner',
