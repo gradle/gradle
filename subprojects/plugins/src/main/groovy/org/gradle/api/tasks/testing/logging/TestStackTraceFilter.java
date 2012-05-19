@@ -14,8 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.testing;
+package org.gradle.api.tasks.testing.logging;
 
-public enum PackageFormat {
-    NONE, SHORT, FULL
+/**
+ * Stack trace filters for test logging. Multiple filters can be combined.
+ */
+public enum TestStackTraceFilter {
+    // ordered by how much they tend to filter (more efficient)
+    DISCARD, ENTRY_POINT, TRUNCATE, GROOVY, FULL
 }

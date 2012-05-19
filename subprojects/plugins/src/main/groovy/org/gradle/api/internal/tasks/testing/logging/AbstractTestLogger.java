@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.testing.results;
+package org.gradle.api.internal.tasks.testing.logging;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.tasks.testing.TestDescriptor;
@@ -26,9 +26,11 @@ import org.gradle.logging.internal.StyledTextOutputEvent;
 
 public abstract class AbstractTestLogger implements TestListener {
     private final OutputEventListener outputListener;
+    private final LogLevel logLevel;
 
-    protected AbstractTestLogger(OutputEventListener outputListener) {
+    protected AbstractTestLogger(OutputEventListener outputListener, LogLevel logLevel) {
         this.outputListener = outputListener;
+        this.logLevel = logLevel;
     }
 
     public void beforeSuite(TestDescriptor descriptor) {
@@ -61,6 +63,6 @@ public abstract class AbstractTestLogger implements TestListener {
 
     protected void print(StyledTextOutputEvent.Span... spans) {
         outputListener.onOutput(new StyledTextOutputEvent(System.currentTimeMillis(),
-                "testLogging", LogLevel.LIFECYCLE, spans));
+                "testLogging", logLevel, spans));
     }
 }

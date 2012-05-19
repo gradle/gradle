@@ -28,12 +28,19 @@ import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.detection.DefaultTestExecuter;
 import org.gradle.api.internal.tasks.testing.detection.TestExecuter;
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
-import org.gradle.api.internal.tasks.testing.logging.StandardStreamsLogger;
+import org.gradle.api.internal.tasks.testing.logging.TestCountLogger;
+import org.gradle.api.internal.tasks.testing.logging.TestEventLogger;
+import org.gradle.api.internal.tasks.testing.logging.TestExceptionFormatter;
 import org.gradle.api.internal.tasks.testing.results.*;
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
+import org.gradle.api.logging.LogLevel;
+import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.*;
+import org.gradle.api.internal.tasks.testing.logging.DefaultTestLoggingContainer;
+import org.gradle.api.tasks.testing.logging.TestLogging;
+import org.gradle.api.tasks.testing.logging.TestLoggingContainer;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.UncheckedException;
@@ -90,6 +97,8 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public class Test extends ConventionTask implements JavaForkOptions, PatternFilterable, VerificationTask {
+    private static final Logger LOGGER = Logging.getLogger(Test.class);
+
     private TestExecuter testExecuter;
     private final DefaultJavaForkOptions options;
     private List<File> testSrcDirs = new ArrayList<File>();
@@ -106,7 +115,8 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     private int maxParallelForks = 1;
     private ListenerBroadcast<TestListener> testListenerBroadcaster;
     private final ListenerBroadcast<TestOutputListener> testOutputListenerBroadcaster;
-    private final TestLogging testLogging = new TestLogging();
+    private OutputEventListener outputListener;
+    private final TestLoggingContainer testLogging = new DefaultTestLoggingContainer();
 
     public Test() {
         testListenerBroadcaster = getServices().get(ListenerManager.class).createAnonymousBroadcaster(
@@ -114,6 +124,8 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         testOutputListenerBroadcaster = getServices().get(ListenerManager.class).createAnonymousBroadcaster(TestOutputListener.class);
         this.testExecuter = new DefaultTestExecuter(getServices().getFactory(WorkerProcessBuilder.class), getServices().get(
                 ActorFactory.class));
+        outputListener = getServices().get(OutputEventListener.class);
+
         options = new DefaultJavaForkOptions(getServices().get(FileResolver.class));
         options.setEnableAssertions(true);
     }
@@ -386,15 +398,20 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
 
     @TaskAction
     public void executeTests() {
-        OutputEventListener outputListener = getServices().get(OutputEventListener.class);
+        for (LogLevel level: LogLevel.values()) {
+            if (!LOGGER.isEnabled(level)) {
+                continue;
+            }
+            TestLogging levelLogging = testLogging.get(level);
+            TestExceptionFormatter exceptionFormatter = new TestExceptionFormatter(testLogging);
+            TestEventLogger eventLogger = new TestEventLogger(outputListener, level, levelLogging, exceptionFormatter);
+            addTestListener(eventLogger);
+            addTestOutputListener(eventLogger);
+        }
+
         ProgressLoggerFactory progressLoggerFactory = getServices().get(ProgressLoggerFactory.class);
         TestCountLogger testCountLogger = new TestCountLogger(progressLoggerFactory);
-
-        addTestListener(new TestTraceLogger(outputListener, testLogging.getTraces()));
-        addTestListener(new TestExceptionLogger(outputListener, testLogging.getExceptions()));
         addTestListener(testCountLogger);
-
-        addTestOutputListener(new StandardStreamsLogger(Logging.getLogger(Test.class), testLogging));
 
         TestResultProcessor resultProcessor = new TestListenerAdapter(
                 getTestListenerBroadcaster().getSource(), testOutputListenerBroadcaster.getSource());
@@ -491,7 +508,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
 
     /**
      * <p>Adds a closure to be notified after a test suite has executed. A {@link org.gradle.api.tasks.testing.TestDescriptor}
-     * and {@link org.gradle.api.tasks.testing.TestResult} instance are passed to the closure as a parameter.</p>
+     * and {@link TestResult} instance are passed to the closure as a parameter.</p>
      *
      * <p>This method is also called after all test suites are executed. The provided descriptor will have a null parent
      * suite.</p>
@@ -514,7 +531,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
 
     /**
      * Adds a closure to be notified after a test has executed. A {@link org.gradle.api.tasks.testing.TestDescriptor}
-     * and {@link org.gradle.api.tasks.testing.TestResult} instance are passed to the closure as a parameter.
+     * and {@link TestResult} instance are passed to the closure as a parameter.
      *
      * @param closure The closure to call.
      */

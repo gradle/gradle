@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.testing.results;
+package org.gradle.api.internal.tasks.testing.logging;
 
 import org.gradle.api.tasks.testing.TestDescriptor;
 import org.gradle.api.tasks.testing.TestListener;
@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 public class TestCountLogger implements TestListener {
     private final ProgressLoggerFactory factory;
     private ProgressLogger progressLogger;
-    private final Logger logger; // TODO: still needed, or can progressLogger do this as well?
+    private final Logger logger; // TODO: still needed, or can progressLogger take care of this as well?
 
     private long totalTests;
     private long failedTests;

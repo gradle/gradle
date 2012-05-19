@@ -14,76 +14,106 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.testing.results;
+package org.gradle.api.internal.tasks.testing.logging;
 
 import com.google.common.base.Objects;
 
 import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
-import org.gradle.api.tasks.testing.StackTraceFilter;
-import org.gradle.api.tasks.testing.TestExceptionLogging;
+import org.gradle.api.tasks.testing.logging.TestLogging;
+import org.gradle.api.tasks.testing.logging.TestStackTraceFilter;
 import org.gradle.api.tasks.testing.TestDescriptor;
-import org.gradle.api.tasks.testing.TestResult;
-import org.gradle.logging.StyledTextOutput;
-import org.gradle.logging.internal.OutputEventListener;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 
-public class TestExceptionLogger extends AbstractTestLogger {
-    private final TestExceptionLogging exceptionLogging;
+public class TestExceptionFormatter {
+    private final TestLogging testLogging;
 
-    public TestExceptionLogger(OutputEventListener outputListener, TestExceptionLogging exceptionLogging) {
-        super(outputListener);
-        this.exceptionLogging = exceptionLogging;
+    public TestExceptionFormatter(TestLogging testLogging) {
+        this.testLogging = testLogging;
     }
 
-    @Override
-    public void afterTest(TestDescriptor descriptor, TestResult result) {
-        if (!exceptionLogging.isEnabled()) { return; }
+    public String format(TestDescriptor descriptor, List<Throwable> exceptions) {
+        StringBuilder builder = new StringBuilder();
 
-        for (Throwable exception : result.getExceptions()) {
-            filterStackTrace(exception, descriptor);
-            StringWriter writer = new StringWriter();
-            exception.printStackTrace(new PrintWriter(writer));
-            println(StyledTextOutput.Style.Normal, "\n" + writer.toString());
+        for (Throwable exception : exceptions) {
+            ExceptionInfo exceptionInfo = toExceptionInfo(exception);
+            filterStackTrace(exceptionInfo, descriptor);
+            printException(exceptionInfo, builder);
         }
+
+        return builder.toString();
     }
 
-    // TODO: mutating exception isn't a good idea, especially not that far down the call chain
-    // probably we should replicate the printStackTrace code instead of using it directly
-    private void filterStackTrace(Throwable exception, TestDescriptor descriptor) {
+    private ExceptionInfo toExceptionInfo(Throwable exception) {
+        if (exception == null) {
+            return null;
+        }
+
+        ExceptionInfo exceptionInfo = new ExceptionInfo();
+        exceptionInfo.message = exception.getMessage();
+        exceptionInfo.stackTrace = Arrays.asList(exception.getStackTrace());
+        exceptionInfo.cause = toExceptionInfo(exception.getCause());
+        return exceptionInfo;
+    }
+
+    private void filterStackTrace(ExceptionInfo exceptionInfo, TestDescriptor descriptor) {
+        // fast path
+        if (testLogging.getStackTraceFilters().contains(TestStackTraceFilter.DISCARD)) {
+            exceptionInfo.stackTrace = Collections.emptyList();
+            return;
+        }
+
         Spec<StackTraceElement> filter = createCompositeFilter(descriptor);
         List<StackTraceElement> filteredTrace = new ArrayList<StackTraceElement>();
 
-        for (StackTraceElement element : exception.getStackTrace()) {
+        for (StackTraceElement element : exceptionInfo.stackTrace) {
             if (filter.isSatisfiedBy(element)) {
                 filteredTrace.add(element);
             }
         }
 
-        exception.setStackTrace(filteredTrace.toArray(new StackTraceElement[filteredTrace.size()]));
+        exceptionInfo.stackTrace = filteredTrace;
 
-        if (exception.getCause() != null) {
-            filterStackTrace(exception.getCause(), descriptor);
+        if (exceptionInfo.cause != null) {
+            filterStackTrace(exceptionInfo.cause, descriptor);
+        }
+    }
+
+    private void printException(ExceptionInfo exceptionInfo, StringBuilder builder) {
+        for (StackTraceElement element : exceptionInfo.stackTrace) {
+            builder.append(element);
+            builder.append('\n');
+        }
+
+        while ((exceptionInfo = exceptionInfo.cause) != null) {
+            builder.append("\nCaused by:\n");
+
+            // TODO: check for duplicate elements
+
+            for (StackTraceElement element : exceptionInfo.stackTrace) {
+                builder.append(element);
+                builder.append('\n');
+            }
         }
     }
 
     private Spec<StackTraceElement> createCompositeFilter(TestDescriptor descriptor) {
         List<Spec<StackTraceElement>> filters = new ArrayList<Spec<StackTraceElement>>();
-        for (StackTraceFilter type : exceptionLogging.getStackTraceFilters()) {
+        for (TestStackTraceFilter type : testLogging.getStackTraceFilters()) {
             filters.add(createFilter(descriptor, type));
         }
         return new AndSpec<StackTraceElement>(filters);
     }
 
-    private Spec<StackTraceElement> createFilter(TestDescriptor descriptor, StackTraceFilter type) {
+    private Spec<StackTraceElement> createFilter(TestDescriptor descriptor, TestStackTraceFilter type) {
         switch (type) {
-            case HIDE: return Specs.satisfyNone();
+            case DISCARD: return Specs.satisfyNone();
             case ENTRY_POINT: return new TestEntryPointStackTraceFilter(descriptor);
             case TRUNCATE: return new TruncatingStackTraceFilter(new TestEntryPointStackTraceFilter(descriptor));
             case GROOVY: return new GroovyStackTraceFilter();
@@ -122,7 +152,7 @@ public class TestExceptionLogger extends AbstractTestLogger {
         }
     }
 
-    // implementation inspired from Spock's StackTraceFilter class
+    // implementation based on Spock's StackTraceFilter class
     private static class GroovyStackTraceFilter implements Spec<StackTraceElement> {
         private static final Pattern INTERNAL_CLASSES = Pattern.compile(
                 "org.codehaus.groovy.runtime\\..*"
@@ -145,5 +175,11 @@ public class TestExceptionLogger extends AbstractTestLogger {
         private boolean isGeneratedMethod(StackTraceElement element) {
             return element.getLineNumber() < 0;
         }
+    }
+
+    private static class ExceptionInfo {
+        String message;
+        List<StackTraceElement> stackTrace;
+        ExceptionInfo cause;
     }
 }

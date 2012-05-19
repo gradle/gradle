@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.testing;
+package org.gradle.api.tasks.testing.logging;
 
-public enum StackTraceFilter {
-    HIDE, ENTRY_POINT, TRUNCATE, GROOVY
+public enum TestPackageFormat {
+    OFF, SHORT, FULL
 }

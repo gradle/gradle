@@ -33,6 +33,7 @@ import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
 import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter;
 import org.gradle.api.tasks.AbstractConventionTaskTest;
 import org.gradle.process.internal.WorkerProcessBuilder;
+import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.TestClosure;
@@ -78,6 +79,7 @@ public class TestTest extends AbstractConventionTaskTest {
 
     TestFramework testFrameworkMock = context.mock(TestFramework.class);
     TestExecuter testExecuterMock = context.mock(TestExecuter.class);
+    OutputEventListener outputListenerMock = context.mock(OutputEventListener.class);
     private FileCollection classpathMock = new SimpleFileCollection(new File("classpath"));
     private Test test;
 

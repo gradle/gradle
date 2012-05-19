@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.testing;
+package org.gradle.api.tasks.testing.logging;
 
-public enum TraceEvent {
-    STARTED, PASSED, FAILED, SKIPPED
+/**
+ * Test events that can be logged.
+ */
+public enum TestLogEvent {
+    STARTED, PASSED, SKIPPED, FAILED, EXCEPTION, STANDARD_OUT, STANDARD_ERR
 }
