@@ -16,6 +16,20 @@
 
 package org.gradle.api.tasks.testing.logging;
 
+/**
+ * Determines how the package part of class names gets formatted when logging test events.
+ */
 public enum TestPackageFormat {
-    OFF, SHORT, FULL
+    /**
+     * Do not show packages at all.
+     */
+    OFF,
+    /**
+     * Abbreviate package names.
+     */
+    SHORT,
+    /**
+     * Show full package names.
+     */
+    FULL
 }
