@@ -15,9 +15,6 @@
  */
 package org.gradle.api.internal.tasks.testing.logging
 
-import org.gradle.api.internal.tasks.testing.logging.DefaultTestLogging
-import org.gradle.api.internal.tasks.testing.logging.TestEventLogger
-import org.gradle.api.internal.tasks.testing.logging.TestExceptionFormatter
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.api.tasks.testing.TestResult.ResultType
