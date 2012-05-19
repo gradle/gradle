@@ -52,5 +52,9 @@ public class GlobalTestServices extends GlobalServicesRegistry {
         protected StyledTextOutputFactory createStyledTextOutputFactory() {
             return new DefaultStyledTextOutputFactory(listenerManager.getBroadcaster(OutputEventListener.class), new TrueTimeProvider());
         }
+
+        protected TestOutputEventListener createStubOutputEventListener() {
+            return new TestOutputEventListener();
+        }
     }
 }
