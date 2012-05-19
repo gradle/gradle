@@ -21,6 +21,8 @@ import org.gradle.integtests.fixtures.TestResources
 
 import org.junit.Rule
 
+import spock.lang.Issue
+
 class ApiGroovyCompilerIntegrationTest extends AbstractIntegrationSpec {
     @Rule TestResources resources = new TestResources()
 
@@ -49,6 +51,17 @@ class ApiGroovyCompilerIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "canUseAstTransformWrittenInGroovy"() {
+        when:
+        inDirectory(resources.dir).withTasks("test").run()
+
+        then:
+        noExceptionThrown()
+    }
+
+    // more generally, this test is about transforms that statically reference
+    // a class from the Groovy (compiler) Jar that in turn references a class from another Jar
+    @Issue("GRADLE-2317")
+    def "canUseAstTransformThatReferencesGroovyTestCase"() {
         when:
         inDirectory(resources.dir).withTasks("test").run()
 
