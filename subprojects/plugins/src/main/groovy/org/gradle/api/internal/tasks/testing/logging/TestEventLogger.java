@@ -111,7 +111,7 @@ public class TestEventLogger extends AbstractTestLogger implements TestOutputLis
     }
 
     private boolean shouldLogEvent(TestDescriptor descriptor, TestLogEvent event) {
-        return (isLoggedGranularity(descriptor) && isLoggedEventType(event));
+        return isLoggedGranularity(descriptor) && isLoggedEventType(event);
     }
 
     private boolean shouldLogExceptions(TestResult result) {
