@@ -35,7 +35,7 @@ class RhinoPluginIntegrationTest extends WellBehavedPluginTest {
         when:
         buildFile << """
             task resolve(type: Copy) {
-                from javaScript.rhino.configuration
+                from javaScript.rhino.classpath
                 into "deps"
             }
         """
@@ -44,7 +44,7 @@ class RhinoPluginIntegrationTest extends WellBehavedPluginTest {
         succeeds("resolve")
 
         and:
-        file("deps/rhino-${RhinoPlugin.DEFAULT_RHINO_VERSION}.jar").exists()
+        file("deps/rhino-${RhinoExtension.DEFAULT_RHINO_DEPENDENCY_VERSION}.jar").exists()
     }
 
     def "can run rhino exec task"() {
@@ -84,36 +84,11 @@ class RhinoPluginIntegrationTest extends WellBehavedPluginTest {
         fails "rhino"
     }
 
-    def "can run rhino actions"() {
-        given:
-        file("some.js") << """
-            print("rhino js-version: " + version())
-            print("rhino arg: " + arguments[0])
-        """
-
-        buildFile << """
-            task rhino << {
-                javaScript.rhino.exec {
-                    args "-version", "160", file("some.js").absolutePath, "foo"
-                }
-            }
-        """
-
-        when:
-        run "rhino"
-
-        then:
-        output.contains "rhino js-version: 160"
-        output.contains "rhino arg: foo"
-    }
-
     def "can use older rhino version"() {
         given:
         buildFile << """
-            javaScript {
-                rhino {
-                    dependencies 'rhino:js:1.6R6'
-                }
+            dependencies {
+                it.${RhinoExtension.CLASSPATH_CONFIGURATION_NAME} "rhino:js:1.6R6"
             }
 
             task rhino(type: ${RhinoShellExec.name}) {

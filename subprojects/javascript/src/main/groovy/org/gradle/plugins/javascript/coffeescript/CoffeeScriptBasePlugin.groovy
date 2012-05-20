@@ -52,7 +52,7 @@ class CoffeeScriptBasePlugin implements Plugin<Project> {
         project.tasks.withType(CoffeeScriptCompile) { CoffeeScriptCompile task ->
             task.conventionMapping.map("compiler") {
                 def workerManager = new RhinoWorkerManager(projectInternal.services.getFactory(WorkerProcessBuilder.class))
-                new RhinoCoffeeScriptCompiler(workerManager, rhinoExtension.configuration, task.logging.level, project.projectDir)
+                new RhinoCoffeeScriptCompiler(workerManager, rhinoExtension.classpath, task.logging.level, project.projectDir)
             }
             task.conventionMapping.map("coffeeScriptJs") {
                 csExtension.js

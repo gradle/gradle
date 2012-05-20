@@ -16,14 +16,15 @@
 
 package org.gradle.plugins.javascript.rhino
 
-import spock.lang.Specification
 import org.gradle.api.Project
 import org.gradle.testfixtures.ProjectBuilder
-import org.gradle.api.artifacts.Configuration
+import spock.lang.Specification
+import org.gradle.util.DynamicDelegate
 
 class RhinoPluginTest extends Specification {
 
     Project project = ProjectBuilder.builder().build()
+    @Delegate DynamicDelegate delegate = new DynamicDelegate(project)
     RhinoExtension extension
 
     def setup() {
@@ -31,30 +32,14 @@ class RhinoPluginTest extends Specification {
         extension = javaScript.rhino
     }
 
-    def methodMissing(String name, args) {
-        project."$name"(*args)
-    }
-
-    def propertyMissing(String name) {
-        project."$name"
-    }
-
-    def propertyMissing(String name, value) {
-        project."$name" = value
-    }
-
     def "extension is available"() {
         expect:
         extension != null
-        extension.configuration instanceof Configuration
     }
 
-    def "can register alternate dependency"() {
-        when:
-        extension.dependencies "junit:junit:4.10"
-
-        then:
-        extension.configuration.dependencies.size() == 1
+    def "default version set"() {
+        expect:
+        extension.version == RhinoExtension.DEFAULT_RHINO_DEPENDENCY_VERSION
     }
 
 }

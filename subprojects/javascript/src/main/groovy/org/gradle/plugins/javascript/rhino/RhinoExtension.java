@@ -16,75 +16,43 @@
 
 package org.gradle.plugins.javascript.rhino;
 
-import groovy.lang.Closure;
-import org.gradle.api.Action;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.ResolvableDependencies;
-import org.gradle.api.artifacts.dsl.DependencyHandler;
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.process.ExecResult;
+import org.gradle.api.file.FileCollection;
 import org.gradle.process.JavaExecSpec;
-import org.gradle.process.internal.DefaultJavaExecAction;
-import org.gradle.process.internal.JavaExecAction;
-import org.gradle.util.ConfigureUtil;
 
 public class RhinoExtension {
 
     public static final String NAME = "rhino";
+
     public static final String RHINO_SHELL_MAIN = "org.mozilla.javascript.tools.shell.Main";
 
-    private final FileResolver fileResolver;
-    private final DependencyHandler dependencyHandler;
-    private final Configuration configuration;
-    private final Dependency defaultDependency;
+    public static final String DEFAULT_RHINO_DEPENDENCY_VERSION = "1.7R3";
+    public static final String DEFAULT_RHINO_DEPENDENCY_GROUP = "org.mozilla";
+    public static final String DEFAULT_RHINO_DEPENDENCY_MODULE = "rhino";
 
-    public RhinoExtension(FileResolver fileResolver, DependencyHandler dependencyHandler, Configuration configuration, Dependency defaultDependency) {
-        this.fileResolver = fileResolver;
-        this.dependencyHandler = dependencyHandler;
-        this.configuration = configuration;
-        this.defaultDependency = defaultDependency;
+    public static final String CLASSPATH_CONFIGURATION_NAME = "rhinoPluginRhinoClasspath";
 
-        configureConfiguration(configuration);
+    private FileCollection classpath;
+    private String version;
+
+    public FileCollection getClasspath() {
+        return classpath;
     }
 
-    public void dependencies(Object notation) {
-        dependencies(notation, null);
+    public void setClasspath(FileCollection rhinoClasspath) {
+        this.classpath = rhinoClasspath;
     }
 
-    public void dependencies(Object notation, Closure closure) {
-        configuration.getDependencies().add(dependencyHandler.create(notation, closure));
+    public String getVersion() {
+        return version;
     }
 
-    public Configuration getConfiguration() {
-        return configuration;
+    public void setVersion(String version) {
+        this.version = version;
     }
 
-    private void configureConfiguration(final Configuration configuration) {
-        configuration.getIncoming().beforeResolve(new Action<ResolvableDependencies>() {
-            public void execute(ResolvableDependencies resolvableDependencies) {
-                if (resolvableDependencies.getDependencies().isEmpty()) {
-                    configuration.getDependencies().add(defaultDependency);
-                }
-            }
-        });
-    }
-
-    public JavaExecAction exec() {
-        JavaExecAction action = new DefaultJavaExecAction(fileResolver);
-        action.setMain(RHINO_SHELL_MAIN);
-        action.setClasspath(getConfiguration());
-        return action;
-    }
-
-    public ExecResult exec(Action<JavaExecSpec> action) {
-        JavaExecAction exec = exec();
-        action.execute(exec);
-        return exec.execute();
-    }
-
-    public ExecResult exec(Closure<?> action) {
-        return ConfigureUtil.configure(action, exec()).execute();
+    public void configureJavaExec(JavaExecSpec spec) {
+        spec.setMain(RHINO_SHELL_MAIN);
+        spec.setClasspath(getClasspath());
     }
 
 }
