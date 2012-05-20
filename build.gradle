@@ -338,7 +338,7 @@ task install(type: Install) {
     group = 'build'
     dependsOn binZip.taskDependencies
     with binDistImage
-    installDirProperyName = 'gradle_installPath'
+    installDirPropertyName = 'gradle_installPath'
 }
 
 task installAll(type: Install) {
@@ -346,7 +346,7 @@ task installAll(type: Install) {
     group = 'build'
     dependsOn allZip.taskDependencies
     with allDistImage
-    installDirProperyName = 'gradle_installPath'
+    installDirPropertyName = 'gradle_installPath'
 }
 
 task testedDists(dependsOn: [check]) {
