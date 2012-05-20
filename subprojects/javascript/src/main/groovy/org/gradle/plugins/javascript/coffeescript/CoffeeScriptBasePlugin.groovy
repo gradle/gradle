@@ -28,35 +28,58 @@ import org.gradle.plugins.javascript.coffeescript.compile.internal.rhino.RhinoCo
 import org.gradle.plugins.javascript.rhino.RhinoExtension
 import org.gradle.plugins.javascript.rhino.worker.RhinoWorkerManager
 import org.gradle.process.internal.WorkerProcessBuilder
+import org.gradle.api.artifacts.ConfigurationContainer
+import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.api.artifacts.ResolvableDependencies
+import org.gradle.api.Action
+
+import static org.gradle.plugins.javascript.coffeescript.CoffeeScriptExtension.DEFAULT_JS_DEPENDENCY_GROUP
+import static org.gradle.plugins.javascript.coffeescript.CoffeeScriptExtension.DEFAULT_JS_DEPENDENCY_MODULE
+import static org.gradle.plugins.javascript.coffeescript.CoffeeScriptExtension.DEFAULT_JS_DEPENDENCY_VERSION
 
 class CoffeeScriptBasePlugin implements Plugin<Project> {
 
     public static final String DEFAULT_COFFEE_SCRIPT_JS_DEPENDENCY = "org.coffeescript:coffee-script-js:1.3.3@js"
 
     void apply(Project project) {
+        ProjectInternal projectInternal = project as ProjectInternal
+
         project.apply(plugin: "rhino")
 
         JavaScriptExtension jsExtension = project.extensions.getByType(JavaScriptExtension)
+        CoffeeScriptExtension csExtension = jsExtension.extensions.create(CoffeeScriptExtension.NAME, CoffeeScriptExtension)
+        Configuration jsConfiguration = addJsConfiguration(project.configurations, project.dependencies, csExtension)
 
-        Configuration coffeeScriptJsConfiguration = project.configurations.detachedConfiguration()
-        Dependency defaultCoffeeScriptJsDependency = project.dependencies.create(DEFAULT_COFFEE_SCRIPT_JS_DEPENDENCY)
-
-        CoffeeScriptExtension csExtension = jsExtension.extensions.create(
-                CoffeeScriptExtension.NAME, CoffeeScriptExtension,
-                coffeeScriptJsConfiguration, defaultCoffeeScriptJsDependency
-        )
+        csExtension.conventionMapping.with {
+            map("js") { jsConfiguration }
+            map("version") { DEFAULT_JS_DEPENDENCY_VERSION }
+        }
 
         RhinoExtension rhinoExtension = jsExtension.extensions.getByType(RhinoExtension)
 
-        ProjectInternal projectInternal = project as ProjectInternal
         project.tasks.withType(CoffeeScriptCompile) { CoffeeScriptCompile task ->
             task.conventionMapping.map("compiler") {
                 def workerManager = new RhinoWorkerManager(projectInternal.services.getFactory(WorkerProcessBuilder.class))
                 new RhinoCoffeeScriptCompiler(workerManager, rhinoExtension.classpath, task.logging.level, project.projectDir)
             }
+
             task.conventionMapping.map("coffeeScriptJs") {
                 csExtension.js
             }
         }
+    }
+
+    private Configuration addJsConfiguration(ConfigurationContainer configurations, DependencyHandler dependencies, CoffeeScriptExtension extension) {
+        Configuration configuration = configurations.add(CoffeeScriptExtension.JS_CONFIGURATION_NAME)
+        configuration.incoming.beforeResolve(new Action<ResolvableDependencies>() {
+            void execute(ResolvableDependencies resolvableDependencies) {
+                if (configuration.dependencies.empty) {
+                    String notation = "${DEFAULT_JS_DEPENDENCY_GROUP}:${DEFAULT_JS_DEPENDENCY_MODULE}:${extension.version}@js"
+                    Dependency dependency = dependencies.create(notation)
+                    configuration.dependencies.add(dependency)
+                }
+            }
+        })
+        configuration
     }
 }

@@ -16,46 +16,34 @@
 
 package org.gradle.plugins.javascript.coffeescript;
 
-import org.gradle.api.Action;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.file.FileCollection;
 
 public class CoffeeScriptExtension {
 
     public static final String NAME = "coffeeScript";
 
-    private final Configuration jsConfiguration;
-    private final Dependency defaultJsDependency;
+    public static final String DEFAULT_JS_DEPENDENCY_VERSION = "1.3.3";
+    public static final String DEFAULT_JS_DEPENDENCY_GROUP = "org.coffeescript";
+    public static final String DEFAULT_JS_DEPENDENCY_MODULE = "coffee-script-js";
 
-    public CoffeeScriptExtension(Configuration jsConfiguration, Dependency defaultJsDependency) {
-        this.jsConfiguration = jsConfiguration;
-        this.defaultJsDependency = defaultJsDependency;
+    public static final String JS_CONFIGURATION_NAME = "coffeeScriptBasePluginJs";
 
-        configureDefaultDependency(jsConfiguration, defaultJsDependency);
-    }
-
-    public Configuration getJsConfiguration() {
-        return jsConfiguration;
-    }
+    private FileCollection js;
+    private String version;
 
     public FileCollection getJs() {
-        return getJsConfiguration();
+        return js;
     }
 
-    public void jsDependency(Dependency dependency) {
-        getJsConfiguration().getDependencies().add(dependency);
+    public void setJs(FileCollection js) {
+        this.js = js;
     }
 
-    private void configureDefaultDependency(final Configuration configuration, final Dependency defaultDependency) {
-        configuration.getIncoming().beforeResolve(new Action<ResolvableDependencies>() {
-            public void execute(ResolvableDependencies resolvableDependencies) {
-                if (resolvableDependencies.getDependencies().isEmpty()) {
-                    configuration.getDependencies().add(defaultDependency);
-                }
-            }
-        });
+    public String getVersion() {
+        return version;
     }
 
+    public void setVersion(String version) {
+        this.version = version;
+    }
 }
