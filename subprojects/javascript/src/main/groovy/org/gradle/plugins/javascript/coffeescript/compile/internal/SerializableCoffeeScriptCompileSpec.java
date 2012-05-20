@@ -20,6 +20,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
+import org.gradle.api.internal.file.RelativeFile;
 import org.gradle.plugins.javascript.coffeescript.CoffeeScriptCompileOptions;
 import org.gradle.plugins.javascript.coffeescript.CoffeeScriptCompileSpec;
 
@@ -32,7 +33,7 @@ public class SerializableCoffeeScriptCompileSpec implements Serializable {
 
     private final File coffeeScriptJs;
     private final File destinationDir;
-    private final List<CoffeeScriptCompileTarget> source;
+    private final List<RelativeFile> source;
     private final CoffeeScriptCompileOptions options;
 
     public SerializableCoffeeScriptCompileSpec(CoffeeScriptCompileSpec spec) {
@@ -41,20 +42,20 @@ public class SerializableCoffeeScriptCompileSpec implements Serializable {
     public SerializableCoffeeScriptCompileSpec(File coffeeScriptJs, File destinationDir, FileCollection source, CoffeeScriptCompileOptions options) {
         this.coffeeScriptJs = coffeeScriptJs;
         this.destinationDir = destinationDir;
-        this.source = new LinkedList<CoffeeScriptCompileTarget>();
+        this.source = new LinkedList<RelativeFile>();
         this.options = options;
 
-        toCompileTargets(source, this.source);
+        toRelativeFiles(source, this.source);
     }
 
-    public static void toCompileTargets(final FileCollection source, final List<CoffeeScriptCompileTarget> targets) {
+    public static void toRelativeFiles(final FileCollection source, final List<RelativeFile> targets) {
         FileTree fileTree = source.getAsFileTree();
 
         fileTree.visit(new FileVisitor() {
             public void visitDir(FileVisitDetails dirDetails) {}
 
             public void visitFile(FileVisitDetails fileDetails) {
-                targets.add(new CoffeeScriptCompileTarget(fileDetails.getFile(), fileDetails.getRelativePath()));
+                targets.add(new RelativeFile(fileDetails.getFile(), fileDetails.getRelativePath()));
             }
         });
     }
@@ -67,7 +68,7 @@ public class SerializableCoffeeScriptCompileSpec implements Serializable {
         return destinationDir;
     }
 
-    public List<CoffeeScriptCompileTarget> getSource() {
+    public List<RelativeFile> getSource() {
         return source;
     }
 

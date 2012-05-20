@@ -18,8 +18,8 @@ package org.gradle.plugins.javascript.coffeescript.compile.internal.rhino;
 
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.file.RelativeFile;
 import org.gradle.plugins.javascript.coffeescript.compile.internal.CoffeeScriptCompileDestinationCalculator;
-import org.gradle.plugins.javascript.coffeescript.compile.internal.CoffeeScriptCompileTarget;
 import org.gradle.plugins.javascript.coffeescript.compile.internal.SerializableCoffeeScriptCompileSpec;
 import org.gradle.plugins.javascript.rhino.worker.RhinoWorker;
 import org.mozilla.javascript.Context;
@@ -36,7 +36,7 @@ public class CoffeeScriptCompilerWorker implements RhinoWorker<Boolean, Serializ
 
         CoffeeScriptCompileDestinationCalculator destinationCalculator = new CoffeeScriptCompileDestinationCalculator(spec.getDestinationDir());
 
-        for (CoffeeScriptCompileTarget target : spec.getSource()) {
+        for (RelativeFile target : spec.getSource()) {
             String source = readFile(target.getFile(), encoding);
             String output = compile(coffeeScriptScope, source, target.getRelativePath().getPathString());
             writeFile(output, destinationCalculator.transform(target.getRelativePath()), encoding);
