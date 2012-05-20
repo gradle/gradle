@@ -14,30 +14,42 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.javascript.rhino.worker;
+package org.gradle.plugins.javascript.rhino.worker.internal;
 
-import org.gradle.api.Transformer;
 import org.gradle.internal.UncheckedException;
+import org.gradle.plugins.javascript.rhino.worker.RhinoWorker;
+import org.mozilla.javascript.RhinoException;
 
 import java.io.Serializable;
 import java.util.concurrent.CountDownLatch;
 
-public class RhinoWorkerReceiver implements RhinoClientWorkerProtocol {
+public class RhinoWorkerReceiver<P extends Serializable> implements RhinoClientWorkerProtocol<P> {
 
-    private final Transformer<Serializable, Serializable> impl;
+    private final Class<P> payloadType;
+    private final RhinoWorker<?, P> worker;
     private final RhinoWorkerClientProtocol clientHandle;
 
     private final CountDownLatch latch = new CountDownLatch(1);
 
-    public RhinoWorkerReceiver(RhinoWorkerClientProtocol clientHandle, Transformer<Serializable, Serializable> impl) {
+    public RhinoWorkerReceiver(Class<P> payloadType, RhinoWorkerClientProtocol clientHandle, RhinoWorker<?, P> worker) {
+        this.payloadType = payloadType;
         this.clientHandle = clientHandle;
-        this.impl = impl;
+        this.worker = worker;
     }
 
-    public void process(Serializable payload) {
+    public void process(P payload) {
+        if (!payloadType.isInstance(payload)) {
+            clientHandle.initialisationError(
+                    new IllegalArgumentException(String.format("Expected payload of type '%s', received '%s' with type '%s'", payloadType.getName(), payload, payload.getClass().getName()))
+            );
+            return;
+        }
+
         try {
-            Serializable result = impl.transform(payload);
+            Serializable result = worker.process(payload);
             clientHandle.receiveResult(result);
+        } catch (RhinoException e) {
+            clientHandle.executionError(worker.convertException(e));
         } catch (Exception e) {
             clientHandle.executionError(e);
         } finally {

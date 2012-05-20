@@ -18,12 +18,8 @@ package org.gradle.plugins.javascript.rhino.worker;
 
 import java.io.Serializable;
 
-public interface RhinoWorkerClientProtocol {
+public interface RhinoWorkerHandle<R extends Serializable, P extends Serializable> {
 
-    void initialisationError(Exception e);
-
-    void receiveResult(Serializable result);
-
-    void executionError(Exception e);
+    R process(P payload);
 
 }

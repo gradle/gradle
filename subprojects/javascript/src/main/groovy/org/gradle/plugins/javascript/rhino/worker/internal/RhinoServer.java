@@ -14,35 +14,36 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.javascript.rhino.worker;
+package org.gradle.plugins.javascript.rhino.worker.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.Transformer;
+import org.gradle.plugins.javascript.rhino.worker.RhinoWorker;
+import org.gradle.plugins.javascript.rhino.worker.RhinoWorkerSpec;
 import org.gradle.process.internal.WorkerProcessContext;
 
 import java.io.Serializable;
 
-public class RhinoServer implements Action<WorkerProcessContext>, Serializable {
+public class RhinoServer<R extends Serializable, P extends Serializable> implements Action<WorkerProcessContext>, Serializable {
 
-    private final Class<? extends Transformer<? extends Serializable, ? extends Serializable>> implementationClass;
+    private final RhinoWorkerSpec<R, P> workerSpec;
 
-    public RhinoServer(Class<? extends Transformer<? extends Serializable, ? extends Serializable>> implementationClass) {
-        this.implementationClass = implementationClass;
+    public RhinoServer(RhinoWorkerSpec<R, P> workerSpec) {
+        this.workerSpec = workerSpec;
     }
 
     public void execute(WorkerProcessContext context) {
         RhinoWorkerClientProtocol clientHandle = context.getServerConnection().addOutgoing(RhinoWorkerClientProtocol.class);
 
-        Transformer<Serializable, Serializable> action;
+        RhinoWorker<R, P> action;
 
         try {
-            Class<?> actionClass = getClass().getClassLoader().loadClass(implementationClass.getName());
+            Class<?> actionClass = getClass().getClassLoader().loadClass(workerSpec.getWorkerType().getName());
             Object actionObject = actionClass.newInstance();
-            if (actionObject instanceof Transformer) {
+            if (actionObject instanceof RhinoWorker) {
                 //noinspection unchecked
-                action = (Transformer<Serializable, Serializable>) actionObject;
+                action = (RhinoWorker<R, P>) actionObject;
             } else {
-                throw new IllegalStateException(String.format("Implementation class %s is not a transformer", implementationClass));
+                throw new IllegalStateException(String.format("Implementation class %s is not a transformer", workerSpec.getWorkerType().getName()));
             }
 
 
@@ -51,10 +52,9 @@ public class RhinoServer implements Action<WorkerProcessContext>, Serializable {
             return;
         }
 
-        RhinoWorkerReceiver receiver = new RhinoWorkerReceiver(clientHandle, action);
+        RhinoWorkerReceiver receiver = new RhinoWorkerReceiver<P>(workerSpec.getPayloadType(), clientHandle, action);
         context.getServerConnection().addIncoming(RhinoClientWorkerProtocol.class, receiver);
         receiver.waitFor();
     }
-
 
 }

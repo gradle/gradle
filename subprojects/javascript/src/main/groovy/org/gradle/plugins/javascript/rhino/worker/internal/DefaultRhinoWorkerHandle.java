@@ -14,28 +14,32 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.javascript.rhino.worker;
+package org.gradle.plugins.javascript.rhino.worker.internal;
 
 import org.gradle.internal.UncheckedException;
+import org.gradle.plugins.javascript.rhino.worker.RhinoWorkerHandle;
 import org.gradle.process.internal.WorkerProcess;
 
 import java.io.Serializable;
 import java.util.concurrent.CountDownLatch;
 
-public class BlockingRhinoWorkerResultReceiver<T> {
+public class DefaultRhinoWorkerHandle<R extends Serializable, P extends Serializable> implements RhinoWorkerHandle<R, P> {
 
-    private final Class<T> resultType;
+    private final Class<R> resultType;
+    private final WorkerProcess workerProcess;
 
-    public BlockingRhinoWorkerResultReceiver(Class<T> resultType) {
+    public DefaultRhinoWorkerHandle(Class<R> resultType, WorkerProcess workerProcess) {
         this.resultType = resultType;
+        this.workerProcess = workerProcess;
     }
 
-    public T waitForResult(WorkerProcess process, Serializable payload) {
+    public R process(P payload) {
         CountDownLatch latch = new CountDownLatch(1);
         Receiver receiver = new Receiver(latch);
-        process.start();
-        process.getConnection().addIncoming(RhinoWorkerClientProtocol.class, receiver);
-        process.getConnection().addOutgoing(RhinoClientWorkerProtocol.class).process(payload);
+        workerProcess.start();
+        workerProcess.getConnection().addIncoming(RhinoWorkerClientProtocol.class, receiver);
+        @SuppressWarnings("unchecked") RhinoClientWorkerProtocol<P> worker = workerProcess.getConnection().addOutgoing(RhinoClientWorkerProtocol.class);
+        worker.process(payload);
 
         try {
             latch.await();

@@ -17,19 +17,20 @@
 package org.gradle.plugins.javascript.coffeescript.compile.internal.rhino;
 
 import org.apache.commons.io.FileUtils;
-import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.plugins.javascript.coffeescript.compile.internal.CoffeeScriptCompileDestinationCalculator;
 import org.gradle.plugins.javascript.coffeescript.compile.internal.CoffeeScriptCompileTarget;
 import org.gradle.plugins.javascript.coffeescript.compile.internal.SerializableCoffeeScriptCompileSpec;
+import org.gradle.plugins.javascript.rhino.worker.RhinoWorker;
 import org.mozilla.javascript.Context;
+import org.mozilla.javascript.RhinoException;
 import org.mozilla.javascript.Scriptable;
 
 import java.io.*;
 
-public class CoffeeScriptCompilerWorker implements Transformer<Serializable, SerializableCoffeeScriptCompileSpec> {
+public class CoffeeScriptCompilerWorker implements RhinoWorker<Boolean, SerializableCoffeeScriptCompileSpec> {
 
-    public Serializable transform(SerializableCoffeeScriptCompileSpec spec) {
+    public Boolean process(SerializableCoffeeScriptCompileSpec spec) {
         Scriptable coffeeScriptScope = createCoffeeScriptScope(spec.getCoffeeScriptJs());
         String encoding = spec.getOptions().getEncoding();
 
@@ -41,7 +42,12 @@ public class CoffeeScriptCompilerWorker implements Transformer<Serializable, Ser
             writeFile(output, destinationCalculator.transform(target.getRelativePath()), encoding);
         }
 
-        return null;
+        return Boolean.TRUE;
+    }
+
+    public Exception convertException(RhinoException rhinoException) {
+        // TODO - need to convert this to a non rhino type in case the version is different back at the client
+        return rhinoException;
     }
 
     private String readFile(File file, String encoding) {
