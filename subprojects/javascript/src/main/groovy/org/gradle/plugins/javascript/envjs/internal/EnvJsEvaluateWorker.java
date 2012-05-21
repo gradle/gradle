@@ -43,6 +43,7 @@ public class EnvJsEvaluateWorker implements RhinoWorker<String, EnvJsEvaluateSpe
             @Override
             public String action(Scriptable scope, Context context) {
                 scope.put("targetUrl", scope, targetUrl);
+                context.evaluateString(scope, "Envjs({scriptTypes: {'': true, 'text/javascript': true}});", targetUrl, 0, null);
                 Object html = context.evaluateString(scope, "window.location = targetUrl; document.getElementsByTagName('html')[0].innerHTML;", targetUrl, 0, null);
                 return (String) html;
             }

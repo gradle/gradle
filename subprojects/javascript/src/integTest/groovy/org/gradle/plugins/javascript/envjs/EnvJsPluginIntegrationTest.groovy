@@ -21,6 +21,8 @@ import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import static org.gradle.plugins.javascript.base.JavaScriptBasePluginTestFixtures.addGradlePublicJsRepoScript
 import org.gradle.plugins.javascript.envjs.browser.BrowserEvaluate
 
+import static org.gradle.plugins.javascript.base.JavaScriptBasePluginTestFixtures.addGoogleRepoScript
+
 class EnvJsPluginIntegrationTest extends WellBehavedPluginTest {
 
     def setup() {
@@ -51,11 +53,39 @@ class EnvJsPluginIntegrationTest extends WellBehavedPluginTest {
 
     def "can evaluate content"() {
         given:
-        file("content/index.html") << "abc"
+        file("input/index.html") << """
+            <html>
+                <head>
+                    <script src="\${jqueryFileName}" type="text/javascript"></script>
+                    <script type="text/javascript">
+                        \\\$(function() {
+                            \\\$("body").text("Added!");
+                        });
+                    </script>
+                </head>
+            </html>
+        """
+
+        addGoogleRepoScript(buildFile)
 
         buildFile << """
+            configurations {
+                jquery
+            }
+            dependencies {
+                jquery "jquery:jquery.min:1.7.2@js"
+            }
+
+            task gatherContent(type: Copy) {
+                into "content"
+                from configurations.jquery
+                from "input", {
+                    expand jqueryFileName: "\${->configurations.jquery.singleFile.name}"
+                }
+            }
+
             task evaluate(type: ${BrowserEvaluate.name}) {
-                content "content"
+                content gatherContent
                 resource "index.html"
                 result "result.html"
             }
@@ -65,6 +95,6 @@ class EnvJsPluginIntegrationTest extends WellBehavedPluginTest {
         succeeds "evaluate"
 
         then:
-        file("result.html").text.contains("<head/><body>abc</body>")
+        file("result.html").text.contains("<body>Added!</body>")
     }
 }
