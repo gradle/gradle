@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-dependencies {
-    groovy libraries.groovy
+package org.gradle.plugins.javascript.envjs.http;
 
-    compile "org.mozilla:rhino:1.7R3"
-    compile "com.google.code.gson:gson:2.2.1" // used by JsHint
-    compile "org.simpleframework:simple:4.1.21" // used by http package in envjs
-    compile project(':core'), project(":plugins")
+import java.io.File;
+
+public interface HttpFileServer {
+
+    int getPort();
+    String getResourceUrl(String path);
+    File getContentRoot();
+    void stop();
+
 }
-
-useTestFixtures()

@@ -14,13 +14,26 @@
  * limitations under the License.
  */
 
-dependencies {
-    groovy libraries.groovy
+package org.gradle.plugins.javascript.envjs.internal;
 
-    compile "org.mozilla:rhino:1.7R3"
-    compile "com.google.code.gson:gson:2.2.1" // used by JsHint
-    compile "org.simpleframework:simple:4.1.21" // used by http package in envjs
-    compile project(':core'), project(":plugins")
+import java.io.File;
+import java.io.Serializable;
+
+public class EnvJsEvaluateSpec implements Serializable {
+
+    private final File envJs;
+    private final String url;
+
+    public EnvJsEvaluateSpec(File envJs, String url) {
+        this.envJs = envJs;
+        this.url = url;
+    }
+
+    public File getEnvJs() {
+        return envJs;
+    }
+
+    public String getUrl() {
+        return url;
+    }
 }
-
-useTestFixtures()

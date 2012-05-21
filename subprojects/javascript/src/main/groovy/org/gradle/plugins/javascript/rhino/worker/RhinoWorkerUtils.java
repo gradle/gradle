@@ -29,6 +29,16 @@ import java.util.Map;
 
 public abstract class RhinoWorkerUtils {
 
+    public static interface ScopeOperation<T> {
+        void initContext(Context context);
+        T action(Scriptable scope, Context context);
+    }
+
+    public static class DefaultScopeOperation<T> implements ScopeOperation<T> {
+        public void initContext(Context context) {}
+        public T action(Scriptable scope, Context context) { return null; }
+    }
+
     public static String readFile(File file, String encoding) {
         return GFileUtils.readFile(file, encoding);
     }
@@ -39,6 +49,20 @@ public abstract class RhinoWorkerUtils {
 
     public static Scriptable parse(File source, String encoding) {
         return parse(source, encoding, null);
+    }
+
+    public static <T> T parseRhino(File rhinoScript, ScopeOperation<T> operation) {
+        Context context = Context.enter();
+        try {
+            operation.initContext(context);
+            Scriptable scope = context.initStandardObjects();
+            String printFunction = "function print(message) {}";
+            context.evaluateString(scope, printFunction, "print", 1, null);
+            context.evaluateString(scope, readFile(rhinoScript, "UTF-8"), rhinoScript.getName(), 1, null);
+            return operation.action(scope, context);
+        } finally {
+            Context.exit();
+        }
     }
 
     public static Scriptable parse(File source, String encoding, Action<Context> contextConfig) {
@@ -62,16 +86,6 @@ public abstract class RhinoWorkerUtils {
         }
 
         return scope;
-    }
-
-    public static interface ScopeOperation<T> {
-        void initContext(Context context);
-        T action(Scriptable scope, Context context);
-    }
-
-    public static class DefaultScopeOperation<T> implements ScopeOperation<T> {
-        public void initContext(Context context) {}
-        public T action(Scriptable scope, Context context) { return null; }
     }
 
     public static <R> R childScope(Scriptable parentScope, ScopeOperation<R> operation) {

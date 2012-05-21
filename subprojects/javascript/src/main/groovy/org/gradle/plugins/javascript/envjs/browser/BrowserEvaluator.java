@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-dependencies {
-    groovy libraries.groovy
+package org.gradle.plugins.javascript.envjs.browser;
 
-    compile "org.mozilla:rhino:1.7R3"
-    compile "com.google.code.gson:gson:2.2.1" // used by JsHint
-    compile "org.simpleframework:simple:4.1.21" // used by http package in envjs
-    compile project(':core'), project(":plugins")
+import java.io.Writer;
+
+public interface BrowserEvaluator {
+
+    void evaluate(String url, Writer writer);
+
 }
-
-useTestFixtures()
