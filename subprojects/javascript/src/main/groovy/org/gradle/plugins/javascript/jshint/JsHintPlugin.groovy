@@ -29,11 +29,14 @@ import org.gradle.plugins.javascript.rhino.RhinoExtension
 import org.gradle.plugins.javascript.rhino.RhinoPlugin
 
 import static org.gradle.plugins.javascript.jshint.JsHintExtension.*
+import org.gradle.api.plugins.ReportingBasePlugin
+import org.gradle.api.reporting.ReportingExtension
 
 class JsHintPlugin implements Plugin<Project> {
 
     void apply(Project project) {
         project.plugins.apply(RhinoPlugin)
+        project.plugins.apply(ReportingBasePlugin)
 
         JavaScriptExtension jsExtension = project.extensions.getByType(JavaScriptExtension)
         JsHintExtension jsHintExtension = jsExtension.extensions.create(JsHintExtension.NAME, JsHintExtension)
@@ -44,11 +47,13 @@ class JsHintPlugin implements Plugin<Project> {
             map("version") { DEFAULT_DEPENDENCY_VERSION }
         }
 
-        RhinoExtension rhinoExtension = jsExtension.extensions.getByType(RhinoExtension)
+        def rhinoExtension = jsExtension.extensions.getByType(RhinoExtension)
+        def reportingExtension = project.extensions.getByType(ReportingExtension)
 
         project.tasks.withType(JsHint) { JsHint task ->
             task.conventionMapping.map("rhinoClasspath") { rhinoExtension.classpath }
             task.conventionMapping.map("jsHint") { jsHintExtension.js }
+            task.conventionMapping.map("jsonReport") { reportingExtension.file("${task.getName()}/report.json") }
         }
     }
 

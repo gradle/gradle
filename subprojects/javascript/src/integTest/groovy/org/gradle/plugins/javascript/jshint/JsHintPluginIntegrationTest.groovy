@@ -19,6 +19,7 @@ package org.gradle.plugins.javascript.jshint
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
 import static org.gradle.plugins.javascript.base.JavaScriptBasePluginTestFixtures.addGradlePublicJsRepoScript
+import groovy.json.JsonSlurper
 
 class JsHintPluginIntegrationTest extends WellBehavedPluginTest {
 
@@ -30,24 +31,75 @@ class JsHintPluginIntegrationTest extends WellBehavedPluginTest {
         """
     }
 
-    def "can analyse javascript"() {
+    def taskForFileTree(String path = "src/main/js", File file = buildFile) {
+        file << """
+            task jsHint(type: ${JsHint.name}) {
+                source fileTree("$path")
+            }
+        """
+    }
+
+    def "can analyse bad javascript"() {
         given:
         file("src/main/js/dir1/f1.js") << """
             "a" == null
         """
+        file("src/main/js/dir2/f2.js") << """
+            "b" == null
+        """
 
         when:
-        buildFile << """
-            task jsHint(type: ${JsHint.name}) {
-                source fileTree("src/main/js")
-            }
+        taskForFileTree()
+
+        then:
+        fails "jsHint"
+
+        and:
+        failureHasCause "JsHint detected errors"
+
+        and:
+        output.contains "2:17 > Use '===' to compare with 'null'."
+
+        and:
+        File jsonReport = file("build/reports/jsHint/report.json")
+        jsonReport.exists()
+
+        and: // it's valid json
+        def json = new JsonSlurper().parseText(jsonReport.text)
+        json[file("src/main/js/dir1/f1.js").absolutePath] instanceof Map
+    }
+
+    def "can analyse good javascript"() {
+        given:
+        file("src/main/js/dir1/f1.js") << """
+            var a = "a" === null;
         """
+        file("src/main/js/dir2/f2.js") << """
+            var b = "b" === null;
+        """
+
+        when:
+        taskForFileTree()
 
         then:
         succeeds "jsHint"
 
         and:
         ":jsHint" in nonSkippedTasks
+
+        and:
+        File jsonReport = file("build/reports/jsHint/report.json")
+        jsonReport.exists()
+
+        and: // it's valid json
+        def json = new JsonSlurper().parseText(jsonReport.text)
+        json[file("src/main/js/dir1/f1.js").absolutePath] instanceof Map
+
+        when:
+        run "jsHint"
+
+        then:
+        ":jsHint" in skippedTasks
     }
 
 }

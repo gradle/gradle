@@ -16,8 +16,10 @@
 
 package org.gradle.plugins.javascript.jshint;
 
+import com.google.gson.GsonBuilder;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.Logger;
@@ -34,7 +36,10 @@ import org.gradle.process.JavaExecSpec;
 import org.gradle.process.internal.WorkerProcessBuilder;
 
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.net.URI;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class JsHint extends SourceTask {
@@ -42,6 +47,7 @@ public class JsHint extends SourceTask {
     private Object rhinoClasspath;
     private Object jsHint;
     private String encoding = "UTF-8";
+    private Object jsonReport;
 
     @InputFiles
     public FileCollection getRhinoClasspath() {
@@ -70,6 +76,15 @@ public class JsHint extends SourceTask {
         this.encoding = encoding;
     }
 
+    @OutputFile
+    public File getJsonReport() {
+        return jsonReport == null ? null : getProject().file(jsonReport);
+    }
+
+    public void setJsonReport(Object jsonReport) {
+        this.jsonReport = jsonReport;
+    }
+
     @TaskAction
     public void doJsHint() {
         ProjectInternal projectInternal = (ProjectInternal)getProject();
@@ -90,14 +105,17 @@ public class JsHint extends SourceTask {
         JsHintResult result = rhinoHandle.process(spec);
         setDidWork(true);
 
-        // TODO - this is all terribly lame. We need some proper reporting here.
+        // TODO - this is all terribly lame. We need some proper reporting here (which means implementing Reporting).
 
         Logger logger = getLogger();
         boolean anyErrors = false;
 
+        Map<String, Map<?, ?>> reportData = new LinkedHashMap<String, Map<?, ?>>(result.getResults().size());
         for (Map.Entry<File, Map<String, Object>> fileEntry: result.getResults().entrySet()) {
             File file = fileEntry.getKey();
             Map<String, Object> data = fileEntry.getValue();
+
+            reportData.put(file.getAbsolutePath(), data);
 
             if (data.containsKey("errors")) {
                 anyErrors = true;
@@ -116,6 +134,17 @@ public class JsHint extends SourceTask {
                         logger.warn("  {}:{} > {}", new Object[] {line, character, reason});
                     }
                 }
+            }
+        }
+
+        File jsonReportFile = getJsonReport();
+        if (jsonReportFile != null) {
+            try {
+                FileWriter reportWriter = new FileWriter(jsonReportFile);
+                new GsonBuilder().setPrettyPrinting().create().toJson(reportData, reportWriter);
+                reportWriter.close();
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
             }
         }
 
