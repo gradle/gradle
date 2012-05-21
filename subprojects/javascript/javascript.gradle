@@ -21,6 +21,9 @@ dependencies {
     compile "com.google.code.gson:gson:2.2.1" // used by JsHint
     compile "org.simpleframework:simple:4.1.21" // used by http package in envjs
     compile project(':core'), project(":plugins")
+
+    // Required by JavaScriptExtension#getGoogleApisRepository()
+    compile project(':coreImpl')
 }
 
 useTestFixtures()

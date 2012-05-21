@@ -18,11 +18,45 @@ package org.gradle.plugins.javascript.base
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
+import static org.gradle.plugins.javascript.base.JavaScriptBasePluginTestFixtures.addGoogleRepoScript
+
 class JavaScriptBasePluginIntegrationTest extends WellBehavedPluginTest {
 
     @Override
     String getPluginId() {
         "javascript-base"
+    }
+
+    def setup() {
+        applyPlugin()
+    }
+
+    def "can download from googles repo"() {
+        given:
+        addGoogleRepoScript(buildFile)
+
+        when:
+        buildFile << """
+            configurations {
+                jquery
+            }
+            dependencies {
+                jquery "jquery:jquery.min:1.7.2@js"
+            }
+            task resolve(type: Copy) {
+                from configurations.jquery
+                into "jquery"
+            }
+        """
+
+        then:
+        succeeds "resolve"
+
+        and:
+        def jquery = file("jquery/jquery.min-1.7.2.js")
+        jquery.exists()
+        jquery.text.contains("jQuery v1.7.2")
+
     }
 
 }

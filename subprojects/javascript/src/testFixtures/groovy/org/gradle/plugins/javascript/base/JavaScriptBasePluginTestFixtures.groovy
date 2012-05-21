@@ -26,8 +26,20 @@ class JavaScriptBasePluginTestFixtures {
         """
     }
 
+    static String getGoogleRepoScript() {
+        """
+        repositories {
+            add ${JavaScriptExtension.NAME}.googleApisRepository
+        }
+        """
+    }
+
     static void addGradlePublicJsRepoScript(File file) {
         file << gradlePublicJSRepoScript
+    }
+
+    static void addGoogleRepoScript(File file) {
+        file << googleRepoScript
     }
 
 }
