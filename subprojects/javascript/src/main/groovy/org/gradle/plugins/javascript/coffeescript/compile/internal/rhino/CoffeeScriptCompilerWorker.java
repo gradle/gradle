@@ -16,8 +16,7 @@
 
 package org.gradle.plugins.javascript.coffeescript.compile.internal.rhino;
 
-import org.apache.commons.io.FileUtils;
-import org.gradle.api.UncheckedIOException;
+import org.gradle.api.Action;
 import org.gradle.api.internal.file.RelativeFile;
 import org.gradle.plugins.javascript.coffeescript.compile.internal.CoffeeScriptCompileDestinationCalculator;
 import org.gradle.plugins.javascript.coffeescript.compile.internal.SerializableCoffeeScriptCompileSpec;
@@ -26,12 +25,17 @@ import org.mozilla.javascript.Context;
 import org.mozilla.javascript.RhinoException;
 import org.mozilla.javascript.Scriptable;
 
-import java.io.*;
+import static org.gradle.plugins.javascript.rhino.worker.RhinoWorkerUtils.*;
 
 public class CoffeeScriptCompilerWorker implements RhinoWorker<Boolean, SerializableCoffeeScriptCompileSpec> {
 
     public Boolean process(SerializableCoffeeScriptCompileSpec spec) {
-        Scriptable coffeeScriptScope = createCoffeeScriptScope(spec.getCoffeeScriptJs());
+        Scriptable coffeeScriptScope = parse(spec.getCoffeeScriptJs(), "UTF-8", new Action<Context>() {
+            public void execute(Context context) {
+                context.setOptimizationLevel(-1);
+            }
+        });
+
         String encoding = spec.getOptions().getEncoding();
 
         CoffeeScriptCompileDestinationCalculator destinationCalculator = new CoffeeScriptCompileDestinationCalculator(spec.getDestinationDir());
@@ -50,53 +54,12 @@ public class CoffeeScriptCompilerWorker implements RhinoWorker<Boolean, Serializ
         return rhinoException;
     }
 
-    private String readFile(File file, String encoding) {
-        try {
-            return FileUtils.readFileToString(file, encoding);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-    }
-
-    private void writeFile(String content, File destination, String encoding) {
-        try {
-            FileUtils.writeStringToFile(destination, content, encoding);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-    }
-
-    private String compile(Scriptable rootScope, String source, String sourceName) {
-        Context context = Context.enter();
-        try {
-            Scriptable compileScope = context.newObject(rootScope);
-            compileScope.setParentScope(rootScope);
-            compileScope.put("coffeeScriptSource", compileScope, source);
-            return (String)context.evaluateString(compileScope, "CoffeeScript.compile(coffeeScriptSource, {});", sourceName, 0, null);
-        } finally {
-            Context.exit();
-        }
-    }
-
-    private static Scriptable createCoffeeScriptScope(File coffeeScriptJs) {
-        Context context = Context.enter();
-        context.setOptimizationLevel(-1);
-
-        Scriptable scope = context.initStandardObjects();
-        try {
-            // TODO we aren't considering the case where coffee-script.js is in a different encoding here
-            Reader reader = new InputStreamReader(new FileInputStream(coffeeScriptJs), "UTF-8");
-            try {
-                context.evaluateReader(scope, reader, coffeeScriptJs.getName(), 0, null);
-            } finally {
-                reader.close();
+    private String compile(Scriptable rootScope, final String source, final String sourceName) {
+        return childScope(rootScope, new DefaultScopeOperation<String>() {
+            public String action(Scriptable compileScope, Context context) {
+                compileScope.put("coffeeScriptSource", compileScope, source);
+                return (String)context.evaluateString(compileScope, "CoffeeScript.compile(coffeeScriptSource, {});", sourceName, 0, null);
             }
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        } finally {
-            Context.exit();
-        }
-
-        return scope;
+        });
     }
 }

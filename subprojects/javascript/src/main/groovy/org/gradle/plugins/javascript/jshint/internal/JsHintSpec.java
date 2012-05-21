@@ -14,28 +14,39 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.javascript.coffeescript.compile.internal;
-
-import org.gradle.api.file.RelativePath;
+package org.gradle.plugins.javascript.jshint.internal;
 
 import java.io.File;
 import java.io.Serializable;
 
-public class CoffeeScriptCompileTarget implements Serializable {
+public class JsHintSpec implements Serializable {
 
-    private final File file;
-    private final RelativePath relativePath;
+    private File jsHint;
+    private Iterable<File> source;
+    private String encoding;
 
-    public CoffeeScriptCompileTarget(File file, RelativePath relativePath) {
-        this.file = file;
-        this.relativePath = relativePath;
+    public File getJsHint() {
+        return jsHint;
     }
 
-    public File getFile() {
-        return file;
+    public void setJsHint(File jsHint) {
+        this.jsHint = jsHint;
     }
 
-    public RelativePath getRelativePath() {
-        return relativePath;
+    public Iterable<File> getSource() {
+        return source;
     }
+
+    public void setSource(Iterable<File> source) {
+        this.source = source;
+    }
+
+    public String getEncoding() {
+        return encoding;
+    }
+
+    public void setEncoding(String encoding) {
+        this.encoding = encoding;
+    }
+
 }
