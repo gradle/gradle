@@ -25,6 +25,7 @@ import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -46,6 +47,30 @@ public class GFileUtils {
     public static void touch(File file) {
         try {
             FileUtils.touch(file);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    public static String readFile(File file) {
+        return readFile(file, Charset.defaultCharset().name());
+    }
+
+    public static String readFile(File file, String encoding) {
+        try {
+            return FileUtils.readFileToString(file, encoding);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    public static void writeFile(String content, File destination) {
+        writeFile(content, destination, Charset.defaultCharset().name());
+    }
+
+    public static void writeFile(String content, File destination, String encoding) {
+        try {
+            FileUtils.writeStringToFile(destination, content, encoding);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

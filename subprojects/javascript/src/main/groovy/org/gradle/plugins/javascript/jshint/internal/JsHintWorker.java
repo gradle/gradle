@@ -21,7 +21,6 @@ import org.gradle.api.logging.Logging;
 import org.gradle.plugins.javascript.rhino.worker.RhinoWorker;
 import org.gradle.plugins.javascript.rhino.worker.RhinoWorkerUtils;
 import org.mozilla.javascript.Context;
-import org.mozilla.javascript.FunctionObject;
 import org.mozilla.javascript.RhinoException;
 import org.mozilla.javascript.Scriptable;
 
@@ -68,39 +67,4 @@ public class JsHintWorker implements RhinoWorker<JsHintResult, JsHintSpec> {
         return rhinoException;
     }
 
-    private Map<String, Object> toMap(Scriptable obj) {
-        Map<String, Object> map = new LinkedHashMap<String, Object>();
-
-        for (Object id : obj.getIds()) {
-            String key;
-            Object value;
-            if (id instanceof String) {
-                key = (String) id;
-                value = obj.get(key, obj);
-            } else if (id instanceof Integer) {
-                key = id.toString();
-                value = obj.get((Integer) id, obj);
-            } else {
-                throw new IllegalArgumentException(String.format("Unexpected key type: %s (value: %s)", id.getClass().getName(), id));
-            }
-
-            map.put(key, toValue(value));
-        }
-
-        return map;
-    }
-
-    private Object toValue(Object object) {
-        if (object == null || object.equals(Context.getUndefinedValue())) {
-            return null;
-        } else if (object.getClass().getPackage().getName().startsWith("java.")) {
-            return object;
-        } else if (object instanceof FunctionObject) {
-            throw new IllegalArgumentException(String.format("Cannot convert function object to value (object: %s)", object));
-        } else if (object instanceof Scriptable) {
-            return toMap((Scriptable) object);
-        } else {
-            throw new IllegalArgumentException(String.format("Can't convert JS object %s (type: %s) to native Java object", object, object.getClass().getName()));
-        }
-    }
 }

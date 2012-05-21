@@ -16,30 +16,25 @@
 
 package org.gradle.plugins.javascript.rhino.worker;
 
-import org.apache.commons.io.FileUtils;
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.util.GFileUtils;
 import org.mozilla.javascript.Context;
+import org.mozilla.javascript.FunctionObject;
 import org.mozilla.javascript.Scriptable;
 
 import java.io.*;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public abstract class RhinoWorkerUtils {
 
     public static String readFile(File file, String encoding) {
-        try {
-            return FileUtils.readFileToString(file, encoding);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        return GFileUtils.readFile(file, encoding);
     }
 
     public static void writeFile(String content, File destination, String encoding) {
-        try {
-            FileUtils.writeStringToFile(destination, content, encoding);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        GFileUtils.writeFile(content, destination, encoding);
     }
 
     public static Scriptable parse(File source, String encoding) {
@@ -90,5 +85,42 @@ public abstract class RhinoWorkerUtils {
             Context.exit();
         }
     }
+
+    public static Map<String, Object> toMap(Scriptable obj) {
+        Map<String, Object> map = new LinkedHashMap<String, Object>();
+
+        for (Object id : obj.getIds()) {
+            String key;
+            Object value;
+            if (id instanceof String) {
+                key = (String) id;
+                value = obj.get(key, obj);
+            } else if (id instanceof Integer) {
+                key = id.toString();
+                value = obj.get((Integer) id, obj);
+            } else {
+                throw new IllegalArgumentException(String.format("Unexpected key type: %s (value: %s)", id.getClass().getName(), id));
+            }
+
+            map.put(key, toJavaValue(value));
+        }
+
+        return map;
+    }
+
+    public static Object toJavaValue(Object object) {
+        if (object == null || object.equals(Context.getUndefinedValue())) {
+            return null;
+        } else if (object.getClass().getPackage().getName().startsWith("java.")) {
+            return object;
+        } else if (object instanceof FunctionObject) {
+            throw new IllegalArgumentException(String.format("Cannot convert function object to value (object: %s)", object));
+        } else if (object instanceof Scriptable) {
+            return toMap((Scriptable) object);
+        } else {
+            throw new IllegalArgumentException(String.format("Can't convert JS object %s (type: %s) to native Java object", object, object.getClass().getName()));
+        }
+    }
+
 
 }
