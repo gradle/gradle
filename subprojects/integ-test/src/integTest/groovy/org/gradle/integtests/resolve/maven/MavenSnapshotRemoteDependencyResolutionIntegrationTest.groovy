@@ -485,9 +485,9 @@ project('resolve') {
         def originalJarContentLength = module.artifactFile.length()
 
         when:
-        server.expectGet(metaDataPath, module.mavenMetaDataFile)
+        server.expectGet(metaDataPath, module.metaDataFile)
         server.expectGet(pomPath, module.pomFile)
-        server.expectGet(metaDataPath, module.mavenMetaDataFile)
+        server.expectGet(metaDataPath, module.metaDataFile)
         server.expectGet(jarPath, module.artifactFile)
 
         run "retrieve"
@@ -502,10 +502,10 @@ project('resolve') {
 
         when:
         server.resetExpectations()
-        server.expectGet(metaDataPath, module.mavenMetaDataFile)
+        server.expectGet(metaDataPath, module.metaDataFile)
         server.expectGetMissing(pomSha1Path)
         server.expectHead(pomPath, module.pomFile, originalPomLastMod, originalPomContentLength)
-        server.expectGet(metaDataPath, module.mavenMetaDataFile)
+        server.expectGet(metaDataPath, module.metaDataFile)
         server.expectGetMissing(jarSha1Path)
         server.expectHead(jarPath, module.artifactFile, originalJarLastMod, originalJarContentLength)
 
@@ -516,11 +516,11 @@ project('resolve') {
 
         when:
         server.resetExpectations()
-        server.expectGet(metaDataPath, module.mavenMetaDataFile)
+        server.expectGet(metaDataPath, module.metaDataFile)
         server.expectGetMissing(pomSha1Path)
         server.expectHead(pomPath, module.pomFile)
         server.expectGet(pomPath, module.pomFile)
-        server.expectGet(metaDataPath, module.mavenMetaDataFile)
+        server.expectGet(metaDataPath, module.metaDataFile)
         server.expectGetMissing(jarSha1Path)
         server.expectHead(jarPath, module.artifactFile)
         server.expectGet(jarPath, module.artifactFile)

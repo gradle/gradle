@@ -36,6 +36,7 @@ class HttpServer extends ExternalResource {
     private final HandlerCollection collection = new HandlerCollection()
     private Throwable failure
     private TestUserRealm realm
+    private SecurityHandler securityHandler
     AuthScheme authenticationScheme = AuthScheme.BASIC
 
     enum AuthScheme {
@@ -325,11 +326,13 @@ class HttpServer extends ExternalResource {
         if (realm != null) {
             assert realm.username == username
             assert realm.password == password
+            authenticationScheme.handler.addConstraint(securityHandler, path)
         } else {
             realm = new TestUserRealm()
             realm.username = username
             realm.password = password
-            collection.addHandler(authenticationScheme.handler.createSecurityHandler(path, realm))
+            securityHandler = authenticationScheme.handler.createSecurityHandler(path, realm)
+            collection.addHandler(securityHandler)
         }
 
         return new AbstractHandler() {
@@ -397,6 +400,19 @@ server state: ${server.dump()}
 
     abstract static class AuthSchemeHandler {
         public SecurityHandler createSecurityHandler(String path, TestUserRealm realm) {
+            def constraintMapping = createConstraintMapping(path)
+            def securityHandler = new SecurityHandler()
+            securityHandler.userRealm = realm
+            securityHandler.constraintMappings = [constraintMapping] as ConstraintMapping[]
+            securityHandler.authenticator = authenticator
+            return securityHandler
+        }
+
+        public void addConstraint(SecurityHandler securityHandler, String path) {
+            securityHandler.constraintMappings = (securityHandler.constraintMappings as List) + createConstraintMapping(path)
+        }
+
+        private ConstraintMapping createConstraintMapping(String path) {
             def constraint = new Constraint()
             constraint.name = constraintName()
             constraint.authenticate = true
@@ -404,11 +420,7 @@ server state: ${server.dump()}
             def constraintMapping = new ConstraintMapping()
             constraintMapping.pathSpec = path
             constraintMapping.constraint = constraint
-            def securityHandler = new SecurityHandler()
-            securityHandler.userRealm = realm
-            securityHandler.constraintMappings = [constraintMapping] as ConstraintMapping[]
-            securityHandler.authenticator = authenticator
-            return securityHandler
+            return constraintMapping
         }
 
         protected abstract String constraintName();

@@ -19,6 +19,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.HttpServer
 import org.gradle.integtests.fixtures.MavenRepository
 import org.junit.Rule
+import spock.lang.Unroll
 
 class MavenPublishIntegrationTest extends AbstractIntegrationSpec {
     @Rule public final HttpServer server = new HttpServer()
@@ -195,7 +196,7 @@ uploadArchives {
     repositories{
         mavenDeployer {
             repository(url: "http://localhost:${server.port}/repo") {
-                   authentication(userName: "testuser", password: "secret")
+               authentication(userName: "testuser", password: "secret")
             }
             addFilter('main') {artifact, file ->
                 !artifact.name.endsWith("-tests")
@@ -208,36 +209,115 @@ uploadArchives {
 }
 """
         when:
-        server.expectPut("/repo/org/test/someCoolProject/1.0/someCoolProject-1.0.pom", distribution.testFile("pom"))
-        server.expectPut("/repo/org/test/someCoolProject/1.0/someCoolProject-1.0.pom.md5", distribution.testFile("pom.md5"))
-        server.expectPut("/repo/org/test/someCoolProject/1.0/someCoolProject-1.0.pom.sha1", distribution.testFile("pom.sha1"))
-        server.expectPut("/repo/org/test/someCoolProject/1.0/someCoolProject-1.0.jar", distribution.testFile("jar"))
-        server.expectPut("/repo/org/test/someCoolProject/1.0/someCoolProject-1.0.jar.md5", distribution.testFile("jar.md5"))
-        server.expectPut("/repo/org/test/someCoolProject/1.0/someCoolProject-1.0.jar.sha1", distribution.testFile("jar.sha1"))
-        server.expectPut("/repo/org/test/someCoolProject/1.0/someCoolProject-1.0-sources.jar", distribution.testFile("sources.jar"))
-        server.expectPut("/repo/org/test/someCoolProject/1.0/someCoolProject-1.0-sources.jar.md5", distribution.testFile("sources.md5"))
-        server.expectPut("/repo/org/test/someCoolProject/1.0/someCoolProject-1.0-sources.jar.sha1", distribution.testFile("sources.sha1"))
-        server.expectGetMissing("/repo/org/test/someCoolProject/maven-metadata.xml")
-        server.expectPut("/repo/org/test/someCoolProject/maven-metadata.xml", distribution.testFile("metadata"))
-        server.expectPut("/repo/org/test/someCoolProject/maven-metadata.xml.md5", distribution.testFile("metadata.md5"))
-        server.expectPut("/repo/org/test/someCoolProject/maven-metadata.xml.sha1", distribution.testFile("metadata.sha1"))
+        def module = repo().module('org.test', 'someCoolProject')
+        def moduleDir = module.moduleDir
+        moduleDir.mkdirs()
 
-        server.expectPut("/repo/org/test/someCoolProject-tests/1.0/someCoolProject-tests-1.0.pom", distribution.testFile("tests.pom"))
-        server.expectPut("/repo/org/test/someCoolProject-tests/1.0/someCoolProject-tests-1.0.pom.md5", distribution.testFile("tests.pom.md5"))
-        server.expectPut("/repo/org/test/someCoolProject-tests/1.0/someCoolProject-tests-1.0.pom.sha1", distribution.testFile("tests.pom.sha1"))
-        server.expectPut("/repo/org/test/someCoolProject-tests/1.0/someCoolProject-tests-1.0.jar", distribution.testFile("tests.jar"))
-        server.expectPut("/repo/org/test/someCoolProject-tests/1.0/someCoolProject-tests-1.0.jar.md5", distribution.testFile("tests.md5"))
-        server.expectPut("/repo/org/test/someCoolProject-tests/1.0/someCoolProject-tests-1.0.jar.sha1", distribution.testFile("tests.sha1"))
-        server.expectPut("/repo/org/test/someCoolProject-tests/1.0/someCoolProject-tests-1.0-sources.jar", distribution.testFile("tests-sources.jar"))
-        server.expectPut("/repo/org/test/someCoolProject-tests/1.0/someCoolProject-tests-1.0-sources.jar.md5", distribution.testFile("tests-sources.md5"))
-        server.expectPut("/repo/org/test/someCoolProject-tests/1.0/someCoolProject-tests-1.0-sources.jar.sha1", distribution.testFile("tests-sources.sha1"))
+        and:
+        expectPublishArtifact(moduleDir, "/repo/org/test/someCoolProject/1.0", "someCoolProject-1.0.pom")
+        expectPublishArtifact(moduleDir, "/repo/org/test/someCoolProject/1.0", "someCoolProject-1.0.jar")
+        expectPublishArtifact(moduleDir, "/repo/org/test/someCoolProject/1.0", "someCoolProject-1.0-sources.jar")
+        server.expectGetMissing("/repo/org/test/someCoolProject/maven-metadata.xml")
+        expectPublishArtifact(moduleDir, "/repo/org/test/someCoolProject", "maven-metadata.xml")
+
+        expectPublishArtifact(moduleDir, "/repo/org/test/someCoolProject-tests/1.0", "someCoolProject-tests-1.0.pom")
+        expectPublishArtifact(moduleDir, "/repo/org/test/someCoolProject-tests/1.0", "someCoolProject-tests-1.0.jar")
+        expectPublishArtifact(moduleDir, "/repo/org/test/someCoolProject-tests/1.0", "someCoolProject-tests-1.0-sources.jar")
         server.expectGetMissing("/repo/org/test/someCoolProject-tests/maven-metadata.xml")
-        server.expectPut("/repo/org/test/someCoolProject-tests/maven-metadata.xml", distribution.testFile("tests.metadata"))
-        server.expectPut("/repo/org/test/someCoolProject-tests/maven-metadata.xml.md5", distribution.testFile("tests.metadata.md5"))
-        server.expectPut("/repo/org/test/someCoolProject-tests/maven-metadata.xml.sha1", distribution.testFile("tests.metadata.sha1"))
+        expectPublishArtifact(moduleDir, "/repo/org/test/someCoolProject-tests", "maven-metadata.xml")
 
         then:
         succeeds 'uploadArchives'
+    }
+    
+    def "can publish to an unauthenticated HTTP repository"() {
+        given:
+        server.start()
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+apply plugin: 'java'
+apply plugin: 'maven'
+group = 'org.test'
+version = '1.0'
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: "http://localhost:${server.port}/repo")
+        }
+    }
+}
+"""
+        when:
+        def module = repo().module('org.test', 'root')
+        def moduleDir = module.moduleDir
+        moduleDir.mkdirs()
+        expectPublishArtifact(moduleDir, "/repo/org/test/root/1.0", "root-1.0.pom")
+        expectPublishArtifact(moduleDir, "/repo/org/test/root/1.0", "root-1.0.jar")
+        server.expectGetMissing("/repo/org/test/root/maven-metadata.xml")
+        expectPublishArtifact(moduleDir, "/repo/org/test/root", "maven-metadata.xml")
+
+        then:
+        succeeds 'uploadArchives'
+
+        and:
+        module.assertArtifactsPublished('root-1.0.pom', 'root-1.0.jar', 'maven-metadata.xml')
+    }
+
+    private def expectPublishArtifact(def moduleDir, def path, def name) {
+        server.expectPut("$path/$name", moduleDir.file("$name"))
+        server.expectPut("$path/${name}.md5", moduleDir.file("${name}.md5"))
+        server.expectPut("$path/${name}.sha1", moduleDir.file("${name}.sha1"))
+    }
+
+    @Unroll
+    def "can publish to an authenticated HTTP repository using #authScheme auth"() {
+        given:
+        def username = 'testuser'
+        def password = 'password'
+        server.start()
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+apply plugin: 'java'
+apply plugin: 'maven'
+group = 'org.test'
+version = '1.0'
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: "http://localhost:${server.port}/repo") {
+               authentication(userName: "${username}", password: "${password}")
+            }
+        }
+    }
+}
+"""
+        when:
+        server.authenticationScheme = authScheme
+
+        and:
+        def module = repo().module('org.test', 'root')
+        def moduleDir = module.moduleDir
+        moduleDir.mkdirs()
+        expectPublishArtifact(moduleDir, "/repo/org/test/root/1.0", "root-1.0.jar", username, password)
+        expectPublishArtifact(moduleDir, "/repo/org/test/root/1.0", "root-1.0.pom", username, password)
+        server.expectGetMissing("/repo/org/test/root/maven-metadata.xml")
+        expectPublishArtifact(moduleDir, "/repo/org/test/root", "maven-metadata.xml", username, password)
+
+        then:
+        succeeds 'uploadArchives'
+
+        and:
+        module.assertArtifactsPublished('root-1.0.pom', 'root-1.0.jar', 'maven-metadata.xml')
+
+        where:
+        authScheme << [HttpServer.AuthScheme.BASIC]
+        // TODO: Does not work with DIGEST authentication
+    }
+
+    private def expectPublishArtifact(def moduleDir, def path, def name, def username, def password) {
+        server.expectPut("$path/$name", username, password, moduleDir.file("$name"))
+        server.expectPut("$path/${name}.md5", username, password, moduleDir.file("${name}.md5"))
+        server.expectPut("$path/${name}.sha1", username, password, moduleDir.file("${name}.sha1"))
     }
 
     def MavenRepository repo() {

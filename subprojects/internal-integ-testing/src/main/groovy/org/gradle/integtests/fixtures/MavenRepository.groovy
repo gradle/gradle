@@ -94,10 +94,6 @@ class MavenModule {
         return this;
     }
 
-    File getMavenMetaDataFile() {
-        moduleDir.file("maven-metadata.xml")
-    }
-
     /**
      * Asserts that exactly the given artifacts have been deployed, along with their checksum files
      */
