@@ -36,7 +36,17 @@ class HttpServer extends ExternalResource {
     private final HandlerCollection collection = new HandlerCollection()
     private Throwable failure
     private TestUserRealm realm
-    
+    AuthScheme authenticationScheme = AuthScheme.BASIC
+
+    enum AuthScheme {
+        BASIC(new BasicAuthHandler()), DIGEST(new DigestAuthHandler())
+
+        final AuthSchemeHandler handler;
+        AuthScheme(AuthSchemeHandler handler) {
+            this.handler = handler
+        }
+    }
+
     enum EtagStrategy {
         NONE({ null }),
         RAW_SHA1_HEX({ HashUtil.sha1(it as byte[]).asHexString() }),
@@ -319,18 +329,7 @@ class HttpServer extends ExternalResource {
             realm = new TestUserRealm()
             realm.username = username
             realm.password = password
-            def constraint = new Constraint()
-            constraint.name = Constraint.__BASIC_AUTH
-            constraint.authenticate = true
-            constraint.roles = ['*'] as String[]
-            def constraintMapping = new ConstraintMapping()
-            constraintMapping.pathSpec = path
-            constraintMapping.constraint = constraint
-            def securityHandler = new SecurityHandler()
-            securityHandler.userRealm = realm
-            securityHandler.constraintMappings = [constraintMapping] as ConstraintMapping[]
-            securityHandler.authenticator = new BasicAuthenticator()
-            collection.addHandler(securityHandler)
+            collection.addHandler(authenticationScheme.handler.createSecurityHandler(path, realm))
         }
 
         return new AbstractHandler() {
@@ -394,6 +393,50 @@ server state: ${server.dump()}
 """)
         }
         return port
+    }
+
+    abstract static class AuthSchemeHandler {
+        public SecurityHandler createSecurityHandler(String path, TestUserRealm realm) {
+            def constraint = new Constraint()
+            constraint.name = constraintName()
+            constraint.authenticate = true
+            constraint.roles = ['*'] as String[]
+            def constraintMapping = new ConstraintMapping()
+            constraintMapping.pathSpec = path
+            constraintMapping.constraint = constraint
+            def securityHandler = new SecurityHandler()
+            securityHandler.userRealm = realm
+            securityHandler.constraintMappings = [constraintMapping] as ConstraintMapping[]
+            securityHandler.authenticator = authenticator
+            return securityHandler
+        }
+
+        protected abstract String constraintName();
+        protected abstract Authenticator getAuthenticator();
+    }
+
+    public static class BasicAuthHandler extends AuthSchemeHandler {
+        @Override
+        protected String constraintName() {
+            return Constraint.__BASIC_AUTH
+        }
+
+        @Override
+        protected Authenticator getAuthenticator() {
+            return new BasicAuthenticator()
+        }
+    }
+
+    public static class DigestAuthHandler extends AuthSchemeHandler {
+        @Override
+        protected String constraintName() {
+            return Constraint.__DIGEST_AUTH
+        }
+
+        @Override
+        protected Authenticator getAuthenticator() {
+            return new DigestAuthenticator()
+        }
     }
 
     static class TestUserRealm implements UserRealm {

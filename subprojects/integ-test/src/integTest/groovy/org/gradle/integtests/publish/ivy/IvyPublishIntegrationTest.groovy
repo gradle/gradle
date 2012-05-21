@@ -15,27 +15,22 @@
  */
 package org.gradle.integtests.publish.ivy
 
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.HttpServer
 import org.hamcrest.Matchers
 import org.junit.Rule
-import org.junit.Test
 import org.mortbay.jetty.HttpStatus
 import spock.lang.Issue
+import spock.lang.Unroll
 
-public class IvyPublishIntegrationTest {
-    @Rule
-    public final GradleDistribution dist = new GradleDistribution()
-    @Rule
-    public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
+public class IvyPublishIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     public final HttpServer server = new HttpServer()
 
-    @Test
     public void canPublishToLocalFileRepository() {
-        dist.testFile("settings.gradle").text = 'rootProject.name = "publish"'
-        dist.testFile("build.gradle") << '''
+        given:
+        settingsFile << 'rootProject.name = "publish"'
+        buildFile << '''
 apply plugin: 'java'
 version = '2'
 group = 'org.gradle'
@@ -47,22 +42,23 @@ uploadArchives {
     }
 }
 '''
-        executer.withTasks("uploadArchives").run()
+        when:
+        succeeds 'uploadArchives'
 
-        def uploadedJar = dist.testFile('build/repo/org.gradle/publish/2/publish-2.jar')
-        def uploadedIvy = dist.testFile('build/repo/org.gradle/publish/2/ivy-2.xml')
-        uploadedJar.assertIsCopyOf(dist.testFile('build/libs/publish-2.jar'))
+        then:
+        def uploadedIvy = file('build/repo/org.gradle/publish/2/ivy-2.xml')
         uploadedIvy.assertIsFile()
+        def uploadedJar = file('build/repo/org.gradle/publish/2/publish-2.jar')
+        uploadedJar.assertIsCopyOf(file('build/libs/publish-2.jar'))
     }
 
     @Issue("GRADLE-1811")
-    @Test
     public void canGenerateTheIvyXmlWithoutPublishing() {
         //this is more like documenting the current behavior.
         //Down the road we should add explicit task to create ivy.xml file
 
-        //given
-        dist.testFile("build.gradle") << '''
+        given:
+        buildFile << '''
 apply plugin: 'java'
 
 configurations {
@@ -81,20 +77,19 @@ task ivyXml(type: Upload) {
   configuration = configurations.myJars
 }
 '''
-        //when
-        executer.withTasks("ivyXml").run()
+        when:
+        succeeds 'ivyXml'
 
-        //then
-        def ivyXml = dist.file('ivy.xml')
-        ivyXml.assertIsFile()
+        then:
+        file('ivy.xml').assertIsFile()
     }
 
-    @Test
     public void canPublishToUnauthenticatedHttpRepository() {
+        given:
         server.start()
 
-        dist.testFile("settings.gradle").text = 'rootProject.name = "publish"'
-        dist.testFile("build.gradle") << """
+        settingsFile << 'rootProject.name = "publish"'
+        buildFile << """
 apply plugin: 'java'
 version = '2'
 group = 'org.gradle'
@@ -106,23 +101,27 @@ uploadArchives {
     }
 }
 """
-        def uploadedJar = dist.testFile('uploaded.jar')
-        def uploadedIvy = dist.testFile('uploaded.xml')
+        when:
+        def uploadedIvy = file('uploaded.xml')
+        def uploadedJar = file('uploaded.jar')
         server.expectPut('/org.gradle/publish/2/publish-2.jar', uploadedJar, HttpStatus.ORDINAL_200_OK)
         server.expectPut('/org.gradle/publish/2/ivy-2.xml', uploadedIvy, HttpStatus.ORDINAL_201_Created)
 
-        executer.withTasks("uploadArchives").run()
+        and:
+        succeeds 'uploadArchives'
 
-        uploadedJar.assertIsCopyOf(dist.testFile('build/libs/publish-2.jar'))
+        then:
+        uploadedJar.assertIsCopyOf(file('build/libs/publish-2.jar'))
         uploadedIvy.assertIsFile()
     }
 
-    @Test
-    public void canPublishToAuthenticatedHttpRepository() {
+    @Unroll
+    def "can publish to authenticated repository using #authScheme auth"() {
+        given:
         server.start()
 
-        dist.testFile("settings.gradle").text = 'rootProject.name = "publish"'
-        dist.testFile("build.gradle") << """
+        settingsFile << 'rootProject.name = "publish"'
+        buildFile << """
 apply plugin: 'java'
 version = '2'
 group = 'org.gradle'
@@ -139,24 +138,30 @@ uploadArchives {
 }
 """
 
-        def uploadedJar = dist.testFile('uploaded.jar')
-        def uploadedIvy = dist.testFile('uploaded.xml')
+        when:
+        server.authenticationScheme = authScheme
+        def uploadedJar = file('uploaded.jar')
+        def uploadedIvy = file('uploaded.xml')
         server.expectPut('/org.gradle/publish/2/publish-2.jar', 'user', 'password', uploadedJar)
         server.expectPut('/org.gradle/publish/2/ivy-2.xml', 'user', 'password', uploadedIvy)
 
-        executer.withTasks("uploadArchives").run()
+        then:
+        succeeds 'uploadArchives'
 
-        uploadedJar.assertIsCopyOf(dist.testFile('build/libs/publish-2.jar'))
+        and:
+        uploadedJar.assertIsCopyOf(file('build/libs/publish-2.jar'))
         uploadedIvy.assertIsFile()
+
+        where:
+        authScheme << [HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST]
     }
 
-    @Test
     public void reportsFailedPublishToHttpRepository() {
+        given:
         server.start()
         def repositoryUrl = "http://localhost:${server.port}"
-        server.addBroken("/")
 
-        dist.testFile("build.gradle") << """
+        buildFile << """
 apply plugin: 'java'
 uploadArchives {
     repositories {
@@ -167,25 +172,35 @@ uploadArchives {
 }
 """
 
-        def result = executer.withTasks("uploadArchives").runWithFailure()
-        result.assertHasDescription('Execution failed for task \':uploadArchives\'.')
-        result.assertHasCause('Could not publish configuration \':archives\'.')
-        result.assertThatCause(Matchers.containsString('Received status code 500 from server: broken'))
+        when:
+        server.addBroken("/")
 
+        then:
+        fails 'uploadArchives'
+
+        and:
+        failure.assertHasDescription('Execution failed for task \':uploadArchives\'.')
+        failure.assertHasCause('Could not publish configuration \':archives\'.')
+        failure.assertThatCause(Matchers.containsString('Received status code 500 from server: broken'))
+
+        when:
         server.stop()
 
-        result = executer.withTasks("uploadArchives").runWithFailure()
-        result.assertHasDescription('Execution failed for task \':uploadArchives\'.')
-        result.assertHasCause('Could not publish configuration \':archives\'.')
-        result.assertHasCause("org.apache.http.conn.HttpHostConnectException: Connection to ${repositoryUrl} refused")
+        then:
+        fails 'uploadArchives'
+
+        and:
+        failure.assertHasDescription('Execution failed for task \':uploadArchives\'.')
+        failure.assertHasCause('Could not publish configuration \':archives\'.')
+        failure.assertHasCause("org.apache.http.conn.HttpHostConnectException: Connection to ${repositoryUrl} refused")
     }
 
-    @Test
     public void usesFirstConfiguredPatternForPublication() {
+        given:
         server.start()
 
-        dist.testFile("settings.gradle").text = 'rootProject.name = "publish"'
-        dist.testFile("build.gradle") << """
+        settingsFile << 'rootProject.name = "publish"'
+        buildFile << """
     apply plugin: 'java'
     version = '2'
     group = 'org.gradle'
@@ -200,14 +215,18 @@ uploadArchives {
         }
     }
     """
-        def uploadedJar = dist.testFile('uploaded.jar')
-        def uploadedIvy = dist.testFile('uploaded.xml')
+
+        when:
+        def uploadedJar = file('uploaded.jar')
+        def uploadedIvy = file('uploaded.xml')
         server.expectPut('/primary/publish/publish-2.jar', uploadedJar, HttpStatus.ORDINAL_200_OK)
         server.expectPut('/primary-ivy/publish/ivy-2.xml', uploadedIvy, HttpStatus.ORDINAL_201_Created)
 
-        executer.withTasks("uploadArchives").run()
+        then:
+        succeeds 'uploadArchives'
 
-        uploadedJar.assertIsCopyOf(dist.testFile('build/libs/publish-2.jar'))
+        and:
+        uploadedJar.assertIsCopyOf(file('build/libs/publish-2.jar'))
         uploadedIvy.assertIsFile()
     }
 
