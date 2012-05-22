@@ -19,6 +19,7 @@ import org.gradle.api.Action;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.TemporaryFolder;
 import org.gradle.util.TestFile;
@@ -28,6 +29,7 @@ import org.jmock.Sequence;
 import org.jmock.api.Invocation;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
+import org.junit.Assume;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -222,6 +224,8 @@ public class MappingCopySpecVisitorTest {
 
     @Test
     public void explicitFileModeDefinitionIsAppliedToTarget() {
+        Assume.assumeTrue(OperatingSystem.current().isLinux() || OperatingSystem.current().isMacOsX());
+
         final FileCopyDetails mappedDetails = expectActionExecutedWhenFileVisited();
         final TestFile destFile = tmpDir.getDir().file("test.txt").createFile();
 
