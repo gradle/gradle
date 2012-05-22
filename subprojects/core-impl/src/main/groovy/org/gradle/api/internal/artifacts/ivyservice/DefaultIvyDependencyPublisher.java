@@ -71,34 +71,17 @@ public class DefaultIvyDependencyPublisher implements IvyDependencyPublisher {
             this.descriptorFile = descriptorFile;
         }
 
-        public Collection publishTo(DependencyResolver resolver) throws IOException {
+        public void publishTo(DependencyResolver resolver) throws IOException {
             Set<Artifact> allArtifacts = getAllArtifacts(moduleDescriptor);
 
-            // now collects artifacts files
-            Collection<Artifact> missing = new ArrayList<Artifact>();
             Map<Artifact, File> artifactsFiles = new LinkedHashMap<Artifact, File>();
-            for (Artifact artifact : allArtifacts) {
-                File artifactFile = new File(artifact.getExtraAttribute(FILE_ABSOLUTE_PATH_EXTRA_ATTRIBUTE));
-                if (artifactFile.exists()) {
-                    artifactsFiles.put(artifact, artifactFile);
-                } else {
-                    // TODO: Should fail here (ivy default behaviour), but not back-compatible
-                    logMissingArtifactFile(artifact, artifactFile);
-                    missing.add(artifact);
-                }
-            }
             if (descriptorFile != null) {
-                Artifact artifact = MDArtifact.newIvyArtifact(moduleDescriptor);
-                if (descriptorFile.exists()) {
-                    artifactsFiles.put(artifact, descriptorFile);
-                } else {
-                    // TODO: Should fail here (ivy default behaviour), but not back-compatible
-                    logMissingArtifactFile(artifact, descriptorFile);
-                    missing.add(artifact);
-                }
+                addPublishedDescriptor(artifactsFiles);
+            }
+            for (Artifact artifact : allArtifacts) {
+                addPublishedArtifact(artifact, artifactsFiles);
             }
 
-            // and now do actual publishing
             boolean successfullyPublished = false;
             try {
                 boolean overwrite = true;
@@ -116,10 +99,29 @@ public class DefaultIvyDependencyPublisher implements IvyDependencyPublisher {
                     resolver.abortPublishTransaction();
                 }
             }
-            return missing;
+        }
+
+        private void addPublishedDescriptor(Map<Artifact, File> artifactsFiles) {
+            Artifact artifact = MDArtifact.newIvyArtifact(moduleDescriptor);
+            if (descriptorFile.exists()) {
+                artifactsFiles.put(artifact, descriptorFile);
+            } else {
+                logMissingArtifactFile(artifact, descriptorFile);
+            }
+        }
+
+        private void addPublishedArtifact(Artifact artifact, Map<Artifact, File> artifactsFiles) {
+            File artifactFile = new File(artifact.getExtraAttribute(FILE_ABSOLUTE_PATH_EXTRA_ATTRIBUTE));
+            if (artifactFile.exists()) {
+                artifactsFiles.put(artifact, artifactFile);
+            } else {
+                // TODO: Should fail here (ivy default behaviour), but not back-compatible
+                logMissingArtifactFile(artifact, artifactFile);
+            }
         }
 
         private void logMissingArtifactFile(Artifact artifact, File descriptorFile) {
+            // TODO: Should fail here (ivy default behaviour), but not backwards-compatible?
             logger.warn("Missing file for artifact {}. File '{}' does not exist.", artifact.getModuleRevisionId(), descriptorFile);
         }
 
