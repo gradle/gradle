@@ -17,20 +17,17 @@ package org.gradle.api.internal.externalresource.transport.http;
 
 import org.apache.http.HttpRequest;
 import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.AuthenticationException;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.NTCredentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.params.AuthPolicy;
-import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.ProxySelectorRoutePlanner;
 import org.apache.http.protocol.HttpContext;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.internal.externalresource.transport.http.ntlm.NTLMCredentials;
 import org.gradle.api.internal.externalresource.transport.http.ntlm.NTLMSchemeFactory;
-import org.gradle.internal.UncheckedException;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
@@ -43,18 +40,9 @@ public class HttpClientConfigurer {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpClientConfigurer.class);
 
     private final HttpSettings httpSettings;
-    private final UsernamePasswordCredentials repositoryCredentials;
 
     public HttpClientConfigurer(HttpSettings httpSettings) {
         this.httpSettings = httpSettings;
-        repositoryCredentials = createRepositoryCredentials(httpSettings.getCredentials());
-    }
-
-    private UsernamePasswordCredentials createRepositoryCredentials(PasswordCredentials credentials) {
-        if (GUtil.isTrue(credentials.getUsername())) {
-            return new UsernamePasswordCredentials(credentials.getUsername(), credentials.getPassword());
-        }
-        return null;
     }
 
     public void configure(DefaultHttpClient httpClient) {
@@ -102,14 +90,5 @@ public class HttpClientConfigurer {
 
     public void configureMethod(HttpRequest method) {
         method.addHeader("User-Agent", "Gradle/" + GradleVersion.current().getVersion());
-
-        // Do preemptive authentication for basic auth
-        if (repositoryCredentials != null) {
-            try {
-                method.addHeader(new BasicScheme().authenticate(repositoryCredentials, method));
-            } catch (AuthenticationException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
-        }
     }
 }
