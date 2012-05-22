@@ -141,6 +141,6 @@ task listJars << {
         succeeds('listJars')
 
         and:
-        proxyServer.requestCount == 2
+        proxyServer.requestCount >= 2
     }
 }
