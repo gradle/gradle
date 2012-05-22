@@ -47,7 +47,7 @@ public class ProjectDependencyResolver implements DependencyToModuleResolver {
 
     private static class ProjectArtifactResolver implements ArtifactResolver {
         public ArtifactResolveResult resolve(Artifact artifact) throws ArtifactResolveException {
-            String path = artifact.getExtraAttribute(DefaultIvyDependencyPublisher.FILE_PATH_EXTRA_ATTRIBUTE);
+            String path = artifact.getExtraAttribute(DefaultIvyDependencyPublisher.FILE_ABSOLUTE_PATH_EXTRA_ATTRIBUTE);
             return new FileBackedArtifactResolveResult(new File(path));
         }
     }

@@ -16,8 +16,8 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.Ivy;
+import org.apache.ivy.core.event.EventManager;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.core.publish.PublishEngine;
 import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.artifacts.Configuration;
@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.*;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.WrapUtil;
+import static org.hamcrest.Matchers.equalTo;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -37,8 +38,6 @@ import java.text.ParseException;
 import java.util.List;
 import java.util.Set;
 
-import static org.hamcrest.Matchers.equalTo;
-
 /**
  * @author Hans Dockter
  */
@@ -48,7 +47,6 @@ public class IvyBackedArtifactPublisherTest {
 
     private ModuleDescriptor publishModuleDescriptorDummy = context.mock(ModuleDescriptor.class);
     private ModuleDescriptor fileModuleDescriptorMock = context.mock(ModuleDescriptor.class);
-    private PublishEngine publishEngineDummy = context.mock(PublishEngine.class);
     private DependencyMetaDataProvider dependencyMetaDataProviderMock = context.mock(DependencyMetaDataProvider.class);
     private ResolverProvider resolverProvider = context.mock(ResolverProvider.class);
     private IvyFactory ivyFactoryStub = context.mock(IvyFactory.class);
@@ -60,6 +58,7 @@ public class IvyBackedArtifactPublisherTest {
     @Test
     public void testPublish() throws IOException, ParseException {
         final IvySettings ivySettingsDummy = new IvySettings();
+        final EventManager ivyEventManagerDummy = new EventManager();
         final ConfigurationInternal configuration = context.mock(ConfigurationInternal.class);
         final Set<Configuration> configurations = createConfiguration();
         final File someDescriptorDestination = new File("somePath");
@@ -67,8 +66,8 @@ public class IvyBackedArtifactPublisherTest {
         final Module moduleDummy = context.mock(Module.class, "moduleForResolve");
         final IvyBackedArtifactPublisher ivyService = createIvyService();
 
-        setUpForPublish(configurations, publishResolversDummy, moduleDummy,
-                ivySettingsDummy);
+        setUpIvyFactory(ivySettingsDummy, ivyEventManagerDummy);
+        setUpForPublish(configurations, publishResolversDummy, moduleDummy, ivySettingsDummy);
 
         final Set<String> expectedConfigurations = Configurations.getNames(configurations, true);
         context.checking(new Expectations() {{
@@ -82,7 +81,7 @@ public class IvyBackedArtifactPublisherTest {
             will(returnValue(new DefaultResolutionStrategy()));
             one(fileModuleDescriptorMock).toIvyFile(someDescriptorDestination);
             one(ivyDependencyPublisherMock).publish(expectedConfigurations,
-                    publishResolversDummy, publishModuleDescriptorDummy, someDescriptorDestination, publishEngineDummy);
+                    publishResolversDummy, publishModuleDescriptorDummy, someDescriptorDestination, ivyEventManagerDummy);
         }});
 
         ivyService.publish(configuration, someDescriptorDestination);
@@ -133,12 +132,8 @@ public class IvyBackedArtifactPublisherTest {
             allowing(dependencyMetaDataProviderMock).getModule();
             will(returnValue(moduleDummy));
 
-            allowing(settingsConverterStub).convertForPublish(publishResolversDummy
-            );
+            allowing(settingsConverterStub).convertForPublish(publishResolversDummy);
             will(returnValue(ivySettingsDummy));
-
-            allowing(setUpIvyFactory(ivySettingsDummy)).getPublishEngine();
-            will(returnValue(publishEngineDummy));
 
             allowing(publishModuleDescriptorConverter).convert(with(equalTo(configurations)),
                     with(equalTo(moduleDummy)));
@@ -150,7 +145,7 @@ public class IvyBackedArtifactPublisherTest {
         }});
     }
 
-    private Ivy setUpIvyFactory(final IvySettings ivySettingsDummy) {
+    private Ivy setUpIvyFactory(final IvySettings ivySettingsDummy, final EventManager ivyEventManagerDummy) {
         final Ivy ivyStub = context.mock(Ivy.class);
         context.checking(new Expectations() {{
             allowing(ivyFactoryStub).createIvy(ivySettingsDummy);
@@ -158,6 +153,9 @@ public class IvyBackedArtifactPublisherTest {
 
             allowing(ivyStub).getSettings();
             will(returnValue(ivySettingsDummy));
+
+            allowing(ivyStub).getEventManager();
+            will(returnValue(ivyEventManagerDummy));
         }});
         return ivyStub;
     }

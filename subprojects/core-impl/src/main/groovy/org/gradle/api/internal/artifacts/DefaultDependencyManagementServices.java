@@ -371,8 +371,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                             get(PublishModuleDescriptorConverter.class),
                             fileModuleDescriptorConverter,
                             get(IvyFactory.class),
-                            new DefaultIvyDependencyPublisher(
-                                    new DefaultPublishOptionsFactory())));
+                            new DefaultIvyDependencyPublisher()));
         }
     }
 
