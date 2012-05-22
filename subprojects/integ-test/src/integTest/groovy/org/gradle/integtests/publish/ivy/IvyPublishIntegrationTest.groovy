@@ -129,7 +129,7 @@ uploadArchives {
     repositories {
         ivy {
             credentials {
-                username 'user'
+                username 'testuser'
                 password 'password'
             }
             url "http://localhost:${server.port}"
@@ -142,8 +142,8 @@ uploadArchives {
         server.authenticationScheme = authScheme
         def uploadedJar = file('uploaded.jar')
         def uploadedIvy = file('uploaded.xml')
-        server.expectPut('/org.gradle/publish/2/publish-2.jar', 'user', 'password', uploadedJar)
-        server.expectPut('/org.gradle/publish/2/ivy-2.xml', 'user', 'password', uploadedIvy)
+        server.expectPut('/org.gradle/publish/2/publish-2.jar', 'testuser', 'password', uploadedJar)
+        server.expectPut('/org.gradle/publish/2/ivy-2.xml', 'testuser', 'password', uploadedIvy)
 
         then:
         succeeds 'uploadArchives'

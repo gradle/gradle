@@ -15,16 +15,18 @@
  */
 package org.gradle.integtests.fixtures
 
-import java.security.Principal
-import java.util.zip.GZIPOutputStream
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
 import org.gradle.util.hash.HashUtil
 import org.junit.rules.ExternalResource
 import org.mortbay.jetty.handler.AbstractHandler
 import org.mortbay.jetty.handler.HandlerCollection
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+
+import java.security.Principal
+import java.util.zip.GZIPOutputStream
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
+
 import org.mortbay.jetty.*
 import org.mortbay.jetty.security.*
 
@@ -43,6 +45,7 @@ class HttpServer extends ExternalResource {
         BASIC(new BasicAuthHandler()), DIGEST(new DigestAuthHandler())
 
         final AuthSchemeHandler handler;
+
         AuthScheme(AuthSchemeHandler handler) {
             this.handler = handler
         }
@@ -52,15 +55,15 @@ class HttpServer extends ExternalResource {
         NONE({ null }),
         RAW_SHA1_HEX({ HashUtil.sha1(it as byte[]).asHexString() }),
         NEXUS_ENCODED_SHA1({ "{SHA1{" + HashUtil.sha1(it as byte[]).asHexString() + "}}" })
-        
+
         private final Closure generator
-        
+
         EtagStrategy(Closure generator) {
             this.generator = generator
         }
-        
+
         String generate(byte[] bytes) {
-            generator.call(bytes)                        
+            generator.call(bytes)
         }
     }
 
@@ -286,7 +289,7 @@ class HttpServer extends ExternalResource {
 
     private sendDirectoryListing(HttpServletResponse response, File directory) {
         def directoryListing = ""
-        for (String fileName: directory.list()) {
+        for (String fileName : directory.list()) {
             directoryListing += "<a href=\"$fileName\">$fileName</a>"
         }
 
@@ -424,6 +427,7 @@ server state: ${server.dump()}
         }
 
         protected abstract String constraintName();
+
         protected abstract Authenticator getAuthenticator();
     }
 
@@ -456,7 +460,8 @@ server state: ${server.dump()}
         String password
 
         Principal authenticate(String username, Object credentials, Request request) {
-            if (username == this.username && password == credentials) {
+            Password passwordCred = new Password(password)
+            if (username == this.username && passwordCred.check(credentials)) {
                 return getPrincipal(username)
             }
             return null

@@ -310,7 +310,7 @@ uploadArchives {
         module.assertArtifactsPublished('root-1.0.pom', 'root-1.0.jar', 'maven-metadata.xml')
 
         where:
-        authScheme << [HttpServer.AuthScheme.BASIC]
+        authScheme << [HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST]
         // TODO: Does not work with DIGEST authentication
     }
 
