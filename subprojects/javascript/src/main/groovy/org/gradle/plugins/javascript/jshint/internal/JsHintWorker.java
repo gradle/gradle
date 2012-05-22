@@ -45,7 +45,6 @@ public class JsHintWorker implements RhinoWorker<JsHintResult, JsHintSpec> {
             LOGGER.info("Reading file: {}", target.getAbsolutePath());
             String source = readFile(target, encoding);
             Map<String, Object> result = jsHint(jsHintScope, source, target.getName());
-            LOGGER.warn("Result type: {}", result.getClass());
             results.put(target, result);
         }
 

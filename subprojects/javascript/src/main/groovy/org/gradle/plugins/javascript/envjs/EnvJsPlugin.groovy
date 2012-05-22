@@ -70,7 +70,7 @@ class EnvJsPlugin implements Plugin<Project> {
                         }
                     }
 
-                    new EnvJsBrowserEvaluator(handleFactory, rhinoExtension.classpath, envJsFactory, logLevel, workDir)
+                    new EnvJsBrowserEvaluator(handleFactory, rhinoExtension.classpath, envJsFactory, project.gradle.startParameter.logLevel, workDir)
                 }
             }
         }

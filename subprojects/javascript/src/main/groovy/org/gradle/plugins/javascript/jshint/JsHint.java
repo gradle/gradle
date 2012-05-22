@@ -22,6 +22,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.tasks.*;
 import org.gradle.internal.Factory;
@@ -91,7 +92,8 @@ public class JsHint extends SourceTask {
         Factory<WorkerProcessBuilder> workerProcessBuilderFactory = projectInternal.getServices().getFactory(WorkerProcessBuilder.class);
         RhinoWorkerHandleFactory handleFactory = new DefaultRhinoWorkerHandleFactory(workerProcessBuilderFactory);
 
-        RhinoWorkerHandle<JsHintResult, JsHintSpec> rhinoHandle = handleFactory.create(getRhinoClasspath(), createWorkerSpec(), getLogging().getLevel(), new Action<JavaExecSpec>() {
+        LogLevel logLevel = getProject().getGradle().getStartParameter().getLogLevel();
+        RhinoWorkerHandle<JsHintResult, JsHintSpec> rhinoHandle = handleFactory.create(getRhinoClasspath(), createWorkerSpec(), logLevel, new Action<JavaExecSpec>() {
             public void execute(JavaExecSpec javaExecSpec) {
                 javaExecSpec.setWorkingDir(getProject().getProjectDir());
             }

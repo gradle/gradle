@@ -20,6 +20,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SourceTask;
@@ -91,7 +92,8 @@ public class CoffeeScriptCompile extends SourceTask {
         spec.setSource(getSource());
         spec.setOptions(getOptions());
 
-        CoffeeScriptCompiler compiler = new RhinoCoffeeScriptCompiler(handleFactory, getRhinoClasspath(), getLogging().getLevel(), getProject().getProjectDir());
+        LogLevel logLevel = getProject().getGradle().getStartParameter().getLogLevel();
+        CoffeeScriptCompiler compiler = new RhinoCoffeeScriptCompiler(handleFactory, getRhinoClasspath(), logLevel, getProject().getProjectDir());
 
         setDidWork(compiler.compile(spec).getDidWork());
     }
