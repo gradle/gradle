@@ -16,9 +16,9 @@
 package org.gradle.api.artifacts;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
-import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.api.internal.file.FileSource;
+import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
+import org.gradle.internal.Factory;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
 
@@ -41,9 +41,9 @@ public class ArtifactsTestUtils {
             allowing(artifactStub).getExtraAttribute(with(org.hamcrest.Matchers.notNullValue(String.class)));
             will(returnValue(null));
         }});
-        final FileSource artifactSource = context.mock(FileSource.class);
+        final Factory artifactSource = context.mock(Factory.class);
         context.checking(new Expectations() {{
-            allowing(artifactSource).get();
+            allowing(artifactSource).create();
             will(returnValue(file));
         }});
         final ResolvedDependency resolvedDependency = context.mock(ResolvedDependency.class);

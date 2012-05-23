@@ -19,13 +19,14 @@ import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 
 import spock.lang.Specification
+import org.gradle.internal.Factory
 
 class DefaultTemporaryFileProviderTest extends Specification {
     @Rule TemporaryFolder tmpDir
     DefaultTemporaryFileProvider provider
 
     def setup() {
-        provider = new DefaultTemporaryFileProvider({tmpDir.dir} as FileSource)
+        provider = new DefaultTemporaryFileProvider({tmpDir.dir} as Factory)
     }
 
     def "allocates temp file"() {

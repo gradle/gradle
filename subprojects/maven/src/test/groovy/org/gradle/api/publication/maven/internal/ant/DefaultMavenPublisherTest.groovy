@@ -18,14 +18,12 @@ package org.gradle.api.publication.maven.internal.ant
 
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 import org.gradle.api.internal.file.DefaultTemporaryFileProvider
-import org.gradle.api.internal.file.FileSource
 import org.gradle.api.publication.maven.internal.model.DefaultMavenArtifact
 import org.gradle.api.publication.maven.internal.model.DefaultMavenPublication
 import org.gradle.util.Resources
 import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestFile
 import org.junit.Rule
-
 import spock.lang.Specification
 
 /**
@@ -35,7 +33,7 @@ class DefaultMavenPublisherTest extends Specification {
     @Rule TemporaryFolder dir = new TemporaryFolder()
     @Rule Resources resources = new Resources()
 
-    def publisher = new DefaultMavenPublisher(dir.file("local-repository"), new DefaultTemporaryFileProvider({dir.createDir("tmp")} as FileSource))
+    def publisher = new DefaultMavenPublisher(dir.file("local-repository"), new DefaultTemporaryFileProvider({dir.createDir("tmp")} as org.gradle.internal.Factory))
     
     def "installs artifact"() {
         def publication = new DefaultMavenPublication(groupId: "gradleware.test", artifactId: "fooArtifact", version: "1.1")

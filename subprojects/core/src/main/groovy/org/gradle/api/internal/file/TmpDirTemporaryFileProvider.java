@@ -17,6 +17,7 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.Nullable;
+import org.gradle.internal.Factory;
 import org.gradle.internal.SystemProperties;
 import org.gradle.util.GFileUtils;
 
@@ -28,8 +29,8 @@ public class TmpDirTemporaryFileProvider extends DefaultTemporaryFileProvider {
     private final List<File> createdFiles = new ArrayList<File>();
 
     public TmpDirTemporaryFileProvider() {
-        super(new FileSource() {
-            public File get() {
+        super(new Factory<File>() {
+            public File create() {
                 return GFileUtils.canonicalise(new File(SystemProperties.getJavaIoTmpDir()));
             }
         });

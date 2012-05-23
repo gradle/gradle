@@ -78,8 +78,8 @@ public class ProjectInternalServiceRegistry extends DefaultServiceRegistry imple
     }
 
     protected TemporaryFileProvider createTemporaryFileProvider() {
-        return new DefaultTemporaryFileProvider(new FileSource() {
-            public File get() {
+        return new DefaultTemporaryFileProvider(new Factory<File>() {
+            public File create() {
                 return new File(project.getBuildDir(), "tmp");
             }
         });

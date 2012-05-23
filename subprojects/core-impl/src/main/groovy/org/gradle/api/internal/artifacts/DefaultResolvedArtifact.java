@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
-import org.gradle.api.internal.file.FileSource;
+import org.gradle.internal.Factory;
 import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
@@ -31,10 +31,10 @@ import java.io.File;
 public class DefaultResolvedArtifact implements ResolvedArtifact {
     private final ResolvedDependency resolvedDependency;
     private final Artifact artifact;
-    private FileSource artifactSource;
+    private Factory<File> artifactSource;
     private File file;
 
-    public DefaultResolvedArtifact(ResolvedDependency resolvedDependency, Artifact artifact, FileSource artifactSource) {
+    public DefaultResolvedArtifact(ResolvedDependency resolvedDependency, Artifact artifact, Factory<File> artifactSource) {
         this.resolvedDependency = resolvedDependency;
         this.artifact = artifact;
         this.artifactSource = artifactSource;
@@ -104,7 +104,7 @@ public class DefaultResolvedArtifact implements ResolvedArtifact {
     
     public File getFile() {
         if (file == null) {
-            file = artifactSource.get();
+            file = artifactSource.create();
             artifactSource = null;
         }
         return file;

@@ -23,6 +23,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.resources.ReadableResource;
+import org.gradle.internal.Factory;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.util.GUtil;
@@ -132,9 +133,9 @@ public abstract class AbstractFileResolver implements FileResolver {
         return new File(current, segment);
     }
 
-    public FileSource resolveLater(final Object path) {
-        return new FileSource() {
-            public File get() {
+    public Factory<File> resolveLater(final Object path) {
+        return new Factory<File>() {
+            public File create() {
                 return resolve(path);
             }
         };
@@ -179,8 +180,8 @@ public abstract class AbstractFileResolver implements FileResolver {
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
-            } else if (current instanceof FileSource) {
-                return ((FileSource) current).get();
+            } else if (current instanceof Factory) {
+                return ((Factory) current).create();
             } else {
                 return current;
             }

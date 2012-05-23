@@ -17,6 +17,7 @@
 package org.gradle.process.internal;
 
 import org.gradle.api.Action;
+import org.gradle.internal.Factory;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.file.FileResolver;
@@ -66,6 +67,11 @@ public class DefaultWorkerProcessFactoryTest {
             allowing(classPath).getAsFiles();
             will(returnValue(processClassPath));
             allowing(fileResolver).resolveLater(".");
+            will(returnValue(new Factory<File>() {
+                public File create() {
+                    return new File(".");
+                }
+            }));
             allowing(fileResolver).resolveFiles(with(Matchers.<Object>notNullValue()));
             will(returnValue(new SimpleFileCollection()));
         }});

@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.file
 
-import java.util.concurrent.Callable
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.PathValidation
 import org.gradle.api.file.FileCollection
@@ -28,6 +27,9 @@ import org.gradle.util.TestPrecondition
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+
+import java.util.concurrent.Callable
+
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 
@@ -321,9 +323,9 @@ class BaseDirFileResolverTest {
     @Test public void testResolveLater() {
         String src;
         Closure cl = { src }
-        FileSource source = baseDirConverter.resolveLater(cl)
+        org.gradle.internal.Factory<File> source = baseDirConverter.resolveLater(cl)
         src = 'file1'
-        assertEquals(new File(baseDir, 'file1'), source.get())
+        assertEquals(new File(baseDir, 'file1'), source.create())
     }
     
     @Test public void testCreateFileResolver() {
