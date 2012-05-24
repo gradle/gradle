@@ -66,7 +66,7 @@ public class FilePermissionHandlerFactory {
 
         public void chmod(File f, int mode) throws IOException {
             try{
-                libc.chmod(f.getAbsolutePath(), mode);
+                libc.chmod(f.getAbsolutePath().getBytes(), mode);
             }catch(LastErrorException exception){
                 throw new IOException(String.format("Failed to set file permissions %s on file %s. errno: %d", mode, f.getName(), exception.getErrorCode()));
             }
