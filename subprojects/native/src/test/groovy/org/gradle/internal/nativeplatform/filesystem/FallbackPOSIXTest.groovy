@@ -20,14 +20,30 @@ import org.junit.Rule
 import spock.lang.Specification
 import org.gradle.util.TemporaryFolder
 import org.jruby.ext.posix.POSIX
-import org.junit.Ignore
 
-@Ignore
 class FallbackPOSIXTest extends Specification {
 
     FallbackPOSIX posix = new FallbackPOSIX()
 
     @Rule TemporaryFolder tempFolder;
+
+    def "returns 0 on chmod calls"() {
+        setup:
+        def testFile = tempFolder.createFile("testFile");
+        expect:
+        0 == posix.chmod(testFile.absolutePath, mode)
+        where:
+        mode << [644, 755, 777];
+    }
+
+    def "stat() returns instance of FallbackStat"() {
+        setup:
+        def testFile = tempFolder.createDir();
+        when:
+        def stat = posix.stat(testFile.absolutePath)
+        then:
+        stat instanceof FallbackFileStat
+    }
 
     def "returns errno code 1 (ENOTSUP) for symlink calls"() {
         expect:

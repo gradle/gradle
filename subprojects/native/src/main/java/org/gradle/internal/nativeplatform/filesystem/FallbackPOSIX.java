@@ -29,7 +29,7 @@ public class FallbackPOSIX implements POSIX {
     static final int ENOTSUP = 1;
 
     public int chmod(String filename, int mode) {
-        throw new UnsupportedOperationException("This operation is not supported.");
+        return 0;
     }
 
     public int chown(String filename, int user, int group) {
@@ -193,7 +193,7 @@ public class FallbackPOSIX implements POSIX {
     }
 
     public FileStat stat(String path) {
-        throw new UnsupportedOperationException("This operation is not supported.");
+        return new FallbackFileStat(path);
     }
 
     public int symlink(String oldpath, String newpath) {

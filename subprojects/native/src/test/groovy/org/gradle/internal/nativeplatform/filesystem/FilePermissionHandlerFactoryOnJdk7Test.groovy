@@ -69,15 +69,4 @@ class FilePermissionHandlerFactoryOnJdk7Test extends Specification {
         mode << [0722, 0644, 0744, 0755]
     }
 
-    @Requires(TestPrecondition.FILE_PERMISSIONS)
-    def "chmod supports unicode filenames"() {
-        setup:
-        def file = temporaryFolder.createFile("\u0627\u0644\u0627\u0655\u062F\u0627\u0631\u0629.lnk")
-        def handler = FilePermissionHandlerFactory.createDefaultFilePermissionHandler()
-        when:
-        handler.chmod(file, 0722);
-        then:
-        file.getMode() == 0722
-    }
-
 }

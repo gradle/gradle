@@ -16,36 +16,27 @@
 
 package org.gradle.internal.nativeplatform.filesystem
 
-import org.jruby.ext.posix.FileStat
-import org.jruby.ext.posix.POSIX
 import spock.lang.Specification
 import org.junit.Rule
 import org.gradle.util.TemporaryFolder
 
-class ComposableFilePermissionHandlerTest extends Specification {
-    final ComposableFilePermissionHandler.Chmod chmod = Mock()
-    final POSIX posix = Mock()
-    final ComposableFilePermissionHandler handler = new ComposableFilePermissionHandler(chmod, posix)
+class FallbackFileStatTest extends Specification {
 
     @Rule TemporaryFolder temporaryFolder;
-    def "chmod calls are delegated to Chmod"(){
-        setup:
-        def file = temporaryFolder.createFile("testfile");
-        when:
-        handler.chmod(file, 0744);
 
-        then:
-        1 * chmod.chmod(file, 0744)
+    def "mode() returns FileSystem.DEFAULT_FILE_MODE for files"() {
+        setup:
+        def testfile = temporaryFolder.createFile("testFile")
+        FallbackFileStat fallbackFileStat = new FallbackFileStat(testfile.absolutePath)
+        expect:
+        FileSystem.DEFAULT_FILE_MODE == fallbackFileStat.mode()
     }
 
-    def "getUnixMode calls are delegated to POSIX"(){
+    def "mode() returns FileSystem.DEFAULT_DIR_MODE for directories"() {
         setup:
-        FileStat stat = Mock()
-        def file = temporaryFolder.createFile("testfile");
-        posix.stat(file.getAbsolutePath()) >> stat
-        stat.mode() >> 0754
-
+        def testfolder = temporaryFolder.createDir()
+        FallbackFileStat fallbackFileStat = new FallbackFileStat(testfolder.absolutePath)
         expect:
-        handler.getUnixMode(file) == 0754
+        FileSystem.DEFAULT_DIR_MODE == fallbackFileStat.mode()
     }
 }
