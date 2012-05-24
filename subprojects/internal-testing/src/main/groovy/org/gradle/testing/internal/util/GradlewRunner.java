@@ -22,11 +22,20 @@ public class GradlewRunner {
     public static void main(String[] args) {
         Process process = null;
 
-        String[] combinedArgs = new String[1 + args.length];
-
-        File gradlew = new File("gradlew");
-        combinedArgs[0] = gradlew.getAbsolutePath();
-        System.arraycopy(args, 0, combinedArgs, 1, args.length);
+        String[] combinedArgs;
+        
+        if (System.getProperty("os.name").startsWith("Windows")) {
+            combinedArgs = new String[3 + args.length];
+            combinedArgs[0] = "cmd";
+            combinedArgs[1] = "/C";
+            combinedArgs[2] = new File("gradlew").getAbsolutePath();
+            System.arraycopy(args, 0, combinedArgs, 3, args.length);
+        } else {
+            combinedArgs = new String[1 + args.length];
+            File gradlew = new File("gradlew");
+            combinedArgs[0] = gradlew.getAbsolutePath();
+            System.arraycopy(args, 0, combinedArgs, 1, args.length);
+        }
 
         try {
             ProcessBuilder builder = new ProcessBuilder().command(combinedArgs);
