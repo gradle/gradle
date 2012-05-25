@@ -13,17 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.groovy.compile
 
-class InProcessGroovyCompilerIntegrationTest extends ApiGroovyCompilerIntegrationSpec {
-
-    String compilerConfiguration() {
-'''
-    tasks.withType(GroovyCompile) {
-        groovyOptions.useAnt = false
-        groovyOptions.fork = false
-    }
-'''
+class MethodInvocations {
+    void invoke() {
+        foo()
     }
 
+    void foo() {
+        new Bar().bar()
+    }
+
+    static class Bar {
+        void bar() {
+            Baz.baz()
+        }
+    }
+
+    static class Baz {
+        static void baz() {}
+    }
 }

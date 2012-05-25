@@ -1,5 +1,6 @@
+package org.gradle.groovy.compile.GroovyCompilerIntegrationSpec.canUseBuiltInAstTransform.src.test.groovy
+
 import org.junit.Test
-import TestDelegate
 
 class UseBuiltInTransformTest {
     @Delegate final TestDelegate delegate = new TestDelegate()

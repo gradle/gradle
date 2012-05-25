@@ -13,17 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.groovy.compile
 
-class InProcessGroovyCompilerIntegrationTest extends ApiGroovyCompilerIntegrationSpec {
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
+import org.gradle.integtests.fixtures.TargetVersions
+
+@Requires(TestPrecondition.JDK7)
+@TargetVersions(['2.0.0-beta-3:indy'])
+class InvokeDynamicGroovyCompilerSpec extends ApiGroovyCompilerIntegrationSpec {
+    def canEnableAndDisableInvokeDynamicOptimization() {
+        when:
+        run("sanityCheck")
+
+        then:
+        noExceptionThrown()
+    }
 
     String compilerConfiguration() {
-'''
-    tasks.withType(GroovyCompile) {
-        groovyOptions.useAnt = false
-        groovyOptions.fork = false
+        '''
+tasks.withType(GroovyCompile) {
+    groovyOptions.useAnt = false
+    groovyOptions.fork = false
+}
+        '''
     }
-'''
-    }
-
 }

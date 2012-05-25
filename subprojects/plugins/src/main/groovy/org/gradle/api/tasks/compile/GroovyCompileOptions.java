@@ -151,11 +151,11 @@ public class GroovyCompileOptions extends AbstractOptions {
      *
      * <dl>
      *     <dt>indy
-     *     <dd>Use the JDK7 invokedynamic instruction.
+     *     <dd>Use the invokedynamic bytecode instruction. Requires JDK7 or higher and Groovy 2.0 or higher. Disabled by default.
      *     <dt>int
-     *     <dd>Optimize operations on primitive types (e.g. integers).
+     *     <dd>Optimize operations on primitive types (e.g. integers). Enabled by default.
      *     <dt>all
-     *     <dd>Turn on all optimizations.
+     *     <dd>Enable or disable all optimizations. Note that some optimizations might be mutually exclusive.
      * </dl>
      */
     public Map<String, Boolean> getOptimizationOptions() {
@@ -284,6 +284,9 @@ public class GroovyCompileOptions extends AbstractOptions {
     public Map<String, Object> optionMap() {
         Map<String, Object> map = super.optionMap();
         map.putAll(forkOptions.optionMap());
+        if (optimizationOptions.containsKey("indy")) {
+            map.put("indy", optimizationOptions.get("indy"));
+        }
         return map;
     }
 }

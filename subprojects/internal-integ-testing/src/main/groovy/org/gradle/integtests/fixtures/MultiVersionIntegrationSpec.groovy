@@ -20,9 +20,9 @@ import org.junit.runner.RunWith
 
 @RunWith(MultiVersionSpecRunner)
 abstract class MultiVersionIntegrationSpec extends AbstractIntegrationSpec {
-    static def version
+    static String version
 
-    def getVersion() {
-        return version
+    String getVersion() {
+        version
     }
 }

@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.integtests.fixtures.ExecutionFailure
+import com.google.common.collect.Ordering
 
 @TargetVersions(['1.5.8', '1.6.9', '1.7.10', '1.8.6', '2.0.0-beta-3'])
 abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegrationSpec {
@@ -86,5 +87,16 @@ dependencies { groovy 'org.codehaus.groovy:groovy:$version' }
 
     String getCompileErrorOutput() {
         return errorOutput
+    }
+
+    boolean versionLowerThan(String other) {
+        compareToVersion(other) < 0
+    }
+
+    int compareToVersion(String other) {
+        def versionParts = version.split("\\.") as List
+        def otherParts = other.split("\\.") as List
+        def ordering = Ordering.<Integer>natural().lexicographical()
+        ordering.compare(versionParts, otherParts)
     }
 }

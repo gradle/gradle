@@ -49,6 +49,7 @@ public class ApiGroovyCompiler implements Compiler<GroovyJavaJointCompileSpec>, 
         configuration.setSourceEncoding(spec.getGroovyCompileOptions().getEncoding());
         configuration.setTargetBytecode(spec.getTargetCompatibility());
         configuration.setTargetDirectory(spec.getDestinationDir());
+        canonicalizeValues(spec.getGroovyCompileOptions().getOptimizationOptions());
         try {
             configuration.setOptimizationOptions(spec.getGroovyCompileOptions().getOptimizationOptions());
         } catch (NoSuchMethodError ignored) { /* method was only introduced in Groovy 1.8 */ }
@@ -121,6 +122,18 @@ public class ApiGroovyCompiler implements Compiler<GroovyJavaJointCompileSpec>, 
         }
 
         return new SimpleWorkResult(true);
+    }
+
+    // Make sure that map only contains Boolean.TRUE and Boolean.FALSE values and no other Boolean instances.
+    // This is necessary because:
+    // 1. serialization/deserialization of the compile spec doesn't preserve Boolean.TRUE/Boolean.FALSE but creates new instances
+    // 1. org.codehaus.groovy.classgen.asm.WriterController makes identity comparisons
+    private void canonicalizeValues(Map<String, Boolean> options) {
+        for (String key : options.keySet()) {
+            // unboxing and boxing does the trick
+            boolean value = options.get(key);
+            options.put(key, value);
+        }
     }
 
 }

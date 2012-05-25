@@ -13,17 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.groovy.compile
 
-class InProcessGroovyCompilerIntegrationTest extends ApiGroovyCompilerIntegrationSpec {
-
-    String compilerConfiguration() {
-'''
-    tasks.withType(GroovyCompile) {
-        groovyOptions.useAnt = false
-        groovyOptions.fork = false
+class IntegerCalculations {
+    def calculate() {
+        int a = 9834
+        int b = 238923
+        int c = a + b
+        int d = c - a
+        int e = d * c
+        int f = e.intdiv(5)
     }
-'''
-    }
-
 }

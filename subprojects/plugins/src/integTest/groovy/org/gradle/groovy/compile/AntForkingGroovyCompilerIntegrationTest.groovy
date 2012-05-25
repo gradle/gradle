@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.TargetVersions
 class AntForkingGroovyCompilerIntegrationTest extends GroovyCompilerIntegrationSpec {
 
     @Override
-    def String compilerConfiguration() {
+    String compilerConfiguration() {
         '''
     tasks.withType(GroovyCompile) {
         groovyOptions.useAnt = true

@@ -13,17 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.groovy.compile
 
-class InProcessGroovyCompilerIntegrationTest extends ApiGroovyCompilerIntegrationSpec {
+abstract class ApiGroovyCompilerIntegrationSpec extends GroovyCompilerIntegrationSpec {
+    def canEnableAndDisableIntegerOptimization() {
+        if (versionLowerThan('1.8')) {
+            return
+        }
 
-    String compilerConfiguration() {
-'''
-    tasks.withType(GroovyCompile) {
-        groovyOptions.useAnt = false
-        groovyOptions.fork = false
-    }
-'''
+        when:
+        run("sanityCheck")
+
+        then:
+        noExceptionThrown()
     }
 
+    def canEnableAndDisableAllOptimizations() {
+        if (versionLowerThan('1.8')) {
+            return
+        }
+
+        when:
+        run("sanityCheck")
+
+        then:
+        noExceptionThrown()
+    }
 }

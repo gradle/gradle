@@ -23,6 +23,6 @@ class TestCaseTransformTest {
     }
 
     @TestCase
-    abstract static class MyTestCase {}
+    static abstract class MyTestCase {}
 }
 
