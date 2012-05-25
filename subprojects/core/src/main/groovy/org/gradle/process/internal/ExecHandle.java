@@ -56,14 +56,4 @@ public interface ExecHandle {
     void addListener(ExecHandleListener listener);
 
     void removeListener(ExecHandleListener listener);
-
-    /**
-     * Waits until the child process detaches. By default 'detaching' means waiting until the child process closes
-     * its outputs (std and err) and the child stops consuming the input.
-     * However, this behavior can be configured via {@link org.gradle.process.internal.streams.StreamsHandler}.
-     * The purpose of this method is to conveniently fork daemon processes that can can outlive the parent.
-     * <p>
-     * The child may not start or die too quickly - use the result from this method to find out more.
-     */
-    DetachResult detach();
 }

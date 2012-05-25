@@ -40,6 +40,7 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
     boolean redirectErrorStream;
     private StreamsHandler streamsHandler;
     private int timeoutMillis = Integer.MAX_VALUE;
+    protected boolean daemon;
 
     public AbstractExecHandleBuilder(FileResolver fileResolver) {
         super(fileResolver);
@@ -124,7 +125,7 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
 
         StreamsHandler effectiveHandler = getEffectiveStreamsHandler();
         return new DefaultExecHandle(getDisplayName(), getWorkingDir(), executable, getAllArguments(), getActualEnvironment(),
-                effectiveHandler, listeners, redirectErrorStream, timeoutMillis);
+                effectiveHandler, listeners, redirectErrorStream, timeoutMillis, daemon);
     }
 
     private StreamsHandler getEffectiveStreamsHandler() {

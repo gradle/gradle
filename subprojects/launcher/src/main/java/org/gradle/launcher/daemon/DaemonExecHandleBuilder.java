@@ -35,6 +35,7 @@ public class DaemonExecHandleBuilder {
         builder.setWorkingDir(workingDir);
         builder.redirectErrorStream();
         builder.setTimeout(30000);
+        builder.setDaemon(true);
         builder.setDisplayName("Gradle build daemon");
         builder.streamsHandler(outputConsumer);
         return builder.build();

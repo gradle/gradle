@@ -147,4 +147,9 @@ public class ExecHandleBuilder extends AbstractExecHandleBuilder implements Exec
         super.setTimeout(timeoutMillis);
         return this;
     }
+
+    public ExecHandleBuilder setDaemon(boolean daemon) {
+        super.daemon = daemon;
+        return this;
+    }
 }

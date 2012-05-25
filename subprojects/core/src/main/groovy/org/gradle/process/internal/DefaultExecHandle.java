@@ -32,6 +32,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -78,11 +79,14 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
     private final StreamsHandler streamsHandler;
     private final boolean redirectErrorStream;
     private int timeoutMillis;
+    private boolean daemon;
 
     /**
      * Lock to guard all mutable state
      */
     private final Lock lock;
+
+    private final Condition condition;
 
     private final StoppableExecutor executor;
 
@@ -104,7 +108,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
 
     DefaultExecHandle(String displayName, File directory, String command, List<String> arguments,
                       Map<String, String> environment, StreamsHandler streamsHandler,
-                      List<ExecHandleListener> listeners, boolean redirectErrorStream, int timeoutMillis) {
+                      List<ExecHandleListener> listeners, boolean redirectErrorStream, int timeoutMillis, boolean daemon) {
         this.displayName = displayName;
         this.directory = directory;
         this.command = command;
@@ -113,7 +117,9 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
         this.streamsHandler = streamsHandler;
         this.redirectErrorStream = redirectErrorStream;
         this.timeoutMillis = timeoutMillis;
+        this.daemon = daemon;
         this.lock = new ReentrantLock();
+        this.condition = lock.newCondition();
         this.state = ExecHandleState.INIT;
         executor = new DefaultExecutorFactory().create(String.format("Run %s", displayName));
         shutdownHookAction = new ExecHandleShutdownHookAction(this);
@@ -127,6 +133,10 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
 
     public String getCommand() {
         return command;
+    }
+
+    public boolean isDaemon() {
+        return daemon;
     }
 
     @Override
@@ -154,7 +164,9 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
     private void setState(ExecHandleState state) {
         lock.lock();
         try {
+            LOGGER.debug("Changing state to: {}", state);
             this.state = state;
+            this.condition.signalAll();
         } finally {
             lock.unlock();
         }
@@ -217,7 +229,16 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
             setState(ExecHandleState.STARTING);
 
             execHandleRunner = new ExecHandleRunner(this, streamsHandler);
-            execHandleRunner.start();
+            executor.execute(execHandleRunner);
+
+            while(stateIn(ExecHandleState.STARTING)) {
+                LOGGER.debug("Waiting until process started: {}.", displayName);
+                try {
+                    condition.await();
+                } catch (InterruptedException e) {
+                    //ok, wrapping up
+                }
+            }
 
             if (execResult != null) {
                 execResult.rethrowFailure();
@@ -248,13 +269,17 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
     public ExecResult waitForFinish() {
         lock.lock();
         try {
-            if (stateIn(ExecHandleState.SUCCEEDED, ExecHandleState.ABORTED, ExecHandleState.FAILED)) {
-                return result();
+            while (!stateIn(ExecHandleState.SUCCEEDED, ExecHandleState.ABORTED, ExecHandleState.FAILED, ExecHandleState.DETACHED)) {
+                try {
+                    condition.await();
+                } catch (InterruptedException e) {
+                    //ok, wrapping up...
+                }
             }
         } finally {
             lock.unlock();
         }
-        execHandleRunner.waitForFinish();
+
         executor.stop();
 
         return result();
@@ -265,17 +290,6 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
         try {
             execResult.rethrowFailure();
             return execResult;
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    public DetachResult detach() {
-        execHandleRunner.waitUntilStreamsHandled();
-        executor.stop();
-        lock.lock();
-        try {
-            return new DetachResultImpl(execResult);
         } finally {
             lock.unlock();
         }

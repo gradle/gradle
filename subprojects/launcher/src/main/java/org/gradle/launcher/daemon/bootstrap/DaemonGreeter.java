@@ -20,7 +20,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
-import org.gradle.process.internal.DetachResult;
+import org.gradle.process.ExecResult;
 
 /**
  * by Szczepan Faber, created at: 1/19/12
@@ -32,9 +32,9 @@ public class DaemonGreeter {
         this.documentationRegistry = documentationRegistry;
     }
 
-    public DaemonDiagnostics parseDaemonOutput(String output, DetachResult detachResult) {
+    public DaemonDiagnostics parseDaemonOutput(String output, ExecResult result) {
         if (!new DaemonStartupCommunication().containsGreeting(output)) {
-            throw new GradleException(prepareMessage(output, detachResult));
+            throw new GradleException(prepareMessage(output, result));
         }
         String[] lines = output.split("\n");
         //TODO SF don't assume it is the last line
@@ -42,15 +42,16 @@ public class DaemonGreeter {
         return new DaemonStartupCommunication().readDiagnostics(lastLine);
     }
 
-    private String prepareMessage(String output, DetachResult detachResult) {
+    private String prepareMessage(String output, ExecResult result) {
         StringBuilder sb = new StringBuilder();
         sb.append(DaemonMessages.UNABLE_TO_START_DAEMON);
-        if (detachResult.isProcessCompleted()) {
-            sb.append("\nThe process has exited with value: ");
-            sb.append(detachResult.getExecResult().getExitValue()).append(".");
-        } else {
-            sb.append("\nThe process may still be running.");
-        }
+        //TODO SF if possible, include the exit value.
+//        if (result.getExitValue()) {
+//            sb.append("\nThe process has exited with value: ");
+//            sb.append(result.getExecResult().getExitValue()).append(".");
+//        } else {
+//            sb.append("\nThe process may still be running.");
+//        }
         sb.append("\nThis problem might be caused by incorrect configuration of the daemon.");
         sb.append("\nFor example, an unrecognized jvm option is used.");
         sb.append("\nPlease refer to the user guide chapter on the daemon at ");

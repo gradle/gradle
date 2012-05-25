@@ -17,15 +17,17 @@
 package org.gradle.process.internal;
 
 
-import org.gradle.internal.jvm.Jvm
 import org.gradle.process.ExecResult
 import org.gradle.process.internal.streams.StreamsHandler
 import org.gradle.util.GUtil
+import org.gradle.util.Jvm
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Specification
 import spock.lang.Timeout
+
+import java.util.concurrent.Callable
 
 /**
  * @author Tom Eyckmans, Szczepan Faber
@@ -131,14 +133,30 @@ class DefaultExecHandleSpec extends Specification {
 
     void "forks daemon and aborts it"() {
         def output = new ByteArrayOutputStream()
-        def execHandle = handle().setStandardOutput(output).args(args(SlowDaemonApp.class)).build();
+        def execHandle = handle().setDaemon(true).setStandardOutput(output).args(args(SlowDaemonApp.class)).build();
 
         when:
         execHandle.start();
-        execHandle.detach();
+        execHandle.waitForFinish();
 
         then:
         output.toString().contains "I'm the daemon"
+        execHandle.state == ExecHandleState.DETACHED
+
+        cleanup:
+        execHandle.abort()
+    }
+
+    @Ignore //TODO SF not yet implemented
+    void "aborts daemon"() {
+        def output = new ByteArrayOutputStream()
+        def execHandle = handle().setDaemon(true).setStandardOutput(output).args(args(SlowDaemonApp.class)).build();
+
+        when:
+        execHandle.start();
+        execHandle.waitForFinish();
+
+        then:
         execHandle.state == ExecHandleState.DETACHED
 
         when:
@@ -153,11 +171,11 @@ class DefaultExecHandleSpec extends Specification {
     void "detaching does not trigger 'finished' notification"() {
         def out = new ByteArrayOutputStream()
         ExecHandleListener listener = Mock()
-        def execHandle = handle().listener(listener).setStandardOutput(out).args(args(SlowDaemonApp.class)).build();
+        def execHandle = handle().setDaemon(true).listener(listener).setStandardOutput(out).args(args(SlowDaemonApp.class)).build();
 
         when:
         execHandle.start();
-        execHandle.detach();
+        execHandle.waitForFinish();
 
         then:
         out.toString().contains "I'm the daemon"
@@ -168,13 +186,14 @@ class DefaultExecHandleSpec extends Specification {
         execHandle.abort()
     }
 
+    @Ignore //TODO SF not yet implemented
     void "can detach from long daemon and then wait for finish"() {
         def out = new ByteArrayOutputStream()
         def execHandle = handle().setStandardOutput(out).args(args(SlowDaemonApp.class, "200")).build();
 
         when:
         execHandle.start();
-        execHandle.detach();
+        execHandle.waitForFinish();
 
         then:
         out.toString().contains "I'm the daemon"
@@ -186,13 +205,14 @@ class DefaultExecHandleSpec extends Specification {
         execHandle.state == ExecHandleState.SUCCEEDED
     }
 
+    @Ignore //TODO SF not yet implemented
     void "can detach from fast app then wait for finish"() {
         def out = new ByteArrayOutputStream()
         def execHandle = handle().setStandardOutput(out).args(args(TestApp.class)).build();
 
         when:
         execHandle.start();
-        execHandle.detach();
+        execHandle.waitForFinish();
         execHandle.waitForFinish()
 
         then:
@@ -233,33 +253,34 @@ class DefaultExecHandleSpec extends Specification {
 
         when:
         execHandle.start()
+        def result = execHandle.waitForFinish()
 
         then:
+        result.rethrowFailure()
         1 * streamsHandler.connectStreams(_ as Process, "foo proc")
         1 * streamsHandler.start()
-
-        when:
-        execHandle.waitForFinish()
-
-        then:
         1 * streamsHandler.stop()
         0 * streamsHandler._
     }
 
     @Timeout(2)
+    //TODO SF not yet implemented
+    @Ignore
     void "exec handle can detach with timeout"() {
         given:
         def execHandle = handle().args(args(SlowApp.class)).setTimeout(1).build();
 
         when:
         execHandle.start()
-        def result = execHandle.detach()
+        def result = execHandle.waitForFinish()
 
         then:
         result
         //the timeout does not hit
     }
 
+    //TODO SF not yet implemented
+    @Ignore
     void "exec handle can wait with timeout"() {
         given:
         def execHandle = handle().args(args(SlowApp.class)).setTimeout(1).build();
@@ -271,6 +292,38 @@ class DefaultExecHandleSpec extends Specification {
         then:
         result.exitValue != 0
         execHandle.state == ExecHandleState.ABORTED
+    }
+
+    static class Prints implements Callable, Serializable {
+
+        String message
+
+        Object call() {
+            return message
+        }
+    }
+
+    @Ignore
+    //TODO SF add coverage (or move somewhere else) - it should over the ibm+windows use case
+    void "consumes input"() {
+        given:
+        def bytes = new ByteArrayOutputStream()
+        def object = new ObjectOutputStream(bytes)
+        object.writeObject(new Prints(message: 'yummie input'))
+        object.flush()
+        object.close()
+        def out = new ByteArrayOutputStream()
+
+        def execHandle = handle().setStandardOutput(out).setStandardInput(new ByteArrayInputStream(bytes.toByteArray())).args(args(InputReadingApp.class)).build();
+
+        when:
+        execHandle.start()
+        def result = execHandle.waitForFinish()
+
+        then:
+        result.rethrowFailure()
+        result.exitValue == 0
+        out.toString().contains('yummie input')
     }
 
     private ExecHandleBuilder handle() {
@@ -318,6 +371,14 @@ class DefaultExecHandleSpec extends Specification {
             System.out.println("I'm the daemon");
             System.out.close();
             System.err.close();
+        }
+    }
+
+    public static class InputReadingApp {
+        public static void main(String[] args) throws InterruptedException {
+            ObjectInputStream instr = new ObjectInputStream(System.in);
+            Callable<?> main = (Callable<?>) instr.readObject();
+            System.out.println(main.call())
         }
     }
 }
