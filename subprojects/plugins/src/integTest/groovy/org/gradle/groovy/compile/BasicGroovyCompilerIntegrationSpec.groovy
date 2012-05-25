@@ -22,7 +22,7 @@ import org.junit.Rule
 import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.integtests.fixtures.ExecutionFailure
 
-@TargetVersions(['1.5.8', '1.6.9', '1.7.10', '1.8.6'])
+@TargetVersions(['1.5.8', '1.6.9', '1.7.10', '1.8.6', '2.0.0-beta-3'])
 abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegrationSpec {
     @Rule TestResources resources = new TestResources()
 

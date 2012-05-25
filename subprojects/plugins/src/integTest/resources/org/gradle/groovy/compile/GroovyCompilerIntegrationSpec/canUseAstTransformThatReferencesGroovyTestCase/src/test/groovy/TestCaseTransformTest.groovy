@@ -13,17 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.groovy.compile
 
-class InProcessGroovyCompilerIntegrationTest extends GroovyCompilerIntegrationSpec {
+import org.junit.Test
 
-    String compilerConfiguration() {
-'''
-    tasks.withType(GroovyCompile) {
-        groovyOptions.useAnt = false
-        groovyOptions.fork = false
-    }
-'''
+class TestCaseTransformTest {
+    @Test
+    void addsGroovyTestCaseAsSuperclass() {
+        assert MyTestCase.superclass == GroovyTestCase
     }
 
+    @TestCase
+    abstract static class MyTestCase {}
 }
+
