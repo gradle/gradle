@@ -21,7 +21,7 @@ import org.gradle.internal.UncheckedException;
 import java.lang.reflect.Method;
 
 /**
- * Simple implementations of some reflection capabilities. In contrast to {@link ReflectionUtil},
+ * Simple implementations of some reflection capabilities. In contrast to org.gradle.util.ReflectionUtil,
  * this class doesn't make use of Groovy.
  */
 public class JavaReflectionUtil {
