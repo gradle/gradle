@@ -17,6 +17,7 @@ package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import org.gradle.api.tasks.Input;
 
 import java.io.File;
@@ -44,6 +45,8 @@ public class GroovyCompileOptions extends AbstractOptions {
     private boolean keepStubs;
 
     private GroovyForkOptions forkOptions = new GroovyForkOptions();
+
+    private Map<String, Boolean> optimizationOptions = Maps.newHashMap();
 
     private boolean stacktrace;
 
@@ -138,6 +141,33 @@ public class GroovyCompileOptions extends AbstractOptions {
      */
     public void setForkOptions(GroovyForkOptions forkOptions) {
         this.forkOptions = forkOptions;
+    }
+
+    /**
+     * Returns optimization options for the Groovy compiler. Allowed values for an option are {@code true} and {@code false}.
+     * Options will not have any effect when compiling against Groovy versions prior to 1.8.
+     *
+     * <p>Known options are:
+     *
+     * <dl>
+     *     <dt>indy
+     *     <dd>Use the JDK7 invokedynamic instruction.
+     *     <dt>int
+     *     <dd>Optimize operations on primitive types (e.g. integers).
+     *     <dt>all
+     *     <dd>Turn on all optimizations.
+     * </dl>
+     */
+    public Map<String, Boolean> getOptimizationOptions() {
+        return optimizationOptions;
+    }
+
+    /**
+     * Sets optimization options for the Groovy compiler. Allowed values for an option are {@code true} and {@code false}.
+     * Options will not have any effect when compiling against Groovy versions prior to 1.8.
+     */
+    public void setOptimizationOptions(Map<String, Boolean> optimizationOptions) {
+        this.optimizationOptions = optimizationOptions;
     }
 
     /**
@@ -238,7 +268,7 @@ public class GroovyCompileOptions extends AbstractOptions {
      * Internal method.
      */
     protected List<String> excludedFieldsFromOptionMap() {
-        return ImmutableList.of("forkOptions", "useAnt", "stubDir", "keepStubs");
+        return ImmutableList.of("forkOptions", "optimizationOptions", "useAnt", "stubDir", "keepStubs");
     }
 
     /**

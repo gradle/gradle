@@ -49,6 +49,9 @@ public class ApiGroovyCompiler implements Compiler<GroovyJavaJointCompileSpec>, 
         configuration.setSourceEncoding(spec.getGroovyCompileOptions().getEncoding());
         configuration.setTargetBytecode(spec.getTargetCompatibility());
         configuration.setTargetDirectory(spec.getDestinationDir());
+        try {
+            configuration.setOptimizationOptions(spec.getGroovyCompileOptions().getOptimizationOptions());
+        } catch (NoSuchMethodError ignored) { /* method was only introduced in Groovy 1.8 */ }
         Map<String, Object> jointCompilationOptions = new HashMap<String, Object>();
         jointCompilationOptions.put("stubDir", spec.getGroovyCompileOptions().getStubDir());
         jointCompilationOptions.put("keepStubs", spec.getGroovyCompileOptions().isKeepStubs());
