@@ -17,9 +17,9 @@ package org.gradle.api.internal.externalresource.transport.file;
 
 import org.apache.ivy.core.cache.RepositoryCacheManager;
 import org.apache.ivy.plugins.resolver.AbstractResolver;
+import org.gradle.api.internal.artifacts.repositories.DefaultExternalResourceRepository;
 import org.gradle.api.internal.artifacts.repositories.ExternalResourceRepository;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
-import org.gradle.api.internal.artifacts.repositories.transport.file.FileExternalResourceRepository;
 
 import java.io.File;
 import java.net.URI;
@@ -34,9 +34,8 @@ public class FileTransport implements RepositoryTransport {
     }
 
     public ExternalResourceRepository getRepository() {
-        FileExternalResourceRepository fileRepository = new FileExternalResourceRepository();
-        fileRepository.setName(name);
-        return fileRepository;
+        FileResourceConnector connector = new FileResourceConnector();
+        return new DefaultExternalResourceRepository(name, connector, connector, connector);
     }
 
     public void configureCacheManager(AbstractResolver resolver) {

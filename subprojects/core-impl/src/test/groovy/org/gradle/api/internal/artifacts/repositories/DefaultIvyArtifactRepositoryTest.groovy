@@ -19,7 +19,6 @@ import org.apache.ivy.core.cache.RepositoryCacheManager
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
-import org.gradle.api.internal.artifacts.repositories.transport.file.FileExternalResourceRepository
 import org.gradle.api.internal.externalresource.transport.file.FileTransport
 import org.gradle.api.internal.externalresource.transport.http.HttpTransport
 import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex
@@ -109,7 +108,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
         then:
         resolver instanceof ExternalResourceResolver
-        resolver.repository instanceof FileExternalResourceRepository
+        resolver.repository instanceof ExternalResourceRepository
         resolver.name == 'name'
         resolver.artifactPatterns == ["${file.absolutePath}/[organisation]/[artifact]-[revision].[ext]", "${file.absolutePath}/[organisation]/[module]/[artifact]-[revision].[ext]"] as List
         resolver.ivyPatterns == ["${file.absolutePath}/[organisation]/[module]/ivy-[revision].xml"] as List
