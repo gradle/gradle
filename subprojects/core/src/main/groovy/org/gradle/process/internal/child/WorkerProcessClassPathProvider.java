@@ -76,7 +76,7 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider {
     private static class CacheInitializer implements Action<PersistentCache> {
         public void execute(PersistentCache cache) {
             File classesDir = classesDir(cache);
-            for (Class<?> aClass : Arrays.asList(GradleWorkerMain.class, BootstrapClassLoaderWorker.class, BootstrapSecurityManager.class)) {
+            for (Class<?> aClass : Arrays.asList(GradleWorkerMain.class, BootstrapClassLoaderWorker.class, BootstrapSecurityManager.class, EncodedStream.EncodedInput.class)) {
                 String fileName = aClass.getName().replace('.', '/') + ".class";
                 GFileUtils.copyURLToFile(WorkerProcessClassPathProvider.class.getClassLoader().getResource(fileName),
                         new File(classesDir, fileName));

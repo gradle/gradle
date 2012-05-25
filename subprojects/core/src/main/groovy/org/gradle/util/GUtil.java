@@ -327,6 +327,11 @@ public class GUtil {
 
     public static byte[] serialize(Object object) {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        serialize(object, outputStream);
+        return outputStream.toByteArray();
+    }
+
+    public static void serialize(Object object, OutputStream outputStream) {
         try {
             ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
             objectOutputStream.writeObject(object);
@@ -334,7 +339,6 @@ public class GUtil {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-        return outputStream.toByteArray();
     }
 
     public static <T> Comparator<T> last(final Comparator<? super T> comparator, final T lastValue) {

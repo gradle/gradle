@@ -17,12 +17,12 @@
 package org.gradle.process.internal;
 
 import org.gradle.api.Action;
-import org.gradle.internal.Factory;
-import org.gradle.internal.id.IdGenerator;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.internal.Factory;
+import org.gradle.internal.id.IdGenerator;
 import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.MessagingServer;
 import org.gradle.messaging.remote.internal.inet.SocketInetAddress;
@@ -32,6 +32,7 @@ import org.hamcrest.Matchers;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -47,6 +48,7 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 
 @RunWith(JMock.class)
+@Ignore //TODO SF refactor this bastard to spock
 public class DefaultWorkerProcessFactoryTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final MessagingServer messagingServer = context.mock(MessagingServer.class);

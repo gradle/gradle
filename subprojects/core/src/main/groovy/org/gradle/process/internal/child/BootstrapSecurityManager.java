@@ -60,7 +60,7 @@ public class BootstrapSecurityManager extends SecurityManager {
             Method addUrlMethod = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
             addUrlMethod.setAccessible(true);
 
-            DataInputStream inputStream = new DataInputStream(System.in);
+            DataInputStream inputStream = new DataInputStream(new EncodedStream.EncodedInput(System.in));
             int count = inputStream.readInt();
             StringBuilder classpathStr = new StringBuilder();
             for (int i = 0; i < count; i++) {

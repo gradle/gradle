@@ -16,6 +16,8 @@
 
 package org.gradle.process.internal.launcher;
 
+import org.gradle.process.internal.child.EncodedStream;
+
 import java.io.ObjectInputStream;
 import java.util.concurrent.Callable;
 
@@ -25,7 +27,7 @@ import java.util.concurrent.Callable;
 public class GradleWorkerMain {
     public void run() throws Exception {
         // Read the main action from stdin and execute it
-        ObjectInputStream instr = new ObjectInputStream(System.in);
+        ObjectInputStream instr = new ObjectInputStream(new EncodedStream.EncodedInput(System.in));
         Callable<?> main = (Callable<?>) instr.readObject();
         main.call();
     }
