@@ -14,12 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.testing.logging;
+package org.gradle.api.tasks.testing.logging;
 
-import org.gradle.api.tasks.testing.TestDescriptor;
-
-import java.util.*;
-
-public interface TestExceptionFormatter {
-    String format(TestDescriptor descriptor, List<Throwable> exceptions);
+/**
+ * Determines how exceptions are formatted in test logging.
+ */
+public enum TestExceptionFormat {
+    /**
+     * Short display of exceptions.
+     */
+    SHORT,
+    /**
+     * Full display of exceptions.
+     */
+    FULL
 }

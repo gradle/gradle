@@ -22,9 +22,9 @@ import org.gradle.api.logging.LogLevel;
 import groovy.lang.Closure;
 
 /**
- * Container holding all test logging related options. Different options
+ * Container for all test logging related options. Different options
  * can be set for each log level. Options that are set directly (without
- * mentioning a log level) configure log level LIFECYCLE.
+ * specifying a log level) apply to log level LIFECYCLE.
  */
 public interface TestLoggingContainer extends TestLogging {
     TestLogging getDebug();

@@ -20,5 +20,33 @@ package org.gradle.api.tasks.testing.logging;
  * Test events that can be logged.
  */
 public enum TestLogEvent {
-    STARTED, PASSED, SKIPPED, FAILED, EXCEPTION, STANDARD_OUT, STANDARD_ERR
+    /**
+     * A test has started. This event gets fired both for atomic and composite tests.
+     */
+    STARTED,
+
+    /**
+     * A test has completed successfully. This event gets fired both for atomic and composite tests.
+     */
+    PASSED,
+
+    /**
+     * A test has been skipped. This event gets fired both for atomic and composite tests.
+     */
+    SKIPPED,
+
+    /**
+     * A test has failed. This event gets fired both for atomic and composite tests.
+     */
+    FAILED,
+
+    /**
+     * A test has written a message to standard out.
+     */
+    STANDARD_OUT,
+
+    /**
+     * A test has written a message to standard error.
+     */
+    STANDARD_ERROR
 }

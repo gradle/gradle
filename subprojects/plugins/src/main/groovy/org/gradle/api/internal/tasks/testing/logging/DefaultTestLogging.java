@@ -27,10 +27,13 @@ import java.util.Set;
  */
 public class DefaultTestLogging implements TestLogging {
     private Set<TestLogEvent> events = EnumSet.noneOf(TestLogEvent.class);
-    private int minGranularity = 2;
+    private int minGranularity = -1;
     private int maxGranularity = -1;
-    private Set<TestStackTraceFilter> stackTraceFilters = EnumSet.of(TestStackTraceFilter.ENTRY_POINT);
-    TestPackageFormat packages = TestPackageFormat.FULL;
+    private boolean showExceptions = true;
+    private boolean showCauses = true;
+    private boolean showStackTraces = true;
+    private TestExceptionFormat exceptionFormat = TestExceptionFormat.FULL;
+    private Set<TestStackTraceFilter> stackTraceFilters = EnumSet.noneOf(TestStackTraceFilter.class);
 
     public Set<TestLogEvent> getEvents() {
         return events;
@@ -41,7 +44,7 @@ public class DefaultTestLogging implements TestLogging {
     }
 
     public void events(Object... events) {
-        this.events.addAll(toEnumSet(TestLogEvent.class, events));
+        setEvents(toEnumSet(TestLogEvent.class, events));
     }
 
     public int getMinGranularity() {
@@ -68,36 +71,72 @@ public class DefaultTestLogging implements TestLogging {
         setMaxGranularity(granularity);
     }
 
+    public boolean getShowExceptions() {
+        return showExceptions;
+    }
+
+    public void setShowExceptions(boolean flag) {
+        showExceptions = flag;
+    }
+
+    public void showExceptions(boolean flag) {
+        setShowExceptions(flag);
+    }
+
+    public boolean getShowCauses() {
+        return showCauses;
+    }
+
+    public void setShowCauses(boolean flag) {
+        showCauses = flag;
+    }
+
+    public void showCauses(boolean flag) {
+        setShowCauses(flag);
+    }
+
+    public boolean getShowStackTraces() {
+        return showStackTraces;
+    }
+
+    public void setShowStackTraces(boolean flag) {
+        showStackTraces = flag;
+    }
+
+    public void showStackTraces(boolean flag) {
+        setShowStackTraces(flag);
+    }
+
+    public TestExceptionFormat getExceptionFormat() {
+        return exceptionFormat;
+    }
+
+    public void setExceptionFormat(TestExceptionFormat exceptionFormat) {
+        this.exceptionFormat = exceptionFormat;
+    }
+
+    public void exceptionFormat(Object exceptionFormat) {
+        setExceptionFormat(toEnum(TestExceptionFormat.class, exceptionFormat));
+    }
+
     public Set<TestStackTraceFilter> getStackTraceFilters() {
         return stackTraceFilters;
     }
 
-    public void setStackTraceFilters(Set<TestStackTraceFilter> stackTraces) {
-        this.stackTraceFilters = stackTraces;
+    public void setStackTraceFilters(Set<TestStackTraceFilter> filters) {
+        stackTraceFilters = filters;
     }
 
-    public void stackTraceFilters(Object... stackTraces) {
-        this.stackTraceFilters.addAll(toEnumSet(TestStackTraceFilter.class, stackTraces));
-    }
-
-    public TestPackageFormat getPackageFormat() {
-        return packages;
-    }
-
-    public void setPackageFormat(TestPackageFormat packageFormat) {
-        this.packages = packageFormat;
-    }
-
-    public void packageFormat(Object packageFormat) {
-        this.packages = toEnum(TestPackageFormat.class, packageFormat);
+    public void stackTraceFilters(Object... filters) {
+        setStackTraceFilters(toEnumSet(TestStackTraceFilter.class, filters));
     }
 
     public boolean getShowStandardStreams() {
-        return events.contains(TestLogEvent.STANDARD_OUT) && events.contains(TestLogEvent.STANDARD_ERR);
+        return events.contains(TestLogEvent.STANDARD_OUT) && events.contains(TestLogEvent.STANDARD_ERROR);
     }
 
     public void setShowStandardStreams(boolean showStandardStreams) {
-        events(TestLogEvent.STANDARD_OUT, TestLogEvent.STANDARD_ERR);
+        events(TestLogEvent.STANDARD_OUT, TestLogEvent.STANDARD_ERROR);
     }
 
     private <T extends Enum<T>> T toEnum(Class<T> enumType, Object value) {

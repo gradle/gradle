@@ -16,10 +16,20 @@
 
 package org.gradle.api.internal.tasks.testing.logging;
 
-import org.gradle.api.tasks.testing.TestDescriptor;
+import org.gradle.api.Nullable;
+import org.gradle.api.specs.Spec;
 
-import java.util.*;
+public class ClassMethodNameStackTraceSpec implements Spec<StackTraceElement> {
+    private final String className;
+    private final String methodName;
 
-public interface TestExceptionFormatter {
-    String format(TestDescriptor descriptor, List<Throwable> exceptions);
+    ClassMethodNameStackTraceSpec(@Nullable String className, @Nullable String methodName) {
+        this.className = className;
+        this.methodName = methodName;
+    }
+
+    public boolean isSatisfiedBy(StackTraceElement element) {
+        return (className == null || className.equals(element.getClassName()))
+                && (methodName == null || methodName.equals(element.getMethodName()));
+    }
 }

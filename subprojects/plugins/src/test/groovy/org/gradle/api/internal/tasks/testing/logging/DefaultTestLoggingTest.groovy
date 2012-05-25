@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
+
+
 package org.gradle.api.internal.tasks.testing.logging
 
 import spock.lang.Specification
-
-import org.gradle.api.tasks.testing.logging.TestPackageFormat
 
 import static org.gradle.api.tasks.testing.logging.TestStackTraceFilter.*
 import static org.gradle.api.tasks.testing.logging.TestLogEvent.*
@@ -28,11 +28,10 @@ class DefaultTestLoggingTest extends Specification {
 
     def "has defaults"() {
         expect:
-        logging.events == [FAILED] as Set
-        logging.minGranularity == 2
+        logging.events == [] as Set
+        logging.minGranularity == -1
         logging.maxGranularity == -1
-        logging.stackTraceFilters == [ENTRY_POINT] as Set
-        logging.packageFormat == TestPackageFormat.FULL
+        logging.stackTraceFilters == [] as Set
     }
 
     def "allows events to be added as enum values"() {
@@ -40,7 +39,7 @@ class DefaultTestLoggingTest extends Specification {
         logging.events STARTED, SKIPPED
 
         then:
-        logging.events == [STARTED, SKIPPED, FAILED] as Set
+        logging.events == [STARTED, SKIPPED] as Set
     }
 
     def "allows events to be added as string values"() {
@@ -48,7 +47,7 @@ class DefaultTestLoggingTest extends Specification {
         logging.events "started", "skipped"
 
         then:
-        logging.events == [STARTED, SKIPPED, FAILED] as Set
+        logging.events == [STARTED, SKIPPED] as Set
     }
 
     def "allows stack trace formats to be added as enum values"() {
@@ -56,7 +55,7 @@ class DefaultTestLoggingTest extends Specification {
         logging.stackTraceFilters TRUNCATE, GROOVY
 
         then:
-        logging.stackTraceFilters == [ENTRY_POINT, TRUNCATE, GROOVY] as Set
+        logging.stackTraceFilters == [TRUNCATE, GROOVY] as Set
     }
 
     def "allows stack trace formats to be added as string values"() {
@@ -64,6 +63,6 @@ class DefaultTestLoggingTest extends Specification {
         logging.stackTraceFilters "truncate", "groovy"
 
         then:
-        logging.stackTraceFilters == [ENTRY_POINT, TRUNCATE, GROOVY] as Set
+        logging.stackTraceFilters == [TRUNCATE, GROOVY] as Set
     }
 }

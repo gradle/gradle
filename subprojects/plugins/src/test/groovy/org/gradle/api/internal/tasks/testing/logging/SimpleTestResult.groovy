@@ -14,12 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.testing.logging;
+package org.gradle.api.internal.tasks.testing.logging
 
-import org.gradle.api.tasks.testing.TestDescriptor;
+import org.gradle.api.tasks.testing.TestResult
 
-import java.util.*;
-
-public interface TestExceptionFormatter {
-    String format(TestDescriptor descriptor, List<Throwable> exceptions);
+class SimpleTestResult implements TestResult {
+    TestResult.ResultType resultType = TestResult.ResultType.SUCCESS
+    Throwable exception = null
+    List<Throwable> exceptions = []
+    long startTime = System.currentTimeMillis()
+    long endTime = startTime + 100
+    long testCount = 1
+    long successfulTestCount = 1
+    long failedTestCount = 0
+    long skippedTestCount = 0
 }

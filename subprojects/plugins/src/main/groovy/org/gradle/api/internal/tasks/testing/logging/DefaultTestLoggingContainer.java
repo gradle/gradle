@@ -25,7 +25,6 @@ import org.gradle.util.ConfigureUtil;
 
 import groovy.lang.Closure;
 
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.Set;
@@ -38,12 +37,11 @@ public class DefaultTestLoggingContainer implements TestLoggingContainer {
             perLevelTestLogging.put(level, new DefaultTestLogging());
         }
 
-        setEvents(EnumSet.of(TestLogEvent.EXCEPTION));
-        setStackTraceFilters(Collections.singleton(TestStackTraceFilter.ENTRY_POINT));
+        setEvents(EnumSet.of(TestLogEvent.FAILED));
+        setExceptionFormat(TestExceptionFormat.SHORT);
 
-        TestLogging debugLogging = perLevelTestLogging.get(LogLevel.DEBUG);
-        debugLogging.setEvents(EnumSet.allOf(TestLogEvent.class));
-        debugLogging.setStackTraceFilters(Collections.singleton(TestStackTraceFilter.FULL));
+        getDebug().setEvents(EnumSet.allOf(TestLogEvent.class));
+        getDebug().setStackTraceFilters(EnumSet.of(TestStackTraceFilter.TRUNCATE));
     }
 
     public TestLogging getDebug() {
@@ -178,6 +176,54 @@ public class DefaultTestLoggingContainer implements TestLoggingContainer {
         getLifecycle().maxGranularity(granularity);
     }
 
+    public boolean getShowExceptions() {
+        return getLifecycle().getShowExceptions();
+    }
+
+    public void setShowExceptions(boolean flag) {
+        getLifecycle().setShowExceptions(flag);
+    }
+
+    public void showExceptions(boolean flag) {
+        getLifecycle().showExceptions(flag);
+    }
+
+    public boolean getShowCauses() {
+        return getLifecycle().getShowCauses();
+    }
+
+    public void setShowCauses(boolean flag) {
+        getLifecycle().setShowCauses(flag);
+    }
+
+    public void showCauses(boolean flag) {
+        getLifecycle().showCauses(flag);
+    }
+
+    public boolean getShowStackTraces() {
+        return getLifecycle().getShowStackTraces();
+    }
+
+    public void setShowStackTraces(boolean flag) {
+        getLifecycle().setShowStackTraces(flag);
+    }
+
+    public void showStackTraces(boolean flag) {
+        getLifecycle().showStackTraces(flag);
+    }
+
+    public TestExceptionFormat getExceptionFormat() {
+        return getLifecycle().getExceptionFormat();
+    }
+
+    public void setExceptionFormat(TestExceptionFormat exceptionFormat) {
+        getLifecycle().setExceptionFormat(exceptionFormat);
+    }
+
+    public void exceptionFormat(Object exceptionFormat) {
+        getLifecycle().exceptionFormat(exceptionFormat);
+    }
+
     public Set<TestStackTraceFilter> getStackTraceFilters() {
         return getLifecycle().getStackTraceFilters();
     }
@@ -188,18 +234,6 @@ public class DefaultTestLoggingContainer implements TestLoggingContainer {
 
     public void stackTraceFilters(Object... stackTraces) {
         getLifecycle().stackTraceFilters(stackTraces);
-    }
-
-    public TestPackageFormat getPackageFormat() {
-        return getLifecycle().getPackageFormat();
-    }
-
-    public void setPackageFormat(TestPackageFormat packageFormat) {
-        getLifecycle().setPackageFormat(packageFormat);
-    }
-
-    public void packageFormat(Object packageFormat) {
-        getLifecycle().packageFormat(packageFormat);
     }
 
     /**

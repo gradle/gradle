@@ -19,7 +19,7 @@ package org.gradle.api.tasks.testing.logging;
 import java.util.Set;
 
 /**
- * Options for test logging. Can be set per log level.
+ * Options for test logging.
  */
 public interface TestLogging {
     Set<TestLogEvent> getEvents();
@@ -40,25 +40,43 @@ public interface TestLogging {
 
     void maxGranularity(int granularity);
 
+    boolean getShowExceptions();
+
+    void setShowExceptions(boolean flag);
+
+    void showExceptions(boolean flag);
+
+    boolean getShowCauses();
+
+    void setShowCauses(boolean flag);
+
+    void showCauses(boolean flag);
+
+    boolean getShowStackTraces();
+
+    void setShowStackTraces(boolean flag);
+
+    void showStackTraces(boolean flag);
+
+    TestExceptionFormat getExceptionFormat();
+
+    void setExceptionFormat(TestExceptionFormat exceptionFormat);
+
+    void exceptionFormat(Object exceptionFormat);
+
     Set<TestStackTraceFilter> getStackTraceFilters();
 
     void setStackTraceFilters(Set<TestStackTraceFilter> stackTraces);
 
     void stackTraceFilters(Object... stackTraces);
 
-    TestPackageFormat getPackageFormat();
-
-    void setPackageFormat(TestPackageFormat packageFormat);
-
-    void packageFormat(Object packageFormat);
-
     /**
      * Tells whether to log standard stream output. If {@code true}, standard output and standard error will be logged at some level.
      */
-    public boolean getShowStandardStreams();
+     boolean getShowStandardStreams();
 
     /**
      * Sets whether to log standard stream output. If {@code true}, standard output and standard error will be logged at level LIFECYCLE.
      */
-    public void setShowStandardStreams(boolean flag);
+     void setShowStandardStreams(boolean flag);
 }

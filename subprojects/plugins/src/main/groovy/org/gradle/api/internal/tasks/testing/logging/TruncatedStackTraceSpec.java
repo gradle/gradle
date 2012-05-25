@@ -16,10 +16,17 @@
 
 package org.gradle.api.internal.tasks.testing.logging;
 
-import org.gradle.api.tasks.testing.TestDescriptor;
+import org.gradle.api.specs.Spec;
 
-import java.util.*;
+public class TruncatedStackTraceSpec implements Spec<StackTraceElement> {
+    private final Spec<StackTraceElement> truncationPointDetector;
+    private boolean truncationPointReached;
 
-public interface TestExceptionFormatter {
-    String format(TestDescriptor descriptor, List<Throwable> exceptions);
+    TruncatedStackTraceSpec(Spec<StackTraceElement> truncationPointDetector) {
+        this.truncationPointDetector = truncationPointDetector;
+    }
+
+    public boolean isSatisfiedBy(StackTraceElement element) {
+        return truncationPointReached |= truncationPointDetector.isSatisfiedBy(element);
+    }
 }

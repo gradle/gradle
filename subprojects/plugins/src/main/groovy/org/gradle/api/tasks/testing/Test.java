@@ -28,9 +28,7 @@ import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.detection.DefaultTestExecuter;
 import org.gradle.api.internal.tasks.testing.detection.TestExecuter;
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
-import org.gradle.api.internal.tasks.testing.logging.TestCountLogger;
-import org.gradle.api.internal.tasks.testing.logging.TestEventLogger;
-import org.gradle.api.internal.tasks.testing.logging.TestExceptionFormatter;
+import org.gradle.api.internal.tasks.testing.logging.*;
 import org.gradle.api.internal.tasks.testing.results.*;
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
 import org.gradle.api.logging.LogLevel;
@@ -38,7 +36,6 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.*;
-import org.gradle.api.internal.tasks.testing.logging.DefaultTestLoggingContainer;
 import org.gradle.api.tasks.testing.logging.TestLogging;
 import org.gradle.api.tasks.testing.logging.TestLoggingContainer;
 import org.gradle.api.tasks.util.PatternFilterable;
@@ -403,7 +400,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
                 continue;
             }
             TestLogging levelLogging = testLogging.get(level);
-            TestExceptionFormatter exceptionFormatter = new TestExceptionFormatter(testLogging);
+            TestExceptionFormatter exceptionFormatter = getExceptionFormatter(testLogging);
             TestEventLogger eventLogger = new TestEventLogger(outputListener, level, levelLogging, exceptionFormatter);
             addTestListener(eventLogger);
             addTestOutputListener(eventLogger);
@@ -426,6 +423,16 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         }
     }
 
+    private TestExceptionFormatter getExceptionFormatter(TestLogging testLogging) {
+        switch (testLogging.getExceptionFormat()) {
+            case SHORT:
+                return new ShortExceptionFormatter(testLogging);
+            case FULL:
+                return new FullExceptionFormatter(testLogging);
+            default:
+                throw new AssertionError();
+        }
+    }
     private String getTestReportUrl() {
         // File.toURI().toString() leads to an URL like this on Mac: file:/reports/index.html
         // This URL is not recognized by the Mac terminal (too few leading slashes). We solve

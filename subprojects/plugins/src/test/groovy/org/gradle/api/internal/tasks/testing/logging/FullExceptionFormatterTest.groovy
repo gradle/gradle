@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.testing.logging;
+package org.gradle.api.internal.tasks.testing.logging
 
-import org.gradle.api.tasks.testing.TestDescriptor;
+import spock.lang.Specification
+import org.gradle.api.tasks.testing.logging.TestLogging
 
-import java.util.*;
-
-public interface TestExceptionFormatter {
-    String format(TestDescriptor descriptor, List<Throwable> exceptions);
+class FullExceptionFormatterTest extends Specification {
+    def testDescriptor = new SimpleTestDescriptor()
+    def testLogging = Mock(TestLogging)
+    def formatter = new ShortExceptionFormatter(testLogging)
 }

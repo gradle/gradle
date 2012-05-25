@@ -53,15 +53,11 @@ public abstract class AbstractTestLogger implements TestListener {
 
     protected void after(TestDescriptor descriptor, TestResult result) {}
 
-    protected void print(StyledTextOutput.Style style, String message) {
-        print(new StyledTextOutputEvent.Span(style, message));
+    protected void log(StyledTextOutput.Style style, String message) {
+        log(new StyledTextOutputEvent.Span(style, message));
     }
 
-    protected void println(StyledTextOutput.Style style, String message) {
-        print(style, message + "\n");
-    }
-
-    protected void print(StyledTextOutputEvent.Span... spans) {
+    protected void log(StyledTextOutputEvent.Span... spans) {
         outputListener.onOutput(new StyledTextOutputEvent(System.currentTimeMillis(),
                 "testLogging", logLevel, spans));
     }

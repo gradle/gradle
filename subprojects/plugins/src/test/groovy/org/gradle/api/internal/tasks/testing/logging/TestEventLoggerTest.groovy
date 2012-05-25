@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
 package org.gradle.api.internal.tasks.testing.logging
 
 import org.gradle.api.logging.LogLevel
-import org.gradle.api.tasks.testing.TestResult
-import org.gradle.api.tasks.testing.TestResult.ResultType
-import org.gradle.api.tasks.testing.TestDescriptor
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.gradle.logging.internal.OutputEventListener
 
@@ -31,10 +30,6 @@ class TestEventLoggerTest extends Specification {
     def eventLogger = new TestEventLogger(outputListener, LogLevel.INFO, testLogging, exceptionFormatter)
     def descriptor = new SimpleTestDescriptor()
     def result = new SimpleTestResult()
-
-    def "does not log to standard out by default"() {
-
-    }
 
     def "logs event if granularity and event type match"() {
         testLogging.events(TestLogEvent.PASSED)
@@ -49,24 +44,5 @@ class TestEventLoggerTest extends Specification {
 
     private boolean containsText(event, text) {
         event.spans.find { it.text.contains(text) }
-    }
-
-    static class SimpleTestDescriptor implements TestDescriptor {
-        String name = "testName"
-        String className = "ClassName"
-        boolean composite = false
-        TestDescriptor parent = null
-    }
-
-    static class SimpleTestResult implements TestResult {
-        ResultType resultType = ResultType.SUCCESS
-        Throwable exception = null
-        List<Throwable> exceptions = []
-        long startTime = System.currentTimeMillis()
-        long endTime = startTime + 100
-        long testCount = 1
-        long successfulTestCount = 1
-        long failedTestCount = 0
-        long skippedTestCount = 0
     }
 }

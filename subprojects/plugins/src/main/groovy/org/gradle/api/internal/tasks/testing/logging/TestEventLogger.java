@@ -17,8 +17,10 @@
 package org.gradle.api.internal.tasks.testing.logging;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 
+import org.gradle.api.Nullable;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.tasks.testing.*;
 import org.gradle.api.tasks.testing.TestResult;
@@ -27,6 +29,7 @@ import org.gradle.api.tasks.testing.logging.TestLogging;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.logging.internal.StyledTextOutputEvent;
+import org.gradle.util.TextUtil;
 
 import java.util.List;
 
@@ -34,8 +37,10 @@ import java.util.List;
  * Logger for test events.
  */
 public class TestEventLogger extends AbstractTestLogger implements TestOutputListener {
+    private static final String INDENT = "    ";
+
     private final TestLogging testLogging;
-    private TestExceptionFormatter exceptionFormatter;
+    private final TestExceptionFormatter exceptionFormatter;
 
     public TestEventLogger(OutputEventListener outputListener, LogLevel logLevel, TestLogging testLogging, TestExceptionFormatter exceptionFormatter) {
         super(outputListener, logLevel);
@@ -46,10 +51,10 @@ public class TestEventLogger extends AbstractTestLogger implements TestOutputLis
     public void onOutput(TestDescriptor descriptor, TestOutputEvent outputEvent) {
         if (outputEvent.getDestination() == TestOutputEvent.Destination.StdOut
                 && shouldLogStandardStreamEvent(TestLogEvent.STANDARD_OUT)) {
-            logEvent(descriptor, TestLogEvent.STANDARD_OUT, outputEvent.getMessage());
+            logEvent(descriptor, TestLogEvent.STANDARD_OUT, "\n" + TextUtil.indent(outputEvent.getMessage(), INDENT));
         } else if (outputEvent.getDestination() == TestOutputEvent.Destination.StdErr
-                && shouldLogStandardStreamEvent(TestLogEvent.STANDARD_ERR)) {
-            logEvent(descriptor, TestLogEvent.STANDARD_ERR, outputEvent.getMessage());
+                && shouldLogStandardStreamEvent(TestLogEvent.STANDARD_ERROR)) {
+            logEvent(descriptor, TestLogEvent.STANDARD_ERROR, "\n" + TextUtil.indent(outputEvent.getMessage(), INDENT));
         }
     }
 
@@ -61,12 +66,10 @@ public class TestEventLogger extends AbstractTestLogger implements TestOutputLis
 
     protected void after(TestDescriptor descriptor, TestResult result) {
         TestLogEvent event = getEvent(result);
-        // TODO: would be better if this was always a single log message
+
         if (shouldLogEvent(descriptor, event)) {
-            logEvent(descriptor, event);
-        }
-        if (shouldLogExceptions(result)) {
-            logExceptions(descriptor, result);
+            String details = shouldLogExceptions(result) ? exceptionFormatter.format(descriptor, result.getExceptions()) : null;
+            logEvent(descriptor, event, details);
         }
     }
 
@@ -80,25 +83,24 @@ public class TestEventLogger extends AbstractTestLogger implements TestOutputLis
     }
 
     private void logEvent(TestDescriptor descriptor, TestLogEvent event) {
-        logEvent(descriptor, event, "");
+        logEvent(descriptor, event, null);
     }
 
-    private void logEvent(TestDescriptor descriptor, TestLogEvent event, String details) {
+    private void logEvent(TestDescriptor descriptor, TestLogEvent event, @Nullable String details) {
         List<String> names = Lists.newArrayList();
         TestDescriptor current = descriptor;
         while (current != null) {
-            names.add(current.getName());
+            names.add(Strings.isNullOrEmpty(current.getName()) ? "Test Run" : current.getName());
             current = current.getParent();
         }
 
-        int minGranularity = Math.min(testLogging.getMinGranularity(), names.size() - 1);
-        List<String> displayedNames = Lists.reverse(names).subList(minGranularity, names.size());
-        String path = Joiner.on(" > ").join(displayedNames) + "> ";
-        print(new StyledTextOutputEvent.Span(path), new StyledTextOutputEvent.Span(getStyle(event), event.toString() + "\n"), new StyledTextOutputEvent.Span(details));
-    }
-
-    private void logExceptions(TestDescriptor descriptor, TestResult result) {
-        print(getStyle(TestLogEvent.EXCEPTION), exceptionFormatter.format(descriptor, result.getExceptions()));
+        // TODO: figure out what to do instead of hard-coding 2 (additional config value)?
+        int minDisplayedName = Math.min(2, names.size() - 1);
+        List<String> displayedNames = Lists.reverse(names).subList(minDisplayedName, names.size());
+        String path = Joiner.on(" > ").join(displayedNames) + " ";
+        String detailText = details == null ? "\n" : "\n" + details + "\n";
+        log(new StyledTextOutputEvent.Span(path), new StyledTextOutputEvent.Span(getStyle(event),
+                event.toString()), new StyledTextOutputEvent.Span(detailText));
     }
 
     private StyledTextOutput.Style getStyle(TestLogEvent event) {
@@ -115,7 +117,7 @@ public class TestEventLogger extends AbstractTestLogger implements TestOutputLis
     }
 
     private boolean shouldLogExceptions(TestResult result) {
-        return isLoggedEventType(TestLogEvent.EXCEPTION) && !result.getExceptions().isEmpty();
+        return testLogging.getShowExceptions() && !result.getExceptions().isEmpty();
     }
 
     private boolean shouldLogStandardStreamEvent(TestLogEvent event) {
@@ -124,7 +126,8 @@ public class TestEventLogger extends AbstractTestLogger implements TestOutputLis
 
     private boolean isLoggedGranularity(TestDescriptor descriptor) {
         int level = getLevel(descriptor);
-        return ((testLogging.getMinGranularity() == -1 && !descriptor.isComposite()) || level >= testLogging.getMinGranularity())
+        return ((testLogging.getMinGranularity() == -1 && !descriptor.isComposite())
+                || testLogging.getMinGranularity() > -1 && level >= testLogging.getMinGranularity())
             && (testLogging.getMaxGranularity() == -1 || level <= testLogging.getMaxGranularity());
     }
 

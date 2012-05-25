@@ -14,22 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.testing.logging;
+package org.gradle.api.internal.tasks.testing.logging
 
-/**
- * Determines how the package part of class names gets formatted when logging test events.
- */
-public enum TestPackageFormat {
-    /**
-     * Do not show packages at all.
-     */
-    OFF,
-    /**
-     * Abbreviate package names.
-     */
-    SHORT,
-    /**
-     * Show full package names.
-     */
-    FULL
+import org.gradle.api.tasks.testing.TestDescriptor
+
+class SimpleTestDescriptor implements TestDescriptor {
+    String name = "testName"
+    String className = "ClassName"
+    boolean composite = false
+    TestDescriptor parent = null
 }
