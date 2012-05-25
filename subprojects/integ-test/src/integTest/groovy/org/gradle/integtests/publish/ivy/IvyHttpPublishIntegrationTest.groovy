@@ -13,76 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
 package org.gradle.integtests.publish.ivy
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.HttpServer
+import org.gradle.util.TestFile
 import org.hamcrest.Matchers
 import org.junit.Rule
 import org.mortbay.jetty.HttpStatus
-import spock.lang.Issue
 import spock.lang.Unroll
 
-public class IvyPublishIntegrationTest extends AbstractIntegrationSpec {
+public class IvyHttpPublishIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     public final HttpServer server = new HttpServer()
-
-    public void canPublishToLocalFileRepository() {
-        given:
-        settingsFile << 'rootProject.name = "publish"'
-        buildFile << '''
-apply plugin: 'java'
-version = '2'
-group = 'org.gradle'
-uploadArchives {
-    repositories {
-        ivy {
-            url "build/repo/"
-        }
-    }
-}
-'''
-        when:
-        succeeds 'uploadArchives'
-
-        then:
-        def uploadedIvy = file('build/repo/org.gradle/publish/2/ivy-2.xml')
-        uploadedIvy.assertIsFile()
-        def uploadedJar = file('build/repo/org.gradle/publish/2/publish-2.jar')
-        uploadedJar.assertIsCopyOf(file('build/libs/publish-2.jar'))
-    }
-
-    @Issue("GRADLE-1811")
-    public void canGenerateTheIvyXmlWithoutPublishing() {
-        //this is more like documenting the current behavior.
-        //Down the road we should add explicit task to create ivy.xml file
-
-        given:
-        buildFile << '''
-apply plugin: 'java'
-
-configurations {
-  myJars
-}
-
-task myJar(type: Jar)
-
-artifacts {
-  'myJars' myJar
-}
-
-task ivyXml(type: Upload) {
-  descriptorDestination = file('ivy.xml')
-  uploadDescriptor = true
-  configuration = configurations.myJars
-}
-'''
-        when:
-        succeeds 'ivyXml'
-
-        then:
-        file('ivy.xml').assertIsFile()
-    }
 
     public void canPublishToUnauthenticatedHttpRepository() {
         given:
@@ -104,8 +49,8 @@ uploadArchives {
         when:
         def uploadedIvy = file('uploaded.xml')
         def uploadedJar = file('uploaded.jar')
-        server.expectPut('/org.gradle/publish/2/publish-2.jar', uploadedJar, HttpStatus.ORDINAL_200_OK)
-        server.expectPut('/org.gradle/publish/2/ivy-2.xml', uploadedIvy, HttpStatus.ORDINAL_201_Created)
+        expectPublishArtifact('/org.gradle/publish/2/publish-2.jar', uploadedJar, HttpStatus.ORDINAL_200_OK)
+        expectPublishArtifact('/org.gradle/publish/2/ivy-2.xml', uploadedIvy, HttpStatus.ORDINAL_201_Created)
 
         and:
         succeeds 'uploadArchives'
@@ -142,8 +87,8 @@ uploadArchives {
         server.authenticationScheme = authScheme
         def uploadedJar = file('uploaded.jar')
         def uploadedIvy = file('uploaded.xml')
-        server.expectPut('/org.gradle/publish/2/publish-2.jar', 'testuser', 'password', uploadedJar)
-        server.expectPut('/org.gradle/publish/2/ivy-2.xml', 'testuser', 'password', uploadedIvy)
+        expectPublishArtifact('/org.gradle/publish/2/publish-2.jar', 'testuser', 'password', uploadedJar)
+        expectPublishArtifact('/org.gradle/publish/2/ivy-2.xml', 'testuser', 'password', uploadedIvy)
 
         then:
         succeeds 'uploadArchives'
@@ -219,8 +164,8 @@ uploadArchives {
         when:
         def uploadedJar = file('uploaded.jar')
         def uploadedIvy = file('uploaded.xml')
-        server.expectPut('/primary/publish/publish-2.jar', uploadedJar, HttpStatus.ORDINAL_200_OK)
-        server.expectPut('/primary-ivy/publish/ivy-2.xml', uploadedIvy, HttpStatus.ORDINAL_201_Created)
+        expectPublishArtifact('/primary/publish/publish-2.jar', uploadedJar, HttpStatus.ORDINAL_200_OK)
+        expectPublishArtifact('/primary-ivy/publish/ivy-2.xml', uploadedIvy)
 
         then:
         succeeds 'uploadArchives'
@@ -230,4 +175,13 @@ uploadArchives {
         uploadedIvy.assertIsFile()
     }
 
+    private void expectPublishArtifact(String path, String username, String password, TestFile uploadedJar) {
+        server.expectPut(path + ".sha1", username, password, file("sha1"))
+        server.expectPut(path, username, password, uploadedJar)
+    }
+
+    private void expectPublishArtifact(String path, TestFile uploadedJar, int statusCode = HttpStatus.ORDINAL_200_OK) {
+        server.expectPut(path + ".sha1", file("sha1"), statusCode)
+        server.expectPut(path, uploadedJar, statusCode)
+    }
 }

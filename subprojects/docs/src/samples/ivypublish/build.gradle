@@ -41,7 +41,7 @@ uploadArchives {
     }
     doLast {
         File repoDir = new File("$buildDir/repo/ivypublish/1.0/")
-        assert ["ivypublish.jar", "ivy.xml", "ivypublishSource.jar"] as Set == repoDir.listFiles().collect { it.name } as Set
+        assert ["ivy.xml", "ivy.xml.sha1", "ivypublish.jar", "ivypublish.jar.sha1", "ivypublishSource.jar", "ivypublishSource.jar.sha1"] as Set == repoDir.listFiles().collect { it.name } as Set
         assert jar.archivePath.size() == new File(repoDir, 'ivypublish.jar').size()
         sourceJar.archivePath.size() == new File(repoDir, 'ivypublishSource.jar').size()
 

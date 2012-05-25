@@ -156,7 +156,11 @@ class IvyModule {
      * Asserts that exactly the given artifacts have been published.
      */
     void assertArtifactsPublished(String... names) {
-        assert moduleDir.list() as Set == names as Set
+        Set allFileNames = [];
+        for (name in names) {
+            allFileNames += [name, "${name}.sha1"]
+        }
+        assert moduleDir.list() as Set == allFileNames
     }
 
     private String getHash(File file, String algorithm) {

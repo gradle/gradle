@@ -17,16 +17,22 @@
 package org.gradle.api.internal.artifacts.repositories;
 
 
+import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.plugins.repository.AbstractRepository;
 import org.apache.ivy.plugins.repository.BasicResource;
 import org.apache.ivy.plugins.repository.RepositoryCopyProgressListener;
 import org.apache.ivy.plugins.repository.TransferEvent;
-import org.gradle.api.internal.externalresource.cached.CachedExternalResource;
 import org.gradle.api.internal.externalresource.ExternalResource;
-import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
+import org.gradle.api.internal.externalresource.cached.CachedExternalResource;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceCandidates;
+import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 import org.gradle.api.internal.externalresource.transfer.*;
+import org.gradle.api.internal.file.TemporaryFileProvider;
+import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
 import org.gradle.internal.UncheckedException;
+import org.gradle.util.GFileUtils;
+import org.gradle.util.hash.HashUtil;
+import org.gradle.util.hash.HashValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,6 +44,7 @@ public class DefaultExternalResourceRepository extends AbstractRepository implem
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultExternalResourceRepository.class);
     private final RepositoryCopyProgressListener progress = new RepositoryCopyProgressListener(this);
+    private final TemporaryFileProvider temporaryFileProvider = new TmpDirTemporaryFileProvider();
 
     private final ExternalResourceAccessor accessor;
     private final ExternalResourceUploader uploader;
@@ -85,6 +92,25 @@ public class DefaultExternalResourceRepository extends AbstractRepository implem
             progress.setTotalLength(null);
             resource.close();
         }
+    }
+
+    @Override
+    public void put(Artifact artifact, File source, String destination, boolean overwrite) throws IOException {
+        putChecksum("SHA1", source, destination, overwrite);
+        put(source, destination, overwrite);
+    }
+
+    private void putChecksum(String algorithm, File source, String destination, boolean overwrite) throws IOException {
+        File checksumFile = createChecksumFile(source, algorithm);
+        String checksumDestination = destination + "." + algorithm.toLowerCase();
+        put(checksumFile, checksumDestination, overwrite);
+    }
+
+    private File createChecksumFile(File src, String algorithm) {
+        File csFile = temporaryFileProvider.createTemporaryFile("ivytemp", algorithm);
+        HashValue hash = HashUtil.createHash(src, algorithm);
+        GFileUtils.writeFile(hash.asHexString(), csFile);
+        return csFile;
     }
 
     @Override
