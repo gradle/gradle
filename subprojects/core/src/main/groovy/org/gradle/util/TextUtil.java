@@ -75,4 +75,8 @@ public class TextUtil {
         }
         return false;
     }
+
+    public static String indent(String text, String indent) {
+        return indent + text.replace("\n", "\n" + indent);
+    }
 }

@@ -54,4 +54,16 @@ class TextUtilTest extends Specification {
         "abc\tde" | true
         "abc\nde" | true
     }
+
+    def indent() {
+        expect:
+        TextUtil.indent(text, indent) == result
+
+        where:
+        text            | indent | result
+        ""              | ""     | ""
+        "abc"           | "  "   | "  abc"
+        "abc"           | "def"  | "defabc"
+        "abc\ndef\nghi" | " "    | " abc\n def\n ghi"
+    }
 }
