@@ -36,15 +36,15 @@ class FullExceptionFormatterTest extends Specification {
 
     def "optionally shows causes"() {
         testLogging.getShowCauses() >> true
-        def cause = new IOException("ouch")
-        def exception = new AssertionError("oops", cause)
+        def cause = new RuntimeException("oops")
+        def exception = new IOException("ouch", cause)
 
         expect:
         formatter.format(testDescriptor, [exception]) == """\
-    java.lang.AssertionError: oops
+    java.io.IOException: ouch
 
         Caused by:
-        java.io.IOException: ouch
+        java.lang.RuntimeException: oops
 """
     }
 
