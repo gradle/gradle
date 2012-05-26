@@ -142,13 +142,13 @@ public class DefaultTestLogging implements TestLogging {
 
     private <T extends Enum<T>> T toEnum(Class<T> enumType, Object value) {
         if (enumType.isInstance(value)) {
-            return (T) value;
+            return enumType.cast(value);
         }
         if (value instanceof CharSequence) {
             return Enum.valueOf(enumType, GUtil.toConstant(value.toString()));
         }
-        throw new IllegalArgumentException(String.format("Cannot convert value '%s' of type '%s' to enum type '%'s"));
-
+        throw new IllegalArgumentException(String.format("Cannot convert value '%s' of type '%s' to enum type '%s'",
+                value, value.getClass(), enumType));
     }
 
     private <T extends Enum<T>> EnumSet<T> toEnumSet(Class<T> enumType, Object... values) {
