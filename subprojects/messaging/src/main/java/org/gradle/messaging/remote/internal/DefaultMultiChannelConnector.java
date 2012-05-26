@@ -20,10 +20,9 @@ import org.gradle.api.Action;
 import org.gradle.internal.Stoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.StoppableExecutor;
-import org.gradle.internal.id.UUIDGenerator;
+import org.gradle.internal.id.IdGenerator;
 import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.ConnectEvent;
-import org.gradle.internal.id.IdGenerator;
 
 import java.util.UUID;
 
@@ -32,12 +31,13 @@ public class DefaultMultiChannelConnector implements MultiChannelConnector, Stop
     private final ExecutorFactory executorFactory;
     private final StoppableExecutor executorService;
     private final HandshakeIncomingConnector incomingConnector;
-    private final IdGenerator<UUID> idGenerator = new UUIDGenerator();
+    private final IdGenerator<UUID> idGenerator;
     private final ClassLoader messagingClassLoader;
 
     public DefaultMultiChannelConnector(OutgoingConnector<Message> outgoingConnector, IncomingConnector<Message> incomingConnector,
-                                        ExecutorFactory executorFactory, ClassLoader messagingClassLoader) {
+                                        ExecutorFactory executorFactory, ClassLoader messagingClassLoader, IdGenerator<UUID> idGenerator) {
         this.messagingClassLoader = messagingClassLoader;
+        this.idGenerator = idGenerator;
         this.outgoingConnector = new HandshakeOutgoingConnector(outgoingConnector);
         this.executorFactory = executorFactory;
         executorService = executorFactory.create("Incoming Connection Handler");

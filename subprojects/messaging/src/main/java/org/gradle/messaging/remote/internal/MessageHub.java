@@ -27,10 +27,7 @@ import org.gradle.messaging.remote.internal.protocol.EndOfStreamEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -47,11 +44,11 @@ public class MessageHub implements AsyncStoppable {
     private final String displayName;
     private final String nodeName;
     private final ExecutorFactory executorFactory;
-    private final IdGenerator<?> idGenerator;
+    private final IdGenerator<UUID> idGenerator;
     private final ClassLoader messagingClassLoader;
     private final StoppableExecutor incomingExecutor;
 
-    public MessageHub(String displayName, String nodeName, ExecutorFactory executorFactory, IdGenerator<?> idGenerator, ClassLoader messagingClassLoader) {
+    public MessageHub(String displayName, String nodeName, ExecutorFactory executorFactory, IdGenerator<UUID> idGenerator, ClassLoader messagingClassLoader) {
         this.displayName = displayName;
         this.nodeName = nodeName;
         this.executorFactory = executorFactory;
@@ -131,7 +128,7 @@ public class MessageHub implements AsyncStoppable {
     public void addIncoming(final String channel, final Dispatch<Object> dispatch) {
         lock.lock();
         try {
-            final Object id = idGenerator.generateId();
+            final UUID id = idGenerator.generateId();
             Protocol<Message> workerProtocol = new WorkerProtocol(dispatch);
             Protocol<Message> receiveProtocol = new ReceiveProtocol(id, nodeName, channel);
 

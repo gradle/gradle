@@ -15,8 +15,10 @@
  */
 package org.gradle.messaging.remote.internal.protocol;
 
+import java.util.UUID;
+
 public class ConsumerAvailable extends ParticipantAvailable {
-    public ConsumerAvailable(Object id, String displayName, String channelKey) {
+    public ConsumerAvailable(UUID id, String displayName, String channelKey) {
         super(id, displayName, channelKey);
     }
 

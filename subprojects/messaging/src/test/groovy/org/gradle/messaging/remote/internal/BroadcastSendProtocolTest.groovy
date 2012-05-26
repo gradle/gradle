@@ -24,6 +24,7 @@ import java.util.concurrent.TimeUnit
 class BroadcastSendProtocolTest extends Specification {
     final ProtocolContext<Message> context = Mock()
     final BroadcastSendProtocol protocol = new BroadcastSendProtocol()
+    final UUID id = new UUID(0, 0)
 
     def setup() {
         protocol.start(context)
@@ -38,34 +39,37 @@ class BroadcastSendProtocolTest extends Specification {
         0 * context._
 
         when:
-        protocol.handleIncoming(new ConsumerAvailable("id", "display", "channel"))
+        protocol.handleIncoming(new ConsumerAvailable(id, "display", "channel"))
 
         then:
-        1 * context.dispatchOutgoing(new Request("id", "message1"))
-        1 * context.dispatchOutgoing(new Request("id", "message2"))
+        1 * context.dispatchOutgoing(new Request(id, "message1"))
+        1 * context.dispatchOutgoing(new Request(id, "message2"))
         0 * context._
     }
 
     def "dispatches outgoing message to each consumer"() {
+        def id1 = new UUID(0, 1)
+        def id2 = new UUID(0, 2)
+
         given:
-        protocol.handleIncoming(new ConsumerAvailable("id1", "display", "channel"))
-        protocol.handleIncoming(new ConsumerAvailable("id2", "display", "channel"))
+        protocol.handleIncoming(new ConsumerAvailable(id1, "display", "channel"))
+        protocol.handleIncoming(new ConsumerAvailable(id2, "display", "channel"))
 
         when:
         protocol.handleOutgoing(new Request("channel", "message"))
 
         then:
-        1 * context.dispatchOutgoing(new Request("id1", "message"))
-        1 * context.dispatchOutgoing(new Request("id2", "message"))
+        1 * context.dispatchOutgoing(new Request(id1, "message"))
+        1 * context.dispatchOutgoing(new Request(id2, "message"))
         0 * context._
     }
 
     def "stops dispatching to a consumer when it becomes unavailable"() {
         given:
-        protocol.handleIncoming(new ConsumerAvailable("id", "display", "channel"))
+        protocol.handleIncoming(new ConsumerAvailable(id, "display", "channel"))
 
         when:
-        protocol.handleIncoming(new ConsumerUnavailable("id"))
+        protocol.handleIncoming(new ConsumerUnavailable(id))
         protocol.handleOutgoing(new Request("channel", "message"))
 
         then:
@@ -85,10 +89,10 @@ class BroadcastSendProtocolTest extends Specification {
         0 * context._
 
         when:
-        protocol.handleIncoming(new ConsumerAvailable("id", "display", "channel"))
+        protocol.handleIncoming(new ConsumerAvailable(id, "display", "channel"))
 
         then:
-        1 * context.dispatchOutgoing(new Request("id", "message"))
+        1 * context.dispatchOutgoing(new Request(id, "message"))
         1 * context.stopped()
         0 * context._
     }
@@ -122,7 +126,7 @@ class BroadcastSendProtocolTest extends Specification {
 
     def "stops immediately when all messages have been dispatched"() {
         given:
-        protocol.handleIncoming(new ConsumerAvailable("id", "display", "channel"))
+        protocol.handleIncoming(new ConsumerAvailable(id, "display", "channel"))
         protocol.handleOutgoing(new Request("channel", "message"))
 
         when:

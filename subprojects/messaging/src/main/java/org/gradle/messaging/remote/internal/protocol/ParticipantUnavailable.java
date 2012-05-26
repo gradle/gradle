@@ -17,14 +17,16 @@ package org.gradle.messaging.remote.internal.protocol;
 
 import org.gradle.messaging.remote.internal.Message;
 
-public class ParticipantUnavailable extends Message implements RouteUnavailableMessage {
-    private final Object id;
+import java.util.UUID;
 
-    public ParticipantUnavailable(Object id) {
+public class ParticipantUnavailable extends Message implements RouteUnavailableMessage {
+    private final UUID id;
+
+    public ParticipantUnavailable(UUID id) {
         this.id = id;
     }
 
-    public Object getId() {
+    public UUID getId() {
         return id;
     }
 

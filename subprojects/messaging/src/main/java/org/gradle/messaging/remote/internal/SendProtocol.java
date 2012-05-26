@@ -19,22 +19,19 @@ import org.gradle.messaging.remote.internal.protocol.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class SendProtocol implements Protocol<Message> {
     private static final Logger LOGGER = LoggerFactory.getLogger(SendProtocol.class);
     private final String channelKey;
-    private final Object id;
+    private final UUID id;
     private final String displayName;
     private ProtocolContext<Message> context;
     private boolean stopping;
     private final Map<Object, ConsumerAvailable> pending = new HashMap<Object, ConsumerAvailable>();
     private final Set<Object> consumers = new HashSet<Object>();
 
-    public SendProtocol(Object id, String displayName, String channelKey) {
+    public SendProtocol(UUID id, String displayName, String channelKey) {
         this.channelKey = channelKey;
         this.id = id;
         this.displayName = displayName;

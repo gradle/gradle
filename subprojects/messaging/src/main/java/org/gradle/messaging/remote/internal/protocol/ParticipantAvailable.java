@@ -17,18 +17,20 @@ package org.gradle.messaging.remote.internal.protocol;
 
 import org.gradle.messaging.remote.internal.Message;
 
+import java.util.UUID;
+
 public abstract class ParticipantAvailable extends Message implements RouteAvailableMessage {
     private final String channelKey;
-    private final Object id;
+    private final UUID id;
     private final String displayName;
 
-    public ParticipantAvailable(Object id, String displayName, String channelKey) {
+    public ParticipantAvailable(UUID id, String displayName, String channelKey) {
         this.id = id;
         this.displayName = displayName;
         this.channelKey = channelKey;
     }
 
-    public Object getId() {
+    public UUID getId() {
         return id;
     }
 

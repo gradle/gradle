@@ -15,8 +15,10 @@
  */
 package org.gradle.messaging.remote.internal.protocol;
 
+import java.util.UUID;
+
 public class ProducerUnavailable extends ParticipantUnavailable {
-    public ProducerUnavailable(Object id) {
+    public ProducerUnavailable(UUID id) {
         super(id);
     }
 }

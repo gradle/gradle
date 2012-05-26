@@ -21,17 +21,18 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 public class ReceiveProtocol implements Protocol<Message> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ReceiveProtocol.class);
-    private final Object id;
+    private final UUID id;
     private final String displayName;
     private final String channelKey;
     private final Set<Object> producers = new HashSet<Object>();
     private ProtocolContext<Message> context;
     private boolean stopping;
 
-    public ReceiveProtocol(Object id, String displayName, String channelKey) {
+    public ReceiveProtocol(UUID id, String displayName, String channelKey) {
         this.id = id;
         this.displayName = displayName;
         this.channelKey = channelKey;

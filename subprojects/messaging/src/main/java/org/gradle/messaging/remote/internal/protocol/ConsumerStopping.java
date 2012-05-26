@@ -15,8 +15,10 @@
  */
 package org.gradle.messaging.remote.internal.protocol;
 
+import java.util.UUID;
+
 public class ConsumerStopping extends ConsumerMessage {
-    public ConsumerStopping(Object consumerId, Object producerId) {
+    public ConsumerStopping(UUID consumerId, Object producerId) {
         super(consumerId, producerId);
     }
 }

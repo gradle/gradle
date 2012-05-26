@@ -17,11 +17,13 @@ package org.gradle.messaging.remote.internal.protocol;
 
 import org.gradle.messaging.remote.internal.Message;
 
+import java.util.UUID;
+
 public abstract class ProducerMessage extends Message implements RoutableMessage {
-    protected final Object producerId;
+    protected final UUID producerId;
     protected final Object consumerId;
 
-    public ProducerMessage(Object producerId, Object consumerId) {
+    public ProducerMessage(UUID producerId, Object consumerId) {
         this.consumerId = consumerId;
         this.producerId = producerId;
     }
@@ -30,7 +32,7 @@ public abstract class ProducerMessage extends Message implements RoutableMessage
         return consumerId;
     }
 
-    public Object getProducerId() {
+    public UUID getProducerId() {
         return producerId;
     }
 

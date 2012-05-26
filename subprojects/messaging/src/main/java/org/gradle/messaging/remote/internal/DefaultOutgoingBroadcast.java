@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -48,7 +49,7 @@ public class DefaultOutgoingBroadcast implements OutgoingBroadcast, Stoppable {
     private final Set<Address> connections = new HashSet<Address>();
     private final MessageHub hub;
 
-    public DefaultOutgoingBroadcast(MessageOriginator messageOriginator, String group, AsyncConnection<DiscoveryMessage> connection, OutgoingConnector<Message> outgoingConnector, ExecutorFactory executorFactory, final IdGenerator<?> idGenerator, ClassLoader messagingClassLoader) {
+    public DefaultOutgoingBroadcast(MessageOriginator messageOriginator, String group, AsyncConnection<DiscoveryMessage> connection, OutgoingConnector<Message> outgoingConnector, ExecutorFactory executorFactory, final IdGenerator<UUID> idGenerator, ClassLoader messagingClassLoader) {
         this.messageOriginator = messageOriginator;
         this.group = group;
         this.outgoingConnector = outgoingConnector;

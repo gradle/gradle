@@ -144,7 +144,8 @@ public class MessagingServices extends DefaultServiceRegistry implements Stoppab
                 get(OutgoingConnector.class),
                 get(IncomingConnector.class),
                 get(ExecutorFactory.class),
-                messageClassLoader);
+                messageClassLoader,
+                idGenerator);
         return multiChannelConnector;
     }
 
