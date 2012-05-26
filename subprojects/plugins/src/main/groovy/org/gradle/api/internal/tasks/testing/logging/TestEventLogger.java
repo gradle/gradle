@@ -51,10 +51,10 @@ public class TestEventLogger extends AbstractTestLogger implements TestOutputLis
     public void onOutput(TestDescriptor descriptor, TestOutputEvent outputEvent) {
         if (outputEvent.getDestination() == TestOutputEvent.Destination.StdOut
                 && shouldLogStandardStreamEvent(TestLogEvent.STANDARD_OUT)) {
-            logEvent(descriptor, TestLogEvent.STANDARD_OUT, "\n" + TextUtil.indent(outputEvent.getMessage(), INDENT));
+            logEvent(descriptor, TestLogEvent.STANDARD_OUT, TextUtil.indent(outputEvent.getMessage(), INDENT) + "\n");
         } else if (outputEvent.getDestination() == TestOutputEvent.Destination.StdErr
                 && shouldLogStandardStreamEvent(TestLogEvent.STANDARD_ERROR)) {
-            logEvent(descriptor, TestLogEvent.STANDARD_ERROR, "\n" + TextUtil.indent(outputEvent.getMessage(), INDENT));
+            logEvent(descriptor, TestLogEvent.STANDARD_ERROR, TextUtil.indent(outputEvent.getMessage(), INDENT) + "\n");
         }
     }
 
