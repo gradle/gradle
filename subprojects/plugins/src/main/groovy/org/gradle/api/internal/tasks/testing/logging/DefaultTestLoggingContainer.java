@@ -236,16 +236,10 @@ public class DefaultTestLoggingContainer implements TestLoggingContainer {
         getLifecycle().stackTraceFilters(stackTraces);
     }
 
-    /**
-     * Tells whether to log standard stream output. If {@code true}, standard output and standard error will be logged at level LIFECYCLE.
-     */
     public boolean getShowStandardStreams() {
         return getLifecycle().getShowStandardStreams();
     }
 
-    /**
-     * Sets whether to log standard stream output. If {@code true}, standard output and standard error will be logged at level LIFECYCLE.
-     */
     public void setShowStandardStreams(boolean flag) {
         getLifecycle().setShowStandardStreams(flag);
     }

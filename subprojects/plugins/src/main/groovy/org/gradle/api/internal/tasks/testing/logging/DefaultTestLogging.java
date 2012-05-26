@@ -22,9 +22,6 @@ import org.gradle.util.GUtil;
 import java.util.EnumSet;
 import java.util.Set;
 
-/**
- * Configuration options for logging test related information to the console.
- */
 public class DefaultTestLogging implements TestLogging {
     private Set<TestLogEvent> events = EnumSet.noneOf(TestLogEvent.class);
     private int minGranularity = -1;
@@ -136,7 +133,7 @@ public class DefaultTestLogging implements TestLogging {
     }
 
     public void setShowStandardStreams(boolean showStandardStreams) {
-        events(TestLogEvent.STANDARD_OUT, TestLogEvent.STANDARD_ERROR);
+        events.addAll(EnumSet.of(TestLogEvent.STANDARD_OUT, TestLogEvent.STANDARD_ERROR));
     }
 
     private <T extends Enum<T>> T toEnum(Class<T> enumType, Object value) {
