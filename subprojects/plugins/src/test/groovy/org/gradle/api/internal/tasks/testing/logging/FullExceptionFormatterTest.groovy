@@ -27,10 +27,10 @@ class FullExceptionFormatterTest extends Specification {
 
     def "shows all exceptions that have occurred for a test"() {
         expect:
-        formatter.format(testDescriptor, [new IOException("ouch"), new AssertionError("oops")]) == """\
-    java.io.IOException: ouch
+        formatter.format(testDescriptor, [new RuntimeException("oops"), new IOException("ouch")]) == """\
+    java.lang.RuntimeException: oops
 
-    java.lang.AssertionError: oops
+    java.io.IOException: ouch
 """
     }
 
@@ -61,7 +61,6 @@ class FullExceptionFormatterTest extends Specification {
         at org.ClassName2.methodName2(FileName2.java:22)
         at org.ClassName3.methodName3(FileName3.java:33)
 """
-
     }
 
     def "doesn't show common stack trace elements of parent trace and cause"() {
@@ -87,7 +86,6 @@ class FullExceptionFormatterTest extends Specification {
             at org.ClassName1.methodName1(FileName1.java:10)
             ... 2 more
 """
-
     }
 
     def "always shows at least one stack trace element of cause"() {
