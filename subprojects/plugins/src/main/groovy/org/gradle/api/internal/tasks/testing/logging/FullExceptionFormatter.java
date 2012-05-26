@@ -26,7 +26,6 @@ import org.gradle.api.tasks.testing.logging.TestLogging;
 import org.gradle.api.tasks.testing.logging.TestStackTraceFilter;
 import org.gradle.util.TextUtil;
 
-import java.util.Collections;
 import java.util.List;
 
 public class FullExceptionFormatter implements TestExceptionFormatter {

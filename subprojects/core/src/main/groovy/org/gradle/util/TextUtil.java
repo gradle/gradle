@@ -19,7 +19,6 @@ package org.gradle.util;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.gradle.internal.SystemProperties;
 
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class TextUtil {
