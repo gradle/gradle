@@ -27,21 +27,21 @@ class FullExceptionFormatterTest extends Specification {
 
     def "shows all exceptions that have occurred for a test"() {
         expect:
-        formatter.format(testDescriptor, [new RuntimeException("oops"), new IOException("ouch")]) == """\
+        formatter.format(testDescriptor, [new RuntimeException("oops"), new Exception("ouch")]) == """\
     java.lang.RuntimeException: oops
 
-    java.io.IOException: ouch
+    java.lang.Exception: ouch
 """
     }
 
     def "optionally shows causes"() {
         testLogging.getShowCauses() >> true
         def cause = new RuntimeException("oops")
-        def exception = new IOException("ouch", cause)
+        def exception = new Exception("ouch", cause)
 
         expect:
         formatter.format(testDescriptor, [exception]) == """\
-    java.io.IOException: ouch
+    java.lang.Exception: ouch
 
         Caused by:
         java.lang.RuntimeException: oops
@@ -51,12 +51,12 @@ class FullExceptionFormatterTest extends Specification {
     def "optionally shows stack traces"() {
         testLogging.getShowStackTraces() >> true
         testLogging.getStackTraceFilters() >> EnumSet.noneOf(TestStackTraceFilter)
-        def exception = new IOException("ouch")
+        def exception = new Exception("ouch")
         exception.stackTrace = createStackTrace()
 
         expect:
         formatter.format(testDescriptor, [exception]) == """\
-    java.io.IOException: ouch
+    java.lang.Exception: ouch
         at org.ClassName1.methodName1(FileName1.java:11)
         at org.ClassName2.methodName2(FileName2.java:22)
         at org.ClassName3.methodName3(FileName3.java:33)
@@ -70,12 +70,12 @@ class FullExceptionFormatterTest extends Specification {
 
         def cause = new RuntimeException("oops")
         cause.stackTrace = createCauseTrace()
-        def exception = new IOException("ouch", cause)
+        def exception = new Exception("ouch", cause)
         exception.stackTrace = createStackTrace()
 
         expect:
         formatter.format(testDescriptor, [exception]) == """\
-    java.io.IOException: ouch
+    java.lang.Exception: ouch
         at org.ClassName1.methodName1(FileName1.java:11)
         at org.ClassName2.methodName2(FileName2.java:22)
         at org.ClassName3.methodName3(FileName3.java:33)
@@ -95,12 +95,12 @@ class FullExceptionFormatterTest extends Specification {
 
         def cause = new RuntimeException("oops")
         cause.stackTrace = createStackTrace()
-        def exception = new IOException("ouch", cause)
+        def exception = new Exception("ouch", cause)
         exception.stackTrace = createStackTrace()
 
         expect:
         formatter.format(testDescriptor, [exception]) == """\
-    java.io.IOException: ouch
+    java.lang.Exception: ouch
         at org.ClassName1.methodName1(FileName1.java:11)
         at org.ClassName2.methodName2(FileName2.java:22)
         at org.ClassName3.methodName3(FileName3.java:33)
@@ -119,12 +119,12 @@ class FullExceptionFormatterTest extends Specification {
 
         def cause = new RuntimeException("oops")
         cause.stackTrace = createStackTrace()[1..2]
-        def exception = new IOException("ouch", cause)
+        def exception = new Exception("ouch", cause)
         exception.stackTrace = createStackTrace()
 
         expect:
         formatter.format(testDescriptor, [exception]) == """\
-    java.io.IOException: ouch
+    java.lang.Exception: ouch
         at org.ClassName1.methodName1(FileName1.java:11)
         at org.ClassName2.methodName2(FileName2.java:22)
         at org.ClassName3.methodName3(FileName3.java:33)
@@ -143,12 +143,12 @@ class FullExceptionFormatterTest extends Specification {
 
         def cause = new RuntimeException("oops")
         cause.stackTrace = createStackTrace()[0..1]
-        def exception = new IOException("ouch", cause)
+        def exception = new Exception("ouch", cause)
         exception.stackTrace = createStackTrace()
 
         expect:
         formatter.format(testDescriptor, [exception]) == """\
-    java.io.IOException: ouch
+    java.lang.Exception: ouch
         at org.ClassName1.methodName1(FileName1.java:11)
         at org.ClassName2.methodName2(FileName2.java:22)
         at org.ClassName3.methodName3(FileName3.java:33)
@@ -164,12 +164,12 @@ class FullExceptionFormatterTest extends Specification {
         testLogging.getShowStackTraces() >> true
         testLogging.getStackTraceFilters() >> EnumSet.of(TestStackTraceFilter.TRUNCATE, TestStackTraceFilter.GROOVY)
 
-        def exception = new IOException("ouch")
+        def exception = new Exception("ouch")
         exception.stackTrace = createGroovyTrace()
 
         expect:
         formatter.format(testDescriptor, [exception]) == """\
-    java.io.IOException: ouch
+    java.lang.Exception: ouch
         at org.ClassName1.methodName1(FileName1.java:11)
         at org.ClassName2.methodName2(FileName2.java:22)
         at ClassName.testName(MyTest.java:22)
@@ -184,12 +184,12 @@ class FullExceptionFormatterTest extends Specification {
         def cause = new RuntimeException("oops")
         cause.stackTrace = createGroovyTrace()
 
-        def exception = new IOException("ouch", cause)
+        def exception = new Exception("ouch", cause)
         exception.stackTrace = createGroovyTrace()[1..-1]
 
         expect:
         formatter.format(testDescriptor, [exception]) == """\
-    java.io.IOException: ouch
+    java.lang.Exception: ouch
         at ClassName.testName(MyTest.java:22)
 
         Caused by:
