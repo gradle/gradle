@@ -19,7 +19,12 @@ package org.gradle.util;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.gradle.internal.SystemProperties;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class TextUtil {
+    private static final Pattern WHITESPACE = Pattern.compile("\\s*");
+
     /**
      * Returns the line separator for Windows.
      */
@@ -76,7 +81,25 @@ public class TextUtil {
         return false;
     }
 
+    /**
+     * Indents every line of {@code text} by {@code indent}. Empty lines
+     * and lines that only contain whitespace are not indented.
+     */
     public static String indent(String text, String indent) {
-        return indent + text.replace("\n", "\n" + indent);
+        StringBuilder builder = new StringBuilder();
+        String[] lines = text.split("\n");
+
+        for (int i = 0; i < lines.length; i++) {
+            String line = lines[i];
+            if (!WHITESPACE.matcher(line).matches()) {
+                builder.append(indent);
+            }
+            builder.append(line);
+            if (i < lines.length - 1) {
+                builder.append('\n');
+            }
+        }
+
+        return builder.toString();
     }
 }

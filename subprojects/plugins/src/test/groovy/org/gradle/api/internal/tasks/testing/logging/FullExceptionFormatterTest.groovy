@@ -18,9 +18,214 @@ package org.gradle.api.internal.tasks.testing.logging
 
 import spock.lang.Specification
 import org.gradle.api.tasks.testing.logging.TestLogging
+import org.gradle.api.tasks.testing.logging.TestStackTraceFilter
 
 class FullExceptionFormatterTest extends Specification {
     def testDescriptor = new SimpleTestDescriptor()
     def testLogging = Mock(TestLogging)
-    def formatter = new ShortExceptionFormatter(testLogging)
+    def formatter = new FullExceptionFormatter(testLogging)
+
+    def "shows all exceptions that have occurred for a test"() {
+        expect:
+        formatter.format(testDescriptor, [new IOException("ouch"), new AssertionError("oops")]) == """\
+    java.io.IOException: ouch
+
+    java.lang.AssertionError: oops
+"""
+    }
+
+    def "optionally shows causes"() {
+        testLogging.getShowCauses() >> true
+        def cause = new IOException("ouch")
+        def exception = new AssertionError("oops", cause)
+
+        expect:
+        formatter.format(testDescriptor, [exception]) == """\
+    java.lang.AssertionError: oops
+
+        Caused by:
+        java.io.IOException: ouch
+"""
+    }
+
+    def "optionally shows stack traces"() {
+        testLogging.getShowStackTraces() >> true
+        testLogging.getStackTraceFilters() >> EnumSet.noneOf(TestStackTraceFilter)
+        def exception = new IOException("ouch")
+        exception.stackTrace = createStackTrace()
+
+        expect:
+        formatter.format(testDescriptor, [exception]) == """\
+    java.io.IOException: ouch
+        at org.ClassName1.methodName1(FileName1.java:11)
+        at org.ClassName2.methodName2(FileName2.java:22)
+        at org.ClassName3.methodName3(FileName3.java:33)
+"""
+
+    }
+
+    def "doesn't show common stack trace elements of parent trace and cause"() {
+        testLogging.getShowCauses() >> true
+        testLogging.getShowStackTraces() >> true
+        testLogging.getStackTraceFilters() >> EnumSet.noneOf(TestStackTraceFilter)
+
+        def cause = new RuntimeException("oops")
+        cause.stackTrace = createCauseTrace()
+        def exception = new IOException("ouch", cause)
+        exception.stackTrace = createStackTrace()
+
+        expect:
+        formatter.format(testDescriptor, [exception]) == """\
+    java.io.IOException: ouch
+        at org.ClassName1.methodName1(FileName1.java:11)
+        at org.ClassName2.methodName2(FileName2.java:22)
+        at org.ClassName3.methodName3(FileName3.java:33)
+
+        Caused by:
+        java.lang.RuntimeException: oops
+            at org.ClassName0.methodName0(FileName0.java:1)
+            at org.ClassName1.methodName1(FileName1.java:10)
+            ... 2 more
+"""
+
+    }
+
+    def "always shows at least one stack trace element of cause"() {
+        testLogging.getShowCauses() >> true
+        testLogging.getShowStackTraces() >> true
+        testLogging.getStackTraceFilters() >> EnumSet.noneOf(TestStackTraceFilter)
+
+        def cause = new RuntimeException("oops")
+        cause.stackTrace = createStackTrace()
+        def exception = new IOException("ouch", cause)
+        exception.stackTrace = createStackTrace()
+
+        expect:
+        formatter.format(testDescriptor, [exception]) == """\
+    java.io.IOException: ouch
+        at org.ClassName1.methodName1(FileName1.java:11)
+        at org.ClassName2.methodName2(FileName2.java:22)
+        at org.ClassName3.methodName3(FileName3.java:33)
+
+        Caused by:
+        java.lang.RuntimeException: oops
+            at org.ClassName1.methodName1(FileName1.java:11)
+            ... 2 more
+"""
+    }
+
+    def "can cope with a cause that has fewer stack trace elements than parent exception"() {
+        testLogging.getShowCauses() >> true
+        testLogging.getShowStackTraces() >> true
+        testLogging.getStackTraceFilters() >> EnumSet.noneOf(TestStackTraceFilter)
+
+        def cause = new RuntimeException("oops")
+        cause.stackTrace = createStackTrace()[1..2]
+        def exception = new IOException("ouch", cause)
+        exception.stackTrace = createStackTrace()
+
+        expect:
+        formatter.format(testDescriptor, [exception]) == """\
+    java.io.IOException: ouch
+        at org.ClassName1.methodName1(FileName1.java:11)
+        at org.ClassName2.methodName2(FileName2.java:22)
+        at org.ClassName3.methodName3(FileName3.java:33)
+
+        Caused by:
+        java.lang.RuntimeException: oops
+            at org.ClassName2.methodName2(FileName2.java:22)
+            ... 1 more
+"""
+    }
+
+    def "shows all stack trace elements of cause if overlap doesn't start from bottom of trace"() {
+        testLogging.getShowCauses() >> true
+        testLogging.getShowStackTraces() >> true
+        testLogging.getStackTraceFilters() >> EnumSet.noneOf(TestStackTraceFilter)
+
+        def cause = new RuntimeException("oops")
+        cause.stackTrace = createStackTrace()[0..1]
+        def exception = new IOException("ouch", cause)
+        exception.stackTrace = createStackTrace()
+
+        expect:
+        formatter.format(testDescriptor, [exception]) == """\
+    java.io.IOException: ouch
+        at org.ClassName1.methodName1(FileName1.java:11)
+        at org.ClassName2.methodName2(FileName2.java:22)
+        at org.ClassName3.methodName3(FileName3.java:33)
+
+        Caused by:
+        java.lang.RuntimeException: oops
+            at org.ClassName1.methodName1(FileName1.java:11)
+            at org.ClassName2.methodName2(FileName2.java:22)
+"""
+    }
+
+    def "supports any combination of stack trace filters"() {
+        testLogging.getShowStackTraces() >> true
+        testLogging.getStackTraceFilters() >> EnumSet.of(TestStackTraceFilter.TRUNCATE, TestStackTraceFilter.GROOVY)
+
+        def exception = new IOException("ouch")
+        exception.stackTrace = createGroovyTrace()
+
+        expect:
+        formatter.format(testDescriptor, [exception]) == """\
+    java.io.IOException: ouch
+        at org.ClassName1.methodName1(FileName1.java:11)
+        at org.ClassName2.methodName2(FileName2.java:22)
+        at ClassName.testName(MyTest.java:22)
+"""
+    }
+
+    def "also filters stack traces of causes"() {
+        testLogging.getShowCauses() >> true
+        testLogging.getShowStackTraces() >> true
+        testLogging.getStackTraceFilters() >> EnumSet.of(TestStackTraceFilter.ENTRY_POINT)
+
+        def cause = new RuntimeException("oops")
+        cause.stackTrace = createGroovyTrace()
+
+        def exception = new IOException("ouch", cause)
+        exception.stackTrace = createGroovyTrace()[1..-1]
+
+        expect:
+        formatter.format(testDescriptor, [exception]) == """\
+    java.io.IOException: ouch
+        at ClassName.testName(MyTest.java:22)
+
+        Caused by:
+        java.lang.RuntimeException: oops
+            at ClassName.testName(MyTest.java:22)
+"""
+    }
+
+    private createStackTrace() {
+        [
+                new StackTraceElement("org.ClassName1", "methodName1", "FileName1.java", 11),
+                new StackTraceElement("org.ClassName2", "methodName2", "FileName2.java", 22),
+                new StackTraceElement("org.ClassName3", "methodName3", "FileName3.java", 33)
+        ] as StackTraceElement[]
+    }
+
+    private createCauseTrace() {
+        [
+                new StackTraceElement("org.ClassName0", "methodName0", "FileName0.java", 1),
+                new StackTraceElement("org.ClassName1", "methodName1", "FileName1.java", 10),
+                new StackTraceElement("org.ClassName2", "methodName2", "FileName2.java", 22),
+                new StackTraceElement("org.ClassName3", "methodName3", "FileName3.java", 33)
+        ] as StackTraceElement[]
+    }
+
+    private createGroovyTrace() {
+        [
+                new StackTraceElement("org.ClassName1", "methodName1", "FileName1.java", 11),
+                new StackTraceElement("java.lang.reflect.Method", "invoke", "Method.java", 597),
+                new StackTraceElement("org.ClassName2", "methodName2", "FileName2.java", 22),
+                // class and method name match SimpleTestDescriptor
+                new StackTraceElement("ClassName", "testName", "MyTest.java", 22),
+                new StackTraceElement("java.lang.reflect.Method", "invoke", "Method.java", 597),
+                new StackTraceElement("org.ClassName3", "methodName3", "FileName3.java", 33)
+        ] as StackTraceElement[]
+    }
 }

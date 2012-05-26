@@ -26,6 +26,7 @@ import org.gradle.api.tasks.testing.logging.TestLogging;
 import org.gradle.api.tasks.testing.logging.TestStackTraceFilter;
 import org.gradle.util.TextUtil;
 
+import java.util.Collections;
 import java.util.List;
 
 public class FullExceptionFormatter implements TestExceptionFormatter {
@@ -40,7 +41,7 @@ public class FullExceptionFormatter implements TestExceptionFormatter {
     public String format(TestDescriptor descriptor, List<Throwable> exceptions) {
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i < exceptions.size(); i++) {
-            printException(descriptor, exceptions.get(i), null, 1, builder);
+            printException(descriptor, exceptions.get(i), null, 0, builder);
             if (i < exceptions.size() - 1) {
                 builder.append('\n');
             }
@@ -49,14 +50,15 @@ public class FullExceptionFormatter implements TestExceptionFormatter {
     }
 
     private void printException(TestDescriptor descriptor, Throwable exception,
-                                @Nullable List<StackTraceElement> parentTrace, int indentLevel, StringBuilder builder) {
-        String exceptionIndent = Strings.repeat(INDENT, indentLevel);
-        String exceptionText = parentTrace == null ? exception.toString() : "\nCaused by:\n" + exception.toString();
-        builder.append(TextUtil.indent(exceptionText, exceptionIndent));
+                                @Nullable List<StackTraceElement> parentTrace, int exceptionLevel, StringBuilder builder) {
+        String exceptionIndent = Strings.repeat(INDENT, exceptionLevel + 1);
+        String exceptionText = exceptionLevel == 0 ? exception.toString() : "\nCaused by:\n" + exception.toString();
+        String indentedText = TextUtil.indent(exceptionText, exceptionIndent);
+        builder.append(indentedText);
         builder.append('\n');
 
         String stackTraceIndent = exceptionIndent + INDENT;
-        List<StackTraceElement> stackTrace =  null;
+        List<StackTraceElement> stackTrace = null;
 
         if (testLogging.getShowStackTraces()) {
             stackTrace = filterStackTrace(exception, descriptor);
@@ -77,7 +79,7 @@ public class FullExceptionFormatter implements TestExceptionFormatter {
         }
 
         if (testLogging.getShowCauses() && exception.getCause() != null) {
-            printException(descriptor, exception.getCause(), stackTrace, indentLevel + 1, builder);
+            printException(descriptor, exception.getCause(), stackTrace, exceptionLevel + 1, builder);
         }
     }
 
