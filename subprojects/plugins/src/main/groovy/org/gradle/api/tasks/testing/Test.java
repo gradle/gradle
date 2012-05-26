@@ -41,6 +41,7 @@ import org.gradle.api.tasks.testing.logging.TestLoggingContainer;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.listener.ListenerManager;
 import org.gradle.logging.ProgressLoggerFactory;
@@ -437,8 +438,12 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         // File.toURI().toString() leads to an URL like this on Mac: file:/reports/index.html
         // This URL is not recognized by the Mac terminal (too few leading slashes). We solve
         // this be creating an URI with an empty authority.
+        File indexFile = new File(getTestReportDir(), "index.html");
         try {
-            return new URI("file", "", new File(getTestReportDir(), "index.html").toURI().getPath(), null, null).toString();
+            if (OperatingSystem.current().isWindows()) {
+                return indexFile.toURI().toString();
+            }
+            return new URI("file", "", indexFile.toString(), null, null).toString();
         } catch (URISyntaxException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
