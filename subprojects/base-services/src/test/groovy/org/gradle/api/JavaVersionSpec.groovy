@@ -51,7 +51,7 @@ public class JavaVersionSpec extends Specification {
         conversionFails("1");
         conversionFails("2");
 
-        conversionFails("8");
+        conversionFails("17");
 
         conversionFails("a");
         conversionFails("");
@@ -76,13 +76,14 @@ public class JavaVersionSpec extends Specification {
         JavaVersion.toVersion(6) == JavaVersion.VERSION_1_6
         JavaVersion.toVersion(7) == JavaVersion.VERSION_1_7
         JavaVersion.toVersion(1.7) == JavaVersion.VERSION_1_7
+        JavaVersion.toVersion(1.8) == JavaVersion.VERSION_1_8
     }
     
     def failsToConvertNumberToVersionForUnknownVersion() {
         expect:
         conversionFails(1);
         conversionFails(2);
-        conversionFails(8);
+        conversionFails(17);
         conversionFails(1.21);
         conversionFails(2.0);
         conversionFails(4.2);
