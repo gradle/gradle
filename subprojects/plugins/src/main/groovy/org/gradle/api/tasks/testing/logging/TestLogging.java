@@ -118,6 +118,7 @@ public interface TestLogging {
 
     /**
      * Tells whether causes of exceptions that occur during test execution will be logged.
+     * Only relevant if {@code showExceptions} is {@code true}.
      *
      * @return whether causes of exceptions that occur during test execution will be logged
      */
@@ -125,6 +126,7 @@ public interface TestLogging {
 
     /**
      * Sets whether causes of exceptions that occur during test execution will be logged.
+     * Only relevant if {@code showExceptions} is {@code true}.
      *
      * @param flag whether causes of exceptions that occur during test execution will be logged
      */
@@ -199,8 +201,13 @@ public interface TestLogging {
      boolean getShowStandardStreams();
 
     /**
-     * Convenience method for adding log events {@link TestLogEvent#STANDARD_OUT}
+     * Adds log events {@link TestLogEvent#STANDARD_OUT}
      * and {@link TestLogEvent#STANDARD_ERROR}.
      */
      void setShowStandardStreams(boolean flag);
+
+    /**
+     * Convenience method for {@link #setShowStandardStreams(boolean)}.
+     */
+    void showStandardStreams(boolean flag);
 }

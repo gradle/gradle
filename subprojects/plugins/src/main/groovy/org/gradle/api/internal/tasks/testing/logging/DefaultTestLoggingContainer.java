@@ -244,6 +244,10 @@ public class DefaultTestLoggingContainer implements TestLoggingContainer {
         getLifecycle().setShowStandardStreams(flag);
     }
 
+    public void showStandardStreams(boolean flag) {
+        getLifecycle().showStandardStreams(flag);
+    }
+
     public TestLogging get(LogLevel level) {
         if (level == null) {
             return new DefaultTestLoggingContainer(); // has everything disabled

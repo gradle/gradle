@@ -132,8 +132,12 @@ public class DefaultTestLogging implements TestLogging {
         return events.contains(TestLogEvent.STANDARD_OUT) && events.contains(TestLogEvent.STANDARD_ERROR);
     }
 
-    public void setShowStandardStreams(boolean showStandardStreams) {
+    public void setShowStandardStreams(boolean flag) {
         events.addAll(EnumSet.of(TestLogEvent.STANDARD_OUT, TestLogEvent.STANDARD_ERROR));
+    }
+
+    public void showStandardStreams(boolean flag) {
+        setShowStandardStreams(flag);
     }
 
     private <T extends Enum<T>> T toEnum(Class<T> enumType, Object value) {
