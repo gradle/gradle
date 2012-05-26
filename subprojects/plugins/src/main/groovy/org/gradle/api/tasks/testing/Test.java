@@ -438,7 +438,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         // This URL is not recognized by the Mac terminal (too few leading slashes). We solve
         // this be creating an URI with an empty authority.
         try {
-            return new URI("file", "", getTestReportDir() + "/index.html", null, null).toString();
+            return new URI("file", "", new File(getTestReportDir(), "index.html").toString(), null, null).toString();
         } catch (URISyntaxException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
