@@ -28,6 +28,12 @@ import org.mortbay.jetty.HttpStatus
 import spock.lang.Unroll
 
 public class IvyHttpPublishIntegrationTest extends AbstractIntegrationSpec {
+    private static final String BAD_CREDENTIALS = '''
+credentials {
+    username 'testuser'
+    password 'bad'
+}
+'''
     @Rule
     public final HttpServer server = new HttpServer()
 
@@ -110,6 +116,46 @@ uploadArchives {
 
         where:
         authScheme << [HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST]
+    }
+
+    @Unroll
+    def "reports failure publishing with #credsName credentials to authenticated repository using #authScheme auth"() {
+        given:
+        server.start()
+
+        when:
+        settingsFile << 'rootProject.name = "publish"'
+        buildFile << """
+apply plugin: 'java'
+version = '2'
+group = 'org.gradle'
+uploadArchives {
+    repositories {
+        ivy {
+            $creds
+            url "http://localhost:${server.port}"
+        }
+    }
+}
+"""
+
+        and:
+        server.authenticationScheme = authScheme
+        expectUpload('/org.gradle/publish/2/publish-2.jar', module, module.jarFile, 'testuser', 'password')
+        expectUpload('/org.gradle/publish/2/ivy-2.xml', module, module.ivyFile, 'testuser', 'password')
+
+        then:
+        fails 'uploadArchives'
+
+        and:
+        failure.assertHasDescription('Execution failed for task \':uploadArchives\'.')
+        failure.assertHasCause('Could not publish configuration \':archives\'.')
+        failure.assertThatCause(Matchers.containsString('Received status code 401 from server: Unauthorized'))
+
+        where:
+        authScheme << [HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST, HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST]
+        credsName << ['empty', 'empty' , 'bad', 'bad']
+        creds << ['', '', BAD_CREDENTIALS, BAD_CREDENTIALS]
     }
 
     public void reportsFailedPublishToHttpRepository() {
