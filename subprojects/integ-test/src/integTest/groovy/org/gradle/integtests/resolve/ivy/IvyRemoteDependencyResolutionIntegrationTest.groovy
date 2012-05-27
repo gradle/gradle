@@ -15,15 +15,18 @@
  */
 package org.gradle.integtests.resolve.ivy
 
+import org.gradle.integtests.fixtures.HttpServer
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
+import org.hamcrest.Matchers
+import spock.lang.Unroll
 
 class IvyRemoteDependencyResolutionIntegrationTest extends AbstractDependencyResolutionTest {
+    static String badCredentials = "credentials{username 'testuser'; password 'bad'}"
+
     public void "can resolve and cache dependencies from an HTTP Ivy repository"() {
         server.start()
         given:
-        def repo = ivyRepo()
-        def module = repo.module('group', 'projectA', '1.2')
-        module.publish()
+        def module = ivyRepo().module('group', 'projectA', '1.2').publish()
 
         and:
         buildFile << """
@@ -54,9 +57,7 @@ task listJars << {
     public void "can resolve and cache artifact-only dependencies from an HTTP Ivy repository"() {
         server.start()
         given:
-        def repo = ivyRepo()
-        def module = repo.module('group', 'projectA', '1.2')
-        module.publish()
+        def module = ivyRepo().module('group', 'projectA', '1.2').publish()
 
         and:
         buildFile << """
@@ -138,12 +139,11 @@ task listJars << {
         succeeds('listJars')
     }
 
-    public void "can resolve dependencies from password protected HTTP Ivy repository"() {
+    @Unroll
+    public void "can resolve dependencies from #authScheme authenticated HTTP Ivy repository"() {
         server.start()
         given:
-        def repo = ivyRepo()
-        def module = repo.module('group', 'projectA', '1.2')
-        module.publish()
+        def module = ivyRepo().module('group', 'projectA', '1.2').publish()
 
         and:
         buildFile << """
@@ -167,20 +167,70 @@ task listJars << {
 """
 
         when:
+        server.authenticationScheme = authScheme
+
+        and:
         server.expectGet('/repo/group/projectA/1.2/ivy-1.2.xml', 'username', 'password', module.ivyFile)
         server.expectGet('/repo/group/projectA/1.2/projectA-1.2.jar', 'username', 'password', module.jarFile)
 
         then:
         succeeds('listJars')
+
+        where:
+        authScheme << [HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST]
+    }
+
+
+    @Unroll
+    def "reports failure resolving with #credsName credentials from #authScheme authenticated HTTP ivy repository"() {
+        given:
+        server.start()
+
+        and:
+        def module = ivyRepo().module('group', 'projectA', '1.2').publish()
+
+        when:
+        settingsFile << 'rootProject.name = "publish"'
+        buildFile << """
+ repositories {
+     ivy {
+         url "http://localhost:${server.port}/repo"
+        $creds
+     }
+ }
+ configurations { compile }
+ dependencies {
+     compile 'group:projectA:1.2'
+ }
+ task listJars << {
+     assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
+ }
+ """
+
+        and:
+        server.authenticationScheme = authScheme
+        server.expectGet('/repo/group/projectA/1.2/ivy-1.2.xml', 'username', 'password', module.ivyFile)
+        server.expectGet('/repo/group/projectA/1.2/projectA-1.2.jar', 'username', 'password', module.jarFile)
+
+        then:
+        fails 'listJars'
+
+        and:
+        failure.assertHasDescription('Execution failed for task \':listJars\'.')
+        failure.assertHasCause('Could not resolve all dependencies for configuration \':compile\'.')
+        failure.assertThatCause(Matchers.containsString('Received status code 401 from server: Unauthorized'))
+
+        where:
+        authScheme << [HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST, HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST]
+        credsName << ['empty', 'empty' , 'bad', 'bad']
+        creds << ['', '', badCredentials, badCredentials]
     }
 
     public void "uses all configured patterns to resolve artifacts and caches result"() {
         server.start()
 
         given:
-        def repo = ivyRepo()
-        def module = repo.module('group', 'projectA', '1.2')
-        module.publish()
+        def module = ivyRepo().module('org.name.here', 'projectA', '1.2').publish()
 
         buildFile << """
 repositories {
@@ -221,9 +271,7 @@ task show << { println configurations.compile.files }
         server.start()
 
         given:
-        def repo = ivyRepo()
-        def module = repo.module('org.name.here', 'projectA', '1.2')
-        module.publish()
+        def module = ivyRepo().module('org.name.here', 'projectA', '1.2').publish()
 
         buildFile << """
 repositories {

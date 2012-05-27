@@ -18,6 +18,8 @@ package org.gradle.integtests.resolve
 import org.gradle.integtests.fixtures.TestProxyServer
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
+import spock.lang.Unroll
+import org.gradle.integtests.fixtures.HttpServer
 
 class HttpProxyDependencyResolutionIntegrationTest extends AbstractDependencyResolutionTest {
     @Rule TestProxyServer proxyServer = new TestProxyServer(server)
@@ -99,7 +101,8 @@ task listJars << {
         proxyServer.requestCount == 2
     }
 
-    public void "passes target credentials to target server via proxy"() {
+    @Unroll
+    public void "passes target credentials to #authScheme authenticated server via proxy"() {
         server.start()
         proxyServer.start()
 
@@ -127,6 +130,7 @@ task listJars << {
 """
 
         when:
+        server.authenticationScheme = authScheme
         executer.withArguments("-Dhttp.proxyHost=localhost", "-Dhttp.proxyPort=${proxyServer.port}", "-Dhttp.proxyUser=proxyUser", "-Dhttp.proxyPassword=proxyPassword")
 
         and:
@@ -141,6 +145,10 @@ task listJars << {
         succeeds('listJars')
 
         and:
-        proxyServer.requestCount >= 2
+        // 1 extra request for authentication
+        proxyServer.requestCount == 3
+
+        where:
+        authScheme << [HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST]
     }
 }
