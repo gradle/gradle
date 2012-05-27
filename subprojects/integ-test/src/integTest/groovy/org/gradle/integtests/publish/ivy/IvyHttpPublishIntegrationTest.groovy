@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.HttpServer
 import org.gradle.integtests.fixtures.IvyModule
 import org.gradle.integtests.fixtures.IvyRepository
+import org.gradle.util.Jvm
 import org.gradle.util.TestFile
 import org.hamcrest.Matchers
 import org.junit.Rule
@@ -228,6 +229,91 @@ uploadArchives {
         and:
         module.ivyFile.assertIsFile()
         module.jarFile.assertIsCopyOf(file('build/libs/publish-2.jar'))
+    }
+
+    public void "can publish large artifact (tools.jar) to authenticated repository"() {
+        given:
+        server.start()
+        def toolsJar = Jvm.current().toolsJar
+
+        settingsFile << 'rootProject.name = "publish"'
+        buildFile << """
+apply plugin: 'base'
+version = '2'
+group = 'org.gradle'
+
+configurations {
+    tools
+}
+artifacts {
+    tools new org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact('tools', 'jar', 'jar', null, new Date(), file('$toolsJar'))
+}
+
+uploadTools {
+    repositories {
+        ivy {
+            credentials {
+                username 'testuser'
+                password 'password'
+            }
+            url "http://localhost:${server.port}"
+        }
+    }
+}
+"""
+
+        when:
+        def uploadedToolsJar = module.moduleDir.file('toolsJar')
+        expectUpload('/org.gradle/publish/2/tools-2.jar', module, uploadedToolsJar, 'testuser', 'password')
+        expectUpload('/org.gradle/publish/2/ivy-2.xml', module, module.ivyFile, 'testuser', 'password')
+
+        then:
+        succeeds 'uploadTools'
+
+        and:
+        module.ivyFile.assertIsFile()
+        uploadedToolsJar.assertIsCopyOf(new TestFile(toolsJar));
+
+    }
+
+    public void "does not upload meta-data file if artifact or checksum upload fails"() {
+        given:
+        server.start()
+
+        settingsFile << 'rootProject.name = "publish"'
+        buildFile << """
+apply plugin: 'java'
+version = '2'
+group = 'org.gradle'
+uploadArchives {
+    repositories {
+        ivy {
+            url "http://localhost:${server.port}"
+        }
+    }
+}
+"""
+        when:
+        server.expectPut("/org.gradle/publish/2/publish-2.jar.sha1", module.sha1File(module.jarFile), HttpStatus.ORDINAL_200_OK)
+        server.expectPut("/org.gradle/publish/2/publish-2.jar", module.jarFile, HttpStatus.ORDINAL_500_Internal_Server_Error)
+
+        then:
+        fails 'uploadArchives'
+
+        and:
+        module.assertChecksumPublishedFor(module.jarFile)
+        module.ivyFile.assertDoesNotExist()
+
+        when:
+        expectUpload("/org.gradle/publish/2/publish-2.jar", module, module.jarFile)
+        server.expectPut("/org.gradle/publish/2/ivy-2.xml.sha1", module.sha1File(module.ivyFile), HttpStatus.ORDINAL_500_Internal_Server_Error)
+
+        then:
+        fails 'uploadArchives'
+
+        and:
+        module.jarFile.assertExists()
+        module.ivyFile.assertDoesNotExist()
     }
 
     private void expectUpload(String path, IvyModule module, TestFile file, int statusCode = HttpStatus.ORDINAL_200_OK) {

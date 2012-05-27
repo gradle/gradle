@@ -75,11 +75,11 @@ public class DefaultIvyDependencyPublisher implements IvyDependencyPublisher {
             Set<Artifact> allArtifacts = getAllArtifacts(moduleDescriptor);
 
             Map<Artifact, File> artifactsFiles = new LinkedHashMap<Artifact, File>();
-            if (descriptorFile != null) {
-                addPublishedDescriptor(artifactsFiles);
-            }
             for (Artifact artifact : allArtifacts) {
                 addPublishedArtifact(artifact, artifactsFiles);
+            }
+            if (descriptorFile != null) {
+                addPublishedDescriptor(artifactsFiles);
             }
 
             boolean successfullyPublished = false;
