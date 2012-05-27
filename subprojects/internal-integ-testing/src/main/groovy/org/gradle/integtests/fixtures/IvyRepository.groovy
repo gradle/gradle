@@ -84,12 +84,16 @@ class IvyModule {
         return this
     }
 
-    File getIvyFile() {
+    TestFile getIvyFile() {
         return moduleDir.file("ivy-${revision}.xml")
     }
 
     TestFile getJarFile() {
         return moduleDir.file("$module-${revision}.jar")
+    }
+
+    TestFile sha1File(File file) {
+        return moduleDir.file("${file.name}.sha1")
     }
 
     /**
@@ -128,7 +132,9 @@ class IvyModule {
 	<publications>
 """
         artifacts.each { artifact ->
-            file(artifact) << "add some content so that file size isn't zero: $publishCount"
+            def artifactFile = file(artifact)
+            artifactFile << "${artifactFile.name} : $publishCount"
+            publishSha1(artifactFile)
             ivyFile << """<artifact name="${artifact.name}" type="${artifact.type}" ext="${artifact.type}" conf="*" m:classifier="${artifact.classifier ?: ''}"/>
 """
         }
@@ -144,12 +150,18 @@ class IvyModule {
     </dependencies>
 </ivy-module>
         """
+        publishSha1(ivyFile)
 
+        publishSha1(ivyFile)
         return this
     }
 
-    private File file(def artifact) {
+    private TestFile file(def artifact) {
         return moduleDir.file("${artifact.name}-${revision}${artifact.classifier ? '-' + artifact.classifier : ''}.${artifact.type}")
+    }
+
+    private publishSha1(TestFile file) {
+        sha1File(file).text = getHash(file, "SHA1")
     }
 
     /**
@@ -163,14 +175,14 @@ class IvyModule {
         assert moduleDir.list() as Set == allFileNames
     }
 
-    private String getHash(File file, String algorithm) {
-        return HashUtil.createHash(file, algorithm).asHexString()
+    void assertChecksumPublishedFor(TestFile testFile) {
+        def sha1File = sha1File(testFile)
+        sha1File.assertIsFile()
+        assert sha1File.text == getHash(testFile, "SHA1")
     }
 
-    TestFile sha1File(File file) {
-        def sha1File = moduleDir.file("${file.name}.sha1")
-        sha1File.text = getHash(file, "SHA1")
-        return sha1File
+    public String getHash(File file, String algorithm) {
+        return HashUtil.createHash(file, algorithm).asHexString()
     }
 
     IvyDescriptor getIvy() {
@@ -220,7 +232,6 @@ class IvyModule {
     public path(prefix = null, String filename) {
         "${prefix == null ? "" : prefix}/${organisation}/${module}/${revision}/${filename}"
     }
-
 }
 
 class IvyDescriptor {

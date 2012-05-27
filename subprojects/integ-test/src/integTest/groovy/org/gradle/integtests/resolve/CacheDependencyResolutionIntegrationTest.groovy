@@ -66,7 +66,6 @@ task deleteCacheFiles(type: Delete) {
         def module1 = repo1.module('org.gradle', 'testproject', '1.0').publish()
         def repo2 = ivyRepo('ivy-repo-b')
         def module2 = repo2.module('org.gradle', 'testproject', '1.0').publish()
-        module2.jarFile << "Some extra content"
 
         and:
         settingsFile << "include 'a','b'"

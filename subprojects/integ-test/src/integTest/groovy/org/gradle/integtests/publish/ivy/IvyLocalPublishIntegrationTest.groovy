@@ -17,6 +17,7 @@ package org.gradle.integtests.publish.ivy
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.HttpServer
+import org.gradle.integtests.fixtures.IvyRepository
 import org.junit.Rule
 import spock.lang.Issue
 
@@ -26,27 +27,31 @@ public class IvyLocalPublishIntegrationTest extends AbstractIntegrationSpec {
 
     public void canPublishToLocalFileRepository() {
         given:
+        def repo = new IvyRepository(distribution.testFile('ivy-repo'))
+        def module = repo.module("org.gradle", "publish", "2")
+
         settingsFile << 'rootProject.name = "publish"'
-        buildFile << '''
+        buildFile << """
 apply plugin: 'java'
 version = '2'
 group = 'org.gradle'
 uploadArchives {
     repositories {
         ivy {
-            url "build/repo/"
+            url "${repo.rootDir}"
         }
     }
 }
-'''
+"""
         when:
         succeeds 'uploadArchives'
 
         then:
-        def uploadedIvy = file('build/repo/org.gradle/publish/2/ivy-2.xml')
-        uploadedIvy.assertIsFile()
-        def uploadedJar = file('build/repo/org.gradle/publish/2/publish-2.jar')
-        uploadedJar.assertIsCopyOf(file('build/libs/publish-2.jar'))
+        module.ivyFile.assertIsFile()
+        module.assertChecksumPublishedFor(module.ivyFile)
+
+        module.jarFile.assertIsCopyOf(file('build/libs/publish-2.jar'))
+        module.assertChecksumPublishedFor(module.jarFile)
     }
 
     @Issue("GRADLE-1811")
