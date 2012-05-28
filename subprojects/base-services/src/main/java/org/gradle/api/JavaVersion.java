@@ -24,7 +24,7 @@ import java.util.regex.Pattern;
  * An enumeration of Java versions.
  */
 public enum JavaVersion {
-    VERSION_1_1(false), VERSION_1_2(false), VERSION_1_3(false), VERSION_1_4(false), VERSION_1_5(true), VERSION_1_6(true), VERSION_1_7(true);
+    VERSION_1_1(false), VERSION_1_2(false), VERSION_1_3(false), VERSION_1_4(false), VERSION_1_5(true), VERSION_1_6(true), VERSION_1_7(true), VERSION_1_8(true);
 
     private final boolean hasMajorVersion;
 
