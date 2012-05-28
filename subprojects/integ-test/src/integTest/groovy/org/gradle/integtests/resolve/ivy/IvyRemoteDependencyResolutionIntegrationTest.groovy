@@ -230,7 +230,7 @@ task listJars << {
         server.start()
 
         given:
-        def module = ivyRepo().module('org.name.here', 'projectA', '1.2').publish()
+        def module = ivyRepo().module('group', 'projectA', '1.2').publish()
 
         buildFile << """
 repositories {
