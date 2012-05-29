@@ -23,6 +23,7 @@ import org.gradle.integtests.fixtures.IvyModule
 import org.gradle.integtests.fixtures.IvyRepository
 import org.gradle.util.Jvm
 import org.gradle.util.TestFile
+import org.gradle.util.TextUtil
 import org.hamcrest.Matchers
 import org.junit.Rule
 import org.mortbay.jetty.HttpStatus
@@ -154,9 +155,11 @@ uploadArchives {
         failure.assertThatCause(Matchers.containsString('Received status code 401 from server: Unauthorized'))
 
         where:
-        authScheme << [HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST, HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST]
-        credsName << ['empty', 'empty' , 'bad', 'bad']
-        creds << ['', '', BAD_CREDENTIALS, BAD_CREDENTIALS]
+        authScheme                   | credsName | creds
+        HttpServer.AuthScheme.BASIC  | 'empty'   | ''
+        HttpServer.AuthScheme.DIGEST | 'empty'   | ''
+        HttpServer.AuthScheme.BASIC  | 'bad'     | BAD_CREDENTIALS
+        HttpServer.AuthScheme.DIGEST | 'bad'     | BAD_CREDENTIALS
     }
 
     public void reportsFailedPublishToHttpRepository() {
@@ -234,7 +237,7 @@ uploadArchives {
     public void "can publish large artifact (tools.jar) to authenticated repository"() {
         given:
         server.start()
-        def toolsJar = Jvm.current().toolsJar
+        def toolsJar = TextUtil.escapeString(Jvm.current().toolsJar)
 
         settingsFile << 'rootProject.name = "publish"'
         buildFile << """
@@ -246,7 +249,9 @@ configurations {
     tools
 }
 artifacts {
-    tools new org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact('tools', 'jar', 'jar', null, new Date(), file('$toolsJar'))
+    tools(file('$toolsJar')) {
+        name 'tools'
+    }
 }
 
 uploadTools {
