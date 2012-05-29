@@ -16,11 +16,16 @@
 package org.gradle.api.plugins.osgi;
 
 import groovy.lang.Closure;
+import org.gradle.api.internal.ConventionMapping;
+import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.plugins.osgi.DefaultOsgiManifest;
 import org.gradle.api.internal.plugins.osgi.OsgiHelper;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.BasePluginConvention;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
+
+import java.util.concurrent.Callable;
 
 /**
  * Is mixed in into the project when applying the  {@link org.gradle.api.plugins.osgi.OsgiPlugin} .
@@ -65,12 +70,27 @@ public class OsgiPluginConvention {
         return ConfigureUtil.configure(closure, createDefaultOsgiManifest(project));
     }
 
-    private OsgiManifest createDefaultOsgiManifest(ProjectInternal project) {
-        OsgiHelper osgiHelper = new OsgiHelper();
-        OsgiManifest osgiManifest = new DefaultOsgiManifest(project.getFileResolver());
-        osgiManifest.setVersion(osgiHelper.getVersion((String) project.property("version")));
-        osgiManifest.setName(project.getConvention().getPlugin(BasePluginConvention.class).getArchivesBaseName());
-        osgiManifest.setSymbolicName(osgiHelper.getBundleSymbolicName(project));
+    private OsgiManifest createDefaultOsgiManifest(final ProjectInternal project) {
+        OsgiManifest osgiManifest = project.getServices().get(Instantiator.class).newInstance(DefaultOsgiManifest.class, project.getFileResolver());
+        ConventionMapping mapping = ((IConventionAware) osgiManifest).getConventionMapping();
+        final OsgiHelper osgiHelper = new OsgiHelper();
+
+        mapping.map("version", new Callable<Object>() {
+            public Object call() throws Exception {
+                return osgiHelper.getVersion(project.getVersion().toString());
+            }
+        });
+        mapping.map("name", new Callable<Object>() {
+            public Object call() throws Exception {
+                return project.getConvention().getPlugin(BasePluginConvention.class).getArchivesBaseName();
+            }
+        });
+        mapping.map("symbolicName", new Callable<Object>() {
+            public Object call() throws Exception {
+                return osgiHelper.getBundleSymbolicName(project);
+            }
+        });
+
         return osgiManifest;
     }
 }

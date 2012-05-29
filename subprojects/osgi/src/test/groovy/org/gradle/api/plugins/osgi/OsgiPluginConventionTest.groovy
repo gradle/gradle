@@ -15,12 +15,14 @@
  */
 package org.gradle.api.plugins.osgi
 
-import spock.lang.Specification
 import org.gradle.util.HelperUtil
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.internal.plugins.osgi.DefaultOsgiManifest
 import org.gradle.api.internal.plugins.osgi.OsgiHelper
 import org.gradle.api.plugins.JavaBasePlugin
+
+import spock.lang.Specification
+import spock.lang.Issue
 
 /**
  * @author Hans Dockter
@@ -48,6 +50,32 @@ class OsgiPluginConventionTest extends Specification {
         expect:
         matchesExpectedConfig(osgiManifest)
         osgiManifest.description == 'myDescription'
+    }
+
+    @Issue("GRADLE-1670")
+    def "doesn't assume that project version is a String"() {
+        project.version =  new Object() {
+            String toString() {
+                "2.1"
+            }
+        }
+        def manifest = osgiPluginConvention.osgiManifest()
+
+        expect:
+        manifest.version == "2.1"
+    }
+
+    @Issue("GRADLE-1670")
+    def "computes its defaults lazily"() {
+        def manifest = osgiPluginConvention.osgiManifest()
+        project.version = 2.1
+        project.group = "my.group"
+        project.archivesBaseName = "myarchive"
+
+        expect:
+        manifest.version == "2.1"
+        manifest.name == "myarchive"
+        manifest.symbolicName == "my.group.myarchive"
     }
 
     void matchesExpectedConfig(DefaultOsgiManifest osgiManifest) {
