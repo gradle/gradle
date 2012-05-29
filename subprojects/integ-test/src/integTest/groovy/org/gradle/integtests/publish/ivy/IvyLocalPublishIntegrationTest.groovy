@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.HttpServer
 import org.gradle.integtests.fixtures.IvyRepository
 import org.junit.Rule
 import spock.lang.Issue
+import org.spockframework.util.TextUtil
 
 public class IvyLocalPublishIntegrationTest extends AbstractIntegrationSpec {
     @Rule
@@ -30,6 +31,7 @@ public class IvyLocalPublishIntegrationTest extends AbstractIntegrationSpec {
         def repo = new IvyRepository(distribution.testFile('ivy-repo'))
         def module = repo.module("org.gradle", "publish", "2")
 
+        def rootDir = TextUtil.escape(repo.rootDir.path)
         settingsFile << 'rootProject.name = "publish"'
         buildFile << """
 apply plugin: 'java'
@@ -38,7 +40,7 @@ group = 'org.gradle'
 uploadArchives {
     repositories {
         ivy {
-            url "${repo.rootDir}"
+            url "${rootDir}"
         }
     }
 }
