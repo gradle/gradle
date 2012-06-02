@@ -206,7 +206,6 @@ A component that runs on the JVM.
     * Depend on the test fixtures and implementation of zero or more JVM libraries.
 * Common variants:
     * bytecode level, e.g. java5 vs java 6.
-    * source language, e.g. groovy 1.7 vs groovy 1.8.
     * nodeps vs all-deps vs private-all-deps (e.g. jarjared)
 * Commonly packaged as:
     * A single jar artefact that bundles API + implementation, and another jar that bundles test fixtures.
@@ -214,6 +213,22 @@ A component that runs on the JVM.
     * A zip or tar that bundles the implementation + documentation.
 
 test fixtures have an API and an implementation?
+
+## Groovy library
+
+* Is-a JVM library
+* Provides some AST transformations.
+    * This is a compile time usage.
+    * Depends on the runtime of zero or more JVM libraries
+* Common variants:
+    * source language, e.g. groovy 1.7 vs groovy 1.8.
+
+## Scala library
+
+* Is-a JVM library
+* Provides some macros.
+    * This is a compile time usage.
+    * Depends on the runtime of zero or more JVM libraries
 
 ## JVM library with JNI implementation
 
@@ -301,17 +316,25 @@ test fixtures have an API and an implementation?
 
 ## Javascript library
 
-* Provides javascript source and other resources (css, images)
+* Provides javascript source
     * This is a runtime usage
-    * Depends on zero or more other javascript libraries
+    * Depends on zero or more other javascript and css libraries
 * Common variants
     * minified vs non-minified
     * minimal set of source files vs all source files
-* May bundle other javascript libraries
+* May bundle other javascript and css libraries
 * Commonly packaged as
     * A zip of javascript, css and resources
     * Individual source files
     * A single merged source file
+
+## CSS library
+
+* Provides css scripts and other resources (images, fonts, etc).
+    * This is a runtime usage
+* Commonly packaged as
+    * A zip of css and resources
+    * Individual source files in a tree.
 
 ## Web application
 
@@ -399,23 +422,114 @@ The mapping for each component type will be versioned, with the mapping version 
 
 # DSL
 
-Component:
+#### Base types
 
-* PublishArtifactsSet is-a Buildable
-* PublishArtifactSet has-a set of PublishArtifacts
-* ConfigurablePublishArtifactSet is-a PublishArtifactSet that allows composition, etc, similar to ConfigurableFileCollection.
-* Component has-a ConfigurablePublishArtifactSet
-* Project has-a set of named Components
+    [incoming]
 
-Publication:
+    [outgoing]
 
-* Publication has-a ConfigurablePublishArtifactSet
-* SigningArtifactSet is-a PublishArtifactSet
-* SigningArtifactSet transforms a PublishArtifactSet, and contains a signature artifact for each artefact in the original set.
-* ChecksumArtifactSet, PomArtifactSet, IvyXmlArtifactSet do similar things.
-* Project has-a set of named Publications
+    interface PublishArtifactSet extends Buildable, Set<PublishArtifact> {
+    }
 
-Task rules:
+    interface ConfigurablePublishArtifactSet extends PublishArtifactSet {
+        // Mutation methods go here, eg
+        add(PublishArtifactSet set)
+        add(PublishArtifact artifact)
+        add(Object file, Closure metaData)
+    }
+
+TODO - PublishArtifactSet currently extends DomainObjectSet.
+
+#### Component
+
+    [incoming]
+
+    [outgoing]
+
+    interface Component extends Named, Buildable {
+        final PublishArtifactSet artifacts
+    }
+
+    interface JavaLibrary extends Component {
+    }
+
+    interface CPPLibrary extends Component {
+    }
+
+#### Publication
+
+    [outgoing]
+
+    interface Publication extends Named, Buildable {
+        ConfigurablePublishArtifactSet artifacts
+    }
+
+    class SigningArtifactSet implements PublishArtifactSet {
+        // Contains a signature artifact for each artifact in backing set
+    }
+
+    class ChecksumArtifactSet implements PublishArtifactSet {
+        // Contains checksum artifacts for each artifact in backing set
+    }
+
+    class PomArtifact implements PublishArtifact {
+        // Contains a pom artifact generated from a Component
+    }
+
+    class IvyXmlArtifact implements PublishArtifact {
+        // Contains an ivy xml artifact generated from a Component
+    }
+
+#### Classpaths and other paths
+
+    interface ClassPath extends Buildable {
+        final FileCollection files
+        final Set<ClassPathEntry> entries
+    }
+
+    interface ConfigurableClassPath extends ClassPath {
+        // Can add/remove/filter entries as files, ClassPath instances, DependencySet instances, etc.
+    }
+
+    interface ClassPathEntry {
+        final Set<File> files
+        // Can also navigate to the java library variant that corresponds to this entry, if any.
+    }
+
+    // Generalize to allow c++ header include path and link path
+    // Project.files() can convert a ClassPath to a FileCollection
+
+#### Existing types
+
+    interface Project {
+        final NamedDomainObjectContainer<Component> components
+        final NamedDomainObjectContainer<Publication> publications
+    }
+
+    interface SourceSet {
+        ConfigurableClassPath complileClassPath
+        ConfigurableClassPath runtimeClassPath
+        // TODO - deal with the fact that SourceSet already has a compileClasspath and runtimeClasspath
+    }
+
+    interface IdeaModule {
+        ConfigurableClassPath compile
+        ConfigurableClassPath runtime
+        ConfigurableClassPath test
+        ConfigurableClassPath provided
+        @Deprecated scopes
+    }
+
+    interface EclipseModule {
+        ConfigurableClassPath classpath
+        // TODO - deal with entries that should not be exported
+        @Deprecated plusConfigurations
+        @Deprecated minusConfigurations
+        @Deprecated noExportConfigurations
+    }
+
+
+#### Task rules:
 
 * `assemble${componentName}` - builds the artefacts of the component (alternatively, the rule might just be `${componentName}`).
 * `assemble${publicationName}` - builds the artefacts of the publication.
@@ -448,3 +562,12 @@ PublishArtifactSet more generally), but not actually add any signatures. Applyin
 * Backwards compatibility:
     * Consuming ivy/maven modules published by older Gradle versions, by Maven, and with hand-coded ivy.xml meta-data.
     * Older Gradle versions consuming modules published by newer Gradle versions.
+* Resolution improvements:
+    * Make better use of ranges, so that if B depends on A:1.2, and C depends on A:[1.0-2.0), and we have A:1.2, A:1.3, A:2.0, then select A:1.2,
+      rather A:1.3.
+    * Allow arbitrary dependency substitution, so that I can declare things like: replace any usage of `groovy-all` with `groovy`.
+    * Allow declaration of conflicts, so that I can declare things like: `junit` and `junit-dep` conflict with each other.
+    * Allow arbitrary conflict management, so that I can declare things like: prefer a version that my dependencies were tested against, over those
+      that my dependencies were not tested against. Or prefer a version that is a direct dependency of any project in the build.
+    * Allow arbitrary mutation of component meta-data, so that I can declare things like: the API of `jetty` depends on `servlet-api`. Or `groovy`
+      has a `compiler` usage, that includes the `groovy.jar` artifact and depends on `ant`.

@@ -39,6 +39,8 @@ available, and that Gradle is free to choose a project or external dependency at
 To do this, we make use of the changes for 2. and 4. above. Gradle can choose to use binaries for a dependency, or to build it from source. And it can
 choose to use head/latest or some label/version/revision for each dependency separately. Same for verifying dependent projects.
 
+#### Build multiple variants across several machines
+
 #### Others
 
 There's plenty of other goodness that builds on the above:
@@ -102,6 +104,7 @@ call these the 'active' projects.
     * aggregation tasks, eg aggregated javadoc, or test reports that drag in source and configuration from some other projects.
     * an init script uses `allprojects { }` or `rootproject { }`
     * conditional configuration based on task graph contents.
+    * project configured using previously published version of itself.
     * there are more use cases here.
 
 * Need some way for a script/plugin to opt-out of the configuration rules above, in some way that does not couple all of the projects together.
