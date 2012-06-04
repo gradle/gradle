@@ -354,7 +354,7 @@
                 <td>-</td>
                 <td>-</td>
                 <td>
-                    <para>Provides integration with the Sonar code quality platform.
+                    <para>Provides integration with the <ulink url="http://www.sonarsource.org">Sonar</ulink> code quality platform.
                     </para>
                 </td>
             </tr>
