@@ -20,7 +20,7 @@ dependencies {
 
 jar {
     manifest {
-        version = '1.0'
+        version = '1.0.0'
         name = 'Example Gradle Activator'
         instruction 'Bundle-Activator', 'org.gradle.GradleActivator'
         instruction 'Import-Package', '*'

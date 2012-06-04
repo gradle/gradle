@@ -75,6 +75,10 @@ public class DefaultOsgiManifest extends DefaultManifest implements OsgiManifest
     }
 
     private void setAnalyzerProperties(Analyzer analyzer) throws IOException {
+        analyzer.setProperty(Analyzer.BUNDLE_VERSION, getVersion());
+        analyzer.setProperty(Analyzer.BUNDLE_NAME, getName());
+        analyzer.setProperty(Analyzer.BUNDLE_SYMBOLICNAME, getSymbolicName());
+
         for (Map.Entry<String, Object> attribute : getAttributes().entrySet()) {
             String key = attribute.getKey();
             if (!"Manifest-Version".equals(key)) {
