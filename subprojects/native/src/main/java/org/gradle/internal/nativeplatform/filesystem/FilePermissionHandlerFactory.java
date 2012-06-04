@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 
 public class FilePermissionHandlerFactory {
 
@@ -57,6 +58,7 @@ public class FilePermissionHandlerFactory {
         }
     }
 
+
     private static class LibcChmod implements ComposableFilePermissionHandler.Chmod {
         private final LibC libc;
 
@@ -65,11 +67,30 @@ public class FilePermissionHandlerFactory {
         }
 
         public void chmod(File f, int mode) throws IOException {
-            try{
-                libc.chmod(f.getAbsolutePath(), mode);
-            }catch(LastErrorException exception){
+            try {
+                byte[] encodedFilePath = getEncodedFilePath(f);
+                libc.chmod(encodedFilePath, mode);
+            } catch (LastErrorException exception) {
                 throw new IOException(String.format("Failed to set file permissions %s on file %s. errno: %d", mode, f.getName(), exception.getErrorCode()));
             }
+        }
+
+        private byte[] getEncodedFilePath(File f) {
+            byte[] encoded;
+            if (!OperatingSystem.current().isMacOsX()) {
+                encoded =  f.getAbsolutePath().getBytes();
+            } else {
+                try {
+                    encoded = f.getAbsolutePath().getBytes("utf-8");
+                } catch (UnsupportedEncodingException e) {
+                    LOGGER.warn(String.format("Failed to encode file path %s as utf-8. Using default encoding %s", f.getAbsolutePath(), System.getProperty("file.encoding")));
+                    encoded = f.getAbsolutePath().getBytes();
+                }
+            }
+            byte[] zeroTerminatedByteArray = new byte[encoded.length + 1];
+            System.arraycopy(encoded, 0, zeroTerminatedByteArray, 0, encoded.length);
+            zeroTerminatedByteArray[encoded.length] = 0;
+            return zeroTerminatedByteArray;
         }
     }
 
@@ -78,3 +99,4 @@ public class FilePermissionHandlerFactory {
         }
     }
 }
+
