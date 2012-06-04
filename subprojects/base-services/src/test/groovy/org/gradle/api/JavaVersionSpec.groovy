@@ -150,4 +150,20 @@ public class JavaVersionSpec extends Specification {
         JavaVersion.current().java6Compatible
         JavaVersion.current().java7Compatible
     }
+
+    def "uses system property to determine if compatible with Java 8"() {
+        System.properties['java.version'] = '1.8'
+
+        expect:
+        !JavaVersion.current().java5
+        !JavaVersion.current().java6
+        !JavaVersion.current().java7
+        JavaVersion.current().java8
+
+        and:
+        JavaVersion.current().java5Compatible
+        JavaVersion.current().java6Compatible
+        JavaVersion.current().java7Compatible
+        JavaVersion.current().java8Compatible
+    }
 }

@@ -83,6 +83,10 @@ public enum JavaVersion {
         return this == VERSION_1_7;
     }
 
+    private boolean isJava8() {
+        return this == VERSION_1_8;
+    }
+
     public boolean isJava5Compatible() {
         return isJava5() || isJava6Compatible();
     }
@@ -92,7 +96,11 @@ public enum JavaVersion {
     }
 
     public boolean isJava7Compatible() {
-        return isJava7();
+        return isJava7() || isJava8Compatible();
+    }
+
+    public boolean isJava8Compatible() {
+        return isJava8();
     }
 
     @Override
