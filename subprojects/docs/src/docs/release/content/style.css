@@ -104,6 +104,16 @@ img.logo {
 }
 
 section.major-detail {
-  margin-right: 1em;
+  margin-left: 0.5em;
+  padding-left: 1em;
+  border-left: 2px solid #999;
+  font-size: 14px;
+}
+
+section.minor-detail {
+  margin-left: 0.5em;
+  padding-left: 1em;
+  border-left: 2px solid #999;
+  font-size: 14px;
 }
 
