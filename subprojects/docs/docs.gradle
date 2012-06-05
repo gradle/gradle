@@ -357,10 +357,16 @@ task decorateReleaseNotes(type: Jsoup) {
     apply from: "release-notes-transform.gradle"
 }
 
+import org.apache.tools.ant.filters.*
 task releaseNotes(type: Copy) {
     into "$buildDir/release-notes/final"
+    from "src/docs/release/content"
     from decorateReleaseNotes, {
         rename ".+", "index.html"
+        def child = delegate
+        doFirst {
+            child.filter(ReplaceTokens, tokens: [version: project.version.toString()])
+        }
     }
 }
 

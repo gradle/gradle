@@ -2,8 +2,12 @@ import org.jsoup.nodes.Element
 import org.jsoup.select.Elements
 
 decorateReleaseNotes {
+    ext.headHtml = file("src/docs/release/head.html").getText("utf-8")
+    inputs.property("headHtml", headHtml)
+    
     transform {
         outputSettings().indentAmount(2).prettyPrint(true)
+        head().append(headHtml)
     }
     
     // wrap each h2 section in section.topic
@@ -87,8 +91,7 @@ decorateReleaseNotes {
     transform {
         for (heading in body().select("h2,h3,h4")) {
             def anchorName = heading.text().toLowerCase().replaceAll(' ', '-')
-            heading.before("<a/>").previousElementSibling().attr("name", anchorName).html(heading.outerHtml())
-            heading.remove()
+            heading.prepend("<a name='$anchorName' class='anchor' href='#$anchorName'><span class='mini-icon mini-icon-link'></span></a>")
         }
     }
     
@@ -97,7 +100,7 @@ decorateReleaseNotes {
         def topics = [:]
         for (topicHeading in body().select("h2")) {
             def name = topicHeading.text()
-            def anchor = topicHeading.parent().attr("name")
+            def anchor = topicHeading.children().first().attr("name")
             topics[name] = anchor
         }
         
@@ -109,5 +112,11 @@ decorateReleaseNotes {
         topics.each { name, anchor ->
             list.append("<li><a href='#$anchor'>$name</a></li>")
         }
+    }
+    
+    // Add the heading
+    transform {
+        body().prepend("<h1>@version@ Release Notes</h1>")
+        body().prepend("<img class='logo' src='logo.gif' />")
     }
 }
