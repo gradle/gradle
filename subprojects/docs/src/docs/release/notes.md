@@ -94,11 +94,11 @@ Reduced number of HTTP requests, started caching absence of artefacts, improved 
 
 Gradle 1.0 includes a number of new code quality integrations.
 
-* Sonar support
-* FindBugs plugin
-* JDepend plugin
-* PMD plugin
-* Separate Checkstyle and CodeNarc plugins. Can specify which version of the tool to use.
+* Sonar support <p>Using the sonar plugin, Gradle user can now integrate there build results easily with Sonar, the web based platform for monitoring code quality. The <a href="http://gradle.org/docs/current/userguide/sonar_plugin.html">userguide</a> contains a detailed description how to setup and configure the Sonar support.</p>
+* FindBugs plugin <p><a href="http://findbugs.sourceforge.net/">FindBugs</a> is a program which uses static analysis to look for bugs in Java code. The FindBugs plugin adds a task for every source set to scan the Java bytecode for a list of bug patterns. You can find more details about the FindBugs plugin in the <a href="http://gradle.org/docs/current/userguide/findbugs_plugin.html">userguide</a>. 
+* JDepend plugin <p>The JDepend plugin enables the user to generate design quality metrics. Therefore it adds Gradle tasks that analyze all inter-package dependencies of a source set and create an according report. The JDepend plugin is described in detail in the Gradle <a href="http://gradle.org/docs/current/dsl/org.gradle.api.plugins.quality.JDepend.html">userguide</a>.</p>
+* PMD plugin <p>The popular PMD project is designed to inspect Java source code and point out inefficient structures. The plugin introduces PMD Gradle tasks that can be configured in different ways. As a default, the plugin adds one pmd task for each defined source set. Details about the configuration of the PMD plugin can be found in the <a href="http://gradle.org/docs/current/userguide/pmd_plugin.html">userguide.</a></p>
+* Separate Checkstyle and CodeNarc plugins. <p>As a gradle user you can now apply the Checkstyle and the CodeNarc plugins seperately. Furthermore you can now specify which version of the tool to use. You need more details? Have a look at the <a href="http://gradle.org/docs/current/userguide/checkstyle_plugin.html">Checkstyle</a> and <a href="http://gradle.org/docs/current/userguide/codenarc_plugin.html">CodeNarc</a> chapter of the Gradle userguide.</p>
 
 ### IDE integration
 
