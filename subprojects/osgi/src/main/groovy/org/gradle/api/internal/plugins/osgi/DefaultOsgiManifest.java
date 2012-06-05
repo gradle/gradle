@@ -75,10 +75,6 @@ public class DefaultOsgiManifest extends DefaultManifest implements OsgiManifest
     }
 
     private void setAnalyzerProperties(Analyzer analyzer) throws IOException {
-        analyzer.setProperty(Analyzer.BUNDLE_VERSION, getVersion());
-        analyzer.setProperty(Analyzer.BUNDLE_NAME, getName());
-        analyzer.setProperty(Analyzer.BUNDLE_SYMBOLICNAME, getSymbolicName());
-
         for (Map.Entry<String, Object> attribute : getAttributes().entrySet()) {
             String key = attribute.getKey();
             if (!"Manifest-Version".equals(key)) {
@@ -89,6 +85,15 @@ public class DefaultOsgiManifest extends DefaultManifest implements OsgiManifest
         if (!instructionNames.contains(Analyzer.IMPORT_PACKAGE)) {
             analyzer.setProperty(Analyzer.IMPORT_PACKAGE,
                     "*, !org.apache.ant.*, !org.junit.*, !org.jmock.*, !org.easymock.*, !org.mockito.*");
+        }
+        if(!instructionNames.contains(Analyzer.BUNDLE_VERSION)){
+            analyzer.setProperty(Analyzer.BUNDLE_VERSION, getVersion());
+        }
+        if(!instructionNames.contains(Analyzer.BUNDLE_NAME)){
+            analyzer.setProperty(Analyzer.BUNDLE_NAME, getName());
+        }
+        if(!instructionNames.contains(Analyzer.BUNDLE_SYMBOLICNAME)){
+            analyzer.setProperty(Analyzer.BUNDLE_SYMBOLICNAME, getSymbolicName());
         }
         if (!instructionNames.contains(Analyzer.EXPORT_PACKAGE)) {
             analyzer.setProperty(Analyzer.EXPORT_PACKAGE, "*;-noimport:=false;version=" + getVersion());
