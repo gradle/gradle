@@ -24,6 +24,8 @@ import org.gradle.build.GenerateReleasesXml
 import org.gradle.internal.os.OperatingSystem
 
 apply plugin: 'base'
+apply plugin: 'pegdown'
+apply plugin: 'jsoup'
 
 configurations {
     userGuideStyleSheets
@@ -333,6 +335,22 @@ task docs {
 
 task docsZip(type: Zip) {
     from project.outputs.docs
+}
+
+import org.gradle.plugins.pegdown.PegDown
+import org.gradle.plugins.jsoup.Jsoup
+
+task releaseNotesMarkdown(type: PegDown) {
+    source "src/docs/release/notes.md"
+    destination "$buildDir/release-notes/notes.html"
+}
+
+task decorateReleaseNotes(type: Jsoup) {
+    source releaseNotesMarkdown
+    destination "$buildDir/release-notes/notes-decorated.html"
+    
+    inputs.file "release-notes-transform.gradle"
+    apply from: "release-notes-transform.gradle"
 }
 
 class Xhtml2Pdf extends DefaultTask {
