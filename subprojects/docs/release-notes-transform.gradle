@@ -97,20 +97,27 @@ decorateReleaseNotes {
     
     // Add the TOC
     transform {
-        def topics = [:]
-        for (topicHeading in body().select("h2")) {
-            def name = topicHeading.text()
-            def anchor = topicHeading.children().first().attr("name")
-            topics[name] = anchor
-        }
-        
         def tocSection = body().select("section.topic").first().before("<section class='table-of-contents'/>").previousElementSibling()
         tocSection.append("<h2>Table Of Contents</h2>")
-        tocSection.append("<ul>")
-        def list = tocSection.children().last()
+        def toc = tocSection.append("<ul class='toc'/>").children().last()
         
-        topics.each { name, anchor ->
-            list.append("<li><a href='#$anchor'>$name</a></li>")
+        for (topic in body().select(".topic")) {
+            def topicHeading = topic.select("h2").first()
+            def name = topicHeading.text()
+            def anchor = topicHeading.children().first().attr("name")
+            
+            toc.append("<li><a href='#$anchor'>$name</a></li>").children().last()
+            
+            def subs = topic.select("h3")
+            if (subs) {
+                def sublist = toc.append("<ul class='toc-sub'/>").children().last()
+                subs.each {
+                    def subName = it.text()
+                    def subAnchorName = it.children().first().attr("name")
+                    sublist.append("<li><a href='#$subAnchorName'>$subName</a></li>")
+                }
+            }
+            
         }
     }
     

@@ -117,3 +117,7 @@ section.minor-detail {
   font-size: 14px;
 }
 
+ul.toc-sub {
+  margin-bottom: 0px;
+}
+
