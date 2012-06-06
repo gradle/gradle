@@ -64,6 +64,7 @@ The configuration code for a project, including applied scripts and plugins, can
 * Cannot use inherited properties and methods.
 * Cannot use inherited script class path.
 * Cannot use project dependencies.
+* Cannot use TaskDependency.getDependencies(Task).
 
 In addition, configuration code cannot make assumptions about the ordering of project configuration:
 
