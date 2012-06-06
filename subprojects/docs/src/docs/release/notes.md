@@ -179,7 +179,11 @@ Init script enables to apply specific configurations to the root project, or eve
 
 ### C++ support
 
-Gradle C++ support includes: UNIX, Mac, Windows, gcc/mingw and visual studio.
+Gradle 1.0 includes preliminary [support for building C++ based projects](http://gradle.org/docs/current/userguide/cpp.html) on both Windows and UNIX like platforms. The `cpp-exe` and `cpp-lib` plugins can be used for building native executables and libraries respectively from C++ source code. These plugins are in the early stages of development, but can already be used to generate native binaries.
+
+Currently, there is no direct support for creating multiple variants of the same binary (e.g. 32 bit vs. 64 bit) and there is no direct support for cross platform source configuration (à la autoconf) at this time. Support for different compiler chains, managing multiple variants and cross platform source configuration will be added over time, making Gradle a fully capable build tool for C++ (and other “native” language) projects.
+
+The Gradle development team would like to encourage all users interested in C++ support to experiment with the existing functionality and provide feedback via the [Gradle Forums](http://forums.gradle.org/).
 
 ### Even more plugins and simpler build scripts
 
