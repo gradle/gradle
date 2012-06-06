@@ -195,9 +195,67 @@ Gradle knows new types of projects: new plugins include support for building c++
 * Test output improvements: new JUnit report and an option to log output to the console.
 * --continue command line option gives better control over the execution of the build.
 
-## Migration
+## Migrating from Gradle 1.0-milestone-9
 
-See the <a href="gradle-1.0-migration-guide">Gradle 1.0 migration guide</a>.
+Please let us know if you encounter any issues during the upgrade to Gradle 1.0, that are not listed below.
+
+### Deprecations
+
+#### Command Line Options
+
+##### <code>--cache</code>
+
+The command line option <code>--cache</code> has been deprecated. Use <code>--recompile-scripts</code> or <code>--rerun-tasks</code> instead.
+
+##### <code>--no-opt</code>
+
+The command line option <code>--no-opt</code> has been deprecated. Use <code>--rerun-tasks</code> instead.
+
+##### <code>--refresh</code>
+
+The command line option <code>--refresh</code> has been deprecated. Use <code>--refresh-dependencies</code> instead.
+
+#### API classes and methods
+
+##### <code>Jvm</code></h5>
+
+The class <code>org.gradle.util.Jvm</code> has been deprecated.
+
+##### <code>StartParameter</code></h5>
+
+The method <code>getCacheUsage()</code> has been deprecated. Use <code>isRecompileScripts()</code> and/or <code>isRerunTasks()</code> instead.
+
+The method <code>setCacheUsage()</code> has been deprecated. Use <code>setRecompileScripts(boolean)</code> and/or <code>setRerunTasks(boolean)</code> instead.
+
+The method <code>setRefreshOptions(RefreshOptions)</code> has been deprecated. Use <code>setRefreshDependencies(boolean)</code> instead.
+
+The method <code>getRefreshOptions()</code> has been deprecated. Use <code>isRefreshDependencies()</code> instead.
+
+The method <code>setNoOpt(boolean)</code> has been deprecated. Use <code>setRerunTasks(boolean)</code> instead.
+
+The method <code>isNoOpt()</code> has been deprecated. Use <code>isRerunTasks()</code> instead.
+
+##### <code>RefreshOptions</code>
+
+The class <code>org.gradle.RefreshOptions</code> has been deprecated.
+
+##### <code>CacheUsage</code>
+
+The class <code>org.gradle.CacheUsage</code> has been deprecated.
+
+### Potential breaking changes
+
+#### Classpath changes for test process
+
+The way we construct classpath for the JVM used to run tests has changed, to allow us to properly support running 
+tests with <code>-javaagent</code> or <code>-Djava.security.manager</code>. We don't expect this will cause any 
+problems and your tests should continue to run just fine.
+
+#### Groovy compiler integration
+
+We have introduced a new Groovy compiler integration in Gradle 1.0. This integration is much faster than the old 
+Ant-task based integration, particularly for multi-project builds. We don't expect this will cause any problems 
+and your code should continue to compile and run just fine.
 
 ## JIRA issues
 
