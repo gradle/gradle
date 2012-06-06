@@ -61,13 +61,12 @@ decorateReleaseNotes {
     transform {
         for (heading in body().select(".topic").first().select("h3")) {
             def detail = []
+            
             Element next = heading.nextElementSibling()
-
-            if (next == null || next.tagName() ==~ /h[123]/) {
-                break
+            while (next != null && next.tagName() != "h4") {
+                next = next.nextElementSibling()
             }
-
-            next = next.nextElementSibling()
+            
             while (true) {
                 if (next == null || next.tagName() ==~ /h[123]/) {
                     break
