@@ -81,7 +81,7 @@ caption {background:#eee;}
 body { 
   font-size: 16px; 
   font-family: 'Lato', Arial, serif;
-  margin: 2em;
+  margin: 2em 2em 1em;
   color: #333;
 }
 
@@ -122,3 +122,18 @@ ul.toc-sub {
   margin-bottom: 0px;
 }
 
+button.display-toggle {
+  cursor: pointer;
+}
+
+h1,h2,h3,h4,h5 {
+  text-shadow: #999 1px 1px 1px;
+}
+
+section.footer {
+  font-size: 75%;
+  margin: 6em 0 0;
+  padding-top: 1em;
+  border-top: 1px dashed #999;
+  text-align: center;
+}
