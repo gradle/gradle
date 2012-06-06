@@ -1,4 +1,16 @@
 $(function() {
+  function elementInViewport(el) {
+    var rect = el.getBoundingClientRect();
+
+    return (
+      rect.top >= 0 &&
+      rect.left >= 0 &&
+      rect.bottom <= window.innerHeight &&
+      rect.right <= window.innerWidth 
+    );
+  }
+  
+  
   $("section.major-detail").each(function() {
     var section = $(this);
     section.hide();
@@ -12,11 +24,13 @@ $(function() {
           button.text(hiding ? "Show more information…" : "Show less information");
         });
       };
-
-      if (hiding) {
+      
+      var header = section.prevAll("h3:first");
+      
+      if (hiding && !elementInViewport(header.get(0))) {
         var i = 0;
         $('html,body').animate({
-          scrollTop: section.prevAll("h3:first").offset().top
+          scrollTop: header.offset().top
         }, "fast", "swing", function() {
           if (++i == 2) {
             toggle();
