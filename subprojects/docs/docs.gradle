@@ -63,7 +63,7 @@ outputs.distDocs = files(distDocsDir) {
     builtBy 'distDocs'
 }
 outputs.docs = files(docsDir) {
-    builtBy 'javadoc', 'groovydoc', 'userguide', 'dslHtml'
+    builtBy 'javadoc', 'groovydoc', 'userguide', 'dslHtml', 'releaseNotes'
 }
 
 tasks.withType(Docbook2Xhtml) {
@@ -346,7 +346,7 @@ task editReleaseNotes() << {
 
 task releaseNotesMarkdown(type: PegDown) {
     source "src/docs/release/notes.md"
-    destination "$buildDir/release-notes/notes.html"
+    destination "$buildDir/release-notes/notes-raw.html"
 }
 
 task decorateReleaseNotes(type: Jsoup) {
@@ -359,19 +359,18 @@ task decorateReleaseNotes(type: Jsoup) {
 
 import org.apache.tools.ant.filters.*
 task releaseNotes(type: Copy) {
-    into "$buildDir/release-notes/final"
-    from "src/docs/release/content"
+    ext.fileName = "release-notes.html"
+    into "$docsDir"
     from decorateReleaseNotes, {
-        rename ".+", "index.html"
-        def child = delegate
+        rename ".+", "release-notes.html"
         doFirst {
-            child.filter(ReplaceTokens, tokens: [version: project.version.toString()])
+            owner.filter(ReplaceTokens, tokens: [version: project.version.toString()])
         }
     }
 }
 
 task viewReleaseNotes(dependsOn: releaseNotes) << {
-    new java.awt.Desktop().browse(new File(releaseNotes.destinationDir, "index.html").toURI())
+    new java.awt.Desktop().browse(new File(releaseNotes.destinationDir, releaseNotes.fileName).toURI())
 }
 
 class Xhtml2Pdf extends DefaultTask {

@@ -34,7 +34,7 @@ dependencies {
     testCompile 'org.spockframework:spock-core:0.6-groovy-1.8@jar', 'cglib:cglib-nodep:2.2', 'org.objenesis:objenesis:1.2'
 
     compile "org.pegdown:pegdown:1.1.0"
-    compile "org.jsoup:jsoup:1.6.1"
+    compile "org.jsoup:jsoup:1.6.3"
 }
 
 configurations {
