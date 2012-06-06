@@ -16,6 +16,9 @@ decorateReleaseNotes {
     
     transform {
         outputSettings().indentAmount(2).prettyPrint(true)
+        
+        prependChild(new org.jsoup.nodes.DocumentType("html", "", "", ""))
+
         head().
             append("<meta charset='utf-8'>").
             append("<title>Gradle @version@ Release Notes</title>")
@@ -26,8 +29,8 @@ decorateReleaseNotes {
         
         head().append("<style/>").children().last().text(styleText)
         
-        head().append("<script type='text/javascript' charset='utf-8'>1;</script>").children().last().childNode(0).attr("data", jqueryFile.text)
-        head().append("<script type='text/javascript' charset='utf-8'>1;</script>").children().last().childNode(0).attr("data", scriptFile.text)
+        head().append("<script type='text/javascript'>1;</script>").children().last().childNode(0).attr("data", jqueryFile.text)
+        head().append("<script type='text/javascript'>1;</script>").children().last().childNode(0).attr("data", scriptFile.text)
     }
     
     // wrap each h2 section in section.topic
@@ -110,7 +113,7 @@ decorateReleaseNotes {
     transform {
         for (heading in body().select("h2,h3,h4")) {
             def anchorName = heading.text().toLowerCase().replaceAll(' ', '-')
-            heading.prepend("<a name='$anchorName' class='anchor' href='#$anchorName'><span class='mini-icon mini-icon-link'></span></a>")
+            heading.attr("id", anchorName)
         }
     }
     
@@ -123,16 +126,16 @@ decorateReleaseNotes {
         for (topic in body().select(".topic")) {
             def topicHeading = topic.select("h2").first()
             def name = topicHeading.text()
-            def anchor = topicHeading.children().first().attr("name")
+            def anchor = topicHeading.attr("id")
             
             toc.append("<li><a href='#$anchor'>$name</a></li>").children().last()
             
             def subs = topic.select("h3")
             if (subs) {
-                def sublist = toc.append("<ul class='toc-sub'/>").children().last()
+                def sublist = toc.children().last().append("<ul class='toc-sub'/>").children().last()
                 subs.each {
                     def subName = it.text()
-                    def subAnchorName = it.children().first().attr("name")
+                    def subAnchorName = it.attr("id")
                     sublist.append("<li><a href='#$subAnchorName'>$subName</a></li>")
                 }
             }
@@ -143,7 +146,7 @@ decorateReleaseNotes {
     // Add the heading
     transform {
         body().prepend("<h1>@version@ Release Notes</h1>")
-        body().prepend("<img class='logo' src='data:image/gif;base64,${logoFile.bytes.encodeBase64()}' />")
+        body().prepend("<img class='logo' alt='Gradle Logo' src='data:image/gif;base64,${logoFile.bytes.encodeBase64()}' />")
     }
     
     // Add the footer

@@ -148,8 +148,6 @@ Some builds consume the standard input, for example, to perform the interaction 
 The java version the daemon uses is configurable. In case you run different builds with different java versions multiple daemons will get spawned to avoid compatibility issues.
 
 #### <a href="http://gradle.org/docs/current/userguide/userguide_single.html#sec:gradle_configuration_properties">Configurable</a> via gradle.properties and system properties.
-            
-#### Can specify JVM args and java version to use.
 
 #### Non-daemon build honours settings too.
 
