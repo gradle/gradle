@@ -126,10 +126,6 @@ button.display-toggle {
   cursor: pointer;
 }
 
-h1,h2,h3,h4,h5 {
-  text-shadow: #999 1px 1px 1px;
-}
-
 section.footer {
   font-size: 75%;
   margin: 6em 0 0;
