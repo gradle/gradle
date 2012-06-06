@@ -14,14 +14,14 @@ $(function() {
   $("section.major-detail").each(function() {
     var section = $(this);
     section.hide();
-    var buttonParagraph = $("<p><button class='display-toggle'>Show more information…</button></p>").insertAfter(section);
+    var buttonParagraph = $("<p><button class='display-toggle'>More »</button></p>").insertAfter(section);
     buttonParagraph.find("button").click(function() {
       var button = $(this);
       var hiding = section.is(":visible");
 
       var toggle = function() {
         section.slideToggle("slow", function() {
-          button.text(hiding ? "Show more information…" : "Show less information");
+          button.text(hiding ? "More »" : "« Less");
         });
       };
       
