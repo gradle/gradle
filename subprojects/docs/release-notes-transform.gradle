@@ -59,7 +59,7 @@ decorateReleaseNotes {
     // wrap all content after the first element after a h3 (up to the next same level heading)
     // in a section.major-detail block
     transform {
-        for (heading in body().select("h3")) {
+        for (heading in body().select(".topic").first().select("h3")) {
             def detail = []
             Element next = heading.nextElementSibling()
 
