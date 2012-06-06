@@ -111,7 +111,7 @@ decorateReleaseNotes {
     
     // add anchors for all of the headings
     transform {
-        for (heading in body().select("h2,h3,h4")) {
+        for (heading in body().select("h2,h3")) {
             def anchorName = heading.text().toLowerCase().replaceAll(' ', '-')
             heading.attr("id", anchorName)
         }
