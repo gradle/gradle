@@ -19,12 +19,6 @@ apply plugin: 'eclipse'
 
 repositories {
     mavenCentral()
-//    mavenRepo(urls: 'http://snapshots.repository.codehaus.org/')
-    ivy {
-        name = 'jfrog'
-        artifactPattern('http://repo.jfrog.org/artifactory/gradle-plugins-snapshots/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]')
-//        artifactPattern('http://repo.jfrog.org/artifactory/gradle-ivy-local/[organisation]/[module]/ivy-[revision].xml')
-    }
 }
 
 dependencies {
@@ -35,18 +29,18 @@ dependencies {
     compile "org.codehaus.groovy:groovy:1.8.4"
     compile "commons-codec:commons-codec:1.2"
     testCompile 'junit:junit:4.8.2'
-    runtime 'com.esotericsoftware:kryo:1.03', 'com.esotericsoftware:minlog:1.2', 'com.googlecode:reflectasm:1.01'
+    runtime 'com.googlecode:reflectasm:1.01'
 }
 
 test {
     jvmArgs '-XX:MaxPermSize=512m', '-XX:+HeapDumpOnOutOfMemoryError'
-//    testReport = false
+    testReport = false
 }
 
 <% if (groovyProject) { %>
 apply plugin: 'groovy'
 dependencies {
-    groovy 'org.codehaus.groovy:groovy-all:1.8.4'
+    groovy 'org.codehaus.groovy:groovy:1.8.4'
 }
 <% } %>
 
