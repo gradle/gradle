@@ -4,261 +4,301 @@ Gradle 1.0 is a major step forward in the evolution of Gradle, and build tools i
 
 Here are the new features introduced in Gradle 1.0, including the changes in all of the milestones.
 
-### Fast, accurate and powerful dependency management
+### Powerful dependency management
+Dependency management is at the heart of every build. In Gradle 1.0 we've moved away from using Ivy for dependency resolution. The dependency resolution engine has been rebuilt from the ground up; it is now faster, more accurate and more flexible.
 
-Dependency management is at the heart of every build. Gradle 1.0 we've rebuilt the artifact cache and dependency resolution engine so that dependency resolution is much faster, while giving more accurate results to avoid subtle (and not so subtle) problems, such as non-repeatable builds that work on one developer's machine, but not some other developer's machine.
+With full DSL support for Maven and Ivy repository formats, combined with offline support, the ability to refresh dependencies, and better control over version conflict resolution, we feel that Gradle 1.0 raises the bar for dependency management in build automation. We will continue to innovate in this space, with plans to take the dependency management that works so well for Java and adapt it to other languages and technologies.
 
-#### Cache meta-data on a per repository basis
+#### Offline builds
 
-All meta-data and artefacts are cached per-repository, meaning that your build only has access to dependencies that are available in declared repositories.
+You're not always connected to a network; Gradle 1.0 helps you out when you're offline. When run with the [`--offline`](http://gradle.org/docs/nightly/userguide/userguide_single.html#sec:cache_command_line_options) command-line option, Gradle will use whatever cached dependencies are available, failing early if a required dependency is not available in the cache. For Maven snapshots, changing modules and dynamic versions the most recent cached result will be used; no attempt will be made to connect to the network for dependency resolution.
 
-This avoids issues that can arise where a build succeeds due to a dependency being available in the cache from a different repository.
+#### Validate and refresh dependencies
 
-#### Concurrency-safe cache
+When run with the [`--refresh-dependencies`](http://gradle.org/docs/nightly/userguide/userguide_single.html#sec:cache_command_line_options) command-line option, Gradle will validate all dependencies against the published repositories, and download anything that is not up-to-date. This process will also ensure that all required dependencies are available in a remote repository; just having the dependency in your local cache is not sufficient and will lead to a build failure. 
 
-The Gradle 1.0 dependency cache is fully thread-safe and mulitprocess-safe.
+The `--refresh-dependencies` option is particularly helpful when things go wrong with dependency resolution; like when you are setting up a new repository and you don't get it exactly right the first time. In such a case, being able to refresh all of your dependencies without deleting your cache directory can be very useful.
 
-#### Faster dependency resolution
+Dependency validation utilises the Gradle change detection algorithm for remote artefacts, which removes the need to re-download artefacts that have not changed.
 
-We've done a lot of work to make dependency resolution as fast as possible, while staying reproducible and accurate. We did this by:
+#### Better control over version conflict resolution
 
-* Greatly reducing the number of HTTP requests required to download a dependency</li>
-* Caching the absence of artefacts per repository, so we don't need to check on every resolve.</li>
-* Implementing a new resolve engine which is much faster and more maintainable than the previous ivy-based one.</li>
-* Improving the cache locking and lock escalation, to be as efficient as possible.</li>
+When your dependencies are resolved, the transitive dependency set may bring in conflicting versions of the same module. By default, Gradle's [conflict resolution](http://gradle.org/docs/nightly/userguide/userguide_single.html#sub:version_conflicts) will use the newest version which is useful in most cases. Sometimes this isn't what you want, so Gradle 1.0 gives you control over the process by:
 
-#### Reuse previously downloaded artefacts from m2 and older Gradle caches
+* Declaring that your build should fail in the case of [version conflicts](http://gradle.org/docs/nightly/userguide/userguide_single.html#sub:version_conflicts). 
+* Forcing a particular module version into the dependency set. This can be done [per-dependency](http://gradle.org/docs/nightly/dsl/org.gradle.api.artifacts.dsl.DependencyHandler.html) or more commonly [per-configuration](http://gradle.org/docs/nightly/dsl/org.gradle.api.artifacts.ResolutionStrategy.html).
+* [Excluding](http://gradle.org/docs/nightly/userguide/userguide_single.html#exclude-dependencies) a particular module or version from the dependency set.
 
-If you're a maven user, in many cases you a dependency you require is already available in your local m2 repository. To save downloading the dependency again, Gradle will reuse any locally available artefacts if they match the checksums published by the remote repository.
-
-#### Improved change detection and reduced artifact downloads
-
-Gradle 1.0 has an improved algorithm for detecting if a cached artifact is up-to-date. By using published .sha1 files, ETags, and last-modified-date + content-length, Gradle will do everything it can to check if the version on the server is the same as the version you have already downloaded.
-
-#### Consistent caching for dynamic dependencies and changing modules.
-
-To improve performance, Gradle caches the resolution of dynamic versions and changing modules for 24 hours. You can easily manage this timeout using the <a href="http://gradle.org/docs/1.0/userguide/dependency_management.html#sec:controlling_caching">cache-control DSL</a>.
-
-#### Offline support
-
-When run with the `--offline` command-line option, Gradle will use whatever cached dependencies are available, failing early if a required dependency is not available in the cache.
-
-#### Refresh dependencies support
-
-When run with the `--refresh-dependencies` command-line option, Gradle will validate all dependencies against the repository, while still using it's change detection algorithm to avoid the need to re-download artefacts that have not changed.
-
-#### Stricter artifact resolution
-
-Gradle 1.0 will now fail if a required dependency is not available, rather than silently ignoring the fact.</p>
-
-#### Option to fail dependency resolution on conflict
-
-More control over the dependency resolution. By default Gradle uses newer version in case of the version conflict. Now it is possible to fail fast when a conflict occurs during dependency resolution.
-
-#### More accurate exclusions
-            
-#### Dependency resolution explained
-
-Sometimes dependency resolution is a black box. We've attempted to make it more understandable by improving the <a href="http://gradle.org/docs/1.0/userguide/dependency_management.html#sec:dependency_resolution">documentation</a>, log messages and error reporting.
-
-#### Can force a particular version of dependency
-
-Useful for resolving conflicts explicitly. Another use case is forcing a certain transitive dependency version. It is particularly useful if the transitive dependency is incorrectly published, i.e. wrong metadata, invalid binary, etc.
+The options for handling resolution conflicts will continue to improve, giving users of Gradle full customization of the conflict resolution behaviour.
 
 #### Improved repository definition DSL
 
-In Gradle 1.0, we've made it easier to declare basic Ivy and Maven repositories, and using the DSL for specifying your repository credentials is now simple and consistent.
+While it is still possible to supply an Ivy DependencyResolver to locate your dependencies, in Gradle 1.0 we've improved our [repository definition DSL](http://gradle.org/docs/nightly/userguide/userguide_single.html#sec:repositories) to make it easier to define the Ivy and Maven repositories you use for dependency resolution. Using the repository DSL to specify your repository type, location, layout and credentials is now simple and consistent.
 
 #### Publish artefacts other than archives
 
-#### More Information
+Gradle has always made it easy to publish the default artefacts generated by your build, but it was not always trivial to publish additional files that weren't generated in the usual way. Gradle 1.0 introduces the ability to [publish file-based artefacts](http://gradle.org/docs/nightly/userguide/userguide_single.html#N143A2) that are not produced by an archive task, simplifying the process of publishing arbitrary files to your repository.
 
-You can find out more in the <a href="http://gradle.org/docs/1.0/userguide/dependency_management.html#sec:dependency_resolution">User Guide chapter</a> and this series of forum posts: <a href="http://forums.gradle.org/gradle/topics/welcome_to_our_new_dependency_cache">part 1</a>, <a href="http://forums.gradle.org/gradle/topics/dependency_resolution_improvements">part 2</a>, and <a href="http://forums.gradle.org/gradle/topics/dependency_resolution_in_gradle_1_0_milestone_8">part 3</a>.
+#### Dependency resolution explained
+
+Sometimes dependency resolution is a black box to the end user. We've attempted to make the whole process more understandable by improving the [documentation](http://gradle.org/docs/nightly/userguide/dependency_management.html#sec:dependency_resolution), log messages and error reporting.
+
+We've improved logging of dependency resolution; running Gradle with `--info --refresh-dependencies` will track all remote repository requests, helping to shed light on what's going on behind the scenes.
+
+### Fast, accurate and reliable dependency cache
+
+In Gradle 1.0 we've replaced the ivy artifact cache with our own implementation, targetting performance, consistency and reliability. Our new cache has advanced features that help avoid subtle (and not so subtle) problems permitted by other cache implementations, where a build that runs correctly on one machine, fails on another.
+
+#### Origin aware
+The Gradle dependency cache remembers the origin of any particular dependency, so your build can only access cached dependencies that would be available in a repository defined for your build. It is not possible for the presence of a cached artefact to mask the fact that a dependency is not available, which helps to ensure that your build will run correctly in any environment.
+
+#### Concurrency-safe cache
+There is no longer any need to declare separate user home directories or cache locations for different projects; the Gradle 1.0 dependency cache is fully thread-safe and multiprocess-safe.
+
+#### Improved change detection and reduced artifact downloads
+
+To reduce the number of downloads required, Gradle 1.0 has an improved algorithm for detecting if a cached artifact is up-to-date. By using published .sha1 files, ETags, and last-modified-date + content-length, Gradle will do everything it can to check if the version on the server is the same as the version you have already downloaded.
+
+#### Reuse previously downloaded artefacts from m2 repository and older Gradle caches
+
+If you're a maven user, in many cases the dependency you require is already available in your local m2 repository. To save downloading the dependency again, Gradle will reuse any locally available artefacts if they match the checksums published by the remote repository.
+
+#### Consistent caching for dynamic dependencies and changing modules.
+
+To improve performance, by default Gradle 1.0 will cache the resolved value of dynamic versions and changing modules for 24 hours. You can easily manage this timeout using the [cache-control DSL](http://gradle.org/docs/nightly/userguide/dependency_management.html#sec:controlling_caching).
+
+The cache-control DSL is a work in progress; in the future Gradle will allow full programmatic control of all aspects of caching.
+
+#### More information
+
+You can find out more about the Gradle dependency cache in the [User Guide chapter](http://gradle.org/docs/nightly/userguide/dependency_management.html#sec:dependency_cache) and this series of forum posts: [part 1](http://forums.gradle.org/gradle/topics/welcome_to_our_new_dependency_cache), [part 2](http://forums.gradle.org/gradle/topics/dependency_resolution_improvements), and [part 3](http://forums.gradle.org/gradle/topics/dependency_resolution_in_gradle_1_0_milestone_8).
 
 ### Faster builds
 
-A fast build means faster feedback. Gradle 1.0 includes a host of performance improvements. We've made dependency resolution faster, in some cases many times faster. Faster dependency resolution also means faster up-to-date checks for speedy incremental builds.
+A fast build means faster feedback. Gradle 1.0 includes a host of performance improvements.
 
-The Gradle daemon is no longer experimental, and we recommend you use it for developer builds. The daemon is used automatically by the native IDE integrations to speed up the builds you run from the IDE.
+* Dependency resolution is faster, in some cases many times faster.
+* Gradle daemon enables developers to run builds faster.
+* Java and Groovy compilation run in less time.
+* Up-to-date checks are faster for large source sets.
 
-#### Dependency resolution is faster
-    
-Reduced number of HTTP requests, started caching absence of artefacts, improved the defaults for caching changing modules (snapshots) or dynamic versions, started reusing artefacts that were previously downloaded to maven local or other Gradle version's caches.
+We've also enhanced the Gradle profile report, which now includes dependency resolution times in an improved layout.
 
-#### Java and Groovy compilation is faster.
+#### Faster dependency resolution
+
+We've done a lot of work to make dependency resolution as fast as possible, while staying reproducible and accurate. 
+
+To do this we:
+
+* Greatly reduced the number of HTTP requests required to download a dependency.
+* Cache the absence of artefacts per repository, so we don't need to check on every resolve.
+* Implemented a new resolve engine which is much faster and more maintainable than the ivy-based one used previously.
+* Improved cache locking and lock escalation so that it is as efficient as possible and yet concurrency safe.
+* Reuse artefacts previously downloaded by Maven or an older version of Gradle.
+
+Faster dependency resolution also means faster up-to-date checks for speedy incremental builds.
+
+#### Improved Gradle daemon
+We've done a lot of work stabilising the [Gradle daemon](http://gradle.org/docs/nightly/userguide/gradle_daemon.html), and it is no longer marked as experimental. The Gradle daemon reduces the startup time of every `gradle` invocation, and we recommend it for all developer builds.
+
+#### Java and Groovy compilation is faster
+By default, Gradle 1.0 no longer uses Ant tasks for Java and Groovy compilation. By removing the task overhead, in-process compilation has been made faster.
+
+When configured to compile in a separate process (`compile.options.fork = true`), Gradle will now use a single daemon compiler process to further speed up the compilation of your source files. This means that the compile process only needs to be forked once per build invocation, dramatically reducing compile times for large multi-project builds.
+
 #### Up-to-date checks are faster for large source sets.
-#### Profile report includes dependency resolution times.
-#### Daemon: what is it? Read on the release notes or jump to the <a href="http://gradle.org/docs/current/userguide/gradle_daemon.html">user guide</a> for details.
+By reading cached history more efficiently for large set of input and outputs, Gradle 1.0 performs up-to-date checks faster for large sources sets. With faster up-to-date checks your incremental builds will be faster, reducing the time to re-build when little has changed.
 
-### Monitoring code quality
+#### Build profile report
+When run with the [`--profile`](http://gradle.org/docs/nightly/userguide/tutorial_gradle_command_line.html#sec:profiling_build) command-line option, Gradle will generate a report detailing the breakdown of time spent executing your build, including dependency resolution time. This report can provide hints about the critical things that slow down your build, helping you make your build faster.
 
-Gradle 1.0 includes a number of new code quality integrations.
+### Java code quality plugins
+Gradle has always provided great out-of-the-box support for standard Java applications. With Gradle 1.0 we've included a number of new code quality integrations to make it easy for you to include these important tools in your build process.
 
-* Sonar support <p>Using the sonar plugin, Gradle user can now integrate there build results easily with Sonar, the web based platform for monitoring code quality. The <a href="http://gradle.org/docs/current/userguide/sonar_plugin.html">userguide</a> contains a detailed description how to setup and configure the Sonar support.</p>
-* FindBugs plugin <p><a href="http://findbugs.sourceforge.net/">FindBugs</a> is a program which uses static analysis to look for bugs in Java code. The FindBugs plugin adds a task for every source set to scan the Java bytecode for a list of bug patterns. You can find more details about the FindBugs plugin in the <a href="http://gradle.org/docs/current/userguide/findbugs_plugin.html">userguide</a>. 
-* JDepend plugin <p>The JDepend plugin enables the user to generate design quality metrics. Therefore it adds Gradle tasks that analyze all inter-package dependencies of a source set and create an according report. The JDepend plugin is described in detail in the Gradle <a href="http://gradle.org/docs/current/dsl/org.gradle.api.plugins.quality.JDepend.html">userguide</a>.</p>
-* PMD plugin <p>The popular PMD project is designed to inspect Java source code and point out inefficient structures. The plugin introduces PMD Gradle tasks that can be configured in different ways. As a default, the plugin adds one pmd task for each defined source set. Details about the configuration of the PMD plugin can be found in the <a href="http://gradle.org/docs/current/userguide/pmd_plugin.html">userguide.</a></p>
-* Separate Checkstyle and CodeNarc plugins. <p>As a gradle user you can now apply the Checkstyle and the CodeNarc plugins seperately. Furthermore you can now specify which version of the tool to use. You need more details? Have a look at the <a href="http://gradle.org/docs/current/userguide/checkstyle_plugin.html">Checkstyle</a> and <a href="http://gradle.org/docs/current/userguide/codenarc_plugin.html">CodeNarc</a> chapter of the Gradle userguide.</p>
+Supported tools include:
+
+* Sonar
+* FindBugs
+* PMD
+* Checkstyle
+* CodeNarc
+
+#### Sonar plugin
+Using the [Gradle Sonar plugin]((http://gradle.org/docs/nightly/userguide/sonar_plugin.html), you can now easily integrate your build results with Sonar, the web based platform for monitoring code quality.
+
+#### FindBugs plugin 
+FindBugs uses static analysis to look for bugs in Java code. The [Gradle FindBugs plugin](http://gradle.org/docs/nightly/userguide/findbugs_plugin.html) adds a task for every source set to scan the Java bytecode for a list of bug patterns.
+
+#### JDepend plugin 
+JDepend allows you to easily generate design quality metrics, by analyzing the coupling between Java class files. The [Gradle JDepend plugin](http://gradle.org/docs/nightly/userguide/jdepend_plugin.html) adds Gradle tasks that analyze all inter-package dependencies of a source set, producing a report that can help you to find unexpected couplings, package dependency cycles, and refactoring targets.
+
+#### PMD plugin
+The popular PMD project provides tools to inspect Java source code looking for potential bugs, inefficiencies and duplication. The [Gradle PMD plugin](http://gradle.org/docs/nightly/userguide/pmd_plugin.html) adds a task that will produce a PMD report per defined source set. The plugin provides many configuration options, including the ability to define custom rulesets, and which version of PMD to use.
+
+#### Separate Checkstyle and CodeNarc plugins
+You can now apply the [Gradle Checkstyle plugin](http://gradle.org/docs/nightly/userguide/checkstyle_plugin.html) and the [Gradle CodeNarc plugin](http://gradle.org/docs/nightly/userguide/codenarc_plugin.html) separately to your build. Additionally, both of these plugins have been improved so that you can now specify exactly which version of each tool to use. 
 
 ### IDE integration
 
-There are now native integrations for Eclipse STS, Intellij IDEA and NetBeans. In addition, we've improved our IDE plugins to provide more configuration options, to have better defaults, to run faster and to smoothly lets you import the project into the IDE.
+Whether you develop code in Eclipse STS, Intellij IDEA or NetBeans, there is a native Gradle integration for your IDE. Using native IDE integrations you can import and run Gradle builds directly into your IDE, and keep your IDE settings in sync with your Gradle build definition. 
+While not strictly part of the Gradle distribution, these native integrations continually improve as Gradle provides more features via the Tooling API - the new embeddable API on which these integrations are based. 
 
-The native integrations continuously improve as Gradle provides more features via the Tooling API - the new embeddable API which all the integrations use. Using native Eclipse STS, Intellij IDEA and NetBeans integrations you can import and run Gradle builds directly into your IDE, and keep your IDE settings in sync with your Gradle build definition.
+If you don't require tight native integration, the Gradle IDE plugins help you by generating standard project files for your environment. We've improved these IDE plugins to provide more configuration options, to have better defaults, to run faster and to smoothly configure your IDE for your Gradle project.
 
-The IDE plugins have more configuration options and better defaults. The DSL reference for the idea and eclipse plugins contains lots of code samples. They demonstrate how to fine-tune the configuration and make sure the project imports easily into the IDE. Generating IDE metadata using Gradle's IDE plugins is also much faster now. 
+#### Gradle IDE plugins - generating project files for your IDE
 
-#### Gradle IDE plugins - generation of the importable IDE metadata.
+The new Gradle IDE plugins generate IDE project files based on the project defined in your Gradle build file.  The [Gradle Eclipse plugin](http://gradle.org/docs/nightly/userguide/userguide_single.html#eclipse_plugin) makes it easy to keep your .classpath and .project files in sync with your Gradle build, while the [Gradle IDEA plugin](http://gradle.org/docs/nightly/userguide/userguide_single.html#idea_plugin) does the same for your .ipr and .iml files. 
 
-DSL guide reference for <a href="http://gradle.org/docs/current/dsl/org.gradle.plugins.ide.idea.model.IdeaProject.html">idea</a> and <a href="http://gradle.org/docs/current/dsl/org.gradle.plugins.ide.eclipse.model.EclipseProject.html">eclipse</a> types contain lots of useful samples to fine-tune your IDE setup. The plugins are also described in the user guide: <a href="http://gradle.org/docs/current/userguide/userguide_single.html#idea_plugin">idea</a> and <a href="http://gradle.org/docs/current/userguide/userguide_single.html#eclipse_plugin">eclipse</a>.
+As usual with Gradle, you have full programmatic control of the generated model. The DSL reference for the [idea](http://gradle.org/docs/nightly/dsl/org.gradle.plugins.ide.idea.model.IdeaProject.html) and [eclipse](http://gradle.org/docs/nightly/dsl/org.gradle.plugins.ide.eclipse.model.EclipseProject.html) plugins contains many code samples, demonstrating how to fine-tune the configuration and ensure your project imports easily into the IDE. 
 
-#### Eclipse STS plugin includes <a href="http://static.springsource.org/sts/docs/latest/reference/html/gradle">Gradle support</a>
+#### Native Eclipse STS support
+You can now import Gradle projects and run Gradle builds directly inside of Eclipse, using the [Eclipse STS Gradle plugin](http://static.springsource.org/sts/docs/latest/reference/html/gradle). We are very grateful to our friends at SpringSource for making this possible, and we continue to collaborate to make this integration even better.
 
-#### <a href="http://www.jetbrains.com/idea/webhelp/gradle-2.html">IntelliJ IDEA plugin</a>.
-#### <a href="http://plugins.netbeans.org/plugin/41776/gradle">NetBeans plugin</a>.
+#### Native Intellij IDEA support
+Using the [Intellij IDEA Gradle plugin](http://www.jetbrains.com/idea/webhelp/gradle-2.html) you can easily import an existing Gradle project directly into Intellij IDEA, with many more features planned in the near future. Many thanks to JetBrains for their continued development of this plugin.
+
+#### Native NetBeans support (experimental)
+The [NetBeans Gradle plugin](http://plugins.netbeans.org/plugin/41776/gradle) provides the ability to import and run Gradle build files directly in NetBeans. Thanks to the NetBeans team for developing this plugin. 
+
+This NetBeans integration is still experimental, but we hope that by leveraging the power of the Gradle Tooling API the plugin will continue to evolve and improve in the future.
 
 ### Embedding Gradle via the Tooling API
 
-Gradle 1.0 saw the introduction of the Gradle tooling API, a new way to embed Gradle. This API allows you to execute and monitor builds, and to query Gradle about the details of the build. The API operates in a version independent way, meaning that with a given version of the Tooling API you will always be able to handle earlier or newer Gradle versions.
+Gradle 1.0 sees the introduction of the Gradle tooling API, a new way to embed Gradle. This API allows you to execute and monitor builds, and to query for details about the build. The Tooling API takes care of downloading the version of Gradle required to execute a particular build, and utilises the Gradle daemon process for lightning fast command execution.
 
-The tooling API implementation is lightweight, with only a small number of dependencies. You don't need the Gradle distribution to use the API. It is a well-behaved library, and makes no assumptions about your class loader structure or logging configuration. All above reasons make the API easy to bundle in your application.
+The Gradle Tooling API operates in a version independent manner, meaning that any given version of the Tooling API is able to execute builds using both newer and older Gradle versions. Your Gradle version isn't tied to the version of the Tooling API you're using, allowing tools like the native IDE plugins to remain stable while supporting a wide range of Gradle projects.
 
-The tooling API design aims to improve the quality of applications that embed it. The cross-version compatibility is constantly verified by our extensive test suite which validates the correctness of all Tooling API features across all Gradle versions. What's important, not only backwards compatibility is constantly verified but also forward compatibility.
+#### Easy to embed in your application
+The [Gradle Tooling API](http://gradle.org/docs/nightly/userguide/userguide_single.html#embedding) implementation is lightweight, with only a small number of dependencies. You don't need the Gradle distribution to use the Tooling API. Being a well-behaved library, it makes no assumptions about your class loader structure or logging configuration. These reasons ensure that the Gradle Tooling API is easy to bundle inside your application.
 
-For more information about the Tooling API please refer to <a href="http://gradle.org/docs/current/userguide/userguide_single.html#embedding">this section in the user guide</a>.
+#### Compatible with multiple Gradle versions
+Using the Gradle Tooling API allows you to execute builds using many different versions of Gradle: the version of the Tooling API is not tied to the version of Gradle executing.
+The tooling API design aims to improve the quality of applications that embed it. The cross-version compatibility is constantly verified by our extensive test suite which validates the correctness of all Tooling API features across all Gradle versions. What's important, not only backwards compatibility is constantly verified but also forward compatibility, so you'll be able to run a build using Gradle v1.1 even if you're using Tooling API v1.0.
 
 ### Gradle Build Daemon
 
-The Gradle build daemon aims to reduce the startup and execution time of builds, by running them in a long-running process. The <code>gradle</code> command becomes a client process that communicates with the daemon process. This way, you avoid the various startup costs and give the JVM an opportunity to optimize hotspots.
+The Gradle build daemon aims to reduce the startup and execution time of builds, by running them in a long-lived daemon process. The <code>gradle</code> command becomes a client process that communicates with the daemon process. By using the Gradle daemon, you can avoid various JVM startup costs and give the JVM an opportunity to optimize hotspots.
 
-In longer term, the daemon will offer even more features that improve the performance of the build. Preemptive up-to-date checks, dependency resolution or projects evaluation are just some of many planned features. The Tooling API - an official way to embed Gradle - fully takes advantage of the build daemon. For more information please refer to <a href="http://gradle.org/docs/current/userguide/userguide_single.html#gradle_daemon">this user guide chapter</a>.
+Gradle 1.0 brings a host of improvements to the daemon, and we now recommend it for all developer builds.
 
-In Gradle 1.0 the daemon is:
+#### Ready for prime-time
 
-#### No longer experimental.
+In earlier versions of Gradle, the daemon was considered an experimental feature. Much work has gone into stabilizing the daemon since Gradle 1.0-milestone-3 and we are now recommending it for all local builds. There are still many improvements planned in the upcoming Gradle releases, but we believe that most of the stability issues have been resolved. 
 
-The daemon was hardened since Gradle milestone-3 and finally it is recommended for local builds. There are still many improvements planned in the upcoming Gradle releases. The best way to start using the daemon is configuring the <a href="http://gradle.org/docs/current/userguide/userguide_single.html#sec:gradle_configuration_properties">org.gradle.daemon</a> property.
+While you can explicitly enable the daemon for a particular build execution with the `--daemon` command-line option, the best way to make the daemon your default is by configuring the [org.gradle.daemon](http://gradle.org/docs/nightly/userguide/userguide_single.html#sec:gradle_configuration_properties) property.
             
-#### Forwards client input.
+#### Forwards client input
 
-Some builds consume the standard input, for example, to perform the interaction with the user. The daemon fully supports those kinds of builds.
+Some builds consume the standard input, for example, to perform the interaction with the user. The daemon fully supports those kinds of builds, by directing the client input to the executing build process.
 
-#### Respects client java version.
+#### Respects client java version
 
 The java version the daemon uses is configurable. In case you run different builds with different java versions multiple daemons will get spawned to avoid compatibility issues.
 
-#### <a href="http://gradle.org/docs/current/userguide/userguide_single.html#sec:gradle_configuration_properties">Configurable</a> via gradle.properties and system properties.
-
-#### Non-daemon build honours settings too.
+#### Future plans
+Longer term, the daemon will offer even more features that improve the performance of the build. Performing up-to-date checks, dependency resolution and project evaluation pre-emptively are just some of many planned features. The Tooling API - an official way to embed Gradle - fully takes advantage of the build daemon.
 
 ### Enterprise scale
 
-Working at the enterprise scale means more than just a fast build. Gradle 1.0 adds some capabilities to help you push build logic and configuration out to developers, and across teams, in a controlled way. You can do this without having to visit every machine to make tweaks or install specific plugins.
+Working at the enterprise scale means more than just a fast build. Gradle 1.0 adds capabilities to help you push build logic and configuration out to developers, and across teams, in a controlled way.
 
-Gradle 1.0 allows you to assemble a custom distribution. This is a perfect way to bundle corporate plugins and reuse solutions to the common use cases found across teams in the organization. Below Gradle features are intended to improve the enterprise build environment:
+Gradle enables zero-configuration on the client side. Any necessary configuration, be it JVM args or repository definitions, can be specified per project, team or enterprise and stored in version control. Bundle these definitions into a corporate plugin and distribute with the Gradle wrapper for a powerful way to manage your enterprise build environment. No more complex wiki pages explaining how to configure the build on a new machine. No more wasted time due to false alarms caused by a development machine or CI job incorrectly configured.
 
-#### The Gradle <a href="http://gradle.org/docs/current/userguide/userguide_single.html#gradle_wrapper">wrapper</a>.
+Making it easy to administer the enterprise build environment was a core goal of Gradle 1.0. We will continue to innovate in this area in future releases.
 
-The wrapper is invaluable in a large team because it guarantees that particular Gradle version is used to execute builds. Consistent build environment means reproducible and maintainable automation. Wrapper automatically provides a required gradle distribution which makes it easy to execute builds on new environments, set up CI servers, etc.
+#### The Gradle wrapper
 
-#### Can specify JVM args and java version to use.
+The [Gradle wrapper](http://gradle.org/docs/nightly/userguide/userguide_single.html#gradle_wrapper) is invaluable in a large team to guarantee that a particular Gradle version is used to execute your build. This provides a consistent build environment, enabling reproducible and maintainable automation. 
 
-It is possible to explicitly configure the JVM args and the java location. This setting can be checked-in to the VCS and becomes a part of versioned build environment which increases to the maintainability and consistency of the development environment.
+The Gradle wrapper automatically downloads and installs the required Gradle distribution, just checkout the project from version control and run. No previous install of Gradle is required! Upgrading to a new version of Gradle is trivial with the wrapper. Increment the version number in your wrapper configuration script, and anyone running your build will automatically switch to use the new Gradle version.
 
-#### Bundling init scripts in the distribution.
+#### Define JVM arguments and Java version required to build your project
 
-The init script can be used to configure the standard corporate plugins or apply certain common conventions. This way it is very easy to use a particular standard plugin in a project that needs it without the hassle of configuring the build script classpath.
+In many cases your build will only execute on a particular java version, or with certain memory settings. Rather than having developers tweak their local environment to run your build, Gradle allows you to [explicitly configure the JVM args and Java location for your build](http://gradle.org/docs/nightly/userguide/build_environment.html). These settings can then be checked-in to version control and become part of a versioned build environment, improving the maintainability and consistency of the development environment.
 
-#### Init scripts DSL: rootProject { }, allprojects { }.
+The build environment configuration is honoured by both daemon and non-daemon build executions. However, when configuring build environment settings we strongly recommend the use of the Gradle daemon on development machines, to avoid the performance penalty of starting an additional JVM on each build execution.
 
-Init script enables to apply specific configurations to the root project, or even all projects. This way it is possible avoid duplication that comes with standardizing certain aspects of Gradle builds across teams.
+#### Use an init script to define common build components
+Using a [Gradle init script](http://gradle.org/docs/nightly/userguide/init_scripts.html), it is possible to configure standard plugins, define standard repositories or apply certain common conventions across a wide range of builds. This feature makes it easy to use a particular standard plugin in a project without the hassle of configuring the build script classpath.
 
-#### Automatically using init scripts from ~/.gradle/init.d directory.
+Init scripts are very flexible, and may be applied to a single build execution, to all builds run by a particular user, or to all builds executed by a particular Gradle installation. In Gradle 1.0 it is now possible to have [multiple init scripts](http://gradle.org/docs/nightly/userguide/init_scripts.html#N15350) specified, which will be applied to your build environment in a well-defined order.
+
+#### Assemble a custom Gradle distribution for the enterprise
+Many large organisations desire a consistent set of environments, rules or plugins to be applied to all builds in the enterprise. By constructing Gradle init scripts that specify these corporate standards and bundling these with a regular Gradle distribution, you can construct a build tool that specifically enables and enforces your corporate standards. When combined with the powerful distribution mechanism of the Gradle wrapper, a tailored Gradle install can enable you to provide build standardisation across the enterprise.
 
 ### C++ support
 
-Gradle 1.0 includes preliminary [support for building C++ based projects](http://gradle.org/docs/current/userguide/cpp.html) on both Windows and UNIX like platforms. The `cpp-exe` and `cpp-lib` plugins can be used for building native executables and libraries respectively from C++ source code. These plugins are in the early stages of development, but can already be used to generate native binaries.
+Gradle 1.0 includes preliminary [support for building C++ based projects](http://gradle.org/docs/nightly/userguide/cpp.html) on both Windows and UNIX like platforms. The `cpp-exe` and `cpp-lib` plugins can be used for building native executables and libraries respectively from C++ source code. 
 
-Currently, there is no direct support for creating multiple variants of the same binary (e.g. 32 bit vs. 64 bit) and there is no direct support for cross platform source configuration (à la autoconf) at this time. Support for different compiler chains, managing multiple variants and cross platform source configuration will be added over time, making Gradle a fully capable build tool for C++ (and other “native” language) projects.
+#### Current status
+These plugins are in the early stages of development, but can already be used to generate native binaries.
+
+Currently, there is no direct support for creating multiple variants of the same binary (e.g. 32 bit vs. 64 bit) and there is no direct support for cross platform source configuration (� la autoconf) at this time. Support for different compiler chains, managing multiple variants and cross platform source configuration will be added over time, making Gradle a fully capable build tool for C++ (and other "native" language) projects.
 
 The Gradle development team would like to encourage all users interested in C++ support to experiment with the existing functionality and provide feedback via the [Gradle Forums](http://forums.gradle.org/).
 
 ### Even more plugins and simpler build scripts
 
-Gradle is always committed to improve the development cycles. Hence new plugins, conventions and features that make the everyday use of Gradle more convenient. More plugins means more build-by-convention support, and less configuration and custom build logic.
+Gradle is committed to making it easier for you to develop software. We continue to add new plugins, conventions and features that make the everyday use of Gradle more convenient. More plugins means more build-by-convention support, reduced configuration and less custom build logic.
 
-Gradle knows new types of projects: new plugins include support for building c++ libraries and executables, applications that run on the JVM, and EARs. Gradle 1.0 also includes numerous improvements to the build DSL and lots of new features that make the builds simpler and easier to maintain. Better error messages, more documentation and samples streamlines any troubleshooting.
+Gradle now supports several different types of projects: plugins include support for building:
 
-* C++ plugin: UNIX, Mac, Windows, gcc/mingw and visual studio.
-* Application plugin.
-* Signing plugin.
-* Ear plugin.
-* Build announcements plugin.
-* Test output improvements: new JUnit report and an option to log output to the console.
-* --continue command line option gives better control over the execution of the build.
+* C++ libraries and executables
+* Applications that run on the JVM
+* Java EE Web applications
+* Java EE Enterprise applications
 
-## Migrating from Gradle 1.0-milestone-9
+Gradle 1.0 also includes numerous improvements to the build DSL and new features to make your build simpler and easier to maintain. 
 
-Please let us know if you encounter any issues during the upgrade to Gradle 1.0, that are not listed below.
+#### Application plugin
 
-### Deprecations
+The [Application plugin](http://gradle.org/docs/nightly/userguide/application_plugin.html) simplifies the creation of executable JVM based applications. You can use it to run your application directly from your Gradle build, and it will bundle your application for distribution. The packaged application includes automatically generated start scripts for windows and unix systems, third party dependencies and custom distribution files like licenses or documentation.
 
-#### Command Line Options
+#### Signing plugin
 
-##### <code>--cache</code>
+Digital signatures can be used for tracking build artifacts and files. These signatures allow users  to verify who built the artifact with the attached signature and when the signature was created. The [Signing Plugin](http://gradle.org/docs/nightly/userguide/signing_plugin.html) enables the user to
+* Define which artifacts to sign.
+* Configure required credentials.
+* Specify certain conditions that require signing (e. g.: enable signing only for release versions).
+* Publish digital signatures and signed POM files.  
 
-The command line option <code>--cache</code> has been deprecated. Use <code>--recompile-scripts</code> or <code>--rerun-tasks</code> instead.
+#### Ear plugin
+The [Ear Plugin](http://gradle.org/docs/nightly/userguide/ear_plugin.html) adds support for creating Java EE Enterprise Archives (EAR files). It provides EAR specific dependency management and enables customization of the deployment descriptor. 
 
-##### <code>--no-opt</code>
+#### Announce plugin
+The [Gradle Announce Plugin](http://gradle.org/docs/nightly/userguide/announce_plugin.html) enables the user to announce custom messages to the build user at any or every phase of the build. This feature can work well together with `--continue` (below), by reporting on any failures that occur in a continued build.
 
-The command line option <code>--no-opt</code> has been deprecated. Use <code>--rerun-tasks</code> instead.
+The announce plugin integrates nicely with different desktop messaging systems like [Snarl](https://sites.google.com/site/snarlapp/home), [Growl](http://growl.info/) and [Ubuntu Notify](http://www.ubuntu.com/) and also with the internet messaging system [Twitter](http://twitter.com/).
 
-##### <code>--refresh</code>
+#### Build continuation
+There's nothing more annoying than coming back from lunch, only to find that your build failed early on checkstyle and never got around to running your tests. The `--continue` command line option provides experimental support for continuing a build after a task fails: the end result of the build is the original failure, but the remainder of the build will still execute.
 
-The command line option <code>--refresh</code> has been deprecated. Use <code>--refresh-dependencies</code> instead.
+Note that this feature is a work in progress, and is not yet feature complete. In particular, only the first failure is displayed at the end of the build process: you will need to inspect the build output to see what other failures may have occurred.
 
-#### API classes and methods
+#### Log test output to the console
 
-##### <code>Jvm</code></h5>
+Gradle strives to provide a clean and concise console output, without unnecessary clutter that hides the important things. So by default Gradle does not show the output of the tests on the console. Gradle 1.0 provides a a simple way to [switch on all test output on the console](http://gradle.org/releases/1.0-milestone-6/docs/dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:testLogging). You can also hook in a listener to have [full control what test output is shown](http://gradle.org/releases/1.0-milestone-6/docs/dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:onOutput).
 
-The class <code>org.gradle.util.Jvm</code> has been deprecated.
+#### Better diagnosis tools
+In many places we're providing better error messages, more documentation and improved samples to help you streamline any troubleshooting. The new [extra properties](http://gradle.org/docs/nightly/userguide/userguide_single.html#sec:extra_properties) mechanism retains the ability to add ad-hoc properties to your build script, which making it much easier to catch typos.
 
-##### <code>StartParameter</code></h5>
+Naturally there is more work to do, and if you have questions don't hesitate to post them on the [Gradle forums](http://forums.gradle.org).
 
-The method <code>getCacheUsage()</code> has been deprecated. Use <code>isRecompileScripts()</code> and/or <code>isRerunTasks()</code> instead.
+## Migration
+For details of exactly what was changed in which Gradle 1.0 milestone, please see the release notes of each individual release. You can also consult the migration guide for each milestone release to identify issues that may affect you during an upgrade to Gradle 1.0.
 
-The method <code>setCacheUsage()</code> has been deprecated. Use <code>setRecompileScripts(boolean)</code> and/or <code>setRerunTasks(boolean)</code> instead.
+### Previous Release Notes
 
-The method <code>setRefreshOptions(RefreshOptions)</code> has been deprecated. Use <code>setRefreshDependencies(boolean)</code> instead.
-
-The method <code>getRefreshOptions()</code> has been deprecated. Use <code>isRefreshDependencies()</code> instead.
-
-The method <code>setNoOpt(boolean)</code> has been deprecated. Use <code>setRerunTasks(boolean)</code> instead.
-
-The method <code>isNoOpt()</code> has been deprecated. Use <code>isRerunTasks()</code> instead.
-
-##### <code>RefreshOptions</code>
-
-The class <code>org.gradle.RefreshOptions</code> has been deprecated.
-
-##### <code>CacheUsage</code>
-
-The class <code>org.gradle.CacheUsage</code> has been deprecated.
-
-### Potential breaking changes
-
-#### Classpath changes for test process
-
-The way we construct classpath for the JVM used to run tests has changed, to allow us to properly support running 
-tests with <code>-javaagent</code> or <code>-Djava.security.manager</code>. We don't expect this will cause any 
-problems and your tests should continue to run just fine.
-
-#### Groovy compiler integration
-
-We have introduced a new Groovy compiler integration in Gradle 1.0. This integration is much faster than the old 
-Ant-task based integration, particularly for multi-project builds. We don't expect this will cause any problems 
-and your code should continue to compile and run just fine.
-
-## JIRA issues
-
-See JIRA for details of the issues fixed in <a href="http://issues.gradle.org/secure/ReleaseNote.jspa?projectId=10001&version=10062">Gradle 1.0-rc-1</a>, <a href="http://issues.gradle.org/secure/ReleaseNote.jspa?projectId=10001&version=10460">Gradle 1.0-rc-2</a> and <a href="http://issues.gradle.org/secure/ReleaseNote.jspa?projectId=10001&version=10560">Gradle 1.0-rc-3</a>.
+* [Gradle-1.0-rc-3](http://wiki.gradle.org/display/GRADLE/Gradle+1.0-rc-3+Release+Notes)
+* [Gradle-1.0-rc-2](http://wiki.gradle.org/display/GRADLE/Gradle+1.0-rc-2+Release+Notes)
+* [Gradle-1.0-rc-1](http://wiki.gradle.org/display/GRADLE/Gradle+1.0-rc-1+Release+Notes)
+* [Gradle-1.0-milestone-9](http://wiki.gradle.org/display/GRADLE/Gradle+1.0-milestone-9+Release+Notes)
+* [Gradle-1.0-milestone-8a](http://wiki.gradle.org/display/GRADLE/Gradle+1.0-milestone-8a+Release+Notes)
+* [Gradle-1.0-milestone-8](http://wiki.gradle.org/display/GRADLE/Gradle+1.0-milestone-8+Release+Notes)
+* [Gradle-1.0-milestone-7](http://wiki.gradle.org/display/GRADLE/Gradle+1.0-milestone-7+Release+Notes)
+* [Gradle-1.0-milestone-6](http://wiki.gradle.org/display/GRADLE/Gradle+1.0-milestone-6+Release+Notes)
+* [Gradle-1.0-milestone-5](http://wiki.gradle.org/display/GRADLE/Gradle+1.0-milestone-5+Release+Notes)
+* [Gradle-1.0-milestone-4](http://wiki.gradle.org/display/GRADLE/Gradle+1.0-milestone-4+Release+Notes)
+* [Gradle-1.0-milestone-3](http://wiki.gradle.org/display/GRADLE/Gradle+1.0-milestone-3+Release+Notes)
+* [Gradle-1.0-milestone-2](http://wiki.gradle.org/display/GRADLE/Gradle+1.0-milestone-2+Release+Notes)
+* [Gradle-1.0-milestone-1](http://wiki.gradle.org/display/GRADLE/Gradle+1.0-milestone-1+Release+Notes)
