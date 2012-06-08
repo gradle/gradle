@@ -31,7 +31,7 @@
 	<para>As you can see, the syntax in <literal>.doLast</literal> is
 
 		 <cmdsynopsis>
-			<command> announce("MESSAGE", "TARGET")</command>
+			<command> announce.announce("MESSAGE", "TARGET")</command>
 		 </cmdsynopsis>
 
 		Where MESSAGE is any GString you pass (and might have constructed before). And TARGET might one of the following:
