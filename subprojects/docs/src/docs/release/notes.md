@@ -7,7 +7,7 @@ Here are the new features introduced in Gradle 1.0, including the changes in all
 ### Powerful dependency management
 Dependency management is at the heart of every build. In Gradle 1.0 we've moved away from using Ivy for dependency resolution. The dependency resolution engine has been rebuilt from the ground up; it is now faster, more accurate and more flexible.
 
-With full DSL support for Maven and Ivy repository formats, combined with offline support, the ability to refresh dependencies, and better control over version conflict resolution, we feel that Gradle 1.0 raises the bar for dependency management in build automation. We will continue to innovate in this space, with plans to take the dependency management that works so well for Java and adapt it to other languages and technologies.
+With full DSL support for Maven and Ivy repository formats, offline builds, the ability to refresh dependencies, and better control over version conflict resolution, we feel that Gradle 1.0 raises the bar for dependency management in build automation. As we continue to innovate in this space, we plan to take the dependency management that works so well for Java and adapt it to other languages and technologies.
 
 #### Offline builds
 
@@ -15,15 +15,15 @@ You're not always connected to a network; Gradle 1.0 helps you out when you're o
 
 #### Validate and refresh dependencies
 
-When run with the [`--refresh-dependencies`](http://gradle.org/docs/nightly/userguide/userguide_single.html#sec:cache_command_line_options) command-line option, Gradle will validate all dependencies against the published repositories, and download anything that is not up-to-date. This process will also ensure that all required dependencies are available in a remote repository; just having the dependency in your local cache is not sufficient and will lead to a build failure. 
+When run with the [`--refresh-dependencies`](http://gradle.org/docs/nightly/userguide/userguide_single.html#sec:cache_command_line_options) command-line option, Gradle will validate all dependencies against the repositories declared for you build, downloading anything that is not up-to-date. As well as refreshing the latest version of all dependencies, this process will ensure that all required dependencies are available in a remote repository; just having the dependency in your local cache is not sufficient and will lead to a build failure.
 
-The `--refresh-dependencies` option is particularly helpful when things go wrong with dependency resolution; like when you are setting up a new repository and you don't get it exactly right the first time. In such a case, being able to refresh all of your dependencies without deleting your cache directory can be very useful.
+The `--refresh-dependencies` option is particularly helpful when things go wrong with dependency resolution; like when you are setting up a new repository and don't get it exactly right the first time. In such a case, being able to refresh all of your dependencies without deleting your cache directory can be very useful.
 
-Dependency validation utilises the Gradle change detection algorithm for remote artefacts, which removes the need to re-download artefacts that have not changed.
+Dependency validation utilises the Gradle change detection algorithm for remote repositories, so artifacts that are unchanged from the cached version will not be re-downloaded.
 
 #### Better control over version conflict resolution
 
-When your dependencies are resolved, the transitive dependency set may bring in conflicting versions of the same module. By default, Gradle's [conflict resolution](http://gradle.org/docs/nightly/userguide/userguide_single.html#sub:version_conflicts) will use the newest version which is useful in most cases. Sometimes this isn't what you want, so Gradle 1.0 gives you control over the process by:
+When your dependencies are resolved, the transitive dependency set may bring in several different versions of the same module. By default, Gradle's [conflict resolution](http://gradle.org/docs/nightly/userguide/userguide_single.html#sub:version_conflicts) will use the newest version. This is useful in most cases, but sometimes it isn't what you want, so Gradle 1.0 gives you control over the process by:
 
 * Declaring that your build should fail in the case of [version conflicts](http://gradle.org/docs/nightly/userguide/userguide_single.html#sub:version_conflicts). 
 * Forcing a particular module version into the dependency set. This can be done [per-dependency](http://gradle.org/docs/nightly/dsl/org.gradle.api.artifacts.dsl.DependencyHandler.html) or more commonly [per-configuration](http://gradle.org/docs/nightly/dsl/org.gradle.api.artifacts.ResolutionStrategy.html).
