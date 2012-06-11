@@ -23,16 +23,18 @@ import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
-import org.gradle.internal.nativeplatform.filesystem.FileSystems;
+import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 
 import java.io.*;
 import java.util.Map;
 
 public class MappingCopySpecVisitor extends DelegatingCopySpecVisitor {
     private ReadableCopySpec spec;
+    private FileSystem fileSystem;
 
-    public MappingCopySpecVisitor(CopySpecVisitor visitor) {
+    public MappingCopySpecVisitor(CopySpecVisitor visitor, FileSystem fileSystem) {
         super(visitor);
+        this.fileSystem = fileSystem;
     }
 
     public void visitSpec(ReadableCopySpec spec) {
@@ -41,11 +43,11 @@ public class MappingCopySpecVisitor extends DelegatingCopySpecVisitor {
     }
 
     public void visitDir(FileVisitDetails dirDetails) {
-        getVisitor().visitDir(new FileVisitDetailsImpl(dirDetails, spec));
+        getVisitor().visitDir(new FileVisitDetailsImpl(dirDetails, spec, fileSystem));
     }
 
     public void visitFile(final FileVisitDetails fileDetails) {
-        FileVisitDetailsImpl details = new FileVisitDetailsImpl(fileDetails, spec);
+        FileVisitDetailsImpl details = new FileVisitDetailsImpl(fileDetails, spec, fileSystem);
         for (Action<? super FileCopyDetails> action : spec.getAllCopyActions()) {
             action.execute(details);
             if (details.excluded) {
@@ -58,14 +60,16 @@ public class MappingCopySpecVisitor extends DelegatingCopySpecVisitor {
     private static class FileVisitDetailsImpl extends AbstractFileTreeElement implements FileVisitDetails, FileCopyDetails {
         private final FileVisitDetails fileDetails;
         private final ReadableCopySpec spec;
+        private FileSystem fileSystem;
         private final FilterChain filterChain = new FilterChain();
         private RelativePath relativePath;
         private boolean excluded;
         private Integer mode;
 
-        public FileVisitDetailsImpl(FileVisitDetails fileDetails, ReadableCopySpec spec) {
+        public FileVisitDetailsImpl(FileVisitDetails fileDetails, ReadableCopySpec spec, FileSystem fileSystem) {
             this.fileDetails = fileDetails;
             this.spec = spec;
+            this.fileSystem = fileSystem;
         }
 
         public String getDisplayName() {
@@ -132,7 +136,7 @@ public class MappingCopySpecVisitor extends DelegatingCopySpecVisitor {
             final Integer specMode = getMode();
             if(specMode !=null){
                 try {
-                    FileSystems.getDefault().chmod(target, specMode);
+                    fileSystem.chmod(target, specMode);
                 } catch (IOException e) {
                     throw new GradleException(String.format("Could not set permission %s on '%s'.", specMode, target), e);
                 }

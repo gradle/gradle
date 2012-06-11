@@ -19,7 +19,7 @@ import org.gradle.api.Action;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
-import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.TemporaryFolder;
 import org.gradle.util.TestFile;
@@ -29,7 +29,6 @@ import org.jmock.Sequence;
 import org.jmock.api.Invocation;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import org.junit.Assume;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,6 +36,7 @@ import org.junit.runner.RunWith;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
 
 import static org.gradle.util.Matchers.*;
 import static org.gradle.util.WrapUtil.toList;
@@ -46,12 +46,14 @@ import static org.junit.Assert.*;
 @RunWith(JMock.class)
 public class MappingCopySpecVisitorTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
+
     @Rule
     public final TemporaryFolder tmpDir = new TemporaryFolder();
     private final CopySpecVisitor delegate = context.mock(CopySpecVisitor.class);
-    private final MappingCopySpecVisitor visitor = new MappingCopySpecVisitor(delegate);
     private final ReadableCopySpec spec = context.mock(ReadableCopySpec.class);
     private final FileVisitDetails details = context.mock(FileVisitDetails.class);
+    private final FileSystem fileSystem = context.mock(FileSystem.class);
+    private final MappingCopySpecVisitor visitor = new MappingCopySpecVisitor(delegate, fileSystem);
 
     @Test
     public void delegatesStartAndEndVisitMethods() {
@@ -223,9 +225,7 @@ public class MappingCopySpecVisitorTest {
     }
 
     @Test
-    public void explicitFileModeDefinitionIsAppliedToTarget() {
-        Assume.assumeTrue(OperatingSystem.current().isLinux() || OperatingSystem.current().isMacOsX());
-
+    public void explicitFileModeDefinitionIsAppliedToTarget() throws IOException {
         final FileCopyDetails mappedDetails = expectActionExecutedWhenFileVisited();
         final TestFile destFile = tmpDir.getDir().file("test.txt").createFile();
 
@@ -234,9 +234,9 @@ public class MappingCopySpecVisitorTest {
         context.checking(new Expectations() {{
             one(details).copyTo(destFile);
             will(returnValue(true));
+            one(fileSystem).chmod(destFile, 0645);
         }});
         mappedDetails.copyTo(destFile);
-        assertThat(destFile.getMode(), equalTo(0645));
     }
 
     @Test
