@@ -25,6 +25,23 @@ import groovy.lang.Closure;
  * Container for all test logging related options. Different options
  * can be set for each log level. Options that are set directly (without
  * specifying a log level) apply to log level LIFECYCLE.
+ *
+ * <pre autoTested=''>
+ * apply plugin: 'java'
+ *
+ * test {
+ *     testLogging {
+ *         // options for log level LIFECYCLE
+ *         events "failed"
+ *         exceptionFormat "short"
+ *         // options for log level DEBUG
+ *         debug {
+ *             events "started", "skipped", "failed"
+ *             exceptionFormat "full"
+ *         }
+ *     }
+ * }
+ * </pre>
  */
 public interface TestLoggingContainer extends TestLogging {
     /**
