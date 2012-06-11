@@ -78,9 +78,9 @@ class BootstrapSecurityManagerTest extends Specification {
         System.securityManager instanceof TestSecurityManager
     }
 
-    def createStdInContent(File... classpath) {
+    InputStream createStdInContent(File... classpath) {
         def out = new ByteArrayOutputStream()
-        def dataOut = new DataOutputStream(out)
+        def dataOut = new DataOutputStream(new EncodedStream.EncodedOutput(out))
         dataOut.writeInt(classpath.length)
         classpath.each { dataOut.writeUTF(it.absolutePath) }
         return new ByteArrayInputStream(out.toByteArray())
