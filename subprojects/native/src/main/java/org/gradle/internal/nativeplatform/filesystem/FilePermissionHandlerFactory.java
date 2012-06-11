@@ -83,8 +83,8 @@ public class FilePermissionHandlerFactory {
                 try {
                     encoded = f.getAbsolutePath().getBytes("utf-8");
                 } catch (UnsupportedEncodingException e) {
-                    LOGGER.warn(String.format("Failed to encode file path %s as utf-8. Using default encoding %s", f.getAbsolutePath(), System.getProperty("file.encoding")));
-                    encoded = f.getAbsolutePath().getBytes();
+                    LOGGER.error(String.format("Failed to encode file path %s as utf-8. Using default encoding %s", f.getAbsolutePath(), System.getProperty("file.encoding")));
+                    throw new UncheckedException(e);
                 }
             }
             byte[] zeroTerminatedByteArray = new byte[encoded.length + 1];
