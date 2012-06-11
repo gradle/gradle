@@ -302,3 +302,7 @@ For details of exactly what was changed in which Gradle 1.0 milestone, please se
 * [Gradle-1.0-milestone-3](http://wiki.gradle.org/display/GRADLE/Gradle+1.0-milestone-3+Release+Notes)
 * [Gradle-1.0-milestone-2](http://wiki.gradle.org/display/GRADLE/Gradle+1.0-milestone-2+Release+Notes)
 * [Gradle-1.0-milestone-1](http://wiki.gradle.org/display/GRADLE/Gradle+1.0-milestone-1+Release+Notes)
+
+## Fixed Issues
+
+The list of issues fixed between 1.0-milestone-9 and 1.0 can be found [here](http://issues.gradle.org/sr/jira.issueviews:searchrequest-printable/temp/SearchRequest.html?jqlQuery=fixVersion+in+%28%221.0-rc-1%22%2C+%221.0-rc-2%22%2C+%221.0-rc-3%22%2C+%221.0%22%29+ORDER+BY+priority&tempMax=1000).
