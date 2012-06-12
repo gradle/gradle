@@ -24,6 +24,8 @@ import org.gradle.build.GenerateReleasesXml
 import org.gradle.internal.os.OperatingSystem
 
 apply plugin: 'base'
+apply plugin: 'pegdown'
+apply plugin: 'jsoup'
 
 configurations {
     userGuideStyleSheets
@@ -61,7 +63,7 @@ outputs.distDocs = files(distDocsDir) {
     builtBy 'distDocs'
 }
 outputs.docs = files(docsDir) {
-    builtBy 'javadoc', 'groovydoc', 'userguide', 'dslHtml'
+    builtBy 'javadoc', 'groovydoc', 'userguide', 'dslHtml', 'releaseNotes'
 }
 
 tasks.withType(Docbook2Xhtml) {
@@ -333,6 +335,42 @@ task docs {
 
 task docsZip(type: Zip) {
     from project.outputs.docs
+}
+
+import org.gradle.plugins.pegdown.PegDown
+import org.gradle.plugins.jsoup.Jsoup
+
+task editReleaseNotes() << {
+    new java.awt.Desktop().edit(file("src/docs/release/notes.md"))
+}
+
+task releaseNotesMarkdown(type: PegDown) {
+    source "src/docs/release/notes.md"
+    destination "$buildDir/release-notes/notes-raw.html"
+}
+
+task decorateReleaseNotes(type: Jsoup) {
+    source releaseNotesMarkdown
+    destination "$buildDir/release-notes/notes-decorated.html"
+    
+    inputs.file "release-notes-transform.gradle"
+    apply from: "release-notes-transform.gradle"
+}
+
+import org.apache.tools.ant.filters.*
+task releaseNotes(type: Copy) {
+    ext.fileName = "release-notes.html"
+    into "$docsDir"
+    from decorateReleaseNotes, {
+        rename ".+", "release-notes.html"
+        doFirst {
+            owner.filter(ReplaceTokens, tokens: [version: project.version.toString()])
+        }
+    }
+}
+
+task viewReleaseNotes(dependsOn: releaseNotes) << {
+    new java.awt.Desktop().browse(new File(releaseNotes.destinationDir, releaseNotes.fileName).toURI())
 }
 
 class Xhtml2Pdf extends DefaultTask {

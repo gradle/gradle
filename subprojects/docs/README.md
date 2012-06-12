@@ -2,6 +2,26 @@ The docs project produces the [userguide](http://gradle.org/docs/current/usergui
 
 The following is some help for working with the docs, all file paths are relative to this directory unless specified otherwise.
 
+## Release Notes
+
+The release notes are generated from `src/docs/release/notes.md`.
+
+### Schema 
+
+Every `h2` tag will be listed in the generated TOC.
+
+After every `h3` all content after the first element (usually a `p`) will be collapsed/expandable, up until the next `h3`, or `h2`.
+
+After every `h4` all content will be collapsed/expandable, up until the next `h4`, `h3` or `h2`.
+
+### Generating
+
+Run the `viewReleaseNotes` task to generate the release notes, and open them in your browser (requires Java 6).
+
+### Editing
+
+You can run the `editReleaseNotes` task to open the raw markdown notes in whatever editor is registered for this file type (requires Java 6).
+
 ## Userguide
 
 The source for the userguide lives @ `src/docs/userguide`. The userguide is authored using [docbook](http://www.docbook.org/) and uses [docbook stylesheets](http://docbook.sourceforge.net/) with some customisations in `src/stylesheets` to generate HTML. It uses [Flying Saucer](https://xhtmlrenderer.dev.java.net/) + [iText](http://www.lowagie.com/iText/) to generate the PDF from the HTML.

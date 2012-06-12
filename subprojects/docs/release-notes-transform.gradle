@@ -1,0 +1,157 @@
+import org.jsoup.nodes.Element
+import org.jsoup.select.Elements
+
+decorateReleaseNotes {
+    
+    ext {
+        styleFile = file("src/docs/release/content/style.css")
+        fontRegularFile = file("src/docs/release/content/Lato-regular.woff")
+        fontBoldFile = file("src/docs/release/content/Lato-bold.woff")
+        logoFile = file("src/docs/release/content/logo.gif")
+        jqueryFile = file("src/docs/release/content/jquery-1.7.2-min.js")
+        scriptFile = file("src/docs/release/content/script.js")
+    }
+    
+    inputs.files([styleFile, fontRegularFile, fontBoldFile, logoFile, jqueryFile, scriptFile])
+    
+    transform {
+        outputSettings().indentAmount(2).prettyPrint(true)
+        
+        prependChild(new org.jsoup.nodes.DocumentType("html", "", "", ""))
+
+        head().
+            append("<meta charset='utf-8'>").
+            append("<title>Gradle @version@ Release Notes</title>")
+        
+        def styleText = styleFile.text.
+            replace("@regular-font-base64@", fontRegularFile.bytes.encodeBase64().toString()).
+            replace("@bold-font-base64@", fontBoldFile.bytes.encodeBase64().toString())
+        
+        head().append("<style/>").children().last().text(styleText)
+        
+        head().append("<script type='text/javascript'>1;</script>").children().last().childNode(0).attr("data", jqueryFile.text)
+        head().append("<script type='text/javascript'>1;</script>").children().last().childNode(0).attr("data", scriptFile.text)
+    }
+    
+    // wrap each h2 section in section.topic
+    transform {
+        def heading = body().select("h2").first()
+        def inSection = [heading]
+        Element next = heading.nextElementSibling()
+        while (true) {
+            if (next == null || next.tagName() == "h2") {
+                def section = heading.before("<section class='topic'/>").previousElementSibling()
+                Elements inSectionElements = new Elements(inSection)
+                section.html(inSectionElements.outerHtml())
+                inSectionElements.remove()
+
+                if (next == null) {
+                    break
+                } else {
+                    inSection = [next]
+                    heading = next
+                }
+            } else {
+                inSection << next
+            }
+
+            next = next.nextElementSibling()
+        }
+    }
+    
+    // wrap all content after the first element after a h3 (up to the next same level heading)
+    // in a section.major-detail block
+    transform {
+        for (heading in body().select(".topic").first().select("h3")) {
+            def detail = []
+            
+            Element next = heading.nextElementSibling()
+            while (next != null && next.tagName() != "h4") {
+                next = next.nextElementSibling()
+            }
+            
+            while (true) {
+                if (next == null || next.tagName() ==~ /h[123]/) {
+                    break
+                }
+                detail << next
+                next = next.nextElementSibling()
+            }
+
+            if (detail) {
+                def section = detail.first().before("<section class='major-detail'/>").previousElementSibling()
+                Elements detailElements = new Elements(detail)
+                section.html(detailElements.outerHtml())
+                detailElements.remove()
+            }
+        }
+    }
+    
+    // wrap all content after a h4 until the next heading in a section.minor-detail
+    transform {
+        for (heading in body().select("h4")) {
+            def detail = []
+            Element next = heading.nextElementSibling()
+            while (true) {
+                if (next == null || next.tagName() ==~ /h[1234]/) {
+                    break
+                }
+                detail << next
+                next = next.nextElementSibling()
+            }
+
+            if (detail) {
+                def section = detail.first().before("<section class='minor-detail'/>").previousElementSibling()
+                Elements detailElements = new Elements(detail)
+                section.html(detailElements.outerHtml())
+                detailElements.remove()
+            }
+        }
+    }
+    
+    // add anchors for all of the headings
+    transform {
+        for (heading in body().select("h2,h3")) {
+            def anchorName = heading.text().toLowerCase().replaceAll(' ', '-')
+            heading.attr("id", anchorName)
+        }
+    }
+    
+    // Add the TOC
+    transform {
+        def tocSection = body().select("section.topic").first().before("<section class='table-of-contents'/>").previousElementSibling()
+        tocSection.append("<h2>Table Of Contents</h2>")
+        def toc = tocSection.append("<ul class='toc'/>").children().last()
+        
+        for (topic in body().select(".topic")) {
+            def topicHeading = topic.select("h2").first()
+            def name = topicHeading.text()
+            def anchor = topicHeading.attr("id")
+            
+            toc.append("<li><a href='#$anchor'>$name</a></li>").children().last()
+            
+            def subs = topic.select("h3")
+            if (subs) {
+                def sublist = toc.children().last().append("<ul class='toc-sub'/>").children().last()
+                subs.each {
+                    def subName = it.text()
+                    def subAnchorName = it.attr("id")
+                    sublist.append("<li><a href='#$subAnchorName'>$subName</a></li>")
+                }
+            }
+            
+        }
+    }
+    
+    // Add the heading
+    transform {
+        body().prepend("<h1>@version@ Release Notes</h1>")
+        body().prepend("<img class='logo' alt='Gradle Logo' src='data:image/gif;base64,${logoFile.bytes.encodeBase64()}' />")
+    }
+    
+    // Add the footer
+    transform {
+        def footer = body().append("<section class='footer'/>").children().last()
+        footer.html("Gradle @version@ Release Notes<br />— <a href='http://gradle.org'>www.gradle.org</a> —")
+    }
+}
