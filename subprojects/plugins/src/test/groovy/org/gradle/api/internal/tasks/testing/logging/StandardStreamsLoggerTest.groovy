@@ -28,7 +28,7 @@ class StandardStreamsLoggerTest extends Specification {
 //
 //    def "does not log anything if showStandardStreams is false"() {
 //        given:
-//        def streamsLogger = new StandardStreamsLogger(logger, LogLevel.INFO, { showStandardStreams: false } as TestLogging)
+//        def streamsLogger = new TestOutputLogger(logger, LogLevel.INFO, { showStandardStreams: false } as TestLogging)
 //
 //        when:
 //        streamsLogger.onOutput(test, event)
@@ -39,7 +39,7 @@ class StandardStreamsLoggerTest extends Specification {
 //
 //    def "includes header once"() {
 //        given:
-//        def streamsLogger = new StandardStreamsLogger(logger, LogLevel.INFO, { showStandardStreams: true } as TestLogging)
+//        def streamsLogger = new TestOutputLogger(logger, LogLevel.INFO, { showStandardStreams: true } as TestLogging)
 //
 //        when:
 //        streamsLogger.onOutput(test, event)
@@ -60,7 +60,7 @@ class StandardStreamsLoggerTest extends Specification {
 //        given:
 //        def testTwo = new DefaultTestDescriptor("2", "DogTest", "should growl")
 //        def eventTwo = new DefaultTestOutputEvent(Destination.StdOut, "grrr!")
-//        def streamsLogger = new StandardStreamsLogger(logger, LogLevel.INFO, { showStandardStreams: true } as TestLogging)
+//        def streamsLogger = new TestOutputLogger(logger, LogLevel.INFO, { showStandardStreams: true } as TestLogging)
 //
 //        when:
 //        streamsLogger.onOutput(test, event)

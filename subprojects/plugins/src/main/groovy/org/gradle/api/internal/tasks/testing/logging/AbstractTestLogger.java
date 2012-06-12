@@ -16,15 +16,19 @@
 
 package org.gradle.api.internal.tasks.testing.logging;
 
+import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
+import org.gradle.api.Nullable;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.tasks.testing.TestDescriptor;
-import org.gradle.api.tasks.testing.TestListener;
-import org.gradle.api.tasks.testing.TestResult;
+import org.gradle.api.tasks.testing.logging.TestLogEvent;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.logging.internal.StyledTextOutputEvent;
 
-public abstract class AbstractTestLogger implements TestListener {
+import java.util.List;
+
+public abstract class AbstractTestLogger {
     private final OutputEventListener outputListener;
     private final LogLevel logLevel;
 
@@ -33,32 +37,38 @@ public abstract class AbstractTestLogger implements TestListener {
         this.logLevel = logLevel;
     }
 
-    public void beforeSuite(TestDescriptor descriptor) {
-        before(descriptor);
+    protected void logEvent(TestDescriptor descriptor, TestLogEvent event) {
+        logEvent(descriptor, event, null);
     }
 
-    public void afterSuite(TestDescriptor descriptor, TestResult result) {
-        after(descriptor, result);
+    protected void logEvent(TestDescriptor descriptor, TestLogEvent event, @Nullable String details) {
+        List<String> names = Lists.newArrayList();
+        TestDescriptor current = descriptor;
+        while (current != null) {
+            names.add(current.getName());
+            current = current.getParent();
+        }
+
+        // TODO: figure out what to do instead of hard-coding 2 (additional config value)?
+        int minDisplayedName = Math.min(2, names.size() - 1);
+        List<String> displayedNames = Lists.reverse(names).subList(minDisplayedName, names.size());
+        String path = Joiner.on(" > ").join(displayedNames) + " ";
+        String detailText = details == null ? "\n" : "\n" + details + "\n";
+        log(new StyledTextOutputEvent.Span(path), new StyledTextOutputEvent.Span(getStyle(event),
+                event.toString()), new StyledTextOutputEvent.Span(detailText));
     }
 
-    public void beforeTest(TestDescriptor descriptor) {
-        before(descriptor);
-    }
-
-    public void afterTest(TestDescriptor descriptor, TestResult result) {
-        after(descriptor, result);
-    }
-
-    protected void before(TestDescriptor descriptor) {}
-
-    protected void after(TestDescriptor descriptor, TestResult result) {}
-
-    protected void log(StyledTextOutput.Style style, String message) {
-        log(new StyledTextOutputEvent.Span(style, message));
-    }
-
-    protected void log(StyledTextOutputEvent.Span... spans) {
+    private void log(StyledTextOutputEvent.Span... spans) {
         outputListener.onOutput(new StyledTextOutputEvent(System.currentTimeMillis(),
                 "testLogging", logLevel, spans));
+    }
+
+    private StyledTextOutput.Style getStyle(TestLogEvent event) {
+        switch (event) {
+            case PASSED: return StyledTextOutput.Style.Identifier;
+            case FAILED: return StyledTextOutput.Style.Failure;
+            case SKIPPED: return StyledTextOutput.Style.Info;
+            default: return StyledTextOutput.Style.Normal;
+        }
     }
 }

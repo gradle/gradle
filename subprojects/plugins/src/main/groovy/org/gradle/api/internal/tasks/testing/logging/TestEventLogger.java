@@ -16,55 +16,61 @@
 
 package org.gradle.api.internal.tasks.testing.logging;
 
-import com.google.common.base.Joiner;
-import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
-
-import org.gradle.api.Nullable;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.tasks.testing.*;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.api.tasks.testing.logging.TestLogEvent;
 import org.gradle.api.tasks.testing.logging.TestLogging;
-import org.gradle.logging.StyledTextOutput;
 import org.gradle.logging.internal.OutputEventListener;
-import org.gradle.logging.internal.StyledTextOutputEvent;
 import org.gradle.util.TextUtil;
-
-import java.util.List;
 
 /**
  * Logger for test events.
  */
-public class TestEventLogger extends AbstractTestLogger implements TestOutputListener {
+public class TestEventLogger extends AbstractTestLogger implements TestListener, TestOutputListener {
     private static final String INDENT = "    ";
-
-    private final TestLogging testLogging;
     private final TestExceptionFormatter exceptionFormatter;
+    private final TestLogging testLogging;
 
     public TestEventLogger(OutputEventListener outputListener, LogLevel logLevel, TestLogging testLogging, TestExceptionFormatter exceptionFormatter) {
         super(outputListener, logLevel);
-        this.testLogging = testLogging;
         this.exceptionFormatter = exceptionFormatter;
+        this.testLogging = testLogging;
+    }
+
+    public void beforeSuite(TestDescriptor descriptor) {
+        before(descriptor);
+    }
+
+    public void afterSuite(TestDescriptor descriptor, TestResult result) {
+        after(descriptor, result);
+    }
+
+    public void beforeTest(TestDescriptor descriptor) {
+        before(descriptor);
+    }
+
+    public void afterTest(TestDescriptor descriptor, TestResult result) {
+        after(descriptor, result);
     }
 
     public void onOutput(TestDescriptor descriptor, TestOutputEvent outputEvent) {
         if (outputEvent.getDestination() == TestOutputEvent.Destination.StdOut
-                && shouldLogStandardStreamEvent(TestLogEvent.STANDARD_OUT)) {
+                && isLoggedEventType(TestLogEvent.STANDARD_OUT)) {
             logEvent(descriptor, TestLogEvent.STANDARD_OUT, TextUtil.indent(outputEvent.getMessage(), INDENT) + "\n");
         } else if (outputEvent.getDestination() == TestOutputEvent.Destination.StdErr
-                && shouldLogStandardStreamEvent(TestLogEvent.STANDARD_ERROR)) {
+                && isLoggedEventType(TestLogEvent.STANDARD_ERROR)) {
             logEvent(descriptor, TestLogEvent.STANDARD_ERROR, TextUtil.indent(outputEvent.getMessage(), INDENT) + "\n");
         }
     }
 
-    protected void before(TestDescriptor descriptor) {
+    private void before(TestDescriptor descriptor) {
         if (shouldLogEvent(descriptor, TestLogEvent.STARTED)) {
             logEvent(descriptor, TestLogEvent.STARTED);
         }
     }
 
-    protected void after(TestDescriptor descriptor, TestResult result) {
+    private void after(TestDescriptor descriptor, TestResult result) {
         TestLogEvent event = getEvent(result);
 
         if (shouldLogEvent(descriptor, event)) {
@@ -82,46 +88,12 @@ public class TestEventLogger extends AbstractTestLogger implements TestOutputLis
         }
     }
 
-    private void logEvent(TestDescriptor descriptor, TestLogEvent event) {
-        logEvent(descriptor, event, null);
-    }
-
-    private void logEvent(TestDescriptor descriptor, TestLogEvent event, @Nullable String details) {
-        List<String> names = Lists.newArrayList();
-        TestDescriptor current = descriptor;
-        while (current != null) {
-            names.add(Strings.isNullOrEmpty(current.getName()) ? "Test Run" : current.getName());
-            current = current.getParent();
-        }
-
-        // TODO: figure out what to do instead of hard-coding 2 (additional config value)?
-        int minDisplayedName = Math.min(2, names.size() - 1);
-        List<String> displayedNames = Lists.reverse(names).subList(minDisplayedName, names.size());
-        String path = Joiner.on(" > ").join(displayedNames) + " ";
-        String detailText = details == null ? "\n" : "\n" + details + "\n";
-        log(new StyledTextOutputEvent.Span(path), new StyledTextOutputEvent.Span(getStyle(event),
-                event.toString()), new StyledTextOutputEvent.Span(detailText));
-    }
-
-    private StyledTextOutput.Style getStyle(TestLogEvent event) {
-        switch (event) {
-            case PASSED: return StyledTextOutput.Style.Identifier;
-            case FAILED: return StyledTextOutput.Style.Failure;
-            case SKIPPED: return StyledTextOutput.Style.Info;
-            default: return StyledTextOutput.Style.Normal;
-        }
-    }
-
     private boolean shouldLogEvent(TestDescriptor descriptor, TestLogEvent event) {
         return isLoggedGranularity(descriptor) && isLoggedEventType(event);
     }
 
     private boolean shouldLogExceptions(TestResult result) {
         return testLogging.getShowExceptions() && !result.getExceptions().isEmpty();
-    }
-
-    private boolean shouldLogStandardStreamEvent(TestLogEvent event) {
-        return isLoggedEventType(event);
     }
 
     private boolean isLoggedGranularity(TestDescriptor descriptor) {
