@@ -1,5 +1,5 @@
 <releases>
-  <next version="1.0-rc-4"/>
+  <next version="1.0"/>
   <current version="${version}" build-time="${buildTime}" type="${releaseType}"/>
   <release version="1.0-rc-3" build-time="20120430015152+0200"/>
   <release version="1.0-rc-2" build-time="20120425015237+0200"/>
