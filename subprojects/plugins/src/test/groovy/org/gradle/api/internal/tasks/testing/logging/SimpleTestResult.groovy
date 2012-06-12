@@ -20,8 +20,8 @@ import org.gradle.api.tasks.testing.TestResult
 
 class SimpleTestResult implements TestResult {
     TestResult.ResultType resultType = TestResult.ResultType.SUCCESS
-    Throwable exception = null
     List<Throwable> exceptions = []
+    Throwable exception = exceptions[0]
     long startTime = System.currentTimeMillis()
     long endTime = startTime + 100
     long testCount = 1

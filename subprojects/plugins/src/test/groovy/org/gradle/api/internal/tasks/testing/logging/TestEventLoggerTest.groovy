@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.testing.logging
 
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.tasks.testing.logging.TestLogEvent
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.logging.internal.OutputEventListener
 
 import spock.lang.Specification
@@ -27,21 +28,77 @@ class TestEventLoggerTest extends Specification {
     def testLogging = new DefaultTestLogging()
     def exceptionFormatter = Mock(TestExceptionFormatter)
     def eventLogger = new TestEventLogger(outputListener, LogLevel.INFO, testLogging, exceptionFormatter)
-    def descriptor = new SimpleTestDescriptor()
+
+    def rootDescriptor = new SimpleTestDescriptor(name: "", composite: true)
+    def workerDescriptor = new SimpleTestDescriptor(name: "worker", composite: true, parent: rootDescriptor)
+    def outerSuiteDescriptor = new SimpleTestDescriptor(name: "com.OuterSuiteClass", composite: true, parent: workerDescriptor)
+    def innerSuiteDescriptor = new SimpleTestDescriptor(name: "com.InnerSuiteClass", composite: true, parent: outerSuiteDescriptor)
+    def classDescriptor = new SimpleTestDescriptor(name: "foo.bar.TestClass", composite: true, parent: innerSuiteDescriptor)
+    def methodDescriptor = new SimpleTestDescriptor(name: "testMethod", className: "foo.bar.TestClass", parent: classDescriptor)
+
     def result = new SimpleTestResult()
 
-    def "logs event if granularity and event type match"() {
-        testLogging.events(TestLogEvent.PASSED)
-        testLogging.minGranularity 0
+    def "logs event if event type matches"() {
+        testLogging.events(TestLogEvent.PASSED, TestLogEvent.SKIPPED)
 
         when:
-        eventLogger.after(descriptor, result)
+        eventLogger.afterTest(methodDescriptor, result)
 
         then:
-        1 * outputListener.onOutput({containsText(it, "PASSED")})
+        1 * outputListener.onOutput(_)
+
+        when:
+        result.resultType = TestResult.ResultType.FAILURE
+        eventLogger.afterTest(methodDescriptor, result)
+
+        then:
+        0 * _
     }
 
-    private boolean containsText(event, text) {
-        event.spans.find { it.text.contains(text) }
+    def "logs event if granularity matches"() {
+        testLogging.events(TestLogEvent.PASSED)
+        testLogging.minGranularity 2
+        testLogging.maxGranularity 4
+
+        when:
+        eventLogger.afterSuite(outerSuiteDescriptor, result)
+        eventLogger.afterSuite(innerSuiteDescriptor, result)
+        eventLogger.afterSuite(classDescriptor, result)
+
+        then:
+        3 * outputListener.onOutput(_)
+
+        when:
+        eventLogger.afterSuite(rootDescriptor, result)
+        eventLogger.afterSuite(workerDescriptor, result)
+        eventLogger.afterTest(methodDescriptor, result)
+
+        then:
+        0 * _
+    }
+
+    def "shows exceptions if configured"() {
+        testLogging.events(TestLogEvent.FAILED)
+        testLogging.showExceptions = true
+
+        result.resultType = TestResult.ResultType.FAILURE
+        result.exceptions = [new RuntimeException()]
+
+        def outputEvent
+
+        when:
+        eventLogger.afterTest(methodDescriptor, result)
+
+        then:
+        1 * exceptionFormatter.format(*_) >> "formatted exception"
+        1 * outputListener.onOutput({ outputEvent = it })
+        outputEvent.toString().contains("formatted exception")
+
+        when:
+        testLogging.showExceptions = false
+        eventLogger.afterTest(methodDescriptor, result)
+
+        then:
+        0 * exceptionFormatter.format(*_)
     }
 }
