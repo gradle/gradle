@@ -25,6 +25,7 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.util.ConfigurationUtils;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.util.DeprecationLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -103,26 +104,22 @@ public class DefaultIvyDependencyPublisher implements IvyDependencyPublisher {
 
         private void addPublishedDescriptor(Map<Artifact, File> artifactsFiles) {
             Artifact artifact = MDArtifact.newIvyArtifact(moduleDescriptor);
-            if (descriptorFile.exists()) {
-                artifactsFiles.put(artifact, descriptorFile);
-            } else {
-                logMissingArtifactFile(artifact, descriptorFile);
-            }
+            checkArtifactFileExists(artifact, descriptorFile);
+            artifactsFiles.put(artifact, descriptorFile);
         }
 
         private void addPublishedArtifact(Artifact artifact, Map<Artifact, File> artifactsFiles) {
             File artifactFile = new File(artifact.getExtraAttribute(FILE_ABSOLUTE_PATH_EXTRA_ATTRIBUTE));
-            if (artifactFile.exists()) {
-                artifactsFiles.put(artifact, artifactFile);
-            } else {
-                // TODO: Should fail here (ivy default behaviour), but not back-compatible
-                logMissingArtifactFile(artifact, artifactFile);
-            }
+            checkArtifactFileExists(artifact, artifactFile);
+            artifactsFiles.put(artifact, artifactFile);
         }
 
-        private void logMissingArtifactFile(Artifact artifact, File descriptorFile) {
-            // TODO: Should fail here (ivy default behaviour), but not backwards-compatible?
-            logger.warn("Missing file for artifact {}. File '{}' does not exist.", artifact.getModuleRevisionId(), descriptorFile);
+        private void checkArtifactFileExists(Artifact artifact, File artifactFile) {
+            if (!artifactFile.exists()) {
+                String message = String.format("Attempted to publish an artifact that does not exist. File '%s' for artifact %s does not exist.\n"
+                        + "Relying on this behaviour is deprecated: in a future release of Gradle this build will fail.", artifactFile, artifact.getModuleRevisionId());
+                DeprecationLogger.nagUserWith(message);
+            }
         }
 
         private Set<Artifact> getAllArtifacts(ModuleDescriptor moduleDescriptor) {
