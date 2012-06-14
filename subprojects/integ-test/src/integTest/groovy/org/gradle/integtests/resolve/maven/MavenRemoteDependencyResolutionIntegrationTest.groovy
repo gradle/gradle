@@ -277,43 +277,4 @@ task listJars << {
         then:
         succeeds 'listJars'
     }
-
-    def "can resolve dependencies from password protected HTTP Maven repository"() {
-        given:
-        server.start()
-        
-        buildFile << """
-repositories {
-    maven {
-        url "http://localhost:${server.port}/repo"
-
-        credentials {
-            password 'password'
-            username 'username'
-        }
-    }
-}
-configurations { compile }
-dependencies {
-    compile 'group:projectA:1.2'
-}
-task retrieve(type: Sync) {
-    into 'build'
-    from configurations.compile
-}
-"""
-        and:
-        def module = mavenRepo().module('group', 'projectA', '1.2')
-        module.publish()
-
-        when:
-        server.expectGet('/repo/group/projectA/1.2/projectA-1.2.pom', 'username', 'password', module.pomFile)
-        server.expectGet('/repo/group/projectA/1.2/projectA-1.2.jar', 'username', 'password', module.artifactFile)
-
-        and:
-        run 'retrieve'
-        
-        then:
-        file('build').assertHasDescendants('projectA-1.2.jar')
-    }
 }

@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests.resolve
+package org.gradle.integtests.resolve.http
 
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Issue
+import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
 
 class HttpRedirectDependencyResolutionIntegrationTest extends AbstractDependencyResolutionTest {
     @Rule SetSystemProperties systemProperties = new SetSystemProperties()

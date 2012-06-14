@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests.resolve
+package org.gradle.integtests.resolve.http
 
 import org.gradle.integtests.fixtures.TestProxyServer
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Unroll
 import org.gradle.integtests.fixtures.HttpServer
+import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
 
 class HttpProxyDependencyResolutionIntegrationTest extends AbstractDependencyResolutionTest {
     @Rule TestProxyServer proxyServer = new TestProxyServer(server)
