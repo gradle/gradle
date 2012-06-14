@@ -53,11 +53,7 @@ public class HttpClientHelper {
     }
     
     public HttpResponse performHead(String source) {
-        return performHead(source, false);
-    }
-    
-    public HttpResponse performHead(String source, boolean ignoreError) {
-        return processResponse(source, "HEAD", performRawHead(source), ignoreError);
+        return processResponse(source, "HEAD", performRawHead(source));
     }
 
     public HttpResponse performRawGet(String source) {
@@ -65,11 +61,7 @@ public class HttpClientHelper {
     }
 
     public HttpResponse performGet(String source) {
-        return performGet(source, false);
-    }
-    
-    public HttpResponse performGet(String source, boolean ignoreError) {
-        return processResponse(source, "GET", performRawGet(source), ignoreError);
+        return processResponse(source, "GET", performRawGet(source));
     }
 
     public HttpRequest configureRequest(HttpRequest request) {
@@ -120,7 +112,7 @@ public class HttpClientHelper {
         return client.execute(request, httpContext);
     }
 
-    private HttpResponse processResponse(String source, String method, HttpResponse response, boolean ignoreError) {
+    private HttpResponse processResponse(String source, String method, HttpResponse response) {
         if (wasMissing(response)) {
             LOGGER.info("Resource missing. [HTTP {}: {}]", method, source);
             return null;
