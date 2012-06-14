@@ -43,18 +43,15 @@ public class TcpIncomingConnector<T> implements IncomingConnector<T>, AsyncStopp
     private static final Logger LOGGER = LoggerFactory.getLogger(TcpIncomingConnector.class);
     private final StoppableExecutor executor;
     private final MessageSerializer<T> serializer;
+    private final InetAddressFactory addressFactory;
     private final IdGenerator<?> idGenerator;
-    private final List<InetAddress> localAddresses;
-    private final List<InetAddress> remoteAddresses;
     private final List<ServerSocketChannel> serverSockets = new CopyOnWriteArrayList<ServerSocketChannel>();
 
     public TcpIncomingConnector(ExecutorFactory executorFactory, MessageSerializer<T> serializer, InetAddressFactory addressFactory, IdGenerator<?> idGenerator) {
         this.serializer = serializer;
+        this.addressFactory = addressFactory;
         this.idGenerator = idGenerator;
         this.executor = executorFactory.create("Incoming TCP Connector");
-
-        localAddresses = addressFactory.findLocalAddresses();
-        remoteAddresses = addressFactory.findRemoteAddresses();
     }
 
     public Address accept(Action<ConnectEvent<Connection<T>>> action, boolean allowRemote) {
@@ -70,11 +67,11 @@ public class TcpIncomingConnector<T> implements IncomingConnector<T>, AsyncStopp
         }
 
         Object id = idGenerator.generateId();
-        List<InetAddress> addresses = allowRemote ? remoteAddresses : localAddresses;
+        List<InetAddress> addresses = allowRemote ? addressFactory.findRemoteAddresses() : addressFactory.findLocalAddresses();
         Address address = new MultiChoiceAddress(id, localPort, addresses);
         LOGGER.debug("Listening on {}.", address);
 
-        executor.execute(new Receiver(serverSocket, action, allowRemote));
+        executor.execute(new Receiver(serverSocket, action, allowRemote ? null : addresses));
         return address;
     }
 
@@ -90,12 +87,12 @@ public class TcpIncomingConnector<T> implements IncomingConnector<T>, AsyncStopp
     private class Receiver implements Runnable {
         private final ServerSocketChannel serverSocket;
         private final Action<ConnectEvent<Connection<T>>> action;
-        private final boolean allowRemote;
+        private final List<InetAddress> permittedAddresses;
 
-        public Receiver(ServerSocketChannel serverSocket, Action<ConnectEvent<Connection<T>>> action, boolean allowRemote) {
+        public Receiver(ServerSocketChannel serverSocket, Action<ConnectEvent<Connection<T>>> action, List<InetAddress> permittedAddresses) {
             this.serverSocket = serverSocket;
             this.action = action;
-            this.allowRemote = allowRemote;
+            this.permittedAddresses = permittedAddresses;
         }
 
         public void run() {
@@ -105,7 +102,7 @@ public class TcpIncomingConnector<T> implements IncomingConnector<T>, AsyncStopp
                         SocketChannel socket = serverSocket.accept();
                         InetSocketAddress remoteSocketAddress = (InetSocketAddress) socket.socket().getRemoteSocketAddress();
                         InetAddress remoteInetAddress = remoteSocketAddress.getAddress();
-                        if (!allowRemote && !(localAddresses.contains(remoteInetAddress) || remoteAddresses.contains(remoteInetAddress))) {
+                        if (permittedAddresses != null && !permittedAddresses.contains(remoteInetAddress)) {
                             LOGGER.error("Cannot accept connection from remote address {}.", remoteInetAddress);
                             socket.close();
                             continue;

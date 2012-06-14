@@ -30,13 +30,14 @@ public class InetAddressFactory {
     private static final Logger LOGGER = LoggerFactory.getLogger(InetAddressFactory.class);
     
     /**
-     * Locates the local (loopback) addresses for this machine. Never returns an empty list.
+     * Locates all addresses for this machine. Never returns an empty list. Prefers loopback over non-loopback addresses.
      */
     public List<InetAddress> findLocalAddresses() {
         try {
             LOGGER.debug("Locating local addresses for this machine.");
             List<InetAddress> addresses = new ArrayList<InetAddress>();
             filterIpAddresses(true, addresses);
+            filterIpAddresses(false, addresses);
             if (addresses.isEmpty()) {
                 InetAddress fallback = InetAddress.getByName(null);
                 LOGGER.debug("No loopback addresses, using fallback {}", fallback);
@@ -75,7 +76,7 @@ public class InetAddressFactory {
             Enumeration<InetAddress> candidates = networkInterface.getInetAddresses();
             while (candidates.hasMoreElements()) {
                 InetAddress candidate = candidates.nextElement();
-                if ((loopback && candidate.isLoopbackAddress()) || (!loopback && !candidate.isLoopbackAddress())) {
+                if (loopback == candidate.isLoopbackAddress()) {
                     LOGGER.debug("Adding IP address {}", candidate);
                     addresses.add(candidate);
                 }
