@@ -38,10 +38,6 @@ public class LocalFileStandInExternalResource extends AbstractExternalResource {
     private HashValue sha1;
     private ExternalResourceMetaData metaData;
 
-    public LocalFileStandInExternalResource(String source, File localFile) {
-        this(source, localFile, null);
-    }
-
     public LocalFileStandInExternalResource(String source, File localFile, ExternalResourceMetaData metaData) {
         this.source = source;
         this.localFile = localFile;
