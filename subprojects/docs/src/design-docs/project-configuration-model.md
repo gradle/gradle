@@ -105,6 +105,7 @@ call these the 'active' projects.
     * aggregation tasks, eg aggregated javadoc, or test reports that drag in source and configuration from some other projects.
     * an init script uses `allprojects { }` or `rootproject { }`
     * conditional configuration based on task graph contents.
+    * IDE and sonar plugins build model from subprojects.
     * project configured using previously published version of itself.
     * there are more use cases here.
 

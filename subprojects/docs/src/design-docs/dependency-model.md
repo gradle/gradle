@@ -551,6 +551,7 @@ PublishArtifactSet more generally), but not actually add any signatures. Applyin
 
 # Other stuff to consider
 
+* Extensibility: need to be able to add new types of artifacts, components, variants, packagings, plus attach custom metadata to things.
 * Network and web services are a usage, and should be considered as a runtime dependency.
 * A component that provides a web service may publish wsdl descriptors or a client library or both.
 * A component has a lifecycle.
