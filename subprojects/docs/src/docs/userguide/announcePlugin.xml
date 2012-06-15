@@ -70,7 +70,7 @@
            <td>local</td>
            <td>Windows, Mac OS X, Ubuntu</td>
            <td></td>
-           <td>Automatically chooses between snarl, growl, and notify-send depending on the operating system used</td>
+           <td>Automatically chooses between snarl, growl, and notify-send depending on the current operating system.</td>
        </tr>
    </table>
 
