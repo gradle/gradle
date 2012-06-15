@@ -51,15 +51,19 @@ public class TcpOutgoingConnector<T> implements OutgoingConnector<T> {
 
         // Now try each address
         try {
-            SocketException lastFailure = null;
+            Exception lastFailure = null;
             for (InetAddress candidate : candidateAddresses) {
                 LOGGER.debug("Trying to connect to address {}.", candidate);
                 SocketChannel socketChannel;
                 try {
                     socketChannel = SocketChannel.open(new InetSocketAddress(candidate, address.getPort()));
-                } catch (SocketException e) {
+                } catch (java.net.ConnectException e) {
                     LOGGER.debug("Cannot connect to address {}, skipping.", candidate);
                     lastFailure = e;
+                    continue;
+                } catch (SocketException e) {
+                    LOGGER.debug("Cannot connect to address {}, skipping.", candidate);
+                    lastFailure = new RuntimeException(String.format("Could not connect to address %s.", candidate), e);
                     continue;
                 }
                 LOGGER.debug("Connected to address {}.", candidate);
