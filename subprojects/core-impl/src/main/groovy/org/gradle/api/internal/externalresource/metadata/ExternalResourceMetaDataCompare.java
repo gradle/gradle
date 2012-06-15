@@ -18,15 +18,10 @@ package org.gradle.api.internal.externalresource.metadata;
 
 import org.gradle.api.Nullable;
 import org.gradle.internal.Factory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Date;
 
 public abstract class ExternalResourceMetaDataCompare {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(ExternalResourceMetaDataCompare.class);
-
     public static boolean isDefinitelyUnchanged(@Nullable ExternalResourceMetaData local, Factory<ExternalResourceMetaData> remoteFactory) {
         if (local == null) {
             return false;

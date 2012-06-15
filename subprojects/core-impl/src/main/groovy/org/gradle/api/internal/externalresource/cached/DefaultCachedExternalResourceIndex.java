@@ -92,7 +92,7 @@ public class DefaultCachedExternalResourceIndex<K extends Serializable> implemen
             throw new IllegalArgumentException("key cannot be null");
         }
 
-        return cacheLockingManager.useCache(operationName("store"), new Factory<DefaultCachedExternalResource>() {
+        return cacheLockingManager.useCache(operationName("lookup"), new Factory<DefaultCachedExternalResource>() {
             public DefaultCachedExternalResource create() {
                 DefaultCachedExternalResource found = getPersistentCache().get(key);
                 if (found == null) {
