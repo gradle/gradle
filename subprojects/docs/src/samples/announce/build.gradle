@@ -19,8 +19,8 @@ task helloWorld << {
 }  
 
 helloWorld.doLast {  
-    announce("Build complete", "notify-send")
-    announce("Build complete", "twitter")
+    announce.announce("Build complete", "notify-send")
+    announce.announce("Build complete", "twitter")
 }
 //END SNIPPET announce-usage
 
