@@ -27,6 +27,9 @@ import java.io.OutputStream;
  * by Szczepan Faber, created at: 5/25/12
  */
 public abstract class EncodedStream {
+    private final static char[] HEX_DIGIT = new char[] {
+        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'
+    };
 
     public static class EncodedInput extends InputStream {
 
@@ -37,42 +40,49 @@ public abstract class EncodedStream {
         }
 
         public int read() throws IOException {
-            byte[] bytes = new byte[2];
-            int bytesRead = delegate.read(bytes);
-            if (bytesRead == -1) {
+            int byte1 = delegate.read();
+            if (byte1 < 0) {
                 return -1;
-            } else if (bytesRead != 2) {
-                throw new RuntimeException("Unable to decode, expected 2 bytes but was " + bytesRead + ". It seems the stream was not encoded correctly.");
             }
-            return hexToByte(new String(bytes));
+            int byte2 = delegate.read();
+            if (byte2 < 0) {
+                throw new IOException("Unable to decode, expected 2 bytes but received only 1 byte. It seems the stream was not encoded correctly.");
+            }
+            return (hexToByte(byte1) << 4) | hexToByte(byte2);
         }
 
-        public static int hexToByte(String s) {
-            return Integer.parseInt(s, 16);
+        public static int hexToByte(int s) throws IOException {
+            if (s >= '0' && s <= '9') {
+                return s - '0';
+            }
+            if (s >= 'a' && s <= 'f') {
+                return s - 'a' + 10;
+            }
+            throw new IOException("Unexpected value %s received. It seems the stream was not encoded correctly.");
         }
     }
 
     public static class EncodedOutput extends OutputStream {
 
-        private OutputStream delegate;
+        private final OutputStream delegate;
 
         public EncodedOutput(OutputStream delegate) {
             this.delegate = delegate;
         }
 
         public void write(int b) throws IOException {
-            String encoded = byteToHex((byte) b);
-            delegate.write(encoded.getBytes());
+            delegate.write(HEX_DIGIT[(b >> 4) & 0x0f]);
+            delegate.write(HEX_DIGIT[b & 0x0f]);
         }
 
-        private final static char[] HEX_DIGIT = new char[] {
-            '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'
-        };
+        @Override
+        public void flush() throws IOException {
+            delegate.flush();
+        }
 
-        public static String byteToHex(byte b) {
-            // Returns hex String representation of byte b
-            char[] array = new char[]{HEX_DIGIT[(b >> 4) & 0x0f], HEX_DIGIT[b & 0x0f]};
-            return new String(array);
+        @Override
+        public void close() throws IOException {
+            delegate.close();
         }
     }
 }
