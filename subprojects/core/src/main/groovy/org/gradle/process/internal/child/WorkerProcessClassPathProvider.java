@@ -17,6 +17,7 @@
 package org.gradle.process.internal.child;
 
 import org.gradle.api.Action;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.ClassPathProvider;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.cache.CacheRepository;
@@ -28,7 +29,10 @@ import org.gradle.process.internal.launcher.GradleWorkerMain;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.URL;
 import java.util.Arrays;
+import java.util.Enumeration;
 
 public class WorkerProcessClassPathProvider implements ClassPathProvider {
     private final CacheRepository cacheRepository;
@@ -76,10 +80,27 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider {
     private static class CacheInitializer implements Action<PersistentCache> {
         public void execute(PersistentCache cache) {
             File classesDir = classesDir(cache);
+            URL currentClasspath = getClass().getProtectionDomain().getCodeSource().getLocation();
             for (Class<?> aClass : Arrays.asList(GradleWorkerMain.class, BootstrapClassLoaderWorker.class, BootstrapSecurityManager.class, EncodedStream.EncodedInput.class)) {
                 String fileName = aClass.getName().replace('.', '/') + ".class";
-                GFileUtils.copyURLToFile(WorkerProcessClassPathProvider.class.getClassLoader().getResource(fileName),
-                        new File(classesDir, fileName));
+
+                // Prefer the class from the same classpath as the current class. This is for the case where we're running in a test under an older
+                // version of Gradle, whose worker classes will be visible to us
+                Enumeration<URL> resources;
+                try {
+                    resources = WorkerProcessClassPathProvider.class.getClassLoader().getResources(fileName);
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+                URL resource = null;
+                while (resources.hasMoreElements()) {
+                    URL url = resources.nextElement();
+                    resource = url;
+                    if (url.toString().startsWith(currentClasspath.toString())) {
+                        break;
+                    }
+                }
+                GFileUtils.copyURLToFile(resource, new File(classesDir, fileName));
             }
         }
     }
