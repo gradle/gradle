@@ -22,28 +22,44 @@ import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
 
 public class InetAddressFactory {
     private static final Logger LOGGER = LoggerFactory.getLogger(InetAddressFactory.class);
-    
+    private final Object lock = new Object();
+    private List<InetAddress> loopbackAddresses;
+    private List<InetAddress> nonLoopbackAddresses;
+
     /**
-     * Locates all addresses for this machine. Never returns an empty list. Prefers loopback over non-loopback addresses.
+     * Determines if the given source address is from the local machine.
+     */
+    public boolean isLocal(InetAddress address) {
+        try {
+            synchronized (lock) {
+                init();
+                return loopbackAddresses.contains(address) || nonLoopbackAddresses.contains(address);
+            }
+        } catch (SocketException e) {
+            throw new RuntimeException("Could not determine the IP addresses for this machine.", e);
+        }
+    }
+
+    /**
+     * Locates all local (loopback) addresses for this machine. Never returns an empty list.
      */
     public List<InetAddress> findLocalAddresses() {
         try {
-            LOGGER.debug("Locating local addresses for this machine.");
-            List<InetAddress> addresses = new ArrayList<InetAddress>();
-            filterIpAddresses(true, addresses);
-            filterIpAddresses(false, addresses);
-            if (addresses.isEmpty()) {
+            synchronized (lock) {
+                init();
+                if (!loopbackAddresses.isEmpty()) {
+                    return loopbackAddresses;
+                }
                 InetAddress fallback = InetAddress.getByName(null);
                 LOGGER.debug("No loopback addresses, using fallback {}", fallback);
-                addresses.add(fallback);
+                return Collections.singletonList(fallback);
             }
-            return addresses;
         } catch (Exception e) {
             throw new RuntimeException("Could not determine the local IP addresses for this machine.", e);
         }
@@ -54,31 +70,38 @@ public class InetAddressFactory {
      */
     public List<InetAddress> findRemoteAddresses() {
         try {
-            LOGGER.debug("Locating remote addresses for this machine.");
-            List<InetAddress> addresses = new ArrayList<InetAddress>();
-            filterIpAddresses(false, addresses);
-            if (addresses.isEmpty()) {
+            synchronized (lock) {
+                init();
+                if (!nonLoopbackAddresses.isEmpty()) {
+                    return nonLoopbackAddresses;
+                }
                 InetAddress fallback = InetAddress.getLocalHost();
                 LOGGER.debug("No remote addresses, using fallback {}", fallback);
-                addresses.add(fallback);
+                return Collections.singletonList(fallback);
             }
-            return addresses;
         } catch (Exception e) {
             throw new RuntimeException("Could not determine the remote IP addresses for this machine.", e);
         }
     }
 
-    private void filterIpAddresses(boolean loopback, Collection<InetAddress> addresses) throws SocketException {
-        Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
-        while (interfaces.hasMoreElements()) {
-            NetworkInterface networkInterface = interfaces.nextElement();
-            LOGGER.debug("Adding IP addresses for network interface {}", networkInterface.getName());
-            Enumeration<InetAddress> candidates = networkInterface.getInetAddresses();
-            while (candidates.hasMoreElements()) {
-                InetAddress candidate = candidates.nextElement();
-                if (loopback == candidate.isLoopbackAddress()) {
-                    LOGGER.debug("Adding IP address {}", candidate);
-                    addresses.add(candidate);
+    private void init() throws SocketException {
+        if (loopbackAddresses == null) {
+            loopbackAddresses = new ArrayList<InetAddress>();
+            nonLoopbackAddresses = new ArrayList<InetAddress>();
+            Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+            while (interfaces.hasMoreElements()) {
+                NetworkInterface networkInterface = interfaces.nextElement();
+                LOGGER.debug("Adding IP addresses for network interface {}", networkInterface.getName());
+                Enumeration<InetAddress> candidates = networkInterface.getInetAddresses();
+                while (candidates.hasMoreElements()) {
+                    InetAddress candidate = candidates.nextElement();
+                    if (candidate.isLoopbackAddress()) {
+                        LOGGER.debug("Adding loopback address {}", candidate);
+                        loopbackAddresses.add(candidate);
+                    } else {
+                        LOGGER.debug("Adding non-loopback address {}", candidate);
+                        nonLoopbackAddresses.add(candidate);
+                    }
                 }
             }
         }

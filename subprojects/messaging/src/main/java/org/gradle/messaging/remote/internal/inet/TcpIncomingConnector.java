@@ -71,7 +71,7 @@ public class TcpIncomingConnector<T> implements IncomingConnector<T>, AsyncStopp
         Address address = new MultiChoiceAddress(id, localPort, addresses);
         LOGGER.debug("Listening on {}.", address);
 
-        executor.execute(new Receiver(serverSocket, action, allowRemote ? null : addresses));
+        executor.execute(new Receiver(serverSocket, action, allowRemote));
         return address;
     }
 
@@ -87,12 +87,12 @@ public class TcpIncomingConnector<T> implements IncomingConnector<T>, AsyncStopp
     private class Receiver implements Runnable {
         private final ServerSocketChannel serverSocket;
         private final Action<ConnectEvent<Connection<T>>> action;
-        private final List<InetAddress> permittedAddresses;
+        private final boolean allowRemote;
 
-        public Receiver(ServerSocketChannel serverSocket, Action<ConnectEvent<Connection<T>>> action, List<InetAddress> permittedAddresses) {
+        public Receiver(ServerSocketChannel serverSocket, Action<ConnectEvent<Connection<T>>> action, boolean allowRemote) {
             this.serverSocket = serverSocket;
             this.action = action;
-            this.permittedAddresses = permittedAddresses;
+            this.allowRemote = allowRemote;
         }
 
         public void run() {
@@ -102,7 +102,7 @@ public class TcpIncomingConnector<T> implements IncomingConnector<T>, AsyncStopp
                         SocketChannel socket = serverSocket.accept();
                         InetSocketAddress remoteSocketAddress = (InetSocketAddress) socket.socket().getRemoteSocketAddress();
                         InetAddress remoteInetAddress = remoteSocketAddress.getAddress();
-                        if (permittedAddresses != null && !permittedAddresses.contains(remoteInetAddress)) {
+                        if (!allowRemote && !addressFactory.isLocal(remoteInetAddress)) {
                             LOGGER.error("Cannot accept connection from remote address {}.", remoteInetAddress);
                             socket.close();
                             continue;
