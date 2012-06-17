@@ -15,20 +15,20 @@
  */
 package org.gradle.messaging.remote.internal;
 
-import org.gradle.internal.concurrent.DefaultExecutorFactory;
-import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.id.UUIDGenerator;
-import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.CompositeStoppable;
 import org.gradle.internal.Stoppable;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.concurrent.DefaultExecutorFactory;
+import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.id.IdGenerator;
+import org.gradle.internal.id.UUIDGenerator;
+import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.messaging.dispatch.DiscardingFailureHandler;
 import org.gradle.messaging.remote.MessagingClient;
 import org.gradle.messaging.remote.MessagingServer;
 import org.gradle.messaging.remote.internal.inet.*;
 import org.gradle.messaging.remote.internal.protocol.DiscoveryMessage;
 import org.gradle.messaging.remote.internal.protocol.DiscoveryProtocolSerializer;
-import org.gradle.internal.id.IdGenerator;
-import org.gradle.internal.UncheckedException;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetAddress;
@@ -86,16 +86,6 @@ public class MessagingServices extends DefaultServiceRegistry implements Stoppab
         }
     }
 
-    private static String determineNodeName() {
-        String hostName;
-        try {
-            hostName = InetAddress.getLocalHost().getHostName();
-        } catch (UnknownHostException e) {
-            hostName = new InetAddressFactory().findRemoteAddresses().get(0).toString();
-        }
-        return String.format("%s@%s", System.getProperty("user.name"), hostName);
-    }
-
     public void stop() {
         close();
     }
@@ -115,12 +105,18 @@ public class MessagingServices extends DefaultServiceRegistry implements Stoppab
     }
 
     protected MessageOriginator createMessageOriginator() {
-        return new MessageOriginator(idGenerator.generateId(), determineNodeName());
+        String hostName = get(InetAddressFactory.class).getHostName();
+        String nodeName = String.format("%s@%s", System.getProperty("user.name"), hostName);
+        return new MessageOriginator(idGenerator.generateId(), nodeName);
     }
 
     protected ExecutorFactory createExecutorFactory() {
         executorFactory = new DefaultExecutorFactory();
         return executorFactory;
+    }
+
+    protected InetAddressFactory createInetAddressFactory() {
+        return new InetAddressFactory();
     }
 
     protected OutgoingConnector<Message> createOutgoingConnector() {
@@ -134,7 +130,7 @@ public class MessagingServices extends DefaultServiceRegistry implements Stoppab
                 get(ExecutorFactory.class),
                 new DefaultMessageSerializer<Message>(
                         messageClassLoader),
-                new InetAddressFactory(),
+                get(InetAddressFactory.class),
                 idGenerator);
         return incomingConnector;
     }

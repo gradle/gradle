@@ -18,19 +18,30 @@ package org.gradle.messaging.remote.internal.inet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.List;
+import java.lang.reflect.Method;
+import java.net.*;
+import java.util.*;
 
+/**
+ * Provides some information about the network addresses of the local machine.
+ */
 public class InetAddressFactory {
     private static final Logger LOGGER = LoggerFactory.getLogger(InetAddressFactory.class);
     private final Object lock = new Object();
-    private List<InetAddress> loopbackAddresses;
-    private List<InetAddress> nonLoopbackAddresses;
+    private List<InetAddress> localAddresses;
+    private List<InetAddress> remoteAddresses;
+    private Collection<InetAddress> allAddresses;
+
+    /**
+     * Determines the name of the local machine.
+     */
+    public String getHostName() {
+        try {
+            return InetAddress.getLocalHost().getHostName();
+        } catch (UnknownHostException e) {
+            return findRemoteAddresses().get(0).toString();
+        }
+    }
 
     /**
      * Determines if the given source address is from the local machine.
@@ -39,9 +50,9 @@ public class InetAddressFactory {
         try {
             synchronized (lock) {
                 init();
-                return loopbackAddresses.contains(address) || nonLoopbackAddresses.contains(address);
+                return allAddresses.contains(address);
             }
-        } catch (SocketException e) {
+        } catch (Exception e) {
             throw new RuntimeException("Could not determine the IP addresses for this machine.", e);
         }
     }
@@ -53,8 +64,8 @@ public class InetAddressFactory {
         try {
             synchronized (lock) {
                 init();
-                if (!loopbackAddresses.isEmpty()) {
-                    return loopbackAddresses;
+                if (!localAddresses.isEmpty()) {
+                    return localAddresses;
                 }
                 InetAddress fallback = InetAddress.getByName(null);
                 LOGGER.debug("No loopback addresses, using fallback {}", fallback);
@@ -72,8 +83,8 @@ public class InetAddressFactory {
         try {
             synchronized (lock) {
                 init();
-                if (!nonLoopbackAddresses.isEmpty()) {
-                    return nonLoopbackAddresses;
+                if (!remoteAddresses.isEmpty()) {
+                    return remoteAddresses;
                 }
                 InetAddress fallback = InetAddress.getLocalHost();
                 LOGGER.debug("No remote addresses, using fallback {}", fallback);
@@ -84,23 +95,55 @@ public class InetAddressFactory {
         }
     }
 
-    private void init() throws SocketException {
-        if (loopbackAddresses == null) {
-            loopbackAddresses = new ArrayList<InetAddress>();
-            nonLoopbackAddresses = new ArrayList<InetAddress>();
-            Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
-            while (interfaces.hasMoreElements()) {
-                NetworkInterface networkInterface = interfaces.nextElement();
-                LOGGER.debug("Adding IP addresses for network interface {}", networkInterface.getName());
-                Enumeration<InetAddress> candidates = networkInterface.getInetAddresses();
-                while (candidates.hasMoreElements()) {
-                    InetAddress candidate = candidates.nextElement();
+    private void init() throws Exception {
+        if (localAddresses != null) {
+            return;
+        }
+
+        Method loopbackMethod;
+        try {
+            loopbackMethod = NetworkInterface.class.getMethod("isLoopback");
+        } catch (NoSuchMethodException e) {
+            loopbackMethod = null;
+        }
+
+        localAddresses = new ArrayList<InetAddress>();
+        remoteAddresses = new ArrayList<InetAddress>();
+        allAddresses = new HashSet<InetAddress>();
+
+        Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+        while (interfaces.hasMoreElements()) {
+            NetworkInterface networkInterface = interfaces.nextElement();
+            LOGGER.debug("Adding IP addresses for network interface {}", networkInterface.getName());
+            Boolean isLoopbackInterface = loopbackMethod == null ? null : (Boolean) loopbackMethod.invoke(networkInterface);
+            LOGGER.debug("Is this a loopback interface? {}", isLoopbackInterface);
+
+            Enumeration<InetAddress> candidates = networkInterface.getInetAddresses();
+            while (candidates.hasMoreElements()) {
+                InetAddress candidate = candidates.nextElement();
+                allAddresses.add(candidate);
+                if (isLoopbackInterface == null) {
+                    // Don't know if this is a loopback interface or not
                     if (candidate.isLoopbackAddress()) {
                         LOGGER.debug("Adding loopback address {}", candidate);
-                        loopbackAddresses.add(candidate);
+                        localAddresses.add(candidate);
                     } else {
                         LOGGER.debug("Adding non-loopback address {}", candidate);
-                        nonLoopbackAddresses.add(candidate);
+                        remoteAddresses.add(candidate);
+                    }
+                } else if (isLoopbackInterface) {
+                    if (candidate.isLoopbackAddress()) {
+                        LOGGER.debug("Adding loopback address {}", candidate);
+                        localAddresses.add(candidate);
+                    } else {
+                        LOGGER.debug("Ignoring non-loopback address on loopback interface {}", candidate);
+                    }
+                } else {
+                    if (candidate.isLoopbackAddress()) {
+                        LOGGER.debug("Ignoring loopback address on non-loopback interface {}", candidate);
+                    } else {
+                        LOGGER.debug("Adding non-loopback address {}", candidate);
+                        remoteAddresses.add(candidate);
                     }
                 }
             }
