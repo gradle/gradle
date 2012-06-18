@@ -19,15 +19,16 @@ package org.gradle.api.internal.tasks.testing.logging
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.gradle.api.tasks.testing.TestResult
-import org.gradle.logging.internal.OutputEventListener
 
 import spock.lang.Specification
+import org.gradle.logging.TestStyledTextOutputFactory
 
 class TestEventLoggerTest extends Specification {
-    def outputListener = Mock(OutputEventListener)
+    def logOutput = new TestStyledTextOutputFactory()
+
     def testLogging = new DefaultTestLogging()
     def exceptionFormatter = Mock(TestExceptionFormatter)
-    def eventLogger = new TestEventLogger(outputListener, LogLevel.INFO, testLogging, exceptionFormatter)
+    def eventLogger = new TestEventLogger(logOutput, LogLevel.INFO, testLogging, exceptionFormatter)
 
     def rootDescriptor = new SimpleTestDescriptor(name: "", composite: true)
     def workerDescriptor = new SimpleTestDescriptor(name: "worker", composite: true, parent: rootDescriptor)
@@ -45,14 +46,15 @@ class TestEventLoggerTest extends Specification {
         eventLogger.afterTest(methodDescriptor, result)
 
         then:
-        1 * outputListener.onOutput(_)
+        logOutput.toString().count("PASSED") == 1
 
         when:
+        logOutput.clear()
         result.resultType = TestResult.ResultType.FAILURE
         eventLogger.afterTest(methodDescriptor, result)
 
         then:
-        0 * _
+        logOutput.toString().count("PASSED") == 0
     }
 
     def "logs event if granularity matches"() {
@@ -66,39 +68,38 @@ class TestEventLoggerTest extends Specification {
         eventLogger.afterSuite(classDescriptor, result)
 
         then:
-        3 * outputListener.onOutput(_)
+        logOutput.toString().count("PASSED") == 3
 
         when:
+        logOutput.clear()
         eventLogger.afterSuite(rootDescriptor, result)
         eventLogger.afterSuite(workerDescriptor, result)
         eventLogger.afterTest(methodDescriptor, result)
 
         then:
-        0 * _
+        logOutput.toString().count("PASSED") == 0
     }
 
     def "shows exceptions if configured"() {
         testLogging.events(TestLogEvent.FAILED)
-        testLogging.showExceptions = true
-
         result.resultType = TestResult.ResultType.FAILURE
         result.exceptions = [new RuntimeException()]
 
-        def outputEvent
+        exceptionFormatter.format(*_) >> "formatted exception"
 
         when:
+        testLogging.showExceptions = true
         eventLogger.afterTest(methodDescriptor, result)
 
         then:
-        1 * exceptionFormatter.format(*_) >> "formatted exception"
-        1 * outputListener.onOutput({ outputEvent = it })
-        outputEvent.toString().contains("formatted exception")
+        logOutput.toString().contains("formatted exception")
 
         when:
+        logOutput.clear()
         testLogging.showExceptions = false
         eventLogger.afterTest(methodDescriptor, result)
 
         then:
-        0 * exceptionFormatter.format(*_)
+        !logOutput.toString().contains("formatted exception")
     }
 }

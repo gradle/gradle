@@ -16,15 +16,15 @@
 
 package org.gradle.api.internal.tasks.testing.logging
 
-import spock.lang.Specification
-import org.gradle.logging.internal.OutputEventListener
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.tasks.testing.logging.TestLogEvent
-import org.gradle.logging.internal.OutputEvent
+import org.gradle.logging.StyledTextOutputFactory
+import org.gradle.logging.TestStyledTextOutputFactory
+
+import spock.lang.Specification
 
 class AbstractTestLoggerTest extends Specification {
-    OutputEventListener listener = Mock()
-    OutputEvent outputEvent
+    StyledTextOutputFactory textOutputFactory = new TestStyledTextOutputFactory()
     AbstractTestLogger logger
 
     def rootDescriptor = new SimpleTestDescriptor(name: "", composite: true)
@@ -34,10 +34,6 @@ class AbstractTestLoggerTest extends Specification {
     def classDescriptor = new SimpleTestDescriptor(name: "foo.bar.TestClass", composite: true, parent: innerSuiteDescriptor)
     def methodDescriptor = new SimpleTestDescriptor(name: "testMethod", className: "foo.bar.TestClass", parent: classDescriptor)
 
-    def setup() {
-        _ * listener.onOutput({ outputEvent = it })
-    }
-
     def "log started outer suite event"() {
         createLogger(LogLevel.ERROR)
 
@@ -45,7 +41,7 @@ class AbstractTestLoggerTest extends Specification {
         logger.logEvent(outerSuiteDescriptor, TestLogEvent.STARTED)
 
         then:
-        outputEvent.toString() == "[ERROR] [testLogging] <Normal>com.OuterSuiteClass </Normal><Normal>STARTED</Normal><Normal>\n</Normal>"
+        textOutputFactory.toString() == "{TestLogger}{ERROR}com.OuterSuiteClass STARTED\n"
     }
 
     def "log passed inner suite event"() {
@@ -55,7 +51,7 @@ class AbstractTestLoggerTest extends Specification {
         logger.logEvent(innerSuiteDescriptor, TestLogEvent.PASSED)
 
         then:
-        outputEvent.toString() == "[QUIET] [testLogging] <Normal>com.OuterSuiteClass > com.InnerSuiteClass </Normal><Identifier>PASSED</Identifier><Normal>\n</Normal>"
+        textOutputFactory.toString() == "{TestLogger}{QUIET}com.OuterSuiteClass > com.InnerSuiteClass {identifier}PASSED{normal}\n"
 
     }
 
@@ -66,7 +62,7 @@ class AbstractTestLoggerTest extends Specification {
         logger.logEvent(classDescriptor, TestLogEvent.SKIPPED)
 
         then:
-        outputEvent.toString() == "[WARN] [testLogging] <Normal>com.OuterSuiteClass > com.InnerSuiteClass > foo.bar.TestClass </Normal><Info>SKIPPED</Info><Normal>\n</Normal>"
+        textOutputFactory.toString() == "{TestLogger}{WARN}com.OuterSuiteClass > com.InnerSuiteClass > foo.bar.TestClass {info}SKIPPED{normal}\n"
     }
 
     def "log failed test method event"() {
@@ -76,7 +72,7 @@ class AbstractTestLoggerTest extends Specification {
         logger.logEvent(methodDescriptor, TestLogEvent.FAILED)
 
         then:
-        outputEvent.toString() == "[LIFECYCLE] [testLogging] <Normal>com.OuterSuiteClass > com.InnerSuiteClass > foo.bar.TestClass > testMethod </Normal><Failure>FAILED</Failure><Normal>\n</Normal>"
+        textOutputFactory.toString() == "{TestLogger}{LIFECYCLE}com.OuterSuiteClass > com.InnerSuiteClass > foo.bar.TestClass > testMethod {failure}FAILED{normal}\n"
     }
 
     def "log standard out event with details"() {
@@ -86,8 +82,7 @@ class AbstractTestLoggerTest extends Specification {
         logger.logEvent(methodDescriptor, TestLogEvent.STANDARD_OUT, "this is a\nstandard out\nevent")
 
         then:
-        outputEvent.toString() == "[INFO] [testLogging] <Normal>com.OuterSuiteClass > com.InnerSuiteClass > foo.bar.TestClass > testMethod " +
-                "</Normal><Normal>STANDARD_OUT</Normal><Normal>\nthis is a\nstandard out\nevent\n</Normal>"
+        textOutputFactory.toString() == "{TestLogger}{INFO}com.OuterSuiteClass > com.InnerSuiteClass > foo.bar.TestClass > testMethod STANDARD_OUT\nthis is a\nstandard out\nevent\n"
     }
 
     def "log standard error event with details"() {
@@ -97,11 +92,10 @@ class AbstractTestLoggerTest extends Specification {
         logger.logEvent(methodDescriptor, TestLogEvent.STANDARD_ERROR, "this is a\nstandard error\nevent")
 
         then:
-        outputEvent.toString() == "[DEBUG] [testLogging] <Normal>com.OuterSuiteClass > com.InnerSuiteClass > foo.bar.TestClass > testMethod " +
-                "</Normal><Normal>STANDARD_ERROR</Normal><Normal>\nthis is a\nstandard error\nevent\n</Normal>"
+        textOutputFactory.toString() == "{TestLogger}{DEBUG}com.OuterSuiteClass > com.InnerSuiteClass > foo.bar.TestClass > testMethod STANDARD_ERROR\nthis is a\nstandard error\nevent\n"
     }
 
     def createLogger(LogLevel level) {
-        logger = new AbstractTestLogger(listener, level) {}
+        logger = new AbstractTestLogger(textOutputFactory, level) {}
     }
 }

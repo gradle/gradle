@@ -23,17 +23,16 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.tasks.testing.TestDescriptor;
 import org.gradle.api.tasks.testing.logging.TestLogEvent;
 import org.gradle.logging.StyledTextOutput;
-import org.gradle.logging.internal.OutputEventListener;
-import org.gradle.logging.internal.StyledTextOutputEvent;
+import org.gradle.logging.StyledTextOutputFactory;
 
 import java.util.List;
 
 public abstract class AbstractTestLogger {
-    private final OutputEventListener outputListener;
+    private final StyledTextOutputFactory textOutputFactory;
     private final LogLevel logLevel;
 
-    protected AbstractTestLogger(OutputEventListener outputListener, LogLevel logLevel) {
-        this.outputListener = outputListener;
+    protected AbstractTestLogger(StyledTextOutputFactory textOutputFactory, LogLevel logLevel) {
+        this.textOutputFactory = textOutputFactory;
         this.logLevel = logLevel;
     }
 
@@ -58,14 +57,13 @@ public abstract class AbstractTestLogger {
 
         List<String> displayedNames = Lists.reverse(names).subList(minDisplayedName, names.size());
         String path = Joiner.on(" > ").join(displayedNames) + " ";
-        String detailText = details == null ? "\n" : "\n" + details + "\n";
-        log(new StyledTextOutputEvent.Span(path), new StyledTextOutputEvent.Span(getStyle(event),
-                event.toString()), new StyledTextOutputEvent.Span(detailText));
-    }
 
-    private void log(StyledTextOutputEvent.Span... spans) {
-        outputListener.onOutput(new StyledTextOutputEvent(System.currentTimeMillis(),
-                "testLogging", logLevel, spans));
+        StyledTextOutput output = textOutputFactory.create("TestLogger", logLevel);
+        output.append(path);
+        output.withStyle(getStyle(event)).println(event.toString());
+        if (details != null) {
+            output.println(details);
+        }
     }
 
     private StyledTextOutput.Style getStyle(TestLogEvent event) {

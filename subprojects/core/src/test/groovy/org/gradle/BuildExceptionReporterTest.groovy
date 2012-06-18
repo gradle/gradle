@@ -18,16 +18,16 @@ package org.gradle
 import org.gradle.api.GradleException
 import org.gradle.api.internal.LocationAwareException
 import org.gradle.api.logging.LogLevel
+import org.gradle.api.internal.AbstractMultiCauseException
 import org.gradle.execution.TaskSelectionException
 import org.gradle.initialization.BuildClientMetaData
 import org.gradle.logging.LoggingConfiguration
 import org.gradle.logging.ShowStacktrace
 import org.gradle.logging.StyledTextOutputFactory
-import org.gradle.logging.internal.TestStyledTextOutput
+import org.gradle.logging.TestStyledTextOutput
 import org.gradle.util.TreeVisitor
+
 import spock.lang.Specification
-import org.gradle.api.internal.MultiCauseException
-import org.gradle.api.internal.AbstractMultiCauseException
 
 class BuildExceptionReporterTest extends Specification {
     final TestStyledTextOutput output = new TestStyledTextOutput()

@@ -21,19 +21,19 @@ import org.gradle.api.tasks.testing.*;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.api.tasks.testing.logging.TestLogEvent;
 import org.gradle.api.tasks.testing.logging.TestLogging;
-import org.gradle.logging.internal.OutputEventListener;
+import org.gradle.logging.StyledTextOutputFactory;
 import org.gradle.util.TextUtil;
 
 /**
- * Logger for test events.
+ * Console logger for test events.
  */
 public class TestEventLogger extends AbstractTestLogger implements TestListener, TestOutputListener {
     private static final String INDENT = "    ";
     private final TestExceptionFormatter exceptionFormatter;
     private final TestLogging testLogging;
 
-    public TestEventLogger(OutputEventListener outputListener, LogLevel logLevel, TestLogging testLogging, TestExceptionFormatter exceptionFormatter) {
-        super(outputListener, logLevel);
+    public TestEventLogger(StyledTextOutputFactory textOutputFactory, LogLevel logLevel, TestLogging testLogging, TestExceptionFormatter exceptionFormatter) {
+        super(textOutputFactory, logLevel);
         this.exceptionFormatter = exceptionFormatter;
         this.testLogging = testLogging;
     }

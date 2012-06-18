@@ -45,7 +45,7 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.listener.ListenerManager;
 import org.gradle.logging.ProgressLoggerFactory;
-import org.gradle.logging.internal.OutputEventListener;
+import org.gradle.logging.StyledTextOutputFactory;
 import org.gradle.messaging.actor.ActorFactory;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.ProcessForkOptions;
@@ -97,8 +97,13 @@ import java.util.Set;
 public class Test extends ConventionTask implements JavaForkOptions, PatternFilterable, VerificationTask {
     private static final Logger LOGGER = Logging.getLogger(Test.class);
 
-    private TestExecuter testExecuter;
+    private final ListenerBroadcast<TestListener> testListenerBroadcaster;
+    private final ListenerBroadcast<TestOutputListener> testOutputListenerBroadcaster;
+    private final StyledTextOutputFactory textOutputFactory;
+    private final TestLoggingContainer testLogging = new DefaultTestLoggingContainer();
     private final DefaultJavaForkOptions options;
+
+    private TestExecuter testExecuter;
     private List<File> testSrcDirs = new ArrayList<File>();
     private File testClassesDir;
     private File testResultsDir;
@@ -111,21 +116,14 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     private boolean scanForTestClasses = true;
     private long forkEvery;
     private int maxParallelForks = 1;
-    private ListenerBroadcast<TestListener> testListenerBroadcaster;
-    private final ListenerBroadcast<TestOutputListener> testOutputListenerBroadcaster;
-    private OutputEventListener outputListener;
-    private final TestLoggingContainer testLogging = new DefaultTestLoggingContainer();
 
     public Test() {
-        testListenerBroadcaster = getServices().get(ListenerManager.class).createAnonymousBroadcaster(
-                TestListener.class);
+        testListenerBroadcaster = getServices().get(ListenerManager.class).createAnonymousBroadcaster(TestListener.class);
         testOutputListenerBroadcaster = getServices().get(ListenerManager.class).createAnonymousBroadcaster(TestOutputListener.class);
-        this.testExecuter = new DefaultTestExecuter(getServices().getFactory(WorkerProcessBuilder.class), getServices().get(
-                ActorFactory.class));
-        outputListener = getServices().get(OutputEventListener.class);
-
+        textOutputFactory = getServices().get(StyledTextOutputFactory.class);
         options = new DefaultJavaForkOptions(getServices().get(FileResolver.class));
         options.setEnableAssertions(true);
+        testExecuter = new DefaultTestExecuter(getServices().getFactory(WorkerProcessBuilder.class), getServices().get(ActorFactory.class));
     }
 
     void setTestExecuter(TestExecuter testExecuter) {
@@ -402,7 +400,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
             }
             TestLogging levelLogging = testLogging.get(level);
             TestExceptionFormatter exceptionFormatter = getExceptionFormatter(testLogging);
-            TestEventLogger eventLogger = new TestEventLogger(outputListener, level, levelLogging, exceptionFormatter);
+            TestEventLogger eventLogger = new TestEventLogger(textOutputFactory, level, levelLogging, exceptionFormatter);
             addTestListener(eventLogger);
             addTestOutputListener(eventLogger);
         }
