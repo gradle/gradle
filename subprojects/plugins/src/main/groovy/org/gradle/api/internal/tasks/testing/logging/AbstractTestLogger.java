@@ -49,8 +49,13 @@ public abstract class AbstractTestLogger {
             current = current.getParent();
         }
 
-        // TODO: figure out what to do instead of hard-coding 2 (additional config value)?
+        // Here we assume that the first two names are _always_ the suite for the whole
+        // test run and the suite for the test JVM. Only when events of that granularity
+        // are logged do we show these names. If it turns out that our assumption is incorrect
+        // or hard coding this behavior is not good enough, we could make this configurable.
+        // But I'd rather not add another obscure configuration option unless really necessary.
         int minDisplayedName = Math.min(2, names.size() - 1);
+
         List<String> displayedNames = Lists.reverse(names).subList(minDisplayedName, names.size());
         String path = Joiner.on(" > ").join(displayedNames) + " ";
         String detailText = details == null ? "\n" : "\n" + details + "\n";
