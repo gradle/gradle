@@ -23,6 +23,7 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.nativeplatform.jna.LibC;
 import org.gradle.internal.os.OperatingSystem;
 import org.jruby.ext.posix.FileStat;
+import org.jruby.ext.posix.MacOSHeapFileStat;
 import org.jruby.ext.posix.POSIX;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,7 +55,7 @@ public class FilePermissionHandlerFactory {
     private static ComposableFilePermissionHandler.Stat createStat() {
         if (OperatingSystem.current().isMacOsX()) {
             LibC libc = loadLibC();
-            return new LibcStat(libc);
+            return new MacOSLibCStat(libc);
         } else {
             return new PosixStat(PosixUtil.current());
         }
@@ -93,15 +94,17 @@ public class FilePermissionHandlerFactory {
         }
     }
 
-    private static class LibcStat implements ComposableFilePermissionHandler.Stat {
+    private static class MacOSLibCStat implements ComposableFilePermissionHandler.Stat {
         private LibC libc;
 
-        public LibcStat(LibC libc) {
+        public MacOSLibCStat(LibC libc) {
             this.libc = libc;
         }
 
         public FileStat stat(File f) throws IOException {
-            return libc.stat(getEncodedFilePath(f));
+            FileStat stat = new MacOSHeapFileStat(null);
+            libc.stat(getEncodedFilePath(f), stat);
+            return stat;
         }
     }
 

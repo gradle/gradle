@@ -27,7 +27,7 @@ public interface LibC extends Library {
     public int chdir(String dirAbsolutePath) throws LastErrorException;
     public int getpid();
     public int isatty(int fdes);
-    public FileStat stat(byte[] filePath) throws LastErrorException;
+    public int stat(byte[] filePath, FileStat fileStat) throws LastErrorException;
     public int chmod(byte[] filePath, int mode) throws LastErrorException;
     //CHECKSTYLE:ON
 }

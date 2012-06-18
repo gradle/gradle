@@ -23,7 +23,7 @@ import java.io.IOException;
 
 public class ComposableFilePermissionHandler implements FilePermissionHandler {
     private final Chmod chmod;
-    private Stat stat;
+    private final Stat stat;
 
     public ComposableFilePermissionHandler(Chmod chmod, Stat stat) {
         this.chmod = chmod;

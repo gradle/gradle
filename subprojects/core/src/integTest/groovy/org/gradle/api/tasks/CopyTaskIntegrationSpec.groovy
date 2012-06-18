@@ -41,11 +41,12 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
 
         when:
         executer.withDefaultCharacterEncoding("ISO-8859-1").withTasks("copyFiles")
-        OperatingSystem.current().isWindows() ? executer.run() : executer.runWithFailure()
+        onWinOrMacOS() ? executer.run() : executer.runWithFailure()
 
         then:
         file("build/resources", weirdFileName).exists()
     }
+
 
     @Issue("http://issues.gradle.org/browse/GRADLE-2181")
     def canCopyFilesWithUnicodeCharactersInNameWithUnicodePlatformEncoding() {
@@ -68,6 +69,10 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
 
         then:
         file("build/resources", weirdFileName).exists()
+    }
+
+    private boolean onWinOrMacOS() {
+        OperatingSystem.current().isWindows() || OperatingSystem.current().isMacOsX()
     }
 
 }
