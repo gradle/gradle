@@ -16,19 +16,19 @@
 
 package org.gradle.internal.nativeplatform.filesystem
 
-import org.jruby.ext.posix.FileStat
-import org.jruby.ext.posix.POSIX
-import spock.lang.Specification
-import org.junit.Rule
 import org.gradle.util.TemporaryFolder
+import org.jruby.ext.posix.FileStat
+import org.junit.Rule
+import spock.lang.Specification
 
 class ComposableFilePermissionHandlerTest extends Specification {
     final ComposableFilePermissionHandler.Chmod chmod = Mock()
-    final POSIX posix = Mock()
-    final ComposableFilePermissionHandler handler = new ComposableFilePermissionHandler(chmod, posix)
+    final ComposableFilePermissionHandler.Stat stat = Mock()
+    final ComposableFilePermissionHandler handler = new ComposableFilePermissionHandler(chmod, stat)
 
     @Rule TemporaryFolder temporaryFolder;
-    def "chmod calls are delegated to Chmod"(){
+
+    def "chmod calls are delegated to Chmod"() {
         setup:
         def file = temporaryFolder.createFile("testfile");
         when:
@@ -38,12 +38,12 @@ class ComposableFilePermissionHandlerTest extends Specification {
         1 * chmod.chmod(file, 0744)
     }
 
-    def "getUnixMode calls are delegated to POSIX"(){
+    def "getUnixMode calls are delegated to Stat"() {
         setup:
-        FileStat stat = Mock()
+        FileStat fileStat = Mock()
         def file = temporaryFolder.createFile("testfile");
-        posix.stat(file.getAbsolutePath()) >> stat
-        stat.mode() >> 0754
+        1 * stat.stat(file) >> fileStat
+        1 * fileStat.mode() >> 0754
 
         expect:
         handler.getUnixMode(file) == 0754

@@ -68,12 +68,22 @@ public class FilePermissionHandlerFactoryOnNonJdk7Test extends Specification {
     @Requires(TestPrecondition.FILE_PERMISSIONS)
     def "chmod supports unicode filenames"() {
         setup:
-        def file = temporaryFolder.createFile("\u0627\u0644\u0642\u064A\u0627\u062F\u0629 \u0648\u0627\u0644\u0633\u064A\u0637\u0631\u0629 - \u0627\u0644\u0627\u0655\u062F\u0627\u0631\u0629.lnk")
+        def file = temporaryFolder.createFile("\u0627\u0644\u0642\u064A\u0627\u062F\u0629 \u0648\u0627\u0644\u0633\u064A\u0637\u0631\u0629.lnk")
         def handler = FilePermissionHandlerFactory.createDefaultFilePermissionHandler()
         when:
         handler.chmod(file, 0722);
         then:
         file.getMode() == 0722
+    }
+
+    @Requires(TestPrecondition.FILE_PERMISSIONS)
+    def "getUnixMode supports unicode filenames"() {
+        setup:
+        def file = temporaryFolder.createFile("\u0627\u0644\u0642\u064A\u0627\u062F\u0629 \u0648\u0627\u0644\u0633\u064A\u0637\u0631\u0629.lnk")
+        def handler = FilePermissionHandlerFactory.createDefaultFilePermissionHandler()
+        handler.chmod(file, 0645);
+        expect:
+        handler.getUnixMode(file) == 0645
     }
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)

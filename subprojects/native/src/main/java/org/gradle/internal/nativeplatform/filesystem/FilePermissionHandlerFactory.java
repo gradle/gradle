@@ -22,6 +22,8 @@ import org.gradle.api.JavaVersion;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.nativeplatform.jna.LibC;
 import org.gradle.internal.os.OperatingSystem;
+import org.jruby.ext.posix.FileStat;
+import org.jruby.ext.posix.POSIX;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,12 +47,22 @@ public class FilePermissionHandlerFactory {
             }
         }
         ComposableFilePermissionHandler.Chmod chmod = createChmod();
-        return new ComposableFilePermissionHandler(chmod, PosixUtil.current());
+        ComposableFilePermissionHandler.Stat stat = createStat();
+        return new ComposableFilePermissionHandler(chmod, stat);
+    }
+
+    private static ComposableFilePermissionHandler.Stat createStat() {
+        if (OperatingSystem.current().isMacOsX()) {
+            LibC libc = loadLibC();
+            return new LibcStat(libc);
+        } else {
+            return new PosixStat(PosixUtil.current());
+        }
     }
 
     static ComposableFilePermissionHandler.Chmod createChmod() {
         try {
-            LibC libc = (LibC) Native.loadLibrary("c", LibC.class);
+            LibC libc = loadLibC();
             return new LibcChmod(libc);
         } catch (LinkageError e) {
             LOGGER.debug("Unable to load LibC library. Falling back to EmptyChmod implementation.");
@@ -74,29 +86,57 @@ public class FilePermissionHandlerFactory {
                 throw new IOException(String.format("Failed to set file permissions %s on file %s. errno: %d", mode, f.getName(), exception.getErrorCode()));
             }
         }
-
-        private byte[] getEncodedFilePath(File f) {
-            byte[] encoded;
-            if (!OperatingSystem.current().isMacOsX()) {
-                encoded =  f.getAbsolutePath().getBytes();
-            } else {
-                try {
-                    encoded = f.getAbsolutePath().getBytes("utf-8");
-                } catch (UnsupportedEncodingException e) {
-                    LOGGER.error(String.format("Failed to encode file path %s as utf-8. Using default encoding %s", f.getAbsolutePath(), System.getProperty("file.encoding")));
-                    throw new UncheckedException(e);
-                }
-            }
-            byte[] zeroTerminatedByteArray = new byte[encoded.length + 1];
-            System.arraycopy(encoded, 0, zeroTerminatedByteArray, 0, encoded.length);
-            zeroTerminatedByteArray[encoded.length] = 0;
-            return zeroTerminatedByteArray;
-        }
     }
 
     private static class EmptyChmod implements ComposableFilePermissionHandler.Chmod {
         public void chmod(File f, int mode) throws IOException {
         }
+    }
+
+    private static class LibcStat implements ComposableFilePermissionHandler.Stat {
+        private LibC libc;
+
+        public LibcStat(LibC libc) {
+            this.libc = libc;
+        }
+
+        public FileStat stat(File f) throws IOException {
+            return libc.stat(getEncodedFilePath(f));
+        }
+    }
+
+    private static class PosixStat implements ComposableFilePermissionHandler.Stat {
+        private final POSIX posix;
+
+        public PosixStat(POSIX posix) {
+            this.posix = posix;
+        }
+
+        public FileStat stat(File f) throws IOException {
+            return this.posix.stat(f.getAbsolutePath());
+        }
+    }
+
+    private static LibC loadLibC() {
+        return (LibC) Native.loadLibrary("c", LibC.class);
+    }
+
+    private static byte[] getEncodedFilePath(File f) {
+        byte[] encoded;
+        if (!OperatingSystem.current().isMacOsX()) {
+            encoded = f.getAbsolutePath().getBytes();
+        } else {
+            try {
+                encoded = f.getAbsolutePath().getBytes("utf-8");
+            } catch (UnsupportedEncodingException e) {
+                LOGGER.error(String.format("Failed to encode file path %s as utf-8.", f.getAbsolutePath()));
+                throw new UncheckedException(e);
+            }
+        }
+        byte[] zeroTerminatedByteArray = new byte[encoded.length + 1];
+        System.arraycopy(encoded, 0, zeroTerminatedByteArray, 0, encoded.length);
+        zeroTerminatedByteArray[encoded.length] = 0;
+        return zeroTerminatedByteArray;
     }
 }
 

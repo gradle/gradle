@@ -16,22 +16,22 @@
 
 package org.gradle.internal.nativeplatform.filesystem;
 
-import org.jruby.ext.posix.POSIX;
+import org.jruby.ext.posix.FileStat;
 
 import java.io.File;
 import java.io.IOException;
 
 public class ComposableFilePermissionHandler implements FilePermissionHandler {
     private final Chmod chmod;
-    private final POSIX posix;
+    private Stat stat;
 
-    public ComposableFilePermissionHandler(Chmod chmod, POSIX posix) {
+    public ComposableFilePermissionHandler(Chmod chmod, Stat stat) {
         this.chmod = chmod;
-        this.posix = posix;
+        this.stat = stat;
     }
 
     public int getUnixMode(File f) throws IOException {
-        return posix.stat(f.getAbsolutePath()).mode() & 0777;
+        return stat.stat(f).mode() & 0777;
     }
 
     public void chmod(File f, int mode) throws IOException {
@@ -40,6 +40,9 @@ public class ComposableFilePermissionHandler implements FilePermissionHandler {
 
     public static interface Chmod {
         public void chmod(File f, int mode) throws IOException;
+    }
 
+    public static interface Stat {
+        public FileStat stat(File f) throws IOException;
     }
 }

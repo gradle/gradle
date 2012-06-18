@@ -17,6 +17,7 @@ package org.gradle.internal.nativeplatform.jna;
 
 import com.sun.jna.LastErrorException;
 import com.sun.jna.Library;
+import org.jruby.ext.posix.FileStat;
 
 public interface LibC extends Library {
     //CHECKSTYLE:OFF
@@ -26,6 +27,7 @@ public interface LibC extends Library {
     public int chdir(String dirAbsolutePath) throws LastErrorException;
     public int getpid();
     public int isatty(int fdes);
-    public int chmod(byte[] filename, int mode) throws LastErrorException;
+    public FileStat stat(byte[] filePath) throws LastErrorException;
+    public int chmod(byte[] filePath, int mode) throws LastErrorException;
     //CHECKSTYLE:ON
 }
