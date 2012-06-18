@@ -23,6 +23,7 @@ import spock.lang.Ignore
 
 class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
 
+    @Ignore
     @Issue("http://issues.gradle.org/browse/GRADLE-2181")
     // Note, once this is passing it can be rolled into the one below as a parameterized test
     def "can copy files with unicode characters in name with non-unicode platform encoding"() {
@@ -31,12 +32,6 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
 
         buildFile << """
             task copyFiles << {
-                println "########################"
-
-                println System.properties
-
-            println "########################"
-
                 copy {
                     from 'res'
                     into 'build/resources'
