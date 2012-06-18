@@ -24,11 +24,11 @@ import spock.lang.Specification
 import org.gradle.logging.TestStyledTextOutputFactory
 
 class TestEventLoggerTest extends Specification {
-    def logOutput = new TestStyledTextOutputFactory()
+    def textOutputFactory = new TestStyledTextOutputFactory()
 
     def testLogging = new DefaultTestLogging()
     def exceptionFormatter = Mock(TestExceptionFormatter)
-    def eventLogger = new TestEventLogger(logOutput, LogLevel.INFO, testLogging, exceptionFormatter)
+    def eventLogger = new TestEventLogger(textOutputFactory, LogLevel.INFO, testLogging, exceptionFormatter)
 
     def rootDescriptor = new SimpleTestDescriptor(name: "", composite: true)
     def workerDescriptor = new SimpleTestDescriptor(name: "worker", composite: true, parent: rootDescriptor)
@@ -46,15 +46,15 @@ class TestEventLoggerTest extends Specification {
         eventLogger.afterTest(methodDescriptor, result)
 
         then:
-        logOutput.toString().count("PASSED") == 1
+        textOutputFactory.toString().count("PASSED") == 1
 
         when:
-        logOutput.clear()
+        textOutputFactory.clear()
         result.resultType = TestResult.ResultType.FAILURE
         eventLogger.afterTest(methodDescriptor, result)
 
         then:
-        logOutput.toString().count("PASSED") == 0
+        textOutputFactory.toString().count("PASSED") == 0
     }
 
     def "logs event if granularity matches"() {
@@ -68,16 +68,16 @@ class TestEventLoggerTest extends Specification {
         eventLogger.afterSuite(classDescriptor, result)
 
         then:
-        logOutput.toString().count("PASSED") == 3
+        textOutputFactory.toString().count("PASSED") == 3
 
         when:
-        logOutput.clear()
+        textOutputFactory.clear()
         eventLogger.afterSuite(rootDescriptor, result)
         eventLogger.afterSuite(workerDescriptor, result)
         eventLogger.afterTest(methodDescriptor, result)
 
         then:
-        logOutput.toString().count("PASSED") == 0
+        textOutputFactory.toString().count("PASSED") == 0
     }
 
     def "shows exceptions if configured"() {
@@ -92,14 +92,14 @@ class TestEventLoggerTest extends Specification {
         eventLogger.afterTest(methodDescriptor, result)
 
         then:
-        logOutput.toString().contains("formatted exception")
+        textOutputFactory.toString().contains("formatted exception")
 
         when:
-        logOutput.clear()
+        textOutputFactory.clear()
         testLogging.showExceptions = false
         eventLogger.afterTest(methodDescriptor, result)
 
         then:
-        !logOutput.toString().contains("formatted exception")
+        !textOutputFactory.toString().contains("formatted exception")
     }
 }

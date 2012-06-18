@@ -23,7 +23,7 @@ import spock.lang.Issue
 class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
 
     @Issue("http://issues.gradle.org/browse/GRADLE-2181")
-    // Note, once this is passing it can be rolled into the one below as a paramaterized test
+    // Note, once this is passing it can be rolled into the one below as a parameterized test
     def "can copy files with unicode characters in name with non-unicode platform encoding"() {
         given:
         def weirdFileName = "القيادة والسيطرة - الإدارة.lnk"
