@@ -22,7 +22,6 @@ import org.gradle.internal.nativeplatform.filesystem.FileSystems
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.util.TextUtil
-import org.junit.Rule
 import spock.lang.IgnoreIf
 
 /**
