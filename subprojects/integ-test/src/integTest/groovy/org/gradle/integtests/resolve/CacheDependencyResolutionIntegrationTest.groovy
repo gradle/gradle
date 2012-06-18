@@ -65,7 +65,7 @@ task deleteCacheFiles(type: Delete) {
         def repo1 = ivyRepo('ivy-repo-a')
         def module1 = repo1.module('org.gradle', 'testproject', '1.0').publish()
         def repo2 = ivyRepo('ivy-repo-b')
-        def module2 = repo2.module('org.gradle', 'testproject', '1.0').publish()
+        def module2 = repo2.module('org.gradle', 'testproject', '1.0').publishWithChangedContent()
 
         and:
         settingsFile << "include 'a','b'"
@@ -104,6 +104,58 @@ project('b') {
         module2.expectArtifactHead(server, "/repo-b")
         server.expectGet('/repo-b/org.gradle/testproject/1.0/testproject-1.0.jar.sha1', module2.sha1File(module2.jarFile))
         server.expectGet('/repo-b/org.gradle/testproject/1.0/testproject-1.0.jar', module2.jarFile)
+
+        then:
+        succeeds 'retrieve'
+
+        and:
+        file('a/build/testproject-1.0.jar').assertIsCopyOf(module1.jarFile)
+        file('b/build/testproject-1.0.jar').assertIsCopyOf(module2.jarFile)
+    }
+
+    public void "reuses a cached artifact retrieved from a different repository when sha1 matches"() {
+        server.start()
+        given:
+        def repo1 = ivyRepo('ivy-repo-a')
+        def module1 = repo1.module('org.gradle', 'testproject', '1.0').publish()
+        def repo2 = ivyRepo('ivy-repo-b')
+        def module2 = repo2.module('org.gradle', 'testproject', '1.0').publish()
+
+        and:
+        settingsFile << "include 'a','b'"
+        buildFile << """
+subprojects {
+    configurations {
+        test
+    }
+    dependencies {
+        test "org.gradle:testproject:1.0"
+    }
+    task retrieve(type: Sync) {
+        into 'build'
+        from configurations.test
+    }
+}
+project('a') {
+    repositories {
+        ivy { url "http://localhost:${server.port}/repo-a" }
+    }
+}
+project('b') {
+    repositories {
+        ivy { url "http://localhost:${server.port}/repo-b" }
+    }
+}
+"""
+
+        when:
+        server.expectGet('/repo-a/org.gradle/testproject/1.0/ivy-1.0.xml', module1.ivyFile)
+        server.expectGet('/repo-a/org.gradle/testproject/1.0/testproject-1.0.jar', module1.jarFile)
+
+        module2.expectIvyHead(server, "/repo-b")
+        server.expectGet('/repo-b/org.gradle/testproject/1.0/ivy-1.0.xml.sha1', module2.sha1File(module2.ivyFile))
+        module2.expectArtifactHead(server, "/repo-b")
+        server.expectGet('/repo-b/org.gradle/testproject/1.0/testproject-1.0.jar.sha1', module2.sha1File(module2.jarFile))
 
         then:
         succeeds 'retrieve'

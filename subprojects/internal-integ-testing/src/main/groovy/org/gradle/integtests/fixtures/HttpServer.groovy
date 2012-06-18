@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.fixtures
 
+import junit.framework.AssertionFailedError
 import org.gradle.util.hash.HashUtil
 import org.junit.rules.ExternalResource
 import org.mortbay.jetty.handler.AbstractHandler
@@ -36,10 +37,11 @@ class HttpServer extends ExternalResource {
 
     private final Server server = new Server(0)
     private final HandlerCollection collection = new HandlerCollection()
-    private Throwable failure
     private TestUserRealm realm
     private SecurityHandler securityHandler
     AuthScheme authenticationScheme = AuthScheme.BASIC
+    private Throwable failure
+    private final List<Expection> expections = []
 
     enum AuthScheme {
         BASIC(new BasicAuthHandler()), DIGEST(new DigestAuthHandler())
@@ -86,8 +88,7 @@ class HttpServer extends ExternalResource {
                 if (request.handled) {
                     return
                 }
-                failure = new AssertionError("Received unexpected ${request.method} request to ${target}.")
-                logger.error(failure.message)
+                onFailure(new AssertionError("Received unexpected ${request.method} request to ${target}."))
                 response.sendError(404, "'$target' does not exist")
             }
         })
@@ -99,14 +100,30 @@ class HttpServer extends ExternalResource {
     }
 
     void stop() {
+        resetExpectations()
         server?.stop()
     }
 
-    void resetExpectations() {
-        if (failure != null) {
-            throw failure
+    private void onFailure(Throwable failure) {
+        logger.error(failure.message)
+        if (this.failure == null) {
+            this.failure = failure
         }
-        collection.setHandlers()
+    }
+
+    void resetExpectations() {
+        try {
+            if (failure != null) {
+                throw failure
+            }
+            for (Expection e in expections) {
+                e.assertMet()
+            }
+        } finally {
+            failure = null
+            expections.clear()
+            collection.setHandlers()
+        }
     }
 
     @Override
@@ -121,9 +138,20 @@ class HttpServer extends ExternalResource {
         allow(path, true, ['GET', 'HEAD'], fileHandler(path, srcFile))
     }
 
-    private AbstractHandler fileHandler(String path, File srcFile, Long lastModified = null, Long contentLength = null) {
-        return new AbstractHandler() {
-            void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
+    /**
+     * Adds a given file at the given URL with the given credentials. The source file can be either a file or a directory.
+     */
+    void allowGet(String path, String username, String password, File srcFile) {
+        allow(path, true, ['GET', 'HEAD'], withAuthentication(path, username, password, fileHandler(path, srcFile)))
+    }
+
+    private Action fileHandler(String path, File srcFile, Long lastModified = null, Long contentLength = null) {
+        return new Action() {
+            String getDisplayName() {
+                return "return contents of $srcFile.name"
+            }
+
+            void handle(HttpServletRequest request, HttpServletResponse response) {
                 def file
                 if (request.pathInfo == path) {
                     file = srcFile
@@ -136,7 +164,7 @@ class HttpServer extends ExternalResource {
                 } else if (file.isDirectory()) {
                     sendDirectoryListing(response, file)
                 } else {
-                    response.sendError(404, "'$target' does not exist")
+                    response.sendError(404, "'$request.pathInfo' does not exist")
                 }
             }
         }
@@ -146,8 +174,12 @@ class HttpServer extends ExternalResource {
      * Adds a broken resource at the given URL.
      */
     void addBroken(String path) {
-        allow(path, true, null, new AbstractHandler() {
-            void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
+        allow(path, true, null, new Action() {
+            String getDisplayName() {
+                return "return 500 broken"
+            }
+
+            void handle(HttpServletRequest request, HttpServletResponse response) {
                 response.sendError(500, "broken")
             }
         })
@@ -157,22 +189,26 @@ class HttpServer extends ExternalResource {
      * Allows one GET request for the given URL, which return 404 status code
      */
     void expectGetMissing(String path) {
-        expect(path, false, ['GET'], new AbstractHandler() {
-            void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
-                response.sendError(404, "not found")
-            }
-        })
+        expect(path, false, ['GET'], notFound())
     }
 
     /**
      * Allows one HEAD request for the given URL, which return 404 status code
      */
     void expectHeadMissing(String path) {
-        expect(path, false, ['HEAD'], new AbstractHandler() {
-            void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
+        expect(path, false, ['HEAD'], notFound())
+    }
+
+    private Action notFound() {
+        new Action() {
+            String getDisplayName() {
+                return "return 404 not found"
+            }
+
+            void handle(HttpServletRequest request, HttpServletResponse response) {
                 response.sendError(404, "not found")
             }
-        })
+        }
     }
 
     /**
@@ -208,8 +244,12 @@ class HttpServer extends ExternalResource {
      * Allows one GET request for the given URL, with the response being GZip encoded.
      */
     void expectGetGZipped(String path, File srcFile) {
-        expect(path, false, ['GET'], new AbstractHandler() {
-            void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
+        expect(path, false, ['GET'], new Action() {
+            String getDisplayName() {
+                return "return gzipped $srcFile.name"
+            }
+
+            void handle(HttpServletRequest request, HttpServletResponse response) {
                 def file = srcFile
                 if (file.isFile()) {
                     response.setHeader("Content-Encoding", "gzip")
@@ -239,8 +279,12 @@ class HttpServer extends ExternalResource {
     }
 
     private void expectRedirected(String method, String path, String location) {
-        expect(path, false, [method], new AbstractHandler() {
-            void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
+        expect(path, false, [method], new Action() {
+            String getDisplayName() {
+                return "redirect to $location"
+            }
+
+            void handle(HttpServletRequest request, HttpServletResponse response) {
                 response.sendRedirect(location)
             }
         })
@@ -250,8 +294,12 @@ class HttpServer extends ExternalResource {
      * Allows one GET request for the given URL, returning an apache-compatible directory listing with the given File names.
      */
     void expectGetDirectoryListing(String path, File directory) {
-        expect(path, false, ['GET'], new AbstractHandler() {
-            void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
+        expect(path, false, ['GET'], new Action() {
+            String getDisplayName() {
+                return "return listing of directory $directory.name"
+            }
+
+            void handle(HttpServletRequest request, HttpServletResponse response) {
                 sendDirectoryListing(response, directory)
             }
         })
@@ -302,8 +350,12 @@ class HttpServer extends ExternalResource {
      * Allows one PUT request for the given URL. Writes the request content to the given file.
      */
     void expectPut(String path, File destFile, int statusCode = HttpStatus.ORDINAL_200_OK) {
-        expect(path, false, ['PUT'], new AbstractHandler() {
-            void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
+        expect(path, false, ['PUT'], new Action() {
+            String getDisplayName() {
+                return "write request to $destFile.name and return status $statusCode"
+            }
+
+            void handle(HttpServletRequest request, HttpServletResponse response) {
                 destFile.bytes = request.inputStream.bytes
                 response.setStatus(statusCode)
             }
@@ -314,8 +366,12 @@ class HttpServer extends ExternalResource {
      * Allows one PUT request for the given URL, with the given credentials. Writes the request content to the given file.
      */
     void expectPut(String path, String username, String password, File destFile) {
-        expect(path, false, ['PUT'], withAuthentication(path, username, password, new AbstractHandler() {
-            void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
+        expect(path, false, ['PUT'], withAuthentication(path, username, password, new Action() {
+            String getDisplayName() {
+                return "write request to $destFile.name"
+            }
+
+            void handle(HttpServletRequest request, HttpServletResponse response) {
                 if (request.remoteUser != username) {
                     response.sendError(500, "unexpected username '${request.remoteUser}'")
                     return
@@ -325,7 +381,22 @@ class HttpServer extends ExternalResource {
         }))
     }
 
-    private Handler withAuthentication(String path, String username, String password, Handler handler) {
+    /**
+     * Allows PUT requests with the given credentials.
+     */
+    void allowPut(String path, String username, String password) {
+        allow(path, false, ['PUT'], withAuthentication(path, username, password, new Action(){
+            String getDisplayName() {
+                return "return 500"
+            }
+
+            void handle(HttpServletRequest request, HttpServletResponse response) {
+                response.sendError(500, "unexpected username '${request.remoteUser}'")
+            }
+        }))
+    }
+
+    private Action withAuthentication(String path, String username, String password, Action action) {
         if (realm != null) {
             assert realm.username == username
             assert realm.password == password
@@ -338,35 +409,40 @@ class HttpServer extends ExternalResource {
             collection.addHandler(securityHandler)
         }
 
-        return new AbstractHandler() {
-            void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
+        return new Action() {
+            String getDisplayName() {
+                return action.displayName
+            }
+
+            void handle(HttpServletRequest request, HttpServletResponse response) {
                 if (request.remoteUser != username) {
                     response.sendError(500, "unexpected username '${request.remoteUser}'")
                     return
                 }
-                handler.handle(target, request, response, dispatch)
+                action.handle(request, response)
             }
         }
     }
 
-    private void expect(String path, boolean recursive, Collection<String> methods, Handler handler) {
-        boolean run
+    private void expect(String path, boolean recursive, Collection<String> methods, Action action) {
+        ExpectOne expectation = new ExpectOne(action, methods, path)
+        expections << expectation
         add(path, recursive, methods, new AbstractHandler() {
             void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
-                if (run) {
+                if (expectation.run) {
                     return
                 }
-                run = true
-                handler.handle(target, request, response, dispatch)
+                expectation.run = true
+                action.handle(request, response)
                 request.handled = true
             }
         })
     }
 
-    private void allow(String path, boolean recursive, Collection<String> methods, Handler handler) {
+    private void allow(String path, boolean recursive, Collection<String> methods, Action action) {
         add(path, recursive, methods, new AbstractHandler() {
             void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
-                handler.handle(target, request, response, dispatch)
+                action.handle(request, response)
                 request.handled = true
             }
         })
@@ -399,6 +475,35 @@ server state: ${server.dump()}
 """)
         }
         return port
+    }
+
+    interface Expection {
+        void assertMet()
+    }
+
+    static class ExpectOne implements Expection {
+        boolean run
+        final Action action
+        final Collection<String> methods
+        final String path
+
+        ExpectOne(Action action, Collection<String> methods, String path) {
+            this.action = action
+            this.methods = methods
+            this.path = path
+        }
+
+        void assertMet() {
+            if (!run) {
+                throw new AssertionFailedError("Expected HTTP request not received: ${methods.size() == 1 ? methods[0] : methods} $path and $action.displayName")
+            }
+        }
+    }
+
+    interface Action {
+        String getDisplayName()
+
+        void handle(HttpServletRequest request, HttpServletResponse response)
     }
 
     abstract static class AuthSchemeHandler {

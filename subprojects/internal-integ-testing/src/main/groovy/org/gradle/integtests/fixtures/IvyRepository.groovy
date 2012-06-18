@@ -110,49 +110,50 @@ class IvyModule {
     IvyModule publish() {
         moduleDir.createDir()
 
-        ivyFile.text = """<?xml version="1.0" encoding="UTF-8"?>
+        publish(ivyFile) {
+            ivyFile.text = """<?xml version="1.0" encoding="UTF-8"?>
 <ivy-module version="1.0" xmlns:m="http://ant.apache.org/ivy/maven">
+    <!-- ${publishCount} -->
 	<info organisation="${organisation}"
 		module="${module}"
 		revision="${revision}"
 		status="${status}"
 	/>
 	<configurations>"""
-        configurations.each { name, config ->
-            ivyFile << "<conf name='$name' visibility='public'"
-            if (config.extendsFrom) {
-                ivyFile << " extends='${config.extendsFrom.join(',')}'"
+            configurations.each { name, config ->
+                ivyFile << "<conf name='$name' visibility='public'"
+                if (config.extendsFrom) {
+                    ivyFile << " extends='${config.extendsFrom.join(',')}'"
+                }
+                if (!config.transitive) {
+                    ivyFile << " transitive='false'"
+                }
+                ivyFile << "/>"
             }
-            if (!config.transitive) {
-                ivyFile << " transitive='false'"
-            }
-            ivyFile << "/>"
-        }
-	ivyFile << """</configurations>
+            ivyFile << """</configurations>
 	<publications>
 """
-        artifacts.each { artifact ->
-            def artifactFile = file(artifact)
-            artifactFile << "${artifactFile.name} : $publishCount"
-            publishSha1(artifactFile)
-            ivyFile << """<artifact name="${artifact.name}" type="${artifact.type}" ext="${artifact.type}" conf="*" m:classifier="${artifact.classifier ?: ''}"/>
+            artifacts.each { artifact ->
+                def artifactFile = file(artifact)
+                publish(artifactFile) {
+                    artifactFile << "${artifactFile.name} : $publishCount"
+                }
+                ivyFile << """<artifact name="${artifact.name}" type="${artifact.type}" ext="${artifact.type}" conf="*" m:classifier="${artifact.classifier ?: ''}"/>
 """
-        }
-        ivyFile << """
+            }
+            ivyFile << """
 	</publications>
 	<dependencies>
 """
-        dependencies.each { dep ->
-            ivyFile << """<dependency org="${dep.organisation}" name="${dep.module}" rev="${dep.revision}"/>
+            dependencies.each { dep ->
+                ivyFile << """<dependency org="${dep.organisation}" name="${dep.module}" rev="${dep.revision}"/>
 """
-        }
-        ivyFile << """
+            }
+            ivyFile << """
     </dependencies>
 </ivy-module>
         """
-        publishSha1(ivyFile)
-
-        publishSha1(ivyFile)
+        }
         return this
     }
 
@@ -160,7 +161,12 @@ class IvyModule {
         return moduleDir.file("${artifact.name}-${revision}${artifact.classifier ? '-' + artifact.classifier : ''}.${artifact.type}")
     }
 
-    private publishSha1(TestFile file) {
+    private publish(File file, Closure cl) {
+        def lastModifiedTime = file.exists() ? file.lastModified() : null
+        cl.call(file)
+        if (lastModifiedTime != null) {
+            file.setLastModified(lastModifiedTime + 2000)
+        }
         sha1File(file).text = getHash(file, "SHA1")
     }
 

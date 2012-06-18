@@ -72,7 +72,7 @@ task retrieve(type: Copy) {
         server.expectHeadThenGet('/repo/group/projectA/1.1/ivy-1.1.xml', module.ivyFile)
         server.expectGet('/repo/group/projectA/1.1/projectA-1.1.jar.sha1', module.sha1File(module.jarFile))
         server.expectHeadThenGet('/repo/group/projectA/1.1/projectA-1.1.jar', module.jarFile)
-        server.expectHeadThenGet('/repo/group/projectA/1.1/other-1.1.jar', module.moduleDir.file('other-1.1.jar'))
+        server.expectGet('/repo/group/projectA/1.1/other-1.1.jar', module.moduleDir.file('other-1.1.jar'))
         server.expectGet('/repo/group/projectB/2.0/ivy-2.0.xml', moduleB.ivyFile)
         server.expectGet('/repo/group/projectB/2.0/projectB-2.0.jar', moduleB.jarFile)
 
@@ -248,7 +248,7 @@ task retrieve(type: Copy) {
         server.expectHeadThenGet('/repo/group/projectA/1.1/ivy-1.1.xml', module.ivyFile)
         server.expectGet('/repo/group/projectA/1.1/projectA-1.1.jar.sha1', module.sha1File(module.jarFile))
         server.expectHeadThenGet('/repo/group/projectA/1.1/projectA-1.1.jar', module.jarFile)
-        server.expectHeadThenGet('/repo/group/projectA/1.1/other-1.1.jar', module.moduleDir.file('other-1.1.jar'))
+        server.expectGet('/repo/group/projectA/1.1/other-1.1.jar', module.moduleDir.file('other-1.1.jar'))
 
         and: "We request 1.1 (changing) again, with zero expiry for dynamic revision cache"
         executer.withArguments("-PdoNotCacheChangingModules")
@@ -325,7 +325,7 @@ task retrieve(type: Copy) {
         server.expectHeadThenGet('/repo/group/projectA/1-CHANGING/ivy-1-CHANGING.xml', module.ivyFile)
         server.expectGet('/repo/group/projectA/1-CHANGING/projectA-1-CHANGING.jar.sha1', module.sha1File(module.jarFile))
         server.expectHeadThenGet('/repo/group/projectA/1-CHANGING/projectA-1-CHANGING.jar', module.jarFile)
-        server.expectHeadThenGet('/repo/group/projectA/1-CHANGING/other-1-CHANGING.jar', module.moduleDir.file('other-1-CHANGING.jar'))
+        server.expectGet('/repo/group/projectA/1-CHANGING/other-1-CHANGING.jar', module.moduleDir.file('other-1-CHANGING.jar'))
 
         and: "We request 1-CHANGING again"
         executer.withArguments()
@@ -397,9 +397,7 @@ task retrieve(type: Copy) {
 
         when:
         server.resetExpectations()
-        server.expectGetMissing(ivySha1Path)
         server.expectHead(ivyPath, module.ivyFile, originalIvyLastMod, originalIvyContentLength)
-        server.expectGetMissing(jarSha1Path)
         server.expectHead(jarPath, module.jarFile, originalJarLastMod, originalJarContentLength)
 
         run 'retrieve'

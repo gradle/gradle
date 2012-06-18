@@ -273,7 +273,9 @@ task retrieve(type: Sync) {
         projectA12.publish()
 
         and: "Server handles requests"
-        serveUpDynamicRevision(projectA11, "/repo1")
+        server.expectGetDirectoryListing("/repo1/group/projectA/", projectA11.moduleDir.parentFile)
+        // TODO Should not need to get this
+        server.expectGet("/repo1/group/projectA/1.1/ivy-1.1.xml", projectA11.ivyFile)
         // TODO Should only list missing directory once
         server.expectGetMissing("/repo2/group/projectA/")
         server.expectGetMissing("/repo2/group/projectA/")

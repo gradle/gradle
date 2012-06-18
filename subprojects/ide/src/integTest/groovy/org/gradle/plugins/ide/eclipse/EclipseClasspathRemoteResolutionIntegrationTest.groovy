@@ -69,8 +69,4 @@ eclipse {
 //        then:
         result.error == ''
     }
-
-    def cleanup() {
-        server.resetExpectations()
-    }
 }

@@ -71,9 +71,4 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants('projectB-1.0.jar')
         file('libs/projectB-1.0.jar').assertContentsHaveNotChangedSince(snapshot)
     }
-
-    def cleanup() {
-        server.resetExpectations()
-    }
-
 }

@@ -209,8 +209,7 @@ task listJars << {
 
         and:
         server.authenticationScheme = authScheme
-        server.expectGet('/repo/group/projectA/1.2/ivy-1.2.xml', 'username', 'password', module.ivyFile)
-        server.expectGet('/repo/group/projectA/1.2/projectA-1.2.jar', 'username', 'password', module.jarFile)
+        server.allowGet('/repo/group/projectA/1.2/ivy-1.2.xml', 'username', 'password', module.ivyFile)
 
         then:
         fails 'listJars'

@@ -143,8 +143,7 @@ uploadArchives {
 
         and:
         server.authenticationScheme = authScheme
-        expectUpload('/org.gradle/publish/2/publish-2.jar', module, module.jarFile, 'testuser', 'password')
-        expectUpload('/org.gradle/publish/2/ivy-2.xml', module, module.ivyFile, 'testuser', 'password')
+        server.allowPut('/org.gradle/publish/2/publish-2.jar.sha1', 'testuser', 'password')
 
         then:
         fails 'uploadArchives'

@@ -36,8 +36,4 @@ abstract class AbstractDependencyResolutionTest extends AbstractIntegrationSpec 
     MavenRepository mavenRepo() {
         return new MavenRepository(file('repo'))
     }
-
-    def cleanup() {
-        server.resetExpectations()
-    }
 }

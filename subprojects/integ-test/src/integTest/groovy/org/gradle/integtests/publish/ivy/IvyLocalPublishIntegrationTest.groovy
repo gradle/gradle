@@ -16,16 +16,11 @@
 package org.gradle.integtests.publish.ivy
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.HttpServer
 import org.gradle.integtests.fixtures.IvyRepository
-import org.junit.Rule
-import spock.lang.Issue
 import org.spockframework.util.TextUtil
+import spock.lang.Issue
 
 public class IvyLocalPublishIntegrationTest extends AbstractIntegrationSpec {
-    @Rule
-    public final HttpServer server = new HttpServer()
-
     public void canPublishToLocalFileRepository() {
         given:
         def repo = new IvyRepository(distribution.testFile('ivy-repo'))

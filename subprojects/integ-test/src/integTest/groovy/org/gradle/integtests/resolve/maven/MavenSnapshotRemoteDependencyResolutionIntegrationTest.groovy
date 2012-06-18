@@ -167,8 +167,8 @@ task retrieve(type: Sync) {
         def nonUniqueVersionModule = mavenRepo().module("org.gradle", "nonunique", "1.0-SNAPSHOT").withNonUniqueSnapshots().publish()
 
         and: "Server handles requests"
-        expectModuleServed(uniqueVersionModule, '/repo', false, true)
-        expectModuleServed(nonUniqueVersionModule, '/repo', false, true)
+        expectModuleServed(uniqueVersionModule, '/repo', false, false)
+        expectModuleServed(nonUniqueVersionModule, '/repo', false, false)
 
         and: "We resolve dependencies"
         run 'retrieve'
@@ -176,15 +176,16 @@ task retrieve(type: Sync) {
         then: "Snapshots are downloaded"
         file('libs').assertHasDescendants('unique-1.0-SNAPSHOT.jar', 'nonunique-1.0-SNAPSHOT.jar')
         def uniqueJarSnapshot = file('libs/unique-1.0-SNAPSHOT.jar').assertIsCopyOf(uniqueVersionModule.artifactFile).snapshot()
-        def nonUniqueJarSnapshot = file('libs/unique-1.0-SNAPSHOT.jar').assertIsCopyOf(uniqueVersionModule.artifactFile).snapshot()
+        def nonUniqueJarSnapshot = file('libs/nonunique-1.0-SNAPSHOT.jar').assertIsCopyOf(nonUniqueVersionModule.artifactFile).snapshot()
+        server.resetExpectations()
 
         when: "Change the snapshot artifacts directly: do not change the pom"
         uniqueVersionModule.artifactFile << 'more content'
         nonUniqueVersionModule.artifactFile << 'more content'
 
         and: "No server requests"
-        expectModuleServed(uniqueVersionModule, '/repo', true, true)
-        expectModuleServed(nonUniqueVersionModule, '/repo', true, true)
+        expectChangedArtifactServed(uniqueVersionModule, '/repo')
+        expectChangedArtifactServed(nonUniqueVersionModule, '/repo')
 
         and: "Resolve dependencies again"
         run 'retrieve'
@@ -365,8 +366,9 @@ allprojects {
         server.start()
         given:
         def module = mavenRepo().module("org.gradle", "testproject", "1.0-SNAPSHOT").withNonUniqueSnapshots().publish()
-        def module2 = new MavenRepository(file('repo2')).module("org.gradle", "testproject", "1.0-SNAPSHOT").withNonUniqueSnapshots().publishWithChangedContent()
+        def module2 = new MavenRepository(file('repo2')).module("org.gradle", "testproject", "1.0-SNAPSHOT").withNonUniqueSnapshots().publish()
         module2.artifactFile << module2.artifactFile.bytes // ensure it's a different length to the first one
+        module2.pomFile << '    ' // ensure it's a different length to the first one
 
         and:
         settingsFile << "include 'lock', 'resolve'"
@@ -424,12 +426,12 @@ project('resolve') {
         server.expectGet("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/${module.artifactFile.name}", module.artifactFile)
 
         server.expectGet("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/maven-metadata.xml", module2.moduleDir.file("maven-metadata.xml"))
-        server.expectGet("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/${module.pomFile.name}.sha1", module2.sha1File(module2.pomFile))
         server.expectHead("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/${module.pomFile.name}", module2.pomFile)
+        server.expectGet("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/${module.pomFile.name}.sha1", module2.sha1File(module2.pomFile))
         server.expectGet("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/${module.pomFile.name}", module2.pomFile)
         server.expectGet("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/maven-metadata.xml", module2.moduleDir.file("maven-metadata.xml"))
-        server.expectGet("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/${module.artifactFile.name}.sha1", module2.sha1File(module2.artifactFile))
         server.expectHead("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/${module.artifactFile.name}", module2.artifactFile)
+        server.expectGet("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/${module.artifactFile.name}.sha1", module2.sha1File(module2.artifactFile))
         server.expectGet("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/${module.artifactFile.name}", module2.artifactFile)
 
         then:
@@ -503,10 +505,8 @@ project('resolve') {
         when:
         server.resetExpectations()
         server.expectGet(metaDataPath, module.metaDataFile)
-        server.expectGetMissing(pomSha1Path)
         server.expectHead(pomPath, module.pomFile, originalPomLastMod, originalPomContentLength)
         server.expectGet(metaDataPath, module.metaDataFile)
-        server.expectGetMissing(jarSha1Path)
         server.expectHead(jarPath, module.artifactFile, originalJarLastMod, originalJarContentLength)
 
         run "retrieve"
@@ -552,14 +552,17 @@ project('resolve') {
         }
     }
 
-    private expectReuseModuleArtifacts(MavenModule module, def prefix, boolean metaDataMatch) {
+    private expectChangedArtifactServed(MavenModule module, def prefix, boolean sha1requests = false, boolean headRequests = false) {
         def moduleName = module.artifactId;
         server.expectGet("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/maven-metadata.xml", module.moduleDir.file("maven-metadata.xml"))
-        
-        server.expectGet("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/${module.pomFile.name}.sha1", module.sha1File(module.pomFile))
+        server.expectHead("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/${module.pomFile.name}", module.pomFile)
+
         // TODO - should only ask for metadata once
         server.expectGet("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/maven-metadata.xml", module.moduleDir.file("maven-metadata.xml"))
+
+        server.expectHead("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/${module.artifactFile.name}", module.artifactFile)
         server.expectGet("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/${module.artifactFile.name}.sha1", module.sha1File(module.artifactFile))
+        server.expectGet("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/${module.artifactFile.name}", module.artifactFile)
     }
 
     private expectChangedProbe(prefix, MavenModule module, boolean expectSha1) {

@@ -115,10 +115,6 @@ task retrieve(type: Sync) {
         server.expectGet('/repo1/org/child_dep/1.0/child_dep-1.0.pom', childDep.pomFile)
         server.expectGet('/repo1/org/child_dep/1.0/child_dep-1.0.jar', childDep.artifactFile)
 
-        // TODO: These shouldn't be required. Or at most should be HEAD requests
-        server.expectGet('/repo1/org/parent/1.0/parent-1.0.pom', parent.pomFile)
-        server.expectGet('/repo1/org/child/1.0/child-1.0.pom', child.pomFile)
-
         and:
         run 'retrieve'
 
@@ -165,10 +161,6 @@ task retrieve(type: Sync) {
         server.expectHeadMissing('/repo1/org/parent/1.0/parent-1.0.jar')
         server.expectGet('/repo2/org/parent/1.0/parent-1.0.pom', parent.pomFile)
         server.expectHead('/repo2/org/parent/1.0/parent-1.0.jar', parent.artifactFile)
-
-        // TODO: These shouldn't be required. Or at most should be HEAD requests
-        server.expectGet('/repo1/org/child/1.0/child-1.0.pom', child.pomFile)
-        server.expectGet('/repo2/org/parent/1.0/parent-1.0.pom', parent.pomFile)
 
         and:
         run 'retrieve'

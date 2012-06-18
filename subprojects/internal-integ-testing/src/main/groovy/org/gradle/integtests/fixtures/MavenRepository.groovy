@@ -122,7 +122,7 @@ class MavenModule {
     TestFile getPomFile() {
         return moduleDir.file("$artifactId-${publishArtifactVersion}.pom")
     }
-    
+
     TestFile getMetaDataFile() {
         moduleDir.file("maven-metadata.xml")
     }
@@ -168,8 +168,10 @@ class MavenModule {
 
         if (uniqueSnapshots && version.endsWith("-SNAPSHOT")) {
             def metaDataFile = moduleDir.file('maven-metadata.xml')
-            metaDataFile.text = """
+            publish(metaDataFile) {
+                metaDataFile.text = """
 <metadata>
+  <!-- $publishCount -->
   <groupId>$groupId</groupId>
   <artifactId>$artifactId</artifactId>
   <version>$version</version>
@@ -182,11 +184,12 @@ class MavenModule {
   </versioning>
 </metadata>
 """
-            createHashFiles(metaDataFile)
+            }
         }
 
-        pomFile.text = ""
-        pomFile << """
+        publish(pomFile) {
+            pomFile.text = ""
+            pomFile << """
 <project xmlns="http://maven.apache.org/POM/4.0.0">
   <modelVersion>4.0.0</modelVersion>
   <groupId>$groupId</groupId>
@@ -195,12 +198,12 @@ class MavenModule {
   <version>$version</version>
   <description>Published on $publishTimestamp</description>"""
 
-        if (parentPomSection) {
-            pomFile << "\n$parentPomSection\n"
-        }
+            if (parentPomSection) {
+                pomFile << "\n$parentPomSection\n"
+            }
 
-        dependencies.each { dependency ->
-            pomFile << """
+            dependencies.each { dependency ->
+                pomFile << """
   <dependencies>
     <dependency>
       <groupId>$dependency.groupId</groupId>
@@ -210,9 +213,8 @@ class MavenModule {
   </dependencies>"""
         }
 
-        pomFile << "\n</project>"
-
-        createHashFiles(pomFile)
+            pomFile << "\n</project>"
+        }
 
         artifacts.each { artifact ->
             publishArtifact(artifact)
@@ -223,11 +225,21 @@ class MavenModule {
 
     private File publishArtifact(Map<String, ?> artifact) {
         def artifactFile = artifactFile(artifact)
-        if (type != 'pom') {
-            artifactFile << "add some content so that file size isn't zero: $publishCount"
+        publish(artifactFile) {
+            if (type != 'pom') {
+                artifactFile << "add some content so that file size isn't zero: $publishCount"
+            }
         }
-        createHashFiles(artifactFile)
         return artifactFile
+    }
+
+    private publish(File file, Closure cl) {
+        def lastModifiedTime = file.exists() ? file.lastModified() : null
+        cl.call(file)
+        if (lastModifiedTime != null) {
+            file.setLastModified(lastModifiedTime + 2000)
+        }
+        createHashFiles(file)
     }
 
     private Map<String, Object> toArtifact(Map<String, ?> options) {
