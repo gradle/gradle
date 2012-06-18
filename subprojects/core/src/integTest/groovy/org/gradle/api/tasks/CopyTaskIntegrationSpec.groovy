@@ -19,6 +19,7 @@ package org.gradle.api.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.os.OperatingSystem
 import spock.lang.Issue
+import spock.lang.Ignore
 
 class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
 
@@ -30,6 +31,12 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
 
         buildFile << """
             task copyFiles << {
+                println "########################"
+
+                println System.properties
+
+            println "########################"
+
                 copy {
                     from 'res'
                     into 'build/resources'
