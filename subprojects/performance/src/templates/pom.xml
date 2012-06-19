@@ -11,8 +11,15 @@
 <% } else { %>
     <packaging>jar</packaging>
 <% } %>
-
     <version>1.0-SNAPSHOT</version>
+    <% if (repository ) { %>
+    <repositories>
+        <repository>
+          <id>local-repo</id>
+          <url>${repository.getUri()}</url>
+        </repository>
+      </repositories>
+    <% } %>
     <dependencies>
         <dependency>
             <groupId>commons-lang</groupId>
@@ -51,6 +58,12 @@
             <version>4.8.2</version>
             <scope>test</scope>
         </dependency>
+    <% if (dependencies) { dependencies.each { dep -> %>
+        <dependency>
+            <groupId>${dep.groupId}</groupId>
+            <artifactId>${dep.artifactId}</artifactId>
+            <version>${dep.version}</version>
+        </dependency> <% } %>  <% } %>
     </dependencies>
     <build>
         <plugins>

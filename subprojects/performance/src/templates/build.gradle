@@ -18,6 +18,11 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 
 repositories {
+<% if (repository) { %>
+    maven {
+        url "${repository.getUri()}"
+    }
+<% } %>
     mavenCentral()
 }
 
@@ -30,6 +35,10 @@ dependencies {
     compile "commons-codec:commons-codec:1.2"
     testCompile 'junit:junit:4.8.2'
     runtime 'com.googlecode:reflectasm:1.01'
+
+    <% if (dependencies) { dependencies.each { %>
+    compile "${it.shortNotation()}" <% } %>
+    <% } %>
 }
 
 test {
