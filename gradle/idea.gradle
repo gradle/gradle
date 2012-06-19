@@ -25,7 +25,6 @@ idea {
     project {
         wildcards += ['?*.gradle']
 
-        jdkName = '1.6'
         languageLevel = '1.5'
 
         ipr {
