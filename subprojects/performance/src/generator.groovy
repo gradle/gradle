@@ -81,14 +81,14 @@ class ProjectGeneratorTask extends DefaultTask {
         destDir.mkdirs()
 
         MavenRepository repo = generateDependencyRepository()
-
         generateRootProject()
         subprojects.each {
-            it.setRepository(repo);
-            it.setDependencies(repo.getDependenciesOfTransitiveLevel(1));
+            if(repo){
+                it.setRepository(repo)
+                it.setDependencies(repo.getDependenciesOfTransitiveLevel(1))
+            }
             generateSubProject(it)
         }
-
     }
 
     List getSubprojectNames() {
@@ -100,15 +100,11 @@ class ProjectGeneratorTask extends DefaultTask {
     }
 
     MavenRepository generateDependencyRepository(){
-        if(dependencyGraph.empty)
-            return []
-
         MavenRepository repo = new RepositoryBuilder(getDestDir())
                 .withArtifacts(dependencyGraph.size)
                 .withDepth(dependencyGraph.depth)
                 .withSnapshotVersions(dependencyGraph.useSnapshotVersions)
                 .create()
-
         return repo;
     }
 
@@ -211,6 +207,7 @@ class MavenRepository {
     List<MavenModule> modules = []
 
     MavenRepository(File rootDir) {
+        println rootDir
         this.rootDir = rootDir
     }
 
@@ -412,7 +409,6 @@ class MavenPom {
             scope.addDependency(dep.groupId.text(), dep.artifactId.text(), dep.version.text())
         }
     }
-
 }
 
 class MavenScope {
@@ -449,6 +445,9 @@ class RepositoryBuilder {
     }
 
     MavenRepository create() {
+        if(numberOfArtifacts==0){
+            return null;
+        }
         targetDir.mkdirs();
         MavenRepository repo = new MavenRepository(new File(targetDir, "mavenRepo"))
         numberOfArtifacts.times {
