@@ -143,7 +143,7 @@ uploadArchives {
 
         and:
         server.authenticationScheme = authScheme
-        server.allowPut('/org.gradle/publish/2/publish-2.jar.sha1', 'testuser', 'password')
+        server.allowPut('/org.gradle/publish/2/publish-2.jar', 'testuser', 'password')
 
         then:
         fails 'uploadArchives'
@@ -280,7 +280,7 @@ uploadTools {
 
     }
 
-    public void "does not upload meta-data file if artifact or checksum upload fails"() {
+    public void "does not upload meta-data file if artifact upload fails"() {
         given:
         server.start()
 
@@ -298,19 +298,7 @@ uploadArchives {
 }
 """
         when:
-        server.expectPut("/org.gradle/publish/2/publish-2.jar.sha1", module.sha1File(module.jarFile), HttpStatus.ORDINAL_200_OK)
         server.expectPut("/org.gradle/publish/2/publish-2.jar", module.jarFile, HttpStatus.ORDINAL_500_Internal_Server_Error)
-
-        then:
-        fails 'uploadArchives'
-
-        and:
-        module.assertChecksumPublishedFor(module.jarFile)
-        module.ivyFile.assertDoesNotExist()
-
-        when:
-        expectUpload("/org.gradle/publish/2/publish-2.jar", module, module.jarFile)
-        server.expectPut("/org.gradle/publish/2/ivy-2.xml.sha1", module.sha1File(module.ivyFile), HttpStatus.ORDINAL_500_Internal_Server_Error)
 
         then:
         fails 'uploadArchives'
@@ -321,12 +309,12 @@ uploadArchives {
     }
 
     private void expectUpload(String path, IvyModule module, TestFile file, int statusCode = HttpStatus.ORDINAL_200_OK) {
-        server.expectPut("${path}.sha1", module.sha1File(file), statusCode)
         server.expectPut(path, file, statusCode)
+        server.expectPut("${path}.sha1", module.sha1File(file), statusCode)
     }
 
     private void expectUpload(String path, IvyModule module, TestFile file, String username, String password) {
-        server.expectPut("${path}.sha1", username, password, module.sha1File(file))
         server.expectPut(path, username, password, file)
+        server.expectPut("${path}.sha1", username, password, module.sha1File(file))
     }
 }

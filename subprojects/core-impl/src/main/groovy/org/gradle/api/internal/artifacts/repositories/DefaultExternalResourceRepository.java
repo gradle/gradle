@@ -96,8 +96,8 @@ public class DefaultExternalResourceRepository extends AbstractRepository implem
 
     @Override
     public void put(Artifact artifact, File source, String destination, boolean overwrite) throws IOException {
-        putChecksum("SHA1", source, destination, overwrite);
         put(source, destination, overwrite);
+        putChecksum("SHA1", source, destination, overwrite);
     }
 
     private void putChecksum(String algorithm, File source, String destination, boolean overwrite) throws IOException {
