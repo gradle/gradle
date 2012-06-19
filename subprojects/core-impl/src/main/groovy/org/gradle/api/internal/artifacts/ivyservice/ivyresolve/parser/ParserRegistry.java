@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
 import org.apache.ivy.plugins.parser.ModuleDescriptorParser;
-import org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorParser;
 import org.apache.ivy.plugins.repository.Resource;
 
 import java.util.ArrayList;
@@ -26,8 +25,8 @@ public class ParserRegistry {
     private List<ModuleDescriptorParser> parsers = new ArrayList<ModuleDescriptorParser>();
 
     public ParserRegistry() {
-        parsers.add(GradlePomModuleDescriptorParser.getInstance());
-        parsers.add(XmlModuleDescriptorParser.getInstance());
+        parsers.add(new GradlePomModuleDescriptorParser());
+        parsers.add(new DownloadedIvyModuleDescriptorParser());
     }
 
     public ModuleDescriptorParser forResource(Resource resource) {

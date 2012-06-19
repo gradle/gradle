@@ -26,9 +26,9 @@ import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Issue
 
-class PomParserTest extends Specification {
+class GradlePomModuleDescriptorParserTest extends Specification {
     @Rule public final TemporaryFolder tmpDir = new TemporaryFolder()
-    
+    final GradlePomModuleDescriptorParser parser = new GradlePomModuleDescriptorParser()
     final ParserSettings ivySettings = Mock()
     TestFile pomFile
 
@@ -150,7 +150,7 @@ class PomParserTest extends Specification {
     }
 
     private ModuleDescriptor parsePom() {
-        GradlePomModuleDescriptorParser.getInstance().parseDescriptor(ivySettings, pomFile.toURI().toURL(), false)
+        parser.parseDescriptor(ivySettings, pomFile.toURI().toURL(), false)
     }
 
     private void hasArtifact(ModuleDescriptor descriptor, String name, String type, String ext, String classifier = null) {

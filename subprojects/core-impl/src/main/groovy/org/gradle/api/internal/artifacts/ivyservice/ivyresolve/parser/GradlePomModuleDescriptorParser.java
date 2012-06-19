@@ -49,17 +49,6 @@ import java.util.Map;
  * number of remote call in half to resolve a module.
  */
 public final class GradlePomModuleDescriptorParser implements ModuleDescriptorParser {
-
-    private static final GradlePomModuleDescriptorParser INSTANCE = new GradlePomModuleDescriptorParser();
-
-    public static GradlePomModuleDescriptorParser getInstance() {
-        return INSTANCE;
-    }
-
-    private GradlePomModuleDescriptorParser() {
-    }
-
-
     public void toIvyFile(InputStream is, Resource res, File destFile, ModuleDescriptor md)
             throws ParseException, IOException {
         try {
