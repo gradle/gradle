@@ -16,7 +16,6 @@
 
 package org.gradle.logging.internal;
 
-
 import org.gradle.internal.nativeplatform.NoOpTerminalDetector
 import org.gradle.internal.nativeplatform.WindowsTerminalDetector
 import org.gradle.internal.nativeplatform.jna.JnaBootPathConfigurer
@@ -31,9 +30,8 @@ import spock.lang.Specification
 /**
  * @author: Szczepan Faber, created at: 9/12/11
  */
-public class TerminalDetectorFactoryTest extends Specification {
-    @Rule
-    TemporaryFolder temp = new TemporaryFolder()
+class TerminalDetectorFactoryTest extends Specification {
+    @Rule TemporaryFolder temp
 
     @Requires([TestPrecondition.JNA, TestPrecondition.NOT_WINDOWS])
     def "should configure JNA library"() {
