@@ -16,26 +16,27 @@
 
 package org.gradle.integtests
 
+import org.gradle.api.internal.artifacts.ivyservice.DefaultCacheLockingManager
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.UriScriptSource
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.HttpServer
+import org.gradle.integtests.fixtures.MavenRepository
 import org.gradle.util.GradleVersion
 import org.gradle.util.TestFile
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+
 import static org.junit.Assert.assertEquals
-import org.gradle.api.internal.artifacts.ivyservice.DefaultCacheLockingManager
 
 /**
  * @author Hans Dockter
  */
-class CacheProjectIntegrationTest {
+public class CacheProjectIntegrationTest extends AbstractIntegrationTest {
     static final String TEST_FILE = "build/test.txt"
 
-    @Rule public final GradleDistribution dist = new GradleDistribution()
-    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
+    @Rule public final HttpServer server = new HttpServer()
 
     TestFile projectDir
     TestFile userHomeDir
@@ -44,20 +45,30 @@ class CacheProjectIntegrationTest {
     TestFile classFile
     TestFile artifactsCache
 
+    MavenRepository repo
+
     @Before
     public void setUp() {
         // Use own home dir so we don't blast the shared one when we run with -C rebuild
-        dist.requireOwnUserHomeDir()
+        distribution.requireOwnUserHomeDir()
 
         String version = GradleVersion.current().version
-        projectDir = dist.getTestDir().file("project")
+        projectDir = distribution.getTestDir().file("project")
         projectDir.mkdirs()
-        userHomeDir = dist.getUserHomeDir()
+        userHomeDir = distribution.getUserHomeDir()
         buildFile = projectDir.file('build.gradle')
         ScriptSource source = new UriScriptSource("build file", buildFile)
         propertiesFile = userHomeDir.file("caches/$version/scripts/$source.className/ProjectScript/no_buildscript/cache.properties")
         classFile = userHomeDir.file("caches/$version/scripts/$source.className/ProjectScript/no_buildscript/classes/${source.className}.class")
         artifactsCache = projectDir.file(".gradle/$version/taskArtifacts/taskArtifacts.bin")
+
+        def repoDir = file("repo")
+        repo = maven(repoDir)
+        server.allowGet("/repo", repo.rootDir)
+        repo.module("commons-io", "commons-io", "1.4").publish()
+        repo.module("commons-lang", "commons-lang", "2.6").publish()
+
+        server.start()
     }
 
     @Test
@@ -154,7 +165,11 @@ class CacheProjectIntegrationTest {
     def createLargeBuildScript() {
         File buildFile = projectDir.file('build.gradle')
         String content = """
-repositories { mavenCentral() }
+repositories {
+    maven{
+        url "http://localhost:${server.port}/repo"
+    }
+}
 configurations { compile }
 dependencies { compile 'commons-io:commons-io:1.4@jar' }
 """
