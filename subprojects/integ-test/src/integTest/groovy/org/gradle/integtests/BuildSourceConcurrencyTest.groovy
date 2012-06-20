@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle
+package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
