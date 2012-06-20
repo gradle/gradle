@@ -46,7 +46,7 @@ public abstract class AbstractTestLogger {
         List<String> names = Lists.newArrayList();
         TestDescriptor current = descriptor;
         while (current != null) {
-            names.add(current.getName().length() == 0 ? "Test Run" : current.getName());
+            names.add(current.getName());
             current = current.getParent();
         }
 

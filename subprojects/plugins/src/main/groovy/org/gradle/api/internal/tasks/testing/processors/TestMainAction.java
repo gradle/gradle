@@ -51,7 +51,7 @@ public class TestMainAction implements Runnable {
 
     private static class RootTestSuiteDescriptor extends DefaultTestSuiteDescriptor {
         public RootTestSuiteDescriptor() {
-            super("root", "");
+            super("root", "Test Run");
         }
 
         @Override
