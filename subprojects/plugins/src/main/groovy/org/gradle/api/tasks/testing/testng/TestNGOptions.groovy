@@ -23,6 +23,8 @@ import org.gradle.api.tasks.testing.TestFrameworkOptions
  * @author Tom Eyckmans
  */
 public class TestNGOptions extends TestFrameworkOptions implements Serializable {
+    private static final long serialVersionUID = 1
+
     static final String JDK_ANNOTATIONS = 'JDK'
     static final String JAVADOC_ANNOTATIONS = 'Javadoc'
 
