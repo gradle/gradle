@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.logging.internal.slf4j
+package org.gradle.logging.internal.logback
 
 import ch.qos.logback.classic.LoggerContext
 import org.gradle.api.logging.LogLevel
@@ -23,14 +23,14 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import spock.lang.Specification
 
-class Slf4jLoggingConfigurerTest extends Specification {
-    private final Logger logger = LoggerFactory.getLogger("cat1");
-    private final OutputEventListener listener = Mock()
-    private final Slf4jLoggingConfigurer configurer = new Slf4jLoggingConfigurer(listener)
+class LogbackLoggingConfigurerTest extends Specification {
+    Logger logger = LoggerFactory.getLogger("cat1")
+    OutputEventListener listener = Mock()
+    LogbackLoggingConfigurer configurer = new LogbackLoggingConfigurer(listener)
     
     def cleanup() {
-        LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
-        lc.reset();
+        def context = (LoggerContext) LoggerFactory.getILoggerFactory()
+        context.reset()
     }
 
     def routesSlf4jLogEventsToOutputEventListener() {
@@ -110,7 +110,6 @@ class Slf4jLoggingConfigurerTest extends Specification {
 
         then:
         1 * listener.onOutput({it.message == 'quiet' && it.logLevel == LogLevel.QUIET})
-        1 * listener.onOutput({it.message == 'warn' && it.logLevel == LogLevel.WARN})
         1 * listener.onOutput({it.message == 'error' && it.logLevel == LogLevel.ERROR})
         0 * listener._
     }
