@@ -25,7 +25,7 @@ class LoggerIsEnabledIntegrationTest extends AbstractIntegrationSpec {
     @Rule TestResources resources
 
     @Unroll
-    def "isEnabled() works correctly for log level #level"() {
+    def "logger.isEnabled() works correctly for log level #level"() {
         executer.withArguments("-Plevel=$level")
 
         expect:
