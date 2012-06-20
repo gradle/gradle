@@ -40,8 +40,11 @@ public class DefaultTestLoggingContainer implements TestLoggingContainer {
         setEvents(EnumSet.of(TestLogEvent.FAILED));
         setExceptionFormat(TestExceptionFormat.SHORT);
 
+        getInfo().setEvents(EnumSet.of(TestLogEvent.FAILED, TestLogEvent.SKIPPED, TestLogEvent.STANDARD_OUT, TestLogEvent.STANDARD_ERROR));
+        getInfo().setStackTraceFilters(EnumSet.of(TestStackTraceFilter.TRUNCATE));
+
         getDebug().setEvents(EnumSet.allOf(TestLogEvent.class));
-        getDebug().setStackTraceFilters(EnumSet.of(TestStackTraceFilter.TRUNCATE));
+        getDebug().setMinGranularity(0);
     }
 
     public TestLogging getDebug() {
@@ -249,9 +252,6 @@ public class DefaultTestLoggingContainer implements TestLoggingContainer {
     }
 
     public TestLogging get(LogLevel level) {
-        if (level == null) {
-            return new DefaultTestLoggingContainer(); // has everything disabled
-        }
         return perLevelTestLogging.get(level);
     }
 }
