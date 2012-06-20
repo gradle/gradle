@@ -32,8 +32,6 @@ import org.gradle.api.internal.tasks.testing.logging.*;
 import org.gradle.api.internal.tasks.testing.results.*;
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.testing.logging.TestLogging;
@@ -95,8 +93,6 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public class Test extends ConventionTask implements JavaForkOptions, PatternFilterable, VerificationTask {
-    private static final Logger LOGGER = Logging.getLogger(Test.class);
-
     private final ListenerBroadcast<TestListener> testListenerBroadcaster;
     private final ListenerBroadcast<TestOutputListener> testOutputListenerBroadcaster;
     private final StyledTextOutputFactory textOutputFactory;
@@ -394,16 +390,12 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
 
     @TaskAction
     public void executeTests() {
-        for (LogLevel level: LogLevel.values()) {
-            if (!LOGGER.isEnabled(level)) {
-                continue;
-            }
-            TestLogging levelLogging = testLogging.get(level);
-            TestExceptionFormatter exceptionFormatter = getExceptionFormatter(testLogging);
-            TestEventLogger eventLogger = new TestEventLogger(textOutputFactory, level, levelLogging, exceptionFormatter);
-            addTestListener(eventLogger);
-            addTestOutputListener(eventLogger);
-        }
+        LogLevel currentLevel = getCurrentLogLevel();
+        TestLogging levelLogging = testLogging.get(currentLevel);
+        TestExceptionFormatter exceptionFormatter = getExceptionFormatter(levelLogging);
+        TestEventLogger eventLogger = new TestEventLogger(textOutputFactory, currentLevel, levelLogging, exceptionFormatter);
+        addTestListener(eventLogger);
+        addTestOutputListener(eventLogger);
 
         ProgressLoggerFactory progressLoggerFactory = getServices().get(ProgressLoggerFactory.class);
         TestCountLogger testCountLogger = new TestCountLogger(progressLoggerFactory);
@@ -420,6 +412,16 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         if (!getIgnoreFailures() && testCountLogger.hadFailures()) {
             throw new GradleException("There were failing tests. See the report at " + getTestReportUrl() + ".");
         }
+    }
+
+    // only way I know of to determine current log level
+    private LogLevel getCurrentLogLevel() {
+        for (LogLevel level : LogLevel.values()) {
+            if (getLogger().isEnabled(level)) {
+                return level;
+            }
+        }
+        throw new AssertionError("could not determine current log level");
     }
 
     private TestExceptionFormatter getExceptionFormatter(TestLogging testLogging) {
