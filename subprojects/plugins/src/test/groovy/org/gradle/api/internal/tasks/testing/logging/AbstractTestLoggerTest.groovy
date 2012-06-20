@@ -30,7 +30,7 @@ class AbstractTestEventLoggerTest extends Specification {
     StyledTextOutputFactory textOutputFactory = new TestStyledTextOutputFactory()
     AbstractTestLogger logger
 
-    def rootDescriptor = new SimpleTestDescriptor(name: "", composite: true)
+    def rootDescriptor = new SimpleTestDescriptor(name: "Test Run", composite: true)
     def workerDescriptor = new SimpleTestDescriptor(name: "Gradle Worker 2", composite: true, parent: rootDescriptor)
     def outerSuiteDescriptor = new SimpleTestDescriptor(name: "com.OuterSuiteClass", composite: true, parent: workerDescriptor)
     def innerSuiteDescriptor = new SimpleTestDescriptor(name: "com.InnerSuiteClass", composite: true, parent: outerSuiteDescriptor)

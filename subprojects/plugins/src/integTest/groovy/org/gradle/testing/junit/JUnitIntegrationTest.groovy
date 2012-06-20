@@ -343,8 +343,8 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
         '''
 
         ExecutionResult result = executer.withTasks("test").run();
-        assert containsLine(result.getOutput(), "START [tests] []");
-        assert containsLine(result.getOutput(), "FINISH [tests] [] [FAILURE] [4]");
+        assert containsLine(result.getOutput(), "START [tests] [Test Run]");
+        assert containsLine(result.getOutput(), "FINISH [tests] [Test Run] [FAILURE] [4]");
 
         assert containsLine(result.getOutput(), "START [test process 'Gradle Worker 1'] [Gradle Worker 1]");
         assert containsLine(result.getOutput(), "FINISH [test process 'Gradle Worker 1'] [Gradle Worker 1] [FAILURE] [4]");
