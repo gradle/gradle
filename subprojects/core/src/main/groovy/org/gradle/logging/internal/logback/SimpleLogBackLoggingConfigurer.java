@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.logging.internal.slf4j;
+package org.gradle.logging.internal.logback;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.nativeplatform.NoOpTerminalDetector;
@@ -22,17 +22,21 @@ import org.gradle.logging.internal.LoggingConfigurer;
 import org.gradle.logging.internal.OutputEventRenderer;
 
 /**
- * Simple configurer for slf4j, meant to be used in embedded mode,
- * in 'safe' environment (e.g. own classloader).
- * <p>
+ * Simple Logback configurer meant to be used in embedded mode
+ * in 'safe' environment (e.g. own class loader).
+ *
  * by Szczepan Faber, created at: 1/23/12
  */
-public class SimpleSlf4jLoggingConfigurer implements LoggingConfigurer {
+public class SimpleLogbackLoggingConfigurer implements LoggingConfigurer {
+    private final OutputEventRenderer renderer = new OutputEventRenderer(new NoOpTerminalDetector());
+    private final LoggingConfigurer configurer = new LogbackLoggingConfigurer(renderer);
+
+    public SimpleLogbackLoggingConfigurer() {
+        renderer.addStandardOutputAndError();
+    }
 
     public void configure(LogLevel logLevel) {
-        OutputEventRenderer renderer = new OutputEventRenderer(new NoOpTerminalDetector());
-        renderer.addStandardOutputAndError();
         renderer.configure(logLevel);
-        new Slf4jLoggingConfigurer(renderer).configure(logLevel);
+        configurer.configure(logLevel);
     }
 }
