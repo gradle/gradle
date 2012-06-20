@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.testing.logging
+package org.gradle.testing.junit
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
-import spock.lang.Ignore
 
-@Ignore("TODO")
-class TestNGLoggingIntegrationTest extends AbstractIntegrationSpec {
+// cannot make assumptions about order in which test methods of JUnit4Test get executed
+class JUnitLoggingIntegrationTest extends AbstractIntegrationSpec {
     @Rule TestResources resources
 
     def setup() {
@@ -35,8 +34,8 @@ class TestNGLoggingIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         result.output.contains("""
-org.gradle.TestNGTest > badTest FAILED
-    java.lang.RuntimeException at TestNGTest.groovy:38
+org.gradle.JUnit4Test > badTest FAILED
+    java.lang.RuntimeException at JUnit4Test.groovy:38
         """.trim())
     }
 
@@ -46,19 +45,19 @@ org.gradle.TestNGTest > badTest FAILED
 
         then:
         result.output.contains("""
-org.gradle.TestNGTest > badTest FAILED
+org.gradle.JUnit4Test > badTest FAILED
     java.lang.RuntimeException: bad
        """.trim())
 
-        // means full stack trace printed
+        // indicates that full stack trace is printed
         result.output.contains("at java.lang.reflect.Constructor.newInstance(")
 
         result.output.contains("""
-        at org.gradle.TestNGTest.beBad(TestNGTest.groovy:38)
-        at org.gradle.TestNGTest.badTest(TestNGTest.groovy:28)
+        at org.gradle.JUnit4Test.beBad(JUnit4Test.groovy:38)
+        at org.gradle.JUnit4Test.badTest(JUnit4Test.groovy:28)
         """.trim())
 
-        result.output.contains("org.gradle.TestNGTest > ignoredTest SKIPPED")
+        result.output.contains("org.gradle.JUnit4Test > ignoredTest SKIPPED")
     }
 
     def customQuietLogging() {
@@ -67,13 +66,14 @@ org.gradle.TestNGTest > badTest FAILED
 
         then:
         result.output.contains("""
-org.gradle.TestNGTest > badTest FAILED
+badTest FAILED
     java.lang.RuntimeException: bad
-        at org.gradle.JUnit4Test.beBad(TestNGTest.groovy:38)
-        at org.gradle.JUnit4Test.badTest(TestNGTest.groovy:28)
-
-org.gradle.TestNGTest > ignoredTest SKIPPED
-org.gradle.TestNGTest FAILED
+        at org.gradle.JUnit4Test.beBad(JUnit4Test.groovy:38)
+        at org.gradle.JUnit4Test.badTest(JUnit4Test.groovy:28)
         """.trim())
+
+        result.output.contains("ignoredTest SKIPPED")
+
+        result.output.contains("org.gradle.JUnit4Test FAILED")
     }
 }

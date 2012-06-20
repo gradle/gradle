@@ -22,15 +22,13 @@ class TestNGTest {
     @Test
     void goodTest() {}
 
-    @Test
+    @Test(dependsOnMethods = ["goodTest"])
     void badTest() {
         beBad()
     }
 
-    @Test(enabled = false)
-    void ignoredTest() {
-        throw new RuntimeException("ignored")
-    }
+    @Test(dependsOnMethods = ["badTest"])
+    void ignoredTest() {}
 
     private beBad() {
         throw new RuntimeException("bad")

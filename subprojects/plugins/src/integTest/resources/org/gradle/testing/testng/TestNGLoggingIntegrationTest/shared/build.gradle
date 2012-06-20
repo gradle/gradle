@@ -16,6 +16,7 @@ test {
             events "skipped", "failed"
             minGranularity 2
             maxGranularity -1
+            displayGranularity 3
             exceptionFormat "full"
             stackTraceFilters "truncate", "groovy"
         }
