@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests
+package org.gradle.logging
 
-import junit.framework.AssertionFailedError
 import org.gradle.util.TestFile
-import org.junit.Rule
-import org.junit.Test
 import org.gradle.integtests.fixtures.*
 import org.gradle.internal.SystemProperties
+import org.junit.Rule
+import org.junit.Test
 
 /**
  * @author Hans Dockter
@@ -331,14 +330,14 @@ class LogLevel {
             // Check we found the expected number of occurrences of the expected string
             if (!shouldContain) {
                 if (!matches.empty) {
-                    throw new AssertionFailedError("Found unexpected content '$expectedOut' in output:\n$result")
+                    throw new AssertionError("Found unexpected content '$expectedOut' in output:\n$result")
                 }
             } else {
                 if (matches.empty) {
-                    throw new AssertionFailedError("Could not find expected content '$expectedOut' in output:\n$result")
+                    throw new AssertionError("Could not find expected content '$expectedOut' in output:\n$result")
                 }
                 if (matches.size() > 1) {
-                    throw new AssertionFailedError("Expected content '$expectedOut' should occur exactly once but found ${matches.size()} times in output:\n$result")
+                    throw new AssertionError("Expected content '$expectedOut' should occur exactly once but found ${matches.size()} times in output:\n$result")
                 }
 
                 // Validate each occurrence
@@ -442,7 +441,7 @@ class OutputOccurrence {
         }
         int startLine = index - SystemProperties.lineSeparator.length()
         if (startLine < 0 || !actual.substring(startLine).startsWith(SystemProperties.lineSeparator)) {
-            throw new AssertionFailedError("Expected content '$expected' is not at the start of a line in output $actual.")
+            throw new AssertionError("Expected content '$expected' is not at the start of a line in output $actual.")
         }
     }
 
@@ -452,7 +451,7 @@ class OutputOccurrence {
             return
         }
         if (!actual.substring(endLine).startsWith(SystemProperties.lineSeparator)) {
-            throw new AssertionFailedError("Expected content '$expected' is not at the end of a line in output $actual.")
+            throw new AssertionError("Expected content '$expected' is not at the end of a line in output $actual.")
         }
     }
 
