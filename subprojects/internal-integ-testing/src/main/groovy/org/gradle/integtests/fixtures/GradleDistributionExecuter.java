@@ -44,6 +44,7 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
     private boolean workingDirSet;
     private boolean userHomeSet;
     private boolean deprecationChecksOn = true;
+    private boolean stackTraceChecksOn = true;
     private Executer executerType;
     private File daemonBaseDir;
     private boolean allowExtraLogging = true;
@@ -100,6 +101,7 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
         workingDirSet = false;
         userHomeSet = false;
         deprecationChecksOn = true;
+        stackTraceChecksOn = true;
         DeprecationLogger.reset();
         return this;
     }
@@ -129,6 +131,11 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
         deprecationChecksOn = false;
         return this;
     }
+
+    public GradleDistributionExecuter withStackTraceChecksDisabled() {
+        stackTraceChecksOn = false;
+        return this;
+    }
     
     public GradleDistributionExecuter withForkingExecuter() {
         if (!executerType.forks) {
@@ -138,9 +145,11 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
     }
 
     protected <T extends ExecutionResult> T checkResult(T result) {
-        // Assert that nothing unexpected was logged
-        assertOutputHasNoStackTraces(result);
-        assertErrorHasNoStackTraces(result);
+        if (stackTraceChecksOn) {
+            // Assert that nothing unexpected was logged
+            assertOutputHasNoStackTraces(result);
+            assertErrorHasNoStackTraces(result);
+        }
         if (deprecationChecksOn) {
             assertOutputHasNoDeprecationWarnings(result);
         }
