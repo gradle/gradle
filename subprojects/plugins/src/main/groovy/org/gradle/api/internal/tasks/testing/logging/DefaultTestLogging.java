@@ -26,6 +26,7 @@ public class DefaultTestLogging implements TestLogging {
     private Set<TestLogEvent> events = EnumSet.noneOf(TestLogEvent.class);
     private int minGranularity = -1;
     private int maxGranularity = -1;
+    private int displayGranularity = 2;
     private boolean showExceptions = true;
     private boolean showCauses = true;
     private boolean showStackTraces = true;
@@ -66,6 +67,18 @@ public class DefaultTestLogging implements TestLogging {
 
     public void maxGranularity(int granularity) {
         setMaxGranularity(granularity);
+    }
+
+    public int getDisplayGranularity() {
+        return displayGranularity;
+    }
+
+    public void setDisplayGranularity(int granularity) {
+        displayGranularity = granularity;
+    }
+
+    public void displayGranularity(int granularity) {
+        setDisplayGranularity(granularity);
     }
 
     public boolean getShowExceptions() {

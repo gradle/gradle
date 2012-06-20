@@ -30,10 +30,12 @@ import java.util.List;
 public abstract class AbstractTestLogger {
     private final StyledTextOutputFactory textOutputFactory;
     private final LogLevel logLevel;
+    private final int displayGranularity;
 
-    protected AbstractTestLogger(StyledTextOutputFactory textOutputFactory, LogLevel logLevel) {
+    protected AbstractTestLogger(StyledTextOutputFactory textOutputFactory, LogLevel logLevel, int displayGranularity) {
         this.textOutputFactory = textOutputFactory;
         this.logLevel = logLevel;
+        this.displayGranularity = displayGranularity;
     }
 
     protected void logEvent(TestDescriptor descriptor, TestLogEvent event) {
@@ -44,21 +46,16 @@ public abstract class AbstractTestLogger {
         List<String> names = Lists.newArrayList();
         TestDescriptor current = descriptor;
         while (current != null) {
-            names.add(current.getName());
+            names.add(current.getName().length() == 0 ? "Test Run" : current.getName());
             current = current.getParent();
         }
 
-        // Here we assume that the first two names are _always_ the suite for the whole
-        // test run and the suite for the test JVM. Only when events of that granularity
-        // are logged do we show these names. If it turns out that our assumption is incorrect
-        // or hard coding this behavior is not good enough, we could make this configurable.
-        // But I'd rather not add another obscure configuration option unless really necessary.
-        int minDisplayedName = Math.min(2, names.size() - 1);
-
-        List<String> displayedNames = Lists.reverse(names).subList(minDisplayedName, names.size());
+        int effectiveDisplayGranularity = displayGranularity == -1 ?
+                names.size() - 1 : Math.min(displayGranularity, names.size() - 1);
+        List<String> displayedNames = Lists.reverse(names).subList(effectiveDisplayGranularity, names.size());
         String path = Joiner.on(" > ").join(displayedNames) + " ";
 
-        StyledTextOutput output = textOutputFactory.create("TestLogger", logLevel);
+        StyledTextOutput output = textOutputFactory.create("TestEventLogger", logLevel);
         output.append(path);
         output.withStyle(getStyle(event)).println(event.toString());
         if (details != null) {

@@ -33,7 +33,7 @@ public class TestEventLogger extends AbstractTestLogger implements TestListener,
     private final TestLogging testLogging;
 
     public TestEventLogger(StyledTextOutputFactory textOutputFactory, LogLevel logLevel, TestLogging testLogging, TestExceptionFormatter exceptionFormatter) {
-        super(textOutputFactory, logLevel);
+        super(textOutputFactory, logLevel, testLogging.getDisplayGranularity());
         this.exceptionFormatter = exceptionFormatter;
         this.testLogging = testLogging;
     }

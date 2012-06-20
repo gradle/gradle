@@ -179,6 +179,18 @@ public class DefaultTestLoggingContainer implements TestLoggingContainer {
         getLifecycle().maxGranularity(granularity);
     }
 
+    public int getDisplayGranularity() {
+        return getLifecycle().getDisplayGranularity();
+    }
+
+    public void setDisplayGranularity(int granularity) {
+        getLifecycle().setDisplayGranularity(granularity);
+    }
+
+    public void displayGranularity(int granularity) {
+        getLifecycle().displayGranularity(granularity);
+    }
+
     public boolean getShowExceptions() {
         return getLifecycle().getShowExceptions();
     }

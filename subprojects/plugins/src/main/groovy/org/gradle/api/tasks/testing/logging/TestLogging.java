@@ -45,26 +45,24 @@ public interface TestLogging {
     void events(Object... events);
 
     /**
-     * Returns the minimum granularity of the events to be logged. In a typical
-     * JUnit setup, 0 corresponds to the overall test suite, 1 corresponds to
-     * the test suite of a particular test JVM, 2 corresponds to a test class,
+     * Returns the minimum granularity of the events to be logged. Typically, 0
+     * corresponds to the Gradle-generated test suite for the whole test run, 1 corresponds to
+     * the Gradle-generated test suite for a particular test JVM, 2 corresponds to a test class,
      * and 3 corresponds to a test method. These values will vary if user-defined
      * suites are executed.
-     * <p>-1 denotes the highest granularity, and will cause only atomic tests
-     * (test methods in above example) to be logged.
+     * <p>-1 denotes the highest granularity and corresponds to an atomic test.
      *
      * @return the minimum granularity of the events to be logged
      */
     int getMinGranularity();
 
     /**
-     * Sets the minimum granularity of the events to be logged. In a typical
-     * JUnit setup, 0 corresponds to the overall test suite, 1 corresponds to
-     * the test suite of a particular test JVM, 2 corresponds to a test class,
+     * Sets the minimum granularity of the events to be logged. Typically, 0
+     * corresponds to the Gradle-generated test suite for the whole test run, 1 corresponds to
+     * the Gradle-generated test suite for a particular test JVM, 2 corresponds to a test class,
      * and 3 corresponds to a test method. These values will vary if user-defined
      * suites are executed.
-     * <p>-1 denotes the highest granularity, and will cause only atomic tests
-     * (test methods in above example) to be logged.
+     * <p>-1 denotes the highest granularity and corresponds to an atomic test.
      *
      * @param granularity the minimum granularity of the events to be logged
      */
@@ -76,16 +74,24 @@ public interface TestLogging {
     void minGranularity(int granularity);
 
     /**
-     * Returns the maximum granularity of the events to be logged. See {@link #getMinGranularity()}
-     * for further details.
+     * Returns the maximum granularity of the events to be logged. Typically, 0
+     * corresponds to the Gradle-generated test suite for the whole test run, 1 corresponds to
+     * the Gradle-generated test suite for a particular test JVM, 2 corresponds to a test class,
+     * and 3 corresponds to a test method. These values will vary if user-defined
+     * suites are executed.
+     * <p>-1 denotes the highest granularity and corresponds to an atomic test.
      *
      * @return the maximum granularity of the events to be logged
      */
     int getMaxGranularity();
 
     /**
-     * Sets the maximum granularity of the events to be logged. See {@link #setMinGranularity(int)}
-     * for further details.
+     * Returns the maximum granularity of the events to be logged. Typically, 0
+     * corresponds to the Gradle-generated test suite for the whole test run, 1 corresponds to
+     * the Gradle-generated test suite for a particular test JVM, 2 corresponds to a test class,
+     * and 3 corresponds to a test method. These values will vary if user-defined
+     * suites are executed.
+     * <p>-1 denotes the highest granularity and corresponds to an atomic test.
      *
      * @param granularity the maximum granularity of the events to be logged
      */
@@ -95,6 +101,31 @@ public interface TestLogging {
      * Convenience method that delegates to {@link #setMaxGranularity(int)}.
      */
     void maxGranularity(int granularity);
+
+    /**
+     * Returns the display granularity of the events to be logged. For example, if set to 0,
+     * a method-level event will be displayed as "Test Run > Test Worker x > org.SomeClass > org.someMethod".
+     * If set to 2, the same event will be displayed as "org.someClass > org.someMethod".
+     * <p>-1 denotes the highest granularity and corresponds to an atomic test.
+     *
+     * @return the display granularity of the events to be logged
+     */
+    int getDisplayGranularity();
+
+    /**
+     * Sets the display granularity of the events to be logged. For example, if set to 0,
+     * a method-level event will be displayed as "Test Run > Test Worker x > org.SomeClass > org.someMethod".
+     * If set to 2, the same event will be displayed as "org.someClass > org.someMethod".
+     * <p>-1 denotes the highest granularity and corresponds to an atomic test.
+     *
+     * @param granularity the display granularity of the events to be logged
+     */
+    void setDisplayGranularity(int granularity);
+
+    /**
+     * Convenience method that delegates to {@link #setDisplayGranularity(int)}.
+     */
+    void displayGranularity(int granularity);
 
     /**
      * Tells whether exceptions that occur during test execution will be logged.
