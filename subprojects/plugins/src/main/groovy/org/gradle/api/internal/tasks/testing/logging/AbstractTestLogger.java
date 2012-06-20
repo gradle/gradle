@@ -50,8 +50,8 @@ public abstract class AbstractTestLogger {
             current = current.getParent();
         }
 
-        int effectiveDisplayGranularity = displayGranularity == -1 ?
-                names.size() - 1 : Math.min(displayGranularity, names.size() - 1);
+        int effectiveDisplayGranularity = displayGranularity == -1
+                ? names.size() - 1 : Math.min(displayGranularity, names.size() - 1);
         List<String> displayedNames = Lists.reverse(names).subList(effectiveDisplayGranularity, names.size());
         String path = Joiner.on(" > ").join(displayedNames) + " ";
 
