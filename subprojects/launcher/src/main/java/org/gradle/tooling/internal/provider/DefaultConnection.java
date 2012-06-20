@@ -27,7 +27,7 @@ import org.gradle.launcher.exec.GradleLauncherActionExecuter;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.internal.OutputEventRenderer;
-import org.gradle.logging.internal.logback.SimpleLogbackLoggingConfigurerRenamed;
+import org.gradle.logging.internal.logback.SimpleLogbackLoggingConfigurer;
 import org.gradle.tooling.internal.build.DefaultBuildEnvironment;
 import org.gradle.tooling.internal.protocol.*;
 import org.gradle.tooling.internal.provider.input.AdaptedOperationParameters;
@@ -43,7 +43,7 @@ import java.util.List;
 public class DefaultConnection implements InternalConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConnection.class);
     private final EmbeddedExecuterSupport embeddedExecuterSupport;
-    private final SimpleLogbackLoggingConfigurerRenamed loggingConfigurer = new SimpleLogbackLoggingConfigurerRenamed();
+    private final SimpleLogbackLoggingConfigurer loggingConfigurer = new SimpleLogbackLoggingConfigurer();
 
     public DefaultConnection() {
         LOGGER.debug("Provider implementation created.");
