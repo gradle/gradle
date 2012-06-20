@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import spock.lang.Specification
 
-class LogbackLoggingConfigurerTest extends Specification {
+class LogbackLoggingConfigurerRenamedTest extends Specification {
     Logger logger = LoggerFactory.getLogger("cat1")
     OutputEventListener listener = Mock()
     LogbackLoggingConfigurer configurer = new LogbackLoggingConfigurer(listener)
