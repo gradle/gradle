@@ -40,13 +40,13 @@ import java.io.PrintStream;
  *
  * @author Hans Dockter
  */
-public class LogbackLoggingConfigurer implements LoggingConfigurer {
+public class LogbackLogbackConfigurerRenamed implements LoggingConfigurer {
     private final OutputEventListener outputEventListener;
     private final PrintStream defaultStandardOut = System.out;
 
     private LogLevel currentLevel;
 
-    public LogbackLoggingConfigurer(OutputEventListener outputListener) {
+    public LogbackLogbackConfigurerRenamed(OutputEventListener outputListener) {
         outputEventListener = outputListener;
     }
 

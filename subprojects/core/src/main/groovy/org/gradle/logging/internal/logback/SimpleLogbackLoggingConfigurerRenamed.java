@@ -27,11 +27,11 @@ import org.gradle.logging.internal.OutputEventRenderer;
  *
  * by Szczepan Faber, created at: 1/23/12
  */
-public class SimpleLogbackLoggingConfigurer implements LoggingConfigurer {
+public class SimpleLogbackLoggingConfigurerRenamed implements LoggingConfigurer {
     private final OutputEventRenderer renderer = new OutputEventRenderer(new NoOpTerminalDetector());
-    private final LoggingConfigurer configurer = new LogbackLoggingConfigurer(renderer);
+    private final LoggingConfigurer configurer = new LogbackLogbackConfigurerRenamed(renderer);
 
-    public SimpleLogbackLoggingConfigurer() {
+    public SimpleLogbackLoggingConfigurerRenamed() {
         renderer.addStandardOutputAndError();
     }
 
