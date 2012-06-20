@@ -46,7 +46,15 @@ public abstract class AbstractTestLogger {
         List<String> names = Lists.newArrayList();
         TestDescriptor current = descriptor;
         while (current != null) {
-            names.add(current.getName());
+            if (isAtomicTestWhoseParentIsNotTheTestClass(current)) {
+                // This deals with the fact that in TestNG, there are no class-level events,
+                // but we nevertheless want to see the class name. We use "." rather than
+                // " > " as a separator to make it clear that the class is not a separate
+                // level. This matters when configuring min/max/displayGranularity.
+                names.add(current.getClassName() + "." + current.getName());
+            } else {
+                names.add(current.getName());
+            }
             current = current.getParent();
         }
 
@@ -61,6 +69,11 @@ public abstract class AbstractTestLogger {
         if (details != null) {
             output.println(details);
         }
+    }
+
+    private boolean isAtomicTestWhoseParentIsNotTheTestClass(TestDescriptor current) {
+        return !current.isComposite() && current.getClassName() != null
+                && !current.getClassName().equals(current.getParent().getName());
     }
 
     private StyledTextOutput.Style getStyle(TestLogEvent event) {
