@@ -128,7 +128,7 @@ public class TestNGTestResultProcessorAdapter implements ITestListener, TestNGCo
 
     public void onConfigurationFailure(ITestResult testResult) {
         if (failedConfigurations.put(testResult, true) != null) {
-            // work around for bug in TestNG 6.2+: listener is notified twice per event
+            // workaround for bug in TestNG 6.2 (apparently fixed in some 6.3.x): listener is notified twice per event
             return;
         }
         // Synthesise a test for the broken configuration method
