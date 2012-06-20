@@ -23,7 +23,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import spock.lang.Specification
 
-class LogbackLoggingConfigurerRenamedTest extends Specification {
+class LogbackLoggingConfigurerTest extends Specification {
     Logger logger = LoggerFactory.getLogger("cat1")
     OutputEventListener listener = Mock()
     LogbackLoggingConfigurer configurer = new LogbackLoggingConfigurer(listener)
