@@ -46,8 +46,8 @@ class TestNGIntegrationTest {
     void canListenForTestResults() {
         ExecutionResult result = executer.withTasks("test").run();
 
-        assert containsLine(result.getOutput(), "START [tests] []");
-        assert containsLine(result.getOutput(), "FINISH [tests] []");
+        assert containsLine(result.getOutput(), "START [tests] [Test Run]");
+        assert containsLine(result.getOutput(), "FINISH [tests] [Test Run]");
         assert containsLine(result.getOutput(), "START [test process 'Gradle Worker 1'] [Gradle Worker 1]");
         assert containsLine(result.getOutput(), "FINISH [test process 'Gradle Worker 1'] [Gradle Worker 1]");
         assert containsLine(result.getOutput(), "START [test 'Gradle test'] [Gradle test]");
