@@ -271,6 +271,17 @@ public class GUtil {
         return builder.toString();
     }
 
+    public static String toLowerCamelCase(CharSequence string) {
+        String camelCase = toCamelCase(string);
+        if (camelCase == null) {
+            return null;
+        }
+        if (camelCase.length() == 0) {
+            return "";
+        }
+        return ((Character) camelCase.charAt(0)).toString().toLowerCase() + camelCase.subSequence(1, camelCase.length());
+    }
+
     /**
      * Converts an arbitrary string to upper case identifier with words separated by _. Eg, camelCase -> CAMEL_CASE
      */
