@@ -80,7 +80,7 @@ class BuildSourceBuilderIntegrationTest extends AbstractIntegrationSpec {
         then:
         finish1.error.equals("")
         finish2.error.equals("")
-        finish1.output.contains(EXPECTED_OUTPUT_RUN1)
-        finish2.output.contains(EXPECTED_OUTPUT_RUN2)
+        finish1.output.replaceAll("\r\n","\n").contains(EXPECTED_OUTPUT_RUN1)
+        finish2.output.replaceAll("\r\n","\n").contains(EXPECTED_OUTPUT_RUN2)
     }
 }
