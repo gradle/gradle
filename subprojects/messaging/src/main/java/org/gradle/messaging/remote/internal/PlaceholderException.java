@@ -26,6 +26,10 @@ public class PlaceholderException extends RuntimeException {
         this.exceptionClassName = exceptionClassName;
     }
     
+    public String getExceptionClassName() {
+        return exceptionClassName;
+    }
+
     public String toString() {
         return String.format("%s: %s", exceptionClassName, getMessage());
     }
