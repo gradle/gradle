@@ -24,6 +24,7 @@ import org.gradle.api.tasks.testing.TestDescriptor;
 import org.gradle.api.tasks.testing.logging.TestLogEvent;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.logging.StyledTextOutputFactory;
+import org.gradle.util.TextUtil;
 
 import java.util.List;
 
@@ -67,7 +68,7 @@ public abstract class AbstractTestLogger {
         output.append(path);
         output.withStyle(getStyle(event)).println(event.toString());
         if (details != null) {
-            output.println(details);
+            output.println(TextUtil.toPlatformLineSeparators(details));
         }
     }
 

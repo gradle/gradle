@@ -29,6 +29,7 @@ import org.gradle.util.TextUtil;
  */
 public class TestEventLogger extends AbstractTestLogger implements TestListener, TestOutputListener {
     private static final String INDENT = "    ";
+
     private final TestExceptionFormatter exceptionFormatter;
     private final TestLogging testLogging;
 

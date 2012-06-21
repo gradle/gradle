@@ -18,12 +18,15 @@ package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.util.TextUtil
+import org.gradle.integtests.fixtures.ExecutionResult
 import org.junit.Rule
 
 // can make assumptions about order in which test methods of TestNGTest get executed
 // because the methods are chained with 'methodDependsOn'
 class TestNGLoggingIntegrationTest extends AbstractIntegrationSpec {
     @Rule TestResources resources
+    ExecutionResult result
 
     def setup() {
         executer.withStackTraceChecksDisabled().withTasks("test")
@@ -31,42 +34,42 @@ class TestNGLoggingIntegrationTest extends AbstractIntegrationSpec {
 
     def "defaultLifecycleLogging"() {
         when:
-        def result = executer.runWithFailure()
+        result = executer.runWithFailure()
 
         then:
-        result.output.contains("""
+        outputContains("""
 Gradle test > org.gradle.TestNGTest.badTest FAILED
     java.lang.RuntimeException at TestNGTest.groovy:34
-        """.trim())
+        """)
     }
 
     def "defaultInfoLogging"() {
         when:
-        def result = executer.withArguments("-i").runWithFailure()
+        result = executer.withArguments("-i").runWithFailure()
 
         then:
-        result.output.contains("""
+        outputContains("""
 Gradle test > org.gradle.TestNGTest.badTest FAILED
     java.lang.RuntimeException: bad
-        """.trim())
+        """)
 
         // indicates that full stack trace is printed
-        result.output.contains("at java.lang.reflect.Constructor.newInstance(")
+        outputContains("at java.lang.reflect.Constructor.newInstance(")
 
-        result.output.contains("""
+        outputContains("""
         at org.gradle.TestNGTest.beBad(TestNGTest.groovy:34)
         at org.gradle.TestNGTest.badTest(TestNGTest.groovy:27)
 
 Gradle test > org.gradle.TestNGTest.ignoredTest SKIPPED
-        """.trim())
+        """)
     }
 
     def customQuietLogging() {
         when:
-        def result = executer.withArguments("-q").runWithFailure()
+        result = executer.withArguments("-q").runWithFailure()
 
         then:
-        result.output.contains("""
+        outputContains("""
 org.gradle.TestNGTest.badTest FAILED
     java.lang.RuntimeException: bad
         at org.gradle.TestNGTest.beBad(TestNGTest.groovy:34)
@@ -74,6 +77,10 @@ org.gradle.TestNGTest.badTest FAILED
 
 org.gradle.TestNGTest.ignoredTest SKIPPED
 Gradle test FAILED
-        """.trim())
+        """)
+    }
+
+    private void outputContains(String text) {
+        assert result.output.contains(TextUtil.toPlatformLineSeparators(text.trim()))
     }
 }

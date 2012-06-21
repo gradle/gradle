@@ -18,11 +18,14 @@ package org.gradle.testing.junit
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.ExecutionResult
+import org.gradle.util.TextUtil
 import org.junit.Rule
 
 // cannot make assumptions about order in which test methods of JUnit4Test get executed
 class JUnitLoggingIntegrationTest extends AbstractIntegrationSpec {
     @Rule TestResources resources
+    ExecutionResult result
 
     def setup() {
         executer.withStackTraceChecksDisabled().withTasks("test")
@@ -30,50 +33,54 @@ class JUnitLoggingIntegrationTest extends AbstractIntegrationSpec {
 
     def "defaultLifecycleLogging"() {
         when:
-        def result = executer.runWithFailure()
+        result = executer.runWithFailure()
 
         then:
-        result.output.contains("""
+        outputContains("""
 org.gradle.JUnit4Test > badTest FAILED
     java.lang.RuntimeException at JUnit4Test.groovy:38
-        """.trim())
+        """)
     }
 
     def "defaultInfoLogging"() {
         when:
-        def result = executer.withArguments("-i").runWithFailure()
+        result = executer.withArguments("-i").runWithFailure()
 
         then:
-        result.output.contains("""
+        outputContains("""
 org.gradle.JUnit4Test > badTest FAILED
     java.lang.RuntimeException: bad
-       """.trim())
+       """)
 
         // indicates that full stack trace is printed
-        result.output.contains("at java.lang.reflect.Constructor.newInstance(")
+        outputContains("at java.lang.reflect.Constructor.newInstance(")
 
-        result.output.contains("""
+        outputContains("""
         at org.gradle.JUnit4Test.beBad(JUnit4Test.groovy:38)
         at org.gradle.JUnit4Test.badTest(JUnit4Test.groovy:28)
-        """.trim())
+        """)
 
-        result.output.contains("org.gradle.JUnit4Test > ignoredTest SKIPPED")
+        outputContains("org.gradle.JUnit4Test > ignoredTest SKIPPED")
     }
 
     def customQuietLogging() {
         when:
-        def result = executer.withArguments("-q").runWithFailure()
+        result = executer.withArguments("-q").runWithFailure()
 
         then:
-        result.output.contains("""
+        outputContains("""
 badTest FAILED
     java.lang.RuntimeException: bad
         at org.gradle.JUnit4Test.beBad(JUnit4Test.groovy:38)
         at org.gradle.JUnit4Test.badTest(JUnit4Test.groovy:28)
-        """.trim())
+        """)
 
-        result.output.contains("ignoredTest SKIPPED")
+        outputContains("ignoredTest SKIPPED")
 
-        result.output.contains("org.gradle.JUnit4Test FAILED")
+        outputContains("org.gradle.JUnit4Test FAILED")
+    }
+
+    private void outputContains(String text) {
+        assert result.output.contains(TextUtil.toPlatformLineSeparators(text.trim()))
     }
 }
