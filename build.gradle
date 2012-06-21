@@ -44,8 +44,8 @@ ext {
         commons_io: 'commons-io:commons-io:1.4'
     ]
     libraries = [
-        ant: dependencies.module('org.apache.ant:ant:1.8.2') {
-            dependency 'org.apache.ant:ant-launcher:1.8.2@jar'
+        ant: dependencies.module('org.apache.ant:ant:1.8.4') {
+            dependency 'org.apache.ant:ant-launcher:1.8.4@jar'
         },
         asm: 'asm:asm-all:3.3.1@jar',
         commons_cli: 'commons-cli:commons-cli:1.2@jar',
@@ -100,8 +100,8 @@ libraries.maven_ant_tasks = dependencies.module("org.apache.maven:maven-ant-task
 }
 
 libraries += [
-        ant_junit: 'org.apache.ant:ant-junit:1.8.2@jar',
-        ant_antlr: 'org.apache.ant:ant-antlr:1.8.2@jar',
+        ant_junit: 'org.apache.ant:ant-junit:1.8.4@jar',
+        ant_antlr: 'org.apache.ant:ant-antlr:1.8.4@jar',
         antlr: 'antlr:antlr:2.7.7@jar',
         dom4j: 'dom4j:dom4j:1.6.1@jar',
         guava: 'com.google.guava:guava:11.0.1@jar',
