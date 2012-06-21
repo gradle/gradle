@@ -84,6 +84,23 @@ class DefaultCacheFactoryTest extends Specification {
         1 * closed.execute(cache)
     }
 
+    public void "creates DelegateOnDemandPersistentDirectoryCache cache instance for LockMode.NONE"() {
+            when:
+            def factory = factoryFactory.create()
+            def cache = factory.open(tmpDir.dir, "<display>", CacheUsage.ON, null, [prop: 'value'], FileLockManager.LockMode.None, null)
+
+            then:
+            cache instanceof DelegateOnDemandPersistentDirectoryCache
+            cache.baseDir == tmpDir.dir
+            cache.toString().startsWith "<display>"
+
+            when:
+            factory.close()
+
+            then:
+            1 * closed.execute(cache)
+        }
+
     public void "creates indexed cache instance"() {
         when:
         def factory = factoryFactory.create()

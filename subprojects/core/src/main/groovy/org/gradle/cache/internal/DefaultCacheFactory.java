@@ -59,10 +59,19 @@ public class DefaultCacheFactory implements Factory<CacheFactory> {
             File canonicalDir = GFileUtils.canonicalise(cacheDir);
             DirCacheReference dirCacheReference = dirCaches.get(canonicalDir);
             if (dirCacheReference == null) {
-                DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(canonicalDir, displayName, usage, validator, properties, lockMode, action, lockManager);
-                cache.open();
-                dirCacheReference = new DirCacheReference(cache, properties, lockMode);
-                dirCaches.put(canonicalDir, dirCacheReference);
+                if (lockMode.equals(LockMode.None)) {
+                    // Create nested cache with LockMode#Exclusive (tb discussed) that is opened and closed on Demand in the DelegateOnDemandPersistentDirectoryCache.
+                    DefaultPersistentDirectoryCache nestedCache = new DefaultPersistentDirectoryCache(canonicalDir, displayName, usage, validator, properties, LockMode.Exclusive, action, lockManager);
+                    DelegateOnDemandPersistentDirectoryCache onDemandDache = new DelegateOnDemandPersistentDirectoryCache(nestedCache, canonicalDir, displayName, lockMode, lockManager);
+                    onDemandDache.open();
+                    dirCacheReference = new DirCacheReference(onDemandDache, properties, lockMode);
+                    dirCaches.put(canonicalDir, dirCacheReference);
+                } else {
+                    DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(canonicalDir, displayName, usage, validator, properties, lockMode, action, lockManager);
+                    cache.open();
+                    dirCacheReference = new DirCacheReference(cache, properties, lockMode);
+                    dirCaches.put(canonicalDir, dirCacheReference);
+                }
             } else {
                 if (usage == CacheUsage.REBUILD && dirCacheReference.rebuiltBy != this) {
                     throw new IllegalStateException(String.format("Cannot rebuild cache '%s' as it is already open.", cacheDir));

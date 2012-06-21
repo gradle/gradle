@@ -23,8 +23,9 @@ import org.gradle.api.internal.plugins.EmbeddableJavaProject;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
-import org.gradle.cache.PersistentStateCache;
-import org.gradle.cache.internal.FileIntegrityViolationSuppressingPersistentStateCacheDecorator;
+import org.gradle.cache.PersistentCache;
+import org.gradle.cache.internal.FileLockManager;
+import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.util.WrapUtil;
@@ -32,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Collection;
@@ -70,36 +72,26 @@ public class BuildSourceBuilder {
             return new DefaultClassPath();
         }
         LOGGER.info("================================================" + " Start building buildSrc");
-        StartParameter startParameterArg = startParameter.newInstance();
-        startParameterArg.setProjectProperties(startParameter.getProjectProperties());
-        startParameterArg.setSearchUpwards(false);
-        startParameterArg.setProfile(startParameter.isProfile());
 
         // If we were not the most recent version of Gradle to build the buildSrc dir, then do a clean build
         // Otherwise, just to a regular build
-        PersistentStateCache<Boolean> stateCache =
-                new FileIntegrityViolationSuppressingPersistentStateCacheDecorator<Boolean>(
-                        cacheRepository.
-                                stateCache(Boolean.class, "buildSrc").
-                                forObject(startParameter.getCurrentDir()).
-                                withVersionStrategy(CacheBuilder.VersionStrategy.SharedCacheInvalidateOnVersionChange).
-                                open()
-                );
-        boolean rebuild = stateCache.get() == null;
+        final PersistentCache buildSrcCache = cacheRepository.
+                cache("buildSrc").
+                withLockMode(FileLockManager.LockMode.None).
+                forObject(startParameter.getCurrentDir()).
+                withVersionStrategy(CacheBuilder.VersionStrategy.SharedCacheInvalidateOnVersionChange).
+                open();
 
-        GradleLauncher gradleLauncher = gradleLauncherFactory.newInstance(startParameterArg);
-        BuildSrcBuildListener listener = new BuildSrcBuildListener(rebuild);
-        gradleLauncher.addListener(listener);
-        gradleLauncher.run().rethrowFailure();
+        GradleLauncher gradleLauncher = buildGradleLauncher(startParameter);
+        return buildSrcCache.useCache("rebuild buildSrc", new BuildSrcUpdateFactory(buildSrcCache, gradleLauncher));
+    }
 
-        stateCache.set(true);
-
-        Set<File> buildSourceClasspath = new LinkedHashSet<File>();
-        buildSourceClasspath.addAll(listener.getRuntimeClasspath());
-        LOGGER.debug("Gradle source classpath is: {}", buildSourceClasspath);
-        LOGGER.info("================================================" + " Finished building buildSrc");
-
-        return new DefaultClassPath(buildSourceClasspath);
+    private GradleLauncher buildGradleLauncher(StartParameter startParameter) {
+        final StartParameter startParameterArg = startParameter.newInstance();
+        startParameterArg.setProjectProperties(startParameter.getProjectProperties());
+        startParameterArg.setSearchUpwards(false);
+        startParameterArg.setProfile(startParameter.isProfile());
+        return gradleLauncherFactory.newInstance(startParameterArg);
     }
 
     static URL getDefaultScript() {
@@ -129,6 +121,36 @@ public class BuildSourceBuilder {
 
         public Collection<File> getRuntimeClasspath() {
             return classpath;
+        }
+    }
+
+    private static class BuildSrcUpdateFactory implements Factory<DefaultClassPath> {
+        private final PersistentCache cache;
+        private final GradleLauncher gradleLauncher;
+
+        public BuildSrcUpdateFactory(PersistentCache cache, GradleLauncher gradleLauncher) {
+            this.cache = cache;
+            this.gradleLauncher = gradleLauncher;
+        }
+
+        public DefaultClassPath create() {
+            File markerFile = new File(cache.getBaseDir(), "buildSrc.lock");
+            final boolean rebuild = !markerFile.exists();
+
+            BuildSrcBuildListener listener = new BuildSrcBuildListener(rebuild);
+            gradleLauncher.addListener(listener);
+            gradleLauncher.run().rethrowFailure();
+
+            Set<File> buildSourceClasspath = new LinkedHashSet<File>();
+            buildSourceClasspath.addAll(listener.getRuntimeClasspath());
+            LOGGER.debug("Gradle source classpath is: {}", buildSourceClasspath);
+            LOGGER.info("================================================" + " Finished building buildSrc");
+            try {
+                markerFile.createNewFile();
+            } catch (IOException e) {
+                LOGGER.warn("Unable to create buildSrc cache marker file: {}", e.getMessage());
+            }
+            return new DefaultClassPath(buildSourceClasspath);
         }
     }
 }
