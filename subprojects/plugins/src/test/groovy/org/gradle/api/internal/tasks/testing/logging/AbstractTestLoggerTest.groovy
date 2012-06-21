@@ -138,6 +138,17 @@ class AbstractTestLoggerTest extends Specification {
         textOutputFactory.toString() == "{TestEventLogger}{INFO}testMethod {failure}FAILED{normal}${sep}"
     }
 
+    def "logging of atomic test whose test class isn't reflected in parent includes test class name"() {
+        createLogger(LogLevel.INFO)
+        methodDescriptor.parent = innerSuiteDescriptor
+
+        when:
+        logger.logEvent(methodDescriptor, TestLogEvent.STARTED)
+
+        then:
+        textOutputFactory.toString() == "{TestEventLogger}{INFO}com.OuterSuiteClass > com.InnerSuiteClass > foo.bar.TestClass.testMethod STARTED${sep}"
+    }
+
     void createLogger(LogLevel level, int displayGranularity = 2) {
         logger = new AbstractTestLogger(textOutputFactory, level, displayGranularity) {}
     }
