@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.testing.logging
 import spock.lang.Specification
 import org.gradle.api.tasks.testing.logging.TestLogging
 import org.gradle.api.tasks.testing.logging.TestStackTraceFilter
+import org.gradle.messaging.remote.internal.PlaceholderException
 
 class FullExceptionFormatterTest extends Specification {
     def testDescriptor = new SimpleTestDescriptor()
@@ -185,6 +186,28 @@ class FullExceptionFormatterTest extends Specification {
         cause.stackTrace = createGroovyTrace()
 
         def exception = new Exception("ouch", cause)
+        exception.stackTrace = createGroovyTrace()[1..-1]
+
+        expect:
+        formatter.format(testDescriptor, [exception]) == """\
+    java.lang.Exception: ouch
+        at ClassName.testName(MyTest.java:22)
+
+        Caused by:
+        java.lang.RuntimeException: oops
+            at ClassName.testName(MyTest.java:22)
+"""
+    }
+
+    def "formats PlaceholderException's correctly"() {
+        testLogging.getShowCauses() >> true
+        testLogging.getShowStackTraces() >> true
+        testLogging.getStackTraceFilters() >> EnumSet.of(TestStackTraceFilter.ENTRY_POINT)
+
+        def cause = new PlaceholderException(RuntimeException.name, "oops", null)
+        cause.stackTrace = createGroovyTrace()
+
+        def exception = new PlaceholderException(Exception.name, "ouch", cause)
         exception.stackTrace = createGroovyTrace()[1..-1]
 
         expect:

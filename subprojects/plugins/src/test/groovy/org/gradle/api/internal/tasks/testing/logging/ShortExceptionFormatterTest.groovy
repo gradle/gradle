@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.testing.logging
 
 import spock.lang.Specification
 import org.gradle.api.tasks.testing.logging.TestLogging
+import org.gradle.messaging.remote.internal.PlaceholderException
 
 class ShortExceptionFormatterTest extends Specification {
     def testDescriptor = new SimpleTestDescriptor()
@@ -26,26 +27,26 @@ class ShortExceptionFormatterTest extends Specification {
 
     def "shows all exceptions that have occurred for a test"() {
         expect:
-        formatter.format(testDescriptor, [new IOException(), new AssertionError()]) == """\
+        formatter.format(testDescriptor, [new IOException("oops"), new AssertionError("ouch")]) == """\
     java.io.IOException
     java.lang.AssertionError
 """
     }
 
     def "shows test entry point if it can be determined"() {
-        def exception = new Exception()
+        def exception = new Exception("oops")
         testDescriptor.className = getClass().name
 
         expect:
         formatter.format(testDescriptor, [exception]) == """\
-    java.lang.Exception at ShortExceptionFormatterTest.groovy:36
+    java.lang.Exception at ShortExceptionFormatterTest.groovy:37
 """
     }
 
     def "optionally shows causes"() {
-        def causeCause = new RuntimeException()
-        def cause = new IllegalArgumentException(causeCause)
-        def exception = new Exception(cause)
+        def causeCause = new RuntimeException("oops")
+        def cause = new IllegalArgumentException("ouch", causeCause)
+        def exception = new Exception("argh", cause)
 
         testLogging.showCauses >> true
 
@@ -54,6 +55,16 @@ class ShortExceptionFormatterTest extends Specification {
     java.lang.Exception
         Caused by: java.lang.IllegalArgumentException
             Caused by: java.lang.RuntimeException
+"""
+    }
+
+    def "formats PlaceholderException's correctly"() {
+        def exception = new PlaceholderException(Exception.class.name, "oops", null)
+        testDescriptor.className = getClass().name
+
+        expect:
+        formatter.format(testDescriptor, [exception]) == """\
+    java.lang.Exception at ShortExceptionFormatterTest.groovy:37
 """
     }
 }
