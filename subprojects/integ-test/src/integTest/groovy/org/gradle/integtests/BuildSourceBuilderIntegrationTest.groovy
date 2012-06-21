@@ -76,8 +76,8 @@ class BuildSourceBuilderIntegrationTest extends AbstractIntegrationSpec {
         def finish2 = handleRun2.waitForFinish()
         def finish1 = handleRun1.waitForFinish()
         then:
-        finish1.error.empty
-        finish2.error.empty
+        finish1.error.isEmpty()
+        finish2.error.isEmpty()
         finish1.output.contains(EXPECTED_OUTPUT_RUN1)
         finish2.output.contains(EXPECTED_OUTPUT_RUN2)
     }
