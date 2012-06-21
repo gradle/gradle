@@ -24,8 +24,6 @@ public interface GradleHandle {
     ExecutionResult waitForFinish();
     ExecutionFailure waitForFailure();
 
-    void waitForStarted();
-
     boolean isRunning();
 
     // ExecutionResult waitForFinish(double secondsToWait);
