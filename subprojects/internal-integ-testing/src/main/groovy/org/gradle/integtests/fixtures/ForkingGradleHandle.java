@@ -26,6 +26,9 @@ import org.gradle.process.internal.ExecHandleState;
 
 import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 class ForkingGradleHandle extends OutputScrapingGradleHandle {
     final private Factory<? extends AbstractExecHandleBuilder> execHandleFactory;
@@ -36,9 +39,15 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
     private ExecHandle execHandle;
     private final String outputEncoding;
 
+    private final Lock lock;
+    private final Condition condition;
+
     public ForkingGradleHandle(String outputEncoding, Factory<? extends AbstractExecHandleBuilder> execHandleFactory) {
         this.execHandleFactory = execHandleFactory;
         this.outputEncoding = outputEncoding;
+
+        this.lock = new ReentrantLock();
+        this.condition = lock.newCondition();
     }
 
     public String getStandardOutput() {
@@ -94,7 +103,22 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
     }
 
     public ExecutionFailure waitForFailure() {
-        return (ExecutionFailure)waitForStop(true);
+        return (ExecutionFailure) waitForStop(true);
+    }
+
+    public void waitForStarted() {
+        lock.lock();
+        try {
+            while (!isRunning()) {
+                try {
+                    condition.await();
+                } catch (InterruptedException e) {
+                    //ok, wrapping up...
+                }
+            }
+        } finally {
+            lock.unlock();
+        }
     }
 
     protected ExecutionResult waitForStop(boolean expectFailure) {

@@ -61,7 +61,7 @@ class BuildSourceBuilderIntegrationTest extends AbstractIntegrationSpec {
         buildFile.text = """
         task blocking << {
             while(!file("block.lock").exists()){
-                sleep 100
+                sleep 10
             }
         }
 
@@ -71,6 +71,8 @@ class BuildSourceBuilderIntegrationTest extends AbstractIntegrationSpec {
         """
         when:
         def handleRun1 = executer.withTasks("blocking").start()
+        handleRun1.waitForStarted()
+
         def handleRun2 = executer.withTasks("releasing").start()
         and:
         def finish2 = handleRun2.waitForFinish()
