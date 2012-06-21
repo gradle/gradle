@@ -24,7 +24,7 @@ import org.gradle.util.TextUtil
 
 import spock.lang.Specification
 
-class AbstractTestEventLoggerTest extends Specification {
+class AbstractTestLoggerTest extends Specification {
     static String sep = TextUtil.platformLineSeparator
 
     StyledTextOutputFactory textOutputFactory = new TestStyledTextOutputFactory()
