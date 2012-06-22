@@ -637,6 +637,7 @@ class ExtractDslMetaDataTaskTest extends Specification {
 
     def extractsClassAnnotationsFromJavaSource() {
         task.source testFile('org/gradle/test/JavaClassWithAnnotation.java')
+        task.source testFile('org/gradle/test/JavaInterfaceWithAnnotation.java')
         task.source testFile('org/gradle/test/JavaAnnotation.java')
 
         when:
@@ -646,6 +647,9 @@ class ExtractDslMetaDataTaskTest extends Specification {
         then:
         def javaClass = repository.get('org.gradle.test.JavaClassWithAnnotation')
         javaClass.annotationTypeNames == ['java.lang.Deprecated', 'org.gradle.test.JavaAnnotation']
+
+        def javaInterface = repository.get('org.gradle.test.JavaInterfaceWithAnnotation')
+        javaInterface.annotationTypeNames == ['java.lang.Deprecated', 'org.gradle.test.JavaAnnotation']
     }
 
     def extractsMethodAnnotationsFromGroovySource() {
@@ -662,6 +666,20 @@ class ExtractDslMetaDataTaskTest extends Specification {
         method.annotationTypeNames == ['java.lang.Deprecated', 'org.gradle.test.JavaAnnotation']
     }
 
+    def extractsMethodAnnotationsFromJavaSource() {
+        task.source testFile('org/gradle/test/JavaClassWithAnnotation.java')
+        task.source testFile('org/gradle/test/JavaAnnotation.java')
+
+        when:
+        task.extract()
+        repository.load(task.destFile)
+
+        then:
+        def javaClass = repository.get('org.gradle.test.JavaClassWithAnnotation')
+        def method = javaClass.declaredMethods.find { it.name == 'annotatedMethod' }
+        method.annotationTypeNames == ['java.lang.Deprecated', 'org.gradle.test.JavaAnnotation']
+    }
+
     def extractsPropertyAnnotationsFromGroovySource() {
         task.source testFile('org/gradle/test/GroovyClassWithAnnotation.groovy')
         task.source testFile('org/gradle/test/JavaAnnotation.java')
@@ -673,6 +691,20 @@ class ExtractDslMetaDataTaskTest extends Specification {
         then:
         def groovyClass = repository.get('org.gradle.test.GroovyClassWithAnnotation')
         def property = groovyClass.declaredProperties.find { it.name == 'annotatedProperty' }
+        property.annotationTypeNames == ['java.lang.Deprecated', 'org.gradle.test.JavaAnnotation']
+    }
+
+    def extractsPropertyAnnotationsFromJavaSource() {
+        task.source testFile('org/gradle/test/JavaClassWithAnnotation.java')
+        task.source testFile('org/gradle/test/JavaAnnotation.java')
+
+        when:
+        task.extract()
+        repository.load(task.destFile)
+
+        then:
+        def javaClass = repository.get('org.gradle.test.JavaClassWithAnnotation')
+        def property = javaClass.declaredProperties.find { it.name == 'annotatedProperty' }
         property.annotationTypeNames == ['java.lang.Deprecated', 'org.gradle.test.JavaAnnotation']
     }
 

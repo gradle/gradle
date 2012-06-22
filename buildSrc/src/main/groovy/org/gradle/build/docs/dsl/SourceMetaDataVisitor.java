@@ -183,7 +183,10 @@ public class SourceMetaDataVisitor extends VisitorAdapter {
         if (matcher.matches()) {
             int startName = matcher.start(2);
             String propName = name.substring(startName, startName + 1).toLowerCase() + name.substring(startName + 1);
-            getCurrentClass().addReadableProperty(propName, returnType, rawCommentText, method);
+            PropertyMetaData property = getCurrentClass().addReadableProperty(propName, returnType, rawCommentText, method);
+            for (String annotation : method.getAnnotationTypeNames()) {
+                property.addAnnotationTypeName(annotation);
+            }
             return;
         }
 
