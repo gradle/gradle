@@ -57,6 +57,10 @@ class PropertyDoc {
         return metaData
     }
 
+    boolean isDeprecated() {
+        return metaData.deprecated
+    }
+
     Element getDescription() {
         return comment.find { it.nodeName == 'para' }
     }

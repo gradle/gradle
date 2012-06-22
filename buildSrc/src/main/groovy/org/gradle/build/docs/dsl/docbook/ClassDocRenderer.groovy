@@ -64,10 +64,6 @@ class ClassDocRenderer {
             return
         }
 
-        def propertyTableHeader = propertiesTable.thead[0].tr[0]
-        def cells = propertyTableHeader.td.collect { it }
-        cells = cells.subList(1, cells.size())
-
         propertiesTable.children = {
             title("Properties - $classDoc.simpleName")
             thead {
@@ -92,6 +88,11 @@ class ClassDocRenderer {
                             literal(propDoc.name)
                             if (!propDoc.metaData.writeable) {
                                 text(' (read-only)')
+                            }
+                        }
+                        if (propDoc.deprecated) {
+                            caution {
+                                para("Note: This property is deprecated and will be removed in a future version of Gradle.")
                             }
                         }
                         appendChildren propDoc.comment
@@ -172,6 +173,11 @@ class ClassDocRenderer {
                                 text(" $param.name")
                             }
                             text(')')
+                        }
+                        if (method.deprecated) {
+                            caution {
+                                para("Note: This method is deprecated and will be removed in a future version of Gradle.")
+                            }
                         }
                         appendChildren method.comment
                     }

@@ -50,10 +50,14 @@ class MethodDoc {
         return metaData
     }
 
+    boolean isDeprecated() {
+        return metaData.deprecated
+    }
+
     Element getDescription() {
         return comment.find { it.nodeName == 'para' }
     }
-    
+
     List<Element> getComment() {
         return comment
     }

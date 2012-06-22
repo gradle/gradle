@@ -1,4 +1,8 @@
 
+.caution {
+    font-weight: bold;
+}
+
 .sidebar {
     margin-top: 2em;
     margin-left: 1.8em;
