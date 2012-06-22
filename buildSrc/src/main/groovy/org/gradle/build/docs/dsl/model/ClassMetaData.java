@@ -17,6 +17,7 @@ package org.gradle.build.docs.dsl.model;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
+import org.gradle.api.Transformer;
 import org.gradle.build.docs.model.Attachable;
 import org.gradle.build.docs.model.ClassMetaDataRepository;
 import org.gradle.util.GUtil;
@@ -24,13 +25,12 @@ import org.gradle.util.GUtil;
 import java.io.Serializable;
 import java.util.*;
 
-public class ClassMetaData implements Serializable, Attachable<ClassMetaData>, LanguageElement, TypeContainer {
+public class ClassMetaData extends AbstractLanguageElement implements Serializable, Attachable<ClassMetaData>, TypeContainer {
     private final String className;
     private String superClassName;
     private final String packageName;
     private final boolean isInterface;
     private final boolean isGroovy;
-    private final String rawCommentText;
     private final List<String> imports = new ArrayList<String>();
     private final List<String> interfaceNames = new ArrayList<String>();
     private final Map<String, PropertyMetaData> declaredProperties = new HashMap<String, PropertyMetaData>();
@@ -41,11 +41,11 @@ public class ClassMetaData implements Serializable, Attachable<ClassMetaData>, L
     public final HashMap<String, String> constants = new HashMap<String, String>();
 
     public ClassMetaData(String className, String packageName, boolean isInterface, boolean isGroovy, String rawClassComment) {
+        super(rawClassComment);
         this.className = className;
         this.packageName = packageName;
         this.isInterface = isInterface;
         this.isGroovy = isGroovy;
-        this.rawCommentText = rawClassComment;
     }
 
     public ClassMetaData(String className) {
@@ -122,10 +122,6 @@ public class ClassMetaData implements Serializable, Attachable<ClassMetaData>, L
 
     public void setOuterClassName(String outerClassName) {
         this.outerClassName = outerClassName;
-    }
-
-    public String getRawCommentText() {
-        return rawCommentText;
     }
 
     public List<String> getImports() {
@@ -237,6 +233,22 @@ public class ClassMetaData implements Serializable, Attachable<ClassMetaData>, L
         method.setReturnType(returnType);
         method.setRawCommentText(rawCommentText);
         return method;
+    }
+
+    public void resolveTypes(Transformer<String, String> transformer) {
+        super.resolveTypes(transformer);
+        if (superClassName != null) {
+            superClassName = transformer.transform(superClassName);
+        }
+        for (int i = 0; i < interfaceNames.size(); i++) {
+            interfaceNames.set(i, transformer.transform(interfaceNames.get(i)));
+        }
+        for (PropertyMetaData propertyMetaData : declaredProperties.values()) {
+            propertyMetaData.resolveTypes(transformer);
+        }
+        for (MethodMetaData methodMetaData : declaredMethods) {
+            methodMetaData.resolveTypes(transformer);
+        }
     }
 
     public void visitTypes(Action<TypeMetaData> action) {

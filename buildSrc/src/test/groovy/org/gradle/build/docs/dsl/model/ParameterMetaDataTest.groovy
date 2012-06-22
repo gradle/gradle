@@ -18,10 +18,9 @@ package org.gradle.build.docs.dsl.model
 import spock.lang.Specification
 
 class ParameterMetaDataTest extends Specification {
-    final MethodMetaData method = Mock()
-    final ParameterMetaData parameter = new ParameterMetaData('param', method)
-
-    def formatsSignature() {
+    def "formats signature"() {
+        MethodMetaData method = Mock()
+        def parameter = new ParameterMetaData('param', method)
         def type = new TypeMetaData('org.gradle.SomeType')
         parameter.type = type
         

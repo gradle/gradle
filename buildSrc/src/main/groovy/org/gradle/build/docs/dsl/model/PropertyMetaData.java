@@ -19,9 +19,8 @@ import org.gradle.api.Action;
 
 import java.io.Serializable;
 
-public class PropertyMetaData implements Serializable, LanguageElement, TypeContainer {
+public class PropertyMetaData extends AbstractLanguageElement implements Serializable, TypeContainer {
     private TypeMetaData type;
-    private String rawCommentText;
     private final String name;
     private final ClassMetaData ownerClass;
     private MethodMetaData setter;
@@ -57,12 +56,9 @@ public class PropertyMetaData implements Serializable, LanguageElement, TypeCont
         return ownerClass;
     }
 
-    public String getRawCommentText() {
-        return rawCommentText;
-    }
-
-    public void setRawCommentText(String rawCommentText) {
-        this.rawCommentText = rawCommentText;
+    @Override
+    public boolean isDeprecated() {
+        return super.isDeprecated() || ownerClass.isDeprecated();
     }
 
     public String getSignature() {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.build.docs.dsl.model;
 
-import java.util.List;
+package org.gradle.build.docs.dsl.model
 
-public interface LanguageElement {
-    String getRawCommentText();
+import spock.lang.Specification
 
-    List<String> getAnnotationTypeNames();
+class ClassMetaDataTest extends Specification {
+    def "is deprecated when @Deprecated annotation is attached to class"() {
+        def notDeprecated = new ClassMetaData("SomeClass")
+        def deprecated = new ClassMetaData("SomeClass")
+        deprecated.addAnnotationTypeName(Deprecated.class.name)
 
-    boolean isDeprecated();
+        expect:
+        !notDeprecated.deprecated
+        deprecated.deprecated
+    }
 }

@@ -127,4 +127,21 @@ class MethodMetaDataTest extends Specification {
         _ * superClassMetaData.superClass >> null
         _ * superClassMetaData.interfaces >> []
     }
+
+    def "is deprecated when @Deprecated is attached to method or owner is deprecated"() {
+        ClassMetaData deprecatedClass = Mock()
+        def notDeprecated = new MethodMetaData('param', owner)
+        def deprecated = new MethodMetaData('param', owner)
+        def ownerDeprecated = new MethodMetaData('param', deprecatedClass)
+
+        given:
+        deprecated.addAnnotationTypeName(Deprecated.class.name)
+        deprecatedClass.deprecated >> true
+
+        expect:
+        !notDeprecated.deprecated
+        deprecated.deprecated
+        ownerDeprecated.deprecated
+    }
+
 }

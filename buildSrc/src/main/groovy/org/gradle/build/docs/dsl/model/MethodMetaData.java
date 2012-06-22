@@ -22,11 +22,10 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-public class MethodMetaData implements Serializable, LanguageElement, TypeContainer {
+public class MethodMetaData extends AbstractLanguageElement implements Serializable, TypeContainer {
     private final String name;
     private final ClassMetaData ownerClass;
     private final List<ParameterMetaData> parameters = new ArrayList<ParameterMetaData>();
-    private String rawCommentText;
     private TypeMetaData returnType;
 
     public MethodMetaData(String name, ClassMetaData ownerClass) {
@@ -88,13 +87,10 @@ public class MethodMetaData implements Serializable, LanguageElement, TypeContai
         parameters.add(param);
         return param;
     }
-    
-    public String getRawCommentText() {
-        return rawCommentText;
-    }
 
-    public void setRawCommentText(String rawCommentText) {
-        this.rawCommentText = rawCommentText;
+    @Override
+    public boolean isDeprecated() {
+        return super.isDeprecated() || ownerClass.isDeprecated();
     }
 
     public String getSignature() {

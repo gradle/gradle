@@ -98,5 +98,21 @@ class PropertyMetaDataTest extends Specification {
         then:
         p == null
     }
+
+    def "is deprecated when @Deprecated is attached to property or owner is deprecated"() {
+        ClassMetaData deprecatedClass = Mock()
+        def notDeprecated = new PropertyMetaData('param', classMetaData)
+        def deprecated = new PropertyMetaData('param', classMetaData)
+        def ownerDeprecated = new PropertyMetaData('param', deprecatedClass)
+
+        given:
+        deprecated.addAnnotationTypeName(Deprecated.class.name)
+        deprecatedClass.deprecated >> true
+
+        expect:
+        !notDeprecated.deprecated
+        deprecated.deprecated
+        ownerDeprecated.deprecated
+    }
 }
 

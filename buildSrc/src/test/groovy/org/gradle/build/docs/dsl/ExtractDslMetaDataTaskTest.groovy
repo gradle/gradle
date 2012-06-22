@@ -49,12 +49,14 @@ class ExtractDslMetaDataTaskTest extends Specification {
         groovyClass.rawCommentText.contains('This is a groovy class.')
         groovyClass.superClassName == 'org.gradle.test.A'
         groovyClass.interfaceNames == ['org.gradle.test.GroovyInterface', 'org.gradle.test.JavaInterface']
+        groovyClass.annotationTypeNames == []
 
         def groovyInterface = repository.get('org.gradle.test.GroovyInterface')
         groovyInterface.groovy
         groovyInterface.isInterface()
         groovyInterface.superClassName == null
         groovyInterface.interfaceNames == ['org.gradle.test.Interface1', 'org.gradle.test.Interface2']
+        groovyInterface.annotationTypeNames == []
     }
 
     def extractsClassMetaDataFromJavaSource() {
@@ -76,13 +78,14 @@ class ExtractDslMetaDataTaskTest extends Specification {
         javaClass.rawCommentText.contains('This is a java class.')
         javaClass.superClassName == 'org.gradle.test.A'
         javaClass.interfaceNames == ['org.gradle.test.GroovyInterface', 'org.gradle.test.JavaInterface']
-
+        javaClass.annotationTypeNames == []
 
         def javaInterface = repository.get('org.gradle.test.JavaInterface')
         !javaInterface.groovy
         javaInterface.isInterface()
         javaInterface.superClassName == null
         javaInterface.interfaceNames == ['org.gradle.test.Interface1', 'org.gradle.test.Interface2']
+        javaInterface.annotationTypeNames == []
     }
 
     def extractsPropertyMetaDataFromGroovySource() {
@@ -619,9 +622,63 @@ class ExtractDslMetaDataTaskTest extends Specification {
         paramMethod.parameters[0].type.signature == 'T'
     }
 
+    def extractsClassAnnotationsFromGroovySource() {
+        task.source testFile('org/gradle/test/GroovyClassWithAnnotation.groovy')
+        task.source testFile('org/gradle/test/JavaAnnotation.java')
+
+        when:
+        task.extract()
+        repository.load(task.destFile)
+
+        then:
+        def groovyClass = repository.get('org.gradle.test.GroovyClassWithAnnotation')
+        groovyClass.annotationTypeNames == ['java.lang.Deprecated', 'org.gradle.test.JavaAnnotation']
+    }
+
+    def extractsClassAnnotationsFromJavaSource() {
+        task.source testFile('org/gradle/test/JavaClassWithAnnotation.java')
+        task.source testFile('org/gradle/test/JavaAnnotation.java')
+
+        when:
+        task.extract()
+        repository.load(task.destFile)
+
+        then:
+        def javaClass = repository.get('org.gradle.test.JavaClassWithAnnotation')
+        javaClass.annotationTypeNames == ['java.lang.Deprecated', 'org.gradle.test.JavaAnnotation']
+    }
+
+    def extractsMethodAnnotationsFromGroovySource() {
+        task.source testFile('org/gradle/test/GroovyClassWithAnnotation.groovy')
+        task.source testFile('org/gradle/test/JavaAnnotation.java')
+
+        when:
+        task.extract()
+        repository.load(task.destFile)
+
+        then:
+        def groovyClass = repository.get('org.gradle.test.GroovyClassWithAnnotation')
+        def method = groovyClass.declaredMethods.find { it.name == 'annotatedMethod' }
+        method.annotationTypeNames == ['java.lang.Deprecated', 'org.gradle.test.JavaAnnotation']
+    }
+
+    def extractsPropertyAnnotationsFromGroovySource() {
+        task.source testFile('org/gradle/test/GroovyClassWithAnnotation.groovy')
+        task.source testFile('org/gradle/test/JavaAnnotation.java')
+
+        when:
+        task.extract()
+        repository.load(task.destFile)
+
+        then:
+        def groovyClass = repository.get('org.gradle.test.GroovyClassWithAnnotation')
+        def property = groovyClass.declaredProperties.find { it.name == 'annotatedProperty' }
+        property.annotationTypeNames == ['java.lang.Deprecated', 'org.gradle.test.JavaAnnotation']
+    }
+
     def testFile(String fileName) {
         URL resource = getClass().classLoader.getResource(fileName)
-        assert resource != null
+        assert resource != null: "Could not find resource '$fileName'."
         assert resource.protocol == 'file'
         return new File(resource.toURI())
     }

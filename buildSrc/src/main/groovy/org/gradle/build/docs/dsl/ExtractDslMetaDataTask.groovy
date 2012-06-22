@@ -37,6 +37,7 @@ import org.gradle.build.docs.model.ClassMetaDataRepository
 import org.gradle.build.docs.model.SimpleClassMetaDataRepository
 import org.gradle.util.Clock
 import org.gradle.build.docs.DocGenerationException
+import org.gradle.api.Transformer
 
 /**
  * Extracts meta-data from the Groovy and Java source files which make up the Gradle DSL. Persists the meta-data to a file
@@ -126,12 +127,11 @@ class ExtractDslMetaDataTask extends SourceTask {
 
     def fullyQualifyAllTypeNames(ClassMetaData classMetaData, TypeNameResolver resolver) {
         try {
-            if (classMetaData.superClassName) {
-                classMetaData.superClassName = resolver.resolve(classMetaData.superClassName, classMetaData)
-            }
-            for (int i = 0; i < classMetaData.interfaceNames.size(); i++) {
-                classMetaData.interfaceNames[i] = resolver.resolve(classMetaData.interfaceNames[i], classMetaData)
-            }
+            classMetaData.resolveTypes(new Transformer<String, String>(){
+                String transform(String i) {
+                    return resolver.resolve(i, classMetaData)
+                }
+            })
             classMetaData.visitTypes(new Action<TypeMetaData>() {
                 void execute(TypeMetaData t) {
                     resolver.resolve(t, classMetaData)
