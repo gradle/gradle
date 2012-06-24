@@ -33,6 +33,9 @@ import static java.util.Collections.emptyList;
  * @author Hans Dockter
  */
 public class GUtil {
+    private static final Pattern WORD_SEPARATOR = Pattern.compile("\\W+");
+    private static final Pattern UPPER_LOWER = Pattern.compile("(\\p{Upper}*)(\\p{Lower}*)");
+
     public static <T extends Collection> T flatten(Object[] elements, T addTo, boolean flattenMaps) {
         return flatten(asList(elements), addTo, flattenMaps);
     }
@@ -103,7 +106,7 @@ public class GUtil {
     }
 
     public static String join(Collection self, String separator) {
-        StringBuffer buffer = new StringBuffer();
+        StringBuilder buffer = new StringBuilder();
         boolean first = true;
 
         if (separator == null) {
@@ -261,7 +264,7 @@ public class GUtil {
             return null;
         }
         StringBuilder builder = new StringBuilder();
-        Matcher matcher = Pattern.compile("[^\\w]+").matcher(string);
+        Matcher matcher = WORD_SEPARATOR.matcher(string);
         int pos = 0;
         while (matcher.find()) {
             builder.append(StringUtils.capitalize(string.subSequence(pos, matcher.start()).toString()));
@@ -305,7 +308,7 @@ public class GUtil {
         }
         StringBuilder builder = new StringBuilder();
         int pos = 0;
-        Matcher matcher = Pattern.compile("(\\p{Upper}*)(\\p{Lower}*)").matcher(string);
+        Matcher matcher = UPPER_LOWER.matcher(string);
         while (pos < string.length()) {
             matcher.find(pos);
             if (matcher.end() == pos) {
