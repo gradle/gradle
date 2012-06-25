@@ -22,8 +22,9 @@ import org.gradle.api.JavaVersion;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.nativeplatform.jna.LibC;
 import org.gradle.internal.os.OperatingSystem;
+import org.jruby.ext.posix.BaseNativePOSIX;
 import org.jruby.ext.posix.FileStat;
-import org.jruby.ext.posix.MacOSHeapFileStat;
+import org.jruby.ext.posix.Linux64FileStat;
 import org.jruby.ext.posix.POSIX;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,9 +54,10 @@ public class FilePermissionHandlerFactory {
     }
 
     private static ComposableFilePermissionHandler.Stat createStat() {
-        if (OperatingSystem.current().isMacOsX()) {
+        final OperatingSystem operatingSystem = OperatingSystem.current();
+        if (operatingSystem.isLinux() || operatingSystem.isMacOsX()) {
             LibC libc = loadLibC();
-            return new MacOSLibCStat(libc);
+            return new LibCStat(libc, operatingSystem, (BaseNativePOSIX) PosixUtil.current());
         } else {
             return new PosixStat(PosixUtil.current());
         }
@@ -94,17 +96,30 @@ public class FilePermissionHandlerFactory {
         }
     }
 
-    private static class MacOSLibCStat implements ComposableFilePermissionHandler.Stat {
+    static class LibCStat implements ComposableFilePermissionHandler.Stat {
         private LibC libc;
+        private OperatingSystem operatingSystem;
+        private BaseNativePOSIX nativePOSIX;
 
-        public MacOSLibCStat(LibC libc) {
+        public LibCStat(LibC libc, OperatingSystem operatingSystem, BaseNativePOSIX nativePOSIX) {
             this.libc = libc;
+            this.operatingSystem = operatingSystem;
+            this.nativePOSIX = nativePOSIX;
         }
 
         public FileStat stat(File f) throws IOException {
-            FileStat stat = new MacOSHeapFileStat(null);
-            libc.stat(getEncodedFilePath(f), stat);
+            FileStat stat = nativePOSIX.allocateStat();
+            initPlatformSpecificStat(stat, getEncodedFilePath(f));
             return stat;
+        }
+
+        private void initPlatformSpecificStat(FileStat stat, byte[] encodedFilePath) {
+            if (operatingSystem.isMacOsX()) {
+                libc.stat(encodedFilePath, stat);
+            } else {
+                final int statVersion = stat instanceof Linux64FileStat ? 3 : 0;
+                libc.__xstat64(statVersion, encodedFilePath, stat);
+            }
         }
     }
 

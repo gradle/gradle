@@ -28,6 +28,7 @@ public interface LibC extends Library {
     public int getpid();
     public int isatty(int fdes);
     public int stat(byte[] filePath, FileStat fileStat) throws LastErrorException;
+    public int __xstat64(int version, byte[] filePath, FileStat fileStat) throws LastErrorException;
     public int chmod(byte[] filePath, int mode) throws LastErrorException;
     //CHECKSTYLE:ON
 }
