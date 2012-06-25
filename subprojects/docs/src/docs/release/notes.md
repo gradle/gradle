@@ -3,6 +3,72 @@
 
 Here are the new features introduced in Gradle 1.1-rc-1
 
+### Test Logging
+
+In previous versions, Gradle didn't show much information about what happened during test execution.
+In Gradle 1.1-rc-1, the default output is more useful, and can be tuned to your preferences in many ways.
+All features are supported both for JUnit and TestNG.
+
+#### Show Exceptions
+
+One of the most useful options is to show the exceptions thrown by failed tests. By default, Gradle will
+log a succinct message for every test exception. To get more detailed output, configure the `exceptionFormat`:
+
+<pre>
+test {
+    testLogging {
+        exceptionFormat "full"
+    }
+}
+</pre>
+
+#### Stack Trace Filters
+
+Stack traces of test exceptions are automatically truncated not to show anything below the entry point into
+the test code. This filters out Gradle internals and internals of the test framework. A number of other
+filters are available. For example, when dealing with Groovy code it makes sense to add the `groovy` filter:
+
+<pre>
+test {
+    testLogging {
+        stackTraceFilters "truncate", "groovy"
+    }
+}
+</pre>
+
+#### Show Other Test Events
+
+Besides a test having failed, a number of other test events can be logged:
+
+<pre>
+test {
+    testLogging {
+        events "started", "passed", "skipped", "failed", "standardOut", "standardError"
+        minGranularity 0
+    }
+}
+
+By setting `minGranularity`, these events aren't only shown for individual tests, but also for test classes and suites.
+
+#### Individual Logging Per Log Level
+
+Test logging can be configured separately per log level:
+
+<pre>
+test {
+    testLogging {
+        quiet {
+            events "failed"
+        }
+    }
+}
+</pre>
+
+On log levels `LIFECYCLE`, `INFO`, and `DEBUG`, some test events (most importantly failed tests) are already shown by default.
+For detailed documentation about all test logging related options, see
+[TestLogging](http://gradle.org/docs/nightly/javadoc/org/gradle/api/tasks/testing/logging/TestLogging.html)
+and [TestLoggingContainer](http://gradle.org/docs/nightly/javadoc/org/gradle/api/tasks/testing/logging/TestLoggingContainer.html).
+
 ### Some feature
 
 A paragraph about the feature.
