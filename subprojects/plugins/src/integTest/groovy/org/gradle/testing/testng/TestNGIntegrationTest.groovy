@@ -17,6 +17,7 @@ package org.gradle.testing.testng
 
 import org.junit.Rule
 import org.junit.Test
+import org.junit.Before
 import spock.lang.Issue
 import org.gradle.integtests.fixtures.*
 import static org.gradle.util.Matchers.containsLine
@@ -30,6 +31,11 @@ class TestNGIntegrationTest {
     @Rule public GradleDistribution dist = new GradleDistribution()
     @Rule public GradleDistributionExecuter executer = new GradleDistributionExecuter()
     @Rule public TestResources resources = new TestResources()
+
+    @Before
+    public void before() {
+        executer.allowExtraLogging = false
+    }
 
     @Test
     void executesTestsInCorrectEnvironment() {

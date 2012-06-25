@@ -21,11 +21,17 @@ import org.junit.Rule
 import org.junit.Test
 import org.gradle.integtests.fixtures.*
 import static org.hamcrest.Matchers.startsWith
+import org.junit.Before
 
 class IncrementalTestIntegrationTest {
     @Rule public final GradleDistribution distribution = new GradleDistribution()
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
     @Rule public final TestResources resources = new TestResources()
+
+    @Before
+    public void before() {
+        executer.allowExtraLogging = false
+    }
 
     @Test
     public void doesNotRunStaleTests() {

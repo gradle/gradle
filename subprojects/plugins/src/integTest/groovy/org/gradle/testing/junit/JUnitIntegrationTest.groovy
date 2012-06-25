@@ -22,9 +22,15 @@ import org.gradle.integtests.fixtures.*
 import static org.gradle.util.Matchers.containsLine
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
+import org.junit.Before
 
 public class JUnitIntegrationTest extends AbstractIntegrationTest {
     @Rule public final TestResources resources = new TestResources()
+
+    @Before
+    public void before() {
+        executer.allowExtraLogging = false
+    }
 
     @Test
     public void executesTestsInCorrectEnvironment() {
