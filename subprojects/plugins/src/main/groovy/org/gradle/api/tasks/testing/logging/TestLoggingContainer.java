@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.testing.logging;
 
 import org.gradle.api.Action;
+import org.gradle.api.Experimental;
 import org.gradle.api.logging.LogLevel;
 
 import groovy.lang.Closure;
@@ -24,25 +25,29 @@ import groovy.lang.Closure;
 /**
  * Container for all test logging related options. Different options
  * can be set for each log level. Options that are set directly (without
- * specifying a log level) apply to log level LIFECYCLE.
+ * specifying a log level) apply to log level LIFECYCLE. Example:
  *
  * <pre autoTested=''>
  * apply plugin: 'java'
  *
  * test {
  *     testLogging {
- *         // options for log level LIFECYCLE
+ *         // set options for log level LIFECYCLE
  *         events "failed"
  *         exceptionFormat "short"
- *         // options for log level DEBUG
+ *         // set options for log level DEBUG
  *         debug {
  *             events "started", "skipped", "failed"
  *             exceptionFormat "full"
  *         }
  *     }
  * }
+ *
+ * The defaults that are in place show progressively more information
+ * on log levels LIFECYCLE, INFO, and DEBUG, respectively.
  * </pre>
  */
+@Experimental
 public interface TestLoggingContainer extends TestLogging {
     /**
      * Returns logging options for debug level.
