@@ -61,14 +61,14 @@ ext {
 }
 
 // Logging
-libraries.slf4j_api = 'org.slf4j:slf4j-api:1.6.4@jar'
-libraries.jcl_to_slf4j = dependencies.module('org.slf4j:jcl-over-slf4j:1.6.4') {
+libraries.slf4j_api = 'org.slf4j:slf4j-api:1.6.6@jar'
+libraries.jcl_to_slf4j = dependencies.module('org.slf4j:jcl-over-slf4j:1.6.6') {
     dependency libraries.slf4j_api
 }
-libraries.jul_to_slf4j = dependencies.module('org.slf4j:jul-to-slf4j:1.6.4') {
+libraries.jul_to_slf4j = dependencies.module('org.slf4j:jul-to-slf4j:1.6.6') {
     dependency libraries.slf4j_api
 }
-libraries.log4j_to_slf4j = dependencies.module('org.slf4j:log4j-over-slf4j:1.6.4') {
+libraries.log4j_to_slf4j = dependencies.module('org.slf4j:log4j-over-slf4j:1.6.6') {
     dependency libraries.slf4j_api
 }
 libraries.logback_core = 'ch.qos.logback:logback-core:1.0.6@jar'

@@ -23,7 +23,7 @@ mainClassName = 'org.gradle.sample.Main'
 dependencies {
     compile "org.gradle:gradle-tooling-api:${toolingApiVersion}"
     // Need an SLF4J implementation at runtime
-    runtime 'org.slf4j:slf4j-simple:1.6.4'
+    runtime 'org.slf4j:slf4j-simple:1.6.6'
 }
 
 mainClassName = 'org.gradle.sample.Main'
