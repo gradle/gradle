@@ -18,22 +18,30 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
+import org.gradle.util.TestFile
 
 class BuildSourceBuilderIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("http://issues.gradle.org/browse/GRADLE-2032")
     def "can simultaneously run gradle on projects with buildSrc"() {
         given:
-        file("buildSrc").createDir()
+        def buildSrcDir = file("buildSrc").createDir()
+        writeSharedClassFile(buildSrcDir);
         buildFile.text = """
-        task blocking << {
-            while(!file("block.lock").exists()){
+        import org.gradle.integtest.test.BuildSrcTask
+
+        task blocking(type:BuildSrcTask)<< {
+            file("run1washere.lock").createNewFile()
+            while(!file("run2washere.lock").exists()){
                 sleep 10
             }
         }
 
-        task releasing << {
-            file("block.lock").createNewFile()
+        task releasing(type:BuildSrcTask) << {
+            while(!file("run1washere.lock").exists()){
+                sleep 10
+            }
+            file("run2washere.lock").createNewFile()
         }
         """
         when:
@@ -47,5 +55,20 @@ class BuildSourceBuilderIntegrationTest extends AbstractIntegrationSpec {
         finish2.error.equals("")
         finish1.assertTasksExecuted(":blocking")
         finish2.assertTasksExecuted(":releasing")
+    }
+
+    void writeSharedClassFile(TestFile targetDirectory) {
+        def packageDirectory = targetDirectory.createDir("src/main/java/org/gradle/integtest/test")
+        new File(packageDirectory, "BuildSrcTask.java").text = """
+        package org.gradle.integtest.test;
+        import org.gradle.api.DefaultTask;
+        import org.gradle.api.tasks.TaskAction;
+
+        public class BuildSrcTask extends DefaultTask{
+            @TaskAction public void defaultAction(){
+                System.out.println(String.format("BuildSrcTask '%s' executed.", getName()));
+            }
+        }
+        """
     }
 }
