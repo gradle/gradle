@@ -140,15 +140,15 @@ public class FilePermissionHandlerFactory {
     }
 
     private static byte[] getEncodedFilePath(File f) {
-        byte[] encoded;
+        byte[] encoded = new byte[0];
         if (!OperatingSystem.current().isMacOsX()) {
+            //macosx default file encoding is not unicode
             encoded = f.getAbsolutePath().getBytes();
         } else {
             try {
                 encoded = f.getAbsolutePath().getBytes("utf-8");
             } catch (UnsupportedEncodingException e) {
-                LOGGER.error(String.format("Failed to encode file path %s as utf-8.", f.getAbsolutePath()));
-                throw new UncheckedException(e);
+                UncheckedException.throwAsUncheckedException(e);
             }
         }
         byte[] zeroTerminatedByteArray = new byte[encoded.length + 1];
