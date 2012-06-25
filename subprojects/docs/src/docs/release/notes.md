@@ -1,4 +1,3 @@
-
 ## New and noteworthy
 
 Here are the new features introduced in Gradle 1.1-rc-1
@@ -47,6 +46,7 @@ test {
         minGranularity 0
     }
 }
+</pre>
 
 By setting `minGranularity`, these events aren't only shown for individual tests, but also for test classes and suites.
 
