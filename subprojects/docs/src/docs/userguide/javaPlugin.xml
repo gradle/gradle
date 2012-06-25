@@ -1143,6 +1143,11 @@
                 Test always executes every test that it detects. It stops the build afterwards if <literal>ignoreFailures</literal>
                 is false and there are failing tests. The default value of <literal>ignoreFailures</literal> is false.
             </para>
+            <para>The <literal>testLogging</literal> property allows to configure which test events are going to be logged and at
+                which detail level. By default, a concise message will be logged for every failed test. See
+                <apilink class="org.gradle.api.tasks.testing.logging.TestLoggingContainer"/> for how to tune test logging to your
+                preferences.
+            </para>
         </section>
 
         <section>
