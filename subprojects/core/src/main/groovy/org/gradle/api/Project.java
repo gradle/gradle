@@ -641,21 +641,21 @@ public interface Project extends Comparable<Project>, ExtensionAware {
      *
      * <ul>
      *
-     * <li>A {@link CharSequence} / {@link String}. Interpreted relative to the project directory, as for {@link #file(Object)}. A string
+     * <li>A {@link CharSequence}, including {@link String} or {@link groovy.lang.GString}. Interpreted relative to the project directory. A string
      * that starts with {@code file:} is treated as a file URL.</li>
      *
-     * <li>{@link File}. If the file is an absolute file, it is returned as is. Otherwise, the file's path is
+     * <li>A {@link File}. If the file is an absolute file, it is returned as is. Otherwise, the file's path is
      * interpreted relative to the project directory.</li>
      *
-     * <li>{@link java.net.URI} or {@link java.net.URL}. The URL's path is interpreted as the file path. Currently, only
+     * <li>A {@link java.net.URI} or {@link java.net.URL}. The URL's path is interpreted as the file path. Currently, only
      * {@code file:} URLs are supported.
      *
-     * <li>{@link Closure}. The closure's return value is resolved recursively.</li>
+     * <li>A {@link Closure}. The closure's return value is resolved recursively.</li>
      *
-     * <li>{@link java.util.concurrent.Callable}. The callable's return value is resolved recursively.</li>
+     * <li>A {@link java.util.concurrent.Callable}. The callable's return value is resolved recursively.</li>
      *
-     * <li>An Object. Its {@code toString()} value is treated the same way as a String, as for {@link #file(Object)}.
-     * This handling of custom Objects has been deprecated and will be removed in the next version of Gradle.</li>
+     * <li>An Object. Its {@code toString()} value is treated the same way as a String.
+     * This is deprecated and will be removed in the next version of Gradle.</li>
      * </ul>
      *
      * @param path The object to resolve as a File.
@@ -697,12 +697,12 @@ public interface Project extends Comparable<Project>, ExtensionAware {
      * <p>Returns a {@link ConfigurableFileCollection} containing the given files. You can pass any of the following
      * types to this method:</p>
      *
-     * <ul> <li>A {@link CharSequence} / {@link String}. Interpreted relative to the project directory, as for {@link #file(Object)}. A string
+     * <ul> <li>A {@link CharSequence}, including {@link String} or {@link groovy.lang.GString}. Interpreted relative to the project directory, as for {@link #file(Object)}. A string
      * that starts with {@code file:} is treated as a file URL.</li>
      *
      * <li>A {@link File}. Interpreted relative to the project directory, as for {@link #file(Object)}.</li>
      *
-     * <li>{@link java.net.URI} or {@link java.net.URL}. The URL's path is interpreted as a file path. Currently, only
+     * <li>A {@link java.net.URI} or {@link java.net.URL}. The URL's path is interpreted as a file path. Currently, only
      * {@code file:} URLs are supported.
      *
      * <li>A {@link java.util.Collection}, {@link Iterable}, or an array. May contain any of the types listed here. The elements of the collection
@@ -723,10 +723,10 @@ public interface Project extends Comparable<Project>, ExtensionAware {
      * <li>A {@link org.gradle.api.tasks.TaskOutputs}. Converted to the output files the related task.</li>
      *
      * <li>An Object. Its {@code toString()} value is treated the same way as a String, as for {@link #file(Object)}.
-     * Handling custom Objects has been deprecated and will be removed in the next version of Gradle.</li>
+     * This has been deprecated and will be removed in the next version of Gradle.</li>
      *
-     * <li>A Closure. May return any of the types listed here. The return value of the closure is recursively converted
-     * to files. A {@code null} return value is treated as an empty collection.</li></ul>
+     * </ul>
+     *
      * <p>The returned file collection is lazy, so that the paths are evaluated only when the contents of the file
      * collection are queried. The file collection is also live, so that it evaluates the above each time the contents
      * of the collection is queried.</p>
