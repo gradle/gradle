@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.samples
+package org.gradle.integtests.samples
 
 import org.gradle.integtests.fixtures.AbstractAutoTestedSamplesTest
 import org.junit.Test
