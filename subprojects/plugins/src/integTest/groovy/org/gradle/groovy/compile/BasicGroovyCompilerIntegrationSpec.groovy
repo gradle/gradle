@@ -36,8 +36,12 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         runAndFail("classes")
 
         then:
-        compileErrorOutput.contains 'unable to resolve class Unknown1'
-        compileErrorOutput.contains 'unable to resolve class Unknown2'
+        // for some reasons, line breaks occur in different places when running this
+        // test in different environments; hence we only check for short snippets
+        compileErrorOutput.contains 'unable'
+        compileErrorOutput.contains 'resolve'
+        compileErrorOutput.contains 'Unknown1'
+        compileErrorOutput.contains 'Unknown2'
         failure.assertHasCause(compilationFailureMessage)
     }
 
