@@ -16,11 +16,14 @@
 
 package org.gradle.api.tasks.testing.logging;
 
+import org.gradle.api.Experimental;
+
 import java.util.Set;
 
 /**
  * Options that determine which test events get logged, and at which detail.
  */
+@Experimental
 public interface TestLogging extends org.gradle.api.tasks.testing.TestLogging {
     /**
      * Returns the events to be logged.

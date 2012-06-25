@@ -14,21 +14,10 @@
  * limitations under the License.
  */
 
+/**
+ * Types related to logging of test related information to the console.
+ */
+@Experimental
 package org.gradle.api.tasks.testing.logging;
 
 import org.gradle.api.Experimental;
-
-/**
- * Determines how exceptions are formatted in test logging.
- */
-@Experimental
-public enum TestExceptionFormat {
-    /**
-     * Short display of exceptions.
-     */
-    SHORT,
-    /**
-     * Full display of exceptions.
-     */
-    FULL
-}
