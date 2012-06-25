@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.logging
+package org.gradle.integtests.logging
 
 import org.gradle.util.TestFile
 import org.gradle.integtests.fixtures.*
