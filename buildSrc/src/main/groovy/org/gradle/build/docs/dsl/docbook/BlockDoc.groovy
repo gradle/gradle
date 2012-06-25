@@ -18,7 +18,7 @@ package org.gradle.build.docs.dsl.docbook
 import org.w3c.dom.Element
 import org.gradle.build.docs.dsl.model.TypeMetaData
 
-class BlockDoc {
+class BlockDoc implements DslElementDoc {
     private final MethodDoc blockMethod
     private final PropertyDoc blockProperty
     private final TypeMetaData type
@@ -54,7 +54,15 @@ class BlockDoc {
     List<Element> getComment() {
         return blockMethod.comment
     }
-    
+
+    boolean isDeprecated() {
+        return blockProperty.deprecated || blockMethod.deprecated
+    }
+
+    boolean isExperimental() {
+        return blockProperty.experimental || blockMethod.experimental
+    }
+
     PropertyDoc getBlockProperty() {
         return blockProperty
     }

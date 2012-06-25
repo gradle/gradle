@@ -61,6 +61,11 @@ public class PropertyMetaData extends AbstractLanguageElement implements Seriali
         return super.isDeprecated() || ownerClass.isDeprecated();
     }
 
+    @Override
+    public boolean isExperimental() {
+        return super.isExperimental() || ownerClass.isExperimental();
+    }
+
     public String getSignature() {
         StringBuilder builder = new StringBuilder();
         builder.append(type.getSignature());

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.build.docs.dsl.model;
+
+package org.gradle.build.docs.dsl.docbook;
+
+import org.w3c.dom.Element;
 
 import java.util.List;
 
-public interface LanguageElement {
-    String getRawCommentText();
+public interface DslElementDoc {
+    String getId();
 
-    List<String> getAnnotationTypeNames();
+    Element getDescription();
+
+    List<Element> getComment();
 
     boolean isDeprecated();
 

@@ -47,6 +47,7 @@ class ClassDocRenderer {
                     seg { apilink('class': classDoc.name, style: classDoc.style) }
                 }
             }
+            addWarnings(classDoc, 'class', delegate)
             appendChildren classDoc.comment
         }
     }
@@ -90,11 +91,7 @@ class ClassDocRenderer {
                                 text(' (read-only)')
                             }
                         }
-                        if (propDoc.deprecated) {
-                            caution {
-                                para("Note: This property is deprecated and will be removed in a future version of Gradle.")
-                            }
-                        }
+                        addWarnings(propDoc, 'property', delegate)
                         appendChildren propDoc.comment
                         if (propDoc.additionalValues) {
                             segmentedlist {
@@ -174,11 +171,7 @@ class ClassDocRenderer {
                             }
                             text(')')
                         }
-                        if (method.deprecated) {
-                            caution {
-                                para("Note: This method is deprecated and will be removed in a future version of Gradle.")
-                            }
-                        }
+                        addWarnings(method, 'method', delegate)
                         appendChildren method.comment
                     }
                 }
@@ -225,6 +218,7 @@ class ClassDocRenderer {
                         title {
                             literal(block.name); text(' { }')
                         }
+                        addWarnings(block, 'script block', delegate)
                         appendChildren block.comment
                         segmentedlist {
                             segtitle('Delegates to')
@@ -244,6 +238,27 @@ class ClassDocRenderer {
                             }
                         }
                     }
+                }
+            }
+        }
+    }
+
+    void addWarnings(DslElementDoc elementDoc, String description, Object delegate) {
+        if (elementDoc.deprecated) {
+            delegate.caution {
+                para{
+                    text("Note: This $description is ")
+                    link(linkend: 'dsl-element-types', "deprecated")
+                    text(" and will be removed in the next major version of Gradle.")
+                }
+            }
+        }
+        if (elementDoc.experimental) {
+            delegate.caution {
+                para{
+                    text("Note: This $description is ")
+                    link(linkend: 'dsl-element-types', "experimental")
+                    text(" and may change in a future version of Gradle.")
                 }
             }
         }

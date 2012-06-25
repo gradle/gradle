@@ -118,6 +118,19 @@
         </para>
     </section>
 
+    <section id="dsl-element-types">
+        <title>Deprecated and experimental features</title>
+        <para>Some elements of the DSL are marked as <firstterm>deprecated</firstterm>. This means that the element is not longer
+            intended to be used, and will be removed at some point in the future. You should change your code so that it no longer uses
+            the deprecated element. In most cases, there is a replacement for the deprecated element. A deprecated element will not be
+            removed before the next major version of Gradle.
+        </para>
+        <para>Some elements of the DSL are marked as <firstterm>experimental</firstterm>. This means that the element is a work-in-progress,
+            and may require some changes before it is ready for long term support. These changes are based on feedback. Please feel free
+            to try the element, but be aware that it may change in future versions of Gradle.
+        </para>
+    </section>
+
     <section>
         <title>Core types</title>
         <para>Listed below are some of the central types which are used in Gradle scripts:</para>

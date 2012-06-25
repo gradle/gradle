@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.build.docs.dsl.model;
 
-import java.util.List;
+package org.gradle.api;
 
-public interface LanguageElement {
-    String getRawCommentText();
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
-    List<String> getAnnotationTypeNames();
-
-    boolean isDeprecated();
-
-    boolean isExperimental();
+/**
+ * Indicates that a feature is experimental. This means that the feature is currently a work-in-progress and may
+ * change at any time.
+ */
+@Documented
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Experimental {
 }

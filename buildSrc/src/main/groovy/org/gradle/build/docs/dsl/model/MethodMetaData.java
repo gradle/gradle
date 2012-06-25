@@ -93,6 +93,11 @@ public class MethodMetaData extends AbstractLanguageElement implements Serializa
         return super.isDeprecated() || ownerClass.isDeprecated();
     }
 
+    @Override
+    public boolean isExperimental() {
+        return super.isExperimental() || ownerClass.isExperimental();
+    }
+
     public String getSignature() {
         StringBuilder builder = new StringBuilder();
         builder.append(returnType.getSignature());

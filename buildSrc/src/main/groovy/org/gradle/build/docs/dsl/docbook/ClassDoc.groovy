@@ -26,7 +26,7 @@ import org.gradle.build.docs.dsl.model.MixinMetaData
 import org.gradle.build.docs.dsl.model.ClassExtensionMetaData
 import org.gradle.build.docs.dsl.model.ExtensionMetaData
 
-class ClassDoc {
+class ClassDoc implements DslElementDoc {
     private final String className
     private final String id
     private final String simpleName
@@ -67,13 +67,21 @@ class ClassDoc {
         methodsSection = methodsTable.parentNode
     }
 
-    def getId() { return id }
+    String getId() { return id }
 
     def getName() { return className }
 
     def getSimpleName() { return simpleName }
 
-    def getComment() { return comment }
+    List<Element> getComment() { return comment }
+
+    boolean isDeprecated() {
+        return classMetaData.deprecated
+    }
+
+    boolean isExperimental() {
+        return classMetaData.experimental
+    }
 
     def getClassProperties() { return classProperties }
 

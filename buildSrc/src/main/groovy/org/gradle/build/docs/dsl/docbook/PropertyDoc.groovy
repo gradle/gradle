@@ -19,7 +19,7 @@ import org.gradle.build.docs.dsl.model.PropertyMetaData
 import org.w3c.dom.Element
 import org.gradle.build.docs.dsl.model.ClassMetaData
 
-class PropertyDoc {
+class PropertyDoc implements DslElementDoc {
     private final String id
     private final String name
     private final List<Element> comment
@@ -59,6 +59,10 @@ class PropertyDoc {
 
     boolean isDeprecated() {
         return metaData.deprecated
+    }
+
+    boolean isExperimental() {
+        return metaData.experimental
     }
 
     Element getDescription() {

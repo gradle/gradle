@@ -114,5 +114,21 @@ class PropertyMetaDataTest extends Specification {
         deprecated.deprecated
         ownerDeprecated.deprecated
     }
+
+    def "is experimental when @Experimental is attached to property or owner is experimental"() {
+        ClassMetaData experimentalClass = Mock()
+        def notExperimental = new PropertyMetaData('param', classMetaData)
+        def experimental = new PropertyMetaData('param', classMetaData)
+        def ownerExperimental = new PropertyMetaData('param', experimentalClass)
+
+        given:
+        experimental.addAnnotationTypeName("org.gradle.api.Experimental")
+        experimentalClass.experimental >> true
+
+        expect:
+        !notExperimental.experimental
+        experimental.experimental
+        ownerExperimental.experimental
+    }
 }
 

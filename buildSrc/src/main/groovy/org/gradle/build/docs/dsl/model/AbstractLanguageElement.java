@@ -53,6 +53,10 @@ public abstract class AbstractLanguageElement implements LanguageElement, Serial
         return annotationNames.contains(Deprecated.class.getName());
     }
 
+    public boolean isExperimental() {
+        return annotationNames.contains("org.gradle.api.Experimental");
+    }
+
     public void resolveTypes(Transformer<String, String> transformer) {
         for (int i = 0; i < annotationNames.size(); i++) {
             annotationNames.set(i, transformer.transform(annotationNames.get(i)));
