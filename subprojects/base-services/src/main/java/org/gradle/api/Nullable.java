@@ -15,13 +15,12 @@
  */
 package org.gradle.api;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.*;
 
 /**
  * Indicates that the value of an element can be null.
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.PARAMETER, ElementType.METHOD, ElementType.FIELD})
 public @interface Nullable {}
