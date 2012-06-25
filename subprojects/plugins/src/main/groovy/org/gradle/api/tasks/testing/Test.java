@@ -434,6 +434,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
                 throw new AssertionError();
         }
     }
+
     private String getTestReportUrl() {
         // File.toURI().toString() leads to an URL like this on Mac: file:/reports/index.html
         // This URL is not recognized by the Mac terminal (too few leading slashes). We solve
@@ -447,7 +448,6 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         } catch (URISyntaxException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
-
     }
 
     /**
@@ -953,17 +953,22 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     }
 
     /**
-     * Allows configuring the logging of the test execution, for example log eagerly the standard output, etc.
+     * Allows to set options related to which test events are logged to the console, and on which detail
+     * level. For example, to show more information about exceptions use:
+     *
      * <pre autoTested=''>
      * apply plugin: 'java'
      *
-     * //makes the standard streams (err and out) visible at console when running tests
-     * test.testLogging.showStandardStreams = true
+     * test.testLogging {
+     *     exceptionFormat "full"
+     * }
      * </pre>
      *
-     * @return test logging configuration
+     * For further information see {@link TestLoggingContainer}.
+     *
+     * @return this
      */
-    public TestLogging getTestLogging() {
+    public TestLoggingContainer getTestLogging() {
         return testLogging;
     }
 

@@ -31,7 +31,7 @@ public class DefaultTestLogging implements TestLogging {
     private boolean showCauses = true;
     private boolean showStackTraces = true;
     private TestExceptionFormat exceptionFormat = TestExceptionFormat.FULL;
-    private Set<TestStackTraceFilter> stackTraceFilters = EnumSet.noneOf(TestStackTraceFilter.class);
+    private Set<TestStackTraceFilter> stackTraceFilters = EnumSet.of(TestStackTraceFilter.TRUNCATE);
 
     public Set<TestLogEvent> getEvents() {
         return events;
@@ -145,8 +145,9 @@ public class DefaultTestLogging implements TestLogging {
         return events.contains(TestLogEvent.STANDARD_OUT) && events.contains(TestLogEvent.STANDARD_ERROR);
     }
 
-    public void setShowStandardStreams(boolean flag) {
+    public TestLogging setShowStandardStreams(boolean flag) {
         events.addAll(EnumSet.of(TestLogEvent.STANDARD_OUT, TestLogEvent.STANDARD_ERROR));
+        return this;
     }
 
     public void showStandardStreams(boolean flag) {

@@ -21,7 +21,7 @@ import java.util.Set;
 /**
  * Options that determine which test events get logged, and at which detail.
  */
-public interface TestLogging {
+public interface TestLogging extends org.gradle.api.tasks.testing.TestLogging {
     /**
      * Returns the events to be logged.
      *
@@ -226,16 +226,16 @@ public interface TestLogging {
     void stackTraceFilters(Object... stackTraces);
 
     /**
-     * Tells whether log events {@link TestLogEvent#STANDARD_OUT}
-     * and {@link TestLogEvent#STANDARD_ERROR} will be logged.
+     * Tells whether output on standard out and standard error will be logged. Equivalent to checking if both
+     * log events {@link TestLogEvent#STANDARD_OUT} and {@link TestLogEvent#STANDARD_ERROR} are set.
      */
      boolean getShowStandardStreams();
 
     /**
-     * Adds log events {@link TestLogEvent#STANDARD_OUT}
-     * and {@link TestLogEvent#STANDARD_ERROR}.
+     * Sets whether output on standard out and standard error will be logged. Equivalent to setting
+     * log events {@link TestLogEvent#STANDARD_OUT} and {@link TestLogEvent#STANDARD_ERROR}.
      */
-     void setShowStandardStreams(boolean flag);
+     TestLogging setShowStandardStreams(boolean flag);
 
     /**
      * Convenience method for {@link #setShowStandardStreams(boolean)}.

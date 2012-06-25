@@ -57,7 +57,7 @@ class DefaultTestLoggingContainerTest extends Specification {
         logging.exceptionFormat == TestExceptionFormat.SHORT
         logging.showExceptions
         logging.showCauses
-        logging.stackTraceFilters == [] as Set
+        logging.stackTraceFilters == [TestStackTraceFilter.TRUNCATE] as Set
     }
 
     def "sets defaults for level INFO"() {
@@ -121,6 +121,6 @@ class DefaultTestLoggingContainerTest extends Specification {
         logging.exceptionFormat == TestExceptionFormat.FULL
         logging.showExceptions
         logging.showCauses
-        assert logging.stackTraceFilters == [] as Set
+        assert logging.stackTraceFilters == [TestStackTraceFilter.TRUNCATE] as Set
     }
 }

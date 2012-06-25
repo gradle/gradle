@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-
-
 package org.gradle.api.internal.tasks.testing.logging
 
 import spock.lang.Specification
@@ -31,7 +29,7 @@ class DefaultTestLoggingTest extends Specification {
         logging.events == [] as Set
         logging.minGranularity == -1
         logging.maxGranularity == -1
-        logging.stackTraceFilters == [] as Set
+        logging.stackTraceFilters == [TRUNCATE] as Set
     }
 
     def "allows events to be added as enum values"() {

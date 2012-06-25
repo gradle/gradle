@@ -45,6 +45,7 @@ public class DefaultTestLoggingContainer implements TestLoggingContainer {
 
         getDebug().setEvents(EnumSet.allOf(TestLogEvent.class));
         getDebug().setMinGranularity(0);
+        getDebug().setStackTraceFilters(EnumSet.noneOf(TestStackTraceFilter.class));
     }
 
     public TestLogging getDebug() {
@@ -255,8 +256,9 @@ public class DefaultTestLoggingContainer implements TestLoggingContainer {
         return getLifecycle().getShowStandardStreams();
     }
 
-    public void setShowStandardStreams(boolean flag) {
+    public TestLoggingContainer setShowStandardStreams(boolean flag) {
         getLifecycle().setShowStandardStreams(flag);
+        return this;
     }
 
     public void showStandardStreams(boolean flag) {
