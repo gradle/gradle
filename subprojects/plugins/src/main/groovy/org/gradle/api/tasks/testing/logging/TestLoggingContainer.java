@@ -42,10 +42,10 @@ import groovy.lang.Closure;
  *         }
  *     }
  * }
+ * </pre>
  *
  * The defaults that are in place show progressively more information
  * on log levels LIFECYCLE, INFO, and DEBUG, respectively.
- * </pre>
  */
 @Experimental
 public interface TestLoggingContainer extends TestLogging {
