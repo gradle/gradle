@@ -50,5 +50,14 @@ The feature can be tested by verifying migrations whose outcome is known.
 
 # Open issues
 
-Is it good enough to point the migration verification feature at two sets of outputs, or will it always
-need access to some metadata (like that provided by a Gradle build model)?
+* How much knowledge does verification need about the "old" and "new" builds? Is it good enough to have two
+sets of outputs (together with a mapping between them), or is additional information required?
+
+* Does verification always include execution of the "old" and "new" builds, or can it work off preexisting outputs?
+
+* Who decides what the outputs of a build (or the subset of outputs that should be compared) are?
+
+* Assuming the feature is implemented as a plugin, where does the plugin and its task get executed?
+In the old build? The new build? An independent "migration" build?
+
+
