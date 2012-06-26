@@ -50,11 +50,11 @@ The feature can be tested by verifying migrations whose outcome is known.
 
 ## Upgrading to a new Gradle version
 
-The user adds the 'migration' plugin to the build's root project.
+The user adds the `build-migration` plugin to the build's root project.
 
 The user issues a command like:
 
-    gradlew migrate -Dfrom=1.0 -Dto=1.1-rc-1
+    gradlew migrate-build -Dmigrate-from=1.0 -Dmigrate-to=1.1-rc-1
 
 If `from` is unspecified, the current Gradle version is used.
 
