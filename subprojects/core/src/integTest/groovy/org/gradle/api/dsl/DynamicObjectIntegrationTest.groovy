@@ -21,7 +21,6 @@ import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
 import spock.lang.Issue
-import org.junit.Ignore
 
 class DynamicObjectIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
