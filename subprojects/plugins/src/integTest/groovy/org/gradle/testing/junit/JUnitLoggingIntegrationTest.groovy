@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+
+
 package org.gradle.testing.junit
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -28,7 +30,7 @@ class JUnitLoggingIntegrationTest extends AbstractIntegrationSpec {
     ExecutionResult result
 
     def setup() {
-        executer.withStackTraceChecksDisabled().withTasks("test")
+        executer.withStackTraceChecksDisabled().setAllowExtraLogging(false).withTasks("test")
     }
 
     def "defaultLifecycleLogging"() {
