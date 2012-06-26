@@ -39,8 +39,6 @@ public class PosixUtil {
                 LOGGER.debug("Falling back to use FallbackPOSIX implementation.");
                 return new FallbackPOSIX();
             }
-            LOGGER.debug("Using implementation.");
-
             return posix;
         }
     }
