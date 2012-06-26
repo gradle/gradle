@@ -27,12 +27,13 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
     @Requires(TestPrecondition.FILE_PERMISSIONS)
     def "file permissions are preserved in copy action"() {
         given:
-        def testSourceFile = file("reference.txt") << 'test file"'
+        def testSourceFile = file(testFileName)
+        testSourceFile << "test file content"
         testSourceFile.mode = mode
         and:
         buildFile << """
         task copy(type: Copy) {
-            from "reference.txt"
+            from "${testSourceFile.absolutePath}"
             into ("build/tmp")
         }
         """
@@ -40,32 +41,10 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
         when:
         run "copy"
         then:
-        file("build/tmp/reference.txt").mode == mode
+        file("build/tmp/${testFileName}").mode == mode
         where:
-        mode << [0746]
-    }
-
-    @Requires([TestPrecondition.FILE_PERMISSIONS, TestPrecondition.NOT_JDK7])
-    //TODO: This test can be merged into the test above when its fixed for java7
-    def "file permissions for unicode encoded file names are preserved in copy action"() {
-        given:
-        def testFileName = "\u0627\u0644\u0627\u0655\u062F\u0627\u0631\u0629.txt"
-        def testSourceFile = file(testFileName) << 'test file"'
-        testSourceFile.mode = mode
-        and:
-        buildFile << """
-            task copy(type: Copy) {
-                from "${testFileName}"
-                into ("build/tmp")
-            }
-            """
-
-        when:
-        run "copy"
-        then:
-        file("build/tmp/$testFileName").mode == mode
-        where:
-        mode << [0746]
+        mode << [0746, 0746]
+        testFileName << ["reference.txt", "\u0627\u0644\u0627\u0655\u062F\u0627\u0631\u0629.txt"]
     }
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)

@@ -22,7 +22,6 @@ import java.nio.file.Files;
 import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.PosixFileAttributes;
 
-
 import org.gradle.internal.nativeplatform.NativeIntegrationException;
 import org.gradle.internal.nativeplatform.filesystem.FilePermissionHandler;
 
