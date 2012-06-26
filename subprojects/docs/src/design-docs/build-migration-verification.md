@@ -50,14 +50,20 @@ The feature can be tested by verifying migrations whose outcome is known.
 
 # Open issues
 
+* Does verification include execution of the "old" and "new" builds, or can it work off preexisting outputs?
+
+* Who determines what the outputs of a build (or the subset of outputs that should be compared) are, and where
+they are located?
+
+* Assuming the feature is implemented as a plugin, where does the plugin and its tasks get executed?
+In the old build? The new build? An independent "migration" build?
+
 * How much knowledge does verification need about the "old" and "new" builds? Is it good enough to have two
 sets of outputs (together with a mapping between them), or is additional information required?
 
-* Does verification always include execution of the "old" and "new" builds, or can it work off preexisting outputs?
-
-* Who decides what the outputs of a build (or the subset of outputs that should be compared) are?
-
-* Assuming the feature is implemented as a plugin, where does the plugin and its task get executed?
-In the old build? The new build? An independent "migration" build?
+* How much information does the feature need about how and by whom an artifact that is to be compared was produced?
+Does it need to be able to compare different representations of the same information, like a Gradle JUnit report and
+an Ant JUnit report (assuming the report formats are different), or a Gradle JUnit report produced by Gradle version X
+and one produced by Gradle version Y?
 
 
