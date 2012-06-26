@@ -28,7 +28,7 @@ class JUnitLoggingIntegrationTest extends AbstractIntegrationSpec {
     ExecutionResult result
 
     def setup() {
-        executer.withStackTraceChecksDisabled().withTasks("test")
+        executer.setAllowExtraLogging(false).withStackTraceChecksDisabled().withTasks("test")
     }
 
     def "defaultLifecycleLogging"() {
