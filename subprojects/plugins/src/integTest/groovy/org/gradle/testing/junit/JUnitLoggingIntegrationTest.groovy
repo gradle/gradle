@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-
-
 package org.gradle.testing.junit
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -30,7 +28,7 @@ class JUnitLoggingIntegrationTest extends AbstractIntegrationSpec {
     ExecutionResult result
 
     def setup() {
-        executer.withStackTraceChecksDisabled().setAllowExtraLogging(false).withTasks("test")
+        executer.withStackTraceChecksDisabled().withTasks("test")
     }
 
     def "defaultLifecycleLogging"() {
@@ -42,27 +40,6 @@ class JUnitLoggingIntegrationTest extends AbstractIntegrationSpec {
 org.gradle.JUnit4Test > badTest FAILED
     java.lang.RuntimeException at JUnit4Test.groovy:38
         """)
-    }
-
-    def "defaultInfoLogging"() {
-        when:
-        result = executer.withArguments("-i").runWithFailure()
-
-        then:
-        outputContains("""
-org.gradle.JUnit4Test > badTest FAILED
-    java.lang.RuntimeException: bad
-       """)
-
-        // indicates that full stack trace is printed
-        outputContains("at java.lang.reflect.Constructor.newInstance(")
-
-        outputContains("""
-        at org.gradle.JUnit4Test.beBad(JUnit4Test.groovy:38)
-        at org.gradle.JUnit4Test.badTest(JUnit4Test.groovy:28)
-        """)
-
-        outputContains("org.gradle.JUnit4Test > ignoredTest SKIPPED")
     }
 
     def customQuietLogging() {

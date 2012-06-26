@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-
-
 package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.util.TextUtil
 import org.gradle.integtests.fixtures.ExecutionResult
+import org.gradle.util.TextUtil
 import org.junit.Rule
 
 // can make assumptions about order in which test methods of TestNGTest get executed
@@ -31,7 +29,7 @@ class TestNGLoggingIntegrationTest extends AbstractIntegrationSpec {
     ExecutionResult result
 
     def setup() {
-        executer.withStackTraceChecksDisabled().setAllowExtraLogging(false).withTasks("test")
+        executer.withStackTraceChecksDisabled().withTasks("test")
     }
 
     def "defaultLifecycleLogging"() {
@@ -42,27 +40,6 @@ class TestNGLoggingIntegrationTest extends AbstractIntegrationSpec {
         outputContains("""
 Gradle test > org.gradle.TestNGTest.badTest FAILED
     java.lang.RuntimeException at TestNGTest.groovy:34
-        """)
-    }
-
-    def "defaultInfoLogging"() {
-        when:
-        result = executer.withArguments("-i").runWithFailure()
-
-        then:
-        outputContains("""
-Gradle test > org.gradle.TestNGTest.badTest FAILED
-    java.lang.RuntimeException: bad
-        """)
-
-        // indicates that full stack trace is printed
-        outputContains("at java.lang.reflect.Constructor.newInstance(")
-
-        outputContains("""
-        at org.gradle.TestNGTest.beBad(TestNGTest.groovy:34)
-        at org.gradle.TestNGTest.badTest(TestNGTest.groovy:27)
-
-Gradle test > org.gradle.TestNGTest.ignoredTest SKIPPED
         """)
     }
 
