@@ -21,6 +21,7 @@ import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
 import spock.lang.Issue
+import org.junit.Ignore
 
 class DynamicObjectIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
@@ -411,23 +412,25 @@ assert 'overridden value' == global
         TestFile testDir = dist.getTestDir();
         testDir.file("build.gradle") << """
             ext {
-                add "p1", 1
+                set "p1", 1
             }
             assert p1 == 1
-            p2 = 2
-            assert ext.p2 = 2
-            
+            p1 = 2
+            assert p1 == 2
+            assert ext.p1 == 2
+
             task run << {
                 ext {
-                    add "p1", 1
+                    set "p1", 1
                 }
                 assert p1 == 1
-                p2 = 2
-                assert ext.p2 = 2            
-            }        
+                p1 = 2
+                assert p1 == 2
+                assert ext.p1 == 2
+            }
         """
         
-        executer.withTasks("run")
+        executer.withTasks("run").run()
     }
 
     @Issue("GRADLE-2163")
@@ -443,12 +446,11 @@ assert 'overridden value' == global
 
             task run << {
                 assert bean.b == false
-                bean.b.conventionMapping.map('b') { true }
+                bean.conventionMapping.b = { true }
                 assert bean.b == true
             }
         """
 
-        executer.withTasks("run")
-
+        executer.withTasks("run").run()
     }
 }
