@@ -62,22 +62,19 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
             ClassBuilder<T> builder = start(type);
 
             boolean isConventionAware = type.getAnnotation(NoConventionMapping.class) == null;
-            boolean isDynamicAware = type.getAnnotation(NoDynamicObject.class) == null;
 
-            builder.startClass(isConventionAware, isDynamicAware);
+            builder.startClass(isConventionAware);
 
-            if (isDynamicAware && !DynamicObjectAware.class.isAssignableFrom(type)) {
+            if (!DynamicObjectAware.class.isAssignableFrom(type)) {
                 if (ExtensionAware.class.isAssignableFrom(type)) {
                     throw new UnsupportedOperationException("A type that implements ExtensionAware must currently also implement DynamicObjectAware.");
                 }
                 builder.mixInDynamicAware();
             }
-            if (isDynamicAware && !GroovyObject.class.isAssignableFrom(type)) {
+            if (!GroovyObject.class.isAssignableFrom(type)) {
                 builder.mixInGroovyObject();
             }
-            if (isDynamicAware) {
-                builder.addDynamicMethods();
-            }
+            builder.addDynamicMethods();
             if (isConventionAware && !IConventionAware.class.isAssignableFrom(type)) {
                 builder.mixInConventionAware();
             }
@@ -198,7 +195,7 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
     protected abstract <T> ClassBuilder<T> start(Class<T> type);
 
     protected interface ClassBuilder<T> {
-        void startClass(boolean isConventionAware, boolean isDynamicAware);
+        void startClass(boolean isConventionAware);
 
         void addConstructor(Constructor<?> constructor) throws Exception;
 

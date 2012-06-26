@@ -322,21 +322,6 @@ public class AsmBackedClassGeneratorTest {
     }
 
     @Test
-    public void doesNotMixInDynamicObjectToClassWithAnnotation() throws Exception {
-        Class<? extends NoDynamicBean> generatedType = generator.generate(NoDynamicBean.class);
-        assertFalse(DynamicObjectAware.class.isAssignableFrom(generatedType));
-
-        // Check convention mapping still works
-        assertTrue(IConventionAware.class.isAssignableFrom(generatedType));
-        NoDynamicBean bean = generatedType.newInstance();
-
-        // Check MOP methods not overridden
-        bean.setProp("value");
-        assertThat(call("{ it.prop }", bean), equalTo((Object) "value"));
-        assertThat(call("{ it.dynamicProp }", bean), equalTo((Object) "[dynamicProp]"));
-    }
-
-    @Test
     public void canAddDynamicPropertiesAndMethodsToJavaObject() throws Exception {
         Bean bean = generator.generate(Bean.class).newInstance();
         DynamicObjectAware dynamicObjectAware = (DynamicObjectAware) bean;
@@ -758,13 +743,6 @@ public class AsmBackedClassGeneratorTest {
 
         public String getOverriddenProperty() {
             return null;
-        }
-    }
-
-    @NoDynamicObject
-    public static class NoDynamicBean extends Bean {
-        Object propertyMissing(String name) {
-            return "[" + name + "]";
         }
     }
 
