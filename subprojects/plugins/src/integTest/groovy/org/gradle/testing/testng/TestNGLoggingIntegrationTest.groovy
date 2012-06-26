@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+
+
 package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -29,7 +31,7 @@ class TestNGLoggingIntegrationTest extends AbstractIntegrationSpec {
     ExecutionResult result
 
     def setup() {
-        executer.withStackTraceChecksDisabled().withTasks("test")
+        executer.withStackTraceChecksDisabled().setAllowExtraLogging(false).withTasks("test")
     }
 
     def "defaultLifecycleLogging"() {
