@@ -42,8 +42,8 @@ artifact model. This will be a small step toward an independent Gradle model of 
 * GRADLE-2210: Migrate to maven 3
 * GRADLE-2238: Use maven 3 classes to locate maven local repository
 * GRADLE-2366: Have mavenLocal() check M2_HOME/conf/settings.xml
-* http://forums.gradle.org/gradle/topics/why_does_maven_deployer_ignore_the_specified_repository
-* http://forums.gradle.org/gradle/topics/crash_when_use_gradle_1_0_rc_1_on_mac_osx_10_7_3
+* http://forums.gradle.org/gradle/topics/why\_does\_maven\_deployer\_ignore\_the\_specified_repository
+* http://forums.gradle.org/gradle/topics/crash\_when\_use\_gradle\_1\_0\_rc\_1\_on\_mac_osx\_10\_7\_3
 
 ### Description
 
@@ -78,7 +78,7 @@ The following 'resolve from mavenLocal' happy-day tests would be useful:
 * no settings.xml is defined
 * repo location defined in ~/.m2/settings.xml
 * repo location defined in settings.xml in M2_HOME
-
+* repo location defined in ~/.m2/settings.xml and in M2_HOME (settings file precedence) 
 And sad-day tests for 'resolve from mavenLocal':
 * repo directory does not exist
 * settings.xml file is invalid
