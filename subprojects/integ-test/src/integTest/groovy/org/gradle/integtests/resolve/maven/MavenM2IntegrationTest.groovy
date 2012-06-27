@@ -182,7 +182,7 @@ class MavenM2IntegrationTest extends AbstractIntegrationSpec {
     }
 
     def withM2(M2 m2) {
-        def args = ["-Duser.home=${m2.userM2Directory.parentFile.absolutePath}".toString()]
+        def args = ["-d", "-Duser.home=${m2.userM2Directory.parentFile.absolutePath}".toString()]
         if (m2.globalMavenDirectory?.exists()) {
             args << "-DM2_HOME=${m2.globalMavenDirectory.absolutePath}".toString()
         }
