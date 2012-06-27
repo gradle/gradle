@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve.maven
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.MavenRepository
 import org.gradle.util.TestFile
+import static org.hamcrest.Matchers.containsString;
 
 class MavenM2IntegrationTest extends AbstractIntegrationSpec {
     public void "can resolve artifacts from local m2 with undefinded settings.xml"() {
@@ -177,7 +178,7 @@ class MavenM2IntegrationTest extends AbstractIntegrationSpec {
         def failure = runAndFail('retrieve')
 
         then:
-        failure.assertHasDescription("Build aborted because of an internal error");
+        failure.assertThatDescription(containsString("Build aborted because of an internal error"));
     }
 
     def withM2(M2 m2) {
