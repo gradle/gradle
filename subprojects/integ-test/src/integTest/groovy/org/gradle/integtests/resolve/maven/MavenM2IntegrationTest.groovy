@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve.maven
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.MavenRepository
 import org.gradle.util.TestFile
-import org.gradle.integtests.fixtures.ExecutionFailure
 
 class MavenM2IntegrationTest extends AbstractIntegrationSpec {
     public void "can resolve artifacts from local m2 with undefinded settings.xml"() {
