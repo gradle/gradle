@@ -36,3 +36,57 @@ artifact model. This will be a small step toward an independent Gradle model of 
 * Retain current packaging->extension mapping for specific packaging types, and add 'orbit' as a new exception to this mapping.
 * Emit a deprecation warning where packaging != jar and use of packaging->extension mapping gives a different result to type->extension mapping.
 * In 2.0, we will remove the packaging->extension mapping and the deprecation warning
+
+# RedHat finishes porting gradle to fedora
+
+* GRADLE-2210: Migrate to maven 3
+* GRADLE-2238: Use maven 3 classes to locate maven local repository
+* GRADLE-2366: Have mavenLocal() check M2_HOME/conf/settings.xml
+* http://forums.gradle.org/gradle/topics/why_does_maven_deployer_ignore_the_specified_repository
+* http://forums.gradle.org/gradle/topics/crash_when_use_gradle_1_0_rc_1_on_mac_osx_10_7_3
+
+## Description
+
+As part of the effort to include Java software in Fedora (http://fedoraproject.org) we are in the process of building and packaging Gradle.
+One of the issues we have is that Fedora has a very strict requirement: any software in Fedora should be buildable with software already existing in Fedora.
+In order to meet this requirement we are preparing using an ant build script to build a first version of Gradle that we can then to auto-build Gradle.
+
+One of the issues we find with this approach is the following error:
+Caused by: org.gradle.api.internal.artifacts.mvnsettings.CannotLocateLocalMavenRepositoryException: java.lang.NoSuchFieldException: userSettingsFile
+at org.gradle.api.internal.artifacts.mvnsettings.DefaultLocalMavenRepositoryLocator.buildSettings(DefaultLocalMavenRepositoryLocator.java:75)
+
+The Fedora project already has the Maven3 jars available for use in this build, but not the Maven2 jars that we use in the DefaultLocalMavenRepositoryLocator.
+
+## Strategic solution
+
+While a number of Maven2 classes leak out through the Gradle DSL and cannot be immediately replaced/removed, it is a long-term goal to remove these classes from our public
+API. This would allow us to upgrade to use Maven3 classes for various maven/gradle integration points (POM parsing, handling maven-metadata.xml, ...): Maven2 classes are
+very often unsuitable for this purpose.
+
+In order to start using Maven3 classes without removing Maven2 from our API, we can try to use JarJar to provide the Maven3 classes under a different namespace. This
+would allow us to migrate internally to Maven3; with a goal of deprecating and removing Maven2 for Gradle 2.0.
+
+## User visible changes
+
+No intentional user visible change.
+
+## Integration test coverage
+
+We currently have inadequate coverage for mavenLocal repositories, which depend on the LocalMavenRepositoryLocator that is being converted.
+
+The following 'resolve from mavenLocal' happy-day tests would be useful:
+* no settings.xml is defined
+* repo location defined in ~/.m2/settings.xml
+* repo location defined in settings.xml in M2_HOME
+
+And sad-day tests for 'resolve from mavenLocal':
+* repo directory does not exist
+* settings.xml file is invalid
+
+And a test that regular resolve succeeds from http repository when settings.xml is invalid. The local artifact reuse stuff tries to find candidates in mavenLocal.
+
+## Implementation approach
+
+* Implement all of the integration tests
+* Implement m2 repository location with Maven3
+* Use jarjar to repackage the required maven3 classes and include them in the Gradle distro.
