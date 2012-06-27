@@ -18,9 +18,14 @@ package org.gradle.integtests.resolve.maven
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.MavenRepository
 import org.gradle.util.TestFile
-import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.containsString
+import org.junit.Rule
+import org.gradle.util.SetSystemProperties;
 
 class MavenM2IntegrationTest extends AbstractIntegrationSpec {
+
+    @Rule SetSystemProperties sysProp = new SetSystemProperties()
+
     public void "can resolve artifacts from local m2 with undefinded settings.xml"() {
         given:
         def m2 = localM2()
@@ -45,8 +50,7 @@ class MavenM2IntegrationTest extends AbstractIntegrationSpec {
         task retrieve(type: Sync) {
             from configurations.compile
             into 'build'
-        }
-        """
+        }"""
 
         when:
         run 'retrieve'
@@ -87,8 +91,7 @@ class MavenM2IntegrationTest extends AbstractIntegrationSpec {
         task retrieve(type: Sync) {
             from configurations.compile
             into 'build'
-        }
-        """
+        }"""
 
         when:
         withM2(m2)
@@ -130,8 +133,7 @@ class MavenM2IntegrationTest extends AbstractIntegrationSpec {
         task retrieve(type: Sync) {
             from configurations.compile
             into 'build'
-        }
-        """
+        }"""
         when:
         withM2(m2)
         run 'retrieve'
@@ -156,7 +158,6 @@ class MavenM2IntegrationTest extends AbstractIntegrationSpec {
 
         def moduleA = artifactRepo.module('group', 'projectA', '1.2')
         moduleA.publish()
-
         and:
         buildFile << """
         repositories {
@@ -170,8 +171,7 @@ class MavenM2IntegrationTest extends AbstractIntegrationSpec {
         task retrieve(type: Sync) {
             from configurations.compile
             into 'build'
-        }
-        """
+        }"""
 
         when:
         withM2(m2)
@@ -187,6 +187,7 @@ class MavenM2IntegrationTest extends AbstractIntegrationSpec {
             args << "-DM2_HOME=${m2.globalMavenDirectory.absolutePath}".toString()
         }
         executer.withArguments(args)
+        executer.withForkingExecuter()
     }
 
     M2 localM2() {
