@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.externalresource.transport.http;
 
-import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
@@ -64,11 +63,6 @@ public class HttpClientHelper {
         return processResponse(source, "GET", performRawGet(source));
     }
 
-    public HttpRequest configureRequest(HttpRequest request) {
-        configurer.configureMethod(request);
-        return request;
-    }
-
     public HttpResponse performRequest(HttpRequestBase request) {
         String method = request.getMethod();
 
@@ -103,8 +97,6 @@ public class HttpClientHelper {
     }
 
     public HttpResponse performHttpRequest(HttpRequestBase request) throws IOException {
-        configureRequest(request);
-
         // Without this, HTTP Client prohibits multiple redirects to the same location within the same context
         httpContext.removeAttribute(DefaultRedirectStrategy.REDIRECT_LOCATIONS);
 

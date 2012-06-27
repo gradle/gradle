@@ -20,6 +20,7 @@ import org.apache.http.impl.client.DefaultHttpClient
 import org.apache.http.impl.conn.ProxySelectorRoutePlanner
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import spock.lang.Specification
+import org.apache.http.params.HttpProtocolParams
 
 public class HttpClientConfigurerTest extends Specification {
     DefaultHttpClient httpClient = new DefaultHttpClient()
@@ -88,5 +89,21 @@ public class HttpClientConfigurerTest extends Specification {
         ntlmCredentials.userName == 'user'
         ntlmCredentials.password == 'pass'
         ntlmCredentials.workstation != ''
+
+        and:
+        httpClient.getRequestInterceptor(0) instanceof HttpClientConfigurer.PreemptiveAuth
+    }
+
+    def "configures http client with user agent"() {
+        when:
+        httpSettings.credentials >> credentials
+        httpSettings.proxySettings >> proxySettings
+
+        and:
+        def configurer = new HttpClientConfigurer(httpSettings)
+        configurer.configure(httpClient)
+
+        then:
+        HttpProtocolParams.getUserAgent(httpClient.params).startsWith('Gradle')
     }
 }
