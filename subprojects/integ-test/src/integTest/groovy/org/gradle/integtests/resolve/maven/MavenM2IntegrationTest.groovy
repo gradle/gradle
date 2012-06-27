@@ -145,10 +145,56 @@ class MavenM2IntegrationTest extends AbstractIntegrationSpec {
         buildDir.file('projectB-9.1.jar').assertIsCopyOf(moduleB.artifactFile)
     }
 
+    public void "localRepository in user settings take precedence over the localRepository global settings"() {
+        given:
+        def globalRepo = new MavenRepository(file("globalArtifactRepo"))
+        def userRepo = new MavenRepository(file("userArtifactRepo"))
+        def m2 = localM2() {
+            createGlobalSettingsFile(file("global_M2")) << """<settings>
+                            <localRepository>${globalRepo.rootDir.absolutePath}</localRepository>
+                        </settings>"""
+            userSettingsFile << """<settings>
+                                    <localRepository>${userRepo.rootDir.absolutePath}</localRepository>
+                                </settings>"""
+
+        }
+
+        def userModuleA = userRepo.module('group', 'projectA', '1.2')
+        userModuleA.publish()
+
+        def globalModuleA = globalRepo.module('group', 'projectA', '1.2')
+        globalModuleA.publishWithChangedContent() // to ensure that resulting artifact
+                                                  // has different hash than userModuleA.artifactFile
+
+        and:
+        buildFile << """
+            repositories {
+                mavenLocal()
+            }
+            configurations { compile }
+            dependencies {
+                compile 'group:projectA:1.2'
+            }
+
+            task retrieve(type: Sync) {
+                from configurations.compile
+                into 'build'
+            }"""
+        when:
+        withM2(m2)
+        run 'retrieve'
+
+        then:
+        def buildDir = file('build')
+        buildDir.assertHasDescendants('projectA-1.2.jar')
+        buildDir.file('projectA-1.2.jar').assertIsCopyOf(userModuleA.artifactFile)
+    }
+
     /*
      * TODO RG: if settings.xml is invalid gradle fails with "internal error". Maybe we should change this behaviour as
      *          it's not really an "internal" error.
      */
+
     public void "fail if settings.xml is invalid"() {
         given:
         def artifactRepo = new MavenRepository(file("artifactrepo"))
@@ -182,7 +228,7 @@ class MavenM2IntegrationTest extends AbstractIntegrationSpec {
     }
 
     def withM2(M2 m2) {
-        def args = ["-d", "-Duser.home=${m2.userM2Directory.parentFile.absolutePath}".toString()]
+        def args = ["-Duser.home=${m2.userM2Directory.parentFile.absolutePath}".toString()]
         if (m2.globalMavenDirectory?.exists()) {
             args << "-DM2_HOME=${m2.globalMavenDirectory.absolutePath}".toString()
         }
