@@ -18,11 +18,12 @@ package org.gradle.integtests.resolve.maven
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.MavenRepository
 import org.gradle.util.TestFile
+import org.gradle.integtests.fixtures.ExecutionFailure
 
 class MavenM2IntegrationTest extends AbstractIntegrationSpec {
     public void "can resolve artifacts from local m2 with undefinded settings.xml"() {
         given:
-        def m2 = withLocalM2()
+        def m2 = localM2()
 
         def moduleA = m2.mavenRepo().module('group', 'projectA', '1.2')
         def moduleB = m2.mavenRepo().module('group', 'projectB', '9.1')
@@ -30,6 +31,7 @@ class MavenM2IntegrationTest extends AbstractIntegrationSpec {
         moduleB.publish()
 
         and:
+        withM2(m2)
         buildFile << """
         repositories {
             mavenLocal()
@@ -52,39 +54,176 @@ class MavenM2IntegrationTest extends AbstractIntegrationSpec {
         then:
         def buildDir = file('build')
         buildDir.assertHasDescendants('projectA-1.2.jar', 'projectB-9.1.jar')
-        buildDir.file('projectA-1.2.jar').assertIsCopyOf(moduleB.artifactFile)
+        buildDir.file('projectA-1.2.jar').assertIsCopyOf(moduleA.artifactFile)
         buildDir.file('projectB-9.1.jar').assertIsCopyOf(moduleB.artifactFile)
     }
 
-    M2 withLocalM2() {
-        TestFile testUserHomeDir = file("testuserhome")
-        executer.withArguments("-Duser.home=${testUserHomeDir.absolutePath}")
+    public void "can resolve artifacts from local m2 with custom localRepository defined in user settings.xml"() {
+        given:
+        def artifactRepo = new MavenRepository(file("artifactrepo"))
+        def m2 = localM2() {
+            userSettingsFile << """<settings>
+                        <localRepository>${artifactRepo.rootDir.absolutePath}</localRepository>
+                    </settings>"""
+        }
+
+        def moduleA = artifactRepo.module('group', 'projectA', '1.2')
+        def moduleB = artifactRepo.module('group', 'projectB', '9.1')
+        moduleA.publish()
+        moduleB.publish()
+
+        and:
+
+        buildFile << """
+        repositories {
+            mavenLocal()
+        }
+        configurations { compile }
+        dependencies {
+            compile 'group:projectA:1.2'
+            compile 'group:projectB:9.1'
+        }
+
+        task retrieve(type: Sync) {
+            from configurations.compile
+            into 'build'
+        }
+        """
+
+        when:
+        withM2(m2)
+
+        run 'retrieve'
+
+        then:
+        def buildDir = file('build')
+        buildDir.assertHasDescendants('projectA-1.2.jar', 'projectB-9.1.jar')
+        buildDir.file('projectA-1.2.jar').assertIsCopyOf(moduleA.artifactFile)
+        buildDir.file('projectB-9.1.jar').assertIsCopyOf(moduleB.artifactFile)
+    }
+
+    public void "can resolve artifacts from local m2 with custom localRepository defined in global settings.xml"() {
+        given:
+        def artifactRepo = new MavenRepository(file("artifactrepo"))
+        def m2 = localM2() {
+            createGlobalSettingsFile(file("global_M2")) << """<settings>
+                        <localRepository>${artifactRepo.rootDir.absolutePath}</localRepository>
+                    </settings>"""
+        }
+
+        def moduleA = artifactRepo.module('group', 'projectA', '1.2')
+        def moduleB = artifactRepo.module('group', 'projectB', '9.1')
+        moduleA.publish()
+        moduleB.publish()
+
+        and:
+        buildFile << """
+        repositories {
+            mavenLocal()
+        }
+        configurations { compile }
+        dependencies {
+            compile 'group:projectA:1.2'
+            compile 'group:projectB:9.1'
+        }
+
+        task retrieve(type: Sync) {
+            from configurations.compile
+            into 'build'
+        }
+        """
+        when:
+        withM2(m2)
+        run 'retrieve'
+
+        then:
+        def buildDir = file('build')
+        buildDir.assertHasDescendants('projectA-1.2.jar', 'projectB-9.1.jar')
+        buildDir.file('projectA-1.2.jar').assertIsCopyOf(moduleA.artifactFile)
+        buildDir.file('projectB-9.1.jar').assertIsCopyOf(moduleB.artifactFile)
+    }
+
+    /*
+     * TODO RG: if settings.xml is invalid gradle fails with "internal error". Maybe we should change this behaviour as
+     *          it's not really an "internal" error.
+     */
+    public void "fail if settings.xml is invalid"() {
+        given:
+        def artifactRepo = new MavenRepository(file("artifactrepo"))
+        def m2 = localM2() {
+            userSettingsFile << "invalid content"
+        }
+
+        def moduleA = artifactRepo.module('group', 'projectA', '1.2')
+        moduleA.publish()
+
+        and:
+        buildFile << """
+        repositories {
+            mavenLocal()
+        }
+        configurations { compile }
+        dependencies {
+            compile 'group:projectA:1.2'
+        }
+
+        task retrieve(type: Sync) {
+            from configurations.compile
+            into 'build'
+        }
+        """
+
+        when:
+        withM2(m2)
+        def failure = runAndFail('retrieve')
+
+        then:
+        failure.assertHasDescription("Build aborted because of an internal error");
+    }
+
+    def withM2(M2 m2) {
+        def args = ["-Duser.home=${m2.userM2Directory.parentFile.absolutePath}".toString()]
+        if (m2.globalMavenDirectory?.exists()) {
+            args << "-DM2_HOME=${m2.globalMavenDirectory.absolutePath}".toString()
+        }
+        executer.withArguments(args)
+    }
+
+    M2 localM2() {
+        TestFile testUserHomeDir = file("user-home")
         TestFile userM2Dir = testUserHomeDir.file(".m2")
         new M2(userM2Dir)
     }
 
-    M2 withLocalM2(Closure configClosure) {
-        M2 m2 = withLocalM2()
+    M2 localM2(Closure configClosure) {
+        M2 m2 = localM2()
         configClosure.setDelegate(m2)
-        configClosure.setResolveStrategy(Closure.DELEGATE_ONLY)
+        configClosure.setResolveStrategy(Closure.DELEGATE_FIRST)
         configClosure.call()
         m2
     }
 }
 
 class M2 {
-    final TestFile m2Directory
+    final TestFile userM2Directory
+    final TestFile userSettingsFile
+    TestFile globalMavenDirectory = null;
 
     public M2(TestFile m2Directory) {
-        this.m2Directory = m2Directory;
-
+        this.userM2Directory = m2Directory;
+        this.userSettingsFile = m2Directory.file("settings.xml")
     }
 
     MavenRepository mavenRepo() {
-        mavenRepo(m2Directory.file("repository"))
+        mavenRepo(userM2Directory.file("repository"))
     }
 
     MavenRepository mavenRepo(TestFile file) {
         new MavenRepository(file)
+    }
+
+    TestFile createGlobalSettingsFile(TestFile globalMavenDirectory) {
+        this.globalMavenDirectory = globalMavenDirectory;
+        globalMavenDirectory.file("conf/settings.xml").createFile()
     }
 }
