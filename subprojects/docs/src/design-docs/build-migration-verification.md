@@ -22,9 +22,9 @@ In this case, the migration consists of updating the Gradle version from X to Y.
 (but not necessarily), Y will be greater than X. In order to make the migration less risky and more
 predictable, the feature should allow comparison of:
 
-* the artifacts produced by the old and new builds (for example generated archives and their contents)
+* the declared outputs of the old and new builds (for example generated archives and their contents)
 
-* the verification results of the old and new builds (for example executed tests and their results)
+* the verifications performed by the old and new builds (for example executed tests and their results)
 
 * the performance of the old and new builds (for example total build time and maximum heap size)
 
@@ -61,7 +61,7 @@ The feature can be tested by verifying migrations whose outcome is known.
 
 In particular, integration tests should cover the following cases:
 
-* New build produces a different set of artifacts (e.g. different artifact names)
+* New build produces a different set of archives (e.g. different archives names)
 
 * New build produces archive containing different set of files
 
@@ -85,9 +85,14 @@ The user adds the `build-migration` plugin to the build's root project.
 
 The user issues a command like:
 
-    gradlew migrate-build -Dmigrate-from=1.0 -Dmigrate-to=1.1-rc-1
+    gradlew migrate-build from=1.0 to=1.1-rc-1
 
 If `from` is unspecified, the current Gradle version is used.
+
+Note: It should not be necessary to apply a plugin to the build script in order for this to work.
+`from` and `to` should be two parameters of the `migrate-build` task. In order to fulfill these
+requirements, two new Gradle features (implicit application of plugins from the command line
+and task specific command line options) will have to be implemented.
 
 The `migrate-build` task
 
@@ -95,7 +100,7 @@ The `migrate-build` task
 
 * Executes the build with Gradle version `to` (and reconfigured build directory(s))
 
-* Locates the artifacts produced by the builds by way of their `archives` configurations
+* Locates the outputs of the two builds (currently these are defined as the contents of their `archives` configurations)
 
 * Compares the Jar, War, Ear, Zip, and Tar archives produced by the two builds (file paths & contents)
 
