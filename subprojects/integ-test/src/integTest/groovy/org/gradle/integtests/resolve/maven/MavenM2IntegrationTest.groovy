@@ -16,12 +16,16 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.integtests.fixtures.MavenRepository
+import org.gradle.util.SetSystemProperties
 import org.gradle.util.TestFile
-import static org.hamcrest.Matchers.containsString
 import org.junit.Rule
-import org.gradle.util.SetSystemProperties;
+import spock.lang.IgnoreIf
 
+import static org.hamcrest.Matchers.containsString
+
+@IgnoreIf({ GradleDistributionExecuter.systemPropertyExecuter == GradleDistributionExecuter.Executer.daemon})
 class MavenM2IntegrationTest extends AbstractIntegrationSpec {
 
     @Rule SetSystemProperties sysProp = new SetSystemProperties()
