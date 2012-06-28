@@ -90,3 +90,45 @@ And a test that regular resolve succeeds from http repository when settings.xml 
 * Implement all of the integration tests
 * Implement m2 repository location with Maven3
 * Use jarjar to repackage the required maven3 classes and include them in the Gradle distro.
+
+## Dynamic versions work with authenticated repositories
+
+* GRADLE-2318: Repository credentials not used when resolving dynamic versions from an Ivy repository
+
+### Description
+
+We are using org.apache.ivy.util.url.ApacheURLLister to obtain a list of versions from a directory listing, and this code is not using the supplied credentials.
+Thus dependency resolution fails for dynamic versions with and authenticated ivy repository.
+
+### Strategic solution
+
+We should take the opportunity to remove a bit more ivy code from our dependency resolution, and to handle listing of available versions in a more consistent manner
+between ivy/maven and http/filesystem. Longer term it may be useful to be able to recombine these: eg. maven-metadata.xml for listing versions with ivy.xml for module descriptor.
+
+Currently, the ModuleVersionRepository (wraps ivy DependencyResolver) is responsible for choosing the 'best' of all available versions from a single repository.
+Then the DependencyToModuleResolver (UserResolverChain) picks the 'best' version out of the set or repository candidates. Finally the ResolveEngine performs conflict resolution on
+the various versions brought in by different dependencies. It would be good to move toward having all of the candidates in the ResolveEngine and choosing the 'best'
+in one spot. For this story, we could investigate changing ModuleVersionRepository so that it returns the full set of available versions to the DependencyToModuleResolver
+thus removing one of the places where this decision is made.
+This would only apply to our own repository implementations, and not to any native Ivy DependencyResolvers.
+
+### User visible changes
+
+Dynamic versions resolved against an authenticated ivy repository will work. No other changes.
+
+### Integration test coverage
+
+* Add test for Maven dynamic version resolution (transitive dependencies with version range) to MavenRemoteDependencyResolutionIntegrationTest
+* Add test for resolving ivy dynamic version with authentication to HttpAuthenticationDependencyResolutionIntegrationTest
+* Add test for Maven dynamic version and SNAPSHOT resolution with authentication to HttpAuthenticationDependencyResolutionIntegrationTest
+
+### Implementation approach
+
+Remove use of ResolverHelper from ExternalResourceResolver#listVersions. Introduce an API that is able to list available versions for a module,
+that can be backed by maven-metadata.xml, a directory listing, a standard Apache directory listing page, an Artifactory REST listing, etc...
+Implementations should be backed by ExternalResourceAccessor where possible.
+
+Add a method to ModuleVersionRepository that provides the full list of available versions, and implement this directly in ExternalResourceRepository. Need to investigate
+how to handle versions like 'latest.release', that require the full module descriptor in order to choose the 'best'. There is also a 'resolve date' available to
+restrict versions based on publication date: I believe this is always null when resolving through Gradle but we would need to confirm.
+See ExternalResourceRepository#findResourceUsingPatterns() and in particular #findDynamicResourceUsingPattern().
