@@ -200,3 +200,19 @@ It would be good to try to use Maven3 classes to assist with the mapping of [typ
 The IDEDependenciesExtractor will need to continue using type+classifier (until we normalise this for ivy repositories as well).
 
 We cannot deprecate the use of classifier='sources' until we map type='source' for ivy repositories as well.
+
+## Support for kerberos and custom authentication
+
+* GRADLE-2335: Provide the ability to implement a custom HTTP authentication scheme for repository access
+
+## Correct naming of resolved native binaries
+
+* GRADLE-2211: Resolved binary executables and libraries do not use the platform specific naming scheme
+
+## Project dependencies in generated poms use correct artifactIds
+
+* GRADLE-443: Generated POM dependencies do not respect custom artifactIds
+
+## Handle pom-only modules in mavenLocal
+
+* GRADLE-2034: Existence of pom file requires that declared artifacts can be found in the same repository
