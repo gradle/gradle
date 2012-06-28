@@ -94,6 +94,7 @@ And a test that regular resolve succeeds from http repository when settings.xml 
 ## Dynamic versions work with authenticated repositories
 
 * GRADLE-2318: Repository credentials not used when resolving dynamic versions from an Ivy repository
+* GRADLE-2199: IvyArtifactRepository does not handle dynamic artifact versions
 
 ### Description
 
@@ -104,13 +105,6 @@ Thus dependency resolution fails for dynamic versions with and authenticated ivy
 
 We should take the opportunity to remove a bit more ivy code from our dependency resolution, and to handle listing of available versions in a more consistent manner
 between ivy/maven and http/filesystem. Longer term it may be useful to be able to recombine these: eg. maven-metadata.xml for listing versions with ivy.xml for module descriptor.
-
-Currently, the ModuleVersionRepository (wraps ivy DependencyResolver) is responsible for choosing the 'best' of all available versions from a single repository.
-Then the DependencyToModuleResolver (UserResolverChain) picks the 'best' version out of the set or repository candidates. Finally the ResolveEngine performs conflict resolution on
-the various versions brought in by different dependencies. It would be good to move toward having all of the candidates in the ResolveEngine and choosing the 'best'
-in one spot. For this story, we could investigate changing ModuleVersionRepository so that it returns the full set of available versions to the DependencyToModuleResolver
-thus removing one of the places where this decision is made.
-This would only apply to our own repository implementations, and not to any native Ivy DependencyResolvers.
 
 ### User visible changes
 
@@ -128,7 +122,81 @@ Remove use of ResolverHelper from ExternalResourceResolver#listVersions. Introdu
 that can be backed by maven-metadata.xml, a directory listing, a standard Apache directory listing page, an Artifactory REST listing, etc...
 Implementations should be backed by ExternalResourceAccessor where possible.
 
+### Investigation/Possible strategic work
+Currently, the ModuleVersionRepository (wraps ivy DependencyResolver) is responsible for choosing the 'best' of all available versions from a single repository.
+Then the DependencyToModuleResolver (UserResolverChain) picks the 'best' version out of the set or repository candidates. Finally the ResolveEngine performs conflict resolution on
+the various versions brought in by different dependencies. It would be good to move toward having all of the candidates in the ResolveEngine and choosing the 'best'
+in one spot. For this story, we could investigate changing ModuleVersionRepository so that it returns the full set of available versions to the DependencyToModuleResolver
+thus removing one of the places where this decision is made.
+This would only apply to our own repository implementations, and not to any native Ivy DependencyResolvers.
+
 Add a method to ModuleVersionRepository that provides the full list of available versions, and implement this directly in ExternalResourceRepository. Need to investigate
 how to handle versions like 'latest.release', that require the full module descriptor in order to choose the 'best'. There is also a 'resolve date' available to
 restrict versions based on publication date: I believe this is always null when resolving through Gradle but we would need to confirm.
+Not sure if the list of available versions should be _everything_ or just versions that the MVR thinks will match the requested version. Eg for static versions,
+there may not be much point returning the full list of versions.
+We would need to cache the results of the version listing, similar to the way we currently cache the resolution of a Dynamic Version -> Static Version.
 See ExternalResourceRepository#findResourceUsingPatterns() and in particular #findDynamicResourceUsingPattern().
+
+## Allow resolution of java-source and javadoc types from maven repositories (and other types: tests, ejb-client)
+
+* GRADLE-201: Enable support for retrieving source artifacts of a module
+* GRADLE-1444: Sources are not downloaded when dependency is using a classifier
+* GRADLE-2320: Support for multiple artifacts with source jars in Eclipse plugin
+
+### Description
+
+Maven plugins publish various artifact 'types' using well-known naming schemes.
+
+* The maven-source-plugin packages sources for a project into ${name}-sources.jar, and test sources into ${name}-test-sources.jar.
+* The maven-javadoc-plugin packages javadoc for a project into ${name}-javadoc.jar and test code into ${name}-test-javadoc.jar.
+* The maven-ejb-plugin packages the client jar into ${name}-client.jar. This plugin allows dependencies with type='ejb' to reference the standard jar file,
+and dependencies with type='ejb-client' to reference the client jar.
+* The maven-jar plugin creates ${name}-tests.jar when run with the jar:test-jar plugin. This guide: http://maven.apache.org/guides/mini/guide-attached-tests.html states that the
+recommended way to reference the test jar as a dependency is by using type='test-jar'. Using classifier='tests' may also work, but has issues with some other plugins.
+
+An example of a module containing a bunch of permutations is http://repo1.maven.org/maven2/org/codehaus/httpcache4j/httpcache4j-core/2.2/
+
+Currently, the only way to resolve 'source' or 'javadoc' artifacts for a module is by using well-known classifiers ('sources' & 'javadoc'). This means that you need
+to explicitly model these as dependency artifacts, or programmatically add these artifacts (with classifiers) to a detached configuration (see IdeDependenciesExtractor).
+
+Currently, the only way to resolve 'tests' or 'ejb-client' artifacts for a module is by using well-known classifiers.
+
+### Strategic solution
+
+This would be a good opportunity to introduce some stronger typing to our dependency model, and to map to/from the maven model for these artifact/dependency types.
+The proposed model for dependencies is outlined in ./dependency-model.md. A good start would be to explicitly map 'source' and 'javadoc' artifact types to/from the
+maven repository model when resolving.
+
+### User visible changes
+An attempt to resolve a dependency of type 'source' would map to the ${name}-sources.${ext} in the maven repository.
+If a classifier other than 'sources' was on the artifact, then we would try to locate the artifact at ${name}-${classifier}-sources.${ext}.
+
+For backward compatibility, we should continue to honour the current model of locating an artifact of type 'source' with classifier!='sources' via the
+${name}-${classifier}.${ext} pattern, but we should emit a deprecation warning for this behaviour. This will mean that we will be checking 2 locations for such an
+artifact: ${name}-${classifier}.${ext} and ${name}-${classifier}-sources.${ext}. An example where the former is required would be classifier='src', for the latter
+classifier='jdk15' (where jdk15 has a different source jar).
+
+When parsing a maven dependency with type='source' and classifier='sources', we will map this into our artifact model with type='source' and classifier='sources'.
+This will provide a backward-compatible model.
+
+When we reach 2.0, we could:
+i) remove the support for 'source' artifacts with a pattern other than ${name}-${classifier}-sources.${ext}
+ii) stop adding the 'sources' classifier to the Gradle model of artifacts with type='source'.
+
+Additionally:
+* The above changes apply to javadoc artifacts, with type='javadoc' and classifier='javadoc'.
+* The above changes apply to test-jar artifacts, with type='test-jar' and classifier='tests'.
+* The above changes apply to ejb-client artifacts, with type='ejb-client' and classifier='client'.
+
+### Integration test coverage
+
+TBD
+
+### Implementation approach
+
+It would be good to try to use Maven3 classes to assist with the mapping of [type]->URL and [type,classifier]->URL if possible.
+
+The IDEDependenciesExtractor will need to continue using type+classifier (until we normalise this for ivy repositories as well).
+
+We cannot deprecate the use of classifier='sources' until we map type='source' for ivy repositories as well.
