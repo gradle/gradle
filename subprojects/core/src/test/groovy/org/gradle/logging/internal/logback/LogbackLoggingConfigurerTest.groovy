@@ -197,28 +197,53 @@ class LogbackLoggingConfigurerTest extends Specification {
         0 * _
     }
 
-    def "respects a per-logger log level that is more restrictive than the global Gradle log level"() {
+    def "respects per-logger log level if either logger log level or event log level is one of OFF, ERROR, DEBUG, TRACE"() {
+        configurer.configure(LogLevel.INFO)
+        logger.level = Level.DEBUG
+
+        when:
+        logger.debug("message")
+
+        then:
+        1 * listener._
+
+        when:
+        logger.level = Level.ERROR
+        logger.warn("message")
+
+        then:
+        0 * listener._
+    }
+
+    def "respects per-logger log level if both logger log level and event log level are WARN"() {
+        configurer.configure(LogLevel.ERROR)
+        logger.level = Level.WARN
+
+        when:
+        logger.warn("message")
+
+        then:
+        1 * listener._
+    }
+
+    // More a limitation than a feature, although it might not matter much for Gradle, where individual
+    // loggers usually don't have a log level set.
+    def "does not respect per-logger log level if either logger log level or event log level is one of INFO, LIFECYCLE, WARN, QUIET"() {
         configurer.configure(LogLevel.INFO)
         logger.level = Level.WARN
 
         when:
-        logger.info("info message")
+        logger.info("message")
 
         then:
-        0 * _
-    }
-
-    // More a limitation than a feature, although it might not matter much for Gradle, where individual
-    // loggers usually don't have a log level set. Fixing this would require some thoughts on how to
-    // handle the INFO/LIFECYCLE/QUIET case.
-    def "does not respect a per-logger log level that is more relaxed than the global Gradle log level"() {
-        configurer.configure(LogLevel.WARN)
-        logger.level = Level.INFO
+        1 * listener._
 
         when:
-        logger.info("info message")
+        configurer.configure(LogLevel.WARN)
+        logger.level = Level.INFO
+        logger.info("message")
 
         then:
-        0 * _
+        0 * listener._
     }
 }

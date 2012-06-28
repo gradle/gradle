@@ -105,8 +105,18 @@ public class LogbackLoggingConfigurer implements LoggingConfigurer {
     private class GradleFilter extends TurboFilter {
         @Override
         public FilterReply decide(Marker marker, Logger logger, Level level, String format, Object[] params, Throwable t) {
-            LogLevel eventLevel = LogLevelConverter.toGradleLogLevel(level, marker);
-            return eventLevel != null && eventLevel.compareTo(currentLevel) >= 0 ? FilterReply.NEUTRAL : FilterReply.DENY;
+            Level loggerLevel = logger.getEffectiveLevel();
+            if (loggerLevel == Level.INFO && (level == Level.INFO || level == Level.WARN)
+                    || level == Level.INFO && (loggerLevel == Level.INFO || loggerLevel == Level.WARN)) {
+                // Need to take into account Gradle's LIFECYCLE and QUIET markers. Whether those are set can only be determined
+                // for the global log level, but not for the logger's log level (at least not without walking the logger's
+                // hierarchy, which is something that Logback is designed to avoid for performance reasons).
+                // Hence we base our decision on the global log level.
+                LogLevel eventLevel = LogLevelConverter.toGradleLogLevel(level, marker);
+                return eventLevel.compareTo(currentLevel) >= 0 ? FilterReply.ACCEPT : FilterReply.DENY;
+            }
+
+            return level.isGreaterOrEqual(loggerLevel) ? FilterReply.ACCEPT : FilterReply.DENY;
         }
     }
 
