@@ -16,6 +16,7 @@
 package org.gradle.logging.internal.logback
 
 import ch.qos.logback.classic.LoggerContext
+import ch.qos.logback.classic.Level
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logging
 import org.gradle.logging.internal.OutputEventListener
@@ -175,5 +176,49 @@ class LogbackLoggingConfigurerTest extends Specification {
         1 * listener.onOutput({it.message == 'warn' && it.logLevel == LogLevel.WARN})
         1 * listener.onOutput({it.message == 'error' && it.logLevel == LogLevel.ERROR})
         0 * listener._
+    }
+
+    def "turns off Apache HTTP wire logging"() {
+        def wireLogger = LoggerFactory.getLogger("org.apache.http.wire")
+        configurer.configure(LogLevel.DEBUG)
+
+        when:
+        wireLogger.debug("debug message")
+
+        then:
+        0 * _
+
+        // check that changing log level doesn't reactivate wire logging
+        when:
+        configurer.configure(LogLevel.INFO)
+        wireLogger.info("info message")
+
+        then:
+        0 * _
+    }
+
+    def "respects a per-logger log level that is more restrictive than the global Gradle log level"() {
+        configurer.configure(LogLevel.INFO)
+        logger.level = Level.WARN
+
+        when:
+        logger.info("info message")
+
+        then:
+        0 * _
+    }
+
+    // More a limitation than a feature, although it might not matter much for Gradle, where individual
+    // loggers usually don't have a log level set. Fixing this would require some thoughts on how to
+    // handle the INFO/LIFECYCLE/QUIET case.
+    def "does not respect a per-logger log level that is more relaxed than the global Gradle log level"() {
+        configurer.configure(LogLevel.WARN)
+        logger.level = Level.INFO
+
+        when:
+        logger.info("info message")
+
+        then:
+        0 * _
     }
 }

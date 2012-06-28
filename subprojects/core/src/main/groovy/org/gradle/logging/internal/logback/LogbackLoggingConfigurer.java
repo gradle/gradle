@@ -106,7 +106,7 @@ public class LogbackLoggingConfigurer implements LoggingConfigurer {
         @Override
         public FilterReply decide(Marker marker, Logger logger, Level level, String format, Object[] params, Throwable t) {
             LogLevel eventLevel = LogLevelConverter.toGradleLogLevel(level, marker);
-            return eventLevel != null && eventLevel.compareTo(currentLevel) >= 0 ? FilterReply.ACCEPT : FilterReply.DENY;
+            return eventLevel != null && eventLevel.compareTo(currentLevel) >= 0 ? FilterReply.NEUTRAL : FilterReply.DENY;
         }
     }
 
