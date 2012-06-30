@@ -259,12 +259,15 @@ model of the project, there would still be no convenient way to reference this a
 
 ### Integration test coverage
 
-* Multi-module build with projectA (maven) publishing to MavenRepo and projectB (maven) having a dependency on projectA. For each case check resolution, as well as published POM for projectB.
-    * projectA with modified archivesBaseName (GRADLE-443)
-    * projectA with additional artifact given classifier
-    * projectA with additional artifact given different name
-    * projectA with multiple artifacts: name1, name1:classifier, name2, name2:classifier (see MavenProjectIntegrationTest#"can publish multiple deployments with attached artifacts"())
-* Similar coverage for mavenProjectB depending on publications from ivyProjectA (with multiple artifacts, using archivesBaseName, etc)
+* Publication of an ivy project with multiple artifacts for a single configuration
+* Publication of an ivy project with multiple artifacts in separate configurations
+* Multi-module build with projectA publishing and projectB having a dependency on projectA. For each case check resolution, as well as published metadata for projectA & projectB.
+Try maven publication for projectA & projectB as well as ivy publication for projectA & projectB. Possibly a combination?
+    * With no modification to publication coordinates: should work for maven & ivy
+    * projectA with modified archivesBaseName: will fail for Maven (GRADLE-443)
+    * projectA with additional artifact given classifier: should work for maven & ivy
+    * projectA with additional artifact given different name: should work for ivy, not possible in maven
+    * projectA with multiple publish configurations: projectB depends on 1 or both
 * MavenPublishRespectsPomConfigurationTest exposes the bug, but this proposal will not solve that exact use case: modifying published artifactId directly on POM. Should remove/update
 this ignored test.
 
