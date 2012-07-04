@@ -63,9 +63,9 @@ class LoggingBridgingGradleLauncherActionExecuterTest extends Specification {
     def "sets log level accordingly"() {
         given:
         loggingManagerFactory.create() >> loggingManager
+        parameters.getBuildLogLevel() >> LogLevel.QUIET
 
         when:
-        parameters.getBuildLogLevel() >> LogLevel.QUIET
         executer.execute(action, parameters)
         
         then:

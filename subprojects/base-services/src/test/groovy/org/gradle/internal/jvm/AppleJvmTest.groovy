@@ -60,7 +60,7 @@ class AppleJvmTest extends Specification {
     }
 
     def "finds executable if java home supplied"() {
-        when:
+        given:
         def home = tmpDir.createDir("home")
         home.create {
             bin { file 'java' }
@@ -69,8 +69,8 @@ class AppleJvmTest extends Specification {
 
         AppleJvm jvm = new AppleJvm(os, home)
 
-        then:
-        home.file('bin/java').absolutePath == jvm.getExecutable('java').absolutePath
+        expect:
+        jvm.getExecutable('java').absolutePath == home.file('bin/java').absolutePath
     }
 
     def "provides decent feedback when executable not found"() {

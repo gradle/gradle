@@ -27,14 +27,13 @@ public class HttpClientConfigurerTest extends Specification {
     PasswordCredentials credentials = Mock()
     HttpSettings httpSettings = Mock()
     HttpProxySettings proxySettings = Mock()
+    HttpClientConfigurer configurer = new HttpClientConfigurer(httpSettings)
     
     def "configures http client with no credentials or proxy"() {
-        when:
         httpSettings.credentials >> credentials
         httpSettings.proxySettings >> proxySettings
 
-        and:
-        def configurer = new HttpClientConfigurer(httpSettings)
+        when:
         configurer.configure(httpClient)
         
         then:
@@ -43,13 +42,11 @@ public class HttpClientConfigurerTest extends Specification {
     }
     
     def "configures http client with proxy credentials"() {
-        when:
         httpSettings.credentials >> credentials
         httpSettings.proxySettings >> proxySettings
         proxySettings.proxy >> new HttpProxySettings.HttpProxy("host", 1111, "domain/proxyUser", "proxyPass")
 
-        and:
-        def configurer = new HttpClientConfigurer(httpSettings)
+        when:
         configurer.configure(httpClient)
 
         then:
@@ -67,14 +64,12 @@ public class HttpClientConfigurerTest extends Specification {
     }
 
     def "configures http client with credentials"() {
-        when:
         httpSettings.credentials >> credentials
         credentials.username >> "domain/user"
         credentials.password >> "pass"
         httpSettings.proxySettings >> proxySettings
 
-        and:
-        def configurer = new HttpClientConfigurer(httpSettings)
+        when:
         configurer.configure(httpClient)
 
         then:
@@ -95,12 +90,10 @@ public class HttpClientConfigurerTest extends Specification {
     }
 
     def "configures http client with user agent"() {
-        when:
         httpSettings.credentials >> credentials
         httpSettings.proxySettings >> proxySettings
 
-        and:
-        def configurer = new HttpClientConfigurer(httpSettings)
+        when:
         configurer.configure(httpClient)
 
         then:

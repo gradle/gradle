@@ -98,9 +98,9 @@ class FindBugsTest extends Specification {
     def "missingClassCount > 0 does not cause failing FindBugsTask"() {
         setup:
         FindBugsResult result = Mock(FindBugsResult)
-        when:
         result.missingClassCount >> 1
-        then:
+
+        expect:
         findbugs.evaluateResult(result);
     }
 }

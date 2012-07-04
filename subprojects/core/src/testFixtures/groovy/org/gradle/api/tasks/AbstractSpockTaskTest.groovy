@@ -204,10 +204,10 @@ public abstract class AbstractSpockTaskTest extends Specification {
         task.getOnlyIf().isSatisfiedBy(task)
 
         when:
-        spec.isSatisfiedBy(task) >> false
         task.onlyIf(spec);
 
         then:
+        spec.isSatisfiedBy(task) >> false
         assertFalse(task.getOnlyIf().isSatisfiedBy(task));
     }
 
@@ -290,13 +290,10 @@ public abstract class AbstractSpockTaskTest extends Specification {
         TaskDependency dependencyMock = Mock()
         getTask().dependsOn(dependencyMock)
         dependencyMock.getDependencies(getTask()) >> [task1, task2] 
-
-        when:
         task1.getDidWork() >> false
         task2.getDidWork() >>> [false, true]
 
-
-        then:
+        expect:
         !getTask().dependsOnTaskDidWork()
         getTask().dependsOnTaskDidWork()
     }
