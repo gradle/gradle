@@ -225,36 +225,17 @@ of the POM files to reference in the case of a project dependency.
 
 ### Strategic solution
 
-It would be great if when resolving a project dependency we could simply inspect the artifacts declared by the project. Currently, the MavenDeployer pays no heed to
-the name or other attributes attached to uploaded artifacts: mapping to a maven repository needs to be done via the addFilter() method on MavenDeployer.
+The end-goal would be to replace the use of MavenDeployer with our nascent publication DSL.
 
-It would be a step forward if mavenDeployer took into account the 'name' of an artifact, and created a separate artifact POM for every
-artifact name. Thus, all artifacts with the same name would be published in the same POM, artifacts with different names would be published in separate POMs.
-The archivesBaseName parameter would be still be used to name the underlying artifact, and thus be used in POM publication.
-
-We would be introducing a clear rule for mapping Gradle projects to Maven publications: artifact-name => artifactId in the GAV. Since artifact-name == module-name by default,
-this would not change the existing behaviour, except where the artifact-name is explicitly specified.
-
-It would then be possible to manage project dependencies by inspecting the published artifacts of a project, creating dependencies on those published artifacts.
+However, a useful step would be to simply add some integration test coverage for multi-project publish/consume,
+and fix the bug for the case where the module artifact is renamed via archivesBaseName.
 
 ### User-visible changes and backward-compatibility issues
 
-This change would introduce new (improved) behaviour, that would be a break in backward-compatibility in some edge cases:
+When archivesBaseName is specified for a project, the published artifacts will use that value when creating a POM artifactId. And when a project dependency is made to
+such a project, generated POM dependencies will also use the same artifactId.
 
-* If a single artifact is given a different name, MavenDeployer currently publishes with the project name. New behaviour would be to publish using the artifact name as artifactId.
-* If a second artifact is given a different name but no classifier, MavenDeployer fails to publish. New behaviour would be to publish with a different artifactId.
-* If an artifact is given a different classifier but no name, MavenDeployer will publish with the project artifactId using the classifier. This behaviour would remain the same.
-* If an artifact is given a different name and different classifier, MavenDeployer will publish with the project artifactId using the classifier. New behaviour would be to publish
-with a different artifactId using the classifier. This would break compatibility. We could continue to honour the old behaviour, but I think this would be surprising to users.
-
-* When a project publishes multiple artifacts (with different names/artifactIds), the new behaviour could/would be to map a project dependency to all published artifacts. This
-would be a change from the current behaviour, where we map a project dependency to the project name, disregarding any published artifacts.
-* When a project publishes an artifact with a name different from the project name, a project dependency would map to the published (renamed) artifact. This would fix the bug described.
-
-* With the combined changes to publication and resolution of project dependencies, all builds that currently work should continue to function correctly. It is the resultant state of the
-maven repository that would be slightly different.
-
-* If the artifactId is specified directly on the POM within the MavenDeployer, we would continue to publish with the explicit artifactId. Since this would not modify the artifact
+If the artifactId is specified directly on the POM within the MavenDeployer, we would continue to publish with the explicit artifactId. Since this would not modify the artifact
 model of the project, there would still be no convenient way to reference this artifact as a project dependency.
 
 ### Integration test coverage
@@ -273,10 +254,11 @@ this ignored test.
 
 ### Implementation approach
 
-* Modify MavenDeployer to take artifact name into account when publishing if no POM filters have been established. This might be as simple as setting up some pom filters automatically,
-and applying the necessary pom modifications.
-* Modify PublishModuleDescriptorConverter (ProjectDependencyDescriptorFactory) so that it takes the declared artifacts from a project into account when creating a
-published descriptor for a project dependency.
+* Add an experimental extension to project that provides the publish coordinates for a project. The publish coordinates for a non-maven project will be the group:projectId:version.
+    * At a later point we'll add publish coordinates per-configuration, but for now per-project will suffice.
+* The maven plugin will update the publish coordinates to be group:archivesBaseName:version
+    * MavenDeployer already uses archivesBaseName when publishing, so no change needed to publication
+* Modify PublishModuleDescriptorConverter (ProjectDependencyDescriptorFactory) so that it uses the publish coordinates of a project when creating a published descriptor for a project dependency.
 
 ## Support for kerberos and custom authentication
 
@@ -290,3 +272,6 @@ published descriptor for a project dependency.
 
 * GRADLE-2034: Existence of pom file requires that declared artifacts can be found in the same repository
 * GRADLE-2369: Dependency resolution fails for mavenLocal(), mavenCentral() if artifact partially in mavenLocal()
+
+
+GRADLE-2175/GRADLE-2218/GRADLE-2364
