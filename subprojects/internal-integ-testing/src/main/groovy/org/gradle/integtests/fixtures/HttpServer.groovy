@@ -15,7 +15,6 @@
  */
 package org.gradle.integtests.fixtures
 
-import junit.framework.AssertionFailedError
 import org.gradle.util.hash.HashUtil
 import org.junit.rules.ExternalResource
 import org.mortbay.jetty.handler.AbstractHandler
@@ -495,7 +494,7 @@ server state: ${server.dump()}
 
         void assertMet() {
             if (!run) {
-                throw new AssertionFailedError("Expected HTTP request not received: ${methods.size() == 1 ? methods[0] : methods} $path and $action.displayName")
+                throw new AssertionError("Expected HTTP request not received: ${methods.size() == 1 ? methods[0] : methods} $path and $action.displayName")
             }
         }
     }

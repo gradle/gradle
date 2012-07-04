@@ -17,7 +17,6 @@
 package org.gradle.plugins.ide.idea
 
 import java.util.regex.Pattern
-import junit.framework.AssertionFailedError
 import org.custommonkey.xmlunit.Diff
 import org.custommonkey.xmlunit.ElementNameAndAttributeQualifier
 import org.custommonkey.xmlunit.XMLAssert
@@ -349,13 +348,13 @@ apply plugin: "idea"
         diff.overrideElementQualifier(new ElementNameAndAttributeQualifier())
         try {
             XMLAssert.assertXMLEqual(diff, true)
-        } catch (AssertionFailedError e) {
+        } catch (AssertionError e) {
             if (OperatingSystem.current().unix) {
                 def process = ["diff", expectedFile.absolutePath, file.absolutePath].execute()
                 process.consumeProcessOutput(System.out, System.err)
                 process.waitFor()
             }
-            throw new AssertionFailedError("generated file '$path' does not contain the expected contents: ${e.message}.\nExpected:\n${expectedXml}\nActual:\n${actualXml}").initCause(e)
+            throw new AssertionError("generated file '$path' does not contain the expected contents: ${e.message}.\nExpected:\n${expectedXml}\nActual:\n${actualXml}").initCause(e)
         }
     }
 

@@ -15,7 +15,6 @@
  */
 package org.gradle.integtests.openapi
 
-import junit.framework.AssertionFailedError
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.openapi.external.runner.GradleRunnerFactory
@@ -89,7 +88,7 @@ class GradleRunnerTest {
     }
 
     if( totalWaitTime > maximumWaitTime ) {
-      throw new AssertionFailedError( "Waited $totalWaitTime seconds and failed to finish executing command. This is taking too long, so assuming something is wrong.\n. Interaction: $interaction" )
+      throw new AssertionError( "Waited $totalWaitTime seconds and failed to finish executing command. This is taking too long, so assuming something is wrong.\n. Interaction: $interaction" )
     }
 
     //now make sure we were notified of things correctly:
@@ -150,7 +149,7 @@ class GradleRunnerTest {
     }
 
     if( totalWaitTime > maximumWaitTime ) {
-      throw new AssertionFailedError( "Waited $totalWaitTime seconds and failed to finish executing command. This is taking too long, so assuming something is wrong.\nInteraction: $interaction")
+      throw new AssertionError( "Waited $totalWaitTime seconds and failed to finish executing command. This is taking too long, so assuming something is wrong.\nInteraction: $interaction")
     }
 
     //make sure we tried to kill the task

@@ -16,7 +16,6 @@
 package org.gradle.foundation;
 
 import junit.framework.TestCase;
-import junit.framework.AssertionFailedError;
 import org.gradle.foundation.output.FileLink;
 import org.gradle.foundation.output.FileLinkDefinitionLord;
 import org.gradle.foundation.output.LiveOutputParser;
@@ -70,7 +69,7 @@ public class LiveOutputParserTests extends TestCase {
     private void appendTextWithoutFileLinks(String text) {
         List<FileLink> fileLinks = parser.appendText(text);
         if (!fileLinks.isEmpty()) {
-            throw new AssertionFailedError("FileLinks list is erroneously not empty: " + TestUtility.dumpList(fileLinks));
+            throw new AssertionError("FileLinks list is erroneously not empty: " + TestUtility.dumpList(fileLinks));
         }
     }
 

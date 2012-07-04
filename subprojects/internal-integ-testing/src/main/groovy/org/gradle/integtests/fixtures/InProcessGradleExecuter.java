@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.fixtures;
 
-import junit.framework.AssertionFailedError;
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.GradleLauncher;
@@ -82,7 +81,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         BuildListenerImpl buildListener = new BuildListenerImpl();
         try {
             doRun(outputListener, errorListener, buildListener).rethrowFailure();
-            throw new AssertionFailedError("expected build to fail but it did not.");
+            throw new AssertionError("expected build to fail but it did not.");
         } catch (GradleException e) {
             return new InProcessExecutionFailure(buildListener.executedTasks, buildListener.skippedTasks,
                     outputListener.writer.toString(), errorListener.writer.toString(), e);

@@ -16,7 +16,6 @@
 package org.gradle.integtests.fixtures
 
 import java.util.regex.Pattern
-import junit.framework.AssertionFailedError
 
 import org.gradle.util.TestFile
 import org.gradle.util.hash.HashUtil
@@ -281,7 +280,7 @@ class IvyConfiguration {
     void assertDependsOn(String org, String module, String revision) {
         def dep = [org: org, module: module, revision: revision]
         if (!dependencies.find { it == dep}) {
-            throw new AssertionFailedError("Could not find expected dependency $dep. Actual: $dependencies")
+            throw new AssertionError("Could not find expected dependency $dep. Actual: $dependencies")
         }
     }
 }
