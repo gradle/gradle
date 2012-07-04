@@ -355,7 +355,7 @@ class MavenScope {
     void assertDependsOn(String groupId, String artifactId, String version) {
         def dep = [groupId: groupId, artifactId: artifactId, version: version]
         if (!dependencies.find { it == dep }) {
-            throw new AssertionFailedError("Could not find expected dependency $dep. Actual: $dependencies")
+            throw new AssertionError("Could not find expected dependency $dep. Actual: $dependencies")
         }
     }
 }
