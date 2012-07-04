@@ -260,6 +260,54 @@ this ignored test.
     * MavenDeployer already uses archivesBaseName when publishing, so no change needed to publication
 * Modify PublishModuleDescriptorConverter (ProjectDependencyDescriptorFactory) so that it uses the publish coordinates of a project when creating a published descriptor for a project dependency.
 
+## Expiring of changing module artifacts from cache is inadequate in some cases, overly aggressive in others
+
+* GRADLE-2175: Snapshot dependencies with sources/test classifier are not considered 'changing'
+* GRADLE-2364: Cannot run build with --offline after attempting build with a broken repository
+
+### Description
+
+When it's time to update a changing module, we expire the module descriptor and all artifact entries from the cache. The mechanism to do so it quite naive:
+
+1. We lookup the module descriptor in the cache for the repository, and determine if it needs updating (should be expired)
+2. If so, we iterate over all artifacts declared by the module descriptor and remove the cache entry for each artifact. The artifact files remain, but the repository reference is removed.
+3. When resolving artifacts we do not consider if the owning module is changing or not, we assume if the artifact is available then it is up-to-date.
+
+This leads to a couple of issues:
+* Sometimes the module descriptor does not declare all of the artifacts that have been cached (eg source/javadoc artifacts). These are then not expired, and will never be updated (GRADLE-2175).
+* If we fail to resolve the changing module (eg broken repository) then we have already removed the module+artifacts from the cache, so they are not available for --offline builds. (GRADLE-2364)
+
+### Strategic solution
+
+Once we've found a module in the cache, we should not need to search the cache for each artifact that is attached to that module. Instead, we could store a reference to each
+cached artifact with the cached module. Then when we are resolving the artifact file we would lookup the cached module and use that to locate the cached artifact file,
+instead of searching for the artifact file directly. When an artifact file is downloaded, the cache entry for that file would be attached to the cached module descriptor, rather
+than referencing the cached artifact as a separate entity.
+
+Doing this would allow a cached module to be managed as a single unit. Removing the cached module would automatically remove all cached artifact references, and it would be easy
+to delay this removal until the module was successfully resolved from a repository.
+
+Taking this a little further, if the ModuleDescriptor returned from the cache was able to hold some reference to it's cached entry, it could be used directly when resolving artifact
+files, rather than requiring that it be looked up again for each artifact. This would require we switch from using org.apache.ivy.ModuleDescriptor as our internal module representation,
+to use a richer module model that would allow us to retain cache references throughout the resolve process.
+
+As this change would require an update to the cache storage layout, this might be a good opportunity to separate the Gradle filestore (non-binary, stable) from the rest of the
+cache storage (binary, unstable).
+
+### User-visible changes and backward-compatibility issues
+
+* Beside the bugfixes for changing module caching, no user-visible change to cache behaviour.
+* New cached module format means updated cache version, requiring artifacts to be re-downloaded where no SHA1 keys are published.
+* Since org.apache.ivy.ModuleDescriptor is not part of our public API (except via ivy DependencyResolver), any change to using this internally should not impact users.
+
+### Integration test coverage
+
+TBD
+
+### Implementation approach
+
+TBD
+
 ## Support for kerberos and custom authentication
 
 * GRADLE-2335: Provide the ability to implement a custom HTTP authentication scheme for repository access
@@ -272,6 +320,3 @@ this ignored test.
 
 * GRADLE-2034: Existence of pom file requires that declared artifacts can be found in the same repository
 * GRADLE-2369: Dependency resolution fails for mavenLocal(), mavenCentral() if artifact partially in mavenLocal()
-
-
-GRADLE-2175/GRADLE-2218/GRADLE-2364
