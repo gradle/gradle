@@ -58,7 +58,7 @@ public abstract class EncodedStream {
             if (s >= 'a' && s <= 'f') {
                 return s - 'a' + 10;
             }
-            throw new IOException("Unexpected value %s received. It seems the stream was not encoded correctly.");
+            throw new IOException(String.format("Unexpected value %s received. It seems the stream was not encoded correctly.", s));
         }
     }
 
