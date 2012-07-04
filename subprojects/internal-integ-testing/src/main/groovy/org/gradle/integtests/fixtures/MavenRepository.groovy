@@ -16,7 +16,6 @@
 package org.gradle.integtests.fixtures
 
 import java.text.SimpleDateFormat
-import junit.framework.AssertionFailedError
 
 import org.gradle.util.TestFile
 import org.gradle.util.hash.HashUtil
