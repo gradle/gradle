@@ -116,10 +116,18 @@ public class DefaultIvyDependencyPublisher implements IvyDependencyPublisher {
 
         private void checkArtifactFileExists(Artifact artifact, File artifactFile) {
             if (!artifactFile.exists()) {
+                // TODO:DAZ This hack is required so that we don't log a warning when the Signing plugin is used. We need to allow conditional configurations so we can remove this.
+                if (isSigningArtifact(artifact)) {
+                    return;
+                }
                 String message = String.format("Attempted to publish an artifact that does not exist. File '%s' for artifact %s does not exist.\n"
                         + "Relying on this behaviour is deprecated: in a future release of Gradle this build will fail.", artifactFile, artifact.getModuleRevisionId());
                 DeprecationLogger.nagUserWith(message);
             }
+        }
+
+        private boolean isSigningArtifact(Artifact artifact) {
+            return artifact.getType().endsWith(".asc") || artifact.getType().endsWith(".sig");
         }
 
         private Set<Artifact> getAllArtifacts(ModuleDescriptor moduleDescriptor) {

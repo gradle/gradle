@@ -41,8 +41,6 @@ class SigningSamplesSpec extends AbstractIntegrationSpec {
         sample mavenSample
 
         when:
-        // TODO:DAZ Fix the deprecation warning emitted from this sample
-        executer.withDeprecationChecksDisabled()
         run "uploadArchives"
 
         then:

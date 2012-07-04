@@ -46,8 +46,6 @@ class NoSigningCredentialsIntegrationSpec extends SigningIntegrationSpec {
         """ << uploadArchives() << signDeploymentPom()
 
         then:
-        // TODO:DAZ Fix the deprecation warning emitted here
-        executer.withDeprecationChecksDisabled()
         succeeds ":uploadArchives"
 
         and:
