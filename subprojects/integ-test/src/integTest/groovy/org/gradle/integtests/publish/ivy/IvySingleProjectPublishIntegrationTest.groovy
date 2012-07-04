@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.IvyRepository
 
 class IvySingleProjectPublishIntegrationTest extends AbstractIntegrationSpec {
     def "publish multiple artifacts in single configuration"() {
-        file("settings.gradle") << "rootProject.name = 'publishTest'"
+        settingsFile << "rootProject.name = 'publishTest'"
         file("file1") << "some content"
         file("file2") << "other content"
 
