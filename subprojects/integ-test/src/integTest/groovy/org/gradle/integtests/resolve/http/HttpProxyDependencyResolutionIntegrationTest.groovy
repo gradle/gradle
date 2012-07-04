@@ -142,7 +142,6 @@ task listJars << {
         server.expectGet('/repo/group/projectA/1.2/projectA-1.2.jar', 'targetUser', 'targetPassword', module.jarFile)
 
         then:
-        executer.withDeprecationChecksDisabled()
         succeeds('listJars')
 
         and:
