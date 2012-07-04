@@ -157,7 +157,7 @@ class IvyModule {
         return this
     }
 
-    private TestFile file(def artifact) {
+    private TestFile file(artifact) {
         return moduleDir.file("${artifact.name}-${revision}${artifact.classifier ? '-' + artifact.classifier : ''}.${artifact.type}")
     }
 
@@ -187,7 +187,7 @@ class IvyModule {
         assert sha1File.text == getHash(testFile, "SHA1")
     }
 
-    public String getHash(File file, String algorithm) {
+    String getHash(File file, String algorithm) {
         return HashUtil.createHash(file, algorithm).asHexString()
     }
 
@@ -195,53 +195,54 @@ class IvyModule {
         return new IvyDescriptor(ivyFile)
     }
 
-    public expectIvyHead(HttpServer server, prefix = null) {
+    def expectIvyHead(HttpServer server, prefix = null) {
         server.expectHead(ivyPath(prefix), ivyFile)
     }
 
-    public expectIvyGet(HttpServer server, prefix = null) {
+    def expectIvyGet(HttpServer server, prefix = null) {
         server.expectGet(ivyPath(prefix), ivyFile)
     }
 
-    public ivyPath(prefix = null) {
+    def ivyPath(prefix = null) {
         path(prefix, ivyFile.name)
     }
 
-    public expectIvySha1Get(HttpServer server, prefix = null) {
+    def expectIvySha1Get(HttpServer server, prefix = null) {
         server.expectGet(ivySha1Path(prefix), sha1File(ivyFile))
     }
 
-    public ivySha1Path(prefix = null) {
+    def ivySha1Path(prefix = null) {
         ivyPath(prefix) + ".sha1"
     }
 
-    public expectArtifactHead(HttpServer server, prefix = null) {
+    def expectArtifactHead(HttpServer server, prefix = null) {
         server.expectHead(artifactPath(prefix), jarFile)
     }
 
-    public expectArtifactGet(HttpServer server, prefix = null) {
+    def expectArtifactGet(HttpServer server, prefix = null) {
         server.expectGet(artifactPath(prefix), jarFile)
     }
 
-    public artifactPath(prefix = null) {
+    def artifactPath(prefix = null) {
         path(prefix, jarFile.name)
     }
 
-    public expectArtifactSha1Get(HttpServer server, prefix = null) {
+    def expectArtifactSha1Get(HttpServer server, prefix = null) {
         server.expectGet(artifactSha1Path(prefix), sha1File(jarFile))
     }
 
-    public artifactSha1Path(prefix = null) {
+    def artifactSha1Path(prefix = null) {
         artifactPath(prefix) + ".sha1"
     }
 
-    public path(prefix = null, String filename) {
+    def path(prefix = null, String filename) {
         "${prefix == null ? "" : prefix}/${organisation}/${module}/${revision}/${filename}"
     }
 }
 
 class IvyDescriptor {
     final Map<String, IvyConfiguration> configurations = [:]
+    Map<String, IvyArtifact> artifacts = [:]
 
     IvyDescriptor(File ivyFile) {
         def ivy = new XmlParser().parse(ivyFile)
@@ -258,6 +259,15 @@ class IvyDescriptor {
             }
             config.addDependency(dep.@org, dep.@name, dep.@rev)
         }
+        ivy.publications.artifact.each { artifact ->
+            def ivyArtifact = new IvyArtifact(name: artifact.@name, type: artifact.@type, ext: artifact.@ext, conf: artifact.@conf.split(",") as List)
+            artifacts.put(ivyArtifact.name, ivyArtifact)
+        }
+    }
+
+    IvyArtifact expectArtifact(String name) {
+        assert artifacts.containsKey(name)
+        artifacts[name]
     }
 }
 
@@ -274,4 +284,11 @@ class IvyConfiguration {
             throw new AssertionFailedError("Could not find expected dependency $dep. Actual: $dependencies")
         }
     }
+}
+
+class IvyArtifact {
+    String name
+    String type
+    String ext
+    List<String> conf
 }
