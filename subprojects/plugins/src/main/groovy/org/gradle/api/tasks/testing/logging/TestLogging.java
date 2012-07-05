@@ -23,13 +23,13 @@ import java.util.Set;
 /**
  * Options that determine which test events get logged, and at which detail.
  */
-@Experimental
 public interface TestLogging extends org.gradle.api.tasks.testing.TestLogging {
     /**
      * Returns the events to be logged.
      *
      * @return the events to be logged
      */
+    @Experimental
     Set<TestLogEvent> getEvents();
 
     /**
@@ -37,6 +37,7 @@ public interface TestLogging extends org.gradle.api.tasks.testing.TestLogging {
      *
      * @param events the events to be logged
      */
+    @Experimental
     void setEvents(Set<TestLogEvent> events);
 
     /**
@@ -45,6 +46,7 @@ public interface TestLogging extends org.gradle.api.tasks.testing.TestLogging {
      *
      * @param events the events to be logged
      */
+    @Experimental
     void events(Object... events);
 
     /**
@@ -57,6 +59,7 @@ public interface TestLogging extends org.gradle.api.tasks.testing.TestLogging {
      *
      * @return the minimum granularity of the events to be logged
      */
+    @Experimental
     int getMinGranularity();
 
     /**
@@ -69,11 +72,13 @@ public interface TestLogging extends org.gradle.api.tasks.testing.TestLogging {
      *
      * @param granularity the minimum granularity of the events to be logged
      */
+    @Experimental
     void setMinGranularity(int granularity);
 
     /**
      * Convenience method that delegates to {@link #setMinGranularity(int)}.
      */
+    @Experimental
     void minGranularity(int granularity);
 
     /**
@@ -86,6 +91,7 @@ public interface TestLogging extends org.gradle.api.tasks.testing.TestLogging {
      *
      * @return the maximum granularity of the events to be logged
      */
+    @Experimental
     int getMaxGranularity();
 
     /**
@@ -98,11 +104,13 @@ public interface TestLogging extends org.gradle.api.tasks.testing.TestLogging {
      *
      * @param granularity the maximum granularity of the events to be logged
      */
+    @Experimental
     void setMaxGranularity(int granularity);
 
     /**
      * Convenience method that delegates to {@link #setMaxGranularity(int)}.
      */
+    @Experimental
     void maxGranularity(int granularity);
 
     /**
@@ -113,6 +121,7 @@ public interface TestLogging extends org.gradle.api.tasks.testing.TestLogging {
      *
      * @return the display granularity of the events to be logged
      */
+    @Experimental
     int getDisplayGranularity();
 
     /**
@@ -123,11 +132,13 @@ public interface TestLogging extends org.gradle.api.tasks.testing.TestLogging {
      *
      * @param granularity the display granularity of the events to be logged
      */
+    @Experimental
     void setDisplayGranularity(int granularity);
 
     /**
      * Convenience method that delegates to {@link #setDisplayGranularity(int)}.
      */
+    @Experimental
     void displayGranularity(int granularity);
 
     /**
@@ -136,6 +147,7 @@ public interface TestLogging extends org.gradle.api.tasks.testing.TestLogging {
      *
      * @return whether exceptions that occur during test execution will be logged
      */
+    @Experimental
     boolean getShowExceptions();
 
     /**
@@ -143,11 +155,13 @@ public interface TestLogging extends org.gradle.api.tasks.testing.TestLogging {
      *
      * @param flag whether exceptions that occur during test execution will be logged
      */
+    @Experimental
     void setShowExceptions(boolean flag);
 
     /**
      * Convenience method for {@link #setShowExceptions(boolean)}.
      */
+    @Experimental
     void showExceptions(boolean flag);
 
     /**
@@ -156,6 +170,7 @@ public interface TestLogging extends org.gradle.api.tasks.testing.TestLogging {
      *
      * @return whether causes of exceptions that occur during test execution will be logged
      */
+    @Experimental
     boolean getShowCauses();
 
     /**
@@ -164,11 +179,13 @@ public interface TestLogging extends org.gradle.api.tasks.testing.TestLogging {
      *
      * @param flag whether causes of exceptions that occur during test execution will be logged
      */
+    @Experimental
     void setShowCauses(boolean flag);
 
     /**
      * Convenience method for {@link #setShowCauses(boolean)}.
      */
+    @Experimental
     void showCauses(boolean flag);
 
     /**
@@ -176,6 +193,7 @@ public interface TestLogging extends org.gradle.api.tasks.testing.TestLogging {
      *
      * @return whether stack traces of exceptions that occur during test execution will be logged
      */
+    @Experimental
     boolean getShowStackTraces();
 
     /**
@@ -183,11 +201,13 @@ public interface TestLogging extends org.gradle.api.tasks.testing.TestLogging {
      *
      * @param flag whether stack traces of exceptions that occur during test execution will be logged
      */
+    @Experimental
     void setShowStackTraces(boolean flag);
 
     /**
      * Convenience method for {@link #setShowStackTraces(boolean)}.
      */
+    @Experimental
     void showStackTraces(boolean flag);
 
     /**
@@ -195,6 +215,7 @@ public interface TestLogging extends org.gradle.api.tasks.testing.TestLogging {
      *
      * @return the format to be used for logging test exceptions
      */
+    @Experimental
     TestExceptionFormat getExceptionFormat();
 
     /**
@@ -202,11 +223,13 @@ public interface TestLogging extends org.gradle.api.tasks.testing.TestLogging {
      *
      * @param exceptionFormat the format to be used for logging test exceptions
      */
+    @Experimental
     void setExceptionFormat(TestExceptionFormat exceptionFormat);
 
     /**
      * Convenience method for {@link #setExceptionFormat(TestExceptionFormat)}. Accepts both enum values and Strings.
      */
+    @Experimental
     void exceptionFormat(Object exceptionFormat);
 
     /**
@@ -214,6 +237,7 @@ public interface TestLogging extends org.gradle.api.tasks.testing.TestLogging {
      *
      * @return the set of filters to be used for sanitizing test stack traces
      */
+    @Experimental
     Set<TestStackTraceFilter> getStackTraceFilters();
 
     /**
@@ -221,11 +245,13 @@ public interface TestLogging extends org.gradle.api.tasks.testing.TestLogging {
      *
      * @param stackTraces the set of filters to be used for sanitizing test stack traces
      */
+    @Experimental
     void setStackTraceFilters(Set<TestStackTraceFilter> stackTraces);
 
     /**
      * Convenience method for {@link #setStackTraceFilters(java.util.Set)}. Accepts both enum values and Strings.
      */
+    @Experimental
     void stackTraceFilters(Object... stackTraces);
 
     /**
