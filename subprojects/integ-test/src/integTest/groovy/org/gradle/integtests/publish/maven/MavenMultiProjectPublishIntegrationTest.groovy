@@ -19,8 +19,6 @@ package org.gradle.integtests.publish.maven
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.MavenRepository
 
-import spock.lang.FailsWith
-
 class MavenMultiProjectPublishIntegrationTest extends AbstractIntegrationSpec {
     def mavenRepo = new MavenRepository(file("maven-repo"))
     def mavenModule = mavenRepo.module("org.gradle.test", "project1", "1.9")
@@ -42,7 +40,6 @@ project(":project1") {
         pom.scopes.compile.assertDependsOn("org.gradle.test", "project2", "1.9")
     }
 
-    @FailsWith(value = AssertionError, reason = "not yet implemented")
     def "project dependency correctly reflected in POM if archivesBaseName is changed"() {
         createBuildScripts("""
 project(":project1") {
