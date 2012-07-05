@@ -78,13 +78,16 @@
     <section id="sec:selecting_build">
         <title>Selecting which build to execute</title>
         <para>When you run the <command>gradle</command> command, it looks for a build file in the current directory.
-            You can use the <option>-b</option> option to select another build file. For example:
+            You can use the <option>-b</option> option to select another build file.
+            If you use <option>-b</option> option then <filename>settings.gradle</filename> file is not used. Example:
         </para>
         <sample id="selectProjectUsingBuildFile" dir="userguide/tutorial/selectProject" title="Selecting the project using a build file">
             <sourcefile file="subdir/myproject.gradle"/>
             <output args="-q -b subdir/myproject.gradle hello"/>
         </sample>
-        <para>Alternatively, you can use the <option>-p</option> option to specify the project directory to use:</para>
+        <para>Alternatively, you can use the <option>-p</option> option to specify the project directory to use.
+        For multi-project builds you should use <option>-p</option> option instead of <option>-b</option> option.
+        </para>
         <sample id="selectProjectUsingProjectDir" dir="userguide/tutorial/selectProject" title="Selecting the project using project directory">
             <output args="-q -p subdir hello"/>
         </sample>
