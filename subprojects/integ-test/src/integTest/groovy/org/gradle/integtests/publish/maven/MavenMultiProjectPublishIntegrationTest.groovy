@@ -26,7 +26,13 @@ class MavenMultiProjectPublishIntegrationTest extends AbstractIntegrationSpec {
     def mavenModule = mavenRepo.module("org.gradle.test", "project1", "1.9")
 
     def "project dependency correctly reflected in POM if publication coordinates are unchanged"() {
-        createBuildScripts()
+        createBuildScripts("""
+project(":project1") {
+    dependencies {
+        compile project(":project2")
+    }
+}
+        """)
 
         when:
         run ":project1:uploadArchives"
@@ -39,6 +45,12 @@ class MavenMultiProjectPublishIntegrationTest extends AbstractIntegrationSpec {
     @FailsWith(value = AssertionError, reason = "not yet implemented")
     def "project dependency correctly reflected in POM if archivesBaseName is changed"() {
         createBuildScripts("""
+project(":project1") {
+    dependencies {
+        compile project(":project2")
+    }
+}
+
 project(":project2") {
     archivesBaseName = "changed"
 }
@@ -50,6 +62,33 @@ project(":project2") {
         then:
         def pom = mavenModule.pom
         pom.scopes.compile.assertDependsOn("org.gradle.test", "changed", "1.9")
+    }
+
+    def "project dependency correctly reflected in POM if second artifact is published which differs in classifier"() {
+        createBuildScripts("""
+project(":project1") {
+    dependencies {
+        compile project(":project2")
+    }
+}
+
+project(":project2") {
+    task jar2(type: Jar) {
+        classifier = "other"
+    }
+
+    artifacts {
+        archives jar2
+    }
+}
+        """)
+
+        when:
+        run ":project1:uploadArchives"
+
+        then:
+        def pom = mavenModule.pom
+        pom.scopes.compile.assertDependsOn("org.gradle.test", "project2", "1.9")
     }
 
     private void createBuildScripts(String append = "") {
@@ -73,12 +112,6 @@ subprojects {
                 repository(url: "file:///\$rootProject.projectDir/maven-repo")
             }
         }
-    }
-}
-
-project(":project1") {
-    dependencies {
-        compile project(":project2")
     }
 }
 
