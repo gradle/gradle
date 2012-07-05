@@ -6,7 +6,6 @@ As this 'feature' is a list of bug fixes, this feature spec will not follow the 
 ## Correct handling of packaging and dependency type declared in poms
 
 * GRADLE-2188: Artifact not found resolving dependencies with packaging/type "orbit"
-* GRADLE-2160: Setting packaging 'bundle' uploadArchives and install rename the artifact to {name}.bundle
 
 ### Description
 Our engine for parsing Maven pom files is borrowed from ivy, and assumes the 'packaging' element equals the artifact type, with a few exceptions (ejb, bundle, eclipse-plugin, maven-plugin).
@@ -22,20 +21,39 @@ artifact model. This will be a small step toward an independent Gradle model of 
 
 ### User visible changes
 
-* We should successfully resolve dependencies with packaging = 'orbit'
-* We should emit a deprecation warning for cases where packaging->extension mapping does not give same result as type->extension mapping
+* When the dependency declaration has no 'type' specified, or a 'type' that maps to the extension 'jar'
+    * Resolution of a POM module with packaging in ['', 'pom', 'jar', 'ejb', 'bundle', 'maven-plugin', 'eclipse-plugin'] will not change
+    * Resolution of a POM with packaging 'foo' that maps to 'module.foo', a deprecation warning will be emitted and the artifact 'module.foo' will be used
+    * Resolution of a POM with packaging 'foo' that maps to 'module.jar', the artifact 'module.jar' will be successfully found. (ie 'orbit'). An extra HTTP
+      request will be required to first look for 'module.foo'.
+* When the dependency declaration has a 'type' specified that maps to an extension 'ext' (other than 'jar')
+    * Resolution of a POM module with packaging in ['pom', 'jar', 'ejb', 'bundle', 'maven-plugin', 'eclipse-plugin'] will emit a deprecation warning before using 'module.jar' if it exists
+    * Resolution of a POM with packaging 'foo' that maps to 'module.foo', a deprecation warning will be emitted and the artifact 'module.foo' will be used
+    * Resolution of a POM with packaging 'foo' that maps to 'module.ext', the artifact 'module.ext' will be successfully found. (ie 'orbit'). An extra HTTP
+      request will be required to first look for 'module.foo'.
 
 ### Integration test coverage
 
-* Add some more coverage of resolving dependencies with different Maven dependency declarations. See MavenRemotePomResolutionIntegrationTest.
-    * packaging = ['', 'pom', 'jar', 'war', 'eclipse-plugin'] ('orbit' can be a unit test)
-    * type = ['', 'jar', 'war']
+* Coverage for resolving pom dependencies referenced in various ways:
+    * Need modules published in maven repositories with packaging = ['', 'pom', 'jar', 'war', 'eclipse-plugin', 'custom']
+    * Test resolution of artifacts in these modules via
+        1. Direct dependency in a Gradle project
+        2. Transitive dependency in a maven module (pom) which is itself a dependency of a Gradle project
+        3. Transitive dependency in an ivy module (ivy.xml) which is itself a dependency of a Gradle project
+    * For 1. and 2., need dependency declaration with and without type attribute specified
+    * Must verify that deprecation warning is logged appropriately
+* Sad-day coverage for the case where neither packaging nor type can successfully locate the maven artifact. Error message should report 'type'-based location.
 
 ### Implementation approach
 
-* Map type->extension+classifier when resolving from Maven repositories. Base this mapping on the Maven3 rules.
-* Retain current packaging->extension mapping for specific packaging types, and add 'orbit' as a new exception to this mapping.
-* Emit a deprecation warning where packaging != jar and use of packaging->extension mapping gives a different result to type->extension mapping.
+* Determine 2 locations for the primary artifact:
+    * The 'packaging' location: apply the current logic to determine location from module packaging attribute
+        * Retain current packaging->extension mapping for specific packaging types
+    * The 'type' location: Use maven3 rules to map type->extension+classifier, and construct a location
+* If both locations are the same, use the artifact at that location.
+* If not, look for the artifact in the packaging location
+    * If found, emit a deprecation warning and use that location
+    * If not found, use the artifact from the type location
 * In 2.0, we will remove the packaging->extension mapping and the deprecation warning
 
 ## RedHat finishes porting gradle to fedora
@@ -109,21 +127,51 @@ between ivy/maven and http/filesystem. Longer term it may be useful to be able t
 
 ### User visible changes
 
-Dynamic versions resolved against an authenticated ivy repository will work. No other changes.
+* Dynamic versions resolved against an authenticated ivy repository will use configured credentials for that repository.
+* If the repository returns a 404 for the directory listing, we treat the module as missing from that repository
+* If the resolve is unable to list the versions of a module within a repository for any other reason, we treat the repository as broken for that module.
+A warning will be emitted and that repository will be skipped and resolve will continue with next repository. Broken response is not cached.
+    * If the user does not have credentials + permissions to list directory content.
+    * If the directory listing request results in an HTTP failure (500, Exception).
+    * If the directory listing response cannot be parsed to extract the module versions.
 
 ### Integration test coverage
 
-* Add test for Maven dynamic version resolution (transitive dependencies with version range) to MavenRemoteDependencyResolutionIntegrationTest
-* Add test for resolving ivy dynamic version with authentication to HttpAuthenticationDependencyResolutionIntegrationTest
-* Add test for Maven dynamic version and SNAPSHOT resolution with authentication to HttpAuthenticationDependencyResolutionIntegrationTest
+* Happy-day tests
+    * Resolve a Maven version range (declared as [1.0, 2.0) in a POM and referenced transitively) against a (non-authenticated) maven repository
+    * Resolve dynamic version against an authenticated ivy repository
+    * Resolve a dynamic version and SNAPSHOT (unique & non-unique) against an authenticated maven repository
+    * Resolve a dynamic version against 2 repositories, where the first one does not contain the module (returns 404 for directory listing).
+* Sad-day tests: repository is skipped and warning emitted
+    * No credentials supplied.
+    * Invalid credentials supplied.
+    * User has permissions to get individual artefacts, but does not have permission to list directories.
+    * We get a 500 or other unexpected response for the directory list HTTP request.
+    * We get a response with an entity of an unknown content type.
+    * We get a response whose entity we cannot parse.
+    * We get a ConnectException or other exception for the directory list HTTP request.
+* Extending existing coverage
+    * Sad-day test for resolving static version where first repository returns 401 unauthorized for pom file, and second repository successfully resolves.
+    * Sad-day test for resolving static version where first repository returns 500 for pom file, and second repository successfully resolves.
+        * For these 2: show that warnings are emitted when repository is broken and skipped, and show that a subsequent resolve will recover without refresh-dependencies.
 
 ### Implementation approach
 
-Remove use of ResolverHelper from ExternalResourceResolver#listVersions. Introduce an API that is able to list available versions for a module,
-that can be backed by maven-metadata.xml, a directory listing, a standard Apache directory listing page, an Artifactory REST listing, etc...
-Implementations should be backed by ExternalResourceAccessor where possible.
+Replace the existing HTTP implementation of ExternalResourceLister so that it doesn't use ApacheURLLister. It should instead be backed by a ExternalResourceAccessor
+to access the directory listing resource, with the code for parsing the Apache directory listing result adopted from ApacheURLLister.
 
-### Investigation/Possible strategic work
+At a higher abstraction layer, we could introduce an API that is able to list all available versions for a module; this would replace the current use of ResolverHelper in ExternalResourceResolver.
+for now we'll need an implementation backed by ExternalResourceRepository#list (hence ExternalResourceLister) and another backed by maven-metadata.xml.
+
+Later we may add a ModuleVersionLister backed by an Artifactory REST listing, our own file format, etc... The idea would be that these ModuleVersionLister
+implementations will be pluggable in the future, so you could combine maven-metadata.xml with ivy.xml in a single repository, for example.
+
+We should improve our behaviour for broken repositories so that we log a warning whenever we skip resolving a repository because it is broken. These responses are not cached
+so it is important to warn the user about the broken repository. In contrast, the fact that a module is missing from a repository is cached, and should not result
+ in a warning being emitted.
+
+### Investigation/Possible strategic work (possibly part of a future story)
+
 Currently, the ModuleVersionRepository (wraps ivy DependencyResolver) is responsible for choosing the 'best' of all available versions from a single repository.
 Then the DependencyToModuleResolver (UserResolverChain) picks the 'best' version out of the set or repository candidates. Finally the ResolveEngine performs conflict resolution on
 the various versions brought in by different dependencies. It would be good to move toward having all of the candidates in the ResolveEngine and choosing the 'best'
