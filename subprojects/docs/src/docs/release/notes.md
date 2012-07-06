@@ -108,6 +108,15 @@ Javadoc tag in Gradle 1.0-milestone-8. This method has not been deprecated and t
 The `Project.fileTree(Closure)` method was deprecated in Gradle 1.0-milestone-8. The method was not
 annotated with the `@deprecated` javadoc tag at that time. This has been added for this release.
 
+#### API
+
+##### `org.gradle.api.tasks.testing.TestLogging` - Moved into `logging` subpackage
+
+The `org.gradle.api.tasks.testing.TestLogging` interface was moved into package
+`org.gradle.api.tasks.testing.logging` (and subsequently enhanced with new methods).
+For backwards compatibility reasons, the old interface was kept at its original location,
+but is now deprecated.
+
 ### Potential breaking changes
 
 ##### `idea.project.jdkName`
