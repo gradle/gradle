@@ -176,6 +176,9 @@
             <tr>
                 <td>org.gradle.api.artifacts.dsl.ArtifactHandler</td>
             </tr>
+            <tr>
+                <td>org.gradle.api.tasks.testing.logging.TestLoggingContainer</td>
+            </tr>
         </table>
     </section>
 
