@@ -40,6 +40,7 @@ import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.listener.ListenerManager;
 import org.gradle.logging.ProgressLoggerFactory;
@@ -96,7 +97,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     private final ListenerBroadcast<TestListener> testListenerBroadcaster;
     private final ListenerBroadcast<TestOutputListener> testOutputListenerBroadcaster;
     private final StyledTextOutputFactory textOutputFactory;
-    private final TestLoggingContainer testLogging = new DefaultTestLoggingContainer();
+    private final TestLoggingContainer testLogging;
     private final DefaultJavaForkOptions options;
 
     private TestExecuter testExecuter;
@@ -120,6 +121,9 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         options = new DefaultJavaForkOptions(getServices().get(FileResolver.class));
         options.setEnableAssertions(true);
         testExecuter = new DefaultTestExecuter(getServices().getFactory(WorkerProcessBuilder.class), getServices().get(ActorFactory.class));
+
+        Instantiator instantiator = getServices().get(Instantiator.class);
+        testLogging = instantiator.newInstance(DefaultTestLoggingContainer.class, instantiator);
     }
 
     void setTestExecuter(TestExecuter testExecuter) {

@@ -21,6 +21,7 @@ import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.tasks.testing.logging.*;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
 
 import groovy.lang.Closure;
@@ -32,9 +33,9 @@ import java.util.Set;
 public class DefaultTestLoggingContainer implements TestLoggingContainer {
     private final Map<LogLevel, TestLogging> perLevelTestLogging = Maps.newEnumMap(LogLevel.class);
 
-    public DefaultTestLoggingContainer() {
+    public DefaultTestLoggingContainer(Instantiator instantiator) {
         for (LogLevel level: LogLevel.values()) {
-            perLevelTestLogging.put(level, new DefaultTestLogging());
+            perLevelTestLogging.put(level, instantiator.newInstance(DefaultTestLogging.class));
         }
 
         setEvents(EnumSet.of(TestLogEvent.FAILED));
