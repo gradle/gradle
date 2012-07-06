@@ -38,7 +38,7 @@ public interface TestLogging extends org.gradle.api.tasks.testing.TestLogging {
      * @param events the events to be logged
      */
     @Experimental
-    void setEvents(Set<TestLogEvent> events);
+    void setEvents(Iterable<?> events);
 
     /**
      * Sets the events to be logged. Events can be passed as enum values
@@ -188,13 +188,7 @@ public interface TestLogging extends org.gradle.api.tasks.testing.TestLogging {
      * @param exceptionFormat the format to be used for logging test exceptions
      */
     @Experimental
-    void setExceptionFormat(TestExceptionFormat exceptionFormat);
-
-    /**
-     * Convenience method for {@link #setExceptionFormat(TestExceptionFormat)}. Accepts both enum values and Strings.
-     */
-    @Experimental
-    void exceptionFormat(Object exceptionFormat);
+    void setExceptionFormat(Object exceptionFormat);
 
     /**
      * Returns the set of filters to be used for sanitizing test stack traces.
@@ -210,10 +204,10 @@ public interface TestLogging extends org.gradle.api.tasks.testing.TestLogging {
      * @param stackTraces the set of filters to be used for sanitizing test stack traces
      */
     @Experimental
-    void setStackTraceFilters(Set<TestStackTraceFilter> stackTraces);
+    void setStackTraceFilters(Iterable<?> stackTraces);
 
     /**
-     * Convenience method for {@link #setStackTraceFilters(java.util.Set)}. Accepts both enum values and Strings.
+     * Convenience method for {@link #setStackTraceFilters(java.lang.Iterable)}. Accepts both enum values and Strings.
      */
     @Experimental
     void stackTraceFilters(Object... stackTraces);

@@ -122,7 +122,7 @@ public class DefaultTestLoggingContainer implements TestLoggingContainer {
         return getLifecycle().getEvents();
     }
 
-    public void setEvents(Set<TestLogEvent> events) {
+    public void setEvents(Iterable<?> events) {
         getLifecycle().setEvents(events);
     }
 
@@ -182,19 +182,15 @@ public class DefaultTestLoggingContainer implements TestLoggingContainer {
         return getLifecycle().getExceptionFormat();
     }
 
-    public void setExceptionFormat(TestExceptionFormat exceptionFormat) {
+    public void setExceptionFormat(Object exceptionFormat) {
         getLifecycle().setExceptionFormat(exceptionFormat);
-    }
-
-    public void exceptionFormat(Object exceptionFormat) {
-        getLifecycle().exceptionFormat(exceptionFormat);
     }
 
     public Set<TestStackTraceFilter> getStackTraceFilters() {
         return getLifecycle().getStackTraceFilters();
     }
 
-    public void setStackTraceFilters(Set<TestStackTraceFilter> stackTraces) {
+    public void setStackTraceFilters(Iterable<?> stackTraces) {
         getLifecycle().setStackTraceFilters(stackTraces);
     }
 

@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.testing.logging;
 import org.gradle.api.tasks.testing.logging.*;
 import org.gradle.util.GUtil;
 
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.Set;
 
@@ -37,12 +38,12 @@ public class DefaultTestLogging implements TestLogging {
         return events;
     }
 
-    public void setEvents(Set<TestLogEvent> events) {
-        this.events = events;
+    public void setEvents(Iterable<?> events) {
+        this.events = toEnumSet(TestLogEvent.class, events);
     }
 
     public void events(Object... events) {
-        setEvents(toEnumSet(TestLogEvent.class, events));
+        this.events.addAll(toEnumSet(TestLogEvent.class, events));
     }
 
     public int getMinGranularity() {
@@ -97,24 +98,20 @@ public class DefaultTestLogging implements TestLogging {
         return exceptionFormat;
     }
 
-    public void setExceptionFormat(TestExceptionFormat exceptionFormat) {
-        this.exceptionFormat = exceptionFormat;
-    }
-
-    public void exceptionFormat(Object exceptionFormat) {
-        setExceptionFormat(toEnum(TestExceptionFormat.class, exceptionFormat));
+    public void setExceptionFormat(Object exceptionFormat) {
+        this.exceptionFormat = toEnum(TestExceptionFormat.class, exceptionFormat);
     }
 
     public Set<TestStackTraceFilter> getStackTraceFilters() {
         return stackTraceFilters;
     }
 
-    public void setStackTraceFilters(Set<TestStackTraceFilter> filters) {
-        stackTraceFilters = filters;
+    public void setStackTraceFilters(Iterable<?> filters) {
+        stackTraceFilters = toEnumSet(TestStackTraceFilter.class, filters);
     }
 
     public void stackTraceFilters(Object... filters) {
-        setStackTraceFilters(toEnumSet(TestStackTraceFilter.class, filters));
+        stackTraceFilters.addAll(toEnumSet(TestStackTraceFilter.class, filters));
     }
 
     public boolean getShowStandardStreams() {
@@ -137,7 +134,11 @@ public class DefaultTestLogging implements TestLogging {
                 value, value.getClass(), enumType));
     }
 
-    private <T extends Enum<T>> EnumSet<T> toEnumSet(Class<T> enumType, Object... values) {
+    private <T extends Enum<T>> EnumSet<T> toEnumSet(Class<T> enumType, Object[] values) {
+        return toEnumSet(enumType, Arrays.asList(values));
+    }
+
+    private <T extends Enum<T>> EnumSet<T> toEnumSet(Class<T> enumType, Iterable<?> values) {
         EnumSet<T> result = EnumSet.noneOf(enumType);
         for (Object value : values) {
             result.add(toEnum(enumType, value));
