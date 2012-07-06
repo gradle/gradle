@@ -16,15 +16,19 @@
 
 package org.gradle.api.internal.tasks.testing.logging
 
-import spock.lang.Specification
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.gradle.api.tasks.testing.logging.TestStackTraceFilter
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.internal.reflect.DirectInstantiator
+
+import spock.lang.Specification
 import spock.lang.Unroll
+import org.gradle.api.Action
+import org.gradle.api.tasks.testing.logging.TestLogging
 
 class DefaultTestLoggingContainerTest extends Specification {
-    DefaultTestLoggingContainer container = new DefaultTestLoggingContainer()
+    DefaultTestLoggingContainer container = new DefaultTestLoggingContainer(new DirectInstantiator())
 
     def "sets defaults for level ERROR"() {
         def logging = container.get(LogLevel.ERROR)
@@ -103,9 +107,11 @@ class DefaultTestLoggingContainerTest extends Specification {
         def configMethod = level.toString().toLowerCase()
 
         when:
-        container."$configMethod" {
-            showExceptions false
-        }
+        container."$configMethod"(new Action<TestLogging>() {
+            void execute(TestLogging l) {
+                l.showExceptions = false
+            }
+        })
 
         then:
         !logging.showExceptions

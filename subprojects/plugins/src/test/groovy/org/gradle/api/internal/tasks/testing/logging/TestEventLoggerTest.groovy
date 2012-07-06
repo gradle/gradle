@@ -59,8 +59,8 @@ class TestEventLoggerTest extends Specification {
 
     def "logs event if granularity matches"() {
         testLogging.events(TestLogEvent.PASSED)
-        testLogging.minGranularity 2
-        testLogging.maxGranularity 4
+        testLogging.minGranularity = 2
+        testLogging.maxGranularity = 4
 
         when:
         eventLogger.afterSuite(outerSuiteDescriptor, result)

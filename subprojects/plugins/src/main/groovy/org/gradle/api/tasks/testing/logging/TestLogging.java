@@ -76,12 +76,6 @@ public interface TestLogging extends org.gradle.api.tasks.testing.TestLogging {
     void setMinGranularity(int granularity);
 
     /**
-     * Convenience method that delegates to {@link #setMinGranularity(int)}.
-     */
-    @Experimental
-    void minGranularity(int granularity);
-
-    /**
      * Returns the maximum granularity of the events to be logged. Typically, 0
      * corresponds to the Gradle-generated test suite for the whole test run, 1 corresponds to
      * the Gradle-generated test suite for a particular test JVM, 2 corresponds to a test class,
@@ -108,12 +102,6 @@ public interface TestLogging extends org.gradle.api.tasks.testing.TestLogging {
     void setMaxGranularity(int granularity);
 
     /**
-     * Convenience method that delegates to {@link #setMaxGranularity(int)}.
-     */
-    @Experimental
-    void maxGranularity(int granularity);
-
-    /**
      * Returns the display granularity of the events to be logged. For example, if set to 0,
      * a method-level event will be displayed as "Test Run > Test Worker x > org.SomeClass > org.someMethod".
      * If set to 2, the same event will be displayed as "org.someClass > org.someMethod".
@@ -136,12 +124,6 @@ public interface TestLogging extends org.gradle.api.tasks.testing.TestLogging {
     void setDisplayGranularity(int granularity);
 
     /**
-     * Convenience method that delegates to {@link #setDisplayGranularity(int)}.
-     */
-    @Experimental
-    void displayGranularity(int granularity);
-
-    /**
      * Tells whether exceptions that occur during test execution will be logged.
      * Typically these exceptions coincide with a "failed" event.
      *
@@ -157,12 +139,6 @@ public interface TestLogging extends org.gradle.api.tasks.testing.TestLogging {
      */
     @Experimental
     void setShowExceptions(boolean flag);
-
-    /**
-     * Convenience method for {@link #setShowExceptions(boolean)}.
-     */
-    @Experimental
-    void showExceptions(boolean flag);
 
     /**
      * Tells whether causes of exceptions that occur during test execution will be logged.
@@ -183,12 +159,6 @@ public interface TestLogging extends org.gradle.api.tasks.testing.TestLogging {
     void setShowCauses(boolean flag);
 
     /**
-     * Convenience method for {@link #setShowCauses(boolean)}.
-     */
-    @Experimental
-    void showCauses(boolean flag);
-
-    /**
      * Tells whether stack traces of exceptions that occur during test execution will be logged.
      *
      * @return whether stack traces of exceptions that occur during test execution will be logged
@@ -203,12 +173,6 @@ public interface TestLogging extends org.gradle.api.tasks.testing.TestLogging {
      */
     @Experimental
     void setShowStackTraces(boolean flag);
-
-    /**
-     * Convenience method for {@link #setShowStackTraces(boolean)}.
-     */
-    @Experimental
-    void showStackTraces(boolean flag);
 
     /**
      * Returns the format to be used for logging test exceptions. Only relevant if {@code showStackTraces} is {@code true}.
@@ -265,9 +229,4 @@ public interface TestLogging extends org.gradle.api.tasks.testing.TestLogging {
      * log events {@link TestLogEvent#STANDARD_OUT} and {@link TestLogEvent#STANDARD_ERROR}.
      */
      TestLogging setShowStandardStreams(boolean flag);
-
-    /**
-     * Convenience method for {@link #setShowStandardStreams(boolean)}.
-     */
-    void showStandardStreams(boolean flag);
 }

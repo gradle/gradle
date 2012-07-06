@@ -53,20 +53,12 @@ public class DefaultTestLogging implements TestLogging {
         minGranularity = granularity;
     }
 
-    public void minGranularity(int granularity) {
-        setMinGranularity(granularity);
-    }
-
     public int getMaxGranularity() {
         return maxGranularity;
     }
 
     public void setMaxGranularity(int granularity) {
         maxGranularity = granularity;
-    }
-
-    public void maxGranularity(int granularity) {
-        setMaxGranularity(granularity);
     }
 
     public int getDisplayGranularity() {
@@ -77,20 +69,12 @@ public class DefaultTestLogging implements TestLogging {
         displayGranularity = granularity;
     }
 
-    public void displayGranularity(int granularity) {
-        setDisplayGranularity(granularity);
-    }
-
     public boolean getShowExceptions() {
         return showExceptions;
     }
 
     public void setShowExceptions(boolean flag) {
         showExceptions = flag;
-    }
-
-    public void showExceptions(boolean flag) {
-        setShowExceptions(flag);
     }
 
     public boolean getShowCauses() {
@@ -101,20 +85,12 @@ public class DefaultTestLogging implements TestLogging {
         showCauses = flag;
     }
 
-    public void showCauses(boolean flag) {
-        setShowCauses(flag);
-    }
-
     public boolean getShowStackTraces() {
         return showStackTraces;
     }
 
     public void setShowStackTraces(boolean flag) {
         showStackTraces = flag;
-    }
-
-    public void showStackTraces(boolean flag) {
-        setShowStackTraces(flag);
     }
 
     public TestExceptionFormat getExceptionFormat() {
@@ -148,10 +124,6 @@ public class DefaultTestLogging implements TestLogging {
     public TestLogging setShowStandardStreams(boolean flag) {
         events.addAll(EnumSet.of(TestLogEvent.STANDARD_OUT, TestLogEvent.STANDARD_ERROR));
         return this;
-    }
-
-    public void showStandardStreams(boolean flag) {
-        setShowStandardStreams(flag);
     }
 
     private <T extends Enum<T>> T toEnum(Class<T> enumType, Object value) {
