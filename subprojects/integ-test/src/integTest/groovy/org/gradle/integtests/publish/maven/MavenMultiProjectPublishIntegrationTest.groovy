@@ -18,6 +18,7 @@ package org.gradle.integtests.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.MavenRepository
+import spock.lang.Issue
 
 class MavenMultiProjectPublishIntegrationTest extends AbstractIntegrationSpec {
     def mavenRepo = new MavenRepository(file("maven-repo"))
@@ -40,6 +41,7 @@ project(":project1") {
         pom.scopes.compile.assertDependsOn("org.gradle.test", "project2", "1.9")
     }
 
+    @Issue("GRADLE-443")
     def "project dependency correctly reflected in POM if archivesBaseName is changed"() {
         createBuildScripts("""
 project(":project1") {
@@ -50,6 +52,32 @@ project(":project1") {
 
 project(":project2") {
     archivesBaseName = "changed"
+}
+        """)
+
+        when:
+        run ":project1:uploadArchives"
+
+        then:
+        def pom = mavenModule.pom
+        pom.scopes.compile.assertDependsOn("org.gradle.test", "changed", "1.9")
+    }
+
+    @Issue("GRADLE-443")
+    def "project dependency correctly reflected in POM if mavenDeployer.pom.artifactId is changed"() {
+        createBuildScripts("""
+project(":project1") {
+    dependencies {
+        compile project(":project2")
+    }
+}
+
+project(":project2") {
+    uploadArchives {
+        repositories.mavenDeployer {
+            pom.artifactId = "changed"
+        }
+    }
 }
         """)
 
