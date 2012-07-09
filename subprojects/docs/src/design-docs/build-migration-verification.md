@@ -129,6 +129,17 @@ Comparing memory consumption might be tricky. For example, a higher maximum heap
 necessarily mean that more heap is required, but just that for some reason, garbage collection
 kicked in later.
 
+### Backwards and forward compatibility
+
+The `build-migration` plugin must be able to compare older version of Gradle (possibly
+older than the version used to execute the plugin) with newer versions (possibly newer than the version
+used to execute the plugin). To make this work, the plugin
+
+* executes the `from` and `to` builds via the tooling API
+* queries the builds for information (e.g. what the outputs are and where they are located) via the tooling API
+
+The tooling API will provide a special model containing all information necessary for build migration verification.
+
 # Open issues
 
 ## General
