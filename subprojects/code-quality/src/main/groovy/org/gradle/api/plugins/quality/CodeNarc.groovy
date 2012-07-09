@@ -15,19 +15,17 @@
  */
 package org.gradle.api.plugins.quality
 
-//import org.gradle.api.plugins.quality.internal.ConsoleReportWriter
-
-
 import org.gradle.api.GradleException
 import org.gradle.api.file.FileCollection
-import org.gradle.internal.reflect.Instantiator
 import org.gradle.api.internal.project.IsolatedAntBuilder
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.plugins.quality.internal.CodeNarcReportsImpl
 import org.gradle.api.reporting.Report
 import org.gradle.api.reporting.Reporting
-import org.gradle.util.DeprecationLogger
 import org.gradle.api.tasks.*
+import org.gradle.internal.reflect.Instantiator
+import org.gradle.logging.ConsoleRenderer
+import org.gradle.util.DeprecationLogger
 
 /**
  * Runs CodeNarc against some source files.
@@ -113,14 +111,17 @@ class CodeNarc extends SourceTask implements VerificationTask, Reporting<CodeNar
                 }
             } catch (Exception e) {
                 if (e.message.matches('Exceeded maximum number of priority \\d* violations.*')) {
+                    def message = "CodeNarc rule violations were found."
+                    def report = reports.firstEnabled
+                    if (report) {
+                        def reportUrl = new ConsoleRenderer().asClickableFileUrl(report.destination)
+                        message += " See the report at: $reportUrl"
+                    }
                     if (getIgnoreFailures()) {
+                        logger.warn(message)
                         return
                     }
-                    if (reports.html.enabled) {
-                        throw new GradleException("CodeNarc rule violations were found. See the report at ${reports.html.destination}.", e)
-                    } else {
-                        throw new GradleException("CodeNarc rule violations were found.", e)
-                    }
+                    throw new GradleException(message, e)
                 }
                 throw e
             }

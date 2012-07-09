@@ -21,6 +21,8 @@ import org.gradle.api.internal.project.IsolatedAntBuilder
 import org.gradle.api.plugins.quality.internal.PmdReportsImpl
 import org.gradle.api.reporting.Reporting
 import org.gradle.api.tasks.*
+import org.gradle.logging.ConsoleRenderer
+import org.gradle.api.GradleException
 
 /**
  * Runs a set of static code analysis rules on Java source code files and
@@ -67,7 +69,7 @@ class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> 
         def antBuilder = services.get(IsolatedAntBuilder)
         antBuilder.withClasspath(getPmdClasspath()).execute {
             ant.taskdef(name: 'pmd', classname: 'net.sourceforge.pmd.ant.PMDTask')
-            ant.pmd(failOnRuleViolation: !getIgnoreFailures()) {
+            ant.pmd(failOnRuleViolation: false, failuresPropertyName: "pmdFailureCount") {
                 getSource().addToAntBuilder(ant, 'fileset', FileCollection.AntType.FileSet)
                 getRuleSets().each {
                     ruleset(it)
@@ -82,6 +84,21 @@ class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> 
                 }
                 if (reports.xml.enabled) {
                     formatter(type: 'xml', toFile: reports.xml.destination)
+                }
+            }
+
+            def failureCount = ant.project.properties["pmdFailureCount"]
+            if (failureCount) {
+                def message = "$failureCount PMD rule violations were found."
+                def report = reports.firstEnabled
+                if (report) {
+                    def reportUrl = new ConsoleRenderer().asClickableFileUrl(report.destination)
+                    message += " See the report at: $reportUrl"
+                }
+                if (getIgnoreFailures()) {
+                    logger.warn(message)
+                } else {
+                    throw new GradleException(message)
                 }
             }
         }

@@ -40,24 +40,26 @@ class FindBugsPluginIntegrationTest extends WellBehavedPluginTest {
     }
 
     void "analyze bad code"() {
-        file("src/main/java/org/gradle/Class1.java") << "package org.gradle; class Class1 { public boolean equals(Object arg) { return true; } }"
+        badCode()
 
         expect:
         fails("check")
         failure.assertHasDescription("Execution failed for task ':findbugsMain'")
-        failure.assertThatCause(startsWith("FindBugs rule violations were found. See the report at"))
+        failure.assertThatCause(startsWith("FindBugs rule violations were found. See the report at:"))
         file("build/reports/findbugs/main.xml").assertContents(containsClass("org.gradle.Class1"))
     }
 
     void "can ignore failures"() {
-        file("src/main/java/org/gradle/Class1.java") << "package org.gradle; class Class1 { public boolean equals(Object arg) { return true; } }"
-        file("build.gradle") << """
-            findbugs{
+        badCode()
+        buildFile << """
+            findbugs {
                 ignoreFailures = true
             }
-            """
+        """
+
         expect:
         succeeds("check")
+        output.contains("FindBugs rule violations were found. See the report at:")
         file("build/reports/findbugs/main.xml").assertContents(containsClass("org.gradle.Class1"))
     }
 
@@ -148,6 +150,10 @@ class FindBugsPluginIntegrationTest extends WellBehavedPluginTest {
             file("src/main/java/org/gradle/Class${it}.java") << "package org.gradle; class Class${it} { public boolean isFoo(Object arg) { return true; } }"
             file("src/test/java/org/gradle/Class${it}Test.java") << "package org.gradle; class Class${it}Test { public boolean isFoo(Object arg) { return true; } }"
         }
+    }
+
+    private badCode() {
+        file("src/main/java/org/gradle/Class1.java") << "package org.gradle; class Class1 { public boolean equals(Object arg) { return true; } }"
     }
 
     private Matcher<String> containsClass(String className) {

@@ -38,11 +38,10 @@ import org.gradle.api.tasks.testing.logging.TestLogging;
 import org.gradle.api.tasks.testing.logging.TestLoggingContainer;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.listener.ListenerManager;
+import org.gradle.logging.ConsoleRenderer;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.logging.StyledTextOutputFactory;
 import org.gradle.messaging.actor.ActorFactory;
@@ -53,8 +52,6 @@ import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -407,50 +404,13 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
 
         TestResultProcessor resultProcessor = new TestListenerAdapter(
                 getTestListenerBroadcaster().getSource(), testOutputListenerBroadcaster.getSource());
-        testExecuter.execute(this, resultProcessor);
 
+        testExecuter.execute(this, resultProcessor);
         testFramework.report();
-        
         testFramework = null;
 
-        if (!getIgnoreFailures() && testCountLogger.hadFailures()) {
-            throw new GradleException("There were failing tests. See the report at " + getTestReportUrl() + ".");
-        }
-    }
-
-    // only way I know of to determine current log level
-    private LogLevel getCurrentLogLevel() {
-        for (LogLevel level : LogLevel.values()) {
-            if (getLogger().isEnabled(level)) {
-                return level;
-            }
-        }
-        throw new AssertionError("could not determine current log level");
-    }
-
-    private TestExceptionFormatter getExceptionFormatter(TestLogging testLogging) {
-        switch (testLogging.getExceptionFormat()) {
-            case SHORT:
-                return new ShortExceptionFormatter(testLogging);
-            case FULL:
-                return new FullExceptionFormatter(testLogging);
-            default:
-                throw new AssertionError();
-        }
-    }
-
-    private String getTestReportUrl() {
-        // File.toURI().toString() leads to an URL like this on Mac: file:/reports/index.html
-        // This URL is not recognized by the Mac terminal (too few leading slashes). We solve
-        // this be creating an URI with an empty authority.
-        File indexFile = new File(getTestReportDir(), "index.html");
-        try {
-            if (OperatingSystem.current().isWindows()) {
-                return indexFile.toURI().toString();
-            }
-            return new URI("file", "", indexFile.toString(), null, null).toString();
-        } catch (URISyntaxException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
+        if (testCountLogger.hadFailures()) {
+            handleTestFailures();
         }
     }
 
@@ -990,5 +950,36 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      */
     public void testLogging(Closure closure) {
         ConfigureUtil.configure(closure, testLogging);
+    }
+
+    // only way I know of to determine current log level
+    private LogLevel getCurrentLogLevel() {
+        for (LogLevel level : LogLevel.values()) {
+            if (getLogger().isEnabled(level)) {
+                return level;
+            }
+        }
+        throw new AssertionError("could not determine current log level");
+    }
+
+    private TestExceptionFormatter getExceptionFormatter(TestLogging testLogging) {
+        switch (testLogging.getExceptionFormat()) {
+            case SHORT:
+                return new ShortExceptionFormatter(testLogging);
+            case FULL:
+                return new FullExceptionFormatter(testLogging);
+            default:
+                throw new AssertionError();
+        }
+    }
+
+    private void handleTestFailures() {
+        String reportUrl = new ConsoleRenderer().asClickableFileUrl(new File(getTestReportDir(), "index.html"));
+        String message = "There were failing tests. See the report at: " + reportUrl;
+        if (getIgnoreFailures()) {
+            getLogger().warn(message);
+        } else {
+            throw new GradleException(message);
+        }
     }
 }

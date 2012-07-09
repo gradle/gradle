@@ -17,12 +17,13 @@ package org.gradle.api.plugins.quality
 
 import org.gradle.api.GradleException
 import org.gradle.api.file.FileCollection
-import org.gradle.internal.reflect.Instantiator
 import org.gradle.api.internal.project.IsolatedAntBuilder
 import org.gradle.api.plugins.quality.internal.CheckstyleReportsImpl
 import org.gradle.api.reporting.Reporting
-import org.gradle.util.DeprecationLogger
 import org.gradle.api.tasks.*
+import org.gradle.internal.reflect.Instantiator
+import org.gradle.logging.ConsoleRenderer
+import org.gradle.util.DeprecationLogger
 
 /**
  * Runs Checkstyle against some source files.
@@ -157,11 +158,17 @@ class Checkstyle extends SourceTask implements VerificationTask, Reporting<Check
                 }
             }
 
-            if (!getIgnoreFailures() && ant.project.properties[propertyName]) {
-                if (reports.xml.enabled) {
-                    throw new GradleException("Checkstyle rule violations were found. See the report at ${reports.xml.destination}.")
+            if (ant.project.properties[propertyName]) {
+                def message = "Checkstyle rule violations were found."
+                def report = reports.firstEnabled
+                if (report) {
+                    def reportUrl = new ConsoleRenderer().asClickableFileUrl(report.destination)
+                    message += " See the report at: $reportUrl"
+                }
+                if (getIgnoreFailures()) {
+                    logger.warn(message)
                 } else {
-                    throw new GradleException("Checkstyle rule violations were found")
+                    throw new GradleException(message)
                 }
             }
         }

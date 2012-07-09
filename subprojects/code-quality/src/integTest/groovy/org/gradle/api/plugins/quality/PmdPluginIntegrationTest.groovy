@@ -47,26 +47,25 @@ class PmdPluginIntegrationTest extends WellBehavedPluginTest {
         expect:
         fails("check")
         failure.assertHasDescription("Execution failed for task ':pmdTest'")
-        failure.assertThatCause(containsString("PMD found 2 rule violations"))
+        failure.assertThatCause(containsString("2 PMD rule violations were found. See the report at:"))
         file("build/reports/pmd/main.xml").assertContents(not(containsClass("org.gradle.Class1")))
         file("build/reports/pmd/test.xml").assertContents(containsClass("org.gradle.Class1Test"))
     }
 
-
     void "can ignore failures"() {
         badCode()
-
-        file("build.gradle") << """
+        buildFile << """
             pmd {
                 ignoreFailures = true
             }
-            """
+        """
+
         expect:
         succeeds("check")
         file("build/reports/pmd/main.xml").assertContents(not(containsClass("org.gradle.Class1")))
         file("build/reports/pmd/test.xml").assertContents(containsClass("org.gradle.Class1Test"))
+        output.contains("2 PMD rule violations were found. See the report at:")
     }
-
 
     def "can configure reporting"() {
         given:

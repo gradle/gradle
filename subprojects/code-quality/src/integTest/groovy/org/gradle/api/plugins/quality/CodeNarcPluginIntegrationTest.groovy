@@ -74,17 +74,30 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
     }
     
     def "analyze bad code"() {
-        file("src/main/groovy/org/gradle/class1.java") << "package org.gradle; class class1 { }"
-        file("src/main/groovy/org/gradle/Class2.groovy") << "package org.gradle; class Class2 { }"
-        file("src/test/groovy/org/gradle/TestClass1.java") << "package org.gradle; class TestClass1 { }"
-        file("src/test/groovy/org/gradle/testclass2.groovy") << "package org.gradle; class testclass2 { }"
+        badCode()
 
         expect:
         fails("check")
         failure.assertHasDescription("Execution failed for task ':codenarcTest'")
-        failure.assertThatCause(startsWith("CodeNarc rule violations were found. See the report at "))
+        failure.assertThatCause(startsWith("CodeNarc rule violations were found. See the report at:"))
         !file("build/reports/codenarc/main.html").text.contains("Class2")
         file("build/reports/codenarc/test.html").text.contains("testclass2")
+    }
+
+    def "can ignore failures"() {
+        badCode()
+        buildFile << """
+            codenarc {
+                ignoreFailures = true
+            }
+        """
+
+        expect:
+        succeeds("check")
+        output.contains("CodeNarc rule violations were found. See the report at:")
+        !file("build/reports/codenarc/main.html").text.contains("Class2")
+        file("build/reports/codenarc/test.html").text.contains("testclass2")
+
     }
 
     private goodCode() {
@@ -93,7 +106,14 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
         file("src/main/groovy/org/gradle/Class2.groovy") << "package org.gradle; class Class2 { }"
         file("src/test/groovy/org/gradle/TestClass2.groovy") << "package org.gradle; class TestClass2 { }"
     }
-    
+
+    private badCode() {
+        file("src/main/groovy/org/gradle/class1.java") << "package org.gradle; class class1 { }"
+        file("src/main/groovy/org/gradle/Class2.groovy") << "package org.gradle; class Class2 { }"
+        file("src/test/groovy/org/gradle/TestClass1.java") << "package org.gradle; class TestClass1 { }"
+        file("src/test/groovy/org/gradle/testclass2.groovy") << "package org.gradle; class testclass2 { }"
+    }
+
     private void writeBuildFile() {
         file("build.gradle") << """
 apply plugin: "groovy"

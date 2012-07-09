@@ -175,7 +175,7 @@ dependencies { groovy localGroovy() }
 
         ExecutionFailure failure = inTestDirectory().withTasks('check').runWithFailure()
         failure.assertHasDescription('Execution failed for task \':codenarcMain\'')
-        failure.assertThatCause(startsWith('CodeNarc rule violations were found. See the report at '))
+        failure.assertThatCause(startsWith('CodeNarc rule violations were found. See the report at:'))
 
         testFile('build/reports/codenarc/main.html').assertExists()
     }

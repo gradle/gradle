@@ -44,15 +44,27 @@ class CheckstylePluginIntegrationTest extends WellBehavedPluginTest {
     }
 
     def "analyze bad code"() {
-        file("src/main/java/org/gradle/class1.java") << "package org.gradle; class class1 { }"
-        file("src/test/java/org/gradle/testclass1.java") << "package org.gradle; class testclass1 { }"
-        file("src/main/groovy/org/gradle/class2.java") << "package org.gradle; class class2 { }"
-        file("src/test/groovy/org/gradle/testclass2.java") << "package org.gradle; class testclass2 { }"
+        badCode()
 
         expect:
         fails("check")
         failure.assertHasDescription("Execution failed for task ':checkstyleMain'")
-        failure.assertThatCause(startsWith("Checkstyle rule violations were found. See the report at"))
+        failure.assertThatCause(startsWith("Checkstyle rule violations were found. See the report at:"))
+        file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.class1"))
+        file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.class2"))
+    }
+
+    def "can ignore failures"() {
+        badCode()
+        buildFile << """
+            checkstyle {
+                ignoreFailures = true
+            }
+        """
+
+        expect:
+        succeeds("check")
+        output.contains("Checkstyle rule violations were found. See the report at:")
         file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.class1"))
         file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.class2"))
     }
@@ -91,6 +103,13 @@ class CheckstylePluginIntegrationTest extends WellBehavedPluginTest {
         file('src/test/java/org/gradle/TestClass1.java') << 'package org.gradle; class TestClass1 { }'
         file('src/main/groovy/org/gradle/Class2.java') << 'package org.gradle; class Class1 { }'
         file('src/test/groovy/org/gradle/TestClass2.java') << 'package org.gradle; class TestClass1 { }'
+    }
+
+    private badCode() {
+        file("src/main/java/org/gradle/class1.java") << "package org.gradle; class class1 { }"
+        file("src/test/java/org/gradle/testclass1.java") << "package org.gradle; class testclass1 { }"
+        file("src/main/groovy/org/gradle/class2.java") << "package org.gradle; class class2 { }"
+        file("src/test/groovy/org/gradle/testclass2.java") << "package org.gradle; class testclass2 { }"
     }
 
     private Matcher<String> containsClass(String className) {

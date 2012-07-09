@@ -17,16 +17,16 @@ package org.gradle.api.plugins.quality
 
 import org.gradle.api.GradleException
 import org.gradle.api.file.FileCollection
-import org.gradle.internal.reflect.Instantiator
 import org.gradle.api.plugins.quality.internal.FindBugsReportsImpl
 import org.gradle.api.plugins.quality.internal.findbugs.FindBugsWorkerManager
 import org.gradle.api.plugins.quality.internal.findbugs.FindBugsResult
 import org.gradle.api.plugins.quality.internal.findbugs.FindBugsSpec
 import org.gradle.api.plugins.quality.internal.findbugs.FindBugsSpecBuilder
 import org.gradle.api.reporting.Reporting
-import org.gradle.api.reporting.SingleFileReport
 import org.gradle.api.tasks.*
 import org.gradle.api.logging.LogLevel
+import org.gradle.internal.reflect.Instantiator
+import org.gradle.logging.ConsoleRenderer
 
 /**
  * Analyzes code with <a href="http://findbugs.sourceforge.net">FindBugs</a>.
@@ -124,12 +124,17 @@ class FindBugs extends SourceTask implements VerificationTask, Reporting<FindBug
         if (findbugsResult.errorCount){
             throw new GradleException("FindBugs encountered an error. Run with --debug to get more information.")
         }
-        if (findbugsResult.bugCount && !getIgnoreFailures()) {
-            SingleFileReport reportSetup = reports.firstEnabled
-            if (reports.firstEnabled) {
-                throw new GradleException("FindBugs rule violations were found. See the report at ${reportSetup.destination}.")
+        if (findbugsResult.bugCount) {
+            def message = "FindBugs rule violations were found."
+            def report = reports.firstEnabled
+            if (report) {
+                def reportUrl = new ConsoleRenderer().asClickableFileUrl(report.destination)
+                message += " See the report at: $reportUrl"
+            }
+            if (getIgnoreFailures()) {
+                logger.warn(message)
             } else {
-                throw new GradleException("FindBugs rule violations were found.")
+                throw new GradleException(message)
             }
         }
     }
