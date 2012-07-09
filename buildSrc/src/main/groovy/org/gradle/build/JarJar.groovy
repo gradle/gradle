@@ -17,51 +17,108 @@
 package org.gradle.build
 
 import com.tonicsystems.jarjar.Main as JarJarMain
-
-import com.tonicsystems.jarjar.Keep
-import com.tonicsystems.jarjar.Rule
+import com.tonicsystems.jarjar.ext_util.EntryStruct
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.TemporaryFileProvider
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
+import java.util.jar.JarOutputStream
+import java.util.jar.JarFile
+import java.util.jar.JarEntry
 
 class JarJar extends DefaultTask {
     @InputFiles FileCollection inputFiles
     @OutputFile File outputFile
 
-    def patterns = [] //todo mark these patterns as task input
+    @Input def rules = [:]
+    @Input def keeps = []
 
     @TaskAction
     void nativeJarJar() {
         try {
-            File tempRuleFile = createRuleFile()
-            JarJarMain.main("process", tempRuleFile .absolutePath, inputFiles.getSingleFile().absolutePath, outputFile.absolutePath)
+            TemporaryFileProvider tmpFileProvider = getServices().get(TemporaryFileProvider);
+            File tempRuleFile = tmpFileProvider.createTemporaryFile("jarjar", "rule")
+            writeRuleFile(tempRuleFile)
+
+            File tmpMergedJarFile = tmpFileProvider.createTemporaryFile("jarjar", "jar")
+            mergeJarFiles(inputFiles.files, tmpMergedJarFile);
+
+            JarJarMain.main("process", tempRuleFile.absolutePath, tmpMergedJarFile.absolutePath, outputFile.absolutePath)
         } catch (IOException e) {
             throw new GradleException("unable to run jarjar task", e);
         }
     }
 
-    private File createRuleFile() {
-        TemporaryFileProvider tmpFileProvider = getServices().get(TemporaryFileProvider);
-        File tempRuleFile = tmpFileProvider.createTemporaryFile("jarjar", "jar")
-        tempRuleFile.withPrintWriter { writer ->
-            patterns.findAll {it instanceof Rule}.each {rule ->
-                writer.println("rule ${rule.pattern} ${rule.result}")
+    private void writeRuleFile(File ruleFile) {
+        ruleFile.withPrintWriter { writer ->
+            rules.each {pattern, result ->
+                writer.println("rule ${pattern} ${result}")
+            }
+            keeps.each {pattern ->
+                writer.println("keep ${pattern}")
             }
         }
-
-        return tempRuleFile;
     }
 
     void rule(String pattern, String result) {
-        patterns << new Rule(pattern: pattern, result: result)
+        rules[pattern] = result
     }
 
     void keep(String pattern) {
-        patterns << new Keep(pattern: pattern)
+        keeps << pattern
+    }
+
+
+    private static void mergeJarFiles(Set<File> srcFiles, File destFile) throws IOException {
+        byte[] buf = new byte[0x2000];
+        JarOutputStream out = new JarOutputStream(new FileOutputStream(destFile));
+
+        Set<String> entries = new HashSet<String>();
+        for (File srcFile : srcFiles) {
+            JarFile jarFile = new JarFile(srcFile);
+            try {
+                EntryStruct struct = new EntryStruct();
+                Enumeration<JarEntry> e = jarFile.entries();
+                while (e.hasMoreElements()) {
+                    JarEntry entry = e.nextElement();
+                    struct.name = entry.getName();
+                    struct.time = entry.getTime();
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    pipe(jarFile.getInputStream(entry), baos, buf);
+                    struct.data = baos.toByteArray();
+                    if (entries.add(struct.name)) {
+                        entry = new JarEntry(struct.name);
+                        entry.setTime(struct.time);
+                        entry.setCompressedSize(-1);
+                        out.putNextEntry(entry);
+                        out.write(struct.data);
+
+                    } else if (struct.name.endsWith("/")) {
+                        // TODO(chrisn): log
+                    } else {
+                        //throw new IllegalArgumentException("Duplicate jar entries: " + struct.name);
+                    }
+                }
+            } finally {
+                jarFile.close();
+            }
+        }
+
+        out.close();
+    }
+
+    public static void pipe(InputStream is, OutputStream out, byte[] buf) throws IOException {
+        for (; ;) {
+            int amt = is.read(buf);
+            if (amt < 0) {
+                break;
+            }
+            out.write(buf, 0, amt);
+        }
     }
 
 }
