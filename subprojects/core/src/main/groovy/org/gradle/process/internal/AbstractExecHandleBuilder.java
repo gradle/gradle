@@ -18,10 +18,9 @@ package org.gradle.process.internal;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.process.BaseExecSpec;
-import org.gradle.process.internal.streams.DefaultProcessStreamHandler;
-import org.gradle.process.internal.streams.ProcessStreamHandler;
 import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.process.internal.streams.StreamsForwarder;
+import org.gradle.process.internal.streams.StreamsHandler;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -39,7 +38,7 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
     private final List<ExecHandleListener> listeners = new ArrayList<ExecHandleListener>();
     boolean ignoreExitValue;
     boolean redirectErrorStream;
-    private ProcessStreamHandler standardInputHandler = new DefaultProcessStreamHandler();
+    private StreamsHandler streamsHandler;
     private int timeoutMillis = Integer.MAX_VALUE;
     protected boolean daemon;
 
@@ -47,7 +46,7 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
         super(fileResolver);
         standardOutput = SafeStreams.systemOut();
         errorOutput = SafeStreams.systemErr();
-        noStandardInput();
+        input = SafeStreams.emptyInput();
     }
 
     public abstract List<String> getAllArguments();
@@ -124,13 +123,24 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
             throw new IllegalStateException("execCommand == null!");
         }
 
-        StreamsForwarder forwarder = new StreamsForwarder(standardOutput, errorOutput, input, !redirectErrorStream, standardInputHandler);
+        StreamsHandler effectiveHandler = getEffectiveStreamsHandler();
         return new DefaultExecHandle(getDisplayName(), getWorkingDir(), executable, getAllArguments(), getActualEnvironment(),
-                forwarder, listeners, redirectErrorStream, timeoutMillis, daemon);
+                effectiveHandler, listeners, redirectErrorStream, timeoutMillis, daemon);
     }
 
-    public AbstractExecHandleBuilder setStandardInputHandler(ProcessStreamHandler standardInputHandler) {
-        this.standardInputHandler = standardInputHandler;
+    private StreamsHandler getEffectiveStreamsHandler() {
+        StreamsHandler effectiveHandler;
+        if (this.streamsHandler != null) {
+            effectiveHandler = this.streamsHandler;
+        } else {
+            boolean shouldReadErrorStream = !redirectErrorStream;
+            effectiveHandler = new StreamsForwarder(standardOutput, errorOutput, input, shouldReadErrorStream);
+        }
+        return effectiveHandler;
+    }
+
+    public AbstractExecHandleBuilder streamsHandler(StreamsHandler streamsHandler) {
+        this.streamsHandler = streamsHandler;
         return this;
     }
 
@@ -141,11 +151,6 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
 
     public AbstractExecHandleBuilder setTimeout(int timeoutMillis) {
         this.timeoutMillis = timeoutMillis;
-        return this;
-    }
-
-    public AbstractExecHandleBuilder noStandardInput() {
-        setStandardInput(SafeStreams.emptyInput());
         return this;
     }
 }

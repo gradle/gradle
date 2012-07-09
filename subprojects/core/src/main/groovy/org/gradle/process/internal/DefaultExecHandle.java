@@ -17,6 +17,7 @@
 package org.gradle.process.internal;
 
 import com.google.common.base.Joiner;
+
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
@@ -24,7 +25,7 @@ import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.shutdown.ShutdownHookActionRegister;
-import org.gradle.process.internal.streams.StreamsForwarder;
+import org.gradle.process.internal.streams.StreamsHandler;
 
 import java.io.File;
 import java.util.Arrays;
@@ -75,7 +76,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
      * The variables to set in the environment the executable is run in.
      */
     private final Map<String, String> environment;
-    private final StreamsForwarder streamsForwarder;
+    private final StreamsHandler streamsHandler;
     private final boolean redirectErrorStream;
     private int timeoutMillis;
     private boolean daemon;
@@ -106,14 +107,14 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
     private final ExecHandleShutdownHookAction shutdownHookAction;
 
     DefaultExecHandle(String displayName, File directory, String command, List<String> arguments,
-                      Map<String, String> environment, StreamsForwarder streamsForwarder,
+                      Map<String, String> environment, StreamsHandler streamsHandler,
                       List<ExecHandleListener> listeners, boolean redirectErrorStream, int timeoutMillis, boolean daemon) {
         this.displayName = displayName;
         this.directory = directory;
         this.command = command;
         this.arguments = arguments;
         this.environment = environment;
-        this.streamsForwarder = streamsForwarder;
+        this.streamsHandler = streamsHandler;
         this.redirectErrorStream = redirectErrorStream;
         this.timeoutMillis = timeoutMillis;
         this.daemon = daemon;
@@ -227,7 +228,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
             }
             setState(ExecHandleState.STARTING);
 
-            execHandleRunner = new ExecHandleRunner(this, streamsForwarder);
+            execHandleRunner = new ExecHandleRunner(this, streamsHandler);
             executor.execute(execHandleRunner);
 
             while(stateIn(ExecHandleState.STARTING)) {

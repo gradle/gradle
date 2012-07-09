@@ -18,35 +18,52 @@ package org.gradle.process.internal.streams;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.CompositeStoppable;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.concurrent.Executor;
 
 /**
  * @author Tom Eyckmans
  */
 public class ExecOutputHandleRunner implements Runnable {
+    private final static Logger LOGGER = Logging.getLogger(ExecOutputHandleRunner.class);
 
     private final String displayName;
-    private final ProcessStreamHandler streamHandler;
     private final InputStream inputStream;
     private final OutputStream outputStream;
 
-    private final static Logger LOGGER = Logging.getLogger(ExecOutputHandleRunner.class);
-
-    public ExecOutputHandleRunner(String displayName, InputStream inputStream, OutputStream outputStream, ProcessStreamHandler streamHandler) {
+    public ExecOutputHandleRunner(String displayName, InputStream inputStream, OutputStream outputStream) {
         this.displayName = displayName;
         this.inputStream = inputStream;
         this.outputStream = outputStream;
-        this.streamHandler = streamHandler;
     }
 
     public void run() {
+        byte[] buffer = new byte[2048];
         try {
-            streamHandler.handleStream(inputStream, outputStream);
+            while (true) {
+                int nread = inputStream.read(buffer);
+                if (nread < 0) {
+                    break;
+                }
+                outputStream.write(buffer, 0, nread);
+                outputStream.flush();
+            }
+            new CompositeStoppable(inputStream, outputStream).stop();
         } catch (Throwable t) {
             LOGGER.error(String.format("Could not %s.", displayName), t);
         }
+    }
+
+    public void run(Executor executor) {
+        executor.execute(this);
+    }
+
+    public void closeInput() throws IOException {
+        inputStream.close();
     }
 
     @Override
