@@ -38,5 +38,6 @@ class DaemonExecHandleBuilderSpec extends Specification {
         1 * builder.redirectErrorStream()
         1 * builder.setWorkingDir(new File("foo"))
         1 * builder.commandLine(["java", "-cp"])
+        1 * builder.noStandardInput()
     }
 }

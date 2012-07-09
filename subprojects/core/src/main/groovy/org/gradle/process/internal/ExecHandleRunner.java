@@ -20,7 +20,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.StoppableExecutor;
-import org.gradle.process.internal.streams.StreamsHandler;
+import org.gradle.process.internal.streams.StreamsForwarder;
 
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -40,13 +40,13 @@ public class ExecHandleRunner implements Runnable {
 
     private Process process;
     private boolean aborted;
-    private final StreamsHandler streamsHandler;
+    private final StreamsForwarder streamsForwarder;
 
-    public ExecHandleRunner(DefaultExecHandle execHandle, StreamsHandler streamsHandler) {
+    public ExecHandleRunner(DefaultExecHandle execHandle, StreamsForwarder streamsForwarder) {
         if (execHandle == null) {
             throw new IllegalArgumentException("execHandle == null!");
         }
-        this.streamsHandler = streamsHandler;
+        this.streamsForwarder = streamsForwarder;
         this.processBuilderFactory = new ProcessBuilderFactory();
         this.execHandle = execHandle;
         this.executor = new DefaultExecutorFactory().create(String.format("Run %s", execHandle.getDisplayName()));
@@ -74,21 +74,20 @@ public class ExecHandleRunner implements Runnable {
             // and stderr streams for some of the processes get stuck
             synchronized (START_LOCK) {
                 process = processBuilder.start();
-                streamsHandler.connectStreams(process, execHandle.getDisplayName());
+                streamsForwarder.connectStreams(process, execHandle.getDisplayName());
             }
             setProcess(process);
 
             execHandle.started();
 
-            LOGGER.debug("waiting until streams are handled...");
-            streamsHandler.start();
+            streamsForwarder.start();
 
             if (execHandle.isDaemon()) {
-                streamsHandler.stop();
+                streamsForwarder.stop();
                 detached();
             } else {
                 int exitValue = process.waitFor();
-                streamsHandler.stop();
+                streamsForwarder.stop();
                 completed(exitValue);
             }
         } catch (Throwable t) {

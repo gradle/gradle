@@ -18,7 +18,7 @@ package org.gradle.process.internal;
 
 
 import org.gradle.process.ExecResult
-import org.gradle.process.internal.streams.StreamsHandler
+import org.gradle.process.internal.streams.ProcessStreamHandler
 import org.gradle.util.GUtil
 import org.gradle.util.Jvm
 import org.gradle.util.TemporaryFolder
@@ -236,7 +236,8 @@ class DefaultExecHandleSpec extends Specification {
 
     void "can redirect error stream"() {
         def out = new ByteArrayOutputStream()
-        def execHandle = handle().args(args(TestApp.class)).setStandardOutput(out).redirectErrorStream().build();
+        def err = new ByteArrayOutputStream()
+        def execHandle = handle().args(args(TestApp.class)).setErrorOutput(err).setStandardOutput(out).redirectErrorStream().build();
 
         when:
         execHandle.start();
@@ -244,12 +245,14 @@ class DefaultExecHandleSpec extends Specification {
 
         then:
         ["output args", "error args"].each { out.toString().contains(it) }
+        err.toString() == ''
     }
 
     void "exec handle collaborates with streams handler"() {
         given:
-        def streamsHandler = Mock(StreamsHandler)
-        def execHandle = handle().args(args(TestApp.class)).setDisplayName("foo proc").streamsHandler(streamsHandler).build();
+        def handler = Mock(ProcessStreamHandler)
+        def output = new ByteArrayOutputStream()
+        def execHandle = handle().args(args(TestApp.class)).setStandardOutput(output).setDisplayName("foo proc").setStandardInputHandler(handler).build();
 
         when:
         execHandle.start()
@@ -257,10 +260,8 @@ class DefaultExecHandleSpec extends Specification {
 
         then:
         result.rethrowFailure()
-        1 * streamsHandler.connectStreams(_ as Process, "foo proc")
-        1 * streamsHandler.start()
-        1 * streamsHandler.stop()
-        0 * streamsHandler._
+        1 * handler.handleStream(_ as InputStream, output)
+        0 * handler._
     }
 
     @Timeout(2)

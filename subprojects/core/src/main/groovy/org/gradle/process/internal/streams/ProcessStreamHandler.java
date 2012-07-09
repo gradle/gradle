@@ -16,14 +16,13 @@
 
 package org.gradle.process.internal.streams;
 
-import org.gradle.internal.Stoppable;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 /**
- * by Szczepan Faber, created at: 4/27/12
+ * By Szczepan Faber on 7/9/12
  */
-public interface StreamsHandler extends Stoppable {
+public interface ProcessStreamHandler {
 
-    void start();
-
-    void connectStreams(Process process, String processName);
+    void handleStream(InputStream source, OutputStream destination);
 }

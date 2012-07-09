@@ -22,7 +22,6 @@ import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.process.ExecSpec;
 import org.gradle.util.GUtil;
 
-import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -115,11 +114,6 @@ public class ExecHandleBuilder extends AbstractExecHandleBuilder implements Exec
     @Override
     public ExecHandleBuilder setDisplayName(String displayName) {
         super.setDisplayName(displayName);
-        return this;
-    }
-
-    public ExecHandleBuilder noStandardInput() {
-        setStandardInput(new ByteArrayInputStream(new byte[0]));
         return this;
     }
 

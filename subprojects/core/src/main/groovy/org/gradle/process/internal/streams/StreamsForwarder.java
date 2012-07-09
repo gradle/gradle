@@ -20,59 +20,57 @@ import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.util.DisconnectableInputStream;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
  * by Szczepan Faber, created at: 4/17/12
  */
-public class StreamsForwarder implements StreamsHandler {
+public class StreamsForwarder {
 
     private final OutputStream standardOutput;
     private final OutputStream errorOutput;
     private final InputStream input;
     private final boolean readErrorStream;
+    private ProcessStreamHandler standardInputHandler;
 
     private StoppableExecutor executor;
     private ExecOutputHandleRunner standardOutputRunner;
     private ExecOutputHandleRunner errorOutputRunner;
     private ExecOutputHandleRunner standardInputRunner;
 
-    public StreamsForwarder(OutputStream standardOutput, OutputStream errorOutput, InputStream input, boolean readErrorStream) {
+    public StreamsForwarder(OutputStream standardOutput, OutputStream errorOutput, InputStream input, boolean readErrorStream, ProcessStreamHandler standardInputHandler) {
         this.standardOutput = standardOutput;
         this.errorOutput = errorOutput;
         this.input = input;
         this.readErrorStream = readErrorStream;
+        this.standardInputHandler = standardInputHandler;
     }
 
     public void connectStreams(Process process, String processName) {
         InputStream instr = new DisconnectableInputStream(input);
 
         standardOutputRunner = new ExecOutputHandleRunner("read standard output of: " + processName,
-                process.getInputStream(), standardOutput);
+                process.getInputStream(), standardOutput, standardInputHandler);
+
+        ProcessStreamHandler errorStreamHandler = readErrorStream? new DefaultProcessStreamHandler() : new ClosingProcessStreamHandler();
+
         errorOutputRunner = new ExecOutputHandleRunner("read error output of: " + processName, process.getErrorStream(),
-                errorOutput);
+                errorOutput, errorStreamHandler);
+
         standardInputRunner = new ExecOutputHandleRunner("write standard input into: " + processName,
-                instr, process.getOutputStream());
+                instr, process.getOutputStream(), new DefaultProcessStreamHandler());
 
         this.executor = new DefaultExecutorFactory().create(String.format("Forward streams with process: %s", processName));
     }
 
     public void start() {
         executor.execute(standardInputRunner);
-        if (readErrorStream) {
-            executor.execute(errorOutputRunner);
-        }
+        executor.execute(errorOutputRunner);
         executor.execute(standardOutputRunner);
     }
 
     public void stop() {
-        try {
-            standardInputRunner.closeInput();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
         executor.stop();
     }
 }
