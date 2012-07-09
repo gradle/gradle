@@ -1,5 +1,12 @@
 apply plugin: "groovy"
 
+import org.gradle.build.JarJar
+
+configurations{
+    mvn3
+}
+
+
 dependencies {
     groovy libraries.groovy
 
@@ -13,6 +20,17 @@ dependencies {
     compile libraries.maven_ant_tasks
 
     testCompile libraries.junit
+
+    mvn3 libraries.maven3_settings_builder
 }
+
+task mvn3JarJar(type:JarJar){
+    inputFiles = configurations.mvn3
+   	outputFile = file("$buildDir/libs/jarjar/mvnsrcbuilderjarjar.jar")
+   	rule('org.apache.maven.**', 'org.apache.maven.jarjar.@1')
+    keep('org.apache.maven.settings.DefaultMavenSettingsBuilder')
+    keep('org.apache.maven.settings.MavenSettingsBuilder')
+}
+
 
 useTestFixtures()
