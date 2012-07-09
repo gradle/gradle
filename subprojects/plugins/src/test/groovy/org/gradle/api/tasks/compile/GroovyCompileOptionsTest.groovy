@@ -40,6 +40,7 @@ class GroovyCompileOptionsTest {
         assertFalse(compileOptions.listFiles)
         assertFalse(compileOptions.verbose)
         assertTrue(compileOptions.fork)
+        assertEquals(['java', 'groovy'], compileOptions.fileExtensions)
         assertEquals('UTF-8', compileOptions.encoding)
         assertNotNull(compileOptions.forkOptions)
     }

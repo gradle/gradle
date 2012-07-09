@@ -48,10 +48,15 @@ public class NormalizingGroovyCompiler implements Compiler<GroovyJavaJointCompil
         return delegateAndHandleErrors(spec);
     }
 
-    private void resolveAndFilterSourceFiles(GroovyJavaJointCompileSpec spec) {
+    private void resolveAndFilterSourceFiles(final GroovyJavaJointCompileSpec spec) {
         FileCollection groovyJavaOnly = spec.getSource().filter(new Spec<File>() {
             public boolean isSatisfiedBy(File element) {
-                return element.getName().endsWith(".groovy") || element.getName().endsWith(".java");
+                for (String fileExtension : spec.getGroovyCompileOptions().getFileExtensions()) {
+                    if (element.getName().endsWith("." + fileExtension)) {
+                        return true;
+                    }
+                }
+                return false;
             }
         });
 
