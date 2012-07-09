@@ -28,8 +28,8 @@ artifact model. This will be a small step toward an independent Gradle model of 
       request will be required to first look for 'module.foo'.
 * When the dependency declaration has a 'type' specified that maps to an extension 'ext' (other than 'jar')
     * Resolution of a POM module with packaging in ['pom', 'jar', 'ejb', 'bundle', 'maven-plugin', 'eclipse-plugin'] will emit a deprecation warning before using 'module.jar' if it exists
-    * Resolution of a POM with packaging 'foo' that maps to 'module.foo', a deprecation warning will be emitted and the artifact 'module.foo' will be used
-    * Resolution of a POM with packaging 'foo' that maps to 'module.ext', the artifact 'module.ext' will be successfully found. (ie 'orbit'). An extra HTTP
+    * Resolution of a POM with packaging 'foo' and actual artifact 'module.foo', a deprecation warning will be emitted and the artifact 'module.foo' will be used
+    * Resolution of a POM with packaging 'foo' and actual artifact 'module.ext', the artifact 'module.ext' will be successfully found. An extra HTTP
       request will be required to first look for 'module.foo'.
 
 ### Integration test coverage
@@ -218,37 +218,53 @@ The proposed model for dependencies is outlined in ./dependency-model.md. A good
 maven repository model when resolving.
 
 ### User visible changes
-An attempt to resolve a dependency of type 'source' would map to the ${name}-sources.${ext} in the maven repository.
+An attempt to resolve a dependency of type 'source' with no classifier would map to the ${name}-sources.${ext} in the maven repository.
 If a classifier other than 'sources' was on the artifact, then we would try to locate the artifact at ${name}-${classifier}-sources.${ext}.
-
-For backward compatibility, we should continue to honour the current model of locating an artifact of type 'source' with classifier!='sources' via the
-${name}-${classifier}.${ext} pattern, but we should emit a deprecation warning for this behaviour. This will mean that we will be checking 2 locations for such an
-artifact: ${name}-${classifier}.${ext} and ${name}-${classifier}-sources.${ext}. An example where the former is required would be classifier='src', for the latter
-classifier='jdk15' (where jdk15 has a different source jar).
-
-When parsing a maven dependency with type='source' and classifier='sources', we will map this into our artifact model with type='source' and classifier='sources'.
-This will provide a backward-compatible model.
-
+For backward compatibility, we will continue to honour the current model of locating an artifact of type 'source' with classifier!='sources' via the
+${name}-${classifier}.${ext} pattern, but we should emit a deprecation warning for this behaviour.
+\
 When we reach 2.0, we could:
 i) remove the support for 'source' artifacts with a pattern other than ${name}-${classifier}-sources.${ext}
 ii) stop adding the 'sources' classifier to the Gradle model of artifacts with type='source'.
 
-Additionally:
-* The above changes apply to javadoc artifacts, with type='javadoc' and classifier='javadoc'.
-* The above changes apply to test-jar artifacts, with type='test-jar' and classifier='tests'.
-* The above changes apply to ejb-client artifacts, with type='ejb-client' and classifier='client'.
+We can apply similar changes for artifacts of type 'javadoc', 'test-jar' and 'ejb-client' for maven repositories
 
 ### Integration test coverage
 
-TBD
+* Coverage for resolving typed dependencies on maven modules referenced in various ways:
+    * Need module published in maven repository with various 'classifier' artifacts:  ['source', 'javadoc', 'client', 'test-jar']
+    * Test resolution of artifacts in these modules via
+        1. Direct dependency in a Gradle project with relevant type specified
+        2. Transitive dependency in a maven module (pom) which is itself a dependency of a Gradle project
+        3. Transitive dependency in an ivy module (ivy.xml) which is itself a dependency of a Gradle project
+* Coverage for maven module published with "${name}-src.jar" pattern: this will require use of classifiers to resolve, and should emit deprecation warning.
+* Sad-day coverage for the case where neither type nor classifier can successfully locate the maven artifact. Error message should report 'type'-based location as expected.
 
 ### Implementation approach
 
+This will mean that we will be checking 2 locations for such an
+artifact: ${name}-${classifier}.${ext} and ${name}-${classifier}-sources.${ext}. An example where the former is required would be classifier='src', for the latter
+classifier='jdk15' (where jdk15 has a different source jar).
+
+* For an artifact of type "source", construct 2 possible locations for the artifact:
+    1. The 'classifier' location: ${name}-${classifier}.${ext}
+    2. The 'type' location: ${name}-sources.${ext}
+* If both locations are the same, use the artifact at that location.
+* If not, look for the artifact in the 'classifier' location
+    * If found, emit a deprecation warning and use that location
+    * If not found, use the artifact from the 'type' location
+* In 2.0, we will remove the use of the classifier location for 'source' artifacts, and the deprecation warning
+
+Similarly:
+* The above changes apply to type="javadoc", classifier="javadoc" and type pattern = "${name}-javadoc.${ext}"
+* The above changes apply to type="test-jar", classifier="tests" and type pattern = "${name}-tests.${ext}"
+* The above changes apply to type="ejb-client", classifier="client" and type pattern = "${name}-client.${ext}"
+
 It would be good to try to use Maven3 classes to assist with the mapping of [type]->URL and [type,classifier]->URL if possible.
 
-The IDEDependenciesExtractor will need to continue using type+classifier (until we normalise this for ivy repositories as well).
-
-We cannot deprecate the use of classifier='sources' until we map type='source' for ivy repositories as well.
+Until we map these types into the ivy repository model as well:
+* The IDEDependenciesExtractor will need to continue using type+classifier
+* We cannot deprecate the use of classifier='sources'
 
 ## Project dependencies in generated poms use correct artifactIds
 
@@ -350,15 +366,17 @@ cache storage (binary, unstable).
 
 ### Integration test coverage
 
-TBD
+* Will download changed version of ${name}-${classifier}.${ext} of changing module referenced with classifier
+* Will download changed version of source jar of changing module referenced with type="source"
+    * Verify that we will not download unchanged version of changing module
+* Verify that we recover from failed resolution of module after initial successful resolution
+    * Failure cases are authorization error (401), server error (500) and connection exception
+    * Will re-attempt download on subsequent resolve and recover
+    * Will use previously cached version if run with --offline after failure
 
 ### Implementation approach
 
 TBD
-
-## Support for kerberos and custom authentication
-
-* GRADLE-2335: Provide the ability to implement a custom HTTP authentication scheme for repository access
 
 ## Correct naming of resolved native binaries
 
@@ -368,3 +386,7 @@ TBD
 
 * GRADLE-2034: Existence of pom file requires that declared artifacts can be found in the same repository
 * GRADLE-2369: Dependency resolution fails for mavenLocal(), mavenCentral() if artifact partially in mavenLocal()
+
+## Support for kerberos and custom authentication
+
+* GRADLE-2335: Provide the ability to implement a custom HTTP authentication scheme for repository access
