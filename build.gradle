@@ -115,7 +115,7 @@ libraries += [
         nekohtml: 'net.sourceforge.nekohtml:nekohtml:1.9.14'
 ]
 
-libraries.maven3_settings_builder = "org.apache.maven:maven-settings-builder:3.0.4@jar"
+libraries.maven3_settings_builder = "org.apache.maven:maven-settings-builder:3.0.4"
 
 libraries.spock = ['org.spockframework:spock-core:0.6-groovy-1.8@jar',
         libraries.groovy,

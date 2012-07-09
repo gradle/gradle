@@ -15,15 +15,17 @@
  */
 package org.gradle.api.internal.artifacts.mvnsettings;
 
-import org.apache.maven.settings.DefaultMavenSettingsBuilder;
-import org.apache.maven.settings.MavenSettingsBuilder;
-import org.apache.maven.settings.Settings;
-import org.gradle.api.internal.artifacts.PlexusLoggerAdapter;
+import org.apache.maven.jarjar.settings.Settings;
+import org.apache.maven.jarjar.settings.building.SettingsBuildingResult;
+import org.apache.maven.jarjar.settings.building.SettingsBuildingException;
+import org.apache.maven.jarjar.settings.building.DefaultSettingsBuildingRequest;
+import org.apache.maven.jarjar.settings.building.DefaultSettingsBuilderFactory;
+import org.apache.maven.jarjar.settings.building.DefaultSettingsBuilder;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.lang.reflect.Field;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -47,8 +49,12 @@ public class DefaultLocalMavenRepositoryLocator implements LocalMavenRepositoryL
 
     public File getLocalMavenRepository() {
         Settings settings = buildSettings();
-        String repoPath = settings.getLocalRepository().trim();
-        return new File(resolvePlaceholders(repoPath));
+        String repoPath = settings.getLocalRepository();
+        if(repoPath==null){
+            repoPath = System.getProperty("user.home") + "/.m2/repository";
+            LOGGER.debug(String.format("No local repository in Settings file defined. Using default path: %s", repoPath));
+        }
+        return new File(resolvePlaceholders(repoPath.trim()));
     }
 
     private String resolvePlaceholders(String value) {
@@ -69,25 +75,23 @@ public class DefaultLocalMavenRepositoryLocator implements LocalMavenRepositoryL
     }
 
     private Settings buildSettings() {
-        try {
-            return createSettingsBuilder().buildSettings();
-        } catch (Exception e) {
-            throw new CannotLocateLocalMavenRepositoryException(e);
+        try{
+            final SettingsBuildingResult settingsBuilderResult = createSettingsBuilderResult();
+            return settingsBuilderResult.getEffectiveSettings();
+        }catch(SettingsBuildingException sbe){
+            throw new CannotLocateLocalMavenRepositoryException(sbe);
         }
     }
 
-    private MavenSettingsBuilder createSettingsBuilder() throws Exception {
-        DefaultMavenSettingsBuilder builder = new DefaultMavenSettingsBuilder();
-        builder.enableLogging(new PlexusLoggerAdapter(LOGGER));
-
-        Field userSettingsFileField = DefaultMavenSettingsBuilder.class.getDeclaredField("userSettingsFile");
-        userSettingsFileField.setAccessible(true);
-        userSettingsFileField.set(builder, mavenFileLocations.getUserSettingsFile());
-
-        Field globalSettingsFileField = DefaultMavenSettingsBuilder.class.getDeclaredField("globalSettingsFile");
-        globalSettingsFileField.setAccessible(true);
-        globalSettingsFileField.set(builder, mavenFileLocations.getGlobalSettingsFile());
-
-        return builder;
+    private SettingsBuildingResult createSettingsBuilderResult() throws SettingsBuildingException{
+        DefaultSettingsBuilderFactory factory = new DefaultSettingsBuilderFactory();
+        DefaultSettingsBuilder defaultSettingsBuilder = factory.newInstance();
+        DefaultSettingsBuildingRequest settingsBuildingRequest = new DefaultSettingsBuildingRequest();
+        settingsBuildingRequest.setSystemProperties(System.getProperties());
+        settingsBuildingRequest.setUserSettingsFile(mavenFileLocations.getUserMavenDir());
+        settingsBuildingRequest.setUserSettingsFile(mavenFileLocations.getUserSettingsFile());
+        settingsBuildingRequest.setGlobalSettingsFile(mavenFileLocations.getGlobalSettingsFile());
+        SettingsBuildingResult settingsBuildingResult = defaultSettingsBuilder.build(settingsBuildingRequest);
+        return settingsBuildingResult;
     }
 }

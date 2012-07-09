@@ -2,9 +2,14 @@ apply plugin: "groovy"
 
 import org.gradle.build.JarJar
 
-configurations{
-    mvn3
+configurations {
+    mvn3Input
+    mvn3JarJarOutputConfiguration
+
+    compile.extendsFrom(mvn3JarJarOutputConfiguration)
 }
+
+
 
 
 dependencies {
@@ -21,16 +26,24 @@ dependencies {
 
     testCompile libraries.junit
 
-    mvn3 libraries.maven3_settings_builder
+
+    compile files("$buildDir/libs/jarjar/mvn3JarJared.jar"){
+        builtBy "mvn3JarJar"
+    }
+
+    mvn3Input libraries.maven3_settings_builder
 }
 
-task mvn3JarJar(type:JarJar){
-    inputFiles = configurations.mvn3
-   	outputFile = file("$buildDir/libs/jarjar/mvnsrcbuilderjarjar.jar")
-   	rule('org.apache.maven.**', 'org.apache.maven.jarjar.@1')
-    keep('org.apache.maven.settings.DefaultMavenSettingsBuilder')
-    keep('org.apache.maven.settings.MavenSettingsBuilder')
+task mvn3JarJar(type: JarJar) {
+    inputFiles = configurations.mvn3Input
+    outputFile = file("$buildDir/libs/jarjar/mvn3JarJared.jar")
+    rule('org.apache.maven.**', 'org.apache.maven.jarjar.@1')
+    keep("org.apache.maven.settings.building.SettingsBuildingResult")
+    keep("org.apache.maven.settings.building.SettingsBuildingRequest")
+    keep("org.apache.maven.settings.building.SettingsBuildingException")
+    keep("org.apache.maven.settings.building.DefaultSettingsBuildingRequest")
+    keep("org.apache.maven.settings.building.DefaultSettingsBuilderFactory")
+    keep("org.apache.maven.settings.building.DefaultSettingsBuilder")
 }
-
 
 useTestFixtures()
