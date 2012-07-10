@@ -195,12 +195,7 @@ class MavenM2IntegrationTest extends AbstractIntegrationSpec {
         buildDir.file('projectA-1.2.jar').assertIsCopyOf(userModuleA.artifactFile)
     }
 
-    /*
-     * TODO RG: if settings.xml is invalid gradle fails with "internal error". Maybe we should change this behaviour as
-     *          it's not really an "internal" error.
-     */
-
-    public void "fail if settings.xml is invalid"() {
+    public void "don't fail on invalid settings.xml"() {
         given:
         def artifactRepo = new MavenRepository(file("artifactrepo"))
         def m2 = localM2() {
