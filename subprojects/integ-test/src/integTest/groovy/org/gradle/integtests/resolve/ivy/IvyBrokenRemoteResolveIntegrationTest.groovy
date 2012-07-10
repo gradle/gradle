@@ -21,7 +21,7 @@ import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.startsWith
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
 
-class IvyBrokenRemoteDependencyResolutionIntegrationTest extends AbstractDependencyResolutionTest {
+class IvyBrokenRemoteResolveIntegrationTest extends AbstractDependencyResolutionTest {
 
     public void "reports and caches missing module"() {
         server.start()

@@ -22,7 +22,7 @@ import spock.lang.Unroll
 import org.gradle.integtests.fixtures.HttpServer
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
 
-class HttpProxyDependencyResolutionIntegrationTest extends AbstractDependencyResolutionTest {
+class HttpProxyResolveIntegrationTest extends AbstractDependencyResolutionTest {
     @Rule TestProxyServer proxyServer = new TestProxyServer(server)
     @Rule SetSystemProperties systemProperties = new SetSystemProperties()
 

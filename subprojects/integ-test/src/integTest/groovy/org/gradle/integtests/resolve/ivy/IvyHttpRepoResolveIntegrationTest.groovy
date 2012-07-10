@@ -17,7 +17,7 @@ package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
 
-class IvyRemoteDependencyResolutionIntegrationTest extends AbstractDependencyResolutionTest {
+class IvyHttpRepoResolveIntegrationTest extends AbstractDependencyResolutionTest {
 
     public void "can resolve and cache dependencies from an HTTP Ivy repository"() {
         server.start()

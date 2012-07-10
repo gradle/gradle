@@ -20,7 +20,7 @@ import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
 import org.gradle.util.TestFile
 import org.junit.Rule
 
-class MavenRemoteDependencyResolutionIntegrationTest extends AbstractDependencyResolutionTest {
+class MavenHttpRepoResolveIntegrationTest extends AbstractDependencyResolutionTest {
     @Rule public final TestResources resources = new TestResources();
 
     def canResolveDependenciesFromMultipleMavenRepositories() {

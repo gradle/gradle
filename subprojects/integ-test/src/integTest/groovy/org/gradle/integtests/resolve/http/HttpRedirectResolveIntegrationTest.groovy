@@ -20,7 +20,7 @@ import org.junit.Rule
 import spock.lang.Issue
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
 
-class HttpRedirectDependencyResolutionIntegrationTest extends AbstractDependencyResolutionTest {
+class HttpRedirectResolveIntegrationTest extends AbstractDependencyResolutionTest {
     @Rule SetSystemProperties systemProperties = new SetSystemProperties()
 
     public void "resolves module artifacts via HTTP redirect"() {

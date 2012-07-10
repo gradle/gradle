@@ -19,7 +19,7 @@ import org.gradle.integtests.fixtures.MavenModule
 import org.gradle.integtests.fixtures.MavenRepository
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
 
-class MavenSnapshotRemoteDependencyResolutionIntegrationTest extends AbstractDependencyResolutionTest {
+class MavenSnapshotRemoteResolveIntegrationTest extends AbstractDependencyResolutionTest {
 
     def "can find and cache snapshots in multiple Maven HTTP repositories"() {
         server.start()

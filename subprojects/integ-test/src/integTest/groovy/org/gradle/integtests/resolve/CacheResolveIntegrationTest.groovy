@@ -16,7 +16,7 @@
 package org.gradle.integtests.resolve;
 
 
-public class CacheDependencyResolutionIntegrationTest extends AbstractDependencyResolutionTest {
+public class CacheResolveIntegrationTest extends AbstractDependencyResolutionTest {
 
     public void "cache handles manual deletion of cached artifacts"() {
         server.start()

@@ -18,7 +18,7 @@ package org.gradle.integtests.resolve.maven
 import org.gradle.integtests.fixtures.MavenRepository
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
 
-class MavenLocalDependencyResolutionIntegrationTest extends AbstractDependencyResolutionTest {
+class MavenFileRepoResolveIntegrationTest extends AbstractDependencyResolutionTest {
     public void "can resolve snapshots uncached from local Maven repository"() {
         given:
         def moduleA = mavenRepo().module('group', 'projectA', '1.2-SNAPSHOT')
