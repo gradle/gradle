@@ -67,8 +67,8 @@ class MavenModule {
         return this
     }
 
-    MavenModule dependsOn(String group, String artifactId, String version) {
-        this.dependencies << [groupId: group, artifactId: artifactId, version: version]
+    MavenModule dependsOn(String group, String artifactId, String version, String type = null) {
+        this.dependencies << [groupId: group, artifactId: artifactId, version: version, type:  type]
         return this
     }
 
@@ -204,13 +204,15 @@ class MavenModule {
             }
 
             dependencies.each { dependency ->
+                def typeAttribute = dependency['type'] == null ? "" : "<type>$dependency.type</type>"
                 pomFile << """
   <dependencies>
     <dependency>
       <groupId>$dependency.groupId</groupId>
       <artifactId>$dependency.artifactId</artifactId>
       <version>$dependency.version</version>
-    </dependency>3.2.1
+      $typeAttribute
+    </dependency>
   </dependencies>"""
         }
 

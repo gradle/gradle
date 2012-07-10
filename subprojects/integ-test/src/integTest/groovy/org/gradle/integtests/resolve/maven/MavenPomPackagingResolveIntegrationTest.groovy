@@ -25,6 +25,10 @@ class MavenPomPackagingResolveIntegrationTest extends AbstractDependencyResoluti
     def setup() {
         server.start()
 
+        projectA = mavenRepo().module('group', 'projectA')
+    }
+
+    private void buildWithDependencies(def dependencies) {
         buildFile << """
 repositories {
     maven { url 'http://localhost:${server.port}/repo1' }
@@ -32,19 +36,18 @@ repositories {
 }
 configurations { compile }
 dependencies {
-    compile 'group:projectA:1.0'
+    $dependencies
 }
 task retrieve(type: Sync) {
     into 'libs'
     from configurations.compile
 }
 """
-
-        projectA = mavenRepo().module('group', 'projectA')
     }
 
-    def "looks for jar artifact for pom with packing of type 'pom' in the same repository only"() {
+    def "looks for jar artifact for pom with packaging of type 'pom' in the same repository only"() {
         when:
+        buildWithDependencies("compile 'group:projectA:1.0'")
         publishWithPackaging('pom')
 
         and:
@@ -72,8 +75,9 @@ task retrieve(type: Sync) {
         file('libs/projectA-1.0.jar').assertHasNotChangedSince(snapshot)
     }
 
-    def "will use jar artifact for pom with packing that maps to jar"() {
+    def "will use jar artifact for pom with packaging that maps to jar"() {
         when:
+        buildWithDependencies("compile 'group:projectA:1.0'")
         publishWithPackaging(packaging)
 
         and:
@@ -93,8 +97,9 @@ task retrieve(type: Sync) {
 
 
     @Issue('GRADLE-2188')
-    def "will use jar artifact for pom with packing 'orbit'"() {
+    def "will use jar artifact for pom with packaging 'orbit'"() {
         when:
+        buildWithDependencies("compile 'group:projectA:1.0'")
         publishWithPackaging('orbit')
 
         and:
@@ -111,8 +116,9 @@ task retrieve(type: Sync) {
     }
 
     @Issue('GRADLE-2188')
-    def "where 'module.custom' exists, will use it as main artifact for pom with packing 'custom' and emit deprecation warning"() {
+    def "where 'module.custom' exists, will use it as main artifact for pom with packaging 'custom' and emit deprecation warning"() {
         when:
+        buildWithDependencies("compile 'group:projectA:1.0'")
         publishWithPackaging('custom', 'custom')
 
         and:
@@ -136,6 +142,7 @@ task retrieve(type: Sync) {
 
     def "fails and reports type-based location if neither packaging-based or type-based artifact can be located"() {
         when:
+        buildWithDependencies("compile 'group:projectA:1.0'")
         publishWithPackaging('custom')
 
         and:
@@ -148,6 +155,54 @@ task retrieve(type: Sync) {
 
         and:
         result.error.contains("Artifact 'group:projectA:1.0@jar' not found.")
+    }
+
+    def "will use dependency type to determine artifact location"() {
+        when:
+        buildWithDependencies("""
+compile('group:projectA:1.0') {
+    artifact {
+        name = 'projectA'
+        type = 'zip'
+    }
+}
+""")
+        publishWithPackaging('custom', 'zip')
+
+        and:
+        server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.pom', projectA.pomFile)
+        server.expectHeadMissing('/repo1/group/projectA/1.0/projectA-1.0.custom')
+        server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.zip', projectA.artifactFile)
+
+        then:
+        succeeds 'retrieve'
+
+        and:
+        file('libs').assertHasDescendants('projectA-1.0.zip')
+        file('libs/projectA-1.0.zip').assertIsCopyOf(projectA.artifactFile)
+    }
+
+    def "will use maven dependency type to determine artifact location"() {
+        when:
+        buildWithDependencies("""
+compile 'group:mavenProject:1.0'
+""")
+        def mavenProject = mavenRepo().module('group', 'mavenProject', '1.0').hasType('pom').dependsOn('group', 'projectA', '1.0', 'zip').publish()
+        publishWithPackaging('custom', 'zip')
+
+        and:
+        server.expectGet('/repo1/group/mavenProject/1.0/mavenProject-1.0.pom', mavenProject.pomFile)
+        server.expectHeadMissing('/repo1/group/mavenProject/1.0/mavenProject-1.0.jar')
+        server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.pom', projectA.pomFile)
+        server.expectHeadMissing('/repo1/group/projectA/1.0/projectA-1.0.custom')
+        server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.zip', projectA.artifactFile)
+
+        then:
+        succeeds 'retrieve'
+
+        and:
+        file('libs').assertHasDescendants('projectA-1.0.zip')
+        file('libs/projectA-1.0.zip').assertIsCopyOf(projectA.artifactFile)
     }
 
     private def publishWithPackaging(String packaging, String type = 'jar') {
