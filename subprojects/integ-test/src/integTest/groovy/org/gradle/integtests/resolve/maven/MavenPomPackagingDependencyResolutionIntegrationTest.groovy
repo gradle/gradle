@@ -134,6 +134,22 @@ task retrieve(type: Sync) {
         result.output.contains("Deprecated: relying on packaging to define the extension of the main artifact is deprecated")
     }
 
+    def "fails and reports type-based location if neither packaging-based or type-based artifact can be located"() {
+        when:
+        publishWithPackaging('custom')
+
+        and:
+        server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.pom', projectA.pomFile)
+        server.expectHeadMissing('/repo1/group/projectA/1.0/projectA-1.0.custom')
+        server.expectGetMissing('/repo1/group/projectA/1.0/projectA-1.0.jar')
+
+        then:
+        fails 'retrieve'
+
+        and:
+        result.error.contains("Artifact 'group:projectA:1.0@jar' not found.")
+    }
+
     private def publishWithPackaging(String packaging, String type = 'jar') {
         projectA.packaging = packaging
         projectA.type = type
