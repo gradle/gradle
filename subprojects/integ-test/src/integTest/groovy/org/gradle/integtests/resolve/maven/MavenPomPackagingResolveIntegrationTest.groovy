@@ -19,7 +19,7 @@ import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
 import spock.lang.Issue
 import org.gradle.integtests.fixtures.MavenModule
 
-class MavenPomPackagingDependencyResolutionIntegrationTest extends AbstractDependencyResolutionTest {
+class MavenPomPackagingResolveIntegrationTest extends AbstractDependencyResolutionTest {
     MavenModule projectA
 
     def setup() {

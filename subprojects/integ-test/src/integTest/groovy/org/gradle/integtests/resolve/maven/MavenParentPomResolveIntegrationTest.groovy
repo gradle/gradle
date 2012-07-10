@@ -17,7 +17,7 @@ package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
 
-class MavenParentPomResolutionIntegrationTest extends AbstractDependencyResolutionTest {
+class MavenParentPomResolveIntegrationTest extends AbstractDependencyResolutionTest {
 
     def "includes dependencies from parent pom"() {
         given:

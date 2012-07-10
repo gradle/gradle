@@ -18,7 +18,7 @@ package org.gradle.integtests.resolve.maven
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
 import spock.lang.Issue
 
-class BadPomFileDependenciesIntegrationTest extends AbstractDependencyResolutionTest {
+class BadPomFileResolveIntegrationTest extends AbstractDependencyResolutionTest {
 
     @Issue("http://issues.gradle.org/browse/GRADLE-1005")
     def "can handle self referencing dependency"() {
