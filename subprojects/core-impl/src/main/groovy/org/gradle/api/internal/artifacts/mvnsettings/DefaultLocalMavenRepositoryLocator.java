@@ -16,11 +16,7 @@
 package org.gradle.api.internal.artifacts.mvnsettings;
 
 import org.apache.maven.jarjar.settings.Settings;
-import org.apache.maven.jarjar.settings.building.SettingsBuildingResult;
-import org.apache.maven.jarjar.settings.building.SettingsBuildingException;
-import org.apache.maven.jarjar.settings.building.DefaultSettingsBuildingRequest;
-import org.apache.maven.jarjar.settings.building.DefaultSettingsBuilderFactory;
-import org.apache.maven.jarjar.settings.building.DefaultSettingsBuilder;
+import org.apache.maven.jarjar.settings.building.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,19 +44,33 @@ public class DefaultLocalMavenRepositoryLocator implements LocalMavenRepositoryL
     }
 
     public File getLocalMavenRepository() {
-        Settings settings = buildSettings();
-        String repoPath = settings.getLocalRepository();
-        if(repoPath==null){
-            repoPath = System.getProperty("user.home") + "/.m2/repository";
+        String repoPath = readRepoPathFromSettings();
+        if(repoPath == null){
+            repoPath = new File(System.getProperty("user.home"), "/.m2/repository").getAbsolutePath();
             LOGGER.debug(String.format("No local repository in Settings file defined. Using default path: %s", repoPath));
         }
         return new File(resolvePlaceholders(repoPath.trim()));
     }
 
+    private String readRepoPathFromSettings() {
+        try {
+            Settings settings = buildSettings();
+            return settings.getLocalRepository();
+        } catch (SettingsBuildingException sbe) {
+            logSettingsBuildingProblems(sbe);
+        }
+        return null;
+    }
+
+    private void logSettingsBuildingProblems(SettingsBuildingException sbe) {
+        for (SettingsProblem settingsProblem : sbe.getProblems()) {
+            LOGGER.info(String.format("Cannot parse maven settings.xml %s", settingsProblem.getMessage()));
+        }
+    }
+
     private String resolvePlaceholders(String value) {
         StringBuffer result = new StringBuffer();
         Matcher matcher = PLACEHOLDER_PATTERN.matcher(value);
-
         while (matcher.find()) {
             String placeholder = matcher.group(1);
             String replacement = placeholder.startsWith("env.") ? environmentVariables.get(placeholder.substring(4)) : systemProperties.get(placeholder);
@@ -74,16 +84,8 @@ public class DefaultLocalMavenRepositoryLocator implements LocalMavenRepositoryL
         return result.toString();
     }
 
-    private Settings buildSettings() {
-        try{
-            final SettingsBuildingResult settingsBuilderResult = createSettingsBuilderResult();
-            return settingsBuilderResult.getEffectiveSettings();
-        }catch(SettingsBuildingException sbe){
-            throw new CannotLocateLocalMavenRepositoryException(sbe);
-        }
-    }
 
-    private SettingsBuildingResult createSettingsBuilderResult() throws SettingsBuildingException{
+    private Settings buildSettings() throws SettingsBuildingException {
         DefaultSettingsBuilderFactory factory = new DefaultSettingsBuilderFactory();
         DefaultSettingsBuilder defaultSettingsBuilder = factory.newInstance();
         DefaultSettingsBuildingRequest settingsBuildingRequest = new DefaultSettingsBuildingRequest();
@@ -92,6 +94,6 @@ public class DefaultLocalMavenRepositoryLocator implements LocalMavenRepositoryL
         settingsBuildingRequest.setUserSettingsFile(mavenFileLocations.getUserSettingsFile());
         settingsBuildingRequest.setGlobalSettingsFile(mavenFileLocations.getGlobalSettingsFile());
         SettingsBuildingResult settingsBuildingResult = defaultSettingsBuilder.build(settingsBuildingRequest);
-        return settingsBuildingResult;
+        return settingsBuildingResult.getEffectiveSettings();
     }
 }

@@ -24,6 +24,7 @@ import org.junit.Rule
 import spock.lang.IgnoreIf
 
 import static org.hamcrest.Matchers.containsString
+import static org.hamcrest.Matchers.not
 
 @IgnoreIf({ GradleDistributionExecuter.systemPropertyExecuter == GradleDistributionExecuter.Executer.daemon})
 class MavenM2IntegrationTest extends AbstractIntegrationSpec {
@@ -228,7 +229,8 @@ class MavenM2IntegrationTest extends AbstractIntegrationSpec {
         def failure = runAndFail('retrieve')
 
         then:
-        failure.assertThatDescription(containsString("Build aborted because of an internal error"));
+        failure.assertThatDescription(not(containsString("Build aborted because of an internal error")));
+        failure.assertThatDescription(containsString("Could not resolve all dependencies for configuration"));
     }
 
     public void "mavenLocal is ignored if not ~/.m2 is defined"() {
