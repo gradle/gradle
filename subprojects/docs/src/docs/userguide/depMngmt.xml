@@ -637,6 +637,9 @@
             <sample id="mavenLocalRepo" dir="userguide/artifacts/defineRepository" title="Adding the local Maven cache as a repository">
                 <sourcefile file="build.gradle" snippet="maven-local"/>
             </sample>
+            <para>Gradle uses the same logic as maven to identify the location of your local maven cache. If a local repository location is defined in a <filename>settings.xml</filename>, this location will be used.
+                The <filename>settings.xml</filename> in <filename><replaceable>USER_HOME</replaceable>/.m2</filename> takes precedence over the <filename>settings.xml</filename> in <filename><replaceable>M2_HOME</replaceable>/conf</filename>.
+                If no <filename>settings.xml</filename> is available, Gradle uses the default location <filename><replaceable>USER_HOME</replaceable>/.m2/repository</filename>.</para>
         </section>
 
         <section id='sub:maven_repo'>
