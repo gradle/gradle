@@ -41,5 +41,5 @@ public interface ExternalModuleDependency extends ExternalDependency {
     /**
      * {@inheritDoc}
      */
-    ExternalModuleDependency copy();    
+    ExternalModuleDependency copy();
 }

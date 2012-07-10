@@ -17,54 +17,7 @@ package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
 
-class MavenRemotePomResolutionIntegrationTest extends AbstractDependencyResolutionTest {
-
-    def "looks for jar artifact for pom with packing of type 'pom' in the same repository only"() {
-        given:
-        server.start()
-
-        def projectA = mavenRepo().module('group', 'projectA')
-        projectA.type = 'pom'
-        projectA.publish()
-
-        buildFile << """
-repositories {
-    maven { url 'http://localhost:${server.port}/repo1' }
-    maven { url 'http://localhost:${server.port}/repo2' }
-}
-configurations { compile }
-dependencies { compile 'group:projectA:1.0' }
-task retrieve(type: Sync) {
-    into 'libs'
-    from configurations.compile
-}
-"""
-
-        when:
-        // First attempts to resolve in repo1
-        server.expectGetMissing('/repo1/group/projectA/1.0/projectA-1.0.pom')
-        server.expectHeadMissing('/repo1/group/projectA/1.0/projectA-1.0.jar')
-
-        // Then resolves pom (with 'pom' packaging) in repo2, looks there for jar as well
-        server.expectGet('/repo2/group/projectA/1.0/projectA-1.0.pom', projectA.pomFile)
-        server.expectHead('/repo2/group/projectA/1.0/projectA-1.0.jar', projectA.artifactFile)
-        server.expectGet('/repo2/group/projectA/1.0/projectA-1.0.jar', projectA.artifactFile)
-
-        and:
-        run 'retrieve'
-
-        then:
-        file('libs').assertHasDescendants('projectA-1.0.jar')
-        def snapshot = file('libs/projectA-1.0.jar').snapshot()
-
-        when:
-        server.resetExpectations()
-        and:
-        run 'retrieve'
-
-        then:
-        file('libs/projectA-1.0.jar').assertHasNotChangedSince(snapshot)
-    }
+class MavenParentPomResolutionIntegrationTest extends AbstractDependencyResolutionTest {
 
     def "includes dependencies from parent pom"() {
         given:

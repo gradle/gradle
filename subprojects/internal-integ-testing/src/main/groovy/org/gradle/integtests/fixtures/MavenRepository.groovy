@@ -47,6 +47,7 @@ class MavenModule {
     final String version
     String parentPomSection
     String type = 'jar'
+    String packaging
     private final List dependencies = []
     int publishCount = 1
     final updateFormat = new SimpleDateFormat("yyyyMMddHHmmss")
@@ -187,13 +188,14 @@ class MavenModule {
         }
 
         publish(pomFile) {
+            def pomPackaging = packaging ?: type;
             pomFile.text = ""
             pomFile << """
 <project xmlns="http://maven.apache.org/POM/4.0.0">
   <modelVersion>4.0.0</modelVersion>
   <groupId>$groupId</groupId>
   <artifactId>$artifactId</artifactId>
-  <packaging>$type</packaging>
+  <packaging>$pomPackaging</packaging>
   <version>$version</version>
   <description>Published on $publishTimestamp</description>"""
 
