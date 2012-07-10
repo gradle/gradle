@@ -4,9 +4,6 @@ import org.gradle.build.JarJar
 
 configurations {
     mvn3Input
-    mvn3JarJarOutputConfiguration
-
-    compile.extendsFrom(mvn3JarJarOutputConfiguration)
 }
 
 
