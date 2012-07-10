@@ -49,8 +49,16 @@ class JarJar extends DefaultTask {
 
             JarJarMain.main("process", tempRuleFile.absolutePath, tmpMergedJarFile.absolutePath, outputFile.absolutePath)
         } catch (IOException e) {
-            throw new GradleException("unable to run jarjar task", e);
+            throw new GradleException("Unable to execute JarJar task", e);
         }
+    }
+
+    void rule(String pattern, String result) {
+        rules[pattern] = result
+    }
+
+    void keep(String pattern) {
+        keeps << pattern
     }
 
     private void writeRuleFile(File ruleFile) {
@@ -63,15 +71,6 @@ class JarJar extends DefaultTask {
             }
         }
     }
-
-    void rule(String pattern, String result) {
-        rules[pattern] = result
-    }
-
-    void keep(String pattern) {
-        keeps << pattern
-    }
-
 
     private static void mergeJarFiles(Set<File> srcFiles, File destFile) throws IOException {
         byte[] buf = new byte[0x2000];
@@ -96,18 +95,12 @@ class JarJar extends DefaultTask {
                         entry.setCompressedSize(-1);
                         out.putNextEntry(entry);
                         out.write(struct.data);
-
-                    } else if (struct.name.endsWith("/")) {
-                        // TODO(chrisn): log
-                    } else {
-                        //throw new IllegalArgumentException("Duplicate jar entries: " + struct.name);
                     }
                 }
             } finally {
                 jarFile.close();
             }
         }
-
         out.close();
     }
 
@@ -120,5 +113,4 @@ class JarJar extends DefaultTask {
             out.write(buf, 0, amt);
         }
     }
-
 }
