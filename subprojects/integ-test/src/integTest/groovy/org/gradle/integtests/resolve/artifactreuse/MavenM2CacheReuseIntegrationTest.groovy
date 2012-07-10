@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.TestFile
 import org.junit.Rule
 
-class MavenLocalCacheReuseIntegrationTest extends AbstractIntegrationSpec {
+class MavenM2CacheReuseIntegrationTest extends AbstractIntegrationSpec {
     @Rule public final HttpServer server = new HttpServer()
     TestFile repoFile
     

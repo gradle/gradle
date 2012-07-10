@@ -43,23 +43,18 @@ public class DefaultLocalMavenRepositoryLocator implements LocalMavenRepositoryL
         this.environmentVariables = environmentVariables;
     }
 
-    public File getLocalMavenRepository() {
-        String repoPath = readRepoPathFromSettings();
-        if(repoPath == null){
-            repoPath = new File(System.getProperty("user.home"), "/.m2/repository").getAbsolutePath();
-            LOGGER.debug(String.format("No local repository in Settings file defined. Using default path: %s", repoPath));
-        }
-        return new File(resolvePlaceholders(repoPath.trim()));
-    }
-
-    private String readRepoPathFromSettings() {
+    public File getLocalMavenRepository() throws CannotLocateLocalMavenRepositoryException{
         try {
             Settings settings = buildSettings();
-            return settings.getLocalRepository();
-        } catch (SettingsBuildingException sbe) {
-            logSettingsBuildingProblems(sbe);
+            String repoPath = settings.getLocalRepository();
+            if (repoPath == null) {
+                repoPath = new File(System.getProperty("user.home"), "/.m2/repository").getAbsolutePath();
+                LOGGER.debug(String.format("No local repository in Settings file defined. Using default path: %s", repoPath));
+            }
+            return new File(resolvePlaceholders(repoPath.trim()));
+        } catch (SettingsBuildingException e) {
+            throw new CannotLocateLocalMavenRepositoryException(e.getMessage());
         }
-        return null;
     }
 
     private void logSettingsBuildingProblems(SettingsBuildingException sbe) {

@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.integtests.fixtures.MavenRepository
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.TestFile
+import org.gradle.integtests.fixture.M2Installation
 import org.junit.Rule
 import spock.lang.IgnoreIf
 
@@ -195,7 +196,7 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractIntegrationSpec {
         buildDir.file('projectA-1.2.jar').assertIsCopyOf(userModuleA.artifactFile)
     }
 
-    public void "don't fail on invalid settings.xml"() {
+    public void "fail with meaningful error message if settings.xml is invalid"() {
         given:
         def artifactRepo = new MavenRepository(file("artifactrepo"))
         def m2 = localM2() {
@@ -225,7 +226,7 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertThatDescription(not(containsString("Build aborted because of an internal error")));
-        failure.assertThatDescription(containsString("Could not resolve all dependencies for configuration"));
+        failure.assertThatDescription(containsString(String.format("Non-parseable settings %s:", m2.userSettingsFile.absolutePath)));
     }
 
     public void "mavenLocal is ignored if not ~/.m2 is defined"() {
@@ -263,7 +264,7 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractIntegrationSpec {
         buildDir.file('projectA-1.2.jar').assertIsCopyOf(userModuleA.artifactFile)
     }
 
-    def withM2(M2 m2) {
+    def withM2(M2Installation m2) {
         def args = ["-Duser.home=${m2.userM2Directory.parentFile.absolutePath}".toString()]
         if (m2.globalMavenDirectory?.exists()) {
             args << "-DM2_HOME=${m2.globalMavenDirectory.absolutePath}".toString()
@@ -272,41 +273,17 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractIntegrationSpec {
         executer.withForkingExecuter()
     }
 
-    M2 localM2() {
+    M2Installation localM2() {
         TestFile testUserHomeDir = file("user-home")
         TestFile userM2Dir = testUserHomeDir.file(".m2")
-        new M2(userM2Dir)
+        new M2Installation(userM2Dir)
     }
 
-    M2 localM2(Closure configClosure) {
-        M2 m2 = localM2()
+    M2Installation localM2(Closure configClosure) {
+        M2Installation m2 = localM2()
         configClosure.setDelegate(m2)
         configClosure.setResolveStrategy(Closure.DELEGATE_FIRST)
         configClosure.call()
         m2
-    }
-}
-
-class M2 {
-    final TestFile userM2Directory
-    final TestFile userSettingsFile
-    TestFile globalMavenDirectory = null;
-
-    public M2(TestFile m2Directory) {
-        this.userM2Directory = m2Directory;
-        this.userSettingsFile = m2Directory.file("settings.xml")
-    }
-
-    MavenRepository mavenRepo() {
-        mavenRepo(userM2Directory.file("repository"))
-    }
-
-    MavenRepository mavenRepo(TestFile file) {
-        new MavenRepository(file)
-    }
-
-    TestFile createGlobalSettingsFile(TestFile globalMavenDirectory) {
-        this.globalMavenDirectory = globalMavenDirectory;
-        globalMavenDirectory.file("conf/settings.xml").createFile()
     }
 }
