@@ -30,7 +30,7 @@ class MavenM2IntegrationTest extends AbstractIntegrationSpec {
 
     @Rule SetSystemProperties sysProp = new SetSystemProperties()
 
-    public void "can resolve artifacts from local m2 with undefinded settings.xml"() {
+    public void "can resolve artifacts from local m2 with not existing user settings.xml"() {
         given:
         def m2 = localM2()
 
@@ -168,7 +168,7 @@ class MavenM2IntegrationTest extends AbstractIntegrationSpec {
 
         def globalModuleA = globalRepo.module('group', 'projectA', '1.2')
         globalModuleA.publishWithChangedContent() // to ensure that resulting artifact
-                                                  // has different hash than userModuleA.artifactFile
+        // has different hash than userModuleA.artifactFile
 
         and:
         buildFile << """
@@ -229,6 +229,41 @@ class MavenM2IntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertThatDescription(containsString("Build aborted because of an internal error"));
+    }
+
+    public void "mavenLocal is ignored if not ~/.m2 is defined"() {
+        given:
+        def userhomePath = file("empy-user-home").absolutePath
+        and:
+        def anotherRepo = new MavenRepository(file("another-local-repo"))
+        def userModuleA = anotherRepo.module('group', 'projectA', '1.2')
+        userModuleA.publishWithChangedContent();
+        and:
+
+        buildFile << """
+        repositories {
+            mavenLocal()
+            maven { url "${anotherRepo.uri}" }
+        }
+        configurations { compile }
+        dependencies {
+            compile 'group:projectA:1.2'
+        }
+
+        task retrieve(type: Sync) {
+            from configurations.compile
+            into 'build'
+        }"""
+
+        when:
+
+        executer.withArguments("-Duser.home=${userhomePath}")
+        run 'retrieve'
+
+        then:
+        def buildDir = file('build')
+        buildDir.assertHasDescendants('projectA-1.2.jar')
+        buildDir.file('projectA-1.2.jar').assertIsCopyOf(userModuleA.artifactFile)
     }
 
     def withM2(M2 m2) {
