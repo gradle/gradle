@@ -41,4 +41,6 @@ task mvn3JarJar(type: JarJar) {
     keep("org.apache.maven.settings.building.DefaultSettingsBuilder")
 }
 
+ideaModule.dependsOn mvn3JarJar // I expected that buildable file collections links the ideaModule to the mvn3JarJar task.
+
 useTestFixtures()
