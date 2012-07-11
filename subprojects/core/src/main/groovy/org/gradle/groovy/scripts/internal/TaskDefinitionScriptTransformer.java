@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.dsl;
+package org.gradle.groovy.scripts.internal;
 
 import org.codehaus.groovy.ast.CodeVisitorSupport;
 import org.codehaus.groovy.ast.DynamicVariable;
@@ -22,6 +22,7 @@ import org.codehaus.groovy.ast.expr.*;
 import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.control.Phases;
 import org.codehaus.groovy.control.SourceUnit;
+import org.gradle.groovy.scripts.internal.AbstractScriptTransformer;
 
 import java.util.Collections;
 import java.util.List;

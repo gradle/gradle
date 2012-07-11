@@ -17,7 +17,7 @@ package org.gradle.configuration;
 
 import org.gradle.internal.Factory;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.api.internal.artifacts.dsl.ClasspathScriptTransformer;
+import org.gradle.groovy.scripts.internal.ClasspathScriptTransformer;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.groovy.scripts.*;

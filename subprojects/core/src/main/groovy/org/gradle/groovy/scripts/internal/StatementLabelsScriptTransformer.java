@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts;
+package org.gradle.groovy.scripts.internal;
 
 import com.google.common.collect.Lists;
 import org.codehaus.groovy.ast.ClassCodeVisitorSupport;
@@ -25,8 +25,6 @@ import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.control.Phases;
 import org.codehaus.groovy.control.SourceUnit;
-
-import org.gradle.api.internal.artifacts.dsl.AbstractScriptTransformer;
 
 import java.util.List;
 

@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.dsl;
+package org.gradle.groovy.scripts.internal;
 
 import org.codehaus.groovy.control.CompilationUnit;
-import org.gradle.api.internal.artifacts.StatementLabelsScriptTransformer;
 import org.gradle.groovy.scripts.Transformer;
 
 public class BuildScriptTransformer implements Transformer {

@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts;
+package org.gradle.groovy.scripts.internal;
 
 import org.gradle.util.DeprecationLogger;
 
-// NOTE: Be careful with changes to this class. StatementLabelsScriptTransformer
-// weaves calls to StatementLabelsDeprecationLogger.log() into build scripts.
-// Hence a change to the interface of this class can easily become a breaking change.
+/**
+ * Used by {@link StatementLabelsScriptTransformer} which weaves calls to the log() method into build scripts.
+ */
 public class StatementLabelsDeprecationLogger {
     public static void log(String label, String sample) {
         DeprecationLogger.nagUserWith(String.format("Usage of statement labels in build scripts has been deprecated "
