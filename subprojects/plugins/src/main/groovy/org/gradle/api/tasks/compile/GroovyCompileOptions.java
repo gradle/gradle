@@ -44,6 +44,8 @@ public class GroovyCompileOptions extends AbstractOptions {
 
     private boolean keepStubs;
 
+    private List<String> fileExtensions = ImmutableList.of("java", "groovy");
+
     private GroovyForkOptions forkOptions = new GroovyForkOptions();
 
     private Map<String, Boolean> optimizationOptions = Maps.newHashMap();
@@ -237,6 +239,23 @@ public class GroovyCompileOptions extends AbstractOptions {
     }
 
     /**
+     * Returns the list of acceptable source file extensions.
+     * Defaults to {@code ImmutableList.of("java", "groovy")}.
+     */
+    @Input
+    public List<String> getFileExtensions() {
+        return fileExtensions;
+    }
+
+    /**
+     * Sets the list of acceptable source file extenssions.
+     * Defaults to {@code ImmutableList.of("java", "groovy")}.
+     */
+    public void setFileExtensions(List<String> fileExtensions) {
+        this.fileExtensions = fileExtensions;
+    }
+
+    /**
      * Tells whether Java stubs for Groovy classes generated during Java/Groovy joint compilation
      * should be kept after compilation has completed. Useful for joint compilation debugging purposes.
      * Defaults to {@code false}.
@@ -268,7 +287,7 @@ public class GroovyCompileOptions extends AbstractOptions {
      * Internal method.
      */
     protected List<String> excludedFieldsFromOptionMap() {
-        return ImmutableList.of("forkOptions", "optimizationOptions", "useAnt", "stubDir", "keepStubs");
+        return ImmutableList.of("forkOptions", "optimizationOptions", "useAnt", "stubDir", "keepStubs", "fileExtensions");
     }
 
     /**
