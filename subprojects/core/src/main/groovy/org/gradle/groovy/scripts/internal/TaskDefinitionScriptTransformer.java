@@ -22,7 +22,6 @@ import org.codehaus.groovy.ast.expr.*;
 import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.control.Phases;
 import org.codehaus.groovy.control.SourceUnit;
-import org.gradle.groovy.scripts.internal.AbstractScriptTransformer;
 
 import java.util.Collections;
 import java.util.List;

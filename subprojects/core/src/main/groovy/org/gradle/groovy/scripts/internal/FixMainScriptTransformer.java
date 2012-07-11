@@ -20,7 +20,6 @@ import org.codehaus.groovy.ast.MethodNode;
 import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.control.Phases;
 import org.codehaus.groovy.control.SourceUnit;
-import org.gradle.groovy.scripts.internal.AbstractScriptTransformer;
 
 /**
  * Fixes problem where main { } inside a closure is resolved as a call to static method main(). Does this by removing
