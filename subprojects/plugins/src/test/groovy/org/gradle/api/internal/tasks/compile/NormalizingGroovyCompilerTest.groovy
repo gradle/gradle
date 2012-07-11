@@ -54,7 +54,7 @@ class NormalizingGroovyCompilerTest extends Specification {
         }
     }
 
-    static private files(String... paths) {
+    private files(String... paths) {
         new TestFileCollection(paths.collect { new File(it) })
     }
 

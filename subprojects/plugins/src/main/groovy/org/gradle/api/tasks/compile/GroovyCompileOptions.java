@@ -18,6 +18,8 @@ package org.gradle.api.tasks.compile;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+
+import org.gradle.api.Experimental;
 import org.gradle.api.tasks.Input;
 
 import java.io.File;
@@ -147,7 +149,7 @@ public class GroovyCompileOptions extends AbstractOptions {
 
     /**
      * Returns optimization options for the Groovy compiler. Allowed values for an option are {@code true} and {@code false}.
-     * Options will not have any effect when compiling against Groovy versions prior to 1.8.
+     * Only takes effect when compiling against Groovy 1.8 or higher.
      *
      * <p>Known options are:
      *
@@ -166,7 +168,7 @@ public class GroovyCompileOptions extends AbstractOptions {
 
     /**
      * Sets optimization options for the Groovy compiler. Allowed values for an option are {@code true} and {@code false}.
-     * Options will not have any effect when compiling against Groovy versions prior to 1.8.
+     * Only takes effect when compiling against Groovy 1.8 or higher.
      */
     public void setOptimizationOptions(Map<String, Boolean> optimizationOptions) {
         this.optimizationOptions = optimizationOptions;
@@ -239,18 +241,20 @@ public class GroovyCompileOptions extends AbstractOptions {
     }
 
     /**
-     * Returns the list of acceptable source file extensions.
-     * Defaults to {@code ImmutableList.of("java", "groovy")}.
+     * Returns the list of acceptable source file extensions. Only takes effect when compiling against
+     * Groovy 1.7 or higher. Defaults to {@code ImmutableList.of("java", "groovy")}.
      */
     @Input
+    @Experimental
     public List<String> getFileExtensions() {
         return fileExtensions;
     }
 
     /**
-     * Sets the list of acceptable source file extenssions.
-     * Defaults to {@code ImmutableList.of("java", "groovy")}.
+     * Sets the list of acceptable source file extensions. Only takes effect when compiling against
+     * Groovy 1.7 or higher. Defaults to {@code ImmutableList.of("java", "groovy")}.
      */
+    @Experimental
     public void setFileExtensions(List<String> fileExtensions) {
         this.fileExtensions = fileExtensions;
     }

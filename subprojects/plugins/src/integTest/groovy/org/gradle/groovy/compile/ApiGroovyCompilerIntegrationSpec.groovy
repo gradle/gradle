@@ -16,6 +16,8 @@
 
 package org.gradle.groovy.compile
 
+import org.gradle.integtests.fixtures.JUnitTestExecutionResult
+
 abstract class ApiGroovyCompilerIntegrationSpec extends GroovyCompilerIntegrationSpec {
     def canEnableAndDisableIntegerOptimization() {
         if (versionLowerThan('1.8')) {
@@ -39,5 +41,20 @@ abstract class ApiGroovyCompilerIntegrationSpec extends GroovyCompilerIntegratio
 
         then:
         noExceptionThrown()
+    }
+
+    def canUseCustomFileExtensions() {
+        if (versionLowerThan('1.7')) {
+            return
+        }
+
+        when:
+        run("test")
+
+        then:
+        noExceptionThrown()
+        def result = new JUnitTestExecutionResult(testDir)
+        result.assertTestClassesExecuted("Person")
+        result.testClass("Person").assertTestPassed("testMe")
     }
 }
