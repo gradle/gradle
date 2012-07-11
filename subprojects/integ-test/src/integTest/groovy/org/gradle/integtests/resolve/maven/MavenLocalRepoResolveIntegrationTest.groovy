@@ -26,46 +26,43 @@ import spock.lang.IgnoreIf
 
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.not
+import org.gradle.integtests.fixtures.MavenModule
 
 @IgnoreIf({ GradleDistributionExecuter.systemPropertyExecuter == GradleDistributionExecuter.Executer.daemon})
 class MavenLocalRepoResolveIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule SetSystemProperties sysProp = new SetSystemProperties()
 
+    public void setup() {
+        buildFile << """
+                repositories {
+                    mavenLocal()
+                }
+                configurations { compile }
+                dependencies {
+                    compile 'group:projectA:1.2'
+                }
+
+                task retrieve(type: Sync) {
+                    from configurations.compile
+                    into 'build'
+                }"""
+    }
+
     public void "can resolve artifacts from local m2 with not existing user settings.xml"() {
         given:
         def m2 = localM2()
-
         def moduleA = m2.mavenRepo().module('group', 'projectA', '1.2')
-        def moduleB = m2.mavenRepo().module('group', 'projectB', '9.1')
         moduleA.publish()
-        moduleB.publish()
-
         and:
         withM2(m2)
-        buildFile << """
-        repositories {
-            mavenLocal()
-        }
-        configurations { compile }
-        dependencies {
-            compile 'group:projectA:1.2'
-            compile 'group:projectB:9.1'
-        }
-
-        task retrieve(type: Sync) {
-            from configurations.compile
-            into 'build'
-        }"""
 
         when:
         run 'retrieve'
 
         then:
-        def buildDir = file('build')
-        buildDir.assertHasDescendants('projectA-1.2.jar', 'projectB-9.1.jar')
-        buildDir.file('projectA-1.2.jar').assertIsCopyOf(moduleA.artifactFile)
-        buildDir.file('projectB-9.1.jar').assertIsCopyOf(moduleB.artifactFile)
+        hasArtifact(moduleA)
+
     }
 
     public void "can resolve artifacts from local m2 with custom localRepository defined in user settings.xml"() {
@@ -76,39 +73,15 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractIntegrationSpec {
                         <localRepository>${artifactRepo.rootDir.absolutePath}</localRepository>
                     </settings>"""
         }
-
         def moduleA = artifactRepo.module('group', 'projectA', '1.2')
-        def moduleB = artifactRepo.module('group', 'projectB', '9.1')
         moduleA.publish()
-        moduleB.publish()
-
-        and:
-
-        buildFile << """
-        repositories {
-            mavenLocal()
-        }
-        configurations { compile }
-        dependencies {
-            compile 'group:projectA:1.2'
-            compile 'group:projectB:9.1'
-        }
-
-        task retrieve(type: Sync) {
-            from configurations.compile
-            into 'build'
-        }"""
 
         when:
         withM2(m2)
-
         run 'retrieve'
 
         then:
-        def buildDir = file('build')
-        buildDir.assertHasDescendants('projectA-1.2.jar', 'projectB-9.1.jar')
-        buildDir.file('projectA-1.2.jar').assertIsCopyOf(moduleA.artifactFile)
-        buildDir.file('projectB-9.1.jar').assertIsCopyOf(moduleB.artifactFile)
+        hasArtifact(moduleA)
     }
 
     public void "can resolve artifacts from local m2 with custom localRepository defined in global settings.xml"() {
@@ -121,34 +94,14 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractIntegrationSpec {
         }
 
         def moduleA = artifactRepo.module('group', 'projectA', '1.2')
-        def moduleB = artifactRepo.module('group', 'projectB', '9.1')
         moduleA.publish()
-        moduleB.publish()
 
-        and:
-        buildFile << """
-        repositories {
-            mavenLocal()
-        }
-        configurations { compile }
-        dependencies {
-            compile 'group:projectA:1.2'
-            compile 'group:projectB:9.1'
-        }
-
-        task retrieve(type: Sync) {
-            from configurations.compile
-            into 'build'
-        }"""
         when:
         withM2(m2)
         run 'retrieve'
 
         then:
-        def buildDir = file('build')
-        buildDir.assertHasDescendants('projectA-1.2.jar', 'projectB-9.1.jar')
-        buildDir.file('projectA-1.2.jar').assertIsCopyOf(moduleA.artifactFile)
-        buildDir.file('projectB-9.1.jar').assertIsCopyOf(moduleB.artifactFile)
+        hasArtifact(moduleA)
     }
 
     public void "localRepository in user settings take precedence over the localRepository global settings"() {
@@ -165,60 +118,26 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractIntegrationSpec {
 
         }
 
-        def userModuleA = userRepo.module('group', 'projectA', '1.2')
-        userModuleA.publish()
+        def moduleA = userRepo.module('group', 'projectA', '1.2')
+        moduleA.publish()
 
         def globalModuleA = globalRepo.module('group', 'projectA', '1.2')
         globalModuleA.publishWithChangedContent() // to ensure that resulting artifact
-        // has different hash than userModuleA.artifactFile
+                                                  // has different hash than userModuleA.artifactFile
 
-        and:
-        buildFile << """
-            repositories {
-                mavenLocal()
-            }
-            configurations { compile }
-            dependencies {
-                compile 'group:projectA:1.2'
-            }
-
-            task retrieve(type: Sync) {
-                from configurations.compile
-                into 'build'
-            }"""
         when:
         withM2(m2)
         run 'retrieve'
 
         then:
-        def buildDir = file('build')
-        buildDir.assertHasDescendants('projectA-1.2.jar')
-        buildDir.file('projectA-1.2.jar').assertIsCopyOf(userModuleA.artifactFile)
+        hasArtifact(moduleA)
     }
 
     public void "fail with meaningful error message if settings.xml is invalid"() {
         given:
-        def artifactRepo = new MavenRepository(file("artifactrepo"))
         def m2 = localM2() {
             userSettingsFile << "invalid content"
         }
-
-        def moduleA = artifactRepo.module('group', 'projectA', '1.2')
-        moduleA.publish()
-        and:
-        buildFile << """
-        repositories {
-            mavenLocal()
-        }
-        configurations { compile }
-        dependencies {
-            compile 'group:projectA:1.2'
-        }
-
-        task retrieve(type: Sync) {
-            from configurations.compile
-            into 'build'
-        }"""
 
         when:
         withM2(m2)
@@ -232,37 +151,32 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractIntegrationSpec {
     public void "mavenLocal is ignored if not ~/.m2 is defined"() {
         given:
         def userhomePath = file("empy-user-home").absolutePath
-        and:
         def anotherRepo = new MavenRepository(file("another-local-repo"))
-        def userModuleA = anotherRepo.module('group', 'projectA', '1.2')
-        userModuleA.publishWithChangedContent();
-        and:
 
-        buildFile << """
-        repositories {
-            mavenLocal()
-            maven { url "${anotherRepo.uri}" }
-        }
-        configurations { compile }
-        dependencies {
-            compile 'group:projectA:1.2'
-        }
-
-        task retrieve(type: Sync) {
-            from configurations.compile
-            into 'build'
-        }"""
+        def moduleA = anotherRepo.module('group', 'projectA', '1.2')
+        moduleA.publishWithChangedContent();
 
         when:
+        buildFile << """
+        repositories{
+            maven { url "${anotherRepo.uri}" }
+        }
+        """
 
         executer.withArguments("-Duser.home=${userhomePath}")
         run 'retrieve'
 
         then:
-        def buildDir = file('build')
-        buildDir.assertHasDescendants('projectA-1.2.jar')
-        buildDir.file('projectA-1.2.jar').assertIsCopyOf(userModuleA.artifactFile)
+        hasArtifact(moduleA)
     }
+
+    def hasArtifact(MavenModule module) {
+        def buildDir = file('build')
+        def artifactName = module.artifactFile.getName()
+        buildDir.assertHasDescendants(artifactName)
+        buildDir.file(artifactName).assertIsCopyOf(module.artifactFile)
+    }
+
 
     def withM2(M2Installation m2) {
         def args = ["-Duser.home=${m2.userM2Directory.parentFile.absolutePath}".toString()]
