@@ -57,12 +57,6 @@ public class DefaultLocalMavenRepositoryLocator implements LocalMavenRepositoryL
         }
     }
 
-    private void logSettingsBuildingProblems(SettingsBuildingException sbe) {
-        for (SettingsProblem settingsProblem : sbe.getProblems()) {
-            LOGGER.info(String.format("Cannot parse maven settings.xml %s", settingsProblem.getMessage()));
-        }
-    }
-
     private String resolvePlaceholders(String value) {
         StringBuffer result = new StringBuffer();
         Matcher matcher = PLACEHOLDER_PATTERN.matcher(value);
