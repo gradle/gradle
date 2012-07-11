@@ -134,6 +134,10 @@ Although we believe the new default is much better for majority of users, there 
 that preferred the old default. If you happen to prefer the old default (`1.6`) please configure
 that explicitly in your build via [idea.project.jdkName](http://gradle.org/docs/current/dsl/org.gradle.plugins.ide.idea.model.IdeaProject.html#org.gradle.plugins.ide.idea.model.IdeaProject:jdkName)
 
+##### maven settings.xml
+
+We've updated the handling of the local maven cache to use the maven3 settings builder library to parse the maven `settings.xml`. When using the local maven cache via `mavenLocal()`, Gradle will fail the build if the settings builder cannot parse the `settings.xml` in `USER_HOME/.m2/settings.xml` or in `M2_HOME/conf/settings.xml`. If a custom location for the local repository is defined in the maven settings file, Gradle will use this location. If no `settings.xml` is available or it contains no local repository definition, Gradle uses the default location in `USER_HOME/.m2/repository`. 
+
 ## Fixed Issues
 
 The list of issues fixed between 1.0 and 1.1-rc-1 can be found [here](http://issues.gradle.org/sr/jira.issueviews:searchrequest-printable/temp/SearchRequest.html?jqlQuery=fixVersion+in+%28%221.1-rc-1%22%29+ORDER+BY+priority&tempMax=1000).
