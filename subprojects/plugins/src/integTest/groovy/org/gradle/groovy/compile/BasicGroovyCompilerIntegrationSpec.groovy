@@ -23,7 +23,7 @@ import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.integtests.fixtures.ExecutionFailure
 import com.google.common.collect.Ordering
 
-@TargetVersions(['1.5.8', '1.6.9', '1.7.10', '1.8.6', '2.0.0-beta-3'])
+@TargetVersions(['1.5.8', '1.6.9', '1.7.10', '1.8.6', '2.0.0'])
 abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegrationSpec {
     @Rule TestResources resources = new TestResources()
 
@@ -62,6 +62,18 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         noExceptionThrown()
     }
 
+    def "canListSourceFiles"() {
+        when:
+        run("compileGroovy")
+
+        then:
+        output.contains(new File("src/main/groovy/compile/test/Person.groovy").toString())
+        output.contains(new File("src/main/groovy/compile/test/Person2.groovy").toString())
+        !errorOutput
+        file("build/classes/main/compile/test/Person.class").exists()
+        file("build/classes/main/compile/test/Person2.class").exists()
+    }
+
     @Override
     protected ExecutionResult run(String... tasks) {
         tweakBuildFile()
@@ -76,8 +88,8 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 
     private void tweakBuildFile() {
         buildFile << """
-dependencies { groovy 'org.codehaus.groovy:groovy:$version' }
-"""
+dependencies { groovy 'org.codehaus.groovy:groovy-all:$version' }
+        """
         buildFile << compilerConfiguration()
 
         println "->> USING BUILD FILE: ${buildFile.text}"
