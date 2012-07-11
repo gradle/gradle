@@ -8,14 +8,14 @@ task compileWithOptimization(type: GroovyCompile) {
     source = sourceSets.main.groovy
     classpath = configurations.compile
     destinationDir = file("$sourceSets.main.output.classesDir/optimized")
-    groovyOptions.optimizationOptions.'int' = true
+    groovyOptions.optimizationOptions["int"] = true
 }
 
 task compileWithoutOptimization(type: GroovyCompile) {
     source = sourceSets.main.groovy
     classpath = configurations.compile
     destinationDir = file("$sourceSets.main.output.classesDir/unoptimized")
-    groovyOptions.optimizationOptions.'int' = false
+    groovyOptions.optimizationOptions["int"] = false
 }
 
 task sanityCheck(dependsOn: [compileWithOptimization, compileWithoutOptimization]) << {
