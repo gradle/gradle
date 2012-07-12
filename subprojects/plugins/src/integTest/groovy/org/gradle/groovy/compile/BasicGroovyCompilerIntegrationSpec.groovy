@@ -87,11 +87,22 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
     }
 
     private void tweakBuildFile() {
-        buildFile << """
+        if (version == "2.0.0") {
+            // groovy-all-2.0.0 isn't compatible with JDK 1.5
+            // see GROOVY-5591
+            buildFile << """
+dependencies {
+    groovy 'org.codehaus.groovy:groovy:$version'
+    groovy 'org.codehaus.groovy:groovy-test:$version'
+}
+            """
+        } else {
+            buildFile << """
 dependencies { groovy 'org.codehaus.groovy:groovy-all:$version' }
-        """
-        buildFile << compilerConfiguration()
+            """
+        }
 
+        buildFile << compilerConfiguration()
         println "->> USING BUILD FILE: ${buildFile.text}"
     }
 
