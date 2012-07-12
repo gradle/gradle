@@ -410,19 +410,34 @@ assert 'overridden value' == global
     @Test void canAddNewPropertiesViaTheAdhocNamespace() {
         TestFile testDir = dist.getTestDir();
         testDir.file("build.gradle") << """
+            assert !hasProperty("p1")
+
             ext {
                 set "p1", 1
             }
+
             assert p1 == 1
+            assert properties.p1 == 1
+            assert ext.p1 == 1
+            assert hasProperty("p1")
+            assert property("p1") == 1
+            assert getProperty("p1") == 1
+            assert ext.getProperty("p1") == 1
+
             p1 = 2
             assert p1 == 2
             assert ext.p1 == 2
 
-            task run << {
+            task run << { task ->
+                assert !task.hasProperty("p1")
+
                 ext {
                     set "p1", 1
                 }
                 assert p1 == 1
+                assert task.hasProperty("p1")
+                assert task.property("p1") == 1
+
                 p1 = 2
                 assert p1 == 2
                 assert ext.p1 == 2
@@ -430,6 +445,32 @@ assert 'overridden value' == global
         """
         
         executer.withTasks("run").run()
+    }
+
+    @Test void warnsWhenNewPropertiesAreAddedDirectlyOnTargetObject() {
+        TestFile testDir = dist.getTestDir();
+        testDir.file("build.gradle") << """
+            assert !hasProperty("p1")
+
+            p1 = 1
+
+            assert p1 == 1
+            assert ext.p1 == 1
+
+            task run << { task ->
+                p2 = 2
+
+                assert p2 == 2
+                assert task.ext.p2 == 2
+            }
+        """
+
+        executer.withDeprecationChecksDisabled()
+        def result = executer.withTasks("run").run()
+
+        assert result.output.contains('Dynamic properties are deprecated: http://gradle.org/docs/current/dsl/org.gradle.api.plugins.ExtraPropertiesExtension.html')
+        assert result.output.contains('Deprecated dynamic property: "p1" on "root project ')
+        assert result.output.contains('Deprecated dynamic property: "p2" on "task \':run\'", value: "2".')
     }
 
     @Issue("GRADLE-2163")
