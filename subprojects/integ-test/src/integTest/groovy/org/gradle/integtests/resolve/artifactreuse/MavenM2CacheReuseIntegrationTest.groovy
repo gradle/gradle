@@ -15,18 +15,13 @@
  */
 package org.gradle.integtests.resolve.artifactreuse
 
-import org.gradle.integtests.fixtures.HttpServer
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.TestFile
-import org.junit.Rule
+import org.gradle.integtests.fixture.M2Installation
+import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
 
-class MavenM2CacheReuseIntegrationTest extends AbstractIntegrationSpec {
-    @Rule public final HttpServer server = new HttpServer()
-    TestFile repoFile
-    
-    def "setup"() {
-        requireOwnUserHomeDir()
-        repoFile = file('repo')
+class MavenM2CacheReuseIntegrationTest extends AbstractDependencyResolutionTest {
+
+    def setup(){
+        requireOwnUserHomeDir();
     }
 
     def "uses cached artifacts from maven local cache"() {
@@ -49,39 +44,22 @@ task retrieve(type: Sync) {
 """
 
         when:
+        def repoFile = file('repo')
         server.expectHead('/gradletest/maven/local/cache/test/foo/1.0/foo-1.0.pom', repoFile.file('gradletest/maven/local/cache/test/foo/1.0/foo-1.0.pom'))
         server.expectGet('/gradletest/maven/local/cache/test/foo/1.0/foo-1.0.pom.sha1', repoFile.file('gradletest/maven/local/cache/test/foo/1.0/foo-1.0.pom.sha1'))
         server.expectHead('/gradletest/maven/local/cache/test/foo/1.0/foo-1.0.jar', repoFile.file('gradletest/maven/local/cache/test/foo/1.0/foo-1.0.jar'))
         server.expectGet('/gradletest/maven/local/cache/test/foo/1.0/foo-1.0.jar.sha1', repoFile.file('gradletest/maven/local/cache/test/foo/1.0/foo-1.0.jar.sha1'))
 
         then:
+        executer.withForkingExecuter()
+        executer.withArguments("-Duser.home=${distribution.getUserHomeDir()}")
         run 'retrieve'
     }
 
     private def publishAndInstallToMaven() {
-
-        settingsFile << """
-            rootProject.name = 'foo'
-"""
-
-        buildFile.text = """
-apply plugin: 'java'
-apply plugin: 'maven'
-
-group = 'gradletest.maven.local.cache.test'
-version = '1.0'
-
-uploadArchives {
-    repositories {
-        mavenDeployer {
-            repository(url: "${repoFile.toURI().toURL()}")
-        }
+        def module1 = mavenRepo().module('gradletest.maven.local.cache.test', "foo", "1.0")
+        module1.publish();
+        def module2 = new M2Installation(distribution.getUserHomeDir().file(".m2")).mavenRepo().module('gradletest.maven.local.cache.test', "foo", "1.0")
+        module2.publish()
     }
-}
-"""
-
-        run 'install'
-        run 'uploadArchives'
-    }
-
 }

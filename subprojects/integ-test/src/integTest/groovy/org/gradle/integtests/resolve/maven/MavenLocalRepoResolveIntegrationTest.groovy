@@ -34,6 +34,7 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractIntegrationSpec {
     @Rule SetSystemProperties sysProp = new SetSystemProperties()
 
     public void setup() {
+        requireOwnUserHomeDir()
         buildFile << """
                 repositories {
                     mavenLocal()
@@ -150,9 +151,7 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractIntegrationSpec {
 
     public void "mavenLocal is ignored if not ~/.m2 is defined"() {
         given:
-        def userhomePath = file("empy-user-home").absolutePath
         def anotherRepo = new MavenRepository(file("another-local-repo"))
-
         def moduleA = anotherRepo.module('group', 'projectA', '1.2')
         moduleA.publishWithChangedContent();
 
@@ -163,7 +162,6 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractIntegrationSpec {
         }
         """
 
-        executer.withArguments("-Duser.home=${userhomePath}")
         run 'retrieve'
 
         then:
@@ -188,7 +186,7 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractIntegrationSpec {
     }
 
     M2Installation localM2() {
-        TestFile testUserHomeDir = file("user-home")
+        TestFile testUserHomeDir = file(distribution.getUserHomeDir())
         TestFile userM2Dir = testUserHomeDir.file(".m2")
         new M2Installation(userM2Dir)
     }
