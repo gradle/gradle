@@ -186,7 +186,7 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractIntegrationSpec {
     }
 
     M2Installation localM2() {
-        TestFile testUserHomeDir = file(distribution.getUserHomeDir())
+        TestFile testUserHomeDir = distribution.getUserHomeDir()
         TestFile userM2Dir = testUserHomeDir.file(".m2")
         new M2Installation(userM2Dir)
     }
