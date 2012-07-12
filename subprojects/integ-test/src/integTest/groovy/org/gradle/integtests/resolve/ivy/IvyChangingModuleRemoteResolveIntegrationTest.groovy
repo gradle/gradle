@@ -17,7 +17,7 @@ package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
 
-class IvyChangingModuleRemoteResolutionIntegrationTest extends AbstractDependencyResolutionTest {
+class IvyChangingModuleRemoteResolveIntegrationTest extends AbstractDependencyResolutionTest {
 
     def "detects changed module descriptor when flagged as changing"() {
         server.start()

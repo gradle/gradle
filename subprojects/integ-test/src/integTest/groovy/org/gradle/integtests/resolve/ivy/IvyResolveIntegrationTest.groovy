@@ -17,7 +17,7 @@ package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
 
-class IvyDependencyResolveIntegrationTest extends AbstractDependencyResolutionTest {
+class IvyResolveIntegrationTest extends AbstractDependencyResolutionTest {
 
     def "dependency includes all artifacts and transitive dependencies of referenced configuration"() {
         given:

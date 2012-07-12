@@ -18,7 +18,7 @@ package org.gradle.integtests.resolve.ivy
 import org.gradle.integtests.fixtures.IvyModule
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
 
-class IvyDynamicRevisionRemoteResolutionIntegrationTest extends AbstractDependencyResolutionTest {
+class IvyDynamicRevisionRemoteResolveIntegrationTest extends AbstractDependencyResolutionTest {
 
     def "uses latest version from version range and latest status"() {
         server.start()
