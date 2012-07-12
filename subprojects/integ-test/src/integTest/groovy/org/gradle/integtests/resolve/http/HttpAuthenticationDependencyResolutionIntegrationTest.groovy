@@ -68,8 +68,8 @@ task listJars << {
     public void "can resolve dependencies from #authScheme authenticated HTTP maven repository"() {
         server.start()
         given:
-        def module = mavenRepo().module('group', 'projectA', '1.2').publish()
-
+        def moduleA = mavenRepo().module('group', 'projectA', '1.2').publish()
+        def moduleB = mavenRepo().module('group', 'projectB', '2.1').publishWithRootMavenMetaData()
         and:
         buildFile << """
 repositories {
@@ -85,9 +85,10 @@ repositories {
 configurations { compile }
 dependencies {
     compile 'group:projectA:1.2'
+    compile 'group:projectB:2.+'
 }
 task listJars << {
-    assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
+    assert configurations.compile.collect { it.name } == ['projectA-1.2.jar', 'projectB-2.1.jar']
 }
 """
 
@@ -95,8 +96,11 @@ task listJars << {
         server.authenticationScheme = authScheme
 
         and:
-        server.expectGet('/repo/group/projectA/1.2/projectA-1.2.pom', 'username', 'password', module.pomFile)
-        server.expectGet('/repo/group/projectA/1.2/projectA-1.2.jar', 'username', 'password', module.artifactFile)
+        server.expectGet('/repo/group/projectA/1.2/projectA-1.2.pom'  , 'username', 'password', moduleA.pomFile)
+        server.expectGet('/repo/group/projectA/1.2/projectA-1.2.jar'  , 'username', 'password', moduleA.artifactFile)
+        server.expectGet('/repo/group/projectB/maven-metadata.xml'    , 'username', 'password', moduleB.rootMetaDataFile)
+        server.expectGet('/repo/group/projectB/2.1/projectB-2.1.pom'  , 'username', 'password', moduleB.pomFile)
+        server.expectGet('/repo/group/projectB/2.1/projectB-2.1.jar'  , 'username', 'password', moduleB.artifactFile)
 
         then:
         succeeds('listJars')

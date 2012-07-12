@@ -127,6 +127,10 @@ class MavenModule {
         moduleDir.file("maven-metadata.xml")
     }
 
+    TestFile getRootMetaDataFile() {
+        moduleDir.parentFile.file("maven-metadata.xml")
+    }
+
     TestFile getArtifactFile() {
         return artifactFile([:])
     }
@@ -148,6 +152,40 @@ class MavenModule {
         publishCount++
         return publish()
     }
+
+    /*
+    * publishes a maven-metadata.xml to the root of the artifact (in repo/group/projecta/maven-metadata.xml instead of
+    * repo/group/projecta/1.0/maven-metadata.xml
+    * */
+    MavenModule publishWithRootMavenMetaData() {
+        def rootMavenMetaData = getRootMetaDataFile().createFile();
+        publish(rootMavenMetaData){
+            rootMavenMetaData.withWriter {writer ->
+                def builder = new groovy.xml.MarkupBuilder(writer)
+                builder.metadata {
+                    groupId(groupId)
+                    artifactId(artifactId)
+                    version(version)
+                    versioning{
+                        if (uniqueSnapshots && version.endsWith("-SNAPSHOT")){
+                            snapshot{
+                                timestamp(timestampFormat.format(publishTimestamp))
+                                buildNumber(publishCount)
+                                lastUpdated(updateFormat.format(publishTimestamp))
+                            }
+                        }else{
+                            versions{
+                                version(version)
+                            }
+                        }
+                    }
+                }
+
+            }
+        }
+        return publish()
+    }
+
 
     String getPublishArtifactVersion() {
         if (uniqueSnapshots && version.endsWith("-SNAPSHOT")) {
@@ -265,8 +303,8 @@ class MavenModule {
         hashFile(file, "md5")
     }
 
-    private TestFile hashFile(File file, String algorithm) {
-        def hashFile = moduleDir.file("${file.name}.${algorithm}")
+    private TestFile hashFile(TestFile file, String algorithm) {
+        def hashFile = file.parentFile.file("${file.name}.${algorithm}")
         hashFile.text = HashUtil.createHash(file, algorithm.toUpperCase()).asHexString()
         return hashFile
     }
