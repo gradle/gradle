@@ -39,7 +39,6 @@ public class ExtensibleDynamicObject extends CompositeDynamicObject implements H
         BeforeConvention, AfterConvention
     }
 
-    private final Object delegate;
     private final AbstractDynamicObject dynamicDelegate;
     private DynamicObject parent;
     private Convention convention;
@@ -68,7 +67,6 @@ public class ExtensibleDynamicObject extends CompositeDynamicObject implements H
     }
 
     public ExtensibleDynamicObject(Object delegate, AbstractDynamicObject dynamicDelegate, Convention convention) {
-        this.delegate = delegate;
         this.dynamicDelegate = dynamicDelegate;
         this.convention = convention;
         this.extraPropertiesDynamicObject = new ExtraPropertiesDynamicObjectAdapter(delegate, this, convention.getExtraProperties());
