@@ -96,7 +96,7 @@ We currently have inadequate coverage for mavenLocal repositories, which depend 
 The following 'resolve from mavenLocal' happy-day tests would be useful:
 * no settings.xml is defined
 * repo location defined in ~/.m2/settings.xml
-* repo location defined in settings.xml in M2_HOME
+* repo location defined in settings.xml in M2_HOME/conf
 * repo location defined in ~/.m2/settings.xml and in M2_HOME (settings file precedence) 
 And sad-day tests for 'resolve from mavenLocal':
 * repo directory does not exist
