@@ -71,7 +71,7 @@ public class
         if(!allowExtraLogging) {
             return;
         }
-        List logOptions = asList("-i", "--info", "-d", "--debug", "-q", "--quite");
+        List logOptions = asList("-i", "--info", "-d", "--debug", "-q", "--quiet");
         boolean alreadyConfigured = CollectionUtils.containsAny(args, logOptions);
         if (!alreadyConfigured) {
             args.add("-i");
