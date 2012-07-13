@@ -138,7 +138,6 @@ A warning will be emitted and that repository will be skipped and resolve will c
 ### Integration test coverage
 
 * Happy-day tests
-    * Resolve a Maven version range (declared as [1.0, 2.0) in a POM and referenced transitively) against a (non-authenticated) maven repository
     * Resolve dynamic version against an authenticated ivy repository
     * Resolve a dynamic version and SNAPSHOT (unique & non-unique) against an authenticated maven repository
     * Resolve a dynamic version against 2 repositories, where the first one does not contain the module (returns 404 for directory listing).
@@ -151,6 +150,7 @@ A warning will be emitted and that repository will be skipped and resolve will c
     * We get a response whose entity we cannot parse.
     * We get a ConnectException or other exception for the directory list HTTP request.
 * Extending existing coverage
+    * Happy-day test: Resolve a Maven version range (declared as [1.0, 2.0) in a POM and referenced transitively) against a (non-authenticated) maven repository
     * Sad-day test for resolving static version where first repository returns 401 unauthorized for pom file, and second repository successfully resolves.
     * Sad-day test for resolving static version where first repository returns 500 for pom file, and second repository successfully resolves.
         * For these 2: show that warnings are emitted when repository is broken and skipped, and show that a subsequent resolve will recover without refresh-dependencies.
