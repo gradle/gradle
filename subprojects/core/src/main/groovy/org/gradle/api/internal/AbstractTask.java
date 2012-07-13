@@ -44,7 +44,6 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.StandardOutputCapture;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -300,11 +299,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     public StandardOutputCapture getStandardOutputCapture() {
         return loggingManager;
-    }
-
-    public DynamicObjectHelper getDynamicObjectHelper() {
-        DeprecationLogger.nagUserOfReplacedMethod("AbstractTask.getDynamicObjectHelper()", "getAsDynamicObject()");
-        return new DynamicObjectHelper(extensibleDynamicObject);
     }
 
     public Object property(String propertyName) throws MissingPropertyException {
