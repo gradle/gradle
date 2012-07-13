@@ -19,11 +19,13 @@ package org.gradle.tooling.model.migration;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.HierarchicalElement;
 
+import java.util.Set;
+
 /**
  * The outputs produced by a Gradle project.
  */
 public interface ProjectOutput extends HierarchicalElement {
     ProjectOutput getParent();
     DomainObjectSet<ProjectOutput> getChildren();
-    DomainObjectSet<Archive> getTaskOutputs();
+    Set<Archive> getTaskOutputs();
 }

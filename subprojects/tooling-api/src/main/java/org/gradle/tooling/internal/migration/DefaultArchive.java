@@ -31,4 +31,15 @@ public class DefaultArchive implements Archive, Serializable {
     public File getFile() {
         return path;
     }
+
+    @Override
+    public boolean equals(Object other) {
+        if (!(other instanceof DefaultArchive)) return false;
+        return ((DefaultArchive) other).path.equals(path);
+    }
+
+    @Override
+    public int hashCode() {
+        return path.hashCode();
+    }
 }

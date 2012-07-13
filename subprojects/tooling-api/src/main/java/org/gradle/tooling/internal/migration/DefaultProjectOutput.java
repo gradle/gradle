@@ -23,14 +23,15 @@ import org.gradle.tooling.model.migration.ProjectOutput;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.Set;
 
 public class DefaultProjectOutput implements InternalProjectOutput, ProjectOutput, Serializable {
     private final String name;
     private final ProjectOutput parent;
     private final DomainObjectSet<ProjectOutput> children;
-    private final DomainObjectSet<Archive> taskOutputs;
+    private final Set<Archive> taskOutputs;
 
-    public DefaultProjectOutput(String name, ProjectOutput parent, DomainObjectSet<ProjectOutput> children, DomainObjectSet<Archive> taskOutputs) {
+    public DefaultProjectOutput(String name, ProjectOutput parent, DomainObjectSet<ProjectOutput> children, Set<Archive> taskOutputs) {
         this.name = name;
         this.taskOutputs = taskOutputs;
         this.parent = parent;
@@ -53,7 +54,7 @@ public class DefaultProjectOutput implements InternalProjectOutput, ProjectOutpu
         return children;
     }
 
-    public DomainObjectSet<Archive> getTaskOutputs() {
+    public Set<Archive> getTaskOutputs() {
         return taskOutputs;
     }
 
