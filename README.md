@@ -2,23 +2,23 @@
 
 Gradle is build automation *evolved*. Gradle can automate the building, testing, publishing, deployment and more of software packages or other types of projects such as generated static websites, generated documentation or indeed anything else.
 
-For more information about Gradle, please visit http://gradle.org
+For more information about Gradle, please visit http://gradle.org.
 
 ## Downloading
 
-You can download released versions and nightly build artifacts from http://gradle.org/downloads
+You can download released versions and nightly build artifacts from http://gradle.org/downloads.
 
 ## Building
 
 Naturally, Gradle builds itself with Gradle. Gradle provides an innovative [wrapper](http://gradle.org/docs/current/userguide/gradle_wrapper.html) that allows you to work with a Gradle build without having to manually install Gradle. The wrapper is a batch script on Windows and a shell script on other operating systems.
 
-You should use the wrapper to build the gradle project. Generally, you should use wrapper for any wrapper-powered project because it guarantees building with the Gradle version that the build was intended to use.
+You should use the wrapper to build the gradle project. Generally, you should use the wrapper for any wrapper-enabled project because it guarantees building with the Gradle version that the build was intended to use.
 
 To build the entire Gradle project, you should run the following in the root of the checkout.
 
     ./gradlew build
 
-This will compile all the code, generate all the documentation and run all the tests. It can take up to an hour on a fast machine because we have thousands of tests, including integration tests that exercise virtually every Gradle feature. Among the things we test are: compatibility across versions, validity of samples and javadoc snippets, daemon process capabilities, etc.
+This will compile all the code, generate all the documentation and run all the tests. It can take up to an hour on a fast machine because we have thousands of tests, including integration tests that exercise virtually every Gradle feature. Among the things we test are: compatibility across versions, validity of samples and Javadoc snippets, daemon process capabilities, etc.
 
 ### Installing from source
 
@@ -36,9 +36,9 @@ To create a full installation (includes docs)…
 
     ./gradlew installAll -Pgradle_installPath=/usr/local/gradle-source-build
 
-### Working with sub projects
+### Working with subprojects
 
-The Gradle build uses Gradle's ability to customise the logical structure of a multiproject build. All of the subprojects of the build are in the `subprojects/` directory, but these are mapped to top level children (in [settings.gradle](https://github.com/gradle/gradle/blob/master/settings.gradle)).
+The Gradle build uses Gradle's ability to customise the logical structure of a multiproject build. All of the build's subprojects are in the `subprojects/` directory and are mapped to top level children in [settings.gradle](https://github.com/gradle/gradle/blob/master/settings.gradle).
 
 This means that to build just the `core` subproject (that lives in `subprojects/core`) you would run:
 
@@ -52,7 +52,7 @@ And so on.
 
 ## Contributing
 
-If you're looking to contribute to Gradle or provide a patch/pull request, you can find info on how to get in touch with the developers @ http://gradle.org/development.
+If you're looking to contribute to Gradle or provide a patch/pull request, you can find info on how to get in touch with the developers at http://gradle.org/development.
 
 ### Contributing Code
 
@@ -86,4 +86,4 @@ You can try running:
 
     ./gradlew eclipse
 
-That generates Eclipse metadata that allows importing the project into Eclipse. However, you would have to do some manual fixes to the project's setup to make it working. We plan to address this soon.
+This command generates Eclipse metadata that allows importing the project into Eclipse. However, you will have to do some manual fixes to the project's setup to make it work.
