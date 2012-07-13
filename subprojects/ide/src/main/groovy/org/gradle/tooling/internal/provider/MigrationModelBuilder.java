@@ -26,8 +26,8 @@ import org.gradle.tooling.internal.migration.DefaultProjectOutput;
 import org.gradle.tooling.internal.protocol.InternalProjectOutput;
 import org.gradle.tooling.internal.protocol.ProjectVersion3;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
+import org.gradle.tooling.model.migration.Archive;
 import org.gradle.tooling.model.migration.ProjectOutput;
-import org.gradle.tooling.model.migration.TaskOutput;
 
 import java.util.Collections;
 import java.util.List;
@@ -39,7 +39,7 @@ public class MigrationModelBuilder implements BuildsModel {
 
     public ProjectVersion3 buildAll(GradleInternal gradle) {
         Project root = gradle.getRootProject();
-        List<TaskOutput> taskOutputs = Lists.newArrayList();
+        List<Archive> taskOutputs = Lists.newArrayList();
         Configuration configuration = root.getConfigurations().findByName("archives");
         if (configuration != null) {
             for (PublishArtifact artifact : configuration.getArtifacts()) {

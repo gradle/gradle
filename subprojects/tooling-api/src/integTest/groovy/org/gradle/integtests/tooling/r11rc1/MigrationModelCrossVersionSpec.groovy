@@ -19,8 +19,9 @@ package org.gradle.integtests.tooling.r11rc1
 import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.tooling.model.migration.ProjectOutput
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.tooling.model.migration.ProjectOutput
+import org.gradle.tooling.model.migration.Archive
 
 import org.junit.Rule
 
@@ -38,8 +39,7 @@ class MigrationModelCrossVersionSpec extends ToolingApiSpecification {
         then:
         output instanceof ProjectOutput
         output.taskOutputs.size() == 1
-//        println output.taskOutputs[0]
-//        println output.taskOutputs[0].getClass()
-//        println output.taskOutputs[0].getPath()
+        output.taskOutputs[0] instanceof Archive
+        output.taskOutputs[0].file.toString().endsWith(".jar")
     }
 }

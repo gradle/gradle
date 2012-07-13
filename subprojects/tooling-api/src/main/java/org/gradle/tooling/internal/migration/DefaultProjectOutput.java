@@ -18,8 +18,8 @@ package org.gradle.tooling.internal.migration;
 
 import org.gradle.tooling.internal.protocol.InternalProjectOutput;
 import org.gradle.tooling.model.DomainObjectSet;
+import org.gradle.tooling.model.migration.Archive;
 import org.gradle.tooling.model.migration.ProjectOutput;
-import org.gradle.tooling.model.migration.TaskOutput;
 
 import java.io.File;
 import java.io.Serializable;
@@ -28,9 +28,9 @@ public class DefaultProjectOutput implements InternalProjectOutput, ProjectOutpu
     private final String name;
     private final ProjectOutput parent;
     private final DomainObjectSet<ProjectOutput> children;
-    private final DomainObjectSet<TaskOutput> taskOutputs;
+    private final DomainObjectSet<Archive> taskOutputs;
 
-    public DefaultProjectOutput(String name, ProjectOutput parent, DomainObjectSet<ProjectOutput> children, DomainObjectSet<TaskOutput> taskOutputs) {
+    public DefaultProjectOutput(String name, ProjectOutput parent, DomainObjectSet<ProjectOutput> children, DomainObjectSet<Archive> taskOutputs) {
         this.name = name;
         this.taskOutputs = taskOutputs;
         this.parent = parent;
@@ -53,7 +53,7 @@ public class DefaultProjectOutput implements InternalProjectOutput, ProjectOutpu
         return children;
     }
 
-    public DomainObjectSet<TaskOutput> getTaskOutputs() {
+    public DomainObjectSet<Archive> getTaskOutputs() {
         return taskOutputs;
     }
 

@@ -28,7 +28,7 @@ public class DefaultArchive implements Archive, Serializable {
         this.path = path;
     }
 
-    public File getPath() {
+    public File getFile() {
         return path;
     }
 }

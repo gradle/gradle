@@ -25,5 +25,5 @@ import org.gradle.tooling.model.HierarchicalElement;
 public interface ProjectOutput extends HierarchicalElement {
     ProjectOutput getParent();
     DomainObjectSet<ProjectOutput> getChildren();
-    DomainObjectSet<TaskOutput> getTaskOutputs();
+    DomainObjectSet<Archive> getTaskOutputs();
 }
