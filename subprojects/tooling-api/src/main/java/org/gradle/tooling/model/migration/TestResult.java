@@ -18,6 +18,9 @@ package org.gradle.tooling.model.migration;
 
 import java.io.File;
 
+/**
+ * The results from a test run.
+ */
 public interface TestResult extends TaskOutput {
     File getXmlReportDir();
 }

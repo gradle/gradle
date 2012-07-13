@@ -14,16 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.model.migration;
-
-import org.gradle.tooling.model.DomainObjectSet;
-import org.gradle.tooling.model.HierarchicalElement;
-
 /**
- * The outputs produced by a Gradle project.
+ * Tooling API model for the migration verification plugin.
  */
-public interface ProjectOutput extends HierarchicalElement {
-    ProjectOutput getParent();
-    DomainObjectSet<ProjectOutput> getChildren();
-    DomainObjectSet<TaskOutput> getTaskOutputs();
-}
+package org.gradle.tooling.model.migration;

@@ -18,6 +18,9 @@ package org.gradle.tooling.model.migration;
 
 import java.io.File;
 
+/**
+ * An archive produced by the build.
+ */
 public interface Archive extends TaskOutput {
     File getPath();
 }

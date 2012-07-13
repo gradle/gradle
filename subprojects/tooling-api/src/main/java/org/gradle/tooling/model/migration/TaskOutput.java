@@ -18,4 +18,7 @@ package org.gradle.tooling.model.migration;
 
 import org.gradle.tooling.model.Model;
 
+/**
+ * An output produced by a Gradle task.
+ */
 public interface TaskOutput extends Model {}
