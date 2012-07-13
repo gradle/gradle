@@ -17,7 +17,7 @@
 package org.gradle.tooling.model;
 
 /**
- * A Model that is buildable by the Tooling API. Models contain various information regarding the build.
+ * A model that is buildable by the Tooling API. Models contain various information regarding the build.
  * Models are typically tailored to a specific domain, for example build environment or IDE.
  *
  * @since 1.0-milestone-8

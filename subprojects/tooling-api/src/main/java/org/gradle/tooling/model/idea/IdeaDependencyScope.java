@@ -17,7 +17,7 @@
 package org.gradle.tooling.model.idea;
 
 /**
- * The scope of the Idea dependency
+ * The scope of the IDEA dependency.
  */
 public interface IdeaDependencyScope {
 

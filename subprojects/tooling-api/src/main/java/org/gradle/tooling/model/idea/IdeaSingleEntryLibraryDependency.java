@@ -21,7 +21,7 @@ import org.gradle.tooling.model.ExternalDependency;
 import java.io.File;
 
 /**
- * "Single-Entry Module Library" as IDEA calls it. For example a single jar file with sources jar.
+ * "Single-Entry Module Library" as IDEA calls it. For example a single Jar file with sources Jar.
  *
  * @since 1.0-milestone-5
  */

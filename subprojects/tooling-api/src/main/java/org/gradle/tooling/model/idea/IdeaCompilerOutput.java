@@ -19,7 +19,7 @@ package org.gradle.tooling.model.idea;
 import java.io.File;
 
 /**
- * Idea compiler ouput settings
+ * IDEA compiler output settings.
  */
 public interface IdeaCompilerOutput {
 

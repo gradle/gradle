@@ -21,7 +21,7 @@ import org.gradle.tooling.model.Element;
 import org.gradle.tooling.model.HierarchicalElement;
 
 /**
- * Represents the information about the IntelliJ IDEA project
+ * Represents the information about the IDEA project.
  *
  * @since 1.0-milestone-5
  */

@@ -22,7 +22,7 @@ import org.gradle.tooling.model.HasGradleProject;
 import org.gradle.tooling.model.HierarchicalElement;
 
 /**
- * Represents information about the IntelliJ IDEA module
+ * Represents information about the IDEA module.
  *
  * @since 1.0-milestone-5
  */
