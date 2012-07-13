@@ -69,8 +69,9 @@ task listJars << {
         server.start()
         given:
         def moduleA = mavenRepo().module('group', 'projectA', '1.2').publish()
-        def moduleB = mavenRepo().module('group', 'projectB', '2.1').publishWithRootMavenMetaData()
+        def moduleB = mavenRepo().module('group', 'projectB', '2.1').withRootMetaDataFile().publish()
         def moduleC = mavenRepo().module('group', 'projectC', '3.1-SNAPSHOT').publish()
+        def moduleD = mavenRepo().module('group', 'projectD', '4-SNAPSHOT').withNonUniqueSnapshots().publish()
         and:
         buildFile << """
 repositories {
@@ -88,9 +89,10 @@ dependencies {
     compile 'group:projectA:1.2'
     compile 'group:projectB:2.+'
     compile 'group:projectC:3.1-SNAPSHOT'
+    compile 'group:projectD:4-SNAPSHOT'
 }
 task listJars << {
-    assert configurations.compile.collect { it.name } == ['projectA-1.2.jar', 'projectB-2.1.jar', 'projectC-3.1-SNAPSHOT.jar']
+    assert configurations.compile.collect { it.name } == ['projectA-1.2.jar', 'projectB-2.1.jar', 'projectC-3.1-SNAPSHOT.jar', 'projectD-4-SNAPSHOT.jar']
 }
 """
 
@@ -104,10 +106,16 @@ task listJars << {
         server.expectGet('/repo/group/projectB/maven-metadata.xml' , 'username', 'password', moduleB.rootMetaDataFile)
         server.expectGet('/repo/group/projectB/2.1/projectB-2.1.pom' , 'username', 'password', moduleB.pomFile)
         server.expectGet('/repo/group/projectB/2.1/projectB-2.1.jar' , 'username', 'password', moduleB.artifactFile)
+
         server.expectGet('/repo/group/projectC/3.1-SNAPSHOT/maven-metadata.xml' , 'username', 'password', moduleC.metaDataFile) // TODO: double check why we have two get requests here.
         server.expectGet('/repo/group/projectC/3.1-SNAPSHOT/maven-metadata.xml' , 'username', 'password', moduleC.metaDataFile)
         server.expectGet("/repo/group/projectC/3.1-SNAPSHOT/projectC-${moduleC.getPublishArtifactVersion()}.pom"  , 'username', 'password', moduleC.pomFile)
         server.expectGet("/repo/group/projectC/3.1-SNAPSHOT/projectC-${moduleC.getPublishArtifactVersion()}.jar"  , 'username', 'password', moduleC.artifactFile)
+
+        server.expectGet('/repo/group/projectD/4-SNAPSHOT/maven-metadata.xml' , 'username', 'password', moduleD.metaDataFile)  //same here: two requests necessary?
+        server.expectGet('/repo/group/projectD/4-SNAPSHOT/maven-metadata.xml' , 'username', 'password', moduleD.metaDataFile)
+        server.expectGet("/repo/group/projectD/4-SNAPSHOT/projectD-4-SNAPSHOT.pom"  , 'username', 'password', moduleD.pomFile)
+        server.expectGet("/repo/group/projectD/4-SNAPSHOT/projectD-4-SNAPSHOT.jar"  , 'username', 'password', moduleD.artifactFile)
 
         then:
         succeeds('listJars')

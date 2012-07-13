@@ -54,6 +54,7 @@ class MavenModule {
     final timestampFormat = new SimpleDateFormat("yyyyMMdd.HHmmss")
     private final List artifacts = []
     private boolean uniqueSnapshots = true;
+    private boolean writeRootMetaDataFile = false
 
     MavenModule(TestFile moduleDir, String groupId, String artifactId, String version) {
         this.moduleDir = moduleDir
@@ -68,7 +69,7 @@ class MavenModule {
     }
 
     MavenModule dependsOn(String group, String artifactId, String version, String type = null) {
-        this.dependencies << [groupId: group, artifactId: artifactId, version: version, type:  type]
+        this.dependencies << [groupId: group, artifactId: artifactId, version: version, type: type]
         return this
     }
 
@@ -91,6 +92,11 @@ class MavenModule {
 
     MavenModule withNonUniqueSnapshots() {
         uniqueSnapshots = false;
+        return this;
+    }
+
+    MavenModule withRootMetaDataFile() {
+        writeRootMetaDataFile = true;
         return this;
     }
 
@@ -153,40 +159,6 @@ class MavenModule {
         return publish()
     }
 
-    /*
-    * publishes a maven-metadata.xml to the root of the artifact (in repo/group/projecta/maven-metadata.xml instead of
-    * repo/group/projecta/1.0/maven-metadata.xml
-    * */
-    MavenModule publishWithRootMavenMetaData() {
-        def rootMavenMetaData = getRootMetaDataFile().createFile();
-        publish(rootMavenMetaData){
-            rootMavenMetaData.withWriter {writer ->
-                def builder = new groovy.xml.MarkupBuilder(writer)
-                builder.metadata {
-                    groupId(groupId)
-                    artifactId(artifactId)
-                    version(version)
-                    versioning{
-                        if (uniqueSnapshots && version.endsWith("-SNAPSHOT")){
-                            snapshot{
-                                timestamp(timestampFormat.format(publishTimestamp))
-                                buildNumber(publishCount)
-                                lastUpdated(updateFormat.format(publishTimestamp))
-                            }
-                        }else{
-                            versions{
-                                version(version)
-                            }
-                        }
-                    }
-                }
-
-            }
-        }
-        return publish()
-    }
-
-
     String getPublishArtifactVersion() {
         if (uniqueSnapshots && version.endsWith("-SNAPSHOT")) {
             return "${version.replaceFirst('-SNAPSHOT$', '')}-${timestampFormat.format(publishTimestamp)}-${publishCount}"
@@ -203,7 +175,33 @@ class MavenModule {
      */
     MavenModule publish() {
         moduleDir.createDir()
+        if (writeRootMetaDataFile) {
+            def rootMavenMetaData = getRootMetaDataFile().createFile()
+            publish(rootMavenMetaData) {
+                rootMavenMetaData.withWriter {writer ->
+                    def builder = new groovy.xml.MarkupBuilder(writer)
+                    builder.metadata {
+                        groupId(groupId)
+                        artifactId(artifactId)
+                        version(version)
+                        versioning {
+                            if (uniqueSnapshots && version.endsWith("-SNAPSHOT")) {
+                                snapshot {
+                                    timestamp(timestampFormat.format(publishTimestamp))
+                                    buildNumber(publishCount)
+                                    lastUpdated(updateFormat.format(publishTimestamp))
+                                }
+                            } else {
+                                versions {
+                                    version(version)
+                                }
+                            }
+                        }
+                    }
 
+                }
+            }
+        }
         if (uniqueSnapshots && version.endsWith("-SNAPSHOT")) {
             def metaDataFile = moduleDir.file('maven-metadata.xml')
             publish(metaDataFile) {
@@ -252,7 +250,7 @@ class MavenModule {
       $typeAttribute
     </dependency>
   </dependencies>"""
-        }
+            }
 
             pomFile << "\n</project>"
         }

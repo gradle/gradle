@@ -218,6 +218,13 @@ class HttpServer extends ExternalResource {
     }
 
     /**
+     * Allows one HEAD request for the given URL with http authentication.
+     */
+    void expectHead(String path, String username, String password, File srcFile, Long lastModified = null, Long contentLength = null) {
+        expect(path, false, ['HEAD'], withAuthentication(path, username, password, fileHandler(path, srcFile)))
+    }
+
+    /**
      * Allows one GET request for the given URL. Reads the request content from the given file.
      */
     void expectGet(String path, File srcFile, Long lastModified = null, Long contentLength = null) {
