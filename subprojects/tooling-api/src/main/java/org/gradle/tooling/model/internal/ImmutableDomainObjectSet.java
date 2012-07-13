@@ -45,4 +45,8 @@ public class ImmutableDomainObjectSet<T> extends AbstractSet<T> implements Domai
     public List<T> getAll() {
         return new ArrayList<T>(elements);
     }
+
+    public static <T> ImmutableDomainObjectSet<T> of(Iterable<? extends T> elements) {
+        return new ImmutableDomainObjectSet<T>(elements);
+    }
 }

@@ -26,6 +26,7 @@ import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject;
 import org.gradle.tooling.model.idea.BasicIdeaProject;
 import org.gradle.tooling.model.idea.IdeaProject;
 import org.gradle.tooling.model.internal.TestModel;
+import org.gradle.tooling.model.migration.ProjectOutput;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -56,6 +57,7 @@ public class ModelMapping {
         Map<Class<? extends Model>, Class> map = new HashMap<Class<? extends Model>, Class>();
         map.put(BuildEnvironment.class, InternalBuildEnvironment.class);
         map.put(TestModel.class, InternalTestModel.class);
+        map.put(ProjectOutput.class, InternalProjectOutput.class);
         return map;
     }
 

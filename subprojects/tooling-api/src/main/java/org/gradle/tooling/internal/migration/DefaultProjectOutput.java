@@ -16,13 +16,15 @@
 
 package org.gradle.tooling.internal.migration;
 
+import org.gradle.tooling.internal.protocol.InternalProjectOutput;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.migration.ProjectOutput;
 import org.gradle.tooling.model.migration.TaskOutput;
 
+import java.io.File;
 import java.io.Serializable;
 
-public class DefaultProjectOutput implements ProjectOutput, Serializable {
+public class DefaultProjectOutput implements InternalProjectOutput, ProjectOutput, Serializable {
     private final String name;
     private final ProjectOutput parent;
     private final DomainObjectSet<ProjectOutput> children;
@@ -53,5 +55,13 @@ public class DefaultProjectOutput implements ProjectOutput, Serializable {
 
     public DomainObjectSet<TaskOutput> getTaskOutputs() {
         return taskOutputs;
+    }
+
+    public String getPath() {
+        throw new UnsupportedOperationException("getPath");
+    }
+
+    public File getProjectDirectory() {
+        throw new UnsupportedOperationException("getProjectDirectory");
     }
 }
