@@ -20,7 +20,7 @@ import org.gradle.tooling.model.Model;
 import org.gradle.tooling.model.UnsupportedMethodException;
 
 /**
- * Informs about the build environment, like Gradle version or the java home in use.
+ * Informs about the build environment, like Gradle version or the Java home in use.
  * <p>
  * Example:
  * <pre autoTested=''>
