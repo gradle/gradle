@@ -34,7 +34,7 @@ public class DefaultArchive implements Archive, Serializable {
 
     @Override
     public boolean equals(Object other) {
-        if (!(other instanceof DefaultArchive)) return false;
+        if (!(other instanceof DefaultArchive)) { return false; }
         return ((DefaultArchive) other).path.equals(path);
     }
 
