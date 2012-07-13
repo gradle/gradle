@@ -111,7 +111,7 @@ public class DefaultWorkerProcess implements WorkerProcess {
             while (connection == null && running) {
                 try {
                     if (!condition.awaitUntil(connectExpiry)) {
-                        throw new ExecException(String.format("Timeout waiting for %s to connect.", execHandle));
+                        throw new ExecException(String.format("Timeout after waiting %.1f seconds for %s to connect.", ((double) connectTimeout) / 1000, execHandle));
                     }
                 } catch (InterruptedException e) {
                     throw UncheckedException.throwAsUncheckedException(e);
