@@ -28,32 +28,32 @@ import org.gradle.tooling.model.HierarchicalElement;
 public interface IdeaProject extends HierarchicalElement, Element {
 
     /**
-     * The name of the jdk
+     * Returns the name of the JDK.
      *
-     * @return jdk name
+     * @return The name of the JDK.
      */
     String getJdkName();
 
     /**
-     * Language level to use within the current project.
+     * Returns the language level to use within the current project.
      *
-     * @return language level
+     * @return The language level to use within the current project.
      */
     IdeaLanguageLevel getLanguageLevel();
 
     /**
-     * Returns modules of this idea project. Most projects have at least one module.
-     * Alias to {@link #getModules()}
+     * Returns the modules of this IDEA project. Most projects have at least one module.
+     * Alias for {@link #getModules()}.
      *
-     * @return modules
+     * @return The modules of this IDEA project.
      */
     DomainObjectSet<? extends IdeaModule> getChildren();
 
     /**
-     * Returns modules of this idea project. Most projects have at least one module.
-     * Alias to {@link #getChildren()}
+     * Returns the modules of this IDEA project. Most projects have at least one module.
+     * Alias for {@link #getChildren()}.
      *
-     * @return modules
+     * @return The modules of this IDEA project.
      */
     DomainObjectSet<? extends IdeaModule> getModules();
 }
