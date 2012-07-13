@@ -70,6 +70,7 @@ task listJars << {
         given:
         def moduleA = mavenRepo().module('group', 'projectA', '1.2').publish()
         def moduleB = mavenRepo().module('group', 'projectB', '2.1').publishWithRootMavenMetaData()
+        def moduleC = mavenRepo().module('group', 'projectC', '3.1-SNAPSHOT').publish()
         and:
         buildFile << """
 repositories {
@@ -86,9 +87,10 @@ configurations { compile }
 dependencies {
     compile 'group:projectA:1.2'
     compile 'group:projectB:2.+'
+    compile 'group:projectC:3.1-SNAPSHOT'
 }
 task listJars << {
-    assert configurations.compile.collect { it.name } == ['projectA-1.2.jar', 'projectB-2.1.jar']
+    assert configurations.compile.collect { it.name } == ['projectA-1.2.jar', 'projectB-2.1.jar', 'projectC-3.1-SNAPSHOT.jar']
 }
 """
 
@@ -96,11 +98,16 @@ task listJars << {
         server.authenticationScheme = authScheme
 
         and:
-        server.expectGet('/repo/group/projectA/1.2/projectA-1.2.pom'  , 'username', 'password', moduleA.pomFile)
-        server.expectGet('/repo/group/projectA/1.2/projectA-1.2.jar'  , 'username', 'password', moduleA.artifactFile)
-        server.expectGet('/repo/group/projectB/maven-metadata.xml'    , 'username', 'password', moduleB.rootMetaDataFile)
-        server.expectGet('/repo/group/projectB/2.1/projectB-2.1.pom'  , 'username', 'password', moduleB.pomFile)
-        server.expectGet('/repo/group/projectB/2.1/projectB-2.1.jar'  , 'username', 'password', moduleB.artifactFile)
+        println "MODULEC_VERSION" + moduleC.getPublishArtifactVersion()
+        server.expectGet('/repo/group/projectA/1.2/projectA-1.2.pom' , 'username', 'password', moduleA.pomFile)
+        server.expectGet('/repo/group/projectA/1.2/projectA-1.2.jar' , 'username', 'password', moduleA.artifactFile)
+        server.expectGet('/repo/group/projectB/maven-metadata.xml' , 'username', 'password', moduleB.rootMetaDataFile)
+        server.expectGet('/repo/group/projectB/2.1/projectB-2.1.pom' , 'username', 'password', moduleB.pomFile)
+        server.expectGet('/repo/group/projectB/2.1/projectB-2.1.jar' , 'username', 'password', moduleB.artifactFile)
+        server.expectGet('/repo/group/projectC/3.1-SNAPSHOT/maven-metadata.xml' , 'username', 'password', moduleC.metaDataFile) // TODO: double check why we have two get requests here.
+        server.expectGet('/repo/group/projectC/3.1-SNAPSHOT/maven-metadata.xml' , 'username', 'password', moduleC.metaDataFile)
+        server.expectGet("/repo/group/projectC/3.1-SNAPSHOT/projectC-${moduleC.getPublishArtifactVersion()}.pom"  , 'username', 'password', moduleC.pomFile)
+        server.expectGet("/repo/group/projectC/3.1-SNAPSHOT/projectC-${moduleC.getPublishArtifactVersion()}.jar"  , 'username', 'password', moduleC.artifactFile)
 
         then:
         succeeds('listJars')
