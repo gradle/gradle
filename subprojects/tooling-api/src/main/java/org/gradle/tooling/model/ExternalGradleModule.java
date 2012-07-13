@@ -24,17 +24,17 @@ package org.gradle.tooling.model;
 public interface ExternalGradleModule {
 
     /**
-     * Group of the module, for example 'org.gradle'.
+     * The group of the module, for example 'org.gradle'.
      */
     String getGroup();
 
     /**
-     * Name of the module, for example 'gradle-tooling-api'.
+     * The name of the module, for example 'gradle-tooling-api'.
      */
     String getName();
 
     /**
-     * Version of the module, for example '1.0'.
+     * The version of the module, for example '1.0'.
      */
     String getVersion();
 

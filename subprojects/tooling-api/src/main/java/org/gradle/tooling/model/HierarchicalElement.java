@@ -24,16 +24,16 @@ package org.gradle.tooling.model;
 public interface HierarchicalElement extends Element {
 
     /**
-     * Returns the parent of this element, if any.
+     * Returns the parent of this element, or {@code null} if there is no parent.
      *
-     * @return The parent, or null if it has no parent.
+     * @return The parent of this element, or {@code null} if there is no parent.
      */
     HierarchicalElement getParent();
 
     /**
-     * Returns the child elements.
+     * Returns the child elements, or the empty set if there are no child elements.
      *
-     * @return The child elements. Returns an empty set if it has no children.
+     * @return The child elements, or the empty set if there are no child elements.
      */
     DomainObjectSet<? extends HierarchicalElement> getChildren();
 

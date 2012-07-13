@@ -42,15 +42,15 @@ import org.gradle.tooling.model.UnsupportedMethodException;
 public interface BuildEnvironment extends Model {
 
     /**
-     * Informs about the gradle environment, for example the gradle version.
+     * Informs about the Gradle environment, for example the Gradle version.
      */
     GradleEnvironment getGradle();
 
     /**
-     * Informs about the java environment, for example the java home or the jvm args used.
+     * Informs about the Java environment, for example the Java home or the JVM args used.
      *
      * @throws org.gradle.tooling.model.UnsupportedMethodException
-     * when the gradle version the tooling api is connected to does not support the java environment information.
+     * when the Gradle version the tooling API is connected to does not support the Java environment information.
      */
     JavaEnvironment getJava() throws UnsupportedMethodException;
 }

@@ -26,7 +26,7 @@ public interface BuildableElement extends Element {
     /**
      * Returns the tasks of this project.
      *
-     * @return The tasks.
+     * @return The tasks of this project.
      */
     DomainObjectSet<? extends Task> getTasks();
 

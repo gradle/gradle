@@ -17,11 +17,11 @@
 package org.gradle.tooling.model;
 
 /**
- * Thrown when the tooling api client client attempts to use a method that does not exist
- * in the version of gradle the tooling api is connected to.
+ * Thrown when the tooling API client attempts to use a method that does not exist
+ * in the version of Gradle that the tooling API is connected to.
  * <p>
- * Typically, to resolve such problem you change/upgrade the target version of Gradle the tooling api is connected to.
- * Alternatively, you can handle and ignore this exception.
+ * Typically, to resolve such a problem you change/upgrade the target version of Gradle that
+ * the tooling API is connected to. Alternatively, you can handle and ignore this exception.
  *
  * @since 1.0-milestone-8
  */

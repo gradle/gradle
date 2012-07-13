@@ -24,7 +24,7 @@ package org.gradle.tooling.model;
 public interface GradleTask extends Task {
 
     /**
-     * Returns the gradle project this task is defined in.
+     * Returns the Gradle project this task is defined in.
      *
      * @return The element.
      */

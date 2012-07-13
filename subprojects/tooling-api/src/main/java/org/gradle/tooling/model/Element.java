@@ -17,23 +17,23 @@
 package org.gradle.tooling.model;
 
 /**
- * Described model element
+ * Described model element.
  *
  * @since 1.0-milestone-5
  */
 public interface Element extends Model {
 
     /**
-     * Returns the name. Note that the name is not a unique identifier.
+     * Returns the name of the element. Note that the name is not a unique identifier.
      *
-     * @return The name.
+     * @return The name of the element.
      */
     String getName();
 
     /**
-     * Returns the description.
+     * Returns the description of the element, or {@code null} if it has no description.
      *
-     * @return The description. May be null.
+     * @return The description of the element, or {@code null} if it has no description.
      */
     String getDescription();
 }
