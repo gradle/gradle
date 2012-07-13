@@ -20,20 +20,26 @@ import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.migration.ProjectOutput
+import org.gradle.integtests.fixtures.TestResources
+
+import org.junit.Rule
 
 @MinToolingApiVersion("current")
 @MinTargetGradleVersion("current")
 class MigrationModelCrossVersionSpec extends ToolingApiSpecification {
-    def "can get project output model"() {
+    @Rule TestResources resources = new TestResources()
+
+    def "canGetProjectOutputModel"() {
         given:
-        dist.testDir.file("build.gradle") << """
-apply plugin: "java"
-        """
 
         when:
         def output = withConnection { it.getModel(ProjectOutput.class) }
 
         then:
         output instanceof ProjectOutput
+        output.taskOutputs.size() == 1
+//        println output.taskOutputs[0]
+//        println output.taskOutputs[0].getClass()
+//        println output.taskOutputs[0].getPath()
     }
 }
