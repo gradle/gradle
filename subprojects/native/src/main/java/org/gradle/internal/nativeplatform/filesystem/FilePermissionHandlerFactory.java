@@ -18,6 +18,7 @@ package org.gradle.internal.nativeplatform.filesystem;
 
 import com.sun.jna.LastErrorException;
 import com.sun.jna.Native;
+import com.sun.jna.WString;
 import org.gradle.api.JavaVersion;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.nativeplatform.jna.LibC;
@@ -57,7 +58,7 @@ public class FilePermissionHandlerFactory {
         final OperatingSystem operatingSystem = OperatingSystem.current();
         if (operatingSystem.isLinux() || operatingSystem.isMacOsX()) {
             LibC libc = loadLibC();
-            return new LibCStat(libc, operatingSystem, (BaseNativePOSIX) PosixUtil.current());
+            return new LibCStat(libc, operatingSystem, (BaseNativePOSIX) PosixUtil.current(), createEncoder(libc));
         } else {
             return new PosixStat(PosixUtil.current());
         }
@@ -66,24 +67,32 @@ public class FilePermissionHandlerFactory {
     static ComposableFilePermissionHandler.Chmod createChmod() {
         try {
             LibC libc = loadLibC();
-            return new LibcChmod(libc);
+            return new LibcChmod(libc, createEncoder(libc));
         } catch (LinkageError e) {
             LOGGER.debug("Unable to load LibC library. Falling back to EmptyChmod implementation.");
             return new EmptyChmod();
         }
     }
 
+    static FilePathEncoder createEncoder(LibC libC) {
+        if (OperatingSystem.current().isMacOsX()) {
+            return new MacFilePathEncoder();
+        }
+        return new DefaultFilePathEncoder(libC);
+    }
 
     private static class LibcChmod implements ComposableFilePermissionHandler.Chmod {
         private final LibC libc;
+        private final FilePathEncoder encoder;
 
-        public LibcChmod(LibC libc) {
+        public LibcChmod(LibC libc, FilePathEncoder encoder) {
             this.libc = libc;
+            this.encoder = encoder;
         }
 
         public void chmod(File f, int mode) throws IOException {
             try {
-                byte[] encodedFilePath = getEncodedFilePath(f);
+                byte[] encodedFilePath = encoder.encode(f);
                 libc.chmod(encodedFilePath, mode);
             } catch (LastErrorException exception) {
                 throw new IOException(String.format("Failed to set file permissions %s on file %s. errno: %d", mode, f.getName(), exception.getErrorCode()));
@@ -97,19 +106,21 @@ public class FilePermissionHandlerFactory {
     }
 
     static class LibCStat implements ComposableFilePermissionHandler.Stat {
-        private LibC libc;
-        private OperatingSystem operatingSystem;
-        private BaseNativePOSIX nativePOSIX;
+        private final LibC libc;
+        private final FilePathEncoder encoder;
+        private final OperatingSystem operatingSystem;
+        private final BaseNativePOSIX nativePOSIX;
 
-        public LibCStat(LibC libc, OperatingSystem operatingSystem, BaseNativePOSIX nativePOSIX) {
+        public LibCStat(LibC libc, OperatingSystem operatingSystem, BaseNativePOSIX nativePOSIX, FilePathEncoder encoder) {
             this.libc = libc;
             this.operatingSystem = operatingSystem;
             this.nativePOSIX = nativePOSIX;
+            this.encoder = encoder;
         }
 
         public FileStat stat(File f) throws IOException {
             FileStat stat = nativePOSIX.allocateStat();
-            initPlatformSpecificStat(stat, getEncodedFilePath(f));
+            initPlatformSpecificStat(stat, encoder.encode(f));
             return stat;
         }
 
@@ -139,22 +150,43 @@ public class FilePermissionHandlerFactory {
         return (LibC) Native.loadLibrary("c", LibC.class);
     }
 
-    private static byte[] getEncodedFilePath(File f) {
-        byte[] encoded = new byte[0];
-        if (!OperatingSystem.current().isMacOsX()) {
-            //macosx default file encoding is not unicode
-            encoded = f.getAbsolutePath().getBytes();
-        } else {
+    interface FilePathEncoder {
+        byte[] encode(File file);
+    }
+
+    private static class MacFilePathEncoder implements FilePathEncoder {
+        public byte[] encode(File file) {
+            byte[] encoded;
             try {
-                encoded = f.getAbsolutePath().getBytes("utf-8");
+                encoded = file.getAbsolutePath().getBytes("utf-8");
             } catch (UnsupportedEncodingException e) {
-                UncheckedException.throwAsUncheckedException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
+            byte[] zeroTerminatedByteArray = new byte[encoded.length + 1];
+            System.arraycopy(encoded, 0, zeroTerminatedByteArray, 0, encoded.length);
+            zeroTerminatedByteArray[encoded.length] = 0;
+            return zeroTerminatedByteArray;
         }
-        byte[] zeroTerminatedByteArray = new byte[encoded.length + 1];
-        System.arraycopy(encoded, 0, zeroTerminatedByteArray, 0, encoded.length);
-        zeroTerminatedByteArray[encoded.length] = 0;
-        return zeroTerminatedByteArray;
+    }
+
+    private static class DefaultFilePathEncoder implements FilePathEncoder {
+        private final LibC libC;
+
+        private DefaultFilePathEncoder(LibC libC) {
+            this.libC = libC;
+        }
+
+        public byte[] encode(File file) {
+            byte[] path = new byte[file.getAbsolutePath().length() * 3 + 1];
+            int pathLength = libC.wcstombs(path, new WString(file.getAbsolutePath()), path.length);
+            if (pathLength < 0) {
+                throw new RuntimeException(String.format("Could not encode file path '%s'.", file.getAbsolutePath()));
+            }
+            byte[] zeroTerminatedByteArray = new byte[pathLength + 1];
+            System.arraycopy(path, 0, zeroTerminatedByteArray, 0, pathLength);
+            zeroTerminatedByteArray[pathLength] = 0;
+            return zeroTerminatedByteArray;
+        }
     }
 }
 

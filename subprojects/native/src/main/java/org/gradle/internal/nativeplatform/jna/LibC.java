@@ -17,6 +17,7 @@ package org.gradle.internal.nativeplatform.jna;
 
 import com.sun.jna.LastErrorException;
 import com.sun.jna.Library;
+import com.sun.jna.WString;
 import org.jruby.ext.posix.FileStat;
 
 public interface LibC extends Library {
@@ -30,5 +31,6 @@ public interface LibC extends Library {
     public int stat(byte[] filePath, FileStat fileStat) throws LastErrorException;
     public int __xstat64(int version, byte[] filePath, FileStat fileStat) throws LastErrorException;
     public int chmod(byte[] filePath, int mode) throws LastErrorException;
+    public int wcstombs(byte[] dest, WString source, int size);
     //CHECKSTYLE:ON
 }

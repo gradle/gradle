@@ -44,7 +44,7 @@ class CommonFileSystemTest extends Specification {
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
     def "unix permissions on files can be changed and read"() {
-        def f = tmpDir.createFile("someFile")
+        def f = tmpDir.createFile("someFile\u03B1.txt")
 
         when:
         fs.chmod(f, mode)
@@ -59,7 +59,7 @@ class CommonFileSystemTest extends Specification {
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
     def "unix permissions on directories can be changed and read"() {
-        def d = tmpDir.createDir("someDir")
+        def d = tmpDir.createDir("someDir\u03B1")
 
         when:
         fs.chmod(d, mode)
