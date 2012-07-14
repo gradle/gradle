@@ -58,8 +58,9 @@ public class FileSystemServices {
         if (JavaVersion.current().isJava7()) {
             String jdkFilePermissionclass = "org.gradle.internal.nativeplatform.filesystem.jdk7.PosixJdk7FilePermissionHandler";
             try {
-                FilePermissionHandler handler = (FilePermissionHandler) FilePermissionHandler.class.getClassLoader().loadClass(jdkFilePermissionclass).newInstance();
-                serviceRegistry.add(FilePermissionHandler.class, handler);
+                Object handler = FileSystemServices.class.getClassLoader().loadClass(jdkFilePermissionclass).newInstance();
+                serviceRegistry.add(Stat.class, (Stat) handler);
+                serviceRegistry.add(Chmod.class, (Chmod) handler);
                 return;
             } catch (ClassNotFoundException e) {
                 LOGGER.warn(String.format("Unable to load %s. Continuing with fallback.", jdkFilePermissionclass));
