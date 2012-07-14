@@ -21,6 +21,9 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.tasks.GroovySourceSet;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.TaskOutputs;
+import org.gradle.api.tasks.bundling.Jar;
+import org.gradle.api.tasks.bundling.Zip;
 import org.gradle.api.tasks.javadoc.Groovydoc;
 
 /**
@@ -31,12 +34,15 @@ import org.gradle.api.tasks.javadoc.Groovydoc;
  */
 public class GroovyPlugin implements Plugin<Project> {
     public static final String GROOVYDOC_TASK_NAME = "groovydoc";
+    public static final String GROOVYDOC_JAR_TASK_NAME = "groovydocJar";
+    public static final String GROOVYDOC_ZIP_TASK_NAME = "groovydocZip";
 
     public void apply(Project project) {
         project.getPlugins().apply(GroovyBasePlugin.class);
         project.getPlugins().apply(JavaPlugin.class);
         configureConfigurations(project);
         configureGroovydoc(project);
+        configureGroovydocArchives(project);
     }
 
     private void configureConfigurations(Project project) {
@@ -56,5 +62,22 @@ public class GroovyPlugin implements Plugin<Project> {
 
         GroovySourceSet groovySourceSet = new DslObject(sourceSet).getConvention().getPlugin(GroovySourceSet.class);
         groovyDoc.setSource(groovySourceSet.getGroovy());
+    }
+    
+    /**
+     * Configures Groovydoc archives: both a JAR and a Zip.  These are not tied into the
+     * major lifecycle tasks by default.
+     * @param project the project to add the tasks to
+     * @param pluginConvention the Java plugin convention for the project
+     */
+    private void configureGroovydocArchives(final Project project) {
+    	TaskOutputs docs = project.getTasks().getByName(GROOVYDOC_TASK_NAME).getOutputs();
+    	Jar jar = project.getTasks().add(GROOVYDOC_JAR_TASK_NAME, Jar.class);
+    	jar.from(docs);
+    	jar.setClassifier("groovydoc");
+    	
+    	Zip zip = project.getTasks().add(GROOVYDOC_ZIP_TASK_NAME, Zip.class);
+    	zip.from(docs);
+    	zip.setClassifier("groovydoc");
     }
 }

@@ -29,7 +29,9 @@ import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.plugins.EmbeddableJavaProject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.TaskOutputs;
 import org.gradle.api.tasks.bundling.Jar;
+import org.gradle.api.tasks.bundling.Zip;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.Test;
 
@@ -54,6 +56,10 @@ public class JavaPlugin implements Plugin<Project> {
     public static final String TEST_TASK_NAME = "test";
     public static final String JAR_TASK_NAME = "jar";
     public static final String JAVADOC_TASK_NAME = "javadoc";
+    public static final String SOURCES_JAR_TASK_NAME = "sourcesJar";
+    public static final String SOURCES_ZIP_TASK_NAME = "sourcesZip";
+    public static final String JAVADOC_JAR_TASK_NAME = "javadocJar";
+    public static final String JAVADOC_ZIP_TASK_NAME = "javadocZip";
 
     public static final String COMPILE_CONFIGURATION_NAME = "compile";
     public static final String RUNTIME_CONFIGURATION_NAME = "runtime";
@@ -72,6 +78,8 @@ public class JavaPlugin implements Plugin<Project> {
         configureJavaDoc(javaConvention);
         configureTest(project, javaConvention);
         configureArchives(project, javaConvention);
+        configureSourcesArchives(project, javaConvention);
+        configureJavadocArchives(project);
         configureBuild(project);
     }
 
@@ -113,7 +121,41 @@ public class JavaPlugin implements Plugin<Project> {
         project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(new ArchivePublishArtifact(jar));
         project.getConfigurations().getByName(RUNTIME_CONFIGURATION_NAME).getArtifacts().add(new ArchivePublishArtifact(jar));
     }
-
+    
+    /**
+     * Configures sources archives: both a JAR and a Zip.  These are not tied into the
+     * major lifecycle tasks by default.
+     * @param project the project to add the tasks to
+     * @param pluginConvention the Java plugin convention for the project
+     */
+    private void configureSourcesArchives(final Project project, final JavaPluginConvention pluginConvention) {
+    	FileCollection sources = pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getAllSource();
+    	Jar jar = project.getTasks().add(SOURCES_JAR_TASK_NAME, Jar.class);
+    	jar.from(sources);
+    	jar.setClassifier("sources");
+    	
+    	Zip zip = project.getTasks().add(SOURCES_ZIP_TASK_NAME, Zip.class);
+    	zip.from(sources);
+    	zip.setClassifier("sources");
+    }
+    
+    /**
+     * Configures Javadoc archives: both a JAR and a Zip.  These are not tied into the
+     * major lifecycle tasks by default.
+     * @param project the project to add the tasks to
+     * @param pluginConvention the Java plugin convention for the project
+     */
+    private void configureJavadocArchives(final Project project) {
+    	TaskOutputs docs = project.getTasks().getByName(JAVADOC_TASK_NAME).getOutputs();
+    	Jar jar = project.getTasks().add(JAVADOC_JAR_TASK_NAME, Jar.class);
+    	jar.from(docs);
+    	jar.setClassifier("javadoc");
+    	
+    	Zip zip = project.getTasks().add(JAVADOC_ZIP_TASK_NAME, Zip.class);
+    	zip.from(docs);
+    	zip.setClassifier("javadoc");
+    }
+    
     private void configureBuild(Project project) {
         addDependsOnTaskInOtherProjects(project.getTasks().getByName(JavaBasePlugin.BUILD_NEEDED_TASK_NAME), true,
                 JavaBasePlugin.BUILD_NEEDED_TASK_NAME, TEST_RUNTIME_CONFIGURATION_NAME);

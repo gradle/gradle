@@ -19,6 +19,8 @@ package org.gradle.api.plugins
 import org.gradle.api.Project
 import org.gradle.api.internal.artifacts.configurations.Configurations
 import org.gradle.api.reporting.ReportingExtension
+import org.gradle.api.tasks.bundling.Jar
+import org.gradle.api.tasks.bundling.Zip
 import org.gradle.api.tasks.compile.GroovyCompile
 import org.gradle.api.tasks.javadoc.Groovydoc
 import org.gradle.util.HelperUtil
@@ -103,4 +105,26 @@ class GroovyPluginTest {
         assertThat(task.docTitle, equalTo(project.extensions.getByType(ReportingExtension).apiDocTitle))
         assertThat(task.windowTitle, equalTo(project.extensions.getByType(ReportingExtension).apiDocTitle))
     }
+	
+	@Test public void addsGroovydocJarTaskToTheProject() {
+		groovyPlugin.apply(project)
+		
+		def task = project.tasks[GroovyPlugin.GROOVYDOC_JAR_TASK_NAME]
+		assertThat(task, instanceOf(Jar))
+		assertThat(task, dependsOn(GroovyPlugin.GROOVYDOC_TASK_NAME))
+		assertThat(task.destinationDir, equalTo(project.file("$project.libsDir")))
+		assertThat(task.copyAction.mainSpec.sourcePaths*.files*.files.flatten(), equalTo([project.tasks[GroovyPlugin.GROOVYDOC_TASK_NAME].destinationDir]))
+		assertThat(task.classifier, equalTo("groovydoc"))
+	}
+	
+	@Test public void addsGroovydocZipTaskToTheProject() {
+		groovyPlugin.apply(project)
+		
+		def task = project.tasks[GroovyPlugin.GROOVYDOC_ZIP_TASK_NAME]
+		assertThat(task, instanceOf(Zip))
+		assertThat(task, dependsOn(GroovyPlugin.GROOVYDOC_TASK_NAME))
+		assertThat(task.destinationDir, equalTo(project.file("$project.distsDir")))
+		assertThat(task.copyAction.mainSpec.sourcePaths*.files*.files.flatten(), equalTo([project.tasks[GroovyPlugin.GROOVYDOC_TASK_NAME].destinationDir]))
+		assertThat(task.classifier, equalTo("groovydoc"))
+	}
 }

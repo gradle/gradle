@@ -19,18 +19,24 @@ package org.gradle.api.plugins.scala;
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.tasks.TaskOutputs
+import org.gradle.api.tasks.bundling.Jar;
+import org.gradle.api.tasks.bundling.Zip;
 import org.gradle.api.tasks.scala.ScalaDoc
 import org.gradle.api.plugins.JavaBasePlugin
 
 public class ScalaPlugin implements Plugin<Project> {
     // tasks
     public static final String SCALA_DOC_TASK_NAME = "scaladoc";
+	public static final String SCALA_DOC_JAR_TASK_NAME = "scaladocJar";
+	public static final String SCALA_DOC_ZIP_TASK_NAME = "scaladocZip";
 
     public void apply(Project project) {
         project.plugins.apply(ScalaBasePlugin.class);
         project.plugins.apply(JavaPlugin.class);
 
         configureScaladoc(project);
+		configureScaladocArchives(project);
     }
 
     private void configureScaladoc(final Project project) {
@@ -42,4 +48,21 @@ public class ScalaPlugin implements Plugin<Project> {
         scalaDoc.description = "Generates scaladoc for the main source code.";
         scalaDoc.group = JavaBasePlugin.DOCUMENTATION_GROUP
     }
+	
+	/**
+	* Configures Scaladoc archives: both a JAR and a Zip.  These are not tied into the
+	* major lifecycle tasks by default.
+	* @param project the project to add the tasks to
+	* @param pluginConvention the Java plugin convention for the project
+	*/
+   private void configureScaladocArchives(final Project project) {
+	   TaskOutputs docs = project.getTasks().getByName(SCALA_DOC_TASK_NAME).getOutputs();
+	   Jar jar = project.getTasks().add(SCALA_DOC_JAR_TASK_NAME, Jar.class);
+	   jar.from(docs);
+	   jar.setClassifier("scaladoc");
+	   
+	   Zip zip = project.getTasks().add(SCALA_DOC_ZIP_TASK_NAME, Zip.class);
+	   zip.from(docs);
+	   zip.setClassifier("scaladoc");
+   }
 }

@@ -18,16 +18,17 @@ package org.gradle.api.plugins.scala
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.reporting.ReportingExtension
+import org.gradle.api.tasks.bundling.Jar
+import org.gradle.api.tasks.bundling.Zip
 import org.gradle.api.tasks.scala.ScalaCompile
 import org.gradle.api.tasks.scala.ScalaDoc
 import org.gradle.util.HelperUtil
 import org.gradle.util.Matchers
 import org.junit.Test
-import static org.gradle.util.Matchers.dependsOn
-import static org.gradle.util.WrapUtil.toLinkedSet
+import static org.gradle.util.Matchers.*
+import static org.gradle.util.WrapUtil.*
 import static org.hamcrest.Matchers.*
-import static org.junit.Assert.assertThat
-import static org.junit.Assert.assertTrue
+import static org.junit.Assert.*
 
 public class ScalaPluginTest {
 
@@ -89,6 +90,28 @@ public class ScalaPluginTest {
         assertThat(task.source as List, equalTo(project.sourceSets.main.scala as List))
         assertThat(task.classpath, Matchers.sameCollection(project.files(project.sourceSets.main.output, project.sourceSets.main.compileClasspath)))
         assertThat(task.title, equalTo(project.extensions.getByType(ReportingExtension).apiDocTitle))
+    }
+    
+    @Test public void addsScalaDocJarTaskToTheProject() {
+        scalaPlugin.apply(project)
+        
+        def task = project.tasks[ScalaPlugin.SCALA_DOC_JAR_TASK_NAME]
+        assertThat(task, instanceOf(Jar))
+        assertThat(task, dependsOn(ScalaPlugin.SCALA_DOC_TASK_NAME))
+        assertThat(task.destinationDir, equalTo(project.file("$project.libsDir")))
+        assertThat(task.copyAction.mainSpec.sourcePaths*.files*.files.flatten(), equalTo([project.tasks[ScalaPlugin.SCALA_DOC_TASK_NAME].destinationDir]))
+        assertThat(task.classifier, equalTo("scaladoc"))
+    }
+    
+    @Test public void addsScalaDocZipTaskToTheProject() {
+        scalaPlugin.apply(project)
+        
+        def task = project.tasks[ScalaPlugin.SCALA_DOC_ZIP_TASK_NAME]
+        assertThat(task, instanceOf(Zip))
+        assertThat(task, dependsOn(ScalaPlugin.SCALA_DOC_TASK_NAME))
+        assertThat(task.destinationDir, equalTo(project.file("$project.distsDir")))
+        assertThat(task.copyAction.mainSpec.sourcePaths*.files*.files.flatten(), equalTo([project.tasks[ScalaPlugin.SCALA_DOC_TASK_NAME].destinationDir]))
+        assertThat(task.classifier, equalTo("scaladoc"))
     }
 
     @Test public void configuresScalaDocTasksDefinedByTheBuildScript() {

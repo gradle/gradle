@@ -26,6 +26,7 @@ import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.bundling.Jar
+import org.gradle.api.tasks.bundling.Zip
 import org.gradle.api.tasks.compile.Compile
 import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.util.HelperUtil
@@ -217,6 +218,32 @@ class JavaPluginTest {
         task = project.tasks[JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME]
         assertThat(task, instanceOf(DefaultTask))
         assertThat(task, dependsOn(JavaBasePlugin.BUILD_TASK_NAME))
+		
+		task = project.tasks[JavaPlugin.JAVADOC_JAR_TASK_NAME]
+		assertThat(task, instanceOf(Jar))
+		assertThat(task, dependsOn(JavaPlugin.JAVADOC_TASK_NAME))
+		assertThat(task.destinationDir, equalTo(project.file("$project.libsDir")))
+		assertThat(task.copyAction.mainSpec.sourcePaths*.files*.files.flatten(), equalTo([project.tasks[JavaPlugin.JAVADOC_TASK_NAME].destinationDir]))
+		assertThat(task.classifier, equalTo("javadoc"))
+		
+		task = project.tasks[JavaPlugin.JAVADOC_ZIP_TASK_NAME]
+		assertThat(task, instanceOf(Zip))
+		assertThat(task, dependsOn(JavaPlugin.JAVADOC_TASK_NAME))
+		assertThat(task.destinationDir, equalTo(project.file("$project.distsDir")))
+		assertThat(task.copyAction.mainSpec.sourcePaths*.files*.files.flatten(), equalTo([project.tasks[JavaPlugin.JAVADOC_TASK_NAME].destinationDir]))
+		assertThat(task.classifier, equalTo("javadoc"))
+		
+		task = project.tasks[JavaPlugin.SOURCES_JAR_TASK_NAME]
+		assertThat(task, instanceOf(Jar))
+		assertThat(task.destinationDir, equalTo(project.file("$project.libsDir")))
+		assertThat(task.copyAction.mainSpec.sourcePaths*.files.flatten(), equalTo(project.sourceSets.main.allSource.files as List))
+		assertThat(task.classifier, equalTo("sources"))
+		
+		task = project.tasks[JavaPlugin.SOURCES_ZIP_TASK_NAME]
+		assertThat(task, instanceOf(Zip))
+		assertThat(task.destinationDir, equalTo(project.file("$project.distsDir")))
+		assertThat(task.copyAction.mainSpec.sourcePaths*.files.flatten(), equalTo(project.sourceSets.main.allSource.files as List))
+		assertThat(task.classifier, equalTo("sources"))
     }
 
     @Test public void appliesMappingsToTasksAddedByTheBuildScript() {
