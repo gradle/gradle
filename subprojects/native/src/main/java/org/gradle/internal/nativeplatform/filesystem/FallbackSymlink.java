@@ -16,23 +16,11 @@
 
 package org.gradle.internal.nativeplatform.filesystem;
 
-import org.jruby.ext.posix.POSIX;
-
 import java.io.File;
 import java.io.IOException;
 
-public class PosixBackedSymlink implements Symlink {
-    private final POSIX posix;
-
-    public PosixBackedSymlink(POSIX posix) {
-        this.posix = posix;
-    }
-
+public class FallbackSymlink implements Symlink {
     public void symlink(File link, File target) throws IOException {
-        link.getParentFile().mkdirs();
-        int retval = posix.symlink(target.getPath(), link.getPath());
-        if (retval != 0) {
-            throw new IOException(String.format("Could not create symlink from '%s' to '%s'. Return code is %s.", link.getPath(), target.getPath(), retval));
-        }
+        throw new IOException("Creation of symlinks is not supported on the platform.");
     }
 }

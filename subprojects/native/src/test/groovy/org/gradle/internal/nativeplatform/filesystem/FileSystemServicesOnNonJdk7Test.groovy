@@ -13,9 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.internal.nativeplatform.filesystem;
-
 
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -30,18 +28,6 @@ public class FileSystemServicesOnNonJdk7Test extends Specification {
     final Stat stat = FileSystemServices.services.get(Stat)
     final Symlink symlink = FileSystemServices.services.get(Symlink)
 
-    @Requires(TestPrecondition.WINDOWS)
-    def "creates EmptyChmod instance on Windows OS"() {
-        expect:
-        chmod instanceof FileSystemServices.EmptyChmod
-    }
-
-    @Requires(TestPrecondition.WINDOWS)
-    def "creates FallbackStat instance on Windows OS"() {
-        expect:
-        stat instanceof FileSystemServices.FallbackStat
-    }
-
     @Requires(TestPrecondition.MAC_OS_X)
     def "creates LibCChmod on Mac"() {
         expect:
@@ -52,6 +38,12 @@ public class FileSystemServicesOnNonJdk7Test extends Specification {
     def "creates LibCStat on Mac"() {
         expect:
         stat instanceof FileSystemServices.LibCStat
+    }
+
+    @Requires(TestPrecondition.MAC_OS_X)
+    def "creates LibcSymlink on Mac"() {
+        expect:
+        symlink instanceof LibcSymlink
     }
 
     @Requires(TestPrecondition.LINUX)
@@ -66,9 +58,10 @@ public class FileSystemServicesOnNonJdk7Test extends Specification {
         stat instanceof FileSystemServices.LibCStat
     }
 
-    def "creates PosixBackedSymlink on Linux"() {
+    @Requires(TestPrecondition.LINUX)
+    def "creates LibcSymlink on Linux"() {
         expect:
-        symlink instanceof PosixBackedSymlink
+        symlink instanceof LibcSymlink
     }
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)

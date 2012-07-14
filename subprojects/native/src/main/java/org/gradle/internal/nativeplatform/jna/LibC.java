@@ -32,5 +32,6 @@ public interface LibC extends Library {
     public int __xstat64(int version, byte[] filePath, FileStat fileStat) throws LastErrorException;
     public int chmod(byte[] filePath, int mode) throws LastErrorException;
     public int wcstombs(byte[] dest, WString source, int size) throws LastErrorException;
+    public int symlink(String target, String link) throws LastErrorException;
     //CHECKSTYLE:ON
 }

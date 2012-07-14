@@ -28,18 +28,6 @@ class FileSystemServicesOnJdk7Test extends Specification {
     final Chmod chmod = FileSystemServices.services.get(Chmod)
     final Stat stat = FileSystemServices.services.get(Stat)
 
-    @Requires(TestPrecondition.WINDOWS)
-    def "creates EmptyChmod instance on Windows OS"() {
-        expect:
-        chmod instanceof FileSystemServices.EmptyChmod
-    }
-
-    @Requires(TestPrecondition.WINDOWS)
-    def "creates FallbackStat instance on Windows OS"() {
-        expect:
-        stat instanceof FileSystemServices.FallbackStat
-    }
-
     @Requires(TestPrecondition.FILE_PERMISSIONS)
     def "createDefaultFilePermissionHandler creates Jdk7PosixFilePermissionHandler on JDK7 with Posix Fs"() {
         expect:

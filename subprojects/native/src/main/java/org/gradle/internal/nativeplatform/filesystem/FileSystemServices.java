@@ -51,13 +51,15 @@ public class FileSystemServices {
     }
 
     private static void addServices(DefaultServiceRegistry serviceRegistry) {
-        serviceRegistry.add(Symlink.class, new PosixBackedSymlink(PosixUtil.current()));
 
         if (OperatingSystem.current().isWindows()) {
             serviceRegistry.add(Chmod.class, new EmptyChmod());
             serviceRegistry.add(Stat.class, new FallbackStat());
+            serviceRegistry.add(Symlink.class, new FallbackSymlink());
             return;
         }
+
+        serviceRegistry.add(Symlink.class, createSymlink());
 
         if (JavaVersion.current().isJava7()) {
             String jdkFilePermissionclass = "org.gradle.internal.nativeplatform.filesystem.jdk7.PosixJdk7FilePermissionHandler";
@@ -71,10 +73,19 @@ public class FileSystemServices {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
         }
-        Chmod chmod = createChmod();
-        Stat stat = createStat();
-        serviceRegistry.add(Chmod.class, chmod);
-        serviceRegistry.add(Stat.class, stat);
+
+        serviceRegistry.add(Chmod.class, createChmod());
+        serviceRegistry.add(Stat.class, createStat());
+    }
+
+    private static Symlink createSymlink() {
+        try {
+            LibC libc = loadLibC();
+            return new LibcSymlink(libc);
+        } catch (LinkageError e) {
+            LOGGER.debug("Unable to load LibC library. Falling back to FallbackSymlink implementation.");
+            return new FallbackSymlink();
+        }
     }
 
     private static Stat createStat() {
