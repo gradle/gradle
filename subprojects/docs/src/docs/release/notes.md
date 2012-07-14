@@ -76,12 +76,6 @@ Now the Tooling API also provides Gradle module information, i.e. group, name, v
 Please see the javadoc for [ExternalGradleModule](http://gradle.org/docs/nightly/javadoc/org/gradle/tooling/model/ExternalGradleModule.html).
 You can obtain the Gradle module information iva [ExternalDependency.getExternalGradleModule()] (http://gradle.org/docs/nightly/javadoc/org/gradle/tooling/model/ExternalDependency.html#getExternalGradleModule()).
 
-### Some feature
-
-#### Some detail
-
-Some details about the feature.
-
 ## Upgrading from Gradle 1.0
 
 Please let us know if you encounter any issues during the upgrade to Gradle 1.1-rc-1, that are not listed below.
