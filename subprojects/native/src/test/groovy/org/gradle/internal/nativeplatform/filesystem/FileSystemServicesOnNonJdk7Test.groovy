@@ -28,6 +28,7 @@ public class FileSystemServicesOnNonJdk7Test extends Specification {
     @Rule TemporaryFolder temporaryFolder
     final Chmod chmod = FileSystemServices.services.get(Chmod)
     final Stat stat = FileSystemServices.services.get(Stat)
+    final Symlink symlink = FileSystemServices.services.get(Symlink)
 
     @Requires(TestPrecondition.WINDOWS)
     def "creates EmptyChmod instance on Windows OS"() {
@@ -63,6 +64,11 @@ public class FileSystemServicesOnNonJdk7Test extends Specification {
     def "creates LibCStat on Linux"() {
         expect:
         stat instanceof FileSystemServices.LibCStat
+    }
+
+    def "creates PosixBackedSymlink on Linux"() {
+        expect:
+        symlink instanceof PosixBackedSymlink
     }
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)

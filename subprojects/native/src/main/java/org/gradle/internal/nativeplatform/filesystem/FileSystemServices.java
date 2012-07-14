@@ -51,6 +51,8 @@ public class FileSystemServices {
     }
 
     private static void addServices(DefaultServiceRegistry serviceRegistry) {
+        serviceRegistry.add(Symlink.class, new PosixBackedSymlink(PosixUtil.current()));
+
         if (OperatingSystem.current().isWindows()) {
             serviceRegistry.add(Chmod.class, new EmptyChmod());
             serviceRegistry.add(Stat.class, new FallbackStat());

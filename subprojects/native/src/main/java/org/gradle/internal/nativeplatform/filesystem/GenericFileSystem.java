@@ -34,6 +34,7 @@ class GenericFileSystem implements FileSystem {
 
     private final Chmod chmod;
     private final Stat stat;
+    private final Symlink symlink;
 
     public boolean isCaseSensitive() {
         return caseSensitive;
@@ -44,15 +45,16 @@ class GenericFileSystem implements FileSystem {
     }
 
     public void createSymbolicLink(File link, File target) throws IOException {
-        int returnCode = doCreateSymbolicLink(link, target);
-        if (returnCode != 0) {
-            throw new IOException("Failed to create symbolic link " + link
-                    + " pointing to " + target + ". Return code is: " + returnCode);
-        }
+        symlink.symlink(link, target);
     }
 
     public boolean tryCreateSymbolicLink(File link, File target) {
-        return doCreateSymbolicLink(link, target) == 0;
+        try {
+            symlink.symlink(link, target);
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
     }
 
     public int getUnixMode(File f) throws IOException {
@@ -65,24 +67,16 @@ class GenericFileSystem implements FileSystem {
         chmod.chmod(f, mode);
     }
 
-    private int doCreateSymbolicLink(File link, File target) {
-        link.getParentFile().mkdirs();
-        try {
-            return PosixUtil.current().symlink(target.getPath(), link.getPath());
-        } catch (UnsatisfiedLinkError e) {
-            // Assume symlink() is not available
-            return 1;
-        }
-    }
-
     protected final void assertFileExists(File f) throws FileNotFoundException {
         if (!f.exists()) {
             throw new FileNotFoundException(f + " does not exist");
         }
     }
 
-    GenericFileSystem(Chmod chmod, Stat stat) {
+    GenericFileSystem(Chmod chmod, Stat stat, Symlink symlink) {
         this.stat = stat;
+        this.symlink = symlink;
+        this.chmod = chmod;
         String content = generateUniqueContent();
         File file = null;
         try {
@@ -90,7 +84,6 @@ class GenericFileSystem implements FileSystem {
             file = createFile(content);
             caseSensitive = probeCaseSensitive(file, content);
             canCreateSymbolicLink = probeCanCreateSymbolicLink(file, content);
-            this.chmod = chmod;
         } catch (IOException e) {
             throw new RuntimeException(e);
         } finally {
@@ -125,8 +118,7 @@ class GenericFileSystem implements FileSystem {
         File link = null;
         try {
             link = generateUniqueTempFileName();
-            int returnCode = doCreateSymbolicLink(link, file);
-            return returnCode == 0 && hasContent(link, content);
+            return tryCreateSymbolicLink(link, file) && hasContent(link, content);
         } catch (IOException e) {
             LOGGER.info("Failed to determine if file system can create symbolic links. Assuming it can't.");
             return false;

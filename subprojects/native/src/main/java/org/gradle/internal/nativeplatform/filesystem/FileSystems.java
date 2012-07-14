@@ -27,9 +27,7 @@ public abstract class FileSystems {
 
         static {
             ServiceRegistry services = FileSystemServices.getServices();
-            Chmod chmod = services.get(Chmod.class);
-            Stat stat = services.get(Stat.class);
-            INSTANCE = new GenericFileSystem(chmod, stat);
+            INSTANCE = new GenericFileSystem(services.get(Chmod.class), services.get(Stat.class), services.get(Symlink.class));
         }
     }
 }
