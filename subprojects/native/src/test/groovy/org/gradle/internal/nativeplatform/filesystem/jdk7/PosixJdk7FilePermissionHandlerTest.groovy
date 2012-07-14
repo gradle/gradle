@@ -22,7 +22,7 @@ import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import org.gradle.util.TemporaryFolder
 
-@Requires([TestPrecondition.JDK7, TestPrecondition.NOT_WINDOWS])
+@Requires(TestPrecondition.NOT_WINDOWS)
 class PosixJdk7FilePermissionHandlerTest extends Specification {
     @Rule TemporaryFolder temporaryFolder
 

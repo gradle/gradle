@@ -17,77 +17,46 @@
 package org.gradle.internal.nativeplatform.filesystem
 
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
-import spock.lang.Specification
-import org.junit.Rule
 import org.gradle.util.TemporaryFolder
+import org.gradle.util.TestPrecondition
+import org.junit.Rule
+import spock.lang.Specification
 
 @Requires(TestPrecondition.JDK7)
 class FilePermissionHandlerFactoryOnJdk7Test extends Specification {
-
     @Rule TemporaryFolder temporaryFolder
+    final Chmod chmod = FilePermissionHandlerFactory.services.get(Chmod)
+    final Stat stat = FilePermissionHandlerFactory.services.get(Stat)
 
     @Requires(TestPrecondition.WINDOWS)
-    def "createChmod creates EmptyChmod instance on Windows OS"() {
-        when:
-        def chmod = FilePermissionHandlerFactory.createChmod()
-        then:
+    def "creates EmptyChmod instance on Windows OS"() {
+        expect:
         chmod instanceof FilePermissionHandlerFactory.EmptyChmod
     }
 
     @Requires(TestPrecondition.WINDOWS)
-    def "createDefaultFilePermissionHandler creates ComposedFilePermissionHandler with disabled Chmod on Windows OS"() {
-        def File file = temporaryFolder.createFile("testFile")
-        def handler = FilePermissionHandlerFactory.createDefaultFilePermissionHandler()
-        when:
-        handler.chmod(file, mode);
-        then:
-        644 == handler.getUnixMode(file);
-        where:
-        mode << [0722, 0644, 0744, 0755]
+    def "creates FallbackStat instance on Windows OS"() {
+        expect:
+        stat instanceof FilePermissionHandlerFactory.FallbackStat
     }
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
     def "createDefaultFilePermissionHandler creates Jdk7PosixFilePermissionHandler on JDK7 with Posix Fs"() {
-        when:
-        def handler = FilePermissionHandlerFactory.createDefaultFilePermissionHandler()
-        then:
-        handler.class.name == "org.gradle.internal.nativeplatform.filesystem.jdk7.PosixJdk7FilePermissionHandler"
+        expect:
+        chmod.class.name == "org.gradle.internal.nativeplatform.filesystem.jdk7.PosixJdk7FilePermissionHandler"
+        stat.class.name == "org.gradle.internal.nativeplatform.filesystem.jdk7.PosixJdk7FilePermissionHandler"
     }
 
     @Requires(TestPrecondition.UNKNOWN_OS)
     def "createDefaultFilePermissionHandler creates ComposedFilePermissionHandler with disabled Chmod on Unknown OS"() {
         setup:
         def File file = temporaryFolder.createFile("testFile")
-        def handler = FilePermissionHandlerFactory.createDefaultFilePermissionHandler()
-        def originalMode = handler.getUnixMode(file);
+        def originalMode = stat.getUnixMode(file);
         when:
-        handler.chmod(file, mode);
+        chmod.chmod(file, mode);
         then:
-        originalMode == handler.getUnixMode(file);
+        originalMode == stat.getUnixMode(file);
         where:
         mode << [0722, 0644, 0744, 0755]
-    }
-
-    @Requires(TestPrecondition.FILE_PERMISSIONS)
-    def "chmod supports unicode filenames"() {
-        setup:
-        def file = temporaryFolder.createFile("\u0627\u0644\u0627\u0655\u062F\u0627\u0631\u0629.lnk")
-        def handler = FilePermissionHandlerFactory.createDefaultFilePermissionHandler()
-        when:
-        handler.chmod(file, 0722);
-        then:
-        file.getMode() == 0722
-    }
-
-    @Requires(TestPrecondition.FILE_PERMISSIONS)
-    def "getUnixMode supports unicode filenames"() {
-        setup:
-        def file = temporaryFolder.createFile("\u0627\u0644\u0627\u0655\u062F\u0627\u0631\u0629.lnk")
-        def handler = FilePermissionHandlerFactory.createDefaultFilePermissionHandler()
-        when:
-        handler.chmod(file, 0722)
-        then:
-        handler.getUnixMode(file) == 0722
     }
 }

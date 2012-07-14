@@ -25,84 +25,52 @@ import org.gradle.util.TemporaryFolder
 
 @Requires(TestPrecondition.NOT_JDK7)
 public class FilePermissionHandlerFactoryOnNonJdk7Test extends Specification {
-
     @Rule TemporaryFolder temporaryFolder
+    final Chmod chmod = FilePermissionHandlerFactory.services.get(Chmod)
+    final Stat stat = FilePermissionHandlerFactory.services.get(Stat)
 
     @Requires(TestPrecondition.WINDOWS)
-    def "createChmod creates EmptyChmod instance on Windows OS"() {
-        when:
-        def chmod = FilePermissionHandlerFactory.createChmod()
-        then:
+    def "creates EmptyChmod instance on Windows OS"() {
+        expect:
         chmod instanceof FilePermissionHandlerFactory.EmptyChmod
     }
 
     @Requires(TestPrecondition.WINDOWS)
-    def "createDefaultFilePermissionHandler creates ComposedFilePermissionHandler with disabled Chmod on Windows OS"() {
-        when:
-        def chmod = FilePermissionHandlerFactory.createChmod()
-        then:
-        chmod instanceof FilePermissionHandlerFactory.EmptyChmod
-    }
-
-    def "makes a Chmod instance available"() {
+    def "creates FallbackStat instance on Windows OS"() {
         expect:
-        FilePermissionHandlerFactory.services.get(Chmod) != null
+        stat instanceof FilePermissionHandlerFactory.FallbackStat
     }
 
-    def "makes a Stat instance available"() {
+    @Requires(TestPrecondition.MAC_OS_X)
+    def "creates LibCChmod on Mac"() {
         expect:
-        FilePermissionHandlerFactory.services.get(Stat) != null
+        chmod instanceof FilePermissionHandlerFactory.LibcChmod
     }
 
-    @Requires(TestPrecondition.NOT_WINDOWS)
-    def "createDefaultFilePermissionHandler creates ComposeableFilePermissionHandler if not on Windows OS"() {
-        when:
-        def handler = FilePermissionHandlerFactory.createDefaultFilePermissionHandler()
-        then:
-        handler instanceof ComposableFilePermissionHandler
-    }
-
-    @Requires(TestPrecondition.FILE_PERMISSIONS)
-    def "createDefaultFilePermissionHandler creates ComposedFilePermissionHandler with enabled Chmod on Unknown OS"() {
-        setup:
-        def file = temporaryFolder.createFile("testFile")
-        def handler = FilePermissionHandlerFactory.createDefaultFilePermissionHandler()
-        when:
-        handler.chmod(file, mode);
-        then:
-        mode == handler.getUnixMode(file);
-        where:
-        mode << [0722, 0644, 0744, 0755]
-    }
-
-    @Requires(TestPrecondition.FILE_PERMISSIONS)
-    def "chmod supports unicode filenames"() {
-        setup:
-        def file = temporaryFolder.createFile("\u0627\u0644\u0642\u064A\u0627\u062F\u0629 \u0648\u0627\u0644\u0633\u064A\u0637\u0631\u0629.lnk")
-        def handler = FilePermissionHandlerFactory.createDefaultFilePermissionHandler()
-        when:
-        handler.chmod(file, 0722);
-        then:
-        file.getMode() == 0722
-    }
-
-    @Requires(TestPrecondition.FILE_PERMISSIONS)
-    def "getUnixMode supports unicode filenames"() {
-        setup:
-        def file = temporaryFolder.createFile("\u0627\u0644\u0642\u064A\u0627\u062F\u0629 \u0648\u0627\u0644\u0633\u064A\u0637\u0631\u0629.lnk")
-        def handler = FilePermissionHandlerFactory.createDefaultFilePermissionHandler()
-        file.mode = 0645
+    @Requires(TestPrecondition.MAC_OS_X)
+    def "creates LibCStat on Mac"() {
         expect:
-        handler.getUnixMode(file) == 0645
+        stat instanceof FilePermissionHandlerFactory.LibCStat
+    }
+
+    @Requires(TestPrecondition.LINUX)
+    def "creates LibCChmod on Linux"() {
+        expect:
+        chmod instanceof FilePermissionHandlerFactory.LibcChmod
+    }
+
+    @Requires(TestPrecondition.LINUX)
+    def "creates LibCStat on Linux"() {
+        expect:
+        stat instanceof FilePermissionHandlerFactory.LibCStat
     }
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
     def "Throws IOException for failed chmod calls"() {
         setup:
-        def handler = FilePermissionHandlerFactory.createDefaultFilePermissionHandler()
         def notExistingFile = new File(temporaryFolder.createDir(), "nonexisting.file")
         when:
-        handler.chmod(notExistingFile, 622)
+        chmod.chmod(notExistingFile, 622)
         then:
         def e = thrown(IOException)
         e.message == "Failed to set file permissions 622 on file nonexisting.file. errno: 2"
@@ -113,12 +81,11 @@ public class FilePermissionHandlerFactoryOnNonJdk7Test extends Specification {
         setup:
         def file = temporaryFolder.createFile("testFile")
 
-        def handler = FilePermissionHandlerFactory.createDefaultFilePermissionHandler()
-        def originalMode = handler.getUnixMode(file);
+        def originalMode = stat.getUnixMode(file);
         when:
-        handler.chmod(file, mode);
+        chmod.chmod(file, mode);
         then:
-        originalMode == handler.getUnixMode(file);
+        originalMode == stat.getUnixMode(file);
         where:
         mode << [0722, 0644, 0744, 0755]
     }

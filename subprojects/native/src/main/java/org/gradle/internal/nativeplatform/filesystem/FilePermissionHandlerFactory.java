@@ -46,24 +46,23 @@ public class FilePermissionHandlerFactory {
         SERVICES = serviceRegistry;
     }
 
-    private static void addServices(DefaultServiceRegistry serviceRegistry) {
-        FilePermissionHandler permissionHandler = createDefaultFilePermissionHandler();
-        serviceRegistry.add(Chmod.class, permissionHandler);
-        serviceRegistry.add(Stat.class, permissionHandler);
-    }
-
     public static ServiceRegistry getServices() {
         return SERVICES;
     }
 
-    public static FilePermissionHandler createDefaultFilePermissionHandler() {
+    private static void addServices(DefaultServiceRegistry serviceRegistry) {
         if (OperatingSystem.current().isWindows()) {
-            return new ComposableFilePermissionHandler(new EmptyChmod(), new FallbackStat());
+            serviceRegistry.add(Chmod.class, new EmptyChmod());
+            serviceRegistry.add(Stat.class, new FallbackStat());
+            return;
         }
+
         if (JavaVersion.current().isJava7()) {
             String jdkFilePermissionclass = "org.gradle.internal.nativeplatform.filesystem.jdk7.PosixJdk7FilePermissionHandler";
             try {
-                return (FilePermissionHandler) FilePermissionHandler.class.getClassLoader().loadClass(jdkFilePermissionclass).newInstance();
+                FilePermissionHandler handler = (FilePermissionHandler) FilePermissionHandler.class.getClassLoader().loadClass(jdkFilePermissionclass).newInstance();
+                serviceRegistry.add(FilePermissionHandler.class, handler);
+                return;
             } catch (ClassNotFoundException e) {
                 LOGGER.warn(String.format("Unable to load %s. Continuing with fallback.", jdkFilePermissionclass));
             } catch (Exception e) {
@@ -72,7 +71,8 @@ public class FilePermissionHandlerFactory {
         }
         Chmod chmod = createChmod();
         Stat stat = createStat();
-        return new ComposableFilePermissionHandler(chmod, stat);
+        serviceRegistry.add(Chmod.class, chmod);
+        serviceRegistry.add(Stat.class, stat);
     }
 
     private static Stat createStat() {
@@ -142,7 +142,7 @@ public class FilePermissionHandlerFactory {
         public int getUnixMode(File f) throws IOException {
             FileStat stat = nativePOSIX.allocateStat();
             initPlatformSpecificStat(stat, encoder.encode(f));
-            return stat.mode();
+            return stat.mode() & 0777;
         }
 
         private void initPlatformSpecificStat(FileStat stat, byte[] encodedFilePath) {
@@ -163,7 +163,7 @@ public class FilePermissionHandlerFactory {
         }
 
         public int getUnixMode(File f) throws IOException {
-            return this.posix.stat(f.getAbsolutePath()).mode();
+            return this.posix.stat(f.getAbsolutePath()).mode() & 0777;
         }
     }
 
