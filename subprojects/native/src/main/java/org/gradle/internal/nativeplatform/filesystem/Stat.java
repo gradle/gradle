@@ -19,21 +19,6 @@ package org.gradle.internal.nativeplatform.filesystem;
 import java.io.File;
 import java.io.IOException;
 
-public class ComposableFilePermissionHandler implements FilePermissionHandler {
-    private final Chmod chmod;
-    private final Stat stat;
-
-    public ComposableFilePermissionHandler(Chmod chmod, Stat stat) {
-        this.chmod = chmod;
-        this.stat = stat;
-    }
-
-    public int getUnixMode(File f) throws IOException {
-        return stat.stat(f) & 0777;
-    }
-
-    public void chmod(File f, int mode) throws IOException {
-        chmod.chmod(f, mode);
-    }
-
+public interface Stat {
+    public int stat(File f) throws IOException;
 }

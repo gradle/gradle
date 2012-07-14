@@ -21,8 +21,8 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class ComposableFilePermissionHandlerTest extends Specification {
-    final ComposableFilePermissionHandler.Chmod chmod = Mock()
-    final ComposableFilePermissionHandler.Stat stat = Mock()
+    final Chmod chmod = Mock()
+    final Stat stat = Mock()
     final ComposableFilePermissionHandler handler = new ComposableFilePermissionHandler(chmod, stat)
 
     @Rule TemporaryFolder temporaryFolder;

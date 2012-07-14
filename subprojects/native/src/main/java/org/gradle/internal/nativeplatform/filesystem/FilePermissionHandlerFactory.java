@@ -52,12 +52,12 @@ public class FilePermissionHandlerFactory {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
         }
-        ComposableFilePermissionHandler.Chmod chmod = createChmod();
-        ComposableFilePermissionHandler.Stat stat = createStat();
+        Chmod chmod = createChmod();
+        Stat stat = createStat();
         return new ComposableFilePermissionHandler(chmod, stat);
     }
 
-    private static ComposableFilePermissionHandler.Stat createStat() {
+    private static Stat createStat() {
         final OperatingSystem operatingSystem = OperatingSystem.current();
         if (operatingSystem.isLinux() || operatingSystem.isMacOsX()) {
             LibC libc = loadLibC();
@@ -67,7 +67,7 @@ public class FilePermissionHandlerFactory {
         }
     }
 
-    static ComposableFilePermissionHandler.Chmod createChmod() {
+    static Chmod createChmod() {
         try {
             LibC libc = loadLibC();
             return new LibcChmod(libc, createEncoder(libc));
@@ -84,7 +84,7 @@ public class FilePermissionHandlerFactory {
         return new DefaultFilePathEncoder(libC);
     }
 
-    private static class LibcChmod implements ComposableFilePermissionHandler.Chmod {
+    private static class LibcChmod implements Chmod {
         private final LibC libc;
         private final FilePathEncoder encoder;
 
@@ -103,12 +103,12 @@ public class FilePermissionHandlerFactory {
         }
     }
 
-    private static class EmptyChmod implements ComposableFilePermissionHandler.Chmod {
+    private static class EmptyChmod implements Chmod {
         public void chmod(File f, int mode) throws IOException {
         }
     }
 
-    static class LibCStat implements ComposableFilePermissionHandler.Stat {
+    static class LibCStat implements Stat {
         private final LibC libc;
         private final FilePathEncoder encoder;
         private final OperatingSystem operatingSystem;
@@ -137,7 +137,7 @@ public class FilePermissionHandlerFactory {
         }
     }
 
-    private static class PosixStat implements ComposableFilePermissionHandler.Stat {
+    private static class PosixStat implements Stat {
         private final POSIX posix;
 
         public PosixStat(POSIX posix) {
@@ -149,7 +149,7 @@ public class FilePermissionHandlerFactory {
         }
     }
 
-    private static class FallbackStat implements ComposableFilePermissionHandler.Stat {
+    private static class FallbackStat implements Stat {
         public int stat(File f) throws IOException {
             if (f.isDirectory()) {
                 return FileSystem.DEFAULT_DIR_MODE;
