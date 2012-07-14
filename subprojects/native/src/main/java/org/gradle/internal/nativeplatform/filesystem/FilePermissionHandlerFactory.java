@@ -23,6 +23,8 @@ import org.gradle.api.JavaVersion;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.nativeplatform.jna.LibC;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.ServiceRegistry;
 import org.jruby.ext.posix.BaseNativePOSIX;
 import org.jruby.ext.posix.FileStat;
 import org.jruby.ext.posix.Linux64FileStat;
@@ -35,8 +37,24 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
 public class FilePermissionHandlerFactory {
-
     private static final Logger LOGGER = LoggerFactory.getLogger(FilePermissionHandlerFactory.class);
+    private static final ServiceRegistry SERVICES;
+
+    static {
+        DefaultServiceRegistry serviceRegistry = new DefaultServiceRegistry();
+        addServices(serviceRegistry);
+        SERVICES = serviceRegistry;
+    }
+
+    private static void addServices(DefaultServiceRegistry serviceRegistry) {
+        FilePermissionHandler permissionHandler = createDefaultFilePermissionHandler();
+        serviceRegistry.add(Chmod.class, permissionHandler);
+        serviceRegistry.add(Stat.class, permissionHandler);
+    }
+
+    public static ServiceRegistry getServices() {
+        return SERVICES;
+    }
 
     public static FilePermissionHandler createDefaultFilePermissionHandler() {
         if (OperatingSystem.current().isWindows()) {
@@ -121,7 +139,7 @@ public class FilePermissionHandlerFactory {
             this.encoder = encoder;
         }
 
-        public int stat(File f) throws IOException {
+        public int getUnixMode(File f) throws IOException {
             FileStat stat = nativePOSIX.allocateStat();
             initPlatformSpecificStat(stat, encoder.encode(f));
             return stat.mode();
@@ -144,13 +162,13 @@ public class FilePermissionHandlerFactory {
             this.posix = posix;
         }
 
-        public int stat(File f) throws IOException {
+        public int getUnixMode(File f) throws IOException {
             return this.posix.stat(f.getAbsolutePath()).mode();
         }
     }
 
     private static class FallbackStat implements Stat {
-        public int stat(File f) throws IOException {
+        public int getUnixMode(File f) throws IOException {
             if (f.isDirectory()) {
                 return FileSystem.DEFAULT_DIR_MODE;
             } else {

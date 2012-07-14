@@ -29,7 +29,7 @@ public class ComposableFilePermissionHandler implements FilePermissionHandler {
     }
 
     public int getUnixMode(File f) throws IOException {
-        return stat.stat(f) & 0777;
+        return stat.getUnixMode(f) & 0777;
     }
 
     public void chmod(File f, int mode) throws IOException {

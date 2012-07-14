@@ -39,7 +39,7 @@ class LibcStatTest extends Specification {
         FilePermissionHandlerFactory.LibCStat libCStat = new FilePermissionHandlerFactory.LibCStat(libc, os, posix, encoder);
         
         when:
-        libCStat.stat(testFile)
+        libCStat.getUnixMode(testFile)
 
         then:
         1 * libc."${libcMethodName}"(*_);

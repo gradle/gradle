@@ -40,7 +40,7 @@ class ComposableFilePermissionHandlerTest extends Specification {
     def "getUnixMode calls are delegated to Stat"() {
         setup:
         def file = temporaryFolder.createFile("testfile");
-        1 * stat.stat(file) >> 0754
+        1 * stat.getUnixMode(file) >> 0754
 
         expect:
         handler.getUnixMode(file) == 0754

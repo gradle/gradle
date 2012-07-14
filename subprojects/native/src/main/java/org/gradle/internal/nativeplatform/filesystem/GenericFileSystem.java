@@ -32,7 +32,8 @@ class GenericFileSystem implements FileSystem {
     final boolean caseSensitive;
     final boolean canCreateSymbolicLink;
 
-    final FilePermissionHandler filePermissionHandler;
+    private final Chmod chmod;
+    private final Stat stat;
 
     public boolean isCaseSensitive() {
         return caseSensitive;
@@ -56,12 +57,12 @@ class GenericFileSystem implements FileSystem {
 
     public int getUnixMode(File f) throws IOException {
         assertFileExists(f);
-        return filePermissionHandler.getUnixMode(f);
+        return stat.getUnixMode(f);
     }
 
     public void chmod(File f, int mode) throws IOException {
         assertFileExists(f);
-        filePermissionHandler.chmod(f, mode);
+        chmod.chmod(f, mode);
     }
 
     private int doCreateSymbolicLink(File link, File target) {
@@ -80,7 +81,8 @@ class GenericFileSystem implements FileSystem {
         }
     }
 
-    GenericFileSystem(FilePermissionHandler handler) {
+    GenericFileSystem(Chmod chmod, Stat stat) {
+        this.stat = stat;
         String content = generateUniqueContent();
         File file = null;
         try {
@@ -88,7 +90,7 @@ class GenericFileSystem implements FileSystem {
             file = createFile(content);
             caseSensitive = probeCaseSensitive(file, content);
             canCreateSymbolicLink = probeCanCreateSymbolicLink(file, content);
-            filePermissionHandler = handler;
+            this.chmod = chmod;
         } catch (IOException e) {
             throw new RuntimeException(e);
         } finally {

@@ -44,6 +44,16 @@ public class FilePermissionHandlerFactoryOnNonJdk7Test extends Specification {
         chmod instanceof FilePermissionHandlerFactory.EmptyChmod
     }
 
+    def "makes a Chmod instance available"() {
+        expect:
+        FilePermissionHandlerFactory.services.get(Chmod) != null
+    }
+
+    def "makes a Stat instance available"() {
+        expect:
+        FilePermissionHandlerFactory.services.get(Stat) != null
+    }
+
     @Requires(TestPrecondition.NOT_WINDOWS)
     def "createDefaultFilePermissionHandler creates ComposeableFilePermissionHandler if not on Windows OS"() {
         when:
