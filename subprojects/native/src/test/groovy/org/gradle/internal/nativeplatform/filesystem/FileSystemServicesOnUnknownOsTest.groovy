@@ -13,22 +13,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.gradle.internal.nativeplatform.filesystem
+package org.gradle.internal.nativeplatform.filesystem;
 
 import org.gradle.util.Requires
-import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestPrecondition
-import org.junit.Rule
 import spock.lang.Specification
+import org.junit.Rule
+import org.gradle.util.TemporaryFolder
 
-@Requires(TestPrecondition.JDK7)
-class FileSystemServicesOnJdk7Test extends Specification {
+@Requires(TestPrecondition.UNKNOWN_OS)
+public class FileSystemServicesOnUnknownOsTest extends Specification {
     @Rule TemporaryFolder temporaryFolder
     final Chmod chmod = FileSystemServices.services.get(Chmod)
     final Stat stat = FileSystemServices.services.get(Stat)
+    final Symlink symlink = FileSystemServices.services.get(Symlink)
 
-    def "createDefaultFilePermissionHandler creates Jdk7PosixFilePermissionHandler on JDK7 with Posix Fs"() {
+    @Requires(TestPrecondition.NOT_JDK7)
+    def "creates EmptyChmod when not on JDK7"() {
+        expect:
+        chmod instanceof EmptyChmod
+    }
+
+    @Requires(TestPrecondition.NOT_JDK7)
+    def "creates FallbackStat when not on JDK7"() {
+        expect:
+        stat instanceof FallbackStat
+    }
+
+    @Requires(TestPrecondition.NOT_JDK7)
+    def "creates FallbackSymlink when not on JDK7"() {
+        expect:
+        symlink instanceof FallbackSymlink
+    }
+
+    @Requires(TestPrecondition.JDK7)
+    def "creates Jdk7PosixFilePermissionHandler on JDK7"() {
         expect:
         chmod.class.name == "org.gradle.internal.nativeplatform.filesystem.jdk7.PosixJdk7FilePermissionHandler"
         stat.class.name == "org.gradle.internal.nativeplatform.filesystem.jdk7.PosixJdk7FilePermissionHandler"

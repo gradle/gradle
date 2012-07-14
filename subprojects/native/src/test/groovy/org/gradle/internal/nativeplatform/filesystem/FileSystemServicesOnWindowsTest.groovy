@@ -22,7 +22,7 @@ import org.junit.Rule
 import spock.lang.Specification
 
 @Requires(TestPrecondition.WINDOWS)
-public class FileSystemServicesOnWindows extends Specification {
+public class FileSystemServicesOnWindowsTest extends Specification {
     @Rule TemporaryFolder temporaryFolder
     final Chmod chmod = FileSystemServices.services.get(Chmod)
     final Stat stat = FileSystemServices.services.get(Stat)

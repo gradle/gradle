@@ -26,7 +26,6 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.jruby.ext.posix.BaseNativePOSIX;
 import org.jruby.ext.posix.JavaPOSIX;
 import org.jruby.ext.posix.POSIX;
-import org.jruby.ext.posix.WindowsPOSIX;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,16 +44,28 @@ public class FileSystemServices {
     }
 
     private static void addServices(DefaultServiceRegistry serviceRegistry) {
+        OperatingSystem operatingSystem = OperatingSystem.current();
 
-        if (OperatingSystem.current().isWindows()) {
+        // Use no-op implementations for windows
+        if (operatingSystem.isWindows()) {
             serviceRegistry.add(Chmod.class, new EmptyChmod());
             serviceRegistry.add(Stat.class, new FallbackStat());
             serviceRegistry.add(Symlink.class, new FallbackSymlink());
             return;
         }
 
-        serviceRegistry.add(Symlink.class, createSymlink());
+        LibC libC = loadLibC();
+        serviceRegistry.add(Symlink.class, createSymlink(libC));
 
+        // Use libc backed implementations on Linux and Mac
+        if (operatingSystem.isLinux() || operatingSystem.isMacOsX()) {
+            FilePathEncoder filePathEncoder = createEncoder(libC);
+            serviceRegistry.add(Chmod.class, new LibcChmod(libC, filePathEncoder));
+            serviceRegistry.add(Stat.class, new LibCStat(libC, operatingSystem, (BaseNativePOSIX) PosixUtil.current(), filePathEncoder));
+            return;
+        }
+
+        // Use java 7 APIs, if available
         if (JavaVersion.current().isJava7()) {
             String jdkFilePermissionclass = "org.gradle.internal.nativeplatform.filesystem.jdk7.PosixJdk7FilePermissionHandler";
             try {
@@ -69,43 +80,34 @@ public class FileSystemServices {
             }
         }
 
-        serviceRegistry.add(Chmod.class, createChmod());
+        // Not windows, linux, mac or java 7. Attempt to use libc for chmod and posix for stat, and fallback to no-op implementations if not available
+        serviceRegistry.add(Chmod.class, createChmod(libC));
         serviceRegistry.add(Stat.class, createStat());
     }
 
-    private static Symlink createSymlink() {
-        try {
-            LibC libc = loadLibC();
-            return new LibcSymlink(libc);
-        } catch (LinkageError e) {
-            LOGGER.debug("Unable to load LibC library. Falling back to FallbackSymlink implementation.");
-            return new FallbackSymlink();
+    private static Symlink createSymlink(LibC libC) {
+        if (libC != null) {
+            return new LibcSymlink(libC);
         }
+        LOGGER.debug("Using FallbackSymlink implementation.");
+        return new FallbackSymlink();
     }
 
     private static Stat createStat() {
-        final OperatingSystem operatingSystem = OperatingSystem.current();
         POSIX posix = PosixUtil.current();
-        assert !(posix instanceof WindowsPOSIX);
-
-        if (operatingSystem.isLinux() || operatingSystem.isMacOsX()) {
-            LibC libc = loadLibC();
-            return new LibCStat(libc, operatingSystem, (BaseNativePOSIX) posix, createEncoder(libc));
-        } else if (posix instanceof JavaPOSIX) {
+        if (posix instanceof JavaPOSIX) {
             return new FallbackStat();
         } else {
             return new PosixStat(posix);
         }
     }
 
-    static Chmod createChmod() {
-        try {
-            LibC libc = loadLibC();
-            return new LibcChmod(libc, createEncoder(libc));
-        } catch (LinkageError e) {
-            LOGGER.debug("Unable to load LibC library. Falling back to EmptyChmod implementation.");
-            return new EmptyChmod();
+    static Chmod createChmod(LibC libC) {
+        if (libC != null) {
+            return new LibcChmod(libC, createEncoder(libC));
         }
+        LOGGER.debug("Using EmptyChmod implementation.");
+        return new EmptyChmod();
     }
 
     static FilePathEncoder createEncoder(LibC libC) {
@@ -116,7 +118,12 @@ public class FileSystemServices {
     }
 
     private static LibC loadLibC() {
-        return (LibC) Native.loadLibrary("c", LibC.class);
+        try {
+            return (LibC) Native.loadLibrary("c", LibC.class);
+        } catch (LinkageError e) {
+            LOGGER.debug("Unable to load LibC library. Continuing with fallback filesystem implementations.");
+            return null;
+        }
     }
 
 }

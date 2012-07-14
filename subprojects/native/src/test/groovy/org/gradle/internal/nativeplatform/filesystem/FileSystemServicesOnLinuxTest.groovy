@@ -16,69 +16,30 @@
 package org.gradle.internal.nativeplatform.filesystem;
 
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
-import spock.lang.Specification
-import org.junit.Rule
 import org.gradle.util.TemporaryFolder
+import org.gradle.util.TestPrecondition
+import org.junit.Rule
+import spock.lang.Specification
 
-@Requires(TestPrecondition.NOT_JDK7)
-public class FileSystemServicesOnNonJdk7Test extends Specification {
+@Requires(TestPrecondition.LINUX)
+public class FileSystemServicesOnLinuxTest extends Specification {
     @Rule TemporaryFolder temporaryFolder
     final Chmod chmod = FileSystemServices.services.get(Chmod)
     final Stat stat = FileSystemServices.services.get(Stat)
     final Symlink symlink = FileSystemServices.services.get(Symlink)
 
-    @Requires(TestPrecondition.MAC_OS_X)
-    def "creates LibCChmod on Mac"() {
-        expect:
-        chmod instanceof LibcChmod
-    }
-
-    @Requires(TestPrecondition.MAC_OS_X)
-    def "creates LibCStat on Mac"() {
-        expect:
-        stat instanceof LibCStat
-    }
-
-    @Requires(TestPrecondition.MAC_OS_X)
-    def "creates LibcSymlink on Mac"() {
-        expect:
-        symlink instanceof LibcSymlink
-    }
-
-    @Requires(TestPrecondition.LINUX)
     def "creates LibCChmod on Linux"() {
         expect:
         chmod instanceof LibcChmod
     }
 
-    @Requires(TestPrecondition.LINUX)
     def "creates LibCStat on Linux"() {
         expect:
         stat instanceof LibCStat
     }
 
-    @Requires(TestPrecondition.LINUX)
     def "creates LibcSymlink on Linux"() {
         expect:
         symlink instanceof LibcSymlink
-    }
-
-    @Requires(TestPrecondition.UNKNOWN_OS)
-    def "creates EmptyChmod instance on unknown OS"() {
-        expect:
-        chmod instanceof EmptyChmod
-    }
-
-    @Requires(TestPrecondition.UNKNOWN_OS)
-    def "creates FallbackStat instance on unknown OS"() {
-        expect:
-        stat instanceof FallbackStat
-    }
-
-    @Requires(TestPrecondition.UNKNOWN_OS)
-    def "creates FallbackSymlink on unknown OS"() {
-        expect:
-        symlink instanceof FallbackSymlink
     }
 }
