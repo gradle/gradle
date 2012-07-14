@@ -39,7 +39,10 @@ public class FilePermissionHandlerFactory {
     private static final Logger LOGGER = LoggerFactory.getLogger(FilePermissionHandlerFactory.class);
 
     public static FilePermissionHandler createDefaultFilePermissionHandler() {
-        if (JavaVersion.current().isJava7() && !OperatingSystem.current().isWindows()) {
+        if (OperatingSystem.current().isWindows()) {
+            return new ComposableFilePermissionHandler(new EmptyChmod(), new FallbackStat());
+        }
+        if (JavaVersion.current().isJava7()) {
             String jdkFilePermissionclass = "org.gradle.internal.nativeplatform.filesystem.jdk7.PosixJdk7FilePermissionHandler";
             try {
                 return (FilePermissionHandler) FilePermissionHandler.class.getClassLoader().loadClass(jdkFilePermissionclass).newInstance();
@@ -118,10 +121,10 @@ public class FilePermissionHandlerFactory {
             this.encoder = encoder;
         }
 
-        public FileStat stat(File f) throws IOException {
+        public int stat(File f) throws IOException {
             FileStat stat = nativePOSIX.allocateStat();
             initPlatformSpecificStat(stat, encoder.encode(f));
-            return stat;
+            return stat.mode();
         }
 
         private void initPlatformSpecificStat(FileStat stat, byte[] encodedFilePath) {
@@ -141,8 +144,18 @@ public class FilePermissionHandlerFactory {
             this.posix = posix;
         }
 
-        public FileStat stat(File f) throws IOException {
-            return this.posix.stat(f.getAbsolutePath());
+        public int stat(File f) throws IOException {
+            return this.posix.stat(f.getAbsolutePath()).mode();
+        }
+    }
+
+    private static class FallbackStat implements ComposableFilePermissionHandler.Stat {
+        public int stat(File f) throws IOException {
+            if (f.isDirectory()) {
+                return FileSystem.DEFAULT_DIR_MODE;
+            } else {
+                return FileSystem.DEFAULT_FILE_MODE;
+            }
         }
     }
 

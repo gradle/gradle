@@ -16,8 +16,6 @@
 
 package org.gradle.internal.nativeplatform.filesystem;
 
-import org.jruby.ext.posix.FileStat;
-
 import java.io.File;
 import java.io.IOException;
 
@@ -31,7 +29,7 @@ public class ComposableFilePermissionHandler implements FilePermissionHandler {
     }
 
     public int getUnixMode(File f) throws IOException {
-        return stat.stat(f).mode() & 0777;
+        return stat.stat(f) & 0777;
     }
 
     public void chmod(File f, int mode) throws IOException {
@@ -43,6 +41,6 @@ public class ComposableFilePermissionHandler implements FilePermissionHandler {
     }
 
     public static interface Stat {
-        public FileStat stat(File f) throws IOException;
+        public int stat(File f) throws IOException;
     }
 }

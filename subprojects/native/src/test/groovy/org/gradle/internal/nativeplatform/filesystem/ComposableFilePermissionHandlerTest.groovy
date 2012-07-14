@@ -17,7 +17,6 @@
 package org.gradle.internal.nativeplatform.filesystem
 
 import org.gradle.util.TemporaryFolder
-import org.jruby.ext.posix.FileStat
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -40,10 +39,8 @@ class ComposableFilePermissionHandlerTest extends Specification {
 
     def "getUnixMode calls are delegated to Stat"() {
         setup:
-        FileStat fileStat = Mock()
         def file = temporaryFolder.createFile("testfile");
-        1 * stat.stat(file) >> fileStat
-        1 * fileStat.mode() >> 0754
+        1 * stat.stat(file) >> 0754
 
         expect:
         handler.getUnixMode(file) == 0754
