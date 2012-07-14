@@ -36,8 +36,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
-public class FilePermissionHandlerFactory {
-    private static final Logger LOGGER = LoggerFactory.getLogger(FilePermissionHandlerFactory.class);
+public class FileSystemServices {
+    private static final Logger LOGGER = LoggerFactory.getLogger(FileSystemServices.class);
     private static final ServiceRegistry SERVICES;
 
     static {

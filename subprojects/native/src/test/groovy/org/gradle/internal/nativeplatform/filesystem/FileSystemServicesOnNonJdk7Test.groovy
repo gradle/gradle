@@ -24,45 +24,45 @@ import org.junit.Rule
 import org.gradle.util.TemporaryFolder
 
 @Requires(TestPrecondition.NOT_JDK7)
-public class FilePermissionHandlerFactoryOnNonJdk7Test extends Specification {
+public class FileSystemServicesOnNonJdk7Test extends Specification {
     @Rule TemporaryFolder temporaryFolder
-    final Chmod chmod = FilePermissionHandlerFactory.services.get(Chmod)
-    final Stat stat = FilePermissionHandlerFactory.services.get(Stat)
+    final Chmod chmod = FileSystemServices.services.get(Chmod)
+    final Stat stat = FileSystemServices.services.get(Stat)
 
     @Requires(TestPrecondition.WINDOWS)
     def "creates EmptyChmod instance on Windows OS"() {
         expect:
-        chmod instanceof FilePermissionHandlerFactory.EmptyChmod
+        chmod instanceof FileSystemServices.EmptyChmod
     }
 
     @Requires(TestPrecondition.WINDOWS)
     def "creates FallbackStat instance on Windows OS"() {
         expect:
-        stat instanceof FilePermissionHandlerFactory.FallbackStat
+        stat instanceof FileSystemServices.FallbackStat
     }
 
     @Requires(TestPrecondition.MAC_OS_X)
     def "creates LibCChmod on Mac"() {
         expect:
-        chmod instanceof FilePermissionHandlerFactory.LibcChmod
+        chmod instanceof FileSystemServices.LibcChmod
     }
 
     @Requires(TestPrecondition.MAC_OS_X)
     def "creates LibCStat on Mac"() {
         expect:
-        stat instanceof FilePermissionHandlerFactory.LibCStat
+        stat instanceof FileSystemServices.LibCStat
     }
 
     @Requires(TestPrecondition.LINUX)
     def "creates LibCChmod on Linux"() {
         expect:
-        chmod instanceof FilePermissionHandlerFactory.LibcChmod
+        chmod instanceof FileSystemServices.LibcChmod
     }
 
     @Requires(TestPrecondition.LINUX)
     def "creates LibCStat on Linux"() {
         expect:
-        stat instanceof FilePermissionHandlerFactory.LibCStat
+        stat instanceof FileSystemServices.LibCStat
     }
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)

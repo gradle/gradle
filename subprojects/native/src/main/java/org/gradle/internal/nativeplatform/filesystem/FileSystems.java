@@ -26,7 +26,7 @@ public abstract class FileSystems {
         static final FileSystem INSTANCE;
 
         static {
-            ServiceRegistry services = FilePermissionHandlerFactory.getServices();
+            ServiceRegistry services = FileSystemServices.getServices();
             Chmod chmod = services.get(Chmod.class);
             Stat stat = services.get(Stat.class);
             INSTANCE = new GenericFileSystem(chmod, stat);
