@@ -26,10 +26,8 @@ import java.io.IOException;
 
 public class FallbackPOSIX implements POSIX {
 
-    static final int ENOTSUP = 1;
-
     public int chmod(String filename, int mode) {
-        return 0;
+        throw new UnsupportedOperationException("This operation is not supported.");
     }
 
     public int chown(String filename, int user, int group) {
@@ -197,7 +195,7 @@ public class FallbackPOSIX implements POSIX {
     }
 
     public int symlink(String oldpath, String newpath) {
-        return ENOTSUP;
+        throw new UnsupportedOperationException("This operation is not supported.");
     }
 
     public int umask(int mask) {

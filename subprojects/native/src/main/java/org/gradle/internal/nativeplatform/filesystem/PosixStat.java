@@ -14,24 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.nativeplatform.filesystem
+package org.gradle.internal.nativeplatform.filesystem;
 
-import org.gradle.util.TemporaryFolder
-import org.junit.Rule
-import spock.lang.Specification
+import org.jruby.ext.posix.POSIX;
 
-class FallbackPOSIXTest extends Specification {
+import java.io.File;
+import java.io.IOException;
 
-    FallbackPOSIX posix = new FallbackPOSIX()
+class PosixStat implements Stat {
+    private final POSIX posix;
 
-    @Rule TemporaryFolder tempFolder;
+    public PosixStat(POSIX posix) {
+        this.posix = posix;
+    }
 
-    def "stat() returns instance of FallbackStat"() {
-        setup:
-        def testFile = tempFolder.createDir();
-        when:
-        def stat = posix.stat(testFile.absolutePath)
-        then:
-        stat instanceof FallbackFileStat
+    public int getUnixMode(File f) throws IOException {
+        return this.posix.stat(f.getAbsolutePath()).mode() & 0777;
     }
 }

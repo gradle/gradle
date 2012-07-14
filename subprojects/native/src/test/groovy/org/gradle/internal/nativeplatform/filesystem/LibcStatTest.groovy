@@ -28,7 +28,7 @@ class LibcStatTest extends Specification {
     OperatingSystem os = Mock();
     LibC libc = Mock()
     BaseNativePOSIX posix = Mock()
-    FileSystemServices.FilePathEncoder encoder = Mock()
+    FilePathEncoder encoder = Mock()
 
     @Unroll
     def "LibCStat on #osname maps to libc #libcMethodName"(){
@@ -36,7 +36,7 @@ class LibcStatTest extends Specification {
         1 * os.isMacOsX() >> (osname == "macosx");
         1 * posix.allocateStat() >> Mock(FileStat)
         File testFile = new File("a/file/path")
-        FileSystemServices.LibCStat libCStat = new FileSystemServices.LibCStat(libc, os, posix, encoder);
+        LibCStat libCStat = new LibCStat(libc, os, posix, encoder);
         
         when:
         libCStat.getUnixMode(testFile)

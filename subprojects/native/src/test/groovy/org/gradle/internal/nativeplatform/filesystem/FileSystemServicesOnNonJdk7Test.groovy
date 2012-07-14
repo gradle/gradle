@@ -31,13 +31,13 @@ public class FileSystemServicesOnNonJdk7Test extends Specification {
     @Requires(TestPrecondition.MAC_OS_X)
     def "creates LibCChmod on Mac"() {
         expect:
-        chmod instanceof FileSystemServices.LibcChmod
+        chmod instanceof LibcChmod
     }
 
     @Requires(TestPrecondition.MAC_OS_X)
     def "creates LibCStat on Mac"() {
         expect:
-        stat instanceof FileSystemServices.LibCStat
+        stat instanceof LibCStat
     }
 
     @Requires(TestPrecondition.MAC_OS_X)
@@ -49,13 +49,13 @@ public class FileSystemServicesOnNonJdk7Test extends Specification {
     @Requires(TestPrecondition.LINUX)
     def "creates LibCChmod on Linux"() {
         expect:
-        chmod instanceof FileSystemServices.LibcChmod
+        chmod instanceof LibcChmod
     }
 
     @Requires(TestPrecondition.LINUX)
     def "creates LibCStat on Linux"() {
         expect:
-        stat instanceof FileSystemServices.LibCStat
+        stat instanceof LibCStat
     }
 
     @Requires(TestPrecondition.LINUX)

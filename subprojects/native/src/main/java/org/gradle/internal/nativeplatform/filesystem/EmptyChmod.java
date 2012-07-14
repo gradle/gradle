@@ -14,24 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.nativeplatform.filesystem
+package org.gradle.internal.nativeplatform.filesystem;
 
-import org.gradle.util.TemporaryFolder
-import org.junit.Rule
-import spock.lang.Specification
+import java.io.File;
+import java.io.IOException;
 
-class FallbackPOSIXTest extends Specification {
-
-    FallbackPOSIX posix = new FallbackPOSIX()
-
-    @Rule TemporaryFolder tempFolder;
-
-    def "stat() returns instance of FallbackStat"() {
-        setup:
-        def testFile = tempFolder.createDir();
-        when:
-        def stat = posix.stat(testFile.absolutePath)
-        then:
-        stat instanceof FallbackFileStat
+class EmptyChmod implements Chmod {
+    public void chmod(File f, int mode) throws IOException {
     }
 }

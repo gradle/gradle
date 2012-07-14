@@ -30,12 +30,12 @@ public class FileSystemServicesOnWindows extends Specification {
 
     def "creates EmptyChmod instance on Windows OS"() {
         expect:
-        chmod instanceof FileSystemServices.EmptyChmod
+        chmod instanceof EmptyChmod
     }
 
     def "creates FallbackStat instance on Windows OS"() {
         expect:
-        stat instanceof FileSystemServices.FallbackStat
+        stat instanceof FallbackStat
     }
 
     def "creates FallbackSymlink on Windows OS"() {
