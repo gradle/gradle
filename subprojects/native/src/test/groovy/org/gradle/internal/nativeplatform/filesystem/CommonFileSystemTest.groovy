@@ -25,7 +25,7 @@ class CommonFileSystemTest extends Specification {
     @Rule TemporaryFolder tmpDir
 
     def fs = FileSystems.default
-    
+
     def "unix permissions cannot be read on non existing file"() {
         when:
         fs.getUnixMode(tmpDir.file("someFile"))

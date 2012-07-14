@@ -24,6 +24,9 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.jruby.ext.posix.BaseNativePOSIX;
+import org.jruby.ext.posix.JavaPOSIX;
+import org.jruby.ext.posix.POSIX;
+import org.jruby.ext.posix.WindowsPOSIX;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,11 +84,16 @@ public class FileSystemServices {
 
     private static Stat createStat() {
         final OperatingSystem operatingSystem = OperatingSystem.current();
+        POSIX posix = PosixUtil.current();
+        assert !(posix instanceof WindowsPOSIX);
+
         if (operatingSystem.isLinux() || operatingSystem.isMacOsX()) {
             LibC libc = loadLibC();
-            return new LibCStat(libc, operatingSystem, (BaseNativePOSIX) PosixUtil.current(), createEncoder(libc));
+            return new LibCStat(libc, operatingSystem, (BaseNativePOSIX) posix, createEncoder(libc));
+        } else if (posix instanceof JavaPOSIX) {
+            return new FallbackStat();
         } else {
-            return new PosixStat(PosixUtil.current());
+            return new PosixStat(posix);
         }
     }
 

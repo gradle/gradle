@@ -28,23 +28,9 @@ class FileSystemServicesOnJdk7Test extends Specification {
     final Chmod chmod = FileSystemServices.services.get(Chmod)
     final Stat stat = FileSystemServices.services.get(Stat)
 
-    @Requires(TestPrecondition.FILE_PERMISSIONS)
     def "createDefaultFilePermissionHandler creates Jdk7PosixFilePermissionHandler on JDK7 with Posix Fs"() {
         expect:
         chmod.class.name == "org.gradle.internal.nativeplatform.filesystem.jdk7.PosixJdk7FilePermissionHandler"
         stat.class.name == "org.gradle.internal.nativeplatform.filesystem.jdk7.PosixJdk7FilePermissionHandler"
-    }
-
-    @Requires(TestPrecondition.UNKNOWN_OS)
-    def "createDefaultFilePermissionHandler creates ComposedFilePermissionHandler with disabled Chmod on Unknown OS"() {
-        setup:
-        def File file = temporaryFolder.createFile("testFile")
-        def originalMode = stat.getUnixMode(file);
-        when:
-        chmod.chmod(file, mode);
-        then:
-        originalMode == stat.getUnixMode(file);
-        where:
-        mode << [0722, 0644, 0744, 0755]
     }
 }

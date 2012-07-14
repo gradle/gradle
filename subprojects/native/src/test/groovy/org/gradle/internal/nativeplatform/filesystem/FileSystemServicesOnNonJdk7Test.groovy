@@ -64,28 +64,21 @@ public class FileSystemServicesOnNonJdk7Test extends Specification {
         symlink instanceof LibcSymlink
     }
 
-    @Requires(TestPrecondition.FILE_PERMISSIONS)
-    def "Throws IOException for failed chmod calls"() {
-        setup:
-        def notExistingFile = new File(temporaryFolder.createDir(), "nonexisting.file")
-        when:
-        chmod.chmod(notExistingFile, 622)
-        then:
-        def e = thrown(IOException)
-        e.message == "Failed to set file permissions 622 on file nonexisting.file. errno: 2"
+    @Requires(TestPrecondition.UNKNOWN_OS)
+    def "creates EmptyChmod instance on unknown OS"() {
+        expect:
+        chmod instanceof EmptyChmod
     }
 
     @Requires(TestPrecondition.UNKNOWN_OS)
-    def "createDefaultFilePermissionHandler creates ComposedFilePermissionHandler with disabled Chmod on Unknown OS"() {
-        setup:
-        def file = temporaryFolder.createFile("testFile")
+    def "creates FallbackStat instance on unknown OS"() {
+        expect:
+        stat instanceof FallbackStat
+    }
 
-        def originalMode = stat.getUnixMode(file);
-        when:
-        chmod.chmod(file, mode);
-        then:
-        originalMode == stat.getUnixMode(file);
-        where:
-        mode << [0722, 0644, 0744, 0755]
+    @Requires(TestPrecondition.UNKNOWN_OS)
+    def "creates FallbackSymlink on unknown OS"() {
+        expect:
+        symlink instanceof FallbackSymlink
     }
 }
