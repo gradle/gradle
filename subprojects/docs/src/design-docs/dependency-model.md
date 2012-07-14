@@ -298,6 +298,7 @@ test fixtures have an API and an implementation?
     * A shared lib + export and debug files (on windows)
     * A static lib + debug files (on windows)
     * A tar or zip containing the implementation + documentation
+    * An rpm containing binaries and a -devel rpm containing the header files
 * Common variants
     * Static vs dynamic.
 
@@ -560,6 +561,7 @@ PublishArtifactSet more generally), but not actually add any signatures. Applyin
 * A component generally has a runtime dependency on external configuration. Like other dependencies, some of this configuration may be bundled into
   the artefacts, and some will need to be provided by the environment at runtime.
 * Interop with other ivy and maven mappings.
+* Signatures
 * Backwards compatibility:
     * Consuming ivy/maven modules published by older Gradle versions, by Maven, and with hand-coded ivy.xml meta-data.
     * Older Gradle versions consuming modules published by newer Gradle versions.
