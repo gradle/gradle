@@ -19,6 +19,7 @@ package org.gradle.initialization;
 import org.gradle.BuildAdapter;
 import org.gradle.GradleLauncher;
 import org.gradle.StartParameter;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.plugins.EmbeddableJavaProject;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheBuilder;
@@ -37,7 +38,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Collection;
-import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
@@ -134,23 +134,22 @@ public class BuildSourceBuilder {
         }
 
         public DefaultClassPath create() {
-            File markerFile = new File(cache.getBaseDir(), "buildSrc.lock");
+            File markerFile = new File(cache.getBaseDir(), "built.bin");
             final boolean rebuild = !markerFile.exists();
 
             BuildSrcBuildListener listener = new BuildSrcBuildListener(rebuild);
             gradleLauncher.addListener(listener);
             gradleLauncher.run().rethrowFailure();
 
-            Set<File> buildSourceClasspath = new LinkedHashSet<File>();
-            buildSourceClasspath.addAll(listener.getRuntimeClasspath());
-            LOGGER.debug("Gradle source classpath is: {}", buildSourceClasspath);
+            Collection<File> classpath = listener.getRuntimeClasspath();
+            LOGGER.debug("Gradle source classpath is: {}", classpath);
             LOGGER.info("================================================" + " Finished building buildSrc");
             try {
                 markerFile.createNewFile();
             } catch (IOException e) {
-                LOGGER.warn("Unable to create buildSrc cache marker file: {}", e.getMessage());
+                throw new UncheckedIOException(e);
             }
-            return new DefaultClassPath(buildSourceClasspath);
+            return new DefaultClassPath(classpath);
         }
     }
 }

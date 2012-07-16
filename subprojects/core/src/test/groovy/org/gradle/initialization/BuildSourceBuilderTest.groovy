@@ -121,9 +121,9 @@ class BuildSourceBuilderTest {
 
     private expectMarkerFileFetchedFromCache(boolean markerFileExists) {
         if (markerFileExists) {
-            buildSrcCache.createFile("buildSrc.lock");
+            buildSrcCache.createFile("built.bin");
         } else {
-            new File(buildSrcCache, "buildSrc.lock").delete()
+            new File(buildSrcCache, "built.bin").delete()
         }
         context.checking {
             DirectoryCacheBuilder builder = context.mock(DirectoryCacheBuilder.class)
