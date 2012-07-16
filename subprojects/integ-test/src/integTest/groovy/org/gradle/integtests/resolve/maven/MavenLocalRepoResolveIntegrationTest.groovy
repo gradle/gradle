@@ -179,7 +179,8 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractIntegrationSpec {
     def withM2(M2Installation m2) {
         def args = ["-Duser.home=${m2.userM2Directory.parentFile.absolutePath}".toString()]
         if (m2.globalMavenDirectory?.exists()) {
-            args << "-DM2_HOME=${m2.globalMavenDirectory.absolutePath}".toString()
+            println "M2_HOME: " + m2.globalMavenDirectory.absolutePath
+            executer.withEnvironmentVars(M2_HOME:m2.globalMavenDirectory.absolutePath)
         }
         executer.withArguments(args)
         executer.withForkingExecuter()

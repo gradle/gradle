@@ -31,7 +31,7 @@ public class DefaultMavenFileLocations implements MavenFileLocations {
 
     @Nullable
     public File getGlobalMavenDir() {
-        String m2Home = System.getProperty("M2_HOME");
+        String m2Home = System.getenv("M2_HOME");
         if (m2Home == null) {
             return null;
         }
