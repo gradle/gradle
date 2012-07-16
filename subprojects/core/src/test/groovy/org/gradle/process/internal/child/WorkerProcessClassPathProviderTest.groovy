@@ -38,7 +38,7 @@ class WorkerProcessClassPathProviderTest extends Specification {
 
     def createsTheWorkerClasspathOnDemand() {
         def cacheDir = tmpDir.dir
-        def classesDir = cacheDir.file('classes')
+        def jarFile = cacheDir.file('gradle-worker.jar')
         DirectoryCacheBuilder cacheBuilder = Mock()
         PersistentCache cache = Mock()
         def initializer = null
@@ -52,13 +52,13 @@ class WorkerProcessClassPathProviderTest extends Specification {
         1 * cacheBuilder.open() >> { initializer.execute(cache); return cache }
         _ * cache.getBaseDir() >> cacheDir
         0 * cache._
-        classpath.asFiles == [classesDir]
-        classesDir.listFiles().length != 0
+        classpath.asFiles == [jarFile]
+        jarFile.file
     }
 
     def reusesTheCachedClasspath() {
         def cacheDir = tmpDir.dir
-        def classesDir = cacheDir.file('classes')
+        def jarFile = cacheDir.file('gradle-worker.jar')
         DirectoryCacheBuilder cacheBuilder = Mock()
         PersistentCache cache = Mock()
 
@@ -71,6 +71,6 @@ class WorkerProcessClassPathProviderTest extends Specification {
         1 * cacheBuilder.open() >> cache
         _ * cache.getBaseDir() >> cacheDir
         0 * cache._
-        classpath.asFiles == [classesDir]
+        classpath.asFiles == [jarFile]
     }
 }

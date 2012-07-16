@@ -27,7 +27,6 @@ import org.gradle.process.internal.child.ApplicationClassesInIsolatedClassLoader
 import org.gradle.process.internal.child.ApplicationClassesInSystemClassLoaderWorkerFactory;
 import org.gradle.process.internal.child.EncodedStream;
 import org.gradle.process.internal.child.WorkerFactory;
-import org.gradle.process.internal.launcher.GradleWorkerMain;
 import org.gradle.util.ClasspathUtil;
 import org.gradle.util.GUtil;
 import org.slf4j.Logger;
@@ -66,7 +65,6 @@ public class DefaultWorkerProcessFactory implements Factory<WorkerProcessBuilder
         public DefaultWorkerProcessBuilder() {
             super(resolver);
             setLogLevel(workerLogLevel);
-            getJavaCommand().setMain(GradleWorkerMain.class.getName());
         }
 
         @Override

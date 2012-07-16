@@ -26,6 +26,7 @@ import org.gradle.messaging.remote.Address;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.process.internal.launcher.BootstrapClassLoaderWorker;
+import org.gradle.process.internal.launcher.GradleWorkerMain;
 import org.gradle.util.GUtil;
 
 import java.io.*;
@@ -78,12 +79,13 @@ public class ApplicationClassesInSystemClassLoaderWorkerFactory implements Worke
     }
 
     public void prepareJavaCommand(JavaExecSpec execSpec) {
+        execSpec.setMain("jarjar." + GradleWorkerMain.class.getName());
         execSpec.classpath(classPathRegistry.getClassPath("WORKER_MAIN").getAsFiles());
         Object requestedSecurityManager = execSpec.getSystemProperties().get("java.security.manager");
         if (requestedSecurityManager != null) {
             execSpec.systemProperty("org.gradle.security.manager", requestedSecurityManager);
         }
-        execSpec.systemProperty("java.security.manager", BootstrapSecurityManager.class.getName());
+        execSpec.systemProperty("java.security.manager", "jarjar." + BootstrapSecurityManager.class.getName());
         try {
             ByteArrayOutputStream bytes = new ByteArrayOutputStream();
             DataOutputStream outstr = new DataOutputStream(new EncodedStream.EncodedOutput(bytes));

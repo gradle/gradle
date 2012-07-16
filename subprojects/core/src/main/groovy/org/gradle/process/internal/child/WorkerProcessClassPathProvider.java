@@ -16,6 +16,11 @@
 
 package org.gradle.process.internal.child;
 
+import com.tonicsystems.jarjar.JarJarTask;
+import com.tonicsystems.jarjar.Rule;
+import org.apache.tools.ant.types.Resource;
+import org.apache.tools.ant.types.ResourceCollection;
+import org.apache.tools.ant.types.resources.URLResource;
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.ClassPathProvider;
@@ -26,15 +31,17 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.process.internal.launcher.BootstrapClassLoaderWorker;
 import org.gradle.process.internal.launcher.GradleWorkerMain;
-import org.gradle.util.GFileUtils;
+import org.gradle.util.AntUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.Arrays;
-import java.util.Enumeration;
+import java.util.*;
 
 public class WorkerProcessClassPathProvider implements ClassPathProvider {
+    private static final Logger LOGGER = LoggerFactory.getLogger(WorkerProcessClassPathProvider.class);
     private final CacheRepository cacheRepository;
     private final ModuleRegistry moduleRegistry;
     private final Object lock = new Object();
@@ -64,8 +71,9 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider {
             synchronized (lock) {
                 if (workerClassPath == null) {
                     PersistentCache cache = cacheRepository.cache("workerMain").withInitializer(new CacheInitializer()).open();
-                    workerClassPath = new DefaultClassPath(classesDir(cache));
+                    workerClassPath = new DefaultClassPath(jarFile(cache));
                 }
+                LOGGER.debug("Using worker process classpath: {}", workerClassPath);
                 return workerClassPath;
             }
         }
@@ -73,19 +81,32 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider {
         return null;
     }
 
-    private static File classesDir(PersistentCache cache) {
-        return new File(cache.getBaseDir(), "classes");
+    private static File jarFile(PersistentCache cache) {
+        return new File(cache.getBaseDir(), "gradle-worker.jar");
     }
 
     private static class CacheInitializer implements Action<PersistentCache> {
         public void execute(PersistentCache cache) {
-            File classesDir = classesDir(cache);
+            File jarFile = jarFile(cache);
+            LOGGER.debug("Generating worker process classes to {}.", jarFile);
+
             URL currentClasspath = getClass().getProtectionDomain().getCodeSource().getLocation();
-            for (Class<?> aClass : Arrays.asList(GradleWorkerMain.class, BootstrapClassLoaderWorker.class, BootstrapSecurityManager.class, EncodedStream.EncodedInput.class)) {
-                String fileName = aClass.getName().replace('.', '/') + ".class";
+            JarJarTask task = new JarJarTask();
+            task.setDestFile(jarFile);
+
+            final List<Resource> classResources = new ArrayList<Resource>();
+            List<Class<?>> renamedClasses = Arrays.asList(GradleWorkerMain.class,
+                    BootstrapSecurityManager.class,
+                    EncodedStream.EncodedInput.class);
+            List<Class<?>> classes = new ArrayList<Class<?>>();
+            classes.add(BootstrapClassLoaderWorker.class);
+            classes.addAll(renamedClasses);
+            for (Class<?> aClass : classes) {
+                final String fileName = aClass.getName().replace('.', '/') + ".class";
 
                 // Prefer the class from the same classpath as the current class. This is for the case where we're running in a test under an older
-                // version of Gradle, whose worker classes will be visible to us
+                // version of Gradle, whose worker classes will be visible to us.
+                // TODO - remove this once we have upgraded to a wrapper with these changes in it
                 Enumeration<URL> resources;
                 try {
                     resources = WorkerProcessClassPathProvider.class.getClassLoader().getResources(fileName);
@@ -100,8 +121,37 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider {
                         break;
                     }
                 }
-                GFileUtils.copyURLToFile(resource, new File(classesDir, fileName));
+                URLResource urlResource = new URLResource(resource) {
+                    @Override
+                    public synchronized String getName() {
+                        return fileName;
+                    }
+                };
+                classResources.add(urlResource);
             }
+
+            task.add(new ResourceCollection() {
+                public Iterator iterator() {
+                    return classResources.iterator();
+                }
+
+                public int size() {
+                    return classResources.size();
+                }
+
+                public boolean isFilesystemOnly() {
+                    return true;
+                }
+            });
+
+            for (Class<?> renamedClass : renamedClasses) {
+                Rule rule = new Rule();
+                rule.setPattern(renamedClass.getName());
+                rule.setResult("jarjar.@0");
+                task.addConfiguredRule(rule);
+            }
+
+            AntUtil.execute(task);
         }
     }
 
