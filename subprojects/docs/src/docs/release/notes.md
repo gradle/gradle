@@ -80,9 +80,6 @@ You can obtain the Gradle module information iva [ExternalDependency.getExternal
 
 When Gradle checks for local available artifacts and when using `mavenLocal` in your build scripts, Gradle now honours the maven settings located in `M2_HOME/conf/settings.xml` to locate the local maven repository. If a local repository is defined in `USER_HOME/.m2/settings.xml`, this location takes precedence over a repository definition in `M2_HOME/conf/settings.xml`. 
 
-#### Show Exceptions
-
-
 ## Upgrading from Gradle 1.0
 
 Please let us know if you encounter any issues during the upgrade to Gradle 1.1-rc-1, that are not listed below.
@@ -101,6 +98,10 @@ task foo {
 </pre>
 
 To prevent such mistakes, the usage of statement labels in build scripts has been deprecated.
+
+#### M2_HOME system property
+
+Passing the variable M2\_HOME as system property to locate the global maven settings file is deprecated. You should use a M2\_HOME environment variable instead.
 
 #### DSL
 
@@ -135,10 +136,6 @@ Although we believe the new default is much better for majority of users, there 
 that preferred the old default. If you happen to prefer the old default (`1.6`) please configure
 that explicitly in your build via [idea.project.jdkName](http://gradle.org/docs/current/dsl/org.gradle.plugins.ide.idea.model.IdeaProject.html#org.gradle.plugins.ide.idea.model.IdeaProject:jdkName)
 
-##### M2_HOME system property
-
-Passing the variable M2\_HOME as system property to locate the global maven settings file is deprecated. You should use a M2\_HOME environment variable instead.
-    
 ##### `AbstractTask.getDynamicObjectHelper()`
 
 Deprecated internal method `AbstractTask.getDynamicObjectHelper()` has been removed.
