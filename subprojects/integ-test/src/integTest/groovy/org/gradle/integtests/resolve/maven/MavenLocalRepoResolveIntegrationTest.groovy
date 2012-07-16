@@ -149,7 +149,7 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractIntegrationSpec {
         failure.assertThatDescription(containsString(String.format("Non-parseable settings %s:", m2.userSettingsFile.absolutePath)));
     }
 
-    public void "mavenLocal is ignored if not ~/.m2 is defined"() {
+    public void "mavenLocal is ignored if no local maven repository exists"() {
         given:
         def anotherRepo = new MavenRepository(file("another-local-repo"))
         def moduleA = anotherRepo.module('group', 'projectA', '1.2')

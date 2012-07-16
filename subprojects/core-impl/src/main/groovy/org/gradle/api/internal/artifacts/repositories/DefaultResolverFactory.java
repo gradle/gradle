@@ -18,12 +18,10 @@ package org.gradle.api.internal.artifacts.repositories;
 
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.*;
 import org.gradle.api.internal.artifacts.ResolverFactory;
-import org.gradle.api.internal.artifacts.mvnsettings.CannotLocateLocalMavenRepositoryException;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex;
@@ -89,14 +87,9 @@ public class DefaultResolverFactory implements ResolverFactory {
 
     public MavenArtifactRepository createMavenLocalRepository() {
         MavenArtifactRepository mavenRepository = createMavenRepository();
-        try {
-            final File localMavenRepository = localMavenRepositoryLocator.getLocalMavenRepository();
-            mavenRepository.setUrl(localMavenRepository);
-            return mavenRepository;
-        } catch (CannotLocateLocalMavenRepositoryException ex) {
-
-            throw new GradleException(ex.getMessage(), ex);
-        }
+        final File localMavenRepository = localMavenRepositoryLocator.getLocalMavenRepository();
+        mavenRepository.setUrl(localMavenRepository);
+        return mavenRepository;
     }
 
     public MavenArtifactRepository createMavenCentralRepository() {

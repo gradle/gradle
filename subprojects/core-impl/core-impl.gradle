@@ -32,7 +32,7 @@ dependencies {
 task mvn3JarJar(type: JarJar) {
     inputFiles = configurations.mvn3Input
     outputFile = file("$buildDir/libs/jarjar/mvn3JarJared.jar")
-    rule('org.apache.maven.**', 'org.apache.maven.jarjar.@1')
+    rule('org.apache.maven.**', 'jarjar.org.apache.maven.@1')
     keep("org.apache.maven.settings.building.SettingsBuildingResult")
     keep("org.apache.maven.settings.building.SettingsBuildingRequest")
     keep("org.apache.maven.settings.building.SettingsBuildingException")

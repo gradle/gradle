@@ -15,8 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.mvnsettings;
 
-import org.apache.maven.jarjar.settings.Settings;
-import org.apache.maven.jarjar.settings.building.*;
+import jarjar.org.apache.maven.settings.Settings;
+import jarjar.org.apache.maven.settings.building.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,7 +53,7 @@ public class DefaultLocalMavenRepositoryLocator implements LocalMavenRepositoryL
             }
             return new File(resolvePlaceholders(repoPath.trim()));
         } catch (SettingsBuildingException e) {
-            throw new CannotLocateLocalMavenRepositoryException(e.getMessage());
+            throw new CannotLocateLocalMavenRepositoryException("Unable to parse local maven settings", e);
         }
     }
 
