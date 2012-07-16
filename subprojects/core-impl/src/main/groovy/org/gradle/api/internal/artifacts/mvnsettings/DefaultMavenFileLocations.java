@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.mvnsettings;
 
 import org.gradle.api.Nullable;
 import org.gradle.internal.SystemProperties;
+import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 
@@ -33,7 +34,11 @@ public class DefaultMavenFileLocations implements MavenFileLocations {
     public File getGlobalMavenDir() {
         String m2Home = System.getenv("M2_HOME");
         if (m2Home == null) {
-            return null;
+            m2Home = System.getProperty("M2_HOME");
+            if(m2Home==null){
+                return null;
+            }
+            DeprecationLogger.nagUserWith("Found defined M2_HOME system property. Handling M2_HOME system property is deprecated in Gradle and will be removed in the next version of Gradle. Please use a M2_HOME environment variable instead.");
         }
         return new File(m2Home);
     }
