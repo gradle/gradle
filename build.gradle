@@ -115,11 +115,15 @@ libraries += [
         nekohtml: 'net.sourceforge.nekohtml:nekohtml:1.9.14'
 ]
 
-libraries.maven3_settings_builder = "org.apache.maven:maven-settings-builder:3.0.4"
-//libraries.maven3_settings_builder = dependencies.module("org.apache.maven:maven-settings-builder:3.0.4") {
-//    dependency "org.apache.maven:maven-settings:3.0.4@jar"
-//    dependency "org.codehaus.plexus:plexus-utils:2.0.6@jar"
-//}
+//libraries.maven3_settings_builder = "org.apache.maven:maven-settings-builder:3.0.4"
+libraries.maven3_settings_builder = dependencies.module("org.apache.maven:maven-settings-builder:3.0.4") {
+    dependency "org.apache.maven:maven-settings:3.0.4@jar"
+    dependency "org.codehaus.plexus:plexus-utils:2.0.6@jar"
+    dependency "org.codehaus.plexus:plexus-interpolation:1.14@jar"
+    dependency "org.codehaus.plexus:plexus-component-annotations:1.5.5@jar"
+    dependency "org.sonatype.plexus:plexus-cipher:1.4@jar"
+    dependency "org.sonatype.plexus:plexus-sec-dispatcher:1.3@jar"
+}
 
 libraries.spock = ['org.spockframework:spock-core:0.6-groovy-1.8@jar',
         libraries.groovy,
