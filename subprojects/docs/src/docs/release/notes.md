@@ -78,7 +78,23 @@ You can obtain the Gradle module information iva [ExternalDependency.getExternal
 
 ### Global maven settings.xml
 
-When Gradle checks for local available artifacts and when using `mavenLocal` in your build scripts, Gradle now honours the maven settings located in `M2_HOME/conf/settings.xml` to locate the local maven repository. If a local repository is defined in `USER_HOME/.m2/settings.xml`, this location takes precedence over a repository definition in `M2_HOME/conf/settings.xml`. 
+When Gradle checks for local available artifacts and when using `mavenLocal` in your build scripts, Gradle now honours the maven settings located in `M2_HOME/conf/settings.xml` to locate the local maven repository. If a local repository is defined in `USER_HOME/.m2/settings.xml`, this location takes precedence over a repository definition in `M2_HOME/conf/settings.xml`.
+
+### Publishing SHA1 checksums to Ivy repositories
+
+Gradle will now automatically generate and publish SHA1 checksum files when publishing to an Ivy repository. There is no change required to your build script to enable this functionality.
+For each file `foo.ext` published, Gradle will also publish a checksum file with the name `foo.ext.sha1`.
+
+### Dependency resolution supports HTTP Digest Authentication
+
+Due to the way we did pre-emptive HTTP Authentication, Gradle 1.0 was not able to handle a repository secured with HTTP Digest Authentication. This problem is now fixed.
+
+As a result of this fix:
+* Any GET/HEAD request issued by Gradle will no longer contain pre-emptive HTTP Authentication headers.
+* An initial PUT/POST request will contain  Basic Authentication headers for pre-emptive HTTP Authentication.
+    * If the server requires HTTP Basic Authentication, then this request will succeed automatically
+    * If the server requires HTTP Digest Authentication, then this request will fail with a 401, and we will re-send the request with the correct headers.
+* After the initial PUT/POST request, subsequent requests to the repository will have correct Auth headers, and will not require re-send.
 
 ## Upgrading from Gradle 1.0
 
@@ -102,6 +118,11 @@ To prevent such mistakes, the usage of statement labels in build scripts has bee
 #### M2_HOME system property
 
 Passing the variable M2\_HOME as system property to locate the global maven settings file is deprecated. You should use a M2\_HOME environment variable instead.
+
+#### Publication of missing artifacts
+
+If a published module references an artifact where the artifact file does not exist, then publication will emit a warning and continue. Relying on this behaviour is deprecated;
+in a future Gradle version your build will fail if you attempt to publish an artifact that does not exist.
 
 #### DSL
 
