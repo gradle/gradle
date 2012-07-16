@@ -17,20 +17,21 @@
 package org.gradle.cache.internal;
 
 import org.gradle.cache.CacheOpenException;
+import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.Factory;
+import org.gradle.messaging.serialize.Serializer;
 
 import java.io.File;
 
-public class DelegateOnDemandPersistentDirectoryCache extends DefaultPersistentDirectoryStore {
+public class DelegateOnDemandPersistentDirectoryCache implements ReferencablePersistentCache {
     private DefaultPersistentDirectoryCache delegateCache;
     private boolean isOpen;
 
-    public DelegateOnDemandPersistentDirectoryCache(DefaultPersistentDirectoryCache cache, File dir, String displayName, FileLockManager.LockMode lockMode, FileLockManager lockManager) {
-        super(dir, displayName, lockMode, lockManager);
+    public DelegateOnDemandPersistentDirectoryCache(DefaultPersistentDirectoryCache cache) {
         this.delegateCache = cache;
     }
 
-    public DefaultPersistentDirectoryStore open() {
+    public DelegateOnDemandPersistentDirectoryCache open() {
         this.isOpen = true;
         return this;
     }
@@ -38,6 +39,10 @@ public class DelegateOnDemandPersistentDirectoryCache extends DefaultPersistentD
     public void close() {
         this.isOpen = false;
         delegateCache.close();
+    }
+
+    public FileLock getLock() {
+        return delegateCache.getLock();
     }
 
     public <T> T useCache(final String operationDisplayName, final Factory<? extends T> action) {
@@ -75,13 +80,31 @@ public class DelegateOnDemandPersistentDirectoryCache extends DefaultPersistentD
     }
 
     private <T> T runWithOpenedCache(Factory<T> factory) {
-        if(isOpen){
+        if (isOpen) {
             delegateCache.open();
-            T returnValue = factory.create();
-            delegateCache.close();
-            return returnValue;
-        }else{
+            try {
+                return factory.create();
+            } finally {
+                delegateCache.close();
+            }
+        } else {
             throw new CacheOpenException("Cannot run operation on not opened cache");
         }
+    }
+
+    public File getBaseDir() {
+        return delegateCache.getBaseDir();
+    }
+
+    public <K, V> PersistentIndexedCache<K, V> createCache(File cacheFile, Class<K> keyType, Class<V> valueType) {
+        throw new UnsupportedOperationException();
+    }
+
+    public <K, V> PersistentIndexedCache<K, V> createCache(File cacheFile, Class<K> keyType, Serializer<V> valueSerializer) {
+        throw new UnsupportedOperationException();
+    }
+
+    public String toString(){
+        return String.format("Delegate On Demand Cache for %s", delegateCache.toString());
     }
 }

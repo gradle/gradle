@@ -33,7 +33,7 @@ import java.util.Properties;
 
 import static org.gradle.cache.internal.FileLockManager.LockMode;
 
-public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryStore {
+public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryStore implements ReferencablePersistentCache {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPersistentDirectoryCache.class);
     private final File propertiesFile;
     private final Properties properties = new Properties();

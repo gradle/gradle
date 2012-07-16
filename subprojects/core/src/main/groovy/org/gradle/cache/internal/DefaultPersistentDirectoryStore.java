@@ -23,7 +23,7 @@ import org.gradle.messaging.serialize.Serializer;
 import java.io.File;
 import java.io.IOException;
 
-public class DefaultPersistentDirectoryStore implements PersistentCache {
+public class DefaultPersistentDirectoryStore implements ReferencablePersistentCache {
     private final File dir;
     private final FileLockManager.LockMode lockMode;
     private final FileLockManager lockManager;
@@ -100,7 +100,7 @@ public class DefaultPersistentDirectoryStore implements PersistentCache {
 
     }
 
-    protected FileLock getLock() {
+    public FileLock getLock() {
         return cacheAccess.getFileLock();
     }
 

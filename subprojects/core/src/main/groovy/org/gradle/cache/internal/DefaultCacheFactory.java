@@ -62,12 +62,12 @@ public class DefaultCacheFactory implements Factory<CacheFactory> {
                 if (lockMode.equals(LockMode.None)) {
                     // Create nested cache with LockMode#Exclusive (tb discussed) that is opened and closed on Demand in the DelegateOnDemandPersistentDirectoryCache.
                     DefaultPersistentDirectoryCache nestedCache = new DefaultPersistentDirectoryCache(canonicalDir, displayName, usage, validator, properties, LockMode.Exclusive, action, lockManager);
-                    DelegateOnDemandPersistentDirectoryCache onDemandDache = new DelegateOnDemandPersistentDirectoryCache(nestedCache, canonicalDir, displayName, lockMode, lockManager);
+                    DelegateOnDemandPersistentDirectoryCache onDemandDache = new DelegateOnDemandPersistentDirectoryCache(nestedCache);
                     onDemandDache.open();
                     dirCacheReference = new DirCacheReference(onDemandDache, properties, lockMode);
                     dirCaches.put(canonicalDir, dirCacheReference);
                 } else {
-                    DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(canonicalDir, displayName, usage, validator, properties, lockMode, action, lockManager);
+                    ReferencablePersistentCache cache = new DefaultPersistentDirectoryCache(canonicalDir, displayName, usage, validator, properties, lockMode, action, lockManager);
                     cache.open();
                     dirCacheReference = new DirCacheReference(cache, properties, lockMode);
                     dirCaches.put(canonicalDir, dirCacheReference);
@@ -97,7 +97,7 @@ public class DefaultCacheFactory implements Factory<CacheFactory> {
             File canonicalDir = GFileUtils.canonicalise(storeDir);
             DirCacheReference dirCacheReference = dirCaches.get(canonicalDir);
             if (dirCacheReference == null) {
-                DefaultPersistentDirectoryStore cache = new DefaultPersistentDirectoryStore(canonicalDir, displayName, lockMode, lockManager);
+                ReferencablePersistentCache cache = new DefaultPersistentDirectoryStore(canonicalDir, displayName, lockMode, lockManager);
                 cache.open();
                 dirCacheReference = new DirCacheReference(cache, Collections.<String, Object>emptyMap(), lockMode);
                 dirCaches.put(canonicalDir, dirCacheReference);
@@ -170,14 +170,14 @@ public class DefaultCacheFactory implements Factory<CacheFactory> {
         }
     }
 
-    private class DirCacheReference extends BasicCacheReference<DefaultPersistentDirectoryStore> {
+    private class DirCacheReference extends BasicCacheReference<ReferencablePersistentCache> {
         private final Map<String, ?> properties;
         private final FileLockManager.LockMode lockMode;
         IndexedCacheReference indexedCache;
         StateCacheReference stateCache;
         CacheFactoryImpl rebuiltBy;
 
-        public DirCacheReference(DefaultPersistentDirectoryStore cache, Map<String, ?> properties, FileLockManager.LockMode lockMode) {
+        public DirCacheReference(ReferencablePersistentCache cache, Map<String, ?> properties, FileLockManager.LockMode lockMode) {
             super(cache);
             this.properties = properties;
             this.lockMode = lockMode;

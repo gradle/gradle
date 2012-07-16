@@ -37,7 +37,7 @@ class DelegateOnDemandPersistentDirectoryCacheSpec extends Specification {
     def "#methodName opens delegate, executes #methodName on delegate and closes delegate"() {
         given:
         Runnable runnable = {} as Runnable
-        DelegateOnDemandPersistentDirectoryCache cut = new DelegateOnDemandPersistentDirectoryCache(delegateCache, dir, displayName, lockMode, lockManager)
+        DelegateOnDemandPersistentDirectoryCache cut = new DelegateOnDemandPersistentDirectoryCache(delegateCache)
         when:
         cut.open()
         and:
@@ -54,7 +54,7 @@ class DelegateOnDemandPersistentDirectoryCacheSpec extends Specification {
     def "#methodName opens delegate, executes #methodName on delegate, closes delegate and returns delegate return value of delegates #methodName"() {
         given:
         org.gradle.internal.Factory factory = {-> "testResult" } as Factory
-        DelegateOnDemandPersistentDirectoryCache cut = new DelegateOnDemandPersistentDirectoryCache(delegateCache, dir, displayName, lockMode, lockManager)
+        DelegateOnDemandPersistentDirectoryCache cut = new DelegateOnDemandPersistentDirectoryCache(delegateCache)
 
         when:
         cut.open()
@@ -73,7 +73,7 @@ class DelegateOnDemandPersistentDirectoryCacheSpec extends Specification {
     @Unroll
     def "#methodName with #actionType only allowed on explicit opened cache"() {
         given:
-        DelegateOnDemandPersistentDirectoryCache cut = new DelegateOnDemandPersistentDirectoryCache(delegateCache, dir, displayName, lockMode, lockManager)
+        DelegateOnDemandPersistentDirectoryCache cut = new DelegateOnDemandPersistentDirectoryCache(delegateCache)
         when:
         cut."${methodName}"(* methodParameters)
         then:
@@ -87,15 +87,17 @@ class DelegateOnDemandPersistentDirectoryCacheSpec extends Specification {
         "useCache"             | ["operation name", {} as Runnable]                                                     | "Runnable"
         "longRunningOperation" | ["long running operation name", {-> "factory return "} as org.gradle.internal.Factory] | "Factory"
         "longRunningOperation" | ["long running operation name", {} as Runnable]                                        | "Runnable"
-
     }
 
-    def "close calls delegated close"() {
+    @Unroll
+    def "#methodName calls delegated close"() {
         given:
-        DelegateOnDemandPersistentDirectoryCache cut = new DelegateOnDemandPersistentDirectoryCache(delegateCache, dir, displayName, lockMode, lockManager)
+        DelegateOnDemandPersistentDirectoryCache cut = new DelegateOnDemandPersistentDirectoryCache(delegateCache)
         when:
-        cut.close()
+        cut."${methodName}"()
         then:
-        1 * delegateCache.close()
+        1 * delegateCache."${methodName}"()
+        where:
+        methodName << ['close', 'getLock']
     }
 }
