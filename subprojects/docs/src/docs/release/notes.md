@@ -76,6 +76,13 @@ Now the Tooling API also provides Gradle module information, i.e. group, name, v
 Please see the javadoc for [ExternalGradleModule](http://gradle.org/docs/nightly/javadoc/org/gradle/tooling/model/ExternalGradleModule.html).
 You can obtain the Gradle module information iva [ExternalDependency.getExternalGradleModule()] (http://gradle.org/docs/nightly/javadoc/org/gradle/tooling/model/ExternalDependency.html#getExternalGradleModule()).
 
+### Global maven settings.xml
+
+When Gradle checks for local available artifacts and when using `mavenLocal` in your build scripts, Gradle now honours the maven settings located in `M2_HOME/conf/settings.xml` to locate the local maven repository. If a local repository is defined in `USER_HOME/.m2/settings.xml`, this location takes precedence over a repository definition in `M2_HOME/conf/settings.xml`. 
+
+#### Show Exceptions
+
+
 ## Upgrading from Gradle 1.0
 
 Please let us know if you encounter any issues during the upgrade to Gradle 1.1-rc-1, that are not listed below.
@@ -128,14 +135,10 @@ Although we believe the new default is much better for majority of users, there 
 that preferred the old default. If you happen to prefer the old default (`1.6`) please configure
 that explicitly in your build via [idea.project.jdkName](http://gradle.org/docs/current/dsl/org.gradle.plugins.ide.idea.model.IdeaProject.html#org.gradle.plugins.ide.idea.model.IdeaProject:jdkName)
 
-##### maven settings.xml
+##### M2_HOME system property
 
-We've updated the handling of the local maven cache to use the maven3 settings builder library to parse the maven `settings.xml`.
-When using the local maven cache via `mavenLocal()`, Gradle will fail the build if the settings builder cannot parse the `settings.xml`
-in `USER_HOME/.m2/settings.xml` or in `M2_HOME/conf/settings.xml`. If a custom location for the local repository is defined in the maven
-settings file, Gradle will use this location. If no `settings.xml` is available or it contains no local repository definition, Gradle
-uses the default location in `USER_HOME/.m2/repository`.
-
+Passing the variable M2\_HOME as system property to locate the global maven settings file is deprecated. You should use a M2\_HOME environment variable instead.
+    
 ##### `AbstractTask.getDynamicObjectHelper()`
 
 Deprecated internal method `AbstractTask.getDynamicObjectHelper()` has been removed.
