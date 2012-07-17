@@ -377,21 +377,4 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
             return "{exitValue=" + exitValue + ", failure=" + failure + "}";
         }
     }
-
-    public static class DetachResultImpl implements DetachResult {
-        private final ExecResult execResult;
-
-        public DetachResultImpl(ExecResult execResult) {
-            this.execResult = execResult;
-        }
-
-        public ExecResult getExecResult() {
-            return execResult;
-        }
-
-        //TODO SF - improve execResult does not mean the process has completed.
-        public boolean isProcessCompleted() {
-            return execResult!=null;
-        }
-    }
 }

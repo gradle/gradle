@@ -18,8 +18,6 @@ package org.gradle.process.internal;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.internal.concurrent.DefaultExecutorFactory;
-import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.process.internal.streams.StreamsHandler;
 
 import java.util.concurrent.locks.Lock;
@@ -36,8 +34,6 @@ public class ExecHandleRunner implements Runnable {
     private final DefaultExecHandle execHandle;
     private final Lock lock = new ReentrantLock();
 
-    private final StoppableExecutor executor;
-
     private Process process;
     private boolean aborted;
     private final StreamsHandler streamsHandler;
@@ -49,7 +45,6 @@ public class ExecHandleRunner implements Runnable {
         this.streamsHandler = streamsHandler;
         this.processBuilderFactory = new ProcessBuilderFactory();
         this.execHandle = execHandle;
-        this.executor = new DefaultExecutorFactory().create(String.format("Run %s", execHandle.getDisplayName()));
     }
 
     public void abortProcess() {
