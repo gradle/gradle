@@ -15,6 +15,8 @@
  */
 package org.gradle.tooling.model;
 
+import org.gradle.api.Nullable;
+
 /**
  * Represents a task which is executable by Gradle.
  */
@@ -38,6 +40,7 @@ public interface Task {
      *
      * @return The description of this task, or {@code null} if it has no description.
      */
+    @Nullable
     String getDescription();
 
     /**

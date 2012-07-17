@@ -16,6 +16,8 @@
 
 package org.gradle.tooling.model;
 
+import org.gradle.api.Nullable;
+
 /**
  * Described model element.
  *
@@ -35,5 +37,6 @@ public interface Element extends Model {
      *
      * @return The description of the element, or {@code null} if it has no description.
      */
+    @Nullable
     String getDescription();
 }

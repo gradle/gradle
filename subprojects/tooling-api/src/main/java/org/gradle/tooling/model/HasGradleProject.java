@@ -22,7 +22,7 @@ package org.gradle.tooling.model;
 public interface HasGradleProject {
 
     /**
-     * The associated Gradle project. Via the gradle project you can access (list, run, etc.) gradle tasks.
+     * The associated Gradle project. Via the gradle project you can access (list, run, etc.) Gradle tasks.
      */
     GradleProject getGradleProject();
 }

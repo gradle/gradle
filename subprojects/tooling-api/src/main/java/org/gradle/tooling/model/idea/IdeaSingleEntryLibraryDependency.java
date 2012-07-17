@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.model.idea;
 
+import org.gradle.api.Nullable;
 import org.gradle.tooling.model.ExternalDependency;
 
 import java.io.File;
@@ -38,6 +39,7 @@ public interface IdeaSingleEntryLibraryDependency extends IdeaDependency, Extern
      *
      * @return The source file. Returns null when the source is not available for this dependency.
      */
+    @Nullable
     File getSource();
 
     /**
@@ -45,5 +47,6 @@ public interface IdeaSingleEntryLibraryDependency extends IdeaDependency, Extern
      *
      * @return The Javadoc file. Returns null when the Javadoc is not available for this dependency.
      */
+    @Nullable
     File getJavadoc();
 }

@@ -15,6 +15,9 @@
  */
 package org.gradle.tooling.model;
 
+import org.gradle.api.Experimental;
+import org.gradle.api.Nullable;
+
 import java.io.File;
 
 /**
@@ -33,6 +36,7 @@ public interface ExternalDependency extends Dependency {
      *
      * @return The source directory or archive for this dependency, or {@code null} if no source is available.
      */
+    @Nullable
     File getSource();
 
     /**
@@ -40,6 +44,7 @@ public interface ExternalDependency extends Dependency {
      *
      * @return the Javadoc directory or archive for this dependency, or {@code null} if no Javadoc is available.
      */
+    @Nullable
     File getJavadoc();
 
     /**
@@ -50,5 +55,7 @@ public interface ExternalDependency extends Dependency {
      * originate from a remote repository.
      * @since 1.1-rc-1
      */
+    @Nullable
+    @Experimental
     ExternalGradleModule getExternalGradleModule();
 }
