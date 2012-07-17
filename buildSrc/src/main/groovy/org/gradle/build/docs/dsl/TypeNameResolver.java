@@ -17,8 +17,8 @@ package org.gradle.build.docs.dsl;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
-import org.gradle.build.docs.dsl.model.ClassMetaData;
-import org.gradle.build.docs.dsl.model.TypeMetaData;
+import org.gradle.build.docs.dsl.source.model.ClassMetaData;
+import org.gradle.build.docs.dsl.source.model.TypeMetaData;
 import org.gradle.build.docs.model.ClassMetaDataRepository;
 import org.gradle.internal.UncheckedException;
 

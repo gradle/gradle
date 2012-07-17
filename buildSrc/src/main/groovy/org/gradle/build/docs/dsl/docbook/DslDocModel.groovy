@@ -18,7 +18,7 @@ package org.gradle.build.docs.dsl.docbook
 import org.gradle.build.docs.XIncludeAwareXmlProvider
 import org.gradle.build.docs.dsl.TypeNameResolver
 import org.gradle.build.docs.dsl.model.ClassExtensionMetaData
-import org.gradle.build.docs.dsl.model.ClassMetaData
+import org.gradle.build.docs.dsl.source.model.ClassMetaData
 import org.gradle.build.docs.model.ClassMetaDataRepository
 import org.w3c.dom.Document
 

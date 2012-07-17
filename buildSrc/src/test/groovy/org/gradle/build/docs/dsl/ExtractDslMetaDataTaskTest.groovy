@@ -16,7 +16,7 @@
 package org.gradle.build.docs.dsl
 
 import org.gradle.api.Project
-import org.gradle.build.docs.dsl.model.ClassMetaData
+import org.gradle.build.docs.dsl.source.model.ClassMetaData
 import org.gradle.build.docs.model.SimpleClassMetaDataRepository
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification

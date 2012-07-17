@@ -16,7 +16,7 @@
 package org.gradle.build.docs.dsl.docbook
 
 import org.w3c.dom.Element
-import org.gradle.build.docs.dsl.model.TypeMetaData
+import org.gradle.build.docs.dsl.source.model.TypeMetaData
 
 class BlockDoc implements DslElementDoc {
     private final MethodDoc blockMethod

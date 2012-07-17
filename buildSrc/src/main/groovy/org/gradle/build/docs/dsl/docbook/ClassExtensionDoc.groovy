@@ -16,10 +16,10 @@
 package org.gradle.build.docs.dsl.docbook
 
 import javax.xml.parsers.DocumentBuilderFactory
-import org.gradle.build.docs.dsl.model.ClassMetaData
-import org.gradle.build.docs.dsl.model.MethodMetaData
-import org.gradle.build.docs.dsl.model.PropertyMetaData
-import org.gradle.build.docs.dsl.model.TypeMetaData
+import org.gradle.build.docs.dsl.source.model.ClassMetaData
+import org.gradle.build.docs.dsl.source.model.MethodMetaData
+import org.gradle.build.docs.dsl.source.model.PropertyMetaData
+import org.gradle.build.docs.dsl.source.model.TypeMetaData
 import org.w3c.dom.Document
 import org.gradle.build.docs.DomBuilder
 

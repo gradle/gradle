@@ -22,6 +22,7 @@ import org.codehaus.groovy.antlr.LineColumn;
 import org.codehaus.groovy.antlr.SourceBuffer;
 import org.codehaus.groovy.antlr.treewalker.VisitorAdapter;
 import org.gradle.build.docs.dsl.model.*;
+import org.gradle.build.docs.dsl.source.model.*;
 import org.gradle.build.docs.model.ClassMetaDataRepository;
 
 import java.lang.reflect.Modifier;

@@ -13,16 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.build.docs.dsl.model;
+package org.gradle.build.docs.dsl.source.model;
 
-import java.util.List;
+import org.gradle.api.Action;
 
-public interface LanguageElement {
-    String getRawCommentText();
-
-    List<String> getAnnotationTypeNames();
-
-    boolean isDeprecated();
-
-    boolean isExperimental();
+public interface TypeContainer {
+    void visitTypes(Action<TypeMetaData> action);
 }

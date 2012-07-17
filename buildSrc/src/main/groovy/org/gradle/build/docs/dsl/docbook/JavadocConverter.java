@@ -16,9 +16,9 @@
 package org.gradle.build.docs.dsl.docbook;
 
 import org.gradle.api.GradleException;
-import org.gradle.build.docs.dsl.model.ClassMetaData;
-import org.gradle.build.docs.dsl.model.MethodMetaData;
-import org.gradle.build.docs.dsl.model.PropertyMetaData;
+import org.gradle.build.docs.dsl.source.model.ClassMetaData;
+import org.gradle.build.docs.dsl.source.model.MethodMetaData;
+import org.gradle.build.docs.dsl.source.model.PropertyMetaData;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;

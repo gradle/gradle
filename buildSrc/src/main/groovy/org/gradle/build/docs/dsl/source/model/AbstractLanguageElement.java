@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.build.docs.dsl.model;
+package org.gradle.build.docs.dsl.source.model;
 
 import org.gradle.api.Transformer;
 

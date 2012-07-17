@@ -16,9 +16,9 @@
 package org.gradle.build.docs.dsl.docbook
 
 import org.gradle.build.docs.XmlSpecification
-import org.gradle.build.docs.dsl.model.ClassMetaData
-import org.gradle.build.docs.dsl.model.PropertyMetaData
-import org.gradle.build.docs.dsl.model.MethodMetaData
+import org.gradle.build.docs.dsl.source.model.ClassMetaData
+import org.gradle.build.docs.dsl.source.model.PropertyMetaData
+import org.gradle.build.docs.dsl.source.model.MethodMetaData
 
 class JavadocConverterTest extends XmlSpecification {
     final ClassMetaData classMetaData = Mock()

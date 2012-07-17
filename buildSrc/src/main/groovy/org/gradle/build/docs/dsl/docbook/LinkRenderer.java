@@ -16,8 +16,8 @@
 package org.gradle.build.docs.dsl.docbook;
 
 import org.apache.commons.lang.StringUtils;
-import org.gradle.build.docs.dsl.model.MethodMetaData;
-import org.gradle.build.docs.dsl.model.TypeMetaData;
+import org.gradle.build.docs.dsl.source.model.MethodMetaData;
+import org.gradle.build.docs.dsl.source.model.TypeMetaData;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;

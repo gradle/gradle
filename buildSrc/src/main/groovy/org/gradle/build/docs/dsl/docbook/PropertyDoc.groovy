@@ -15,9 +15,9 @@
  */
 package org.gradle.build.docs.dsl.docbook
 
-import org.gradle.build.docs.dsl.model.PropertyMetaData
+import org.gradle.build.docs.dsl.source.model.PropertyMetaData
 import org.w3c.dom.Element
-import org.gradle.build.docs.dsl.model.ClassMetaData
+import org.gradle.build.docs.dsl.source.model.ClassMetaData
 
 class PropertyDoc implements DslElementDoc {
     private final String id

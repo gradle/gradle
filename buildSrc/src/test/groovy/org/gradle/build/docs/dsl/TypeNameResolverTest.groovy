@@ -15,10 +15,10 @@
  */
 package org.gradle.build.docs.dsl
 
-import org.gradle.build.docs.dsl.model.ClassMetaData
+import org.gradle.build.docs.dsl.source.model.ClassMetaData
 import org.gradle.build.docs.model.ClassMetaDataRepository
 import spock.lang.Specification
-import org.gradle.build.docs.dsl.model.TypeMetaData
+import org.gradle.build.docs.dsl.source.model.TypeMetaData
 
 class TypeNameResolverTest extends Specification {
     final ClassMetaDataRepository<ClassMetaData> metaDataRepository = Mock()

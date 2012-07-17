@@ -16,10 +16,10 @@
 package org.gradle.build.docs.dsl.docbook
 
 import org.gradle.build.docs.XmlSpecification
-import org.gradle.build.docs.dsl.model.PropertyMetaData
-import org.gradle.build.docs.dsl.model.TypeMetaData
-import org.gradle.build.docs.dsl.model.MethodMetaData
-import org.gradle.build.docs.dsl.model.ParameterMetaData
+import org.gradle.build.docs.dsl.source.model.PropertyMetaData
+import org.gradle.build.docs.dsl.source.model.TypeMetaData
+import org.gradle.build.docs.dsl.source.model.MethodMetaData
+import org.gradle.build.docs.dsl.source.model.ParameterMetaData
 
 class ClassDocRendererTest extends XmlSpecification {
     final LinkRenderer linkRenderer = linkRenderer()

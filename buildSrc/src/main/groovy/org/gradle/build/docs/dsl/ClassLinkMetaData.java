@@ -15,8 +15,8 @@
  */
 package org.gradle.build.docs.dsl;
 
-import org.gradle.build.docs.dsl.model.ClassMetaData;
-import org.gradle.build.docs.dsl.model.MethodMetaData;
+import org.gradle.build.docs.dsl.source.model.ClassMetaData;
+import org.gradle.build.docs.dsl.source.model.MethodMetaData;
 import org.gradle.build.docs.model.Attachable;
 import org.gradle.build.docs.model.ClassMetaDataRepository;
 import org.gradle.util.GUtil;
