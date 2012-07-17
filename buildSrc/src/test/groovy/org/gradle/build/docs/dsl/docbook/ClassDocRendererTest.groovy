@@ -591,7 +591,7 @@ class ClassDocRendererTest extends XmlSpecification {
         _ * metaData.returnType >> new TypeMetaData(args.returnType ?: 'ReturnType')
         def paramTypes = args.paramTypes ?: []
         _ * metaData.parameters >> paramTypes.collect {
-            def param = new ParameterMetaData("p", metaData);
+            def param = new ParameterMetaData("p");
             param.type = new TypeMetaData(it)
             return param
         }

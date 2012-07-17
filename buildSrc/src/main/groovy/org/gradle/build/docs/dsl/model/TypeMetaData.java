@@ -21,6 +21,9 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Static meta-data about a type reference extracted from source.
+ */
 public class TypeMetaData implements Serializable, TypeContainer {
     public static final TypeMetaData VOID = new TypeMetaData("void");
     public static final TypeMetaData OBJECT = new TypeMetaData("java.lang.Object");

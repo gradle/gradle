@@ -347,7 +347,7 @@ class ClassDocTest extends XmlSpecification {
         _ * method.name >> name
         _ * method.overrideSignature >> "$name(${paramTypes.join(', ')})"
         _ * method.parameters >> paramTypes.collect {
-            def param = new ParameterMetaData("p", method);
+            def param = new ParameterMetaData("p");
             param.type = new TypeMetaData(it)
             return param
         }

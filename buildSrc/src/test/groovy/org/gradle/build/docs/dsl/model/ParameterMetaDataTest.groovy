@@ -20,7 +20,7 @@ import spock.lang.Specification
 class ParameterMetaDataTest extends Specification {
     def "formats signature"() {
         MethodMetaData method = Mock()
-        def parameter = new ParameterMetaData('param', method)
+        def parameter = new ParameterMetaData('param')
         def type = new TypeMetaData('org.gradle.SomeType')
         parameter.type = type
         

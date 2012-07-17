@@ -22,6 +22,9 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * Static meta-data about a method extracted from the source for the class.
+ */
 public class MethodMetaData extends AbstractLanguageElement implements Serializable, TypeContainer {
     private final String name;
     private final ClassMetaData ownerClass;
@@ -82,7 +85,7 @@ public class MethodMetaData extends AbstractLanguageElement implements Serializa
     }
 
     public ParameterMetaData addParameter(String name, TypeMetaData type) {
-        ParameterMetaData param = new ParameterMetaData(name, this);
+        ParameterMetaData param = new ParameterMetaData(name);
         param.setType(type);
         parameters.add(param);
         return param;

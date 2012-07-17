@@ -19,14 +19,15 @@ import org.gradle.api.Action;
 
 import java.io.Serializable;
 
+/**
+ * Static meta-data about a method parameter extracted from the source for the method.
+ */
 public class ParameterMetaData implements Serializable, TypeContainer {
-    private final MethodMetaData ownerMethod;
     private final String name;
     private TypeMetaData type;
 
-    public ParameterMetaData(String name, MethodMetaData ownerMethod) {
+    public ParameterMetaData(String name) {
         this.name = name;
-        this.ownerMethod = ownerMethod;
     }
 
     public String getName() {
