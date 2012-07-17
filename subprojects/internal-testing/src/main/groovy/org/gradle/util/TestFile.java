@@ -509,7 +509,7 @@ public class TestFile extends File implements TestFileContext {
 
     public Snapshot snapshot() {
         assertIsFile();
-        return new Snapshot();
+        return new Snapshot(lastModified(), getHash("MD5"));
     }
 
     public void assertHasChangedSince(Snapshot snapshot) {
@@ -551,13 +551,9 @@ public class TestFile extends File implements TestFileContext {
         private final long modTime;
         private final byte[] hash;
 
-        public Snapshot() {
-            modTime = lastModified();
-            hash = getHash("MD5");
-        }
-
-        public long lastModified() {
-            return modTime;
+        public Snapshot(long modTime, byte[] hash) {
+            this.modTime = modTime;
+            this.hash = hash;
         }
     }
 }

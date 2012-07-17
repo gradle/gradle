@@ -59,6 +59,7 @@ class IncrementalJavaProjectBuildIntegrationTest {
 
         jar.assertHasNotChangedSince(snapshot);
 
+        sleep 1000 // Some filesystems (ext3) have one-second granularity for lastModified, so bump the time to ensure we can detect a regenerated file
         executer.withArguments("--rerun-tasks").withTasks("jar").run();
 
         jar.assertHasChangedSince(snapshot);
