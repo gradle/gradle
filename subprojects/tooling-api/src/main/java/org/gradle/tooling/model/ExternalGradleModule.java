@@ -16,11 +16,14 @@
 
 package org.gradle.tooling.model;
 
+import org.gradle.api.Experimental;
+
 /**
  * Informs about external Gradle module, i.e. group, name, version.
  *
  * @since 1.1-rc-1
  */
+@Experimental
 public interface ExternalGradleModule {
 
     /**
