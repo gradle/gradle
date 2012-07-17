@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.build.docs.dsl.docbook;
+package org.gradle.build.docs.dsl.docbook.model;
 
 import org.w3c.dom.Element;
 

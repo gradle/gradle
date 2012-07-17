@@ -13,16 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.build.docs.dsl.model
+package org.gradle.build.docs.dsl.docbook.model
 
-class ExtensionMetaData {
+class MixinMetaData {
     final String pluginId
-    final String extensionId
-    final String extensionClass
+    final String mixinClass
 
-    ExtensionMetaData(String pluginId, String extensionId, String extensionClass) {
+    MixinMetaData(String pluginId, String mixinClass) {
         this.pluginId = pluginId
-        this.extensionId = extensionId
-        this.extensionClass = extensionClass
+        this.mixinClass = mixinClass
     }
 }

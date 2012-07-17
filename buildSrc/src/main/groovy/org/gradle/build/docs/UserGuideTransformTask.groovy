@@ -20,8 +20,8 @@ package org.gradle.build.docs
 import groovy.xml.dom.DOMCategory
 import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
-import org.gradle.build.docs.dsl.ClassLinkMetaData
-import org.gradle.build.docs.dsl.LinkMetaData
+import org.gradle.build.docs.dsl.links.ClassLinkMetaData
+import org.gradle.build.docs.dsl.links.LinkMetaData
 import org.gradle.build.docs.model.ClassMetaDataRepository
 import org.gradle.build.docs.model.SimpleClassMetaDataRepository
 import org.w3c.dom.Document

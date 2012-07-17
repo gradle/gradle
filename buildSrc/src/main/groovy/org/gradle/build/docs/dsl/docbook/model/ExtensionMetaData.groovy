@@ -13,22 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.build.docs.dsl.model
+package org.gradle.build.docs.dsl.docbook.model
 
-class ClassExtensionMetaData {
-    final String targetClass
-    final Set<MixinMetaData> mixinClasses = []
-    final Set<ExtensionMetaData> extensionClasses = []
+class ExtensionMetaData {
+    final String pluginId
+    final String extensionId
+    final String extensionClass
 
-    ClassExtensionMetaData(String targetClass) {
-        this.targetClass = targetClass
-    }
-
-    def void addMixin(String plugin, String mixinClass) {
-        mixinClasses.add(new MixinMetaData(plugin, mixinClass))
-    }
-
-    def void addExtension(String plugin, String extension, String extensionClass) {
-        extensionClasses.add(new ExtensionMetaData(plugin, extension, extensionClass))
+    ExtensionMetaData(String pluginId, String extensionId, String extensionClass) {
+        this.pluginId = pluginId
+        this.extensionId = extensionId
+        this.extensionClass = extensionClass
     }
 }

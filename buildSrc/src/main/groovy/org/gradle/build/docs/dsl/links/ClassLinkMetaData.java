@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.build.docs.dsl;
+package org.gradle.build.docs.dsl.links;
 
 import org.gradle.build.docs.dsl.source.model.ClassMetaData;
 import org.gradle.build.docs.dsl.source.model.MethodMetaData;

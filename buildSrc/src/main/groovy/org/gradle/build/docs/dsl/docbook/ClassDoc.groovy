@@ -22,9 +22,14 @@ import org.w3c.dom.Element
 import org.w3c.dom.Node
 import org.gradle.build.docs.dsl.source.model.MethodMetaData
 import org.w3c.dom.Text
-import org.gradle.build.docs.dsl.model.MixinMetaData
-import org.gradle.build.docs.dsl.model.ClassExtensionMetaData
-import org.gradle.build.docs.dsl.model.ExtensionMetaData
+import org.gradle.build.docs.dsl.docbook.model.MixinMetaData
+import org.gradle.build.docs.dsl.docbook.model.ClassExtensionMetaData
+import org.gradle.build.docs.dsl.docbook.model.ExtensionMetaData
+import org.gradle.build.docs.dsl.docbook.model.DslElementDoc
+import org.gradle.build.docs.dsl.docbook.model.PropertyDoc
+import org.gradle.build.docs.dsl.docbook.model.MethodDoc
+import org.gradle.build.docs.dsl.docbook.model.BlockDoc
+import org.gradle.build.docs.dsl.docbook.model.ExtraAttributeDoc
 
 class ClassDoc implements DslElementDoc {
     private final String className
