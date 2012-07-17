@@ -17,21 +17,16 @@
 package org.gradle.build
 
 import com.tonicsystems.jarjar.Main as JarJarMain
-import com.tonicsystems.jarjar.ext_util.EntryStruct
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
-import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
-import java.util.jar.JarOutputStream
-import java.util.jar.JarFile
-import java.util.jar.JarEntry
 
 class JarJar extends DefaultTask {
-    @InputFiles FileCollection inputFiles
+    @InputFile File inputFile
     @OutputFile File outputFile
 
     @Input def rules = [:]
@@ -44,10 +39,7 @@ class JarJar extends DefaultTask {
             File tempRuleFile = tmpFileProvider.createTemporaryFile("jarjar", "rule")
             writeRuleFile(tempRuleFile)
 
-            File tmpMergedJarFile = tmpFileProvider.createTemporaryFile("jarjar", "jar")
-            mergeJarFiles(inputFiles.files, tmpMergedJarFile);
-
-            JarJarMain.main("process", tempRuleFile.absolutePath, tmpMergedJarFile.absolutePath, outputFile.absolutePath)
+            JarJarMain.main("process", tempRuleFile.absolutePath, inputFile.absolutePath, outputFile.absolutePath)
         } catch (IOException e) {
             throw new GradleException("Unable to execute JarJar task", e);
         }
@@ -69,48 +61,6 @@ class JarJar extends DefaultTask {
             keeps.each {pattern ->
                 writer.println("keep ${pattern}")
             }
-        }
-    }
-
-    private static void mergeJarFiles(Set<File> srcFiles, File destFile) throws IOException {
-        byte[] buf = new byte[0x2000];
-        JarOutputStream out = new JarOutputStream(new FileOutputStream(destFile));
-
-        Set<String> entries = new HashSet<String>();
-        for (File srcFile : srcFiles) {
-            JarFile jarFile = new JarFile(srcFile);
-            try {
-                EntryStruct struct = new EntryStruct();
-                Enumeration<JarEntry> e = jarFile.entries();
-                while (e.hasMoreElements()) {
-                    JarEntry entry = e.nextElement();
-                    struct.name = entry.getName();
-                    struct.time = entry.getTime();
-                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                    pipe(jarFile.getInputStream(entry), baos, buf);
-                    struct.data = baos.toByteArray();
-                    if (entries.add(struct.name)) {
-                        entry = new JarEntry(struct.name);
-                        entry.setTime(struct.time);
-                        entry.setCompressedSize(-1);
-                        out.putNextEntry(entry);
-                        out.write(struct.data);
-                    }
-                }
-            } finally {
-                jarFile.close();
-            }
-        }
-        out.close();
-    }
-
-    public static void pipe(InputStream is, OutputStream out, byte[] buf) throws IOException {
-        for (; ;) {
-            int amt = is.read(buf);
-            if (amt < 0) {
-                break;
-            }
-            out.write(buf, 0, amt);
         }
     }
 }
