@@ -38,11 +38,11 @@ class JUnitLoggingIntegrationTest extends AbstractIntegrationSpec {
         then:
         outputContains("""
 org.gradle.JUnit4Test > badTest FAILED
-    java.lang.RuntimeException at JUnit4Test.groovy:38
+    java.lang.RuntimeException at JUnit4Test.groovy:44
         """)
     }
 
-    def customQuietLogging() {
+    def "customQuietLogging"() {
         when:
         result = executer.withArguments("-q").runWithFailure()
 
@@ -50,13 +50,26 @@ org.gradle.JUnit4Test > badTest FAILED
         outputContains("""
 badTest FAILED
     java.lang.RuntimeException: bad
-        at org.gradle.JUnit4Test.beBad(JUnit4Test.groovy:38)
+        at org.gradle.JUnit4Test.beBad(JUnit4Test.groovy:44)
         at org.gradle.JUnit4Test.badTest(JUnit4Test.groovy:28)
         """)
 
         outputContains("ignoredTest SKIPPED")
 
         outputContains("org.gradle.JUnit4Test FAILED")
+    }
+
+    def "standardOutputLogging"() {
+        when:
+        result = executer.withArguments("-i").runWithFailure()
+
+        then:
+        outputContains("""
+org.gradle.JUnit4Test > printTest STANDARD_OUT
+    line 1
+    line 2
+    line 3
+        """)
     }
 
     private void outputContains(String text) {

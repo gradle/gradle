@@ -21,6 +21,7 @@ import org.gradle.api.tasks.testing.TestListener;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
+import org.gradle.util.TextUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,7 +91,7 @@ public class TestCountLogger implements TestListener {
     public void afterSuite(TestDescriptor suite, TestResult result) {
         if (suite.getParent() == null) {
             if (failedTests > 0) {
-                logger.error(summary());
+                logger.error(TextUtil.getPlatformLineSeparator() + summary());
             }
             progressLogger.completed();
 

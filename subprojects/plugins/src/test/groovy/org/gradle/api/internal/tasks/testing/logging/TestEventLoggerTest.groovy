@@ -102,4 +102,23 @@ class TestEventLoggerTest extends Specification {
         then:
         !textOutputFactory.toString().contains("formatted exception")
     }
+
+    def "logs headline just once per batch of events with same type and for same test"() {
+        testLogging.events(TestLogEvent.STANDARD_OUT)
+
+        when:
+        def event1 = new SimpleTestOutputEvent(message: "event1")
+        eventLogger.onOutput(methodDescriptor, event1)
+
+        then:
+        textOutputFactory.toString().count("STANDARD_OUT") == 1
+
+        when:
+        textOutputFactory.clear()
+        def event2 = new SimpleTestOutputEvent(message: "event2")
+        eventLogger.onOutput(methodDescriptor, event2)
+
+        then:
+        textOutputFactory.toString().count("STANDARD_OUT") == 0
+    }
 }

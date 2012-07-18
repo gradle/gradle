@@ -39,7 +39,7 @@ class TestNGLoggingIntegrationTest extends AbstractIntegrationSpec {
         then:
         outputContains("""
 Gradle test > org.gradle.TestNGTest.badTest FAILED
-    java.lang.RuntimeException at TestNGTest.groovy:34
+    java.lang.RuntimeException at TestNGTest.groovy:40
         """)
     }
 
@@ -51,11 +51,25 @@ Gradle test > org.gradle.TestNGTest.badTest FAILED
         outputContains("""
 org.gradle.TestNGTest.badTest FAILED
     java.lang.RuntimeException: bad
-        at org.gradle.TestNGTest.beBad(TestNGTest.groovy:34)
+        at org.gradle.TestNGTest.beBad(TestNGTest.groovy:40)
         at org.gradle.TestNGTest.badTest(TestNGTest.groovy:27)
 
 org.gradle.TestNGTest.ignoredTest SKIPPED
+
 Gradle test FAILED
+        """)
+    }
+
+    def "standardOutputLogging"() {
+        when:
+        result = executer.withArguments("-i").runWithFailure()
+
+        then:
+        outputContains("""
+Gradle test > org.gradle.TestNGTest.printTest STANDARD_OUT
+    line 1
+    line 2
+    line 3
         """)
     }
 

@@ -30,6 +30,12 @@ class TestNGTest {
     @Test(dependsOnMethods = ["badTest"])
     void ignoredTest() {}
 
+    @Test(dependsOnMethods = ["goodTest"])
+    void printTest() {
+        println "line 1\nline 2"
+        println "line 3"
+    }
+
     private beBad() {
         throw new RuntimeException("bad")
     }

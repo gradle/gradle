@@ -19,5 +19,8 @@ test {
             exceptionFormat "full"
             stackTraceFilters "truncate", "groovy"
         }
+        info {
+            events "standardOut", "standardError"
+        }
     }
 }

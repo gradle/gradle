@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.testing.logging;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import org.gradle.api.Nullable;
+import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.tasks.testing.TestDescriptor;
 import org.gradle.api.tasks.testing.logging.TestLogEvent;
@@ -28,10 +29,15 @@ import org.gradle.util.TextUtil;
 
 import java.util.List;
 
+/**
+ * Provides ability to log test events. Not thread safe.
+ */
 public abstract class AbstractTestLogger {
     private final StyledTextOutputFactory textOutputFactory;
     private final LogLevel logLevel;
     private final int displayGranularity;
+    private Object lastSeenTestId;
+    private TestLogEvent lastSeenTestEvent;
 
     protected AbstractTestLogger(StyledTextOutputFactory textOutputFactory, LogLevel logLevel, int displayGranularity) {
         this.textOutputFactory = textOutputFactory;
@@ -44,10 +50,24 @@ public abstract class AbstractTestLogger {
     }
 
     protected void logEvent(TestDescriptor descriptor, TestLogEvent event, @Nullable String details) {
+        StyledTextOutput output = textOutputFactory.create("TestEventLogger", logLevel);
+        Object testId = ((TestDescriptorInternal) descriptor).getId();
+        if (!testId.equals(lastSeenTestId) || event != lastSeenTestEvent) {
+            output.append(TextUtil.getPlatformLineSeparator() + getEventPath(descriptor));
+            output.withStyle(getStyle(event)).println(event.toString());
+        }
+        lastSeenTestId = testId;
+        lastSeenTestEvent = event;
+        if (details != null) {
+            output.append(TextUtil.toPlatformLineSeparators(details));
+        }
+    }
+
+    private String getEventPath(TestDescriptor descriptor) {
         List<String> names = Lists.newArrayList();
         TestDescriptor current = descriptor;
         while (current != null) {
-            if (isAtomicTestWithTestClassThatIsNotReflectedInParent(current)) {
+            if (isAtomicTestWhoseParentIsNotTheTestClass(current)) {
                 // This deals with the fact that in TestNG, there are no class-level events,
                 // but we nevertheless want to see the class name. We use "." rather than
                 // " > " as a separator to make it clear that the class is not a separate
@@ -62,17 +82,10 @@ public abstract class AbstractTestLogger {
         int effectiveDisplayGranularity = displayGranularity == -1
                 ? names.size() - 1 : Math.min(displayGranularity, names.size() - 1);
         List<String> displayedNames = Lists.reverse(names).subList(effectiveDisplayGranularity, names.size());
-        String path = Joiner.on(" > ").join(displayedNames) + " ";
-
-        StyledTextOutput output = textOutputFactory.create("TestEventLogger", logLevel);
-        output.append(path);
-        output.withStyle(getStyle(event)).println(event.toString());
-        if (details != null) {
-            output.println(TextUtil.toPlatformLineSeparators(details));
-        }
+        return Joiner.on(" > ").join(displayedNames) + " ";
     }
 
-    private boolean isAtomicTestWithTestClassThatIsNotReflectedInParent(TestDescriptor current) {
+    private boolean isAtomicTestWhoseParentIsNotTheTestClass(TestDescriptor current) {
         return !current.isComposite() && current.getClassName() != null && (current.getParent() == null
                 || !current.getClassName().equals(current.getParent().getName()));
     }

@@ -29,6 +29,12 @@ class JUnit4Test {
     }
 
     @Test
+    void printTest() {
+        println "line 1\nline 2"
+        println "line 3"
+    }
+
+    @Test
     @Ignore
     void ignoredTest() {
         throw new RuntimeException("ignored")

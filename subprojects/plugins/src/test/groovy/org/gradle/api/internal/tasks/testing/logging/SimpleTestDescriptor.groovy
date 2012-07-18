@@ -19,10 +19,14 @@
 package org.gradle.api.internal.tasks.testing.logging
 
 import org.gradle.api.tasks.testing.TestDescriptor
+import org.gradle.api.internal.tasks.testing.TestDescriptorInternal
 
-class SimpleTestDescriptor implements TestDescriptor {
+class SimpleTestDescriptor implements TestDescriptorInternal {
     String name = "testName"
     String className = "ClassName"
     boolean composite = false
     TestDescriptor parent = null
+    Object getId() {
+        "${parent?.id}$className$name" as String
+    }
 }
