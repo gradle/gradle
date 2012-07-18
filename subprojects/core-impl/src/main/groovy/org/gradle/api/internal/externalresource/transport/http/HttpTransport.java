@@ -37,8 +37,9 @@ public class HttpTransport implements RepositoryTransport {
 
     public ExternalResourceRepository getRepository() {
         HttpClientHelper http = new HttpClientHelper(new DefaultHttpSettings(credentials));
+        final HttpResourceAccessor accessor = new HttpResourceAccessor(http);
         return new DefaultExternalResourceRepository(
-                name, new HttpResourceAccessor(http), new HttpResourceUploader(http), new HttpResourceLister()
+                name, accessor, new HttpResourceUploader(http), new HttpResourceLister(accessor)
         );
     }
 

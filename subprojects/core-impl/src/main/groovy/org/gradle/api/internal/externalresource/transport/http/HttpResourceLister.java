@@ -16,20 +16,37 @@
 
 package org.gradle.api.internal.externalresource.transport.http;
 
-import org.apache.ivy.util.url.ApacheURLLister;
+import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.transfer.ExternalResourceLister;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class HttpResourceLister implements ExternalResourceLister {
+    private static final Pattern PATTERN = Pattern.compile(
+            "<a[^>]*href=\"([^\"]*)\"[^>]*>(?:<[^>]+>)*?([^<>]+?)(?:<[^>]+>)*?</a>",
+            Pattern.CASE_INSENSITIVE);
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(HttpResourceLister.class);
+    private HttpResourceAccessor accessor;
+
+    public HttpResourceLister(HttpResourceAccessor accessor) {
+        this.accessor = accessor;
+    }
 
     public List<String> list(String parent) throws IOException {
-        // Parse standard directory listing pages served up by Apache
-        ApacheURLLister urlLister = new ApacheURLLister();
-        List<URL> urls = urlLister.listAll(new URL(parent));
+        final URL inputUrl = new URL(parent);
+        String htmlText = loadResourceContent(new URL(parent));
+        List<URL> urls = parseHtml(inputUrl, htmlText);
         if (urls != null) {
             List<String> ret = new ArrayList<String>(urls.size());
             for (URL url : urls) {
@@ -38,6 +55,109 @@ public class HttpResourceLister implements ExternalResourceLister {
             return ret;
         }
         return null;
+    }
+
+    List<URL> parseHtml(URL baseUrl, String htmlText) throws IOException {
+        List<URL> urlList = new ArrayList<URL>();
+        Matcher matcher = PATTERN.matcher(htmlText);
+        while (matcher.find()) {
+            // get the href text and the displayed text
+            String href = matcher.group(1);
+            String text = matcher.group(2);
+            text = text.trim();
+
+            // handle complete URL listings
+            if (href.startsWith("http:") || href.startsWith("https:")) {
+                try {
+                    href = new URL(href).getPath();
+                    if (!href.startsWith(baseUrl.getPath())) {
+                        // ignore URLs which aren't children of the base URL
+                        continue;
+                    }
+                    href = href.substring(baseUrl.getPath().length());
+                } catch (Exception ignore) {
+                    // incorrect URL, ignore
+                    continue;
+                }
+            }
+
+            if (href.startsWith("../")) {
+                // skip parent URLs
+                continue;
+            }
+
+            // absolute href: convert to relative one
+            if (href.startsWith("/")) {
+                int slashIndex = href.substring(0, href.length() - 1).lastIndexOf('/');
+                href = href.substring(slashIndex + 1);
+            }
+
+            // convert relative href to url
+            if (href.startsWith("./")) {
+                href = href.substring("./".length());
+            }
+
+            // exclude those where they do not match
+            // href will never be truncated, text may be truncated by apache
+            if (text.endsWith("..>")) {
+                // text is probably truncated, we can only check if the href starts with text
+                if (!href.startsWith(text.substring(0, text.length() - 3))) {
+                    continue;
+                }
+            } else if (text.endsWith("..&gt;")) {
+                // text is probably truncated, we can only check if the href starts with text
+                if (!href.startsWith(text.substring(0, text.length() - 6))) {
+                    continue;
+                }
+            } else {
+                // text is not truncated, so it must match the url after stripping optional
+                // trailing slashes
+                String strippedHref = href.endsWith("/") ? href.substring(0, href.length() - 1) : href;
+                String strippedText = text.endsWith("/") ? text.substring(0, text.length() - 1) : text;
+                if (!strippedHref.equalsIgnoreCase(strippedText)) {
+                    continue;
+                }
+            }
+
+            URL child = new URL(baseUrl, href);
+            urlList.add(child);
+            LOGGER.debug("found URL=[" + child + "].");
+        }
+        return urlList;
+    }
+
+    String loadResourceContent(URL url) throws IOException {
+        // add trailing slash for relative urls
+        if (!url.getPath().endsWith("/") && !url.getPath().endsWith(".html")) {
+            url = new URL(url.getProtocol(), url.getHost(), url.getPort(), url.getPath() + "/");
+        }
+
+        final ExternalResource resource = accessor.getResource(url.toString());
+        try {
+            final InputStream resourceInputStream = resource.openStream();
+            final InputStreamReader inputStreamReader = new InputStreamReader(resourceInputStream);
+            BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+            return readEntirely(bufferedReader);
+        } finally {
+            resource.close();
+        }
+    }
+
+    static String readEntirely(BufferedReader in) throws IOException {
+        try {
+            StringBuffer buf = new StringBuffer();
+            String line = in.readLine();
+            while (line != null) {
+                buf.append(line);
+                line = in.readLine();
+                if (line != null) {
+                    buf.append("\n");
+                }
+            }
+            return buf.toString();
+        } finally {
+            in.close();
+        }
     }
 
 }

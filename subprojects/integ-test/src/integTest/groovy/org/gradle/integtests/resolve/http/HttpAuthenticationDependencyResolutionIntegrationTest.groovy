@@ -27,7 +27,11 @@ class HttpAuthenticationDependencyResolutionIntegrationTest extends AbstractDepe
     public void "can resolve dependencies from #authScheme authenticated HTTP ivy repository"() {
         server.start()
         given:
-        def module = ivyRepo().module('group', 'projectA', '1.2').publish()
+        def moduleA = ivyRepo().module('group', 'projectA', '1.2').publish()
+        ivyRepo().module('group', 'projectB', '2.1').publish()
+        ivyRepo().module('group', 'projectB', '2.2').publish()
+        def moduleB = ivyRepo().module('group', 'projectB', '2.3').publish()
+        ivyRepo().module('group', 'projectB', '3.0').publish()
 
         and:
         buildFile << """
@@ -44,9 +48,10 @@ repositories {
 configurations { compile }
 dependencies {
     compile 'group:projectA:1.2'
+    compile 'group:projectB:2.+'
 }
 task listJars << {
-    assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
+    assert configurations.compile.collect { it.name } == ['projectA-1.2.jar','projectB-2.3.jar']
 }
 """
 
@@ -54,8 +59,11 @@ task listJars << {
         server.authenticationScheme = authScheme
 
         and:
-        server.expectGet('/repo/group/projectA/1.2/ivy-1.2.xml', 'username', 'password', module.ivyFile)
-        server.expectGet('/repo/group/projectA/1.2/projectA-1.2.jar', 'username', 'password', module.jarFile)
+        server.expectGet('/repo/group/projectA/1.2/ivy-1.2.xml', 'username', 'password', moduleA.ivyFile)
+        server.expectGet('/repo/group/projectA/1.2/projectA-1.2.jar', 'username', 'password', moduleA.jarFile)
+        server.expectGetDirectoryListing("/repo/group/projectB/", 'username', 'password', moduleB.moduleDir.parentFile)
+        server.expectGet("/repo/group/projectB/2.3/ivy-2.3.xml", 'username', 'password', moduleB.ivyFile)
+        server.expectGet("/repo/group/projectB/2.3/projectB-2.3.jar", 'username', 'password', moduleB.jarFile)
 
         then:
         succeeds('listJars')
@@ -103,21 +111,21 @@ task listJars << {
         server.authenticationScheme = authScheme
 
         and:
-        server.expectGet('/repo/group/projectA/1.2/projectA-1.2.pom' , 'username', 'password', moduleA.pomFile)
-        server.expectGet('/repo/group/projectA/1.2/projectA-1.2.jar' , 'username', 'password', moduleA.artifactFile)
-        server.expectGet('/repo/group/projectB/maven-metadata.xml' , 'username', 'password', moduleB.rootMetaDataFile)
-        server.expectGet('/repo/group/projectB/2.3/projectB-2.3.pom' , 'username', 'password', moduleB.pomFile)
-        server.expectGet('/repo/group/projectB/2.3/projectB-2.3.jar' , 'username', 'password', moduleB.artifactFile)
+        server.expectGet('/repo/group/projectA/1.2/projectA-1.2.pom', 'username', 'password', moduleA.pomFile)
+        server.expectGet('/repo/group/projectA/1.2/projectA-1.2.jar', 'username', 'password', moduleA.artifactFile)
+        server.expectGet('/repo/group/projectB/maven-metadata.xml', 'username', 'password', moduleB.rootMetaDataFile)
+        server.expectGet('/repo/group/projectB/2.3/projectB-2.3.pom', 'username', 'password', moduleB.pomFile)
+        server.expectGet('/repo/group/projectB/2.3/projectB-2.3.jar', 'username', 'password', moduleB.artifactFile)
 
-        server.expectGet('/repo/group/projectC/3.1-SNAPSHOT/maven-metadata.xml' , 'username', 'password', moduleC.metaDataFile) // TODO: double check why we have two get requests here.
-        server.expectGet('/repo/group/projectC/3.1-SNAPSHOT/maven-metadata.xml' , 'username', 'password', moduleC.metaDataFile)
-        server.expectGet("/repo/group/projectC/3.1-SNAPSHOT/projectC-${moduleC.getPublishArtifactVersion()}.pom"  , 'username', 'password', moduleC.pomFile)
-        server.expectGet("/repo/group/projectC/3.1-SNAPSHOT/projectC-${moduleC.getPublishArtifactVersion()}.jar"  , 'username', 'password', moduleC.artifactFile)
+        server.expectGet('/repo/group/projectC/3.1-SNAPSHOT/maven-metadata.xml', 'username', 'password', moduleC.metaDataFile) // TODO: double check why we have two get requests here.
+        server.expectGet('/repo/group/projectC/3.1-SNAPSHOT/maven-metadata.xml', 'username', 'password', moduleC.metaDataFile)
+        server.expectGet("/repo/group/projectC/3.1-SNAPSHOT/projectC-${moduleC.getPublishArtifactVersion()}.pom", 'username', 'password', moduleC.pomFile)
+        server.expectGet("/repo/group/projectC/3.1-SNAPSHOT/projectC-${moduleC.getPublishArtifactVersion()}.jar", 'username', 'password', moduleC.artifactFile)
 
-        server.expectGet('/repo/group/projectD/4-SNAPSHOT/maven-metadata.xml' , 'username', 'password', moduleD.metaDataFile)  //same here: two requests necessary?
-        server.expectGet('/repo/group/projectD/4-SNAPSHOT/maven-metadata.xml' , 'username', 'password', moduleD.metaDataFile)
-        server.expectGet("/repo/group/projectD/4-SNAPSHOT/projectD-4-SNAPSHOT.pom"  , 'username', 'password', moduleD.pomFile)
-        server.expectGet("/repo/group/projectD/4-SNAPSHOT/projectD-4-SNAPSHOT.jar"  , 'username', 'password', moduleD.artifactFile)
+        server.expectGet('/repo/group/projectD/4-SNAPSHOT/maven-metadata.xml', 'username', 'password', moduleD.metaDataFile)  //same here: two requests necessary?
+        server.expectGet('/repo/group/projectD/4-SNAPSHOT/maven-metadata.xml', 'username', 'password', moduleD.metaDataFile)
+        server.expectGet("/repo/group/projectD/4-SNAPSHOT/projectD-4-SNAPSHOT.pom", 'username', 'password', moduleD.pomFile)
+        server.expectGet("/repo/group/projectD/4-SNAPSHOT/projectD-4-SNAPSHOT.jar", 'username', 'password', moduleD.artifactFile)
 
         then:
         succeeds('listJars')
@@ -126,6 +134,46 @@ task listJars << {
         authScheme << [HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST]
     }
 
+    @Unroll
+    def "reports failure resolving with #credsName credentials from #authScheme authenticated HTTP ivy repository"() {
+        server.start()
+        given:
+        def module = ivyRepo().module('group', 'projectA', '1.2').publish()
+        when:
+        settingsFile << 'rootProject.name = "publish"'
+        buildFile << """
+   repositories {
+       ivy {
+            url "http://localhost:${server.port}/repo"
+            $creds
+        }
+   }
+   configurations { compile }
+   dependencies {
+       compile 'group:projectA:1.2'
+   }
+   task listJars << {
+       assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
+   }
+   """
+
+        and:
+        server.authenticationScheme = authScheme
+        server.allowGet('/repo/group/projectA/1.2/ivy-1.2.xml', 'username', 'password', module.ivyFile)
+
+        then:
+        fails 'listJars'
+
+        and:
+        failure.assertHasDescription('Execution failed for task \':listJars\'.')
+        failure.assertHasCause('Could not resolve all dependencies for configuration \':compile\'.')
+        failure.assertThatCause(Matchers.containsString('Received status code 401 from server: Unauthorized'))
+
+        where:
+        authScheme << [HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST, HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST]
+        credsName << ['empty', 'empty', 'bad', 'bad']
+        creds << ['', '', badCredentials, badCredentials]
+    }
 
     @Unroll
     def "reports failure resolving with #credsName credentials from #authScheme authenticated HTTP maven repository"() {
@@ -167,7 +215,7 @@ task listJars << {
 
         where:
         authScheme << [HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST, HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST]
-        credsName << ['empty', 'empty' , 'bad', 'bad']
+        credsName << ['empty', 'empty', 'bad', 'bad']
         creds << ['', '', badCredentials, badCredentials]
     }
 }

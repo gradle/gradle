@@ -311,6 +311,22 @@ class HttpServer extends ExternalResource {
         })
     }
 
+    /**
+     * Allows one GET request for the given URL, returning an apache-compatible directory listing with the given File names.
+     */
+    void expectGetDirectoryListing(String path, String username, String password, File directory) {
+        expect(path, false, ['GET'], withAuthentication(path, username, password, new Action() {
+            String getDisplayName() {
+                return "return listing of directory $directory.name"
+            }
+
+            void handle(HttpServletRequest request, HttpServletResponse response) {
+                sendDirectoryListing(response, directory)
+            }
+        }));
+    }
+
+
     private sendFile(HttpServletResponse response, File file, Long lastModified, Long contentLength) {
         if (sendLastModified) {
             response.setDateHeader(HttpHeaders.LAST_MODIFIED, lastModified ?: file.lastModified())
@@ -391,7 +407,7 @@ class HttpServer extends ExternalResource {
      * Allows PUT requests with the given credentials.
      */
     void allowPut(String path, String username, String password) {
-        allow(path, false, ['PUT'], withAuthentication(path, username, password, new Action(){
+        allow(path, false, ['PUT'], withAuthentication(path, username, password, new Action() {
             String getDisplayName() {
                 return "return 500"
             }
