@@ -23,6 +23,7 @@ import org.gradle.api.tasks.testing.TestResult
 import org.slf4j.Logger
 
 import spock.lang.Specification
+import org.gradle.util.TextUtil
 
 class TestCountLoggerTest extends Specification {
     private final ProgressLoggerFactory factory = Mock()
@@ -30,6 +31,7 @@ class TestCountLoggerTest extends Specification {
     private final TestDescriptor rootSuite = suite(true)
     private final Logger errorLogger = Mock()
     private final TestCountLogger logger = new TestCountLogger(factory, errorLogger)
+    private final String sep = TextUtil.platformLineSeparator
 
     def setup() {
         factory.newOperation(TestCountLogger) >> progressLogger
@@ -96,7 +98,7 @@ class TestCountLoggerTest extends Specification {
         logger.afterSuite(rootSuite, result())
 
         then:
-        1 * errorLogger.error('2 tests completed, 1 failed')
+        1 * errorLogger.error("${sep}2 tests completed, 1 failed")
         1 * progressLogger.completed()
     }
 

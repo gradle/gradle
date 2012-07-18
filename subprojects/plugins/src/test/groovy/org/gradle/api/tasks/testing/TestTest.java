@@ -25,6 +25,7 @@ import org.gradle.api.internal.file.collections.DefaultFileCollectionResolveCont
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileTreeAdapter;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
+import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.api.internal.tasks.testing.detection.TestExecuter;
@@ -327,11 +328,13 @@ public class TestTest extends AbstractConventionTaskTest {
             will(returnValue(TestResult.ResultType.FAILURE));
             ignoring(result);
 
-            final TestDescriptor testDescriptor = context.mock(TestDescriptor.class);
+            final TestDescriptorInternal testDescriptor = context.mock(TestDescriptorInternal.class);
             allowing(testDescriptor).getName();
             will(returnValue("test"));
             allowing(testDescriptor).getParent();
             will(returnValue(null));
+            allowing(testDescriptor).getId();
+            will(returnValue(0));
 
             ignoring(testDescriptor);
 
