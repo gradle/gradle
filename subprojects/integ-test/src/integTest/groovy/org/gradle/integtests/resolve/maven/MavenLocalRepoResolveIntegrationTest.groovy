@@ -28,7 +28,6 @@ import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.not
 import org.gradle.integtests.fixtures.MavenModule
 
-@IgnoreIf({ GradleDistributionExecuter.systemPropertyExecuter == GradleDistributionExecuter.Executer.daemon})
 class MavenLocalRepoResolveIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule SetSystemProperties sysProp = new SetSystemProperties()
