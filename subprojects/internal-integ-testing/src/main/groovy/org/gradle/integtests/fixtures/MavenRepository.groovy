@@ -19,6 +19,7 @@ import java.text.SimpleDateFormat
 
 import org.gradle.util.TestFile
 import org.gradle.util.hash.HashUtil
+import groovy.xml.MarkupBuilder
 
 /**
  * A fixture for dealing with Maven repositories.
@@ -169,31 +170,9 @@ class MavenModule {
      */
     MavenModule publish() {
         moduleDir.createDir()
-        def rootMavenMetaData = getRootMetaDataFile().createFile()
-        publish(rootMavenMetaData) {
-            rootMavenMetaData.withWriter {writer ->
-                def builder = new groovy.xml.MarkupBuilder(writer)
-                builder.metadata {
-                    groupId(groupId)
-                    artifactId(artifactId)
-                    version(version)
-                    versioning {
-                        if (uniqueSnapshots && version.endsWith("-SNAPSHOT")) {
-                            snapshot {
-                                timestamp(timestampFormat.format(publishTimestamp))
-                                buildNumber(publishCount)
-                                lastUpdated(updateFormat.format(publishTimestamp))
-                            }
-                        } else {
-                            versions {
-                                version(version)
-                            }
-                        }
-                    }
-                }
+        def rootMavenMetaData = getRootMetaDataFile()
 
-            }
-        }
+        updateRootMavenMetaData(rootMavenMetaData)
         if (uniqueSnapshots && version.endsWith("-SNAPSHOT")) {
             def metaDataFile = moduleDir.file('maven-metadata.xml')
             publish(metaDataFile) {
@@ -252,6 +231,36 @@ class MavenModule {
         }
         publishArtifact([:])
         return this
+    }
+
+    private void updateRootMavenMetaData(TestFile rootMavenMetaData) {
+        def allVersions = rootMavenMetaData.exists() ? new XmlParser().parseText(rootMavenMetaData.text).versioning.versions.version*.value().flatten() : []
+        allVersions << version;
+        publish(rootMavenMetaData) {
+            rootMavenMetaData.withWriter {writer ->
+                def builder = new MarkupBuilder(writer)
+                builder.metadata {
+                    groupId(groupId)
+                    artifactId(artifactId)
+                    version(allVersions.max())
+                    versioning {
+                        if (uniqueSnapshots && version.endsWith("-SNAPSHOT")) {
+                            snapshot {
+                                timestamp(timestampFormat.format(publishTimestamp))
+                                buildNumber(publishCount)
+                                lastUpdated(updateFormat.format(publishTimestamp))
+                            }
+                        } else {
+                            versions {
+                                allVersions.each{currVersion ->
+                                    version(currVersion)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private File publishArtifact(Map<String, ?> artifact) {
