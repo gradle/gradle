@@ -23,7 +23,9 @@ class MavenDynamicResolveIntegrationTest extends AbstractDependencyResolutionTes
         given:
         server.start()
 
+        mavenRepo().module('group', 'projectC', '1.1').publish()
         def projectC = mavenRepo().module('group', 'projectC', '1.5').publish()
+        mavenRepo().module('group', 'projectC', '2.0').publish()
         def projectB = mavenRepo().module('group', 'projectB').dependsOn("group",'projectC', '[1.0, 2.0)').publish()
         def projectA = mavenRepo().module('group', 'projectA').dependsOn('projectB').publish()
 
