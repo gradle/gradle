@@ -54,7 +54,6 @@ class MavenModule {
     final timestampFormat = new SimpleDateFormat("yyyyMMdd.HHmmss")
     private final List artifacts = []
     private boolean uniqueSnapshots = true;
-    private boolean writeRootMetaDataFile = false
 
     MavenModule(TestFile moduleDir, String groupId, String artifactId, String version) {
         this.moduleDir = moduleDir
@@ -92,11 +91,6 @@ class MavenModule {
 
     MavenModule withNonUniqueSnapshots() {
         uniqueSnapshots = false;
-        return this;
-    }
-
-    MavenModule withRootMetaDataFile() {
-        writeRootMetaDataFile = true;
         return this;
     }
 
@@ -175,31 +169,29 @@ class MavenModule {
      */
     MavenModule publish() {
         moduleDir.createDir()
-        if (writeRootMetaDataFile) {
-            def rootMavenMetaData = getRootMetaDataFile().createFile()
-            publish(rootMavenMetaData) {
-                rootMavenMetaData.withWriter {writer ->
-                    def builder = new groovy.xml.MarkupBuilder(writer)
-                    builder.metadata {
-                        groupId(groupId)
-                        artifactId(artifactId)
-                        version(version)
-                        versioning {
-                            if (uniqueSnapshots && version.endsWith("-SNAPSHOT")) {
-                                snapshot {
-                                    timestamp(timestampFormat.format(publishTimestamp))
-                                    buildNumber(publishCount)
-                                    lastUpdated(updateFormat.format(publishTimestamp))
-                                }
-                            } else {
-                                versions {
-                                    version(version)
-                                }
+        def rootMavenMetaData = getRootMetaDataFile().createFile()
+        publish(rootMavenMetaData) {
+            rootMavenMetaData.withWriter {writer ->
+                def builder = new groovy.xml.MarkupBuilder(writer)
+                builder.metadata {
+                    groupId(groupId)
+                    artifactId(artifactId)
+                    version(version)
+                    versioning {
+                        if (uniqueSnapshots && version.endsWith("-SNAPSHOT")) {
+                            snapshot {
+                                timestamp(timestampFormat.format(publishTimestamp))
+                                buildNumber(publishCount)
+                                lastUpdated(updateFormat.format(publishTimestamp))
+                            }
+                        } else {
+                            versions {
+                                version(version)
                             }
                         }
                     }
-
                 }
+
             }
         }
         if (uniqueSnapshots && version.endsWith("-SNAPSHOT")) {

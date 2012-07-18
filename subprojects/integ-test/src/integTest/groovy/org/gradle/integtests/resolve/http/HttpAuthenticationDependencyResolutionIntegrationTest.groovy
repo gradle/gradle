@@ -69,7 +69,7 @@ task listJars << {
         server.start()
         given:
         def moduleA = mavenRepo().module('group', 'projectA', '1.2').publish()
-        def moduleB = mavenRepo().module('group', 'projectB', '2.1').withRootMetaDataFile().publish()
+        def moduleB = mavenRepo().module('group', 'projectB', '2.1').publish()
         def moduleC = mavenRepo().module('group', 'projectC', '3.1-SNAPSHOT').publish()
         def moduleD = mavenRepo().module('group', 'projectD', '4-SNAPSHOT').withNonUniqueSnapshots().publish()
         and:
@@ -100,7 +100,6 @@ task listJars << {
         server.authenticationScheme = authScheme
 
         and:
-        println "MODULEC_VERSION" + moduleC.getPublishArtifactVersion()
         server.expectGet('/repo/group/projectA/1.2/projectA-1.2.pom' , 'username', 'password', moduleA.pomFile)
         server.expectGet('/repo/group/projectA/1.2/projectA-1.2.jar' , 'username', 'password', moduleA.artifactFile)
         server.expectGet('/repo/group/projectB/maven-metadata.xml' , 'username', 'password', moduleB.rootMetaDataFile)
