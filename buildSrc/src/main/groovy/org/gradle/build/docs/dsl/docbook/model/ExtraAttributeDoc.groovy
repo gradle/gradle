@@ -18,8 +18,8 @@ package org.gradle.build.docs.dsl.docbook.model
 import org.w3c.dom.Element
 
 class ExtraAttributeDoc {
-    private final Element titleCell
-    private final Element valueCell
+    final Element titleCell
+    final Element valueCell
 
     ExtraAttributeDoc(Element titleCell, Element valueCell) {
         this.titleCell = titleCell

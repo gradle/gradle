@@ -70,7 +70,7 @@ class DslDocModel {
             }
             XIncludeAwareXmlProvider provider = new XIncludeAwareXmlProvider()
             def doc = new ClassDoc(className, provider.parse(classFile), document, classMetaData, extensionMetaData, this, javadocConverter)
-            doc.mergeContent()
+            new ClassDocBuilder(this, javadocConverter).build(doc)
             return doc
         } catch (ClassDocGenerationException e) {
             throw e

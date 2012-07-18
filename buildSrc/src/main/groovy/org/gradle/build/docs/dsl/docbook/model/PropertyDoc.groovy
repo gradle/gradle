@@ -41,8 +41,8 @@ class PropertyDoc implements DslElementDoc {
         this.additionalValues = additionalValues
     }
 
-    PropertyDoc forClass(ClassMetaData classMetaData, List<ExtraAttributeDoc> additionalValues) {
-        return new PropertyDoc(classMetaData, metaData, comment, additionalValues)
+    PropertyDoc forClass(ClassMetaData classMetaData, Collection<ExtraAttributeDoc> additionalValues) {
+        return new PropertyDoc(classMetaData, metaData, comment, additionalValues as List)
     }
 
     String getId() {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.build.docs.dsl.docbook;
 
-import org.w3c.dom.Element;
+public class ClassDocCommentBuilder {
+    private final JavadocConverter javadocConverter;
+    private final GenerationListener listener;
 
-import java.util.List;
+    public ClassDocCommentBuilder(JavadocConverter javadocConverter, GenerationListener listener) {
+        this.javadocConverter = javadocConverter;
+        this.listener = listener;
+    }
 
-public interface DocComment {
-    List<Element> getDocbook();
+    void build(ClassDoc classDoc) {
+        classDoc.setComment(javadocConverter.parse(classDoc.getClassMetaData(), listener).getDocbook());
+    }
 }

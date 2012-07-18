@@ -16,20 +16,11 @@
 package org.gradle.build.docs.dsl.docbook
 
 import org.gradle.build.docs.dsl.source.model.ClassMetaData
-import org.gradle.build.docs.dsl.source.model.PropertyMetaData
+import org.gradle.build.docs.dsl.source.model.MethodMetaData
 import org.w3c.dom.Document
 import org.w3c.dom.Element
 import org.w3c.dom.Node
-import org.gradle.build.docs.dsl.source.model.MethodMetaData
-import org.w3c.dom.Text
-import org.gradle.build.docs.dsl.docbook.model.MixinMetaData
-import org.gradle.build.docs.dsl.docbook.model.ClassExtensionMetaData
-import org.gradle.build.docs.dsl.docbook.model.ExtensionMetaData
-import org.gradle.build.docs.dsl.docbook.model.DslElementDoc
-import org.gradle.build.docs.dsl.docbook.model.PropertyDoc
-import org.gradle.build.docs.dsl.docbook.model.MethodDoc
-import org.gradle.build.docs.dsl.docbook.model.BlockDoc
-import org.gradle.build.docs.dsl.docbook.model.ExtraAttributeDoc
+import org.gradle.build.docs.dsl.docbook.model.*
 
 class ClassDoc implements DslElementDoc {
     private final String className
@@ -48,7 +39,7 @@ class ClassDoc implements DslElementDoc {
     private final Element methodsTable
     private final Element propertiesSection
     private final Element methodsSection
-    private List<Element> comment
+    List<Element> comment = []
     private final GenerationListener listener = new DefaultGenerationListener()
 
     ClassDoc(String className, Element classContent, Document targetDocument, ClassMetaData classMetaData, ClassExtensionMetaData extensionMetaData, DslDocModel model, JavadocConverter javadocConverter) {
@@ -78,8 +69,6 @@ class ClassDoc implements DslElementDoc {
 
     def getSimpleName() { return simpleName }
 
-    List<Element> getComment() { return comment }
-
     boolean isDeprecated() {
         return classMetaData.deprecated
     }
@@ -88,7 +77,11 @@ class ClassDoc implements DslElementDoc {
         return classMetaData.experimental
     }
 
-    def getClassProperties() { return classProperties }
+    List<PropertyDoc> getClassProperties() { return classProperties }
+
+    void addClassProperty(PropertyDoc propertyDoc) {
+        classProperties.add(propertyDoc)
+    }
 
     def getClassMethods() { return classMethods }
 
@@ -98,7 +91,7 @@ class ClassDoc implements DslElementDoc {
 
     def getClassSection() { return classSection }
 
-    def getPropertiesTable() { return propertiesTable }
+    Element getPropertiesTable() { return propertiesTable }
 
     def getPropertiesSection() { return propertiesSection }
 
@@ -115,98 +108,8 @@ class ClassDoc implements DslElementDoc {
     def getBlockDetailsSection() { return getSection('Script block details') }
 
     ClassDoc mergeContent() {
-        buildDescription()
-        buildProperties()
         buildMethods()
         buildExtensions()
-        return this
-    }
-
-    ClassDoc buildDescription() {
-        comment = javadocConverter.parse(classMetaData, listener).docbook
-        return this
-    }
-
-    ClassDoc buildProperties() {
-        List<Element> header = propertiesTable.thead.tr[0].td.collect { it }
-        if (header.size() < 1) {
-            throw new RuntimeException("Expected at least 1 <td> in <thead>/<tr>, found: $header")
-        }
-        Map<String, Element> inheritedValueTitleMapping = [:]
-        List<Element> valueTitles = []
-        header.eachWithIndex { element, index ->
-            if (index == 0) { return }
-            Element override = element.overrides[0]
-            if (override) {
-                element.removeChild(override)
-                inheritedValueTitleMapping.put(override.textContent, element)
-            }
-            if (element.firstChild instanceof Text) {
-                element.firstChild.textContent = element.firstChild.textContent.replaceFirst(/^\s+/, '')
-            }
-            if (element.lastChild instanceof Text) {
-                element.lastChild.textContent = element.lastChild.textContent.replaceFirst(/\s+$/, '')
-            }
-            valueTitles.add(element)
-        }
-
-        ClassDoc superClass = classMetaData.superClassName ? model.getClassDoc(classMetaData.superClassName) : null
-        //adding the properties from the super class onto the inheriting class
-        Map<String, PropertyDoc> props = new TreeMap<String, PropertyDoc>()
-        if (superClass) {
-            superClass.getClassProperties().each { propertyDoc ->
-                def additionalValues = new LinkedHashMap<String, ExtraAttributeDoc>()
-                propertyDoc.additionalValues.each { attributeDoc ->
-                    def key = attributeDoc.key
-                    if (inheritedValueTitleMapping[key]) {
-                        ExtraAttributeDoc newAttribute = new ExtraAttributeDoc(inheritedValueTitleMapping[key], attributeDoc.valueCell)
-                        additionalValues.put(newAttribute.key, newAttribute)
-                    } else {
-                        additionalValues.put(key, attributeDoc)
-                    }
-                }
-
-                props[propertyDoc.name] = propertyDoc.forClass(classMetaData, additionalValues.values() as List)
-            }
-        }
-
-        propertiesTable.tr.each { Element tr ->
-            def cells = tr.td.collect { it }
-            if (cells.size() != header.size()) {
-                throw new RuntimeException("Expected ${header.size()} <td> elements in <tr>, found: $tr")
-            }
-            String propName = cells[0].text().trim()
-            PropertyMetaData property = classMetaData.findProperty(propName)
-            if (!property) {
-                throw new RuntimeException("No metadata for property '$className.$propName'. Available properties: ${classMetaData.propertyNames}")
-            }
-
-            def additionalValues = new LinkedHashMap<String, ExtraAttributeDoc>()
-
-            if (superClass) {
-                def overriddenProp = props.get(propName)
-                if (overriddenProp) {
-                    overriddenProp.additionalValues.each { attributeDoc ->
-                        additionalValues.put(attributeDoc.key, attributeDoc)
-                    }
-                }
-            }
-
-            header.eachWithIndex { col, i ->
-                if (i == 0 || !cells[i].firstChild) { return }
-                def attributeDoc = new ExtraAttributeDoc(valueTitles[i-1], cells[i])
-                additionalValues.put(attributeDoc.key, attributeDoc)
-            }
-            PropertyDoc propertyDoc = new PropertyDoc(property, javadocConverter.parse(property, listener).docbook, additionalValues.values() as List)
-            if (propertyDoc.description == null) {
-                throw new RuntimeException("Docbook content for '$className.$propName' does not contain a description paragraph.")
-            }
-
-            props[propName] = propertyDoc
-        }
-
-        classProperties.addAll(props.values())
-
         return this
     }
 

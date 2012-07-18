@@ -24,116 +24,11 @@ import org.gradle.build.docs.dsl.source.model.PropertyMetaData
 import org.gradle.build.docs.dsl.source.model.TypeMetaData
 import org.gradle.build.docs.dsl.docbook.model.ClassExtensionMetaData
 import org.gradle.build.docs.dsl.docbook.model.PropertyDoc
-import org.gradle.build.docs.dsl.docbook.model.ExtraAttributeDoc
 import org.gradle.build.docs.dsl.docbook.model.MethodDoc
 
 class ClassDocTest extends XmlSpecification {
     final JavadocConverter javadocConverter = Mock()
     final DslDocModel docModel = Mock()
-
-    def buildsPropertiesForClass() {
-        ClassMetaData classMetaData = classMetaData()
-        PropertyMetaData propertyA = property('a', classMetaData, comment: 'prop a')
-        PropertyMetaData propertyB = property('b', classMetaData, comment: 'prop b')
-        ClassDoc superDoc = classDoc()
-        PropertyDoc propertyDocA = propertyDoc('a')
-        PropertyDoc propertyDocC = propertyDoc('c')
-
-        def content = parse('''
-<section>
-    <section><title>Properties</title>
-        <table>
-            <thead><tr><td>Name</td></tr></thead>
-            <tr><td>b</td></tr>
-            <tr><td>a</td></tr>
-        </table>
-    </section>
-    <section><title>Methods</title><table><thead><tr></tr></thead></table></section>
-</section>
-''')
-
-        when:
-        ClassDoc doc = withCategories {
-            new ClassDoc('org.gradle.Class', content, document, classMetaData, null, docModel, javadocConverter).buildProperties()
-        }
-
-        then:
-        doc.classProperties.size() == 3
-        doc.classProperties[0].name == 'a'
-        doc.classProperties[1].name == 'b'
-        doc.classProperties[2].name == 'c'
-
-        _ * classMetaData.findProperty('b') >> propertyB
-        _ * classMetaData.findProperty('a') >> propertyA
-        _ * classMetaData.superClassName >> 'org.gradle.SuperType'
-        _ * docModel.getClassDoc('org.gradle.SuperType') >> superDoc
-        _ * superDoc.getClassProperties() >> [propertyDocC, propertyDocA]
-    }
-
-    def canAttachAdditionalValuesToProperty() {
-        ClassMetaData classMetaData = classMetaData()
-        PropertyMetaData propertyA = property('a', classMetaData, comment: 'prop a')
-        PropertyMetaData propertyB = property('b', classMetaData, comment: 'prop b')
-        ClassDoc superDoc = classDoc()
-        ExtraAttributeDoc inheritedValue = new ExtraAttributeDoc(parse('<td>inherited</td>'), parse('<td>inherited</td>'))
-        ExtraAttributeDoc overriddenValue = new ExtraAttributeDoc(parse('<td>general value</td>'), parse('<td>general</td>'))
-        PropertyDoc inheritedPropertyA = propertyDoc('a', additionalValues: [inheritedValue, overriddenValue])
-        PropertyDoc inheritedPropertyB = propertyDoc('b', additionalValues: [inheritedValue, overriddenValue])
-        PropertyDoc inheritedPropertyC = propertyDoc('c', additionalValues: [inheritedValue, overriddenValue])
-
-        def content = parse('''
-<section>
-    <section><title>Properties</title>
-        <table>
-            <thead><tr><td>Name</td><td>inherited</td><td>added</td><td>overridden <overrides>general value</overrides></td></tr></thead>
-            <tr><td>a</td><td>specific1</td><td>specific2</td><td>specific3</td></tr>
-            <tr><td>b</td><td></td><td/><td/></tr>
-        </table>
-    </section>
-    <section><title>Methods</title><table><thead><tr></tr></thead></table></section>
-</section>
-''')
-
-        when:
-        ClassDoc doc = withCategories {
-            new ClassDoc('org.gradle.Class', content, document, classMetaData, null, docModel, javadocConverter).buildProperties()
-        }
-
-        then:
-        doc.classProperties.size() == 3
-
-        def prop = doc.classProperties[0]
-        prop.name == 'a'
-        prop.additionalValues.size() == 3
-        format(prop.additionalValues[0].title) == 'inherited'
-        format(prop.additionalValues[0].value) == 'specific1'
-        format(prop.additionalValues[1].title) == 'overridden'
-        format(prop.additionalValues[1].value) == 'specific3'
-        format(prop.additionalValues[2].title) == 'added'
-        format(prop.additionalValues[2].value) == 'specific2'
-
-        def prop2 = doc.classProperties[1]
-        prop2.name == 'b'
-        prop2.additionalValues.size() == 2
-        format(prop2.additionalValues[0].title) == 'inherited'
-        format(prop2.additionalValues[0].value) == 'inherited'
-        format(prop2.additionalValues[1].title) == 'overridden'
-        format(prop2.additionalValues[1].value) == 'general'
-
-        def prop3 = doc.classProperties[2]
-        prop3.name == 'c'
-        prop3.additionalValues.size() == 2
-        format(prop3.additionalValues[0].title) == 'inherited'
-        format(prop3.additionalValues[0].value) == 'inherited'
-        format(prop3.additionalValues[1].title) == 'overridden'
-        format(prop3.additionalValues[1].value) == 'general'
-
-        _ * classMetaData.findProperty('b') >> propertyB
-        _ * classMetaData.findProperty('a') >> propertyA
-        _ * classMetaData.superClassName >> 'org.gradle.SuperType'
-        _ * docModel.getClassDoc('org.gradle.SuperType') >> superDoc
-        _ * superDoc.classProperties >> [inheritedPropertyA, inheritedPropertyB, inheritedPropertyC]
-    }
 
     def buildsMethodsForClass() {
         ClassMetaData classMetaData = classMetaData()
@@ -211,7 +106,9 @@ class ClassDocTest extends XmlSpecification {
 
         when:
         ClassDoc doc = withCategories {
-            new ClassDoc('org.gradle.Class', content, document, classMetaData, null, docModel, javadocConverter).buildProperties().buildMethods()
+            def doc = new ClassDoc('org.gradle.Class', content, document, classMetaData, null, docModel, javadocConverter)
+            new ClassDocPropertiesBuilder(docModel, javadocConverter, Mock(GenerationListener)).build(doc)
+            doc.buildMethods()
         }
 
         then:
