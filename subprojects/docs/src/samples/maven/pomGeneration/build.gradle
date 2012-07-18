@@ -34,13 +34,6 @@ dependencies {
     testRuntime "group6:testRuntime:1.0"
 }
 
-// Include a javadoc zip
-
-task javadocZip(type: Zip, dependsOn: javadoc) {
-    classifier = 'javadoc'
-    from javadoc.destinationDir
-}
-
 artifacts {
     archives javadocZip
 }
