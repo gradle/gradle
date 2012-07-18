@@ -21,28 +21,37 @@ import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.tooling.model.migration.ProjectOutput
-import org.gradle.tooling.model.migration.Archive
 
 import org.junit.Rule
-import spock.lang.Ignore
+import org.gradle.tooling.internal.migration.DefaultArchive
+import org.gradle.tooling.internal.migration.DefaultTestResult
 
 @MinToolingApiVersion("current")
 @MinTargetGradleVersion("current")
-@Ignore
 class MigrationModelCrossVersionSpec extends ToolingApiSpecification {
     @Rule TestResources resources = new TestResources()
 
-    def "canGetProjectOutputModel"() {
-        given:
-
+    def "modelContainsAllArchivesOnTheArchivesConfiguration"() {
         when:
         def output = withConnection { it.getModel(ProjectOutput.class) }
 
         then:
         output instanceof ProjectOutput
-        output.taskOutputs.size() == 1
-        def taskOutput = output.taskOutputs.iterator().next()
-        taskOutput instanceof Archive
-        taskOutput.file.toString().endsWith(".jar")
+        def archives = output.taskOutputs.findAll { it.getClass().name == DefaultArchive.name } as List
+        archives.size() == 2
+        archives.any { it.file.name.endsWith(".jar") }
+        archives.any { it.file.name.endsWith(".zip") }
+    }
+
+    def "modelContainsAllTestResults"() {
+        when:
+        def output = withConnection { it.getModel(ProjectOutput.class) }
+
+        then:
+        output instanceof ProjectOutput
+        def testResults = output.taskOutputs.findAll { it.getClass().name == DefaultTestResult.name } as List
+        testResults.size() == 2
+        testResults.any { it.xmlReportDir == resources.dir.file("build", "test-results") }
+        testResults.any { it.xmlReportDir == resources.dir.file("build", "other-results") }
     }
 }

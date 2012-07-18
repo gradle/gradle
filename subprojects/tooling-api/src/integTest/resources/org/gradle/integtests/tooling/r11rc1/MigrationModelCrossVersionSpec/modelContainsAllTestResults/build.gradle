@@ -14,18 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.model.migration;
+apply plugin: "java"
 
-import org.gradle.tooling.model.DomainObjectSet;
-import org.gradle.tooling.model.HierarchicalElement;
-
-import java.util.Set;
-
-/**
- * The outputs produced by a Gradle project.
- */
-public interface ProjectOutput extends HierarchicalElement {
-    ProjectOutput getParent();
-    DomainObjectSet<ProjectOutput> getChildren();
-    Set<TaskOutput> getTaskOutputs();
+task integTest(type: Test) {
+    testResultsDir = file("$buildDir/other-results")
 }

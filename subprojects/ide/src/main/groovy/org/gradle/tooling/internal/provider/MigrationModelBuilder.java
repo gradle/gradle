@@ -21,13 +21,15 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.tasks.testing.Test;
 import org.gradle.tooling.internal.migration.DefaultArchive;
 import org.gradle.tooling.internal.migration.DefaultProjectOutput;
+import org.gradle.tooling.internal.migration.DefaultTestResult;
 import org.gradle.tooling.internal.protocol.InternalProjectOutput;
 import org.gradle.tooling.internal.protocol.ProjectVersion3;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
-import org.gradle.tooling.model.migration.Archive;
 import org.gradle.tooling.model.migration.ProjectOutput;
+import org.gradle.tooling.model.migration.TaskOutput;
 
 import java.util.Collections;
 import java.util.Set;
@@ -38,15 +40,29 @@ public class MigrationModelBuilder implements BuildsModel {
     }
 
     public ProjectVersion3 buildAll(GradleInternal gradle) {
-        Project root = gradle.getRootProject();
-        Set<Archive> taskOutputs = Sets.newHashSet();
-        Configuration configuration = root.getConfigurations().findByName("archives");
+        Project project = gradle.getRootProject();
+        Set<TaskOutput> taskOutputs = Sets.newHashSet();
+
+        addArchives(project, taskOutputs);
+        addTestResults(project, taskOutputs);
+
+        return new DefaultProjectOutput(project.getName(), null,
+                ImmutableDomainObjectSet.of(Collections.<ProjectOutput>emptyList()), taskOutputs);
+    }
+
+    private void addArchives(Project project, Set<TaskOutput> taskOutputs) {
+        Configuration configuration = project.getConfigurations().findByName("archives");
         if (configuration != null) {
             for (PublishArtifact artifact : configuration.getArtifacts()) {
                 taskOutputs.add(new DefaultArchive(artifact.getFile()));
             }
         }
-        return new DefaultProjectOutput(root.getName(), null,
-                ImmutableDomainObjectSet.of(Collections.<ProjectOutput>emptyList()), taskOutputs);
+    }
+
+    private void addTestResults(Project project, Set<TaskOutput> taskOutputs) {
+        Set<Test> testTasks = project.getTasks().withType(Test.class);
+        for (Test task : testTasks) {
+            taskOutputs.add(new DefaultTestResult(task.getTestResultsDir()));
+        }
     }
 }
