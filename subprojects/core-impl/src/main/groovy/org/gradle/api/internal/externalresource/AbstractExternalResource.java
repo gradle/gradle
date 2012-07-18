@@ -19,14 +19,15 @@ import org.apache.ivy.plugins.repository.Resource;
 import org.apache.ivy.util.CopyProgressListener;
 import org.apache.ivy.util.FileUtil;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 
 public abstract class AbstractExternalResource implements ExternalResource {
     public void writeTo(File destination, CopyProgressListener progress) throws IOException {
         FileOutputStream output = new FileOutputStream(destination);
+        writeTo(output, progress);
+    }
+
+    public void writeTo(OutputStream output, CopyProgressListener progress) throws IOException {
         try {
             InputStream input = openStream();
             try {
@@ -35,9 +36,14 @@ public abstract class AbstractExternalResource implements ExternalResource {
                 input.close();
             }
         } finally {
-            output.close();
+            try{
+                close();
+            }finally {
+                output.close();
+            }
         }
     }
+
 
     public Resource clone(String cloneName) {
         throw new UnsupportedOperationException();

@@ -22,9 +22,12 @@ import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaDat
 
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 
 public interface ExternalResource extends Resource {
     void writeTo(File destination, CopyProgressListener progress) throws IOException;
+
+    void writeTo(OutputStream destination, CopyProgressListener progress) throws IOException;
 
     void close() throws IOException;
 

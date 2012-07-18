@@ -21,10 +21,8 @@ import org.gradle.api.internal.externalresource.transfer.ExternalResourceLister;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -133,31 +131,8 @@ public class HttpResourceLister implements ExternalResourceLister {
         }
 
         final ExternalResource resource = accessor.getResource(url.toString());
-        try {
-            final InputStream resourceInputStream = resource.openStream();
-            final InputStreamReader inputStreamReader = new InputStreamReader(resourceInputStream);
-            BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-            return readEntirely(bufferedReader);
-        } finally {
-            resource.close();
-        }
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        resource.writeTo(outputStream, new CopyProgressListenerAdapter());
+        return outputStream.toString();
     }
-
-    static String readEntirely(BufferedReader in) throws IOException {
-        try {
-            StringBuffer buf = new StringBuffer();
-            String line = in.readLine();
-            while (line != null) {
-                buf.append(line);
-                line = in.readLine();
-                if (line != null) {
-                    buf.append("\n");
-                }
-            }
-            return buf.toString();
-        } finally {
-            in.close();
-        }
-    }
-
 }
