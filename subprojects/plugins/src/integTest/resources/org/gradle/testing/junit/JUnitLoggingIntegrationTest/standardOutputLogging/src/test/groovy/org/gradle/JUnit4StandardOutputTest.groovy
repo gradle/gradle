@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-
-
-package org.gradle.testing.junit.JUnitLoggingIntegrationTest.standardOutputLogging.src.test.groovy.org.gradle
+package org.gradle
 
 import org.junit.Ignore
 import org.junit.Test
