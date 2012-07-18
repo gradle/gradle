@@ -61,11 +61,11 @@ badTest FAILED
 
     def "standardOutputLogging"() {
         when:
-        result = executer.withArguments("-i").runWithFailure()
+        result = executer.withArguments("-q").runWithFailure()
 
         then:
         outputContains("""
-org.gradle.JUnit4Test > printTest STANDARD_OUT
+org.gradle.JUnit4StandardOutputTest > printTest STANDARD_OUT
     line 1
     line 2
     line 3

@@ -62,11 +62,11 @@ Gradle test FAILED
 
     def "standardOutputLogging"() {
         when:
-        result = executer.withArguments("-i").runWithFailure()
+        result = executer.withArguments("-q").runWithFailure()
 
         then:
         outputContains("""
-Gradle test > org.gradle.TestNGTest.printTest STANDARD_OUT
+Gradle test > org.gradle.TestNGStandardOutputTest.printTest STANDARD_OUT
     line 1
     line 2
     line 3
