@@ -15,18 +15,16 @@
  */
 package org.gradle.integtests.resolve.maven
 
+import org.gradle.integtests.fixture.M2Installation
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.MavenModule
 import org.gradle.integtests.fixtures.MavenRepository
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.TestFile
-import org.gradle.integtests.fixture.M2Installation
 import org.junit.Rule
-import spock.lang.IgnoreIf
 
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.not
-import org.gradle.integtests.fixtures.MavenModule
 
 class MavenLocalRepoResolveIntegrationTest extends AbstractIntegrationSpec {
 
