@@ -56,7 +56,7 @@ Changes are made to the codebase. Each change travels through the pipeline, at l
 
 At a high level the pipeline will have the following sequential phases:
 
-#### Phase #1 (Fast Test)
+#### Phase #1 (Fast Verify)
 
 Performs:
  
@@ -69,7 +69,7 @@ Note: The unit testing and fast integration testing will involve executing on a 
 
 #### Phase #2 (Package)
 
-Builds something like a `-bin` distribution, with potentially some extra metadata that links back to the build instance that created it.
+Builds the distribution, verifying that this can be done.
 
 #### Phase 3 (QA)
 
@@ -78,6 +78,14 @@ Runs additional QA such as forking based integration tests (using the package fr
 This could be arranged in a number of ways. The details of which are not important for the purpose of this document. 
 
 Part of this is ensuring that we have sufficient QA for both branches; `master` and `release`.
+
+#### Regarding Linux and Windows environments
+
+While the above phases imply a completely linear structure, this is not strictly the case. The “verify” and “QA” phases are swimlaned via platform.
+
+The following diagram should illustrate the intention:
+
+<img src="img/build_pipeline.jpg" />
 
 ### The promotion pipeline
 
@@ -94,9 +102,9 @@ Nightlies will be promoted from the `master` branch. All other promotions will h
 
 At a high level, the promotion pipeline will have the following phases:
 
-#### Phase #1 (Package)
+#### Phase #1 (Package & Smoke Test)
 
-The distribution(s) will be rebuilt with the allocated symbolic version number.
+The distribution(s) will be rebuilt with the allocated symbolic version number. The distributions will then be smoke tested.
 
 #### Phase #2 (Deploy/Release)
 
