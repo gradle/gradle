@@ -241,6 +241,40 @@ task aggregateTestReports(type: TestReportAggregator) {
     projects = subprojects
 }
 
+task determineCommitId {
+    ext.commitId = null
+    
+    doLast {
+        def baos = new ByteArrayOutputStream()
+        exec {
+            executable "git"
+            args "log", "-1", "--format=%H"
+            standardOutput = baos
+        }
+        commitId = new String(baos.toByteArray(), "utf8").trim()
+    }
+}
+
+task createBuildReceipt(dependsOn: determineCommitId) {
+    ext.receiptFile = file("$buildDir/build-receipt.json")
+    outputs.file receiptFile
+    outputs.upToDateWhen { false }
+    doLast {
+        def receipt = new groovy.json.JsonBuilder()
+        receipt(
+            commitId:  determineCommitId.commitId,
+            versionNumber: version.toString(),
+            buildTimestamp: version.timestamp,
+            username: System.properties["user.name"],
+            hostname: InetAddress.localHost.hostName,
+            javaVersion: System.properties["java.version"],
+            osName: System.properties["os.name"],
+            osVersion: System.properties["os.version"]
+        )
+        receiptFile.text = receipt.toPrettyString()
+    }
+}
+
 ext.zipRootFolder = "$archivesBaseName-${-> version}"
 
 ext.binDistImage = copySpec {
@@ -318,6 +352,7 @@ task distributionsZip(type: Zip) {
     ["all", "bin", "src"].each { name ->
         from(tasks["${name}Zip"]) { rename ".*", "${name}.zip" }
     }
+    from(createBuildReceipt)
 }
 
 artifacts {
