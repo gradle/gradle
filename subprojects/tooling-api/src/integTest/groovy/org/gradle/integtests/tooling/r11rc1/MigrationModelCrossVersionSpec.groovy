@@ -21,10 +21,10 @@ import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.tooling.model.migration.ProjectOutput
-
-import org.junit.Rule
 import org.gradle.tooling.internal.migration.DefaultArchive
 import org.gradle.tooling.internal.migration.DefaultTestResult
+
+import org.junit.Rule
 
 @MinToolingApiVersion("current")
 @MinTargetGradleVersion("current")
@@ -53,5 +53,17 @@ class MigrationModelCrossVersionSpec extends ToolingApiSpecification {
         testResults.size() == 2
         testResults.any { it.xmlReportDir == resources.dir.file("build", "test-results") }
         testResults.any { it.xmlReportDir == resources.dir.file("build", "other-results") }
+    }
+
+    def "modelContainsAllProjects"() {
+        when:
+        def output = withConnection { it.getModel(ProjectOutput.class) }
+
+        then:
+        output instanceof ProjectOutput
+        output.children.size() == 2
+        output.children.name as Set == ["project1", "project2"] as Set
+        output.children[0].children.empty
+        output.children[1].children.empty
     }
 }

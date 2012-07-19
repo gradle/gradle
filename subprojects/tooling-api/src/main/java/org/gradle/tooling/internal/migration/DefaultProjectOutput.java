@@ -16,26 +16,28 @@
 
 package org.gradle.tooling.internal.migration;
 
+import com.google.common.collect.Lists;
 import org.gradle.tooling.internal.protocol.InternalProjectOutput;
 import org.gradle.tooling.model.DomainObjectSet;
+import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
 import org.gradle.tooling.model.migration.ProjectOutput;
 import org.gradle.tooling.model.migration.TaskOutput;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.List;
 import java.util.Set;
 
 public class DefaultProjectOutput implements InternalProjectOutput, ProjectOutput, Serializable {
     private final String name;
     private final ProjectOutput parent;
-    private final DomainObjectSet<ProjectOutput> children;
+    private final List<ProjectOutput> children = Lists.newArrayList();
     private final Set<TaskOutput> taskOutputs;
 
-    public DefaultProjectOutput(String name, ProjectOutput parent, DomainObjectSet<ProjectOutput> children, Set<TaskOutput> taskOutputs) {
+    public DefaultProjectOutput(String name, ProjectOutput parent, Set<TaskOutput> taskOutputs) {
         this.name = name;
         this.taskOutputs = taskOutputs;
         this.parent = parent;
-        this.children = children;
     }
 
     public String getName() {
@@ -51,7 +53,7 @@ public class DefaultProjectOutput implements InternalProjectOutput, ProjectOutpu
     }
 
     public DomainObjectSet<ProjectOutput> getChildren() {
-        return children;
+        return new ImmutableDomainObjectSet<ProjectOutput>(children);
     }
 
     public Set<TaskOutput> getTaskOutputs() {
@@ -64,5 +66,9 @@ public class DefaultProjectOutput implements InternalProjectOutput, ProjectOutpu
 
     public File getProjectDirectory() {
         throw new UnsupportedOperationException("getProjectDirectory");
+    }
+
+    public void addChild(ProjectOutput child) {
+        children.add(child);
     }
 }

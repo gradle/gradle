@@ -27,11 +27,9 @@ import org.gradle.tooling.internal.migration.DefaultProjectOutput;
 import org.gradle.tooling.internal.migration.DefaultTestResult;
 import org.gradle.tooling.internal.protocol.InternalProjectOutput;
 import org.gradle.tooling.internal.protocol.ProjectVersion3;
-import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
 import org.gradle.tooling.model.migration.ProjectOutput;
 import org.gradle.tooling.model.migration.TaskOutput;
 
-import java.util.Collections;
 import java.util.Set;
 
 public class MigrationModelBuilder implements BuildsModel {
@@ -40,14 +38,21 @@ public class MigrationModelBuilder implements BuildsModel {
     }
 
     public ProjectVersion3 buildAll(GradleInternal gradle) {
-        Project project = gradle.getRootProject();
-        Set<TaskOutput> taskOutputs = Sets.newHashSet();
+        return buildProjectOutput(gradle.getRootProject(), null);
 
+    }
+
+    private DefaultProjectOutput buildProjectOutput(Project project, ProjectOutput parent) {
+        Set<TaskOutput> taskOutputs = Sets.newHashSet();
         addArchives(project, taskOutputs);
         addTestResults(project, taskOutputs);
 
-        return new DefaultProjectOutput(project.getName(), null,
-                ImmutableDomainObjectSet.of(Collections.<ProjectOutput>emptyList()), taskOutputs);
+        DefaultProjectOutput projectOutput = new DefaultProjectOutput(project.getName(), parent, taskOutputs);
+        for (Project child : project.getChildProjects().values()) {
+            projectOutput.addChild(buildProjectOutput(child, projectOutput));
+        }
+
+        return projectOutput;
     }
 
     private void addArchives(Project project, Set<TaskOutput> taskOutputs) {
