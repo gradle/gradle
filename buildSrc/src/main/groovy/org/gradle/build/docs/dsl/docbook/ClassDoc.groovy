@@ -77,15 +77,23 @@ class ClassDoc implements DslElementDoc {
         return classMetaData.experimental
     }
 
-    List<PropertyDoc> getClassProperties() { return classProperties }
+    Collection<PropertyDoc> getClassProperties() { return classProperties }
 
     void addClassProperty(PropertyDoc propertyDoc) {
         classProperties.add(propertyDoc)
     }
 
-    def getClassMethods() { return classMethods }
+    Collection<MethodDoc> getClassMethods() { return classMethods }
+
+    void addClassMethod(MethodDoc methodDoc) {
+        classMethods.add(methodDoc)
+    }
 
     def getClassBlocks() { return classBlocks }
+
+    void addClassBlock(BlockDoc blockDoc) {
+        classBlocks.add(blockDoc)
+    }
 
     def getClassExtensions() { return classExtensions }
 
@@ -97,7 +105,7 @@ class ClassDoc implements DslElementDoc {
 
     def getPropertyDetailsSection() { return getSection('Property details') }
 
-    def getMethodsTable() { return methodsTable }
+    Element getMethodsTable() { return methodsTable }
 
     def getMethodsSection() { return methodsSection }
 
@@ -108,8 +116,9 @@ class ClassDoc implements DslElementDoc {
     def getBlockDetailsSection() { return getSection('Script block details') }
 
     ClassDoc mergeContent() {
-        buildMethods()
         buildExtensions()
+        classMethods.sort { it.metaData.overrideSignature }
+        classBlocks.sort { it.name }
         return this
     }
 

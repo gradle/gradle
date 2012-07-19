@@ -19,16 +19,19 @@ package org.gradle.build.docs.dsl.docbook;
 public class ClassDocBuilder {
     private final ClassDocCommentBuilder commentBuilder;
     private final ClassDocPropertiesBuilder propertiesBuilder;
+    private final ClassDocMethodsBuilder methodsBuilder;
 
     public ClassDocBuilder(DslDocModel model, JavadocConverter javadocConverter) {
         GenerationListener listener = new DefaultGenerationListener();
         commentBuilder = new ClassDocCommentBuilder(javadocConverter, listener);
         propertiesBuilder = new ClassDocPropertiesBuilder(model, javadocConverter, listener);
+        methodsBuilder = new ClassDocMethodsBuilder(model, javadocConverter, listener);
     }
 
     void build(ClassDoc classDoc) {
         commentBuilder.build(classDoc);
         propertiesBuilder.build(classDoc);
+        methodsBuilder.build(classDoc);
         classDoc.mergeContent();
     }
 }

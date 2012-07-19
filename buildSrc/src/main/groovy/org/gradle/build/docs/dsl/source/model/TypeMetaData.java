@@ -69,6 +69,10 @@ public class TypeMetaData implements Serializable, TypeContainer {
         return this;
     }
 
+    public List<TypeMetaData> getTypeArgs() {
+        return typeArgs;
+    }
+
     public TypeMetaData getRawType() {
         if (wildcard || lowerBounds != null) {
             return OBJECT;

@@ -171,6 +171,14 @@ public class ClassMetaData extends AbstractLanguageElement implements Serializab
         return declaredMethods;
     }
 
+    public Set<String> getDeclaredMethodNames() {
+        Set<String> names = new HashSet<String>();
+        for (MethodMetaData declaredMethod : declaredMethods) {
+            names.add(declaredMethod.getName());
+        }
+        return names;
+    }
+
     public MethodMetaData findDeclaredMethod(String signature) {
         for (MethodMetaData method : declaredMethods) {
             if (method.getOverrideSignature().equals(signature)) {
@@ -178,6 +186,16 @@ public class ClassMetaData extends AbstractLanguageElement implements Serializab
             }
         }
         return null;
+    }
+
+    public List<MethodMetaData> findDeclaredMethods(String name) {
+        List<MethodMetaData> methods = new ArrayList<MethodMetaData>();
+        for (MethodMetaData method : declaredMethods) {
+            if (method.getName().equals(name)) {
+                methods.add(method);
+            }
+        }
+        return methods;
     }
 
     /**

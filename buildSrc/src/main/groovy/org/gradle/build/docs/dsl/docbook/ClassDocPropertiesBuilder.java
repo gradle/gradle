@@ -21,12 +21,11 @@ import org.gradle.build.docs.dsl.docbook.model.PropertyDoc;
 import org.gradle.build.docs.dsl.source.model.PropertyMetaData;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 
 import java.util.*;
 
-public class ClassDocPropertiesBuilder {
+public class ClassDocPropertiesBuilder extends ModelBuilderSupport {
     private final DslDocModel model;
     private final JavadocConverter javadocConverter;
     private final GenerationListener listener;
@@ -126,42 +125,5 @@ public class ClassDocPropertiesBuilder {
         for (PropertyDoc propertyDoc : props.values()) {
             classDoc.addClassProperty(propertyDoc);
         }
-    }
-
-    private List<Element> children(Element element, String childName) {
-        List<Element> matches = new ArrayList<Element>();
-        NodeList childNodes = element.getChildNodes();
-        for (int i = 0; i < childNodes.getLength(); i++) {
-            Node node = childNodes.item(i);
-            if (node instanceof Element) {
-                Element childElement = (Element) node;
-                if (childElement.getTagName().equals(childName)) {
-                    matches.add(childElement);
-                }
-            }
-        }
-        return matches;
-    }
-
-    private Element getChild(Element element, String childName) {
-        Element child = findChild(element, childName);
-        if (child != null) {
-            return child;
-        }
-        throw new RuntimeException(String.format("No <%s> element found in <%s>", childName, element.getTagName()));
-    }
-
-    private Element findChild(Element element, String childName) {
-        NodeList childNodes = element.getChildNodes();
-        for (int i = 0; i < childNodes.getLength(); i++) {
-            Node node = childNodes.item(i);
-            if (node instanceof Element) {
-                Element childElement = (Element) node;
-                if (childElement.getTagName().equals(childName)) {
-                    return childElement;
-                }
-            }
-        }
-        return null;
     }
 }
