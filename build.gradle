@@ -412,7 +412,7 @@ task commitBuild {
     dependsOn testedDists
 }
 
-task checkJavaVersion << {
+task verifyIsProductionBuildEnvironment << {
     assert Jvm.current().isJava7() : "Must use a Java 7 compatible JVM to perform this build. Current JVM is ${Jvm.current()}"
 }
 
