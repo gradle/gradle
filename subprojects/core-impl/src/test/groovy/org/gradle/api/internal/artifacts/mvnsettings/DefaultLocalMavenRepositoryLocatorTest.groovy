@@ -19,6 +19,8 @@ import org.gradle.util.TemporaryFolder
 
 import org.junit.Rule
 import spock.lang.Specification
+import org.gradle.util.TestFile
+import spock.lang.Unroll
 
 class DefaultLocalMavenRepositoryLocatorTest extends Specification {
     @Rule TemporaryFolder tmpDir = new TemporaryFolder()
@@ -41,6 +43,30 @@ class DefaultLocalMavenRepositoryLocatorTest extends Specification {
         expect:
         // this default comes from DefaultMavenSettingsBuilder which uses System.getProperty() directly
         locator.localMavenRepository == new File("${System.getProperty("user.home")}/.m2/repository")
+    }
+
+    def "throws exception on broken global settings file with decent error message"() {
+        given:
+        def settingsFile = locations.globalSettingsFile
+        settingsFile << "broken content"
+        when:
+        locator.localMavenRepository
+        then:
+        def ex = thrown(CannotLocateLocalMavenRepositoryException);
+        ex.message == "Unable to parse local maven settings"
+        ex.cause.message.contains(settingsFile.absolutePath)
+    }
+
+    def "throws exception on broken user settings file with decent error message"() {
+        given:
+        def settingsFile = locations.userSettingsFile
+        settingsFile << "broken content"
+        when:
+        locator.localMavenRepository
+        then:
+        def ex = thrown(CannotLocateLocalMavenRepositoryException)
+        ex.message == "Unable to parse local maven settings"
+        ex.cause.message.contains(settingsFile.absolutePath)
     }
 
     def "honors location specified in user settings file"() {
@@ -84,6 +110,23 @@ class DefaultLocalMavenRepositoryLocatorTest extends Specification {
         expect:
         locator.localMavenRepository == tmpDir.file("sys/prop/value/env/var/value")
     }
+
+    @Unroll
+    def "unresolvable placeholder for #propType throws exception with decent error message"() {
+        TestFile repoPath = tmpDir.file("\${$prop}")
+        writeSettingsFile(locations.userSettingsFile, repoPath)
+        when:
+        locator.localMavenRepository
+        then:
+        def ex = thrown(CannotLocateLocalMavenRepositoryException);
+        ex.message == "Cannot resolve placeholder '${prop}' in value '${repoPath.absolutePath}'"
+        where:
+        prop                  |   propType
+        'sys.unknown.prop'    |   "system property"
+        'env.unknown.ENV_VAR' |   "environment variable"
+    }
+
+
 
     private void writeSettingsFile(File settings, File repo) {
         writeSettingsFile(settings, repo.absolutePath)
