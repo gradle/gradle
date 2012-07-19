@@ -30,7 +30,7 @@ apply plugin: 'java-base'
 archivesBaseName = 'gradle'
 apply from: "gradle/versioning.gradle"
 
-ext {    
+ext {
     versions = [
         commons_io: 'commons-io:commons-io:1.4'
     ]
@@ -48,7 +48,7 @@ ext {
         },
         jcip: "net.jcip:jcip-annotations:1.0@jar",
     ]
-    
+
 }
 
 // Logging
@@ -143,7 +143,7 @@ allprojects {
     version = this.version
 
     apply from: "$rootDir/gradle/conventions-dsl.gradle"
-    
+
     ext {
         isDevBuild = {
             gradle.taskGraph.hasTask(developerBuild)
@@ -218,20 +218,36 @@ task aggregateTestReports(type: TestReportAggregator) {
 
 task determineCommitId {
     ext.commitId = null
-    
+
     doLast {
-        def envVar = System.getenv()["BUILD_VCS_NUMBER"]
-        if (envVar) {
-            commitId = envVar
-        } else {
-            def baos = new ByteArrayOutputStream()
-            exec {
-                executable "git"
-                args "log", "-1", "--format=%H"
-                standardOutput = baos
-            }
-            commitId = new String(baos.toByteArray(), "utf8").trim()
+        def strategies = []
+
+        def env = System.getenv()
+
+        // Builds of Gradle happening on the CI server
+        strategies << {
+            env["BUILD_VCS_NUMBER"]
         }
+
+        // For the discovery builds, this points to the Gradle revision
+        strategies << {
+            env.find { it.key.startsWith("BUILD_VCS_NUMBER_Gradle_Master") }?.value
+        }
+
+        // If it's a checkout, ask Git for it
+        strategies << {
+            if (file(".git").exists()) {
+                def baos = new ByteArrayOutputStream()
+                exec {
+                    executable "git"
+                    args "log", "-1", "--format=%H"
+                    standardOutput = baos
+                }
+                new String(baos.toByteArray(), "utf8").trim()
+            }
+        }
+
+        commitId = strategies.find { it.call() }
     }
 }
 
@@ -250,13 +266,13 @@ task createBuildReceipt(dependsOn: determineCommitId) {
             osName: System.properties["os.name"],
             osVersion: System.properties["os.version"]
         ]
-        
+
         receiptFile.parentFile.mkdirs()
-        
+
         // We write this out ourself instead of using the properties class to avoid the
         // annoying timestamp that insists on placing in there, that throws out incremental.
         def content = data.entrySet().collect { "$it.key=$it.value" }.sort().join("\n")
-        receiptFile.setText(content, "ISO-8859-1") 
+        receiptFile.setText(content, "ISO-8859-1")
     }
 }
 
