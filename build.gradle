@@ -313,10 +313,15 @@ task srcZip(type: Zip) {
     }
 }
 
-artifacts {
-    tasks.withType(Zip).each {
-        dists it
+task distributionsZip(type: Zip) {
+    archiveName "distributions.zip"
+    ["all", "bin", "src"].each { name ->
+        from(tasks["${name}Zip"]) { rename ".*", "${name}.zip" }
     }
+}
+
+artifacts {
+    dists allZip, binZip, srcZip
 }
 
 task intTestImage(type: Sync) {
