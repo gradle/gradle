@@ -74,7 +74,7 @@ class IdeaDependenciesProvider {
             repoFileDependencies.each {
                 def library = new SingleEntryModuleLibrary(
                         getPath(it.file), getPath(it.javadocFile), getPath(it.sourceFile), scopeName)
-                library.id = it.id
+                library.moduleVersion = it.id
                 moduleLibraries << library
             }
         }

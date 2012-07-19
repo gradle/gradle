@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ide.idea.model
 
+import org.gradle.api.Nullable
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 
 /**
@@ -24,9 +25,10 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier
 class SingleEntryModuleLibrary extends ModuleLibrary {
 
     /**
-     * Module identifier of the library. Can be null in case of libraries that are not from remote repos.
+     * Module version of the library, if any.
      */
-    ModuleVersionIdentifier id
+    @Nullable
+    ModuleVersionIdentifier moduleVersion
 
     /**
      * Creates single entry module library

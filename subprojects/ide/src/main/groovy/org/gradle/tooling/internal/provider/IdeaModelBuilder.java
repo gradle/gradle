@@ -92,8 +92,8 @@ public class IdeaModelBuilder implements BuildsModel {
                         .setScope(new DefaultIdeaDependencyScope(d.getScope()))
                         .setExported(d.getExported());
 
-                if (d.getId() != null) {
-                    defaultDependency.setExternalGradleModule(new DefaultGradleModuleVersion(d.getId()));
+                if (d.getModuleVersion() != null) {
+                    defaultDependency.setExternalGradleModule(new DefaultGradleModuleVersion(d.getModuleVersion()));
                 }
                 dependencies.add(defaultDependency);
             } else if (dependency instanceof ModuleDependency) {

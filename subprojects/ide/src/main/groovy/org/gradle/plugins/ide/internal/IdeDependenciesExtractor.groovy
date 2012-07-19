@@ -102,19 +102,19 @@ class IdeDependenciesExtractor {
         for (c in plusConfigurations) {
             def deps = c.resolvedConfiguration.lenientConfiguration.unresolvedModuleDependencies
             deps.each {
-                unresolved[it.identifier] = new UnresolvedIdeRepoFileDependency(
-                    file: new File(unresolvedFileName(it)), declaredConfiguration: c, id: it.identifier)
+                unresolved[it.selector] = new UnresolvedIdeRepoFileDependency(
+                    file: new File(unresolvedFileName(it)), declaredConfiguration: c)
             }
         }
         for (c in minusConfigurations) {
             def deps = c.resolvedConfiguration.lenientConfiguration.unresolvedModuleDependencies
-            deps.each { unresolved.remove(it.identifier) }
+            deps.each { unresolved.remove(it.selector) }
         }
         unresolved.values()
     }
 
     private String unresolvedFileName(UnresolvedDependency dep) {
-        "unresolved dependency - $dep.identifier.group $dep.identifier.name $dep.identifier.version"
+        "unresolved dependency - $dep.selector.group $dep.selector.name $dep.selector.version"
     }
 
     List<IdeLocalFileDependency> extractLocalFileDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {

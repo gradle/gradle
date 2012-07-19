@@ -64,8 +64,8 @@ public class ResolvedConfigurationIntegrationTest extends AbstractIntegrationTes
         assert resolved.find { it.moduleName == 'child' }
 
         assert unresolved.size() == 2
-        assert unresolved.find { it.identifier.group == 'unresolved.org' && it.identifier.name == 'hiphopxx' && it.identifier.version == '3.0' }
-        assert unresolved.find { it.identifier.name == 'some unresolved dependency' }
+        assert unresolved.find { it.selector.group == 'unresolved.org' && it.selector.name == 'hiphopxx' && it.selector.version == '3.0' }
+        assert unresolved.find { it.selector.name == 'some unresolved dependency' }
     }
 
     public MavenRepository maven(File repo) {
@@ -108,6 +108,6 @@ public class ResolvedConfigurationIntegrationTest extends AbstractIntegrationTes
 
         assert resolved.size() == 0
         assert unresolved.size() == 1
-        assert unresolved.find { it.identifier.name == 'hiphopxx' }
+        assert unresolved.find { it.selector.name == 'hiphopxx' }
     }
 }

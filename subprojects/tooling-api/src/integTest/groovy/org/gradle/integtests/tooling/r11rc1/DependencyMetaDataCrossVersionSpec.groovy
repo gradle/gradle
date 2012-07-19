@@ -76,17 +76,16 @@ dependencies {
     private void containModuleInfo(libs) {
         assert libs.size() == 3
 
-        ExternalDependency coolLib = libs.find { it.gradleModelVersion?.name == 'coolLib' }
+        ExternalDependency coolLib = libs.find { it.file.name == 'coolLib-2.0.jar' }
+        assert coolLib.gradleModelVersion
         assert coolLib.gradleModelVersion.group == 'foo.bar'
         assert coolLib.gradleModelVersion.name == 'coolLib'
         assert coolLib.gradleModelVersion.version == '2.0'
 
-        ExternalDependency funLib = libs.find { it.gradleModelVersion?.name == 'funLib' }
-        assert funLib.gradleModelVersion.group == 'unresolved.org'
-        assert funLib.gradleModelVersion.name == 'funLib'
-        assert funLib.gradleModelVersion.version == '1.0'
+        ExternalDependency funLib = libs.find { it.file.name.contains('funLib') }
+        assert funLib.gradleModelVersion == null
 
-        ExternalDependency yetAnotherJar = libs.find { it.gradleModelVersion == null }
-        assert yetAnotherJar.file.name == 'yetAnotherJar.jar'
+        ExternalDependency yetAnotherJar = libs.find { it.file.name == 'yetAnotherJar.jar' }
+        assert yetAnotherJar.gradleModelVersion == null
     }
 }

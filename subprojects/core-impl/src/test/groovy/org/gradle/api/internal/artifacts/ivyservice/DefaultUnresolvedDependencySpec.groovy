@@ -29,9 +29,9 @@ class DefaultUnresolvedDependencySpec extends Specification {
         def dep = new DefaultUnresolvedDependency(ModuleRevisionId.newInstance('org.foo', "foo", '1.0'), new RuntimeException("boo!"))
 
         then:
-        dep.identifier.group == 'org.foo'
-        dep.identifier.name == 'foo'
-        dep.identifier.version == '1.0'
+        dep.selector.group == 'org.foo'
+        dep.selector.name == 'foo'
+        dep.selector.version == '1.0'
         dep.id == 'org.foo#foo;1.0'
         dep.toString() == 'org.foo:foo:1.0'
     }

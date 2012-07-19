@@ -100,7 +100,7 @@ class ClasspathFactory {
         out.sourcePath = sourceRef
         out.exported = true
         out.declaredConfigurationName = declaredConfigurationName
-        out.id = id
+        out.moduleVersion = id
         out
     }
 }

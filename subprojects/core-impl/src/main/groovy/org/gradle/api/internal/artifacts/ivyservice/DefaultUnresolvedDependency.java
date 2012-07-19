@@ -16,29 +16,29 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.util.DeprecationLogger;
 
 public class DefaultUnresolvedDependency implements UnresolvedDependency {
     private final Throwable problem;
-    private ModuleVersionIdentifier id;
+    private final ModuleVersionSelector selector;
     private final ModuleRevisionId revisionId;
 
     public DefaultUnresolvedDependency(ModuleRevisionId id, Throwable problem) {
         revisionId = id;
-        this.id = new DefaultModuleVersionIdentifier(id.getOrganisation(), id.getName(), id.getRevision());
+        this.selector = new DefaultModuleVersionIdentifier(id.getOrganisation(), id.getName(), id.getRevision());
         this.problem = problem;
     }
 
     public String getId() {
-        DeprecationLogger.nagUserOfReplacedMethod("UnresolvedDependency.getId()", "UnresolvedDependency.getIdentifier()");
+        DeprecationLogger.nagUserOfReplacedMethod("UnresolvedDependency.getId()", "UnresolvedDependency.getSelector()");
         return revisionId.toString();
     }
 
-    public ModuleVersionIdentifier getIdentifier() {
-        return id;
+    public ModuleVersionSelector getSelector() {
+        return selector;
     }
 
     public Throwable getProblem() {
@@ -46,6 +46,6 @@ public class DefaultUnresolvedDependency implements UnresolvedDependency {
     }
 
     public String toString() {
-        return id.getGroup() + ":" + id.getName() + ":" + id.getVersion();
+        return selector.getGroup() + ":" + selector.getName() + ":" + selector.getVersion();
     }
 }
