@@ -37,6 +37,7 @@ class HttpResponseResource extends AbstractExternalResource {
     private final String source;
     private final HttpResponse response;
     private final ExternalResourceMetaData metaData;
+    private boolean wasOpened;
 
     public HttpResponseResource(String method, String source, HttpResponse response) {
         this.method = method;
@@ -99,7 +100,11 @@ class HttpResponseResource extends AbstractExternalResource {
     }
 
     public InputStream openStream() throws IOException {
+        if(wasOpened){
+            throw new IOException("Unable to open Stream as it was opened before.");
+        }
         LOGGER.debug("Attempting to download resource {}.", source);
+        this.wasOpened = true;
         return response.getEntity().getContent();
     }
 
