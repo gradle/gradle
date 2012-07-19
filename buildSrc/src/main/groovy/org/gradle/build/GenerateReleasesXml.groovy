@@ -23,10 +23,10 @@ import org.gradle.api.tasks.TaskAction
 
 class GenerateReleasesXml extends DefaultTask {
     @Input
-    String getVersion() { return project.version.versionNumber }
+    String getVersion() { return project.version }
 
     @Input
-    Date getBuildTime() { return project.version.buildTime }
+    Date getBuildTime() { return project.buildTime }
 
     @OutputFile
     File destFile

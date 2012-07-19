@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import org.gradle.build.Version
 import org.gradle.build.Install
 import org.gradle.build.Tag
 import org.gradle.build.Releases
@@ -31,15 +30,13 @@ import org.gradle.build.TestReportAggregator
  */
 
 ext.releases = new Releases(project(':core').file('src/releases.xml'), project)
-version = Version.forProject(project)
 
 defaultTasks 'assemble'
-
 apply plugin: 'java-base'
-
 archivesBaseName = 'gradle'
+apply from: "gradle/versioning.gradle"
 
-ext {
+ext {    
     versions = [
         commons_io: 'commons-io:commons-io:1.4'
     ]

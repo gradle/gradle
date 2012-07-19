@@ -38,9 +38,9 @@ class Releases {
     void generateTo(File resourceFile) {
         modifyTo(resourceFile) {
             next.each { remove(it) }
-            current[0].'@version' = this.project.version.versionNumber
+            current[0].'@version' = this.project.version
             current[0].'@build-time' = this.formattedBuildTime
-            current[0].'@type' = this.project.version.release ? 'release' : 'snapshot'
+            current[0].'@type' = this.project.isSnapshot ? 'snapshot' : 'release'
         }
     }
 
@@ -72,7 +72,7 @@ class Releases {
     }
 
     private String getFormattedBuildTime() {
-        return new SimpleDateFormat("yyyyMMddHHmmssZ").format(project.version.buildTime)
+        return new SimpleDateFormat("yyyyMMddHHmmssZ").format(project.buildTime)
     }
 
     private load() {

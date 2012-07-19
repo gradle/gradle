@@ -56,7 +56,9 @@ class ReleasesTest extends Specification {
     <release version="ignore-me" build-time="ignore-me"/>
 </releases>
 '''
-        project.version = [versionNumber: '1.0-milestone-2', buildTime: buildTime]
+        project.version = '1.0-milestone-2'
+        project.ext.buildTime = buildTime
+        project.ext.isSnapshot = true
 
         when:
         releases.generateTo(destFile)
@@ -69,7 +71,7 @@ class ReleasesTest extends Specification {
 """
 
         when:
-        project.version.release = true
+        project.ext.isSnapshot = false
         releases.generateTo(destFile)
 
         then:
@@ -98,7 +100,7 @@ class ReleasesTest extends Specification {
   <release version="previous" build-time="20101220123412-0200"/>
 </releases>
 '''
-        project.version = [buildTime: buildTime]
+        project.ext.buildTime = buildTime
 
         when:
         releases.incrementNextVersion()

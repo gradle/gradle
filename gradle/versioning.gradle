@@ -1,0 +1,48 @@
+def timestampFormat = new java.text.SimpleDateFormat('yyyyMMddHHmmssZ')
+timestampFormat.timeZone = TimeZone.getTimeZone("UTC")
+
+if (project.hasProperty("buildTimestamp")) {
+    ext.buildTime = timestampFormat.parse(buildTimestamp)
+} else {
+    File timestampFile = file("$buildDir/timestamp.txt")
+    if (timestampFile.isFile()) {
+        boolean uptodate = true
+        def modified = timestampFile.lastModified()
+        project(':core').fileTree('src/main').visit {fte ->
+            if (fte.file.isFile() && fte.lastModified > modified) {
+                uptodate = false
+                fte.stopVisiting()
+            }
+        }
+        if (!uptodate) {
+            timestampFile.setLastModified(new Date().time)
+        }
+    } else {
+        timestampFile.parentFile.mkdirs()
+        timestampFile.createNewFile()
+    }
+
+    ext.buildTime = new Date(timestampFile.lastModified())
+    ext.buildTimestamp = timestampFormat.format(buildTime)
+}
+
+ext.isSnapshot = !project.hasProperty("notSnapshot")
+
+if (version == "unspecified") {
+    if (!isSnapshot) {
+        throw new InvalidUserDataException("Cannot specify 'notSnapshot' without specifying 'version'")
+    }
+    
+    // 0.0 means the version is non symbolic.
+    // We have to use something that looks like a real version number because there are a few places
+    // where this value is validated, e.g. the wrapper stuff. We should fix this at some point so we can do
+    // things like use build numbers or commit IDs.
+    version = "0.0"
+    ext.isSymbolicVersion = false
+} else {
+    ext.isSymbolicVersion = true
+}
+
+if (isSnapshot) {
+    version += "-$buildTimestamp"
+}
