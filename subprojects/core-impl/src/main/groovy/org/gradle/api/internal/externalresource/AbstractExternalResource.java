@@ -25,22 +25,15 @@ public abstract class AbstractExternalResource implements ExternalResource {
     public void writeTo(File destination, CopyProgressListener progress) throws IOException {
         FileOutputStream output = new FileOutputStream(destination);
         writeTo(output, progress);
+        output.close();
     }
 
     public void writeTo(OutputStream output, CopyProgressListener progress) throws IOException {
+        InputStream input = openStream();
         try {
-            InputStream input = openStream();
-            try {
-                FileUtil.copy(input, output, progress);
-            } finally {
-                input.close();
-            }
+            FileUtil.copy(input, output, progress);
         } finally {
-            try{
-                close();
-            }finally {
-                output.close();
-            }
+            input.close();
         }
     }
 

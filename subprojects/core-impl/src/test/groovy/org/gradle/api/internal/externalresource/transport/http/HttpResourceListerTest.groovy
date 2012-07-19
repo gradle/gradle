@@ -31,5 +31,6 @@ class HttpResourceListerTest extends Specification {
         then:
         1 * accessorMock.getResource("http://testrepo/") >> externalResource
         1 * externalResource.writeTo(_, _)
+        1 * externalResource.close()
     }
 }

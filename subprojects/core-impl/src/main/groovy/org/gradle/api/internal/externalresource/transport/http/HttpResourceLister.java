@@ -53,6 +53,8 @@ public class HttpResourceLister implements ExternalResourceLister {
         final ExternalResource resource = accessor.getResource(url.toString());
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         resource.writeTo(outputStream, new CopyProgressListenerAdapter());
+        outputStream.close();
+        resource.close();
         return outputStream.toString();
     }
 }
