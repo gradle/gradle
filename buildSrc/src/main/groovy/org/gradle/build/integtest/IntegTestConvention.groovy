@@ -30,7 +30,7 @@ class IntegTestConvention {
         if (!project.tasks.findByName('ciBuild') || !project.gradle.taskGraph.populated) {
             return null
         }
-        if (project.isCIBuild() || project.isReleaseBuild() ) {
+        if (project.isCIBuild()) {
             return 'forking'
         }
         return System.getProperty("org.gradle.integtest.executer") ?: 'embedded'
