@@ -85,7 +85,7 @@ While the above phases imply a completely linear structure, this is not strictly
 
 The following diagram should illustrate the intention:
 
-<img src="img/build_pipeline.jpg" />
+<img src="https://github.com/gradle/gradle/raw/master/design-docs/img/build_pipeline.jpg" />
 
 ### The promotion pipeline
 
