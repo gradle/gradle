@@ -31,3 +31,4 @@
 .DS_Store
 /performanceTest/lib
 .textmate
+*.hprof
