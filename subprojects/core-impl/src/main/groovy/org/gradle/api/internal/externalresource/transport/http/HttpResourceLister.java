@@ -34,9 +34,12 @@ public class HttpResourceLister implements ExternalResourceLister {
 
     public List<String> list(String parent) throws IOException {
         final URL inputUrl = new URL(parent);
-        String htmlText = loadResourceContent(new URL(parent));
+        String resourceContentString = loadResourceContent(new URL(parent));
+        if(resourceContentString==null){
+            return null;
+        }
         ApacheDirectoryListingParser directoryListingParser = new ApacheDirectoryListingParser(inputUrl);
-        List<URL> urls = directoryListingParser.parse(htmlText);
+        List<URL> urls = directoryListingParser.parse(resourceContentString);
         List<String> ret = new ArrayList<String>(urls.size());
         for (URL url : urls) {
             ret.add(url.toExternalForm());
@@ -51,10 +54,13 @@ public class HttpResourceLister implements ExternalResourceLister {
         }
 
         final ExternalResource resource = accessor.getResource(url.toString());
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        resource.writeTo(outputStream, new CopyProgressListenerAdapter());
-        outputStream.close();
-        resource.close();
-        return outputStream.toString();
+        if(resource!=null){
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                    resource.writeTo(outputStream, new CopyProgressListenerAdapter());
+                    outputStream.close();
+                    resource.close();
+                    return outputStream.toString();
+        }
+        return null;
     }
 }

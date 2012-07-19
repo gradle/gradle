@@ -21,16 +21,23 @@ import spock.lang.Specification
 
 class HttpResourceListerTest extends Specification {
 
+    HttpResourceAccessor accessorMock = Mock(HttpResourceAccessor)
+    ExternalResource externalResource = Mock(ExternalResource)
+    HttpResourceLister lister = new HttpResourceLister(accessorMock)
+
     def "loadResourceContent adds trailing slashes to relative input URL before performing http request"() {
-        setup:
-        def accessorMock = Mock(HttpResourceAccessor)
-        def externalResource = Mock(ExternalResource)
-        def lister = new HttpResourceLister(accessorMock)
         when:
         lister.loadResourceContent(new URL("http://testrepo"))
         then:
         1 * accessorMock.getResource("http://testrepo/") >> externalResource
         1 * externalResource.writeTo(_, _)
         1 * externalResource.close()
+    }
+
+    def "loadResourceContent returns null when nested HttpResourceAccessor returns null for getResource"() {
+        setup:
+        1 * accessorMock.getResource("http://testrepo/") >> null;
+        expect:
+        null == lister.loadResourceContent(new URL("http://testrepo"))
     }
 }
