@@ -52,7 +52,6 @@ task retrieve(type: Sync) {
         server.expectGet('/gradletest/maven/local/cache/test/foo/1.0/foo-1.0.jar.sha1', repoFile.file('gradletest/maven/local/cache/test/foo/1.0/foo-1.0.jar.sha1'))
 
         then:
-        SystemProperties.getUserHome()
         executer.withArguments("-Duser.home=${distribution.getUserHomeDir()}")
         run 'retrieve'
     }
