@@ -25,8 +25,6 @@ import org.gradle.build.TestReportAggregator
  * following properties can be set:
  *
  * Uploading distributions to Gradle's release and snapshot repository at codehaus: artifactoryUserName, artifactoryUserPassword
- * Uploading the userguide and the javadoc to Gradle's website: websiteScpUserName, websiteScpUserPassword
- * Using the build to create a new distribution and install it on the local machine: gradle_installPath
  */
 
 ext.releases = new Releases(project(':core').file('src/releases.xml'), project)
@@ -491,11 +489,6 @@ task incrementNextVersion << {
     releases.incrementNextVersion()
 }
 
-task uploadAll {
-    description = 'Uploads binaries, sources and documentation. Does not upload the website! Useful when release procedure breaks at upload and only upload tasks should executed again'
-    dependsOn uploadArchives, "website:uploadDistributions", "website:uploadDocs", "website:pushReleasesXml"
-}
-
 def wrapperUpdateTask = { name, label ->
     task "${name}Wrapper"(type: Wrapper) {
         doFirst {
@@ -521,7 +514,7 @@ wrapperUpdateTask("rc", "release-candidate")
 wrapperUpdateTask("current", "current")
 
 def groovyProjects() {
-    subprojects.findAll { !(it.name in ["docs", "website"]) }
+    subprojects.findAll { !(it.name in ["docs"]) }
 }
 
 def publishedProjects() {
