@@ -25,7 +25,7 @@ import org.gradle.tooling.model.idea.IdeaProject
 
 @MinToolingApiVersion('current')
 @MinTargetGradleVersion('current')
-class ExternalGradleModulesCrossVersionSpec extends ToolingApiSpecification {
+class DependencyMetaDataCrossVersionSpec extends ToolingApiSpecification {
 
     def "idea libraries contain gradle module information"() {
         given:
@@ -76,17 +76,17 @@ dependencies {
     private void containModuleInfo(libs) {
         assert libs.size() == 3
 
-        ExternalDependency coolLib = libs.find { it.externalGradleModule?.name == 'coolLib' }
-        assert coolLib.externalGradleModule.group == 'foo.bar'
-        assert coolLib.externalGradleModule.name == 'coolLib'
-        assert coolLib.externalGradleModule.version == '2.0'
+        ExternalDependency coolLib = libs.find { it.gradleModelVersion?.name == 'coolLib' }
+        assert coolLib.gradleModelVersion.group == 'foo.bar'
+        assert coolLib.gradleModelVersion.name == 'coolLib'
+        assert coolLib.gradleModelVersion.version == '2.0'
 
-        ExternalDependency funLib = libs.find { it.externalGradleModule?.name == 'funLib' }
-        assert funLib.externalGradleModule.group == 'unresolved.org'
-        assert funLib.externalGradleModule.name == 'funLib'
-        assert funLib.externalGradleModule.version == '1.0'
+        ExternalDependency funLib = libs.find { it.gradleModelVersion?.name == 'funLib' }
+        assert funLib.gradleModelVersion.group == 'unresolved.org'
+        assert funLib.gradleModelVersion.name == 'funLib'
+        assert funLib.gradleModelVersion.version == '1.0'
 
-        ExternalDependency yetAnotherJar = libs.find { it.externalGradleModule == null }
+        ExternalDependency yetAnotherJar = libs.find { it.gradleModelVersion == null }
         assert yetAnotherJar.file.name == 'yetAnotherJar.jar'
     }
 }

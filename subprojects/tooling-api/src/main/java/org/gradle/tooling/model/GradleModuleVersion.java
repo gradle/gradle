@@ -19,12 +19,12 @@ package org.gradle.tooling.model;
 import org.gradle.api.Experimental;
 
 /**
- * Informs about external Gradle module, i.e. group, name, version.
+ * Informs about a module version, i.e. group, name, version.
  *
  * @since 1.1-rc-1
  */
 @Experimental
-public interface ExternalGradleModule {
+public interface GradleModuleVersion {
 
     /**
      * The group of the module, for example 'org.gradle'.
@@ -37,7 +37,7 @@ public interface ExternalGradleModule {
     String getName();
 
     /**
-     * The version of the module, for example '1.0'.
+     * The version, for example '1.0'.
      */
     String getVersion();
 

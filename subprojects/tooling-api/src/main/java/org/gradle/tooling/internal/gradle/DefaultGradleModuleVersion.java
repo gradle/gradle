@@ -17,20 +17,20 @@
 package org.gradle.tooling.internal.gradle;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.tooling.model.ExternalGradleModule;
+import org.gradle.tooling.model.GradleModuleVersion;
 
 import java.io.Serializable;
 
 /**
  * by Szczepan Faber, created at: 5/11/12
  */
-public class DefaultExternalGradleModule implements ExternalGradleModule, Serializable {
+public class DefaultGradleModuleVersion implements GradleModuleVersion, Serializable {
 
     private final String group;
     private final String name;
     private final String version;
 
-    public DefaultExternalGradleModule(ModuleVersionIdentifier identifier) {
+    public DefaultGradleModuleVersion(ModuleVersionIdentifier identifier) {
         this.group = identifier.getGroup();
         this.name = identifier.getName();
         this.version = identifier.getVersion();
@@ -50,7 +50,7 @@ public class DefaultExternalGradleModule implements ExternalGradleModule, Serial
 
     @Override
     public String toString() {
-        return "ExternalGradleModule{"
+        return "GradleModuleVersion{"
                  + "group='" + group + '\''
                  + ", name='" + name + '\''
                  + ", version='" + version + '\''

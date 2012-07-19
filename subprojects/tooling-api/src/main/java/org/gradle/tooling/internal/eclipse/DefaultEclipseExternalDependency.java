@@ -16,9 +16,9 @@
 package org.gradle.tooling.internal.eclipse;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.tooling.internal.gradle.DefaultExternalGradleModule;
+import org.gradle.tooling.internal.gradle.DefaultGradleModuleVersion;
 import org.gradle.tooling.internal.protocol.ExternalDependencyVersion1;
-import org.gradle.tooling.model.ExternalGradleModule;
+import org.gradle.tooling.model.GradleModuleVersion;
 
 import java.io.File;
 import java.io.Serializable;
@@ -27,13 +27,13 @@ public class DefaultEclipseExternalDependency implements ExternalDependencyVersi
     private final File file;
     private final File javadoc;
     private final File source;
-    private final ExternalGradleModule externalGradleModule;
+    private final GradleModuleVersion moduleVersion;
 
     public DefaultEclipseExternalDependency(File file, File javadoc, File source, ModuleVersionIdentifier identifier) {
         this.file = file;
         this.javadoc = javadoc;
         this.source = source;
-        externalGradleModule = (identifier == null)? null : new DefaultExternalGradleModule(identifier);
+        moduleVersion = (identifier == null)? null : new DefaultGradleModuleVersion(identifier);
     }
 
     public File getFile() {
@@ -48,7 +48,7 @@ public class DefaultEclipseExternalDependency implements ExternalDependencyVersi
         return source;
     }
 
-    public ExternalGradleModule getExternalGradleModule() {
-        return externalGradleModule;
+    public GradleModuleVersion getGradleModelVersion() {
+        return moduleVersion;
     }
 }
