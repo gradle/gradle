@@ -15,7 +15,6 @@
  */
 
 import org.gradle.build.Install
-import org.gradle.build.Tag
 import org.gradle.build.Releases
 import org.gradle.build.TestReportAggregator
 
@@ -421,10 +420,6 @@ gradle.taskGraph.whenReady {graph ->
         subprojects { reporting.baseDir "$rootProject.reporting.baseDir/${path.replaceFirst(':', '').replaceAll(':', '.')}" }
     }
 }
-
-task tag(type: Tag)
-
-task testedTag(type: Tag, dependsOn: testedDists)
 
 task incrementNextVersion << {
     releases.incrementNextVersion()
