@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,63 +47,92 @@ public class ApacheDirectoryListingParser {
             String href = matcher.group(1);
             String text = matcher.group(2);
             text = text.trim();
-
-            // handle complete URL listings
-            if (href.startsWith("http:") || href.startsWith("https:")) {
-                try {
-                    href = new URL(href).getPath();
-                    if (!href.startsWith(inputUrl.getPath())) {
-                        // ignore URLs which aren't children of the base URL
-                        continue;
-                    }
-                    href = href.substring(inputUrl.getPath().length());
-                } catch (Exception ignore) {
-                    // incorrect URL, ignore
-                    continue;
-                }
+            URL child = parseLink(href, text);
+            if (child != null) {
+                urlList.add(child);
+                LOGGER.debug("found URL=[" + child + "].");
             }
-
-            if (href.startsWith("../")) {
-                // skip parent URLs
-                continue;
-            }
-
-            // absolute href: convert to relative one
-            if (href.startsWith("/")) {
-                int slashIndex = href.substring(0, href.length() - 1).lastIndexOf('/');
-                href = href.substring(slashIndex + 1);
-            }
-
-            // convert relative href to url
-            if (href.startsWith("./")) {
-                href = href.substring("./".length());
-            }
-
-            // exclude those where they do not match
-            // href will never be truncated, text may be truncated by apache
-            if (text.endsWith("..>")) {
-                // text is probably truncated, we can only check if the href starts with text
-                if (!href.startsWith(text.substring(0, text.length() - 3))) {
-                    continue;
-                }
-            } else if (text.endsWith("..&gt;")) {
-                // text is probably truncated, we can only check if the href starts with text
-                if (!href.startsWith(text.substring(0, text.length() - 6))) {
-                    continue;
-                }
-            } else {
-                // text is not truncated, so it must match the url after stripping optional
-                // trailing slashes
-                String strippedHref = href.endsWith("/") ? href.substring(0, href.length() - 1) : href;
-                String strippedText = text.endsWith("/") ? text.substring(0, text.length() - 1) : text;
-                if (!strippedHref.equalsIgnoreCase(strippedText)) {
-                    continue;
-                }
-            }
-            URL child = new URL(inputUrl, href);
-            urlList.add(child);
-            LOGGER.debug("found URL=[" + child + "].");
         }
         return urlList;
+    }
+
+    URL parseLink(String href, String text) throws MalformedURLException {
+        href = stripBaseURL(href);
+        href = skipParentUrl(href);
+        href = convertRelativeHrefToUrl(href);
+        href = convertAbsoluteHrefToRelative(href);
+        href = isTruncatedText(text) ? handleTruncatedLink(href, text) : validateHrefAndTextEquals(href, text);
+        return href != null ? new URL(inputUrl, href) : null;
+    }
+
+    private String validateHrefAndTextEquals(String href, String text) {
+        if (href != null && text != null) {
+            String strippedHref = stripOptionalSlash(href);
+            String strippedText = stripOptionalSlash(text);
+            if (strippedHref != null && !strippedHref.equalsIgnoreCase(strippedText)) {
+                return null;
+            }
+        }
+        return href;
+    }
+
+    private String convertRelativeHrefToUrl(String href) {
+        if (href != null && href.startsWith("./")) {
+            return href.substring("./".length());
+        }
+        return href;
+    }
+
+    private String stripOptionalSlash(String input) {
+        return input != null && input.endsWith("/") ? input.substring(0, input.length() - 1) : input;
+    }
+
+    private String handleTruncatedLink(String href, String text) {
+        if (text.endsWith("..>")) {
+            // text is probably truncated, we can only check if the href starts with text
+            if (!href.startsWith(text.substring(0, text.length() - 3))) {
+                return null;
+            }
+        } else if (text.endsWith("..&gt;")) {
+            // text is probably truncated, we can only check if the href starts with text
+            if (!href.startsWith(text.substring(0, text.length() - 6))) {
+                return null;
+            }
+        }
+        return href;
+    }
+
+    private boolean isTruncatedText(String text) {
+        return text.endsWith("..>") || text.endsWith("..&gt;");
+    }
+
+    private String convertAbsoluteHrefToRelative(String href) {
+        if (href != null && href.startsWith("/")) {
+            int slashIndex = href.substring(0, href.length() - 1).lastIndexOf('/');
+            return href.substring(slashIndex + 1);
+        }
+        return href;
+    }
+
+    private String skipParentUrl(String href) {
+        if ("../".equals(href)) {
+            return null;
+        }
+        return href;
+    }
+
+    private String stripBaseURL(String href) {
+        if(href != null && (href.startsWith("http:") || href.startsWith("https:"))) {
+            try {
+                href = new URL(href).getPath();
+                if (!href.startsWith(inputUrl.getPath())) {
+                    return null;
+                }
+                return href.substring(inputUrl.getPath().length());
+            } catch (Exception ignore) {
+                return null;
+            }
+        }
+        return href;
     }
 }

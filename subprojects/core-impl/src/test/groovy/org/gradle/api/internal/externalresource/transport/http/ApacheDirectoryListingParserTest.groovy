@@ -19,15 +19,38 @@ package org.gradle.api.internal.externalresource.transport.http
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import static junit.framework.Assert.assertNotNull
+import static org.junit.Assert.assertNull
+
 class ApacheDirectoryListingParserTest extends Specification {
-    @Unroll
-    def "ignores #descr"() {
-        given:
-        def baseUrl = new URL("http://testrepo/")
-        ApacheDirectoryListingParser parser = new ApacheDirectoryListingParser(baseUrl);
+
+    private URL baseUrl = new URL("http://testrepo/")
+    private ApacheDirectoryListingParser parser = new ApacheDirectoryListingParser(baseUrl);
+
+    def "parse returns empty List if no link can be found"() {
         expect:
-        def urls = parser.parse("<a href=\"$href\">$text</a>" as String)
+        List urls = parser.parse("<html>no link here</html>")
+        assertNotNull(urls)
         urls.isEmpty()
+    }
+
+    def "parse handles multiple listed links"() {
+        given:
+        def html = """
+        <a href="directory1">directory1</a>
+        <a href="directory2">directory2</a>
+        <a href="directory3">directory3</a>
+        <a href="directory4">directory4</a>"""
+        expect:
+        List urls = parser.parse(html)
+        assertNotNull(urls)
+        urls.collect {it.toString()} == ["http://testrepo/directory1", "http://testrepo/directory2", "http://testrepo/directory3", "http://testrepo/directory4"]
+    }
+
+    @Unroll
+    def "parseLink ignores #descr"() {
+        expect:
+        assertNull parser.parseLink(href, text)
         where:
         href                      | text         | descr
         "http://anothertestrepo/" | "directory1" | "URLs which aren't children of base URL"
@@ -36,22 +59,27 @@ class ApacheDirectoryListingParserTest extends Specification {
         "dir1/subdir1"            | "directory1" | "links to nested subdirectories"
     }
 
+
     @Unroll
-    def "handles #urlType URLs"() {
-        given:
-        def baseUrl = new URL("http://testrepo/")
-        ApacheDirectoryListingParser parser = new ApacheDirectoryListingParser(baseUrl);
+    def "parseLink handles #urlDescr"() {
         expect:
-        def urls = parser.parse("<a href=\"$href\">$text</a>" as String)
-        urls.size() == 1
-        urls.collect {it.toString()} == ["http://testrepo/directory1"]
+        def url = parser.parseLink(href, text)
+        assertNotNull url
+        url.toString() == "http://testrepo/directory1"
         where:
-        href                         | text           | urlType
+        href                         | text           | urlDescr
         "directory1"                 | "directory1"   | "relative URLS"
         "/directory1"                | "directory1"   | "absolute URLS"
         "./directory1"               | "directory1"   | "absolute URLS"
         "http://testrepo/directory1" | "directory1"   | "complete URLS"
-        "http://testrepo/directory1" | "directory1"   | "complete URLS"
         "http://testrepo/directory1" | "direct..&gt;" | "hrefs with truncated text"
+    }
+
+    @Unroll
+    def "#method returns null if input is null"() {
+        expect:
+        assertNull parser."$method"(null)
+        where:
+        method << ["stripBaseURL", "skipParentUrl", "convertRelativeHrefToUrl"]
     }
 }

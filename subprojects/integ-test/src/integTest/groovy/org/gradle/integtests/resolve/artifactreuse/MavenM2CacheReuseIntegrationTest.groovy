@@ -17,6 +17,7 @@ package org.gradle.integtests.resolve.artifactreuse
 
 import org.gradle.integtests.fixture.M2Installation
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
+import org.gradle.internal.SystemProperties
 
 class MavenM2CacheReuseIntegrationTest extends AbstractDependencyResolutionTest {
 
@@ -51,7 +52,7 @@ task retrieve(type: Sync) {
         server.expectGet('/gradletest/maven/local/cache/test/foo/1.0/foo-1.0.jar.sha1', repoFile.file('gradletest/maven/local/cache/test/foo/1.0/foo-1.0.jar.sha1'))
 
         then:
-        executer.withForkingExecuter()
+        SystemProperties.getUserHome()
         executer.withArguments("-Duser.home=${distribution.getUserHomeDir()}")
         run 'retrieve'
     }

@@ -37,14 +37,11 @@ public class HttpResourceLister implements ExternalResourceLister {
         String htmlText = loadResourceContent(new URL(parent));
         ApacheDirectoryListingParser directoryListingParser = new ApacheDirectoryListingParser(inputUrl);
         List<URL> urls = directoryListingParser.parse(htmlText);
-        if (urls != null) {
-            List<String> ret = new ArrayList<String>(urls.size());
-            for (URL url : urls) {
-                ret.add(url.toExternalForm());
-            }
-            return ret;
+        List<String> ret = new ArrayList<String>(urls.size());
+        for (URL url : urls) {
+            ret.add(url.toExternalForm());
         }
-        return null;
+        return ret;
     }
 
     String loadResourceContent(URL url) throws IOException {
