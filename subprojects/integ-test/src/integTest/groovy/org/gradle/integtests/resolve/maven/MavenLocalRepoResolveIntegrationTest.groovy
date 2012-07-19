@@ -179,7 +179,6 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractIntegrationSpec {
             executer.withEnvironmentVars(M2_HOME:m2.globalMavenDirectory.absolutePath)
         }
         executer.withArguments(args)
-        executer.withForkingExecuter()
     }
 
     M2Installation localM2() {
