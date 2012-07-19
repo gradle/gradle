@@ -313,31 +313,37 @@ ext.allDistImage = copySpec {
 
 task allZip(type: Zip) {
     classifier = 'all'
-    with allDistImage
+    into(zipRootFolder) {
+        with allDistImage
+    }
 }
 
 task binZip(type: Zip) {
     classifier = 'bin'
-    with binDistImage
+    into(zipRootFolder) {
+        with binDistImage
+    }
 }
 
 task srcZip(type: Zip) {
     classifier = 'src'
-    from('gradlew') {
-        fileMode = 0755
-    }
-    from(projectDir) {
-        def spec = delegate
-        ['buildSrc', 'subprojects/*'].each {
-            spec.include "$it/*.gradle"
-            spec.include "$it/src/"
+    into(zipRootFolder) {
+        from('gradlew') {
+            fileMode = 0755
         }
-        include 'config/'
-        include 'gradle/'
-        include 'src/'
-        include '*.gradle'
-        include 'wrapper/'
-        include 'gradlew.bat'
+        from(projectDir) {
+            def spec = delegate
+            ['buildSrc', 'subprojects/*'].each {
+                spec.include "$it/*.gradle"
+                spec.include "$it/src/"
+            }
+            include 'config/'
+            include 'gradle/'
+            include 'src/'
+            include '*.gradle'
+            include 'wrapper/'
+            include 'gradlew.bat'
+        }
     }
 }
 
