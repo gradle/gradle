@@ -256,12 +256,11 @@ task determineCommitId {
 }
 
 task createBuildReceipt(dependsOn: determineCommitId) {
-    ext.receiptFile = file("$buildDir/build-receipt.json")
+    ext.receiptFile = file("$buildDir/build-receipt.properties")
     outputs.file receiptFile
     outputs.upToDateWhen { false }
     doLast {
-        def receipt = new groovy.json.JsonBuilder()
-        receipt(
+        def data = [
             commitId:  determineCommitId.commitId,
             versionNumber: version.toString(),
             buildTimestamp: version.timestamp,
@@ -270,8 +269,9 @@ task createBuildReceipt(dependsOn: determineCommitId) {
             javaVersion: System.properties["java.version"],
             osName: System.properties["os.name"],
             osVersion: System.properties["os.version"]
-        )
-        receiptFile.text = receipt.toPrettyString()
+        ]
+        
+        receiptFile.text = data.entrySet().collect { "$it.key=$it.value" }.sort().join("\n")
     }
 }
 
