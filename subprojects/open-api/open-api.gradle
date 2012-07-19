@@ -10,3 +10,11 @@ useTestFixtures()
 integTestTasks.all {
     jvmArgs '-XX:MaxPermSize=256m'
 }
+
+eclipse {
+        classpath {
+            file.whenMerged { classpath ->
+                classpath.entries.removeAll { it.path.contains('src/integTest/resources') }
+            }
+        }
+}
