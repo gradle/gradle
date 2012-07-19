@@ -17,24 +17,22 @@
 package org.gradle.util;
 
 import groovy.lang.GroovySystem;
+import org.apache.commons.io.IOUtils;
 import org.apache.ivy.Ivy;
 import org.apache.tools.ant.Main;
 import org.gradle.api.GradleException;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.InputStream;
 import java.net.URL;
+import java.net.URLConnection;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Properties;
 import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -54,28 +52,30 @@ public class GradleVersion implements Comparable<GradleVersion> {
     private final Stage stage;
     private static final GradleVersion CURRENT;
 
-    public static final String RESOURCE_NAME = "/org/gradle/releases.xml";
+    public static final String RESOURCE_NAME = "/org/gradle/build-receipt.properties";
 
+    // TODO - get rid of this static initialiser nonsense
     static {
         URL resource = GradleVersion.class.getResource(RESOURCE_NAME);
-        Document document;
+
+        InputStream inputStream = null;
         try {
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder builder = factory.newDocumentBuilder();
-            InputStream inputStream = resource.openStream();
-            try {
-                document = builder.parse(inputStream);
-            } finally {
-                inputStream.close();
-            }
-            NodeList currentElements = document.getDocumentElement().getElementsByTagName("current");
-            if (currentElements.getLength() != 1) {
-                throw new GradleException(String.format("Expected to find 1 <current> element, found %s.", currentElements.getLength()));
-            }
-            Element currentRelease = (Element) currentElements.item(0);
-            CURRENT = new GradleVersion(currentRelease.getAttribute("version"), new SimpleDateFormat("yyyyMMddHHmmssZ").parse(currentRelease.getAttribute("build-time")));
+            URLConnection connection = resource.openConnection();
+            inputStream = connection.getInputStream();
+            Properties properties = new Properties();
+            properties.load(inputStream);
+
+            String version = properties.get("versionNumber").toString();
+            String buildTimestamp = properties.get("buildTimestamp").toString();
+            Date buildTime = new SimpleDateFormat("yyyyMMddHHmmssZ").parse(buildTimestamp);
+
+            CURRENT = new GradleVersion(version, buildTime);
         } catch (Exception e) {
             throw new GradleException(String.format("Could not load version details from resource '%s'.", resource), e);
+        } finally {
+            if (inputStream != null) {
+                IOUtils.closeQuietly(inputStream);
+            }
         }
     }
 

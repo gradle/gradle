@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import org.gradle.build.GenerateReleasesXml
-
 configurations {
     reports
 }
@@ -67,10 +65,12 @@ test {
 
 [compileGroovy, compileTestGroovy]*.groovyOptions*.fork(memoryInitialSize: '128M', memoryMaximumSize: '1G')
 
-task releasesResource(type: GenerateReleasesXml) {
-    destFile = new File(generatedResourcesDir, "org/gradle/releases.xml")
+task buildReceiptResource(type: Copy, dependsOn: rootProject.createBuildReceipt) {
+    into "$generatedResourcesDir/org/gradle"
+    from rootProject.createBuildReceipt.receiptFile
 }
-sourceSets.main.output.dir generatedResourcesDir, builtBy: releasesResource
+
+sourceSets.main.output.dir generatedResourcesDir, builtBy: buildReceiptResource
 
 task reportResources(type: Copy) {
     from configurations.reports

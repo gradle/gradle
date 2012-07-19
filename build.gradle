@@ -15,7 +15,6 @@
  */
 
 import org.gradle.build.Install
-import org.gradle.build.Releases
 import org.gradle.build.TestReportAggregator
 
 /**
@@ -25,8 +24,6 @@ import org.gradle.build.TestReportAggregator
  *
  * Uploading distributions to Gradle's release and snapshot repository at codehaus: artifactoryUserName, artifactoryUserPassword
  */
-
-ext.releases = new Releases(project(':core').file('src/releases.xml'), project)
 
 defaultTasks 'assemble'
 apply plugin: 'java-base'
@@ -240,8 +237,8 @@ task createBuildReceipt(dependsOn: determineCommitId) {
     doLast {
         def data = [
             commitId:  determineCommitId.commitId,
-            versionNumber: version.toString(),
-            buildTimestamp: version.timestamp,
+            versionNumber: version,
+            buildTimestamp: buildTimestamp,
             username: System.properties["user.name"],
             hostname: InetAddress.localHost.hostName,
             javaVersion: System.properties["java.version"],
@@ -249,7 +246,12 @@ task createBuildReceipt(dependsOn: determineCommitId) {
             osVersion: System.properties["os.version"]
         ]
         
-        receiptFile.text = data.entrySet().collect { "$it.key=$it.value" }.sort().join("\n")
+        receiptFile.parentFile.mkdirs()
+        
+        // We write this out ourself instead of using the properties class to avoid the
+        // annoying timestamp that insists on placing in there, that throws out incremental.
+        def content = data.entrySet().collect { "$it.key=$it.value" }.sort().join("\n")
+        receiptFile.setText(content, "ISO-8859-1") 
     }
 }
 
@@ -419,10 +421,6 @@ gradle.taskGraph.whenReady {graph ->
     if (graph.hasTask(ciBuild)) {
         subprojects { reporting.baseDir "$rootProject.reporting.baseDir/${path.replaceFirst(':', '').replaceAll(':', '.')}" }
     }
-}
-
-task incrementNextVersion << {
-    releases.incrementNextVersion()
 }
 
 def wrapperUpdateTask = { name, label ->

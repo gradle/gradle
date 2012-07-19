@@ -20,7 +20,6 @@ import org.gradle.build.docs.AssembleSamplesDocTask
 import org.gradle.build.docs.Docbook2Xhtml
 import org.gradle.build.docs.dsl.docbook.AssembleDslDocTask
 import org.gradle.build.docs.dsl.ExtractDslMetaDataTask
-import org.gradle.build.GenerateReleasesXml
 import org.gradle.internal.os.OperatingSystem
 
 apply plugin: 'base'

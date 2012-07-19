@@ -57,7 +57,7 @@ class DefaultToolingImplementationLoaderTest extends Specification {
     }
 
     private getVersionResourcesDir() {
-        return ClasspathUtil.getClasspathForResource(getClass().classLoader, "org/gradle/releases.xml")
+        return ClasspathUtil.getClasspathForResource(getClass().classLoader, "org/gradle/build-receipt.properties")
     }
 
     def failsWhenNoImplementationDeclared() {
