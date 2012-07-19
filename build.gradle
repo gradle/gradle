@@ -327,12 +327,10 @@ task srcZip(type: Zip) {
     }
 }
 
-task distributionsZip(type: Zip) {
-    archiveName "distributions.zip"
-    ["all", "bin", "src"].each { name ->
-        from(tasks["${name}Zip"]) { rename ".*", "${name}.zip" }
-    }
+task outputsZip(type: Zip) {
+    archiveName "outputs.zip"
     from(createBuildReceipt)
+    ["all", "bin", "src"].each { from(tasks["${it}Zip"]) }
 }
 
 artifacts {
