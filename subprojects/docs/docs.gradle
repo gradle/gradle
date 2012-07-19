@@ -75,6 +75,18 @@ tasks.withType(UserGuideTransformTask) {
     dependsOn samples, dslDocbook
     snippetsDir = samples.snippetsDir
     linksFile = dslDocbook.linksFile
+    websiteUrl = 'http://www.gradle.org'
+    
+    if (name in ["pdfUserguideDocbook", "userguideFragmentSrc"]) {
+        // These will only be valid for releases, but that's ok
+        javadocUrl = "http://www.gradle.org/doc/${->version}/javadoc"
+        groovydocUrl = "http://www.gradle.org/doc/${->version}/groovydoc"
+        dsldocUrl = "http://www.gradle.org/doc/${->version}/dsl"
+    } else {
+        javadocUrl = '../javadoc'
+        groovydocUrl = '../groovydoc'
+        dsldocUrl = '../dsl'
+    }
 }
 tasks.withType(AssembleDslDocTask) {
     classDocbookDir = dslSrcDir
@@ -140,10 +152,7 @@ task dslDocbook(type: AssembleDslDocTask, dependsOn: [dslMetaData]) {
 task dslStandaloneDocbook(type: UserGuideTransformTask, dependsOn: [dslDocbook]) {
     sourceFile = dslDocbook.destFile
     destFile = new File(docbookSrc, 'dsl-standalone.xml')
-    javadocUrl = '../javadoc'
-    groovydocUrl = '../groovydoc'
     dsldocUrl = '.'
-    websiteUrl = 'http://www.gradle.org'
 }
 
 task dslHtml(type: Docbook2Xhtml) {
@@ -160,17 +169,11 @@ task dslHtml(type: Docbook2Xhtml) {
 // This is used in the distribution and for the online version
 task userguideDocbook(type: UserGuideTransformTask, dependsOn: [samples, samplesDocbook]) {
     destFile = new File(docbookSrc, 'userguide.xml')
-    javadocUrl = '../javadoc'
-    groovydocUrl = '../groovydoc'
-    dsldocUrl = '../dsl'
 }
 
 // This is used for the PDF, where we need absolute links to the javadoc etc.
 task pdfUserguideDocbook(type: UserGuideTransformTask, dependsOn: [samples, samplesDocbook]) {
     destFile = new File(docbookSrc, 'remoteUserguide.xml')
-    javadocUrl = project.version.javadocUrl
-    groovydocUrl = project.version.groovydocUrl
-    dsldocUrl = project.version.dsldocUrl
 }
 
 configure([userguideDocbook, pdfUserguideDocbook]) {
@@ -309,10 +312,6 @@ task userguideFragmentSrc(type: UserGuideTransformTask, dependsOn: [userguideSty
     tags << 'standalone'
     sourceFile = new File(userguideSrcDir, 'installation.xml')
     destFile = new File(docbookSrc, 'installation.xml')
-    javadocUrl = project.version.javadocUrl
-    groovydocUrl = project.version.groovydocUrl
-    dsldocUrl = project.version.dsldocUrl
-    websiteUrl = 'http://www.gradle.org'
 }
 
 task distDocs(type: Docbook2Xhtml) {
