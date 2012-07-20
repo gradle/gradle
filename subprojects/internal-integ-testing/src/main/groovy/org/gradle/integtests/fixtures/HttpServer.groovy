@@ -364,7 +364,7 @@ class HttpServer extends ExternalResource {
         }
 
         response.setContentLength(directoryListing.length())
-        response.setContentType("text/plain")
+        response.setContentType("text/html")
         response.outputStream.bytes = directoryListing.bytes
     }
 
