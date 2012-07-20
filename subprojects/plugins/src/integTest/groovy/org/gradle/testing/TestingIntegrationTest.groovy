@@ -15,14 +15,18 @@
  */
 package org.gradle.testing
 
-import org.gradle.integtests.fixtures.*
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Issue
+import spock.lang.Timeout
+import spock.lang.Unroll
 
-import spock.lang.*
-
-@Issue("http://issues.gradle.org/browse/GRADLE-1948")
-class InterruptedTestThreadIntegrationTest extends AbstractIntegrationSpec {
+/**
+ * General tests for the JVM testing infrastructure that don't deserve their own test class.
+ */
+class TestingIntegrationTest extends AbstractIntegrationSpec {
 
     @Timeout(30)
+    @Issue("http://issues.gradle.org/browse/GRADLE-1948")
     def "test interrupting its own thread does not kill test execution"() {
         given:
         buildFile << """
@@ -47,6 +51,32 @@ class InterruptedTestThreadIntegrationTest extends AbstractIntegrationSpec {
         
         then:
         ":test" in nonSkippedTasks
-    }  
- 
+    }
+
+    @Issue("http://issues.gradle.org/browse/GRADLE-2313")
+    @Unroll
+    "can clean test after extracting class file with #framework"() {
+        when:
+        buildFile << """
+            apply plugin: "java"
+            repositories.mavenCentral()
+            dependencies { testCompile "$dependency" }
+            test { $framework() }
+        """
+        and:
+        file("src/test/java/SomeTest.java") << """
+            public class SomeTest extends $superClass {
+            }
+        """
+        then:
+        succeeds "clean", "test"
+
+        and:
+        file("build/tmp/test").exists() // ensure we extracted classes
+
+        where:
+        framework   | dependency                | superClass
+        "useJUnit"  | "junit:junit:4.10"        | "org.junit.runner.Result"
+        "useTestNG" | "org.testng:testng:6.3.1" | "org.testng.Converter"
+    }
 }
