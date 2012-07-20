@@ -17,6 +17,7 @@ dependencies {
     compile libraries.ivy
     compile libraries.slf4j_api
     compile libraries.maven_ant_tasks
+    compile libraries.nekohtml
 
     testCompile libraries.junit
 

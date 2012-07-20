@@ -27,9 +27,9 @@ class HttpResourceListerTest extends Specification {
 
     def "addTrailingSlashes adds trailing slashes on relative URL if not exist"() {
         expect:
-        new URL(resultingURL) == lister.addTrailingSlashes(new URL(inputURL))
+        new URI(resultingURI) == lister.addTrailingSlashes(new URI(inputURI))
         where:
-        inputURL                        | resultingURL
+        inputURI                        | resultingURI
         "http://testrepo"               | "http://testrepo/"
         "http://testrepo/"              | "http://testrepo/"
         "http://testrepo/index.html"    | "http://testrepo/index.html"

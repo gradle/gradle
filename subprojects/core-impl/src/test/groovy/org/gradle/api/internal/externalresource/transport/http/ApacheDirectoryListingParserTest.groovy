@@ -17,17 +17,16 @@
 package org.gradle.api.internal.externalresource.transport.http
 
 import org.gradle.util.Resources
+import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static junit.framework.Assert.assertNotNull
-import static org.junit.Assert.assertNull
-import org.junit.Rule
+import static org.junit.Assert.assertNotNull
 
 class ApacheDirectoryListingParserTest extends Specification {
     @Rule public final Resources resources = new Resources();
 
-    private URL baseUrl = new URL("http://testrepo/")
+    private URI baseUrl = URI.create("http://testrepo/")
     private ApacheDirectoryListingParser parser = new ApacheDirectoryListingParser(baseUrl);
 
     def "parse returns empty List if no link can be found"() {
@@ -44,45 +43,40 @@ class ApacheDirectoryListingParserTest extends Specification {
         <a href="directory3">directory3</a>
         <a href="directory4">directory4</a>"""
         expect:
-        List urls = parser.parse(html.bytes, null)
-        assertNotNull(urls)
-        urls.collect {it.toString()} == ["http://testrepo/directory1", "http://testrepo/directory2", "http://testrepo/directory3", "http://testrepo/directory4"]
+        def uris = parser.parse(html.bytes, null)
+        assertNotNull(uris)
+        uris.collect {it.toString()} == ["http://testrepo/directory1", "http://testrepo/directory2", "http://testrepo/directory3", "http://testrepo/directory4"]
     }
 
     @Unroll
-    def "parseLink ignores #descr"() {
+    def "parse ignores #descr"() {
         expect:
-        assertNull parser.parseLink(href, text)
+        parser.parse("<a href=\"${href}\">link</a>".toString().bytes, null).isEmpty()
         where:
-        href                      | text         | descr
-        "http://anothertestrepo/" | "directory1" | "URLs which aren't children of base URL"
-        "../"                     | "directory1" | "links to parent URLs of base URL"
-        "http://[2h:23:3]"        | "directory1" | "invalid URLs"
-        "dir1/subdir1"            | "directory1" | "links to nested subdirectories"
+        href                                                | descr
+        "http://anothertestrepo/"                           | "URLs which aren't children of base URL"
+        "../"                                               | "links to parent URLs of base URL"
+        "http://[2h:23:3]"                                  | "invalid URLs"
+        "dir1/subdir1"                                      | "links to nested subdirectories"
+        "<![CDATA[<a href=\"directory2\">directory2</a>]]>" | "links in CDATA blocks"
+        "#achor"                                            | "anchor links"
+        "<a name=\"anchorname\">headline</a>"               | "anchor definitions"
     }
 
 
     @Unroll
     def "parseLink handles #urlDescr"() {
         expect:
-        def url = parser.parseLink(href, text)
-        assertNotNull url
-        url.toString() == "http://testrepo/directory1"
+        def foundURIs = parser.parse("<a href=\"${href}\">link</a>".toString().bytes, null)
+        !foundURIs.isEmpty()
+        foundURIs.collect {it.toString()} == ["http://testrepo/directory1"]
         where:
         href                         | text           | urlDescr
         "directory1"                 | "directory1"   | "relative URLS"
         "/directory1"                | "directory1"   | "absolute URLS"
-        "./directory1"               | "directory1"   | "absolute URLS"
+        "./directory1"               | "directory1"   | "explicit relative URLS"
         "http://testrepo/directory1" | "directory1"   | "complete URLS"
         "http://testrepo/directory1" | "direct..&gt;" | "hrefs with truncated text"
-    }
-
-    @Unroll
-    def "#method returns null if input is null"() {
-        expect:
-        assertNull parser."$method"(null)
-        where:
-        method << ["stripBaseURL", "skipParentUrl", "convertRelativeHrefToUrl"]
     }
 
     @Unroll
@@ -90,30 +84,30 @@ class ApacheDirectoryListingParserTest extends Specification {
         setup:
         def byte[] content =  resources.getResource("${repoType}_dirlisting.html").bytes
         expect:
-        List<URL> urls = new ApacheDirectoryListingParser(new URL(artifactRootURL)).parse(content, null)
-        urls.collect {it.toString()} as Set == ["${artifactRootURL}3.7/",
-                "${artifactRootURL}3.8/",
-                "${artifactRootURL}3.8.1/",
-                "${artifactRootURL}3.8.2/",
-                "${artifactRootURL}4.0/",
-                "${artifactRootURL}4.1/",
-                "${artifactRootURL}4.10/",
-                "${artifactRootURL}4.2/",
-                "${artifactRootURL}4.3/",
-                "${artifactRootURL}4.3.1/",
-                "${artifactRootURL}4.4/",
-                "${artifactRootURL}4.5/",
-                "${artifactRootURL}4.6/",
-                "${artifactRootURL}4.7/",
-                "${artifactRootURL}4.8/",
-                "${artifactRootURL}4.8.1/",
-                "${artifactRootURL}4.8.2/",
-                "${artifactRootURL}4.9/",
-                "${artifactRootURL}maven-metadata.xml",
-                "${artifactRootURL}maven-metadata.xml.md5",
-                "${artifactRootURL}maven-metadata.xml.sha1"] as Set
+        List<URI> urls = new ApacheDirectoryListingParser(new URI(artifactRootURI)).parse(content, null)
+        urls.collect {it.toString()} as Set == ["${artifactRootURI}3.7/",
+                "${artifactRootURI}3.8/",
+                "${artifactRootURI}3.8.1/",
+                "${artifactRootURI}3.8.2/",
+                "${artifactRootURI}4.0/",
+                "${artifactRootURI}4.1/",
+                "${artifactRootURI}4.10/",
+                "${artifactRootURI}4.2/",
+                "${artifactRootURI}4.3/",
+                "${artifactRootURI}4.3.1/",
+                "${artifactRootURI}4.4/",
+                "${artifactRootURI}4.5/",
+                "${artifactRootURI}4.6/",
+                "${artifactRootURI}4.7/",
+                "${artifactRootURI}4.8/",
+                "${artifactRootURI}4.8.1/",
+                "${artifactRootURI}4.8.2/",
+                "${artifactRootURI}4.9/",
+                "${artifactRootURI}maven-metadata.xml",
+                "${artifactRootURI}maven-metadata.xml.md5",
+                "${artifactRootURI}maven-metadata.xml.sha1"] as Set
         where:
-        artifactRootURL                                                         | repoType
+        artifactRootURI                                                         | repoType
         "http://localhost:8081/artifactory/repo1/junit/junit/"                  | "artifactory"
         "http://repo1.maven.org/maven2/junit/junit/"                            | "mavencentral"
         "http://localhost:8081/nexus/content/repositories/central/junit/junit/" | "nexus"

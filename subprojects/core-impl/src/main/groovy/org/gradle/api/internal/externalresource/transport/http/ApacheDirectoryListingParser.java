@@ -16,124 +16,135 @@
 
 package org.gradle.api.internal.externalresource.transport.http;
 
+import org.cyberneko.html.parsers.SAXParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xml.sax.*;
 
 import java.io.IOException;
+import java.io.StringReader;
 import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class ApacheDirectoryListingParser {
-    private static final Pattern PATTERN = Pattern.compile(
-            "<a[^>]*href=\"([^\"]*)\"[^>]*>(?:<[^>]+>)*?([^<>]+?)(?:<[^>]+>)*?</a>",
-            Pattern.CASE_INSENSITIVE);
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ApacheDirectoryListingParser.class);
-    private final URL inputUrl;
+    private final URI baseURI;
 
-    public ApacheDirectoryListingParser(URL inputUrl) {
-        this.inputUrl = inputUrl;
+    public ApacheDirectoryListingParser(URI baseURI) {
+        this.baseURI = baseURI;
     }
 
-    public List<URL> parse(byte[] stream, String encoding) throws IOException {
-        final String htmlText = new String(stream); //TODO: converting with correct encoding
-        List<URL> urlList = new ArrayList<URL>();
-        Matcher matcher = PATTERN.matcher(htmlText);
-        while (matcher.find()) {
-            // get the href text and the displayed text
-            String href = matcher.group(1);
-            String text = matcher.group(2);
-            text = text.trim();
-            URL child = parseLink(href, text);
-            if (child != null) {
-                urlList.add(child);
-                LOGGER.debug("found URL=[" + child + "].");
+    public List<URI> parse(byte[] content, String encoding) throws IOException {
+        final String htmlText = new String(content); //TODO: converting with correct encoding
+        final InputSource inputSource = new InputSource(new StringReader(htmlText));
+        final SAXParser htmlParser = new SAXParser();
+        final AnchorListerHandler anchorListerHandler = new AnchorListerHandler();
+        htmlParser.setContentHandler(anchorListerHandler);
+        try {
+            htmlParser.parse(inputSource);
+        } catch (SAXException e) {
+            LOGGER.warn(String.format("Unable to parse DirectoryListing for %s"), e);
+            return Collections.emptyList();
+        }
+
+        List<String> hrefs = anchorListerHandler.getHrefs();
+        List<URI> uris = resolveURIs(baseURI, hrefs);
+        return filterNonDirectChilds(baseURI, uris);
+    }
+
+    private List<URI> filterNonDirectChilds(URI baseURI, List<URI> inputURIs) throws MalformedURLException {
+        final int baseURIPort = baseURI.getPort();
+        final String baseURIHost = baseURI.getHost();
+        final String baseURIScheme = baseURI.getScheme();
+
+        List<URI> uris = new ArrayList<URI>();
+        final String prefixPath = baseURI.getPath();
+        for (URI parsedURI : inputURIs) {
+            if (!parsedURI.getHost().equals(baseURIHost)) {
+                continue;
             }
-        }
-        return urlList;
-    }
-
-    URL parseLink(String href, String text) throws MalformedURLException {
-        href = stripBaseURL(href);
-        href = skipParentUrl(href);
-        href = convertRelativeHrefToUrl(href);
-        href = convertAbsoluteHrefToRelative(href);
-        href = isTruncatedText(text) ? handleTruncatedLink(href, text) : validateHrefAndTextEquals(href, text);
-        return href != null ? new URL(inputUrl, href) : null;
-    }
-
-    private String validateHrefAndTextEquals(String href, String text) {
-        if (href != null && text != null) {
-            String strippedHref = stripOptionalSlash(href);
-            String strippedText = stripOptionalSlash(text);
-            if (strippedHref != null && !strippedHref.equalsIgnoreCase(strippedText)) {
-                return null;
+            if (!parsedURI.getScheme().equals(baseURIScheme)) {
+                continue;
             }
-        }
-        return href;
-    }
-
-    private String convertRelativeHrefToUrl(String href) {
-        if (href != null && href.startsWith("./")) {
-            return href.substring("./".length());
-        }
-        return href;
-    }
-
-    private String stripOptionalSlash(String input) {
-        return input != null && input.endsWith("/") ? input.substring(0, input.length() - 1) : input;
-    }
-
-    private String handleTruncatedLink(String href, String text) {
-        if (text.endsWith("..>")) {
-            // text is probably truncated, we can only check if the href starts with text
-            if (!href.startsWith(text.substring(0, text.length() - 3))) {
-                return null;
+            if (parsedURI.getPort() != baseURIPort) {
+                continue;
             }
-        } else if (text.endsWith("..&gt;")) {
-            // text is probably truncated, we can only check if the href starts with text
-            if (!href.startsWith(text.substring(0, text.length() - 6))) {
-                return null;
+            if (!parsedURI.getPath().startsWith(prefixPath)) {
+                continue;
             }
+            String childPathPart = parsedURI.getPath().substring(prefixPath.length(), parsedURI.getPath().length());
+            if(childPathPart.startsWith("../")){
+                continue;
+            }
+            if(childPathPart.equals("") || childPathPart.split("/").length>1){
+                continue;
+            }
+
+            uris.add(parsedURI);
         }
-        return href;
+        return uris;
     }
 
-    private boolean isTruncatedText(String text) {
-        return text.endsWith("..>") || text.endsWith("..&gt;");
-    }
-
-    private String convertAbsoluteHrefToRelative(String href) {
-        if (href != null && href.startsWith("/")) {
-            int slashIndex = href.substring(0, href.length() - 1).lastIndexOf('/');
-            return href.substring(slashIndex + 1);
-        }
-        return href;
-    }
-
-    private String skipParentUrl(String href) {
-        if ("../".equals(href)) {
-            return null;
-        }
-        return href;
-    }
-
-    private String stripBaseURL(String href) {
-        if (href != null && (href.startsWith("http:") || href.startsWith("https:"))) {
+    private List<URI> resolveURIs(URI baseURI, List<String> hrefs) {
+        List<URI> uris = new ArrayList<URI>();
+        for (String href : hrefs) {
             try {
-                href = new URL(href).getPath();
-                if (!href.startsWith(inputUrl.getPath())) {
-                    return null;
-                }
-                return href.substring(inputUrl.getPath().length());
-            } catch (Exception ignore) {
-                return null;
+                uris.add(baseURI.resolve(href));
+            } catch (IllegalArgumentException ex) {
+                LOGGER.debug(String.format("Cannot resolve anchor: %s", href));
             }
         }
-        return href;
+        return uris;
+    }
+
+    private class AnchorListerHandler implements ContentHandler {
+        List<String> hrefs = new ArrayList<String>();
+
+        public List<String> getHrefs() {
+            return hrefs;
+        }
+
+        public void startElement(String uri, String localName, String qName, Attributes atts) throws SAXException {
+            if (qName.equalsIgnoreCase("A")) {
+                final String href = atts.getValue("href");
+                if (href != null) {
+                    hrefs.add(href);
+                }
+            }
+        }
+
+        public void setDocumentLocator(Locator locator) {
+        }
+
+        public void startDocument() throws SAXException {
+        }
+
+        public void endDocument() throws SAXException {
+        }
+
+        public void startPrefixMapping(String prefix, String uri) throws SAXException {
+        }
+
+        public void endPrefixMapping(String prefix) throws SAXException {
+        }
+
+        public void endElement(String uri, String localName, String qName) throws SAXException {
+        }
+
+        public void characters(char[] ch, int start, int length) throws SAXException {
+        }
+
+        public void ignorableWhitespace(char[] ch, int start, int length) throws SAXException {
+        }
+
+        public void processingInstruction(String target, String data) throws SAXException {
+        }
+
+        public void skippedEntity(String name) throws SAXException {
+        }
     }
 }

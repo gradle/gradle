@@ -18,38 +18,46 @@ package org.gradle.api.internal.externalresource.transport.http;
 
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.transfer.ExternalResourceLister;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class HttpResourceLister implements ExternalResourceLister {
     private HttpResourceAccessor accessor;
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(HttpResourceLister.class);
     public HttpResourceLister(HttpResourceAccessor accessor) {
         this.accessor = accessor;
     }
 
     public List<String> list(String parent) throws IOException {
-        final URL baseUrl = addTrailingSlashes(new URL(parent));
-        final ExternalResource resource = accessor.getResource(baseUrl.toString());
+        URI baseURI = null;
+        try{
+            baseURI = addTrailingSlashes(new URI(parent));
+        }catch(URISyntaxException ex){
+            LOGGER.warn(String.format("Unable to create URI from String '%s' ", ex));
+        }
+        final ExternalResource resource = accessor.getResource(baseURI.toString());
         if (resource == null) {
             return null;
         }
         byte[] resourceContent = loadResourceContent(resource);
         String encoding = getResourceEncoding(resource);
-        ApacheDirectoryListingParser directoryListingParser = new ApacheDirectoryListingParser(baseUrl);
-        List<URL> urls = directoryListingParser.parse(resourceContent, encoding);
+        ApacheDirectoryListingParser directoryListingParser = new ApacheDirectoryListingParser(baseURI);
+        List<URI> uris = directoryListingParser.parse(resourceContent, encoding);
 
-        return convertToStringMap(urls);
+        return convertToStringList(uris);
     }
 
-    private List<String> convertToStringMap(List<URL> urls) {
-        List<String> ret = new ArrayList<String>(urls.size());
-        for (URL url : urls) {
-            ret.add(url.toExternalForm());
+    private List<String> convertToStringList(List<URI> uris) {
+        List<String> ret = new ArrayList<String>(uris.size());
+        for (URI url : uris) {
+            ret.add(url.toString());
         }
         return ret;
     }
@@ -75,11 +83,10 @@ public class HttpResourceLister implements ExternalResourceLister {
         }
     }
 
-    URL addTrailingSlashes(URL url) throws IOException {
-        // add trailing slash for relative urls
-        if (!url.getPath().endsWith("/") && !url.getPath().endsWith(".html")) {
-            url = new URL(url.getProtocol(), url.getHost(), url.getPort(), url.getPath() + "/");
+    URI addTrailingSlashes(URI uri) throws IOException, URISyntaxException {
+        if (!uri.getPath().endsWith("/") && !uri.getPath().endsWith(".html")) {
+            uri = new URI(uri.getScheme(), uri.getUserInfo(), uri.getHost(), uri.getPort(), uri.getPath() + "/", uri.getQuery(), uri.getFragment());
         }
-        return url;
+        return uri;
     }
 }
