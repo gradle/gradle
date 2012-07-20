@@ -73,6 +73,10 @@ idea {
                 def gradleSettings = node.appendNode('component', [name: 'GradleSettings'])
                 gradleSettings.appendNode('option', [name: 'SDK_HOME', value: gradle.gradleHomeDir.absolutePath])
 
+                // set compiler heap space
+                def javacSettings = node.appendNode('component', [name: 'JavacSettings'])
+                javacSettings.appendNode('option', [name: 'MAXIMUM_HEAP_SIZE', value: "256"])
+
                 // license header
                 def copyrightManager = node.component.find { it.'@name' == 'CopyrightManager' }
                 copyrightManager.@default = "ASL2"
