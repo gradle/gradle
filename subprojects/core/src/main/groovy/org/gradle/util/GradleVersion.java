@@ -17,14 +17,15 @@
 package org.gradle.util;
 
 import groovy.lang.GroovySystem;
-import org.apache.commons.io.IOUtils;
 import org.apache.ivy.Ivy;
 import org.apache.tools.ant.Main;
 import org.gradle.api.GradleException;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
@@ -74,7 +75,11 @@ public class GradleVersion implements Comparable<GradleVersion> {
             throw new GradleException(String.format("Could not load version details from resource '%s'.", resource), e);
         } finally {
             if (inputStream != null) {
-                IOUtils.closeQuietly(inputStream);
+                try {
+                    inputStream.close();
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
             }
         }
     }
