@@ -142,8 +142,7 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractIntegrationSpec {
         def failure = runAndFail('retrieve')
 
         then:
-        failure.assertThatDescription(not(containsString("Build aborted because of an internal error")));
-        failure.assertThatDescription(containsString(String.format("Non-parseable settings %s:", m2.userSettingsFile.absolutePath)));
+        failure.assertThatCause(containsString(String.format("Non-parseable settings %s:", m2.userSettingsFile.absolutePath)));
     }
 
     public void "mavenLocal is ignored if no local maven repository exists"() {
