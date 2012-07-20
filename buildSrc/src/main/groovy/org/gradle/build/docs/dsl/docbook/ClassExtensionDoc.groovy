@@ -50,6 +50,10 @@ class ClassExtensionDoc {
         mixinClasses
     }
 
+    Map<String, ClassDoc> getExtensionClasses() {
+        return extensionClasses
+    }
+
     void buildMetaData(DslDocModel model) {
         Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument()
         def linkRenderer = new LinkRenderer(doc, model)

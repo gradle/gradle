@@ -26,107 +26,9 @@ import org.gradle.build.docs.dsl.docbook.model.ClassExtensionMetaData
 import org.gradle.build.docs.dsl.docbook.model.PropertyDoc
 import org.gradle.build.docs.dsl.docbook.model.MethodDoc
 
-class ClassDocTest extends XmlSpecification {
-    final JavadocConverter javadocConverter = Mock()
+class ClassDocExtensionsBuilderTest extends XmlSpecification {
     final DslDocModel docModel = Mock()
-
-    def buildsMethodsForClass() {
-        ClassMetaData classMetaData = classMetaData()
-        MethodMetaData methodA = method('a', classMetaData)
-        MethodMetaData methodB = method('b', classMetaData)
-        MethodMetaData methodBOverload = method('b', classMetaData)
-        MethodDoc methodAOverridden = methodDoc('a')
-        MethodDoc methodC = methodDoc('c')
-        ClassDoc superClass = classDoc('org.gradle.SuperClass')
-
-        def content = parse('''
-<section>
-    <section><title>Methods</title>
-        <table>
-            <thead><tr><td>Name</td></tr></thead>
-            <tr><td>a</td></tr>
-            <tr><td>b</td></tr>
-        </table>
-    </section>
-    <section><title>Properties</title><table><thead><tr>Name</tr></thead></table></section>
-</section>
-''')
-
-        when:
-        ClassDoc doc = withCategories {
-            new ClassDoc('org.gradle.Class', content, document, classMetaData, null, docModel, javadocConverter).buildMethods()
-        }
-
-        then:
-        doc.classMethods.size() == 4
-
-        doc.classMethods[0].name == 'a'
-        doc.classMethods[1].name == 'b'
-        doc.classMethods[2].name == 'b'
-        doc.classMethods[3].name == 'c'
-
-        _ * classMetaData.declaredMethods >> ([methodA, methodB, methodBOverload] as Set)
-        _ * classMetaData.superClassName >> 'org.gradle.SuperClass'
-        _ * docModel.getClassDoc('org.gradle.SuperClass') >> superClass
-        _ * superClass.classMethods >> [methodC, methodAOverridden]
-    }
-
-    def buildsBlocksForClass() {
-        ClassMetaData classMetaData = classMetaData()
-        PropertyMetaData blockProperty = property('block', classMetaData)
-        MethodMetaData blockMethod = method('block', classMetaData, paramTypes: [Closure.class.name])
-        PropertyMetaData compositeBlockProperty = property('listBlock', classMetaData, type: new TypeMetaData('java.util.List').addTypeArg(new TypeMetaData('BlockType')))
-        MethodMetaData compositeBlockMethod = method('listBlock', classMetaData, paramTypes: [Closure.class.name])
-        MethodMetaData tooManyParams = method('block', classMetaData, paramTypes: ['String', 'boolean'])
-        MethodMetaData notAClosure = method('block', classMetaData, paramTypes: ['String'])
-        MethodMetaData noBlockProperty = method('notBlock', classMetaData, paramTypes: [Closure.class.name])
-        _ * classMetaData.findProperty('block') >> blockProperty
-        _ * classMetaData.findProperty('listBlock') >> compositeBlockProperty
-        _ * classMetaData.declaredMethods >> [blockMethod, compositeBlockMethod, tooManyParams, notAClosure, noBlockProperty]
-
-        def content = parse('''
-<section>
-    <section><title>Methods</title>
-        <table>
-            <thead><tr><td>Name</td></tr></thead>
-            <tr><td>block</td></tr>
-            <tr><td>listBlock</td></tr>
-            <tr><td>notBlock</td></tr>
-        </table>
-    </section>
-    <section><title>Properties</title>
-        <table>
-            <thead><tr><td>Name</td></tr></thead>
-            <tr><td>block</td></tr>
-            <tr><td>listBlock</td></tr>
-        </table>
-    </section>
-</section>
-''')
-
-        when:
-        ClassDoc doc = withCategories {
-            def doc = new ClassDoc('org.gradle.Class', content, document, classMetaData, null, docModel, javadocConverter)
-            new ClassDocPropertiesBuilder(docModel, javadocConverter, Mock(GenerationListener)).build(doc)
-            doc.buildMethods()
-        }
-
-        then:
-        doc.classProperties.size() == 2
-        doc.classProperties[0].name == 'block'
-        doc.classProperties[1].name == 'listBlock'
-
-        doc.classMethods.size() == 3
-
-        doc.classBlocks.size() == 2
-        doc.classBlocks[0].name == 'block'
-        doc.classBlocks[0].type.signature == 'org.gradle.Type'
-        !doc.classBlocks[0].multiValued
-
-        doc.classBlocks[1].name == 'listBlock'
-        doc.classBlocks[1].type.signature == 'BlockType'
-        doc.classBlocks[1].multiValued
-    }
+    final ClassDocExtensionsBuilder builder = new ClassDocExtensionsBuilder(docModel)
 
     def buildsExtensionsForClassMixins() {
         ClassMetaData classMetaData = classMetaData()
@@ -153,7 +55,9 @@ class ClassDocTest extends XmlSpecification {
 
         when:
         ClassDoc doc = withCategories {
-            new ClassDoc('org.gradle.Class', content, document, classMetaData, extensionMetaData, docModel, javadocConverter).buildExtensions()
+            def doc = new ClassDoc('org.gradle.Class', content, document, classMetaData, extensionMetaData)
+            builder.build(doc)
+            doc.mergeContent()
         }
 
         then:
@@ -194,7 +98,9 @@ class ClassDocTest extends XmlSpecification {
 
         when:
         ClassDoc doc = withCategories {
-            new ClassDoc('org.gradle.Class', content, document, classMetaData, extensionMetaData, docModel, javadocConverter).buildExtensions()
+            def doc = new ClassDoc('org.gradle.Class', content, document, classMetaData, extensionMetaData)
+            builder.build(doc)
+            doc.mergeContent()
         }
 
         then:

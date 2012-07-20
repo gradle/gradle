@@ -54,7 +54,8 @@ public class ClassDocMethodsBuilder extends ModelBuilderSupport {
                 throw new RuntimeException(String.format("No metadata for method '%s.%s()'. Available methods: %s", classDoc.getName(), methodName, classDoc.getClassMetaData().getDeclaredMethodNames()));
             }
             for (MethodMetaData method : methods) {
-                MethodDoc methodDoc = new MethodDoc(method, javadocConverter.parse(method, listener).getDocbook());
+                DocComment docComment = javadocConverter.parse(method, listener);
+                MethodDoc methodDoc = new MethodDoc(method, docComment.getDocbook());
                 if (methodDoc.getDescription() == null) {
                     throw new RuntimeException(String.format("Docbook content for '%s %s' does not contain a description paragraph.", classDoc.getName(), method.getSignature()));
                 }

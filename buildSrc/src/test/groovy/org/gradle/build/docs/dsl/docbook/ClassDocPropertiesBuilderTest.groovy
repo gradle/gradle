@@ -51,7 +51,7 @@ class ClassDocPropertiesBuilderTest extends XmlSpecification {
 
         when:
         ClassDoc doc = withCategories {
-            def doc = new ClassDoc('org.gradle.Class', content, document, classMetaData, null, docModel, javadocConverter)
+            def doc = new ClassDoc('org.gradle.Class', content, document, classMetaData, null)
             builder.build(doc)
             return doc
         }
@@ -95,7 +95,7 @@ class ClassDocPropertiesBuilderTest extends XmlSpecification {
 
         when:
         ClassDoc doc = withCategories {
-            def doc = new ClassDoc('org.gradle.Class', content, document, classMetaData, null, docModel, javadocConverter)
+            def doc = new ClassDoc('org.gradle.Class', content, document, classMetaData, null)
             builder.build(doc)
             return doc
         }

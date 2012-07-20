@@ -29,6 +29,7 @@ class DslDocModel {
     private final ClassMetaDataRepository<ClassMetaData> classMetaData
     private final Map<String, ClassExtensionMetaData> extensionMetaData
     private final JavadocConverter javadocConverter
+    private final ClassDocBuilder docBuilder
 
     DslDocModel(File classDocbookDir, Document document, ClassMetaDataRepository<ClassMetaData> classMetaData, Map<String, ClassExtensionMetaData> extensionMetaData) {
         this.classDocbookDir = classDocbookDir
@@ -36,6 +37,7 @@ class DslDocModel {
         this.classMetaData = classMetaData
         this.extensionMetaData = extensionMetaData
         javadocConverter = new JavadocConverter(document, new JavadocLinkConverter(document, new TypeNameResolver(classMetaData), new LinkRenderer(document, this), classMetaData))
+        docBuilder = new ClassDocBuilder(this, javadocConverter)
     }
 
     boolean isKnownType(String className) {
@@ -69,8 +71,8 @@ class DslDocModel {
                 throw new RuntimeException("Docbook source file not found for class '$className' in $classDocbookDir.")
             }
             XIncludeAwareXmlProvider provider = new XIncludeAwareXmlProvider()
-            def doc = new ClassDoc(className, provider.parse(classFile), document, classMetaData, extensionMetaData, this, javadocConverter)
-            new ClassDocBuilder(this, javadocConverter).build(doc)
+            def doc = new ClassDoc(className, provider.parse(classFile), document, classMetaData, extensionMetaData)
+            docBuilder.build(doc)
             return doc
         } catch (ClassDocGenerationException e) {
             throw e

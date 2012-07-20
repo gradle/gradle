@@ -16,7 +16,6 @@
 package org.gradle.build.docs.dsl.docbook
 
 import org.gradle.build.docs.dsl.source.model.ClassMetaData
-import org.gradle.build.docs.dsl.source.model.MethodMetaData
 import org.w3c.dom.Document
 import org.w3c.dom.Element
 import org.w3c.dom.Node
@@ -28,27 +27,22 @@ class ClassDoc implements DslElementDoc {
     private final String simpleName
     final ClassMetaData classMetaData
     private final Element classSection
-    private final ClassExtensionMetaData extensionMetaData
+    final ClassExtensionMetaData extensionMetaData
     private final List<PropertyDoc> classProperties = []
     private final List<MethodDoc> classMethods = []
     private final List<BlockDoc> classBlocks = []
     private final List<ClassExtensionDoc> classExtensions = []
-    private final JavadocConverter javadocConverter
-    private final DslDocModel model
     private final Element propertiesTable
     private final Element methodsTable
     private final Element propertiesSection
     private final Element methodsSection
     List<Element> comment = []
-    private final GenerationListener listener = new DefaultGenerationListener()
 
-    ClassDoc(String className, Element classContent, Document targetDocument, ClassMetaData classMetaData, ClassExtensionMetaData extensionMetaData, DslDocModel model, JavadocConverter javadocConverter) {
+    ClassDoc(String className, Element classContent, Document targetDocument, ClassMetaData classMetaData, ClassExtensionMetaData extensionMetaData) {
         this.className = className
         id = className
         simpleName = className.tokenize('.').last()
         this.classMetaData = classMetaData
-        this.javadocConverter = javadocConverter
-        this.model = model
         this.extensionMetaData = extensionMetaData
 
         classSection = targetDocument.createElement('chapter')
@@ -97,6 +91,10 @@ class ClassDoc implements DslElementDoc {
 
     def getClassExtensions() { return classExtensions }
 
+    void addClassExtension(ClassExtensionDoc extensionDoc) {
+        classExtensions.add(extensionDoc)
+    }
+
     def getClassSection() { return classSection }
 
     Element getPropertiesTable() { return propertiesTable }
@@ -116,86 +114,9 @@ class ClassDoc implements DslElementDoc {
     def getBlockDetailsSection() { return getSection('Script block details') }
 
     ClassDoc mergeContent() {
-        buildExtensions()
         classMethods.sort { it.metaData.overrideSignature }
         classBlocks.sort { it.name }
-        return this
-    }
-
-    ClassDoc buildMethods() {
-        Set signatures = [] as Set
-
-        methodsTable.tr.each { Element tr ->
-            def cells = tr.td
-            if (cells.size() != 1) {
-                throw new RuntimeException("Expected 1 cell in <tr>, found: $tr")
-            }
-            String methodName = cells[0].text().trim()
-            Collection<MethodMetaData> methods = classMetaData.declaredMethods.findAll { it.name == methodName }
-            if (!methods) {
-                throw new RuntimeException("No metadata for method '$className.$methodName()'. Available methods: ${classMetaData.declaredMethods.collect {it.name} as TreeSet}")
-            }
-            methods.each { method ->
-                def methodDoc = new MethodDoc(method, javadocConverter.parse(method, listener).docbook)
-                if (!methodDoc.description) {
-                    throw new RuntimeException("Docbook content for '$className $method.signature' does not contain a description paragraph.")
-                }
-                def property = findProperty(method.name)
-                def multiValued = false
-                if (method.parameters.size() == 1 && method.parameters[0].type.signature == Closure.class.name && property) {
-                    def type = property.metaData.type
-                    if (type.name == 'java.util.List' || type.name == 'java.util.Collection' || type.name == 'java.util.Set' || type.name == 'java.util.Iterable') {
-                        type = type.typeArgs[0]
-                        multiValued = true
-                    }
-                    classBlocks << new BlockDoc(methodDoc, property, type, multiValued)
-                } else {
-                    classMethods << methodDoc
-                    signatures << method.overrideSignature
-                }
-            }
-        }
-
-        if (classMetaData.superClassName) {
-            ClassDoc supertype = model.getClassDoc(classMetaData.superClassName)
-            supertype.getClassMethods().each { method ->
-                if (signatures.add(method.metaData.overrideSignature)) {
-                    classMethods << method.forClass(classMetaData)
-                }
-            }
-        }
-
-        classMethods.sort { it.metaData.overrideSignature }
-        classBlocks.sort { it.name }
-
-        return this
-    }
-
-    ClassDoc buildExtensions() {
-        def plugins = [:]
-        extensionMetaData.mixinClasses.each { MixinMetaData mixin ->
-            def pluginId = mixin.pluginId
-            def classExtensionDoc = plugins[pluginId]
-            if (!classExtensionDoc) {
-                classExtensionDoc = new ClassExtensionDoc(pluginId, classMetaData)
-                plugins[pluginId] = classExtensionDoc
-            }
-            classExtensionDoc.mixinClasses << model.getClassDoc(mixin.mixinClass)
-        }
-        extensionMetaData.extensionClasses.each { ExtensionMetaData extension ->
-            def pluginId = extension.pluginId
-            def classExtensionDoc = plugins[pluginId]
-            if (!classExtensionDoc) {
-                classExtensionDoc = new ClassExtensionDoc(pluginId, classMetaData)
-                plugins[pluginId] = classExtensionDoc
-            }
-            classExtensionDoc.extensionClasses[extension.extensionId] = model.getClassDoc(extension.extensionClass)
-        }
-
-        classExtensions.addAll(plugins.values())
-        classExtensions.each { extension -> extension.buildMetaData(model) }
         classExtensions.sort { it.pluginId }
-
         return this
     }
 
