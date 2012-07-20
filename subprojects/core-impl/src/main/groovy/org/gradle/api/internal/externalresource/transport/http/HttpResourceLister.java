@@ -18,8 +18,7 @@ package org.gradle.api.internal.externalresource.transport.http;
 
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.transfer.ExternalResourceLister;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.gradle.api.internal.resource.ResourceException;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -30,7 +29,6 @@ import java.util.List;
 
 public class HttpResourceLister implements ExternalResourceLister {
     private HttpResourceAccessor accessor;
-    private static final Logger LOGGER = LoggerFactory.getLogger(HttpResourceLister.class);
 
     public HttpResourceLister(HttpResourceAccessor accessor) {
         this.accessor = accessor;
@@ -41,7 +39,7 @@ public class HttpResourceLister implements ExternalResourceLister {
         try {
             baseURI = new URI(parent);
         } catch (URISyntaxException ex) {
-            throw new IOException(String.format("Unable to create URI from String '%s' ", parent), ex);
+            throw new ResourceException(String.format("Unable to create URI from String '%s' ", parent), ex);
         }
         final ExternalResource resource = accessor.getResource(baseURI.toString());
         if (resource == null) {
@@ -54,7 +52,7 @@ public class HttpResourceLister implements ExternalResourceLister {
             List<URI> uris = directoryListingParser.parse(baseURI, resourceContent, contentType);
             return convertToStringList(uris);
         } catch (Exception e) {
-            throw new IOException("Unable to parse Http directory listing", e);
+            throw new ResourceException("Unable to parse Http directory listing", e);
         }
     }
 
