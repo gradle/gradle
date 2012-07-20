@@ -17,16 +17,18 @@
 package org.gradle.api.internal.externalresource.transport.http;
 
 import org.cyberneko.html.parsers.SAXParser;
+import org.gradle.api.internal.resource.ResourceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.xml.sax.*;
+import org.xml.sax.Attributes;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+import org.xml.sax.helpers.DefaultHandler;
 
-import java.io.IOException;
 import java.io.StringReader;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class ApacheDirectoryListingParser {
@@ -38,18 +40,17 @@ public class ApacheDirectoryListingParser {
         this.baseURI = baseURI;
     }
 
-    public List<URI> parse(byte[] content, String encoding) throws IOException {
-        final String htmlText = new String(content); //TODO: converting with correct encoding
+    public List<URI> parse(byte[] content, String contentType) throws Exception{
+        if (contentType == null || !contentType.startsWith("text/html")) {
+            throw new ResourceException(String.format("Unsupported ContentType %s for DirectoryListing", contentType));
+        }
+        String contentEncoding = contentType.contains("charset=") ? contentType.substring(contentType.indexOf('=') + 1) : "utf-8";
+        final String htmlText = new String(content, contentEncoding);
         final InputSource inputSource = new InputSource(new StringReader(htmlText));
         final SAXParser htmlParser = new SAXParser();
         final AnchorListerHandler anchorListerHandler = new AnchorListerHandler();
         htmlParser.setContentHandler(anchorListerHandler);
-        try {
-            htmlParser.parse(inputSource);
-        } catch (SAXException e) {
-            LOGGER.warn(String.format("Unable to parse DirectoryListing for %s"), e);
-            return Collections.emptyList();
-        }
+        htmlParser.parse(inputSource);
 
         List<String> hrefs = anchorListerHandler.getHrefs();
         List<URI> uris = resolveURIs(baseURI, hrefs);
@@ -64,23 +65,23 @@ public class ApacheDirectoryListingParser {
         List<URI> uris = new ArrayList<URI>();
         final String prefixPath = baseURI.getPath();
         for (URI parsedURI : inputURIs) {
-            if (!parsedURI.getHost().equals(baseURIHost)) {
+            if (parsedURI.getHost() != null && !parsedURI.getHost().equals(baseURIHost)) {
                 continue;
             }
-            if (!parsedURI.getScheme().equals(baseURIScheme)) {
+            if (parsedURI.getScheme() != null && !parsedURI.getScheme().equals(baseURIScheme)) {
                 continue;
             }
             if (parsedURI.getPort() != baseURIPort) {
                 continue;
             }
-            if (!parsedURI.getPath().startsWith(prefixPath)) {
+            if (parsedURI.getPath() !=null && !parsedURI.getPath().startsWith(prefixPath)) {
                 continue;
             }
             String childPathPart = parsedURI.getPath().substring(prefixPath.length(), parsedURI.getPath().length());
-            if(childPathPart.startsWith("../")){
+            if (childPathPart.startsWith("../")) {
                 continue;
             }
-            if(childPathPart.equals("") || childPathPart.split("/").length>1){
+            if (childPathPart.equals("") || childPathPart.split("/").length > 1) {
                 continue;
             }
 
@@ -101,7 +102,7 @@ public class ApacheDirectoryListingParser {
         return uris;
     }
 
-    private class AnchorListerHandler implements ContentHandler {
+    private class AnchorListerHandler extends DefaultHandler{
         List<String> hrefs = new ArrayList<String>();
 
         public List<String> getHrefs() {
@@ -115,36 +116,6 @@ public class ApacheDirectoryListingParser {
                     hrefs.add(href);
                 }
             }
-        }
-
-        public void setDocumentLocator(Locator locator) {
-        }
-
-        public void startDocument() throws SAXException {
-        }
-
-        public void endDocument() throws SAXException {
-        }
-
-        public void startPrefixMapping(String prefix, String uri) throws SAXException {
-        }
-
-        public void endPrefixMapping(String prefix) throws SAXException {
-        }
-
-        public void endElement(String uri, String localName, String qName) throws SAXException {
-        }
-
-        public void characters(char[] ch, int start, int length) throws SAXException {
-        }
-
-        public void ignorableWhitespace(char[] ch, int start, int length) throws SAXException {
-        }
-
-        public void processingInstruction(String target, String data) throws SAXException {
-        }
-
-        public void skippedEntity(String name) throws SAXException {
         }
     }
 }

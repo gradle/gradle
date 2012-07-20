@@ -31,27 +31,31 @@ import java.util.List;
 public class HttpResourceLister implements ExternalResourceLister {
     private HttpResourceAccessor accessor;
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpResourceLister.class);
+
     public HttpResourceLister(HttpResourceAccessor accessor) {
         this.accessor = accessor;
     }
 
     public List<String> list(String parent) throws IOException {
-        URI baseURI = null;
-        try{
+        URI baseURI;
+        try {
             baseURI = addTrailingSlashes(new URI(parent));
-        }catch(URISyntaxException ex){
-            LOGGER.warn(String.format("Unable to create URI from String '%s' ", ex));
+        } catch (URISyntaxException ex) {
+            throw new IOException(String.format("Unable to create URI from String '%s' ", parent), ex);
         }
         final ExternalResource resource = accessor.getResource(baseURI.toString());
         if (resource == null) {
             return null;
         }
         byte[] resourceContent = loadResourceContent(resource);
-        String encoding = getResourceEncoding(resource);
+        String contentType = getContentType(resource);
         ApacheDirectoryListingParser directoryListingParser = new ApacheDirectoryListingParser(baseURI);
-        List<URI> uris = directoryListingParser.parse(resourceContent, encoding);
-
-        return convertToStringList(uris);
+        try {
+            List<URI> uris = directoryListingParser.parse(resourceContent, contentType);
+            return convertToStringList(uris);
+        } catch (Exception e) {
+            throw new IOException("Unable to parse Http directory listing", e);
+        }
     }
 
     private List<String> convertToStringList(List<URI> uris) {
@@ -62,9 +66,9 @@ public class HttpResourceLister implements ExternalResourceLister {
         return ret;
     }
 
-    private String getResourceEncoding(ExternalResource resource) {
+    private String getContentType(ExternalResource resource) {
         if (resource instanceof HttpResponseResource) {
-            return ((HttpResponseResource) resource).getContentEncoding();
+            return ((HttpResponseResource) resource).getContentType();
         }
         return null;
     }
@@ -75,9 +79,9 @@ public class HttpResourceLister implements ExternalResourceLister {
             resource.writeTo(outputStream, new CopyProgressListenerAdapter());
             return outputStream.toByteArray();
         } finally {
-            try{
+            try {
                 outputStream.close();
-            }finally {
+            } finally {
                 resource.close();
             }
         }

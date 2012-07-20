@@ -91,9 +91,9 @@ class HttpResponseResource extends AbstractExternalResource {
         }
     }
 
-    public String getContentEncoding() {
-        final Header contentEncoding = response.getEntity().getContentEncoding();
-        return contentEncoding == null ? null : contentEncoding.getValue();
+    public String getContentType() {
+        final Header header = response.getFirstHeader(HttpHeaders.CONTENT_TYPE);
+        return header == null ? null : header.getValue();
     }
 
     public boolean exists() {

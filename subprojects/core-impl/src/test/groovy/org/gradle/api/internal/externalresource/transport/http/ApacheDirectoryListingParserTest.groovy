@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.externalresource.transport.http
 
+import org.gradle.api.internal.resource.ResourceException;
 import org.gradle.util.Resources
 import org.junit.Rule
 import spock.lang.Specification
@@ -26,12 +27,13 @@ import static org.junit.Assert.assertNotNull
 class ApacheDirectoryListingParserTest extends Specification {
     @Rule public final Resources resources = new Resources();
 
+    private static final CONTENT_TYPE= "text/html;charset=utf-8";
     private URI baseUrl = URI.create("http://testrepo/")
     private ApacheDirectoryListingParser parser = new ApacheDirectoryListingParser(baseUrl);
 
     def "parse returns empty List if no link can be found"() {
         expect:
-        List urls = parser.parse("<html>no link here</html>".bytes, null)
+        List urls = parser.parse("<html>no link here</html>".bytes, CONTENT_TYPE)
         assertNotNull(urls)
         urls.isEmpty()
     }
@@ -43,15 +45,27 @@ class ApacheDirectoryListingParserTest extends Specification {
         <a href="directory3">directory3</a>
         <a href="directory4">directory4</a>"""
         expect:
-        def uris = parser.parse(html.bytes, null)
+        def uris = parser.parse(html.bytes, CONTENT_TYPE)
         assertNotNull(uris)
         uris.collect {it.toString()} == ["http://testrepo/directory1", "http://testrepo/directory2", "http://testrepo/directory3", "http://testrepo/directory4"]
+    }
+
+    def "only text/html content type is supported"() {
+        def html = """
+        <a href="directory1">directory1</a>
+        <a href="directory2">directory2</a>"""
+        when:
+        parser.parse(html.bytes, contentType)
+        then:
+        thrown(ResourceException)
+        where:
+        contentType << ["text/plain", "application/octetstream"]
     }
 
     @Unroll
     def "parse ignores #descr"() {
         expect:
-        parser.parse("<a href=\"${href}\">link</a>".toString().bytes, null).isEmpty()
+        parser.parse("<a href=\"${href}\">link</a>".toString().bytes, CONTENT_TYPE).isEmpty()
         where:
         href                                                | descr
         "http://anothertestrepo/"                           | "URLs which aren't children of base URL"
@@ -67,7 +81,7 @@ class ApacheDirectoryListingParserTest extends Specification {
     @Unroll
     def "parseLink handles #urlDescr"() {
         expect:
-        def foundURIs = parser.parse("<a href=\"${href}\">link</a>".toString().bytes, null)
+        def foundURIs = parser.parse("<a href=\"${href}\">link</a>".toString().bytes, CONTENT_TYPE)
         !foundURIs.isEmpty()
         foundURIs.collect {it.toString()} == ["http://testrepo/directory1"]
         where:
@@ -84,7 +98,7 @@ class ApacheDirectoryListingParserTest extends Specification {
         setup:
         def byte[] content =  resources.getResource("${repoType}_dirlisting.html").bytes
         expect:
-        List<URI> urls = new ApacheDirectoryListingParser(new URI(artifactRootURI)).parse(content, null)
+        List<URI> urls = new ApacheDirectoryListingParser(new URI(artifactRootURI)).parse(content, CONTENT_TYPE)
         urls.collect {it.toString()} as Set == ["${artifactRootURI}3.7/",
                 "${artifactRootURI}3.8/",
                 "${artifactRootURI}3.8.1/",
