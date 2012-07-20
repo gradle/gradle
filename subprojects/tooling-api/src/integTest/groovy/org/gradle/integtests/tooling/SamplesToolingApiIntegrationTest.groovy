@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.tooling
 
+import org.gradle.util.TextUtil
 import org.junit.Rule
 import spock.lang.Specification
 import org.gradle.integtests.fixtures.*
@@ -79,10 +80,10 @@ class SamplesToolingApiIntegrationTest extends Specification {
         assert index >= 0
         buildScript = buildScript.substring(0, index) + """
 repositories {
-    maven { url "${distribution.libsRepo}" }
+    maven { url "${distribution.libsRepo.toURI()}" }
 }
 run {
-    args = ["${distribution.gradleHomeDir.absolutePath}"]
+    args = ["${TextUtil.escapeString(distribution.gradleHomeDir.absolutePath)}"]
 }
 """ + buildScript.substring(index)
 
