@@ -39,7 +39,8 @@ public class ApacheDirectoryListingParser {
         this.inputUrl = inputUrl;
     }
 
-    public List<URL> parse(String htmlText) throws IOException {
+    public List<URL> parse(byte[] stream, String encoding) throws IOException {
+        final String htmlText = new String(stream); //TODO: converting with correct encoding
         List<URL> urlList = new ArrayList<URL>();
         Matcher matcher = PATTERN.matcher(htmlText);
         while (matcher.find()) {
@@ -122,7 +123,7 @@ public class ApacheDirectoryListingParser {
     }
 
     private String stripBaseURL(String href) {
-        if(href != null && (href.startsWith("http:") || href.startsWith("https:"))) {
+        if (href != null && (href.startsWith("http:") || href.startsWith("https:"))) {
             try {
                 href = new URL(href).getPath();
                 if (!href.startsWith(inputUrl.getPath())) {

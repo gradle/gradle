@@ -25,19 +25,30 @@ class HttpResourceListerTest extends Specification {
     ExternalResource externalResource = Mock(ExternalResource)
     HttpResourceLister lister = new HttpResourceLister(accessorMock)
 
-    def "loadResourceContent adds trailing slashes to relative input URL before performing http request"() {
+    def "addTrailingSlashes adds trailing slashes on relative URL if not exist"() {
+        expect:
+        new URL(resultingURL) == lister.addTrailingSlashes(new URL(inputURL))
+        where:
+        inputURL                        | resultingURL
+        "http://testrepo"               | "http://testrepo/"
+        "http://testrepo/"              | "http://testrepo/"
+        "http://testrepo/index.html"    | "http://testrepo/index.html"
+    }
+
+    def "consumeExternalResource closes resource after reading into stream"() {
+        setup:
+        accessorMock.getResource("http://testrepo/") >> externalResource;
         when:
-        lister.loadResourceContent(new URL("http://testrepo"))
+        lister.loadResourceContent(externalResource)
         then:
-        1 * accessorMock.getResource("http://testrepo/") >> externalResource
         1 * externalResource.writeTo(_, _)
         1 * externalResource.close()
     }
 
-    def "loadResourceContent returns null when nested HttpResourceAccessor returns null for getResource"() {
+    def "list returns null if HttpAccessor returns null"(){
         setup:
-        1 * accessorMock.getResource("http://testrepo/") >> null;
+        accessorMock.getResource("http://testrepo/")  >> null
         expect:
-        null == lister.loadResourceContent(new URL("http://testrepo"))
+        null == lister.list("http://testrepo")
     }
 }

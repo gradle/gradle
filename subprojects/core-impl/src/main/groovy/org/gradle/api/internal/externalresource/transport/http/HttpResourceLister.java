@@ -33,13 +33,20 @@ public class HttpResourceLister implements ExternalResourceLister {
     }
 
     public List<String> list(String parent) throws IOException {
-        final URL inputUrl = new URL(parent);
-        String resourceContentString = loadResourceContent(new URL(parent));
-        if(resourceContentString==null){
+        final URL baseUrl = addTrailingSlashes(new URL(parent));
+        final ExternalResource resource = accessor.getResource(baseUrl.toString());
+        if (resource == null) {
             return null;
         }
-        ApacheDirectoryListingParser directoryListingParser = new ApacheDirectoryListingParser(inputUrl);
-        List<URL> urls = directoryListingParser.parse(resourceContentString);
+        byte[] resourceContent = loadResourceContent(resource);
+        String encoding = getResourceEncoding(resource);
+        ApacheDirectoryListingParser directoryListingParser = new ApacheDirectoryListingParser(baseUrl);
+        List<URL> urls = directoryListingParser.parse(resourceContent, encoding);
+
+        return convertToStringMap(urls);
+    }
+
+    private List<String> convertToStringMap(List<URL> urls) {
         List<String> ret = new ArrayList<String>(urls.size());
         for (URL url : urls) {
             ret.add(url.toExternalForm());
@@ -47,20 +54,32 @@ public class HttpResourceLister implements ExternalResourceLister {
         return ret;
     }
 
-    String loadResourceContent(URL url) throws IOException {
+    private String getResourceEncoding(ExternalResource resource) {
+        if (resource instanceof HttpResponseResource) {
+            return ((HttpResponseResource) resource).getContentEncoding();
+        }
+        return null;
+    }
+
+    byte[] loadResourceContent(ExternalResource resource) throws IOException {
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        try {
+            resource.writeTo(outputStream, new CopyProgressListenerAdapter());
+            return outputStream.toByteArray();
+        } finally {
+            try{
+                outputStream.close();
+            }finally {
+                resource.close();
+            }
+        }
+    }
+
+    URL addTrailingSlashes(URL url) throws IOException {
         // add trailing slash for relative urls
         if (!url.getPath().endsWith("/") && !url.getPath().endsWith(".html")) {
             url = new URL(url.getProtocol(), url.getHost(), url.getPort(), url.getPath() + "/");
         }
-
-        final ExternalResource resource = accessor.getResource(url.toString());
-        if(resource!=null){
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-                    resource.writeTo(outputStream, new CopyProgressListenerAdapter());
-                    outputStream.close();
-                    resource.close();
-                    return outputStream.toString();
-        }
-        return null;
+        return url;
     }
 }
