@@ -43,5 +43,5 @@ configurations.mvn3Input.files.each{libFile->
 
 def allJarJars = tasks.withType(JarJar)
 ideaModule.dependsOn allJarJars // I expected that buildable file collections links the ideaModule to the allJarJars already.
-
+eclipseClasspath.dependsOn allJarJars 
 useTestFixtures()

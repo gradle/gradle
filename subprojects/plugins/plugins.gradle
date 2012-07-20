@@ -60,3 +60,13 @@ test {
 
 useTestFixtures()
 useTestFixtures(sourceSet: "testFixtures")
+
+eclipse {
+	classpath {
+		file.whenMerged { classpath ->
+			classpath.entries.removeAll {it.path.contains('/plugins/build/classes') }
+			classpath.entries.removeAll {it.path.contains('/plugins/build/resources') }
+            classpath.entries.removeAll { it.path.contains('src/integTest/resources') }
+		}
+	}
+}
