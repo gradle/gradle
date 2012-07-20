@@ -39,7 +39,7 @@ public class HttpResourceLister implements ExternalResourceLister {
     public List<String> list(String parent) throws IOException {
         URI baseURI;
         try {
-            baseURI = addTrailingSlashes(new URI(parent));
+            baseURI = new URI(parent);
         } catch (URISyntaxException ex) {
             throw new IOException(String.format("Unable to create URI from String '%s' ", parent), ex);
         }
@@ -49,9 +49,9 @@ public class HttpResourceLister implements ExternalResourceLister {
         }
         byte[] resourceContent = loadResourceContent(resource);
         String contentType = getContentType(resource);
-        ApacheDirectoryListingParser directoryListingParser = new ApacheDirectoryListingParser(baseURI);
+        ApacheDirectoryListingParser directoryListingParser = new ApacheDirectoryListingParser();
         try {
-            List<URI> uris = directoryListingParser.parse(resourceContent, contentType);
+            List<URI> uris = directoryListingParser.parse(baseURI, resourceContent, contentType);
             return convertToStringList(uris);
         } catch (Exception e) {
             throw new IOException("Unable to parse Http directory listing", e);
@@ -87,10 +87,5 @@ public class HttpResourceLister implements ExternalResourceLister {
         }
     }
 
-    URI addTrailingSlashes(URI uri) throws IOException, URISyntaxException {
-        if (!uri.getPath().endsWith("/") && !uri.getPath().endsWith(".html")) {
-            uri = new URI(uri.getScheme(), uri.getUserInfo(), uri.getHost(), uri.getPort(), uri.getPath() + "/", uri.getQuery(), uri.getFragment());
-        }
-        return uri;
-    }
+
 }

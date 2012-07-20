@@ -29,14 +29,24 @@ class ApacheDirectoryListingParserTest extends Specification {
 
     private static final CONTENT_TYPE= "text/html;charset=utf-8";
     private URI baseUrl = URI.create("http://testrepo/")
-    private ApacheDirectoryListingParser parser = new ApacheDirectoryListingParser(baseUrl);
+    private ApacheDirectoryListingParser parser = new ApacheDirectoryListingParser();
 
     def "parse returns empty List if no link can be found"() {
         expect:
-        List urls = parser.parse("<html>no link here</html>".bytes, CONTENT_TYPE)
+        List urls = parser.parse(baseUrl, "<html>no link here</html>".bytes, CONTENT_TYPE)
         assertNotNull(urls)
         urls.isEmpty()
     }
+
+    def "addTrailingSlashes adds trailing slashes on relative URL if not exist"() {
+            expect:
+            new URI(resultingURI) == parser.addTrailingSlashes(new URI(inputURI))
+            where:
+            inputURI                        | resultingURI
+            "http://testrepo"               | "http://testrepo/"
+            "http://testrepo/"              | "http://testrepo/"
+            "http://testrepo/index.html"    | "http://testrepo/index.html"
+        }
 
     def "parse handles multiple listed links"() {
         def html = """
@@ -45,7 +55,7 @@ class ApacheDirectoryListingParserTest extends Specification {
         <a href="directory3">directory3</a>
         <a href="directory4">directory4</a>"""
         expect:
-        def uris = parser.parse(html.bytes, CONTENT_TYPE)
+        def uris = parser.parse(baseUrl, html.bytes, CONTENT_TYPE)
         assertNotNull(uris)
         uris.collect {it.toString()} == ["http://testrepo/directory1", "http://testrepo/directory2", "http://testrepo/directory3", "http://testrepo/directory4"]
     }
@@ -55,7 +65,7 @@ class ApacheDirectoryListingParserTest extends Specification {
         <a href="directory1">directory1</a>
         <a href="directory2">directory2</a>"""
         when:
-        parser.parse(html.bytes, contentType)
+        parser.parse(baseUrl, html.bytes, contentType)
         then:
         thrown(ResourceException)
         where:
@@ -65,7 +75,7 @@ class ApacheDirectoryListingParserTest extends Specification {
     @Unroll
     def "parse ignores #descr"() {
         expect:
-        parser.parse("<a href=\"${href}\">link</a>".toString().bytes, CONTENT_TYPE).isEmpty()
+        parser.parse(baseUrl, "<a href=\"${href}\">link</a>".toString().bytes, CONTENT_TYPE).isEmpty()
         where:
         href                                                | descr
         "http://anothertestrepo/"                           | "URLs which aren't children of base URL"
@@ -80,17 +90,23 @@ class ApacheDirectoryListingParserTest extends Specification {
 
     @Unroll
     def "parseLink handles #urlDescr"() {
+        def listingParser = new ApacheDirectoryListingParser()
         expect:
-        def foundURIs = parser.parse("<a href=\"${href}\">link</a>".toString().bytes, CONTENT_TYPE)
+        def foundURIs = listingParser.parse(URI.create(baseUri), "<a href=\"${href}\">link</a>".toString().bytes, CONTENT_TYPE)
         !foundURIs.isEmpty()
-        foundURIs.collect {it.toString()} == ["http://testrepo/directory1"]
+        foundURIs.collect {it.toString()} == ["${baseUri}/directory1"]
         where:
-        href                         | text           | urlDescr
-        "directory1"                 | "directory1"   | "relative URLS"
-        "/directory1"                | "directory1"   | "absolute URLS"
-        "./directory1"               | "directory1"   | "explicit relative URLS"
-        "http://testrepo/directory1" | "directory1"   | "complete URLS"
-        "http://testrepo/directory1" | "direct..&gt;" | "hrefs with truncated text"
+        baseUri                 | href                        | urlDescr
+        "http://testrepo"       |  "directory1"               | "relative URLS"
+        "http://testrepo"       |"/directory1"                | "absolute URLS"
+        "http://testrepo"       |"./directory1"               | "explicit relative URLS"
+        "http://testrepo"       |"http://testrepo/directory1" | "complete URLS"
+        "http://testrepo"       | "http://testrepo/directory1"| "hrefs with truncated text"
+        "http://testrepo"       | "http://testrepo/directory1"| "hrefs with truncated text"
+        "http://[2001:db8::7]"  |"directory1"                 | "ipv6 host with relative URLS"
+        "http://[2001:db8::7]"  |"./directory1"               | "ipv6 host with explicit relative URLS"
+        "http://192.0.0.10"     |"directory1"                 | "ipv4 host with relative URLS"
+        "http://192.0.0.10"     |"./directory1"               | "ipv4 host with relative URLS"
     }
 
     @Unroll
@@ -98,7 +114,7 @@ class ApacheDirectoryListingParserTest extends Specification {
         setup:
         def byte[] content =  resources.getResource("${repoType}_dirlisting.html").bytes
         expect:
-        List<URI> urls = new ApacheDirectoryListingParser(new URI(artifactRootURI)).parse(content, CONTENT_TYPE)
+        List<URI> urls = new ApacheDirectoryListingParser().parse(new URI(artifactRootURI), content, CONTENT_TYPE)
         urls.collect {it.toString()} as Set == ["${artifactRootURI}3.7/",
                 "${artifactRootURI}3.8/",
                 "${artifactRootURI}3.8.1/",
@@ -126,4 +142,5 @@ class ApacheDirectoryListingParserTest extends Specification {
         "http://repo1.maven.org/maven2/junit/junit/"                            | "mavencentral"
         "http://localhost:8081/nexus/content/repositories/central/junit/junit/" | "nexus"
     }
+
 }

@@ -25,22 +25,23 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
+import java.io.IOException;
 import java.io.StringReader;
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ApacheDirectoryListingParser {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ApacheDirectoryListingParser.class);
-    private final URI baseURI;
 
-    public ApacheDirectoryListingParser(URI baseURI) {
-        this.baseURI = baseURI;
+    public ApacheDirectoryListingParser() {
     }
 
-    public List<URI> parse(byte[] content, String contentType) throws Exception{
+    public List<URI> parse(URI baseURI, byte[] content, String contentType) throws Exception {
+        baseURI = addTrailingSlashes(baseURI);
         if (contentType == null || !contentType.startsWith("text/html")) {
             throw new ResourceException(String.format("Unsupported ContentType %s for DirectoryListing", contentType));
         }
@@ -55,6 +56,16 @@ public class ApacheDirectoryListingParser {
         List<String> hrefs = anchorListerHandler.getHrefs();
         List<URI> uris = resolveURIs(baseURI, hrefs);
         return filterNonDirectChilds(baseURI, uris);
+    }
+
+    private URI addTrailingSlashes(URI uri) throws IOException, URISyntaxException {
+        if(uri.getPath() == null){
+            uri = new URI(uri.getScheme(), uri.getUserInfo(), uri.getHost(), uri.getPort(), "/", uri.getQuery(), uri.getFragment());
+        }else if (!uri.getPath().endsWith("/") && !uri.getPath().endsWith(".html")) {
+            uri = new URI(uri.getScheme(), uri.getUserInfo(), uri.getHost(), uri.getPort(), uri.getPath() + "/", uri.getQuery(), uri.getFragment());
+
+        }
+        return uri;
     }
 
     private List<URI> filterNonDirectChilds(URI baseURI, List<URI> inputURIs) throws MalformedURLException {
@@ -74,7 +85,7 @@ public class ApacheDirectoryListingParser {
             if (parsedURI.getPort() != baseURIPort) {
                 continue;
             }
-            if (parsedURI.getPath() !=null && !parsedURI.getPath().startsWith(prefixPath)) {
+            if (parsedURI.getPath() != null && !parsedURI.getPath().startsWith(prefixPath)) {
                 continue;
             }
             String childPathPart = parsedURI.getPath().substring(prefixPath.length(), parsedURI.getPath().length());
@@ -102,7 +113,7 @@ public class ApacheDirectoryListingParser {
         return uris;
     }
 
-    private class AnchorListerHandler extends DefaultHandler{
+    private class AnchorListerHandler extends DefaultHandler {
         List<String> hrefs = new ArrayList<String>();
 
         public List<String> getHrefs() {
