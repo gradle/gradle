@@ -59,9 +59,9 @@ class ClassDoc implements DslElementDoc {
 
     String getId() { return id }
 
-    def getName() { return className }
+    String getName() { return className }
 
-    def getSimpleName() { return simpleName }
+    String getSimpleName() { return simpleName }
 
     boolean isDeprecated() {
         return classMetaData.deprecated

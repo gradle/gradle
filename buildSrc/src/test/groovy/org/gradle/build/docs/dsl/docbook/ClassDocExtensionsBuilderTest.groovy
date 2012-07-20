@@ -28,7 +28,7 @@ import org.gradle.build.docs.dsl.docbook.model.MethodDoc
 
 class ClassDocExtensionsBuilderTest extends XmlSpecification {
     final DslDocModel docModel = Mock()
-    final ClassDocExtensionsBuilder builder = new ClassDocExtensionsBuilder(docModel)
+    final ClassDocExtensionsBuilder builder = new ClassDocExtensionsBuilder(docModel, null)
 
     def buildsExtensionsForClassMixins() {
         ClassMetaData classMetaData = classMetaData()

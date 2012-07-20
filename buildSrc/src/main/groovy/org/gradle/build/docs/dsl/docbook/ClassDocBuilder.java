@@ -27,7 +27,7 @@ public class ClassDocBuilder {
         commentBuilder = new ClassDocCommentBuilder(javadocConverter, listener);
         propertiesBuilder = new ClassDocPropertiesBuilder(model, javadocConverter, listener);
         methodsBuilder = new ClassDocMethodsBuilder(model, javadocConverter, listener);
-        extensionsBuilder = new ClassDocExtensionsBuilder(model);
+        extensionsBuilder = new ClassDocExtensionsBuilder(model, listener);
     }
 
     void build(ClassDoc classDoc) {

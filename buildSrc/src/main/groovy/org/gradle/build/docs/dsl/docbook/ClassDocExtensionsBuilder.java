@@ -16,17 +16,28 @@
 
 package org.gradle.build.docs.dsl.docbook;
 
-import org.gradle.build.docs.dsl.docbook.model.ExtensionMetaData;
-import org.gradle.build.docs.dsl.docbook.model.MixinMetaData;
+import groovy.lang.Closure;
+import org.gradle.build.docs.dsl.docbook.model.*;
+import org.gradle.build.docs.dsl.source.model.MethodMetaData;
+import org.gradle.build.docs.dsl.source.model.PropertyMetaData;
+import org.gradle.build.docs.dsl.source.model.TypeMetaData;
+import org.gradle.internal.UncheckedException;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 public class ClassDocExtensionsBuilder {
     private final DslDocModel model;
+    private final GenerationListener listener;
 
-    public ClassDocExtensionsBuilder(DslDocModel model) {
+    public ClassDocExtensionsBuilder(DslDocModel model, GenerationListener listener) {
         this.model = model;
+        this.listener = listener;
     }
 
     public void build(ClassDoc classDoc) {
@@ -50,8 +61,43 @@ public class ClassDocExtensionsBuilder {
             classExtensionDoc.getExtensionClasses().put(extension.getExtensionId(), model.getClassDoc(extension.getExtensionClass()));
         }
         for (ClassExtensionDoc extensionDoc : plugins.values()) {
-            extensionDoc.buildMetaData(model);
+            build(extensionDoc);
             classDoc.addClassExtension(extensionDoc);
+        }
+    }
+
+    private void build(ClassExtensionDoc extensionDoc) {
+        Document doc;
+        try {
+            doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+        } catch (ParserConfigurationException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+
+        LinkRenderer linkRenderer = new LinkRenderer(doc, model);
+        for (Map.Entry<String, ClassDoc> entry : extensionDoc.getExtensionClasses().entrySet()) {
+            String id = entry.getKey();
+            ClassDoc type = entry.getValue();
+            PropertyMetaData propertyMetaData = new PropertyMetaData(id, extensionDoc.getTargetClass());
+            propertyMetaData.setType(new TypeMetaData(type.getName()));
+
+            Element para = doc.createElement("para");
+            para.appendChild(doc.createTextNode("The "));
+            para.appendChild(linkRenderer.link(propertyMetaData.getType(), listener));
+            para.appendChild(doc.createTextNode(String.format(" added by the %s plugin.", extensionDoc.getPluginId())));
+
+            PropertyDoc propertyDoc = new PropertyDoc(propertyMetaData, Collections.singletonList(para), Collections.<ExtraAttributeDoc>emptyList());
+            extensionDoc.getExtraProperties().add(propertyDoc);
+
+            para = doc.createElement("para");
+            para.appendChild(doc.createTextNode("Configures the "));
+            para.appendChild(linkRenderer.link(propertyMetaData.getType(), listener));
+            para.appendChild(doc.createTextNode(String.format(" added by the %s plugin.", extensionDoc.getPluginId())));
+
+            MethodMetaData methodMetaData = new MethodMetaData(id, extensionDoc.getTargetClass());
+            methodMetaData.addParameter("configClosure", new TypeMetaData(Closure.class.getName()));
+            MethodDoc methodDoc = new MethodDoc(methodMetaData, Collections.singletonList(para));
+            extensionDoc.getExtraBlocks().add(new BlockDoc(methodDoc, propertyDoc, propertyMetaData.getType(), false));
         }
     }
 }

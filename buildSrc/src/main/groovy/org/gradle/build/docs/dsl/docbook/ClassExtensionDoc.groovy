@@ -33,9 +33,9 @@ class ClassExtensionDoc {
     private final Set<ClassDoc> mixinClasses = []
     private final Map<String, ClassDoc> extensionClasses = [:]
     private final String pluginId
-    private final ClassMetaData targetClass
-    private final List<PropertyDoc> extraProperties = []
-    private final List<BlockDoc> extraBlocks = []
+    final ClassMetaData targetClass
+    final List<PropertyDoc> extraProperties = []
+    final List<BlockDoc> extraBlocks = []
 
     ClassExtensionDoc(String pluginId, ClassMetaData targetClass) {
         this.pluginId = pluginId
@@ -52,35 +52,6 @@ class ClassExtensionDoc {
 
     Map<String, ClassDoc> getExtensionClasses() {
         return extensionClasses
-    }
-
-    void buildMetaData(DslDocModel model) {
-        Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument()
-        def linkRenderer = new LinkRenderer(doc, model)
-        extensionClasses.each { id, type ->
-            def propertyMetaData = new PropertyMetaData(id, targetClass)
-            propertyMetaData.type = new TypeMetaData(type.name)
-
-            def builder = new DomBuilder(doc, null)
-            builder.para {
-                text("The ")
-                appendChild(linkRenderer.link(propertyMetaData.type, new DefaultGenerationListener()))
-                text(" added by the ${pluginId} plugin.")
-            }
-            def propertyDoc = new PropertyDoc(propertyMetaData, builder.elements, [])
-            extraProperties.add(propertyDoc)
-
-            builder = new DomBuilder(doc, null)
-            builder.para {
-                text("Configures the ")
-                appendChild(linkRenderer.link(propertyMetaData.type, new DefaultGenerationListener()))
-                text(" added by the ${pluginId} plugin.")
-            }
-            def methodMetaData = new MethodMetaData(id, targetClass)
-            methodMetaData.addParameter("configClosure", new TypeMetaData(Closure.name))
-            def methodDoc = new MethodDoc(methodMetaData, builder.elements)
-            extraBlocks.add(new BlockDoc(methodDoc, propertyDoc, propertyMetaData.type, false))
-        }
     }
 
     List<PropertyDoc> getExtensionProperties() {
