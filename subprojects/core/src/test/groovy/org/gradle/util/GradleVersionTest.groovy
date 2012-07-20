@@ -19,10 +19,10 @@ package org.gradle.util
 import org.apache.ivy.Ivy
 import org.apache.tools.ant.Main
 import org.codehaus.groovy.runtime.InvokerHelper
-import org.gradle.internal.os.OperatingSystem
-
-import spock.lang.*
 import org.gradle.internal.jvm.Jvm
+import org.gradle.internal.os.OperatingSystem
+import spock.lang.Issue
+import spock.lang.Specification
 
 /**
  * @author Hans Dockter
@@ -204,6 +204,19 @@ class GradleVersionTest extends Specification {
         '0.9-20101220110000-0100' | '0.9-20101220110000'
         '0.9'                     | '0.9-20101220100000+1000'
         '0.9'                     | '0.9-20101220100000'
+    }
+
+    def canCompareWithNonSymbolicVersions() {
+        expect:
+        GradleVersion.version(a) > GradleVersion.version(b)
+        GradleVersion.version(b) < GradleVersion.version(a)
+        GradleVersion.version(a) == GradleVersion.version(a)
+        GradleVersion.version(b) == GradleVersion.version(b)
+
+        where:
+        a                         | b
+        '0.0-20101220110000+0100' | '1.0'
+        '0.0'                     | '0.9.2'
     }
 
     def prettyPrint() {

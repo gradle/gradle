@@ -156,15 +156,28 @@ public class GradleVersion implements Comparable<GradleVersion> {
         return versionPart == null || snapshot != null;
     }
 
+    private boolean isNonSymbolicNumber() {
+        return versionPart.equals("0.0");
+    }
+
     public int compareTo(GradleVersion gradleVersion) {
         assertCanQueryParts();
         gradleVersion.assertCanQueryParts();
 
+        if (isNonSymbolicNumber() && !gradleVersion.isNonSymbolicNumber()) {
+            return 1;
+        } else if (!isNonSymbolicNumber() && gradleVersion.isNonSymbolicNumber()) {
+            return -1;
+        }
+
         String[] majorVersionParts = versionPart.split("\\.");
         String[] otherMajorVersionParts = gradleVersion.versionPart.split("\\.");
+
+
         for (int i = 0; i < majorVersionParts.length && i < otherMajorVersionParts.length; i++) {
             int part = Integer.parseInt(majorVersionParts[i]);
             int otherPart = Integer.parseInt(otherMajorVersionParts[i]);
+
             if (part > otherPart) {
                 return 1;
             }
