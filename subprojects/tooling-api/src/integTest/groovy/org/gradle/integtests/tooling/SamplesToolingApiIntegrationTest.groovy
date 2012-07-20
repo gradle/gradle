@@ -24,18 +24,11 @@ class SamplesToolingApiIntegrationTest extends Specification {
     @Rule public final Sample sample = new Sample()
 
     @UsesSample('toolingApi/eclipse')
-    def canUseToolingApiToDetermineProjectClasspath() {
-        def projectDir = sample.dir
-        Properties props = new Properties()
-        props['toolingApiRepo'] = distribution.libsRepo.toURI().toString()
-        props['gradleDistribution'] = distribution.gradleHomeDir.toString()
-        projectDir.file('gradle.properties').withOutputStream {outstr ->
-            props.store(outstr, 'props')
-        }
-        projectDir.file('settings.gradle').text = '// to stop search upwards'
+    def "can use tooling API to build Eclipse model"() {
+        tweakProject()
 
         when:
-        def result = run(projectDir)
+        def result = run()
 
         then:
         result.output.contains("gradle-tooling-api-")
@@ -43,45 +36,72 @@ class SamplesToolingApiIntegrationTest extends Specification {
     }
 
     @UsesSample('toolingApi/build')
-    def canUseToolingApiToRunABuild() {
-        def projectDir = sample.dir
-        Properties props = new Properties()
-        props['toolingApiRepo'] = distribution.libsRepo.toURI().toString()
-        props['gradleDistribution'] = distribution.gradleHomeDir.toString()
-        projectDir.file('gradle.properties').withOutputStream {outstr ->
-            props.store(outstr, 'props')
-        }
-        projectDir.file('settings.gradle').text = '// to stop search upwards'
+    def "can use tooling API to run tasks"() {
+        tweakProject()
 
         when:
-        def result = run(projectDir)
+        def result = run()
 
         then:
         result.output.contains("Welcome to Gradle")
     }
 
     @UsesSample('toolingApi/idea')
-    def buildsIdeaModel() {
-        def projectDir = sample.dir
-        Properties props = new Properties()
-        props['toolingApiRepo'] = distribution.libsRepo.toURI().toString()
-        props['gradleDistribution'] = distribution.gradleHomeDir.toString()
-        projectDir.file('gradle.properties').withOutputStream {outstr ->
-            props.store(outstr, 'props')
-        }
-        projectDir.file('settings.gradle').text = '// to stop search upwards'
+    def "can use tooling API to build IDEA model"() {
+        tweakProject()
 
         when:
-        run(projectDir)
+        run()
 
         then:
         noExceptionThrown()
     }
 
-    private ExecutionResult run(dir) {
+    @UsesSample('toolingApi/model')
+    def "can use tooling API to build general model"() {
+        tweakProject()
+
+        when:
+        def result = run()
+
+        then:
+        result.output.contains("Project: model")
+        result.output.contains("    build")
+    }
+
+    private void tweakProject() {
+        def projectDir = sample.dir
+
+        // Inject some additional configuration into the sample build script
+        def buildFile = projectDir.file('build.gradle')
+        def buildScript = buildFile.text
+        def index = buildScript.indexOf('repositories {')
+        assert index >= 0
+        buildScript = buildScript.substring(0, index) + """
+repositories {
+    maven { url "${distribution.libsRepo}" }
+}
+run {
+    args = ["${distribution.gradleHomeDir.absolutePath}"]
+}
+""" + buildScript.substring(index)
+
+        buildFile.text = buildScript
+
+        // Tweak the build environment
+        Properties props = new Properties()
+        props['org.gradle.daemon.idletimeout'] = '60000'
+        projectDir.file('gradle.properties').withOutputStream {outstr ->
+            props.store(outstr, 'props')
+        }
+
+        // Add in an empty settings file to avoid searching up
+        projectDir.file('settings.gradle').text = '// to stop search upwards'
+    }
+
+    private ExecutionResult run() {
         try {
-            return new GradleDistributionExecuter(distribution).inDirectory(dir)
-                    .withArguments("-PautomationSystemProperty=org.gradle.daemon.idletimeout=60000")
+            return new GradleDistributionExecuter(distribution).inDirectory(sample.dir)
                     .withTasks('run')
                     .run()
         } catch (Exception e) {

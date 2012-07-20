@@ -1,24 +1,14 @@
-//This build script contains extra logic that we use for automated tests
-//Not all of that is needed to use the Tooling Api!
-
 apply plugin: 'java'
 apply plugin: 'application'
 
-if (!hasProperty('toolingApiVersion')) {
-    ext.toolingApiVersion = gradle.gradleVersion
-}
-if (!hasProperty('toolingApiRepo')) {
-    ext.toolingApiRepo = 'http://repo.gradle.org/gradle/libs-releases-local'
-}
+def toolingApiVersion = gradle.gradleVersion
 
 repositories {
     maven {
-        url toolingApiRepo
+        url 'http://repo.gradle.org/gradle/libs-releases-local'
     }
     mavenCentral()
 }
-
-mainClassName = 'org.gradle.sample.Main'
 
 dependencies {
     compile "org.gradle:gradle-tooling-api:${toolingApiVersion}"
@@ -27,19 +17,3 @@ dependencies {
 }
 
 mainClassName = 'org.gradle.sample.Main'
-
-run {
-    if (project.hasProperty('gradleDistribution')) {
-        args = [gradleDistribution]
-    }
-
-    if (project.hasProperty('automationSystemProperty')) {
-        def entry = project.getProperty('automationSystemProperty').split('=')
-        systemProperties[entry[0]] = entry[1]
-    }
-    
-    //jvmArgs = ['-Xdebug', '-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005']
-}
-
-//Example for local debugging:
-//gradle clean run -u -PtoolingApiRepo=/Users/szczepan/gradle/gradle.src/build/repo -PgradleDistribution=/Users/szczepan/programs/gradle-current -PtoolingApiVersion=1.0-milestone-4-20110725164259+0200
