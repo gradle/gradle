@@ -54,6 +54,9 @@ enum TestPrecondition {
     NO_FILE_LOCK_ON_OPEN({
         MAC_OS_X.fulfilled || LINUX.fulfilled
     }),
+    MANDATORY_FILE_LOCKING({
+        OperatingSystem.current().windows
+    }),
     WINDOWS({
         OperatingSystem.current().windows
     }),

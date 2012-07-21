@@ -16,8 +16,8 @@
 package org.gradle.api.internal.file.copy;
 
 import org.gradle.api.file.DeleteAction;
+import org.gradle.api.file.UnableToDeleteFileException;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.util.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,19 +37,34 @@ public class DeleteActionImpl implements DeleteAction {
 
     public boolean delete(Object... deletes) {
         boolean didWork = false;
-
         for (File file : fileResolver.resolveFiles(deletes)) {
             if (!file.exists()) {
                 continue;
             }
             logger.debug("Deleting {}", file);
             didWork = true;
-            if (file.isFile()) {
-                GFileUtils.deleteQuietly(file);
-            } else {
-                GFileUtils.deleteDirectory(file);
-            }
+            doDelete(file);
         }
         return didWork;
     }
+
+    private void doDelete(File file) {
+        if (file.isDirectory()) {
+            File[] contents = file.listFiles();
+
+            // Something else may have removed it
+            if (contents == null) {
+                return;
+            }
+
+            for (File item : contents) {
+                doDelete(item);
+            }
+        }
+
+        if (!file.delete() && file.exists()) {
+            throw new UnableToDeleteFileException(file);
+        }
+    }
+
 }

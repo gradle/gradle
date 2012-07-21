@@ -48,6 +48,7 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
     private Executer executerType;
     private File daemonBaseDir;
     private boolean allowExtraLogging = true;
+    private boolean mustFork;
 
     public enum Executer {
         embedded(false),
@@ -84,6 +85,14 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
         reset();
     }
 
+    public boolean isMustFork() {
+        return mustFork;
+    }
+
+    public void setMustFork(boolean mustFork) {
+        this.mustFork = mustFork;
+    }
+
     public Executer getType() {
         return executerType;
     }
@@ -102,6 +111,7 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
         userHomeSet = false;
         deprecationChecksOn = true;
         stackTraceChecksOn = true;
+        mustFork = false;
         DeprecationLogger.reset();
         return this;
     }
