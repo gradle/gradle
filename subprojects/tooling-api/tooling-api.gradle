@@ -14,13 +14,10 @@ dependencies {
 
 useTestFixtures()
 
-// is some of this unnecessary, or should it be moved into gradle/integTest ?
-integTest {
+integTestTasks.all {
     dependsOn ':publishLocalArchives', ':binZip'
 
     doFirst {
-        systemProperties['integTest.distsDir'] = rootProject.distsDir.absolutePath
-        systemProperties['integTest.libsRepo'] = rootProject.file('build/repo')
         systemProperties['org.gradle.integtest.toolingApiFromTestClasspath'] = 'true'
     }
 }
