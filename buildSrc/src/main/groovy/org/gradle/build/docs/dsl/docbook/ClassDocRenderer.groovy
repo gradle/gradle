@@ -17,6 +17,8 @@ package org.gradle.build.docs.dsl.docbook
 
 import org.gradle.build.docs.dsl.docbook.model.DslElementDoc
 import org.gradle.build.docs.dsl.docbook.model.ExtraAttributeDoc
+import org.gradle.build.docs.dsl.docbook.model.ClassDoc
+import org.gradle.build.docs.dsl.docbook.model.ClassExtensionDoc
 
 class ClassDocRenderer {
     private final LinkRenderer linkRenderer

@@ -21,6 +21,7 @@ import org.gradle.build.docs.dsl.docbook.model.ClassExtensionMetaData
 import org.gradle.build.docs.dsl.source.model.ClassMetaData
 import org.gradle.build.docs.model.ClassMetaDataRepository
 import org.w3c.dom.Document
+import org.gradle.build.docs.dsl.docbook.model.ClassDoc
 
 class DslDocModel {
     private final File classDocbookDir

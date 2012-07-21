@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.build.docs.dsl.docbook
+package org.gradle.build.docs.dsl.docbook.model
 
 import org.gradle.build.docs.dsl.source.model.ClassMetaData
 import org.w3c.dom.Document
 import org.w3c.dom.Element
 import org.w3c.dom.Node
-import org.gradle.build.docs.dsl.docbook.model.*
 
 class ClassDoc implements DslElementDoc {
     private final String className

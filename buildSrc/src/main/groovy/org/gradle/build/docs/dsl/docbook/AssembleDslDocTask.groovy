@@ -34,6 +34,7 @@ import org.gradle.build.docs.model.SimpleClassMetaDataRepository
 import org.w3c.dom.Document
 import org.w3c.dom.Element
 import org.gradle.build.docs.dsl.docbook.model.BlockDoc
+import org.gradle.build.docs.dsl.docbook.model.ClassDoc
 
 /**
  * Generates the docbook source for the DSL reference guide.

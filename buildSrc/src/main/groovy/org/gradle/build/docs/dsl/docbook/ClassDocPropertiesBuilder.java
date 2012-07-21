@@ -16,6 +16,7 @@
 
 package org.gradle.build.docs.dsl.docbook;
 
+import org.gradle.build.docs.dsl.docbook.model.ClassDoc;
 import org.gradle.build.docs.dsl.docbook.model.ExtraAttributeDoc;
 import org.gradle.build.docs.dsl.docbook.model.PropertyDoc;
 import org.gradle.build.docs.dsl.source.model.PropertyMetaData;

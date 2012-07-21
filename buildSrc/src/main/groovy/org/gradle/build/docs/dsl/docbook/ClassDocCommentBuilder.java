@@ -16,6 +16,8 @@
 
 package org.gradle.build.docs.dsl.docbook;
 
+import org.gradle.build.docs.dsl.docbook.model.ClassDoc;
+
 public class ClassDocCommentBuilder {
     private final JavadocConverter javadocConverter;
     private final GenerationListener listener;

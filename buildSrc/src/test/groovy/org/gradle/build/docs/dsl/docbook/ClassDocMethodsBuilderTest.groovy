@@ -19,6 +19,7 @@ import org.gradle.build.docs.XmlSpecification
 import org.gradle.build.docs.dsl.docbook.model.MethodDoc
 import org.gradle.build.docs.dsl.docbook.model.PropertyDoc
 import org.gradle.build.docs.dsl.source.model.*
+import org.gradle.build.docs.dsl.docbook.model.ClassDoc
 
 class ClassDocMethodsBuilderTest extends XmlSpecification {
     final JavadocConverter javadocConverter = Mock()

@@ -21,6 +21,7 @@ import org.gradle.build.docs.dsl.docbook.model.PropertyDoc
 import org.gradle.build.docs.dsl.source.model.ClassMetaData
 import org.gradle.build.docs.dsl.source.model.PropertyMetaData
 import org.gradle.build.docs.dsl.source.model.TypeMetaData
+import org.gradle.build.docs.dsl.docbook.model.ClassDoc
 
 class ClassDocPropertiesBuilderTest extends XmlSpecification {
     final JavadocConverter javadocConverter = Mock()

@@ -13,18 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.build.docs.dsl.docbook
+package org.gradle.build.docs.dsl.docbook.model
 
-import javax.xml.parsers.DocumentBuilderFactory
 import org.gradle.build.docs.dsl.source.model.ClassMetaData
-import org.gradle.build.docs.dsl.source.model.MethodMetaData
-import org.gradle.build.docs.dsl.source.model.PropertyMetaData
-import org.gradle.build.docs.dsl.source.model.TypeMetaData
-import org.w3c.dom.Document
-import org.gradle.build.docs.DomBuilder
-import org.gradle.build.docs.dsl.docbook.model.PropertyDoc
-import org.gradle.build.docs.dsl.docbook.model.BlockDoc
-import org.gradle.build.docs.dsl.docbook.model.MethodDoc
 
 /**
  * Represents the documentation model for extensions contributed by a given plugin.

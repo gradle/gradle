@@ -18,6 +18,7 @@ package org.gradle.build.docs.dsl.docbook;
 
 import groovy.lang.Closure;
 import org.gradle.build.docs.dsl.docbook.model.BlockDoc;
+import org.gradle.build.docs.dsl.docbook.model.ClassDoc;
 import org.gradle.build.docs.dsl.docbook.model.MethodDoc;
 import org.gradle.build.docs.dsl.docbook.model.PropertyDoc;
 import org.gradle.build.docs.dsl.source.model.MethodMetaData;
