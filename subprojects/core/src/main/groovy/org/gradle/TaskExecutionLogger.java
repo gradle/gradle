@@ -24,11 +24,14 @@ import org.gradle.api.tasks.TaskState;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * A listener which logs the execution of tasks.
  */
 public class TaskExecutionLogger implements TaskExecutionListener {
-    private ProgressLogger currentTask;
+    private final Map<Task, ProgressLogger> currentTasks = new HashMap<Task, ProgressLogger>();
     private final ProgressLoggerFactory progressLoggerFactory;
 
     public TaskExecutionLogger(ProgressLoggerFactory progressLoggerFactory) {
@@ -36,18 +39,20 @@ public class TaskExecutionLogger implements TaskExecutionListener {
     }
 
     public void beforeExecute(Task task) {
-        assert currentTask == null;
-        currentTask = progressLoggerFactory.newOperation(TaskExecutionLogger.class);
+        assert !currentTasks.containsKey(task);
+
+        ProgressLogger currentTask = progressLoggerFactory.newOperation(TaskExecutionLogger.class);
         String displayName = getDisplayName(task);
         currentTask.setDescription(String.format("Execute %s", displayName));
         currentTask.setShortDescription(displayName);
         currentTask.setLoggingHeader(displayName);
         currentTask.started();
+        currentTasks.put(task, currentTask);
     }
 
     public void afterExecute(Task task, TaskState state) {
+        ProgressLogger currentTask = currentTasks.remove(task);
         currentTask.completed(state.getSkipMessage());
-        currentTask = null;
     }
 
     private String getDisplayName(Task task) {
