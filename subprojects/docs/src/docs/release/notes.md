@@ -6,8 +6,8 @@ Here are the new features introduced in Gradle 1.1.
 
 Gradle 1.1 provides much more detailed information during test execution, right on the console. We've worked hard to make the the new output useful and informative out of the box, but we've also given you the ability to finely tune it to your liking.
 
-**TODO:** need a comparison here between the old and new, which also acts as a preview of the new.
-**TODO:** Add example output for all of the settings below.
+* **TODO:** need a comparison here between the old and new, which also acts as a preview of the new.
+* **TODO:** Add example output for all of the settings below.
 
 #### Show Exceptions
 
