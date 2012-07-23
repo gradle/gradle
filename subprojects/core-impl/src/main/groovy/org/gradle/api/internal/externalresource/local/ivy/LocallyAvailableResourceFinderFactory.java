@@ -69,6 +69,9 @@ public class LocallyAvailableResourceFinderFactory implements Factory<LocallyAva
         // Milestone 3
         addForPattern(finders, "../cache", "[organisation]/[module](/[branch])/[type]s/[artifact]-[revision](-[classifier])(.[ext])");
 
+        // local maven
+        finders.add(new LocalMavenLocallyAvailableResourceFinder(localMavenRepositoryLocator, "[organisation-path]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])"));
+
         // Maven local
         try {
             File localMavenRepository = localMavenRepositoryLocator.getLocalMavenRepository();
@@ -78,6 +81,8 @@ public class LocallyAvailableResourceFinderFactory implements Factory<LocallyAva
         } catch (CannotLocateLocalMavenRepositoryException ex) {
             LOGGER.warn(String.format("Cannot use local Maven cache to reduce artifact downloads. Error finding local M2 repository: %s", ex.getMessage()));
         }
+
+
         return new CompositeLocallyAvailableResourceFinder<ArtifactRevisionId>(finders);
     }
 
