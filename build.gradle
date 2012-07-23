@@ -244,10 +244,17 @@ task determineCommitId {
                     standardOutput = baos
                 }
                 new String(baos.toByteArray(), "utf8").trim()
+            } else {
+                null
             }
         }
 
-        commitId = strategies.find { it.call() }
+        for (strategy in strategies) {
+            commitId = strategy()
+            if (commitId) {
+                break
+            }
+        }
         if (!commitId) {
             throw new InvalidUserDataException("Could not determine commit id")
         }
