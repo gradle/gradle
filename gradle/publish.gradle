@@ -52,7 +52,7 @@ uploadArchives {
     doFirst {
         repositories {
             ivy {
-                def repo = "https://gradle.artifactoryonline.com/gradle/libs-${isSnapshot ? 'snapshot' : 'releases'}-local"
+                def repo = "https://gradle.artifactoryonline.com/gradle/libs-${isSnapshot ? 'snapshots' : 'releases'}-local"
                 artifactPattern "${repo}/${project.group.replaceAll('\\.', '/')}/${archivesBaseName}/[revision]/[artifact]-[revision](-[classifier]).[ext]"
                 credentials {
                     username = artifactoryUserName
