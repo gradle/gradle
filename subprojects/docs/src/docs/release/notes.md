@@ -108,7 +108,7 @@ To prevent such mistakes that are hard to track down and debug, the usage of sta
 
 #### M2_HOME system property
 
-Passing the variable M2\_HOME as system property to locate the global maven settings file is deprecated. You should use a M2\_HOME environment variable instead.
+Previously, Gradle looked for a JVM system property named `M2\_HOME` for the location of a custom Maven home directory. This has been deprecated in favor of an environment variable, named `M2_HOME`, which is also used by other tools that integrate with Maven.
 
 #### Publication of missing artifacts
 
