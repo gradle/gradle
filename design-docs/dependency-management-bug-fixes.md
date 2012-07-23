@@ -141,7 +141,11 @@ A warning will be emitted and that repository will be skipped and resolve will c
     * Resolve dynamic version against an authenticated ivy repository
     * Resolve a dynamic version and SNAPSHOT (unique & non-unique) against an authenticated maven repository
     * Resolve a dynamic version against 2 repositories, where the first one does not contain the module (returns 404 for directory listing).
-* Sad-day tests: repository is skipped and warning emitted
+* Sad-day tests: when module is considered broken in repository, repository is skipped and warning is emitted. Integ test should demonstrate that result is not cached, so repository
+  will recover on subsequent resolve.
+    * No credentials supplied (401 unauthorized)
+    * 500 response from server
+* Unit-test coverage for 'broken' module (verify that appropriate exception is thrown):
     * No credentials supplied.
     * Invalid credentials supplied.
     * User has permissions to get individual artefacts, but does not have permission to list directories.
@@ -151,9 +155,6 @@ A warning will be emitted and that repository will be skipped and resolve will c
     * We get a ConnectException or other exception for the directory list HTTP request.
 * Extending existing coverage
     * Happy-day test: Resolve a Maven version range (declared as [1.0, 2.0) in a POM and referenced transitively) against a (non-authenticated) maven repository
-    * Sad-day test for resolving static version where first repository returns 401 unauthorized for pom file, and second repository successfully resolves.
-    * Sad-day test for resolving static version where first repository returns 500 for pom file, and second repository successfully resolves.
-        * For these 2: show that warnings are emitted when repository is broken and skipped, and show that a subsequent resolve will recover without refresh-dependencies.
 
 ### Implementation approach
 
@@ -165,27 +166,6 @@ for now we'll need an implementation backed by ExternalResourceRepository#list (
 
 Later we may add a ModuleVersionLister backed by an Artifactory REST listing, our own file format, etc... The idea would be that these ModuleVersionLister
 implementations will be pluggable in the future, so you could combine maven-metadata.xml with ivy.xml in a single repository, for example.
-
-We should improve our behaviour for broken repositories so that we log a warning whenever we skip resolving a repository because it is broken. These responses are not cached
-so it is important to warn the user about the broken repository. In contrast, the fact that a module is missing from a repository is cached, and should not result
- in a warning being emitted.
-
-### Investigation/Possible strategic work (possibly part of a future story)
-
-Currently, the ModuleVersionRepository (wraps ivy DependencyResolver) is responsible for choosing the 'best' of all available versions from a single repository.
-Then the DependencyToModuleResolver (UserResolverChain) picks the 'best' version out of the set or repository candidates. Finally the ResolveEngine performs conflict resolution on
-the various versions brought in by different dependencies. It would be good to move toward having all of the candidates in the ResolveEngine and choosing the 'best'
-in one spot. For this story, we could investigate changing ModuleVersionRepository so that it returns the full set of available versions to the DependencyToModuleResolver
-thus removing one of the places where this decision is made.
-This would only apply to our own repository implementations, and not to any native Ivy DependencyResolvers.
-
-Add a method to ModuleVersionRepository that provides the full list of available versions, and implement this directly in ExternalResourceRepository. Need to investigate
-how to handle versions like 'latest.release', that require the full module descriptor in order to choose the 'best'. There is also a 'resolve date' available to
-restrict versions based on publication date: I believe this is always null when resolving through Gradle but we would need to confirm.
-Not sure if the list of available versions should be _everything_ or just versions that the MVR thinks will match the requested version. Eg for static versions,
-there may not be much point returning the full list of versions.
-We would need to cache the results of the version listing, similar to the way we currently cache the resolution of a Dynamic Version -> Static Version.
-See ExternalResourceRepository#findResourceUsingPatterns() and in particular #findDynamicResourceUsingPattern().
 
 ## Allow resolution of java-source and javadoc types from maven repositories (and other types: tests, ejb-client)
 
