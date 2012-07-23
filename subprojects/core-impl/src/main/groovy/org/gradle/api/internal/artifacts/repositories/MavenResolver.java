@@ -40,7 +40,10 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
 
 public class MavenResolver extends ExternalResourceResolver implements PatternBasedResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenResolver.class);
@@ -183,18 +186,16 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
     }
 
     @Override
-    protected String[] listVersions(ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact) {
-        List<String> revisions = listRevisionsWithMavenMetadata(moduleRevisionId.getModuleId().getAttributes());
-        if (revisions != null) {
-            return revisions.toArray(new String[revisions.size()]);
+    protected VersionList listVersions(ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact) {
+        final ChainedVersionLister chainedVersionLister = new ChainedVersionLister(true); //we stop when we get versions from maven-metadata
+        String metadataLocation = IvyPatternHelper.substituteTokens(root + "[organisation]/[module]/maven-metadata.xml", moduleRevisionId.getModuleId().getAttributes());
+        if (shouldUseMavenMetadata(pattern)) {
+            final MavenMetadata mavenMetadata = parseMavenMetadata(metadataLocation);
+            chainedVersionLister.appendVersionLister(new MavenVersionLister(mavenMetadata));
         }
-        return super.listVersions(moduleRevisionId, pattern, artifact);
-    }
-
-    private List<String> listRevisionsWithMavenMetadata(Map tokenValues) {
-        String metadataLocation = IvyPatternHelper.substituteTokens(root + "[organisation]/[module]/maven-metadata.xml", tokenValues);
-        MavenMetadata mavenMetadata = parseMavenMetadata(metadataLocation);
-        return mavenMetadata.versions.isEmpty() ? null : mavenMetadata.versions;
+        chainedVersionLister.appendVersionLister(new ResourceVersionLister(getRepository()));
+        final VersionList versionList = chainedVersionLister.getVersionList(moduleRevisionId, pattern, artifact);
+        return versionList;
     }
 
     private MavenMetadata parseMavenMetadata(String metadataLocation) {
@@ -306,11 +307,4 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
             throw new IllegalArgumentException("Cannot set m2compatible = false on mavenRepo.");
         }
     }
-
-    private static class MavenMetadata {
-        public String timestamp;
-        public String buildNumber;
-        public List<String> versions = new ArrayList<String>();
-    }
-
 }

@@ -27,12 +27,10 @@ import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.report.DownloadReport;
 import org.apache.ivy.core.resolve.DownloadOptions;
 import org.apache.ivy.core.resolve.ResolveData;
-import org.apache.ivy.plugins.latest.ArtifactInfo;
 import org.apache.ivy.plugins.repository.Resource;
 import org.apache.ivy.plugins.resolver.BasicResolver;
 import org.apache.ivy.plugins.resolver.util.MDResolvedResource;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
-import org.apache.ivy.plugins.resolver.util.ResolverHelper;
 import org.apache.ivy.plugins.resolver.util.ResourceMDParser;
 import org.apache.ivy.plugins.version.VersionMatcher;
 import org.apache.ivy.util.ChecksumHelper;
@@ -169,11 +167,10 @@ public class ExternalResourceResolver extends BasicResolver {
         }
     }
 
-    public ResolvedResource findLatestResource(ModuleRevisionId mrid, String[] versions, ResourceMDParser rmdparser, Date date, String pattern, Artifact artifact, boolean forDownload) throws IOException {
+    public ResolvedResource findLatestResource(ModuleRevisionId mrid, VersionList versions, ResourceMDParser rmdparser, Date date, String pattern, Artifact artifact, boolean forDownload) throws IOException {
         String name = getName();
         VersionMatcher versionMatcher = getSettings().getVersionMatcher();
-
-        List<String> sorted = sortVersionsLatestFirst(versions);
+        List<String> sorted = versions.sortLatestFirst(getLatestStrategy());
         for (String version : sorted) {
             ModuleRevisionId foundMrid = ModuleRevisionId.newInstance(mrid, version);
 
@@ -262,7 +259,7 @@ public class ExternalResourceResolver extends BasicResolver {
 
     private ResolvedResource findDynamicResourceUsingPattern(ResourceMDParser resourceParser, ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact, Date date, boolean forDownload) throws IOException {
         logAttempt(IvyPatternHelper.substitute(pattern, ModuleRevisionId.newInstance(moduleRevisionId, IvyPatternHelper.getTokenString(IvyPatternHelper.REVISION_KEY)), artifact));
-        String[] versions = listVersions(moduleRevisionId, pattern, artifact);
+        VersionList versions = listVersions(moduleRevisionId, pattern, artifact);
         if (versions == null) {
             LOGGER.debug("Unable to list versions for {}: pattern={}", moduleRevisionId, pattern);
             return null;
@@ -285,22 +282,6 @@ public class ExternalResourceResolver extends BasicResolver {
         }
     }
 
-    private List<String> sortVersionsLatestFirst(String[] versions) {
-        ArtifactInfo[] artifactInfos = new ArtifactInfo[versions.length];
-        for (int i = 0; i < versions.length; i++) {
-            String version = versions[i];
-            artifactInfos[i] = new VersionArtifactInfo(version);
-        }
-        List<ArtifactInfo> sorted = getLatestStrategy().sort(artifactInfos);
-        Collections.reverse(sorted);
-
-        List<String> sortedVersions = new ArrayList<String>();
-        for (ArtifactInfo info : sorted) {
-            sortedVersions.add(info.getRevision());
-        }
-        return sortedVersions;
-    }
-
     protected Resource getResource(String source) throws IOException {
         ExternalResource resource = repository.getResource(source);
         return resource == null ? new MissingExternalResource(source) : resource;
@@ -320,11 +301,10 @@ public class ExternalResourceResolver extends BasicResolver {
         }
     }
 
-    protected String[] listVersions(ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact) {
-        ModuleRevisionId idWithoutRevision = ModuleRevisionId.newInstance(moduleRevisionId, IvyPatternHelper.getTokenString(IvyPatternHelper.REVISION_KEY));
-        String partiallyResolvedPattern = IvyPatternHelper.substitute(pattern, idWithoutRevision, artifact);
-        LOGGER.debug("Listing all in {}", partiallyResolvedPattern);
-        return ResolverHelper.listTokenValues(repository, partiallyResolvedPattern, IvyPatternHelper.REVISION_KEY);
+    protected VersionList listVersions(ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact) {
+        VersionLister versionLister = new ResourceVersionLister(repository);
+        VersionList versionList = versionLister.getVersionList(moduleRevisionId, pattern, artifact);
+        return versionList;
     }
 
     protected long get(Resource resource, File destination) throws IOException {
@@ -453,19 +433,4 @@ public class ExternalResourceResolver extends BasicResolver {
                 mrid.getQualifiedExtraAttributes());
     }
 
-    private class VersionArtifactInfo implements ArtifactInfo {
-        private final String version;
-
-        private VersionArtifactInfo(String version) {
-            this.version = version;
-        }
-
-        public String getRevision() {
-            return version;
-        }
-
-        public long getLastModified() {
-            return 0;
-        }
-    }
 }

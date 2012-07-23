@@ -77,5 +77,4 @@ public class PatternBasedLocallyAvailableResourceFinder extends AbstractLocallyA
             }
         };
     }
-
 }
