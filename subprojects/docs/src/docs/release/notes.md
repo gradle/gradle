@@ -4,7 +4,10 @@ Here are the new features introduced in Gradle 1.1.
 
 ### Test Logging
 
-In previous versions, Gradle didn't show much information about what happened during test execution. In Gradle 1.1, the default output is more useful, and can be tuned to your preferences in many ways. All features are supported both for JUnit and TestNG.
+Gradle 1.1 provides much more detailed information during test execution, right on the console. We've worked hard to make the the new output useful and informative out of the box, but we've also given you the ability to finely tune it to your liking.
+
+**TODO:** need a comparison here between the old and new, which also acts as a preview of the new.
+**TODO:** Add example output for all of the settings below.
 
 #### Show Exceptions
 
