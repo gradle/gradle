@@ -62,7 +62,7 @@ The Tooling API can be used to obtain the model of the project which includes th
 
 ### Global maven settings.xml
 
-When Gradle checks for local available artifacts and when using `mavenLocal` in your build scripts, Gradle now honours the maven settings located in `M2_HOME/conf/settings.xml` to locate the local maven repository. If a local repository is defined in `USER_HOME/.m2/settings.xml`, this location takes precedence over a repository definition in `M2_HOME/conf/settings.xml`.
+Gradle now honours the maven settings located in <code><em>$M2\_HOME</em>/conf/settings.xml</code> to locate the local maven repository. If a local repository is defined in `~/.m2/settings.xml`, this location takes precedence over a repository definition in <code><em>$M2\_HOME</em>/conf/settings.xml</code>.
 
 ### Publishing SHA1 checksums to Ivy repositories
 
