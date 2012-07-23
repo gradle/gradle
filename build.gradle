@@ -248,6 +248,9 @@ task determineCommitId {
         }
 
         commitId = strategies.find { it.call() }
+        if (!commitId) {
+            throw new InvalidUserDataException("Could not determine commit id")
+        }
     }
 }
 
