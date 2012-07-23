@@ -58,15 +58,15 @@ Test logging can be configured separately per log level:
 
 On log levels `LIFECYCLE`, `INFO`, and `DEBUG`, some test events (most importantly failed tests) are already shown by default.
 For detailed documentation about all test logging related options, see
-[TestLogging](http://gradle.org/docs/nightly/javadoc/org/gradle/api/tasks/testing/logging/TestLogging.html)
-and [TestLoggingContainer](http://gradle.org/docs/nightly/javadoc/org/gradle/api/tasks/testing/logging/TestLoggingContainer.html).
+[TestLogging](javadoc/org/gradle/api/tasks/testing/logging/TestLogging.html)
+and [TestLoggingContainer](javadoc/org/gradle/api/tasks/testing/logging/TestLoggingContainer.html).
 
 ### Tooling API provides Gradle module information for external dependencies
 
 The Tooling API can be used to obtain the model of the project which includes the information about the dependencies/libraries.
 Now the Tooling API also provides Gradle module information, i.e. group, name, version of the dependency.
-Please see the javadoc for [ExternalGradleModule](http://gradle.org/docs/nightly/javadoc/org/gradle/tooling/model/ExternalGradleModule.html).
-You can obtain the Gradle module information iva [ExternalDependency.getExternalGradleModule()](http://gradle.org/docs/nightly/javadoc/org/gradle/tooling/model/ExternalDependency.html#getExternalGradleModule\(\)).
+Please see the javadoc for [ExternalGradleModule](javadoc/org/gradle/tooling/model/ExternalGradleModule.html).
+You can obtain the Gradle module information iva [ExternalDependency.getExternalGradleModule()](javadoc/org/gradle/tooling/model/ExternalDependency.html#getExternalGradleModule\(\)).
 
 ### Global maven settings.xml
 
@@ -145,7 +145,7 @@ the `gradle idea` task. The current default uses the Java version that Gradle ru
 
 Although we believe the new default is much better for majority of users, there might be some builds out there
 that preferred the old default. If you happen to prefer the old default (`1.6`) please configure
-that explicitly in your build via [idea.project.jdkName](http://gradle.org/docs/current/dsl/org.gradle.plugins.ide.idea.model.IdeaProject.html#org.gradle.plugins.ide.idea.model.IdeaProject:jdkName)
+that explicitly in your build via [idea.project.jdkName](dsl/org.gradle.plugins.ide.idea.model.IdeaProject.html#org.gradle.plugins.ide.idea.model.IdeaProject:jdkName)
 
 ##### `AbstractTask.getDynamicObjectHelper()`
 
