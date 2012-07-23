@@ -13,13 +13,11 @@ All features are supported both for JUnit and TestNG.
 One of the most useful options is to show the exceptions thrown by failed tests. By default, Gradle will
 log a succinct message for every test exception. To get more detailed output, configure the `exceptionFormat`:
 
-<pre>
-test {
-    testLogging {
-        exceptionFormat "full"
+    test {
+        testLogging {
+            exceptionFormat "full"
+        }
     }
-}
-</pre>
 
 #### Stack Trace Filters
 
@@ -27,26 +25,22 @@ Stack traces of test exceptions are automatically truncated not to show anything
 the test code. This filters out Gradle internals and internals of the test framework. A number of other
 filters are available. For example, when dealing with Groovy code it makes sense to add the `groovy` filter:
 
-<pre>
-test {
-    testLogging {
-        stackTraceFilters "truncate", "groovy"
+    test {
+        testLogging {
+            stackTraceFilters "truncate", "groovy"
+        }
     }
-}
-</pre>
 
 #### Show Other Test Events
 
 Besides a test having failed, a number of other test events can be logged:
 
-<pre>
-test {
-    testLogging {
-        events "started", "passed", "skipped", "failed", "standardOut", "standardError"
-        minGranularity 0
+    test {
+        testLogging {
+            events "started", "passed", "skipped", "failed", "standardOut", "standardError"
+            minGranularity 0
+        }
     }
-}
-</pre>
 
 By setting `minGranularity`, these events aren't only shown for individual tests, but also for test classes and suites.
 
@@ -54,15 +48,13 @@ By setting `minGranularity`, these events aren't only shown for individual tests
 
 Test logging can be configured separately per log level:
 
-<pre>
-test {
-    testLogging {
-        quiet {
-            events "failed"
+    test {
+        testLogging {
+            quiet {
+                events "failed"
+            }
         }
     }
-}
-</pre>
 
 On log levels `LIFECYCLE`, `INFO`, and `DEBUG`, some test events (most importantly failed tests) are already shown by default.
 For detailed documentation about all test logging related options, see
@@ -107,11 +99,9 @@ Please let us know if you encounter any issues during the upgrade to Gradle 1.1-
 As in Java, statement labels are rarely used in Groovy. The following example shows a frequent pitfall where a
 statement label is erroneously used in an attempt to configure an object:
 
-<pre>
-task foo {
-    dependsOn: bar // does nothing; correct is 'dependsOn bar' or 'dependsOn = [bar]'
-}
-</pre>
+    task foo {
+        dependsOn: bar // does nothing; correct is 'dependsOn bar' or 'dependsOn = [bar]'
+    }
 
 To prevent such mistakes, the usage of statement labels in build scripts has been deprecated.
 
