@@ -434,6 +434,8 @@ task commitBuild {
 
 task verifyIsProductionBuildEnvironment << {
     assert Jvm.current().isJava7() : "Must use a Java 7 compatible JVM to perform this build. Current JVM is ${Jvm.current()}"
+    def systemCharset = java.nio.charset.Charset.defaultCharset().name()
+    assert systemCharset != "UTF-8" : "Platform encoding must be UTF-8. Is currently $systemCharset. Set -Dfile.encoding=UTF-8."
 }
 
 gradle.taskGraph.whenReady {graph ->
