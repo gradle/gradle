@@ -72,12 +72,10 @@ For each file `foo.ext` published, Gradle will also publish a checksum file with
 
 ### Dependency resolution supports HTTP Digest Authentication
 
-Due to the way we did pre-emptive HTTP Authentication, Gradle 1.0 was not able to handle a repository secured with HTTP Digest Authentication. This problem is now fixed.
-
-As a result of this fix:
+Due to the way Gradle used pre-emptive HTTP Authentication, Gradle 1.0 was not able to handle a repository secured with HTTP Digest Authentication. This issue has been resolved by using the following new strategy:
 
 * Any GET/HEAD request issued by Gradle will no longer contain pre-emptive HTTP Authentication headers.
-* An initial PUT/POST request will contain  Basic Authentication headers for pre-emptive HTTP Authentication.
+* An initial PUT/POST request will contain Basic Authentication headers for pre-emptive HTTP Authentication.
     * If the server requires HTTP Basic Authentication, then this request will succeed automatically
     * If the server requires HTTP Digest Authentication, then this request will fail with a 401, and we will re-send the request with the correct headers.
 * After the initial PUT/POST request, subsequent requests to the repository will have correct Auth headers, and will not require re-send.
