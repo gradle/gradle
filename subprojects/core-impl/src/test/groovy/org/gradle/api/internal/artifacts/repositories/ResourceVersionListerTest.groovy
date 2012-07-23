@@ -53,13 +53,15 @@ class ResourceVersionListerTest extends Specification {
 
     def "getVersionList resolves versions from pattern with custom version directory name"() {
         setup:
-        def testPattern = "/some/version-[revision]/somethingelse"
-        1 * repo.list("/some") >> ["/some/version-1.5", "/some/shouldnotmatch-1.5", "/some/justanotherdirectory"]
+        1 * repo.list("/some") >> [repoResult, "/some/shouldnotmatch-1.5", "/some/justanotherdirectory"]
         1 * repo.standardize(testPattern) >> testPattern
         def lister = new ResourceVersionLister(repo)
         when:
         def versionList = lister.getVersionList(moduleRevisionId, testPattern, artifact)
         then:
         versionList.versionStrings == ["1.5"]
+        where:
+        testPattern << ["/some/version-[revision]/lib", "/some/[revision]-version/lib", "/some/any-[revision]-version/lib"]
+        repoResult << ["/some/version-1.5", "/some/1.5-version", "/some/any-1.5-version"]
     }
 }
