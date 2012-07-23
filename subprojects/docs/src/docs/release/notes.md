@@ -1,11 +1,11 @@
 ## New and noteworthy
 
-Here are the new features introduced in Gradle 1.1-rc-1
+Here are the new features introduced in Gradle 1.1.
 
 ### Test Logging
 
 In previous versions, Gradle didn't show much information about what happened during test execution.
-In Gradle 1.1-rc-1, the default output is more useful, and can be tuned to your preferences in many ways.
+In Gradle 1.1, the default output is more useful, and can be tuned to your preferences in many ways.
 All features are supported both for JUnit and TestNG.
 
 #### Show Exceptions
@@ -90,7 +90,7 @@ As a result of this fix:
 
 ## Upgrading from Gradle 1.0
 
-Please let us know if you encounter any issues during the upgrade to Gradle 1.1-rc-1, that are not listed below.
+Please let us know if you encounter any issues during the upgrade to Gradle 1.1, that are not listed below.
 
 ### Deprecations
 
@@ -153,4 +153,4 @@ Deprecated internal method `AbstractTask.getDynamicObjectHelper()` has been remo
 
 ## Fixed Issues
 
-The list of issues fixed between 1.0 and 1.1-rc-1 can be found [here](http://issues.gradle.org/sr/jira.issueviews:searchrequest-printable/temp/SearchRequest.html?jqlQuery=fixVersion+in+%28%221.1-rc-1%22%29+ORDER+BY+priority&tempMax=1000).
+The list of issues fixed between 1.0 and 1.1 can be found [here](http://issues.gradle.org/sr/jira.issueviews:searchrequest-printable/temp/SearchRequest.html?jqlQuery=fixVersion+in+%28%221.1-rc-1%22%29+ORDER+BY+priority&tempMax=1000).
