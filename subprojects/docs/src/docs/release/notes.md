@@ -82,6 +82,7 @@ For each file `foo.ext` published, Gradle will also publish a checksum file with
 Due to the way we did pre-emptive HTTP Authentication, Gradle 1.0 was not able to handle a repository secured with HTTP Digest Authentication. This problem is now fixed.
 
 As a result of this fix:
+
 * Any GET/HEAD request issued by Gradle will no longer contain pre-emptive HTTP Authentication headers.
 * An initial PUT/POST request will contain  Basic Authentication headers for pre-emptive HTTP Authentication.
     * If the server requires HTTP Basic Authentication, then this request will succeed automatically
