@@ -66,7 +66,7 @@ and [TestLoggingContainer](http://gradle.org/docs/nightly/javadoc/org/gradle/api
 The Tooling API can be used to obtain the model of the project which includes the information about the dependencies/libraries.
 Now the Tooling API also provides Gradle module information, i.e. group, name, version of the dependency.
 Please see the javadoc for [ExternalGradleModule](http://gradle.org/docs/nightly/javadoc/org/gradle/tooling/model/ExternalGradleModule.html).
-You can obtain the Gradle module information iva [ExternalDependency.getExternalGradleModule()] (http://gradle.org/docs/nightly/javadoc/org/gradle/tooling/model/ExternalDependency.html#getExternalGradleModule()).
+You can obtain the Gradle module information iva [ExternalDependency.getExternalGradleModule()](http://gradle.org/docs/nightly/javadoc/org/gradle/tooling/model/ExternalDependency.html#getExternalGradleModule\(\)).
 
 ### Global maven settings.xml
 
