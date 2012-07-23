@@ -93,10 +93,18 @@ Please let us know if you encounter any issues during the upgrade to Gradle 1.1,
 As in Java, statement labels are rarely used in Groovy. The following example shows a frequent pitfall where a statement label is erroneously used in an attempt to configure an object:
 
     task foo {
-        dependsOn: bar // does nothing; correct is 'dependsOn bar' or 'dependsOn = [bar]'
+        dependsOn: bar
     }
 
-To prevent such mistakes, the usage of statement labels in build scripts has been deprecated.
+Whereas what the author actually intended was:
+
+    task foo {
+        dependsOn bar
+    }
+
+Note the colon after `dependsOn` in the first code block. This extra colon causes the line to be interpreted as a statement label (a Java/Groovy language feature), which effectively makes it a non operation. Statement labels are not useful in Gradle build scripts.
+
+To prevent such mistakes that are hard to track down and debug, the usage of statement labels in build scripts has been deprecated and Gradle will issue a deprecation warning when they are used.
 
 #### M2_HOME system property
 
