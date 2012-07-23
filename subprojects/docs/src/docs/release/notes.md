@@ -112,7 +112,9 @@ Passing the variable M2\_HOME as system property to locate the global maven sett
 
 #### Publication of missing artifacts
 
-If a published module references an artifact where the artifact file does not exist, then publication will emit a warning and continue. Relying on this behaviour is deprecated; in a future Gradle version your build will fail if you attempt to publish an artifact that does not exist.
+Previously, if an artifact to be published referred to a file that does not exist during publication, then Gradle would silently ignore the artifact to be published. This is only likely to occur when declaring [file artifacts](userguide/artifact_management.html#N143A6).
+
+This behavior is now deprecated. Attempting to publish a non-existant artifact file will result in a deprecation warning, and will produce an error in future versions of Gradle.
 
 #### DSL
 
