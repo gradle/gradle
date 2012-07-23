@@ -20,7 +20,7 @@ import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.tooling.model.migration.ProjectOutput
+import org.gradle.tooling.model.internal.migration.ProjectOutput
 import org.gradle.tooling.internal.migration.DefaultArchive
 import org.gradle.tooling.internal.migration.DefaultTestResult
 

@@ -14,18 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.model.migration;
+package org.gradle.tooling.model.internal.migration;
 
-import org.gradle.tooling.model.DomainObjectSet;
-import org.gradle.tooling.model.HierarchicalElement;
-
-import java.util.Set;
+import java.io.File;
 
 /**
- * The outputs produced by a Gradle project.
+ * The results from a test run.
  */
-public interface ProjectOutput extends HierarchicalElement {
-    ProjectOutput getParent();
-    DomainObjectSet<ProjectOutput> getChildren();
-    Set<TaskOutput> getTaskOutputs();
+public interface TestResult extends TaskOutput {
+    File getXmlReportDir();
 }

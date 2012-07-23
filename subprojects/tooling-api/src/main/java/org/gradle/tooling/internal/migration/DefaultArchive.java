@@ -16,30 +16,19 @@
 
 package org.gradle.tooling.internal.migration;
 
-import org.gradle.tooling.model.migration.Archive;
+import org.gradle.tooling.model.internal.migration.Archive;
 
 import java.io.File;
 import java.io.Serializable;
 
 public class DefaultArchive implements Archive, Serializable {
-    private final File path;
+    private final File file;
 
-    public DefaultArchive(File path) {
-        this.path = path;
+    public DefaultArchive(File file) {
+        this.file = file;
     }
 
     public File getFile() {
-        return path;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        if (!(other instanceof DefaultArchive)) { return false; }
-        return ((DefaultArchive) other).path.equals(path);
-    }
-
-    @Override
-    public int hashCode() {
-        return path.hashCode();
+        return file;
     }
 }

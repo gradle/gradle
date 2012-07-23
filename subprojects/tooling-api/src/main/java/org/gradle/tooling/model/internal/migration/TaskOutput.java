@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.model.migration;
+package org.gradle.tooling.model.internal.migration;
 
 import org.gradle.tooling.model.Model;
 

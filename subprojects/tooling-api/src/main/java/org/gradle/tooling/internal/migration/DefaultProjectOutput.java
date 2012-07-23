@@ -17,11 +17,12 @@
 package org.gradle.tooling.internal.migration;
 
 import com.google.common.collect.Lists;
+
 import org.gradle.tooling.internal.protocol.InternalProjectOutput;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
-import org.gradle.tooling.model.migration.ProjectOutput;
-import org.gradle.tooling.model.migration.TaskOutput;
+import org.gradle.tooling.model.internal.migration.ProjectOutput;
+import org.gradle.tooling.model.internal.migration.TaskOutput;
 
 import java.io.File;
 import java.io.Serializable;
@@ -30,12 +31,18 @@ import java.util.Set;
 
 public class DefaultProjectOutput implements InternalProjectOutput, ProjectOutput, Serializable {
     private final String name;
+    private final String path;
+    private final String description;
+    private final File projectDirectory;
+    private final Set<TaskOutput> taskOutputs;
     private final ProjectOutput parent;
     private final List<ProjectOutput> children = Lists.newArrayList();
-    private final Set<TaskOutput> taskOutputs;
 
-    public DefaultProjectOutput(String name, ProjectOutput parent, Set<TaskOutput> taskOutputs) {
+    public DefaultProjectOutput(String name, String path, String description, File projectDirectory, Set<TaskOutput> taskOutputs, ProjectOutput parent) {
         this.name = name;
+        this.path = path;
+        this.description = description;
+        this.projectDirectory = projectDirectory;
         this.taskOutputs = taskOutputs;
         this.parent = parent;
     }
@@ -44,8 +51,20 @@ public class DefaultProjectOutput implements InternalProjectOutput, ProjectOutpu
         return name;
     }
 
+    public String getPath() {
+        return path;
+    }
+
     public String getDescription() {
-        return null;
+        return description;
+    }
+
+    public File getProjectDirectory() {
+        return projectDirectory;
+    }
+
+    public Set<TaskOutput> getTaskOutputs() {
+        return taskOutputs;
     }
 
     public ProjectOutput getParent() {
@@ -54,18 +73,6 @@ public class DefaultProjectOutput implements InternalProjectOutput, ProjectOutpu
 
     public DomainObjectSet<ProjectOutput> getChildren() {
         return new ImmutableDomainObjectSet<ProjectOutput>(children);
-    }
-
-    public Set<TaskOutput> getTaskOutputs() {
-        return taskOutputs;
-    }
-
-    public String getPath() {
-        throw new UnsupportedOperationException("getPath");
-    }
-
-    public File getProjectDirectory() {
-        throw new UnsupportedOperationException("getProjectDirectory");
     }
 
     public void addChild(ProjectOutput child) {

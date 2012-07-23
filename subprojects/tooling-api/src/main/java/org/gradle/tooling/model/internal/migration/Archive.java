@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.model.migration;
+package org.gradle.tooling.model.internal.migration;
 
 import java.io.File;
 
 /**
- * The results from a test run.
+ * An archive produced by the build.
  */
-public interface TestResult extends TaskOutput {
-    File getXmlReportDir();
+public interface Archive extends TaskOutput {
+    File getFile();
 }

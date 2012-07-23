@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.internal.migration;
 
-import org.gradle.tooling.model.migration.TestResult;
+import org.gradle.tooling.model.internal.migration.TestResult;
 
 import java.io.File;
 import java.io.Serializable;

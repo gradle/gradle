@@ -27,8 +27,8 @@ import org.gradle.tooling.internal.migration.DefaultProjectOutput;
 import org.gradle.tooling.internal.migration.DefaultTestResult;
 import org.gradle.tooling.internal.protocol.InternalProjectOutput;
 import org.gradle.tooling.internal.protocol.ProjectVersion3;
-import org.gradle.tooling.model.migration.ProjectOutput;
-import org.gradle.tooling.model.migration.TaskOutput;
+import org.gradle.tooling.model.internal.migration.ProjectOutput;
+import org.gradle.tooling.model.internal.migration.TaskOutput;
 
 import java.util.Set;
 
@@ -47,7 +47,8 @@ public class MigrationModelBuilder implements BuildsModel {
         addArchives(project, taskOutputs);
         addTestResults(project, taskOutputs);
 
-        DefaultProjectOutput projectOutput = new DefaultProjectOutput(project.getName(), parent, taskOutputs);
+        DefaultProjectOutput projectOutput = new DefaultProjectOutput(project.getName(),
+                project.getPath(), project.getDescription(), project.getProjectDir(), taskOutputs, parent);
         for (Project child : project.getChildProjects().values()) {
             projectOutput.addChild(buildProjectOutput(child, projectOutput));
         }

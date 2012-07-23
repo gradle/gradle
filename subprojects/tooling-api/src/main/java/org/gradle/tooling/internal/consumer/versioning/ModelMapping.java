@@ -26,7 +26,7 @@ import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject;
 import org.gradle.tooling.model.idea.BasicIdeaProject;
 import org.gradle.tooling.model.idea.IdeaProject;
 import org.gradle.tooling.model.internal.TestModel;
-import org.gradle.tooling.model.migration.ProjectOutput;
+import org.gradle.tooling.model.internal.migration.ProjectOutput;
 
 import java.util.HashMap;
 import java.util.Map;
