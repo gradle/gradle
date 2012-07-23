@@ -18,6 +18,8 @@ package org.gradle.tooling.internal.consumer.protocoladapter;
 
 import org.gradle.tooling.model.idea.IdeaModuleDependency;
 import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency;
+import org.gradle.tooling.model.internal.migration.Archive;
+import org.gradle.tooling.model.internal.migration.TestResult;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -32,6 +34,8 @@ public class TargetTypeProvider {
     public TargetTypeProvider() {
         configuredTargetTypes.put(IdeaSingleEntryLibraryDependency.class.getCanonicalName(), IdeaSingleEntryLibraryDependency.class);
         configuredTargetTypes.put(IdeaModuleDependency.class.getCanonicalName(), IdeaModuleDependency.class);
+        configuredTargetTypes.put(Archive.class.getCanonicalName(), Archive.class);
+        configuredTargetTypes.put(TestResult.class.getCanonicalName(), TestResult.class);
     }
 
     /**

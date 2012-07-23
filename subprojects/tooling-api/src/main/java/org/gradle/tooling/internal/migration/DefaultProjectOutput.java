@@ -27,22 +27,24 @@ import org.gradle.tooling.model.internal.migration.TaskOutput;
 import java.io.File;
 import java.io.Serializable;
 import java.util.List;
-import java.util.Set;
 
 public class DefaultProjectOutput implements InternalProjectOutput, ProjectOutput, Serializable {
     private final String name;
     private final String path;
     private final String description;
     private final File projectDirectory;
-    private final Set<TaskOutput> taskOutputs;
+    private final String gradleVersion;
+    private final DomainObjectSet<TaskOutput> taskOutputs;
     private final ProjectOutput parent;
     private final List<ProjectOutput> children = Lists.newArrayList();
 
-    public DefaultProjectOutput(String name, String path, String description, File projectDirectory, Set<TaskOutput> taskOutputs, ProjectOutput parent) {
+    public DefaultProjectOutput(String name, String path, String description, File projectDirectory, String gradleVersion,
+                                DomainObjectSet<TaskOutput> taskOutputs, ProjectOutput parent) {
         this.name = name;
         this.path = path;
         this.description = description;
         this.projectDirectory = projectDirectory;
+        this.gradleVersion = gradleVersion;
         this.taskOutputs = taskOutputs;
         this.parent = parent;
     }
@@ -63,7 +65,11 @@ public class DefaultProjectOutput implements InternalProjectOutput, ProjectOutpu
         return projectDirectory;
     }
 
-    public Set<TaskOutput> getTaskOutputs() {
+    public String getGradleVersion() {
+        return gradleVersion;
+    }
+
+    public DomainObjectSet<TaskOutput> getTaskOutputs() {
         return taskOutputs;
     }
 

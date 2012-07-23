@@ -20,7 +20,6 @@ import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.HierarchicalElement;
 
 import java.io.File;
-import java.util.Set;
 
 /**
  * The outputs produced by a Gradle project.
@@ -30,5 +29,6 @@ public interface ProjectOutput extends HierarchicalElement {
     DomainObjectSet<ProjectOutput> getChildren();
     String getPath();
     File getProjectDirectory();
-    Set<TaskOutput> getTaskOutputs();
+    String getGradleVersion();
+    DomainObjectSet<TaskOutput> getTaskOutputs();
 }
