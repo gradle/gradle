@@ -66,9 +66,6 @@ integTestTasks.all {
         systemProperties['integTest.samplesdir'] = project(":docs").samplesDir.absolutePath
         systemProperties['integTest.distsDir'] = rootProject.distsDir.absolutePath
         systemProperties['integTest.libsRepo'] = rootProject.file('build/repo')
-        if (isCIBuild()) {
-            maxParallelForks = 4
-        }
     }
 }
 
