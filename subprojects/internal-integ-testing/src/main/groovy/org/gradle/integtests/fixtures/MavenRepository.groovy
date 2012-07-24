@@ -320,6 +320,10 @@ class MavenModule {
         server.expectHead(pomPath(prefix), pomFile)
     }
 
+    public allowPomHead(HttpServer server, prefix = null) {
+        server.allowHead(pomPath(prefix), pomFile)
+    }
+
     public expectPomGet(HttpServer server, prefix = null) {
         server.expectGet(pomPath(prefix), pomFile)
     }
@@ -330,6 +334,10 @@ class MavenModule {
 
     public expectPomSha1Get(HttpServer server, prefix = null) {
         server.expectGet(pomSha1Path(prefix), sha1File(pomFile))
+    }
+
+    public allowPomSha1Get(HttpServer server, prefix = null) {
+        server.allowGet(pomSha1Path(prefix), sha1File(pomFile))
     }
 
     public pomSha1Path(prefix = null) {
@@ -344,12 +352,20 @@ class MavenModule {
         server.expectGet(artifactPath(prefix), pomFile)
     }
 
+    public allowArtifactHead(HttpServer httpServer, prefix = null) {
+        httpServer.allowHead(artifactPath(prefix), artifactFile)
+    }
+
     public artifactPath(prefix = null) {
         path(prefix, artifactFile.name)
     }
 
     public expectArtifactSha1Get(HttpServer server, prefix = null) {
         server.expectGet(artifactSha1Path(prefix), sha1File(artifactFile))
+    }
+
+    public allowArtifactSha1Get(HttpServer server, prefix = null) {
+        server.allowGet(artifactSha1Path(prefix), sha1File(artifactFile))
     }
 
     public artifactSha1Path(prefix = null) {
