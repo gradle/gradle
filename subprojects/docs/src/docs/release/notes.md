@@ -6,8 +6,21 @@ Here are the new features introduced in Gradle 1.1.
 
 Gradle 1.1 provides much more detailed information during test execution, right on the console. We've worked hard to make the the new output useful and informative out of the box, but we've also given you the ability to finely tune it to your liking.
 
-* **TODO:** need a comparison here between the old and new, which also acts as a preview of the new.
-* **TODO:** Add example output for all of the settings below.
+The old output:
+
+<pre><tt>:spring-integration-twitter:test
+Test o.s.i.t.i.MessageSourceTests FAILED
+4 tests completed, 1 failure
+</tt>
+</pre>
+
+The improved output:
+
+<pre><tt>o.s.i.t.i.MessageSourceTests > testSearchReceivingMessageSourceInit  FAILED
+j.f.AssertionFailedError at MessageSourceTests.java:96
+4 tests completed, 1 failed, 1 skipped
+</tt>
+</pre>
 
 #### Show Exceptions
 
@@ -19,6 +32,17 @@ One of the most useful options is to show the exceptions thrown by failed tests.
         }
     }
 
+Which would produce output like:
+
+<pre><tt>o.s.i.t.i.MessageSourceTests > testSearchReceivingMessageSourceInit FAILED
+    j.f.AssertionFailedError: null
+        at j.f.Assert.fail(Assert.java:47)
+        at j.f.Assert.assertTrue(Assert.java:20)
+        at j.f.Assert.assertTrue(Assert.java:27)
+        at o.s.i.t.i.MessageSourceTests.testSearchReceivingMessageSourceInit(MessageSourceTests.java:96)
+4 tests completed, 1 failed, 1 skipped
+</tt></pre>
+
 #### Stack Trace Filters
 
 Stack traces of test exceptions are automatically truncated not to show anything below the entry point into the test code. This filters out Gradle internals and internals of the test framework. A number of other filters are available. For example, when dealing with Groovy code it makes sense to add the `groovy` filter:
@@ -28,6 +52,20 @@ Stack traces of test exceptions are automatically truncated not to show anything
             stackTraceFilters "truncate", "groovy"
         }
     }
+
+While would produce output like:
+
+<pre><tt>o.s.i.t.i.MessageSourceTests > testSearchReceivingMessageSourceInit FAILED
+    o.s.i.MessageDeliveryException: Failed to send tweet 'Liking the new Gradle test logging output!'
+        at o.s.i.t.i.SearchReceivingMessageSource.&lt;init&gt;(SearchReceivingMessageSource.java:42)
+        at o.s.i.t.i.MessageSourceTests.testSearchReceivingMessageSourceInit(MessageSourceTests.java:81)
+        Caused by:
+        o.s.i.MessageSourceException: Oops! Looks like Twitter is down. Try again shortly.
+            at o.s.i.c.IntegrationObjectSupport.onInit(IntegrationObjectSupport.java:113)
+            at o.s.i.t.i.AbstractTwitterMessageSource.onInit(AbstractTwitterMessageSource.java:92)
+            at o.s.i.t.i.SearchReceivingMessageSource.&lt;init&gt;(SearchReceivingMessageSource.java:40)
+            ... 1 more
+</tt></pre>
 
 #### Show Other Test Events
 
