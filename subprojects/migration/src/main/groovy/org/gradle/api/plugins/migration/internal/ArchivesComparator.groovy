@@ -57,7 +57,7 @@ class ArchivesComparator {
             archiveComparison.archive2.numberOfEntries = archiveEntriesByPath2.size()
 
             def entryComparator = new ZipEntryComparator()
-            def commonEntries = Sets.intersection(archiveEntriesByPath1.keySet(), archiveEntriesByPath2.keySet())
+            def commonEntries = Sets.newTreeSet(Sets.intersection(archiveEntriesByPath1.keySet(), archiveEntriesByPath2.keySet()))
             for (entryName in commonEntries) {
                 def entry1 = archiveEntriesByPath1[entryName]
                 def entry2 = archiveEntriesByPath2[entryName]
@@ -70,7 +70,7 @@ class ArchivesComparator {
                 }
             }
 
-            def orphanEntryNames1 = Sets.difference(archiveEntriesByPath1.keySet(), archiveEntriesByPath2.keySet())
+            def orphanEntryNames1 = Sets.newTreeSet(Sets.difference(archiveEntriesByPath1.keySet(), archiveEntriesByPath2.keySet()))
             for (entryName in orphanEntryNames1) {
                 def entry = archiveEntriesByPath1[entryName]
                 def comparedEntry = new ComparedArchiveEntry(parent: archiveComparison.archive1, path: entry.name, directory: entry.directory, size: entry.size, crc: entry.crc)
@@ -78,7 +78,7 @@ class ArchivesComparator {
                 listener.orphanArchiveEntryFound(comparedEntry)
             }
 
-            def orphanEntryNames2 = Sets.difference(archiveEntriesByPath2.keySet(), archiveEntriesByPath1.keySet())
+            def orphanEntryNames2 = Sets.newTreeSet(Sets.difference(archiveEntriesByPath2.keySet(), archiveEntriesByPath1.keySet()))
             for (entryName in orphanEntryNames2) {
                 def entry = archiveEntriesByPath2[entryName]
                 def comparedEntry = new ComparedArchiveEntry(parent: archiveComparison.archive2, path: entry.name, directory: entry.directory, size: entry.size, crc: entry.crc)
