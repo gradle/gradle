@@ -34,8 +34,6 @@ public class TargetTypeProvider {
     public TargetTypeProvider() {
         configuredTargetTypes.put(IdeaSingleEntryLibraryDependency.class.getCanonicalName(), IdeaSingleEntryLibraryDependency.class);
         configuredTargetTypes.put(IdeaModuleDependency.class.getCanonicalName(), IdeaModuleDependency.class);
-        configuredTargetTypes.put(Archive.class.getCanonicalName(), Archive.class);
-        configuredTargetTypes.put(TestResult.class.getCanonicalName(), TestResult.class);
     }
 
     /**

@@ -49,7 +49,7 @@ class BuildOutputComparator {
             projectComparison.project2 = new ComparedProject(parent: buildComparison.build2, name: projectOutput2.name, path: path)
             buildComparison.projectComparisons << projectComparison
             listener.projectComparisonStarted(projectComparison)
-            new ArchivesComparator(projectOutput1, projectOutput2, projectComparison, listener).compareArchives()
+            new ArchivesComparator(projectOutput1.archives, projectOutput2.archives, projectComparison, listener).compareArchives()
             listener.projectComparisonFinished(projectComparison)
         }
 

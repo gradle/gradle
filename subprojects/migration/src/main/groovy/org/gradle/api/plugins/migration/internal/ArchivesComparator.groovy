@@ -16,7 +16,6 @@
 
 package org.gradle.api.plugins.migration.internal
 
-import org.gradle.tooling.model.internal.migration.ProjectOutput
 import org.gradle.tooling.model.internal.migration.Archive
 
 import com.google.common.collect.Sets
@@ -25,21 +24,21 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 
 class ArchivesComparator {
-    private final ProjectOutput projectOutput1
-    private final ProjectOutput projectOutput2
+    private final Set<Archive> archives1
+    private final Set<Archive> archives2
     private final ProjectComparison projectComparison
     private final BuildComparisonListener listener
 
-    ArchivesComparator(ProjectOutput projectOutput1, ProjectOutput projectOutput2, ProjectComparison projectComparison, BuildComparisonListener listener) {
-        this.projectOutput1 = projectOutput1
-        this.projectOutput2 = projectOutput2
+    ArchivesComparator(Set<Archive> archives1, Set<Archive> archives2, ProjectComparison projectComparison, BuildComparisonListener listener) {
+        this.archives1 = archives1
+        this.archives2 = archives2
         this.projectComparison = projectComparison
         this.listener = listener
     }
 
     void compareArchives() {
-        def archivesByName1 = getArchivesByName(projectOutput1)
-        def archivesByName2 = getArchivesByName(projectOutput2)
+        def archivesByName1 = archives1.collectEntries { [it.file.name, it] }
+        def archivesByName2 = archives2.collectEntries { [it.file.name, it] }
 
         def commonArchiveNames = Sets.intersection(archivesByName1.keySet(), archivesByName2.keySet())
         for (name in commonArchiveNames) {
@@ -107,9 +106,6 @@ class ArchivesComparator {
         }
     }
 
-    private Map<String, Archive> getArchivesByName(ProjectOutput projectOutput) {
-        projectOutput.taskOutputs.findAll { it instanceof Archive }.collectEntries { [it.file.name, it] }
-    }
 
     private Map<String, ZipEntry> getArchiveEntriesByPath(Archive archive) {
         def result = [:]

@@ -21,8 +21,9 @@ import com.google.common.collect.Lists;
 import org.gradle.tooling.internal.protocol.InternalProjectOutput;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
+import org.gradle.tooling.model.internal.migration.Archive;
 import org.gradle.tooling.model.internal.migration.ProjectOutput;
-import org.gradle.tooling.model.internal.migration.TaskOutput;
+import org.gradle.tooling.model.internal.migration.TestResult;
 
 import java.io.File;
 import java.io.Serializable;
@@ -34,18 +35,20 @@ public class DefaultProjectOutput implements InternalProjectOutput, ProjectOutpu
     private final String description;
     private final File projectDirectory;
     private final String gradleVersion;
-    private final DomainObjectSet<TaskOutput> taskOutputs;
+    private final DomainObjectSet<Archive> archives;
+    private final DomainObjectSet<TestResult> testResults;
     private final ProjectOutput parent;
     private final List<ProjectOutput> children = Lists.newArrayList();
 
     public DefaultProjectOutput(String name, String path, String description, File projectDirectory, String gradleVersion,
-                                DomainObjectSet<TaskOutput> taskOutputs, ProjectOutput parent) {
+                                DomainObjectSet<Archive> archives, DomainObjectSet<TestResult> testResults, ProjectOutput parent) {
         this.name = name;
         this.path = path;
         this.description = description;
         this.projectDirectory = projectDirectory;
         this.gradleVersion = gradleVersion;
-        this.taskOutputs = taskOutputs;
+        this.archives = archives;
+        this.testResults = testResults;
         this.parent = parent;
     }
 
@@ -69,8 +72,12 @@ public class DefaultProjectOutput implements InternalProjectOutput, ProjectOutpu
         return gradleVersion;
     }
 
-    public DomainObjectSet<TaskOutput> getTaskOutputs() {
-        return taskOutputs;
+    public DomainObjectSet<Archive> getArchives() {
+        return archives;
+    }
+
+    public DomainObjectSet<TestResult> getTestResults() {
+        return testResults;
     }
 
     public ProjectOutput getParent() {

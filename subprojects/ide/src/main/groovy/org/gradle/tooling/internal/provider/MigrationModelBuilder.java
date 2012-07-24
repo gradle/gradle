@@ -16,7 +16,8 @@
 
 package org.gradle.tooling.internal.provider;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.Lists;
+
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.PublishArtifact;
@@ -27,10 +28,13 @@ import org.gradle.tooling.internal.migration.DefaultProjectOutput;
 import org.gradle.tooling.internal.migration.DefaultTestResult;
 import org.gradle.tooling.internal.protocol.InternalProjectOutput;
 import org.gradle.tooling.internal.protocol.ProjectVersion3;
+import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
+import org.gradle.tooling.model.internal.migration.Archive;
 import org.gradle.tooling.model.internal.migration.ProjectOutput;
-import org.gradle.tooling.model.internal.migration.TaskOutput;
+import org.gradle.tooling.model.internal.migration.TestResult;
 
+import java.util.List;
 import java.util.Set;
 
 public class MigrationModelBuilder implements BuildsModel {
@@ -44,33 +48,32 @@ public class MigrationModelBuilder implements BuildsModel {
     }
 
     private DefaultProjectOutput buildProjectOutput(Project project, ProjectOutput parent) {
-        Set<TaskOutput> taskOutputs = Sets.newHashSet();
-        addArchives(project, taskOutputs);
-        addTestResults(project, taskOutputs);
-
         DefaultProjectOutput projectOutput = new DefaultProjectOutput(project.getName(), project.getPath(),
                 project.getDescription(), project.getProjectDir(), project.getGradle().getGradleVersion(),
-                new ImmutableDomainObjectSet<TaskOutput>(taskOutputs), parent);
+                getArchives(project), getTestResults(project), parent);
         for (Project child : project.getChildProjects().values()) {
             projectOutput.addChild(buildProjectOutput(child, projectOutput));
         }
-
         return projectOutput;
     }
 
-    private void addArchives(Project project, Set<TaskOutput> taskOutputs) {
+    private DomainObjectSet<Archive> getArchives(Project project) {
+        List<Archive> archives = Lists.newArrayList();
         Configuration configuration = project.getConfigurations().findByName("archives");
         if (configuration != null) {
             for (PublishArtifact artifact : configuration.getArtifacts()) {
-                taskOutputs.add(new DefaultArchive(artifact.getFile()));
+                archives.add(new DefaultArchive(artifact.getFile()));
             }
         }
+        return new ImmutableDomainObjectSet<Archive>(archives);
     }
 
-    private void addTestResults(Project project, Set<TaskOutput> taskOutputs) {
+    private DomainObjectSet<TestResult> getTestResults(Project project) {
+        List<TestResult> testResults = Lists.newArrayList();
         Set<Test> testTasks = project.getTasks().withType(Test.class);
         for (Test task : testTasks) {
-            taskOutputs.add(new DefaultTestResult(task.getTestResultsDir()));
+            testResults.add(new DefaultTestResult(task.getTestResultsDir()));
         }
+        return new ImmutableDomainObjectSet<TestResult>(testResults);
     }
 }
