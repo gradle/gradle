@@ -161,10 +161,6 @@ public class GradleVersion implements Comparable<GradleVersion> {
         return versionPart == null || snapshot != null;
     }
 
-    public boolean isFinalRelease() {
-        return stage == null;
-    }
-
     private boolean isNonSymbolicNumber() {
         return versionPart.equals("0.0");
     }
