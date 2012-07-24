@@ -43,7 +43,7 @@ public class ReleasedVersions {
      */
     public BasicGradleDistribution getLast() {
         for (String v : VERSIONS) {
-            if (version(v).isFinalRelease()) {
+            if (!version(v).isSnapshot()) {
                 return current.previousVersion(v);
             }
         }
