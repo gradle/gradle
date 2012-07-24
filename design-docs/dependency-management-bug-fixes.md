@@ -3,6 +3,50 @@ This feature is really a bucket for key things we want to fix in the short-term 
 
 As this 'feature' is a list of bug fixes, this feature spec will not follow the usual template.
 
+## Inform the user about why a module is considered broken
+
+### Description
+
+There is currently no consistent approach to exception handling or reporting in our dependency resolution code. Sometimes failures are ignored, sometimes they are
+reported as a 'not found', and sometimes they bubble up and break resolution, even when the module is available at another repository.
+
+### Strategic solution
+
+There are 3 goals:
+
+* Add a couple of key firewalls in the code, where we handle failures and make a high-level decision whether to proceed (and warn), or fail the resolution
+(and add some context).
+* Remove all known places in our (inherited) code where we catch and ignore, catch and mark as unknown, or catch and discard the cause.
+* Wrap/change each parser to add context on parse failure.
+
+### User visible changes
+
+There are 4 possible outcomes when resolving a module or downloading an artifact from a given repository:
+
+* Success
+* A remote resource is not found (a 404 status code for an HTTP request, or empty directory listing).
+* An expected failure occurs accessing a remote resource (Connect exception, a non-200 status code, or a parse error).
+* An unexpected failure occurs (all other failures).
+
+In general, when an expected or unexpected failure occurs resolving from a repository:
+1. The resolve is aborted for that repository (this means, for example, if we can't parse a .sha1 resource, then we bail).
+2. If the failure is an unexpected failure, then propogate it and fail the resolve.
+3. Log the details of the failure.
+4. If there are no other repositories defined, then fail the resolve.
+5. If there is another repository defined, proceed to the next repository.
+
+TODO - there are some exceptions to this rule, for example:
+* if we get a 401 fetching the .sha1, we should continue to the artifact
+* if we get a 401 fetching an artifact, and the repository has multiple root URLs, we should continue on to the next URL.
+
+### Integration test coverage
+
+TODO - flesh this out
+
+### Implementation approach
+
+TODO - flesh this out
+
 ## Correct handling of packaging and dependency type declared in poms
 
 * GRADLE-2188: Artifact not found resolving dependencies with packaging/type "orbit"
