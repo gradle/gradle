@@ -38,7 +38,7 @@ class CompareGradleBuilds extends DefaultTask {
         def sourceBuildOutput = generateBuildOutput(sourceVersion, sourceProjectDir)
         def targetBuildOutput = generateBuildOutput(targetVersion, targetProjectDir)
         def listener = new LoggingBuildComparisonListener()
-        new BuildOutputComparator(listener).compare(sourceBuildOutput, targetBuildOutput)
+        new BuildOutputComparator(listener).compareBuilds(sourceBuildOutput, targetBuildOutput)
     }
 
     private ProjectOutput generateBuildOutput(String gradleVersion, File other) {

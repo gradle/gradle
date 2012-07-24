@@ -27,7 +27,7 @@ class BuildOutputComparator {
         this.listener = listener
     }
 
-    void compare(ProjectOutput buildOutput1, ProjectOutput buildOutput2) {
+    void compareBuilds(ProjectOutput buildOutput1, ProjectOutput buildOutput2) {
         def buildComparison = new BuildComparison()
         buildComparison.build1 = new ComparedBuild(displayName: "source build")
         buildComparison.build2 = new ComparedBuild(displayName: "target build")
