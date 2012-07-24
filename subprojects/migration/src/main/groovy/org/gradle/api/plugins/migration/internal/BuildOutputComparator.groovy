@@ -19,10 +19,6 @@ package org.gradle.api.plugins.migration.internal
 import com.google.common.collect.Sets
 
 import org.gradle.tooling.model.internal.migration.ProjectOutput
-import org.gradle.tooling.model.internal.migration.Archive
-
-import java.util.zip.ZipEntry
-import java.util.zip.ZipInputStream
 
 class BuildOutputComparator {
     private final BuildComparisonListener listener
