@@ -37,7 +37,7 @@ abbr, acronym {border-bottom:1px dotted #666;}
 address {margin:0 0 1.5em;font-style:italic;}
 del {color:#666;}
 pre {margin:1.5em 0;white-space:pre;}
-pre, code, tt {font:1em 'andale mono', 'lucida console', monospace;line-height:1.5;}
+/*pre, code, tt {font:1em 'andale mono', 'lucida console', monospace;line-height:1.5;}*/
 li ul, li ol {margin:0;}
 ul, ol {margin:0 1.5em 1.5em 0;padding-left:1.5em;}
 ul {list-style-type:disc;}
@@ -85,7 +85,7 @@ body {
   color: #333;
 }
 
-h1,h2,h3,h4,h5,h6 {
+h1,h2,h3,h4 {
   color: #007042;
 }
 
@@ -107,7 +107,7 @@ section.major-detail {
   margin: 0 1em 2em;
   padding: 1em 1em 0;
   border-left: 2px solid #999;
-  font-size: 14px;
+  font-size: 15px;
   border: 1px dotted #999;
   background-color: #FCFCFC;
 }
@@ -115,7 +115,6 @@ section.major-detail {
 section.minor-detail {
   margin: 0 0.5em;
   padding: 0 1em;
-  font-size: 14px;
 }
 
 ul.toc-sub {
@@ -132,4 +131,44 @@ section.footer {
   padding-top: 1em;
   border-top: 1px dashed #999;
   text-align: center;
+}
+
+pre {
+  border: 1px solid #B3B3B3;
+  border-radius: 5px;
+  padding: 0.5em;
+  line-height: 1.4;
+}
+
+pre.code {
+  background-color: white;
+}
+
+pre.tt {
+  background-color: #333;
+  color: white;
+}
+
+code, tt {
+  font-family: Monaco, "Courier New", Courier, monospace;
+  font-size: 80%;
+}
+
+.java_keyword {
+  color: #708;
+}
+.java_comment {
+  color: #A70;
+}
+.java_plain, .java_type {
+  color: black;
+}
+.java_separator {
+  color: #666;
+}
+.java_operator {
+  color: #A22;
+}
+.java_literal {
+  color: #281;
 }
