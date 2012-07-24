@@ -96,7 +96,7 @@ On log levels `LIFECYCLE`, `INFO`, and `DEBUG`, some test events (most important
 
 ### Tooling API provides Gradle module information for external dependencies
 
-The Tooling API can be used to obtain the model of the project which includes the information about the dependencies/libraries. Now the Tooling API also provides Gradle module information, i.e. group, name, version of the dependency. Please see the javadoc for [ExternalGradleModule](javadoc/org/gradle/tooling/model/ExternalGradleModule.html). You can obtain the Gradle module information via [ExternalDependency.getExternalGradleModule()](javadoc/org/gradle/tooling/model/ExternalDependency.html#getExternalGradleModule\(\)).
+The Tooling API can be used to obtain the model of the project which includes the information about the dependencies/libraries. Now the Tooling API also provides Gradle module information, i.e. group, name, version of the dependency. Please see the javadoc for [GradleModuleVersion](javadoc/org/gradle/tooling/model/GradleModuleVersion.html). You can obtain the Gradle module information via [ExternalDependency.getGradleModelVersion()](javadoc/org/gradle/tooling/model/ExternalDependency.html#getGradleModelVersion\(\)).
 
 ### Global maven settings.xml
 
