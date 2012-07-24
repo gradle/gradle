@@ -24,22 +24,34 @@
                 </tr>
             </thead>
             <tr>
-                <td>debug</td>
+                <td>events</td>
             </tr>
             <tr>
-                <td>info</td>
+                <td>minGranularity</td>
             </tr>
             <tr>
-                <td>lifecycle</td>
+                <td>maxGranularity</td>
             </tr>
             <tr>
-                <td>warn</td>
+                <td>displayGranularity</td>
             </tr>
             <tr>
-                <td>quiet</td>
+                <td>showExceptions</td>
             </tr>
             <tr>
-                <td>error</td>
+                <td>showCauses</td>
+            </tr>
+            <tr>
+                <td>showStackTraces</td>
+            </tr>
+            <tr>
+                <td>showStandardStreams</td>
+            </tr>
+            <tr>
+                <td>exceptionFormat</td>
+            </tr>
+            <tr>
+                <td>stackTraceFilters</td>
             </tr>
         </table>
     </section>
