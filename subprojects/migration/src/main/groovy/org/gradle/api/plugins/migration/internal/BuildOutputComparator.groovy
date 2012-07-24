@@ -22,24 +22,31 @@ import org.gradle.tooling.model.internal.migration.ProjectOutput
 
 class BuildOutputComparator {
     private final BuildComparisonListener listener
+    private BuildComparison buildComparison
 
     BuildOutputComparator(BuildComparisonListener listener) {
         this.listener = listener
     }
 
     void compareBuilds(ProjectOutput buildOutput1, ProjectOutput buildOutput2) {
-        def buildComparison = new BuildComparison()
+        buildComparison = new BuildComparison()
         buildComparison.build1 = new ComparedBuild(displayName: "source build")
         buildComparison.build2 = new ComparedBuild(displayName: "target build")
         listener.buildComparisonStarted(buildComparison)
-        compareProjects(buildOutput1, buildOutput2, buildComparison)
+        compareProjects(buildOutput1, buildOutput2)
         listener.buildComparisonFinished(buildComparison)
     }
 
-    private void compareProjects(ProjectOutput buildOutput1, ProjectOutput buildOutput2, BuildComparison buildComparison) {
+    private void compareProjects(ProjectOutput buildOutput1, ProjectOutput buildOutput2) {
         def projectOutputsByPath1 = getProjectOutputsByPath(buildOutput1)
         def projectOutputsByPath2 = getProjectOutputsByPath(buildOutput2)
 
+        compareCommonProjects(projectOutputsByPath1, projectOutputsByPath2)
+        compareOrphanProjects(buildComparison.build1, projectOutputsByPath1, projectOutputsByPath2)
+        compareOrphanProjects(buildComparison.build2, projectOutputsByPath2, projectOutputsByPath1)
+    }
+
+    private void compareCommonProjects(Map<String, ProjectOutput> projectOutputsByPath1, Map<String, ProjectOutput> projectOutputsByPath2) {
         def commonProjectPaths = Sets.intersection(projectOutputsByPath1.keySet(), projectOutputsByPath2.keySet())
         for (path in commonProjectPaths) {
             def projectOutput1 = projectOutputsByPath1[path]
@@ -48,23 +55,18 @@ class BuildOutputComparator {
             projectComparison.project1 = new ComparedProject(parent: buildComparison.build1, name: projectOutput1.name, path: path)
             projectComparison.project2 = new ComparedProject(parent: buildComparison.build2, name: projectOutput2.name, path: path)
             buildComparison.projectComparisons << projectComparison
+
             listener.projectComparisonStarted(projectComparison)
-            new ArchivesComparator(projectOutput1.archives, projectOutput2.archives, projectComparison, listener).compareArchives()
+            new ArchivesComparator(projectComparison, listener).compareArchives(projectOutput1.archives, projectOutput2.archives)
             listener.projectComparisonFinished(projectComparison)
         }
+    }
 
-        def orphanProjectPaths1 = Sets.difference(projectOutputsByPath1.keySet(), projectOutputsByPath2.keySet())
-        for (path in orphanProjectPaths1) {
-            def projectOutput = projectOutputsByPath1[path]
-            def comparedProject = new ComparedProject(parent: buildComparison.build1, name: projectOutput.name, path: path)
-            buildComparison.orphanProjects << comparedProject
-            listener.orphanProjectFound(comparedProject)
-        }
-
-        def orphanProjectPaths2 = Sets.difference(projectOutputsByPath2.keySet(), projectOutputsByPath1.keySet())
-        for (path in orphanProjectPaths2) {
-            def projectOutput = projectOutputsByPath2[path]
-            def comparedProject = new ComparedProject(parent: buildComparison.build2, name: projectOutput.name, path: path)
+    private void compareOrphanProjects(ComparedBuild build, Map<String, ProjectOutput> projectOutputsByPath, Map<String, ProjectOutput> otherProjectOutputsByPath) {
+        def orphanProjectPaths = Sets.difference(projectOutputsByPath.keySet(), otherProjectOutputsByPath.keySet())
+        for (path in orphanProjectPaths) {
+            def projectOutput = projectOutputsByPath[path]
+            def comparedProject = new ComparedProject(parent: build, name: projectOutput.name, path: path)
             buildComparison.orphanProjects << comparedProject
             listener.orphanProjectFound(comparedProject)
         }
