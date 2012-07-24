@@ -94,11 +94,19 @@ Test logging can be configured separately per log level:
 
 On log levels `LIFECYCLE`, `INFO`, and `DEBUG`, some test events (most importantly failed tests) are already shown by default. For detailed documentation about all test logging related options, see [TestLogging](javadoc/org/gradle/api/tasks/testing/logging/TestLogging.html) and [TestLoggingContainer](javadoc/org/gradle/api/tasks/testing/logging/TestLoggingContainer.html).
 
+For further details, see the [forum announcement](http://forums.gradle.org/gradle/topics/whats_new_in_gradle_1_1_test_logging) for this feature.
+
+### Easier opening of test and code quality reports
+
+When a test or code quality task has found a problem, it typically prints a message which includes the file path of the generated report. This message has been
+slightly changed to print the path as a file URL. Smart consoles recognize such URLs and make it easy to open them. For example, in Mac's Terminal.app reports are now
+just a CMD + double click away.
+
 ### Tooling API provides Gradle module information for external dependencies
 
 The Tooling API can be used to obtain the model of the project which includes the information about the dependencies/libraries. Now the Tooling API also provides Gradle module information, i.e. group, name, version of the dependency. Please see the javadoc for [GradleModuleVersion](javadoc/org/gradle/tooling/model/GradleModuleVersion.html). You can obtain the Gradle module information via [ExternalDependency.getGradleModelVersion()](javadoc/org/gradle/tooling/model/ExternalDependency.html#getGradleModelVersion\(\)).
 
-### Global maven settings.xml
+### Global Maven settings.xml
 
 Gradle now honours the maven settings located in <code><em>$M2\_HOME</em>/conf/settings.xml</code> to locate the local maven repository. If a local repository is defined in `~/.m2/settings.xml`, this location takes precedence over a repository definition in <code><em>$M2\_HOME</em>/conf/settings.xml</code>.
 
