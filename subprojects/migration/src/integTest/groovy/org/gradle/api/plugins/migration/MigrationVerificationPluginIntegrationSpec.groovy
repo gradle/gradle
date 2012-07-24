@@ -19,7 +19,9 @@ package org.gradle.api.plugins.migration
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
+import spock.lang.Ignore
 
+@Ignore
 class MigrationVerificationPluginIntegrationSpec extends AbstractIntegrationSpec {
     @Rule TestResources testResources
 
