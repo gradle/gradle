@@ -45,6 +45,14 @@ class DslDocModel {
         return classMetaData.find(className) != null
     }
 
+    ClassDoc findClassDoc(String className) {
+        ClassDoc classDoc = classes[className]
+        if (classDoc == null && getFileForClass(className).isFile()) {
+            return getClassDoc(className)
+        }
+        return classDoc
+    }
+
     ClassDoc getClassDoc(String className) {
         ClassDoc classDoc = classes[className]
         if (classDoc == null) {
@@ -67,7 +75,7 @@ class DslDocModel {
             if (!extensionMetaData) {
                 extensionMetaData = new ClassExtensionMetaData(className)
             }
-            File classFile = new File(classDocbookDir, "${className}.xml")
+            File classFile = getFileForClass(className)
             if (!classFile.isFile()) {
                 throw new RuntimeException("Docbook source file not found for class '$className' in $classDocbookDir.")
             }
@@ -80,5 +88,10 @@ class DslDocModel {
         } catch (Exception e) {
             throw new ClassDocGenerationException("Could not load the class documentation for class '$className'.", e)
         }
+    }
+
+    private File getFileForClass(String className) {
+        File classFile = new File(classDocbookDir, "${className}.xml")
+        classFile
     }
 }

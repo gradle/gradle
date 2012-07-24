@@ -23,20 +23,28 @@ public class ClassDocBuilder {
     private final ClassDocPropertiesBuilder propertiesBuilder;
     private final ClassDocMethodsBuilder methodsBuilder;
     private final ClassDocExtensionsBuilder extensionsBuilder;
+    private final ClassDocSuperTypeBuilder superTypeBuilder;
+    private final GenerationListener listener = new DefaultGenerationListener();
 
     public ClassDocBuilder(DslDocModel model, JavadocConverter javadocConverter) {
-        GenerationListener listener = new DefaultGenerationListener();
         commentBuilder = new ClassDocCommentBuilder(javadocConverter, listener);
-        propertiesBuilder = new ClassDocPropertiesBuilder(model, javadocConverter, listener);
-        methodsBuilder = new ClassDocMethodsBuilder(model, javadocConverter, listener);
+        propertiesBuilder = new ClassDocPropertiesBuilder(javadocConverter, listener);
+        methodsBuilder = new ClassDocMethodsBuilder(javadocConverter, listener);
         extensionsBuilder = new ClassDocExtensionsBuilder(model, listener);
+        superTypeBuilder = new ClassDocSuperTypeBuilder(model, listener);
     }
 
     void build(ClassDoc classDoc) {
-        commentBuilder.build(classDoc);
-        propertiesBuilder.build(classDoc);
-        methodsBuilder.build(classDoc);
-        extensionsBuilder.build(classDoc);
-        classDoc.mergeContent();
+        listener.start(String.format("class %s", classDoc.getName()));
+        try {
+            superTypeBuilder.build(classDoc);
+            commentBuilder.build(classDoc);
+            propertiesBuilder.build(classDoc);
+            methodsBuilder.build(classDoc);
+            extensionsBuilder.build(classDoc);
+            classDoc.mergeContent();
+        } finally {
+            listener.finish();
+        }
     }
 }

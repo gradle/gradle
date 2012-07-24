@@ -16,15 +16,14 @@
 package org.gradle.build.docs.dsl.docbook
 
 import org.gradle.build.docs.XmlSpecification
+import org.gradle.build.docs.dsl.docbook.model.ClassDoc
 import org.gradle.build.docs.dsl.docbook.model.MethodDoc
 import org.gradle.build.docs.dsl.docbook.model.PropertyDoc
 import org.gradle.build.docs.dsl.source.model.*
-import org.gradle.build.docs.dsl.docbook.model.ClassDoc
 
 class ClassDocMethodsBuilderTest extends XmlSpecification {
     final JavadocConverter javadocConverter = Mock()
-    final DslDocModel docModel = Mock()
-    final ClassDocMethodsBuilder builder = new ClassDocMethodsBuilder(docModel, javadocConverter, null)
+    final ClassDocMethodsBuilder builder = new ClassDocMethodsBuilder(javadocConverter, null)
 
     def buildsMethodsForClass() {
         ClassMetaData classMetaData = classMetaData()
@@ -51,6 +50,7 @@ class ClassDocMethodsBuilderTest extends XmlSpecification {
         when:
         ClassDoc doc = withCategories {
             def doc = new ClassDoc('org.gradle.Class', content, document, classMetaData, null)
+            doc.superClass = superClass
             builder.build(doc)
             doc
         }
@@ -67,7 +67,6 @@ class ClassDocMethodsBuilderTest extends XmlSpecification {
         _ * classMetaData.findDeclaredMethods("a") >> [methodA]
         _ * classMetaData.findDeclaredMethods("b") >> [methodB, methodBOverload]
         _ * classMetaData.superClassName >> 'org.gradle.SuperClass'
-        _ * docModel.getClassDoc('org.gradle.SuperClass') >> superClass
         _ * superClass.classMethods >> [methodC, methodAOverridden]
     }
 
@@ -110,8 +109,8 @@ class ClassDocMethodsBuilderTest extends XmlSpecification {
         when:
         ClassDoc doc = withCategories {
             def doc = new ClassDoc('org.gradle.Class', content, document, classMetaData, null)
-            new ClassDocPropertiesBuilder(docModel, javadocConverter, Mock(GenerationListener)).build(doc)
-            new ClassDocMethodsBuilder(docModel, javadocConverter, Mock(GenerationListener)).build(doc)
+            new ClassDocPropertiesBuilder(javadocConverter, Mock(GenerationListener)).build(doc)
+            new ClassDocMethodsBuilder(javadocConverter, Mock(GenerationListener)).build(doc)
             doc
         }
 

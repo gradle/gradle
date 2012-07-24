@@ -40,6 +40,9 @@ public class ClassDocExtensionsBuilder {
         this.listener = listener;
     }
 
+    /**
+     * Builds the extension meta-data for the given class.
+     */
     public void build(ClassDoc classDoc) {
         Map<String, ClassExtensionDoc> plugins = new HashMap<String, ClassExtensionDoc>();
         for (MixinMetaData mixin : classDoc.getExtensionMetaData().getMixinClasses()) {

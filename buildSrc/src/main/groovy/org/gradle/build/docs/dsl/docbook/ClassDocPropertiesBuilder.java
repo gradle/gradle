@@ -27,16 +27,17 @@ import org.w3c.dom.Text;
 import java.util.*;
 
 public class ClassDocPropertiesBuilder extends ModelBuilderSupport {
-    private final DslDocModel model;
     private final JavadocConverter javadocConverter;
     private final GenerationListener listener;
 
-    public ClassDocPropertiesBuilder(DslDocModel model, JavadocConverter javadocConverter, GenerationListener listener) {
-        this.model = model;
+    public ClassDocPropertiesBuilder(JavadocConverter javadocConverter, GenerationListener listener) {
         this.javadocConverter = javadocConverter;
         this.listener = listener;
     }
 
+    /**
+     * Builds the properties of the given class
+     */
     void build(ClassDoc classDoc) {
         Element thead = getChild(classDoc.getPropertiesTable(), "thead");
         Element tr = getChild(thead, "tr");
@@ -64,8 +65,7 @@ public class ClassDocPropertiesBuilder extends ModelBuilderSupport {
             valueTitles.add(element);
         }
 
-        String superClassName = classDoc.getClassMetaData().getSuperClassName();
-        ClassDoc superClass = superClassName != null ? model.getClassDoc(superClassName) : null;
+        ClassDoc superClass = classDoc.getSuperClass();
 
         //adding the properties from the super class onto the inheriting class
         Map<String, PropertyDoc> props = new TreeMap<String, PropertyDoc>();

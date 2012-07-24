@@ -16,18 +16,17 @@
 package org.gradle.build.docs.dsl.docbook
 
 import org.gradle.build.docs.XmlSpecification
+import org.gradle.build.docs.dsl.docbook.model.ClassDoc
 import org.gradle.build.docs.dsl.docbook.model.ExtraAttributeDoc
 import org.gradle.build.docs.dsl.docbook.model.PropertyDoc
 import org.gradle.build.docs.dsl.source.model.ClassMetaData
 import org.gradle.build.docs.dsl.source.model.PropertyMetaData
 import org.gradle.build.docs.dsl.source.model.TypeMetaData
-import org.gradle.build.docs.dsl.docbook.model.ClassDoc
 
 class ClassDocPropertiesBuilderTest extends XmlSpecification {
     final JavadocConverter javadocConverter = Mock()
-    final DslDocModel docModel = Mock()
     final GenerationListener listener = Mock()
-    final ClassDocPropertiesBuilder builder = new ClassDocPropertiesBuilder(docModel, javadocConverter, listener)
+    final ClassDocPropertiesBuilder builder = new ClassDocPropertiesBuilder(javadocConverter, listener)
 
     def buildsPropertiesForClass() {
         ClassMetaData classMetaData = classMetaData()
@@ -53,6 +52,7 @@ class ClassDocPropertiesBuilderTest extends XmlSpecification {
         when:
         ClassDoc doc = withCategories {
             def doc = new ClassDoc('org.gradle.Class', content, document, classMetaData, null)
+            doc.superClass = superDoc
             builder.build(doc)
             return doc
         }
@@ -66,7 +66,6 @@ class ClassDocPropertiesBuilderTest extends XmlSpecification {
         _ * classMetaData.findProperty('b') >> propertyB
         _ * classMetaData.findProperty('a') >> propertyA
         _ * classMetaData.superClassName >> 'org.gradle.SuperType'
-        _ * docModel.getClassDoc('org.gradle.SuperType') >> superDoc
         _ * superDoc.getClassProperties() >> [propertyDocC, propertyDocA]
     }
 
@@ -97,6 +96,7 @@ class ClassDocPropertiesBuilderTest extends XmlSpecification {
         when:
         ClassDoc doc = withCategories {
             def doc = new ClassDoc('org.gradle.Class', content, document, classMetaData, null)
+            doc.superClass = superDoc
             builder.build(doc)
             return doc
         }
@@ -133,7 +133,6 @@ class ClassDocPropertiesBuilderTest extends XmlSpecification {
         _ * classMetaData.findProperty('b') >> propertyB
         _ * classMetaData.findProperty('a') >> propertyA
         _ * classMetaData.superClassName >> 'org.gradle.SuperType'
-        _ * docModel.getClassDoc('org.gradle.SuperType') >> superDoc
         _ * superDoc.classProperties >> [inheritedPropertyA, inheritedPropertyB, inheritedPropertyC]
     }
 

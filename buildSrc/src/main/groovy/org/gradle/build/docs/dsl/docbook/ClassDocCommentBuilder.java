@@ -27,6 +27,9 @@ public class ClassDocCommentBuilder {
         this.listener = listener;
     }
 
+    /**
+     * Builds the class comment for the given class.
+     */
     void build(ClassDoc classDoc) {
         classDoc.setComment(javadocConverter.parse(classDoc.getClassMetaData(), listener).getDocbook());
     }

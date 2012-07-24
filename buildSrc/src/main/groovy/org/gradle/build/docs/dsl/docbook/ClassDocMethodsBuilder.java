@@ -31,16 +31,17 @@ import java.util.List;
 import java.util.Set;
 
 public class ClassDocMethodsBuilder extends ModelBuilderSupport {
-    private final DslDocModel model;
     private final JavadocConverter javadocConverter;
     private final GenerationListener listener;
 
-    public ClassDocMethodsBuilder(DslDocModel model, JavadocConverter converter, GenerationListener listener) {
-        this.model = model;
+    public ClassDocMethodsBuilder(JavadocConverter converter, GenerationListener listener) {
         this.javadocConverter = converter;
         this.listener = listener;
     }
 
+    /**
+     * Builds the methods and script blocks of the given class. Assumes properties have already been built.
+     */
     public void build(ClassDoc classDoc) {
         Set<String> signatures = new HashSet<String>();
 
@@ -79,8 +80,8 @@ public class ClassDocMethodsBuilder extends ModelBuilderSupport {
             }
         }
 
-        if (classDoc.getClassMetaData().getSuperClassName() != null) {
-            ClassDoc supertype = model.getClassDoc(classDoc.getClassMetaData().getSuperClassName());
+        ClassDoc supertype = classDoc.getSuperClass();
+        if (supertype != null) {
             for (MethodDoc method: supertype.getClassMethods()){
                 if (signatures.add(method.getMetaData().getOverrideSignature())) {
                     classDoc.addClassMethod(method.forClass(classDoc.getClassMetaData()));

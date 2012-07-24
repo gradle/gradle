@@ -35,6 +35,7 @@ class ClassDoc implements DslElementDoc {
     private final Element methodsTable
     private final Element propertiesSection
     private final Element methodsSection
+    ClassDoc superClass
     List<Element> comment = []
 
     ClassDoc(String className, Element classContent, Document targetDocument, ClassMetaData classMetaData, ClassExtensionMetaData extensionMetaData) {
@@ -145,11 +146,6 @@ class ClassDoc implements DslElementDoc {
             throw new RuntimeException("Docbook content for $className does not contain a '$title' section.")
         }
         return sections[0]
-    }
-
-    Element getHasDescription() {
-        def paras = classSection.para
-        return paras.size() > 0 ? paras[0] : null
     }
 
     Element getDescription() {
