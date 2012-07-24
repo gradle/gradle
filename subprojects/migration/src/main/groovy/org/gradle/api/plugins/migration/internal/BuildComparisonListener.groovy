@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.migration
+package org.gradle.api.plugins.migration.internal
 
 interface BuildComparisonListener {
     void buildComparisonStarted(BuildComparison comparison)

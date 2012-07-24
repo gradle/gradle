@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.migration
+package org.gradle.api.plugins.migration
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.GradleException
 import org.gradle.tooling.model.internal.migration.ProjectOutput
 import org.gradle.tooling.GradleConnector
+import org.gradle.api.plugins.migration.internal.BuildOutputComparator
+import org.gradle.api.plugins.migration.internal.LoggingBuildComparisonListener
 
 class CompareGradleBuilds extends DefaultTask {
     String sourceVersion
