@@ -18,8 +18,6 @@ package org.gradle.tooling.internal.consumer.protocoladapter;
 
 import org.gradle.tooling.model.idea.IdeaModuleDependency;
 import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency;
-import org.gradle.tooling.model.internal.migration.Archive;
-import org.gradle.tooling.model.internal.migration.TestResult;
 
 import java.util.HashMap;
 import java.util.Map;
