@@ -179,7 +179,7 @@ task retrieveMilestone(type: Sync) {
         repo.module('group', 'projectA', '2.2').withStatus('integration').publish()
 
         and: "Server handles requests"
-        server.allowGet('/repo', repo.rootDir)
+        server.allowGetOrHead('/repo', repo.rootDir)
 
         and:
         run 'retrieve'

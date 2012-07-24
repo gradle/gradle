@@ -42,7 +42,7 @@ task retrieve(type: Sync) {
 }
 """
         and:
-        server.allowGet('/repo', mavenRepo().rootDir)
+        server.allowGetOrHead('/repo', mavenRepo().rootDir)
 
         when:
         succeeds 'retrieve'
@@ -164,7 +164,7 @@ task retrieve(type: Sync) {
 """
 
         when:  "Server handles requests"
-        server.allowGet("/repo", mavenRepo().rootDir)
+        server.allowGetOrHead("/repo", mavenRepo().rootDir)
 
         and: "We resolve dependencies"
         run 'retrieve'

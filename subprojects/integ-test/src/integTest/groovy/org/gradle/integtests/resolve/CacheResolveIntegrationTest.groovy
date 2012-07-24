@@ -44,7 +44,7 @@ task deleteCacheFiles(type: Delete) {
 """
 
         and:
-        server.allowGet("/repo", repo.rootDir)
+        server.allowGetOrHead("/repo", repo.rootDir)
 
         and:
         succeeds('listJars')

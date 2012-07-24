@@ -108,7 +108,7 @@ task retrieve(type: Copy) {
         and:
         def module = ivyRepo().module("group", "projectA", "1.1")
         module.publish()
-        server.allowGet('/repo', ivyRepo().rootDir)
+        server.allowGetOrHead('/repo', ivyRepo().rootDir)
 
         when: 'original retrieve'
         run 'retrieve'

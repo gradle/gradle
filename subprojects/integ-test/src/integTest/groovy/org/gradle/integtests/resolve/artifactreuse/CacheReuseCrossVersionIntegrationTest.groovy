@@ -49,7 +49,7 @@ task retrieve(type: Sync) {
         def userHome = file('user-home')
 
         when:
-        server.allowGet('/org', file('repo/org'))
+        server.allowGetOrHead('/org', file('repo/org'))
 
         and:
         version previous withUserHomeDir userHome withTasks 'retrieve' withArguments '-i' run()
@@ -61,9 +61,9 @@ task retrieve(type: Sync) {
         when:
         server.resetExpectations()
         projectB.allowPomHead(server)
-        projectB.allowPomSha1Get(server)
+        projectB.allowPomSha1GetOrHead(server)
         projectB.allowArtifactHead(server)
-        projectB.allowArtifactSha1Get(server)
+        projectB.allowArtifactSha1GetOrHead(server)
 
         and:
         version current withUserHomeDir userHome withTasks 'retrieve' withArguments '-i' run()
@@ -96,7 +96,7 @@ task retrieve(type: Sync) {
         def userHome = file('user-home')
 
         when:
-        server.allowGet('/org', file('repo/org'))
+        server.allowGetOrHead('/org', file('repo/org'))
 
         and:
         version previous withUserHomeDir userHome withTasks 'retrieve' withArguments '-i' run()

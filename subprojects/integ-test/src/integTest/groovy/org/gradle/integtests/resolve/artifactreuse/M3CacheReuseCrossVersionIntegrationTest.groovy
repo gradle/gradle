@@ -49,7 +49,7 @@ task retrieve(type: Sync) {
         def userHome = file('user-home')
 
         when:
-        server.allowGet("/org", file('repo/org'));
+        server.allowGetOrHead("/org", file('repo/org'));
 
         and:
         version previous withUserHomeDir userHome withTasks 'retrieve' withArguments '-i' run()

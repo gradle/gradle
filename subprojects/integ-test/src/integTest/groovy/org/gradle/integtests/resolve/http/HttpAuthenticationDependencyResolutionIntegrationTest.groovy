@@ -159,7 +159,7 @@ task listJars << {
 
         and:
         server.authenticationScheme = authScheme
-        server.allowGet('/repo/group/projectA/1.2/ivy-1.2.xml', 'username', 'password', module.ivyFile)
+        server.allowGetOrHead('/repo/group/projectA/1.2/ivy-1.2.xml', 'username', 'password', module.ivyFile)
 
         then:
         fails 'listJars'
@@ -203,7 +203,7 @@ task listJars << {
 
         and:
         server.authenticationScheme = authScheme
-        server.allowGet('/repo/group/projectA/1.2/projectA-1.2.pom', 'username', 'password', module.pomFile)
+        server.allowGetOrHead('/repo/group/projectA/1.2/projectA-1.2.pom', 'username', 'password', module.pomFile)
 
         then:
         fails 'listJars'

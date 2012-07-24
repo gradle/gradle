@@ -133,7 +133,7 @@ class HttpServer extends ExternalResource {
     /**
      * Adds a given file at the given URL. The source file can be either a file or a directory.
      */
-    void allowGet(String path, File srcFile) {
+    void allowGetOrHead(String path, File srcFile) {
         allow(path, true, ['GET', 'HEAD'], fileHandler(path, srcFile))
     }
 
@@ -147,7 +147,7 @@ class HttpServer extends ExternalResource {
     /**
      * Adds a given file at the given URL with the given credentials. The source file can be either a file or a directory.
      */
-    void allowGet(String path, String username, String password, File srcFile) {
+    void allowGetOrHead(String path, String username, String password, File srcFile) {
         allow(path, true, ['GET', 'HEAD'], withAuthentication(path, username, password, fileHandler(path, srcFile)))
     }
 

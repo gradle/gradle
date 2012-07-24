@@ -64,7 +64,7 @@ class WrapperProjectIntegrationTest extends AbstractIntegrationSpec {
 
         executer.withTasks('wrapper').run()
 
-        server.allowGet("/gradlew/dist", distribution.binDistribution)
+        server.allowGetOrHead("/gradlew/dist", distribution.binDistribution)
     }
 
     public void "has non-zero exit code on build failure"() {
@@ -72,7 +72,7 @@ class WrapperProjectIntegrationTest extends AbstractIntegrationSpec {
         prepareWrapper("http://localhost:${server.port}")
 
         expect:
-        server.allowGet("/gradlew/dist", distribution.binDistribution)
+        server.allowGetOrHead("/gradlew/dist", distribution.binDistribution)
 
         when:
         ExecutionFailure failure = wrapperExecuter.withTasks('unknown').runWithFailure()
