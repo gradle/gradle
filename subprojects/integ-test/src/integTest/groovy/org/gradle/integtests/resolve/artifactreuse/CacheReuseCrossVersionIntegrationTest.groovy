@@ -60,10 +60,10 @@ task retrieve(type: Sync) {
 
         when:
         server.resetExpectations()
-        projectB.expectPomHead(server)
-        server.expectGet("/org/name/projectB/1.0/projectB-1.0.pom.sha1", projectB.sha1File(projectB.pomFile))
-        projectB.expectArtifactHead(server)
-        server.expectGet("/org/name/projectB/1.0/projectB-1.0.jar.sha1", projectB.sha1File(projectB.artifactFile))
+        projectB.allowPomHead(server)
+        projectB.allowPomSha1Get(server)
+        projectB.allowArtifactHead(server)
+        projectB.allowArtifactSha1Get(server)
 
         and:
         version current withUserHomeDir userHome withTasks 'retrieve' withArguments '-i' run()
@@ -107,8 +107,8 @@ task retrieve(type: Sync) {
 
         when:
         server.resetExpectations()
-        projectB.expectPomHead(server)
-        projectB.expectArtifactHead(server)
+        projectB.allowPomHead(server)
+        projectB.allowArtifactHead(server)
 
         and:
         version current withUserHomeDir userHome withTasks 'retrieve' withArguments '-i' run()
