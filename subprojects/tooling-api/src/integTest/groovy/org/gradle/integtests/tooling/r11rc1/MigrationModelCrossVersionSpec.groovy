@@ -47,10 +47,10 @@ class MigrationModelCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         output instanceof ProjectOutput
-        def testResults = output.testResults
-        testResults.size() == 2
-        testResults.any { it.xmlReportDir == resources.dir.file("build", "test-results") }
-        testResults.any { it.xmlReportDir == resources.dir.file("build", "other-results") }
+        def testRuns = output.testRuns
+        testRuns.size() == 2
+        testRuns.any { it.xmlReportDir == resources.dir.file("build", "test-results") }
+        testRuns.any { it.xmlReportDir == resources.dir.file("build", "other-results") }
     }
 
     def "modelContainsAllProjects"() {

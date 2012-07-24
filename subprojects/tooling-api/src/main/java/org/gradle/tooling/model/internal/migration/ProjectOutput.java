@@ -31,5 +31,5 @@ public interface ProjectOutput extends HierarchicalElement {
     File getProjectDirectory();
     String getGradleVersion();
     DomainObjectSet<Archive> getArchives();
-    DomainObjectSet<TestResult> getTestResults();
+    DomainObjectSet<TestRun> getTestRuns();
 }

@@ -21,6 +21,6 @@ import java.io.File;
 /**
  * The results from a test run.
  */
-public interface TestResult extends TaskOutput {
+public interface TestRun extends TaskOutput {
     File getXmlReportDir();
 }

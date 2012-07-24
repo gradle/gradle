@@ -23,7 +23,7 @@ import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
 import org.gradle.tooling.model.internal.migration.Archive;
 import org.gradle.tooling.model.internal.migration.ProjectOutput;
-import org.gradle.tooling.model.internal.migration.TestResult;
+import org.gradle.tooling.model.internal.migration.TestRun;
 
 import java.io.File;
 import java.io.Serializable;
@@ -36,19 +36,19 @@ public class DefaultProjectOutput implements InternalProjectOutput, ProjectOutpu
     private final File projectDirectory;
     private final String gradleVersion;
     private final DomainObjectSet<Archive> archives;
-    private final DomainObjectSet<TestResult> testResults;
+    private final DomainObjectSet<TestRun> testRuns;
     private final ProjectOutput parent;
     private final List<ProjectOutput> children = Lists.newArrayList();
 
     public DefaultProjectOutput(String name, String path, String description, File projectDirectory, String gradleVersion,
-                                DomainObjectSet<Archive> archives, DomainObjectSet<TestResult> testResults, ProjectOutput parent) {
+                                DomainObjectSet<Archive> archives, DomainObjectSet<TestRun> testRuns, ProjectOutput parent) {
         this.name = name;
         this.path = path;
         this.description = description;
         this.projectDirectory = projectDirectory;
         this.gradleVersion = gradleVersion;
         this.archives = archives;
-        this.testResults = testResults;
+        this.testRuns = testRuns;
         this.parent = parent;
     }
 
@@ -76,8 +76,8 @@ public class DefaultProjectOutput implements InternalProjectOutput, ProjectOutpu
         return archives;
     }
 
-    public DomainObjectSet<TestResult> getTestResults() {
-        return testResults;
+    public DomainObjectSet<TestRun> getTestRuns() {
+        return testRuns;
     }
 
     public ProjectOutput getParent() {

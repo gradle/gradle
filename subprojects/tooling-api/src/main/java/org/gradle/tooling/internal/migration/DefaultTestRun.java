@@ -16,15 +16,15 @@
 
 package org.gradle.tooling.internal.migration;
 
-import org.gradle.tooling.model.internal.migration.TestResult;
+import org.gradle.tooling.model.internal.migration.TestRun;
 
 import java.io.File;
 import java.io.Serializable;
 
-public class DefaultTestResult implements TestResult, Serializable {
+public class DefaultTestRun implements TestRun, Serializable {
     private final File xmlReportDir;
 
-    public DefaultTestResult(File xmlReportDir) {
+    public DefaultTestRun(File xmlReportDir) {
         this.xmlReportDir = xmlReportDir;
     }
 
