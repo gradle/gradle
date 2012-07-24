@@ -61,15 +61,15 @@ class LoggingBuildComparisonListener implements BuildComparisonListener {
         assert entry1.path == entry2.path
 
         if (entry1.directory != entry2.directory) {
-            LOGGER.lifecycle("Archive entry '$entry1.path' has different types: $entry1.type vs. $entry2.type")
+            LOGGER.lifecycle("Type of archive entry '$entry1.path' changed from '$entry1.type' to '$entry2.type'")
             return
         }
         if (entry1.size != entry2.size) {
-            LOGGER.lifecycle("Archive entry '$entry1.path' has different sizes: $entry1.size vs. $entry2.size")
+            LOGGER.lifecycle("Size of archive entry '$entry1.path' changed from $entry1.size to $entry2.size")
             return
         }
         if (entry1.crc != entry2.crc) {
-            LOGGER.lifecycle("Archive entry '$entry1.path' has different CRCs: $entry1.crc vs. $entry2.crc")
+            LOGGER.lifecycle("CRC of archive entry '$entry1.path' changed from $entry1.crc to $entry2.crc")
         }
     }
 

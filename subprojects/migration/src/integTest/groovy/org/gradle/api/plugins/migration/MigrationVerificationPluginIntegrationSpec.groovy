@@ -34,8 +34,8 @@ class MigrationVerificationPluginIntegrationSpec extends AbstractIntegrationSpec
 Comparing build 'target build' with 'source build'
 Comparing outputs of project ':'
 Comparing archive 'testBuild.jar'
-Archive entry 'org/gradle/ChangedClass.class' has different sizes: 409 vs. 486
-Archive entry 'org/gradle/DifferentCrcClass.class' has different CRCs: \\d+ vs. \\d+
+Size of archive entry 'org/gradle/ChangedClass.class' changed from 409 to 486
+CRC of archive entry 'org/gradle/DifferentCrcClass.class' changed from \\d+ to \\d+
 Archive entry 'org/gradle/SourceBuildOnlyClass.class' only exists in build 'source build'
 Archive entry 'org/gradle/TargetBuildOnlyClass.class' only exists in build 'target build'
 Finished comparing archive 'testBuild.jar'
