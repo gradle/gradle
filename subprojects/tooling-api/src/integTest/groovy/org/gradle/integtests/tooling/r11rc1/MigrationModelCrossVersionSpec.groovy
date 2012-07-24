@@ -21,8 +21,6 @@ import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.tooling.model.internal.migration.ProjectOutput
-import org.gradle.tooling.model.internal.migration.TestResult
-import org.gradle.tooling.model.internal.migration.Archive
 
 import org.junit.Rule
 
@@ -37,7 +35,7 @@ class MigrationModelCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         output instanceof ProjectOutput
-        def archives = output.taskOutputs.findAll { it instanceof Archive } as List
+        def archives = output.archives
         archives.size() == 2
         archives.any { it.file.name.endsWith(".jar") }
         archives.any { it.file.name.endsWith(".zip") }
@@ -49,7 +47,7 @@ class MigrationModelCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         output instanceof ProjectOutput
-        def testResults = output.taskOutputs.findAll { it instanceof TestResult } as List
+        def testResults = output.testResults
         testResults.size() == 2
         testResults.any { it.xmlReportDir == resources.dir.file("build", "test-results") }
         testResults.any { it.xmlReportDir == resources.dir.file("build", "other-results") }
