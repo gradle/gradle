@@ -21,7 +21,7 @@ dependencies {
     compile project(':plugins')
 }
 
-if (!Jvm.current().java6Compatible) {
+if (!JavaVersion.current().java6Compatible) {
     sourceSets.main.groovy.exclude '**/jdk6/**'
 }
 

@@ -20,7 +20,7 @@ configurations {
     testFixtures
 }
 
-if (!Jvm.current().java6Compatible) {
+if (!JavaVersion.current().java6Compatible) {
     sourceSets.main.groovy.exclude '**/jdk6/**'
 }
 
@@ -38,7 +38,9 @@ dependencies {
     compile libraries.slf4j_api
     compile 'org.testng:testng:6.3.1'
 
-    provided files(Jvm.current().toolsJar) // for SunJavaCompiler
+    org.gradle.util.DeprecationLogger.whileDisabled({
+        provided files(Jvm.current().toolsJar) // for SunJavaCompiler
+    } as org.gradle.internal.Factory)
 
     runtime libraries.commons_cli
 
