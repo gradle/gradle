@@ -17,7 +17,6 @@ package org.gradle.api.internal.externalresource.local.ivy;
 
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
-import org.gradle.api.internal.artifacts.mvnsettings.CannotLocateLocalMavenRepositoryException;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.externalresource.local.CompositeLocallyAvailableResourceFinder;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
@@ -71,17 +70,6 @@ public class LocallyAvailableResourceFinderFactory implements Factory<LocallyAva
 
         // local maven
         finders.add(new LocalMavenLocallyAvailableResourceFinder(localMavenRepositoryLocator, "[organisation-path]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])"));
-
-        // Maven local
-        try {
-            File localMavenRepository = localMavenRepositoryLocator.getLocalMavenRepository();
-            if (localMavenRepository.exists()) {
-                addForPattern(finders, localMavenRepository, "[organisation-path]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])");
-            }
-        } catch (CannotLocateLocalMavenRepositoryException ex) {
-            LOGGER.warn(String.format("Cannot use local Maven cache to reduce artifact downloads. Error finding local M2 repository: %s", ex.getMessage()));
-        }
-
 
         return new CompositeLocallyAvailableResourceFinder<ArtifactRevisionId>(finders);
     }
