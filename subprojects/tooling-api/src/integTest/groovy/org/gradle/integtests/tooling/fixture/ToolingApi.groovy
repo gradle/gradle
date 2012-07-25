@@ -36,7 +36,7 @@ class ToolingApi {
 
     private final List<Closure> connectorConfigurers = []
     boolean isEmbedded
-    boolean verboseLogging = true
+    boolean verboseLogging = false
 
     ToolingApi(GradleDistribution dist) {
         this(dist, dist.userHomeDir, { dist.testDir }, GradleDistributionExecuter.systemPropertyExecuter == GradleDistributionExecuter.Executer.embedded)
