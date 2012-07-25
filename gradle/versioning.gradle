@@ -1,6 +1,22 @@
 def timestampFormat = new java.text.SimpleDateFormat('yyyyMMddHHmmssZ')
 timestampFormat.timeZone = TimeZone.getTimeZone("UTC")
 
+if (incomingAllDistribution) {
+    def match = incomingAllDistribution.name =~ /gradle-(.+)-all.zip/
+    if (!match) {
+        throw new GradleException("Can't extract version number from incoming distribution file name")
+    }
+
+    def incomingVersion = match[0][1]
+    match = incomingVersion =~ /(.+)-(\d{14}[+-]\d{4})/
+    if (!match) {
+        throw new GradleException("Can't extract version number from incoming distribution file name version part: $incomingVersion")
+    }
+
+    version = match[0][1]
+    ext.buildTimestamp = match[0][2]
+}
+
 if (project.hasProperty("buildTimestamp")) {
     ext.buildTime = timestampFormat.parse(buildTimestamp)
 } else {

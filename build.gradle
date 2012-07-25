@@ -29,6 +29,24 @@ import org.gradle.build.TestReportAggregator
 defaultTasks 'assemble'
 apply plugin: 'java-base'
 archivesBaseName = 'gradle'
+
+ext.incomingAllDistribution = null
+if (project.hasProperty("useIncomingDistributions")) {
+    useIncomingDistributions = true
+    def incomingDistributionsDir = file("incoming-distributions")
+    if (!incomingDistributionsDir.directory) {
+        throw new GradleException("-PuseIncomingDistributions set, but 'incoming-distributions' is not an existing directory")
+    }
+
+    def contents = incomingDistributionsDir.listFiles()
+    ext.incomingAllDistribution = contents.find { it.name ==~ /gradle-.+-all\.zip/ }
+    if (!incomingAllDistribution) {
+        throw new GradleException("Couldn't find all distribution in incoming distributions (contents: $contents.name)")
+    }
+} else {
+    ext.useIncomingDistributions = false
+}
+
 apply from: "gradle/versioning.gradle"
 
 ext {
@@ -409,26 +427,14 @@ task intTestImage(type: Sync) {
     into file("$buildDir/integ test")
 }
 
-if (project.hasProperty("useIncomingDistributions")) {
-    def incomingDistributionsDir = file("incoming-distributions")
-    if (!incomingDistributionsDir.directory) {
-        throw new GradleException("-PuseIncomingDistributions set, but 'incoming-distributions' is not an existing directory")
-    }
-
-    def contents = incomingDistributionsDir.listFiles()
-    def allDistribution = contents.find { it.name ==~ /gradle-.+-all\.zip/ }
-    if (!allDistribution) {
-        throw new GradleException("Couldn't find all distribution in incoming distributions (contents: $contents.name)")
-    }
-
-
+if (useIncomingDistributions) {
     task unpackIncomingAllDistribution(type: Sync) {
-        from zipTree(allDistribution)
+        from zipTree(incomingAllDistribution)
         into "$buildDir/tmp/unpacked-incoming-all-distribution"
     }
 
     // Compensate for the top level dir in the zip
-    def unpackedPath = "$unpackIncomingAllDistribution.destinationDir/${allDistribution.name - "-all.zip"}"
+    def unpackedPath = "$unpackIncomingAllDistribution.destinationDir/${incomingAllDistribution.name - "-all.zip"}"
 
     intTestImage {
         dependsOn unpackIncomingAllDistribution
