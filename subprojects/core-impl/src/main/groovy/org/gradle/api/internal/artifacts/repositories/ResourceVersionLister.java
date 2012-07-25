@@ -19,13 +19,13 @@ package org.gradle.api.internal.artifacts.repositories;
 import org.apache.ivy.core.IvyPatternHelper;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.gradle.api.resources.MissingResourceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -39,18 +39,12 @@ public class ResourceVersionLister implements VersionLister {
         this.repository = repository;
     }
 
-    public VersionList getVersionList(ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact) {
+    public VersionList getVersionList(ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact) throws IOException {
         ModuleRevisionId idWithoutRevision = ModuleRevisionId.newInstance(moduleRevisionId, IvyPatternHelper.getTokenString(IvyPatternHelper.REVISION_KEY));
         String partiallyResolvedPattern = IvyPatternHelper.substitute(pattern, idWithoutRevision, artifact);
         LOGGER.debug("Listing all in {}", partiallyResolvedPattern);
-        try {
-            List<String> versionStrings = listRevisionToken(partiallyResolvedPattern);
-            return new DefaultVersionList(versionStrings);
-        } catch (IOException e) {
-            LOGGER.warn("problem while listing resources in {} with {}", partiallyResolvedPattern, repository);
-            LOGGER.debug("Error when listing resources", e);
-            return null;
-        }
+        List<String> versionStrings = listRevisionToken(partiallyResolvedPattern);
+        return new DefaultVersionList(versionStrings);
     }
 
     // lists all the values a token can take in a pattern, as listed by a given url lister
@@ -68,35 +62,44 @@ public class ResourceVersionLister implements VersionLister {
             int slashIndex = pattern.substring(0, index).lastIndexOf(fileSep);
             String root = slashIndex == -1 ? "" : pattern.substring(0, slashIndex);
             LOGGER.debug("using {} to list all in {} ", repository, root);
-            List all = repository.list(root);
-            if (all != null) {
-                LOGGER.debug("found {} urls", all.size());
-                List ret = new ArrayList(all.size());
-                int endNameIndex = pattern.indexOf(fileSep, slashIndex + 1);
-                String namePattern;
-                if (endNameIndex != -1) {
-                    namePattern = pattern.substring(slashIndex + 1, endNameIndex);
-                } else {
-                    namePattern = pattern.substring(slashIndex + 1);
-                }
-                namePattern = namePattern.replaceAll("\\.", "\\\\.");
-                String acceptNamePattern = ".*?"
-                        + IvyPatternHelper.substituteToken(namePattern, IvyPatternHelper.REVISION_KEY, "([^" + fileSep
-                        + "]+)") + "($|" + fileSep + ".*)";
-                Pattern p = Pattern.compile(acceptNamePattern);
-                for (Iterator iter = all.iterator(); iter.hasNext();) {
-                    String path = (String) iter.next();
-                    Matcher m = p.matcher(path);
-                    if (m.matches()) {
-                        String value = m.group(1);
-                        ret.add(value);
-                    }
-                }
-                LOGGER.debug("{} matched {}" + pattern, ret.size(), pattern);
-                return ret;
+            List<String> all = repository.list(root);
+            if (all == null) {
+                throw new MissingResourceException(String.format("Can not load %s for listing resources", root));
             }
+            LOGGER.debug("found {} urls", all.size());
+            Pattern regexPattern = createRegexPattern(pattern, fileSep, slashIndex);
+            List ret = getMatchedValues(all, regexPattern);
+            LOGGER.debug("{} matched {}" + pattern, ret.size(), pattern);
+            return ret;
         }
         return Collections.emptyList();
+    }
+
+    private List<String> getMatchedValues(List<String> all, Pattern p) {
+        List<String> ret = new ArrayList<String>(all.size());
+        for (String path : all) {
+            Matcher m = p.matcher(path);
+            if (m.matches()) {
+                String value = m.group(1);
+                ret.add(value);
+            }
+        }
+        return ret;
+    }
+
+    private Pattern createRegexPattern(String pattern, String fileSep, int slashIndex) {
+        int endNameIndex = pattern.indexOf(fileSep, slashIndex + 1);
+        String namePattern;
+        if (endNameIndex != -1) {
+            namePattern = pattern.substring(slashIndex + 1, endNameIndex);
+        } else {
+            namePattern = pattern.substring(slashIndex + 1);
+        }
+        namePattern = namePattern.replaceAll("\\.", "\\\\.");
+        String acceptNamePattern = ".*?"
+                + IvyPatternHelper.substituteToken(namePattern, IvyPatternHelper.REVISION_KEY, "([^" + fileSep
+                + "]+)") + "($|" + fileSep + ".*)";
+        return Pattern.compile(acceptNamePattern);
     }
 
     private boolean tokenIsWholeDirectoryName(String pattern, String fileSep, String tokenString, int index) {
@@ -104,29 +107,27 @@ public class ResourceVersionLister implements VersionLister {
                 && (index == 0 || fileSep.equals(pattern.substring(index - 1, index)));
     }
 
-    List<String> listAll(String parent) throws IOException {
+    private List<String> listAll(String parent) throws IOException {
         LOGGER.debug("using {} to list all in {}", repository, parent);
-        List all = repository.list(parent);
-        if (all != null) {
-            LOGGER.debug("found {} resources", all.size());
-            List<String> names = new ArrayList(all.size());
-            for (Iterator iter = all.iterator(); iter.hasNext();) {
-                names.add(getVersionFromPath((String) iter.next()));
-            }
-            return names;
-        } else {
-            LOGGER.debug("no resources found");
+        List<String> all = repository.list(parent);
+        if (all == null) {
+            throw new MissingResourceException(String.format("Unable to load %s for listing versions", parent));
         }
-
-        return Collections.emptyList();
+        LOGGER.debug("found {} resources", all.size());
+        List<String> names = getVersionsFromPathList(all);
+        return names;
     }
 
-    public String getVersionFromPath(String path) {
+    private List<String> getVersionsFromPathList(List<String> all) {
         final String fileSeparator = repository.getFileSeparator();
-        if (path.endsWith(fileSeparator)) {
-            path = path.substring(0, path.length() - 1);
+        List<String> ret = new ArrayList<String>(all.size());
+        for (String path : all) {
+            if (path.endsWith(fileSeparator)) {
+                path = path.substring(0, path.length() - 1);
+            }
+            int slashIndex = path.lastIndexOf(fileSeparator);
+            ret.add(path.substring(slashIndex + 1));
         }
-        int slashIndex = path.lastIndexOf(fileSeparator);
-        return path.substring(slashIndex + 1);
+        return ret;
     }
 }

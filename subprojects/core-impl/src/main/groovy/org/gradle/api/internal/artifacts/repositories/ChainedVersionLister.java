@@ -18,39 +18,37 @@ package org.gradle.api.internal.artifacts.repositories;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.gradle.util.DeprecationLogger;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
-/**
- * Created with IntelliJ IDEA. User: Rene Date: 23.07.12 Time: 15:00 To change this template use File | Settings | File Templates.
- */
 public class ChainedVersionLister implements VersionLister {
 
     private List<VersionLister> versionListers = new ArrayList<VersionLister>();
-    private boolean stopOnSuccess;
 
-    public ChainedVersionLister(boolean stopOnSuccess) {
-        this.stopOnSuccess = stopOnSuccess;
+    public ChainedVersionLister(VersionLister... versionlisters){
+        this.versionListers = Arrays.asList(versionlisters);
     }
 
-    public VersionList getVersionList(ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact) {
-        ComposableVersionList composableVersionList = new ComposableVersionList();
-        for (VersionLister versionLister : versionListers) {
-            VersionList versionList = versionLister.getVersionList(moduleRevisionId, pattern, artifact);
-            if (versionList.isEmpty()) {
-                continue;
-            }
-            if (stopOnSuccess) {
-                return versionList;
-            } else {
-                composableVersionList.addList(versionList);
+    public VersionList getVersionList(ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact) throws ComposedResourceException {
+        final Iterator<VersionLister> versionListerIterator = versionListers.iterator();
+
+        while (versionListerIterator.hasNext()) {
+            VersionLister lister = versionListerIterator.next();
+            try {
+                final VersionList versionList = lister.getVersionList(moduleRevisionId, pattern, artifact);
+                if (!versionListerIterator.hasNext() || !versionList.isEmpty()) {
+                    return versionList;
+                }
+
+            } catch (Exception e) {
+                if (versionListerIterator.hasNext()) {
+                    DeprecationLogger.nagUserWith(String.format("Failed to list versions of %s using %s. Proceeding with other ResourceLister.", moduleRevisionId, lister.getClass()));
+                } else {
+                    throw new ComposedResourceException(String.format("Failed to list versions for %s", moduleRevisionId, lister.getClass()), e);
+                }
             }
         }
-        return composableVersionList;
-    }
-
-    public void appendVersionLister(VersionLister versionLister) {
-        this.versionListers.add(versionLister);
+        return new DefaultVersionList(Collections.<String>emptyList());
     }
 }

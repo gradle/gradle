@@ -32,6 +32,7 @@ import org.apache.ivy.util.XMLHelper;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
+import org.gradle.util.DeprecationLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
@@ -40,28 +41,25 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 public class MavenResolver extends ExternalResourceResolver implements PatternBasedResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenResolver.class);
-
-    private static final String M2_PER_MODULE_PATTERN = "[revision]/[artifact]-[revision](-[classifier]).[ext]";
-    private static final String M2_PATTERN = "[organisation]/[module]/" + M2_PER_MODULE_PATTERN;
-
     private final RepositoryTransport transport;
     private final String root;
     private final List<String> artifactRoots = new ArrayList<String>();
-    private String pattern = M2_PATTERN;
+    private String pattern = MavenPattern.M2_PATTERN;
     private boolean usepoms = true;
     private boolean useMavenMetadata = true;
 
     public MavenResolver(String name, URI rootUri, RepositoryTransport transport,
                          LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder,
                          CachedExternalResourceIndex<String> cachedExternalResourceIndex) {
-        super(name, transport.getRepository(), locallyAvailableResourceFinder, cachedExternalResourceIndex);
+        super(name,
+              transport.getRepository(),
+              new ChainedVersionLister(new MavenVersionLister(transport.getRepository(), transport.convertToPath(rootUri)), new ResourceVersionLister(transport.getRepository())),
+              locallyAvailableResourceFinder,
+              cachedExternalResourceIndex);
         transport.configureCacheManager(this);
 
         this.transport = transport;
@@ -133,7 +131,6 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
         if (rev != null) {
             // here it would be nice to be able to store the resolved snapshot version, to avoid
             // having to follow the same process to download artifacts
-
             LOGGER.debug("[{}] {}", rev, moduleRevisionId);
 
             // replace the revision token in file name with the resolved revision
@@ -185,26 +182,11 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
         return null;
     }
 
-    @Override
-    protected VersionList listVersions(ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact) {
-        final ChainedVersionLister chainedVersionLister = new ChainedVersionLister(true); //we stop when we get versions from maven-metadata
-        String metadataLocation = IvyPatternHelper.substituteTokens(root + "[organisation]/[module]/maven-metadata.xml", moduleRevisionId.getModuleId().getAttributes());
-        if (shouldUseMavenMetadata(pattern)) {
-            final MavenMetadata mavenMetadata = parseMavenMetadata(metadataLocation);
-            chainedVersionLister.appendVersionLister(new MavenVersionLister(mavenMetadata));
-        }
-        chainedVersionLister.appendVersionLister(new ResourceVersionLister(getRepository()));
-        final VersionList versionList = chainedVersionLister.getVersionList(moduleRevisionId, pattern, artifact);
-        return versionList;
-    }
-
     private MavenMetadata parseMavenMetadata(String metadataLocation) {
         final MavenMetadata mavenMetadata = new MavenMetadata();
-
         if (shouldUseMavenMetadata(pattern)) {
             parseMavenMetadataInto(metadataLocation, mavenMetadata);
         }
-
         return mavenMetadata;
     }
 
@@ -273,12 +255,20 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
         return useMavenMetadata;
     }
 
+    @Deprecated
     public void setUseMavenMetadata(boolean useMavenMetadata) {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("MavenResolver.setUseMavenMetadata(boolean)");
         this.useMavenMetadata = useMavenMetadata;
+        if(useMavenMetadata){
+            this.versionLister = new ChainedVersionLister(new MavenVersionLister(getRepository(), root),
+                                                          new ResourceVersionLister(getRepository()));
+        }else{
+            this.versionLister = new ResourceVersionLister(getRepository());
+        }
     }
 
     private boolean shouldUseMavenMetadata(String pattern) {
-        return isUseMavenMetadata() && pattern.endsWith(M2_PATTERN);
+        return isUseMavenMetadata() && pattern.endsWith(MavenPattern.M2_PATTERN);
     }
 
     public String getPattern() {
@@ -306,5 +296,11 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
         if (!compatible) {
             throw new IllegalArgumentException("Cannot set m2compatible = false on mavenRepo.");
         }
+    }
+
+    private static class MavenMetadata {
+        public String timestamp;
+        public String buildNumber;
+        public List<String> versions = new ArrayList<String>();
     }
 }

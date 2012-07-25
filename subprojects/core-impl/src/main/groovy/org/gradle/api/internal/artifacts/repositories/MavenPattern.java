@@ -16,11 +16,7 @@
 
 package org.gradle.api.internal.artifacts.repositories;
 
-import java.util.ArrayList;
-import java.util.List;
-
-class MavenMetadata {
-    public String timestamp;
-    public String buildNumber;
-    public List<String> versions = new ArrayList<String>();
+public class MavenPattern {
+    public static final String M2_PER_MODULE_PATTERN = "[revision]/[artifact]-[revision](-[classifier]).[ext]";
+    public static final String M2_PATTERN = "[organisation]/[module]/" + M2_PER_MODULE_PATTERN;
 }

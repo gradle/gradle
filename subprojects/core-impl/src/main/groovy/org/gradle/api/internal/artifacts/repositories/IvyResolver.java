@@ -30,7 +30,7 @@ public class IvyResolver extends ExternalResourceResolver implements PatternBase
                        LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder,
                        CachedExternalResourceIndex<String> cachedExternalResourceIndex
     ) {
-        super(name, transport.getRepository(), locallyAvailableResourceFinder, cachedExternalResourceIndex);
+        super(name, transport.getRepository(), new ResourceVersionLister(transport.getRepository()), locallyAvailableResourceFinder, cachedExternalResourceIndex);
         this.transport = transport;
         this.transport.configureCacheManager(this);
     }

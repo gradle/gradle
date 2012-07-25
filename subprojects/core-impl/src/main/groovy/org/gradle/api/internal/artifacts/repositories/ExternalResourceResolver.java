@@ -47,6 +47,7 @@ import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFi
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
+import org.gradle.api.resources.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,13 +66,16 @@ public class ExternalResourceResolver extends BasicResolver {
     private final ExternalResourceRepository repository;
     private final LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder;
     private final CachedExternalResourceIndex<String> cachedExternalResourceIndex;
+    protected VersionLister versionLister;
 
     public ExternalResourceResolver(String name,
                                     ExternalResourceRepository repository,
+                                    VersionLister versionLister,
                                     LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder,
                                     CachedExternalResourceIndex<String> cachedExternalResourceIndex
     ) {
         setName(name);
+        this.versionLister = versionLister;
         this.repository = repository;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
         this.cachedExternalResourceIndex = cachedExternalResourceIndex;
@@ -259,8 +263,8 @@ public class ExternalResourceResolver extends BasicResolver {
 
     private ResolvedResource findDynamicResourceUsingPattern(ResourceMDParser resourceParser, ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact, Date date, boolean forDownload) throws IOException {
         logAttempt(IvyPatternHelper.substitute(pattern, ModuleRevisionId.newInstance(moduleRevisionId, IvyPatternHelper.getTokenString(IvyPatternHelper.REVISION_KEY)), artifact));
-        VersionList versions = listVersions(moduleRevisionId, pattern, artifact);
-        if (versions == null) {
+            VersionList versions = listVersions(moduleRevisionId, pattern, artifact);
+        if (versions.isEmpty()) {
             LOGGER.debug("Unable to list versions for {}: pattern={}", moduleRevisionId, pattern);
             return null;
         } else {
@@ -301,10 +305,13 @@ public class ExternalResourceResolver extends BasicResolver {
         }
     }
 
-    protected VersionList listVersions(ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact) {
-        VersionLister versionLister = new ResourceVersionLister(repository);
-        VersionList versionList = versionLister.getVersionList(moduleRevisionId, pattern, artifact);
-        return versionList;
+    protected VersionList listVersions(ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact) throws IOException {
+        try{
+            return versionLister.getVersionList(moduleRevisionId, pattern, artifact);
+        }catch(org.gradle.api.resources.MissingResourceException e){
+            LOGGER.debug(String.format("Unable to load version list for %s from %s", moduleRevisionId.getModuleId(), getRepository()));
+            return new DefaultVersionList(Collections.<String>emptyList());
+        }
     }
 
     protected long get(Resource resource, File destination) throws IOException {

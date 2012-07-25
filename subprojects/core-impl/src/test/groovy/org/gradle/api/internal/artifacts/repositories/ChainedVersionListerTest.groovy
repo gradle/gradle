@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.repositories
 import spock.lang.Specification
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.apache.ivy.core.module.descriptor.Artifact
+import org.gradle.api.resources.MissingResourceException
 
 class ChainedVersionListerTest extends Specification {
 
@@ -28,39 +29,31 @@ class ChainedVersionListerTest extends Specification {
     VersionList versionList1 = Mock(VersionList)
     VersionList versionList2 = Mock(VersionList)
 
-    def setup(){
+    def "getVersionList stops listing after first success"() {
+        given:
         lister1.getVersionList(_, _, _) >> versionList1
         lister2.getVersionList(_, _, _) >> versionList2
-
         versionList1.versionStrings >> ["1.0", "1.2"]
         versionList2.versionStrings >> ["2.2", "2.3"]
-    }
 
-    def "assembles versionlist from multiple versionlister when stopOnSuccess = false"(){
-        given:
-        def chainedVersionLister = new ChainedVersionLister(false)
-        chainedVersionLister.appendVersionLister(lister1)
-        chainedVersionLister.appendVersionLister(lister2)
+        def chainedVersionLister = new ChainedVersionLister(lister1, lister2)
         when:
         VersionList version = chainedVersionLister.getVersionList(Mock(ModuleRevisionId), "testPattern", Mock(Artifact));
         then:
-        1 * lister1.getVersionList(_, _, _)>> versionList1
-        1 * lister2.getVersionList(_, _, _)>> versionList2
-        _ * versionList1.isEmpty() >> false;
-        _ * versionList2.isEmpty() >> false;
-        version.versionStrings as Set == ["1.0", "1.2", "2.2", "2.3"] as Set
-    }
-
-    def "stops listing after first success when stopOnSuccess = true"(){
-        given:
-        def chainedVersionLister = new ChainedVersionLister(true)
-        chainedVersionLister.appendVersionLister(lister1)
-        chainedVersionLister.appendVersionLister(lister2)
-        when:
-        VersionList version = chainedVersionLister.getVersionList(Mock(ModuleRevisionId), "testPattern", Mock(Artifact));
-        then:
-        1 * lister1.getVersionList(_, _, _)>> versionList1
-        0 * lister2.getVersionList(_, _, _)>> versionList2
+        1 * lister1.getVersionList(_, _, _) >> versionList1
+        0 * lister2.getVersionList(_, _, _) >> versionList2
         version.versionStrings as Set == ["1.0", "1.2"] as Set
+    }
+
+    def "getVersionList throws exception when last VersionLister fails"() {
+        setup:
+        1 * lister1.getVersionList(_, _, _) >> new DefaultVersionList(Collections.emptyList())
+        1 * lister2.getVersionList(_, _, _) >> {throw new MissingResourceException()}
+        def chainedVersionLister = new ChainedVersionLister(lister1, lister2)
+        when:
+        chainedVersionLister.getVersionList(Mock(ModuleRevisionId), "testPattern", Mock(Artifact));
+        then:
+        def e = thrown(ComposedResourceException)
+        e.cause instanceof MissingResourceException
     }
 }

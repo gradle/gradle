@@ -16,13 +16,10 @@
 
 package org.gradle.api.internal.artifacts.repositories;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.internal.resource.ResourceException;
-import org.gradle.api.resources.MissingResourceException;
 
-import java.io.IOException;
-
-public interface VersionLister {
-    VersionList getVersionList(ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact) throws IOException, MissingResourceException, ResourceException;
+public class ComposedResourceException extends ResourceException {
+    public ComposedResourceException(String format, Exception e) {
+        super(format, e);
+    }
 }

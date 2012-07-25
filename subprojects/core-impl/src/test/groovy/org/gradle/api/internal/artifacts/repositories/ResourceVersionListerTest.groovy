@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.repositories
 import org.apache.ivy.core.module.descriptor.Artifact
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import spock.lang.Specification
-import static org.junit.Assert.*
 
 class ResourceVersionListerTest extends Specification {
 
@@ -32,14 +31,29 @@ class ResourceVersionListerTest extends Specification {
         1 * repo.getFileSeparator() >> "/"
     }
 
-    def "getVersionList returns NULL when IOException occures"() {
+    def "getVersionList returns propagates Resource related IOException"() {
         setup:
         def testPattern = "/a/pattern/with/[revision]/"
         1 * repo.list(_) >> { throw new IOException("Test IO Exception") }
         1 * repo.standardize(testPattern) >> testPattern
         def lister = new ResourceVersionLister(repo)
-        expect:
-        assertNull lister.getVersionList(moduleRevisionId, testPattern, artifact)
+        when:
+        lister.getVersionList( moduleRevisionId, testPattern, artifact)
+        then:
+        thrown(IOException)
+    }
+
+    def "getVersionList throws MissingResourceException for missing resource"() {
+        setup:
+        1 * repo.list(_) >> null
+        1 * repo.standardize(testPattern) >> testPattern
+        def lister = new ResourceVersionLister(repo)
+        when:
+        lister.getVersionList( moduleRevisionId, testPattern, artifact)
+        then:
+        thrown(org.gradle.api.resources.MissingResourceException)
+        where:
+        testPattern << ["/some/[revision]", "/some/version-[revision]"]
     }
 
     def "pattern without revision returns empty list"() {
