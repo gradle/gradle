@@ -22,26 +22,6 @@ dependencies {
     integTestCompile project(":internalIntegTesting")
 }
 
-plugins.withType(org.gradle.plugins.ide.idea.IdeaPlugin) { // lazy as plugin not applied yet
-    idea {
-        module {
-            testSourceDirs += sourceSets.integTest.groovy.srcDirs
-            testSourceDirs += sourceSets.integTest.resources.srcDirs
-            scopes.TEST.plus.add(configurations.integTestCompile)
-            scopes.TEST.plus.add(configurations.integTestRuntime)
-        }
-    }
-}
-
-plugins.withType(org.gradle.plugins.ide.eclipse.EclipsePlugin) { // lazy as plugin not applied yet
-    eclipse {
-        classpath {
-            plusConfigurations.add(configurations.integTestCompile)
-            plusConfigurations.add(configurations.integTestRuntime)
-        }
-    }
-}
-
 ext.integTestTasks = tasks.withType(Test).matching { it.name.toLowerCase().endsWith('integtest') }
 
 integTestTasks.all {
@@ -73,13 +53,13 @@ task integTest(type: Test)
 
 tasks.findByName("check")?.dependsOn(integTest)
 
-['embedded', 'forking', 'daemon', 'embeddedDaemon'].each {
-    def mode = it
+['embedded', 'forking', 'daemon', 'embeddedDaemon'].each { mode ->
     def taskName = "${it}IntegTest"
     tasks.addRule(taskName) { name ->
-        if (name != taskName) { return }
-        tasks.add(taskName, Test).configure {
-            systemProperties['org.gradle.integtest.executer'] = mode
+        if (name == taskName) { 
+            tasks.add(taskName, Test).configure {
+                systemProperties['org.gradle.integtest.executer'] = mode
+            }
         }
     }
 }
@@ -92,4 +72,24 @@ task waitForDaemonsToDie << {
     def mins = 5
     println "I'm waiting for $mins mins so that existing deamons can die with honor. It's a workaround until we fix it properly."
     Thread.sleep(mins * 60 * 1000);
+}
+
+plugins.withType(org.gradle.plugins.ide.idea.IdeaPlugin) { // lazy as plugin not applied yet
+    idea {
+        module {
+            testSourceDirs += sourceSets.integTest.groovy.srcDirs
+            testSourceDirs += sourceSets.integTest.resources.srcDirs
+            scopes.TEST.plus.add(configurations.integTestCompile)
+            scopes.TEST.plus.add(configurations.integTestRuntime)
+        }
+    }
+}
+
+plugins.withType(org.gradle.plugins.ide.eclipse.EclipsePlugin) { // lazy as plugin not applied yet
+    eclipse {
+        classpath {
+            plusConfigurations.add(configurations.integTestCompile)
+            plusConfigurations.add(configurations.integTestRuntime)
+        }
+    }
 }
