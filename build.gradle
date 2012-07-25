@@ -144,13 +144,13 @@ buildTypes {
     quickTest "test", "integTest", noDistTests: true
 
     // Used for builds to test the code on certain platforms
-    platformTest "test", "forkingIntegTest", noDistTests: true
+    platformTest "test", "forkingIntegTest", noDistTests: true, useIncomingDistributions: true
 
     // Tests using the daemon mode
-    daemonTest "daemonIntegTest", noDistTests: true
+    daemonTest "daemonIntegTest", noDistTests: true, useIncomingDistributions: true
 
     // Used for cross version tests on CI
-    crossVersionTest "forkingIntegTest", crossVersionTestsOnly: "", testAllVersions: "", noDistTests: true
+    crossVersionTest "forkingIntegTest", crossVersionTestsOnly: "", testAllVersions: "", noDistTests: true, useIncomingDistributions: true
 
     // Used to build production distros and smoke test them
     packageBuild "verifyIsProductionBuildEnvironment", "clean", "buildDists", "internalDistTesting:integTest"
@@ -406,13 +406,43 @@ artifacts {
 }
 
 task intTestImage(type: Sync) {
-    with binDistImage
     into file("$buildDir/integ test")
-    into "samples", {
-        from project(":docs").samples
+}
+
+if (project.hasProperty("useIncomingDistributions")) {
+    def incomingDistributionsDir = file("incoming-distributions")
+    if (!incomingDistributionsDir.directory) {
+        throw new GradleException("-PuseIncomingDistributions set, but 'incoming-distributions' is not an existing directory")
     }
-    doLast { task ->
-        ant.chmod(dir: "$destinationDir/bin", perm: "ugo+rx", includes: "**/*")
+
+    def contents = incomingDistributionsDir.listFiles()
+    def allDistribution = contents.find { it.name ==~ /gradle-.+-all\.zip/ }
+    if (!allDistribution) {
+        throw new GradleException("Couldn't find all distribution in incoming distributions (contents: $contents.name)")
+    }
+
+
+    task unpackIncomingAllDistribution(type: Sync) {
+        from zipTree(allDistribution)
+        into "$buildDir/tmp/unpacked-incoming-all-distribution"
+    }
+
+    // Compensate for the top level dir in the zip
+    def unpackedPath = "$unpackIncomingAllDistribution.destinationDir/${allDistribution.name - "-all.zip"}"
+
+    intTestImage {
+        dependsOn unpackIncomingAllDistribution
+        from unpackedPath
+    }
+} else {
+    intTestImage {
+        with binDistImage
+        into "samples", {
+            from project(":docs").samples
+        }
+        doLast { task ->
+            ant.chmod(dir: "$destinationDir/bin", perm: "ugo+rx", includes: "**/*")
+        }
     }
 }
 

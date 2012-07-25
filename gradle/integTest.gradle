@@ -19,7 +19,7 @@ dependencies {
 ext.integTestTasks = tasks.withType(Test).matching { it.name.toLowerCase().endsWith('integtest') }
 
 integTestTasks.all { Test task ->
-    dependsOn ':intTestImage', { project(":docs").samples }
+    dependsOn ':intTestImage'
     testClassesDir = sourceSets.integTest.output.classesDir
     classpath = sourceSets.integTest.runtimeClasspath
     testSrcDirs = []

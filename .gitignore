@@ -32,3 +32,4 @@
 /performanceTest/lib
 .textmate
 *.hprof
+/incoming-distributions
