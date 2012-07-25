@@ -116,7 +116,7 @@ Please see the javadoc for [GradleModuleVersion](javadoc/org/gradle/tooling/mode
 
 ### Global Maven settings.xml
 
-Gradle now honours the maven settings located in <code><em>$M2\_HOME</em>/conf/settings.xml</code> to locate the local maven repository. If a local repository is defined in `~/.m2/settings.xml`, this location takes precedence over a repository definition in <code><em>$M2\_HOME</em>/conf/settings.xml</code>.
+When migrating from Maven you can reuse the artifacts from your local Maven repository in your Gradle build. Gradle now honours the Maven settings located in <code><em>$M2_HOME</em>/conf/settings.xml</code> to locate the local Maven repository. If a local repository is defined in `~/.m2/settings.xml`, this location takes precedence over a repository definition in <code><em>$M2_HOME</em>/conf/settings.xml</code>. This is used when you have declared the `mavenLocal()` repository definition in your build script and in general when checking for locally available resources before downloading them again.
 
 ### Publishing SHA1 checksums to Ivy repositories
 
