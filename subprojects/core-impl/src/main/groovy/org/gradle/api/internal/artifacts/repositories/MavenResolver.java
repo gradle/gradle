@@ -278,7 +278,7 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
     }
 
     private boolean shouldUseMavenMetadata(String pattern) {
-        return isUseMavenMetadata() && isM2compatible() && pattern.endsWith(M2_PATTERN);
+        return isUseMavenMetadata() && pattern.endsWith(M2_PATTERN);
     }
 
     public String getPattern() {
