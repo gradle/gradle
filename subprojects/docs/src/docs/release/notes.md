@@ -44,7 +44,8 @@ Which would produce output like:
         at o.s.i.t.i.MessageSourceTests.testSearchReceivingMessageSourceInit(MessageSourceTests.java:96)
 
 4 tests completed, 1 failed, 1 skipped
-</tt></pre>
+</tt>
+</pre>
 
 #### Stack Trace Filters
 
@@ -68,7 +69,8 @@ While would produce output like:
             at o.s.i.t.i.AbstractTwitterMessageSource.onInit(AbstractTwitterMessageSource.java:92)
             at o.s.i.t.i.SearchReceivingMessageSource.&lt;init&gt;(SearchReceivingMessageSource.java:40)
             ... 1 more
-</tt></pre>
+</tt>
+</pre>
 
 #### Show Other Test Events
 
