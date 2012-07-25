@@ -19,12 +19,15 @@ import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Issue
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.HttpServer
 
 class HttpRedirectResolveIntegrationTest extends AbstractDependencyResolutionTest {
     @Rule SetSystemProperties systemProperties = new SetSystemProperties()
+    @Rule public final HttpServer server2 = new HttpServer()
 
     public void "resolves module artifacts via HTTP redirect"() {
         server.start()
+        server2.start()
 
         given:
         def module = ivyRepo().module('group', 'projectA').publish()
@@ -42,10 +45,10 @@ task listJars << {
 """
 
         when:
-        server.expectGetRedirected('/repo/group/projectA/1.0/ivy-1.0.xml', '/redirected/group/projectA/1.0/ivy-1.0.xml')
-        server.expectGet('/redirected/group/projectA/1.0/ivy-1.0.xml', module.ivyFile)
-        server.expectGetRedirected('/repo/group/projectA/1.0/projectA-1.0.jar', '/redirected/group/projectA/1.0/projectA-1.0.jar')
-        server.expectGet('/redirected/group/projectA/1.0/projectA-1.0.jar', module.jarFile)
+        server.expectGetRedirected('/repo/group/projectA/1.0/ivy-1.0.xml', "http://localhost:${server2.port}/redirected/group/projectA/1.0/ivy-1.0.xml")
+        server2.expectGet('/redirected/group/projectA/1.0/ivy-1.0.xml', module.ivyFile)
+        server.expectGetRedirected('/repo/group/projectA/1.0/projectA-1.0.jar', "http://localhost:${server2.port}/redirected/group/projectA/1.0/projectA-1.0.jar")
+        server2.expectGet('/redirected/group/projectA/1.0/projectA-1.0.jar', module.jarFile)
 
         then:
         succeeds('listJars')
@@ -54,6 +57,7 @@ task listJars << {
     @Issue('GRADLE-2196')
     public void "resolves artifact-only module via HTTP redirect"() {
         server.start()
+        server2.start()
 
         given:
         def module = ivyRepo().module('group', 'projectA').publish()
@@ -72,10 +76,10 @@ task listJars << {
 
         when:
         server.expectGetMissing('/repo/group/projectA/1.0/ivy-1.0.xml')
-        server.expectHeadRedirected('/repo/group/projectA/1.0/projectA-1.0.zip', '/redirected/group/projectA/1.0/projectA-1.0.zip')
-        server.expectHead('/redirected/group/projectA/1.0/projectA-1.0.zip', module.jarFile)
-        server.expectGetRedirected('/repo/group/projectA/1.0/projectA-1.0.zip', '/redirected/group/projectA/1.0/projectA-1.0.zip')
-        server.expectGet('/redirected/group/projectA/1.0/projectA-1.0.zip', module.jarFile)
+        server.expectHeadRedirected('/repo/group/projectA/1.0/projectA-1.0.zip', "http://localhost:${server2.port}/redirected/group/projectA/1.0/projectA-1.0.zip")
+        server2.expectHead('/redirected/group/projectA/1.0/projectA-1.0.zip', module.jarFile)
+        server.expectGetRedirected('/repo/group/projectA/1.0/projectA-1.0.zip', "http://localhost:${server2.port}/redirected/group/projectA/1.0/projectA-1.0.zip")
+        server2.expectGet('/redirected/group/projectA/1.0/projectA-1.0.zip', module.jarFile)
 
         then:
         succeeds('listJars')
