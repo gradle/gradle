@@ -369,12 +369,10 @@ artifacts {
 }
 
 task intTestImage(type: Sync) {
-    dependsOn "launcher:startScripts"
     with binDistImage
-    ext.integTestGradleHome = file("$buildDir/integ test")
-    into integTestGradleHome
+    into file("$buildDir/integ test")
     doLast { task ->
-        ant.chmod(dir: "$integTestGradleHome/bin", perm: "ugo+rx", includes: "**/*")
+        ant.chmod(dir: "$destinationDir/bin", perm: "ugo+rx", includes: "**/*")
     }
 }
 
