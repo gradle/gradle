@@ -149,11 +149,10 @@ class ClassDoc implements DslElementDoc {
     }
 
     Element getDescription() {
-        def paras = classSection.para
-        if (paras.size() < 1) {
-            throw new RuntimeException("Docbook content for $className does not contain a description paragraph.")
+        if (comment.isEmpty() || comment[0].tagName != 'para') {
+            throw new RuntimeException("Class $className does not have a description paragraph.")
         }
-        return paras[0]
+        return comment[0]
     }
 
     PropertyDoc findProperty(String name) {

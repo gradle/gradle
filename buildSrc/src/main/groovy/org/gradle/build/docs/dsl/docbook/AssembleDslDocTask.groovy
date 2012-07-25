@@ -91,12 +91,10 @@ class AssembleDslDocTask extends DefaultTask {
                 DslDocModel model = new DslDocModel(classDocbookDir, mainDocbookTemplate, classRepository, extensions)
                 def root = mainDocbookTemplate.documentElement
                 root.section.table.each { Element table ->
-                    mergeContent(table, model, linkRepository)
+                    mergeContent(table, model)
                 }
-                extensions.each { name, plugin ->
-                    plugin.extensionClasses.each { extension ->
-                        generateDocForType(root.ownerDocument, model, linkRepository, model.getClassDoc(extension.extensionClass))
-                    }
+                model.classes.each {
+                    generateDocForType(root.ownerDocument, model, linkRepository, it)
                 }
             }
         }
@@ -131,13 +129,13 @@ class AssembleDslDocTask extends DefaultTask {
         return extensions
     }
 
-    def mergeContent(Element typeTable, DslDocModel model, ClassMetaDataRepository<ClassLinkMetaData> linkRepository) {
+    def mergeContent(Element typeTable, DslDocModel model) {
         def title = typeTable.title[0].text()
 
         //TODO below checks makes it harder to add new sections
         //because the new section will work correctly only when the section title ends with 'types' :)
         if (title.matches('(?i).* types')) {
-            mergeTypes(typeTable, model, linkRepository)
+            mergeTypes(typeTable, model)
         } else if (title.matches('(?i).* blocks')) {
             mergeBlocks(typeTable, model)
         } else {
@@ -173,7 +171,7 @@ class AssembleDslDocTask extends DefaultTask {
         }
     }
 
-    def mergeTypes(Element typeTable, DslDocModel model, ClassMetaDataRepository<ClassLinkMetaData> linkRepository) {
+    def mergeTypes(Element typeTable, DslDocModel model) {
         typeTable.addFirst {
             thead {
                 tr {
@@ -184,14 +182,13 @@ class AssembleDslDocTask extends DefaultTask {
         }
 
         typeTable.tr.each { Element tr ->
-            mergeType(tr, model, linkRepository)
+            mergeType(tr, model)
         }
     }
 
-    def mergeType(Element typeTr, DslDocModel model, ClassMetaDataRepository<ClassLinkMetaData> linkRepository) {
+    def mergeType(Element typeTr, DslDocModel model) {
         String className = typeTr.td[0].text().trim()
         ClassDoc classDoc = model.getClassDoc(className)
-        generateDocForType(typeTr.ownerDocument, model, linkRepository, classDoc)
         typeTr.children = {
             td {
                 link(linkend: classDoc.id) { literal(classDoc.simpleName) }
@@ -217,7 +214,7 @@ class AssembleDslDocTask extends DefaultTask {
             }
             document.documentElement << classDoc.classSection
         } catch (Exception e) {
-            throw new DocGenerationException("Failed to generate documentation for class '$className'.", e)
+            throw new DocGenerationException("Failed to generate documentation for class '$classDoc.name'.", e)
         }
     }
 }
