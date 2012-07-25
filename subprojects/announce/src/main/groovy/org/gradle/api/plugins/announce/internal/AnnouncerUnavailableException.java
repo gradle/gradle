@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.announce.internal
+package org.gradle.api.plugins.announce.internal;
 
 /**
  * Thrown when the target announcer is not available.
  */
-class AnnouncerUnavailableException extends RuntimeException {
-    AnnouncerUnavailableException(String message) {
-        super(message)
+public class AnnouncerUnavailableException extends RuntimeException {
+    public AnnouncerUnavailableException(String message) {
+        super(message);
     }
 
-    AnnouncerUnavailableException(String message, Throwable cause) {
-        super(message, cause)
+    public AnnouncerUnavailableException(String message, Throwable cause) {
+        super(message, cause);
     }
 }
