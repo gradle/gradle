@@ -468,10 +468,8 @@ task verifyIsProductionBuildEnvironment << {
     assert systemCharset == "UTF-8" : "Platform encoding must be UTF-8. Is currently $systemCharset. Set -Dfile.encoding=UTF-8."
 }
 
-gradle.taskGraph.whenReady {graph ->
-    if (graph.hasTask(ciBuild)) {
-        subprojects { reporting.baseDir "$rootProject.reporting.baseDir/${path.replaceFirst(':', '').replaceAll(':', '.')}" }
-    }
+if (isCiServer) {
+    subprojects { reporting.baseDir "$rootProject.reporting.baseDir/${path.replaceFirst(':', '').replaceAll(':', '.')}" }
 }
 
 def wrapperUpdateTask = { name, label ->
