@@ -114,6 +114,11 @@ module information, i.e. group, name, version of each dependency.
 
 Please see the javadoc for [GradleModuleVersion](javadoc/org/gradle/tooling/model/GradleModuleVersion.html). You can obtain the Gradle module information via [ExternalDependency.getGradleModuleVersion()](javadoc/org/gradle/tooling/model/ExternalDependency.html#getGradleModuleVersion\(\)).
 
+This feature helps the IDE integration like Gradle STS plugin to support
+more flexible developer workspace and hence faster dev cycles.
+Using Eclipse terms: it is a first step into providing the ability to toggle between
+Eclipse 'project' dependency and a regular 'binary' dependency.      
+
 ### Global Maven settings.xml
 
 When migrating from Maven you can reuse the artifacts from your local Maven repository in your Gradle build. Gradle now honours the Maven settings located in <code><em>$M2_HOME</em>/conf/settings.xml</code> to locate the local Maven repository. If a local repository is defined in `~/.m2/settings.xml`, this location takes precedence over a repository definition in <code><em>$M2_HOME</em>/conf/settings.xml</code>. This is used when you have declared the `mavenLocal()` repository definition in your build script and in general when checking for locally available resources before downloading them again.
