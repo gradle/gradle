@@ -134,23 +134,23 @@ extensions.buildTypes = new BuildTypes(project)
 
 buildTypes {
     // The minimum to be run before check-in
-    preCommitBuild "doc:checkstyleApi", "codeQuality", "classes", "test"
-    quickCheck "doc:checkstyleApi", "codeQuality", "classes", "test"
+    preCommitBuild "doc:checkstyleApi", "codeQuality", "classes", "test", noDistTests: true
+    quickCheck "doc:checkstyleApi", "codeQuality", "classes", "test", noDistTests: true
 
     // A full (in-process) test
     developerBuild "check"
 
     // Used by the first phase of the build pipeline
-    quickTest "test", isWindows? "forkingIntegTest" : "integTest"
+    quickTest "test", isWindows? "forkingIntegTest" : "integTest", noDistTests: true
 
     // Used for builds to test the code on certain platforms
-    platformTest "test", "forkingIntegTest"
+    platformTest "test", "forkingIntegTest", noDistTests: true
 
     // Tests using the daemon mode
-    daemonTest "daemonIntegTest"
+    daemonTest "daemonIntegTest", noDistTests: true
 
     // Used for cross version tests on CI
-    crossVersionTest "forkingIntegTest", crossVersionTestsOnly: "", testAllVersions: ""
+    crossVersionTest "forkingIntegTest", crossVersionTestsOnly: "", testAllVersions: "", noDistTests: true
 
     // Used to build production distros and smoke test them
     packageBuild "verifyIsProductionBuildEnvironment", "clean", "buildDists", "internalDistTesting:integTest"

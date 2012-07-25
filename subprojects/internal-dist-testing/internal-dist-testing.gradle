@@ -19,8 +19,11 @@ dependencies {
 }
 
 integTestTasks.all {
-    inputs.files rootProject.buildDists
-    enabled = !buildTypes.activeNames.contains("developerBuild")
+    if (project.hasProperty("noDistTests")) {
+        enabled = false
+    } else {
+        inputs.files rootProject.buildDists
+    }
 }
 
 daemonIntegTest.enabled = false
