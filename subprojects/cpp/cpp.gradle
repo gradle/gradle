@@ -22,4 +22,11 @@ dependencies {
     integTestRuntime project(":maven")
 }
 
+
+integTestTasks.all {
+    if (isWindows && systemProperties['org.gradle.integtest.executer'] == "embedded") {
+        systemProperties['org.gradle.integtest.executer'] =  "forking"
+    }
+}
+
 useTestFixtures()

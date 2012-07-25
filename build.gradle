@@ -141,7 +141,7 @@ buildTypes {
     developerBuild "check"
 
     // Used by the first phase of the build pipeline
-    quickTest "test", isWindows? "forkingIntegTest" : "integTest", noDistTests: true
+    quickTest "test", "integTest", noDistTests: true
 
     // Used for builds to test the code on certain platforms
     platformTest "test", "forkingIntegTest", noDistTests: true
