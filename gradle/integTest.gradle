@@ -19,7 +19,7 @@ dependencies {
 ext.integTestTasks = tasks.withType(Test).matching { it.name.toLowerCase().endsWith('integtest') }
 
 integTestTasks.all {
-    dependsOn ':intTestImage', project(":docs").tasks.matching { it.name == "samples" } // lazy as doc not eval'd yet
+    dependsOn ':intTestImage', { project(":docs").samples }
     testClassesDir = sourceSets.integTest.output.classesDir
     classpath = sourceSets.integTest.runtimeClasspath
     testSrcDirs = []
@@ -46,9 +46,10 @@ integTestTasks.all {
     }
 }
 
-task integTest(type: Test)
-
-tasks.findByName("check")?.dependsOn(integTest)
+task integTest(type: Test) {
+    systemProperties['org.gradle.integtest.executer'] = "embedded"
+}
+check.dependsOn(integTest)
 
 ['embedded', 'forking', 'daemon', 'embeddedDaemon'].each { mode ->
     def taskName = "${mode}IntegTest"
