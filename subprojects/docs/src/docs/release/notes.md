@@ -1,6 +1,8 @@
-## New and noteworthy
+Gradle 1.1 is a consolidation release, focussing mostly on the tightening up of internals and bug fixes. 
 
-Here are the new features introduced in Gradle 1.1.
+We've also been doing the ground work to support the post 1.0 evolution of Gradle.
+
+## New and noteworthy
 
 ### Test Logging
 
