@@ -1,6 +1,4 @@
-Gradle 1.1 is a consolidation release, focussing mostly on the tightening up of internals and bug fixes. 
-
-We've also been doing the ground work to support the post 1.0 evolution of Gradle.
+Gradle 1.1 is a consolidation release focussing on usability improvements, bug fixes, and ground work to support the post 1.0 evolution of Gradle.
 
 ## New and noteworthy
 
