@@ -200,4 +200,4 @@ Deprecated internal method `AbstractTask.getDynamicObjectHelper()` has been remo
 
 ## Fixed Issues
 
-The list of issues fixed between 1.0 and 1.1 can be found [here](http://issues.gradle.org/sr/jira.issueviews:searchrequest-printable/temp/SearchRequest.html?jqlQuery=fixVersion+in+%28%221.1-rc-1%22%29+ORDER+BY+priority&tempMax=1000).
+The list of issues fixed between 1.0 and 1.1 can be found [here](http://issues.gradle.org/sr/jira.issueviews:searchrequest-printable/temp/SearchRequest.html?jqlQuery=fixVersion+in+%28%221.1-rc-1%22%2C+%221.1-rc-2%22%29+ORDER+BY+priority&tempMax=1000).
