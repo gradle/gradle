@@ -20,6 +20,7 @@ dependencies {
 
 integTestTasks.all {
     inputs.files rootProject.buildDists
+    onlyIf { !("developerBuild" in buildTypes.active) }
 }
 
 daemonIntegTest.enabled = false

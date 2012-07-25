@@ -15,6 +15,7 @@
  */
 
 import org.gradle.build.Install
+import org.gradle.build.BuildTypes
 import org.gradle.build.TestReportAggregator
 
 /**
@@ -48,7 +49,9 @@ ext {
         },
         jcip: "net.jcip:jcip-annotations:1.0@jar",
     ]
-
+    
+    isCiServer = System.getenv().containsKey("TEAMCITY_VERSION")
+    isWindows = System.getProperty("os.name").toLowerCase().contains("windows")
 }
 
 // Logging
@@ -127,6 +130,36 @@ libraries.jmock = ['org.jmock:jmock:2.5.1',
         'org.objenesis:objenesis:1.2',
         'cglib:cglib-nodep:2.2']
 
+extensions.buildTypes = new BuildTypes(project)
+
+buildTypes {
+    // The minimum to be run before check-in
+    preCommitBuild "doc:checkstyleApi", "codeQuality", "classes", "test"
+    quickCheck "doc:checkstyleApi", "codeQuality", "classes", "test"
+
+    // A full (in-process) test
+    developerBuild "check"
+
+    // Used by the first phase of the build pipeline
+    quickTest "test", isWindows? "forkingIntegTest" : "integTest"
+
+    // Used for builds to test the code on certain platforms
+    platformTest "test", "forkingIntegTest"
+
+    // Tests using the daemon mode
+    daemonTest "daemonIntegTest"
+
+    // Used for cross version tests on CI
+    crossVersionTest "forkingIntegTest", crossVersionTestsOnly: "", testAllVersions: ""
+
+    // Used to build production distros and smoke test them
+    packageBuild "verifyIsProductionBuildEnvironment", "clean", "buildDists", "internalDistTesting:integTest"
+
+    // Used to build production distros and smoke test them
+    promotionBuild "verifyIsProductionBuildEnvironment", "clean", "buildDists", "internalDistTesting:integTest", "uploadArchives"
+
+}
+
 allprojects {
     group = 'org.gradle'
 
@@ -145,9 +178,6 @@ allprojects {
     apply from: "$rootDir/gradle/conventions-dsl.gradle"
 
     ext {
-        isDevBuild = {
-            gradle.taskGraph.hasTask(developerBuild)
-        }
 
         isCIBuild = {
             gradle.taskGraph.hasTask(ciBuild)
@@ -248,7 +278,7 @@ task determineCommitId {
                 null
             }
         }
-        
+
         // It's a source distribution, we don't know.
         strategies << {
             if (!file("design-docs").directory) {
@@ -420,24 +450,6 @@ gradle.taskGraph.whenReady {graph ->
         artifactoryUserName
         artifactoryUserPassword
     }
-}
-
-task quickCheck {
-    def i = gradle.startParameter.taskNames.findIndexOf { it ==~ /(?i):?(quickCheck|qC)/ }
-    if (i >= 0) {
-        gradle.startParameter.taskNames.addAll(i, ["doc:checkstyleApi", "codeQuality", "classes", "test"])
-    }
-    doFirst {
-        if (i < 0) {
-            throw new GradleException("Due to the way it is implemented, the 'quickCheck' task has to be invoked directly, and its name can only be abbreviated to 'qC'.")
-        }
-    }
-}
-
-task developerBuild {
-    description = 'Builds distributions and runs pre-checkin checks'
-    group = 'build'
-    dependsOn testedDists
 }
 
 task ciBuild {
