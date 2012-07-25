@@ -1,4 +1,4 @@
-Gradle 1.1 is a consolidation release focussing on usability improvements, bug fixes, and ground work to support the post 1.0 evolution of Gradle.
+For Gradle 1.1 our focus has been on usability improvements, bug fixes, and ground work to support the post 1.0 evolution of Gradle. Particularly we [fixed bugs](http://issues.gradle.org/sr/jira.issueviews:searchrequest-printable/temp/SearchRequest.html?jqlQuery=fixVersion+in+%28%221.1-rc-1%22%2C+%221.1-rc-2%22%29+ORDER+BY+priority&tempMax=1000) for Maven integration, dependency management and OSGi. Nonetheless we also added some nice new features: 
 
 ## New and noteworthy
 
