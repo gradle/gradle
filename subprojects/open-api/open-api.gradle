@@ -9,4 +9,7 @@ useTestFixtures()
 
 integTestTasks.all {
     jvmArgs '-XX:MaxPermSize=256m'
+    if (isWindows && systemProperties['org.gradle.integtest.executer'] == "embedded") {
+        systemProperties['org.gradle.integtest.executer'] =  "forking"
+    }
 }
