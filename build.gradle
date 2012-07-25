@@ -30,6 +30,35 @@ defaultTasks 'assemble'
 apply plugin: 'java-base'
 archivesBaseName = 'gradle'
 
+extensions.buildTypes = new BuildTypes(project)
+
+buildTypes {
+    // The minimum to be run before check-in
+    preCommitBuild "doc:checkstyleApi", "codeQuality", "classes", "test", noDistTests: true
+    quickCheck "doc:checkstyleApi", "codeQuality", "classes", "test", noDistTests: true
+
+    // A full (in-process) test
+    developerBuild "check"
+
+    // Used by the first phase of the build pipeline
+    quickTest "test", "integTest", noDistTests: true
+
+    // Used for builds to test the code on certain platforms
+    platformTest "test", "forkingIntegTest", noDistTests: true, useIncomingDistributions: true
+
+    // Tests using the daemon mode
+    daemonTest "daemonIntegTest", noDistTests: true, useIncomingDistributions: true
+
+    // Used for cross version tests on CI
+    crossVersionTest "forkingIntegTest", crossVersionTestsOnly: "", testAllVersions: "", noDistTests: true, useIncomingDistributions: true
+
+    // Used to build production distros and smoke test them
+    packageBuild "verifyIsProductionBuildEnvironment", "clean", "buildDists", "internalDistTesting:integTest"
+
+    // Used to build production distros and smoke test them
+    promotionBuild "verifyIsProductionBuildEnvironment", "clean", "buildDists", "internalDistTesting:integTest", "uploadArchives"
+}
+
 ext.incomingAllDistribution = null
 if (project.hasProperty("useIncomingDistributions")) {
     useIncomingDistributions = true
@@ -147,36 +176,6 @@ libraries.jmock = ['org.jmock:jmock:2.5.1',
         'org.jmock:jmock-legacy:2.5.1',
         'org.objenesis:objenesis:1.2',
         'cglib:cglib-nodep:2.2']
-
-extensions.buildTypes = new BuildTypes(project)
-
-buildTypes {
-    // The minimum to be run before check-in
-    preCommitBuild "doc:checkstyleApi", "codeQuality", "classes", "test", noDistTests: true
-    quickCheck "doc:checkstyleApi", "codeQuality", "classes", "test", noDistTests: true
-
-    // A full (in-process) test
-    developerBuild "check"
-
-    // Used by the first phase of the build pipeline
-    quickTest "test", "integTest", noDistTests: true
-
-    // Used for builds to test the code on certain platforms
-    platformTest "test", "forkingIntegTest", noDistTests: true, useIncomingDistributions: true
-
-    // Tests using the daemon mode
-    daemonTest "daemonIntegTest", noDistTests: true, useIncomingDistributions: true
-
-    // Used for cross version tests on CI
-    crossVersionTest "forkingIntegTest", crossVersionTestsOnly: "", testAllVersions: "", noDistTests: true, useIncomingDistributions: true
-
-    // Used to build production distros and smoke test them
-    packageBuild "verifyIsProductionBuildEnvironment", "clean", "buildDists", "internalDistTesting:integTest"
-
-    // Used to build production distros and smoke test them
-    promotionBuild "verifyIsProductionBuildEnvironment", "clean", "buildDists", "internalDistTesting:integTest", "uploadArchives"
-
-}
 
 allprojects {
     group = 'org.gradle'
