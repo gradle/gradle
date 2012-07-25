@@ -36,7 +36,7 @@ class SamplesToolingApiIntegrationTest extends Specification {
         result.output.contains("src/main/java")
     }
 
-    @UsesSample('toolingApi/build')
+    @UsesSample('toolingApi/runBuild')
     def "can use tooling API to run tasks"() {
         tweakProject()
 
