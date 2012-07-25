@@ -19,6 +19,7 @@ package org.gradle.api.plugins.migration
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
+import org.gradle.util.TextUtil
 
 class MigrationVerificationPluginIntegrationSpec extends AbstractIntegrationSpec {
     @Rule TestResources testResources
@@ -30,7 +31,7 @@ class MigrationVerificationPluginIntegrationSpec extends AbstractIntegrationSpec
         run("compare")
 
         then:
-        output =~ """
+        looksLike output, """
 Comparing build 'target build' with 'source build'
 Comparing outputs of project ':'
 Comparing archive 'testBuild.jar'
@@ -41,6 +42,10 @@ Archive entry 'org/gradle/TargetBuildOnlyClass.class' only exists in build 'targ
 Finished comparing archive 'testBuild.jar'
 Finished comparing outputs of project ':'
 Finished comparing build 'target build' with 'source build'
-        """.trim()
+        """
+    }
+
+    private void looksLike(text, pattern) {
+        assert text =~ TextUtil.toPlatformLineSeparators(pattern.trim())
     }
 }
