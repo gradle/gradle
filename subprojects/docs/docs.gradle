@@ -96,6 +96,8 @@ task samples(type: ExtractSnippetsTask) {
     exclude 'userguideOutput/**'
     exclude 'userguide/tutorial/antLoadfileResources/**'
     exclude '**/readme.xml'
+    exclude '**/build/**'
+    exclude '**/.gradle/**'
     destDir = samplesDir
     snippetsDir = new File(buildDir, 'snippets')
     doLast {
