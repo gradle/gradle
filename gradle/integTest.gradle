@@ -38,8 +38,11 @@ integTestTasks.all { Test task ->
             testReportDir = file("${project.reporting.baseDir}/$name")
             systemProperties['integTest.gradleHomeDir'] = rootProject.intTestImage.destinationDir.absolutePath
             systemProperties['integTest.gradleUserHomeDir'] = rootProject.file('intTestHomeDir').absolutePath
-            systemProperties['integTest.distsDir'] = rootProject.distsDir.absolutePath
             systemProperties['integTest.libsRepo'] = rootProject.file('build/repo')
+            
+            // If the projects int test need the distributions, they should add:
+            // inputs.files rootProject.buildDists
+            systemProperties['integTest.distsDir'] = rootProject.distsDir.absolutePath
         }
     }
 }

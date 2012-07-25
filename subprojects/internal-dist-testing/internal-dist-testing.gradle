@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,25 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-apply from: "$rootDir/gradle/classycle.gradle"
 
 dependencies {
     groovy libraries.groovy
-    compile project(":cli")
-    testCompile libraries.ant
-
-    integTestRuntime rootProject.configurations.testRuntime.allDependencies
-}
-
-task executableJar(type: Jar) {
-    archiveName = 'gradle-wrapper.jar'
-    from sourceSets.main.output
-    from configurations.runtime.allDependencies.withType(ProjectDependency).collect { it.dependencyProject.sourceSets.main.output }
 }
 
 integTestTasks.all {
-    inputs.files rootProject.binZip
+    inputs.files rootProject.buildDists
 }
 
-useTestFixtures()
-
+daemonIntegTest.enabled = false

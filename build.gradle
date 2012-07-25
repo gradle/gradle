@@ -248,6 +248,13 @@ task determineCommitId {
                 null
             }
         }
+        
+        // It's a source distribution, we don't know.
+        strategies << {
+            if (!file("design-docs").directory) {
+                "<unknown>"
+            }
+        }
 
         for (strategy in strategies) {
             commitId = strategy()

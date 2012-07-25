@@ -14,15 +14,13 @@ dependencies {
 }
 
 integTestTasks.all {
-    dependsOn ':publishLocalArchives', ':binZip', ':allZip', ':srcZip', ':docs:userguideDocbook'
+    dependsOn ':publishLocalArchives', ':docs:userguideDocbook'
 
     jvmArgs '-Xmx512m', '-XX:MaxPermSize=256m'
 
     doFirst {
         systemProperties['integTest.userGuideInfoDir'] = project(':docs').docbookSrc
         systemProperties['integTest.userGuideOutputDir'] = new File(project(':docs').samplesSrcDir, "userguideOutput").absolutePath
-        systemProperties['integTest.distsDir'] = rootProject.distsDir.absolutePath
-        systemProperties['integTest.libsRepo'] = rootProject.file('build/repo')
         forkEvery = 15
 
         if (isDevBuild()) {
