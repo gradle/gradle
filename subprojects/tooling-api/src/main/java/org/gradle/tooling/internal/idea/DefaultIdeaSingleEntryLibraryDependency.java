@@ -57,7 +57,7 @@ public class DefaultIdeaSingleEntryLibraryDependency implements IdeaSingleEntryL
         return javadoc;
     }
 
-    public GradleModuleVersion getGradleModelVersion() {
+    public GradleModuleVersion getGradleModuleVersion() {
         return moduleVersion;
     }
 

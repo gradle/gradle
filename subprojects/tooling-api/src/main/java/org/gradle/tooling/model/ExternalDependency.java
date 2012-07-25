@@ -57,5 +57,5 @@ public interface ExternalDependency extends Dependency {
      */
     @Nullable
     @Experimental
-    GradleModuleVersion getGradleModelVersion();
+    GradleModuleVersion getGradleModuleVersion();
 }

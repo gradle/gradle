@@ -77,15 +77,15 @@ dependencies {
         assert libs.size() == 3
 
         ExternalDependency coolLib = libs.find { it.file.name == 'coolLib-2.0.jar' }
-        assert coolLib.gradleModelVersion
-        assert coolLib.gradleModelVersion.group == 'foo.bar'
-        assert coolLib.gradleModelVersion.name == 'coolLib'
-        assert coolLib.gradleModelVersion.version == '2.0'
+        assert coolLib.gradleModuleVersion
+        assert coolLib.gradleModuleVersion.group == 'foo.bar'
+        assert coolLib.gradleModuleVersion.name == 'coolLib'
+        assert coolLib.gradleModuleVersion.version == '2.0'
 
         ExternalDependency funLib = libs.find { it.file.name.contains('funLib') }
-        assert funLib.gradleModelVersion == null
+        assert funLib.gradleModuleVersion == null
 
         ExternalDependency yetAnotherJar = libs.find { it.file.name == 'yetAnotherJar.jar' }
-        assert yetAnotherJar.gradleModelVersion == null
+        assert yetAnotherJar.gradleModuleVersion == null
     }
 }
