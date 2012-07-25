@@ -49,7 +49,7 @@ public class GradleDistribution implements MethodRule, TestFileContext, BasicGra
     static {
         USER_HOME_DIR = file("integTest.gradleUserHomeDir", "intTestHomeDir").file("worker-1");
         GRADLE_HOME_DIR = file("integTest.gradleHomeDir", null);
-        SAMPLES_DIR = file("integTest.samplesdir", "subprojects/docs/build/samples");
+        SAMPLES_DIR = file("integTest.samplesdir", String.format("%s/samples", GRADLE_HOME_DIR));
         USER_GUIDE_OUTPUT_DIR = file("integTest.userGuideOutputDir",
                 "subprojects/docs/src/samples/userguideOutput");
         USER_GUIDE_INFO_DIR = file("integTest.userGuideInfoDir", "subprojects/docs/build/src");

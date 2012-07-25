@@ -211,7 +211,7 @@ idea {
 
         Node vmParameters = runConfig.option.find { it.'@name' == 'VM_PARAMETERS' }
 
-        vmParameters.'@value' = "\"-DintegTest.samplesdir=${project(":docs").samplesDir.absolutePath}\" \"-DintegTest.gradleHomeDir=${intTestImage.destinationDir}\" -ea -Dorg.gradle.integtest.executer=embedded -XX:MaxPermSize=256m -Xmx512m"
+        vmParameters.'@value' = "\"-DintegTest.gradleHomeDir=${intTestImage.destinationDir}\" -ea -Dorg.gradle.integtest.executer=embedded -XX:MaxPermSize=256m -Xmx512m"
 
         // Add an application configuration
         runManagerConfig.'@selected' = 'Application.Gradle'

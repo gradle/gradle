@@ -371,6 +371,9 @@ artifacts {
 task intTestImage(type: Sync) {
     with binDistImage
     into file("$buildDir/integ test")
+    into "samples", {
+        from project(":docs").samples
+    }
     doLast { task ->
         ant.chmod(dir: "$destinationDir/bin", perm: "ugo+rx", includes: "**/*")
     }
