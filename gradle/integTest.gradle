@@ -18,7 +18,7 @@ dependencies {
 
 ext.integTestTasks = tasks.withType(Test).matching { it.name.toLowerCase().endsWith('integtest') }
 
-integTestTasks.all {
+integTestTasks.all { Test task ->
     dependsOn ':intTestImage', { project(":docs").samples }
     testClassesDir = sourceSets.integTest.output.classesDir
     classpath = sourceSets.integTest.runtimeClasspath
@@ -33,16 +33,15 @@ integTestTasks.all {
         include '**/*CrossVersion*'
     }
 
-    doFirst {
-        def integTestImageDir = rootProject.intTestImage.destinationDir
-        def integTestUserDir = rootProject.file('intTestHomeDir')
-        
-        testReportDir = file("${project.reporting.baseDir}/$name")
-        systemProperties['integTest.gradleHomeDir'] = integTestImageDir.absolutePath
-        systemProperties['integTest.gradleUserHomeDir'] = integTestUserDir.absolutePath
-        systemProperties['integTest.samplesdir'] = project(":docs").samplesDir.absolutePath
-        systemProperties['integTest.distsDir'] = rootProject.distsDir.absolutePath
-        systemProperties['integTest.libsRepo'] = rootProject.file('build/repo')
+    dependsOn project.task("configure${task.name.capitalize()}") << {
+        configure(task) {
+            testReportDir = file("${project.reporting.baseDir}/$name")
+            systemProperties['integTest.gradleHomeDir'] = rootProject.intTestImage.destinationDir.absolutePath
+            systemProperties['integTest.gradleUserHomeDir'] = rootProject.file('intTestHomeDir').absolutePath
+            systemProperties['integTest.samplesdir'] = project(":docs").samplesDir.absolutePath
+            systemProperties['integTest.distsDir'] = rootProject.distsDir.absolutePath
+            systemProperties['integTest.libsRepo'] = rootProject.file('build/repo')
+        }
     }
 }
 
