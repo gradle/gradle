@@ -127,9 +127,11 @@ When migrating from Maven you can reuse the artifacts from your local Maven repo
 
 ### Publishing SHA1 checksums to Ivy repositories
 
-Gradle will now automatically generate and publish SHA1 checksum files when publishing to an Ivy repository. There is no change required to your build script to enable this functionality.
+Gradle will now automatically generate and publish SHA1 checksum files when publishing to an Ivy repository. For each file `foo.ext` published, Gradle will also publish a checksum file with the name `foo.ext.sha1`. 
 
-For each file `foo.ext` published, Gradle will also publish a checksum file with the name `foo.ext.sha1`.
+The presence of SHA1 checksums in the dependency repository allows Gradle to be more efficient when resolving dependencies. Recently Gradle gained the ability to use the checksum of a remote file to determine whether or not it truly needs to be downloaded. If Gradle can find a file with an identical checksum to the target remote file, it will use that instead of downloading the remote file. Also, for “changing” dependencies (e.g. snapshots) Gradle can compare the remote checksum with the checksum of the local file to avoid downloading unchanged dependencies.
+
+Checksums have always been published to Maven repositories. This new feature of publishing checksums to Ivy repositories unlocks the recent Gradle dependency downloading optimizations to Ivy users. There is no change required to your build script to enable this functionality.
 
 ### Dependency resolution supports HTTP Digest Authentication
 
