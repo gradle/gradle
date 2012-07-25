@@ -69,6 +69,10 @@ integTestTasks.all {
     }
 }
 
+task integTest(type: Test)
+
+tasks.findByName("check")?.dependsOn(integTest)
+
 ['embedded', 'forking', 'daemon', 'embeddedDaemon'].each {
     def mode = it
     def taskName = "${it}IntegTest"
@@ -89,13 +93,3 @@ task waitForDaemonsToDie << {
     println "I'm waiting for $mins mins so that existing deamons can die with honor. It's a workaround until we fix it properly."
     Thread.sleep(mins * 60 * 1000);
 }
-
-task integTest(type: Test) {
-    doFirst {
-        systemProperties['org.gradle.integtest.executer'] = integTestMode
-    }
-}
-
-tasks.findByName("check")?.dependsOn(integTest)
-
-
