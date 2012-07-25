@@ -16,8 +16,10 @@ Test o.s.i.t.i.MessageSourceTests FAILED
 
 The improved output:
 
-<pre><tt>o.s.i.t.i.MessageSourceTests > testSearchReceivingMessageSourceInit  FAILED
-j.f.AssertionFailedError at MessageSourceTests.java:96
+<pre><tt>:spring-integration-twitter:test
+o.s.i.t.i.MessageSourceTests > testSearchReceivingMessageSourceInit  FAILED
+    j.f.AssertionFailedError at MessageSourceTests.java:96
+
 4 tests completed, 1 failed, 1 skipped
 </tt>
 </pre>
@@ -40,6 +42,7 @@ Which would produce output like:
         at j.f.Assert.assertTrue(Assert.java:20)
         at j.f.Assert.assertTrue(Assert.java:27)
         at o.s.i.t.i.MessageSourceTests.testSearchReceivingMessageSourceInit(MessageSourceTests.java:96)
+
 4 tests completed, 1 failed, 1 skipped
 </tt></pre>
 
@@ -104,7 +107,10 @@ just a CMD + double click away.
 
 ### Tooling API provides Gradle module information for external dependencies
 
-The Tooling API can be used to obtain the model of the project which includes the information about the dependencies/libraries. Now the Tooling API also provides Gradle module information, i.e. group, name, version of the dependency. Please see the javadoc for [GradleModuleVersion](javadoc/org/gradle/tooling/model/GradleModuleVersion.html). You can obtain the Gradle module information via [ExternalDependency.getGradleModelVersion()](javadoc/org/gradle/tooling/model/ExternalDependency.html#getGradleModelVersion\(\)).
+The Tooling API can be used to obtain the model of the project which includes the information about the dependencies of the project. In Gradle 1.1, the Tooling API also provides Gradle
+module information, i.e. group, name, version of each dependency.
+
+Please see the javadoc for [GradleModuleVersion](javadoc/org/gradle/tooling/model/GradleModuleVersion.html). You can obtain the Gradle module information via [ExternalDependency.getGradleModuleVersion()](javadoc/org/gradle/tooling/model/ExternalDependency.html#getGradleModuleVersion\(\)).
 
 ### Global Maven settings.xml
 
@@ -149,16 +155,18 @@ Whereas what the author actually intended was:
 Note the colon after `dependsOn` in the first code block. This extra colon causes the line to be interpreted as a statement label (a Java/Groovy language feature), which effectively makes it a non operation. Statement labels are not useful in Gradle build scripts.
 
 To prevent such mistakes that are hard to track down and debug, the usage of statement labels in build scripts has been deprecated and Gradle will issue a deprecation warning when they are used.
+In Gradle 2.0, statement labels in build scripts will no longer be supported and will cause an error.
 
 #### M2_HOME system property
 
-Previously, Gradle looked for a JVM system property named `M2\_HOME` for the location of a custom Maven home directory. This has been deprecated in favor of an environment variable, named `M2_HOME`, which is also used by other tools that integrate with Maven.
+Previously, Gradle looked for a JVM system property named `M2_HOME` for the location of a custom Maven home directory. This has been deprecated in favor of an environment variable, named `M2_HOME`, which is also used by other tools that integrate with Maven.
+Support for the `M2_HOME` system property will be removed in Gradle 2.0.
 
 #### Publication of missing artifacts
 
 Previously, if an artifact to be published referred to a file that does not exist during publication, then Gradle would silently ignore the artifact to be published. This is only likely to occur when declaring [file artifacts](userguide/artifact_management.html#N143A6).
 
-This behavior is now deprecated. Attempting to publish a non-existant artifact file will result in a deprecation warning, and will produce an error in future versions of Gradle.
+This behavior is now deprecated. Attempting to publish a non-existant artifact file will result in a deprecation warning, and will produce an error in Gradle 2.0.
 
 #### DSL
 
@@ -169,13 +177,14 @@ The `Project.fileTree(Object)` method was incorrectly annotated with the `@depre
 ##### `Project.fileTree(Closure)` - Addition of `@deprecation` tag
 
 The `Project.fileTree(Closure)` method was deprecated in Gradle 1.0-milestone-8. The method was not annotated with the `@deprecated` javadoc tag at that time. This has been added for this release.
+This method will be removed in Gradle 2.0.
 
 #### API
 
 ##### `org.gradle.api.tasks.testing.TestLogging` - Moved into `logging` subpackage
 
 The `org.gradle.api.tasks.testing.TestLogging` interface was moved into package `org.gradle.api.tasks.testing.logging` (and subsequently enhanced with new methods). For backwards compatibility reasons, the old interface was kept at its original location,
-but is now deprecated.
+but is now deprecated. The old interface will be removed in Gradle 2.0.
 
 ### Potential breaking changes
 
