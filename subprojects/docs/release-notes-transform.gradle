@@ -1,5 +1,17 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath ('com.uwyn:jhighlight:1.0') {
+            exclude module: "servlet-api"
+        }
+    }
+}
+
 import org.jsoup.nodes.Element
 import org.jsoup.select.Elements
+import com.uwyn.jhighlight.renderer.XhtmlRendererFactory
 
 decorateReleaseNotes {
     
@@ -27,7 +39,7 @@ decorateReleaseNotes {
             replace("@regular-font-base64@", fontRegularFile.bytes.encodeBase64().toString()).
             replace("@bold-font-base64@", fontBoldFile.bytes.encodeBase64().toString())
         
-        head().append("<style/>").children().last().text(styleText)
+        head().append("<style>p{}</style>").children().last().childNode(0).attr("data", styleText)
         
         head().append("<script type='text/javascript'>1;</script>").children().last().childNode(0).attr("data", jqueryFile.text)
         head().append("<script type='text/javascript'>1;</script>").children().last().childNode(0).attr("data", scriptFile.text)
@@ -154,4 +166,38 @@ decorateReleaseNotes {
         def footer = body().append("<section class='footer'/>").children().last()
         footer.html("Gradle @version@ Release Notes<br />— <a href='http://gradle.org'>www.gradle.org</a> —")
     }
+    
+    // Syntax highlighting
+    transform {
+        body().select("code").each { code ->
+            def parent = code.parent()
+            if (parent.tagName() == "pre") {
+                def text = code.text()
+                def input = new ByteArrayInputStream(code.text().getBytes("utf-8"))
+                def renderer = XhtmlRendererFactory.getRenderer("groovy")
+                def out = new ByteArrayOutputStream()
+                renderer.highlight("test", input, out, "utf-8", true)
+                code.html(new String(out.toByteArray(), "utf-8"))
+                code.select("br").remove()
+                code.childNodes().findAll { it.nodeName().equals("#comment") }*.remove()
+                code.html(code.html().trim())
+                parent.addClass("code")
+            }
+        }
+    }
+    
+    // Terminal styling
+    transform {
+        body().select("tt").each { tt ->
+            def parent = tt.parent()
+            if (parent.tagName() == "pre") {
+                tt.select("br").remove()
+                tt.childNodes().findAll { it.nodeName().equals("#comment") }*.remove()
+                tt.html(tt.html().trim())
+                parent.addClass("tt")
+            }
+        }
+    }
+    
+    
 }

@@ -48,7 +48,7 @@ public class DefaultEclipseExternalDependency implements ExternalDependencyVersi
         return source;
     }
 
-    public GradleModuleVersion getGradleModelVersion() {
+    public GradleModuleVersion getGradleModuleVersion() {
         return moduleVersion;
     }
 }
