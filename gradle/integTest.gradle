@@ -1,10 +1,4 @@
-/*
- * Adds an 'integTest' source set, which contains the integration tests for the project.
- */
-import org.gradle.build.integtest.IntegTestPlugin
-
 apply plugin: 'java'
-rootProject.apply plugin: IntegTestPlugin
 
 sourceSets {
     integTest {
@@ -40,6 +34,9 @@ integTestTasks.all {
     }
 
     doFirst {
+        def integTestImageDir = rootProject.intTestImage.destinationDir
+        def integTestUserDir = rootProject.file('intTestHomeDir')
+        
         testReportDir = file("${project.reporting.baseDir}/$name")
         systemProperties['integTest.gradleHomeDir'] = integTestImageDir.absolutePath
         systemProperties['integTest.gradleUserHomeDir'] = integTestUserDir.absolutePath
@@ -54,7 +51,7 @@ task integTest(type: Test)
 tasks.findByName("check")?.dependsOn(integTest)
 
 ['embedded', 'forking', 'daemon', 'embeddedDaemon'].each { mode ->
-    def taskName = "${it}IntegTest"
+    def taskName = "${mode}IntegTest"
     tasks.addRule(taskName) { name ->
         if (name == taskName) { 
             tasks.add(taskName, Test).configure {
