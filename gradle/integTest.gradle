@@ -47,7 +47,8 @@ integTestTasks.all {
 }
 
 task integTest(type: Test) {
-    systemProperties['org.gradle.integtest.executer'] = "embedded"
+    def defaultExecuter = project.hasProperty("defaultIntegTestExecuter") ? project.defaultIntegTestExecuter : "embedded"
+    systemProperties['org.gradle.integtest.executer'] = defaultExecuter
 }
 check.dependsOn(integTest)
 
