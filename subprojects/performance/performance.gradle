@@ -70,7 +70,7 @@ tasks.integTest.testLogging.showStandardStreams = true
 
 gradle.taskGraph.whenReady {
     if (!it.hasTask(':performance:performanceTest')) {
-        project.tasks.withType(Test) {
+        project.tasks.all {
             logger.info("Skipping $it because task 'performanceTest' was not requested.")
             enabled = false
         }
