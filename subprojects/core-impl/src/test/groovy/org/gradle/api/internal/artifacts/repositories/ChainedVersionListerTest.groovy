@@ -16,10 +16,12 @@
 
 package org.gradle.api.internal.artifacts.repositories
 
-import spock.lang.Specification
-import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.apache.ivy.core.module.descriptor.Artifact
-import org.gradle.api.resources.MissingResourceException
+import org.apache.ivy.core.module.id.ModuleRevisionId
+import org.gradle.api.internal.resource.ResourceNotFoundException
+import spock.lang.Specification
+import spock.lang.Unroll
+import org.gradle.api.internal.resource.ResourceException;
 
 class ChainedVersionListerTest extends Specification {
 
@@ -45,15 +47,18 @@ class ChainedVersionListerTest extends Specification {
         version.versionStrings as Set == ["1.0", "1.2"] as Set
     }
 
-    def "getVersionList throws exception when last VersionLister fails"() {
+    @Unroll
+    def "getVersionList throws chained #exception.class.simpleName of failed last VersionLister"() {
         setup:
         1 * lister1.getVersionList(_, _, _) >> new DefaultVersionList(Collections.emptyList())
-        1 * lister2.getVersionList(_, _, _) >> {throw new MissingResourceException()}
+        1 * lister2.getVersionList(_, _, _) >> {throw exception}
         def chainedVersionLister = new ChainedVersionLister(lister1, lister2)
         when:
         chainedVersionLister.getVersionList(Mock(ModuleRevisionId), "testPattern", Mock(Artifact));
         then:
-        def e = thrown(ComposedResourceException)
-        e.cause instanceof MissingResourceException
+        def e = thrown(exception.class)
+        e.cause == exception
+        where:
+        exception << [new ResourceNotFoundException("test resource not found exception"), new ResourceException("test resource exception")]
     }
 }

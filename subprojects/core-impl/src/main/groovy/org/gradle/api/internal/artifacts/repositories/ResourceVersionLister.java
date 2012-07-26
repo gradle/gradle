@@ -19,7 +19,8 @@ package org.gradle.api.internal.artifacts.repositories;
 import org.apache.ivy.core.IvyPatternHelper;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.gradle.api.resources.MissingResourceException;
+import org.gradle.api.internal.resource.ResourceException;
+import org.gradle.api.internal.resource.ResourceNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,11 +40,16 @@ public class ResourceVersionLister implements VersionLister {
         this.repository = repository;
     }
 
-    public VersionList getVersionList(ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact) throws IOException {
+    public VersionList getVersionList(ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact) throws ResourceException, ResourceNotFoundException {
         ModuleRevisionId idWithoutRevision = ModuleRevisionId.newInstance(moduleRevisionId, IvyPatternHelper.getTokenString(IvyPatternHelper.REVISION_KEY));
         String partiallyResolvedPattern = IvyPatternHelper.substitute(pattern, idWithoutRevision, artifact);
         LOGGER.debug("Listing all in {}", partiallyResolvedPattern);
-        List<String> versionStrings = listRevisionToken(partiallyResolvedPattern);
+        List<String> versionStrings = null;
+        try {
+            versionStrings = listRevisionToken(partiallyResolvedPattern);
+        } catch (IOException e) {
+            throw new ResourceException("Unable to load Versions", e);
+        }
         return new DefaultVersionList(versionStrings);
     }
 
@@ -64,7 +70,7 @@ public class ResourceVersionLister implements VersionLister {
             LOGGER.debug("using {} to list all in {} ", repository, root);
             List<String> all = repository.list(root);
             if (all == null) {
-                throw new MissingResourceException(String.format("Can not load %s for listing resources", root));
+                throw new ResourceNotFoundException(String.format("Can not load %s for listing resources", root));
             }
             LOGGER.debug("found {} urls", all.size());
             Pattern regexPattern = createRegexPattern(pattern, fileSep, slashIndex);
@@ -111,7 +117,7 @@ public class ResourceVersionLister implements VersionLister {
         LOGGER.debug("using {} to list all in {}", repository, parent);
         List<String> all = repository.list(parent);
         if (all == null) {
-            throw new MissingResourceException(String.format("Unable to load %s for listing versions", parent));
+            throw new ResourceNotFoundException(String.format("Unable to load %s for listing versions", parent));
         }
         LOGGER.debug("found {} resources", all.size());
         List<String> names = getVersionsFromPathList(all);

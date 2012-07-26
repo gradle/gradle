@@ -22,6 +22,7 @@ import org.apache.ivy.core.module.descriptor.Artifact
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder
+import org.gradle.api.internal.resource.ResourceException
 import spock.lang.Specification
 
 class ExternalResourceResolverTest extends Specification {
@@ -37,12 +38,12 @@ class ExternalResourceResolverTest extends Specification {
 
     ExternalResourceResolver resolver = new ExternalResourceResolver("testresolver", externalResourceRepository, versionLister, locallyAvailableResourceFinder, cachedExternalResourceIndex)
 
-    def "listVersions propagates occured IOException"() {
+    def "listVersions propagates occured ResourceException"() {
         setup:
-        1 * versionLister.getVersionList(moduleRevidionId, pattern, artifact) >> {throw new IOException()}
+        1 * versionLister.getVersionList(moduleRevidionId, pattern, artifact) >> {throw new ResourceException("test exception")}
         when:
         resolver.listVersions(moduleRevidionId, pattern, artifact)
         then:
-        thrown(IOException)
+        thrown(ResourceException)
     }
 }

@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.repositories
 import org.apache.ivy.core.module.descriptor.Artifact
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import spock.lang.Specification
+import org.gradle.api.internal.resource.ResourceNotFoundException
 
 class ResourceVersionListerTest extends Specification {
 
@@ -31,7 +32,7 @@ class ResourceVersionListerTest extends Specification {
         1 * repo.getFileSeparator() >> "/"
     }
 
-    def "getVersionList returns propagates Resource related IOException"() {
+    def "getVersionList returns propagates Exceptions as ResourceException"() {
         setup:
         def testPattern = "/a/pattern/with/[revision]/"
         1 * repo.list(_) >> { throw new IOException("Test IO Exception") }
@@ -40,10 +41,10 @@ class ResourceVersionListerTest extends Specification {
         when:
         lister.getVersionList( moduleRevisionId, testPattern, artifact)
         then:
-        thrown(IOException)
+        thrown(org.gradle.api.internal.resource.ResourceException)
     }
 
-    def "getVersionList throws MissingResourceException for missing resource"() {
+    def "getVersionList throws ResourceNotFoundException for missing resource"() {
         setup:
         1 * repo.list(_) >> null
         1 * repo.standardize(testPattern) >> testPattern
@@ -51,7 +52,7 @@ class ResourceVersionListerTest extends Specification {
         when:
         lister.getVersionList( moduleRevisionId, testPattern, artifact)
         then:
-        thrown(org.gradle.api.resources.MissingResourceException)
+        thrown(ResourceNotFoundException)
         where:
         testPattern << ["/some/[revision]", "/some/version-[revision]"]
     }

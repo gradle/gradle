@@ -22,6 +22,8 @@ import java.util.List;
 
 public interface VersionList {
     List<String> getVersionStrings();
+
     boolean isEmpty();
+
     List<String> sortLatestFirst(LatestStrategy latestStrategy);
 }

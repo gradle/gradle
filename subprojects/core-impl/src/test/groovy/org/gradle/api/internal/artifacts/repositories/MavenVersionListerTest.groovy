@@ -21,6 +21,7 @@ package org.gradle.api.internal.artifacts.repositories
 import org.apache.ivy.core.module.descriptor.Artifact
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.internal.externalresource.ExternalResource
+import org.gradle.api.internal.resource.ResourceNotFoundException
 import spock.lang.Specification
 
 class MavenVersionListerTest extends Specification {
@@ -36,16 +37,16 @@ class MavenVersionListerTest extends Specification {
 
     MavenVersionLister lister = new MavenVersionLister(repository, root)
 
-    def "getVersionList throws MissingResourceException when maven-metadata not available"() {
+    def "getVersionList throws ResourceNotFoundException when maven-metadata not available"() {
         setup:
         1 * repository.getResource(_) >> null;
         when:
         lister.getVersionList(moduleRevisionId, MavenPattern.M2_PATTERN, artifact)
         then:
-        thrown(org.gradle.api.resources.MissingResourceException)
+        thrown(ResourceNotFoundException)
     }
 
-    def "getVersionList throws Exception when maven-metadata cannot be parsed"() {
+    def "getVersionList throws ResourceException when maven-metadata cannot be parsed"() {
         setup:
         1 * repository.getResource(_) >> resource;
         1 * resource.openStream() >> resourceInputStream
@@ -55,6 +56,16 @@ class MavenVersionListerTest extends Specification {
         then:
         thrown(org.gradle.api.internal.resource.ResourceException)
         1 * resource.close()
+    }
+
+    def "getVersionList throws ResourceException when maven-metadata cannot be loaded"() {
+        setup:
+        1 * repository.getResource(_) >> {throw new IOException()};
+
+        when:
+        lister.getVersionList(moduleRevisionId, MavenPattern.M2_PATTERN, artifact)
+        then:
+        thrown(org.gradle.api.internal.resource.ResourceException)
     }
 
     def "getVersionList returns emptyList for non M2 compatible pattern"() {

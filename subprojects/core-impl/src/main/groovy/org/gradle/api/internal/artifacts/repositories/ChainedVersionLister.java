@@ -18,19 +18,24 @@ package org.gradle.api.internal.artifacts.repositories;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.gradle.api.internal.resource.ResourceException;
+import org.gradle.api.internal.resource.ResourceNotFoundException;
 import org.gradle.util.DeprecationLogger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
 public class ChainedVersionLister implements VersionLister {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(ExternalResourceResolver.class);
     private List<VersionLister> versionListers = new ArrayList<VersionLister>();
 
     public ChainedVersionLister(VersionLister... versionlisters) {
         this.versionListers = Arrays.asList(versionlisters);
     }
 
-    public VersionList getVersionList(ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact) throws ComposedResourceException {
+    public VersionList getVersionList(ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact) throws ResourceNotFoundException, ResourceException {
         final Iterator<VersionLister> versionListerIterator = versionListers.iterator();
 
         while (versionListerIterator.hasNext()) {
@@ -41,11 +46,16 @@ public class ChainedVersionLister implements VersionLister {
                     return versionList;
                 }
 
-            } catch (Exception e) {
+            } catch (ResourceNotFoundException e) {
+                if (!versionListerIterator.hasNext()) {
+                    throw new ResourceNotFoundException(String.format("Failed to list versions for %s", moduleRevisionId, lister.getClass()), e);
+                }
+            } catch (ResourceException e) {
                 if (versionListerIterator.hasNext()) {
-                    DeprecationLogger.nagUserWith(String.format("Failed to list versions of %s using %s. Proceeding with other ResourceLister.", moduleRevisionId, lister.getClass()));
+                    DeprecationLogger.nagUserWith(String.format("Failed to list versions of %s using %s. Proceeding with next ResourceLister.", moduleRevisionId, lister.getClass()));
+                    LOGGER.debug(String.format("Failed to list versions of %s using %s. Proceeding with next ResourceLister.", moduleRevisionId, lister.getClass()), e);
                 } else {
-                    throw new ComposedResourceException(String.format("Failed to list versions for %s", moduleRevisionId, lister.getClass()), e);
+                    throw new ResourceException(String.format("Failed to list versions for %s", moduleRevisionId, lister.getClass()), e);
                 }
             }
         }

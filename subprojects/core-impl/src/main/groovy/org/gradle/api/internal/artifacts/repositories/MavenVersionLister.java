@@ -24,7 +24,7 @@ import org.apache.ivy.util.ContextualSAXHandler;
 import org.apache.ivy.util.XMLHelper;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.resource.ResourceException;
-import org.gradle.api.resources.MissingResourceException;
+import org.gradle.api.internal.resource.ResourceNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
@@ -48,12 +48,14 @@ public class MavenVersionLister implements VersionLister {
         this.root = root;
     }
 
-    public VersionList getVersionList(ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact) throws IOException, MissingResourceException {
+    public VersionList getVersionList(ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact) throws ResourceException, ResourceNotFoundException {
         try {
             if (!pattern.endsWith(MavenPattern.M2_PATTERN)) {
                 return new DefaultVersionList(Collections.<String>emptyList());
             }
             return new DefaultVersionList(listRevisionsWithMavenMetadata(moduleRevisionId.getModuleId().getAttributes()));
+        } catch (IOException e) {
+            throw new ResourceException("Unable to load Maven Metadata file", e);
         } catch (SAXException e) {
             throw new ResourceException("Unable to parse Maven Metadata file", e);
         } catch (ParserConfigurationException e) {
@@ -61,11 +63,11 @@ public class MavenVersionLister implements VersionLister {
         }
     }
 
-    private List<String> listRevisionsWithMavenMetadata(Map tokenValues) throws IOException, SAXException, ParserConfigurationException, MissingResourceException {
+    private List<String> listRevisionsWithMavenMetadata(Map tokenValues) throws IOException, SAXException, ParserConfigurationException, ResourceNotFoundException {
         String metadataLocation = IvyPatternHelper.substituteTokens(root + "[organisation]/[module]/maven-metadata.xml", tokenValues);
         final ExternalResource resource = repository.getResource(metadataLocation);
         if (resource == null) {
-            throw new MissingResourceException(String.format("maven-metadata not available: {}", metadataLocation));
+            throw new ResourceNotFoundException(String.format("maven-metadata not available: {}", metadataLocation));
         }
         try {
             return parseMavenMetadataVersions(resource);

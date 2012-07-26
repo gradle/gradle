@@ -19,10 +19,15 @@ package org.gradle.api.internal.artifacts.repositories;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.internal.resource.ResourceException;
-import org.gradle.api.resources.MissingResourceException;
-
-import java.io.IOException;
+import org.gradle.api.internal.resource.ResourceNotFoundException;
 
 public interface VersionLister {
-    VersionList getVersionList(ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact) throws IOException, MissingResourceException, ResourceException;
+    /**
+     * <p>Returns the VersionList for the given moduleRevisionId, pattern and artifact.</p>
+     *
+     * @return a VersionList, never returns null.
+     * @throws ResourceNotFoundException If information for versions cannot be found.
+     * @throws ResourceException If information for versions cannot be loaded.
+     */
+    VersionList getVersionList(ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact) throws ResourceNotFoundException, ResourceException;
 }

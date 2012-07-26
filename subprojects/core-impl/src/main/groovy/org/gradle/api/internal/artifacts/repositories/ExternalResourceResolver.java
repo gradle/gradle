@@ -47,7 +47,7 @@ import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFi
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
-import org.gradle.api.resources.*;
+import org.gradle.api.internal.resource.ResourceNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -308,7 +308,7 @@ public class ExternalResourceResolver extends BasicResolver {
     protected VersionList listVersions(ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact) throws IOException {
         try {
             return versionLister.getVersionList(moduleRevisionId, pattern, artifact);
-        } catch (org.gradle.api.resources.MissingResourceException e) {
+        } catch (ResourceNotFoundException e) {
             LOGGER.debug(String.format("Unable to load version list for %s from %s", moduleRevisionId.getModuleId(), getRepository()));
             return new DefaultVersionList(Collections.<String>emptyList());
         }
