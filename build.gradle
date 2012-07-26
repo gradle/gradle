@@ -18,14 +18,6 @@ import org.gradle.build.Install
 import org.gradle.build.BuildTypes
 import org.gradle.build.TestReportAggregator
 
-/**
- * For building Gradle you usually don't need to specify any properties. Only certain functionality of the Gradle requires
- * setting certain properties. Those properties can be set in the gradle.properties file in the the gradle user home. The
- * following properties can be set:
- *
- * Uploading distributions to Gradle's release and snapshot repository at codehaus: artifactoryUserName, artifactoryUserPassword
- */
-
 defaultTasks 'assemble'
 apply plugin: 'java-base'
 archivesBaseName = 'gradle'
