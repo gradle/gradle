@@ -56,7 +56,7 @@ ext {
     isWindows = System.getProperty("os.name").toLowerCase().contains("windows")
 
     if (project.hasProperty("maxParallelForks")) {
-        project.maxParallelForks = Integer.valueOf(project.maxParallelForks)
+        project.maxParallelForks = Integer.valueOf(project.maxParallelForks, 10)
     } else {
         ext.maxParallelForks = Math.max(2, (int) (Runtime.runtime.availableProcessors() / 2))
     }

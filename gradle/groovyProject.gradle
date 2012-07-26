@@ -35,7 +35,7 @@ sourceSets {
 
 compileTasks.all { options.useAnt = false }
 testTasks.all { task ->
-    maxParallelForks = project.maxParallelForks
+    maxParallelForks = rootProject.maxParallelForks
     if (isCiServer) {
         doFirst {
             println "maxParallelForks for '$task.path' is $task.maxParallelForks"
