@@ -123,6 +123,85 @@ class ClassDocRendererTest extends XmlSpecification {
 </chapter>'''
     }
 
+    def rendersDeprecatedAndExperimentalProperties() {
+        def content = parse('''
+            <chapter>
+                <section><title>Properties</title>
+                    <table>
+                        <thead><tr><td>Name</td></tr></thead>
+                        <tr><td>deprecatedProperty</td></tr>
+                        <tr><td>experimentalProperty</td></tr>
+                    </table>
+                </section>
+            </chapter>
+        ''')
+
+        ClassDoc classDoc = classDoc('Class', content: content)
+        PropertyDoc deprecatedProp = propertyDoc('deprecatedProperty', id: 'prop1', description: 'prop1 description', comment: 'prop1 comment', type: 'org.gradle.Type', deprecated: true)
+        PropertyDoc experimentalProp = propertyDoc('experimentalProperty', id: 'prop2', description: 'prop2 description', comment: 'prop2 comment', type: 'org.gradle.Type', experimental: true)
+        _ * classDoc.classProperties >> [deprecatedProp, experimentalProp]
+
+        when:
+        withCategories {
+            renderer.mergeProperties(classDoc)
+        }
+
+        then:
+        formatTree(content) == '''<chapter>
+    <section>
+        <title>Properties</title>
+        <table>
+            <title>Properties - Class</title>
+            <thead>
+                <tr>
+                    <td>Property</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <link linkend="prop1">
+                        <literal>deprecatedProperty</literal>
+                    </link>
+                </td>
+                <td>
+                    <caution>Deprecated</caution>
+                    <para>prop1 description</para>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <link linkend="prop2">
+                        <literal>experimentalProperty</literal>
+                    </link>
+                </td>
+                <td>
+                    <caution>Experimental</caution>
+                    <para>prop2 description</para>
+                </td>
+            </tr>
+        </table>
+    </section>
+    <section>
+        <title>Property details</title>
+        <section id="prop1" role="detail">
+            <title><classname>org.gradle.Type</classname> <literal>deprecatedProperty</literal> (read-only)</title>
+            <caution>
+                <para>Note: This property is <link linkend="dsl-element-types">deprecated</link> and will be removed in the next major version of Gradle.</para>
+            </caution>
+            <para>prop1 comment</para>
+        </section>
+        <section id="prop2" role="detail">
+            <title><classname>org.gradle.Type</classname> <literal>experimentalProperty</literal> (read-only)</title>
+            <caution>
+                <para>Note: This property is <link linkend="dsl-element-types">experimental</link> and may change in a future version of Gradle.</para>
+            </caution>
+            <para>prop2 comment</para>
+        </section>
+    </section>
+</chapter>'''
+    }
+
     def removesPropertiesTableWhenClassHasNoProperties() {
         def content = parse('''
             <chapter>
@@ -582,6 +661,8 @@ class ClassDocRendererTest extends XmlSpecification {
         _ * propDoc.description >> parse("<para>${args.description ?: 'description'}</para>")
         _ * propDoc.comment >> [parse("<para>${args.comment ?: 'comment'}</para>")]
         _ * propDoc.metaData >> propMetaData
+        _ * propDoc.deprecated >> (args.deprecated ?: false)
+        _ * propDoc.experimental >> (args.experimental ?: false)
         _ * propMetaData.type >> new TypeMetaData(args.type ?: 'SomeType')
         return propDoc
     }

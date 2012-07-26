@@ -81,6 +81,10 @@ abstract class XmlSpecification extends Specification {
                 target.append(" $attr.name=\"$attr.value\"")
             }
 
+            element.childNodes.findAll { it instanceof Text }.each {
+                assert it.textContent != null : "Found null text element in <$element.tagName>"
+            }
+
             List<Node> trimmedContent = element.childNodes.collect { it };
             boolean inlineContent = trimmedContent.find { it instanceof Text && it.textContent.trim() }
 

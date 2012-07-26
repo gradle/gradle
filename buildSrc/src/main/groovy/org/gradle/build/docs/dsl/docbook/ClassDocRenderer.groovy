@@ -23,6 +23,7 @@ import org.gradle.build.docs.dsl.docbook.model.ClassExtensionDoc
 class ClassDocRenderer {
     private final LinkRenderer linkRenderer
     private final GenerationListener listener = new DefaultGenerationListener()
+    private final PropertyTableRenderer propertyTableRenderer = new PropertyTableRenderer()
 
     ClassDocRenderer(LinkRenderer linkRenderer) {
         this.linkRenderer = linkRenderer
@@ -72,16 +73,8 @@ class ClassDocRenderer {
 
         propertiesTable.children = {
             title("Properties - $classDoc.simpleName")
-            thead {
-                tr { td('Property'); td('Description') }
-            }
-            classProperties.each { propDoc ->
-                tr {
-                    td { link(linkend: propDoc.id) { literal(propDoc.name) } }
-                    td { appendChild(propDoc.description) }
-                }
-            }
         }
+        propertyTableRenderer.renderTo(classProperties, propertiesTable)
 
         propertiesSection.addAfter {
             section {
@@ -284,22 +277,17 @@ class ClassDocRenderer {
                 if (!extension.extensionProperties) {
                     return
                 }
-                section {
+                def section = section {
                     title { text("Properties added by the "); literal(extension.pluginId); text(" plugin") }
                     titleabbrev { literal(extension.pluginId); text(" plugin") }
                     table {
                         title { text("Properties - "); literal(extension.pluginId); text(" plugin") }
-                        thead { tr { td('Property'); td('Description') } }
-                        extension.extensionProperties.each { propertyDoc ->
-                            tr {
-                                td { link(linkend: propertyDoc.id) { literal(propertyDoc.name) } }
-                                td { appendChild propertyDoc.description }
-                            }
-                        }
                     }
                 }
+                propertyTableRenderer.renderTo(extension.extensionProperties, section.table[0])
             }
         }
+
         classDoc.propertyDetailsSection << {
             classDoc.classExtensions.each { ClassExtensionDoc extension ->
                 extension.extensionProperties.each { propDoc ->
