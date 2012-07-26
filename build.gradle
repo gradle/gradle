@@ -169,31 +169,4 @@ task installAll(type: Install) {
     installDirPropertyName = 'gradle_installPath'
 }
 
-task intTestImage(type: Sync) {
-    into file("$buildDir/integ test")
-}
-
-if (useIncomingDistributions) {
-    task unpackIncomingAllDistribution(type: Sync) {
-        from zipTree(incomingAllDistribution)
-        into "$buildDir/tmp/unpacked-incoming-all-distribution"
-    }
-
-    // Compensate for the top level dir in the zip
-    def unpackedPath = "$unpackIncomingAllDistribution.destinationDir/${incomingAllDistribution.name - "-all.zip"}"
-
-    intTestImage {
-        dependsOn unpackIncomingAllDistribution
-        from unpackedPath
-    }
-} else {
-    intTestImage {
-        with project(":distributions").binDistImage
-        into "samples", {
-            from { project(":docs").samples }
-        }
-        doLast { task ->
-            ant.chmod(dir: "$destinationDir/bin", perm: "ugo+rx", includes: "**/*")
-        }
-    }
-}
+apply from: "gradle/intTestImage.gradle"
