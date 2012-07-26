@@ -110,6 +110,7 @@ section.major-detail {
   font-size: 15px;
   border: 1px dotted #999;
   background-color: #FCFCFC;
+  border-radius: 5px;
 }
 
 section.minor-detail {
@@ -138,6 +139,8 @@ pre {
   border-radius: 5px;
   padding: 0.5em;
   line-height: 1.4;
+  margin-left: 1em;
+  margin-right: 1em;
 }
 
 pre.code {
