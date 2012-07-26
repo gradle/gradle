@@ -51,23 +51,6 @@ buildTypes {
     promotionBuild "verifyIsProductionBuildEnvironment", "clean", "buildDists", "distributions:integTest", "uploadArchives"
 }
 
-ext.incomingAllDistribution = null
-if (project.hasProperty("useIncomingDistributions")) {
-    useIncomingDistributions = true
-    def incomingDistributionsDir = file("incoming-distributions")
-    if (!incomingDistributionsDir.directory) {
-        throw new GradleException("-PuseIncomingDistributions set, but 'incoming-distributions' is not an existing directory")
-    }
-
-    def contents = incomingDistributionsDir.listFiles()
-    ext.incomingAllDistribution = contents.find { it.name ==~ /gradle-.+-all\.zip/ }
-    if (!incomingAllDistribution) {
-        throw new GradleException("Couldn't find all distribution in incoming distributions (contents: $contents.name)")
-    }
-} else {
-    ext.useIncomingDistributions = false
-}
-
 ext {
     isCiServer = System.getenv().containsKey("TEAMCITY_VERSION")
     isWindows = System.getProperty("os.name").toLowerCase().contains("windows")
@@ -77,12 +60,19 @@ ext {
     } else {
         ext.maxParallelForks = Math.max(2, (int) (Runtime.runtime.availableProcessors() / 2))
     }
+
+    if (project.hasProperty("useIncomingDistributions")) {
+        project.useIncomingDistributions = true
+    } else {
+        ext.useIncomingDistributions = false
+    }
 }
 
+apply from: "gradle/buildReceipt.gradle"
+apply from: "gradle/incomingDistributions.gradle"
 apply from: "gradle/versioning.gradle"
 apply from: "gradle/dependencies.gradle"
 apply from: "gradle/wrapper.gradle"
-apply from: "gradle/buildReceipt.gradle"
 
 allprojects {
     version = rootProject.version

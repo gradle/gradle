@@ -14,6 +14,22 @@
  * limitations under the License.
  */
 
+ext {
+    buildReceiptFileName = "build-receipt.properties"
+
+    readBuildReceipt = { buildReceiptFile ->
+        buildReceiptFile = file(buildReceiptFile)
+        if (!buildReceiptFile.exists()) {
+            throw new GradleException("Can't read build receipt file '$buildReceiptFile' as it doesn't exist")
+        }
+        buildReceiptFile.withInputStream {
+            def p = new Properties()
+            p.load(it)
+            p
+        }
+    }
+}
+
 task determineCommitId {
     ext.commitId = null
 
@@ -67,7 +83,7 @@ task determineCommitId {
 }
 
 task createBuildReceipt(dependsOn: determineCommitId) {
-    ext.receiptFile = file("$buildDir/build-receipt.properties")
+    ext.receiptFile = file("$buildDir/$buildReceiptFileName")
     outputs.file receiptFile
     outputs.upToDateWhen { false }
     doLast {

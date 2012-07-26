@@ -1,16 +1,11 @@
 def timestampFormat = new java.text.SimpleDateFormat('yyyyMMddHHmmssZ')
 timestampFormat.timeZone = TimeZone.getTimeZone("UTC")
 
-if (incomingAllDistribution) {
-    def match = incomingAllDistribution.name =~ /gradle-(.+)-all.zip/
+if (incomingDistributionsBuildReceipt) {
+    def incomingVersion = incomingDistributionsBuildReceipt.versionNumber
+    def match = incomingVersion =~ /(.+)-(\d{14}[+-]\d{4})/
     if (!match) {
-        throw new GradleException("Can't extract version number from incoming distribution file name")
-    }
-
-    def incomingVersion = match[0][1]
-    match = incomingVersion =~ /(.+)-(\d{14}[+-]\d{4})/
-    if (!match) {
-        throw new GradleException("Can't extract version number from incoming distribution file name version part: $incomingVersion")
+        throw new GradleException("Can't extract version number from incoming distribution build receipt version number: $incomingVersion")
     }
 
     version = match[0][1]
