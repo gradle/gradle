@@ -68,18 +68,6 @@ daemonIntegTest {
     systemProperties['org.gradle.integtest.daemon.registry'] = file("$rootProject.buildDir/daemon").absolutePath
 }
 
-if (isCiServer && isWindows) {
-    if (!rootProject.tasks.findByName("waitForDaemonsToDie")) {
-        rootProject.task("waitForDaemonsToDie") << {
-            def mins = 5
-            println "I'm waiting for $mins mins so that existing daemons can die with honour. It's a workaround until we fix it properly."
-            sleep mins * 60 * 1000
-        }
-    }
-
-    integTestTasks.all { dependsOn rootProject.waitForDaemonsToDie }
-}
-
 plugins.withType(org.gradle.plugins.ide.idea.IdeaPlugin) { // lazy as plugin not applied yet
     idea {
         module {

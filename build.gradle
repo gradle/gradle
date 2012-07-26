@@ -47,7 +47,7 @@ buildTypes {
     platformTest "test", "forkingIntegTest", noDistTests: true, useIncomingDistributions: true
 
     // Tests using the daemon mode
-    daemonTest "daemonIntegTest", noDistTests: true, useIncomingDistributions: true
+    daemonTest "waitForDaemonsToDie", "daemonIntegTest", noDistTests: true, useIncomingDistributions: true
 
     // Used for cross version tests on CI
     crossVersionTest "forkingIntegTest", crossVersionTestsOnly: "", testAllVersions: "", noDistTests: true, useIncomingDistributions: true
@@ -244,6 +244,15 @@ dependencies {
 
 evaluationDependsOn(':docs')
 evaluationDependsOn(':integTest')
+
+task waitForDaemonsToDie {
+    onlyIf { isCiServer && isWindows }
+    doLast {
+        def mins = 3
+        println "I'm waiting for $mins mins so that existing daemons can die with honour. It's a workaround until we fix it properly."
+        sleep mins * 60 * 1000
+    }
+}
 
 clean.dependsOn subprojects.collect { "$it.path:clean" }
 
