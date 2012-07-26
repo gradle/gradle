@@ -88,11 +88,6 @@ allprojects {
     version = rootProject.version
     group = 'org.gradle'
 
-    plugins.withType(JavaPlugin) {
-        sourceCompatibility = 1.5
-        targetCompatibility = 1.5
-    }
-
     repositories {
         maven { url 'http://repo.gradle.org/gradle/libs' }
     }

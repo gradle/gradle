@@ -4,6 +4,9 @@ apply plugin: 'groovy'
 
 archivesBaseName = "gradle-${name.replaceAll("\\p{Upper}") { "-${it.toLowerCase()}" } }"
 
+sourceCompatibility = 1.5
+targetCompatibility = 1.5
+
 if (!sourceSets.main.groovy.srcDirs.any{ it.exists() }) {
     // Remove configurations.groovy from compile and runtime classpaths.
     configurations {
