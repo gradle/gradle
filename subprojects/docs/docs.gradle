@@ -340,8 +340,11 @@ task docsZip(type: Zip) {
 import org.gradle.plugins.pegdown.PegDown
 import org.gradle.plugins.jsoup.Jsoup
 
-task editReleaseNotes() << {
-    Class.forName("java.awt.Desktop").newInstance().edit(file("src/docs/release/notes.md"))
+task editReleaseNotes() {
+    group = "release notes"
+    doLast {
+        Class.forName("java.awt.Desktop").newInstance().edit(file("src/docs/release/notes.md"))
+    }
 }
 
 task releaseNotesMarkdown(type: PegDown) {
@@ -359,6 +362,7 @@ task decorateReleaseNotes(type: Jsoup) {
 
 import org.apache.tools.ant.filters.*
 task releaseNotes(type: Copy) {
+    group = "release notes"
     ext.fileName = "release-notes.html"
     into "$docsDir"
     from decorateReleaseNotes, {
@@ -369,8 +373,11 @@ task releaseNotes(type: Copy) {
     }
 }
 
-task viewReleaseNotes(dependsOn: releaseNotes) << {
-    Class.forName("java.awt.Desktop").newInstance().browse(new File(releaseNotes.destinationDir, releaseNotes.fileName).toURI())
+task viewReleaseNotes(dependsOn: releaseNotes) {
+    group = "release notes"
+    doLast {
+        Class.forName("java.awt.Desktop").newInstance().browse(new File(releaseNotes.destinationDir, releaseNotes.fileName).toURI())
+    }
 }
 
 class Xhtml2Pdf extends DefaultTask {

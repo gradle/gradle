@@ -497,6 +497,7 @@ if (isCiServer) {
 
 def wrapperUpdateTask = { name, label ->
     task "${name}Wrapper"(type: Wrapper) {
+        group = "wrapper"
         doFirst {
             def version = new groovy.json.JsonSlurper().parseText(new URL("http://services.gradle.org/versions/$label").text)
             if (version.empty) {
