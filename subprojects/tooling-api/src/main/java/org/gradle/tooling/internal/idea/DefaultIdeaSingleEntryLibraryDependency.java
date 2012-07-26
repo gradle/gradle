@@ -84,7 +84,7 @@ public class DefaultIdeaSingleEntryLibraryDependency implements IdeaSingleEntryL
         return this;
     }
 
-    public DefaultIdeaSingleEntryLibraryDependency setExternalGradleModule(GradleModuleVersion moduleVersion) {
+    public DefaultIdeaSingleEntryLibraryDependency setGradleModuleVersion(GradleModuleVersion moduleVersion) {
         this.moduleVersion = moduleVersion;
         return this;
     }

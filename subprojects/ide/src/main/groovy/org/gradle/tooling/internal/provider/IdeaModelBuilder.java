@@ -93,7 +93,7 @@ public class IdeaModelBuilder implements BuildsModel {
                         .setExported(d.getExported());
 
                 if (d.getModuleVersion() != null) {
-                    defaultDependency.setExternalGradleModule(new DefaultGradleModuleVersion(d.getModuleVersion()));
+                    defaultDependency.setGradleModuleVersion(new DefaultGradleModuleVersion(d.getModuleVersion()));
                 }
                 dependencies.add(defaultDependency);
             } else if (dependency instanceof ModuleDependency) {
