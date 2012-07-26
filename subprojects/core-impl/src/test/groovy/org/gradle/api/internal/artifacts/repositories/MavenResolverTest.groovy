@@ -30,10 +30,11 @@ class MavenResolverTest extends Specification {
     def locallyAvailableResourceFinder = Mock(LocallyAvailableResourceFinder)
     def cachedExternalResourceIndex = Mock(CachedExternalResourceIndex)
 
-    def setup(){
+    def setup() {
         repositoryTransport.getRepository() >> repository
         repository.getFileSeparator() >> "/"
     }
+
     @Unroll
     def "setUseMavenMetaData '#value' adapts versionLister to #classname"() {
         setup:

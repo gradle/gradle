@@ -23,12 +23,9 @@ import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
-import org.apache.ivy.plugins.repository.Resource;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.apache.ivy.plugins.resolver.util.ResourceMDParser;
-import org.apache.ivy.util.ContextualSAXHandler;
 import org.apache.ivy.util.Message;
-import org.apache.ivy.util.XMLHelper;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
@@ -39,7 +36,6 @@ import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -54,6 +50,7 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
     private String pattern = MavenPattern.M2_PATTERN;
     private boolean usepoms = true;
     private boolean useMavenMetadata = true;
+    private final MavenMetadataLoader mavenMetaDataLoader;
 
     public MavenResolver(String name, URI rootUri, RepositoryTransport transport,
                          LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder,
@@ -65,6 +62,7 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
                 cachedExternalResourceIndex);
         transport.configureCacheManager(this);
 
+        this.mavenMetaDataLoader = new MavenMetadataLoader(transport.getRepository());
         this.transport = transport;
         this.root = transport.convertToPath(rootUri);
 
@@ -186,52 +184,18 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
     }
 
     private MavenMetadata parseMavenMetadata(String metadataLocation) {
-        final MavenMetadata mavenMetadata = new MavenMetadata();
         if (shouldUseMavenMetadata(pattern)) {
-            parseMavenMetadataInto(metadataLocation, mavenMetadata);
-        }
-        return mavenMetadata;
-    }
-
-    private void parseMavenMetadataInto(String metadataLocation, final MavenMetadata mavenMetadata) {
-        try {
-            Resource metadata = getResource(metadataLocation);
             try {
-                parseMavenMetadataInto(metadata, mavenMetadata);
-            } finally {
-                discardResource(metadata);
+                return mavenMetaDataLoader.load(metadataLocation);
+            } catch (IOException e) {
+                LOGGER.warn("impossible to access maven metadata file, ignored.", e);
+            } catch (SAXException e) {
+                LOGGER.warn("impossible to parse maven metadata file, ignored.", e);
+            } catch (ParserConfigurationException e) {
+                LOGGER.warn("impossible to parse maven metadata file, ignored.", e);
             }
-        } catch (IOException e) {
-            LOGGER.warn("impossible to access maven metadata file, ignored.", e);
-        } catch (SAXException e) {
-            LOGGER.warn("impossible to parse maven metadata file, ignored.", e);
-        } catch (ParserConfigurationException e) {
-            LOGGER.warn("impossible to parse maven metadata file, ignored.", e);
         }
-    }
-
-    private void parseMavenMetadataInto(Resource metadataResource, final MavenMetadata mavenMetadata) throws IOException, SAXException, ParserConfigurationException {
-        if (metadataResource.exists()) {
-            LOGGER.debug("parsing maven-metadata: {}", metadataResource);
-            InputStream metadataStream = metadataResource.openStream();
-            XMLHelper.parse(metadataStream, null, new ContextualSAXHandler() {
-                public void endElement(String uri, String localName, String qName)
-                        throws SAXException {
-                    if ("metadata/versioning/snapshot/timestamp".equals(getContext())) {
-                        mavenMetadata.timestamp = getText();
-                    }
-                    if ("metadata/versioning/snapshot/buildNumber".equals(getContext())) {
-                        mavenMetadata.buildNumber = getText();
-                    }
-                    if ("metadata/versioning/versions/version".equals(getContext())) {
-                        mavenMetadata.versions.add(getText().trim());
-                    }
-                    super.endElement(uri, localName, qName);
-                }
-            }, null);
-        } else {
-            LOGGER.debug("maven-metadata not available: {}", metadataResource);
-        }
+        return null;
     }
 
     public void dumpSettings() {
@@ -300,11 +264,5 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
         if (!compatible) {
             throw new IllegalArgumentException("Cannot set m2compatible = false on mavenRepo.");
         }
-    }
-
-    private static class MavenMetadata {
-        public String timestamp;
-        public String buildNumber;
-        public List<String> versions = new ArrayList<String>();
     }
 }
