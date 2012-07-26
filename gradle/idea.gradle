@@ -4,11 +4,13 @@ allprojects {
 	apply plugin: "idea"
 }
 
-configure(groovyProjects()) {
-    idea {
-        module {
-            scopes.RUNTIME.plus.add(configurations.detachedConfiguration(new DefaultSelfResolvingDependency(files { sourceSets.main.resources.srcDirs })))
-            scopes.TEST.plus.add(configurations.detachedConfiguration(new DefaultSelfResolvingDependency(files { sourceSets*.resources*.srcDirs })))
+subprojects {
+    plugins.withType(JavaPlugin) {
+        idea {
+            module {
+                scopes.RUNTIME.plus.add(configurations.detachedConfiguration(new DefaultSelfResolvingDependency(files { sourceSets.main.resources.srcDirs })))
+                scopes.TEST.plus.add(configurations.detachedConfiguration(new DefaultSelfResolvingDependency(files { sourceSets*.resources*.srcDirs })))
+            }
         }
     }
 }
@@ -26,7 +28,6 @@ idea {
         languageLevel = '1.5'
 
         ipr {
-
             withXml { provider ->
                 // Exclude resource directories from compilation and add them back in as classpath resources
                 def node = provider.asNode()

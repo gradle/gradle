@@ -73,6 +73,8 @@ apply from: "gradle/incomingDistributions.gradle"
 apply from: "gradle/versioning.gradle"
 apply from: "gradle/dependencies.gradle"
 apply from: "gradle/wrapper.gradle"
+apply from: "gradle/idea.gradle"
+apply from: "gradle/eclipse.gradle"
 
 allprojects {
     version = rootProject.version
@@ -95,9 +97,6 @@ allprojects {
     apply from: "$rootDir/gradle/codeQuality.gradle"
     apply from: "$rootDir/gradle/testWithUnknownOS.gradle"
 }
-
-apply from: "gradle/idea.gradle"
-apply from: "gradle/eclipse.gradle"
 
 configurations {
     dists
