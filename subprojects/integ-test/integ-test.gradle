@@ -14,7 +14,7 @@ dependencies {
 }
 
 integTestTasks.all {
-    dependsOn ':publishLocalArchives', ':docs:userguideDocbook'
+    dependsOn({ rootProject.getTasksByName('publishLocalArchives', true) }, ':docs:userguideDocbook')
 
     jvmArgs '-Xmx512m', '-XX:MaxPermSize=256m'
 
