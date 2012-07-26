@@ -193,17 +193,6 @@ allprojects {
     version = this.version
 
     apply from: "$rootDir/gradle/conventions-dsl.gradle"
-
-    ext {
-
-        isCIBuild = {
-            gradle.taskGraph.hasTask(ciBuild)
-        }
-
-        isCommitBuild = {
-            gradle.taskGraph.hasTask(commitBuild)
-        }
-    }
 }
 
 configure(groovyProjects()) {
@@ -494,16 +483,6 @@ gradle.taskGraph.whenReady {graph ->
         artifactoryUserName
         artifactoryUserPassword
     }
-}
-
-task ciBuild {
-    description = 'Full build performed by the CI server'
-    dependsOn clean, testedDists
-}
-
-task commitBuild {
-    description = 'Commit build performed by the CI server'
-    dependsOn testedDists
 }
 
 task verifyIsProductionBuildEnvironment << {
