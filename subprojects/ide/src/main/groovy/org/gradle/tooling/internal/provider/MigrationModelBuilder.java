@@ -19,6 +19,7 @@ package org.gradle.tooling.internal.provider;
 import com.google.common.collect.Lists;
 
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.GradleInternal;
@@ -62,17 +63,27 @@ public class MigrationModelBuilder implements BuildsModel {
         Configuration configuration = project.getConfigurations().findByName("archives");
         if (configuration != null) {
             for (PublishArtifact artifact : configuration.getArtifacts()) {
-                archives.add(new DefaultArchive(artifact.getFile()));
+                String taskPath = getTaskPath(artifact);
+                archives.add(new DefaultArchive(taskPath, artifact.getFile()));
             }
         }
         return new ImmutableDomainObjectSet<Archive>(archives);
+    }
+
+    private String getTaskPath(PublishArtifact artifact) {
+        String taskPath = null;
+        Set<? extends Task> tasks = artifact.getBuildDependencies().getDependencies(null);
+        if (!tasks.isEmpty()) {
+            taskPath = tasks.iterator().next().getPath();
+        }
+        return taskPath;
     }
 
     private DomainObjectSet<TestRun> getTestRuns(Project project) {
         List<TestRun> testRuns = Lists.newArrayList();
         Set<Test> testTasks = project.getTasks().withType(Test.class);
         for (Test task : testTasks) {
-            testRuns.add(new DefaultTestRun(task.getTestResultsDir()));
+            testRuns.add(new DefaultTestRun(task.getPath(), task.getTestResultsDir()));
         }
         return new ImmutableDomainObjectSet<TestRun>(testRuns);
     }

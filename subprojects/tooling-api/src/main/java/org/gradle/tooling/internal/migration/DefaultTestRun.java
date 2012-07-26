@@ -22,10 +22,16 @@ import java.io.File;
 import java.io.Serializable;
 
 public class DefaultTestRun implements TestRun, Serializable {
+    private final String taskPath;
     private final File xmlReportDir;
 
-    public DefaultTestRun(File xmlReportDir) {
+    public DefaultTestRun(String taskPath, File xmlReportDir) {
+        this.taskPath = taskPath;
         this.xmlReportDir = xmlReportDir;
+    }
+
+    public String getTaskPath() {
+        return taskPath;
     }
 
     public File getXmlReportDir() {

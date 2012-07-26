@@ -22,10 +22,16 @@ import java.io.File;
 import java.io.Serializable;
 
 public class DefaultArchive implements Archive, Serializable {
+    private final String taskPath;
     private final File file;
 
-    public DefaultArchive(File file) {
+    public DefaultArchive(String taskPath, File file) {
+        this.taskPath = taskPath;
         this.file = file;
+    }
+
+    public String getTaskPath() {
+        return taskPath;
     }
 
     public File getFile() {

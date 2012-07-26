@@ -16,9 +16,13 @@
 
 package org.gradle.tooling.model.internal.migration;
 
+import org.gradle.api.Nullable;
 import org.gradle.tooling.model.Model;
 
 /**
  * An output produced by a Gradle task.
  */
-public interface TaskOutput extends Model {}
+public interface TaskOutput extends Model {
+    @Nullable
+    public String getTaskPath();
+}
