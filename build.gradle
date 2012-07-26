@@ -76,6 +76,7 @@ ext {
 apply from: "gradle/versioning.gradle"
 apply from: "gradle/dependencies.gradle"
 apply from: "gradle/wrapper.gradle"
+apply from: "gradle/buildReceipt.gradle"
 
 allprojects {
     group = 'org.gradle'
@@ -159,83 +160,6 @@ task aggregateTestReports(type: TestReportAggregator) {
     testReportDir = reporting.file("tests")
     testResultsDir = file("${buildDir}/test-results")
     projects = subprojects
-}
-
-task determineCommitId {
-    ext.commitId = null
-
-    doLast {
-        def strategies = []
-
-        def env = System.getenv()
-
-        // Builds of Gradle happening on the CI server
-        strategies << {
-            env["BUILD_VCS_NUMBER"]
-        }
-
-        // For the discovery builds, this points to the Gradle revision
-        strategies << {
-            env.find { it.key.startsWith("BUILD_VCS_NUMBER_Gradle_Master") }?.value
-        }
-
-        // If it's a checkout, ask Git for it
-        strategies << {
-            if (file(".git").exists()) {
-                def baos = new ByteArrayOutputStream()
-                exec {
-                    executable "git"
-                    args "log", "-1", "--format=%H"
-                    standardOutput = baos
-                }
-                new String(baos.toByteArray(), "utf8").trim()
-            } else {
-                null
-            }
-        }
-
-        // It's a source distribution, we don't know.
-        strategies << {
-            if (!file("design-docs").directory) {
-                "<unknown>"
-            }
-        }
-
-        for (strategy in strategies) {
-            commitId = strategy()
-            if (commitId) {
-                break
-            }
-        }
-        if (!commitId) {
-            throw new InvalidUserDataException("Could not determine commit id")
-        }
-    }
-}
-
-task createBuildReceipt(dependsOn: determineCommitId) {
-    ext.receiptFile = file("$buildDir/build-receipt.properties")
-    outputs.file receiptFile
-    outputs.upToDateWhen { false }
-    doLast {
-        def data = [
-            commitId:  determineCommitId.commitId,
-            versionNumber: version,
-            buildTimestamp: buildTimestamp,
-            username: System.properties["user.name"],
-            hostname: InetAddress.localHost.hostName,
-            javaVersion: System.properties["java.version"],
-            osName: System.properties["os.name"],
-            osVersion: System.properties["os.version"]
-        ]
-
-        receiptFile.parentFile.mkdirs()
-
-        // We write this out ourself instead of using the properties class to avoid the
-        // annoying timestamp that insists on placing in there, that throws out incremental.
-        def content = data.entrySet().collect { "$it.key=$it.value" }.sort().join("\n")
-        receiptFile.setText(content, "ISO-8859-1")
-    }
 }
 
 ext.zipRootFolder = "$archivesBaseName-${-> version}"
