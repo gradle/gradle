@@ -66,6 +66,15 @@ ext {
     } else {
         ext.useIncomingDistributions = false
     }
+
+    groovyProjects = subprojects.findAll { !(it.name in ["docs"]) }
+    publishedProjects = [project(':core'), project(':toolingApi'), project(':wrapper'), project(':baseServices'), project(':messaging')]
+    pluginProjects = [
+        'plugins', 'codeQuality', 'jetty', 'antlr', 'wrapper', 'osgi', 'maven',
+        'ide', 'announce', 'scala', 'sonar', 'signing', 'cpp', 'ear', 'javascript', 'migration'
+    ].collect {
+        project(it)
+    }
 }
 
 apply from: "gradle/buildReceipt.gradle"
@@ -77,7 +86,6 @@ apply from: "gradle/idea.gradle"
 apply from: "gradle/eclipse.gradle"
 
 allprojects {
-    version = rootProject.version
     group = 'org.gradle'
 
     repositories {
@@ -85,17 +93,23 @@ allprojects {
     }
 }
 
-configure(groovyProjects()) {
-    apply from: "$rootDir/gradle/groovyProject.gradle"
-}
+subprojects {
+    version = rootProject.version
 
-configure(publishedProjects()) {
-    apply from: "$rootDir/gradle/publish.gradle"
-}
+    if (project in groovyProjects) {
+        apply from: "$rootDir/gradle/groovyProject.gradle"
+        apply from: "$rootDir/gradle/testWithUnknownOS.gradle"
+    }
 
-allprojects {
+    if (project in publishedProjects) {
+        apply from: "$rootDir/gradle/publish.gradle"
+    }
+
     apply from: "$rootDir/gradle/codeQuality.gradle"
-    apply from: "$rootDir/gradle/testWithUnknownOS.gradle"
+
+    if (isCiServer) {
+        reporting.baseDir "$rootProject.reporting.baseDir/${path.replaceFirst(':', '').replaceAll(':', '.')}"
+    }
 }
 
 configurations {
@@ -114,7 +128,7 @@ configurations {
 
 dependencies {
     runtime project(':launcher')
-    plugins pluginProjects()
+    plugins pluginProjects
     plugins project(':coreImpl')
 }
 
@@ -132,15 +146,15 @@ task waitForDaemonsToDie {
 
 clean.dependsOn subprojects.collect { "$it.path:clean" }
 
-task check(overwrite: true, dependsOn: groovyProjects()*.check)
+task check(overwrite: true, dependsOn: groovyProjects*.check)
 check.dependsOn ':docs:checkstyleApi'
-configure(groovyProjects()) {
+configure(groovyProjects) {
     check.dependsOn ":docs:checkstyleApi"
 }
 
-task test(overwrite: true, dependsOn: groovyProjects()*.test)
-task uploadArchives(dependsOn: publishedProjects()*.uploadArchives)
-task publishLocalArchives(dependsOn: publishedProjects()*.publishLocalArchives)
+task test(overwrite: true, dependsOn: groovyProjects*.test)
+task uploadArchives(dependsOn: publishedProjects*.uploadArchives)
+task publishLocalArchives(dependsOn: publishedProjects*.publishLocalArchives)
 
 task aggregateTestReports(type: TestReportAggregator) {
     testReportDir = reporting.file("tests")
@@ -174,7 +188,7 @@ ext.binDistImage = copySpec {
 ext.allDistImage = copySpec {
     with binDistImage
     into('src') {
-        from groovyProjects().collect {project -> project.sourceSets.main.allSource }
+        from groovyProjects.collect {project -> project.sourceSets.main.allSource }
     }
     into('docs') {
         from project(':docs').outputs.docs
@@ -292,22 +306,3 @@ task verifyIsProductionBuildEnvironment << {
     def systemCharset = java.nio.charset.Charset.defaultCharset().name()
     assert systemCharset == "UTF-8" : "Platform encoding must be UTF-8. Is currently $systemCharset. Set -Dfile.encoding=UTF-8."
 }
-
-if (isCiServer) {
-    subprojects { reporting.baseDir "$rootProject.reporting.baseDir/${path.replaceFirst(':', '').replaceAll(':', '.')}" }
-}
-
-def groovyProjects() {
-    subprojects.findAll { !(it.name in ["docs"]) }
-}
-
-def publishedProjects() {
-    [project(':core'), project(':toolingApi'), project(':wrapper'), project(':baseServices'), project(':messaging')]
-}
-
-def pluginProjects() {
-    ['plugins', 'codeQuality', 'jetty', 'antlr', 'wrapper', 'osgi', 'maven', 'ide', 'announce', 'scala', 'sonar', 'signing', 'cpp', 'ear', 'javascript', 'migration'].collect {
-        project(it)
-    }
-}
-

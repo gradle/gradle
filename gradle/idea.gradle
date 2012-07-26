@@ -37,7 +37,7 @@ idea {
                     compilerConfig.remove(exclude)
                 }
                 exclude = compilerConfig.appendNode('excludeFromCompile')
-                Collection resourceFolder = groovyProjects().collect { project -> project.sourceSets*.resources*.srcDirs }.flatten()
+                Collection resourceFolder = groovyProjects.collect { project -> project.sourceSets*.resources*.srcDirs }.flatten()
                 resourceFolder.each {
                     if (it.exists()) {
                         exclude.appendNode('directory', [url: "file://\$PROJECT_DIR\$/${rootProject.relativePath(it)}", includeSubdirectories: true])
@@ -54,7 +54,7 @@ idea {
                         }
                     }
                 }
-                Collection sourceDirs = groovyProjects().collect { project -> project.sourceSets*.allSource*.srcDirs }.flatten()
+                Collection sourceDirs = groovyProjects.collect { project -> project.sourceSets*.allSource*.srcDirs }.flatten()
                 sourceDirs.each { sourceFolder ->
                     if (!Jvm.current().isJava7()) {
                         excludeSource("jdk7", sourceFolder)

@@ -90,7 +90,7 @@ class PluginsManifest extends DefaultTask {
     @Input
     Properties getPluginProperties() {
         def properties = new Properties()
-        properties.plugins = project.pluginProjects().collect { it.archivesBaseName }.join(',')
+        properties.plugins = project.pluginProjects.collect { it.archivesBaseName }.join(',')
         return properties
     }
 
