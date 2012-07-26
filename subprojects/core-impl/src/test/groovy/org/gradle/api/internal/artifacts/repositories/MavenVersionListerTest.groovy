@@ -18,10 +18,10 @@
 
 package org.gradle.api.internal.artifacts.repositories
 
-import spock.lang.Specification
 import org.apache.ivy.core.module.descriptor.Artifact
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.internal.externalresource.ExternalResource
+import spock.lang.Specification
 
 class MavenVersionListerTest extends Specification {
     def repo = Mock(ExternalResourceRepository)

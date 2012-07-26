@@ -29,7 +29,7 @@ class MavenResolverTest extends Specification {
     def cachedExternalResourceIndex = Mock(CachedExternalResourceIndex)
 
     @Unroll
-    def "setUseMavenMetaData '#value' adapts versionLister to #classname"(){
+    def "setUseMavenMetaData '#value' adapts versionLister to #classname"() {
         setup:
         MavenResolver testresolver = new MavenResolver("test maven resolver", rootUri, repositoryTransport, locallyAvailableResourceFinder, cachedExternalResourceIndex)
         when:

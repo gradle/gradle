@@ -41,7 +41,10 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
 
 public class MavenResolver extends ExternalResourceResolver implements PatternBasedResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenResolver.class);
@@ -56,10 +59,10 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
                          LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder,
                          CachedExternalResourceIndex<String> cachedExternalResourceIndex) {
         super(name,
-              transport.getRepository(),
-              new ChainedVersionLister(new MavenVersionLister(transport.getRepository(), transport.convertToPath(rootUri)), new ResourceVersionLister(transport.getRepository())),
-              locallyAvailableResourceFinder,
-              cachedExternalResourceIndex);
+                transport.getRepository(),
+                new ChainedVersionLister(new MavenVersionLister(transport.getRepository(), transport.convertToPath(rootUri)), new ResourceVersionLister(transport.getRepository())),
+                locallyAvailableResourceFinder,
+                cachedExternalResourceIndex);
         transport.configureCacheManager(this);
 
         this.transport = transport;
@@ -259,10 +262,11 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
     public void setUseMavenMetadata(boolean useMavenMetadata) {
         DeprecationLogger.nagUserOfDiscontinuedMethod("MavenResolver.setUseMavenMetadata(boolean)");
         this.useMavenMetadata = useMavenMetadata;
-        if(useMavenMetadata){
-            this.versionLister = new ChainedVersionLister(new MavenVersionLister(getRepository(), root),
-                                                          new ResourceVersionLister(getRepository()));
-        }else{
+        if (useMavenMetadata) {
+            this.versionLister = new ChainedVersionLister(
+                    new MavenVersionLister(getRepository(), root),
+                    new ResourceVersionLister(getRepository()));
+        } else {
             this.versionLister = new ResourceVersionLister(getRepository());
         }
     }

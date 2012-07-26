@@ -26,7 +26,7 @@ public class ChainedVersionLister implements VersionLister {
 
     private List<VersionLister> versionListers = new ArrayList<VersionLister>();
 
-    public ChainedVersionLister(VersionLister... versionlisters){
+    public ChainedVersionLister(VersionLister... versionlisters) {
         this.versionListers = Arrays.asList(versionlisters);
     }
 
