@@ -64,7 +64,7 @@ public class ResourceVersionLister implements VersionLister {
             return Collections.emptyList();
         }
         String prefix = pattern.substring(0, pattern.indexOf(REVISION_TOKEN));
-        if (revisionIsParentDirectoryName(pattern)) {
+        if (revisionMatchesDirectoryName(pattern)) {
             return listAll(prefix);
         } else {
             int parentFolderSlashIndex = prefix.lastIndexOf(fileSep);
@@ -111,7 +111,7 @@ public class ResourceVersionLister implements VersionLister {
         return Pattern.compile(acceptNamePattern);
     }
 
-    private boolean revisionIsParentDirectoryName(String pattern) {
+    private boolean revisionMatchesDirectoryName(String pattern) {
         int index = pattern.indexOf(REVISION_TOKEN);
         boolean patternStartsWithRevisionToken = index == 0;
         boolean revisionTokenisFollowedByFileSeparator = pattern.contains(REVISION_TOKEN + fileSep);

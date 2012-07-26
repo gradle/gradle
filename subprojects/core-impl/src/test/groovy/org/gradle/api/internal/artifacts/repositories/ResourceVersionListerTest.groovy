@@ -57,14 +57,6 @@ class ResourceVersionListerTest extends Specification {
         testPattern << ["/some/[revision]", "/some/version-[revision]"]
     }
 
-    def "pattern without revision returns empty list"() {
-        setup:
-        def testPattern = "/some/pattern/without/rev"
-        1 * repo.standardize(testPattern) >> testPattern
-        expect:
-        lister.getVersionList(moduleRevisionId, testPattern, artifact).versionStrings == []
-    }
-
     def "getVersionList resolves versions from pattern with version as directory name"() {
         setup:
         1 * repo.list("/some/") >> repoResult
@@ -74,16 +66,16 @@ class ResourceVersionListerTest extends Specification {
         then:
         versionList.versionStrings == ["1.5", "1.6", "another-version"]
         where:
-        testPattern             || repoResult
-        "/some/[revision]"      || ["/some/1.5", "/some/1.6/", "/some/another-version"]
-        "/some/[revision]/"     || ["/some/1.5", "/some/1.6/", "/some/another-version"]
-        "/some/[revision]/lib"  || ["/some/1.5/", "/some/1.6", "/some/another-version"]
+        testPattern             | repoResult
+        "/some/[revision]"      | ["/some/1.5", "/some/1.6/", "/some/another-version"]
+        "/some/[revision]/"     | ["/some/1.5", "/some/1.6/", "/some/another-version"]
+        "/some/[revision]/lib"  | ["/some/1.5/", "/some/1.6", "/some/another-version"]
     }
 
     def "getVersionList resolves versions from pattern with custom version directory name"() {
         setup:
-        1 * repo.list(_) >> [repoResult]
-        1 * repo.standardize(testPattern) >> testPattern
+        repo.list(_) >> [repoResult]
+        repo.standardize(testPattern) >> testPattern
         when:
         def calculatedVersionList = lister.getVersionList(moduleRevisionId, testPattern, artifact)
         then:
@@ -96,75 +88,6 @@ class ResourceVersionListerTest extends Specification {
         "[revision]-version/lib"            | "/1.1.1-version"        || ["1.1.1"]
         "/some/any-[revision]-version/lib"  | "/some/any-1.5-version" || ["1.5"]
         "/some/any-[revision]-version/lib"  | "/some/any-nonmatching" || []
-    }
-
-    def "revisionIsParentDirectoryName checks wether revision token equals parent directory name with"() {
-        expect:
-        lister.revisionIsParentDirectoryName(pattern) == result
-        where:
-        pattern                         ||  result
-        "[revision]"                    || true
-        "[revision]/lib"                || true
-        "[revision]/"                   || true
-        "/a/pattern/[revision]"         || true
-        "/a/pattern/[revision]/"        || true
-        "version-[revision]"            || false
-        "/a/pattern/version-[revision]" || false
-        "/a/pattern/[revision]-version" || false
-
-    }
-
-    def "createRegexPattern creates regex pattern for resolving revision with"() {
-        when:
-        def pattern = lister.createRegexPattern(inputPattern, slashindex)
-        then:
-        def matcher = pattern.matcher(value)
-        matcher.matches()
-        matcher.group(1) == versionValue
-
-        where:
-        inputPattern                   | slashindex | value                 || versionValue   //slashindex
-        "version-[revision]/lib"       | -1         | "version-1.5"         || "1.5"
-        "/some/version-[revision]/lib" | 5          | "/some/version-1.5"   || "1.5"
-        "/some/[revision]-version/lib" | 5          | "/some/1.1.0-version" || "1.1.0"
-        "/some/version-[revision]/lib" | 5          | "/some/version-1.2.0" || "1.2.0"
-        "/some/rev-[revision]-postfix" | 5          | "/some/rev-1-postfix" || "1"
-    }
-
-    def "listAll returns extracts version info from resource list loaded from repository"() {
-        setup:
-        1 * repo.list("/a/path") >> ["/some/path/1.0", "some/path/1.1"]
-        when:
-        def vList = lister.listAll("/a/path")
-        then:
-        vList == ["1.0", "1.1"]
-    }
-
-    def "listAll throws ResourceNotFoundException when for when resource not available via repository"() {
-        setup:
-        1 * repo.list("/a/path") >> null
-        when:
-        lister.listAll("/a/path")
-        then:
-        thrown(ResourceNotFoundException)
-    }
-
-    def "listAll returns returns empty list for empty repository list"() {
-        setup:
-        1 * repo.list("/a/path") >> []
-        when:
-        def vList = lister.listAll("/a/path")
-        then:
-        vList.empty
-    }
-
-    def "extractVersionInfoFromPaths returns last path element in path"() {
-        expect:
-        lister.extractVersionInfoFromPaths(["/some/path/version-1.0"]) == ["version-1.0"]
-    }
-
-    def "extractVersionInfoFromPaths ignores trailing slashes in path"() {
-        expect:
-        lister.extractVersionInfoFromPaths(["/path/with/trailing/slash/version-1.0/"]) == ["version-1.0"]
+        "/some/not-matching/lib"            | "/some/any-nonmatching" || []
     }
 }
