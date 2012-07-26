@@ -25,7 +25,7 @@ tasks.matching { it instanceof Compile || it instanceof GroovyCompile }.all {
     options.useAnt = false
 }
 
-tasks.withType(Jar).each { jar ->
+tasks.withType(Jar) { jar ->
     jar.manifest.mainAttributes([
             (Attributes.Name.IMPLEMENTATION_TITLE.toString()): 'Gradle',
             (Attributes.Name.IMPLEMENTATION_VERSION.toString()): version,
