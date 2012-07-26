@@ -24,7 +24,7 @@ import org.gradle.util.TextUtil
 class MigrationVerificationPluginIntegrationSpec extends AbstractIntegrationSpec {
     @Rule TestResources testResources
 
-    def compareSingleProjectBuilds() {
+    def compareArchives() {
         executer.withForkingExecuter()
 
         when:
