@@ -34,7 +34,15 @@ sourceSets {
 }
 
 compileTasks.all { options.useAnt = false }
-testTasks.all { maxParallelForks = project.maxParallelForks }
+testTasks.all { task ->
+    maxParallelForks = project.maxParallelForks
+    if (isCiServer) {
+        doFirst {
+            println "maxParallelForks for '$task.path' is $task.maxParallelForks"
+        }
+    }
+}
+
 jarTasks.all { jar ->
     jar.manifest.mainAttributes(
         (Attributes.Name.IMPLEMENTATION_TITLE.toString()): 'Gradle',
