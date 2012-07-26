@@ -13,8 +13,6 @@ configure(groovyProjects()) {
     }
 }
 
-evaluationDependsOn(':docs')
-
 idea {
     module {
         excludeDirs += file('intTestHomeDir')
