@@ -45,7 +45,15 @@ artifacts {
     publishRuntime new org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact(archivesBaseName, 'pom', 'pom', null, new Date(), generatePom.pomFile, generatePom)
 }
 
-uploadArchives {
+uploadArchives { task ->
+    gradle.taskGraph.whenReady { graph ->
+        if (graph.hasTask(task)) {
+            // check properties defined and fail early
+            artifactoryUserName
+            artifactoryUserPassword
+        }
+    }
+
     configuration = configurations.publishRuntime
     dependsOn generatePom
     uploadDescriptor = false

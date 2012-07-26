@@ -30,7 +30,7 @@ task executableJar(type: Jar) {
 }
 
 integTestTasks.all {
-    inputs.files rootProject.binZip
+    inputs.files { project(":distributions").binZip }
 }
 
 useTestFixtures()

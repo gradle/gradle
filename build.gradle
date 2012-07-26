@@ -114,7 +114,6 @@ subprojects {
 }
 
 configurations {
-    dists
     runtime {
         visible = false
     }
@@ -133,8 +132,11 @@ dependencies {
     plugins project(':coreImpl')
 }
 
-evaluationDependsOn(':docs')
-evaluationDependsOn(':integTest')
+task verifyIsProductionBuildEnvironment << {
+    assert Jvm.current().isJava7() : "Must use a Java 7 compatible JVM to perform this build. Current JVM is ${Jvm.current()}"
+    def systemCharset = java.nio.charset.Charset.defaultCharset().name()
+    assert systemCharset == "UTF-8" : "Platform encoding must be UTF-8. Is currently $systemCharset. Set -Dfile.encoding=UTF-8."
+}
 
 task waitForDaemonsToDie {
     onlyIf { isCiServer && isWindows }
@@ -151,86 +153,20 @@ task aggregateTestReports(type: TestReportAggregator) {
     projects = subprojects
 }
 
-ext.zipRootFolder = "$archivesBaseName-${-> version}"
+evaluationDependsOn ":distributions"
 
-ext.binDistImage = copySpec {
-    from('src/toplevel') {
-        exclude 'media/**'
-        expand(version: version)
-    }
-    from('src/toplevel') {
-        include 'media/**'
-    }
-    from project(':docs').outputs.distDocs
-    into('bin') {
-        from { project(':launcher').startScripts.outputs.files }
-        fileMode = 0755
-    }
-    into('lib') {
-        from configurations.runtime
-        into('plugins') {
-            from configurations.plugins - configurations.runtime
-        }
-    }
+task install(type: Install) {
+    description = 'Installs the minimal distribution into directory $gradle_installPath'
+    group = 'build'
+    with { project(":distributions").binDistImage }
+    installDirPropertyName = 'gradle_installPath'
 }
 
-ext.allDistImage = copySpec {
-    with binDistImage
-    into('src') {
-        from groovyProjects.collect {project -> project.sourceSets.main.allSource }
-    }
-    into('docs') {
-        from project(':docs').outputs.docs
-    }
-    into('samples') {
-        from project(':docs').outputs.samples
-    }
-}
-
-task allZip(type: Zip) {
-    classifier = 'all'
-    into(zipRootFolder) {
-        with allDistImage
-    }
-}
-
-task binZip(type: Zip) {
-    classifier = 'bin'
-    into(zipRootFolder) {
-        with binDistImage
-    }
-}
-
-task srcZip(type: Zip) {
-    classifier = 'src'
-    into(zipRootFolder) {
-        from('gradlew') {
-            fileMode = 0755
-        }
-        from(projectDir) {
-            def spec = delegate
-            ['buildSrc', 'subprojects/*'].each {
-                spec.include "$it/*.gradle"
-                spec.include "$it/src/"
-            }
-            include 'config/'
-            include 'gradle/'
-            include 'src/'
-            include '*.gradle'
-            include 'wrapper/'
-            include 'gradlew.bat'
-        }
-    }
-}
-
-task outputsZip(type: Zip) {
-    archiveName "outputs.zip"
-    from(createBuildReceipt)
-    ["all", "bin", "src"].each { from(tasks["${it}Zip"]) }
-}
-
-artifacts {
-    dists allZip, binZip, srcZip
+task installAll(type: Install) {
+    description = 'Installs the full distribution into directory $gradle_installPath'
+    group = 'build'
+    with { project(":distributions").allDistImage }
+    installDirPropertyName = 'gradle_installPath'
 }
 
 task intTestImage(type: Sync) {
@@ -252,46 +188,12 @@ if (useIncomingDistributions) {
     }
 } else {
     intTestImage {
-        with binDistImage
+        with project(":distributions").binDistImage
         into "samples", {
-            from project(":docs").samples
+            from { project(":docs").samples }
         }
         doLast { task ->
             ant.chmod(dir: "$destinationDir/bin", perm: "ugo+rx", includes: "**/*")
         }
     }
-}
-
-task install(type: Install) {
-    description = 'Installs the minimal distribution into directory $gradle_installPath'
-    group = 'build'
-    dependsOn binZip.taskDependencies
-    with binDistImage
-    installDirPropertyName = 'gradle_installPath'
-}
-
-task installAll(type: Install) {
-    description = 'Installs the full distribution into directory $gradle_installPath'
-    group = 'build'
-    dependsOn allZip.taskDependencies
-    with allDistImage
-    installDirPropertyName = 'gradle_installPath'
-}
-
-task testedDists(dependsOn: [check]) {
-    outputs.files configurations.dists.allArtifacts.files
-}
-
-gradle.taskGraph.whenReady {graph ->
-    if (graph.hasTask(uploadArchives)) {
-        // check properties defined and fail early
-        artifactoryUserName
-        artifactoryUserPassword
-    }
-}
-
-task verifyIsProductionBuildEnvironment << {
-    assert Jvm.current().isJava7() : "Must use a Java 7 compatible JVM to perform this build. Current JVM is ${Jvm.current()}"
-    def systemCharset = java.nio.charset.Charset.defaultCharset().name()
-    assert systemCharset == "UTF-8" : "Platform encoding must be UTF-8. Is currently $systemCharset. Set -Dfile.encoding=UTF-8."
 }
