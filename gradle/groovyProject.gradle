@@ -17,8 +17,8 @@ dependencies {
 
 apply from: "$rootDir/gradle/compile.gradle"
 
-test {
-    maxParallelForks = guessMaxForks(project)
+tasks.withType(Test) {
+    maxParallelForks = project.maxParallelForks
 }
 
 tasks.matching { it instanceof Compile || it instanceof GroovyCompile }.all {

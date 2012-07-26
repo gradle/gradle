@@ -24,7 +24,6 @@ integTestTasks.all { Test task ->
     classpath = sourceSets.integTest.runtimeClasspath
     testSrcDirs = []
     jvmArgs '-Xmx512m', '-XX:MaxPermSize=256m', '-XX:+HeapDumpOnOutOfMemoryError'
-    maxParallelForks = guessMaxForks(project)
 
     testResultsDir = file("${project.testResultsDir}/$name")
 

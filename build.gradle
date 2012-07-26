@@ -71,6 +71,12 @@ if (project.hasProperty("useIncomingDistributions")) {
 ext {
     isCiServer = System.getenv().containsKey("TEAMCITY_VERSION")
     isWindows = System.getProperty("os.name").toLowerCase().contains("windows")
+
+    if (project.hasProperty("maxParallelForks")) {
+        project.maxParallelForks = Integer.valueOf(project.maxParallelForks)
+    } else {
+        ext.maxParallelForks = Math.max(2, (int) (Runtime.runtime.availableProcessors() / 2))
+    }
 }
 
 apply from: "gradle/versioning.gradle"
@@ -271,14 +277,6 @@ if (useIncomingDistributions) {
             ant.chmod(dir: "$destinationDir/bin", perm: "ugo+rx", includes: "**/*")
         }
     }
-}
-
-def guessMaxForks(project) {
-    if (project.hasProperty("maxParallelForks")) {
-        return Integer.valueOf(project.getProperty("maxParallelForks"))
-    }
-    int processors = Runtime.runtime.availableProcessors()
-    return Math.max(2, (int) (processors / 2))
 }
 
 task install(type: Install) {
