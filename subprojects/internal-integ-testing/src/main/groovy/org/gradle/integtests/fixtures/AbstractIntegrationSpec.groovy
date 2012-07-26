@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.fixtures
 
+import org.gradle.util.ResetLogging
 import org.gradle.util.TestFile
 import org.junit.Rule
 import spock.lang.Specification
@@ -28,6 +29,7 @@ class AbstractIntegrationSpec extends Specification {
     
     @Rule final GradleDistribution distribution = new GradleDistribution()
     @Rule final GradleDistributionExecuter executer = new GradleDistributionExecuter()
+    @Rule final ResetLogging logbackLogging = new ResetLogging()
 
     ExecutionResult result
     ExecutionFailure failure

@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures;
 
+import org.gradle.testing.internal.util.RuleHelper;
 import org.gradle.util.Resources;
 import org.gradle.util.TemporaryFolder;
 import org.gradle.util.TestFile;

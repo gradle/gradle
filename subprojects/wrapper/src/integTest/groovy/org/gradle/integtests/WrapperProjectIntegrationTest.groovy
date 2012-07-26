@@ -32,7 +32,7 @@ class WrapperProjectIntegrationTest extends AbstractIntegrationSpec {
     @Rule TestProxyServer proxyServer = new TestProxyServer(server)
     @Rule SetSystemProperties systemProperties = new SetSystemProperties()
 
-    void setup() {
+    def setup() {
         server.start()
     }
     
