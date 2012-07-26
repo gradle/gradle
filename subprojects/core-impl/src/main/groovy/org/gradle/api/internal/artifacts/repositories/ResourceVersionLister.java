@@ -33,55 +33,56 @@ import java.util.regex.Pattern;
 
 public class ResourceVersionLister implements VersionLister {
     private static final Logger LOGGER = LoggerFactory.getLogger(ResourceVersionLister.class);
+    public static final String REVISION_KEY = "revision";
+    private static final String REVISION_TOKEN = "[" + REVISION_KEY + "]";
+    public static final int REV_TOKEN_LENGTH = REVISION_TOKEN.length();
 
-    private ExternalResourceRepository repository;
+    private final ExternalResourceRepository repository;
+    private final String fileSep;
 
     public ResourceVersionLister(ExternalResourceRepository repository) {
         this.repository = repository;
+        this.fileSep = repository.getFileSeparator();
     }
 
     public VersionList getVersionList(ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact) throws ResourceException, ResourceNotFoundException {
         ModuleRevisionId idWithoutRevision = ModuleRevisionId.newInstance(moduleRevisionId, IvyPatternHelper.getTokenString(IvyPatternHelper.REVISION_KEY));
         String partiallyResolvedPattern = IvyPatternHelper.substitute(pattern, idWithoutRevision, artifact);
         LOGGER.debug("Listing all in {}", partiallyResolvedPattern);
-        List<String> versionStrings = null;
         try {
-            versionStrings = listRevisionToken(partiallyResolvedPattern);
+            return new DefaultVersionList(listRevisionToken(partiallyResolvedPattern));
         } catch (IOException e) {
             throw new ResourceException("Unable to load Versions", e);
         }
-        return new DefaultVersionList(versionStrings);
     }
 
-    // lists all the values a token can take in a pattern, as listed by a given url lister
+    // lists all the values a revison token listed by a given url lister
     private List<String> listRevisionToken(String pattern) throws IOException {
-        String fileSep = repository.getFileSeparator();
         pattern = repository.standardize(pattern);
-        String tokenString = IvyPatternHelper.getTokenString(IvyPatternHelper.REVISION_KEY);
-        int index = pattern.indexOf(tokenString);
-        if (index == -1) {
-            LOGGER.info("Unable to find revision token in pattern {}.", pattern);
-        } else if (tokenIsWholeDirectoryName(pattern, fileSep, tokenString, index)) {
-            String root = pattern.substring(0, index);
-            return listAll(root);
+        if (!pattern.contains(REVISION_TOKEN)) {
+            LOGGER.info("revision token not defined in pattern {}.", pattern);
+            return Collections.emptyList();
+        }
+        String prefix = pattern.substring(0, pattern.indexOf(REVISION_TOKEN));
+        if (revisionIsParentDirectoryName(pattern)) {
+            return listAll(prefix);
         } else {
-            int slashIndex = pattern.substring(0, index).lastIndexOf(fileSep);
-            String root = slashIndex == -1 ? "" : pattern.substring(0, slashIndex);
-            LOGGER.debug("using {} to list all in {} ", repository, root);
-            List<String> all = repository.list(root);
+            int parentFolderSlashIndex = prefix.lastIndexOf(fileSep);
+            String revisionParentFolder = parentFolderSlashIndex == -1 ? "" : prefix.substring(0, parentFolderSlashIndex);
+            LOGGER.debug("using {} to list all in {} ", repository, revisionParentFolder);
+            List<String> all = repository.list(revisionParentFolder);
             if (all == null) {
-                throw new ResourceNotFoundException(String.format("Can not load %s for listing resources", root));
+                throw new ResourceNotFoundException(String.format("Can not load %s for listing resources", revisionParentFolder));
             }
             LOGGER.debug("found {} urls", all.size());
-            Pattern regexPattern = createRegexPattern(pattern, fileSep, slashIndex);
-            List ret = getMatchedValues(all, regexPattern);
+            Pattern regexPattern = createRegexPattern(pattern, parentFolderSlashIndex);
+            List ret = filterMatchedValues(all, regexPattern);
             LOGGER.debug("{} matched {}" + pattern, ret.size(), pattern);
             return ret;
         }
-        return Collections.emptyList();
     }
 
-    private List<String> getMatchedValues(List<String> all, Pattern p) {
+    private List<String> filterMatchedValues(List<String> all, final Pattern p) {
         List<String> ret = new ArrayList<String>(all.size());
         for (String path : all) {
             Matcher m = p.matcher(path);
@@ -93,46 +94,52 @@ public class ResourceVersionLister implements VersionLister {
         return ret;
     }
 
-    private Pattern createRegexPattern(String pattern, String fileSep, int slashIndex) {
-        int endNameIndex = pattern.indexOf(fileSep, slashIndex + 1);
+    private Pattern createRegexPattern(String pattern, int prefixLastSlashIndex) {
+        int endNameIndex = pattern.indexOf(fileSep, prefixLastSlashIndex + 1);
         String namePattern;
         if (endNameIndex != -1) {
-            namePattern = pattern.substring(slashIndex + 1, endNameIndex);
+            namePattern = pattern.substring(prefixLastSlashIndex + 1, endNameIndex);
         } else {
-            namePattern = pattern.substring(slashIndex + 1);
+            namePattern = pattern.substring(prefixLastSlashIndex + 1);
         }
         namePattern = namePattern.replaceAll("\\.", "\\\\.");
+
         String acceptNamePattern = ".*?"
-                + IvyPatternHelper.substituteToken(namePattern, IvyPatternHelper.REVISION_KEY, "([^" + fileSep
-                + "]+)") + "($|" + fileSep + ".*)";
+                + namePattern.replaceAll("\\[revision\\]", "([^" + fileSep + "]+)")
+                + "($|" + fileSep + ".*)";
+
         return Pattern.compile(acceptNamePattern);
     }
 
-    private boolean tokenIsWholeDirectoryName(String pattern, String fileSep, String tokenString, int index) {
-        return ((pattern.length() <= index + tokenString.length()) || fileSep.equals(pattern.substring(index + tokenString.length(), index + tokenString.length() + 1)))
-                && (index == 0 || fileSep.equals(pattern.substring(index - 1, index)));
+    private boolean revisionIsParentDirectoryName(String pattern) {
+        int index = pattern.indexOf(REVISION_TOKEN);
+        boolean patternStartsWithRevisionToken = index == 0;
+        boolean revisionTokenisFollowedByFileSeparator = pattern.contains(REVISION_TOKEN + fileSep);
+        boolean revisionTokenisPrefixedByFileSeparator = pattern.contains(fileSep + REVISION_TOKEN);
+        return ((pattern.length() <= index + REV_TOKEN_LENGTH) || revisionTokenisFollowedByFileSeparator)
+                && (patternStartsWithRevisionToken || revisionTokenisPrefixedByFileSeparator);
     }
+
 
     private List<String> listAll(String parent) throws IOException {
         LOGGER.debug("using {} to list all in {}", repository, parent);
-        List<String> all = repository.list(parent);
-        if (all == null) {
+        List<String> fullPaths = repository.list(parent);
+        if (fullPaths == null) {
             throw new ResourceNotFoundException(String.format("Unable to load %s for listing versions", parent));
         }
-        LOGGER.debug("found {} resources", all.size());
-        List<String> names = getVersionsFromPathList(all);
+        LOGGER.debug("found {} resources", fullPaths.size());
+        List<String> names = extractVersionInfoFromPaths(fullPaths);
         return names;
     }
 
-    private List<String> getVersionsFromPathList(List<String> all) {
-        final String fileSeparator = repository.getFileSeparator();
-        List<String> ret = new ArrayList<String>(all.size());
-        for (String path : all) {
-            if (path.endsWith(fileSeparator)) {
-                path = path.substring(0, path.length() - 1);
+    private List<String> extractVersionInfoFromPaths(List<String> paths) {
+        List<String> ret = new ArrayList<String>(paths.size());
+        for (String fullpath : paths) {
+            if (fullpath.endsWith(fileSep)) {
+                fullpath = fullpath.substring(0, fullpath.length() - 1);
             }
-            int slashIndex = path.lastIndexOf(fileSeparator);
-            ret.add(path.substring(slashIndex + 1));
+            int slashIndex = fullpath.lastIndexOf(fileSep);
+            ret.add(fullpath.substring(slashIndex + 1));
         }
         return ret;
     }

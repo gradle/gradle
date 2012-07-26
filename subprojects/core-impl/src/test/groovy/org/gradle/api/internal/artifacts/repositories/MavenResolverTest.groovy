@@ -24,10 +24,16 @@ import spock.lang.Unroll
 
 class MavenResolverTest extends Specification {
     def repositoryTransport = Mock(RepositoryTransport)
+    def repository = Mock(ExternalResourceRepository)
+
     def rootUri = URI.create("localhost:8081:/testrepo/")
     def locallyAvailableResourceFinder = Mock(LocallyAvailableResourceFinder)
     def cachedExternalResourceIndex = Mock(CachedExternalResourceIndex)
 
+    def setup(){
+        repositoryTransport.getRepository() >> repository
+        repository.getFileSeparator() >> "/"
+    }
     @Unroll
     def "setUseMavenMetaData '#value' adapts versionLister to #classname"() {
         setup:
