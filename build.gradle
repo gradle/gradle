@@ -85,6 +85,7 @@ apply from: "gradle/wrapper.gradle"
 apply from: "gradle/buildReceipt.gradle"
 
 allprojects {
+    version = rootProject.version
     group = 'org.gradle'
 
     plugins.withType(JavaPlugin) {
@@ -95,8 +96,6 @@ allprojects {
     repositories {
         maven { url 'http://repo.gradle.org/gradle/libs' }
     }
-
-    version = this.version
 
     apply from: "$rootDir/gradle/conventions-dsl.gradle"
 }
