@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+include 'distributions'
 include 'baseServices'
 include 'core'
 include 'coreImpl'
@@ -41,7 +42,6 @@ include 'ear'
 include 'native'
 include 'internalTesting'
 include 'internalIntegTesting'
-include 'internalDistTesting'
 include 'performance'
 include 'javascript'
 include 'migration'
