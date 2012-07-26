@@ -7,38 +7,55 @@ archivesBaseName = "gradle-${name.replaceAll("\\p{Upper}") { "-${it.toLowerCase(
 sourceCompatibility = 1.5
 targetCompatibility = 1.5
 
-if (!sourceSets.main.groovy.srcDirs.any{ it.exists() }) {
-    // Remove configurations.groovy from compile and runtime classpaths.
-    configurations {
-        compile.extendsFrom = []
-    }
+ext {
+    hasGroovySource = sourceSets.main.groovy.srcDirs.any { it.exists() }
+    compileTasks = tasks.matching { it instanceof Compile || it instanceof GroovyCompile }
+    testTasks = tasks.withType(Test)
+    generatedResourcesDir = file("$buildDir/generated-resources/main")
+    jarTasks = tasks.withType(Jar)
 }
 
 dependencies {
     testCompile libraries.junit, libraries.jmock, libraries.spock
 }
 
+if (!hasGroovySource) {
+    // Remove Groovy configuration from compile classpath
+    configurations.compile.extendsFrom = []
+}
+
+// Extracted as it's also used by buildSrc
 apply from: "$rootDir/gradle/compile.gradle"
 
-tasks.withType(Test) {
-    maxParallelForks = project.maxParallelForks
-}
-
-tasks.matching { it instanceof Compile || it instanceof GroovyCompile }.all {
-    options.useAnt = false
-}
-
-tasks.withType(Jar) { jar ->
-    jar.manifest.mainAttributes([
-            (Attributes.Name.IMPLEMENTATION_TITLE.toString()): 'Gradle',
-            (Attributes.Name.IMPLEMENTATION_VERSION.toString()): version,
-    ])
-}
-
-ext.generatedResourcesDir = file("$buildDir/generated-resources/main")
-
 task classpathManifest(type: ClasspathManifest)
-sourceSets.main.output.dir generatedResourcesDir, builtBy: classpathManifest
+
+sourceSets {
+    main.output.dir generatedResourcesDir, builtBy: classpathManifest
+}
+
+compileTasks.all { options.useAnt = false }
+testTasks.all { maxParallelForks = project.maxParallelForks }
+jarTasks.all { jar ->
+    jar.manifest.mainAttributes(
+        (Attributes.Name.IMPLEMENTATION_TITLE.toString()): 'Gradle',
+        (Attributes.Name.IMPLEMENTATION_VERSION.toString()): version,
+    )
+}
+
+// Configures the project to use the test fixtures from another project, which by default is core.
+// Note this is not used to provide test fixtures, see gradle/testFixtures.gradle for that
+ext.useTestFixtures = { params = [:] ->
+    def projectPath = params.project ?: ":core"
+    def sourceSet = params.sourceSet ?: "test"
+    def compileConfiguration = sourceSet == "main" ? "compile" : "${sourceSet}Compile"
+    def runtimeConfiguration = sourceSet == "main" ? "runtime" : "${sourceSet}Runtime"
+
+    dependencies {
+        add(compileConfiguration, project(path: projectPath, configuration: "testFixturesUsageCompile"))
+        add(compileConfiguration, project(':internalTesting'))
+        add(runtimeConfiguration, project(path: projectPath, configuration: "testFixturesUsageRuntime"))
+    }
+}
 
 if (file("src/testFixtures").exists()) {
     apply from: "$rootDir/gradle/testFixtures.gradle"
