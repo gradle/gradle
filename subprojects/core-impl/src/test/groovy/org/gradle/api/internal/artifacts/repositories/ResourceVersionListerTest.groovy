@@ -91,7 +91,7 @@ class ResourceVersionListerTest extends Specification {
         "/some/any-[revision]-version/lib"       | "/some"         | ["/some/any-1-version", "/some/any-2.1-version", "/some/any-a-version-version", "/some/nonmatching"]
         "/some/any-[revision]-version/lib/"      | "/some"         | ["/some/any-1-version", "/some/any-2.1-version", "/some/any-a-version-version", "/some/nonmatching"]
         "/some/[revision]/lib/myjar-[revision]/" | "/some/"        | ["/some/1", "/some/2.1", "/some/a-version"]
-        //"/some/proj-[revision]/[revision]/lib/"  | "/some"         | ["/some/proj-1", "/some/proj-2.1", "/some/proj-a-version"] //this should work @TODO fixme
+        "/some/proj-[revision]/[revision]/lib/"  | "/some"         | ["/some/proj-1", "/some/proj-2.1", "/some/proj-a-version"]
     }
 
     def "getVersionList substitutes non revision placeholders from pattern before hitting repository"() {

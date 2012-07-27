@@ -125,12 +125,11 @@ public class ResourceVersionLister implements VersionLister {
     private boolean revisionMatchesDirectoryName(String pattern) {
         int index = pattern.indexOf(REVISION_TOKEN);
         boolean patternStartsWithRevisionToken = index == 0;
-        boolean revisionTokenisFollowedByFileSeparator = pattern.contains(REVISION_TOKEN + fileSep);
-        boolean revisionTokenisPrefixedByFileSeparator = pattern.contains(fileSep + REVISION_TOKEN);
-        return ((pattern.length() <= index + REV_TOKEN_LENGTH) || revisionTokenisFollowedByFileSeparator)
-                && (patternStartsWithRevisionToken || revisionTokenisPrefixedByFileSeparator);
+        return (pattern.length() <= index + REV_TOKEN_LENGTH)
+                    || fileSep.equals(pattern.substring(index + REV_TOKEN_LENGTH, index + REV_TOKEN_LENGTH + 1)) // first revision token is followed by file separator
+                && (patternStartsWithRevisionToken
+                    || fileSep.equals(pattern.substring(index - 1, index))); // first revision token is prefixed by file separator
     }
-
 
     private List<String> listAll(String parent) throws IOException {
         LOGGER.debug("using {} to list all in {}", repository, parent);
