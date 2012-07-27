@@ -30,7 +30,7 @@ class ClassFile {
 
     ClassFile(File file) {
         this.file = file
-        def methodVisitor = new ClassVisitor(Opcodes.ASM4) {
+        def methodVisitor = new MethodVisitor(Opcodes.ASM4) {
             @Override
             void visitLocalVariable(String name, String desc, String signature, Label start, Label end, int index) {
                 hasLocalVars = true
