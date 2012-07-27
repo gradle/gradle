@@ -60,7 +60,7 @@ public class DependencyReportTask extends AbstractReportTask {
         sortedConfigurations.addAll(getConfigurations(project));
         for (Configuration configuration : sortedConfigurations) {
             renderer.startConfiguration(configuration);
-            renderer.render(configuration.getResolvedConfiguration());
+            renderer.render(configuration);
             renderer.completeConfiguration(configuration);
         }
     }

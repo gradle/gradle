@@ -43,7 +43,8 @@ public class GraphvizReportRenderer extends TextReportRenderer implements Depend
         // Do nothing
     }
 
-    public void render(ResolvedConfiguration resolvedConfiguration) throws IOException {
+    public void render(Configuration conf) throws IOException {
+        ResolvedConfiguration resolvedConfiguration = conf.getResolvedConfiguration();
         getTextOutput().println("digraph SomeConf{");
 
         Set<String> edges = new HashSet<String>();

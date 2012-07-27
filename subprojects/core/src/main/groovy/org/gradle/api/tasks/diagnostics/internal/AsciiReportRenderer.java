@@ -74,7 +74,8 @@ public class AsciiReportRenderer extends TextReportRenderer implements Dependenc
     public void completeConfiguration(Configuration configuration) {
     }
 
-    public void render(ResolvedConfiguration resolvedConfiguration) throws IOException {
+    public void render(Configuration configuration) throws IOException {
+        ResolvedConfiguration resolvedConfiguration = configuration.getResolvedConfiguration();
         Set<MergedResolvedDependency> mergedRoots = mergeChildren(resolvedConfiguration.getFirstLevelModuleDependencies());
         if (mergedRoots.isEmpty()) {
             getTextOutput().withStyle(Info).text("No dependencies");
