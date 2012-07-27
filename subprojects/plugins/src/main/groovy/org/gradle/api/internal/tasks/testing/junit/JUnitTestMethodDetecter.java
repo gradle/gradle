@@ -16,16 +16,18 @@
 package org.gradle.api.internal.tasks.testing.junit;
 
 import org.objectweb.asm.AnnotationVisitor;
-import org.objectweb.asm.commons.EmptyVisitor;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 
 /**
  * @author Tom Eyckmans
  */
-class JUnitTestMethodDetecter extends EmptyVisitor {
+class JUnitTestMethodDetecter extends MethodVisitor {
 
     private final JUnitTestClassDetecter testClassDetecter;
 
     JUnitTestMethodDetecter(JUnitTestClassDetecter testClassDetecter) {
+        super(Opcodes.ASM4);
         this.testClassDetecter = testClassDetecter;
     }
 
@@ -33,14 +35,6 @@ class JUnitTestMethodDetecter extends EmptyVisitor {
         if ("Lorg/junit/Test;".equals(desc)) {
             testClassDetecter.setTest(true);
         }
-        return new EmptyVisitor();
-    }
-
-    public AnnotationVisitor visitAnnotationDefault() {
-        return new EmptyVisitor();
-    }
-
-    public AnnotationVisitor visitParameterAnnotation(int parameter, String desc, boolean visible) {
-        return new EmptyVisitor();
+        return null;
     }
 }

@@ -22,7 +22,6 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.util.MutableURLClassLoader;
 import org.objectweb.asm.*;
-import org.objectweb.asm.commons.EmptyVisitor;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -81,16 +80,11 @@ class TransformingClassLoader extends MutableURLClassLoader {
         return bytes;
     }
 
-    private static class AnnotationDetector implements ClassVisitor {
+    private static class AnnotationDetector extends ClassVisitor {
         private boolean found;
 
-        public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
-        }
-
-        public void visitSource(String source, String debug) {
-        }
-
-        public void visitOuterClass(String owner, String name, String desc) {
+        private AnnotationDetector() {
+            super(Opcodes.ASM4);
         }
 
         public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
@@ -99,28 +93,11 @@ class TransformingClassLoader extends MutableURLClassLoader {
             }
             return null;
         }
-
-        public void visitAttribute(Attribute attr) {
-        }
-
-        public void visitInnerClass(String name, String outerName, String innerName, int access) {
-        }
-
-        public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
-            return null;
-        }
-
-        public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
-            return null;
-        }
-
-        public void visitEnd() {
-        }
     }
 
-    private static class TransformingAdapter extends ClassAdapter {
+    private static class TransformingAdapter extends ClassVisitor {
         public TransformingAdapter(ClassWriter classWriter) {
-            super(classWriter);
+            super(Opcodes.ASM4, classWriter);
         }
 
         @Override
@@ -131,29 +108,16 @@ class TransformingClassLoader extends MutableURLClassLoader {
             return super.visitAnnotation(desc, visible);
         }
 
-        private static class AnnotationTransformingVisitor implements AnnotationVisitor {
-            private final AnnotationVisitor annotationVisitor;
+        private static class AnnotationTransformingVisitor extends AnnotationVisitor {
             private final List<String> names = new ArrayList<String>();
 
             public AnnotationTransformingVisitor(AnnotationVisitor annotationVisitor) {
-                this.annotationVisitor = annotationVisitor;
-            }
-
-            public void visit(String name, Object value) {
-                annotationVisitor.visit(name, value);
-            }
-
-            public void visitEnum(String name, String desc, String value) {
-                annotationVisitor.visitEnum(name, desc, value);
-            }
-
-            public AnnotationVisitor visitAnnotation(String name, String desc) {
-                return annotationVisitor.visitAnnotation(name, desc);
+                super(Opcodes.ASM4, annotationVisitor);
             }
 
             public AnnotationVisitor visitArray(String name) {
                 if (name.equals("classes")) {
-                    return new EmptyVisitor(){
+                    return new AnnotationVisitor(Opcodes.ASM4){
                         @Override
                         public void visit(String name, Object value) {
                             Type type = (Type) value;
@@ -161,7 +125,7 @@ class TransformingClassLoader extends MutableURLClassLoader {
                         }
                     };
                 } else if (name.equals("value")) {
-                    return new EmptyVisitor() {
+                    return new AnnotationVisitor(Opcodes.ASM4) {
                         @Override
                         public void visit(String name, Object value) {
                             String type = (String) value;
@@ -169,19 +133,19 @@ class TransformingClassLoader extends MutableURLClassLoader {
                         }
                     };
                 } else {
-                    return annotationVisitor.visitArray(name);
+                    return super.visitArray(name);
                 }
             }
 
             public void visitEnd() {
                 if (!names.isEmpty()) {
-                    AnnotationVisitor visitor = annotationVisitor.visitArray("value");
+                    AnnotationVisitor visitor = super.visitArray("value");
                     for (String name : names) {
                         visitor.visit(null, name);
                     }
                     visitor.visitEnd();
                 }
-                annotationVisitor.visitEnd();
+                super.visitEnd();
             }
         }
     }
