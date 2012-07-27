@@ -26,6 +26,7 @@ import java.util.Map;
 public class SimpleClassMetaDataRepository<T extends Attachable<T>> implements ClassMetaDataRepository<T> {
     private final Map<String, T> classes = new HashMap<String, T>();
 
+    @SuppressWarnings("unchecked")
     public void load(File repoFile) {
         try {
             FileInputStream inputStream = new FileInputStream(repoFile);
