@@ -1,9 +1,3 @@
-import org.junit.Test
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
-import org.gradle.util.TestFile
-import org.apache.tools.ant.taskdefs.Expand
-import org.gradle.util.AntUtil
 /*
  * Copyright 2012 the original author or authors.
  *
@@ -19,6 +13,12 @@ import org.gradle.util.AntUtil
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import org.apache.tools.ant.taskdefs.Expand
+import org.gradle.util.AntUtil
+import org.gradle.util.Requires
+import org.gradle.util.TestFile
+import org.gradle.util.TestPrecondition
 
 class SrcDistributionIntegrationSpec extends DistributionIntegrationSpec {
 

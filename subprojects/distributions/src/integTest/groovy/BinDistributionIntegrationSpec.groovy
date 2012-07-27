@@ -1,4 +1,3 @@
-import org.gradle.util.TestFile
 /*
  * Copyright 2012 the original author or authors.
  *
@@ -14,6 +13,8 @@ import org.gradle.util.TestFile
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import org.gradle.util.TestFile
 
 class BinDistributionIntegrationSpec extends DistributionIntegrationSpec {
 
