@@ -14,17 +14,19 @@
  * limitations under the License.
  */
 
+package org.gradle
+
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.util.GradleVersion
 import org.gradle.util.PreconditionVerifier
 import org.gradle.util.TestFile
 import org.junit.Rule
+import spock.lang.Shared
 import spock.lang.Specification
 
 import static org.hamcrest.Matchers.equalTo
 import static org.junit.Assert.assertThat
-import spock.lang.Shared
 
 class DistributionIntegrationSpec extends Specification {
 

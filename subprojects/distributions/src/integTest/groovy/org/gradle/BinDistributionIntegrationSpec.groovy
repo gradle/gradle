@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+package org.gradle
+
 import org.gradle.util.TestFile
 
 class BinDistributionIntegrationSpec extends DistributionIntegrationSpec {

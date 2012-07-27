@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+package org.gradle
+
 import groovy.io.FileType
 import org.gradle.util.TestFile
 

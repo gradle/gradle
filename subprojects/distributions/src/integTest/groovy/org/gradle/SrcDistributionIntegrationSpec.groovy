@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+package org.gradle
+
 import org.apache.tools.ant.taskdefs.Expand
 import org.gradle.util.AntUtil
 import org.gradle.util.Requires
