@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures;
 
+import org.gradle.testing.internal.util.RuleHelper;
 import org.gradle.util.TestFile;
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
@@ -50,6 +51,7 @@ public class Sample implements MethodRule {
         return new Statement() {
             @Override
             public void evaluate() throws Throwable {
+                RuleHelper.resetLogbackLogging();
                 if (sampleName != null) {
                     TestFile srcDir = dist.getSamplesDir().file(sampleName).assertIsDir();
                     logger.debug("Copying sample '{}' to test directory.", sampleName);

@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures
 import org.gradle.util.TestFile
 import org.junit.Rule
 import spock.lang.Specification
+import org.gradle.testing.internal.util.ResetLogbackLogging
 
 /**
  * Spockified version of AbstractIntegrationTest.
@@ -28,6 +29,7 @@ class AbstractIntegrationSpec extends Specification {
     
     @Rule final GradleDistribution distribution = new GradleDistribution()
     @Rule final GradleDistributionExecuter executer = new GradleDistributionExecuter()
+    @Rule final ResetLogbackLogging logbackLogging = new ResetLogbackLogging()
 
     ExecutionResult result
     ExecutionFailure failure
