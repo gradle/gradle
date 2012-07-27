@@ -58,8 +58,8 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 
     def "canCompileAgainstGroovyClassThatDependsOnExternalClass"() {
         if (getClass() == AntInProcessGroovyCompilerIntegrationTest &&
-                versionNumber >= VersionNumber.parse('1.7.0')) {
-            return // known not to work
+                (version == '1.7.11' || versionNumber >= VersionNumber.parse('1.8.7'))) {
+            return // known not to work; see comment on GRADLE-2404
         }
 
         when:
