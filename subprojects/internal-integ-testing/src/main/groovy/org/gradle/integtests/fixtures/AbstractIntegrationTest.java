@@ -15,7 +15,6 @@
  */
 package org.gradle.integtests.fixtures;
 
-import org.gradle.testing.internal.util.ResetLogbackLogging;
 import org.gradle.util.TestFile;
 import org.gradle.util.TestFileContext;
 import org.junit.Rule;
@@ -25,7 +24,6 @@ import java.io.File;
 public abstract class AbstractIntegrationTest implements TestFileContext {
     @Rule public final GradleDistribution distribution = new GradleDistribution();
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter();
-    @Rule final ResetLogbackLogging logbackLogbackLogging = new ResetLogbackLogging();
 
     public TestFile getTestDir() {
         return distribution.getTestDir();

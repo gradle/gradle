@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.testing.internal.util;
-
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
-import ch.qos.logback.classic.LoggerContext;
-import ch.qos.logback.classic.PatternLayout;
-import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.ConsoleAppender;
-import org.slf4j.LoggerFactory;
+package org.gradle.integtests.fixtures;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -61,35 +53,4 @@ public class RuleHelper {
         }
         return matches.get(0);
     }
-
-    /**
-     * Resets logback to a reasonable base state for tests.
-     *
-     * This lives here because it needs to be invoked by rules that emit logging (e.g. HttpServer)
-     *
-     * @see ResetLogbackLogging
-     */
-    public static void resetLogbackLogging() {
-        final LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
-        context.reset();
-        Logger rootLogger = context.getLogger(Logger.ROOT_LOGGER_NAME);
-        rootLogger.setLevel(Level.WARN);
-
-        context.getLogger("org.mortbay.log").setLevel(Level.OFF);
-        context.getLogger("org.apache.http.wire").setLevel(Level.OFF);
-
-        ConsoleAppender<ILoggingEvent> appender = new ConsoleAppender<ILoggingEvent>();
-        rootLogger.addAppender(appender);
-        appender.setContext(context);
-        appender.setTarget("System.out");
-
-        PatternLayout layout = new PatternLayout();
-        appender.setLayout(layout);
-        layout.setPattern("%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n");
-        layout.setContext(context);
-
-        layout.start();
-        appender.start();
-    }
-
 }

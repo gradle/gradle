@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.fixtures;
 
-import org.gradle.testing.internal.util.RuleHelper;
 import org.gradle.util.Resources;
 import org.gradle.util.TemporaryFolder;
 import org.gradle.util.TestFile;
@@ -60,7 +59,6 @@ public class TestResources implements MethodRule {
         return new Statement() {
             @Override
             public void evaluate() throws Throwable {
-                RuleHelper.resetLogbackLogging();
                 String className = method.getMethod().getDeclaringClass().getSimpleName();
                 maybeCopy(String.format("%s/shared", className));
                 maybeCopy(String.format("%s/%s", className, method.getName()));
