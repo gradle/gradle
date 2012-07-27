@@ -20,6 +20,7 @@ import org.apache.ivy.plugins.repository.Resource;
 import org.apache.ivy.util.ContextualSAXHandler;
 import org.apache.ivy.util.XMLHelper;
 import org.gradle.api.internal.externalresource.ExternalResource;
+import org.gradle.api.internal.resource.ResourceException;
 import org.gradle.api.internal.resource.ResourceNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,23 +39,29 @@ class MavenMetadataLoader {
         this.repository = repository;
     }
 
-    public MavenMetadata load(String metadataLocation) throws ResourceNotFoundException, IOException, SAXException, ParserConfigurationException {
+    public MavenMetadata load(String metadataLocation) throws ResourceNotFoundException, ResourceException {
         MavenMetadata metadata = new MavenMetadata();
-        parseMavenMetadataInfo(metadataLocation, metadata);
+        try {
+            parseMavenMetadataInfo(metadataLocation, metadata);
+        } catch (IOException e) {
+            throw new ResourceException("Unable to load Maven Metadata file", e);
+        }
         return metadata;
     }
 
-    private void parseMavenMetadataInfo(final String metadataLocation, final MavenMetadata metadata) throws ResourceNotFoundException, IOException, SAXException, ParserConfigurationException {
+    private void parseMavenMetadataInfo(final String metadataLocation, final MavenMetadata metadata) throws IOException, ResourceNotFoundException, ResourceException {
         final ExternalResource resource = repository.getResource(metadataLocation);
         if (resource == null) {
-            throw new ResourceNotFoundException(String.format("maven-metadata not available: {}", metadataLocation));
+            throw new ResourceNotFoundException(String.format("maven-metadata not available: %s", metadataLocation));
         }
         try {
             parseMavenMetadataInto(resource, metadata);
+        } catch (SAXException e) {
+            throw new ResourceException("Unable to parse Maven Metadata file", e);
+        } catch (ParserConfigurationException e) {
+            throw new ResourceException("Unable to parse Maven Metadata file", e);
         } finally {
-            if (resource != null) {
-                resource.close();
-            }
+            resource.close();
         }
     }
 

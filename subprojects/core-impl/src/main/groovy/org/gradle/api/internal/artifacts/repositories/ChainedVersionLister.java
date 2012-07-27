@@ -48,14 +48,16 @@ public class ChainedVersionLister implements VersionLister {
 
             } catch (ResourceNotFoundException e) {
                 if (!versionListerIterator.hasNext()) {
-                    throw new ResourceNotFoundException(String.format("Failed to list versions for %s", moduleRevisionId, lister.getClass()), e);
+                    throw new ResourceNotFoundException(String.format("Failed to list versions for %s using %s", moduleRevisionId, lister.getClass()), e);
                 }
             } catch (ResourceException e) {
                 if (versionListerIterator.hasNext()) {
-                    DeprecationLogger.nagUserWith(String.format("Failed to list versions of %s using %s. Proceeding with next ResourceLister.", moduleRevisionId, lister.getClass()));
-                    LOGGER.debug(String.format("Failed to list versions of %s using %s. Proceeding with next ResourceLister.", moduleRevisionId, lister.getClass()), e);
+                    String deprecationMessage = String.format("Error listing versions of %s using %s. Will attempt an alternate way to list versions. "
+                            + "This behaviour is deprecated: in a future version of Gradle, this build will fail.", moduleRevisionId, lister.getClass());
+                    DeprecationLogger.nagUserWith(deprecationMessage);
+                    LOGGER.debug(deprecationMessage, e);
                 } else {
-                    throw new ResourceException(String.format("Failed to list versions for %s", moduleRevisionId, lister.getClass()), e);
+                    throw new ResourceException(String.format("Failed to list versions for %s using %s", moduleRevisionId, lister.getClass()), e);
                 }
             }
         }

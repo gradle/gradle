@@ -56,7 +56,7 @@ public class ResourceVersionLister implements VersionLister {
         }
     }
 
-    // lists all the values a revison token listed by a given url lister
+    // lists all the values a revision token listed by a given url lister
     private List<String> listRevisionToken(String pattern) throws IOException {
         pattern = repository.standardize(pattern);
         if (!pattern.contains(REVISION_TOKEN)) {

@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-
-
 package org.gradle.api.internal.artifacts.repositories
 
 import org.apache.ivy.core.module.descriptor.Artifact
@@ -68,10 +66,10 @@ class MavenVersionListerTest extends Specification {
         thrown(org.gradle.api.internal.resource.ResourceException)
     }
 
-    def "getVersionList returns emptyList for non M2 compatible pattern"() {
+    def "getVersionList throws ResourceNotFoundException for non M2 compatible pattern"() {
         when:
-        def vList = lister.getVersionList(moduleRevisionId, "/non/m2/pattern", artifact)
+        lister.getVersionList(moduleRevisionId, "/non/m2/pattern", artifact)
         then:
-        vList.isEmpty()
+        thrown(ResourceNotFoundException)
     }
 }
