@@ -16,7 +16,6 @@
 package org.gradle.api.tasks.diagnostics.internal;
 
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ResolvedConfiguration;
 
 import java.io.IOException;
 
@@ -35,9 +34,9 @@ public interface DependencyReportRenderer extends ReportRenderer {
     /**
      * Writes the given dependency graph for the current configuration.
      *
-     * @param resolvedConfiguration The resolved configuration.
+     * @param configuration The configuration.
      */
-    void render(ResolvedConfiguration resolvedConfiguration) throws IOException;
+    void render(Configuration configuration) throws IOException;
 
     /**
      * Completes the rendering of the given configuration.
