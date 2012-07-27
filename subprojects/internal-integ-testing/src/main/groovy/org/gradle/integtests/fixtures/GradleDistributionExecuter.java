@@ -15,7 +15,6 @@
  */
 package org.gradle.integtests.fixtures;
 
-import org.gradle.testing.internal.util.RuleHelper;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.TestFile;
 import org.gradle.util.TextUtil;

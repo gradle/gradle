@@ -14,13 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.testing.internal.util;
-
-import org.gradle.api.logging.LogLevel;
-import org.gradle.internal.nativeplatform.NoOpTerminalDetector;
-import org.gradle.logging.internal.OutputEventListener;
-import org.gradle.logging.internal.OutputEventRenderer;
-import org.gradle.logging.internal.logback.LogbackLoggingConfigurer;
+package org.gradle.integtests.fixtures;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -59,11 +53,4 @@ public class RuleHelper {
         }
         return matches.get(0);
     }
-
-    public static void resetLogging() {
-        OutputEventListener listener = new OutputEventRenderer(new NoOpTerminalDetector());
-        LogbackLoggingConfigurer configurer = new LogbackLoggingConfigurer(listener);
-        configurer.configure(LogLevel.INFO);
-    }
-
 }

@@ -29,13 +29,12 @@ import javax.servlet.http.HttpServletResponse
 
 import org.mortbay.jetty.*
 import org.mortbay.jetty.security.*
-import org.gradle.testing.internal.util.RuleHelper
 
 class HttpServer extends ExternalResource {
 
     private static Logger logger = LoggerFactory.getLogger(HttpServer.class)
 
-    private final Server server
+    private final Server server = new Server(0)
     private final HandlerCollection collection = new HandlerCollection()
     private TestUserRealm realm
     private SecurityHandler securityHandler
@@ -76,9 +75,6 @@ class HttpServer extends ExternalResource {
     boolean sendSha1Header = false
 
     HttpServer() {
-        RuleHelper.resetLogging()
-
-        server = new Server(0)
         HandlerCollection handlers = new HandlerCollection()
         handlers.addHandler(new AbstractHandler() {
             void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
