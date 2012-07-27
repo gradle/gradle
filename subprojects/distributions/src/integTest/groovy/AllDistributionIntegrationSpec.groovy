@@ -1,10 +1,7 @@
-import org.junit.Test
 import org.gradle.util.TestFile
 
 import static org.hamcrest.Matchers.containsString
-import static org.hamcrest.Matchers.containsString
-import static org.hamcrest.Matchers.containsString
-import static org.hamcrest.Matchers.containsString
+import groovy.io.FileType
 
 /*
  * Copyright 2012 the original author or authors.
@@ -39,6 +36,14 @@ class AllDistributionIntegrationSpec extends DistributionIntegrationSpec {
 
         // Samples
         contentsDir.file('samples/java/quickstart/build.gradle').assertIsFile()
+
+        def buildAndGradleDirs = []
+        contentsDir.file('samples').eachFileRecurse(FileType.DIRECTORIES) {
+            if (it.name == "build" || it.name == ".gradle") {
+                buildAndGradleDirs << it
+            }
+        }
+        buildAndGradleDirs.empty
 
         // Javadoc
         contentsDir.file('docs/javadoc/index.html').assertIsFile()
