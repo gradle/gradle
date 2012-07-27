@@ -16,8 +16,9 @@
 package org.gradle.groovy.compile
 
 import org.gradle.integtests.fixtures.TargetVersions
+import org.gradle.util.VersionNumber
 
-@TargetVersions(['1.6.9', '1.7.10', '1.8.6'])
+@TargetVersions(['1.6.9', '1.7.11', '1.8.7', '2.0.1'])
 class AntForkingGroovyCompilerIntegrationTest extends GroovyCompilerIntegrationSpec {
 
     @Override
@@ -37,7 +38,7 @@ class AntForkingGroovyCompilerIntegrationTest extends GroovyCompilerIntegrationS
 
     @Override
     String getCompileErrorOutput() {
-        if (version.startsWith('1.8')) {
+        if (version == '1.7.11' || versionNumber >= VersionNumber.parse('1.8.0')) {
             return output
         }
         return errorOutput

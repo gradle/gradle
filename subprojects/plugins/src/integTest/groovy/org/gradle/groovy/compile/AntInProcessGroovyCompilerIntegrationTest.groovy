@@ -17,7 +17,7 @@ package org.gradle.groovy.compile
 
 import org.gradle.integtests.fixtures.TargetVersions
 
-@TargetVersions(['1.6.9', '1.7.10', '1.8.6'])
+@TargetVersions(['1.6.9', '1.7.11', '1.8.7', '2.0.1'])
 class AntInProcessGroovyCompilerIntegrationTest extends BasicGroovyCompilerIntegrationSpec {
     def setup() {
         executer.withForkingExecuter()
