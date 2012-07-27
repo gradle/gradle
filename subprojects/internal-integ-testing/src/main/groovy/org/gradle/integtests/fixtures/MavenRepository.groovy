@@ -15,11 +15,11 @@
  */
 package org.gradle.integtests.fixtures
 
-import java.text.SimpleDateFormat
-
+import groovy.xml.MarkupBuilder
 import org.gradle.util.TestFile
 import org.gradle.util.hash.HashUtil
-import groovy.xml.MarkupBuilder
+
+import java.text.SimpleDateFormat
 
 /**
  * A fixture for dealing with Maven repositories.
@@ -63,8 +63,10 @@ class MavenModule {
         this.version = version
     }
 
-    MavenModule dependsOn(String dependencyArtifactId) {
-        dependsOn(groupId, dependencyArtifactId, '1.0')
+    MavenModule dependsOn(String ... dependencyArtifactIds) {
+        for (String id : dependencyArtifactIds) {
+            dependsOn(groupId, id, '1.0')
+        }
         return this
     }
 
@@ -210,16 +212,24 @@ class MavenModule {
                 pomFile << "\n$parentPomSection\n"
             }
 
+            if (!dependencies.empty) {
+                pomFile << """
+  <dependencies>"""
+            }
+
             dependencies.each { dependency ->
                 def typeAttribute = dependency['type'] == null ? "" : "<type>$dependency.type</type>"
                 pomFile << """
-  <dependencies>
     <dependency>
       <groupId>$dependency.groupId</groupId>
       <artifactId>$dependency.artifactId</artifactId>
       <version>$dependency.version</version>
       $typeAttribute
-    </dependency>
+    </dependency>"""
+            }
+
+            if (!dependencies.empty) {
+                pomFile << """
   </dependencies>"""
             }
 
