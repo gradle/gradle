@@ -18,6 +18,8 @@ package org.gradle.api.tasks.diagnostics
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.MavenRepository
 
+import static org.gradle.util.TextUtil.toPlatformLineSeparators
+
 class DependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
 
     def repo = new MavenRepository(file("repo"))
@@ -121,7 +123,7 @@ rootProject.name = 'root'
         run ":dependencies"
 
         then:
-        output.contains """
+        output.contains(toPlatformLineSeparators("""
 compile - Classpath for compiling the main sources.
 +--- root:a:1.0 [default]
 |    \\--- foo:bar:3.0 [default]
@@ -137,7 +139,7 @@ default - Configuration for default artifacts.
 |    \\--- foo:bar:3.0 [default] (*)
 \\--- root:c:1.0 [default]
      \\--- foo:bar:3.0 [default] (*)
-"""
+"""))
     }
 
     def "renders the dependency tree"() {
@@ -169,7 +171,7 @@ default - Configuration for default artifacts.
         run ":dependencies"
 
         then:
-        output.contains """
+        output.contains(toPlatformLineSeparators("""
 \\--- org:toplevel:1.0 [default]
      +--- org:middle1:1.0 [compile,master,runtime]
      |    +--- org:leaf1:1.0 [compile,master,runtime]
@@ -177,7 +179,7 @@ default - Configuration for default artifacts.
      \\--- org:middle2:1.0 [compile,master,runtime]
           +--- org:leaf3:1.0 [compile,master,runtime]
           \\--- org:leaf4:1.0 [compile,master,runtime]
-"""
+"""))
     }
 
     def "shows selected versions in case of a multi-phase conflict"() {
@@ -212,11 +214,11 @@ default - Configuration for default artifacts.
         run ":dependencies"
 
         then:
-        output.contains """
+        output.contains(toPlatformLineSeparators("""
 +--- bar:bar:6.0 [default]
 |    \\--- foo:foo:3.0 [compile,runtime,master]
-\\--- foo:foo:3.0 [default] (*)"""
-
+\\--- foo:foo:3.0 [default] (*)
+"""))
     }
 
     def "deals with dynamic versions with conflicts"() {
