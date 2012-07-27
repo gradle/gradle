@@ -160,14 +160,14 @@ evaluationDependsOn ":distributions"
 task install(type: Install) {
     description = 'Installs the minimal distribution into directory $gradle_installPath'
     group = 'build'
-    with { project(":distributions").binDistImage }
+    with project(":distributions").binDistImage
     installDirPropertyName = 'gradle_installPath'
 }
 
 task installAll(type: Install) {
     description = 'Installs the full distribution into directory $gradle_installPath'
     group = 'build'
-    with { project(":distributions").allDistImage }
+    with project(":distributions").allDistImage
     installDirPropertyName = 'gradle_installPath'
 }
 
