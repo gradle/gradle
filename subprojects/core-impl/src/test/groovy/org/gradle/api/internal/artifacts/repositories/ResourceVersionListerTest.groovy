@@ -18,19 +18,20 @@ package org.gradle.api.internal.artifacts.repositories
 
 import org.apache.ivy.core.module.descriptor.Artifact
 import org.apache.ivy.core.module.id.ModuleRevisionId
-import spock.lang.Specification
 import org.gradle.api.internal.resource.ResourceNotFoundException
+import spock.lang.Specification
+import spock.lang.Unroll
 
 class ResourceVersionListerTest extends Specification {
 
     def repo = Mock(ExternalResourceRepository)
     def artifact = Mock(Artifact)
-    def moduleRevisionId = ModuleRevisionId.newInstance("org.acme", "testproject", "1.0")
+    def moduleRevisionId = ModuleRevisionId.newInstance("org.acme", "proj1", "1.0")
 
     def ResourceVersionLister lister;
 
     def setup() {
-        1 * repo.getFileSeparator() >> "/"
+        repo.getFileSeparator() >> "/"
         lister = new ResourceVersionLister(repo)
     }
 
@@ -38,7 +39,7 @@ class ResourceVersionListerTest extends Specification {
         setup:
         def testPattern = "/a/pattern/with/[revision]/"
         1 * repo.list(_) >> { throw new IOException("Test IO Exception") }
-        1 * repo.standardize(testPattern) >> testPattern
+        repo.standardize(testPattern) >> testPattern
         when:
         lister.getVersionList(moduleRevisionId, testPattern, artifact)
         then:
@@ -57,37 +58,68 @@ class ResourceVersionListerTest extends Specification {
         testPattern << ["/some/[revision]", "/some/version-[revision]"]
     }
 
-    def "getVersionList resolves versions from pattern with version as directory name"() {
+    def "getVersionList returns empty VersionList when repository contains empty list"() {
         setup:
-        1 * repo.list("/some/") >> repoResult
+        1 * repo.list(_) >> []
+        1 * repo.standardize("/some/[revision]") >> "/some/[revision]"
+        expect:
+        lister.getVersionList(moduleRevisionId, "/some/[revision]", artifact).empty
+    }
+
+    @Unroll
+    def "getVersionList resolves versions from from pattern with '#testPattern'"() {
+        setup:
+        1 * repo.list(repoListingPath) >> repoResult
         1 * repo.standardize(testPattern) >> testPattern
         when:
         def versionList = lister.getVersionList(moduleRevisionId, testPattern, artifact)
         then:
-        versionList.versionStrings == ["1.5", "1.6", "another-version"]
+        versionList.versionStrings == ["1", "2.1", "a-version"]
         where:
-        testPattern             | repoResult
-        "/some/[revision]"      | ["/some/1.5", "/some/1.6/", "/some/another-version"]
-        "/some/[revision]/"     | ["/some/1.5", "/some/1.6/", "/some/another-version"]
-        "/some/[revision]/lib"  | ["/some/1.5/", "/some/1.6", "/some/another-version"]
+        testPattern                              | repoListingPath | repoResult
+        "[revision]"                             | ""              | ["1", "2.1/", "a-version"]
+        "[revision]/"                            | ""              | ["1", "2.1/", "a-version"]
+        "/[revision]"                            | "/"             | ["1", "2.1/", "a-version"]
+        "/[revision]/"                           | "/"             | ["1", "2.1/", "a-version"]
+        "/some/[revision]"                       | "/some/"        | ["/some/1", "/some/2.1/", "/some/a-version"]
+        "/some/[revision]/"                      | "/some/"        | ["/some/1", "/some/2.1/", "/some/a-version"]
+        "/some/[revision]/lib"                   | "/some/"        | ["/some/1/", "/some/2.1", "/some/a-version"]
+        "/some/version-[revision]/lib"           | "/some"         | ["/some/version-1", "/some/version-2.1", "/some/version-a-version", "/some/nonmatching"]
+        "/some/version-[revision]/lib/"          | "/some"         | ["/some/version-1", "/some/version-2.1", "/some/version-a-version", "/some/nonmatching"]
+        "/some/[revision]-version"               | "/some"         | ["/some/1-version", "/some/2.1-version", "/some/a-version-version", "/some/nonmatching"]
+        "/some/[revision]-version/lib"           | "/some"         | ["/some/1-version", "/some/2.1-version", "/some/a-version-version", "/some/nonmatching"]
+        "/some/any-[revision]-version/lib"       | "/some"         | ["/some/any-1-version", "/some/any-2.1-version", "/some/any-a-version-version", "/some/nonmatching"]
+        "/some/any-[revision]-version/lib/"      | "/some"         | ["/some/any-1-version", "/some/any-2.1-version", "/some/any-a-version-version", "/some/nonmatching"]
+        "/some/[revision]/lib/myjar-[revision]/" | "/some/"        | ["/some/1", "/some/2.1", "/some/a-version"]
+        //"/some/proj-[revision]/[revision]/lib/"  | "/some"         | ["/some/proj-1", "/some/proj-2.1", "/some/proj-a-version"] //this should work @TODO fixme
     }
 
-    def "getVersionList resolves versions from pattern with custom version directory name"() {
+    def "getVersionList substitutes non revision placeholders from pattern before hitting repository"() {
         setup:
-        repo.list(_) >> [repoResult]
+        1 * repo.standardize(partiallyResolvedPattern) >> partiallyResolvedPattern
+        when:
+        lister.getVersionList(moduleRevisionId, inputPattern, artifact)
+        then:
+        1 * repo.list(repoPath) >> []
+        where:
+        inputPattern                          | partiallyResolvedPattern     | repoPath
+        "/[organisation]/[revision]"          | "/org.acme/[revision]"       | "/org.acme/"
+        "/[organization]/[revision]"          | "/org.acme/[revision]"       | "/org.acme/"
+        "/[module]/[revision]"                | "/proj1/[revision]"          | "/proj1/"
+        "/[module]/[revision]-lib.[ext]"      | "/proj1/[revision]-lib.jar"  | "/proj1"
+        "/[organisation]/[module]/[revision]" | "/org.acme/proj1/[revision]" | "/org.acme/proj1/"
+    }
+
+    def "getVersionList returns empty version list when pattern has no revision token"() {
+        setup:
+        repo.list(_) >> repoResult
         repo.standardize(testPattern) >> testPattern
         when:
-        def calculatedVersionList = lister.getVersionList(moduleRevisionId, testPattern, artifact)
+        def versionList = lister.getVersionList(moduleRevisionId, testPattern, artifact)
         then:
-        calculatedVersionList.versionStrings == expectedList
+        versionList.versionStrings.empty
         where:
-        testPattern                         | repoResult              || expectedList
-        "/some/version-[revision]/lib"      | "/some/version-1.1"     || ["1.1"]
-        "/some/version-[revision]/lib/"     | "/some/version-1.5"     || ["1.5"]
-        "/some/[revision]-version"          | "/some/1.2-version"     || ["1.2"]
-        "[revision]-version/lib"            | "/1.1.1-version"        || ["1.1.1"]
-        "/some/any-[revision]-version/lib"  | "/some/any-1.5-version" || ["1.5"]
-        "/some/any-[revision]-version/lib"  | "/some/any-nonmatching" || []
-        "/some/not-matching/lib"            | "/some/any-nonmatching" || []
+        testPattern                      | repoResult
+        "/some/pattern/with/no/revision" | ["/some/1-version", "/some/2.1-version", "/some/a-version-version"]
     }
 }

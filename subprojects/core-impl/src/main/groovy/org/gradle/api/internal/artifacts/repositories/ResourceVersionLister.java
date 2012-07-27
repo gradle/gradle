@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.repositories;
 import org.apache.ivy.core.IvyPatternHelper;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.apache.ivy.plugins.resolver.util.ResolverHelper;
 import org.gradle.api.internal.resource.ResourceException;
 import org.gradle.api.internal.resource.ResourceNotFoundException;
 import org.slf4j.Logger;
@@ -50,10 +51,20 @@ public class ResourceVersionLister implements VersionLister {
         String partiallyResolvedPattern = IvyPatternHelper.substitute(pattern, idWithoutRevision, artifact);
         LOGGER.debug("Listing all in {}", partiallyResolvedPattern);
         try {
-            return new DefaultVersionList(listRevisionToken(partiallyResolvedPattern));
+//            final String[] strings = ResolverHelper.listTokenValues(repository, partiallyResolvedPattern, IvyPatternHelper.REVISION_KEY);
+            final List<String> versionStrings = listRevisionToken(partiallyResolvedPattern);
+
+            return new DefaultVersionList(versionStrings);
         } catch (IOException e) {
             throw new ResourceException("Unable to load Versions", e);
         }
+    }
+
+    protected String[] listVersions(ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact) {
+        ModuleRevisionId idWithoutRevision = ModuleRevisionId.newInstance(moduleRevisionId, IvyPatternHelper.getTokenString(IvyPatternHelper.REVISION_KEY));
+        String partiallyResolvedPattern = IvyPatternHelper.substitute(pattern, idWithoutRevision, artifact);
+        LOGGER.debug("Listing all in {}", partiallyResolvedPattern);
+        return ResolverHelper.listTokenValues(repository, partiallyResolvedPattern, IvyPatternHelper.REVISION_KEY);
     }
 
     // lists all the values a revision token listed by a given url lister
