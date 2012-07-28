@@ -123,16 +123,9 @@ rootProject.name = 'root'
         run ":dependencies"
 
         then:
-        output.contains(toPlatformLineSeparators("""
-compile - Classpath for compiling the main sources.
-+--- root:a:1.0 [default]
-|    \\--- foo:bar:3.0 [default]
-+--- root:b:1.0 [default]
-|    \\--- foo:bar:3.0 [default] (*)
-\\--- root:c:1.0 [default]
-     \\--- foo:bar:3.0 [default] (*)
+        output.contains 'compile - Classpath for compiling the main sources.'
 
-default - Configuration for default artifacts.
+        output.contains(toPlatformLineSeparators("""
 +--- root:a:1.0 [default]
 |    \\--- foo:bar:3.0 [default]
 +--- root:b:1.0 [default]
