@@ -73,8 +73,9 @@
     <!--
       -
       - 1. Adding new types:
-      - To add more types to this guide, add them to one of the following tables. The contents of
-      - ${classname}.xml for each type listed below is then included in the guide.
+      - There are 2 ways to include a new types to this guide:
+      -     * Types referenced by a property are automatically included, if there is a corresponding ${typename}.xml in the DSL source directory.
+      -     * Types listed in one of the following tables are included. There must be a corresponding ${typename}.xml in the DSL source directory.
       -
       - 2. Adding new sections:
       - The section title should end with 'types' (see AssembleDslDocTask.mergeContent)
