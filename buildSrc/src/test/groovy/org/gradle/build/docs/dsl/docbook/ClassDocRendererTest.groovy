@@ -73,10 +73,10 @@ class ClassDocRendererTest extends XmlSpecification {
             </chapter>
         ''')
 
+        def extraAttribute = new ExtraAttributeDoc(parse('<td>Extra column</td>'), parse('<td>some value</td>'))
         ClassDoc classDoc = classDoc('Class', content: content)
-        PropertyDoc propDoc = propertyDoc('propName', id: 'propId', description: 'prop description', comment: 'prop comment', type: 'org.gradle.Type')
+        PropertyDoc propDoc = propertyDoc('propName', id: 'propId', description: 'prop description', comment: 'prop comment', type: 'org.gradle.Type', attributes: [extraAttribute])
         _ * classDoc.classProperties >> [propDoc]
-        _ * propDoc.additionalValues >> [new ExtraAttributeDoc(parse('<td>Extra column</td>'), parse('<td>some value</td>'))]
 
         when:
         withCategories {
@@ -663,6 +663,7 @@ class ClassDocRendererTest extends XmlSpecification {
         _ * propDoc.metaData >> propMetaData
         _ * propDoc.deprecated >> (args.deprecated ?: false)
         _ * propDoc.experimental >> (args.experimental ?: false)
+        _ * propDoc.additionalValues >> (args.attributes ?: [])
         _ * propMetaData.type >> new TypeMetaData(args.type ?: 'SomeType')
         return propDoc
     }

@@ -16,6 +16,7 @@
 package org.gradle.build.docs.dsl.docbook.model
 
 import org.w3c.dom.Element
+import org.w3c.dom.Node
 
 class ExtraAttributeDoc {
     final Element titleCell

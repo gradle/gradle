@@ -16,7 +16,6 @@
 package org.gradle.build.docs.dsl.docbook
 
 import org.gradle.build.docs.dsl.docbook.model.DslElementDoc
-import org.gradle.build.docs.dsl.docbook.model.ExtraAttributeDoc
 import org.gradle.build.docs.dsl.docbook.model.ClassDoc
 import org.gradle.build.docs.dsl.docbook.model.ClassExtensionDoc
 
@@ -24,9 +23,11 @@ class ClassDocRenderer {
     private final LinkRenderer linkRenderer
     private final GenerationListener listener = new DefaultGenerationListener()
     private final PropertyTableRenderer propertyTableRenderer = new PropertyTableRenderer()
+    private final PropertiesDetailRenderer propertiesDetailRenderer
 
     ClassDocRenderer(LinkRenderer linkRenderer) {
         this.linkRenderer = linkRenderer
+        propertiesDetailRenderer = new PropertiesDetailRenderer(linkRenderer, listener)
     }
 
     void mergeContent(ClassDoc classDoc) {
@@ -76,36 +77,13 @@ class ClassDocRenderer {
         }
         propertyTableRenderer.renderTo(classProperties, propertiesTable)
 
-        propertiesSection.addAfter {
+        def section = propertiesSection.addAfter {
             section {
                 title('Property details')
-                classProperties.each { propDoc ->
-                    section(id: propDoc.id, role: 'detail') {
-                        title {
-                            appendChild linkRenderer.link(propDoc.metaData.type, listener)
-                            text(' ')
-                            literal(propDoc.name)
-                            if (!propDoc.metaData.writeable) {
-                                text(' (read-only)')
-                            }
-                        }
-                        addWarnings(propDoc, 'property', delegate)
-                        appendChildren propDoc.comment
-                        if (propDoc.additionalValues) {
-                            segmentedlist {
-                                propDoc.additionalValues.each { attributeDoc ->
-                                    segtitle { appendChildren(attributeDoc.title) }
-                                }
-                                seglistitem {
-                                    propDoc.additionalValues.each { ExtraAttributeDoc attributeDoc ->
-                                        seg { appendChildren(attributeDoc.value) }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
             }
+        }
+        classProperties.each { propDoc ->
+            new PropertiesDetailRenderer(linkRenderer, listener).renderTo(propDoc, section)
         }
     }
 
@@ -288,33 +266,9 @@ class ClassDocRenderer {
             }
         }
 
-        classDoc.propertyDetailsSection << {
-            classDoc.classExtensions.each { ClassExtensionDoc extension ->
-                extension.extensionProperties.each { propDoc ->
-                    section(id: propDoc.id, role: 'detail') {
-                        title {
-                            appendChild linkRenderer.link(propDoc.metaData.type, listener)
-                            text(' ')
-                            literal(propDoc.name)
-                            if (!propDoc.metaData.writeable) {
-                                text(' (read-only)')
-                            }
-                        }
-                        appendChildren propDoc.comment
-                        if (propDoc.additionalValues) {
-                            segmentedlist {
-                                propDoc.additionalValues.each { attributeDoc ->
-                                    segtitle { appendChildren(attributeDoc.title) }
-                                }
-                                seglistitem {
-                                    propDoc.additionalValues.each { ExtraAttributeDoc attributeDoc ->
-                                        seg { appendChildren(attributeDoc.value) }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+        classDoc.classExtensions.each { ClassExtensionDoc extension ->
+            extension.extensionProperties.each { propDoc ->
+                propertiesDetailRenderer.renderTo(propDoc, classDoc.propertyDetailsSection)
             }
         }
     }
