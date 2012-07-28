@@ -45,8 +45,3 @@ if (useIncomingDistributions) {
         }
     }
 }
-
-// Here temporarily to debug a CI issue.
-clean.doLast {
-    assert !intTestImage.destinationDir.exists()
-}

@@ -93,6 +93,13 @@ allprojects {
     repositories {
         maven { url 'http://repo.gradle.org/gradle/libs' }
     }
+
+    tasks.all {
+        doLast {
+            def libs = file("$rootProject.intTestImage.destinationDir/lib").listFiles()
+            assert libs.findAll { it.name.startsWith("gradle-core-") }.size() <= 1
+        }
+    }
 }
 
 subprojects {
