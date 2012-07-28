@@ -97,7 +97,7 @@ allprojects {
     tasks.all {
         doLast {
             def libs = file("$rootProject.intTestImage.destinationDir/lib").listFiles()
-            assert libs.findAll { it.name.startsWith("gradle-core-") }.size() <= 1
+            assert libs.findAll { it.name.startsWith("gradle-core-") }.size() <= 1 : "task = $name"
         }
     }
 }
