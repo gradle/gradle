@@ -43,7 +43,7 @@
         <extends targetClass="org.gradle.api.Project" mixinClass="org.gradle.api.plugins.ApplicationPluginConvention"/>
     </plugin>
     <plugin id="signing" description="Signing Plugin">
-        <extends targetClass="org.gradle.api.Project" extensionClass="org.gradle.plugins.signing.SigningExtension"/>
+        <extends targetClass="org.gradle.api.Project" id="signing" extensionClass="org.gradle.plugins.signing.SigningExtension"/>
     </plugin>
     <plugin id="eclipse" description="Eclipse Plugin">
         <extends targetClass="org.gradle.api.Project" id="eclipse" extensionClass="org.gradle.plugins.ide.eclipse.model.EclipseModel"/>

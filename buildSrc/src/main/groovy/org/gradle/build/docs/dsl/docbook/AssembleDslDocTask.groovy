@@ -108,8 +108,14 @@ class AssembleDslDocTask extends DefaultTask {
         Map<String, ClassExtensionMetaData> extensions = [:]
         provider.root.plugin.each { Element plugin ->
             def pluginId = plugin.'@id'
+            if (!pluginId) {
+                throw new RuntimeException("No id specified for plugin: ${plugin.'@description' ?: 'unknown'}")
+            }
             plugin.extends.each { Element e ->
                 def targetClass = e.'@targetClass'
+                if (!targetClass) {
+                    throw new RuntimeException("No targetClass specified for extention provided by plugin '$pluginId'.")
+                }
                 def extension = extensions[targetClass]
                 if (!extension) {
                     extension = new ClassExtensionMetaData(targetClass)
@@ -122,6 +128,9 @@ class AssembleDslDocTask extends DefaultTask {
                 def extensionClass = e.'@extensionClass'
                 if (extensionClass) {
                     def extensionId = e.'@id'
+                    if (!extensionId) {
+                        throw new RuntimeException("No id specified for extension '$extensionClass' for plugin '$pluginId'.")
+                    }
                     extension.addExtension(pluginId, extensionId, extensionClass)
                 }
             }
