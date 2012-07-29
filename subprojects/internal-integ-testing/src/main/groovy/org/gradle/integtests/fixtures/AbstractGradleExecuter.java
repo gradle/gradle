@@ -44,7 +44,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private File settingsFile;
     private InputStream stdin;
     private String defaultCharacterEncoding;
-    private int daemonIdleTimeoutSecs = 5 * 60;
+    private int daemonIdleTimeoutSecs = 2 * 60;
     //gradle opts make sense only for forking executer but having them here makes more sense
     protected final List<String> gradleOpts = new ArrayList<String>();
 
