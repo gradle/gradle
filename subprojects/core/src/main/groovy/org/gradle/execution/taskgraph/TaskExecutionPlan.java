@@ -35,7 +35,7 @@ public class TaskExecutionPlan {
     private final Condition condition = lock.newCondition();
     private final LinkedHashMap<Task, TaskInfo> executionPlan = new LinkedHashMap<Task, TaskInfo>();
     private Spec<? super Task> filter = Specs.satisfyAll();
-    private Exception failure = null;
+    private Exception failure;
 
     private TaskFailureHandler failureHandler = new RethrowingFailureHandler();
 
@@ -116,7 +116,6 @@ public class TaskExecutionPlan {
             while ((nextMatching = getNextReadyAndMatching(criteria)) != null) {
                 while (!nextMatching.dependenciesExecuted()) {
                     try {
-                        System.out.println("Awaiting");
                         condition.await();
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
@@ -157,7 +156,6 @@ public class TaskExecutionPlan {
     public void taskComplete(TaskInfo task) {
         lock.lock();
         try {
-            System.out.println("Task complete: " + task.getTask().getPath());
             task.executionSucceeded();
             condition.signalAll();
         } finally {
@@ -168,7 +166,6 @@ public class TaskExecutionPlan {
     public void taskFailed(TaskInfo taskInfo) {
         lock.lock();
         try {
-            System.out.println("Task failed: " + taskInfo.getTask().getPath());
             taskInfo.executionFailed();
             try {
                 failureHandler.onTaskFailure(taskInfo.getTask());

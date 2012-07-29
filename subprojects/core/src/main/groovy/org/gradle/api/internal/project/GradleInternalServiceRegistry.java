@@ -22,6 +22,7 @@ import org.gradle.api.internal.changedetection.TaskCacheLockHandlingBuildExecute
 import org.gradle.api.internal.plugins.DefaultPluginRegistry;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.execution.*;
+import org.gradle.execution.taskgraph.DefaultTaskExecutor;
 import org.gradle.execution.taskgraph.DefaultTaskGraphExecuter;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
@@ -64,7 +65,8 @@ public class GradleInternalServiceRegistry extends DefaultServiceRegistry implem
     }
 
     protected TaskGraphExecuter createTaskGraphExecuter() {
-        return new DefaultTaskGraphExecuter(get(ListenerManager.class), get(TaskArtifactStateCacheAccess.class));
+        return new DefaultTaskGraphExecuter(get(ListenerManager.class), new DefaultTaskExecutor());
+//        return new DefaultTaskGraphExecuter(get(ListenerManager.class), new ParallelTaskExecutor(get(TaskArtifactStateCacheAccess.class)));
     }
 
     protected PluginRegistry createPluginRegistry() {

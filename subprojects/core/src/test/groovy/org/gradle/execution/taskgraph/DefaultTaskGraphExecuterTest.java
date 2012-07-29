@@ -75,7 +75,7 @@ public class DefaultTaskGraphExecuterTest {
             one(listenerManager).createAnonymousBroadcaster(TaskExecutionListener.class);
             will(returnValue(new ListenerBroadcast<TaskExecutionListener>(TaskExecutionListener.class)));
         }});
-        taskExecuter = new org.gradle.execution.taskgraph.DefaultTaskGraphExecuter(listenerManager, new DirectCacheAccess());
+        taskExecuter = new org.gradle.execution.taskgraph.DefaultTaskGraphExecuter(listenerManager, new DefaultTaskExecutor());
     }
 
     @Test
@@ -85,7 +85,8 @@ public class DefaultTaskGraphExecuterTest {
         Task c = task("c", b, a);
         Task d = task("d", c);
 
-        taskExecuter.execute(toList(d));
+        taskExecuter.addTasks(toList(d));
+        taskExecuter.execute();
 
         assertThat(executedTasks, equalTo(toList(a, b, c, d)));
     }
@@ -97,7 +98,8 @@ public class DefaultTaskGraphExecuterTest {
         Task c = task("c");
         Task d = task("d", b, a, c);
 
-        taskExecuter.execute(toList(d));
+        taskExecuter.addTasks(toList(d));
+        taskExecuter.execute();
 
         assertThat(executedTasks, equalTo(toList(a, b, c, d)));
     }
@@ -108,7 +110,8 @@ public class DefaultTaskGraphExecuterTest {
         Task b = task("b");
         Task c = task("c");
 
-        taskExecuter.execute(toList(b, c, a));
+        taskExecuter.addTasks(toList(b, c, a));
+        taskExecuter.execute();
 
         assertThat(executedTasks, equalTo(toList(a, b, c)));
     }
