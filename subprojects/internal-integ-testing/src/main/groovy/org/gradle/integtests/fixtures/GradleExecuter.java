@@ -157,4 +157,14 @@ public interface GradleExecuter {
      * @return this executer
      */
     GradleExecuter withDaemonIdleTimeoutSecs(int secs);
+
+    /**
+     * Set the working space for the daemon and launched daemons
+     *
+     * @param baseDir
+     *
+     * @return this executer
+     */
+    GradleExecuter withDaemonBaseDir(File baseDir);
+
 }

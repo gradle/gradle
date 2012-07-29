@@ -28,6 +28,7 @@ import static java.util.Arrays.asList;
 
 public abstract class AbstractGradleExecuter implements GradleExecuter {
 
+    private static final String DAEMON_REGISTRY_SYS_PROP = "org.gradle.integtest.daemon.registry";
     private final int DEFAULT_DAEMON_IDLE_TIMEOUT_SECS = 2 * 60;
 
     private final List<String> args = new ArrayList<String>();
@@ -48,6 +49,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private InputStream stdin;
     private String defaultCharacterEncoding;
     private int daemonIdleTimeoutSecs = DEFAULT_DAEMON_IDLE_TIMEOUT_SECS;
+    private File daemonBaseDir;
     //gradle opts make sense only for forking executer but having them here makes more sense
     protected final List<String> gradleOpts = new ArrayList<String>();
 
@@ -70,6 +72,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         stdin = null;
         defaultCharacterEncoding = null;
         daemonIdleTimeoutSecs = DEFAULT_DAEMON_IDLE_TIMEOUT_SECS;
+        daemonBaseDir = null;
         return this;
     }
 
@@ -123,6 +126,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
         executer.withGradleOpts(gradleOpts.toArray(new String[gradleOpts.size()]));
         executer.withDaemonIdleTimeoutSecs(getDaemonIdleTimeoutSecs());
+        if (daemonBaseDir != null) {
+            executer.withDaemonBaseDir(daemonBaseDir);
+        }
     }
 
     public GradleExecuter usingBuildScript(File buildScript) {
@@ -272,6 +278,17 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return daemonIdleTimeoutSecs;
     }
 
+    public GradleExecuter withDaemonBaseDir(File daemonBaseDir) {
+        assert daemonBaseDir != null;
+        assert daemonBaseDir.isDirectory();
+        this.daemonBaseDir = daemonBaseDir;
+        return this;
+    }
+
+    protected File getDaemonBaseDir() {
+        return daemonBaseDir;
+    }
+
     protected List<String> getAllArgs() {
         List<String> allArgs = new ArrayList<String>();
         if (buildScript != null) {
@@ -307,6 +324,17 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             allArgs.add(userHomeDir.getAbsolutePath());
         }
         allArgs.add("-Dorg.gradle.daemon.idletimeout=" + getDaemonIdleTimeoutSecs() * 1000);
+
+        File daemonBaseDir = getDaemonBaseDir();
+        if (daemonBaseDir == null) {
+            String systemPropertyValue = System.getProperty(DAEMON_REGISTRY_SYS_PROP);
+            if (systemPropertyValue != null) {
+                daemonBaseDir = new File(systemPropertyValue);
+            }
+        }
+        if (daemonBaseDir != null) {
+            args.add("-Dorg.gradle.daemon.registry.base=" + daemonBaseDir.getAbsolutePath());
+        }
         allArgs.addAll(args);
         allArgs.addAll(tasks);
         return allArgs;

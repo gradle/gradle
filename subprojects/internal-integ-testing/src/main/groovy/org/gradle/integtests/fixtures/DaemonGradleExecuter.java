@@ -24,22 +24,20 @@ import java.util.List;
 import static java.util.Arrays.asList;
 
 public class DaemonGradleExecuter extends ForkingGradleExecuter {
-    private static final String DAEMON_REGISTRY_SYS_PROP = "org.gradle.integtest.daemon.registry";
+
     private final GradleDistribution distribution;
-    private final File daemonBaseDir;
     private final boolean allowExtraLogging;
 
-    public DaemonGradleExecuter(GradleDistribution distribution, File daemonBaseDir, boolean allowExtraLogging) {
+    public DaemonGradleExecuter(GradleDistribution distribution, boolean allowExtraLogging) {
         super(distribution.getGradleHomeDir());
         this.distribution = distribution;
-        this.daemonBaseDir = daemonBaseDir;
         this.allowExtraLogging = allowExtraLogging;
     }
 
     @Override
     protected int getDaemonIdleTimeoutSecs() {
         int superValue =  super.getDaemonIdleTimeoutSecs();
-        boolean preferShortTimeout = distribution.isUsingIsolatedDaemons() || daemonBaseDir != null;
+        boolean preferShortTimeout = distribution.isUsingIsolatedDaemons() || getDaemonBaseDir() != null;
         if (preferShortTimeout) {
             return Math.min(superValue, 20);
         } else {
@@ -55,15 +53,7 @@ public class DaemonGradleExecuter extends ForkingGradleExecuter {
         args.add("--daemon");
 
         args.addAll(originalArgs);
-
-        String daemonRegistryBase = getDaemonRegistryBase();
-        if (daemonRegistryBase != null) {
-            args.add("-Dorg.gradle.daemon.registry.base=" + daemonRegistryBase);
-            configureJvmArgs(args);
-        } else {
-            configureJvmArgs(args);
-        }
-
+        configureJvmArgs(args);
         configureDefaultLogging(args);
 
         return args;
@@ -89,16 +79,4 @@ public class DaemonGradleExecuter extends ForkingGradleExecuter {
         }
     }
 
-    String getDaemonRegistryBase() {
-        if (daemonBaseDir != null) {
-            return daemonBaseDir.getAbsolutePath();
-        }
-
-        String customDaemonRegistryDir = System.getProperty(DAEMON_REGISTRY_SYS_PROP);
-        if (customDaemonRegistryDir != null && !distribution.isUsingIsolatedDaemons()) {
-            return customDaemonRegistryDir;
-        }
-
-        return null;
-    }
 }

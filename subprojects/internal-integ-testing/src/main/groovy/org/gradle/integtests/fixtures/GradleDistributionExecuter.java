@@ -46,7 +46,7 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
     private boolean deprecationChecksOn = true;
     private boolean stackTraceChecksOn = true;
     private Executer executerType;
-    private File daemonBaseDir;
+
     private boolean allowExtraLogging = true;
     private boolean mustFork;
 
@@ -127,13 +127,6 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
     public GradleDistributionExecuter withUserHomeDir(File userHomeDir) {
         super.withUserHomeDir(userHomeDir);
         userHomeSet = true;
-        return this;
-    }
-
-    public GradleDistributionExecuter withDaemonBaseDir(File daemonBaseDir) {
-        assert daemonBaseDir != null;
-        assert daemonBaseDir.isDirectory();
-        this.daemonBaseDir = daemonBaseDir;
         return this;
     }
 
@@ -245,7 +238,7 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
 
         if (executerType.forks || !inProcessGradleExecuter.canExecute()) {
             boolean useDaemon = executerType == Executer.daemon && getExecutable() == null;
-            ForkingGradleExecuter forkingGradleExecuter = useDaemon ? new DaemonGradleExecuter(dist, daemonBaseDir, !isQuiet() && allowExtraLogging) : new ForkingGradleExecuter(dist.getGradleHomeDir());
+            ForkingGradleExecuter forkingGradleExecuter = useDaemon ? new DaemonGradleExecuter(dist, !isQuiet() && allowExtraLogging) : new ForkingGradleExecuter(dist.getGradleHomeDir());
             copyTo(forkingGradleExecuter);
             if (!dist.shouldAvoidConfiguringTmpDir()) {
                 forkingGradleExecuter.addGradleOpts(String.format("-Djava.io.tmpdir=%s", tmpDir));

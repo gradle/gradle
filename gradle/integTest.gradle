@@ -42,6 +42,10 @@ integTestTasks.all { Test task ->
             // If the projects int test need the distributions, they should add:
             // inputs.files rootProject.buildDists
             systemProperties['integTest.distsDir'] = rootProject.distsDir.absolutePath
+
+            // The user home dir is not wiped out by clean
+            // Move the daemon working space underneath the build dir so they don't pile up on CI
+            systemProperties['org.gradle.integtest.daemon.registry'] = file("$rootProject.buildDir/daemon").absolutePath
         }
     }
 }
@@ -61,10 +65,6 @@ check.dependsOn(integTest)
             }
         }
     }
-}
-
-daemonIntegTest {
-    systemProperties['org.gradle.integtest.daemon.registry'] = file("$rootProject.buildDir/daemon").absolutePath
 }
 
 plugins.withType(org.gradle.plugins.ide.idea.IdeaPlugin) { // lazy as plugin not applied yet
