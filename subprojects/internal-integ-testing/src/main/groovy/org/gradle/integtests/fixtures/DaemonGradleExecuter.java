@@ -23,8 +23,7 @@ import java.util.List;
 
 import static java.util.Arrays.asList;
 
-public class 
-        DaemonGradleExecuter extends ForkingGradleExecuter {
+public class DaemonGradleExecuter extends ForkingGradleExecuter {
     private static final String DAEMON_REGISTRY_SYS_PROP = "org.gradle.integtest.daemon.registry";
     private final GradleDistribution distribution;
     private final File daemonBaseDir;
