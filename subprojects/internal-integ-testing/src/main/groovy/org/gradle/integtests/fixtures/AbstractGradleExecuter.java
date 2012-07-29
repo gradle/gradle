@@ -27,6 +27,9 @@ import java.util.*;
 import static java.util.Arrays.asList;
 
 public abstract class AbstractGradleExecuter implements GradleExecuter {
+
+    private final int DEFAULT_DAEMON_IDLE_TIMEOUT_SECS = 2 * 60;
+
     private final List<String> args = new ArrayList<String>();
     private final List<String> tasks = new ArrayList<String>();
     private File workingDir;
@@ -44,7 +47,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private File settingsFile;
     private InputStream stdin;
     private String defaultCharacterEncoding;
-    private int daemonIdleTimeoutSecs = 2 * 60;
+    private int daemonIdleTimeoutSecs = DEFAULT_DAEMON_IDLE_TIMEOUT_SECS;
     //gradle opts make sense only for forking executer but having them here makes more sense
     protected final List<String> gradleOpts = new ArrayList<String>();
 
@@ -66,6 +69,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         environmentVars.clear();
         stdin = null;
         defaultCharacterEncoding = null;
+        daemonIdleTimeoutSecs = DEFAULT_DAEMON_IDLE_TIMEOUT_SECS;
         return this;
     }
 
