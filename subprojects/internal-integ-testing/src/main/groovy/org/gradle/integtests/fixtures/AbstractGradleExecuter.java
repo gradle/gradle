@@ -126,8 +126,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
         executer.withGradleOpts(gradleOpts.toArray(new String[gradleOpts.size()]));
         executer.withDaemonIdleTimeoutSecs(getDaemonIdleTimeoutSecs());
-        if (daemonBaseDir != null) {
-            executer.withDaemonBaseDir(daemonBaseDir);
+        if (getDaemonBaseDir() != null) {
+            executer.withDaemonBaseDir(getDaemonBaseDir());
         }
     }
 

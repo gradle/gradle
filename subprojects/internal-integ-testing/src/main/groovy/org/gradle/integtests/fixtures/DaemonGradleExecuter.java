@@ -20,6 +20,7 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,6 +45,16 @@ public class DaemonGradleExecuter extends ForkingGradleExecuter {
             return Math.min(superValue, 20);
         } else {
             return superValue;
+        }
+    }
+
+    @Override
+    protected File getDaemonBaseDir() {
+        File daemonBaseDir = super.getDaemonBaseDir();
+        if (distribution.isUsingIsolatedDaemons() && daemonBaseDir == null) {
+            return new File(distribution.getUserHomeDir(), "daemon");
+        } else {
+            return daemonBaseDir;
         }
     }
 

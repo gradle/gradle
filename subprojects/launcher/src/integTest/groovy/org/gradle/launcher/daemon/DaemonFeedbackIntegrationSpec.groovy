@@ -108,7 +108,7 @@ task sleep << {
         log.count('Hello build!') == 1
 
         when: "another build requested with the same daemon"
-        executer.withArguments("-i").run()
+        executer.withDaemonBaseDir(baseDir).withArguments("-i").run()
 
         then:
         def aLog = readLog(baseDir)
@@ -140,7 +140,7 @@ task sleep << {
         }
 
         when: "another build requested with the same daemon with --info"
-        executer.withArguments("-i").withTasks('foo').run()
+        executer.withArguments("-i").withTasks('foo').withDaemonBaseDir(baseDir).run()
 
         then:
         def aLog = readLog(baseDir)
