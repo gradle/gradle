@@ -60,9 +60,9 @@ public class
         String daemonRegistryBase = getDaemonRegistryBase();
         if (daemonRegistryBase != null) {
             args.add("-Dorg.gradle.daemon.registry.base=" + daemonRegistryBase);
-            configureJvmArgs(args, daemonRegistryBase);
+            configureJvmArgs(args);
         } else {
-            configureJvmArgs(args, distribution.getUserHomeDir().getAbsolutePath());
+            configureJvmArgs(args);
         }
 
         configureDefaultLogging(args);
@@ -81,7 +81,7 @@ public class
         }
     }
 
-    private void configureJvmArgs(List<String> args, String registryBase) {
+    private void configureJvmArgs(List<String> args) {
         // TODO - clean this up. It's a workaround to provide some way for the client of this executer to
         // specify that no jvm args should be provided
         if(!args.remove("-Dorg.gradle.jvmargs=")){
