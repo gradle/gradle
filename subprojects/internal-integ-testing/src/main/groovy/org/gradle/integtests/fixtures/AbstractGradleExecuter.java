@@ -29,7 +29,7 @@ import static java.util.Arrays.asList;
 public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     private static final String DAEMON_REGISTRY_SYS_PROP = "org.gradle.integtest.daemon.registry";
-    private final int DEFAULT_DAEMON_IDLE_TIMEOUT_SECS = 2 * 60;
+    private static final int DEFAULT_DAEMON_IDLE_TIMEOUT_SECS = 2 * 60;
 
     private final List<String> args = new ArrayList<String>();
     private final List<String> tasks = new ArrayList<String>();
