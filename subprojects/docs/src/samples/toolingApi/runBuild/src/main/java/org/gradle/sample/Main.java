@@ -11,6 +11,13 @@ public class Main {
     public static void main(String[] args) {
         // Configure the connector and create the connection
         GradleConnector connector = GradleConnector.newConnector();
+
+        // Workaround http://issues.gradle.org/browse/GRADLE-2405
+        String gradleUserHomeDir = System.getProperty("gradle.user.home");
+        if (gradleUserHomeDir != null && gradleUserHomeDir.length() > 0) {
+            connector.useGradleUserHomeDir(new File(gradleUserHomeDir));
+        }
+
         connector.forProjectDirectory(new File("."));
         if (args.length > 0) {
             connector.useInstallation(new File(args[0]));
