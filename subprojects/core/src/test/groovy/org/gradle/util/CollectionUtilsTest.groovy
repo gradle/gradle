@@ -16,8 +16,10 @@
 package org.gradle.util
 
 import org.gradle.api.Transformer
+import org.gradle.api.specs.Spec
 import org.gradle.api.specs.Specs
 import spock.lang.Specification
+
 import static org.gradle.util.CollectionUtils.*
 
 class CollectionUtilsTest extends Specification {
@@ -78,7 +80,7 @@ class CollectionUtilsTest extends Specification {
 
     def "list stringize"() {
         expect:
-        stringize([1,2,3]) == ["1", "2", "3"]
+        stringize([1, 2, 3]) == ["1", "2", "3"]
         stringize([]) == []
     }
 
@@ -87,5 +89,25 @@ class CollectionUtilsTest extends Specification {
         stringize(["c", "b", "a"], new TreeSet<String>()) == ["a", "b", "c"] as Set
     }
 
+    def "replacing"() {
+        given:
+        def l = [1, 2, 3]
 
+        expect:
+        replace l, spec { it == 2 }, transformer { 2 * 2 }
+        l == [1, 4, 3]
+
+        replace l, spec { it > 1 }, transformer { 0 }
+        l == [1, 0, 0]
+
+        !replace(l, spec { false }, transformer { it })
+    }
+
+    Spec<?> spec(Closure c) {
+        Specs.convertClosureToSpec(c)
+    }
+
+    Transformer<?, ?> transformer(Closure c) {
+        c as Transformer
+    }
 }

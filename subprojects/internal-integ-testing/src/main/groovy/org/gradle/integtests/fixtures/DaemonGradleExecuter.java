@@ -16,8 +16,10 @@
 package org.gradle.integtests.fixtures;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.gradle.api.JavaVersion;
+import org.gradle.api.Transformer;
+import org.gradle.api.specs.Spec;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -76,6 +78,28 @@ public class DaemonGradleExecuter extends ForkingGradleExecuter {
         if(!args.remove("-Dorg.gradle.jvmargs=")){
             args.add(0, "-Dorg.gradle.jvmargs=-ea -XX:MaxPermSize=256m"
                     + " -XX:+HeapDumpOnOutOfMemoryError");
+        }
+
+        if (JavaVersion.current().isJava5()) {
+            final String base = "-Dorg.gradle.jvmargs=";
+            final String permGenSweepingOption = "-XX:+CMSPermGenSweepingEnabled";
+
+            Spec<String> jvmArgsSpec = new Spec<String>() {
+                public boolean isSatisfiedBy(String element) {
+                    return element.startsWith(base);
+                }
+            };
+
+            Transformer<String, String> addPermGenSweeping = new Transformer<String, String>() {
+                public String transform(String original) {
+                    return String.format("%s %s", original, permGenSweepingOption);
+                }
+            };
+
+            boolean replaced = org.gradle.util.CollectionUtils.replace(args, jvmArgsSpec, addPermGenSweeping);
+            if (!replaced) {
+                args.add(String.format("%s%s", base, permGenSweepingOption));
+            }
         }
     }
 
