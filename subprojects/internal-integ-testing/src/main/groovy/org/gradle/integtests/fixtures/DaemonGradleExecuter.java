@@ -87,30 +87,11 @@ public class DaemonGradleExecuter extends ForkingGradleExecuter {
         // TODO - clean this up. It's a workaround to provide some way for the client of this executer to
         // specify that no jvm args should be provided
         if(!args.remove("-Dorg.gradle.jvmargs=")){
-            args.add(0, "-Dorg.gradle.jvmargs=-ea -XX:MaxPermSize=256m"
-                    + " -XX:+HeapDumpOnOutOfMemoryError");
-        }
-
-        if (JavaVersion.current().isJava5()) {
-            final String base = "-Dorg.gradle.jvmargs=";
-            final String permGenSweepingOption = "-XX:+CMSPermGenSweepingEnabled";
-
-            Spec<String> jvmArgsSpec = new Spec<String>() {
-                public boolean isSatisfiedBy(String element) {
-                    return element.startsWith(base);
-                }
-            };
-
-            Transformer<String, String> addPermGenSweeping = new Transformer<String, String>() {
-                public String transform(String original) {
-                    return String.format("%s %s", original, permGenSweepingOption);
-                }
-            };
-
-            boolean replaced = org.gradle.util.CollectionUtils.replace(args, jvmArgsSpec, addPermGenSweeping);
-            if (!replaced) {
-                args.add(String.format("%s%s", base, permGenSweepingOption));
+            String jvmArgs  = "-Dorg.gradle.jvmargs=-ea -XX:MaxPermSize=256m -XX:+HeapDumpOnOutOfMemoryError";
+            if (JavaVersion.current().isJava5()) {
+                jvmArgs = String.format("%s %s", jvmArgs, "-XX:+CMSPermGenSweepingEnabled");
             }
+            args.add(0, jvmArgs);
         }
     }
 
