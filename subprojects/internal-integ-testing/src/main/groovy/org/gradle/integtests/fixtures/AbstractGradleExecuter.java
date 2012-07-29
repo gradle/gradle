@@ -44,6 +44,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private File settingsFile;
     private InputStream stdin;
     private String defaultCharacterEncoding;
+    private int daemonIdleTimeoutSecs = 5 * 60;
     //gradle opts make sense only for forking executer but having them here makes more sense
     protected final List<String> gradleOpts = new ArrayList<String>();
 
@@ -117,6 +118,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             executer.withDefaultCharacterEncoding(defaultCharacterEncoding);
         }
         executer.withGradleOpts(gradleOpts.toArray(new String[gradleOpts.size()]));
+        executer.withDaemonIdleTimeoutSecs(getDaemonIdleTimeoutSecs());
     }
 
     public GradleExecuter usingBuildScript(File buildScript) {
@@ -257,6 +259,15 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return this;
     }
 
+    public GradleExecuter withDaemonIdleTimeoutSecs(int secs) {
+        daemonIdleTimeoutSecs = secs;
+        return this;
+    }
+
+    protected int getDaemonIdleTimeoutSecs() {
+        return daemonIdleTimeoutSecs;
+    }
+
     protected List<String> getAllArgs() {
         List<String> allArgs = new ArrayList<String>();
         if (buildScript != null) {
@@ -291,6 +302,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             allArgs.add("--gradle-user-home");
             allArgs.add(userHomeDir.getAbsolutePath());
         }
+        allArgs.add("-Dorg.gradle.daemon.idletimeout=" + getDaemonIdleTimeoutSecs() * 1000);
         allArgs.addAll(args);
         allArgs.addAll(tasks);
         return allArgs;

@@ -38,6 +38,17 @@ public class
     }
 
     @Override
+    protected int getDaemonIdleTimeoutSecs() {
+        int superValue =  super.getDaemonIdleTimeoutSecs();
+        boolean preferShortTimeout = distribution.isUsingIsolatedDaemons() || daemonBaseDir != null;
+        if (preferShortTimeout) {
+            return Math.min(superValue, 20);
+        } else {
+            return superValue;
+        }
+    }
+
+    @Override
     protected List<String> getAllArgs() {
         List<String> originalArgs = super.getAllArgs();
 
@@ -52,14 +63,6 @@ public class
             configureJvmArgs(args, daemonRegistryBase);
         } else {
             configureJvmArgs(args, distribution.getUserHomeDir().getAbsolutePath());
-        }
-
-        if (!args.toString().contains("-Dorg.gradle.daemon.idletimeout=")) {
-            //isolated daemons/daemon with custom base dir cannot be connected again
-            //so they should have shorter timeout
-            boolean preferShortTimeout = distribution.isUsingIsolatedDaemons() || daemonBaseDir != null;
-            int timeout = preferShortTimeout? 20000 : 5 * 60 * 1000;
-            args.add("-Dorg.gradle.daemon.idletimeout=" + timeout);
         }
 
         configureDefaultLogging(args);

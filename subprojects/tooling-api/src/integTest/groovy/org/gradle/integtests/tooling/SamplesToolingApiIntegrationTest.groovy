@@ -89,13 +89,6 @@ run {
 
         buildFile.text = buildScript
 
-        // Tweak the build environment
-        Properties props = new Properties()
-        props['org.gradle.daemon.idletimeout'] = '60000'
-        projectDir.file('gradle.properties').withOutputStream {outstr ->
-            props.store(outstr, 'props')
-        }
-
         // Add in an empty settings file to avoid searching up
         projectDir.file('settings.gradle').text = '// to stop search upwards'
     }
@@ -104,6 +97,7 @@ run {
         try {
             return new GradleDistributionExecuter(distribution).inDirectory(sample.dir)
                     .withTasks('run')
+                    .withDaemonIdleTimeoutSecs(60)
                     .run()
         } catch (Exception e) {
             throw new IntegrationTestHint(e);

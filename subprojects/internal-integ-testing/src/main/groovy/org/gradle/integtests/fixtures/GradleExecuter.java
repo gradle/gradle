@@ -148,4 +148,13 @@ public interface GradleExecuter {
      * @return this executer
      */
     GradleExecuter withDefaultCharacterEncoding(String defaultCharacterEncoding);
+
+    /**
+     * Set the number of seconds an idle daemon should live for.
+     *
+     * @param secs
+     *
+     * @return this executer
+     */
+    GradleExecuter withDaemonIdleTimeoutSecs(int secs);
 }
