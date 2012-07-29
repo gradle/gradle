@@ -17,8 +17,6 @@ package org.gradle.integtests.fixtures;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.Transformer;
-import org.gradle.api.specs.Spec;
 
 import java.io.File;
 import java.util.ArrayList;
