@@ -18,8 +18,8 @@ package org.gradle.api.tasks.diagnostics.internal.dependencies;
 
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.dependencygraph.DependencyGraphListener;
-import org.gradle.api.internal.dependencygraph.DependencyGraphNode;
 import org.gradle.api.internal.dependencygraph.DependencyModule;
 
 import java.util.*;
@@ -29,11 +29,11 @@ import java.util.*;
  */
 public class DependencyInfoCollector implements DependencyGraphListener {
 
-    private DependencyGraphNode root;
+    private ResolvedConfigurationIdentifier root;
     private Map<ModuleVersionIdentifier, Map<String, DependencyModule>> deps
             = new LinkedHashMap<ModuleVersionIdentifier, Map<String, DependencyModule>>();
 
-    public void resolvedDependency(DependencyGraphNode root, DependencyGraphNode id, List<DependencyModule> dependencies) {
+    public void resolvedDependency(ResolvedConfigurationIdentifier root, ResolvedConfigurationIdentifier id, List<DependencyModule> dependencies) {
         this.root = root;
         if (!deps.containsKey(id.getId())) {
             deps.put(id.getId(), new LinkedHashMap<String, DependencyModule>());

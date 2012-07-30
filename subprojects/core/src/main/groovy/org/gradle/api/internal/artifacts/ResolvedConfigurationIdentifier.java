@@ -16,17 +16,15 @@
 
 package org.gradle.api.internal.artifacts;
 
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+
 public class ResolvedConfigurationIdentifier {
-    private final String moduleGroup;
-    private final String moduleName;
-    private final String moduleVersion;
+    private final ModuleVersionIdentifier id;
     private final String configuration;
 
     public ResolvedConfigurationIdentifier(String moduleGroup, String moduleName, String moduleVersion,
                                            String configuration) {
-        this.moduleGroup = moduleGroup;
-        this.moduleName = moduleName;
-        this.moduleVersion = moduleVersion;
+        this.id = new DefaultModuleVersionIdentifier(moduleGroup, moduleName, moduleVersion);
         this.configuration = configuration;
     }
 
@@ -35,20 +33,24 @@ public class ResolvedConfigurationIdentifier {
     }
 
     public String getModuleGroup() {
-        return moduleGroup;
+        return id.getGroup();
     }
 
     public String getModuleName() {
-        return moduleName;
+        return id.getName();
     }
 
     public String getModuleVersion() {
-        return moduleVersion;
+        return id.getVersion();
+    }
+
+    public ModuleVersionIdentifier getId() {
+        return id;
     }
 
     @Override
     public String toString() {
-        return String.format("%s:%s:%s:%s", moduleGroup, moduleName, moduleVersion, configuration);
+        return String.format("%s:%s:%s:%s", getModuleGroup(), getModuleVersion(), getModuleName(), configuration);
     }
 
     @Override
@@ -62,13 +64,7 @@ public class ResolvedConfigurationIdentifier {
 
         ResolvedConfigurationIdentifier that = (ResolvedConfigurationIdentifier) o;
 
-        if (!moduleGroup.equals(that.moduleGroup)) {
-            return false;
-        }
-        if (!moduleName.equals(that.moduleName)) {
-            return false;
-        }
-        if (!moduleVersion.equals(that.moduleVersion)) {
+        if (!id.equals(that.id)) {
             return false;
         }
         if (!configuration.equals(that.configuration)) {
@@ -80,6 +76,6 @@ public class ResolvedConfigurationIdentifier {
 
     @Override
     public int hashCode() {
-        return moduleGroup.hashCode() ^ moduleName.hashCode() ^ configuration.hashCode();
+        return id.hashCode() ^ configuration.hashCode();
     }
 }
