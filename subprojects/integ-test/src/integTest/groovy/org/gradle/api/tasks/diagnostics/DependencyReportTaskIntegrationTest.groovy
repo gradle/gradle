@@ -170,14 +170,11 @@ rootProject.name = 'root'
 |    \\--- foo:bar:1.0 -> 3.0 [default]
 |         \\--- foo:baz:5.0 [compile,master,runtime]
 +--- root:b:1.0 [default]
-|    \\--- foo:bar:2.0 -> 3.0 [default]
-|         \\--- foo:baz:5.0 [compile,master,runtime] (*)
+|    \\--- foo:bar:2.0 -> 3.0 [default] (*)
 +--- root:c:1.0 [default]
-|    \\--- foo:bar:3.0 [default]
-|         \\--- foo:baz:5.0 [compile,master,runtime] (*)
+|    \\--- foo:bar:3.0 [default] (*)
 +--- root:d:1.0 [default]
-|    \\--- foo:bar:1.5 -> 3.0 [default]
-|         \\--- foo:baz:5.0 [compile,master,runtime] (*)
+|    \\--- foo:bar:1.5 -> 3.0 [default] (*)
 \\--- root:e:1.0 [default]
      \\--- foo:bar:3.0 [default] (*)
 """))
@@ -258,10 +255,9 @@ rootProject.name = 'root'
         output.contains(toPlatformLineSeparators("""
 +--- bar:bar:5.0 -> 6.0 [default]
 |    \\--- foo:foo:3.0 [compile,master,runtime]
-+--- bar:bar:6.0 [default]
-|    \\--- foo:foo:3.0 [compile,master,runtime] (*)
-+--- foo:foo:1.0 -> 3.0 [default]
-\\--- foo:foo:2.0 -> 3.0 [default]
++--- bar:bar:6.0 [default] (*)
++--- foo:foo:1.0 -> 3.0 [default] (*)
+\\--- foo:foo:2.0 -> 3.0 [default] (*)
 """))
     }
 
@@ -297,8 +293,7 @@ rootProject.name = 'root'
         output.contains(toPlatformLineSeparators("""
 +--- foo:foo:1+ -> 2.5 [default]
 |    \\--- foo:bar:2.0 [compile,master,runtime]
-\\--- foo:foo:2+ -> 2.5 [default]
-     \\--- foo:bar:2.0 [compile,master,runtime] (*)
+\\--- foo:foo:2+ -> 2.5 [default] (*)
 """))
     }
 }

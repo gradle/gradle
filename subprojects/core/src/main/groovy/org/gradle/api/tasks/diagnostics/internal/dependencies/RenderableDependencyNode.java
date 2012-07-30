@@ -40,7 +40,7 @@ public class RenderableDependencyNode implements RenderableDependency {
     }
 
     public String getId() {
-        return dependencyNode.getId().getAsked().toString();
+        return dependencyNode.getId().getSelected().toString();
     }
 
     public String getConfiguration() {
