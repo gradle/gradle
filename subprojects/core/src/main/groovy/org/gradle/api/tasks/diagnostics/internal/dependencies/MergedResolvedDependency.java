@@ -34,6 +34,10 @@ public class MergedResolvedDependency implements RenderableDependency {
         this.mergedResolvedDependencies = mergedResolvedDependencies;
     }
 
+    public String getId() {
+        return getName();
+    }
+
     public String getName() {
         return mergedResolvedDependencies.iterator().next().getName();
     }

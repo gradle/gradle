@@ -19,6 +19,7 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.artifacts.ResolvedDependency
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.logging.TestStyledTextOutput
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
@@ -64,7 +65,7 @@ class AsciiReportRendererTest extends Specification {
 
     def rendersDependencyTreeForConfiguration() {
         ResolvedConfiguration resolvedConfig = Mock()
-        Configuration configuration = Mock()
+        ConfigurationInternal configuration = Mock()
         configuration.getResolvedConfiguration() >> resolvedConfig
         ResolvedDependency dep1 = Mock()
         ResolvedDependency dep11 = Mock()
@@ -105,7 +106,7 @@ class AsciiReportRendererTest extends Specification {
     }
 
     def rendersDependencyTreeForEmptyConfiguration() {
-        Configuration configuration = Mock()
+        ConfigurationInternal configuration = Mock()
         ResolvedConfiguration resolvedConfiguration = Mock()
 
         configuration.getResolvedConfiguration() >> resolvedConfiguration

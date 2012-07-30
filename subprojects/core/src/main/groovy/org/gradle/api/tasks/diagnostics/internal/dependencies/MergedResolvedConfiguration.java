@@ -23,15 +23,29 @@ import java.util.Set;
 /**
 * by Szczepan Faber, created at: 7/27/12
 */
-public class MergedResolvedConfiguration {
+public class MergedResolvedConfiguration implements RenderableDependency {
 
     private final Set<RenderableDependency> children;
+    private final ResolvedConfiguration resolvedConfiguration;
 
     public MergedResolvedConfiguration(ResolvedConfiguration resolvedConfiguration) {
+        this.resolvedConfiguration = resolvedConfiguration;
         children = MergedResolvedDependency.mergeChildren(resolvedConfiguration.getFirstLevelModuleDependencies());
     }
 
+    public String getId() {
+        return getName();
+    }
+
+    public String getName() {
+        return resolvedConfiguration.toString();
+    }
+
+    public String getConfiguration() {
+        return getName();
+    }
+
     public Set<RenderableDependency> getChildren() {
-        return  children;
+        return children;
     }
 }

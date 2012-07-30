@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.diagnostics.internal.dependencies;
+package org.gradle.api.internal.dependencygraph;
 
-import java.util.Set;
+import java.util.List;
 
 /**
-* by Szczepan Faber, created at: 7/27/12
-*/
-public interface RenderableDependency {
-    String getId();
-    String getName();
-    String getConfiguration();
-    Set<RenderableDependency> getChildren();
+ * by Szczepan Faber, created at: 7/26/12
+ */
+public interface DependencyGraphListener {
+
+    public void resolvedDependency(DependencyGraphNode root, DependencyGraphNode id, List<DependencyModule> dependencies);
+
 }

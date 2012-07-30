@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.DefaultDependencySet;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet;
+import org.gradle.api.internal.dependencygraph.DependencyGraphListener;
 import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
@@ -70,6 +71,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private State state = State.UNRESOLVED;
     private ResolvedConfiguration cachedResolvedConfiguration;
     private final DefaultResolutionStrategy resolutionStrategy;
+    private DependencyGraphListener dependencyGraphListener;
 
     public DefaultConfiguration(String path, String name, ConfigurationsProvider configurationsProvider,
                                 ArtifactDependencyResolver dependencyResolver, ListenerManager listenerManager,
@@ -556,5 +558,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         public void afterResolve(Closure action) {
             resolutionListenerBroadcast.add("afterResolve", action);
         }
+    }
+
+    public void setDependencyGraphListener(DependencyGraphListener dependencyGraphListener) {
+        this.dependencyGraphListener = dependencyGraphListener;
+    }
+
+    public DependencyGraphListener getDependencyGraphListener() {
+        return dependencyGraphListener;
     }
 }
