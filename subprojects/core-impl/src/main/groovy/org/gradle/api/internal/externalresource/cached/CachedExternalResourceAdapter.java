@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.externalresource.cached;
 
-import org.apache.ivy.util.CopyProgressListener;
 import org.gradle.api.internal.externalresource.LocalFileStandInExternalResource;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 import org.gradle.api.internal.externalresource.transfer.ExternalResourceAccessor;
@@ -53,24 +52,24 @@ public class CachedExternalResourceAdapter extends LocalFileStandInExternalResou
         return cached.getContentLength();
     }
 
-    public void writeTo(File destination, CopyProgressListener progress) throws IOException {
+    public void writeTo(File destination) throws IOException {
         try {
-            super.writeTo(destination, progress);
+            super.writeTo(destination);
         } catch (IOException e) {
-            downloadResourceDirect(destination, progress);
+            downloadResourceDirect(destination);
             return;
         }
 
         // If the checksum of the downloaded file does not match the cached artifact, download it directly.
         // This may be the case if the cached artifact was changed before copying
         if (!getSha1(destination).equals(getLocalFileSha1())) {
-            downloadResourceDirect(destination, progress);
+            downloadResourceDirect(destination);
         }
     }
 
-    private void downloadResourceDirect(File destination, CopyProgressListener progress) throws IOException {
+    private void downloadResourceDirect(File destination) throws IOException {
         // Perform a regular download, without considering external caches
-        accessor.getResource(getName()).writeTo(destination, progress);
+        accessor.getResource(getName()).writeTo(destination);
     }
 
 }

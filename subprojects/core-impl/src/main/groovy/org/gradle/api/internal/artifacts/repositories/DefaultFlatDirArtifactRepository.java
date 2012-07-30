@@ -78,7 +78,6 @@ public class DefaultFlatDirArtifactRepository implements FlatDirectoryArtifactRe
         }
         resolver.setValidate(false);
         resolver.setRepositoryCacheManager(repositoryTransportFactory.getLocalCacheManager());
-        resolver.getRepository().addTransferListener(repositoryTransportFactory.getTransferListener());
         return resolver;
     }
 }

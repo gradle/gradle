@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.externalresource;
 
-import org.apache.ivy.util.CopyProgressListener
 import org.gradle.api.internal.externalresource.transfer.ExternalResourceAccessor
 import org.gradle.util.TemporaryFolder
 import org.gradle.util.hash.HashUtil
@@ -31,7 +30,6 @@ public class CachedExternalResourceAdapterTest extends Specification {
 
     ExternalResourceAccessor accessor = Mock()
     CachedExternalResource cachedExternalResource = Mock()
-    CopyProgressListener progress = Mock()
     CachedExternalResourceAdapter cachedResource
     def origin = tmpDir.file('origin')
     def destination = tmpDir.file('destination')
@@ -59,7 +57,7 @@ public class CachedExternalResourceAdapterTest extends Specification {
         origin << "some content"
 
         when:
-        cachedResource.writeTo(destination, progress)
+        cachedResource.writeTo(destination)
 
         then:
         destination.assertIsCopyOf(origin)
@@ -72,7 +70,7 @@ public class CachedExternalResourceAdapterTest extends Specification {
         ExternalResource resource = Mock()
 
         when:
-        cachedResource.writeTo(destination, progress)
+        cachedResource.writeTo(destination)
 
         then:
         cachedExternalResource.cachedFile >> origin
@@ -80,6 +78,6 @@ public class CachedExternalResourceAdapterTest extends Specification {
 
         and:
         accessor.getResource("resource-source") >> resource
-        resource.writeTo(destination, progress)
+        resource.writeTo(destination)
     }
 }

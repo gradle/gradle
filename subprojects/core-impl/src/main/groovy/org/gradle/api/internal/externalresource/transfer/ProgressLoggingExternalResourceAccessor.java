@@ -17,7 +17,6 @@
 package org.gradle.api.internal.externalresource.transfer;
 
 import org.apache.ivy.plugins.repository.Resource;
-import org.apache.ivy.util.CopyProgressListener;
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
@@ -64,18 +63,18 @@ public class ProgressLoggingExternalResourceAccessor implements ExternalResource
             this.progressLoggerFactory = progressLoggerFactory;
         }
 
-        public void writeTo(File destination, CopyProgressListener lister) throws IOException {
-            resource.writeTo(destination, lister);
+        public void writeTo(File destination) throws IOException {
+            resource.writeTo(destination);
         }
 
-        public void writeTo(OutputStream outputStream, CopyProgressListener lister) throws IOException {  //get rid of CopyProgress Logger
+        public void writeTo(OutputStream outputStream) throws IOException {  //get rid of CopyProgress Logger
             ProgressLogger progressLogger = progressLoggerFactory.newOperation(ProgressLoggingExternalResource.class);
             progressLogger.setDescription(String.format("Download %s", getName()));
             progressLogger.setShortDescription(String.format("Download %s", getName()));
             progressLogger.started();
             final ProgressLoggingOutputStream progressLoggingOutputStream = new ProgressLoggingOutputStream(outputStream, progressLogger, resource.getContentLength());
             try {
-                resource.writeTo(progressLoggingOutputStream, lister);
+                resource.writeTo(progressLoggingOutputStream);
             } catch (IOException e) {
                 progressLogger.completed(String.format("Failed to write %s to %s.", getName()));
                 throw e;
@@ -137,6 +136,7 @@ public class ProgressLoggingExternalResourceAccessor implements ExternalResource
             this.progressLogger = progressLogger;
             this.contentLength = contentLength;
         }
+
         @Override
         public void write(int b) throws IOException {
             outputStream.write(b);

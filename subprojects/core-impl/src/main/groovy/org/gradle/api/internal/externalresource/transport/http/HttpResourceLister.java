@@ -74,7 +74,7 @@ public class HttpResourceLister implements ExternalResourceLister {
     byte[] loadResourceContent(ExternalResource resource) throws IOException {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         try {
-            resource.writeTo(outputStream, new CopyProgressListenerAdapter());
+            resource.writeTo(outputStream);
             return outputStream.toByteArray();
         } finally {
             try {

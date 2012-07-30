@@ -21,6 +21,7 @@ import org.apache.ivy.plugins.repository.TransferListener;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
 
+@Deprecated
 public class ProgressLoggingTransferListener implements TransferListener {
     private final ProgressLoggerFactory progressLoggerFactory;
     private final Class loggingClass;

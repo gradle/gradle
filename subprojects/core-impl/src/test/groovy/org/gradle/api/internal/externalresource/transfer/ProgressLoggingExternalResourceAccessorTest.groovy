@@ -16,13 +16,12 @@
 
 package org.gradle.api.internal.externalresource.transfer
 
-import spock.lang.Specification
-import org.gradle.logging.ProgressLoggerFactory
-import spock.lang.Unroll
-import org.gradle.logging.ProgressLogger
-import org.gradle.api.internal.externalresource.ExternalResource
 import com.sun.xml.internal.messaging.saaj.util.ByteOutputStream
-import org.gradle.api.internal.externalresource.transport.http.CopyProgressListenerAdapter
+import org.gradle.api.internal.externalresource.ExternalResource
+import org.gradle.logging.ProgressLogger
+import org.gradle.logging.ProgressLoggerFactory
+import spock.lang.Specification
+import spock.lang.Unroll
 
 class ProgressLoggingExternalResourceAccessorTest extends Specification {
 
@@ -50,7 +49,7 @@ class ProgressLoggingExternalResourceAccessorTest extends Specification {
         when:
         def processLoggableResource = progressLoggerAccessor.getResource("location")
         and:
-        processLoggableResource.writeTo(new ByteOutputStream(), new CopyProgressListenerAdapter())
+        processLoggableResource.writeTo(new ByteOutputStream())
         then:
         1 * progressLoggerFactory.newOperation(_) >> progressLogger
         1 * progressLogger.started()

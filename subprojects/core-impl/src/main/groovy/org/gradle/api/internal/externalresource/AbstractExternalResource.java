@@ -16,22 +16,24 @@
 package org.gradle.api.internal.externalresource;
 
 import org.apache.ivy.plugins.repository.Resource;
-import org.apache.ivy.util.CopyProgressListener;
-import org.apache.ivy.util.FileUtil;
 
 import java.io.*;
 
 public abstract class AbstractExternalResource implements ExternalResource {
-    public void writeTo(File destination, CopyProgressListener progress) throws IOException {
+    // according to tests by users, 64kB seems to be a good value for the buffer used during copy
+    // further improvements could be obtained using NIO API
+    private static final int BUFFER_SIZE = 64 * 1024;
+
+    public void writeTo(File destination) throws IOException {
         FileOutputStream output = new FileOutputStream(destination);
-        writeTo(output, progress);
+        writeTo(output);
         output.close();
     }
 
-    public void writeTo(OutputStream output, CopyProgressListener progress) throws IOException {
+    public void writeTo(OutputStream output) throws IOException {
         InputStream input = openStream();
         try {
-            FileUtil.copy(input, output, progress);
+            copy(input, output);
         } finally {
             input.close();
         }
@@ -45,4 +47,37 @@ public abstract class AbstractExternalResource implements ExternalResource {
     public void close() throws IOException {
     }
 
+    public static void copy(InputStream src, OutputStream dest)
+            throws IOException {
+        try {
+            byte[] buffer = new byte[BUFFER_SIZE];
+            int c;
+            while ((c = src.read(buffer)) != -1) {
+                if (Thread.currentThread().isInterrupted()) {
+                    throw new IOException("transfer interrupted");
+                }
+                dest.write(buffer, 0, c);
+            }
+            try {
+                dest.flush();
+            } catch (IOException ex) {
+                // ignore
+            }
+
+            // close the streams
+            src.close();
+            dest.close();
+        } finally {
+            try {
+                src.close();
+            } catch (IOException ex) {
+                // ignore
+            }
+            try {
+                dest.close();
+            } catch (IOException ex) {
+                // ignore
+            }
+        }
+    }
 }

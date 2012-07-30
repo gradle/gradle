@@ -18,10 +18,7 @@ package org.gradle.api.internal.artifacts.repositories;
 
 
 import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.plugins.repository.AbstractRepository;
-import org.apache.ivy.plugins.repository.BasicResource;
-import org.apache.ivy.plugins.repository.RepositoryCopyProgressListener;
-import org.apache.ivy.plugins.repository.TransferEvent;
+import org.apache.ivy.plugins.repository.*;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.cached.CachedExternalResource;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceCandidates;
@@ -40,12 +37,12 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-public class DefaultExternalResourceRepository extends AbstractRepository implements ExternalResourceRepository {
+public class DefaultExternalResourceRepository implements ExternalResourceRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultExternalResourceRepository.class);
-    private final RepositoryCopyProgressListener progress = new RepositoryCopyProgressListener(this);
     private final TemporaryFileProvider temporaryFileProvider = new TmpDirTemporaryFileProvider();
 
+    private String name;
     private final ExternalResourceAccessor accessor;
     private final ExternalResourceUploader uploader;
     private final ExternalResourceLister lister;
@@ -53,7 +50,7 @@ public class DefaultExternalResourceRepository extends AbstractRepository implem
     private final CacheAwareExternalResourceAccessor cacheAwareAccessor;
 
     public DefaultExternalResourceRepository(String name, ExternalResourceAccessor accessor, ExternalResourceUploader uploader, ExternalResourceLister lister) {
-        setName(name);
+        this.name = name;
         this.accessor = accessor;
         this.uploader = uploader;
         this.lister = lister;
@@ -78,23 +75,17 @@ public class DefaultExternalResourceRepository extends AbstractRepository implem
     }
 
     public void downloadResource(ExternalResource resource, File destination) throws IOException {
-        fireTransferInitiated(resource, TransferEvent.REQUEST_GET);
         try {
-            progress.setTotalLength(resource.getContentLength() > 0 ? resource.getContentLength() : null);
-            resource.writeTo(destination, progress);
+            resource.writeTo(destination);
         } catch (IOException e) {
-            fireTransferError(e);
             throw e;
         } catch (Exception e) {
-            fireTransferError(e);
             throw UncheckedException.throwAsUncheckedException(e);
         } finally {
-            progress.setTotalLength(null);
             resource.close();
         }
     }
 
-    @Override
     public void put(Artifact artifact, File source, String destination, boolean overwrite) throws IOException {
         put(source, destination, overwrite);
         putChecksum("SHA1", source, destination, overwrite);
@@ -113,26 +104,54 @@ public class DefaultExternalResourceRepository extends AbstractRepository implem
         return csFile;
     }
 
-    @Override
     protected void put(File source, String destination, boolean overwrite) throws IOException {
         LOGGER.debug("Attempting to put resource {}.", destination);
         assert source.isFile();
-        fireTransferInitiated(new BasicResource(destination, true, source.length(), source.lastModified(), false), TransferEvent.REQUEST_PUT);
         try {
-            progress.setTotalLength(source.length());
             uploader.upload(source, destination, overwrite);
         } catch (IOException e) {
-            fireTransferError(e);
             throw e;
         } catch (Exception e) {
-            fireTransferError(e);
             throw UncheckedException.throwAsUncheckedException(e);
-        } finally {
-            progress.setTotalLength(null);
         }
     }
 
     public List list(String parent) throws IOException {
         return lister.list(parent);
+    }
+
+    public void addTransferListener(TransferListener listener) {
+        throw new UnsupportedOperationException("addTransferListener(TransferListener) is not implemented");
+    }
+
+    public void removeTransferListener(TransferListener listener) {
+        throw new UnsupportedOperationException("removeTransferListener(TransferListener) is not implemented");
+    }
+
+    public boolean hasTransferListener(TransferListener listener) {
+        throw new UnsupportedOperationException("hasTransferListener(TransferListener) is not implemented");
+    }
+
+    /**
+     * followed methods are taken from AbstractRepository for compatibility reasons. Revisit them later.
+     * */
+    public String getFileSeparator() {
+        return "/";
+    }
+
+    public String standardize(String source) {
+        return source.replace('\\', '/');
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String toString() {
+        return getName();
     }
 }

@@ -31,7 +31,7 @@ class HttpResourceListerTest extends Specification {
         when:
         lister.loadResourceContent(externalResource)
         then:
-        1 * externalResource.writeTo(_, _)
+        1 * externalResource.writeTo(_)
         1 * externalResource.close()
     }
 
