@@ -30,15 +30,24 @@ import java.util.*;
 public class DependencyInfoCollector implements DependencyGraphListener {
 
     private DependencyGraphNode root;
-    private Map<ModuleVersionIdentifier, Set<DependencyModule>> deps = new LinkedHashMap<ModuleVersionIdentifier, Set<DependencyModule>>();
+    private Map<ModuleVersionIdentifier, Map<String, DependencyModule>> deps
+            = new LinkedHashMap<ModuleVersionIdentifier, Map<String, DependencyModule>>();
 
     public void resolvedDependency(DependencyGraphNode root, DependencyGraphNode id, List<DependencyModule> dependencies) {
         this.root = root;
         if (!deps.containsKey(id.getId())) {
-            deps.put(id.getId(), new LinkedHashSet<DependencyModule>());
+            deps.put(id.getId(), new LinkedHashMap<String, DependencyModule>());
         }
         if (!dependencies.isEmpty()) {
-            deps.get(id.getId()).addAll(dependencies);
+            //TODO SF I don't have to do this aggregation here. There is a simpler way.
+            Map<String, DependencyModule> accumulatedDependencies = deps.get(id.getId());
+            for (DependencyModule d : dependencies) {
+                if (accumulatedDependencies.containsKey(d.toString())) {
+                    accumulatedDependencies.get(d.toString()).appendConfigurations(d.getConfigurations());
+                } else {
+                    accumulatedDependencies.put(d.toString(), d);
+                }
+            }
         }
     }
 
@@ -93,11 +102,11 @@ public class DependencyInfoCollector implements DependencyGraphListener {
         DependencyNode node = new DependencyNode(id);
         visited.put(id.getAsked(), node);
 
-        Set<DependencyModule> theDeps = this.deps.get(id.getSelected());
+        Map<String, DependencyModule> theDeps = this.deps.get(id.getSelected());
         if (theDeps == null) {
             return node;
         }
-        for (DependencyModule sel : theDeps) {
+        for (DependencyModule sel : theDeps.values()) {
             node.dependencies.add(buildNode(sel, visited));
         }
 

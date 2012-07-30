@@ -17,7 +17,6 @@ package org.gradle.api.tasks.diagnostics
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.MavenRepository
-import spock.lang.Ignore
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
@@ -184,7 +183,6 @@ rootProject.name = 'root'
 """))
     }
 
-    @Ignore //TODO SF find out why we're missing 'runtime' configuration
     def "renders the dependency tree"() {
         given:
         repo.module("org", "leaf1").publish()

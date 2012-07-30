@@ -60,4 +60,8 @@ public class DependencyModule {
     public Set<String> getConfigurations() {
         return configurations;
     }
+
+    public void appendConfigurations(Set<String> configurations) {
+        this.configurations.addAll(configurations);
+    }
 }
