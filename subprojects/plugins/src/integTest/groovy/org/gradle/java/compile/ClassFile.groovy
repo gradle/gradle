@@ -16,7 +16,8 @@
 
 package org.gradle.java.compile
 
-import org.objectweb.asm.commons.EmptyVisitor
+import org.objectweb.asm.ClassVisitor
+import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.ClassReader
@@ -29,7 +30,7 @@ class ClassFile {
 
     ClassFile(File file) {
         this.file = file
-        def methodVisitor = new EmptyVisitor() {
+        def methodVisitor = new MethodVisitor(Opcodes.ASM4) {
             @Override
             void visitLocalVariable(String name, String desc, String signature, Label start, Label end, int index) {
                 hasLocalVars = true
@@ -40,7 +41,7 @@ class ClassFile {
                 hasLineNumbers = true
             }
         }
-        def visitor = new EmptyVisitor() {
+        def visitor = new ClassVisitor(Opcodes.ASM4) {
             @Override
             MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
                 return methodVisitor

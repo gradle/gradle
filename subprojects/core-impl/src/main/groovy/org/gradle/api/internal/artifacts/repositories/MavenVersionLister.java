@@ -21,11 +21,7 @@ import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.internal.resource.ResourceException;
 import org.gradle.api.internal.resource.ResourceNotFoundException;
-import org.xml.sax.SAXException;
 
-import javax.xml.parsers.ParserConfigurationException;
-import java.io.IOException;
-import java.util.Collections;
 import java.util.Map;
 
 public class MavenVersionLister implements VersionLister {
@@ -38,20 +34,12 @@ public class MavenVersionLister implements VersionLister {
     }
 
     public VersionList getVersionList(ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact) throws ResourceException, ResourceNotFoundException {
-        try {
-            if (!pattern.endsWith(MavenPattern.M2_PATTERN)) {
-                return new DefaultVersionList(Collections.<String>emptyList());
-            }
-            final Map attributes = moduleRevisionId.getModuleId().getAttributes();
-            String metadataLocation = IvyPatternHelper.substituteTokens(root + "[organisation]/[module]/maven-metadata.xml", attributes);
-            MavenMetadata mavenMetaData = mavenMetadataLoader.load(metadataLocation);
-            return new DefaultVersionList(mavenMetaData.versions);
-        } catch (IOException e) {
-            throw new ResourceException("Unable to load Maven Metadata file", e);
-        } catch (SAXException e) {
-            throw new ResourceException("Unable to parse Maven Metadata file", e);
-        } catch (ParserConfigurationException e) {
-            throw new ResourceException("Unable to parse Maven Metadata file", e);
+        if (!pattern.endsWith(MavenPattern.M2_PATTERN)) {
+            throw new ResourceNotFoundException("Cannot locate maven-metadata.xml for non-maven layout");
         }
+        final Map attributes = moduleRevisionId.getModuleId().getAttributes();
+        String metadataLocation = IvyPatternHelper.substituteTokens(root + "[organisation]/[module]/maven-metadata.xml", attributes);
+        MavenMetadata mavenMetaData = mavenMetadataLoader.load(metadataLocation);
+        return new DefaultVersionList(mavenMetaData.versions);
     }
 }

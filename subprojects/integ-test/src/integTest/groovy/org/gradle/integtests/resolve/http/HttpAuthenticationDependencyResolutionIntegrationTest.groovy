@@ -117,12 +117,12 @@ task listJars << {
         server.expectGet('/repo/group/projectB/2.3/projectB-2.3.pom', 'username', 'password', moduleB.pomFile)
         server.expectGet('/repo/group/projectB/2.3/projectB-2.3.jar', 'username', 'password', moduleB.artifactFile)
 
-        server.expectGet('/repo/group/projectC/3.1-SNAPSHOT/maven-metadata.xml', 'username', 'password', moduleC.metaDataFile) // TODO: double check why we have two get requests here.
+        server.expectGet('/repo/group/projectC/3.1-SNAPSHOT/maven-metadata.xml', 'username', 'password', moduleC.metaDataFile)
         server.expectGet('/repo/group/projectC/3.1-SNAPSHOT/maven-metadata.xml', 'username', 'password', moduleC.metaDataFile)
         server.expectGet("/repo/group/projectC/3.1-SNAPSHOT/projectC-${moduleC.getPublishArtifactVersion()}.pom", 'username', 'password', moduleC.pomFile)
         server.expectGet("/repo/group/projectC/3.1-SNAPSHOT/projectC-${moduleC.getPublishArtifactVersion()}.jar", 'username', 'password', moduleC.artifactFile)
 
-        server.expectGet('/repo/group/projectD/4-SNAPSHOT/maven-metadata.xml', 'username', 'password', moduleD.metaDataFile)  //same here: two requests necessary?
+        server.expectGet('/repo/group/projectD/4-SNAPSHOT/maven-metadata.xml', 'username', 'password', moduleD.metaDataFile)
         server.expectGet('/repo/group/projectD/4-SNAPSHOT/maven-metadata.xml', 'username', 'password', moduleD.metaDataFile)
         server.expectGet("/repo/group/projectD/4-SNAPSHOT/projectD-4-SNAPSHOT.pom", 'username', 'password', moduleD.pomFile)
         server.expectGet("/repo/group/projectD/4-SNAPSHOT/projectD-4-SNAPSHOT.jar", 'username', 'password', moduleD.artifactFile)

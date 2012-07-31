@@ -15,18 +15,24 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Lists;
 import org.apache.ivy.core.module.descriptor.*;
 import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.resolve.IvyNode;
 import org.apache.ivy.core.resolve.ResolveData;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.EnhancedDependencyDescriptor;
+import org.gradle.api.internal.dependencygraph.DependencyGraphListener;
+import org.gradle.api.internal.dependencygraph.DependencyModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,7 +59,7 @@ public class DependencyGraphBuilder {
         traverseGraph(resolveState);
 
         DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, resolveState.root.getResult());
-        assembleResult(resolveState, result);
+        assembleResult(resolveState, result, configuration.getDependencyGraphListener());
 
         return result;
     }
@@ -134,13 +140,55 @@ public class DependencyGraphBuilder {
     /**
      * Populates the result from the graph traversal state.
      */
-    private void assembleResult(ResolveState resolveState, ResolvedConfigurationBuilder result) {
+    private void assembleResult(ResolveState resolveState, ResolvedConfigurationBuilder result, DependencyGraphListener dependencyGraphListener) {
         FailureState failureState = new FailureState(resolveState.root);
+        ResolvedConfigurationIdentifier root = toId(resolveState.root);
+
         for (ConfigurationNode resolvedConfiguration : resolveState.getConfigurationNodes()) {
             resolvedConfiguration.attachToParents(resolvedArtifactFactory, result);
             resolvedConfiguration.collectFailures(failureState);
+
+            notifyListener(dependencyGraphListener, root, resolvedConfiguration);
         }
         failureState.attachFailures(result);
+    }
+
+    private void notifyListener(DependencyGraphListener dependencyGraphListener, ResolvedConfigurationIdentifier root, ConfigurationNode resolvedConfiguration) {
+        if (dependencyGraphListener != null) {
+            ResolvedConfigurationIdentifier id = toId(resolvedConfiguration);
+            List<DependencyEdge> out = Lists.newLinkedList(resolvedConfiguration.outgoingEdges);
+
+            List<DependencyModule> to = Lists.transform(out, new Function<DependencyEdge, DependencyModule>() {
+                public DependencyModule apply(DependencyEdge input) {
+                    List<String> targetConfigurations = Lists.transform(Lists.newLinkedList(input.targetConfigurations), new Function<ConfigurationNode, String>() {
+                        public String apply(ConfigurationNode input) {
+                            return input.configurationName;
+                        }
+                    });
+                    return new DependencyModule(new DefaultModuleVersionIdentifier(
+                            input.dependencyDescriptor.getDependencyRevisionId().getOrganisation(),
+                            input.dependencyDescriptor.getDependencyRevisionId().getName(),
+                            input.dependencyDescriptor.getDependencyRevisionId().getRevision()),
+                            toId(input.targetModuleRevision),
+                            new LinkedHashSet<String>(targetConfigurations)
+                        );
+                }
+            });
+
+            dependencyGraphListener.resolvedDependency(root, id, to);
+        }
+    }
+
+    private ResolvedConfigurationIdentifier toId(ConfigurationNode node) {
+        return new ResolvedConfigurationIdentifier(
+                node.moduleRevision.id.getOrganisation(),
+                node.moduleRevision.id.getName(),
+                node.moduleRevision.id.getRevision(),
+                node.configurationName);
+    }
+
+    private ModuleVersionIdentifier toId(DefaultModuleRevisionResolveState m) {
+        return new DefaultModuleVersionIdentifier(m.id.getOrganisation(), m.id.getName(), m.getRevision());
     }
 
     private static class FailureState {

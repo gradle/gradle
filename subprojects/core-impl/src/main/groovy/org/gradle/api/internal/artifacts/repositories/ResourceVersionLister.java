@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.repositories;
 import org.apache.ivy.core.IvyPatternHelper;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.apache.ivy.plugins.resolver.util.ResolverHelper;
 import org.gradle.api.internal.resource.ResourceException;
 import org.gradle.api.internal.resource.ResourceNotFoundException;
 import org.slf4j.Logger;
@@ -50,13 +51,23 @@ public class ResourceVersionLister implements VersionLister {
         String partiallyResolvedPattern = IvyPatternHelper.substitute(pattern, idWithoutRevision, artifact);
         LOGGER.debug("Listing all in {}", partiallyResolvedPattern);
         try {
-            return new DefaultVersionList(listRevisionToken(partiallyResolvedPattern));
+//            final String[] strings = ResolverHelper.listTokenValues(repository, partiallyResolvedPattern, IvyPatternHelper.REVISION_KEY);
+            final List<String> versionStrings = listRevisionToken(partiallyResolvedPattern);
+
+            return new DefaultVersionList(versionStrings);
         } catch (IOException e) {
             throw new ResourceException("Unable to load Versions", e);
         }
     }
 
-    // lists all the values a revison token listed by a given url lister
+    protected String[] listVersions(ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact) {
+        ModuleRevisionId idWithoutRevision = ModuleRevisionId.newInstance(moduleRevisionId, IvyPatternHelper.getTokenString(IvyPatternHelper.REVISION_KEY));
+        String partiallyResolvedPattern = IvyPatternHelper.substitute(pattern, idWithoutRevision, artifact);
+        LOGGER.debug("Listing all in {}", partiallyResolvedPattern);
+        return ResolverHelper.listTokenValues(repository, partiallyResolvedPattern, IvyPatternHelper.REVISION_KEY);
+    }
+
+    // lists all the values a revision token listed by a given url lister
     private List<String> listRevisionToken(String pattern) throws IOException {
         pattern = repository.standardize(pattern);
         if (!pattern.contains(REVISION_TOKEN)) {
@@ -114,12 +125,11 @@ public class ResourceVersionLister implements VersionLister {
     private boolean revisionMatchesDirectoryName(String pattern) {
         int index = pattern.indexOf(REVISION_TOKEN);
         boolean patternStartsWithRevisionToken = index == 0;
-        boolean revisionTokenisFollowedByFileSeparator = pattern.contains(REVISION_TOKEN + fileSep);
-        boolean revisionTokenisPrefixedByFileSeparator = pattern.contains(fileSep + REVISION_TOKEN);
-        return ((pattern.length() <= index + REV_TOKEN_LENGTH) || revisionTokenisFollowedByFileSeparator)
-                && (patternStartsWithRevisionToken || revisionTokenisPrefixedByFileSeparator);
+        return (pattern.length() <= index + REV_TOKEN_LENGTH)
+                    || fileSep.equals(pattern.substring(index + REV_TOKEN_LENGTH, index + REV_TOKEN_LENGTH + 1)) // first revision token is followed by file separator
+                && (patternStartsWithRevisionToken
+                    || fileSep.equals(pattern.substring(index - 1, index))); // first revision token is prefixed by file separator
     }
-
 
     private List<String> listAll(String parent) throws IOException {
         LOGGER.debug("using {} to list all in {}", repository, parent);

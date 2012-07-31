@@ -343,7 +343,13 @@ cache storage (binary, unstable).
 
 ### Implementation approach
 
-TBD
+* The goal is to have the current behaviour of ModuleDescriptorCache and ArtifactAtRepositoryCachedExternalResourceIndex operate atomically, so that removing/expiring a module from the cache automatically
+removes/expires all artifacts linked to that module. One option is to update the ModuleDescriptorCache so that it is able to return the full CacheExternalResource for any artifacts that have been
+ previously resolved for a particular module. This would mean replacing/wrapping the ArtifactAtRepositoryCachedExternalResourceIndex with calls to the ModuleDescriptorCache.
+ The key entry point method is CachingModuleVersionRepository.download(Artifact).
+* Split the filestore out of the artifacts-N directory: introduce metadata-1 and filestore-1 as the 2 versioned artifact storage directories. The metadata-N directory will store binary artifact files,
+and will require a new version whenever the binary storage format is changed. The filestore-N directory will store downloaded files in a pattern that encapsulates the artifact identifier and the SHA1 checksum
+of the downloaded artifact (same as current format).
 
 ## Correct naming of resolved native binaries
 

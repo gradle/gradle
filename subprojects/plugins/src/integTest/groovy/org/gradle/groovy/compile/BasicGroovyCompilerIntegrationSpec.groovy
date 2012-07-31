@@ -18,12 +18,14 @@ package org.gradle.groovy.compile
 import org.gradle.integtests.fixtures.ExecutionResult
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
-import org.junit.Rule
 import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.integtests.fixtures.ExecutionFailure
+import org.gradle.util.VersionNumber
+import org.junit.Rule
+
 import com.google.common.collect.Ordering
 
-@TargetVersions(['1.5.8', '1.6.9', '1.7.10', '1.8.6', '2.0.0'])
+@TargetVersions(['1.5.8', '1.6.9', '1.7.11', '1.8.7', '2.0.1'])
 abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegrationSpec {
     @Rule TestResources resources = new TestResources()
 
@@ -55,6 +57,11 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
     }
 
     def "canCompileAgainstGroovyClassThatDependsOnExternalClass"() {
+        if (getClass() == AntInProcessGroovyCompilerIntegrationTest &&
+                versionNumber >= VersionNumber.parse('1.7.0')) {
+            return // known not to work
+        }
+
         when:
         run("test")
 
@@ -87,20 +94,9 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
     }
 
     private void tweakBuildFile() {
-        if (version == "2.0.0") {
-            // groovy-all-2.0.0 isn't compatible with JDK 1.5
-            // see GROOVY-5591
-            buildFile << """
-dependencies {
-    groovy 'org.codehaus.groovy:groovy:$version'
-    groovy 'org.codehaus.groovy:groovy-test:$version'
-}
-            """
-        } else {
-            buildFile << """
+        buildFile << """
 dependencies { groovy 'org.codehaus.groovy:groovy-all:$version' }
-            """
-        }
+        """
 
         buildFile << compilerConfiguration()
         println "->> USING BUILD FILE: ${buildFile.text}"

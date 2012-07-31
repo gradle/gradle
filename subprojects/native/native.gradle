@@ -20,7 +20,7 @@ dependencies {
     compile libraries.jcip
 }
 
-if (!JavaVersion.current().isJava7()) {
+if (!javaVersion.java7) {
     sourceSets.main.java.exclude '**/jdk7/**'
     sourceSets.test.groovy.exclude '**/jdk7/**'
 }

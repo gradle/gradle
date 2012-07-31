@@ -16,6 +16,7 @@
 package org.gradle.integtests.fixtures;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.gradle.api.JavaVersion;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -23,18 +24,36 @@ import java.util.List;
 
 import static java.util.Arrays.asList;
 
-public class 
-        DaemonGradleExecuter extends ForkingGradleExecuter {
-    private static final String DAEMON_REGISTRY_SYS_PROP = "org.gradle.integtest.daemon.registry";
+public class DaemonGradleExecuter extends ForkingGradleExecuter {
+
     private final GradleDistribution distribution;
-    private final File daemonBaseDir;
     private final boolean allowExtraLogging;
 
-    public DaemonGradleExecuter(GradleDistribution distribution, File daemonBaseDir, boolean allowExtraLogging) {
+    public DaemonGradleExecuter(GradleDistribution distribution, boolean allowExtraLogging) {
         super(distribution.getGradleHomeDir());
         this.distribution = distribution;
-        this.daemonBaseDir = daemonBaseDir;
         this.allowExtraLogging = allowExtraLogging;
+    }
+
+    @Override
+    protected int getDaemonIdleTimeoutSecs() {
+        int superValue =  super.getDaemonIdleTimeoutSecs();
+        boolean preferShortTimeout = distribution.isUsingIsolatedDaemons() || getDaemonBaseDir() != null;
+        if (preferShortTimeout) {
+            return Math.min(superValue, 20);
+        } else {
+            return superValue;
+        }
+    }
+
+    @Override
+    protected File getDaemonBaseDir() {
+        File daemonBaseDir = super.getDaemonBaseDir();
+        if (distribution.isUsingIsolatedDaemons() && daemonBaseDir == null) {
+            return new File(distribution.getUserHomeDir(), "daemon");
+        } else {
+            return daemonBaseDir;
+        }
     }
 
     @Override
@@ -45,23 +64,7 @@ public class
         args.add("--daemon");
 
         args.addAll(originalArgs);
-
-        String daemonRegistryBase = getDaemonRegistryBase();
-        if (daemonRegistryBase != null) {
-            args.add("-Dorg.gradle.daemon.registry.base=" + daemonRegistryBase);
-            configureJvmArgs(args, daemonRegistryBase);
-        } else {
-            configureJvmArgs(args, distribution.getUserHomeDir().getAbsolutePath());
-        }
-
-        if (!args.toString().contains("-Dorg.gradle.daemon.idletimeout=")) {
-            //isolated daemons/daemon with custom base dir cannot be connected again
-            //so they should have shorter timeout
-            boolean preferShortTimeout = distribution.isUsingIsolatedDaemons() || daemonBaseDir != null;
-            int timeout = preferShortTimeout? 20000 : 5 * 60 * 1000;
-            args.add("-Dorg.gradle.daemon.idletimeout=" + timeout);
-        }
-
+        configureJvmArgs(args);
         configureDefaultLogging(args);
 
         return args;
@@ -78,25 +81,16 @@ public class
         }
     }
 
-    private void configureJvmArgs(List<String> args, String registryBase) {
+    private void configureJvmArgs(List<String> args) {
         // TODO - clean this up. It's a workaround to provide some way for the client of this executer to
         // specify that no jvm args should be provided
         if(!args.remove("-Dorg.gradle.jvmargs=")){
-            args.add(0, "-Dorg.gradle.jvmargs=-ea -XX:MaxPermSize=256m"
-                    + " -XX:+HeapDumpOnOutOfMemoryError");
+            String jvmArgs  = "-Dorg.gradle.jvmargs=-ea -XX:MaxPermSize=256m -XX:+HeapDumpOnOutOfMemoryError";
+            if (JavaVersion.current().isJava5()) {
+                jvmArgs = String.format("%s %s", jvmArgs, "-XX:+CMSPermGenSweepingEnabled");
+            }
+            args.add(0, jvmArgs);
         }
     }
 
-    String getDaemonRegistryBase() {
-        if (daemonBaseDir != null) {
-            return daemonBaseDir.getAbsolutePath();
-        }
-
-        String customDaemonRegistryDir = System.getProperty(DAEMON_REGISTRY_SYS_PROP);
-        if (customDaemonRegistryDir != null && !distribution.isUsingIsolatedDaemons()) {
-            return customDaemonRegistryDir;
-        }
-
-        return null;
-    }
 }

@@ -43,6 +43,7 @@ class CompareGradleBuilds extends DefaultTask {
 
     private ProjectOutput generateBuildOutput(String gradleVersion, File other) {
         def connector = GradleConnector.newConnector().forProjectDirectory(other)
+        connector.useGradleUserHomeDir(getProject().getGradle().startParameter.getGradleUserHomeDir())
         if (gradleVersion == "current") {
             connector.useInstallation(project.gradle.gradleHomeDir)
         } else {

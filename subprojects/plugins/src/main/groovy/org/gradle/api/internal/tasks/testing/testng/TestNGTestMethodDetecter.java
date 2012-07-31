@@ -16,7 +16,8 @@
 package org.gradle.api.internal.tasks.testing.testng;
 
 import org.objectweb.asm.AnnotationVisitor;
-import org.objectweb.asm.commons.EmptyVisitor;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -24,11 +25,12 @@ import java.util.Set;
 /**
  * @author Tom Eyckmans
  */
-class TestNGTestMethodDetecter extends EmptyVisitor {
+class TestNGTestMethodDetecter extends MethodVisitor {
     private final TestNGTestClassDetecter testClassDetecter;
     private final Set<String> testMethodAnnotations = new HashSet<String>();
 
     public TestNGTestMethodDetecter(TestNGTestClassDetecter testClassDetecter) {
+        super(Opcodes.ASM4);
         this.testClassDetecter = testClassDetecter;
         testMethodAnnotations.add("Lorg/testng/annotations/Test;");
         testMethodAnnotations.add("Lorg/testng/annotations/BeforeSuite;");
@@ -43,14 +45,6 @@ class TestNGTestMethodDetecter extends EmptyVisitor {
         if (testMethodAnnotations.contains(desc)) {
             testClassDetecter.setTest(true);
         }
-        return new EmptyVisitor();
-    }
-
-    public AnnotationVisitor visitAnnotationDefault() {
-        return new EmptyVisitor();
-    }
-
-    public AnnotationVisitor visitParameterAnnotation(int parameter, String desc, boolean visible) {
-        return new EmptyVisitor();
+        return null;
     }
 }

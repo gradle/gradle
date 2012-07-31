@@ -24,7 +24,7 @@ import org.gradle.util.TextUtil
 class MigrationVerificationPluginIntegrationSpec extends AbstractIntegrationSpec {
     @Rule TestResources testResources
 
-    def compareSingleProjectBuilds() {
+    def compareArchives() {
         executer.withForkingExecuter()
 
         when:
@@ -32,16 +32,16 @@ class MigrationVerificationPluginIntegrationSpec extends AbstractIntegrationSpec
 
         then:
         looksLike output, """
-Comparing build 'target build' with 'source build'
+Comparing build 'source build' with 'target build'
 Comparing outputs of project ':'
 Comparing archive 'testBuild.jar'
-Size of archive entry 'org/gradle/ChangedClass.class' changed from 409 to 486
-CRC of archive entry 'org/gradle/DifferentCrcClass.class' changed from \\d+ to \\d+
+Archive entry 'org/gradle/ChangedClass.class': Size changed from 409 to 486
+Archive entry 'org/gradle/DifferentCrcClass.class': CRC changed from \\d+ to \\d+
 Archive entry 'org/gradle/SourceBuildOnlyClass.class' only exists in build 'source build'
 Archive entry 'org/gradle/TargetBuildOnlyClass.class' only exists in build 'target build'
 Finished comparing archive 'testBuild.jar'
 Finished comparing outputs of project ':'
-Finished comparing build 'target build' with 'source build'
+Finished comparing build 'source build' with 'target build'
         """
     }
 

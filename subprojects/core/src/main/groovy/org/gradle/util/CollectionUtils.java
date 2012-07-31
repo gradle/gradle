@@ -104,4 +104,17 @@ public abstract class CollectionUtils {
         return stringize(source, new ArrayList<String>(source.size()));
     }
 
+    public static <E> boolean replace(List<E> list, Spec<? super E> filter, Transformer<E, ? super E> transformer) {
+        boolean replaced = false;
+        int i = 0;
+        for (E it : list) {
+            if (filter.isSatisfiedBy(it)) {
+                list.set(i, transformer.transform(it));
+                replaced = true;
+            }
+            ++i;
+        }
+        return replaced;
+    }
+
 }

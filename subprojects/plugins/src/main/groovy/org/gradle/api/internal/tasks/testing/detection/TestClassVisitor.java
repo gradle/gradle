@@ -16,18 +16,20 @@
 
 package org.gradle.api.internal.tasks.testing.detection;
 
-import org.objectweb.asm.commons.EmptyVisitor;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.Opcodes;
 
 /**
  * Base class for ASM test class scanners.
  *
  * @author Tom Eyckmans
  */
-public abstract class TestClassVisitor extends EmptyVisitor {
+public abstract class TestClassVisitor extends ClassVisitor {
 
     protected final TestFrameworkDetector detector;
 
     protected TestClassVisitor(TestFrameworkDetector detector) {
+        super(Opcodes.ASM4);
         if (detector == null) {
             throw new IllegalArgumentException("detector == null!");
         }

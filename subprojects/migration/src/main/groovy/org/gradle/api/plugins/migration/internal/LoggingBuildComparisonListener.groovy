@@ -23,11 +23,11 @@ class LoggingBuildComparisonListener implements BuildComparisonListener {
     private static final Logger LOGGER = Logging.getLogger(LoggingBuildComparisonListener)
 
     void buildComparisonStarted(BuildComparison comparison) {
-        LOGGER.lifecycle("Comparing build '$comparison.build2.displayName' with '$comparison.build1.displayName'")
+        LOGGER.lifecycle("Comparing build '$comparison.build1.displayName' with '$comparison.build2.displayName'")
     }
 
     void buildComparisonFinished(BuildComparison comparison) {
-        LOGGER.lifecycle("Finished comparing build '$comparison.build2.displayName' with '$comparison.build1.displayName'")
+        LOGGER.lifecycle("Finished comparing build '$comparison.build1.displayName' with '$comparison.build2.displayName'")
     }
 
     void projectComparisonStarted(ProjectComparison comparison) {
@@ -61,15 +61,15 @@ class LoggingBuildComparisonListener implements BuildComparisonListener {
         assert entry1.path == entry2.path
 
         if (entry1.directory != entry2.directory) {
-            LOGGER.lifecycle("Type of archive entry '$entry1.path' changed from '$entry1.type' to '$entry2.type'")
+            LOGGER.lifecycle("Archive entry '$entry1.path': Type changed from '$entry1.type' to '$entry2.type'")
             return
         }
         if (entry1.size != entry2.size) {
-            LOGGER.lifecycle("Size of archive entry '$entry1.path' changed from $entry1.size to $entry2.size")
+            LOGGER.lifecycle("Archive entry '$entry1.path': Size changed from $entry1.size to $entry2.size")
             return
         }
         if (entry1.crc != entry2.crc) {
-            LOGGER.lifecycle("CRC of archive entry '$entry1.path' changed from $entry1.crc to $entry2.crc")
+            LOGGER.lifecycle("Archive entry '$entry1.path': CRC changed from $entry1.crc to $entry2.crc")
         }
     }
 

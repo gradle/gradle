@@ -56,10 +56,10 @@ idea {
                 }
                 Collection sourceDirs = groovyProjects.collect { project -> project.sourceSets*.allSource*.srcDirs }.flatten()
                 sourceDirs.each { sourceFolder ->
-                    if (!Jvm.current().isJava7()) {
+                    if (!javaVersion.java7) {
                         excludeSource("jdk7", sourceFolder)
                     }
-                    if (!Jvm.current().isJava6Compatible()) {
+                    if (!javaVersion.java6Compatible) {
                         excludeSource("jdk6", sourceFolder)
                     }
                 }
