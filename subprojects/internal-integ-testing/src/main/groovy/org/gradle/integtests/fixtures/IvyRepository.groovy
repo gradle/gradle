@@ -15,10 +15,10 @@
  */
 package org.gradle.integtests.fixtures
 
-import java.util.regex.Pattern
-
 import org.gradle.util.TestFile
 import org.gradle.util.hash.HashUtil
+
+import java.util.regex.Pattern
 
 class IvyRepository {
     final TestFile rootDir
@@ -70,6 +70,11 @@ class IvyModule {
 
     IvyModule dependsOn(String organisation, String module, String revision) {
         dependencies << [organisation: organisation, module: module, revision: revision]
+        return this
+    }
+
+    IvyModule dependsOn(String ... modules) {
+        modules.each { dependsOn(organisation, it, revision) }
         return this
     }
 
