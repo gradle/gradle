@@ -20,6 +20,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Sets;
+import org.gradle.api.internal.dependencygraph.api.DependencyGraphNode;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -29,9 +30,9 @@ import java.util.Set;
  */
 public class RenderableDependencyNode implements RenderableDependency {
 
-    private final DependencyInfoCollector.DependencyNode dependencyNode;
+    private final DependencyGraphNode dependencyNode;
 
-    public RenderableDependencyNode(DependencyInfoCollector.DependencyNode dependencyNode) {
+    public RenderableDependencyNode(DependencyGraphNode dependencyNode) {
         this.dependencyNode = dependencyNode;
     }
 
@@ -51,8 +52,9 @@ public class RenderableDependencyNode implements RenderableDependency {
         if (dependencyNode == null) {
             return Sets.newHashSet();
         }
-        return new LinkedHashSet(Collections2.transform(dependencyNode.getDependencies(), new Function<DependencyInfoCollector.DependencyNode, Object>() {
-            public Object apply(DependencyInfoCollector.DependencyNode input) {
+        return new LinkedHashSet(Collections2.transform(dependencyNode.getDependencies(),
+                new Function<DependencyGraphNode, Object>() {
+            public Object apply(DependencyGraphNode input) {
                 return new RenderableDependencyNode(input);
             }
         }));

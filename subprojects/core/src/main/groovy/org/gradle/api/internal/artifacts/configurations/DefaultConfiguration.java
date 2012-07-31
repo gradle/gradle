@@ -26,7 +26,7 @@ import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.DefaultDependencySet;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet;
-import org.gradle.api.internal.dependencygraph.DependencyGraphListener;
+import org.gradle.api.internal.dependencygraph.api.DependencyGraphListener;
 import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
@@ -560,8 +560,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
-    public void setDependencyGraphListener(DependencyGraphListener dependencyGraphListener) {
-        this.dependencyGraphListener = dependencyGraphListener;
+    public void setDependencyGraphListener(DependencyGraphListener listener) {
+        this.dependencyGraphListener = listener;
     }
 
     public DependencyGraphListener getDependencyGraphListener() {

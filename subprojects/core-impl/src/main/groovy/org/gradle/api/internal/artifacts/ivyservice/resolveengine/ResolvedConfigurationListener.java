@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.dependencygraph;
+package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 
@@ -23,8 +23,12 @@ import java.util.List;
 /**
  * by Szczepan Faber, created at: 7/26/12
  */
-public interface DependencyGraphListener {
+public interface ResolvedConfigurationListener {
 
-    public void resolvedDependency(ResolvedConfigurationIdentifier root, ResolvedConfigurationIdentifier id, List<DependencyModule> dependencies);
+    void start(ResolvedConfigurationIdentifier root);
+
+    void resolvedConfiguration(ResolvedConfigurationIdentifier id, List<DefaultDependencyModule> dependencies);
+
+    void completed();
 
 }

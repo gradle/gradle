@@ -31,8 +31,6 @@ import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.EnhancedDependencyDescriptor;
-import org.gradle.api.internal.dependencygraph.DependencyGraphListener;
-import org.gradle.api.internal.dependencygraph.DependencyModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,7 +57,7 @@ public class DependencyGraphBuilder {
         traverseGraph(resolveState);
 
         DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, resolveState.root.getResult());
-        assembleResult(resolveState, result, configuration.getDependencyGraphListener());
+        assembleResult(resolveState, result, new ResolvedConfigurationListenerFactory().create(configuration.getDependencyGraphListener()));
 
         return result;
     }
@@ -140,43 +138,49 @@ public class DependencyGraphBuilder {
     /**
      * Populates the result from the graph traversal state.
      */
-    private void assembleResult(ResolveState resolveState, ResolvedConfigurationBuilder result, DependencyGraphListener dependencyGraphListener) {
+    private void assembleResult(ResolveState resolveState, ResolvedConfigurationBuilder result, ResolvedConfigurationListener listener) {
         FailureState failureState = new FailureState(resolveState.root);
         ResolvedConfigurationIdentifier root = toId(resolveState.root);
+        listener.start(root);
 
         for (ConfigurationNode resolvedConfiguration : resolveState.getConfigurationNodes()) {
             resolvedConfiguration.attachToParents(resolvedArtifactFactory, result);
             resolvedConfiguration.collectFailures(failureState);
 
-            notifyListener(dependencyGraphListener, root, resolvedConfiguration);
+            notifyListener(listener, resolvedConfiguration);
         }
+        listener.completed();
         failureState.attachFailures(result);
     }
 
-    private void notifyListener(DependencyGraphListener dependencyGraphListener, ResolvedConfigurationIdentifier root, ConfigurationNode resolvedConfiguration) {
-        if (dependencyGraphListener != null) {
-            ResolvedConfigurationIdentifier id = toId(resolvedConfiguration);
-            List<DependencyEdge> out = Lists.newLinkedList(resolvedConfiguration.outgoingEdges);
-
-            List<DependencyModule> to = Lists.transform(out, new Function<DependencyEdge, DependencyModule>() {
-                public DependencyModule apply(DependencyEdge input) {
-                    List<String> targetConfigurations = Lists.transform(Lists.newLinkedList(input.targetConfigurations), new Function<ConfigurationNode, String>() {
-                        public String apply(ConfigurationNode input) {
-                            return input.configurationName;
-                        }
-                    });
-                    return new DependencyModule(new DefaultModuleVersionIdentifier(
-                            input.dependencyDescriptor.getDependencyRevisionId().getOrganisation(),
-                            input.dependencyDescriptor.getDependencyRevisionId().getName(),
-                            input.dependencyDescriptor.getDependencyRevisionId().getRevision()),
-                            toId(input.targetModuleRevision),
-                            new LinkedHashSet<String>(targetConfigurations)
-                        );
-                }
-            });
-
-            dependencyGraphListener.resolvedDependency(root, id, to);
+    private void notifyListener(ResolvedConfigurationListener listener, ConfigurationNode resolvedConfiguration) {
+        if(listener instanceof ResolvedConfigurationListenerFactory.NoOpDependencyGraphListener) {
+            //TODO SF - a hack to reduce impact. Some more refactorings and coverage and we should be able to remove it.
+            return;
         }
+
+        ResolvedConfigurationIdentifier id = toId(resolvedConfiguration);
+        List<DependencyEdge> out = Lists.newLinkedList(resolvedConfiguration.outgoingEdges);
+
+        //transform is lazy which means it won't
+        List<DefaultDependencyModule> to = Lists.transform(out, new Function<DependencyEdge, DefaultDependencyModule>() {
+            public DefaultDependencyModule apply(DependencyEdge input) {
+                List<String> targetConfigurations = Lists.transform(Lists.newLinkedList(input.targetConfigurations), new Function<ConfigurationNode, String>() {
+                    public String apply(ConfigurationNode input) {
+                        return input.configurationName;
+                    }
+                });
+                return new DefaultDependencyModule(new DefaultModuleVersionIdentifier(
+                        input.dependencyDescriptor.getDependencyRevisionId().getOrganisation(),
+                        input.dependencyDescriptor.getDependencyRevisionId().getName(),
+                        input.dependencyDescriptor.getDependencyRevisionId().getRevision()),
+                        toId(input.targetModuleRevision),
+                        new LinkedHashSet<String>(targetConfigurations)
+                    );
+            }
+        });
+
+        listener.resolvedConfiguration(id, to);
     }
 
     private ResolvedConfigurationIdentifier toId(ConfigurationNode node) {

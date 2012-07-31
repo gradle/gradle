@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.configurations;
 
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.DependencyResolutionListener;
+package org.gradle.api.tasks.diagnostics.internal.dependencies;
+
 import org.gradle.api.internal.dependencygraph.api.DependencyGraphListener;
+import org.gradle.api.internal.dependencygraph.api.DependencyGraphNode;
 
-public interface ConfigurationInternal extends Configuration, DependencyMetaDataProvider {
-    DependencyResolutionListener getDependencyResolutionBroadcast();
+/**
+ * by Szczepan Faber, created at: 7/31/12
+ */
+public class RenderableGraphProvider implements DependencyGraphListener {
 
-    ResolutionStrategyInternal getResolutionStrategy();
+    private DependencyGraphNode root;
 
-    void setDependencyGraphListener(DependencyGraphListener dependencyGraphListener);
+    public void whenResolved(DependencyGraphNode root) {
+        this.root = root;
+    }
 
-    DependencyGraphListener getDependencyGraphListener();
+    public RenderableDependency getRoot() {
+        if (root == null) {
+            return null;
+        }
+        return new RenderableDependencyNode(root);
+    }
 }

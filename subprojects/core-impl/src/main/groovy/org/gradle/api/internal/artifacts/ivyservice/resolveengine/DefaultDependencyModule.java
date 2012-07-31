@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.dependencygraph;
+package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.internal.dependencygraph.api.DependencyModule;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -24,13 +25,13 @@ import java.util.Set;
 /**
  * by Szczepan Faber, created at: 7/26/12
  */
-public class DependencyModule {
+public class DefaultDependencyModule implements DependencyModule {
 
     ModuleVersionIdentifier asked;
     ModuleVersionIdentifier selected;
     private final Set<String> configurations = new LinkedHashSet<String>();
 
-    public DependencyModule(ModuleVersionIdentifier asked, ModuleVersionIdentifier selected, Set<String> configurations) {
+    public DefaultDependencyModule(ModuleVersionIdentifier asked, ModuleVersionIdentifier selected, Set<String> configurations) {
         this.asked = asked;
         this.selected = selected;
         this.configurations.addAll(configurations);
@@ -76,7 +77,7 @@ public class DependencyModule {
             return false;
         }
 
-        DependencyModule that = (DependencyModule) o;
+        DefaultDependencyModule that = (DefaultDependencyModule) o;
 
         if (asked != null ? !asked.equals(that.asked) : that.asked != null) {
             return false;
