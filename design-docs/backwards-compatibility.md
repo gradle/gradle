@@ -46,7 +46,7 @@ To replace a feature, we will:
 * deprecate the old feature
 * remove the old feature.
 
-There will usually be some soak time between these steps.
+There will usually be some soak time between these steps. Between deprecation and removal of an old feature there will be a sufficient adoption time. The removal will only happen as part of a major release. Not necessarily all deprecated features will be removed as part of a major release. This is a case-by-case decision. This decision is influenced by many factors like time between deprecation and major release as well as the usage scenario of the deprecated feature.
 
 To change a default behaviour, we will:
 
