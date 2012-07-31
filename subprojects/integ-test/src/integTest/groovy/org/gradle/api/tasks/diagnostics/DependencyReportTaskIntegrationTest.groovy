@@ -104,7 +104,6 @@ class DependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         given:
         def repo = new MavenRepository(file("repo"))
         repo.module("foo", "bar", 1.0).publish()
-        repo.module("foo", "bar", 1.5).publish()
         repo.module("foo", "bar", 2.0).publish()
         repo.module("foo", "bar", 3.0).dependsOn('foo', 'baz', '5.0').publish()
 
@@ -132,7 +131,7 @@ rootProject.name = 'root'
 
             project(":b") {
                dependencies {
-                    compile 'foo:bar:2.0'
+                    compile 'foo:bar:0.5.dont.exist'
                 }
             }
 
@@ -144,7 +143,7 @@ rootProject.name = 'root'
 
             project(":d") {
                dependencies {
-                    compile 'foo:bar:1.5'
+                    compile 'foo:bar:2.0'
                }
             }
 
@@ -170,11 +169,11 @@ rootProject.name = 'root'
 |    \\--- foo:bar:1.0 -> 3.0 [default]
 |         \\--- foo:baz:5.0 [compile,master,runtime]
 +--- root:b:1.0 [default]
-|    \\--- foo:bar:2.0 -> 3.0 [default] (*)
+|    \\--- foo:bar:0.5.dont.exist -> 3.0 [default] (*)
 +--- root:c:1.0 [default]
 |    \\--- foo:bar:3.0 [default] (*)
 +--- root:d:1.0 [default]
-|    \\--- foo:bar:1.5 -> 3.0 [default] (*)
+|    \\--- foo:bar:2.0 -> 3.0 [default] (*)
 \\--- root:e:1.0 [default]
      \\--- foo:bar:3.0 [default] (*)
 """))
