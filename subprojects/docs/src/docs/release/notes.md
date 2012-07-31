@@ -1,6 +1,8 @@
-For Gradle 1.1 our focus has been on usability improvements, bug fixes, and ground work to support the post 1.0 evolution of Gradle. Particularly we [fixed bugs](http://issues.gradle.org/sr/jira.issueviews:searchrequest-printable/temp/SearchRequest.html?jqlQuery=fixVersion+in+%28%221.1-rc-1%22%2C+%221.1-rc-2%22%29+ORDER+BY+priority&tempMax=1000) for Maven integration, dependency management and OSGi. Nonetheless we also added some nice new features: 
+For Gradle 1.1 our focus has been on usability improvements, bug fixes, and ground work to support the post 1.0 evolution of Gradle. 
 
-You might be interested in our [a short summary](http://forums.gradle.org/gradle/topics/the_gradle_release_approach) of what you can expect from us regarding release frequency, backwards compatibility and our deprecation policy. We have also written a [quick outlook on the 1.2 release](http://forums.gradle.org/gradle/topics/gradle_1_2_release_outlook?rfm=1).
+We focussed on improving Maven integration, dependency management and OSGi support, while also knocking off a few other known issues. For more information, check the [full list of resolved tickets](http://issues.gradle.org/sr/jira.issueviews:searchrequest-printable/temp/SearchRequest.html?jqlQuery=fixVersion+in+%28%221.1-rc-1%22%2C+%221.1-rc-2%22%29+ORDER+BY+priority&tempMax=1000). We did also manage to add some nice new features, outlined below.
+
+You might be interested in our [recent posting](http://forums.gradle.org/gradle/topics/the_gradle_release_approach) of what you can expect from us regarding release frequency, backwards compatibility and our deprecation policy. We have also written a [quick outlook on the upcoming 1.2 release](http://forums.gradle.org/gradle/topics/gradle_1_2_release_outlook?rfm=1).
 
 ## New and noteworthy
 
