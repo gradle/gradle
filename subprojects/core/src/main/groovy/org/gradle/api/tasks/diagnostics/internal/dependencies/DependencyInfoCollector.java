@@ -90,17 +90,17 @@ public class DependencyInfoCollector implements DependencyGraphListener {
         if (root == null) {
             return null; //TODO SF ugly
         }
-        Map<ModuleVersionIdentifier, DependencyNode> visited = new HashMap<ModuleVersionIdentifier, DependencyNode>();
+        Map<DependencyModule, DependencyNode> visited = new HashMap<DependencyModule, DependencyNode>();
         DependencyModule id = new DependencyModule(root.getId(), root.getId(), Sets.newHashSet(root.getConfiguration()));
         return buildNode(id, visited);
     }
 
-    private DependencyNode buildNode(DependencyModule id, Map<ModuleVersionIdentifier, DependencyNode> visited) {
-        if (visited.containsKey(id.getAsked())) {
-            return visited.get(id.getAsked());
+    private DependencyNode buildNode(DependencyModule id, Map<DependencyModule, DependencyNode> visited) {
+        if (visited.containsKey(id)) {
+            return visited.get(id);
         }
         DependencyNode node = new DependencyNode(id);
-        visited.put(id.getAsked(), node);
+        visited.put(id, node);
 
         Map<String, DependencyModule> theDeps = this.deps.get(id.getSelected());
         if (theDeps == null) {
