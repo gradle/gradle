@@ -32,7 +32,6 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.EnhancedDependencyDescriptor;
 import org.gradle.api.internal.dependencygraph.DependencyGraphListener;
-import org.gradle.api.internal.dependencygraph.DependencyGraphNode;
 import org.gradle.api.internal.dependencygraph.DependencyModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -143,7 +142,7 @@ public class DependencyGraphBuilder {
      */
     private void assembleResult(ResolveState resolveState, ResolvedConfigurationBuilder result, DependencyGraphListener dependencyGraphListener) {
         FailureState failureState = new FailureState(resolveState.root);
-        DependencyGraphNode root = new DependencyGraphNode(resolveState.root.configurationName, toId(resolveState.root));
+        ResolvedConfigurationIdentifier root = toId(resolveState.root);
 
         for (ConfigurationNode resolvedConfiguration : resolveState.getConfigurationNodes()) {
             resolvedConfiguration.attachToParents(resolvedArtifactFactory, result);
@@ -154,9 +153,9 @@ public class DependencyGraphBuilder {
         failureState.attachFailures(result);
     }
 
-    private void notifyListener(DependencyGraphListener dependencyGraphListener, DependencyGraphNode root, ConfigurationNode resolvedConfiguration) {
+    private void notifyListener(DependencyGraphListener dependencyGraphListener, ResolvedConfigurationIdentifier root, ConfigurationNode resolvedConfiguration) {
         if (dependencyGraphListener != null) {
-            DependencyGraphNode id = new DependencyGraphNode(resolvedConfiguration.configurationName, toId(resolvedConfiguration));
+            ResolvedConfigurationIdentifier id = toId(resolvedConfiguration);
             List<DependencyEdge> out = Lists.newLinkedList(resolvedConfiguration.outgoingEdges);
 
             List<DependencyModule> to = Lists.transform(out, new Function<DependencyEdge, DependencyModule>() {
@@ -180,12 +179,15 @@ public class DependencyGraphBuilder {
         }
     }
 
-    private ModuleVersionIdentifier toId(ConfigurationNode resolvedConfiguration) {
-        DefaultModuleRevisionResolveState m = resolvedConfiguration.moduleRevision;
-        return toId(m);
+    private ResolvedConfigurationIdentifier toId(ConfigurationNode node) {
+        return new ResolvedConfigurationIdentifier(
+                node.moduleRevision.id.getOrganisation(),
+                node.moduleRevision.id.getName(),
+                node.moduleRevision.id.getRevision(),
+                node.configurationName);
     }
 
-    private DefaultModuleVersionIdentifier toId(DefaultModuleRevisionResolveState m) {
+    private ModuleVersionIdentifier toId(DefaultModuleRevisionResolveState m) {
         return new DefaultModuleVersionIdentifier(m.id.getOrganisation(), m.id.getName(), m.getRevision());
     }
 

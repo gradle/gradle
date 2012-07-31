@@ -18,6 +18,7 @@ package org.gradle.api.internal.dependencygraph;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
@@ -27,12 +28,12 @@ public class DependencyModule {
 
     ModuleVersionIdentifier asked;
     ModuleVersionIdentifier selected;
-    private final Set<String> configurations;
+    private final Set<String> configurations = new LinkedHashSet<String>();
 
     public DependencyModule(ModuleVersionIdentifier asked, ModuleVersionIdentifier selected, Set<String> configurations) {
         this.asked = asked;
         this.selected = selected;
-        this.configurations = configurations;
+        this.configurations.addAll(configurations);
     }
 
     @Override
@@ -63,5 +64,38 @@ public class DependencyModule {
 
     public void appendConfigurations(Set<String> configurations) {
         this.configurations.addAll(configurations);
+    }
+
+    //TODO SF tests
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        DependencyModule that = (DependencyModule) o;
+
+        if (asked != null ? !asked.equals(that.asked) : that.asked != null) {
+            return false;
+        }
+        if (configurations != null ? !configurations.equals(that.configurations) : that.configurations != null) {
+            return false;
+        }
+        if (selected != null ? !selected.equals(that.selected) : that.selected != null) {
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = asked != null ? asked.hashCode() : 0;
+        result = 31 * result + (selected != null ? selected.hashCode() : 0);
+        result = 31 * result + (configurations != null ? configurations.hashCode() : 0);
+        return result;
     }
 }

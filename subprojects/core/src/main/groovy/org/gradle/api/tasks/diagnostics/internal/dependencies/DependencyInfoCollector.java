@@ -18,8 +18,8 @@ package org.gradle.api.tasks.diagnostics.internal.dependencies;
 
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.dependencygraph.DependencyGraphListener;
-import org.gradle.api.internal.dependencygraph.DependencyGraphNode;
 import org.gradle.api.internal.dependencygraph.DependencyModule;
 
 import java.util.*;
@@ -29,11 +29,11 @@ import java.util.*;
  */
 public class DependencyInfoCollector implements DependencyGraphListener {
 
-    private DependencyGraphNode root;
+    private ResolvedConfigurationIdentifier root;
     private Map<ModuleVersionIdentifier, Map<String, DependencyModule>> deps
             = new LinkedHashMap<ModuleVersionIdentifier, Map<String, DependencyModule>>();
 
-    public void resolvedDependency(DependencyGraphNode root, DependencyGraphNode id, List<DependencyModule> dependencies) {
+    public void resolvedDependency(ResolvedConfigurationIdentifier root, ResolvedConfigurationIdentifier id, List<DependencyModule> dependencies) {
         this.root = root;
         if (!deps.containsKey(id.getId())) {
             deps.put(id.getId(), new LinkedHashMap<String, DependencyModule>());
@@ -90,17 +90,17 @@ public class DependencyInfoCollector implements DependencyGraphListener {
         if (root == null) {
             return null; //TODO SF ugly
         }
-        Map<ModuleVersionIdentifier, DependencyNode> visited = new HashMap<ModuleVersionIdentifier, DependencyNode>();
+        Map<DependencyModule, DependencyNode> visited = new HashMap<DependencyModule, DependencyNode>();
         DependencyModule id = new DependencyModule(root.getId(), root.getId(), Sets.newHashSet(root.getConfiguration()));
         return buildNode(id, visited);
     }
 
-    private DependencyNode buildNode(DependencyModule id, Map<ModuleVersionIdentifier, DependencyNode> visited) {
-        if (visited.containsKey(id.getAsked())) {
-            return visited.get(id.getAsked());
+    private DependencyNode buildNode(DependencyModule id, Map<DependencyModule, DependencyNode> visited) {
+        if (visited.containsKey(id)) {
+            return visited.get(id);
         }
         DependencyNode node = new DependencyNode(id);
-        visited.put(id.getAsked(), node);
+        visited.put(id, node);
 
         Map<String, DependencyModule> theDeps = this.deps.get(id.getSelected());
         if (theDeps == null) {

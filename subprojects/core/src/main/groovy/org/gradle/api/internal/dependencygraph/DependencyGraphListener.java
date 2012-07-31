@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.dependencygraph;
 
+import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
+
 import java.util.List;
 
 /**
@@ -23,6 +25,6 @@ import java.util.List;
  */
 public interface DependencyGraphListener {
 
-    public void resolvedDependency(DependencyGraphNode root, DependencyGraphNode id, List<DependencyModule> dependencies);
+    public void resolvedDependency(ResolvedConfigurationIdentifier root, ResolvedConfigurationIdentifier id, List<DependencyModule> dependencies);
 
 }
