@@ -57,8 +57,8 @@ public class FileSystemServices {
         LibC libC = loadLibC();
         serviceRegistry.add(Symlink.class, createSymlink(libC));
 
-        // Use libc backed implementations on Linux and Mac
-        if (operatingSystem.isLinux() || operatingSystem.isMacOsX()) {
+        // Use libc backed implementations on Linux and Mac, if libc available
+        if (libC != null && (operatingSystem.isLinux() || operatingSystem.isMacOsX())) {
             FilePathEncoder filePathEncoder = createEncoder(libC);
             serviceRegistry.add(Chmod.class, new LibcChmod(libC, filePathEncoder));
             serviceRegistry.add(Stat.class, new LibCStat(libC, operatingSystem, (BaseNativePOSIX) PosixUtil.current(), filePathEncoder));
@@ -80,7 +80,7 @@ public class FileSystemServices {
             }
         }
 
-        // Not windows, linux, mac or java 7. Attempt to use libc for chmod and posix for stat, and fallback to no-op implementations if not available
+        // Attempt to use libc for chmod and posix for stat, and fallback to no-op implementations if not available
         serviceRegistry.add(Chmod.class, createChmod(libC));
         serviceRegistry.add(Stat.class, createStat());
     }
