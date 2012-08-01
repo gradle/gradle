@@ -19,7 +19,6 @@ package org.gradle.integtests.fixtures;
 import org.gradle.api.Transformer;
 import org.gradle.integtests.fixtures.versions.VersionsInfo;
 import org.gradle.util.CollectionUtils;
-import org.gradle.util.GradleVersion;
 
 import java.util.List;
 
@@ -56,18 +55,5 @@ public class ReleasedVersions {
                 return current.previousVersion(original);
             }
         });
-    }
-
-    public BasicGradleDistribution getPreviousOf(BasicGradleDistribution distro) {
-        GradleVersion distroVersion = version(distro.getVersion());
-
-        for (String candidate : VERSIONS) {
-            GradleVersion candidateVersion = version(candidate);
-            if (distroVersion.compareTo(candidateVersion) > 0) {
-                return current.previousVersion(candidate);
-            }
-        }
-
-        throw new RuntimeException("I don't know the previous version of: " + distro);
     }
 }
