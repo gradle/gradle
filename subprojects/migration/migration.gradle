@@ -24,3 +24,10 @@ dependencies {
 }
 
 useTestFixtures()
+eclipse {
+	classpath {
+		file.whenMerged { classpath ->
+			classpath.entries.removeAll { it.path.contains('src/integTest/resources') }
+		}
+	}
+}
