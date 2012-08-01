@@ -9,6 +9,7 @@ Improved dependency resolution reporting
 3. User views actual class paths
     (e.g currently the reports only show module dependencies.
     It should show external dependencies, self-resolving dependencies, tweaks to sourceSets.main.compileClasspath, etc).
+4. User knows why certain dependencies appear / not appear in the graph (e.g. consider exclusions)
 
 # User visible changes
 
