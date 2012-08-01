@@ -20,8 +20,7 @@ import org.apache.ivy.plugins.repository.Resource;
 import java.io.*;
 
 public abstract class AbstractExternalResource implements ExternalResource {
-    // according to tests by users, 64kB seems to be a good value for the buffer used during copy
-    // further improvements could be obtained using NIO API
+
     private static final int BUFFER_SIZE = 64 * 1024;
 
     public void writeTo(File destination) throws IOException {

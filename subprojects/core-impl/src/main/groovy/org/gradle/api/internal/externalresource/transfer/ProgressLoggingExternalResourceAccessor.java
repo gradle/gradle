@@ -24,13 +24,13 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.hash.HashValue;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 
 public class ProgressLoggingExternalResourceAccessor implements ExternalResourceAccessor {
+    private final static Logger LOGGER = LoggerFactory.getLogger(ProgressLoggingExternalResourceAccessor.class);
     private final ExternalResourceAccessor delegate;
     private ProgressLoggerFactory progressLoggerFactory;
 
@@ -41,7 +41,11 @@ public class ProgressLoggingExternalResourceAccessor implements ExternalResource
 
     public ExternalResource getResource(String location) throws IOException {
         ExternalResource resource = delegate.getResource(location);
-        return new ProgressLoggingExternalResource(resource, progressLoggerFactory);
+        if(resource!=null){
+            return new ProgressLoggingExternalResource(resource, progressLoggerFactory);
+        }else{
+            return null;
+        }
     }
 
     @Nullable
@@ -58,13 +62,25 @@ public class ProgressLoggingExternalResourceAccessor implements ExternalResource
         private ExternalResource resource;
         private ProgressLoggerFactory progressLoggerFactory;
 
-        public ProgressLoggingExternalResource(ExternalResource resource, ProgressLoggerFactory progressLoggerFactory) {
+        private ProgressLoggingExternalResource(ExternalResource resource, ProgressLoggerFactory progressLoggerFactory) {
             this.resource = resource;
             this.progressLoggerFactory = progressLoggerFactory;
         }
 
+        /**
+         * This redirect allows us to deprecate ExternalResource#writeto and replace usages later.
+         * */
         public void writeTo(File destination) throws IOException {
-            resource.writeTo(destination);
+                FileOutputStream output = new FileOutputStream(destination);
+            try{
+                writeTo(output);
+            }finally{
+                try{
+                    output.close();
+                }catch (IOException e){
+                    LOGGER.info(String.format("Unable to close FileOutputStream of %s", destination.getAbsolutePath()), e);
+                }
+            }
         }
 
         public void writeTo(OutputStream outputStream) throws IOException {  //get rid of CopyProgress Logger
@@ -76,10 +92,10 @@ public class ProgressLoggingExternalResourceAccessor implements ExternalResource
             try {
                 resource.writeTo(progressLoggingOutputStream);
             } catch (IOException e) {
-                progressLogger.completed(String.format("Failed to write %s to %s.", getName()));
+                progressLogger.completed(String.format("Failed to write %s.", getName()));
                 throw e;
             } catch (Exception e) {
-                progressLogger.completed(String.format("Failed to write %s to %s.", getName()));
+                progressLogger.completed(String.format("Failed to write %s.", getName()));
                 throw UncheckedException.throwAsUncheckedException(e);
             } finally {
                 progressLogger.completed();
