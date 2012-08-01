@@ -30,7 +30,7 @@
     <para>
         The plugin is inspired by the <ulink url="https://github.com/jbaruch/maven2gradle">maven2gradle tool</ulink>
         founded and maintained by recognized leaders of Gradle community;
-        created by Baruch Sadogursky with contributions from Antony Stubbs and Matthew McCullough.
+        created by Baruch Sadogursky with contributions from Antony Stubbs, Matthew McCullough and others.
     </para>
 
     <section>
@@ -57,7 +57,7 @@
             only if your reactor is also a parent of at least one of your modules.
             Why so? Reactor project is built last, when Parent project is built first.
             The reactor has to be built first, because effective-pom Mojo generates needed output
-            only if it founds modules in first project it encounters.
+            only if it finds modules in first project it encounters.
             Making reactor also a parent achieves this.
         </para>
     </section>
@@ -67,21 +67,22 @@
         <para>To convert a maven project follow the steps:</para>
         <itemizedlist>
             <listitem>Make sure your maven project builds and uses maven3.</listitem>
-            <listitem>Make 'mvn' command can be executed and it runs maven3.</listitem>
-            <listitem>Create 'build.gradle' file in the root folder.</listitem>
-            <listitem>Specify "apply plugin: 'maven2Gradle'" and nothing else in the build.gradle file.</listitem>
+            <listitem>Make sure <code>mvn</code> command can be executed and it runs maven3.</listitem>
+            <listitem>Create <filename>build.gradle</filename> file in the root folder of your maven project.</listitem>
+            <listitem>Specify <code>apply plugin: 'maven2Gradle'</code> and nothing else
+                in the <filename>build.gradle</filename> file.</listitem>
             <listitem>Make sure you are using the Gradle version that contains the plugin.
                 If necessary download the required Gradle version.
                 Until Gradle 1.2 is released you should use the
-                <link href="http://gradle.org/nightly">nightly build</link>.
+                <ulink url="website:nightly">nightly build</ulink>.
                 You only need this version for conversion of the maven project.
                 When converting is complete feel free to use the desired Gradle version, for example 1.1.
             </listitem>
-            <listitem>Run 'gradle tasks'. You should see 'maven2Gradle' task available.</listitem>
-            <listitem>Run 'maven2Gradle'.</listitem>
-            <listitem>Advanced users: you can configure following boolean properties on the 'maven2Gradle' task:
-                'verbose' (shows more output, including the effective pom)
-                and 'keepFile' (keeps the obtained effective pom file).</listitem>
+            <listitem>Run <code>gradle tasks</code>. You should see <code>maven2Gradle</code> task available.</listitem>
+            <listitem>Run <code>gradle maven2Gradle</code>.</listitem>
+            <listitem>Advanced users: you can configure following boolean properties on the <code>maven2Gradle</code> task:
+                <code>verbose</code> (shows more output, including the effective pom)
+                and <code>keepFile</code> (keeps the obtained effective pom file).</listitem>
         </itemizedlist>
     </section>
 </chapter>
