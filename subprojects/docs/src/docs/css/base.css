@@ -64,6 +64,10 @@ caption {background:#eee;}
 .top {margin-top:0;padding-top:0;}
 .bottom {margin-bottom:0;padding-bottom:0;}
 
+::selection {
+    background-color: #DDF0DD;
+}
+
 @font-face {
   font-family: 'Lato';
   font-style: normal;
