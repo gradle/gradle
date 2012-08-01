@@ -38,15 +38,15 @@ import static org.gradle.util.HelperUtil.createRootProject
 import static org.gradle.util.WrapUtil.toList
 import static org.gradle.util.WrapUtil.toSet
 
-public class TaskExecutionPlanTest extends Specification {
+public class DefaultTaskExecutionPlanTest extends Specification {
 
-    TaskExecutionPlan executionPlan
+    DefaultTaskExecutionPlan executionPlan
     ProjectInternal root;
     Spec<TaskInfo> anyTask = Specs.satisfyAll();
 
     def setup() {
         root = createRootProject();
-        executionPlan = new TaskExecutionPlan()
+        executionPlan = new DefaultTaskExecutionPlan()
     }
 
     def "returns tasks in dependency order"() {
@@ -130,10 +130,6 @@ public class TaskExecutionPlanTest extends Specification {
         executionPlan.addToTaskGraph(toList(d));
 
         then:
-        executionPlan.hasTask(a)
-        executionPlan.hasTask(b)
-        executionPlan.hasTask(c)
-        executionPlan.hasTask(d)
         executionPlan.getTasks() == [a, b, c, d];
         executedTasks == [a, b, c, d]
     }
@@ -269,6 +265,19 @@ public class TaskExecutionPlanTest extends Specification {
         notThrown(RuntimeException)
     }
 
+    def "clear removes all tasks"() {
+        given:
+        Task a = task("a");
+
+        when:
+        executionPlan.addToTaskGraph(toList(a));
+        executionPlan.clear()
+
+        then:
+        executionPlan.getTasks() == []
+        executedTasks == []
+    }
+
     def getExecutedTasks() {
         def tasks = []
         def taskInfo
@@ -279,258 +288,67 @@ public class TaskExecutionPlanTest extends Specification {
         return tasks
     }
 
-    /*
+    def "can add additional tasks after execution and clear"() {
+        given:
+        Task a = task("a")
+        Task b = task("b")
 
-    @Test
-    public void testCannotUseGetterMethodsWhenGraphHasNotBeenCalculated() {
-        try {
-            taskExecuter.hasTask(":a");
-            fail();
-        } catch (IllegalStateException e) {
-            assertThat(e.getMessage(), equalTo(
-                    "Task information is not available, as this task execution graph has not been populated."));
-        }
+        when:
+        executionPlan.addToTaskGraph([a])
 
-        try {
-            taskExecuter.hasTask(task("a"));
-            fail();
-        } catch (IllegalStateException e) {
-            assertThat(e.getMessage(), equalTo(
-                    "Task information is not available, as this task execution graph has not been populated."));
-        }
+        then:
+        executedTasks == [a]
 
-        try {
-            taskExecuter.getAllTasks();
-            fail();
-        } catch (IllegalStateException e) {
-            assertThat(e.getMessage(), equalTo(
-                    "Task information is not available, as this task execution graph has not been populated."));
-        }
+        when:
+        executionPlan.clear()
+        executionPlan.addToTaskGraph([b])
+
+        then:
+        executedTasks == [b]
     }
 
-    @Test
-    public void testDiscardsTasksAfterExecute() {
-        Task a = task("a");
-        Task b = task("b", a);
+    def "does not execute filtered tasks"() {
+        given:
+        Task a = task("a", task("a-dep"))
+        Task b = task("b")
 
-        taskExecuter.addTasks(toList(b));
-        taskExecuter.execute();
+        when:
+        executionPlan.useFilter({ it != a } as Spec<Task>);
+        executionPlan.addToTaskGraph([a, b])
 
-        assertFalse(taskExecuter.hasTask(":a"));
-        assertFalse(taskExecuter.hasTask(a));
-        assertTrue(taskExecuter.getAllTasks().isEmpty());
+        then:
+        executionPlan.getTasks() == [b]
+        executedTasks == [b]
     }
 
-    @Test
-    public void testCanExecuteMultipleTimes() {
-        Task a = task("a");
-        Task b = task("b", a);
-        Task c = task("c");
+    def "does not execute filtered dependencies"() {
+        given:
+        Task a = task("a", task("a-dep"))
+        Task b = task("b")
+        Task c = task("c", a, b)
 
-        taskExecuter.addTasks(toList(b));
-        taskExecuter.execute();
-        assertThat(executedTasks, equalTo(toList(a, b)));
+        when:
 
-        executedTasks.clear();
+        executionPlan.useFilter({ it != a } as Spec<Task>)
+        executionPlan.addToTaskGraph([c])
 
-        taskExecuter.addTasks(toList(c));
-
-        assertThat(taskExecuter.getAllTasks(), equalTo(toList(c)));
-
-        taskExecuter.execute();
-
-        assertThat(executedTasks, equalTo(toList(c)));
+        then:
+        executionPlan.tasks == [b, c]
+        executedTasks == [b, c]
     }
 
-    @Test
-    public void testCannotAddTaskWithCircularReference() {
-        Task a = createTask("a");
-        Task b = task("b", a);
-        Task c = task("c", b);
-        dependsOn(a, c);
+    def "will execute a task whose dependencies have been filtered"() {
+        given:
+        Task b = task("b")
+        Task c = task("c", b)
 
-        try {
-            taskExecuter.addTasks(toList(c));
-            fail();
-        } catch (CircularReferenceException e) {
-            // Expected
-        }
+        when:
+        executionPlan.useFilter({ it != b } as Spec<Task>)
+        executionPlan.addToTaskGraph([c]);
+
+        then:
+        executedTasks == [c]
     }
-
-    @Test
-    public void testNotifiesGraphListenerBeforeExecute() {
-        final TaskExecutionGraphListener listener = context.mock(TaskExecutionGraphListener.class);
-        Task a = task("a");
-
-        taskExecuter.addTaskExecutionGraphListener(listener);
-        taskExecuter.addTasks(toList(a));
-
-        context.checking(new Expectations() {{
-            one(listener).graphPopulated(taskExecuter);
-        }});
-
-        taskExecuter.execute();
-    }
-
-    @Test
-    public void testExecutesWhenReadyClosureBeforeExecute() {
-        final TestClosure runnable = context.mock(TestClosure.class);
-        Task a = task("a");
-
-        taskExecuter.whenReady(toClosure(runnable));
-
-        taskExecuter.addTasks(toList(a));
-
-        context.checking(new Expectations() {{
-            one(runnable).call(taskExecuter);
-        }});
-
-        taskExecuter.execute();
-    }
-
-    @Test
-    public void testNotifiesTaskListenerAsTasksAreExecuted() {
-        final TaskExecutionListener listener = context.mock(TaskExecutionListener.class);
-        final Task a = task("a");
-        final Task b = task("b");
-
-        taskExecuter.addTaskExecutionListener(listener);
-        taskExecuter.addTasks(toList(a, b));
-
-        context.checking(new Expectations() {{
-            one(listener).beforeExecute(a);
-            one(listener).afterExecute(with(equalTo(a)), with(notNullValue(TaskState.class)));
-            one(listener).beforeExecute(b);
-            one(listener).afterExecute(with(equalTo(b)), with(notNullValue(TaskState.class)));
-        }});
-
-        taskExecuter.execute();
-    }
-
-    @Test
-    public void testNotifiesTaskListenerWhenTaskFails() {
-        final TaskExecutionListener listener = context.mock(TaskExecutionListener.class);
-        final RuntimeException failure = new RuntimeException();
-        final Task a = brokenTask("a", failure);
-
-        taskExecuter.addTaskExecutionListener(listener);
-        taskExecuter.addTasks(toList(a));
-
-        context.checking(new Expectations() {{
-            one(listener).beforeExecute(a);
-            one(listener).afterExecute(with(sameInstance(a)), with(notNullValue(TaskState.class)));
-        }});
-
-        try {
-            taskExecuter.execute();
-            fail();
-        } catch (RuntimeException e) {
-            assertThat(e, sameInstance(failure));
-        }
-        
-        assertThat(executedTasks, equalTo(toList(a)));
-    }
-
-
-    @Test
-    public void testNotifiesBeforeTaskClosureAsTasksAreExecuted() {
-        final TestClosure runnable = context.mock(TestClosure.class);
-        final Task a = task("a");
-        final Task b = task("b");
-
-        taskExecuter.beforeTask(toClosure(runnable));
-
-        taskExecuter.addTasks(toList(a, b));
-
-        context.checking(new Expectations() {{
-            one(runnable).call(a);
-            one(runnable).call(b);
-        }});
-
-        taskExecuter.execute();
-    }
-
-    @Test
-    public void testNotifiesAfterTaskClosureAsTasksAreExecuted() {
-        final TestClosure runnable = context.mock(TestClosure.class);
-        final Task a = task("a");
-        final Task b = task("b");
-
-        taskExecuter.afterTask(toClosure(runnable));
-
-        taskExecuter.addTasks(toList(a, b));
-
-        context.checking(new Expectations() {{
-            one(runnable).call(a);
-            one(runnable).call(b);
-        }});
-
-        taskExecuter.execute();
-    }
-
-    @Test
-    public void doesNotExecuteFilteredTasks() {
-        final Task a = task("a", task("a-dep"));
-        Task b = task("b");
-        Spec<Task> spec = new Spec<Task>() {
-            public boolean isSatisfiedBy(Task element) {
-                return element != a;
-            }
-        };
-
-        taskExecuter.useFilter(spec);
-        taskExecuter.addTasks(toList(a, b));
-        assertThat(taskExecuter.getAllTasks(), equalTo(toList(b)));
-
-        taskExecuter.execute();
-        
-        assertThat(executedTasks, equalTo(toList(b)));
-    }
-
-    @Test
-    public void doesNotExecuteFilteredDependencies() {
-        final Task a = task("a", task("a-dep"));
-        Task b = task("b");
-        Task c = task("c", a, b);
-        Spec<Task> spec = new Spec<Task>() {
-            public boolean isSatisfiedBy(Task element) {
-                return element != a;
-            }
-        };
-
-        taskExecuter.useFilter(spec);
-        taskExecuter.addTasks(toList(c));
-        assertThat(taskExecuter.getAllTasks(), equalTo(toList(b, c)));
-        
-        taskExecuter.execute();
-                
-        assertThat(executedTasks, equalTo(toList(b, c)));
-    }
-
-    @Test
-    public void willExecuteATaskWhoseDependenciesHaveBeenFilteredOnFailure() {
-        final TaskFailureHandler handler = context.mock(TaskFailureHandler.class);
-        final RuntimeException failure = new RuntimeException();
-        final Task a = brokenTask("a", failure);
-        final Task b = task("b");
-        final Task c = task("c", b);
-
-        taskExecuter.useFailureHandler(handler);
-        taskExecuter.useFilter(new Spec<Task>() {
-            public boolean isSatisfiedBy(Task element) {
-                return element != b;
-            }
-        });
-        taskExecuter.addTasks(toList(a, c));
-
-        context.checking(new Expectations() {{
-            ignoring(handler);
-        }});
-        taskExecuter.execute();
-
-        assertThat(executedTasks, equalTo(toList(a, c)));
-    }
-*/
 
     private void dependsOn(TaskInternal task, final Task... dependsOnTasks) {
         TaskDependency taskDependency = Mock()

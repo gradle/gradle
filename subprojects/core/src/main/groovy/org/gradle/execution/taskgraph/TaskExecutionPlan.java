@@ -16,208 +16,44 @@
 
 package org.gradle.execution.taskgraph;
 
-import org.gradle.api.CircularReferenceException;
 import org.gradle.api.Task;
-import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.tasks.CachingTaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.specs.Specs;
-import org.gradle.execution.TaskFailureHandler;
-import org.gradle.internal.UncheckedException;
 
-import java.util.*;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.List;
 
-public class TaskExecutionPlan {
-    private final Lock lock = new ReentrantLock();
-    private final Condition condition = lock.newCondition();
-    private final LinkedHashMap<Task, TaskInfo> executionPlan = new LinkedHashMap<Task, TaskInfo>();
-    private Spec<? super Task> filter = Specs.satisfyAll();
-    private Exception failure;
+/**
+ * Represents a graph of dependent tasks, returned in execution order.
+ * TODO:DAZ Make TaskInfo private to this guy, and deal with Task instances outside.
+ */
+public interface TaskExecutionPlan {
+    /**
+     * Provides a ready-to-execute task that matches the specified criteria. A task is ready-to-execute if all of it's dependencies have been completed successfully.
+     * If the next matching task is not ready-to-execute, this method will block until it is ready.
+     * If no tasks remain that match the criteria, null will be returned.
+     * @param criteria Only tasks matching this Spec will be returned.
+     * @return The next matching task, or null if no matching tasks remain.
+     */
+    TaskInfo getTaskToExecute(Spec<TaskInfo> criteria);
 
-    private TaskFailureHandler failureHandler = new RethrowingFailureHandler();
+    /**
+     * Signals to the plan that this task has completed successfully.
+     * @param task the completed task.
+     */
+    void taskComplete(TaskInfo task);
 
-    public void addToTaskGraph(Collection<? extends Task> tasks) {
-        List<Task> queue = new ArrayList<Task>(tasks);
-        Collections.sort(queue);
+    /**
+     * Signals to the plan that this task has completed with failure. Other tasks that depend on this task will not be executed.
+     * @param task the failed task.
+     */
+    void taskFailed(TaskInfo task);
 
-        Set<Task> visiting = new HashSet<Task>();
-        CachingTaskDependencyResolveContext context = new CachingTaskDependencyResolveContext();
+    /**
+     * Blocks until all tasks in the plan have been processed. This method will only return when every task in the plan has either completed, failed or been skipped.
+     */
+    void awaitCompletion();
 
-        while (!queue.isEmpty()) {
-            Task task = queue.get(0);
-            if (!filter.isSatisfiedBy(task)) {
-                // Filtered - skip
-                queue.remove(0);
-                continue;
-            }
-            if (executionPlan.containsKey(task)) {
-                // Already in plan - skip
-                queue.remove(0);
-                continue;
-            }
-
-            if (visiting.add(task)) {
-                // Have not seen this task before - add its dependencies to the head of the queue and leave this
-                // task in the queue
-                Set<Task> dependsOnTasks = new TreeSet<Task>(Collections.reverseOrder());
-                dependsOnTasks.addAll(context.getDependencies(task));
-                for (Task dependsOnTask : dependsOnTasks) {
-                    if (visiting.contains(dependsOnTask)) {
-                        throw new CircularReferenceException(String.format(
-                                "Circular dependency between tasks. Cycle includes [%s, %s].", task, dependsOnTask));
-                    }
-                    queue.add(0, dependsOnTask);
-                }
-            } else {
-                // Have visited this task's dependencies - add it to the end of the plan
-                queue.remove(0);
-                visiting.remove(task);
-                Set<TaskInfo> dependencies = new HashSet<TaskInfo>();
-                for (Task dependency : context.getDependencies(task)) {
-                    TaskInfo dependencyInfo = executionPlan.get(dependency);
-                    if (dependencyInfo != null) {
-                        dependencies.add(dependencyInfo);
-                    }
-                    // else - the dependency has been filtered, so ignore it
-                }
-                executionPlan.put(task, new TaskInfo((TaskInternal) task, dependencies));
-            }
-        }
-    }
-
-    public void clear() {
-        executionPlan.clear();
-    }
-
-    public boolean hasTask(Task task) {
-        return executionPlan.containsKey(task);
-    }
-
-    public List<Task> getTasks() {
-        return new ArrayList<Task>(executionPlan.keySet());
-    }
-
-    public void useFilter(Spec<? super Task> filter) {
-        this.filter = filter;
-    }
-
-    public void useFailureHandler(TaskFailureHandler handler) {
-        this.failureHandler = handler;
-    }
-
-    public TaskInfo getTaskToExecute(Spec<TaskInfo> criteria) {
-        lock.lock();
-        try {
-
-            TaskInfo nextMatching;
-            while ((nextMatching = getNextReadyAndMatching(criteria)) != null) {
-                while (!nextMatching.dependenciesExecuted()) {
-                    try {
-                        condition.await();
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-
-                nextMatching.startExecution();
-
-                if (nextMatching.dependenciesFailed()) {
-                    abortTask(nextMatching);
-                } else {
-                    return nextMatching;
-                }
-            }
-
-            return null;
-
-        } finally {
-            lock.unlock();
-        }
-
-    }
-
-    private TaskInfo getNextReadyAndMatching(Spec<TaskInfo> criteria) {
-        for (TaskInfo taskInfo : executionPlan.values()) {
-            if (taskInfo.isReady() && criteria.isSatisfiedBy(taskInfo)) {
-                return taskInfo;
-            }
-        }
-        return null;
-    }
-
-    private void abortTask(TaskInfo taskInfo) {
-        taskInfo.executionFailed();
-        condition.signalAll();
-    }
-
-    public void taskComplete(TaskInfo task) {
-        lock.lock();
-        try {
-            task.executionSucceeded();
-            condition.signalAll();
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    public void taskFailed(TaskInfo taskInfo) {
-        lock.lock();
-        try {
-            taskInfo.executionFailed();
-            try {
-                failureHandler.onTaskFailure(taskInfo.getTask());
-            } catch (Exception e) {
-                abortExecution(e);
-            }
-            condition.signalAll();
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    private void abortExecution(Exception e) {
-        for (TaskInfo taskInfo : executionPlan.values()) {
-            if (taskInfo.isReady()) {
-                taskInfo.startExecution();
-                taskInfo.executionFailed();
-            }
-        }
-        this.failure = e;
-    }
-
-    public void awaitCompletion() {
-        lock.lock();
-        try {
-            while (!allTasksComplete()) {
-                try {
-                    condition.await();
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-            if (failure != null) {
-                UncheckedException.throwAsUncheckedException(failure);
-            }
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    private boolean allTasksComplete() {
-        for (TaskInfo taskInfo : executionPlan.values()) {
-            if (!taskInfo.isComplete()) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private static class RethrowingFailureHandler implements TaskFailureHandler {
-        public void onTaskFailure(Task task) {
-            task.getState().rethrowFailure();
-        }
-    }
+    /**
+     * @return The list of all available tasks. This includes tasks that have not yet been executed, as well as tasks that have been processed.
+     */
+    List<Task> getTasks();
 }

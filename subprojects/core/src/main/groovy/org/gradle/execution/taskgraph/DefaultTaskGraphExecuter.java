@@ -42,7 +42,7 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
     private final TaskExecutor taskExecutor;
     private final ListenerBroadcast<TaskExecutionGraphListener> graphListeners;
     private final ListenerBroadcast<TaskExecutionListener> taskListeners;
-    private final TaskExecutionPlan taskExecutionPlan = new TaskExecutionPlan();
+    private final DefaultTaskExecutionPlan taskExecutionPlan = new DefaultTaskExecutionPlan();
     private boolean populated;
 
     public DefaultTaskGraphExecuter(ListenerManager listenerManager, TaskExecutor taskExecutor) {
@@ -117,13 +117,13 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
 
     public boolean hasTask(Task task) {
         assertPopulated();
-        return taskExecutionPlan.hasTask(task);
+        return taskExecutionPlan.getTasks().contains(task);
     }
 
     public boolean hasTask(String path) {
         assertPopulated();
         assert path != null && path.length() > 0;
-        for (Task task : getAllTasks()) {
+        for (Task task : taskExecutionPlan.getTasks()) {
             if (task.getPath().equals(path)) {
                 return true;
             }
