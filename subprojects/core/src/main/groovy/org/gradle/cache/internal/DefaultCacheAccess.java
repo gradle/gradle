@@ -46,6 +46,7 @@ public class DefaultCacheAccess implements CacheAccess {
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
     private Thread owner;
+    private Set<Thread> longRunningOperations = new HashSet<Thread>();
     private FileLockManager.LockMode lockMode;
     private FileLock fileLock;
     private boolean started;
@@ -167,37 +168,49 @@ public class DefaultCacheAccess implements CacheAccess {
     }
 
     public <T> T longRunningOperation(String operationDisplayName, Factory<? extends T> action) {
-        LOGGER.debug(operationDisplayName + " (" + Thread.currentThread() + ") - start long running operation");
+        if (threadIsInLongRunningOperation()) {
+            return action.create();
+        }
+
+        checkThreadIsOwner();
+        boolean wasEnded = onEndWork();
+        List<String> parkedOperationStack = parkOwner();
         try {
-            boolean wasEnded = onEndWork();
-            try {
-                List<String> parkedOperationStack = startLongRunningOperation();
-                try {
-                    return action.create();
-                } finally {
-                    endLongRunningOperation(parkedOperationStack);
-                }
-            } finally {
-                if (wasEnded) {
-                    onStartWork();
-                }
-            }
-        } catch (RuntimeException e) {
-            e.printStackTrace();
-            throw e;
+            return action.create();
         } finally {
-            LOGGER.debug(operationDisplayName + " (" + Thread.currentThread() + ") - end long running operation");
+            restoreOwner(parkedOperationStack);
+            if (wasEnded) {
+                onStartWork();
+            }
         }
     }
 
-    private List<String> startLongRunningOperation() {
+    private boolean threadIsInLongRunningOperation() {
+        // TODO:DAZ This would be better in a ThreadLocal?
+        return longRunningOperations.contains(Thread.currentThread());
+    }
+
+    private void checkThreadIsOwner() {
         lock.lock();
         try {
             if (owner != Thread.currentThread()) {
                 throw new IllegalStateException(String.format("Cannot start long running operation, as the %s has not been locked.", cacheDiplayName));
             }
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private List<String> parkOwner() {
+        lock.lock();
+        try {
+            if (owner != Thread.currentThread()) {
+                throw new IllegalStateException(String.format("Cannot start long running operation, as the %s has not been locked.", cacheDiplayName));
+            }
+            longRunningOperations.add(owner);
             owner = null;
             condition.signalAll();
+
             List<String> parkedOperationStack = new ArrayList<String>(operationStack);
             operationStack.clear();
             return parkedOperationStack;
@@ -206,7 +219,7 @@ public class DefaultCacheAccess implements CacheAccess {
         }
     }
 
-    private void endLongRunningOperation(List<String> parkedOperationStack) {
+    private void restoreOwner(List<String> parkedOperationStack) {
         lock.lock();
         try {
             while (owner != null) {
@@ -220,10 +233,14 @@ public class DefaultCacheAccess implements CacheAccess {
                 throw new IllegalStateException("OperationStack not empty");
             }
             owner = Thread.currentThread();
+            longRunningOperations.remove(owner);
             operationStack.addAll(parkedOperationStack);
         } finally {
             lock.unlock();
         }
+    }
+
+    private void endLongRunningOperation() {
     }
 
     public void longRunningOperation(String operationDisplayName, final Runnable action) {
