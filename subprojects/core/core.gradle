@@ -99,6 +99,7 @@ class PluginsManifest extends DefaultTask {
         propertiesFile.withOutputStream { pluginProperties.save(it, 'plugin definitions') }
     }
 }
+
 eclipse {
 	classpath {
 		file.whenMerged { classpath ->
