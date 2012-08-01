@@ -18,6 +18,7 @@ package org.gradle.api.internal.externalresource.transport.http;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPut;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.FileEntity;
 import org.apache.http.util.EntityUtils;
 import org.gradle.api.internal.externalresource.transfer.ExternalResourceUploader;
@@ -35,7 +36,7 @@ public class HttpResourceUploader implements ExternalResourceUploader {
 
     public void upload(File source, String destination, boolean overwrite) throws IOException {
         HttpPut method = new HttpPut(destination);
-        method.setEntity(new FileEntity(source, "application/octet-stream"));
+        method.setEntity(new FileEntity(source, ContentType.APPLICATION_OCTET_STREAM));
         HttpResponse response = http.performHttpRequest(method);
         EntityUtils.consume(response.getEntity());
         if (!http.wasSuccessful(response)) {
