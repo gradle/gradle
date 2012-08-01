@@ -49,15 +49,16 @@ public class Download implements IDownload {
         downloadInternal(address, destination);
     }
 
-    private void downloadInternal(URI address, File destination) throws Exception {
+    private void downloadInternal(URI address, File destination)
+            throws Exception {
         OutputStream out = null;
         URLConnection conn;
         InputStream in = null;
         try {
             URL url = address.toURL();
-            out = new BufferedOutputStream(
-                    new FileOutputStream(destination));
+            out = new BufferedOutputStream(new FileOutputStream(destination));
             conn = url.openConnection();
+            overrideUserAgent(conn);
             in = conn.getInputStream();
             byte[] buffer = new byte[BUFFER_SIZE];
             int numRead;
@@ -81,12 +82,27 @@ public class Download implements IDownload {
         }
     }
 
-    private static class SystemPropertiesProxyAuthenticator extends Authenticator {
+    private void overrideUserAgent(URLConnection conn) {
+        // **TODO Gradle Wrapper Version.
+        String applicationName = System.getProperty("org.gradle.appname");
+        String javaVendor = System.getProperty("java.vendor");
+        String javaVersion = System.getProperty("java.version");
+        String osName = System.getProperty("os.name");
+        String osVersion = System.getProperty("os.version");
+        String osArch = System.getProperty("os.arch");
+        String userAgent = new String(applicationName + " (OSS;" + osName + ";"
+                + osVersion + ";" + osArch + ") (JVM;" + javaVendor + ";"
+                + javaVersion + ")   ");
+        conn.setRequestProperty("User-Agent", userAgent);
+    }
+
+    private static class SystemPropertiesProxyAuthenticator extends
+            Authenticator {
         @Override
         protected PasswordAuthentication getPasswordAuthentication() {
             return new PasswordAuthentication(
-                    System.getProperty("http.proxyUser"),
-                    System.getProperty("http.proxyPassword", "").toCharArray());
+                    System.getProperty("http.proxyUser"), System.getProperty(
+                            "http.proxyPassword", "").toCharArray());
         }
     }
 

@@ -33,3 +33,11 @@ daemonIntegTest {
     exclude "**/CrossVersionCompatibilityIntegrationTest.class" //ignored just in case to avoid old daemon implementation
     exclude "**/DistributionIntegrationTest.class" //fragile - heavily depends on external repos and does not contribute too much to the daemon suite anyway
 }
+
+eclipse {
+	classpath {
+		file.whenMerged { classpath ->
+            classpath.entries.removeAll { it.path.contains('src/integTest/resources') }
+		}
+	}
+}

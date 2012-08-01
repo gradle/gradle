@@ -13,3 +13,11 @@ integTestTasks.all {
         systemProperties['org.gradle.integtest.executer'] =  "forking"
     }
 }
+
+eclipse {
+        classpath {
+            file.whenMerged { classpath ->
+                classpath.entries.removeAll { it.path.contains('src/integTest/resources') }
+            }
+        }
+}

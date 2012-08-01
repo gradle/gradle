@@ -27,3 +27,12 @@ dependencies {
 }
 
 useTestFixtures()
+
+eclipse {
+	classpath {
+		file.whenMerged { classpath ->
+			classpath.entries.removeAll {it.path.contains('/javascript/build/classes') }
+			classpath.entries.removeAll {it.path.contains('/javascript/build/resources') }
+		}
+	}
+}
