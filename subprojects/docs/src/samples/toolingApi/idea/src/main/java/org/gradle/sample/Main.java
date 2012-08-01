@@ -60,6 +60,7 @@ public class Main {
                     System.out.println("      * " + dependency);
                 }
             }
+            System.exit(0);
         } finally {
             // Clean up
             connection.close();
