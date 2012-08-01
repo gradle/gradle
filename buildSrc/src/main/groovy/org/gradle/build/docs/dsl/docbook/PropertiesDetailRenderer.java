@@ -41,7 +41,7 @@ public class PropertiesDetailRenderer {
 
         Element title = document.createElement("title");
         section.appendChild(title);
-        title.appendChild(document.importNode(linkRenderer.link(propertyDoc.getMetaData().getType(), listener), true));
+        title.appendChild(linkRenderer.link(propertyDoc.getMetaData().getType(), listener));
         title.appendChild(document.createTextNode(" "));
         Element literal = document.createElement("literal");
         title.appendChild(literal);

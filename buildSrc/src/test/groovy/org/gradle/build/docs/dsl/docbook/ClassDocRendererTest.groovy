@@ -26,27 +26,76 @@ import org.gradle.build.docs.dsl.docbook.model.MethodDoc
 import org.gradle.build.docs.dsl.docbook.model.PropertyDoc
 import org.gradle.build.docs.dsl.docbook.model.ClassDoc
 import org.gradle.build.docs.dsl.docbook.model.ClassExtensionDoc
+import org.w3c.dom.Document
 
 class ClassDocRendererTest extends XmlSpecification {
     final LinkRenderer linkRenderer = linkRenderer()
     final ClassDocRenderer renderer = new ClassDocRenderer(linkRenderer)
 
+    def rendersContentForEmptyClass() {
+        def sourceContent = parse('''
+            <chapter>
+                <section><title>Properties</title></section>
+            </chapter>
+        ''')
+
+        ClassDoc classDoc = classDoc('org.gradle.Class', id: 'classId', content: sourceContent, comment: 'class comment')
+        _ * classDoc.classProperties >> []
+        _ * classDoc.classMethods >> []
+        _ * classDoc.classBlocks >> []
+
+        when:
+        def result = parse('<root/>')
+        withCategories {
+            renderer.mergeContent(classDoc, result)
+        }
+
+        then:
+        formatTree(result) == '''<root>
+    <chapter id="classId">
+        <title>Class</title>
+        <segmentedlist>
+            <segtitle>API Documentation</segtitle>
+            <seglistitem>
+                <seg>
+                    <apilink class="org.gradle.Class" style="java"/>
+                </seg>
+            </seglistitem>
+        </segmentedlist>
+        <para>class comment</para>
+        <section>
+            <title>Properties</title>
+            <para>No properties</para>
+        </section>
+        <section>
+            <title>Script blocks</title>
+            <para>No script blocks</para>
+        </section>
+        <section>
+            <title>Methods</title>
+            <para>No methods</para>
+        </section>
+    </chapter>
+</root>'''
+    }
+
     def mergesClassMetaDataIntoMainSection() {
-        def content = parse('''
+        def sourceContent = parse('''
             <chapter>
                 <para>Some custom content</para>
             </chapter>
         ''')
 
-        ClassDoc classDoc = classDoc('org.gradle.Class', id: 'classId', content: content, comment: 'class comment')
+        ClassDoc classDoc = classDoc('org.gradle.Class', id: 'classId', content: sourceContent, comment: 'class comment')
 
         when:
+        def result = parse('<chapter/>')
         withCategories {
-            renderer.mergeDescription(classDoc)
+            renderer.mergeDescription(classDoc, result)
         }
 
         then:
-        formatTree(content) == '''<chapter id="classId">
+        formatTree(result) == '''<chapter id="classId">
     <title>Class</title>
     <segmentedlist>
         <segtitle>API Documentation</segtitle>
@@ -79,12 +128,13 @@ class ClassDocRendererTest extends XmlSpecification {
         _ * classDoc.classProperties >> [propDoc]
 
         when:
+        def result = parse('<chapter/>', document)
         withCategories {
-            renderer.mergeProperties(classDoc)
+            renderer.mergeProperties(classDoc, result)
         }
 
         then:
-        formatTree(content) == '''<chapter>
+        formatTree(result) == '''<chapter>
     <section>
         <title>Properties</title>
         <table>
@@ -142,12 +192,13 @@ class ClassDocRendererTest extends XmlSpecification {
         _ * classDoc.classProperties >> [deprecatedProp, experimentalProp]
 
         when:
+        def result = parse('<chapter/>', document)
         withCategories {
-            renderer.mergeProperties(classDoc)
+            renderer.mergeProperties(classDoc, result)
         }
 
         then:
-        formatTree(content) == '''<chapter>
+        formatTree(result) == '''<chapter>
     <section>
         <title>Properties</title>
         <table>
@@ -202,34 +253,6 @@ class ClassDocRendererTest extends XmlSpecification {
 </chapter>'''
     }
 
-    def removesPropertiesTableWhenClassHasNoProperties() {
-        def content = parse('''
-            <chapter>
-                <section><title>Properties</title>
-                    <table>
-                        <thead><tr><td>Name</td></tr></thead>
-                    </table>
-                </section>
-            </chapter>
-        ''')
-
-        ClassDoc classDoc = classDoc('Class', content: content)
-        _ * classDoc.classProperties >> []
-
-        when:
-        withCategories {
-            renderer.mergeProperties(classDoc)
-        }
-
-        then:
-        formatTree(content) == '''<chapter>
-    <section>
-        <title>Properties</title>
-        <para>No properties</para>
-    </section>
-</chapter>'''
-    }
-
     def mergesExtensionPropertyMetaDataIntoPropertiesSection() {
         def content = parse('''<chapter>
                 <section><title>Properties</title>
@@ -248,51 +271,39 @@ class ClassDocRendererTest extends XmlSpecification {
         _ * extensionDoc.extensionProperties >> [propertyDoc]
 
         when:
+        def result = parse('<chapter/>', document)
         withCategories {
-            renderer.mergeExtensionProperties(targetClassDoc)
+            renderer.mergeExtensionProperties(targetClassDoc, result, result)
         }
 
         then:
-        formatTree(content) == '''<chapter>
+        formatTree(result) == '''<chapter>
     <section>
-        <title>Properties</title>
+        <title>Properties added by the <literal>thingo</literal> plugin</title>
+        <titleabbrev><literal>thingo</literal> plugin</titleabbrev>
         <table>
+            <title>Properties - <literal>thingo</literal> plugin</title>
             <thead>
                 <tr>
-                    <td>Name</td>
+                    <td>Property</td>
+                    <td>Description</td>
                 </tr>
             </thead>
+            <tr>
+                <td>
+                    <link linkend="propId">
+                        <literal>propName</literal>
+                    </link>
+                </td>
+                <td>
+                    <para>description</para>
+                </td>
+            </tr>
         </table>
-        <section>
-            <title>Properties added by the <literal>thingo</literal> plugin</title>
-            <titleabbrev><literal>thingo</literal> plugin</titleabbrev>
-            <table>
-                <title>Properties - <literal>thingo</literal> plugin</title>
-                <thead>
-                    <tr>
-                        <td>Property</td>
-                        <td>Description</td>
-                    </tr>
-                </thead>
-                <tr>
-                    <td>
-                        <link linkend="propId">
-                            <literal>propName</literal>
-                        </link>
-                    </td>
-                    <td>
-                        <para>description</para>
-                    </td>
-                </tr>
-            </table>
-        </section>
     </section>
-    <section>
-        <title>Property details</title>
-        <section id="propId" role="detail">
-            <title><classname>SomeType</classname> <literal>propName</literal> (read-only)</title>
-            <para>comment</para>
-        </section>
+    <section id="propId" role="detail">
+        <title><classname>SomeType</classname> <literal>propName</literal> (read-only)</title>
+        <para>comment</para>
     </section>
 </chapter>'''
     }
@@ -316,12 +327,13 @@ class ClassDocRendererTest extends XmlSpecification {
 
 
         when:
+        def result = parse('<chapter/>')
         withCategories {
-            renderer.mergeMethods(classDoc)
+            renderer.mergeMethods(classDoc, result)
         }
 
         then:
-        formatTree(content) == '''<chapter>
+        formatTree(result) == '''<chapter>
     <section>
         <title>Methods</title>
         <table>
@@ -383,77 +395,37 @@ class ClassDocRendererTest extends XmlSpecification {
         _ * extensionDoc.extensionMethods >> [methodDoc]
 
         when:
+        def result = parse('<chapter/>', document)
         withCategories {
-            renderer.mergeExtensionMethods(targetClassDoc)
+            renderer.mergeExtensionMethods(targetClassDoc, result, result)
         }
 
         then:
-        formatTree(content) == '''<chapter>
+        formatTree(result) == '''<chapter>
     <section>
-        <title>Methods</title>
+        <title>Methods added by the <literal>thingo</literal> plugin</title>
+        <titleabbrev><literal>thingo</literal> plugin</titleabbrev>
         <table>
+            <title>Methods - <literal>thingo</literal> plugin</title>
             <thead>
                 <tr>
-                    <td>Name</td>
+                    <td>Method</td>
+                    <td>Description</td>
                 </tr>
             </thead>
+            <tr>
+                <td>
+                    <literal><link linkend="methodId">methodName</link>()</literal>
+                </td>
+                <td>
+                    <para>description</para>
+                </td>
+            </tr>
         </table>
-        <section>
-            <title>Methods added by the <literal>thingo</literal> plugin</title>
-            <titleabbrev><literal>thingo</literal> plugin</titleabbrev>
-            <table>
-                <title>Methods - <literal>thingo</literal> plugin</title>
-                <thead>
-                    <tr>
-                        <td>Method</td>
-                        <td>Description</td>
-                    </tr>
-                </thead>
-                <tr>
-                    <td>
-                        <literal><link linkend="methodId">methodName</link>()</literal>
-                    </td>
-                    <td>
-                        <para>description</para>
-                    </td>
-                </tr>
-            </table>
-        </section>
     </section>
-    <section>
-        <title>Method details</title>
-        <section id="methodId" role="detail">
-            <title><classname>ReturnType</classname> <literal>methodName</literal>()</title>
-            <para>comment</para>
-        </section>
-    </section>
-</chapter>'''
-    }
-
-    def removesMethodsTableWhenClassHasNoMethods() {
-        def content = parse('''
-            <chapter>
-                <section><title>Methods</title>
-                    <table>
-                        <thead><tr><td>Name</td></tr></thead>
-                    </table>
-                </section>
-            </chapter>
-        ''')
-
-        ClassDoc classDoc = classDoc('Class', content: content)
-        _ * classDoc.classMethods >> []
-
-        when:
-        withCategories {
-            renderer.mergeMethods(classDoc)
-        }
-
-        then:
-        formatTree(content) == '''<chapter>
-    <section>
-        <title>Methods</title>
-        <para>No methods</para>
+    <section id="methodId" role="detail">
+        <title><classname>ReturnType</classname> <literal>methodName</literal>()</title>
+        <para>comment</para>
     </section>
 </chapter>'''
     }
@@ -471,12 +443,13 @@ class ClassDocRendererTest extends XmlSpecification {
         _ * classDoc.classBlocks >> [block]
 
         when:
+        def result = parse('<chapter/>', document)
         withCategories {
-            renderer.mergeBlocks(classDoc)
+            renderer.mergeBlocks(classDoc, result)
         }
 
         then:
-        formatTree(content) == '''<chapter>
+        formatTree(result) == '''<chapter>
     <section>
         <title>Script blocks</title>
         <table>
@@ -513,9 +486,6 @@ class ClassDocRendererTest extends XmlSpecification {
             </segmentedlist>
         </section>
     </section>
-    <section>
-        <title>Methods</title>
-    </section>
 </chapter>'''
     }
 
@@ -536,89 +506,54 @@ class ClassDocRendererTest extends XmlSpecification {
         _ * extensionDoc.extensionBlocks >> [blockDoc]
 
         when:
+        def result = parse('<chapter/>', document)
         withCategories {
-            renderer.mergeExtensionBlocks(targetClassDoc)
+            renderer.mergeExtensionBlocks(targetClassDoc, result, result)
         }
 
         then:
-        formatTree(content) == '''<chapter>
+        formatTree(result) == '''<chapter>
     <section>
-        <title>Script blocks</title>
+        <title>Script blocks added by the <literal>thingo</literal> plugin</title>
+        <titleabbrev><literal>thingo</literal> plugin</titleabbrev>
         <table>
-            <thead/>
-        </table>
-        <section>
-            <title>Script blocks added by the <literal>thingo</literal> plugin</title>
-            <titleabbrev><literal>thingo</literal> plugin</titleabbrev>
-            <table>
-                <title>Script blocks - <literal>thingo</literal> plugin</title>
-                <thead>
-                    <tr>
-                        <td>Block</td>
-                        <td>Description</td>
-                    </tr>
-                </thead>
+            <title>Script blocks - <literal>thingo</literal> plugin</title>
+            <thead>
                 <tr>
-                    <td>
-                        <link linkend="blockId">
-                            <literal>blockName</literal>
-                        </link>
-                    </td>
-                    <td>
-                        <para>description</para>
-                    </td>
+                    <td>Block</td>
+                    <td>Description</td>
                 </tr>
-            </table>
-        </section>
+            </thead>
+            <tr>
+                <td>
+                    <link linkend="blockId">
+                        <literal>blockName</literal>
+                    </link>
+                </td>
+                <td>
+                    <para>description</para>
+                </td>
+            </tr>
+        </table>
     </section>
-    <section>
-        <title>Script block details</title>
-        <section id="blockId" role="detail">
-            <title><literal>blockName</literal> { }</title>
-            <para>comment</para>
-            <segmentedlist>
-                <segtitle>Delegates to</segtitle>
-                <seglistitem>
-                    <seg><classname>BlockType</classname> from <link linkend="blockName">
-                            <literal>blockName</literal></link></seg>
-                </seglistitem>
-            </segmentedlist>
-        </section>
+    <section id="blockId" role="detail">
+        <title><literal>blockName</literal> { }</title>
+        <para>comment</para>
+        <segmentedlist>
+            <segtitle>Delegates to</segtitle>
+            <seglistitem>
+                <seg><classname>BlockType</classname> from <link linkend="blockName">
+                        <literal>blockName</literal></link></seg>
+            </seglistitem>
+        </segmentedlist>
     </section>
 </chapter>'''
-    }
-
-    def doesNotAddBlocksTableWhenClassHasNoScriptBlocks() {
-        def content = parse('''
-            <section>
-                <section><title>Methods</title></section>
-            </section>
-        ''')
-
-        ClassDoc classDoc = classDoc('Class', content: content)
-        _ * classDoc.classBlocks >> []
-
-        when:
-        withCategories {
-            renderer.mergeBlocks(classDoc)
-        }
-
-        then:
-        formatTree(content) == '''<section>
-    <section>
-        <title>Script blocks</title>
-        <para>No script blocks</para>
-    </section>
-    <section>
-        <title>Methods</title>
-    </section>
-</section>'''
     }
 
     def linkRenderer() {
         LinkRenderer renderer = Mock()
         _ * renderer.link(!null, !null) >> {
-            args -> parse("<classname>${args[0].signature}</classname>")
+            args -> parse("<classname>${args[0].signature}</classname>", document)
         }
         return renderer
     }

@@ -25,11 +25,12 @@ import org.w3c.dom.*
 abstract class XmlSpecification extends Specification {
     final Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument()
 
-    def parse(String str) {
+    def parse(String str, Document document = null) {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance()
         factory.setNamespaceAware(true)
         DocumentBuilder builder = factory.newDocumentBuilder()
-        return builder.parse(new InputSource(new StringReader(str))).documentElement
+        def parsed = builder.parse(new InputSource(new StringReader(str))).documentElement
+        return document ? document.importNode(parsed, true) : parsed
     }
 
     def formatTree(Closure cl) {

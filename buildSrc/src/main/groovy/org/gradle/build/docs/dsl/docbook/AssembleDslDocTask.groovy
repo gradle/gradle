@@ -209,7 +209,7 @@ class AssembleDslDocTask extends DefaultTask {
     def generateDocForType(Document document, DslDocModel model, ClassMetaDataRepository<ClassLinkMetaData> linkRepository, ClassDoc classDoc) {
         try {
             //classDoc renderer renders the content of the class and also links to properties/methods
-            new ClassDocRenderer(new LinkRenderer(document, model)).mergeContent(classDoc)
+            new ClassDocRenderer(new LinkRenderer(document, model)).mergeContent(classDoc, document.documentElement)
             def linkMetaData = linkRepository.get(classDoc.name)
             linkMetaData.style = LinkMetaData.Style.Dsldoc
             classDoc.classMethods.each { methodDoc ->
@@ -221,7 +221,6 @@ class AssembleDslDocTask extends DefaultTask {
             classDoc.classProperties.each { propertyDoc ->
                 linkMetaData.addGetterMethod(propertyDoc.name, propertyDoc.metaData.getter)
             }
-            document.documentElement << classDoc.classSection
         } catch (Exception e) {
             throw new DocGenerationException("Failed to generate documentation for class '$classDoc.name'.", e)
         }
