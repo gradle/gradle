@@ -15,8 +15,6 @@
  */
 package org.gradle.internal.reflect;
 
-import org.gradle.internal.UncheckedException;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -40,9 +38,9 @@ public class DirectInstantiator implements Instantiator {
             }
             return type.cast(matches.get(0).newInstance(params));
         } catch (InvocationTargetException e) {
-            throw UncheckedException.throwAsUncheckedException(e.getCause());
+            throw new ObjectInstantiationException(type, e.getCause());
         } catch (Exception e) {
-            throw UncheckedException.throwAsUncheckedException(e);
+            throw new ObjectInstantiationException(type, e);
         }
     }
 

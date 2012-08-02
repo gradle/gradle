@@ -13,18 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.internal.reflect;
 
-/**
- * An object that can create new instances of a given type, which may be decorated in some fashion.
- */
-public interface Instantiator {
-
-    /**
-     * Create a new instance of T, using {@code parameters} as the construction parameters.
-     *
-     * @throws ObjectInstantiationException On failure to create the new instance.
-     */
-    <T> T newInstance(Class<T> type, Object... parameters) throws ObjectInstantiationException;
-
+public class ObjectInstantiationException extends RuntimeException {
+    public ObjectInstantiationException(Class<?> targetType, Throwable throwable) {
+        super(String.format("Could not create an instance of type %s.", targetType.getName()), throwable);
+    }
 }

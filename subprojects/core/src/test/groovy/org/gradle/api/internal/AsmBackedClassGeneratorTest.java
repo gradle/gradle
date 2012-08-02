@@ -24,6 +24,7 @@ import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
+import org.gradle.internal.reflect.ObjectInstantiationException;
 import org.junit.Test;
 import spock.lang.Issue;
 
@@ -129,14 +130,14 @@ public class AsmBackedClassGeneratorTest {
         try {
             generator.newInstance(UnconstructableBean.class);
             fail();
-        } catch (UnsupportedOperationException e) {
-            assertThat(e, sameInstance(UnconstructableBean.failure));
+        } catch (ObjectInstantiationException e) {
+            assertThat(e.getCause(), sameInstance(UnconstructableBean.failure));
         }
 
         try {
             generator.newInstance(Bean.class, "arg1", 2);
             fail();
-        } catch (IllegalArgumentException e) {
+        } catch (ObjectInstantiationException e) {
             // expected
         }
 
@@ -778,9 +779,9 @@ public class AsmBackedClassGeneratorTest {
     }
 
     public static class UnconstructableBean {
-        static UnsupportedOperationException failure = new UnsupportedOperationException();
+        static Throwable failure = new UnsupportedOperationException();
 
-        public UnconstructableBean() {
+        public UnconstructableBean() throws Throwable {
             throw failure;
         }
     }

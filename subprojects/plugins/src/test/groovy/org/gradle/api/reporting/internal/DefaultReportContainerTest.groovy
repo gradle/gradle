@@ -27,6 +27,7 @@ import org.gradle.api.internal.file.IdentityFileResolver
 import org.gradle.api.reporting.Report
 import org.gradle.api.reporting.ReportContainer
 import spock.lang.Specification
+import org.gradle.internal.reflect.ObjectInstantiationException
 
 class DefaultReportContainerTest extends Specification {
 
@@ -47,7 +48,11 @@ class DefaultReportContainerTest extends Specification {
     }
 
     DefaultReportContainer createContainer(Closure c) {
-        instantiator.newInstance(TestReportContainer, c)
+        try {
+            instantiator.newInstance(TestReportContainer, c)
+        } catch (ObjectInstantiationException e) {
+            throw e.cause
+        }
     }
 
     def container
