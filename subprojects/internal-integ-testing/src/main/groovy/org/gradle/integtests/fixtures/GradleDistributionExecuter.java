@@ -132,6 +132,8 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
 
     public GradleDistributionExecuter withDeprecationChecksDisabled() {
         deprecationChecksOn = false;
+        // turn off stack traces too
+        stackTraceChecksOn = false;
         return this;
     }
 
@@ -202,7 +204,7 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
     }
 
     private void assertNoStackTraces(String output, String displayName) {
-        if (containsLine(matchesRegexp("\\s+at [\\w.$_]+\\([\\w._]+:\\d+\\)")).matches(output)) {
+        if (containsLine(matchesRegexp("\\s+(at\\s+)?[\\w.$_]+\\([\\w._]+:\\d+\\)")).matches(output)) {
             throw new AssertionError(String.format("%s contains an unexpected stack trace:%n=====%n%s%n=====%n", displayName, output));
         }
     }

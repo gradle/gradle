@@ -19,16 +19,13 @@ package org.gradle.groovy.scripts
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class StatementLabelsIntegrationTest extends AbstractIntegrationSpec {
-    def setup() {
-        executer.withDeprecationChecksDisabled()
-    }
-
     def "use of statement label in build script is flagged"() {
         buildFile << """
 version: '1.0'
         """
 
         expect:
+        executer.withDeprecationChecksDisabled()
         succeeds("tasks")
         output.contains("Usage of statement labels in build scripts has been deprecated")
         output.contains("version")
@@ -48,6 +45,7 @@ description: "bar"
         """
 
         expect:
+        executer.withDeprecationChecksDisabled()
         succeeds("tasks")
         output.contains("Usage of statement labels in build scripts has been deprecated")
         output.contains("version")
@@ -67,6 +65,7 @@ def foo() {
         """
 
         expect:
+        executer.withDeprecationChecksDisabled()
         succeeds("tasks")
         output.contains("Usage of statement labels in build scripts has been deprecated")
         output.contains("label")
