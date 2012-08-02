@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.execution;
+package org.gradle.execution.taskgraph;
 
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.changedetection.TaskArtifactStateCacheAccess;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskState;
+import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.execution.TaskFailureHandler;
+import org.gradle.internal.Factory;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.listener.ListenerManager;
+import org.gradle.messaging.serialize.Serializer;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.TestClosure;
 import org.hamcrest.Description;
@@ -70,7 +75,7 @@ public class DefaultTaskGraphExecuterTest {
             one(listenerManager).createAnonymousBroadcaster(TaskExecutionListener.class);
             will(returnValue(new ListenerBroadcast<TaskExecutionListener>(TaskExecutionListener.class)));
         }});
-        taskExecuter = new DefaultTaskGraphExecuter(listenerManager);
+        taskExecuter = new org.gradle.execution.taskgraph.DefaultTaskGraphExecuter(listenerManager, new DefaultTaskExecutor());
     }
 
     @Test
@@ -80,7 +85,8 @@ public class DefaultTaskGraphExecuterTest {
         Task c = task("c", b, a);
         Task d = task("d", c);
 
-        taskExecuter.execute(toList(d));
+        taskExecuter.addTasks(toList(d));
+        taskExecuter.execute();
 
         assertThat(executedTasks, equalTo(toList(a, b, c, d)));
     }
@@ -92,7 +98,8 @@ public class DefaultTaskGraphExecuterTest {
         Task c = task("c");
         Task d = task("d", b, a, c);
 
-        taskExecuter.execute(toList(d));
+        taskExecuter.addTasks(toList(d));
+        taskExecuter.execute();
 
         assertThat(executedTasks, equalTo(toList(a, b, c, d)));
     }
@@ -103,7 +110,8 @@ public class DefaultTaskGraphExecuterTest {
         Task b = task("b");
         Task c = task("c");
 
-        taskExecuter.execute(toList(b, c, a));
+        taskExecuter.addTasks(toList(b, c, a));
+        taskExecuter.execute();
 
         assertThat(executedTasks, equalTo(toList(a, b, c)));
     }
@@ -539,6 +547,8 @@ public class DefaultTaskGraphExecuterTest {
         context.checking(new Expectations() {{
             TaskStateInternal state = context.mock(TaskStateInternal.class);
 
+            allowing(task).getProject();
+            will(returnValue(root));
             allowing(task).getName();
             will(returnValue(name));
             allowing(task).getPath();
@@ -574,6 +584,28 @@ public class DefaultTaskGraphExecuterTest {
 
         public void describeTo(Description description) {
             description.appendText("execute task");
+        }
+    }
+
+    private static class DirectCacheAccess implements TaskArtifactStateCacheAccess {
+        public void useCache(String operationDisplayName, Runnable action) {
+            action.run();
+        }
+
+        public void longRunningOperation(String operationDisplayName, Runnable action) {
+            action.run();
+        }
+
+        public <K, V> PersistentIndexedCache createCache(String cacheName, Class<K> keyType, Class<V> valueType) {
+            throw new UnsupportedOperationException();
+        }
+
+        public <T> T useCache(String operationDisplayName, Factory<? extends T> action) {
+            throw new UnsupportedOperationException();
+        }
+
+        public <K, V> PersistentIndexedCache<K, V> createCache(String cacheName, Class<K> keyType, Class<V> valueType, Serializer<V> valueSerializer) {
+            throw new UnsupportedOperationException();
         }
     }
 }

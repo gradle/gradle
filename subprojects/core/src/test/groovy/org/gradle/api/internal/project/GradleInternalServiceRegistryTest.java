@@ -24,7 +24,7 @@ import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.cache.CacheRepository;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.execution.DefaultBuildExecuter;
-import org.gradle.execution.DefaultTaskGraphExecuter;
+import org.gradle.execution.taskgraph.DefaultTaskGraphExecuter;
 import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.listener.ListenerBroadcast;
