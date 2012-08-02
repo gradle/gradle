@@ -26,6 +26,10 @@ class DynamicObjectIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
 
+    TestFile getBuildFile() {
+        dist.testDir.file("build.gradle")
+    }
+
     @Test
     public void canAddDynamicPropertiesToProject() {
         TestFile testDir = dist.getTestDir();
@@ -488,6 +492,43 @@ assert 'overridden value' == global
                 assert bean.b == false
                 bean.conventionMapping.b = { true }
                 assert bean.b == true
+            }
+        """
+
+        executer.withTasks("run").run()
+    }
+
+    @Issue("GRADLE-2417")
+    @Test void canHaveDynamicExtension() {
+        buildFile << """
+            class DynamicThing {
+                def methods = [:]
+                def props = [:]
+
+                def methodMissing(String name, args) {
+                    methods[name] = args.toList()
+                }
+
+                def propertyMissing(String name) {
+                    props[name]
+                }
+
+                def propertyMissing(String name, value) {
+                    props[name] = value
+                }
+            }
+
+            extensions.create("dynamic", DynamicThing)
+
+            dynamic {
+                m1(1,2,3)
+                p1 = 1
+                p1 += 1
+            }
+
+            task run << {
+                assert dynamic.methods.size() == 1
+                assert dynamic.props.p1 == 2
             }
         """
 

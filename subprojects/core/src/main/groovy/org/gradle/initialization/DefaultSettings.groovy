@@ -33,11 +33,4 @@ public class DefaultSettings extends BaseSettings {
       super(gradle, projectDescriptorRegistry, classloader, settingsDir, settingsScript, startParameter)
     }
 
-    def propertyMissing(String property) {
-        return dynamicObject.getProperty(property)
-    }
-
-    void setProperty(String name, value) {
-        dynamicObject.setProperty(name, value)
-    }
 }

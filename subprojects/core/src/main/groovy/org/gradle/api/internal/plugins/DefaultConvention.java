@@ -215,6 +215,14 @@ public class DefaultConvention implements Convention {
             throw new MissingMethodException(name, Convention.class, args);
         }
 
+        public boolean isMayImplementMissingMethods() {
+            return false;
+        }
+
+        public boolean isMayImplementMissingProperties() {
+            return false;
+        }
+
         public Object methodMissing(String name, Object args) {
             return invokeMethod(name, (Object[])args);
         }

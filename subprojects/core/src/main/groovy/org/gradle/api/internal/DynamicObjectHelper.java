@@ -49,4 +49,12 @@ public class DynamicObjectHelper implements DynamicObject {
     public Object invokeMethod(String name, Object... arguments) throws MissingMethodException {
         throw new UnsupportedOperationException();
     }
+
+    public boolean isMayImplementMissingMethods() {
+        throw new UnsupportedOperationException();
+    }
+
+    public boolean isMayImplementMissingProperties() {
+        throw new UnsupportedOperationException();
+    }
 }

@@ -56,6 +56,14 @@ public abstract class AbstractDynamicObject implements DynamicObject {
         throw methodMissingException(name, arguments);
     }
 
+    public boolean isMayImplementMissingMethods() {
+        return false;
+    }
+
+    public boolean isMayImplementMissingProperties() {
+        return false;
+    }
+
     protected groovy.lang.MissingMethodException methodMissingException(String name, Object... params) {
         return new MissingMethodException(this, getDisplayName(), name, params);
     }

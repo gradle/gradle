@@ -16,6 +16,7 @@
 package org.gradle.initialization;
 
 import org.gradle.StartParameter;
+import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.util.WrapUtil;
@@ -58,7 +59,7 @@ public class SettingsFactoryTest {
         assertSame(gradle, settings.getGradle());
         assertSame(expectedProjectDescriptorRegistry, settings.getProjectDescriptorRegistry());
         for (Map.Entry<String, String> entry : expectedGradleProperties.entrySet()) {
-            assertEquals(entry.getValue(), settings.getDynamicObject().getProperty(entry.getKey()));
+            assertEquals(entry.getValue(), ((DynamicObjectAware)settings).getAsDynamicObject().getProperty(entry.getKey()));
         }
 
         assertSame(expectedSettingsDir, settings.getSettingsDir());

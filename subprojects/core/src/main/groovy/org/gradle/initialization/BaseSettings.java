@@ -19,8 +19,6 @@ import org.gradle.StartParameter;
 import org.gradle.api.UnknownProjectException;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.initialization.Settings;
-import org.gradle.api.internal.DynamicObject;
-import org.gradle.api.internal.ExtensibleDynamicObject;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.project.IProjectRegistry;
@@ -28,7 +26,6 @@ import org.gradle.groovy.scripts.ScriptSource;
 
 import java.io.File;
 import java.net.URLClassLoader;
-import java.util.Map;
 
 /**
  * @author Hans Dockter
@@ -45,8 +42,6 @@ public class BaseSettings implements SettingsInternal {
     private File settingsDir;
 
     private DefaultProjectDescriptor rootProjectDescriptor;
-
-    private ExtensibleDynamicObject dynamicObject;
 
     private GradleInternal gradle;
     private IProjectDescriptorRegistry projectDescriptorRegistry;
@@ -65,7 +60,6 @@ public class BaseSettings implements SettingsInternal {
         this.startParameter = startParameter;
         this.classloader = classloader;
         rootProjectDescriptor = createProjectDescriptor(null, settingsDir.getName(), settingsDir);
-        dynamicObject = new ExtensibleDynamicObject(this);
     }
 
     @Override
@@ -186,14 +180,6 @@ public class BaseSettings implements SettingsInternal {
 
     public void setProjectDescriptorRegistry(IProjectDescriptorRegistry projectDescriptorRegistry) {
         this.projectDescriptorRegistry = projectDescriptorRegistry;
-    }
-
-    public void addDynamicProperties(Map<String, ?> properties) {
-        dynamicObject.addProperties(properties);
-    }
-
-    protected DynamicObject getDynamicObject() {
-        return dynamicObject;
     }
 
     public IProjectRegistry<DefaultProjectDescriptor> getProjectRegistry() {

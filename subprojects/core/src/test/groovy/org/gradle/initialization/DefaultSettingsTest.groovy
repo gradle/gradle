@@ -29,6 +29,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import static org.junit.Assert.*
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.ThreadGlobalInstantiator
 
 /**
  * @author Hans Dockter
@@ -56,7 +57,9 @@ class DefaultSettingsTest {
         gradleMock = context.mock(GradleInternal)
 
         projectDescriptorRegistry = new DefaultProjectDescriptorRegistry()
-        settings = new DefaultSettings(gradleMock, projectDescriptorRegistry, expectedClassLoader, settingsDir, scriptSourceMock, startParameter)
+        settings = ThreadGlobalInstantiator.orCreate.newInstance(DefaultSettings,
+                gradleMock, projectDescriptorRegistry, expectedClassLoader, settingsDir, scriptSourceMock, startParameter
+        )
     }
 
     @Test public void testSettings() {
