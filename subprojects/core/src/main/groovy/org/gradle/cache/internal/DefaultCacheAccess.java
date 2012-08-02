@@ -240,9 +240,6 @@ public class DefaultCacheAccess implements CacheAccess {
         }
     }
 
-    private void endLongRunningOperation() {
-    }
-
     public void longRunningOperation(String operationDisplayName, final Runnable action) {
         longRunningOperation(operationDisplayName, new Factory<Object>() {
             public Object create() {
