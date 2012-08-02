@@ -17,9 +17,7 @@ package org.gradle.api.internal.artifacts.repositories.transport;
 
 import org.apache.ivy.core.cache.RepositoryCacheManager;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
-import org.apache.ivy.plugins.resolver.AbstractResolver;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
-import org.gradle.api.internal.artifacts.repositories.ExternalResourceRepository;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.DownloadingRepositoryCacheManager;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.LocalFileRepositoryCacheManager;
 import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex;
@@ -27,8 +25,6 @@ import org.gradle.api.internal.externalresource.transport.file.FileTransport;
 import org.gradle.api.internal.externalresource.transport.http.HttpTransport;
 import org.gradle.api.internal.filestore.FileStore;
 import org.gradle.logging.ProgressLoggerFactory;
-
-import java.net.URI;
 
 public class RepositoryTransportFactory {
     private final RepositoryCacheManager downloadingCacheManager;
@@ -43,15 +39,11 @@ public class RepositoryTransportFactory {
     }
 
     public RepositoryTransport createHttpTransport(String name, PasswordCredentials credentials) {
-        return decorate(new HttpTransport(name, credentials, downloadingCacheManager, progressLoggerFactory));
+        return new HttpTransport(name, credentials, downloadingCacheManager, progressLoggerFactory);
     }
 
     public RepositoryTransport createFileTransport(String name) {
-        return decorate(new FileTransport(name, localCacheManager));
-    }
-
-    private RepositoryTransport decorate(RepositoryTransport original) {
-        return new ListeningRepositoryTransport(original);
+        return new FileTransport(name, localCacheManager);
     }
 
     public RepositoryCacheManager getDownloadingCacheManager() {
@@ -60,26 +52,5 @@ public class RepositoryTransportFactory {
 
     public RepositoryCacheManager getLocalCacheManager() {
         return localCacheManager;
-    }
-
-    private class ListeningRepositoryTransport implements RepositoryTransport {
-        private final RepositoryTransport delegate;
-
-        private ListeningRepositoryTransport(RepositoryTransport delegate) {
-            this.delegate = delegate;
-        }
-
-        public void configureCacheManager(AbstractResolver resolver) {
-            delegate.configureCacheManager(resolver);
-        }
-
-        public ExternalResourceRepository getRepository() {
-            ExternalResourceRepository repository = delegate.getRepository();
-            return repository;
-        }
-
-        public String convertToPath(URI uri) {
-            return delegate.convertToPath(uri);
-        }
     }
 }

@@ -41,9 +41,9 @@ public class ProgressLoggingExternalResourceAccessor implements ExternalResource
 
     public ExternalResource getResource(String location) throws IOException {
         ExternalResource resource = delegate.getResource(location);
-        if(resource!=null){
+        if (resource != null) {
             return new ProgressLoggingExternalResource(resource, progressLoggerFactory);
-        }else{
+        } else {
             return null;
         }
     }
@@ -69,15 +69,15 @@ public class ProgressLoggingExternalResourceAccessor implements ExternalResource
 
         /**
          * This redirect allows us to deprecate ExternalResource#writeto and replace usages later.
-         * */
+         */
         public void writeTo(File destination) throws IOException {
-                FileOutputStream output = new FileOutputStream(destination);
-            try{
+            FileOutputStream output = new FileOutputStream(destination);
+            try {
                 writeTo(output);
-            }finally{
-                try{
+            } finally {
+                try {
                     output.close();
-                }catch (IOException e){
+                } catch (IOException e) {
                     LOGGER.info(String.format("Unable to close FileOutputStream of %s", destination.getAbsolutePath()), e);
                 }
             }
