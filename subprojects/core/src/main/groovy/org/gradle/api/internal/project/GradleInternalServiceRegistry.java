@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.project;
 
+import org.gradle.api.internal.DependencyInjectingInstantiator;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.changedetection.TaskArtifactStateCacheAccess;
@@ -70,7 +71,7 @@ public class GradleInternalServiceRegistry extends DefaultServiceRegistry implem
     }
 
     protected PluginRegistry createPluginRegistry() {
-        return new DefaultPluginRegistry(gradle.getScriptClassLoader());
+        return new DefaultPluginRegistry(gradle.getScriptClassLoader(), new DependencyInjectingInstantiator(this));
     }
 
     public ServiceRegistryFactory createFor(Object domainObject) {

@@ -23,11 +23,11 @@ import org.gradle.api.internal.project.TestPlugin2;
 import org.gradle.api.plugins.PluginInstantiationException;
 import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.reflect.ObjectInstantiationException;
 import org.gradle.util.GUtil;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.TemporaryFolder;
 import org.gradle.util.TestFile;
-import org.hamcrest.Matchers;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -55,12 +55,13 @@ public class DefaultPluginRegistryTest {
     private JUnit4Mockery context = new JUnit4GroovyMockery();
     @Rule
     public TemporaryFolder testDir = new TemporaryFolder();
+    private Instantiator instantiator = context.mock(Instantiator.class);
     private ClassLoader classLoader;
 
     @Before
     public void setup() throws Exception {
         classLoader = createClassLoader(pluginId, TestPlugin1.class.getName(), "parent");
-        pluginRegistry = new DefaultPluginRegistry(classLoader);
+        pluginRegistry = new DefaultPluginRegistry(classLoader, instantiator);
     }
 
     private ClassLoader createClassLoader(final String id, String implClass, String name) throws IOException {
@@ -79,7 +80,9 @@ public class DefaultPluginRegistryTest {
     }
 
     @Test
-    public void canLoadPluginByType() {
+    public void canLoadPluginByType() throws Exception {
+        expectInstanceCreated(TestPlugin2.class);
+
         assertThat(pluginRegistry.loadPlugin(TestPlugin2.class), instanceOf(TestPlugin2.class));
     }
 
@@ -88,11 +91,6 @@ public class DefaultPluginRegistryTest {
         expectClassLoaded(classLoader, TestPlugin1.class);
 
         assertThat(pluginRegistry.getTypeForId(pluginId), equalTo((Class) TestPlugin1.class));
-    }
-
-    @Test
-    public void canInjectInstantiatorIntoPlugin() throws ClassNotFoundException {
-        assertThat(pluginRegistry.loadPlugin(InjectPlugin.class), instanceOf(InjectPlugin.class));
     }
 
     @Test
@@ -162,12 +160,17 @@ public class DefaultPluginRegistryTest {
 
     @Test
     public void wrapsPluginInstantiationFailure() {
+        final Throwable failure = new RuntimeException();
+        context.checking(new Expectations(){{
+            one(instantiator).newInstance(BrokenPlugin.class, new Object[0]);
+            will(throwException(new ObjectInstantiationException(BrokenPlugin.class, failure)));
+        }});
         try {
             pluginRegistry.loadPlugin(BrokenPlugin.class);
             fail();
         } catch (PluginInstantiationException e) {
             assertThat(e.getMessage(), equalTo("Could not create plugin of type 'BrokenPlugin'."));
-            assertThat(e.getCause(), Matchers.<Object>notNullValue());
+            assertThat(e.getCause(), sameInstance(failure));
         }
     }
 
@@ -187,8 +190,9 @@ public class DefaultPluginRegistryTest {
     @Test
     public void childDelegatesToParentRegistryToLoadPlugin() throws Exception {
         ClassLoader childClassLoader = createClassLoader("other", TestPlugin1.class.getName(), "child");
+        expectInstanceCreated(TestPlugin1.class);
 
-        PluginRegistry child = pluginRegistry.createChild(childClassLoader);
+        PluginRegistry child = pluginRegistry.createChild(childClassLoader, instantiator);
         assertThat(child.loadPlugin(TestPlugin1.class), instanceOf(TestPlugin1.class));
     }
 
@@ -198,7 +202,7 @@ public class DefaultPluginRegistryTest {
 
         ClassLoader childClassLoader = createClassLoader("other", TestPlugin1.class.getName(), "child");
 
-        PluginRegistry child = pluginRegistry.createChild(childClassLoader);
+        PluginRegistry child = pluginRegistry.createChild(childClassLoader, instantiator);
         assertThat(child.getTypeForId(pluginId), equalTo((Class) pluginRegistry.getTypeForId(pluginId)));
     }
 
@@ -209,7 +213,7 @@ public class DefaultPluginRegistryTest {
         ClassLoader childClassLoader = createClassLoader("other", TestPlugin1.class.getName(), "child");
         expectClassLoaded(childClassLoader, TestPlugin1.class);
 
-        PluginRegistry child = pluginRegistry.createChild(childClassLoader);
+        PluginRegistry child = pluginRegistry.createChild(childClassLoader, instantiator);
         assertThat(child.getTypeForId("other"), equalTo((Class) TestPlugin1.class));
     }
 
@@ -218,7 +222,7 @@ public class DefaultPluginRegistryTest {
         expectClassLoaded(classLoader, TestPlugin1.class);
         ClassLoader childClassLoader = createClassLoader(pluginId, "no-such-class", "child");
 
-        PluginRegistry child = pluginRegistry.createChild(childClassLoader);
+        PluginRegistry child = pluginRegistry.createChild(childClassLoader, instantiator);
         assertThat(child.getTypeForId(pluginId), equalTo((Class) pluginRegistry.getTypeForId(pluginId)));
     }
 
@@ -230,7 +234,7 @@ public class DefaultPluginRegistryTest {
         ClassLoader childClassLoader = createClassLoader("other", TestPlugin2.class.getName(), "child");
         expectClassLoaded(childClassLoader, TestPlugin2.class);
 
-        PluginRegistry child = pluginRegistry.createChild(childClassLoader);
+        PluginRegistry child = pluginRegistry.createChild(childClassLoader, instantiator);
         assertThat(child.getTypeForId("other"), equalTo((Class) TestPlugin2.class));
     }
 
@@ -255,15 +259,14 @@ public class DefaultPluginRegistryTest {
         }});
     }
 
-    private class BrokenPlugin implements Plugin<String> {
-        public void apply(String target) {
-        }
+    private void expectInstanceCreated(final Class<?> pluginClass) throws IllegalAccessException, InstantiationException {
+        context.checking(new Expectations() {{
+            one(instantiator).newInstance(pluginClass, new Object[0]);
+            will(returnValue(pluginClass.newInstance()));
+        }});
     }
 
-    private static class InjectPlugin implements Plugin<String> {
-        InjectPlugin(Instantiator instantiator) {
-        }
-
+    private class BrokenPlugin implements Plugin<String> {
         public void apply(String target) {
         }
     }

@@ -41,9 +41,12 @@ import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.internal.Factory;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.util.JUnit4GroovyMockery;
+import org.hamcrest.Matcher;
+import org.hamcrest.Matchers;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -94,6 +97,8 @@ public class ProjectInternalServiceRegistryTest {
             will(returnValue(new org.gradle.internal.reflect.DirectInstantiator()));
             allowing(parent).get(FileSystem.class);
             will(returnValue(context.mock(FileSystem.class)));
+            allowing(parent).get(ClassGenerator.class);
+            will(returnValue(context.mock(ClassGenerator.class)));
         }});
     }
 
@@ -112,7 +117,8 @@ public class ProjectInternalServiceRegistryTest {
     public void providesAPluginContainer() {
         expectScriptClassLoaderProviderCreated();
         context.checking(new Expectations() {{
-            one(pluginRegistry).createChild(with(notNullValue(ClassLoader.class)));
+            Matcher matcher = Matchers.instanceOf(DependencyInjectingInstantiator.class);
+            one(pluginRegistry).createChild(with(notNullValue(ClassLoader.class)), with((Matcher<Instantiator>)matcher));
         }});
 
         assertThat(registry.get(PluginContainer.class), instanceOf(DefaultProjectsPluginContainer.class));

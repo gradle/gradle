@@ -18,14 +18,10 @@ package org.gradle.api.internal.plugins;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Plugin;
-import org.gradle.api.internal.AsmBackedClassGenerator;
-import org.gradle.api.internal.ClassGeneratorBackedInstantiator;
-import org.gradle.api.internal.DependencyInjectingInstantiator;
 import org.gradle.api.plugins.PluginInstantiationException;
 import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;
-import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.util.GUtil;
 
 import java.net.URL;
@@ -41,18 +37,20 @@ public class DefaultPluginRegistry implements PluginRegistry {
     private final Map<String, Class<? extends Plugin>> idMappings = new HashMap<String, Class<? extends Plugin>>();
     private final DefaultPluginRegistry parent;
     private final ClassLoader classLoader;
+    private final Instantiator instantiator;
 
-    public DefaultPluginRegistry(ClassLoader classLoader) {
-        this(null, classLoader);
+    public DefaultPluginRegistry(ClassLoader classLoader, Instantiator instantiator) {
+        this(null, classLoader, instantiator);
     }
 
-    private DefaultPluginRegistry(DefaultPluginRegistry parent, ClassLoader classLoader) {
+    private DefaultPluginRegistry(DefaultPluginRegistry parent, ClassLoader classLoader, Instantiator instantiator) {
         this.parent = parent;
         this.classLoader = classLoader;
+        this.instantiator = instantiator;
     }
 
-    public PluginRegistry createChild(ClassLoader childClassPath) {
-        return new DefaultPluginRegistry(this, childClassPath);
+    public PluginRegistry createChild(ClassLoader childClassPath, Instantiator instantiator) {
+        return new DefaultPluginRegistry(this, childClassPath, instantiator);
     }
 
     public <T extends Plugin> T loadPlugin(Class<T> pluginClass) {
@@ -66,9 +64,6 @@ public class DefaultPluginRegistry implements PluginRegistry {
                     pluginClass.getSimpleName()));
         }
         try {
-            DefaultServiceRegistry services = new DefaultServiceRegistry();
-            Instantiator instantiator = new DependencyInjectingInstantiator(services);
-            services.add(Instantiator.class, new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), instantiator));
             return instantiator.newInstance(pluginClass);
         } catch (ObjectInstantiationException e) {
             throw new PluginInstantiationException(String.format("Could not create plugin of type '%s'.",
