@@ -31,7 +31,7 @@ import spock.lang.Specification
 
 class DefaultPluginRegistryTest extends Specification {
     @Rule
-    final TemporaryFolder testDir = new TemporaryFolder();
+    final TemporaryFolder testDir = new TemporaryFolder()
     final Instantiator instantiator = Mock()
     final ClassLoader classLoader = Mock()
     private DefaultPluginRegistry pluginRegistry = new DefaultPluginRegistry(classLoader, instantiator)
@@ -145,7 +145,7 @@ class DefaultPluginRegistryTest extends Specification {
         e.cause instanceof ClassNotFoundException
     }
 
-    public void childDelegatesToParentRegistryToLoadPlugin() {
+    public void childUsesItsOwnInstantiatorToCreatePlugin() {
         ClassLoader childClassLoader = Mock()
         Instantiator childInstantiator = Mock()
         def plugin = new TestPlugin1()
@@ -160,7 +160,8 @@ class DefaultPluginRegistryTest extends Specification {
         result == plugin
 
         and:
-        1 * instantiator.newInstance(TestPlugin1, new Object[0]) >> plugin
+        1 * childInstantiator.newInstance(TestPlugin1, new Object[0]) >> plugin
+        0 * instantiator._
     }
 
     public void childDelegatesToParentRegistryToLookupPluginType() throws Exception {

@@ -54,10 +54,6 @@ public class DefaultPluginRegistry implements PluginRegistry {
     }
 
     public <T extends Plugin> T loadPlugin(Class<T> pluginClass) {
-        if (parent != null) {
-            return parent.loadPlugin(pluginClass);
-        }
-
         if (!Plugin.class.isAssignableFrom(pluginClass)) {
             throw new InvalidUserDataException(String.format(
                     "Cannot create plugin of type '%s' as it does not implement the Plugin interface.",
