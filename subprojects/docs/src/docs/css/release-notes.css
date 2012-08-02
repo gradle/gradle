@@ -17,6 +17,10 @@ section.minor-detail {
   padding: 0 1em;
 }
 
+ul.toc {
+  font-size: 15px
+}
+
 ul.toc-sub {
   margin-bottom: 0px;
 }

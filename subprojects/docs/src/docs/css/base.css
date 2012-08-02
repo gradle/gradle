@@ -13,7 +13,6 @@ a img {border:none;}
 
 /* typography.css */
 html {font-size:100.01%;}
-body {font-size:75%;color:#222;background:#fff;font-family:"Helvetica Neue", Arial, Helvetica, sans-serif;}
 h1, h2, h3, h4, h5, h6 {font-weight:normal;color:#111;margin-bottom: 0.5em;}
 h1 {font-size:4em;line-height:1;}
 h2 {font-size:2em;}
@@ -101,6 +100,10 @@ h1,h2,h3,h4 {
 h1 {
     font-weight: bold;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.28)
+}
+
+h3.releaseinfo {
+   color: #666666;
 }
 
 a {

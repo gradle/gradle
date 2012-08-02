@@ -12,16 +12,21 @@
 }
 
 .book .toc, .book .list-of-examples {
-    margin-top: 2em;
+    margin-top: 1.5em;
 }
 
 div.toc {
-    font-size: 16px;
+    font-size: 15px;
 }
 
-div.toc p {
-    font-size: 2em;
-    margin-bottom: 0;
+div.toc p { /* Is "Table Of Contents" header */
+    font-size: 28px;
+    color: #007042;
+    margin-bottom: 0.5em;
+}
+
+div.toc p b {
+    font-weight: normal;
 }
 
 /*
@@ -59,27 +64,16 @@ div.toc p {
  * TITLEPAGE
  */
 
-.book > .titlepage {
-    margin-top: 2.2em;
-    margin-bottom: 2em;
-}
-
-.titlepage .releaseinfo {
-    color: #666666;
-}
-
 .titlepage .author {
     color: #666666;
 }
 
 .titlepage .copyright {
     color: #a2a2a2;
-    font-size: 90%;
 }
 
 .titlepage .legalnotice {
     color: #a2a2a2;
-    font-size: 90%;
 }
 
 .titlepage p {

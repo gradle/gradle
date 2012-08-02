@@ -7,6 +7,10 @@
     font-weight: normal;
 }
 
+.itemizedlist li p {
+    margin: 0;
+}
+
 .example, .figure, .table {
     margin-top: 0;
     margin-bottom: 1.8em;
@@ -58,10 +62,6 @@
 
 .appendix h1 {
     margin-bottom: 1.0em;
-}
-
-.section h2 {
-    margin-top: 1.2em;
 }
 
 .footnote sup {

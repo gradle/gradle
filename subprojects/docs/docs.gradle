@@ -44,7 +44,6 @@ dependencies {
 ext {
     srcDocsDir = file('src/docs')
     userguideSrcDir = new File(srcDocsDir, 'userguide')
-    cssSrcDir = new File(srcDocsDir, 'css')
     dslSrcDir = new File(srcDocsDir, 'dsl')
     docsDir = file("$buildDir/docs")
     userguideDir = new File(docsDir, 'userguide')
@@ -138,9 +137,7 @@ task userguideStyleSheets(type: Copy) {
     from(stylesheetsDir) {
         include '*.xsl'
     }
-    from(cssSrcDir) {
-        include '*.css'
-    }
+    from(cssFiles)
     from(zipTree(configurations.userGuideStyleSheets.singleFile)) {
         // Remove the prefix
         eachFile { fcd -> fcd.path = fcd.path.replaceFirst('^docbook-xsl-[0-9\\.]+/', '') }
@@ -234,7 +231,7 @@ task pdfUserguideXhtml(type: Docbook2Xhtml) {
 }
 
 task userguidePdf(type: Xhtml2Pdf, dependsOn: pdfUserguideXhtml) {
-    inputs.dir cssSrcDir
+    inputs.files cssFiles
     sourceFile = pdfUserguideXhtml.destFile
     destFile = new File(userguideDir, 'userguide.pdf')
     classpath = configurations.userGuideTask
@@ -326,16 +323,6 @@ task userguide {
     group = 'documentation'
 }
 
-task docs {
-    dependsOn javadoc, groovydoc, userguide, distDocs, samplesDocs, dslHtml
-    description = 'Generates all documentation'
-    group = 'documentation'
-}
-
-task docsZip(type: Zip) {
-    from project.outputs.docs
-}
-
 import org.gradle.plugins.pegdown.PegDown
 import org.gradle.plugins.jsoup.Jsoup
 
@@ -378,6 +365,16 @@ task viewReleaseNotes(dependsOn: releaseNotes) {
     doLast {
         Class.forName("java.awt.Desktop").newInstance().browse(new File(releaseNotes.destinationDir, releaseNotes.fileName).toURI())
     }
+}
+
+task docs {
+    dependsOn javadoc, groovydoc, userguide, distDocs, samplesDocs, dslHtml, releaseNotes
+    description = 'Generates all documentation'
+    group = 'documentation'
+}
+
+task docsZip(type: Zip) {
+    from project.outputs.docs
 }
 
 class Xhtml2Pdf extends DefaultTask {

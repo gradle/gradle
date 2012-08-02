@@ -151,7 +151,8 @@ decorateReleaseNotes {
     
     // Add the heading
     transform {
-        body().prepend("<h1>Gradle @version@ Release Notes</h1>")
+        body().prepend("<h3 class='releaseinfo'>Version @version@</h3>")
+        body().prepend("<h1>Gradle Release Notes</h1>")
     }
     
     // Add the footer
