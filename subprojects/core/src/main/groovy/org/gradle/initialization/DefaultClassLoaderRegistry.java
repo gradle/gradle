@@ -60,6 +60,7 @@ public class DefaultClassLoaderRegistry implements ClassLoaderRegistry {
         rootClassLoader.allowPackage("org.slf4j");
         rootClassLoader.allowPackage("org.apache.commons.logging");
         rootClassLoader.allowPackage("org.apache.log4j");
+        rootClassLoader.allowPackage("javax.inject");
     }
 
     public ClassLoader getRootClassLoader() {

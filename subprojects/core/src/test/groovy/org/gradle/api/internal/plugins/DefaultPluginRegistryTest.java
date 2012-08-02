@@ -22,6 +22,7 @@ import org.gradle.api.internal.project.TestPlugin1;
 import org.gradle.api.internal.project.TestPlugin2;
 import org.gradle.api.plugins.PluginInstantiationException;
 import org.gradle.api.plugins.UnknownPluginException;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.GUtil;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.TemporaryFolder;
@@ -87,6 +88,11 @@ public class DefaultPluginRegistryTest {
         expectClassLoaded(classLoader, TestPlugin1.class);
 
         assertThat(pluginRegistry.getTypeForId(pluginId), equalTo((Class) TestPlugin1.class));
+    }
+
+    @Test
+    public void canInjectInstantiatorIntoPlugin() throws ClassNotFoundException {
+        assertThat(pluginRegistry.loadPlugin(InjectPlugin.class), instanceOf(InjectPlugin.class));
     }
 
     @Test
@@ -161,7 +167,7 @@ public class DefaultPluginRegistryTest {
             fail();
         } catch (PluginInstantiationException e) {
             assertThat(e.getMessage(), equalTo("Could not create plugin of type 'BrokenPlugin'."));
-            assertThat(e.getCause(), Matchers.<Object>nullValue());
+            assertThat(e.getCause(), Matchers.<Object>notNullValue());
         }
     }
 
@@ -250,6 +256,14 @@ public class DefaultPluginRegistryTest {
     }
 
     private class BrokenPlugin implements Plugin<String> {
+        public void apply(String target) {
+        }
+    }
+
+    private static class InjectPlugin implements Plugin<String> {
+        InjectPlugin(Instantiator instantiator) {
+        }
+
         public void apply(String target) {
         }
     }

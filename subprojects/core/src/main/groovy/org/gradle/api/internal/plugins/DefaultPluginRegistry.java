@@ -18,8 +18,12 @@ package org.gradle.api.internal.plugins;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Plugin;
+import org.gradle.api.internal.DependencyInjectingInstantiator;
 import org.gradle.api.plugins.PluginInstantiationException;
 import org.gradle.api.plugins.UnknownPluginException;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.reflect.ObjectInstantiationException;
+import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.util.GUtil;
 
 import java.net.URL;
@@ -60,13 +64,13 @@ public class DefaultPluginRegistry implements PluginRegistry {
                     pluginClass.getSimpleName()));
         }
         try {
-            return pluginClass.newInstance();
-        } catch (InstantiationException e) {
+            DefaultServiceRegistry services = new DefaultServiceRegistry();
+            Instantiator instantiator = new DependencyInjectingInstantiator(services);
+            services.add(Instantiator.class, instantiator);
+            return instantiator.newInstance(pluginClass);
+        } catch (ObjectInstantiationException e) {
             throw new PluginInstantiationException(String.format("Could not create plugin of type '%s'.",
                     pluginClass.getSimpleName()), e.getCause());
-        } catch (Exception e) {
-            throw new PluginInstantiationException(String.format("Could not create plugin of type '%s'.",
-                    pluginClass.getSimpleName()), e);
         }
     }
 

@@ -34,6 +34,7 @@ import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor;
 
+import javax.inject.Inject;
 import java.util.concurrent.Callable;
 
 /**
@@ -49,11 +50,17 @@ public class EarPlugin implements Plugin<ProjectInternal> {
 
     public static final String DEPLOY_CONFIGURATION_NAME = "deploy";
     public static final String EARLIB_CONFIGURATION_NAME = "earlib";
+    private final Instantiator instantiator;
+
+    @Inject
+    public EarPlugin(Instantiator instantiator) {
+        this.instantiator = instantiator;
+    }
 
     public void apply(final ProjectInternal project) {
         project.getPlugins().apply(BasePlugin.class);
 
-        final EarPluginConvention earPluginConvention = project.getServices().get(Instantiator.class).newInstance(EarPluginConvention.class, project.getFileResolver());
+        final EarPluginConvention earPluginConvention = instantiator.newInstance(EarPluginConvention.class, project.getFileResolver());
         project.getConvention().getPlugins().put("ear", earPluginConvention);
         earPluginConvention.setLibDirName("lib");
         earPluginConvention.setAppDirName("src/main/application");
