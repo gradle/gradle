@@ -27,6 +27,8 @@ import org.gradle.plugins.ide.eclipse.model.Facet.FacetType
 import org.gradle.plugins.ide.internal.IdePlugin
 import org.gradle.plugins.ide.eclipse.model.*
 
+import javax.inject.Inject
+
 /**
  * @author: Szczepan Faber, created at: 6/28/11
  */
@@ -40,11 +42,17 @@ class EclipseWtpPlugin extends IdePlugin {
         return "eclipseWtp"
     }
 
+    private final Instantiator instantiator
     EclipseWtp eclipseWtpModel
+
+    @Inject
+    EclipseWtpPlugin(Instantiator instantiator) {
+        this.instantiator = instantiator
+    }
 
     @Override protected void onApply(Project project) {
         EclipsePlugin delegatePlugin = project.getPlugins().apply(EclipsePlugin.class);
-        delegatePlugin.model.wtp = project.services.get(Instantiator).newInstance(EclipseWtp, delegatePlugin.model.classpath)
+        delegatePlugin.model.wtp = instantiator.newInstance(EclipseWtp, delegatePlugin.model.classpath)
         eclipseWtpModel = delegatePlugin.model.wtp
 
         lifecycleTask.description = 'Generates Eclipse wtp configuration files.'
@@ -168,8 +176,10 @@ class EclipseWtpPlugin extends IdePlugin {
                 //model properties:
                 eclipseWtpModel.facet = facet
                 if (WarPlugin.isAssignableFrom(type)) {
-                    facet.conventionMapping.facets = { [new Facet(FacetType.fixed, "jst.java", null), new Facet(FacetType.fixed, "jst.web", null),
-                        new Facet(FacetType.installed, "jst.web", "2.4"), new Facet(FacetType.installed, "jst.java", toJavaFacetVersion(project.sourceCompatibility))] }
+                    facet.conventionMapping.facets = {
+                        [new Facet(FacetType.fixed, "jst.java", null), new Facet(FacetType.fixed, "jst.web", null),
+                                new Facet(FacetType.installed, "jst.web", "2.4"), new Facet(FacetType.installed, "jst.java", toJavaFacetVersion(project.sourceCompatibility))]
+                    }
                 } else if (EarPlugin.isAssignableFrom(type)) {
                     facet.conventionMapping.facets = { [new Facet(FacetType.fixed, "jst.ear", null), new Facet(FacetType.installed, "jst.ear", "5.0")] }
                 }
@@ -186,12 +196,14 @@ class EclipseWtpPlugin extends IdePlugin {
                     //model properties:
                     eclipseWtpPlugin.eclipseWtpModel.facet = facet
 
-                    facet.conventionMapping.facets = { [new Facet(FacetType.fixed, "jst.java", null), new Facet(FacetType.fixed, "jst.web", null),
-                        new Facet(FacetType.installed, "jst.utility", "1.0")] }
+                    facet.conventionMapping.facets = {
+                        [new Facet(FacetType.fixed, "jst.java", null), new Facet(FacetType.fixed, "jst.web", null),
+                                new Facet(FacetType.installed, "jst.utility", "1.0")]
+                    }
                     otherProject.plugins.withType(JavaPlugin) {
                         facet.conventionMapping.facets = {
                             [new Facet(FacetType.fixed, "jst.java", null), new Facet(FacetType.fixed, "jst.web", null),
-                                new Facet(FacetType.installed, "jst.utility", "1.0"), new Facet(FacetType.installed, "jst.java", toJavaFacetVersion(otherProject.sourceCompatibility))]
+                                    new Facet(FacetType.installed, "jst.utility", "1.0"), new Facet(FacetType.installed, "jst.java", toJavaFacetVersion(otherProject.sourceCompatibility))]
                         }
                     }
                 }

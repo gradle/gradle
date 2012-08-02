@@ -30,6 +30,8 @@ import org.gradle.plugins.ide.eclipse.model.EclipseClasspath
 import org.gradle.plugins.ide.eclipse.model.EclipseModel
 import org.gradle.plugins.ide.internal.IdePlugin
 
+import javax.inject.Inject
+
 /**
  * <p>A plugin which generates Eclipse files.</p>
  *
@@ -41,7 +43,13 @@ class EclipsePlugin extends IdePlugin {
     static final String ECLIPSE_CP_TASK_NAME = "eclipseClasspath"
     static final String ECLIPSE_JDT_TASK_NAME = "eclipseJdt"
 
+    private final Instantiator instantiator
     EclipseModel model
+
+    @Inject
+    EclipsePlugin(Instantiator instantiator) {
+        this.instantiator = instantiator
+    }
 
     @Override protected String getLifecycleTaskName() {
         return 'eclipse'
@@ -108,7 +116,7 @@ class EclipsePlugin extends IdePlugin {
     }
 
     private void configureEclipseClasspath(Project project) {
-        model.classpath = project.services.get(Instantiator).newInstance(EclipseClasspath, project)
+        model.classpath = instantiator.newInstance(EclipseClasspath, project)
         model.classpath.conventionMapping.defaultOutputDir = { new File(project.projectDir, 'bin') }
 
         project.plugins.withType(JavaBasePlugin) {

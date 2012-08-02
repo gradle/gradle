@@ -34,7 +34,7 @@ libraries.ivy = dependencies.module('org.apache.ivy:ivy:2.2.0'){
     dependency "com.jcraft:jsch:0.1.46"
 }
 libraries.jcip = "net.jcip:jcip-annotations:1.0@jar"
-
+libraries.inject = dependencies.module('javax.inject:javax.inject:1')
 
 // Logging
 libraries.slf4j_api = 'org.slf4j:slf4j-api:1.6.6@jar'

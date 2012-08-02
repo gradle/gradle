@@ -18,6 +18,8 @@ package org.gradle.api.internal.plugins;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Plugin;
+import org.gradle.api.internal.AsmBackedClassGenerator;
+import org.gradle.api.internal.ClassGeneratorBackedInstantiator;
 import org.gradle.api.internal.DependencyInjectingInstantiator;
 import org.gradle.api.plugins.PluginInstantiationException;
 import org.gradle.api.plugins.UnknownPluginException;
@@ -66,7 +68,7 @@ public class DefaultPluginRegistry implements PluginRegistry {
         try {
             DefaultServiceRegistry services = new DefaultServiceRegistry();
             Instantiator instantiator = new DependencyInjectingInstantiator(services);
-            services.add(Instantiator.class, instantiator);
+            services.add(Instantiator.class, new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), instantiator));
             return instantiator.newInstance(pluginClass);
         } catch (ObjectInstantiationException e) {
             throw new PluginInstantiationException(String.format("Could not create plugin of type '%s'.",
