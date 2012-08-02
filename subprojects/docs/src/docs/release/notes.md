@@ -1,3 +1,5 @@
+Our documentation has received a facelift to match our new style. Check out the new look [DSL Reference](dsl/index.html) and [User Guide](userguide/userguide.html).
+
 ## New and noteworthy
 
 Here are the new features introduced in Gradle 1.2.
