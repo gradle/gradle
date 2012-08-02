@@ -53,7 +53,7 @@ class DefaultLocalMavenRepositoryLocatorTest extends Specification {
         locator.localMavenRepository
         then:
         def ex = thrown(CannotLocateLocalMavenRepositoryException);
-        ex.message == "Unable to parse local maven settings"
+        ex.message == "Unable to parse local maven settings."
         ex.cause.message.contains(settingsFile.absolutePath)
     }
 
@@ -65,7 +65,7 @@ class DefaultLocalMavenRepositoryLocatorTest extends Specification {
         locator.localMavenRepository
         then:
         def ex = thrown(CannotLocateLocalMavenRepositoryException)
-        ex.message == "Unable to parse local maven settings"
+        ex.message == "Unable to parse local maven settings."
         ex.cause.message.contains(settingsFile.absolutePath)
     }
 
