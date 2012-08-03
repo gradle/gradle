@@ -31,11 +31,11 @@ will be made.
 
 * Change the existing integration test that verifies that the wrapper can download a remote HTTP distribution, to assert that the appropriate
   header is included in the request.
-* Change the exiting intergration test that verifies that Gradle can download artifacts from an HTTP Ivy repository, to also assert that the
+* Change the existing intergration test that verifies that Gradle can download artifacts from an HTTP Ivy repository, to also assert that the
   appropriate header is included in the request.
-* Change the exiting intergration test that verifies that Gradle can download artifacts from an HTTP Maven repository, to also assert that
+* Change the existing intergration test that verifies that Gradle can download artifacts from an HTTP Maven repository, to also assert that
   the appropriate header is included in the request.
-* Change the exiting intergration test that verifies that Gradle can download a remote HTTP build script, to also assert that the appropriate
+* Change the existing intergration test that verifies that Gradle can download a remote HTTP build script, to also assert that the appropriate
   header is included in the request.
 * Add an integration test case to verify that the tooling API can download a remote HTTP distribution, and assert that the appropriate header
   is included in the request.
