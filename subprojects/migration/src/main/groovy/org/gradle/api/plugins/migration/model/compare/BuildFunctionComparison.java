@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.migration.model.function;
+package org.gradle.api.plugins.migration.model.compare;
 
-import org.gradle.api.Buildable;
-import org.gradle.api.DomainObjectSet;
+import org.gradle.api.plugins.migration.model.association.BuildFunctionAssociation;
+import org.gradle.api.plugins.migration.model.function.BuildFunction;
 
-public interface BuildFunctionSet extends DomainObjectSet<BuildFunction>, Buildable {
+public interface BuildFunctionComparison<T extends BuildFunction> {
 
-    String getDescription();
+    BuildFunctionAssociation<T> getCompared();
 
 }
