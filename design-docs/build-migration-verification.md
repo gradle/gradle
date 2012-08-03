@@ -1,55 +1,125 @@
 # What is this?
 
-The build migration verification feature provides a way to automatically verify whether a build behaves
-the same after modifying it in some way. More precisely, it checks whether the build produces
-the same _outputs_ (modulo some allowed variance) as before.
+The build migration verification feature aims to compare two builds functionally, with a focus on providing confidence that
+they are substitutable.
 
-The feature should provide the build
-master with information about changes detected in the outputs, and should help him make decisions
-on whether to accept or reject a migration. For example, this could be done by classifying detected
-changes as expected vs. unexpected, or low risk vs. high risk.
+The two builds in question may potentially be anything. Some examples are:
 
-Verification might include running the build before and after migration, or it might just compare
-two sets of existing outputs. Apart from verifying a set of changes to a build, the feature might
-also support the promotion of those changes. An example would be to set a new Gradle version in
-`gradle-wrapper.properties`.
+* A Maven build compared with a Gradle build
+* A Gradle build, executed with two different Gradle versions
+* A Gradle build, executed before and after a speculative change
+
+The comparison of the function of two different builds can be used for different purposes. Some examples are:
+
+* Verify that Gradle version upgrade does not have a negative effect
+* When migrating from another tool to Gradle, verify that are functionally equivalent
+* When migrating from another tool to Gradle, track the progress of the migration
+* Verify that a change to a Gradle build does not have a negative effect
+
+# Components
+
+The idea can be conceptualised into two separate components; the build _functions_, and the comparison of two sets of functions.
+
+## Build Function
+
+A build function is an intentionally general concept. The most obvious build function will often be the creation of some kind of artifact,
+but there are other interesting functions that users will want information about. Some examples are:
+
+* Executing tests (where the same classes tested? where the same tests executed? where the results the same?)
+* Analysing code (where the same classes analysed? was the configuration the same? where the results the same?)
+* A “build run” - e.g. a clean build that compiles, analyses, tests (does this take an equivalent amount of time?)
+
+## Comparison
+
+Given two sets of functions, both individual functions and the set as an entity will need to be compared. For functions that can be identified
+as the same logical function from both sets, individual characteristics will need to be compared (e.g. does the jar have the same contents?).
+It will also be important to compare the sets as an entity, answering the question of whether two builds have the same overall function.
+
+For function comparison the goal may not be equivalence, but explainable difference. Some examples of explainable difference are:
+
+* Embedded timestamps in outputs (e.g. Groovy classfiles, test result files)
+* Environmental context (e.g. system properties in test result files)
+* Acceptable path differences
+
+This may influence the information display to be less focussed on a binary yes/no and more focussed on illuminating what the differences are
+and providing some insight on the risk of the differences.
+
+# Modelling Build Functions
+
+The concept of a model of build functions should not be coupled to how that model was “constructed”. A build function model may be
+constructed by manual specification, or generated in an intelligent and dynamic way.
+
+For Gradle projects, we can likely generate a complete build function model without user intervention. For other types of build tools we may
+do less automatically. That is, the user may need to specify some or all of the build function model.
+
+Even for the scenario where we can completely generate the build function model automatically, we _may_ still require a level of user intervention.
+For example, the user may not wish to compare test execution between two models because they are irreconcilably different and this has been accepted.
+However, this may be a function of the comparison and not of the input models.
+
+## Modelling the relationship between two models
+
+Having two models of build functions may not be sufficient. There may need to be a model of how the functions from either side relate to each
+other.
+
+As with the specification of the build function models themselves, we may be able to generate the relationship model to varing degrees. For
+a comparison between two instances of the same logical Gradle project, the relationship can likely be completely generated. For other types of
+comparison the relationship between functions on either side may not be so obvious.
 
 # Use cases
 
 ## Upgrading to a new Gradle version
 
-In this case, the migration consists of updating the Gradle version from X to Y. Typically
-(but not necessarily), Y will be greater than X. In order to make the migration less risky and more
-predictable, the feature should allow comparison of:
+In this case, a single Gradle project “executed” by two different Gradle versions is being compared. This is likely to be undertaken by someone wanting to upgrade the Gradle version used by their project and are seeking reassurance
+that things will be ok after they upgrade.
 
-* the declared outputs of the old and new builds (for example generated archives and their contents)
+The potential upgrade may include changes to the configuration of the build. New Gradle versions introduce deprecations and changes, and as such
+users will want to be able to verify that the build functions the same after making any accommodations for changes in the new version.
 
-* the verifications performed by the old and new builds (for example executed tests and their results)
+## Making speculative changes to a Gradle build
 
-* the performance of the old and new builds (for example total build time and maximum heap size)
+In this case, a single Gradle project is being compared before/after some change is made to the build configuration, which does not include a change
+in the Gradle version used to build. The is likely to be undertaken by someone wanting to “test” a change to the build.
 
-## Making changes to a Gradle build
+This is largely the same as the “Upgrading Gradle” case, except there may be intentional differences. That is, there may be expected difference
+and the difference is what is being verified. There will also be the case of wanting to make changes that have no functional impact (e.g. removing
+redundant configuration).
 
-In this case, the migration consists of making changes to any resource involved in the build process. Two
-examples are making changes to a Gradle build script, and moving a source directory to another subproject.
-In order to make the migration less risky and more predictable, the feature should support similar
-comparisons as when upgrading to a new Gradle version (see above). However, it might be necessary to
-have more control over what is compared and how strict the comparisons are, because certain changes
-in the outputs might be desired.
+## Migrating from another tool to Gradle
 
-## Migrating from Maven to Gradle
+In this case, a project is looking to move from some tool to Gradle. This feature can be used to illuminate the process and potentially provide a
+checkpoint of when it is complete.
 
-In order to make a switch from Maven to Gradle less risky and more predictable, the feature should support
-checking whether a build produces the same outputs after the migration. Which migration paths are supported
-needs further discussion and won't necessarily influence the verification side of things.
+Ideally, the comparison phase will be agnostic to the “source” of the build function model. That is, the comparison phase compares like functions
+ and functions can be modelled in a general way that is source agnostic. For example, the creation of a JAR archive can be modelled in a way that is
+ not unique to the build system that created it. Therefore, working with a different system is largely about constructing a build function model for
+ that system/build. It is also less likely that the relationship between the two models can be determined completely automatically.
 
-## Migrating from Ant to Gradle
+Another difference may be the lifecycle of the comparison process. For a Gradle-to-Gradle “migration”, the timeframe is likely to be short as
+there is not likely to be significant development involved. For a NonGradle-to-Gradle “migration”, there may be significant development involved
+(i.e. to develop the Gradle build) which would imply the comparison will be run over time. The user may wish to use this feature to track
+the progress of the development of the Gradle build by periodically running the comparison.
 
-Similar to the previous use case, except that the source system is Ant.
+### Maven
+
+Given Maven's predictable operation and well defined model, it may be possible to generate a build function model automatically. Given that we
+intend to create functionality for interpreting a Maven model (to either port it to Gradle or integrate with it), this seems reasonable.
+
+There may still need to be manual intervention to deal with things like Maven plugins that we don't understand.
+
+### Ant
+
+Given Ant's lack of a model, generating a build function model for an Ant build automatically may not be possible.
+
+### Something else
+
+There should be a way to construct a build function model manually. Therefore, we could potential work with any system.
 
 # User visible changes
 
-The feature will be implemented as a plugin and a set of tasks.
+It's not clear at this time, how users will interact with this feature.
+
+The final output is likely to be a HTML report identifying the encountered differences, and explaining the input build function
+models.
 
 # Integration test coverage
 
