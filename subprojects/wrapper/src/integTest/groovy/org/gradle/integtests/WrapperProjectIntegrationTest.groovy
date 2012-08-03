@@ -23,10 +23,15 @@ import spock.lang.Issue
 import org.gradle.integtests.fixtures.*
 import static org.hamcrest.Matchers.containsString
 import static org.junit.Assert.assertThat
+import spock.lang.IgnoreIf
+import org.gradle.internal.os.OperatingSystem
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 /**
  * @author Hans Dockter
  */
+//@Requires(TestPrecondition.NOT_UNKNOWN_OS)
 class WrapperProjectIntegrationTest extends AbstractIntegrationSpec {
     @Rule HttpServer server = new HttpServer()
     @Rule TestProxyServer proxyServer = new TestProxyServer(server)
