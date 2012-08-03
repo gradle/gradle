@@ -36,11 +36,10 @@ class FindBugsWorkerManager {
 
     private WorkerProcess createWorkerProcess(ProjectInternal project, FileCollection findBugsClasspath, FindBugsSpec spec) {
         WorkerProcessBuilder builder = project.getServices().getFactory(WorkerProcessBuilder.class).create();
-        builder.setLogLevel(project.getGradle().getStartParameter().getLogLevel());
         builder.applicationClasspath(findBugsClasspath);   //findbugs classpath
         builder.sharedPackages(Arrays.asList("edu.umd.cs.findbugs"));
         JavaExecHandleBuilder javaCommand = builder.getJavaCommand();
-        javaCommand.setWorkingDir(project.getRootProject().getProjectDir());
+        javaCommand.setWorkingDir(project.getProjectDir());
 
         WorkerProcess process = builder.worker(new FindBugsWorkerServer(spec)).build()
         return process
