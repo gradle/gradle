@@ -46,7 +46,6 @@ public class WrapperTest extends AbstractTaskTest {
 
     @Before
     public void setUp() {
-        super.setUp();
         wrapper = createTask(Wrapper.class);
         wrapper.setGradleVersion("1.0");
         targetWrapperJarPath = "gradle/wrapper";

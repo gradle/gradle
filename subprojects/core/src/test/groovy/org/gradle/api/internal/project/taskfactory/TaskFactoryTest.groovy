@@ -24,34 +24,41 @@ import org.gradle.api.internal.ClassGenerator
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.tasks.TaskInstantiationException
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.reflect.ObjectInstantiationException
 import org.gradle.util.HelperUtil
-import org.junit.Test
 import spock.lang.Specification
 
 class TaskFactoryTest extends Specification {
     final ClassGenerator generator = Mock()
     final Instantiator instantiator = Mock()
     final ProjectInternal project = HelperUtil.createRootProject()
-    final TaskFactory taskFactory = new TaskFactory(generator)
+    final ITaskFactory taskFactory = new TaskFactory(generator).createChild(project, instantiator)
 
     def setup() {
         _ * generator.generate(_) >> { Class type -> type }
+        _ * instantiator.newInstance(_) >> { args -> args[0].newInstance() }
     }
 
-    public void testCreateTask() {
+    public void testUsesADefaultTaskTypeWhenNoneSpecified() {
         when:
-        Task task = taskFactory.createTask(project, [name: "task"]);
+        Task task = taskFactory.createTask([name: "task"]);
 
         then:
         task instanceof DefaultTask
+    }
+
+    public void injectsProjectAndNameIntoTask() {
+        when:
+        Task task = taskFactory.createTask([name: "task"]);
+
+        then:
         task.project == project
         task.name == 'task'
-        task.actions.isEmpty()
     }
 
     public void testCannotCreateTaskWithNoName() {
         when:
-        taskFactory.createTask(project, [:])
+        taskFactory.createTask([:])
 
         then:
         InvalidUserDataException e = thrown()
@@ -60,26 +67,28 @@ class TaskFactoryTest extends Specification {
 
     public void testCreateTaskOfTypeWithNoArgsConstructor() {
         when:
-        Task task = taskFactory.createTask(project, [name: 'task', type: TestDefaultTask.class])
+        Task task = taskFactory.createTask([name: 'task', type: TestDefaultTask.class])
 
         then:
         task instanceof TestDefaultTask
     }
 
-    public void decoratesTaskType() {
+    public void instantiatesAnInstanceOfTheDecoratedTaskType() {
         when:
-        Task task = taskFactory.createTask(project, [name: 'task', type: TestDefaultTask.class])
+        Task task = taskFactory.createTask([name: 'task', type: TestDefaultTask.class])
 
         then:
         task instanceof DecoratedTask
 
         and:
         1 * generator.generate(TestDefaultTask) >> DecoratedTask
+        1 * instantiator.newInstance(DecoratedTask) >> { new DecoratedTask() }
+        0 * _._
     }
 
     public void testCreateTaskWithDependencies() {
         when:
-        Task task = taskFactory.createTask(project, [name: 'task', dependsOn: "/path1"])
+        Task task = taskFactory.createTask([name: 'task', dependsOn: "/path1"])
 
         then:
         task.dependsOn == ["/path1"] as Set
@@ -89,7 +98,7 @@ class TaskFactoryTest extends Specification {
         Action<Task> action = Mock()
 
         when:
-        Task task = taskFactory.createTask(project, [name: 'task', action: action])
+        Task task = taskFactory.createTask([name: 'task', action: action])
 
         then:
         task.actions.size() == 1
@@ -100,44 +109,40 @@ class TaskFactoryTest extends Specification {
         Closure cl = Mock()
 
         when:
-        Task task = taskFactory.createTask(project, [name: 'task', action: cl])
+        Task task = taskFactory.createTask([name: 'task', action: cl])
 
         then:
         task.actions.size() == 1
         task.actions[0].closure == cl
     }
 
-    public void testCreateTaskForTypeWithMissingConstructor() {
-        when:
-        taskFactory.createTask(project, [name: 'task', type:  MissingConstructorTask])
-
-        then:
-        InvalidUserDataException e = thrown()
-        e.message == "Cannot create task of type 'MissingConstructorTask' as it does not have a public no-args constructor."
-    }
-
     public void testCreateTaskForTypeWhichDoesNotImplementTask() {
         when:
-        taskFactory.createTask(project, [name: 'task', type:  NotATask])
+        taskFactory.createTask([name: 'task', type:  NotATask])
 
         then:
         InvalidUserDataException e = thrown()
         e.message == "Cannot create task of type 'NotATask' as it does not implement the Task interface."
     }
 
-    public void testCreateTaskWhenConstructorThrowsException() {
+    public void wrapsFailureToCreateTaskInstance() {
+        def failure = new RuntimeException()
+
         when:
-        taskFactory.createTask(project, [name: 'task', type:  CannotConstructTask])
+        taskFactory.createTask([name: 'task', type:  TestDefaultTask])
 
         then:
         TaskInstantiationException e = thrown()
-        e.message == "Could not create task of type 'CannotConstructTask'."
-        e.cause == CannotConstructTask.failure
+        e.message == "Could not create task of type 'TestDefaultTask'."
+        e.cause == failure
+
+        and:
+        _ * instantiator.newInstance(TestDefaultTask) >> { throw new ObjectInstantiationException(TestDefaultTask, failure) }
     }
 
     public void createTaskWithDescription() {
         when:
-        Task task = taskFactory.createTask(project, [name: 'task', description: "some task"])
+        Task task = taskFactory.createTask([name: 'task', description: "some task"])
 
         then:
         task.description == "some task"
@@ -145,7 +150,7 @@ class TaskFactoryTest extends Specification {
 
     public void createTaskWithGroup() {
         when:
-        Task task = taskFactory.createTask(project, [name: 'task', group: "some group"])
+        Task task = taskFactory.createTask([name: 'task', group: "some group"])
 
         then:
         task.group == "some group"
@@ -157,20 +162,6 @@ class TaskFactoryTest extends Specification {
     public static class DecoratedTask extends TestDefaultTask {
     }
 
-    public static class MissingConstructorTask extends DefaultTask {
-        public MissingConstructorTask(Integer something) {
-        }
-    }
-
     public static class NotATask {
     }
-
-    public static class CannotConstructTask extends DefaultTask {
-        final static failure = new RuntimeException("fail")
-
-        public CannotConstructTask() {
-            throw failure;
-        }
-    }
-
 }

@@ -94,6 +94,10 @@ public class ProjectInternalServiceRegistry extends DefaultServiceRegistry imple
         return new DefaultProjectsPluginContainer(get(PluginRegistry.class), project);
     }
 
+    protected ITaskFactory createTaskFactory(ITaskFactory parentFactory) {
+        return parentFactory.createChild(project, get(Instantiator.class));
+    }
+
     protected Factory<TaskContainerInternal> createTaskContainerInternal() {
         return new DefaultTaskContainerFactory(get(Instantiator.class), get(ITaskFactory.class), project);
     }

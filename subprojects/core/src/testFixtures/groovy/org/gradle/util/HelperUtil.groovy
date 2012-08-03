@@ -15,8 +15,6 @@
  */
 package org.gradle.util
 
-import org.gradle.api.specs.Spec
-import org.gradle.api.specs.AndSpec
 import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.internal.project.taskfactory.AnnotationProcessingTaskFactory
@@ -24,6 +22,7 @@ import org.gradle.api.internal.project.taskfactory.TaskFactory
 import org.gradle.api.Task
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.DefaultProject
+import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.testfixtures.ProjectBuilder
 import org.apache.ivy.core.module.descriptor.DefaultExcludeRule
 import org.apache.ivy.core.module.id.ArtifactId
@@ -50,7 +49,6 @@ import org.gradle.groovy.scripts.DefaultScript
 class HelperUtil {
 
      public static final Closure TEST_CLOSURE = {}
-     public static final Spec TEST_SPEC = new AndSpec()
      private static final AsmBackedClassGenerator CLASS_GENERATOR = new AsmBackedClassGenerator()
      private static final ITaskFactory TASK_FACTORY = new AnnotationProcessingTaskFactory(new TaskFactory(CLASS_GENERATOR))
 
@@ -63,7 +61,7 @@ class HelperUtil {
      }
 
      static <T extends Task> T createTask(Class<T> type, ProjectInternal project, String name) {
-         return TASK_FACTORY.createTask(project, [name: name, type: type])
+         return TASK_FACTORY.createChild(project, new DirectInstantiator()).createTask([name: name, type: type])
      }
 
      static DefaultProject createRootProject() {

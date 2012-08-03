@@ -33,7 +33,6 @@ public class CopyTest extends AbstractTaskTest {
 
     @Before
     public void setUp() {
-        super.setUp()
         context.setImposteriser(ClassImposteriser.INSTANCE)
         action = context.mock(FileCopyActionImpl.class)
         copyTask = createTask(Copy.class)

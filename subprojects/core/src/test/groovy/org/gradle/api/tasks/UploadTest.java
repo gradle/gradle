@@ -52,7 +52,6 @@ public class UploadTest extends AbstractTaskTest {
     private ConfigurationInternal configurationMock;
 
     @Before public void setUp() {
-        super.setUp();
         upload = createTask(Upload.class);
         repositoriesMock = context.mock(RepositoryHandler.class);
         artifactPublisherMock = context.mock(ArtifactPublisher.class);

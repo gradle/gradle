@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks;
+package org.gradle.api.tasks
 
+import org.gradle.internal.reflect.DirectInstantiator;
 
 import java.util.concurrent.atomic.AtomicBoolean
 import org.gradle.api.Action
@@ -26,7 +27,6 @@ import org.gradle.api.internal.AbstractTask
 import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.project.AbstractProject
 import org.gradle.api.internal.project.DefaultProject
-import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.taskfactory.AnnotationProcessingTaskFactory
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.internal.project.taskfactory.TaskFactory
@@ -64,7 +64,7 @@ public abstract class AbstractSpockTaskTest extends Specification {
     }
 
     public <T extends AbstractTask> T createTask(Class<T> type, Project project, String name) {
-        Task task = TASK_FACTORY.createTask((ProjectInternal) project,
+        Task task = TASK_FACTORY.createChild(project, new DirectInstantiator()).createTask(
                 GUtil.map(Task.TASK_TYPE, type,
                         Task.TASK_NAME, name))
         assert type.isAssignableFrom(task.getClass())

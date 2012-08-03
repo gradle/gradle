@@ -23,7 +23,6 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.DefaultProject;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.*;
 import org.gradle.util.*;
 import org.jmock.Expectations;
@@ -51,7 +50,6 @@ public class AnnotationProcessingTaskFactoryTest {
     }};
 
     private final ITaskFactory delegate = context.mock(ITaskFactory.class);
-    private final ProjectInternal project = context.mock(ProjectInternal.class);
     private final Map args = new HashMap();
     @Rule
     public TemporaryFolder tmpDir = new TemporaryFolder();
@@ -90,11 +88,11 @@ public class AnnotationProcessingTaskFactoryTest {
 
     private <T extends Task> T expectTaskCreated(final T task) {
         context.checking(new Expectations() {{
-            one(delegate).createTask(project, args);
+            one(delegate).createTask(args);
             will(returnValue(task));
         }});
 
-        assertThat(factory.createTask(project, args), sameInstance((Object) task));
+        assertThat(factory.createTask(args), sameInstance((Object) task));
         return task;
     }
 

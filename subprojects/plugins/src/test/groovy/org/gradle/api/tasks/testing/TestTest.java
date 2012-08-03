@@ -86,8 +86,6 @@ public class TestTest extends AbstractConventionTaskTest {
 
     @Before
     public void setUp() {
-        super.setUp();
-
         File rootDir = getProject().getProjectDir();
         classesDir = new File(rootDir, "testClassesDir");
         File classfile = new File(classesDir, "FileTest.class");

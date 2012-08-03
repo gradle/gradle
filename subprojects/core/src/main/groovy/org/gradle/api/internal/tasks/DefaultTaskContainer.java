@@ -47,7 +47,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         Object replaceStr = mutableOptions.remove(Task.TASK_OVERWRITE);
         boolean replace = replaceStr != null && "true".equals(replaceStr.toString());
 
-        Task task = taskFactory.createTask(project, mutableOptions);
+        Task task = taskFactory.createTask(mutableOptions);
         String name = task.getName();
 
         Task existing = findByNameWithoutRules(name);

@@ -35,7 +35,6 @@ public class GradleBuildTest extends AbstractTaskTest {
 
     @Before
     void setUp() {
-        super.setUp()
         task = createTask(GradleBuild.class)
         GradleLauncher.injectCustomFactory(launcherFactoryMock)
     }

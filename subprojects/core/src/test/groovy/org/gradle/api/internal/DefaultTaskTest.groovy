@@ -40,7 +40,6 @@ class DefaultTaskTest extends AbstractTaskTest {
     Object testCustomPropValue;
 
     @Before public void setUp() {
-        super.setUp()
         testCustomPropValue = new Object()
         defaultTask = createTask(DefaultTask.class)
         cl = Thread.currentThread().contextClassLoader

@@ -17,6 +17,7 @@ package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.internal.reflect.Instantiator;
 
 import java.util.Map;
 
@@ -24,5 +25,7 @@ import java.util.Map;
  * @author Hans Dockter
  */
 public interface ITaskFactory {
-    public TaskInternal createTask(ProjectInternal project, Map<String, ?> args);
+    public ITaskFactory createChild(ProjectInternal project, Instantiator instantiator);
+
+    public TaskInternal createTask(Map<String, ?> args);
 }

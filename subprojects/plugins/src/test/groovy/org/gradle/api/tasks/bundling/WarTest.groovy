@@ -27,10 +27,7 @@ class WarTest extends AbstractArchiveTaskTest {
 
     War war
 
-    Map filesFromDepencencyManager
-
     @Before public void setUp() {
-        super.setUp()
         war = createTask(War)
         configure(war)
     }

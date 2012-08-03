@@ -41,6 +41,7 @@ import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.internal.Factory;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
+import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
@@ -76,6 +77,7 @@ public class ProjectInternalServiceRegistryTest {
     private final Factory publishServicesFactory = context.mock(Factory.class);
     private final DependencyHandler dependencyHandler = context.mock(DependencyHandler.class);
     private final ArtifactHandler artifactHandler = context.mock(ArtifactHandler.class);
+    private final DirectInstantiator instantiator = new DirectInstantiator();
 
     @Before
     public void setUp() {
@@ -94,7 +96,7 @@ public class ProjectInternalServiceRegistryTest {
             allowing(parent).get(DependencyManagementServices.class);
             will(returnValue(dependencyManagementServices));
             allowing(parent).get(org.gradle.internal.reflect.Instantiator.class);
-            will(returnValue(new org.gradle.internal.reflect.DirectInstantiator()));
+            will(returnValue(instantiator));
             allowing(parent).get(FileSystem.class);
             will(returnValue(context.mock(FileSystem.class)));
             allowing(parent).get(ClassGenerator.class);
@@ -110,6 +112,13 @@ public class ProjectInternalServiceRegistryTest {
 
     @Test
     public void providesATaskContainerFactory() {
+        final ITaskFactory childFactory = context.mock(ITaskFactory.class);
+
+        context.checking(new Expectations() {{
+            one(taskFactory).createChild(project, instantiator);
+            will(returnValue(childFactory));
+        }});
+
         assertThat(registry.getFactory(TaskContainerInternal.class), instanceOf(DefaultTaskContainerFactory.class));
     }
 
