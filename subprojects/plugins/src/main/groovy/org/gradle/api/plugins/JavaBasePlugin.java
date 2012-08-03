@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.plugins.ProcessResources;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.SourceSet;
@@ -32,6 +33,7 @@ import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.TestDescriptor;
 import org.gradle.api.tasks.testing.TestListener;
 import org.gradle.api.tasks.testing.TestResult;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.WrapUtil;
 
 import java.io.File;
@@ -50,11 +52,17 @@ public class JavaBasePlugin implements Plugin<Project> {
     public static final String VERIFICATION_GROUP = "verification";
     public static final String DOCUMENTATION_GROUP = "documentation";
 
+    private final Instantiator instantiator;
+
+    public JavaBasePlugin(Instantiator instantiator) {
+        this.instantiator = instantiator;
+    }
+
     public void apply(Project project) {
         project.getPlugins().apply(BasePlugin.class);
         project.getPlugins().apply(ReportingBasePlugin.class);
 
-        JavaPluginConvention javaConvention = new JavaPluginConvention(project);
+        JavaPluginConvention javaConvention = new JavaPluginConvention((ProjectInternal) project, instantiator);
         project.getConvention().getPlugins().put("java", javaConvention);
 
         configureCompileDefaults(project, javaConvention);
