@@ -6,7 +6,6 @@ import org.gradle.tooling.ProjectConnection;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.lang.System;
 
 public class Main {
     public static void main(String[] args) {
@@ -36,7 +35,6 @@ public class Main {
 
             // Run the build
             launcher.run();
-            System.exit(0);
         } finally {
             // Clean up
             connection.close();

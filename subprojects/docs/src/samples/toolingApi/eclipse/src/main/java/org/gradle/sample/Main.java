@@ -41,7 +41,6 @@ public class Main {
             }
             System.out.println("Associated gradle project:");
             System.out.println(project.getGradleProject());
-            System.exit(0);
         } finally {
             // Clean up
             connection.close();

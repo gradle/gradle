@@ -33,7 +33,6 @@ public class Main {
             for (Task task : project.getTasks()) {
                 System.out.println("    " + task.getName());
             }
-            System.exit(0);
         } finally {
             // Clean up
             connection.close();
