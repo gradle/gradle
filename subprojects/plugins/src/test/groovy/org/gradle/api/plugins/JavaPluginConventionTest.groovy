@@ -21,7 +21,6 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.internal.tasks.DefaultSourceSetContainer
 import org.gradle.api.java.archives.internal.DefaultManifest
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.util.HelperUtil
 import org.gradle.util.JUnit4GroovyMockery
