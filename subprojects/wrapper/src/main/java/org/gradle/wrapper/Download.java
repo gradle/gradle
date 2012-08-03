@@ -17,11 +17,7 @@
 package org.gradle.wrapper;
 
 import java.io.*;
-import java.net.Authenticator;
-import java.net.PasswordAuthentication;
-import java.net.URI;
-import java.net.URL;
-import java.net.URLConnection;
+import java.net.*;
 
 /**
  * @author Hans Dockter
@@ -58,7 +54,8 @@ public class Download implements IDownload {
             URL url = address.toURL();
             out = new BufferedOutputStream(new FileOutputStream(destination));
             conn = url.openConnection();
-            overrideUserAgent(conn);
+            final String userAgentValue = calculateUserAgent();
+            conn.setRequestProperty("User-Agent", userAgentValue);
             in = conn.getInputStream();
             byte[] buffer = new byte[BUFFER_SIZE];
             int numRead;
@@ -82,18 +79,14 @@ public class Download implements IDownload {
         }
     }
 
-    private void overrideUserAgent(URLConnection conn) {
-        // **TODO Gradle Wrapper Version.
+    private String calculateUserAgent() {
         String applicationName = System.getProperty("org.gradle.appname");
         String javaVendor = System.getProperty("java.vendor");
         String javaVersion = System.getProperty("java.version");
         String osName = System.getProperty("os.name");
         String osVersion = System.getProperty("os.version");
         String osArch = System.getProperty("os.arch");
-        String userAgent = new String(applicationName + " (OSS;" + osName + ";"
-                + osVersion + ";" + osArch + ") (JVM;" + javaVendor + ";"
-                + javaVersion + ")   ");
-        conn.setRequestProperty("User-Agent", userAgent);
+        return String.format("%s (OSS;%s;%s;%s) (JVM;%s;%s)   )", applicationName, osName, osVersion, osArch, javaVendor, javaVersion);
     }
 
     private static class SystemPropertiesProxyAuthenticator extends
@@ -102,8 +95,7 @@ public class Download implements IDownload {
         protected PasswordAuthentication getPasswordAuthentication() {
             return new PasswordAuthentication(
                     System.getProperty("http.proxyUser"), System.getProperty(
-                            "http.proxyPassword", "").toCharArray());
+                    "http.proxyPassword", "").toCharArray());
         }
     }
-
 }

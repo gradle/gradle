@@ -29,6 +29,7 @@ import javax.servlet.http.HttpServletResponse
 
 import org.mortbay.jetty.*
 import org.mortbay.jetty.security.*
+import org.hamcrest.Matcher
 
 class HttpServer extends ExternalResource {
 
@@ -133,8 +134,8 @@ class HttpServer extends ExternalResource {
     /**
      * Adds a given file at the given URL. The source file can be either a file or a directory.
      */
-    void allowGetOrHead(String path, File srcFile) {
-        allow(path, true, ['GET', 'HEAD'], fileHandler(path, srcFile))
+    void allowGetOrHead(String path, File srcFile, Matcher userAgent = null) {
+        allow(path, true, ['GET', 'HEAD'], fileHandler(path, srcFile, null, null, userAgent))
     }
 
     /**
@@ -151,13 +152,20 @@ class HttpServer extends ExternalResource {
         allow(path, true, ['GET', 'HEAD'], withAuthentication(path, username, password, fileHandler(path, srcFile)))
     }
 
-    private Action fileHandler(String path, File srcFile, Long lastModified = null, Long contentLength = null) {
+    private Action fileHandler(String path, File srcFile, Long lastModified = null, Long contentLength = null, Matcher expectedUserAgent = null) {
         return new Action() {
             String getDisplayName() {
                 return "return contents of $srcFile.name"
             }
 
             void handle(HttpServletRequest request, HttpServletResponse response) {
+                if(expectedUserAgent!=null){
+                    String receivedUserAgent = request.getHeader("User-Agent")
+
+                    if(!expectedUserAgent.matches(receivedUserAgent)){
+                        response.sendError(412, String.format("Precondition Failed: Expected User-Agent: '%s' but was '%s'",expectedUserAgent, receivedUserAgent));
+                    }
+                }
                 def file
                 if (request.pathInfo == path) {
                     file = srcFile

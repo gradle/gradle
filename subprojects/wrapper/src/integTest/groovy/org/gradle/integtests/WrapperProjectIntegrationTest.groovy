@@ -35,13 +35,13 @@ class WrapperProjectIntegrationTest extends AbstractIntegrationSpec {
     void setup() {
         server.start()
     }
-    
+
     GradleDistributionExecuter getWrapperExecuter() {
         executer.usingExecutable('gradlew').inDirectory(testDir)
     }
 
     private prepareWrapper(String baseUrl) {
-        assert distribution.binDistribution.exists() : "bin distribution must exist to run this test, you need to run the :binZip task"
+        assert distribution.binDistribution.exists(): "bin distribution must exist to run this test, you need to run the :binZip task"
 
         file("build.gradle") << """
     import org.gradle.api.tasks.wrapper.Wrapper
@@ -63,8 +63,7 @@ class WrapperProjectIntegrationTest extends AbstractIntegrationSpec {
 """
 
         executer.withTasks('wrapper').run()
-
-        server.allowGetOrHead("/gradlew/dist", distribution.binDistribution)
+        server.allowGetOrHead("/gradlew/dist", distribution.binDistribution, UserAgentMatcher.matchesUserAgent("gradlew"))
     }
 
     public void "has non-zero exit code on build failure"() {
@@ -76,23 +75,23 @@ class WrapperProjectIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         ExecutionFailure failure = wrapperExecuter.withTasks('unknown').runWithFailure()
-        
+
         then:
         failure.assertHasDescription("Task 'unknown' not found in root project")
     }
 
-    public void "runs sample target using wrapper"() {        
+    public void "runs sample target using wrapper"() {
         given:
         prepareWrapper("http://localhost:${server.port}")
 
         when:
         ExecutionResult result = wrapperExecuter.withTasks('hello').run()
-        
+
         then:
         assertThat(result.output, containsString('hello'))
     }
 
-    public void "downloads wrapper via proxy"() {        
+    public void "downloads wrapper via proxy"() {
         given:
         proxyServer.start()
         prepareWrapper("http://not.a.real.domain")
@@ -103,7 +102,7 @@ class WrapperProjectIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         ExecutionResult result = wrapperExecuter.withTasks('hello').run()
-        
+
         then:
         assertThat(result.output, containsString('hello'))
 
@@ -146,9 +145,9 @@ class WrapperProjectIntegrationTest extends AbstractIntegrationSpec {
         assertThat(result.output, containsString("fooD=bar"))
     }
 
-    public void "generated wrapper scripts use correct line separators"(){
+    public void "generated wrapper scripts use correct line separators"() {
         given:
-        assert distribution.binDistribution.exists() : "bin distribution must exist to run this test, you need to run the :binZip task"
+        assert distribution.binDistribution.exists(): "bin distribution must exist to run this test, you need to run the :binZip task"
 
         file("build.gradle") << """
             import org.gradle.api.tasks.wrapper.Wrapper
