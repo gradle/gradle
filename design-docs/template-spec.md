@@ -9,9 +9,13 @@ What are the use cases we are trying to solve with this feature? That is, why sh
 
 A spec of the API, DSL or other behaviour that will be visible to the user.
 
+## Sad day cases
+
+In what ways can things go wrong? What will the user see when things do go wrong?
+
 # Integration test coverage
 
-How are we going to test this feature?
+How are we going to test this feature? This section should list the scenarios we want to cover.
 
 # Implementation approach
 
