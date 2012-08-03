@@ -16,22 +16,21 @@
 
 package org.gradle.integtests
 
+import org.gradle.util.Requires
 import org.gradle.util.SetSystemProperties
+import org.gradle.util.TestPrecondition
 import org.gradle.util.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
 import org.gradle.integtests.fixtures.*
+
 import static org.hamcrest.Matchers.containsString
 import static org.junit.Assert.assertThat
-import spock.lang.IgnoreIf
-import org.gradle.internal.os.OperatingSystem
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 /**
  * @author Hans Dockter
  */
-//@Requires(TestPrecondition.NOT_UNKNOWN_OS)
+@Requires(TestPrecondition.NOT_UNKNOWN_OS) //TODO fix passing unknown os params to forked test jvm
 class WrapperProjectIntegrationTest extends AbstractIntegrationSpec {
     @Rule HttpServer server = new HttpServer()
     @Rule TestProxyServer proxyServer = new TestProxyServer(server)
