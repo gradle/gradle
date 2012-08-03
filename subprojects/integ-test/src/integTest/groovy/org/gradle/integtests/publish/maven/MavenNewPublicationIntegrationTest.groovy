@@ -35,7 +35,7 @@ class MavenNewPublicationIntegrationTest extends AbstractIntegrationSpec {
         file('build.gradle') << """
 apply plugin: 'java'
 apply plugin: 'maven'
-new org.gradle.api.publication.PublicationPlugin().apply(project)
+apply plugin: org.gradle.api.publication.PublicationPlugin
 
 group = 'org.test'
 archivesBaseName = 'someCoolProject'
@@ -58,7 +58,7 @@ publications.maven.repository.url = '${repo().uri}'
         file('build.gradle') << """
 apply plugin: 'java'
 apply plugin: 'maven'
-new org.gradle.api.publication.PublicationPlugin().apply(project)
+apply plugin: org.gradle.api.publication.PublicationPlugin
 
 group = 'org.test'
 archivesBaseName = 'someCoolProject'
@@ -85,7 +85,7 @@ version = '5.0-SNAPSHOT'
         file('build.gradle') << """
 apply plugin: 'java'
 apply plugin: 'maven'
-new org.gradle.api.publication.PublicationPlugin().apply(project)
+apply plugin: org.gradle.api.publication.PublicationPlugin
 
 group = 'org.test'
 archivesBaseName = 'someCoolProject'
