@@ -16,10 +16,12 @@
 
 package org.gradle.api.internal.externalresource.transfer;
 
-import java.io.File;
+import org.gradle.internal.Factory;
+
 import java.io.IOException;
+import java.io.InputStream;
 
 public interface ExternalResourceUploader {
-    
-    void upload(File source, String destination, boolean overwrite) throws IOException;
+
+    void upload(Factory<InputStream> sourceFactory, Long contentLength, String destination) throws IOException;
 }

@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.repositories;
 
 
 import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.plugins.repository.*;
+import org.apache.ivy.plugins.repository.TransferListener;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.cached.CachedExternalResource;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceCandidates;
@@ -26,6 +26,7 @@ import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaDat
 import org.gradle.api.internal.externalresource.transfer.*;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
+import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.hash.HashUtil;
@@ -33,8 +34,7 @@ import org.gradle.util.hash.HashValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.List;
 
 public class DefaultExternalResourceRepository implements ExternalResourceRepository {
@@ -62,7 +62,7 @@ public class DefaultExternalResourceRepository implements ExternalResourceReposi
         return accessor.getResource(source);
     }
 
-    public ExternalResource getResource(String source, LocallyAvailableResourceCandidates localCandidates, CachedExternalResource cached) throws IOException{
+    public ExternalResource getResource(String source, LocallyAvailableResourceCandidates localCandidates, CachedExternalResource cached) throws IOException {
         return cacheAwareAccessor.getResource(source, localCandidates, cached);
     }
 
@@ -104,11 +104,21 @@ public class DefaultExternalResourceRepository implements ExternalResourceReposi
         return csFile;
     }
 
-    protected void put(File source, String destination, boolean overwrite) throws IOException {
+    protected void put(final File source, String destination, boolean overwrite) throws IOException {
         LOGGER.debug("Attempting to put resource {}.", destination);
         assert source.isFile();
         try {
-            uploader.upload(source, destination, overwrite);
+            uploader.upload(new Factory<InputStream>() {
+                public InputStream create() {
+                    FileInputStream fis = null;
+                    try {
+                        fis = new FileInputStream(source);
+                    } catch (FileNotFoundException e) {
+                        UncheckedException.throwAsUncheckedException(e);
+                    }
+                    return fis;
+                }
+            }, source.length(), destination);
         } catch (IOException e) {
             throw e;
         } catch (Exception e) {
@@ -134,7 +144,7 @@ public class DefaultExternalResourceRepository implements ExternalResourceReposi
 
     /**
      * followed methods are taken from AbstractRepository for compatibility reasons. Revisit them later.
-     * */
+     */
     public String getFileSeparator() {
         return "/";
     }

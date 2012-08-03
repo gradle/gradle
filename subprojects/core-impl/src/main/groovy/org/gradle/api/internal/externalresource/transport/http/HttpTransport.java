@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.repositories.DefaultExternalResourceRep
 import org.gradle.api.internal.artifacts.repositories.ExternalResourceRepository;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.externalresource.transfer.ProgressLoggingExternalResourceAccessor;
+import org.gradle.api.internal.externalresource.transfer.ProgressLoggingExternalResourceUploader;
 import org.gradle.logging.ProgressLoggerFactory;
 
 import java.net.URI;
@@ -42,8 +43,12 @@ public class HttpTransport implements RepositoryTransport {
     public ExternalResourceRepository getRepository() {
         HttpClientHelper http = new HttpClientHelper(new DefaultHttpSettings(credentials));
         final HttpResourceAccessor accessor = new HttpResourceAccessor(http);
+        final HttpResourceUploader uploader = new HttpResourceUploader(http);
         return new DefaultExternalResourceRepository(
-                name, new ProgressLoggingExternalResourceAccessor(accessor, progressLoggerFactory), new HttpResourceUploader(http), new HttpResourceLister(accessor)
+                name,
+                new ProgressLoggingExternalResourceAccessor(accessor, progressLoggerFactory),
+                new ProgressLoggingExternalResourceUploader(uploader, progressLoggerFactory),
+                new HttpResourceLister(accessor)
         );
     }
 

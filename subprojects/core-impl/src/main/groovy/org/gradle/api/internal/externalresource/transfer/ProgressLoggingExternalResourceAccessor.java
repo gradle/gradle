@@ -29,14 +29,13 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 
-public class ProgressLoggingExternalResourceAccessor implements ExternalResourceAccessor {
+public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLoggingExternalResourceHandler implements ExternalResourceAccessor {
     private final static Logger LOGGER = LoggerFactory.getLogger(ProgressLoggingExternalResourceAccessor.class);
     private final ExternalResourceAccessor delegate;
-    private ProgressLoggerFactory progressLoggerFactory;
 
     public ProgressLoggingExternalResourceAccessor(ExternalResourceAccessor delegate, ProgressLoggerFactory progressLoggerFactory) {
+        super(progressLoggerFactory);
         this.delegate = delegate;
-        this.progressLoggerFactory = progressLoggerFactory;
     }
 
     public ExternalResource getResource(String location) throws IOException {
@@ -84,10 +83,7 @@ public class ProgressLoggingExternalResourceAccessor implements ExternalResource
         }
 
         public void writeTo(OutputStream outputStream) throws IOException {  //get rid of CopyProgress Logger
-            ProgressLogger progressLogger = progressLoggerFactory.newOperation(ProgressLoggingExternalResource.class);
-            progressLogger.setDescription(String.format("Download %s", getName()));
-            progressLogger.setShortDescription(String.format("Download %s", getName()));
-            progressLogger.started();
+            ProgressLogger progressLogger = startProgress(String.format("Download %s", getName()));
             final ProgressLoggingOutputStream progressLoggingOutputStream = new ProgressLoggingOutputStream(outputStream, progressLogger, resource.getContentLength());
             try {
                 resource.writeTo(progressLoggingOutputStream);
@@ -161,26 +157,7 @@ public class ProgressLoggingExternalResourceAccessor implements ExternalResource
         public void write(byte b[], int off, int len) throws IOException {
             outputStream.write(b, off, len);
             totalWritten += len;
-            if (progressLogger != null) {
-                progressLogger.progress(String.format("%s/%s downloaded", getLengthText(totalWritten), getLengthText()));
-            }
-        }
-
-        private String getLengthText() {
-            return getLengthText(contentLength != 0 ? contentLength : null);
-        }
-
-        private String getLengthText(Long bytes) {
-            if (bytes == null) {
-                return "unknown size";
-            }
-            if (bytes < 1024) {
-                return bytes + " B";
-            } else if (bytes < 1048576) {
-                return (bytes / 1024) + " KB";
-            } else {
-                return String.format("%.2f MB", bytes / 1048576.0);
-            }
+            logProgress(progressLogger, totalWritten, contentLength, "downloaded");
         }
     }
 }

@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.externalresource.transport.file;
 
-import org.apache.ivy.util.FileUtil;
+import org.apache.commons.io.IOUtils;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 import org.gradle.api.internal.externalresource.local.DefaultLocallyAvailableResource;
@@ -23,14 +23,18 @@ import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaDat
 import org.gradle.api.internal.externalresource.transfer.ExternalResourceAccessor;
 import org.gradle.api.internal.externalresource.transfer.ExternalResourceLister;
 import org.gradle.api.internal.externalresource.transfer.ExternalResourceUploader;
+import org.gradle.internal.Factory;
 import org.gradle.util.hash.HashValue;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class FileResourceConnector implements ExternalResourceLister, ExternalResourceAccessor, ExternalResourceUploader {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(FileResourceConnector.class);
 
     public List<String> list(String parent) throws IOException {
         File dir = getFile(parent);
@@ -47,13 +51,30 @@ public class FileResourceConnector implements ExternalResourceLister, ExternalRe
         return null;
     }
 
-    public void upload(File source, String destination, boolean overwrite) throws IOException {
+    public void upload(Factory<InputStream> source, Long contentLength, String destination) throws IOException {
         File target = getFile(destination);
-        if (!overwrite && target.exists()) {
-            throw new IOException("Could not copy file " + source + " to " + target + ": target already exists and overwrite is false");
+        if (!target.canWrite()) {
+            target.delete();
+        } // if target is writable, the copy will overwrite it without requiring a delete
+        target.getParentFile().mkdirs();
+        final FileOutputStream fileOutputStream = new FileOutputStream(target);
+        final InputStream sourceInputStream = source.create();
+        try {
+            if (IOUtils.copy(sourceInputStream, fileOutputStream) == -1) {
+                throw new IOException(String.format("File copy failed from %s to %s", source, target));
+            }
+        } finally {
+            closeStream(fileOutputStream);
+            closeStream(sourceInputStream);
+
         }
-        if (!FileUtil.copy(source, target, null, overwrite)) {
-            throw new IOException("File copy failed from " + source + " to " + target);
+    }
+
+    private void closeStream(Closeable closable) {
+        try {
+            closable.close();
+        } catch (IOException ex) {
+            LOGGER.warn("Unable to close stream.", ex);
         }
     }
 
