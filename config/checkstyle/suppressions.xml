@@ -25,5 +25,8 @@
     <suppress checks="Javadoc.*"
               files=".*[/\\]subprojects[/\\]javascript[/\\].+"/>
 
+    <!-- Migration plugin is incubating -->
+    <suppress checks="Javadoc.*"
+              files=".*[/\\]subprojects[/\\]migration[/\\].+"/>
 
 </suppressions>
