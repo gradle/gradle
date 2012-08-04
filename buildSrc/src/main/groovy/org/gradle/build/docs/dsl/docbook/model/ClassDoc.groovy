@@ -74,19 +74,19 @@ class ClassDoc implements DslElementDoc {
     Collection<PropertyDoc> getClassProperties() { return classProperties }
 
     void addClassProperty(PropertyDoc propertyDoc) {
-        classProperties.add(propertyDoc)
+        classProperties.add(propertyDoc.forClass(this))
     }
 
     Collection<MethodDoc> getClassMethods() { return classMethods }
 
     void addClassMethod(MethodDoc methodDoc) {
-        classMethods.add(methodDoc)
+        classMethods.add(methodDoc.forClass(this))
     }
 
     def getClassBlocks() { return classBlocks }
 
     void addClassBlock(BlockDoc blockDoc) {
-        classBlocks.add(blockDoc)
+        classBlocks.add(blockDoc.forClass(this))
     }
 
     def getClassExtensions() { return classExtensions }
@@ -114,6 +114,7 @@ class ClassDoc implements DslElementDoc {
     def getBlockDetailsSection() { return getSection('Script block details') }
 
     ClassDoc mergeContent() {
+        classProperties.sort { it.name }
         classMethods.sort { it.metaData.overrideSignature }
         classBlocks.sort { it.name }
         classExtensions.sort { it.pluginId }

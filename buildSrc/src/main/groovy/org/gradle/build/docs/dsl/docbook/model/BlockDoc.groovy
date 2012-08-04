@@ -31,6 +31,10 @@ class BlockDoc implements DslElementDoc {
         this.multiValued = multiValued
     }
 
+    BlockDoc forClass(ClassDoc referringClass) {
+        return new BlockDoc(blockMethod.forClass(referringClass), blockProperty.forClass(referringClass), type, multiValued)
+    }
+
     String getId() {
         return blockMethod.id
     }

@@ -36,8 +36,12 @@ class MethodDoc implements DslElementDoc {
         this.comment = comment
     }
 
-    MethodDoc forClass(ClassMetaData c) {
-        return new MethodDoc(c, metaData, comment)
+    MethodDoc forClass(ClassDoc referringClass) {
+        def refererMetaData = referringClass.classMetaData
+        if (refererMetaData == this.referringClass) {
+            return this
+        }
+        return new MethodDoc(refererMetaData, metaData, comment)
     }
 
     String getId() {

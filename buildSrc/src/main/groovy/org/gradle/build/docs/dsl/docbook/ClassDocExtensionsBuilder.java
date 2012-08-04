@@ -49,7 +49,7 @@ public class ClassDocExtensionsBuilder {
             String pluginId = mixin.getPluginId();
             ClassExtensionDoc classExtensionDoc = plugins.get(pluginId);
             if (classExtensionDoc == null) {
-                classExtensionDoc = new ClassExtensionDoc(pluginId, classDoc.getClassMetaData());
+                classExtensionDoc = new ClassExtensionDoc(pluginId, classDoc);
                 plugins.put(pluginId, classExtensionDoc);
             }
             classExtensionDoc.getMixinClasses().add(model.getClassDoc(mixin.getMixinClass()));
@@ -58,7 +58,7 @@ public class ClassDocExtensionsBuilder {
             String pluginId = extension.getPluginId();
             ClassExtensionDoc classExtensionDoc = plugins.get(pluginId);
             if (classExtensionDoc == null) {
-                classExtensionDoc = new ClassExtensionDoc(pluginId, classDoc.getClassMetaData());
+                classExtensionDoc = new ClassExtensionDoc(pluginId, classDoc);
                 plugins.put(pluginId, classExtensionDoc);
             }
             classExtensionDoc.getExtensionClasses().put(extension.getExtensionId(), model.getClassDoc(extension.getExtensionClass()));
@@ -81,7 +81,7 @@ public class ClassDocExtensionsBuilder {
         for (Map.Entry<String, ClassDoc> entry : extensionDoc.getExtensionClasses().entrySet()) {
             String id = entry.getKey();
             ClassDoc type = entry.getValue();
-            PropertyMetaData propertyMetaData = new PropertyMetaData(id, extensionDoc.getTargetClass());
+            PropertyMetaData propertyMetaData = new PropertyMetaData(id, extensionDoc.getTargetClass().getClassMetaData());
             propertyMetaData.setType(new TypeMetaData(type.getName()));
 
             Element para = doc.createElement("para");
@@ -97,7 +97,7 @@ public class ClassDocExtensionsBuilder {
             para.appendChild(linkRenderer.link(propertyMetaData.getType(), listener));
             para.appendChild(doc.createTextNode(String.format(" added by the %s plugin.", extensionDoc.getPluginId())));
 
-            MethodMetaData methodMetaData = new MethodMetaData(id, extensionDoc.getTargetClass());
+            MethodMetaData methodMetaData = new MethodMetaData(id, extensionDoc.getTargetClass().getClassMetaData());
             methodMetaData.addParameter("configClosure", new TypeMetaData(Closure.class.getName()));
             MethodDoc methodDoc = new MethodDoc(methodMetaData, Collections.singletonList(para));
             extensionDoc.getExtraBlocks().add(new BlockDoc(methodDoc, propertyDoc, propertyMetaData.getType(), false));

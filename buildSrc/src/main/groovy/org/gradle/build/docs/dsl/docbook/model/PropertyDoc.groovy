@@ -43,8 +43,16 @@ class PropertyDoc implements DslElementDoc {
         this.additionalValues = additionalValues
     }
 
-    PropertyDoc forClass(ClassMetaData classMetaData, Collection<ExtraAttributeDoc> additionalValues) {
-        return new PropertyDoc(classMetaData, metaData, comment, additionalValues as List)
+    PropertyDoc forClass(ClassDoc referringClass) {
+        return forClass(referringClass, [])
+    }
+
+    PropertyDoc forClass(ClassDoc referringClass, Collection<ExtraAttributeDoc> additionalValues) {
+        def refererMetaData = referringClass.classMetaData
+        if (refererMetaData == this.referringClass && additionalValues.isEmpty()) {
+            return this
+        }
+        return new PropertyDoc(refererMetaData, metaData, comment, additionalValues as List)
     }
 
     String getId() {
