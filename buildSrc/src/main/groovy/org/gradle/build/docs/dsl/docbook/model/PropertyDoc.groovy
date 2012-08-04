@@ -25,6 +25,7 @@ class PropertyDoc implements DslElementDoc {
     private final List<Element> comment
     private final List<ExtraAttributeDoc> additionalValues
     private final PropertyMetaData metaData
+    private final ClassMetaData referringClass
 
     PropertyDoc(PropertyMetaData propertyMetaData, List<Element> comment, List<ExtraAttributeDoc> additionalValues) {
         this(propertyMetaData.ownerClass, propertyMetaData, comment, additionalValues)
@@ -32,6 +33,7 @@ class PropertyDoc implements DslElementDoc {
 
     PropertyDoc(ClassMetaData referringClass, PropertyMetaData propertyMetaData, List<Element> comment, List<ExtraAttributeDoc> additionalValues) {
         name = propertyMetaData.name
+        this.referringClass = referringClass
         this.metaData = propertyMetaData
         id = "${referringClass.className}:$name"
         this.comment = comment
@@ -58,11 +60,11 @@ class PropertyDoc implements DslElementDoc {
     }
 
     boolean isDeprecated() {
-        return metaData.deprecated
+        return metaData.deprecated && !referringClass.deprecated
     }
 
     boolean isExperimental() {
-        return metaData.experimental
+        return metaData.experimental || metaData.ownerClass.experimental
     }
 
     Element getDescription() {

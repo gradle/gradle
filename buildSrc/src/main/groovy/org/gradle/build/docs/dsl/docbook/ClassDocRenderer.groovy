@@ -24,6 +24,7 @@ class ClassDocRenderer {
     private final LinkRenderer linkRenderer
     private final GenerationListener listener = new DefaultGenerationListener()
     private final PropertyTableRenderer propertyTableRenderer = new PropertyTableRenderer()
+    private final MethodTableRenderer methodTableRenderer = new MethodTableRenderer()
     private final PropertiesDetailRenderer propertiesDetailRenderer
     private Element propertiesSummarySection
     private Element propertiesDetailSection
@@ -121,35 +122,12 @@ class ClassDocRenderer {
             return
         }
 
-        methodsSummarySection << {
+        def table = methodsSummarySection << {
             table {
                 title("Methods - $classDoc.simpleName")
-                thead {
-                    tr {
-                        td('Method')
-                        td('Description')
-                    }
-                }
-                classMethods.each { method ->
-                    tr {
-                        td {
-                            literal {
-                                link(linkend: method.id) { text(method.name) }
-                                text('(')
-                                method.metaData.parameters.eachWithIndex { param, index ->
-                                    if ( index > 0 ) {
-                                        text(', ')
-                                    }
-                                    text(param.name)
-                                }
-                                text(')')
-                            }
-                        }
-                        td { appendChild method.description }
-                    }
-                }
             }
         }
+        methodTableRenderer.renderTo(classMethods, table)
 
         methodsDetailSection = classContent << {
             section {
@@ -297,41 +275,26 @@ class ClassDocRenderer {
     }
 
     void mergeExtensionMethods(ClassDoc classDoc, Element summaryParent, Element detailParent) {
-        summaryParent << {
-            classDoc.classExtensions.each { ClassExtensionDoc extension ->
-                if (!extension.extensionMethods) {
-                    return
-                }
+
+        classDoc.classExtensions.each { ClassExtensionDoc extension ->
+            if (!extension.extensionMethods) {
+                return
+            }
+
+            def summarySection = summaryParent << {
                 section {
                     title { text("Methods added by the "); literal(extension.pluginId); text(" plugin") }
                     titleabbrev { literal(extension.pluginId); text(" plugin") }
-                    table {
-                        title { text("Methods - "); literal(extension.pluginId); text(" plugin") }
-                        thead { tr { td('Method'); td('Description') } }
-                        extension.extensionMethods.each { method ->
-                            tr {
-                                td {
-                                    literal {
-                                        link(linkend: method.id) { text(method.name) }
-                                        text('(')
-                                        method.metaData.parameters.eachWithIndex { param, index ->
-                                            if ( index > 0 ) {
-                                                text(', ')
-                                            }
-                                            text(param.name)
-                                        }
-                                        text(')')
-                                    }
-                                }
-                                td { appendChild method.description }
-                            }
-                        }
-                    }
                 }
             }
-        }
-        detailParent << {
-            classDoc.classExtensions.each { ClassExtensionDoc extension ->
+            def summaryTable = summarySection << {
+                table {
+                    title { text("Methods - "); literal(extension.pluginId); text(" plugin") }
+                }
+            }
+            methodTableRenderer.renderTo(extension.extensionMethods, summaryTable)
+
+            detailParent << {
                 extension.extensionMethods.each { method ->
                     section(id: method.id, role: 'detail') {
                         title {

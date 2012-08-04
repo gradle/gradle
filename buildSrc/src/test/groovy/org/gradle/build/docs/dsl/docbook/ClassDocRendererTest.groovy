@@ -376,6 +376,83 @@ class ClassDocRendererTest extends XmlSpecification {
 </chapter>'''
     }
 
+    def rendersDeprecatedAndExperimentalMethods() {
+        def content = parse('''
+            <chapter>
+                <section><title>Methods</title>
+                    <table>
+                        <thead><tr><td>Name</td></tr></thead>
+                        <tr><td>deprecated</td></tr>
+                        <tr><td>experimental</td></tr>
+                    </table>
+                </section>
+            </chapter>
+        ''')
+
+        ClassDoc classDoc = classDoc('Class', content: content)
+        MethodDoc method1 = methodDoc('deprecated', id: 'method1Id', returnType: 'ReturnType1', description: 'method description', comment: 'method comment', deprecated: true)
+        MethodDoc method2 = methodDoc('experimental', id: 'method2Id', returnType: 'ReturnType2', description: 'overloaded description', comment: 'overloaded comment', paramTypes: ['ParamType'], experimental: true)
+        _ * classDoc.classMethods >> [method1, method2]
+
+
+        when:
+        def result = parse('<chapter/>')
+        withCategories {
+            renderer.mergeMethods(classDoc, result)
+        }
+
+        then:
+        formatTree(result) == '''<chapter>
+    <section>
+        <title>Methods</title>
+        <table>
+            <title>Methods - Class</title>
+            <thead>
+                <tr>
+                    <td>Method</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <literal><link linkend="method1Id">deprecated</link>()</literal>
+                </td>
+                <td>
+                    <caution>Deprecated</caution>
+                    <para>method description</para>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <literal><link linkend="method2Id">experimental</link>(p)</literal>
+                </td>
+                <td>
+                    <caution>Experimental</caution>
+                    <para>overloaded description</para>
+                </td>
+            </tr>
+        </table>
+    </section>
+    <section>
+        <title>Method details</title>
+        <section id="method1Id" role="detail">
+            <title><classname>ReturnType1</classname> <literal>deprecated</literal>()</title>
+            <caution>
+                <para>Note: This method is <link linkend="dsl-element-types">deprecated</link> and will be removed in the next major version of Gradle.</para>
+            </caution>
+            <para>method comment</para>
+        </section>
+        <section id="method2Id" role="detail">
+            <title><classname>ReturnType2</classname> <literal>experimental</literal>(<classname>ParamType</classname> p)</title>
+            <caution>
+                <para>Note: This method is <link linkend="dsl-element-types">experimental</link> and may change in a future version of Gradle.</para>
+            </caution>
+            <para>overloaded comment</para>
+        </section>
+    </section>
+</chapter>'''
+    }
+
     def mergesExtensionMethodMetaDataIntoMethodsSection() {
         def content = parse('''
             <chapter>
@@ -611,6 +688,8 @@ class ClassDocRendererTest extends XmlSpecification {
         _ * methodDoc.description >> parse("<para>${args.description ?: 'description'}</para>")
         _ * methodDoc.comment >> [parse("<para>${args.comment ?: 'comment'}</para>")]
         _ * methodDoc.metaData >> metaData
+        _ * methodDoc.deprecated >> (args.deprecated ?: false)
+        _ * methodDoc.experimental >> (args.experimental ?: false)
         _ * metaData.returnType >> new TypeMetaData(args.returnType ?: 'ReturnType')
         def paramTypes = args.paramTypes ?: []
         _ * metaData.parameters >> paramTypes.collect {
