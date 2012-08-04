@@ -18,5 +18,5 @@ package org.gradle.launcher.exec;
 import org.gradle.StartParameter;
 
 public interface InitializationAware {
-    void configureStartParameter(StartParameter startParameter);
+    StartParameter configureStartParameter();
 }

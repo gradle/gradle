@@ -15,9 +15,9 @@
  */
 package org.gradle.tooling.internal.consumer;
 
+import org.gradle.internal.UncheckedException;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.ResultHandler;
-import org.gradle.util.UncheckedException;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -36,11 +36,11 @@ class BlockingResultHandler<T> implements ResultHandler<T> {
         try {
             result = queue.take();
         } catch (InterruptedException e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
 
         if (result instanceof Throwable) {
-            throw UncheckedException.asUncheckedException((Throwable) result);
+            throw UncheckedException.throwAsUncheckedException((Throwable) result);
         }
         if (result == NULL) {
             return null;

@@ -16,15 +16,17 @@
 package org.gradle
 
 import org.gradle.api.GradleException
-import org.gradle.api.LocationAwareException
+import org.gradle.api.internal.LocationAwareException
 import org.gradle.api.logging.LogLevel
+import org.gradle.api.internal.AbstractMultiCauseException
 import org.gradle.execution.TaskSelectionException
-import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.BuildClientMetaData
 import org.gradle.logging.LoggingConfiguration
 import org.gradle.logging.ShowStacktrace
 import org.gradle.logging.StyledTextOutputFactory
-import org.gradle.logging.internal.TestStyledTextOutput
+import org.gradle.logging.TestStyledTextOutput
+import org.gradle.util.TreeVisitor
+
 import spock.lang.Specification
 
 class BuildExceptionReporterTest extends Specification {
@@ -54,7 +56,7 @@ class BuildExceptionReporterTest extends Specification {
 {failure}FAILURE: {normal}{failure}Build aborted because of an internal error.{normal}
 
 * What went wrong:
-Build aborted because of an unexpected internal error. Please file an issue at: http://www.gradle.org.
+Build aborted because of an unexpected internal error. Please file an issue at: http://forums.gradle.org.
 
 * Try:
 Run with {userinput}--debug{normal} option to get additional debug info.
@@ -110,7 +112,7 @@ Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with
 
 * What went wrong:
 <message>
-Cause: <cause>
+{info}> {normal}<cause>
 
 * Try:
 Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output.
@@ -118,7 +120,7 @@ Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with
     }
 
     def reportsLocationAwareExceptionWithMultipleCauses() {
-        Throwable exception = exception("<location>", "<message>", new RuntimeException("<outer>"), new RuntimeException("<cause>"));
+        Throwable exception = exception("<location>", "<message>", new RuntimeException("<cause1>"), new RuntimeException("<cause2>"));
 
         expect:
         reporter.buildFinished(result(exception))
@@ -130,8 +132,34 @@ Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with
 
 * What went wrong:
 <message>
-Cause: <outer>
-Cause: <cause>
+{info}> {normal}<cause1>
+{info}> {normal}<cause2>
+
+* Try:
+Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output.
+'''
+    }
+
+    def reportsLocationAwareExceptionWithMultipleNestedCauses() {
+        def cause1 = nested("<cause1>", new RuntimeException("<cause1.1>"), new RuntimeException("<cause1.2>"))
+        def cause2 = nested("<cause2>", new RuntimeException("<cause2.1>"))
+        Throwable exception = exception("<location>", "<message>", cause1, cause2);
+
+        expect:
+        reporter.buildFinished(result(exception))
+        output.value == '''
+{failure}FAILURE: {normal}{failure}Build failed with an exception.{normal}
+
+* Where:
+<location>
+
+* What went wrong:
+<message>
+{info}> {normal}<cause1>
+   {info}> {normal}<cause1.1>
+   {info}> {normal}<cause1.2>
+{info}> {normal}<cause2>
+   {info}> {normal}<cause2.1>
 
 * Try:
 Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output.
@@ -151,7 +179,7 @@ Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with
 
 * What went wrong:
 <message>
-Cause: java.lang.RuntimeException (no error message)
+{info}> {normal}java.lang.RuntimeException (no error message)
 
 * Try:
 Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output.
@@ -173,7 +201,7 @@ Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with
 
 * What went wrong:
 <message>
-Cause: <failure>
+{info}> {normal}<failure>
 
 * Try:
 Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output.
@@ -268,19 +296,37 @@ org.gradle.api.GradleException: <message>
         result.failure >> failure
         result
     }
-
-    def exception(final String location, final String message, final Throwable... causes) {
-        TestException exception = Mock()
+    
+    def nested(String message, Throwable... causes) {
+        return new TestException(message, causes)
+    }
+    
+    def exception(String location, String message, Throwable... causes) {
+        LocationAwareException exception = Mock()
         exception.location >> location
         exception.originalMessage >> message
-        exception.reportableCauses >> (causes as List)
         exception.cause >> causes[0]
+        exception.visitReportableCauses(!null) >> { TreeVisitor visitor ->
+            visitor.node(exception)
+            visitor.startChildren()
+            causes.each { 
+                visitor.node(it) 
+                if (it instanceof TestException) {
+                    visitor.startChildren()
+                    it.causes.each { child ->
+                        visitor.node(child)
+                    }
+                    visitor.endChildren()
+                }
+            }
+            visitor.endChildren()
+        }
         exception
     }
 }
 
-public abstract class TestException extends LocationAwareException {
-    TestException(Throwable cause, ScriptSource source, Integer lineNumber) {
-        super(cause, source, lineNumber)
+class TestException extends AbstractMultiCauseException {
+    TestException(String message, Throwable... causes) {
+        super(message, causes)
     }
 }

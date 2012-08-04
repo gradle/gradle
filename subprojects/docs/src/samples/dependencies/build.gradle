@@ -25,8 +25,8 @@ project(':northSea') {
 repositories {
     add(new FileSystemResolver()) {
         name = "repo"
-        addArtifactPattern("$rootDir/repo/[organization]/[module]-[revision].[ext]")
-        addIvyPattern("$rootDir/repo/[organization]/ivy-[module]-[revision].xml")
+        addArtifactPattern("$rootDir/repo/[organization]/[module](-[classifier])-[revision].[ext]")
+        addIvyPattern("$rootDir/repo/[organization]/ivy-[module](-[classifier])-[revision].xml")
         checkmodified = true
     }
 }
@@ -106,7 +106,7 @@ task test(dependsOn: [configurations.subprojectAtlantic, configurations.subproje
 }
 
 def assertCorrectFilesForCompleteConfigurations() {
-    expectedResults = [
+    ext.expectedResults = [
             oneDepWithNoTransitives: ['herring-1.0.jar'] as Set,
             oneDepWithTransitives: ['tuna-1.0.jar', 'herring-1.0.jar'] as Set,
             twoDepsWithNoTransitives: ['seal-1.0.jar', 'herring-1.0.jar'] as Set,
@@ -121,8 +121,8 @@ def assertCorrectFilesForCompleteConfigurations() {
             mixed: ['tuna-1.0.jar', 'orca-1.0.jar', 'seal-1.0.jar', 'herring-1.0.jar', 'selfResolving1.jar', 'someDir'] as Set,
             subprojectAtlantic: ['selfResolving1.jar', 'herring-1.0.jar'] as Set,
             subprojectNorthSea: ['selfResolving1.jar', 'herring-1.0.jar', 'selfResolving2.jar', 'squid-1.0.jar'] as Set,
-            classifier: ['dolphin-1.0-oceanic.jar', 'dolphin-1.0-river.jar', "herring-1.0.jar"] as Set,
-            extendingClassifier: ['dolphin-1.0-oceanic.jar', 'dolphin-1.0-river.jar', "herring-1.0.jar"] as Set
+            classifier: ['dolphin-oceanic-1.0.jar', 'dolphin-river-1.0.jar', "herring-1.0.jar"] as Set,
+            extendingClassifier: ['dolphin-oceanic-1.0.jar', 'dolphin-river-1.0.jar', "herring-1.0.jar"] as Set
     ]
     expectedResults.each { configurationName, expectedFileNames ->
         Set resolvedFileNames = configurations[configurationName].files.collect { it.name }
@@ -149,8 +149,8 @@ def assertFilesForDependencySubsets() {
     assertSubsetFiles(configurations.selfResolving, { dep -> dep.source.singleFile.name == 'someDir' }, ['someDir'])
     assertSubsetFiles(configurations.mixed, { dep ->
         dep instanceof org.gradle.api.artifacts.SelfResolvingDependency || dep.name == 'tuna' }, ['someDir', 'selfResolving1.jar', 'tuna-1.0.jar', 'herring-1.0.jar'])
-    assertSubsetFiles(configurations.classifier, { dep -> dep.name == 'dolphin' }, ['dolphin-1.0-oceanic.jar', 'dolphin-1.0-river.jar'])
-    assertSubsetFiles(configurations.extendingClassifier, { dep -> dep.name == 'dolphin' }, ['dolphin-1.0-oceanic.jar', 'dolphin-1.0-river.jar'])
+    assertSubsetFiles(configurations.classifier, { dep -> dep.name == 'dolphin' }, ['dolphin-oceanic-1.0.jar', 'dolphin-river-1.0.jar'])
+    assertSubsetFiles(configurations.extendingClassifier, { dep -> dep.name == 'dolphin' }, ['dolphin-oceanic-1.0.jar', 'dolphin-river-1.0.jar'])
 }
 
 def assertSubsetFiles(configuration, spec, expectedFileNames) {

@@ -16,9 +16,9 @@
 package org.gradle.build.docs.dsl.docbook
 
 import org.gradle.build.docs.XmlSpecification
-import org.gradle.build.docs.dsl.model.TypeMetaData
-import org.gradle.build.docs.dsl.model.MethodMetaData
-import org.gradle.build.docs.dsl.model.ClassMetaData
+import org.gradle.build.docs.dsl.source.model.TypeMetaData
+import org.gradle.build.docs.dsl.source.model.MethodMetaData
+import org.gradle.build.docs.dsl.source.model.ClassMetaData
 
 class LinkRendererTest extends XmlSpecification {
     final DslDocModel model = Mock()

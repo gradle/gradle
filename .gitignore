@@ -8,6 +8,7 @@
 /buildSrc/lib
 /buildSrc/build
 /subprojects/*/build
+/subprojects/docs/src/samples/*/*/build
 /website/build
 /website/website.iml
 /website/website.ipr
@@ -21,6 +22,7 @@
 /buildSrc/*.ipr
 /buildSrc/*.iws
 /buildSrc/*.iml
+/buildSrc/out
 *.classpath
 *.project
 *.settings
@@ -29,3 +31,5 @@
 .DS_Store
 /performanceTest/lib
 .textmate
+*.hprof
+/incoming-distributions

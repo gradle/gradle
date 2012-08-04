@@ -16,8 +16,8 @@
 package org.gradle.logging.internal;
 
 import org.gradle.api.logging.LogLevel;
+import org.gradle.internal.SystemProperties;
 import org.gradle.util.GUtil;
-import org.gradle.util.SystemProperties;
 
 import java.util.LinkedList;
 

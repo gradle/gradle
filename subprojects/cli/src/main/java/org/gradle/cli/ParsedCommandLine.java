@@ -15,10 +15,9 @@
  */
 package org.gradle.cli;
 
-import java.io.Serializable;
 import java.util.*;
 
-public class ParsedCommandLine implements Serializable {
+public class ParsedCommandLine {
     private final Map<String, ParsedCommandLineOption> optionsByString = new HashMap<String, ParsedCommandLineOption>();
     private final Set<String> presentOptions = new HashSet<String>();
     private final List<String> extraArguments = new ArrayList<String>();
@@ -51,7 +50,7 @@ public class ParsedCommandLine implements Serializable {
         }
         return output.toString();
     }
-    
+
     /**
      * Returns true if the given option is present in this command-line.
      *
@@ -61,6 +60,21 @@ public class ParsedCommandLine implements Serializable {
     public boolean hasOption(String option) {
         option(option);
         return presentOptions.contains(option);
+    }
+
+    /**
+     * See also {@link #hasOption}.
+     *
+     * @param logLevelOptions the options to check
+     * @return true if any of the passed options is present
+     */
+    public boolean hasAnyOption(Collection<String> logLevelOptions) {
+        for (String option : logLevelOptions) {
+            if (hasOption(option)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

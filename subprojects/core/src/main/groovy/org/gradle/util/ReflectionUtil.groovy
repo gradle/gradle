@@ -19,19 +19,28 @@ package org.gradle.util
  * @author Hans Dockter
  */
 class ReflectionUtil {
-    public static Object invoke(Object object, String method, Object ... params) {
-        return object.invokeMethod(method, params)
+    static Object invoke(Object object, String method, Object... params) {
+        object.invokeMethod(method, params)
     }
 
-    static Object getProperty(def object, String property) {
-        object.getProperty(property)
+    static Object getProperty(Object object, String property) {
+        object."$property"
     }
 
-    static void setProperty(def object, String property, Object value) {
+    static void setProperty(Object object, String property, Object value) {
         object."$property" = value
     }
 
-    static boolean hasProperty(def object, String property) {
-        return object.metaClass.hasProperty(object, property)
+    static boolean hasProperty(Object object, String property) {
+        object.metaClass.hasProperty(object, property) != null
+    }
+
+    static boolean isClassAvailable(String className) {
+        try {
+            ReflectionUtil.classLoader.loadClass(className)
+            return true
+        } catch (ClassNotFoundException e) {
+            return false
+        }
     }
 }

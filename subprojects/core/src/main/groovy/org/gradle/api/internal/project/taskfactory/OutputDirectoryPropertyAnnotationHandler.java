@@ -18,9 +18,9 @@ package org.gradle.api.internal.project.taskfactory;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
-import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.Transformer;
+import org.gradle.internal.UncheckedException;
 import org.gradle.util.GFileUtils;
-import org.gradle.util.UncheckedException;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
@@ -28,27 +28,37 @@ import java.util.Collection;
 import java.util.concurrent.Callable;
 
 public class OutputDirectoryPropertyAnnotationHandler implements PropertyAnnotationHandler {
+
+    private final Class<? extends Annotation> annotationType;
+    private final Transformer<Iterable<File>, Object> valueTransformer;
+    
+    public OutputDirectoryPropertyAnnotationHandler(Class<? extends Annotation> annotationType, Transformer<Iterable<File>, Object> valueTransformer) {
+        this.annotationType = annotationType;
+        this.valueTransformer = valueTransformer;
+    }
+
+    public Class<? extends Annotation> getAnnotationType() {
+        return annotationType;
+    }
+
     private final ValidationAction outputDirValidation = new ValidationAction() {
         public void validate(String propertyName, Object value, Collection<String> messages) {
-            File fileValue = (File) value;
-            if (fileValue.exists() && !fileValue.isDirectory()) {
-                messages.add(String.format("Directory '%s' specified for property '%s' is not a directory.", fileValue, propertyName));
-                return;
-            }
+            for (File file : valueTransformer.transform(value)) {
+                if (file.exists() && !file.isDirectory()) {
+                    messages.add(String.format("Directory '%s' specified for property '%s' is not a directory.", file, propertyName));
+                    return;
+                }
 
-            for (File candidate = fileValue; candidate != null && !candidate.isDirectory(); candidate = candidate.getParentFile()) {
-                if (candidate.exists() && !candidate.isDirectory()) {
-                    messages.add(String.format("Cannot write to directory '%s' specified for property '%s', as ancestor '%s' is not a directory.", fileValue, propertyName, candidate));
-                    break;
+                for (File candidate = file; candidate != null && !candidate.isDirectory(); candidate = candidate.getParentFile()) {
+                    if (candidate.exists() && !candidate.isDirectory()) {
+                        messages.add(String.format("Cannot write to directory '%s' specified for property '%s', as ancestor '%s' is not a directory.", file, propertyName, candidate));
+                        break;
+                    }
                 }
             }
         }
     };
-
-    public Class<? extends Annotation> getAnnotationType() {
-        return OutputDirectory.class;
-    }
-
+    
     public void attachActions(final PropertyActionContext context) {
         context.setValidationAction(outputDirValidation);
         context.setConfigureAction(new UpdateAction() {
@@ -56,19 +66,18 @@ public class OutputDirectoryPropertyAnnotationHandler implements PropertyAnnotat
                 task.getOutputs().files(futureValue);
                 task.doFirst(new Action<Task>() {
                     public void execute(Task task) {
-                        File fileValue;
+                        Iterable<File> files;
                         try {
-                            fileValue = (File) futureValue.call();
+                            files = valueTransformer.transform(futureValue.call());
                         } catch (Exception e) {
-                            throw UncheckedException.asUncheckedException(e);
+                            throw UncheckedException.throwAsUncheckedException(e);
                         }
-                        if (fileValue == null) {
-                            return;
-                        }
-                        fileValue = GFileUtils.canonicalise(fileValue);
-                        if (!fileValue.isDirectory() && !fileValue.mkdirs()) {
-                            throw new InvalidUserDataException(String.format(
-                                    "Cannot create directory '%s' specified for property '%s'.", fileValue, context.getName()));
+                        for (File file : files) {
+                            file = GFileUtils.canonicalise(file);
+                            if (!file.isDirectory() && !file.mkdirs()) {
+                                throw new InvalidUserDataException(String.format(
+                                        "Cannot create directory '%s' specified for property '%s'.", file, context.getName()));
+                            }
                         }
                     }
                 });

@@ -19,7 +19,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.util.ObservableUrlClassLoader;
+import org.gradle.util.MutableURLClassLoader;
 
 import java.io.File;
 import java.net.MalformedURLException;
@@ -28,7 +28,7 @@ public class DefaultScriptHandler extends AbstractScriptHandler {
 
     public DefaultScriptHandler(ScriptSource scriptSource, RepositoryHandler repositoryHandler,
                                 DependencyHandler dependencyHandler, ConfigurationContainer configContainer,
-                                ObservableUrlClassLoader classLoader) {
+                                MutableURLClassLoader classLoader) {
         super(classLoader, repositoryHandler, dependencyHandler, scriptSource, configContainer);
     }
 

@@ -6,12 +6,11 @@ group = 'gradle'
 
 // START SNIPPET conditional-signing
 version = '1.0-SNAPSHOT'
-isReleaseVersion = !version.endsWith("SNAPSHOT")
+ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
 
 signing {
-    if (isReleaseVersion) {
-        sign configurations.archives
-    }
+    required { isReleaseVersion && gradle.taskGraph.hasTask("uploadArchives") }
+    sign configurations.archives
 }
 // END SNIPPET conditional-signing
 
@@ -20,7 +19,7 @@ uploadArchives {
         mavenDeployer {
             repository(url: uri("${buildDir}/repo"))
             if (isReleaseVersion) {
-                beforeDeployment { MavenDeployment deployment -> signPom(deployment) }
+                beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
             }
         }
     }

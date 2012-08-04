@@ -17,10 +17,11 @@
 package org.gradle.api.tasks.compile;
 
 import org.gradle.api.AntBuilder;
-import org.gradle.api.internal.Factory;
-import org.gradle.api.internal.tasks.compile.AntJavaCompiler;
-import org.gradle.api.internal.tasks.compile.IncrementalJavaCompiler;
-import org.gradle.api.internal.tasks.compile.JavaCompiler;
+import org.gradle.api.internal.file.TemporaryFileProvider;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.compile.*;
+import org.gradle.api.internal.tasks.compile.Compiler;
+import org.gradle.internal.Factory;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
@@ -34,25 +35,29 @@ import java.io.File;
  * @author Hans Dockter
  */
 public class Compile extends AbstractCompile {
-
-    private JavaCompiler javaCompiler;
-
+    private Compiler<JavaCompileSpec> javaCompiler;
     private File dependencyCacheDir;
+    private final JavaCompileSpec spec = new DefaultJavaCompileSpec();
 
     public Compile() {
         Factory<AntBuilder> antBuilderFactory = getServices().getFactory(AntBuilder.class);
-        javaCompiler = new IncrementalJavaCompiler(new AntJavaCompiler(antBuilderFactory), antBuilderFactory, getOutputs());
+        JavaCompilerFactory inProcessCompilerFactory = new InProcessJavaCompilerFactory();
+        ProjectInternal projectInternal = (ProjectInternal) getProject();
+        TemporaryFileProvider tempFileProvider = projectInternal.getServices().get(TemporaryFileProvider.class);
+        JavaCompilerFactory defaultCompilerFactory = new DefaultJavaCompilerFactory(projectInternal, tempFileProvider, antBuilderFactory, inProcessCompilerFactory);
+        Compiler<JavaCompileSpec> delegatingCompiler = new DelegatingJavaCompiler(defaultCompilerFactory);
+        javaCompiler = new IncrementalJavaCompiler(delegatingCompiler, antBuilderFactory, getOutputs());
     }
 
     @TaskAction
     protected void compile() {
-        javaCompiler.setSource(getSource());
-        javaCompiler.setDestinationDir(getDestinationDir());
-        javaCompiler.setClasspath(getClasspath());
-        javaCompiler.setDependencyCacheDir(getDependencyCacheDir());
-        javaCompiler.setSourceCompatibility(getSourceCompatibility());
-        javaCompiler.setTargetCompatibility(getTargetCompatibility());
-        WorkResult result = javaCompiler.execute();
+        spec.setSource(getSource());
+        spec.setDestinationDir(getDestinationDir());
+        spec.setClasspath(getClasspath());
+        spec.setDependencyCacheDir(getDependencyCacheDir());
+        spec.setSourceCompatibility(getSourceCompatibility());
+        spec.setTargetCompatibility(getTargetCompatibility());
+        WorkResult result = javaCompiler.execute(spec);
         setDidWork(result.getDidWork());
     }
 
@@ -72,14 +77,14 @@ public class Compile extends AbstractCompile {
      */
     @Nested
     public CompileOptions getOptions() {
-        return javaCompiler.getCompileOptions();
+        return spec.getCompileOptions();
     }
 
-    public JavaCompiler getJavaCompiler() {
+    public Compiler<JavaCompileSpec> getJavaCompiler() {
         return javaCompiler;
     }
 
-    public void setJavaCompiler(JavaCompiler javaCompiler) {
+    public void setJavaCompiler(Compiler<JavaCompileSpec> javaCompiler) {
         this.javaCompiler = javaCompiler;
     }
 }

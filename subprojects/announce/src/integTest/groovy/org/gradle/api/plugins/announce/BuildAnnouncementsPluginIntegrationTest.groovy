@@ -15,9 +15,19 @@
  */
 package org.gradle.api.plugins.announce
 
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
-class BuildAnnouncementsPluginIntegrationTest extends AbstractIntegrationSpec {
+class BuildAnnouncementsPluginIntegrationTest extends WellBehavedPluginTest {
+    @Override
+    String getPluginId() {
+        return "build-announcements"
+    }
+
+    @Override
+    String getMainTask() {
+        return "tasks"
+    }
+
     def "does not blow up when a local notification mechanism is not available"() {
         buildFile << """
 apply plugin: 'java'

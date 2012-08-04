@@ -1,0 +1,57 @@
+img.logo {
+  margin-bottom: 1em;
+}
+
+section.major-detail {
+  margin: 0 1em 2em;
+  padding: 1em 1em 0;
+  border-left: 2px solid #999;
+  font-size: 15px;
+  border: 1px dotted #999;
+  background-color: #FCFCFC;
+  border-radius: 5px;
+}
+
+section.minor-detail {
+  margin: 0 0.5em;
+  padding: 0 1em;
+}
+
+ul.toc {
+  font-size: 15px
+}
+
+ul.toc-sub {
+  margin-bottom: 0px;
+}
+
+button.display-toggle {
+  cursor: pointer;
+}
+
+section.footer {
+  font-size: 75%;
+  margin: 6em 0 0;
+  padding-top: 1em;
+  border-top: 1px dashed #999;
+  text-align: center;
+}
+
+.java_keyword {
+  color: #708;
+}
+.java_comment {
+  color: #A70;
+}
+.java_plain, .java_type {
+  color: black;
+}
+.java_separator {
+  color: #666;
+}
+.java_operator {
+  color: #A22;
+}
+.java_literal {
+  color: #281;
+}

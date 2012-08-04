@@ -22,7 +22,9 @@ package org.gradle.tooling.internal.protocol;
  * because we have an excellent test suite that tells the story of what has changed and when
  * <p>
  * A marker interface to document the problem consistently.
- * The implementators should live only until we gradually remove old VersionX types.
+ * Might live only until we gradually remove old VersionX types.
+ * <p>
+ * If you make changes to inheritor of this interfaces make sure you run all compatibility tests.
  *
  * @author: Szczepan Faber, created at: 8/5/11
  */

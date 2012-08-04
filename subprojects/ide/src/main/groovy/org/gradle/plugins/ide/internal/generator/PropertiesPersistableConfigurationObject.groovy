@@ -13,33 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.ide.internal.generator;
+package org.gradle.plugins.ide.internal.generator
+
+import org.gradle.api.internal.PropertiesTransformer
 
 
-import org.gradle.util.UncheckedException;
-
-
-public abstract class PropertiesPersistableConfigurationObject extends AbstractPersistableConfigurationObject {
-    private Properties properties;
-
-    @Override
-    public void load(InputStream inputStream) throws Exception {
-        properties = new Properties();
-        properties.load(inputStream);
-        load(properties);
+abstract class PropertiesPersistableConfigurationObject extends AbstractPersistableConfigurationObject {
+    private final PropertiesTransformer transformer
+    private Properties properties
+    
+    protected PropertiesPersistableConfigurationObject(PropertiesTransformer transformer) {
+        this.transformer = transformer
     }
 
     @Override
-    public void store(OutputStream outputStream) {
-        store(properties);
-        try {
-            properties.store(outputStream, "");
-        } catch (IOException e) {
-            throw UncheckedException.asUncheckedException(e);
-        }
+    void load(InputStream inputStream) throws Exception {
+        properties = new Properties()
+        properties.load(inputStream)
+        load(properties)
     }
 
-    protected abstract void store(Properties properties);
+    @Override
+    void store(OutputStream outputStream) {
+        store(properties)
+        transformer.transform(properties, outputStream)
+    }
 
-    protected abstract void load(Properties properties);
+    protected abstract void store(Properties properties)
+
+    protected abstract void load(Properties properties)
+    
+    void transformAction(Closure action) {
+        transformer.addAction(action)
+    }
 }

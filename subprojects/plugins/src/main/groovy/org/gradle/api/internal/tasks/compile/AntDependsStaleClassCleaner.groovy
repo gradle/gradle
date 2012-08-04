@@ -15,29 +15,28 @@
  */
 package org.gradle.api.internal.tasks.compile
 
+import org.gradle.api.AntBuilder
 import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.Factory
+import org.gradle.internal.Factory
 
 class AntDependsStaleClassCleaner extends StaleClassCleaner {
     private final Factory<AntBuilder> antBuilderFactory
+
     File dependencyCacheDir
 
-    def AntDependsStaleClassCleaner(Factory<AntBuilder> antBuilderFactory) {
+    AntDependsStaleClassCleaner(Factory<AntBuilder> antBuilderFactory) {
         this.antBuilderFactory = antBuilderFactory;
     }
 
     void execute() {
-        Map dependArgs = [
-                destDir: destinationDir
-        ]
-
-        Map dependOptions = dependArgs + compileOptions.dependOptions.optionMap()
+        def dependArgs = [destDir: destinationDir]
+        def dependOptions = dependArgs + compileOptions.dependOptions.optionMap()
         if (compileOptions.dependOptions.useCache) {
             dependOptions['cache'] = dependencyCacheDir
         }
 
         def ant = antBuilderFactory.create()
-        ant.project.addTaskDefinition('gradleDepend', AntDepend.class)
+        ant.project.addTaskDefinition('gradleDepend', AntDepend)
         ant.gradleDepend(dependOptions) {
             source.addToAntBuilder(ant, 'src', FileCollection.AntType.MatchingTask)
         }

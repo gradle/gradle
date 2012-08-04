@@ -19,9 +19,9 @@ package org.gradle.initialization;
 import org.gradle.*;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.Instantiator;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.api.internal.project.GlobalServicesRegistry;
-import org.gradle.api.internal.project.ServiceRegistry;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.api.internal.project.TopLevelBuildServiceRegistry;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.StandardOutputListener;
@@ -35,7 +35,8 @@ import org.gradle.listener.ListenerManager;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.logging.StyledTextOutputFactory;
-import org.gradle.profile.ProfileListener;
+import org.gradle.profile.ProfileEventAdapter;
+import org.gradle.profile.ReportGeneratingProfileListener;
 
 import java.util.Arrays;
 
@@ -118,8 +119,9 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         listenerManager.addListener(tracker);
         listenerManager.addListener(new BuildCleanupListener(serviceRegistry));
 
+        listenerManager.addListener(serviceRegistry.get(ProfileEventAdapter.class));
         if (startParameter.isProfile()) {
-            listenerManager.addListener(new ProfileListener(requestMetaData.getBuildTimeClock().getStartTime()));
+            listenerManager.addListener(new ReportGeneratingProfileListener());
         }
 
         GradleInternal gradle = serviceRegistry.get(Instantiator.class).newInstance(DefaultGradle.class, tracker.getCurrentBuild(), startParameter, serviceRegistry);
@@ -127,9 +129,8 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
                 gradle,
                 serviceRegistry.get(InitScriptHandler.class),
                 new SettingsHandler(
-                        new EmbeddedScriptSettingsFinder(
-                                new DefaultSettingsFinder(
-                                        new BuildLayoutFactory())),
+                        new DefaultSettingsFinder(
+                                new BuildLayoutFactory()),
                         serviceRegistry.get(SettingsProcessor.class),
                         new BuildSourceBuilder(
                                 this,
@@ -140,6 +141,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
                 gradle.getBuildListenerBroadcaster(),
                 serviceRegistry.get(ExceptionAnalyser.class),
                 loggingManager,
+                listenerManager.getBroadcaster(ModelConfigurationListener.class),
                 gradle.getServices().get(BuildExecuter.class));
     }
 

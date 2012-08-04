@@ -1,10 +1,12 @@
+import org.gradle.internal.jvm.Jvm
+
 apply plugin: 'java'
 
 defaultTasks 'execTask', 'execByMethod'
 
 task execTask(type: Exec) {
     dependsOn sourceSets.main.runtimeClasspath
-    testFile = file("$buildDir/$name")
+    ext.testFile = file("$buildDir/$name")
     executable = Jvm.current().getJavaExecutable()
     args '-cp', sourceSets.main.runtimeClasspath.asPath, 'org.gradle.TestMain', projectDir, testFile
     doLast {
@@ -14,7 +16,7 @@ task execTask(type: Exec) {
 
 task execByMethod {
     dependsOn sourceSets.main.runtimeClasspath
-    testFile = file("$buildDir/$name")
+    ext.testFile = file("$buildDir/$name")
     doFirst {
         exec {
             executable = Jvm.current().getJavaExecutable()

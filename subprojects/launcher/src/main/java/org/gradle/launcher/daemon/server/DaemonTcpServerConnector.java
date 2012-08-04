@@ -16,16 +16,14 @@
 package org.gradle.launcher.daemon.server;
 
 import org.gradle.api.Action;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
-import org.gradle.messaging.concurrent.DefaultExecutorFactory;
+import org.gradle.internal.concurrent.DefaultExecutorFactory;
+import org.gradle.internal.id.UUIDGenerator;
 import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.ConnectEvent;
 import org.gradle.messaging.remote.internal.Connection;
 import org.gradle.messaging.remote.internal.DefaultMessageSerializer;
 import org.gradle.messaging.remote.internal.inet.InetAddressFactory;
 import org.gradle.messaging.remote.internal.inet.TcpIncomingConnector;
-import org.gradle.util.UUIDGenerator;
 
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -34,15 +32,11 @@ import java.util.concurrent.locks.ReentrantLock;
  * Opens a TCP connection for clients to connect to to communicate with a daemon.
  */
 public class DaemonTcpServerConnector implements DaemonServerConnector {
-
-    private static final Logger LOGGER = Logging.getLogger(DaemonServerConnector.class);
-
     final private TcpIncomingConnector<Object> incomingConnector;
 
     private boolean started;
     private boolean stopped;
     private final Lock lifecycleLock = new ReentrantLock();
-    public static final String HELLO_MESSAGE = "Starting daemon server connector.";
 
     public DaemonTcpServerConnector() {
         this.incomingConnector = new TcpIncomingConnector<Object>(
@@ -66,11 +60,9 @@ public class DaemonTcpServerConnector implements DaemonServerConnector {
             // Hold the lock until we actually start accepting connections for the case when stop is called from another
             // thread while we are in the middle here.
 
-            LOGGER.lifecycle(HELLO_MESSAGE);
-
             Action<ConnectEvent<Connection<Object>>> connectEvent = new Action<ConnectEvent<Connection<Object>>>() {
                 public void execute(ConnectEvent<Connection<Object>> connectionConnectEvent) {
-                    handler.handle(connectionConnectEvent.getConnection());
+                    handler.handle(new SynchronizedDispatchConnection<Object>(connectionConnectEvent.getConnection()));
                 }
             };
 

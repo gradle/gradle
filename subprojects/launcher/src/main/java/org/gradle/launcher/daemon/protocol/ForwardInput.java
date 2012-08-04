@@ -15,14 +15,11 @@
  */
 package org.gradle.launcher.daemon.protocol;
 
-import org.gradle.initialization.BuildClientMetaData;
-
 public class ForwardInput extends IoCommand {
-    
     private final byte[] bytes;
     
-    public ForwardInput(BuildClientMetaData clientMetaData, byte[] bytes) {
-        super(clientMetaData);
+    public ForwardInput(Object identifier, byte[] bytes) {
+        super(identifier);
         this.bytes = bytes;
     }
     

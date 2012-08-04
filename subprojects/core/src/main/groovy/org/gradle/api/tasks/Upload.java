@@ -100,8 +100,6 @@ public class Upload extends ConventionTask {
     }
 
     public void setConfiguration(Configuration configuration) {
-        //TODO SF - generated ivy.xml contains all configurations and all artifacts/dependencies.
-        //so for the purposes of ivy.xml, setting a configuration makes less sense.
         this.configuration = configuration;
     }
 

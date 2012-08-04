@@ -16,86 +16,99 @@
 
 package org.gradle.process.internal;
 
-import org.gradle.messaging.concurrent.DefaultExecutorFactory;
-import org.gradle.util.DisconnectableInputStream;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
+import org.gradle.process.internal.streams.StreamsHandler;
 
-import java.io.InputStream;
-import java.util.concurrent.Executor;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author Tom Eyckmans
  */
 public class ExecHandleRunner implements Runnable {
     private static final Object START_LOCK = new Object();
+    private static final Logger LOGGER = Logging.getLogger(ExecHandleRunner.class);
+
     private final ProcessBuilderFactory processBuilderFactory;
     private final DefaultExecHandle execHandle;
-    private final Executor threadPool;
-    private final Object lock;
+    private final Lock lock = new ReentrantLock();
+
     private Process process;
     private boolean aborted;
+    private final StreamsHandler streamsHandler;
 
-    public ExecHandleRunner(DefaultExecHandle execHandle, Executor threadPool) {
+    public ExecHandleRunner(DefaultExecHandle execHandle, StreamsHandler streamsHandler) {
         if (execHandle == null) {
             throw new IllegalArgumentException("execHandle == null!");
         }
+        this.streamsHandler = streamsHandler;
         this.processBuilderFactory = new ProcessBuilderFactory();
         this.execHandle = execHandle;
-        this.lock = new Object();
-        this.threadPool = threadPool;
     }
 
-    public void stopWaiting() {
-        synchronized (lock) {
+    public void abortProcess() {
+        lock.lock();
+        try {
             aborted = true;
             if (process != null) {
+                LOGGER.debug("Abort requested. Destroying process: {}.", execHandle.getDisplayName());
                 process.destroy();
             }
+        } finally {
+            lock.unlock();
         }
     }
 
     public void run() {
         ProcessBuilder processBuilder = processBuilderFactory.createProcessBuilder(execHandle);
-        int exitCode;
         try {
-            ExecOutputHandleRunner standardOutputRunner;
-            ExecOutputHandleRunner errorOutputRunner;
-            ExecOutputHandleRunner standardInputRunner;
-            InputStream instr = new DisconnectableInputStream(execHandle.getStandardInput(), new DefaultExecutorFactory());
             Process process;
 
             // This big fat static lock is here for windows. When starting multiple processes concurrently, the stdout
             // and stderr streams for some of the processes get stuck
             synchronized (START_LOCK) {
                 process = processBuilder.start();
-
-                standardOutputRunner = new ExecOutputHandleRunner("read process standard output",
-                        process.getInputStream(), execHandle.getStandardOutput());
-                errorOutputRunner = new ExecOutputHandleRunner("read process error output", process.getErrorStream(),
-                        execHandle.getErrorOutput());
-                standardInputRunner = new ExecOutputHandleRunner("write process standard input",
-                        instr, process.getOutputStream());
+                streamsHandler.connectStreams(process, execHandle.getDisplayName());
             }
-            synchronized (lock) {
-                this.process = process;
-            }
-
-            threadPool.execute(standardInputRunner);
-            threadPool.execute(standardOutputRunner);
-            threadPool.execute(errorOutputRunner);
+            setProcess(process);
 
             execHandle.started();
 
-            exitCode = process.waitFor();
-            instr.close();
+            LOGGER.debug("waiting until streams are handled...");
+            streamsHandler.start();
+
+            if (execHandle.isDaemon()) {
+                streamsHandler.stop();
+                detached();
+            } else {
+                int exitValue = process.waitFor();
+                streamsHandler.stop();
+                completed(exitValue);
+            }
         } catch (Throwable t) {
             execHandle.failed(t);
-            return;
         }
+    }
 
-        if (aborted) {
-            execHandle.aborted(exitCode);
-        } else {
-            execHandle.finished(exitCode);
+    private void setProcess(Process process) {
+        lock.lock();
+        try {
+            this.process = process;
+        } finally {
+            lock.unlock();
         }
+    }
+
+    private void completed(int exitValue) {
+        if (aborted) {
+            execHandle.aborted(exitValue);
+        } else {
+            execHandle.finished(exitValue);
+        }
+    }
+
+    private void detached() {
+        execHandle.detached();
     }
 }

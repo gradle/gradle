@@ -18,9 +18,11 @@ package org.gradle.process.internal;
 
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.IdentityFileResolver
-import org.gradle.util.Jvm
+import org.gradle.internal.jvm.Jvm
 import spock.lang.Specification
 import static java.util.Arrays.asList
+import java.nio.charset.Charset
+import spock.lang.Unroll
 
 public class JavaExecHandleBuilderTest extends Specification {
     FileResolver fileResolver = new IdentityFileResolver()
@@ -34,6 +36,7 @@ public class JavaExecHandleBuilderTest extends Specification {
         thrown(UnsupportedOperationException)
     }
 
+    @Unroll("buildsCommandLineForJavaProcess - input encoding #inputEncoding")
     public void buildsCommandLineForJavaProcess() {
         File jar1 = new File("file1.jar").canonicalFile
         File jar2 = new File("file2.jar").canonicalFile
@@ -43,19 +46,31 @@ public class JavaExecHandleBuilderTest extends Specification {
         builder.jvmArgs("jvm1", "jvm2")
         builder.classpath(jar1, jar2)
         builder.systemProperty("prop", "value")
+        builder.minHeapSize = "64m"
+        builder.maxHeapSize = "1g"
+        builder.defaultCharacterEncoding = inputEncoding
 
         when:
         List jvmArgs = builder.getAllJvmArgs()
 
         then:
-        jvmArgs == ['jvm1', 'jvm2', '-Dprop=value', '-cp', "$jar1$File.pathSeparator$jar2"]
+        jvmArgs == ['-Dprop=value', 'jvm1', 'jvm2', '-Xms64m', '-Xmx1g', fileEncodingProperty(expectedEncoding), '-cp', "$jar1$File.pathSeparator$jar2"]
 
         when:
         List commandLine = builder.getCommandLine()
 
         then:
         String executable = Jvm.current().getJavaExecutable().getAbsolutePath()
-        commandLine == [executable, 'jvm1', 'jvm2', '-Dprop=value', '-cp', "$jar1$File.pathSeparator$jar2",
-                'mainClass', 'arg1', 'arg2']
+        commandLine == [executable,  '-Dprop=value', 'jvm1', 'jvm2', '-Xms64m', '-Xmx1g', fileEncodingProperty(expectedEncoding),
+                '-cp', "$jar1$File.pathSeparator$jar2", 'mainClass', 'arg1', 'arg2']
+        
+        where:
+        inputEncoding | expectedEncoding
+        null          | Charset.defaultCharset().name()
+        "UTF-16"      | "UTF-16"
+    }
+
+    private String fileEncodingProperty(String encoding = Charset.defaultCharset().name()) {
+        return "-Dfile.encoding=$encoding"
     }
 }

@@ -15,30 +15,28 @@
  */
 package org.gradle.tooling.internal.consumer.loader;
 
+import org.gradle.internal.classpath.ClassPath;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.tooling.internal.consumer.Distribution;
-import org.gradle.tooling.internal.protocol.ConnectionVersion4;
+import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
 
-import java.io.File;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Set;
 
 public class CachingToolingImplementationLoader implements ToolingImplementationLoader {
     private final ToolingImplementationLoader loader;
-    private final Map<Set<File>, ConnectionVersion4> connections = new HashMap<Set<File>, ConnectionVersion4>();
+    private final Map<ClassPath, ConsumerConnection> connections = new HashMap<ClassPath, ConsumerConnection>();
 
     public CachingToolingImplementationLoader(ToolingImplementationLoader loader) {
         this.loader = loader;
     }
 
-    public ConnectionVersion4 create(Distribution distribution, ProgressLoggerFactory progressLoggerFactory) {
-        Set<File> classpath = new LinkedHashSet<File>(distribution.getToolingImplementationClasspath(progressLoggerFactory));
+    public ConsumerConnection create(Distribution distribution, ProgressLoggerFactory progressLoggerFactory, boolean verboseLogging) {
+        ClassPath classpath = distribution.getToolingImplementationClasspath(progressLoggerFactory);
 
-        ConnectionVersion4 connection = connections.get(classpath);
+        ConsumerConnection connection = connections.get(classpath);
         if (connection == null) {
-            connection = loader.create(distribution, progressLoggerFactory);
+            connection = loader.create(distribution, progressLoggerFactory, verboseLogging);
             connections.put(classpath, connection);
         }
 

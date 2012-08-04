@@ -29,7 +29,7 @@ public class HandleStop implements DaemonCommandAction {
                 DaemonMain#doAction will throw a DaemonStoppedException. Note that at this point we will also 
                 immediately tear down the client connection and remove the daemon from the registry.
             */
-            execution.getDaemonStateCoordinator().requestStop();
+            execution.getDaemonStateControl().requestStop();
         } else {
             execution.proceed();
         }

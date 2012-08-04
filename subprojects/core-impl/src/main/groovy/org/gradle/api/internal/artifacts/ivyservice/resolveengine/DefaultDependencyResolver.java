@@ -15,16 +15,15 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
-import org.apache.ivy.core.resolve.ResolveData;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.conflicts.StrictConflictResolution;
 import org.gradle.api.internal.artifacts.ivyservice.*;
-import org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.IvyAdapter;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LazyDependencyToModuleResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectModuleRegistry;
@@ -36,26 +35,26 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
     private final ModuleDescriptorConverter moduleDescriptorConverter;
     private final ResolvedArtifactFactory resolvedArtifactFactory;
     private final ResolveIvyFactory ivyFactory;
-    private final ClientModuleRegistry clientModuleRegistry;
     private final ProjectModuleRegistry projectModuleRegistry;
 
     public DefaultDependencyResolver(ResolveIvyFactory ivyFactory, ModuleDescriptorConverter moduleDescriptorConverter, ResolvedArtifactFactory resolvedArtifactFactory,
-                                     ProjectModuleRegistry projectModuleRegistry, ClientModuleRegistry clientModuleRegistry) {
+                                     ProjectModuleRegistry projectModuleRegistry) {
         this.ivyFactory = ivyFactory;
         this.moduleDescriptorConverter = moduleDescriptorConverter;
         this.resolvedArtifactFactory = resolvedArtifactFactory;
-        this.clientModuleRegistry = clientModuleRegistry;
         this.projectModuleRegistry = projectModuleRegistry;
     }
 
     public ResolvedConfiguration resolve(ConfigurationInternal configuration) throws ResolveException {
         LOGGER.debug("Resolving {}", configuration);
 
-        IvyAdapter ivyAdapter = ivyFactory.create(configuration.getResolutionStrategy());
-        ResolveData resolveData = ivyAdapter.getResolveData(configuration.getName());
+        IvyAdapter ivyAdapter = ivyFactory.create(configuration);
 
-        DependencyToModuleResolver dependencyResolver = constructDependencyResolver(configuration, ivyAdapter.getDependencyToModuleResolver(resolveData));
-        ArtifactToFileResolver artifactResolver = constructArtifactResolver(ivyAdapter.getArtifactToFileResolver());
+        DependencyToModuleResolver dependencyResolver = ivyAdapter.getDependencyToModuleResolver();
+        dependencyResolver = new ClientModuleResolver(dependencyResolver);
+        dependencyResolver = new ProjectDependencyResolver(projectModuleRegistry, dependencyResolver);
+        DependencyToModuleVersionIdResolver idResolver = new LazyDependencyToModuleResolver(dependencyResolver, ivyAdapter.getResolveData().getSettings().getVersionMatcher());
+        idResolver = new VersionForcingDependencyToModuleResolver(idResolver, configuration.getResolutionStrategy().getForcedModules());
 
         ModuleConflictResolver conflictResolver;
         if (configuration.getResolutionStrategy().getConflictResolution() instanceof StrictConflictResolution) {
@@ -64,20 +63,8 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
             conflictResolver = new LatestModuleConflictResolver();
         }
 
-        DependencyGraphBuilder builder = new DependencyGraphBuilder(moduleDescriptorConverter, resolvedArtifactFactory, artifactResolver, dependencyResolver, conflictResolver);
-        DefaultLenientConfiguration result = builder.resolve(configuration, resolveData);
+        DependencyGraphBuilder builder = new DependencyGraphBuilder(moduleDescriptorConverter, resolvedArtifactFactory, idResolver, conflictResolver);
+        DefaultLenientConfiguration result = builder.resolve(configuration, ivyAdapter.getResolveData());
         return new DefaultResolvedConfiguration(result);
-    }
-
-    private DependencyToModuleResolver constructDependencyResolver(ConfigurationInternal configuration, DependencyToModuleResolver ivyBackedResolver) {
-        DependencyToModuleResolver clientModuleResolver = new ClientModuleResolver(clientModuleRegistry);
-        DependencyToModuleResolver projectModuleResolver = new ProjectDependencyResolver(projectModuleRegistry);
-        DependencyToModuleResolver dependencyToModuleResolverChain = new DependencyToModuleResolverChain(clientModuleResolver, projectModuleResolver, ivyBackedResolver);
-        return new VersionForcingDependencyToModuleResolver(dependencyToModuleResolverChain, configuration.getResolutionStrategy().getForcedModules());
-    }
-
-    private ArtifactToFileResolver constructArtifactResolver(ArtifactToFileResolver ivyBackedArtifactResolver) {
-        ArtifactToFileResolver projectArtifactResolver = new ProjectDependencyResolver(projectModuleRegistry);
-        return new ArtifactToFileResolverChain(projectArtifactResolver, ivyBackedArtifactResolver);
     }
 }

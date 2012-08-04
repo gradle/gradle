@@ -24,6 +24,7 @@ import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.internal.collections.FilteredSet;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.internal.reflect.Instantiator;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -31,18 +32,18 @@ import java.util.TreeSet;
 
 public class DefaultNamedDomainObjectSet<T> extends DefaultNamedDomainObjectCollection<T> implements NamedDomainObjectSet<T> {
 
-    public DefaultNamedDomainObjectSet(Class<T> type, Instantiator instantiator, Namer<? super T> namer) {
+    public DefaultNamedDomainObjectSet(Class<? extends T> type, Instantiator instantiator, Namer<? super T> namer) {
         super(type, new TreeSet(new Namer.Comparator(namer)), instantiator, namer);
     }
 
-    public DefaultNamedDomainObjectSet(Class<T> type, Instantiator instantiator) {
+    public DefaultNamedDomainObjectSet(Class<? extends T> type, Instantiator instantiator) {
         this(type, instantiator, Named.Namer.forType(type));
     }
 
     /**
      * Subclasses using this constructor must ensure that the {@code store} uses a name based equality strategy as per the contract on NamedDomainObjectContainer.
      */
-    protected DefaultNamedDomainObjectSet(Class<T> type, Set<T> store, CollectionEventRegister<T> eventRegister, Instantiator instantiator, Namer<? super T> namer) {
+    protected DefaultNamedDomainObjectSet(Class<? extends T> type, Set<T> store, CollectionEventRegister<T> eventRegister, Instantiator instantiator, Namer<? super T> namer) {
         super(type, store, eventRegister, instantiator, namer);
     }
 

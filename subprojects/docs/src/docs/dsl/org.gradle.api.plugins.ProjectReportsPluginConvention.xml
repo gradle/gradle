@@ -14,7 +14,7 @@
             </tr>
             <tr>
                 <td>projectReportDir</td>
-                <td><literal><replaceable>${project.reportsDir}</replaceable>/<replaceable>${project.projectReportDirName}</replaceable></literal></td>
+                <td><literal><replaceable>${project.reporting.baseDir}</replaceable>/<replaceable>${project.projectReportDirName}</replaceable></literal></td>
             </tr>
         </table>
     </section>

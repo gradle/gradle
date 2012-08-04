@@ -21,8 +21,8 @@ import org.gradle.api.Buildable;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.UncheckedException;
 import org.gradle.util.GUtil;
-import org.gradle.util.UncheckedException;
 
 import java.util.*;
 import java.util.concurrent.Callable;
@@ -75,7 +75,7 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
                 try {
                     callableResult = callable.call();
                 } catch (Exception e) {
-                    throw UncheckedException.asUncheckedException(e);
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
                 if (callableResult != null) {
                     queue.add(0, callableResult);

@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import org.gradle.build.GenerateReleasesXml
-
 configurations {
     reports
 }
@@ -24,33 +22,31 @@ dependencies {
     groovy libraries.groovy
 
     publishCompile libraries.slf4j_api
+    publishCompile project(":baseServices")
+    publishCompile project(":messaging")
 
     compile libraries.asm
     compile libraries.ant
     compile libraries.commons_collections
     compile libraries.commons_io
     compile libraries.commons_lang
-    compile libraries.commons_httpclient
     compile libraries.ivy
     compile libraries.logback_core
     compile libraries.logback_classic
     compile libraries.guava
     compile libraries.jcip
     compile libraries.jul_to_slf4j
-    compile "slide:webdavlib:2.0@jar"
-    compile module('org.fusesource.jansi:jansi:1.2.1') {
-        dependency libraries.jna
-    }
-    compile libraries.commons_httpclient
+    compile module('com.googlecode.jarjar:jarjar:1.3')
+    compile libraries.inject
 
     compile project(":cli")
     compile project(":native")
 
     runtime libraries.log4j_to_slf4j
     runtime libraries.jcl_to_slf4j
-    runtime module("com.jcraft:jsch:0.1.42") {
-        dependency "com.jcraft:jzlib:1.0.7"
-    }
+
+    testCompile libraries.log4j_to_slf4j
+    testCompile libraries.jcl_to_slf4j
 
     testRuntime "xerces:xercesImpl:2.9.1"
 
@@ -62,25 +58,29 @@ dependencies {
     reports 'css3-pie:css3-pie:1.0beta3'
 }
 
+useTestFixtures()
+
 test {
     jvmArgs '-Xms128m', '-Xmx512m', '-XX:MaxPermSize=128m', '-XX:+HeapDumpOnOutOfMemoryError'
 }
 
 [compileGroovy, compileTestGroovy]*.groovyOptions*.fork(memoryInitialSize: '128M', memoryMaximumSize: '1G')
 
-task releasesResource(type: GenerateReleasesXml) {
-    destFile = new File(generatedResourcesDir, "org/gradle/releases.xml")
+task buildReceiptResource(type: Copy, dependsOn: rootProject.createBuildReceipt) {
+    into "$generatedResourcesDir/org/gradle"
+    from rootProject.createBuildReceipt.receiptFile
 }
-sourceSets.main.output.dir generatedResourcesDir, buildBy: releasesResource
+
+sourceSets.main.output.dir generatedResourcesDir, builtBy: buildReceiptResource
 
 task reportResources(type: Copy) {
     from configurations.reports
     into "$generatedResourcesDir/org/gradle/reporting"
 }
-sourceSets.main.output.dir generatedResourcesDir, buildBy: reportResources
+sourceSets.main.output.dir generatedResourcesDir, builtBy: reportResources
 
 task pluginsManifest(type: PluginsManifest)
-sourceSets.main.output.dir generatedResourcesDir, buildBy: pluginsManifest
+sourceSets.main.output.dir generatedResourcesDir, builtBy: pluginsManifest
 
 class PluginsManifest extends DefaultTask {
     @OutputFile
@@ -91,7 +91,7 @@ class PluginsManifest extends DefaultTask {
     @Input
     Properties getPluginProperties() {
         def properties = new Properties()
-        properties.plugins = project.pluginProjects().collect { it.archivesBaseName }.join(',')
+        properties.plugins = project.pluginProjects.collect { it.archivesBaseName }.join(',')
         return properties
     }
 
@@ -99,4 +99,12 @@ class PluginsManifest extends DefaultTask {
     def generate() {
         propertiesFile.withOutputStream { pluginProperties.save(it, 'plugin definitions') }
     }
+}
+
+eclipse {
+	classpath {
+		file.whenMerged { classpath ->
+			classpath.entries.removeAll {it.path.contains('/core') }
+		}
+	}
 }

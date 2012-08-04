@@ -29,15 +29,4 @@ class SystemPropertiesCommandLineConverterTest extends Specification {
         expect:
         convert("-Da=b", "-Dc=d") == [a: "b", c: "d"]
     }
-
-    def "parses system properties args with no property value"() {
-        expect:
-        convert("-Da", "-Db=") == [a: "", b: ""]
-    }
-
-    def "parses system properties arg containing equals"() {
-        expect:
-        convert("-Dprop=a b=c", "-Dprop2==", "-Dprop3=ab=") == [prop: 'a b=c', prop2: '=', prop3: 'ab=']
-    }
-
 }

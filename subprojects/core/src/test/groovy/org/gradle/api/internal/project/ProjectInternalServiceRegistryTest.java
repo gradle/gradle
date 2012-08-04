@@ -32,17 +32,22 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.file.*;
 import org.gradle.api.internal.initialization.DefaultScriptHandler;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
-import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.plugins.DefaultProjectsPluginContainer;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.tasks.DefaultTaskContainerFactory;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.logging.LoggingManager;
-import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.PluginContainer;
+import org.gradle.internal.Factory;
+import org.gradle.internal.nativeplatform.filesystem.FileSystem;
+import org.gradle.internal.reflect.DirectInstantiator;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.util.JUnit4GroovyMockery;
+import org.hamcrest.Matcher;
+import org.hamcrest.Matchers;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -72,6 +77,7 @@ public class ProjectInternalServiceRegistryTest {
     private final Factory publishServicesFactory = context.mock(Factory.class);
     private final DependencyHandler dependencyHandler = context.mock(DependencyHandler.class);
     private final ArtifactHandler artifactHandler = context.mock(ArtifactHandler.class);
+    private final DirectInstantiator instantiator = new DirectInstantiator();
 
     @Before
     public void setUp() {
@@ -89,8 +95,12 @@ public class ProjectInternalServiceRegistryTest {
             will(returnValue(pluginRegistry));
             allowing(parent).get(DependencyManagementServices.class);
             will(returnValue(dependencyManagementServices));
-            allowing(parent).get(Instantiator.class);
-            will(returnValue(new DirectInstantiator()));
+            allowing(parent).get(org.gradle.internal.reflect.Instantiator.class);
+            will(returnValue(instantiator));
+            allowing(parent).get(FileSystem.class);
+            will(returnValue(context.mock(FileSystem.class)));
+            allowing(parent).get(ClassGenerator.class);
+            will(returnValue(context.mock(ClassGenerator.class)));
         }});
     }
 
@@ -101,13 +111,14 @@ public class ProjectInternalServiceRegistryTest {
     }
 
     @Test
-    public void providesAConvention() {
-        assertThat(registry.get(Convention.class), instanceOf(DefaultConvention.class));
-        assertThat(registry.get(Convention.class), sameInstance(registry.get(Convention.class)));
-    }
-
-    @Test
     public void providesATaskContainerFactory() {
+        final ITaskFactory childFactory = context.mock(ITaskFactory.class);
+
+        context.checking(new Expectations() {{
+            one(taskFactory).createChild(project, instantiator);
+            will(returnValue(childFactory));
+        }});
+
         assertThat(registry.getFactory(TaskContainerInternal.class), instanceOf(DefaultTaskContainerFactory.class));
     }
 
@@ -115,7 +126,8 @@ public class ProjectInternalServiceRegistryTest {
     public void providesAPluginContainer() {
         expectScriptClassLoaderProviderCreated();
         context.checking(new Expectations() {{
-            one(pluginRegistry).createChild(with(notNullValue(ClassLoader.class)));
+            Matcher matcher = Matchers.instanceOf(DependencyInjectingInstantiator.class);
+            one(pluginRegistry).createChild(with(notNullValue(ClassLoader.class)), with((Matcher<Instantiator>)matcher));
         }});
 
         assertThat(registry.get(PluginContainer.class), instanceOf(DefaultProjectsPluginContainer.class));

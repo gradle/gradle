@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.file.*;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.nativeplatform.filesystem.FileSystems;
 
 import java.io.FilterReader;
 import java.util.ArrayList;
@@ -41,7 +42,7 @@ public class CopyActionImpl implements CopyAction, CopySpecSource {
         this.resolver = resolver;
         root = new CopySpecImpl(resolver);
         mainContent = root.addChild();
-        this.visitor = new MappingCopySpecVisitor(new NormalizingCopySpecVisitor(visitor));
+        this.visitor = new MappingCopySpecVisitor(new NormalizingCopySpecVisitor(visitor), FileSystems.getDefault());
     }
 
     public FileResolver getResolver() {
@@ -209,11 +210,11 @@ public class CopyActionImpl implements CopyAction, CopySpecSource {
         mainContent.setCaseSensitive(caseSensitive);
     }
 
-    public int getDirMode() {
+    public Integer getDirMode() {
         return mainContent.getDirMode();
     }
 
-    public CopyProcessingSpec setDirMode(int mode) {
+    public CopyProcessingSpec setDirMode(Integer mode) {
         mainContent.setDirMode(mode);
         return this;
     }
@@ -223,11 +224,11 @@ public class CopyActionImpl implements CopyAction, CopySpecSource {
         return this;
     }
 
-    public int getFileMode() {
+    public Integer getFileMode() {
         return mainContent.getFileMode();
     }
 
-    public CopyProcessingSpec setFileMode(int mode) {
+    public CopyProcessingSpec setFileMode(Integer mode) {
         mainContent.setFileMode(mode);
         return this;
     }

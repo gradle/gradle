@@ -45,7 +45,12 @@ class SignOperation implements SignatureSpec {
      * The signatory to the generated digital signatures.
      */
     Signatory signatory
-    
+
+    /**
+     * Whether or not it is required that this signature be generated.
+     */
+    boolean required
+
     final private List<Signature> signatures = []
         
     String getDisplayName() {

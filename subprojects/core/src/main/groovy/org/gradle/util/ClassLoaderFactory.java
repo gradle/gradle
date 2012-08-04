@@ -15,15 +15,20 @@
  */
 package org.gradle.util;
 
-import java.net.URL;
+import org.gradle.internal.classpath.ClassPath;
+
+import java.net.URI;
 
 public interface ClassLoaderFactory {
     /**
-     * Creates a ClassLoader implementation which has only the classes from the specified URLs visible and the Java API visible.
-     * @param urls The URLs
-     * @return The ClassLoader
+     * Creates a ClassLoader implementation which has only the classes from the specified URIs and the Java API visible.
      */
-    ClassLoader createIsolatedClassLoader(Iterable<URL> urls);
+    ClassLoader createIsolatedClassLoader(ClassPath classPath);
+
+    /**
+     * Creates a ClassLoader implementation which has only the classes from the specified URIs and the Java API visible.
+     */
+    ClassLoader createIsolatedClassLoader(Iterable<URI> uris);
 
     /**
      * Creates a ClassLoader implementation which has, by default, only the classes from the Java API visible, but which can allow access

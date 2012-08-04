@@ -15,6 +15,7 @@
  */
 package org.gradle.api.specs;
 
+import org.gradle.api.specs.internal.ClosureSpec;
 import org.gradle.util.DeprecationLogger;
 
 import groovy.lang.Closure;
@@ -49,13 +50,8 @@ public class Specs {
         return (Spec<T>)SATISFIES_NONE;
     }
 
-    public static <T> Spec<T> convertClosureToSpec(final Closure cl) {
-        return new Spec<T>() {
-            public boolean isSatisfiedBy(T element) {
-                Object value = cl.call(element);
-                return value == null ? false : ((Boolean) value).booleanValue();
-            }
-        };
+    public static <T> Spec<T> convertClosureToSpec(final Closure closure) {
+        return new ClosureSpec<T>(closure);
     }
 
     public static <T> Set<T> filterIterable(Iterable<? extends T> iterable, Spec<? super T> spec) {

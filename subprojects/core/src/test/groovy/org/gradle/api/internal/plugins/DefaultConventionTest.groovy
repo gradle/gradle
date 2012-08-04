@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.plugins
 
+import org.gradle.internal.reflect.Instantiator
+import org.gradle.api.internal.ThreadGlobalInstantiator
 import org.gradle.api.plugins.Convention
 import org.gradle.api.plugins.TestPluginConvention1
 import org.gradle.api.plugins.TestPluginConvention2
@@ -33,8 +35,10 @@ class DefaultConventionTest {
     TestPluginConvention1 convention1
     TestPluginConvention2 convention2
 
+    Instantiator instantiator = ThreadGlobalInstantiator.getOrCreate()
+
     @Before public void setUp() {
-        convention = new DefaultConvention()
+        convention = new DefaultConvention(instantiator)
         convention1 = new TestPluginConvention1()
         convention2 = new TestPluginConvention2()
         convention.plugins.plugin1 = convention1
@@ -115,7 +119,7 @@ class DefaultConventionTest {
 
     @Test public void addsPropertyAndConfigureMethodForEachExtension() {
         //when
-        convention = new DefaultConvention()
+        convention = new DefaultConvention(instantiator)
         def ext = new FooExtension()
         convention.add("foo", ext)
 
@@ -126,7 +130,7 @@ class DefaultConventionTest {
     }
 
     @Test public void extensionsTakePrecendenceOverPluginConventions() {
-        convention = new DefaultConvention()
+        convention = new DefaultConvention(instantiator)
         convention.plugins.foo = new FooPluginExtension()
         convention.add("foo", new FooExtension())
 
@@ -135,6 +139,12 @@ class DefaultConventionTest {
         convention.extensionsAsDynamicObject.foo {
             assertEquals("Hello world!", message);
         }
+    }
+
+    @Test void canCreateExtensions() {
+        convention = new DefaultConvention(instantiator)
+        FooExtension extension = convention.create("foo", FooExtension)
+        assert extension.is(convention.getByName("foo"))
     }
 
     static class FooExtension {

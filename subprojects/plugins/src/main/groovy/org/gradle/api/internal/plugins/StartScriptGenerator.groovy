@@ -21,41 +21,63 @@ import org.gradle.util.AntUtil
 import org.apache.tools.ant.taskdefs.Chmod
 
 class StartScriptGenerator {
-    /** The display name of the application     */
+    /**
+     * The display name of the application
+     */
     String applicationName
 
-    /** The environment variable to use to provide additional options to the JVM     */
+    /**
+     * The environment variable to use to provide additional options to the JVM
+     */
     String optsEnvironmentVar
 
-    /** The environment variable to use to control exit value (windows only)     */
+    /**
+     * The environment variable to use to control exit value (windows only)
+     */
     String exitEnvironmentVar
 
     String mainClassName
 
-    /** The classpath, relative to the application home directory     */
+    /**
+     * The classpath, relative to the application home directory.
+     */
     Iterable<String> classpath
 
-    /** The path of the script, relative to the application home directory    */
+    /**
+     * The path of the script, relative to the application home directory.
+     */
     String scriptRelPath
 
-    /** This system property to use to pass the script name to the application. May be null     */
+    /**
+     * This system property to use to pass the script name to the application. May be null.
+     */
     String appNameSystemProperty
 
     private final engine = new SimpleTemplateEngine()
 
     void generateUnixScript(File unixScript) {
-        def unixClassPath = classpath.collect { "\$APP_HOME/$it" }.join(":")
+        String nativeOutput = generateUnixScriptContent()
+        writeToFile(nativeOutput, unixScript)
+        createExecutablePermission(unixScript)
+    }
+
+    String generateUnixScriptContent() {
+        def unixClassPath = classpath.collect { "\$APP_HOME/${it.replace('\\', '/')}" }.join(":")
         def binding = [applicationName: applicationName,
                 optsEnvironmentVar: optsEnvironmentVar,
                 mainClassName: mainClassName,
                 appNameSystemProperty: appNameSystemProperty,
                 appHomeRelativePath: appHomeRelativePath,
                 classpath: unixClassPath]
-        generateScript('unixStartScript.txt', binding, TextUtil.unixLineSeparator, unixScript)
-        createExecutablePermission(unixScript)
+        return generateNativeOutput('unixStartScript.txt', binding, TextUtil.unixLineSeparator)
     }
 
     void generateWindowsScript(File windowsScript) {
+        String nativeOutput = generateWindowsScriptContent()
+        writeToFile(nativeOutput, windowsScript);
+    }
+
+    String generateWindowsScriptContent() {
         def windowsClassPath = classpath.collect { "%APP_HOME%\\${it.replace('/', '\\')}" }.join(";")
         def appHome = appHomeRelativePath.replace('/', '\\')
         def binding = [applicationName: applicationName,
@@ -65,7 +87,8 @@ class StartScriptGenerator {
                 appNameSystemProperty: appNameSystemProperty,
                 appHomeRelativePath: appHome,
                 classpath: windowsClassPath]
-        generateScript('windowsStartScript.txt', binding, TextUtil.windowsLineSeparator, windowsScript)
+        return generateNativeOutput('windowsStartScript.txt', binding, TextUtil.windowsLineSeparator)
+
     }
 
     private void createExecutablePermission(File unixScriptFile) {
@@ -76,13 +99,19 @@ class StartScriptGenerator {
         chmod.execute()
     }
 
-    private void generateScript(String templateName, Map binding, String lineSeparator, File outputFile) {
+    void writeToFile(String scriptContent, File scriptFile) {
+        scriptFile.parentFile.mkdirs()
+        scriptFile.write(scriptContent)
+    }
+
+
+    private String generateNativeOutput(String templateName, Map binding, String lineSeparator) {
         def stream = StartScriptGenerator.getResource(templateName)
         def templateText = stream.text
         def output = engine.createTemplate(templateText).make(binding)
         def nativeOutput = TextUtil.convertLineSeparators(output as String, lineSeparator)
-        outputFile.parentFile.mkdirs()
-        outputFile.write(nativeOutput)
+        return nativeOutput;
+
     }
 
     private String getAppHomeRelativePath() {

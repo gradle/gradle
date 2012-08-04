@@ -15,9 +15,9 @@
  */
 package org.gradle.api.plugins.announce.internal
 
-import org.gradle.api.Project
+import org.gradle.api.internal.ProcessOperations
 import org.gradle.api.plugins.announce.AnnouncePluginExtension
-import org.gradle.os.OperatingSystem
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
 
@@ -25,13 +25,15 @@ import spock.lang.Specification
  * @author Hans Dockter
  */
 class DefaultAnnouncerFactoryTest extends Specification {
-    AnnouncePluginExtension announcePluginConvention = new AnnouncePluginExtension(project)
-    DefaultAnnouncerFactory announcerFactory = new DefaultAnnouncerFactory(announcePluginConvention)
-    Project project = HelperUtil.createRootProject()
+    final project = HelperUtil.createRootProject()
+    final extension = new AnnouncePluginExtension(project)
+    final ProcessOperations processOperations = Mock()
+    final IconProvider iconProvider = Mock()
+    final announcerFactory = new DefaultAnnouncerFactory(extension, processOperations, iconProvider)
 
     def createForTwitter() {
-        announcePluginConvention.username = 'username'
-        announcePluginConvention.password = 'password'
+        extension.username = 'username'
+        extension.password = 'password'
 
         when:
         def announcer = announcerFactory.createAnnouncer('twitter')
@@ -39,8 +41,8 @@ class DefaultAnnouncerFactoryTest extends Specification {
         then:
         announcer instanceof IgnoreUnavailableAnnouncer
         def twitter = announcer.announcer
-        twitter.username == announcePluginConvention.username
-        twitter.password == announcePluginConvention.password
+        twitter.username == extension.username
+        twitter.password == extension.password
     }
 
     def createForSnarl() {

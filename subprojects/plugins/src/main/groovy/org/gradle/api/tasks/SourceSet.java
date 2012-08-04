@@ -19,8 +19,6 @@ import groovy.lang.Closure;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
 
-import java.io.File;
-
 /**
  * A {@code SourceSet} represents a logical group of Java source and resources.
  * <p>
@@ -85,35 +83,6 @@ public interface SourceSet {
      */
     void setRuntimeClasspath(FileCollection classpath);
 
-    /**
-     * Returns the directory to assemble the compiled classes into.
-     *
-     * @return The classes dir. Never returns null.
-     * @deprecated Use {@code getOutput().getClassesDir()} instead.
-     */
-    @Deprecated
-    File getClassesDir();
-
-    /**
-     * Sets the directory to assemble the compiled classes into.
-     *
-     * @param classesDir the classes dir. Should not be null.
-     * @deprecated Use {@code getOutput().setClassesDir()} instead.
-     */
-    @Deprecated
-    void setClassesDir(File classesDir);
-
-    /**
-     * Returns {@link SourceSetOutput} that extends {@link FileCollection} which means that it provides all output directories (compiled classes, processed resources, etc.)
-     * <p>
-     * Provides a way to configure the default output dirs and specify additional output dirs - see {@link SourceSetOutput}
-     *
-     * @return The output dirs, as a {@link SourceSetOutput}.
-     * @deprecated Use {@link #getOutput()} instead.
-     */
-    @Deprecated
-    SourceSetOutput getClasses();
-
    /**
      * {@link SourceSetOutput} is a {@link FileCollection} of all output directories (compiled classes, processed resources, etc.)
      *  and it provides means configure the default output dirs and register additional output dirs. See examples in {@link SourceSetOutput}
@@ -132,7 +101,7 @@ public interface SourceSet {
     SourceSet compiledBy(Object... taskPaths);
 
     /**
-     * Returns the non-Java resources which are to be copied into the class output directory.
+     * Returns the non-Java resources which are to be copied into the resources output directory.
      *
      * @return the resources. Never returns null.
      */

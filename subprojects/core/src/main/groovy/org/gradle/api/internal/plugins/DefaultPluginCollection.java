@@ -23,7 +23,6 @@ import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.plugins.PluginCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
-import org.gradle.util.DeprecationLogger;
 
 public class DefaultPluginCollection<T extends Plugin> extends DefaultDomainObjectSet<T> implements PluginCollection<T> {
 
@@ -59,13 +58,4 @@ public class DefaultPluginCollection<T extends Plugin> extends DefaultDomainObje
         whenObjectAdded(closure);
     }
 
-    public void allPlugins(Action<? super T> action) {
-        DeprecationLogger.nagUserOfReplacedMethod("PluginCollection.allPlugins()", "all()");
-        all(action);
-    }
-
-    public void allPlugins(Closure closure) {
-        DeprecationLogger.nagUserOfReplacedMethod("PluginCollection.allPlugins()", "all()");
-        all(closure);
-    }
 }

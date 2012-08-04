@@ -24,7 +24,7 @@ class TestNGListenerAdapterFactorySpec extends Specification {
     TestNGListenerAdapterFactory factory = new TestNGListenerAdapterFactory(getClass().classLoader)
     MyListener listener = Mock()
 
-    def "adapts to org.testng.IConfigurationListener2 interface if available on class path"() {
+    def "adapts to IConfigurationListener2 interface if available on class path"() {
         expect:
         factory.createAdapter(listener) instanceof IConfigurationListener2
     }
@@ -32,7 +32,7 @@ class TestNGListenerAdapterFactorySpec extends Specification {
     /**
      * covered by {@link org.gradle.testing.testng.TestNGIntegrationTest}
      */
-    def "adapts to org.testng.internal.IConfigurationListener interface if available on class path"() {}
+    def "adapts to internal IConfigurationListener interface if available on class path"() {}
 
     def "adapter forwards all IConfigurationListener2 calls"() {
         IConfigurationListener2 adapter = factory.createAdapter(listener)

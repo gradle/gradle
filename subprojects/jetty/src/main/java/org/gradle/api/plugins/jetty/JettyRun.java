@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins.jetty;
 
+import com.google.common.collect.Sets;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.FileCollection;
@@ -25,7 +26,6 @@ import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Optional;
-import org.gradle.util.GUtil;
 import org.mortbay.jetty.Handler;
 import org.mortbay.jetty.Server;
 import org.mortbay.jetty.handler.ContextHandler;
@@ -405,7 +405,7 @@ public class JettyRun extends AbstractJettyRunTask {
     }
 
     public void setExtraScanTargets(Iterable<File> extraScanTargets) {
-        this.extraScanTargets = GUtil.toSet(extraScanTargets);
+        this.extraScanTargets = Sets.newLinkedHashSet(extraScanTargets);
     }
 
     @InputFile

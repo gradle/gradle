@@ -20,7 +20,9 @@ package org.gradle.tooling.internal.protocol;
  *
  * <p>Implementations must be thread-safe.
  *
- * <p>DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.</p>
+ * <p>
+ * Changes to this interface may break the cross-version protocol.
+ * If you change it, make sure you run the all tooling api tests to flush out compatibility issues.
  */
 public interface ConnectionVersion4 {
     /**
@@ -36,10 +38,13 @@ public interface ConnectionVersion4 {
 
     /**
      * Fetches a snapshot of the model for the project.
+     * <p>
+     * Deprecated, please use {@link InternalConnection#getTheModel(Class, BuildOperationParametersVersion1)}
      *
      * @throws UnsupportedOperationException When the given model type is not supported.
      * @throws IllegalStateException When this connection has been stopped.
      */
+    @Deprecated
     ProjectVersion3 getModel(Class<? extends ProjectVersion3> type, BuildOperationParametersVersion1 operationParameters) throws UnsupportedOperationException, IllegalStateException;
 
     /**

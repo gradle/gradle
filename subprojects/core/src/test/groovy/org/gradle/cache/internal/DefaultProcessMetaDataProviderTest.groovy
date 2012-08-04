@@ -16,7 +16,7 @@
 package org.gradle.cache.internal
 
 import spock.lang.Specification
-import org.gradle.os.ProcessEnvironment
+import org.gradle.internal.nativeplatform.ProcessEnvironment
 
 class DefaultProcessMetaDataProviderTest extends Specification {
     final ProcessEnvironment processEnvironment = Mock()

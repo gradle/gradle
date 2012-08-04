@@ -34,6 +34,31 @@ public interface ExtensionContainer {
     void add(String name, Object extension);
 
     /**
+     * Deprecated. Use {@link #create}
+     *
+     * @param name The name for the extension
+     * @param type The type of the extension
+     * @param constructionArguments The arguments to be used to construct the extension instance
+     * @deprecated use {@link #create}
+     */
+    @Deprecated
+    void add(String name, Class<?> type, Object... constructionArguments);
+
+    /**
+     * Adds a new extension to this container, that itself is dynamically made {@link ExtensionAware}.
+     *
+     * A new instance of the given {@code type} will be created using the given {@code constructionArguments}. The new
+     * instance will have been dynamically which means that you can cast the object to {@link ExtensionAware}.
+     *
+     * @see #add(String, Object)
+     * @param name The name for the extension
+     * @param type The type of the extension
+     * @param constructionArguments The arguments to be used to construct the extension instance
+     * @return The created instance
+     */
+    <T> T create(String name, Class<T> type, Object... constructionArguments);
+
+    /**
      * Looks for the extension of a given type (useful to avoid casting). If none found it will throw an exception.
      *
      * @param type extension type
@@ -66,4 +91,13 @@ public interface ExtensionContainer {
      * @return extension or null
      */
     Object findByName(String name);
+
+    /**
+     * The extra properties extension in this extension container.
+     *
+     * This extension is always present in the container, with the name “ext”.
+     *
+     * @return The extra properties extension in this extension container.
+     */
+    ExtraPropertiesExtension getExtraProperties();
 }

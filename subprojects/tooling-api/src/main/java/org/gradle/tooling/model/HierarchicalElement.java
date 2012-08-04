@@ -16,24 +16,27 @@
 
 package org.gradle.tooling.model;
 
+import org.gradle.api.Nullable;
+
 /**
  * Represents an element which belongs to some hierarchy.
  *
- * @since 1.0-rc-1
+ * @since 1.0-milestone-5
  */
 public interface HierarchicalElement extends Element {
 
     /**
-     * Returns the parent of this element, if any.
+     * Returns the parent of this element, or {@code null} if there is no parent.
      *
-     * @return The parent, or null if it has no parent.
+     * @return The parent of this element, or {@code null} if there is no parent.
      */
+    @Nullable
     HierarchicalElement getParent();
 
     /**
-     * Returns the child elements.
+     * Returns the child elements, or the empty set if there are no child elements.
      *
-     * @return The child elements. Returns an empty set if it has no children.
+     * @return The child elements, or the empty set if there are no child elements.
      */
     DomainObjectSet<? extends HierarchicalElement> getChildren();
 

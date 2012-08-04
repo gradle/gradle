@@ -17,11 +17,15 @@
     <xsl:import href="xhtml/docbook.xsl"/>
     <xsl:import href="userGuideHtmlCommon.xsl"/>
 
+    <xsl:output method="xml"
+                encoding="UTF-8"
+                indent="no"/>
+
     <!-- Use custom <head> content, to include stylesheets and bookmarks -->
 
     <xsl:template name="output.html.stylesheets">
         <link href="base.css" rel="stylesheet" type="text/css"/>
-        <link href="style.css" rel="stylesheet" type="text/css"/>
+        <link href="docs.css" rel="stylesheet" type="text/css"/>
         <link href="userguide.css" rel="stylesheet" type="text/css"/>
         <link href="print.css" rel="stylesheet" type="text/css" media="print"/>
     </xsl:template>

@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.cache;
 
-import org.gradle.api.internal.Factory;
+import org.gradle.internal.Factory;
 
 public interface Cache<K, V>  {
     <T extends K> V get(T key, Factory<? extends V> factory);

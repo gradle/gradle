@@ -24,6 +24,7 @@ import org.gradle.StartParameter
 import org.gradle.api.invocation.Gradle
 import org.gradle.cache.DirectoryCacheBuilder
 import org.gradle.cache.PersistentCache
+import org.gradle.internal.service.ServiceRegistry
 
 class TaskExecutionServicesTest extends Specification {
     final ServiceRegistry parent = Mock()

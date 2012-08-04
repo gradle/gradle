@@ -15,12 +15,18 @@
  */
 package org.gradle.launcher.daemon.registry
 
-import spock.lang.*
+import org.gradle.launcher.daemon.context.DefaultDaemonContext
+import org.gradle.messaging.remote.internal.inet.SocketInetAddress
+import org.gradle.tests.fixtures.ConcurrentTestUtil
+import org.gradle.util.TemporaryFolder
+import org.junit.Rule
+import spock.lang.Specification
 
 class DaemonRegistryServicesTest extends Specification {
+    @Rule TemporaryFolder tmp = new TemporaryFolder()
 
     def registry(baseDir) {
-        new DaemonRegistryServices(new File(baseDir))
+        new DaemonRegistryServices(tmp.createDir(baseDir))
     }
 
     def "same daemon registry instance is used for same daemon registry file across service instances"() {
@@ -29,4 +35,20 @@ class DaemonRegistryServicesTest extends Specification {
         !registry("a").get(DaemonRegistry).is(registry("b").get(DaemonRegistry))
     }
     
+    @Rule ConcurrentTestUtil concurrent = new ConcurrentTestUtil()
+    
+    def "the registry can be concurrently written to"() {
+        when:
+        def registry = registry("someDir").createDaemonRegistry()
+        5.times { idx ->
+            concurrent.start {
+                def context = new DefaultDaemonContext("$idx", new File("$idx"), new File("$idx"), idx, 5000, [])
+                registry.store(new SocketInetAddress(new Inet6Address(), 8888 + idx), context, "foo-$idx")
+            }
+        }
+        concurrent.finished()
+
+        then:
+        registry.all.size() == 5
+    }
 }

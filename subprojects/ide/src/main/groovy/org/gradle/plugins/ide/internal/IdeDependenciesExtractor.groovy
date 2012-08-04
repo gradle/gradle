@@ -39,6 +39,7 @@ class IdeDependenciesExtractor {
         File file
         File sourceFile
         File javadocFile
+        ModuleVersionIdentifier id
     }
 
     static class UnresolvedIdeRepoFileDependency extends IdeRepoFileDependency {
@@ -58,26 +59,7 @@ class IdeDependenciesExtractor {
         }
         for (minusConfiguration in minusConfigurations) {
             for(minusDep in minusConfiguration.allDependencies.findAll({ it instanceof ProjectDependency })) {
-                if (minusDep instanceof ExternalDependency) {
-                    // This deals with dependencies that are defined in different scopes with different
-                    // artifacts. Right now we accept the fact, that in such a situation some artifacts
-                    // might be duplicated in Idea (they live in different scopes then).
-
-                    //TODO SF START - I think this code path should be removed.
-                    //I don't think it is ever executed because minusDep is never an instance of ExternalDependency
-                    //We only call this method for ProjectDependencies (see the callers of this method) for SelfResolvingDependencies (aka local files - no longer the case after refactoring)
-                    //So this path seems to be a dead code because non of above implementators ever implement the ExternalDependency interface.
-                    //All above is assuming that clients didn't create their own implementations of our public interfaces that satisfy this condition.
-                    //But I think it bloody unlikely someone was so hardcore to provide own implementations of SelfResolvingDependency, ProjectDependency, etc.
-                    //So, I think this code path should be removed but I cannot do it now as I'm refactoring something else in this area and I want to keep the demolition range short :)
-                    ExternalDependency removeCandidate = depToConf.keySet().find { it == minusDep }
-                    if (removeCandidate && removeCandidate.artifacts == minusDep.artifacts) {
-                        depToConf.remove(removeCandidate)
-                    }
-                    //END
-                } else {
-                    depToConf.remove(minusDep)
-                }
+                depToConf.remove(minusDep)
             }
         }
         return depToConf.collect { projectDependency, conf ->
@@ -104,32 +86,35 @@ class IdeDependenciesExtractor {
 
         Map<String, File> javadocFiles = downloadJavadoc ? getFiles(confContainer.detachedConfiguration(javadocDependencies as Dependency[]), "javadoc") : [:]
 
-        resolvedExternalDependencies(plusConfigurations, minusConfigurations).each { File binaryFile, Configuration conf ->
-            File sourceFile = sourceFiles[binaryFile.name]
-            File javadocFile = javadocFiles[binaryFile.name]
-            out << new IdeRepoFileDependency( file: binaryFile, sourceFile: sourceFile, javadocFile: javadocFile, declaredConfiguration: conf)
+        resolvedExternalDependencies(plusConfigurations, minusConfigurations).each { IdeRepoFileDependency dependency ->
+            dependency.sourceFile = sourceFiles[dependency.file.name]
+            dependency.javadocFile = javadocFiles[dependency.file.name]
+            out << dependency
         }
 
-        unresolvedExternalDependencies(plusConfigurations, minusConfigurations) { config, dep ->
-            out << new UnresolvedIdeRepoFileDependency(problem: dep.problem, file: new File("unresolved dependency - $dep.id"), declaredConfiguration: config)
-        }
+        out.addAll(unresolvedExternalDependencies(plusConfigurations, minusConfigurations))
 
         out
     }
 
-    private void unresolvedExternalDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations, Closure action) {
-        def unresolved = new LinkedHashMap<String, Map>()
+    private Collection<UnresolvedIdeRepoFileDependency> unresolvedExternalDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
+        def unresolved = new LinkedHashMap<String, UnresolvedIdeRepoFileDependency>()
         for (c in plusConfigurations) {
             def deps = c.resolvedConfiguration.lenientConfiguration.unresolvedModuleDependencies
-            deps.each { unresolved[it.id] = [dep: it, config: c] }
+            deps.each {
+                unresolved[it.selector] = new UnresolvedIdeRepoFileDependency(
+                    file: new File(unresolvedFileName(it)), declaredConfiguration: c)
+            }
         }
         for (c in minusConfigurations) {
             def deps = c.resolvedConfiguration.lenientConfiguration.unresolvedModuleDependencies
-            deps.each { unresolved.remove(it.id) }
+            deps.each { unresolved.remove(it.selector) }
         }
-        unresolved.values().each {
-            action.call(it.config, it.dep)
-        }
+        unresolved.values()
+    }
+
+    private String unresolvedFileName(UnresolvedDependency dep) {
+        "unresolved dependency - $dep.selector.group $dep.selector.name $dep.selector.version"
     }
 
     List<IdeLocalFileDependency> extractLocalFileDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
@@ -151,19 +136,19 @@ class IdeDependenciesExtractor {
         }
     }
 
-    private Map<File, Configuration> resolvedExternalDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
-        LinkedHashMap<File, Configuration> fileToConf = [:]
+    protected Collection<IdeRepoFileDependency> resolvedExternalDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
+        LinkedHashMap<File, IdeRepoFileDependency> out = [:]
         for (plusConfiguration in plusConfigurations) {
-            for (file in plusConfiguration.resolvedConfiguration.lenientConfiguration.getFiles( { it instanceof ExternalDependency } as Spec)) {
-                fileToConf[file] = plusConfiguration
+            for (artifact in plusConfiguration.resolvedConfiguration.lenientConfiguration.getArtifacts({ it instanceof ExternalDependency } as Spec)) {
+                out[artifact.file] = new IdeRepoFileDependency( file: artifact.file, declaredConfiguration: plusConfiguration, id: artifact.moduleVersion.id)
             }
         }
         for (minusConfiguration in minusConfigurations) {
-            for (file in minusConfiguration.resolvedConfiguration.lenientConfiguration.getFiles({ it instanceof ExternalDependency } as Spec)) {
-                fileToConf.remove(file)
+            for (artifact in minusConfiguration.resolvedConfiguration.lenientConfiguration.getArtifacts({ it instanceof ExternalDependency } as Spec)) {
+                out.remove(artifact.file)
             }
         }
-        fileToConf
+        out.values()
     }
 
     private Set<ResolvedDependency> resolveDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {

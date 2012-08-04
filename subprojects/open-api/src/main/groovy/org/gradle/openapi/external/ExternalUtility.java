@@ -89,7 +89,7 @@ public class ExternalUtility {
     private static StringBuilder createFileNamesString(File[] files) {
         StringBuilder fileNames = new StringBuilder();
         for (File f : files) {
-            fileNames.append(f.getName() + ", ");
+            fileNames.append(f.getAbsolutePath() + ", ");
         }
         fileNames.delete(fileNames.length() - 2, fileNames.length()); // Remove the trailing ', '
         return fileNames;

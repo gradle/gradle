@@ -18,27 +18,59 @@ package org.gradle.api.internal.artifacts.ivyservice.clientmodule;
 
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.gradle.api.artifacts.ClientModule;
+import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolver;
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver;
-import org.gradle.api.internal.artifacts.ivyservice.FixedModuleVersionResolver;
-import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolver;
+import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
+import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ClientModuleDependencyDescriptor;
 
 /**
  * @author Hans Dockter
  */
 public class ClientModuleResolver implements DependencyToModuleResolver {
-    private ClientModuleRegistry moduleRegistry;
+    private final DependencyToModuleResolver resolver;
 
-    public ClientModuleResolver(ClientModuleRegistry moduleRegistry) {
-        this.moduleRegistry = moduleRegistry;
+    public ClientModuleResolver(DependencyToModuleResolver resolver) {
+        this.resolver = resolver;
     }
 
-    public ModuleVersionResolver create(final DependencyDescriptor dde) {
-        if (dde.getExtraAttribute(ClientModule.CLIENT_MODULE_KEY) == null) {
+    public ModuleVersionResolveResult resolve(DependencyDescriptor dependencyDescriptor) {
+        final ModuleVersionResolveResult resolveResult = resolver.resolve(dependencyDescriptor);
+
+        if (resolveResult.getFailure() != null || !(dependencyDescriptor instanceof ClientModuleDependencyDescriptor)) {
+            return resolveResult;
+        }
+
+        ClientModuleDependencyDescriptor clientModuleDependencyDescriptor = (ClientModuleDependencyDescriptor) dependencyDescriptor;
+        ModuleDescriptor moduleDescriptor = clientModuleDependencyDescriptor.getTargetModule();
+
+        return new ClientModuleResolveResult(resolveResult, moduleDescriptor);
+    }
+
+    private static class ClientModuleResolveResult implements ModuleVersionResolveResult {
+        private final ModuleVersionResolveResult resolveResult;
+        private final ModuleDescriptor moduleDescriptor;
+
+        public ClientModuleResolveResult(ModuleVersionResolveResult resolveResult, ModuleDescriptor moduleDescriptor) {
+            this.resolveResult = resolveResult;
+            this.moduleDescriptor = moduleDescriptor;
+        }
+
+        public ModuleVersionResolveException getFailure() {
             return null;
         }
 
-        final ModuleDescriptor moduleDescriptor = moduleRegistry.getClientModule(dde.getExtraAttribute(ClientModule.CLIENT_MODULE_KEY));
-        return new FixedModuleVersionResolver(dde, moduleDescriptor);
+        public ModuleRevisionId getId() throws ModuleVersionResolveException {
+            return moduleDescriptor.getModuleRevisionId();
+        }
+
+        public ModuleDescriptor getDescriptor() throws ModuleVersionResolveException {
+            return moduleDescriptor;
+        }
+
+        public ArtifactResolver getArtifactResolver() throws ModuleVersionResolveException {
+            return resolveResult.getArtifactResolver();
+        }
     }
 }

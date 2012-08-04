@@ -15,6 +15,7 @@
  */
 package org.gradle.launcher.exec;
 
+import org.gradle.api.logging.LogLevel;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.initialization.DefaultBuildRequestMetaData;
@@ -29,13 +30,17 @@ public class DefaultBuildActionParameters implements BuildActionParameters, Seri
     private final BuildClientMetaData clientMetaData;
     private final long startTime;
     private final File currentDir;
+    private final LogLevel logLevel;
     private final Map<String, String> systemProperties;
     private final Map<String, String> envVariables;
 
-    public DefaultBuildActionParameters(BuildClientMetaData clientMetaData, long startTime, Map<?, ?> systemProperties, Map<String, String> envVariables, File currentDir) {
+    public DefaultBuildActionParameters(BuildClientMetaData clientMetaData, long startTime, Map<?, ?> systemProperties, Map<String, String> envVariables, File currentDir, LogLevel logLevel) {
         this.clientMetaData = clientMetaData;
         this.startTime = startTime;
         this.currentDir = currentDir;
+        this.logLevel = logLevel;
+        assert systemProperties != null;
+        assert envVariables != null;
         this.systemProperties = new HashMap<String, String>();
         GUtil.addToMap(this.systemProperties, systemProperties);
         this.envVariables = new HashMap<String, String>(envVariables);
@@ -43,10 +48,6 @@ public class DefaultBuildActionParameters implements BuildActionParameters, Seri
 
     public BuildRequestMetaData getBuildRequestMetaData() {
         return new DefaultBuildRequestMetaData(clientMetaData, startTime);
-    }
-
-    public BuildClientMetaData getClientMetaData() {
-        return clientMetaData;
     }
 
     public Map<String, String> getSystemProperties() {
@@ -59,5 +60,20 @@ public class DefaultBuildActionParameters implements BuildActionParameters, Seri
 
     public File getCurrentDir() {
         return currentDir;
+    }
+
+    public LogLevel getLogLevel() {
+        return logLevel;
+    }
+
+    @Override
+    public String toString() {
+        return "DefaultBuildActionParameters{"
+                + "clientMetaData=" + clientMetaData
+                + ", startTime=" + startTime
+                + ", currentDir=" + currentDir
+                + ", systemProperties size=" + systemProperties.size()
+                + ", envVariables size=" + envVariables.size()
+                + '}';
     }
 }

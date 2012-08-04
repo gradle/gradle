@@ -16,9 +16,9 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.gradle.api.GradleException;
+import org.gradle.api.internal.AbstractMultiCauseException;
 import org.gradle.api.internal.Contextual;
-import org.gradle.util.UncheckedException;
+import org.gradle.internal.UncheckedException;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -26,15 +26,27 @@ import java.util.Formatter;
 import java.util.List;
 
 @Contextual
-public class ModuleVersionResolveException extends GradleException {
+public class ModuleVersionResolveException extends AbstractMultiCauseException {
     private final List<List<ModuleRevisionId>> paths = new ArrayList<List<ModuleRevisionId>>();
 
     public ModuleVersionResolveException(String message) {
         super(message);
     }
 
+    public ModuleVersionResolveException(ModuleRevisionId id, Throwable cause) {
+        super(format(id), cause);
+    }
+
+    public ModuleVersionResolveException(ModuleRevisionId id, Iterable<? extends Throwable> causes) {
+        super(format(id), causes);
+    }
+
     public ModuleVersionResolveException(String message, Throwable cause) {
         super(message, cause);
+    }
+
+    private static String format(ModuleRevisionId id) {
+        return String.format("Could not resolve group:%s, module:%s, version:%s.", id.getOrganisation(), id.getName(), id.getRevision());
     }
 
     /**
@@ -43,7 +55,7 @@ public class ModuleVersionResolveException extends GradleException {
     public ModuleVersionResolveException withIncomingPaths(Collection<? extends List<ModuleRevisionId>> paths) {
         ModuleVersionResolveException copy = createCopy(super.getMessage());
         copy.paths.addAll(paths);
-        copy.initCause(getCause());
+        copy.initCauses(getCauses());
         copy.setStackTrace(getStackTrace());
         return copy;
     }
@@ -72,7 +84,7 @@ public class ModuleVersionResolveException extends GradleException {
         try {
             return getClass().getConstructor(String.class).newInstance(message);
         } catch (Exception e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

@@ -15,9 +15,11 @@
  */
 package org.gradle.launcher.daemon.context;
 
-import org.gradle.api.specs.Spec;
+import org.gradle.api.internal.specs.ExplainingSpec;
 
-public class DaemonCompatibilitySpec implements Spec<DaemonContext> {
+import static org.gradle.util.GFileUtils.canonicalise;
+
+public class DaemonCompatibilitySpec implements ExplainingSpec<DaemonContext> {
 
     private final DaemonContext desiredContext;
     
@@ -26,7 +28,34 @@ public class DaemonCompatibilitySpec implements Spec<DaemonContext> {
     }
 
     public boolean isSatisfiedBy(DaemonContext potentialContext) {
-        return potentialContext.getJavaHome().equals(desiredContext.getJavaHome())
-                && potentialContext.getDaemonOpts().equals(desiredContext.getDaemonOpts());
+        return whyUnsatisfied(potentialContext) == null;
+    }
+
+    public String whyUnsatisfied(DaemonContext context) {
+        if (!javaHomeMatches(context)) {
+            return "Java home is different.\n" + description(context);
+        } else if (!daemonOptsMatch(context)) {
+            return "At least one daemon option is different.\n" + description(context);
+        }
+        return null;
+    }
+
+    private String description(DaemonContext context) {
+        return "Wanted: " + this + "\n"
+                + "Actual: " + context + "\n";
+    }
+
+    private boolean daemonOptsMatch(DaemonContext potentialContext) {
+        return potentialContext.getDaemonOpts().containsAll(desiredContext.getDaemonOpts())
+                && potentialContext.getDaemonOpts().size() == desiredContext.getDaemonOpts().size();
+    }
+
+    private boolean javaHomeMatches(DaemonContext potentialContext) {
+        return canonicalise(potentialContext.getJavaHome()).equals(canonicalise(desiredContext.getJavaHome()));
+    }
+
+    @Override
+    public String toString() {
+        return desiredContext.toString();
     }
 }

@@ -15,11 +15,15 @@
  */
 package org.gradle.api.internal.file.archive;
 
+import java.util.Map;
+import java.util.HashMap;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.internal.file.FileResource;
 import org.gradle.api.internal.file.archive.compression.Bzip2Archiver;
+import org.gradle.api.internal.file.archive.compression.Compressor;
 import org.gradle.api.internal.file.archive.compression.GzipArchiver;
 import org.gradle.api.internal.file.archive.compression.SimpleCompressor;
 import org.gradle.api.internal.file.copy.ReadableCopySpec;
@@ -31,13 +35,13 @@ import org.jmock.api.Action;
 import org.jmock.api.Invocation;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.OutputStream;
 
+import static org.gradle.api.file.FileVisitorUtil.assertVisitsPermissions;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -51,34 +55,15 @@ public class TarCopySpecVisitorTest {
     private final ReadableCopySpec copySpec = context.mock(ReadableCopySpec.class);
     private final TarCopySpecVisitor visitor = new TarCopySpecVisitor();
 
-    @Before
-    public void setUp() {
-        context.checking(new Expectations(){{
-            allowing(copySpec).getFileMode();
-            will(returnValue(1));
-            allowing(copySpec).getDirMode();
-            will(returnValue(2));
-        }});
-    }
-    
     @Test
     public void createsTarFile() {
-        final TestFile tarFile = tmpDir.getDir().file("test.tar");
+        final TestFile tarFile = initializeTarFile(tmpDir.getDir().file("test.tar"),
+            new SimpleCompressor());
+        tarAndUntarAndCheckFileContents(tarFile);
+    }
 
-        context.checking(new Expectations() {{
-            allowing(copyAction).getArchivePath();
-            will(returnValue(tarFile));
-            allowing(copyAction).getCompressor();
-            will(returnValue(new SimpleCompressor()));
-        }});
-
-        visitor.startVisit(copyAction);
-        visitor.visitSpec(copySpec);
-
-        visitor.visitFile(file("dir/file1"));
-        visitor.visitFile(file("file2"));
-
-        visitor.endVisit();
+    private void tarAndUntarAndCheckFileContents(TestFile tarFile) {
+        tar(file("dir/file1"), file("file2"));
 
         TestFile expandDir = tmpDir.getDir().file("expanded");
         tarFile.untarTo(expandDir);
@@ -88,64 +73,37 @@ public class TarCopySpecVisitorTest {
 
     @Test
     public void createsGzipCompressedTarFile() {
-        final TestFile tarFile = tmpDir.getDir().file("test.tgz");
-
-        context.checking(new Expectations(){{
-            allowing(copyAction).getArchivePath();
-            will(returnValue(tarFile));
-            allowing(copyAction).getCompressor();
-            will(returnValue(GzipArchiver.getCompressor()));
-        }});
-
-        visitor.startVisit(copyAction);
-        visitor.visitSpec(copySpec);
-
-        visitor.visitFile(file("dir/file1"));
-        visitor.visitFile(file("file2"));
-
-        visitor.endVisit();
-
-        TestFile expandDir = tmpDir.getDir().file("expanded");
-        tarFile.untarTo(expandDir);
-        expandDir.file("dir/file1").assertContents(equalTo("contents of dir/file1"));
-        expandDir.file("file2").assertContents(equalTo("contents of file2"));
+        final TestFile tarFile = initializeTarFile(tmpDir.getDir().file("test.tgz"),
+            GzipArchiver.getCompressor());
+        tarAndUntarAndCheckFileContents(tarFile);
     }
 
     @Test
     public void createsBzip2CompressedTarFile() {
-        final TestFile tarFile = tmpDir.getDir().file("test.tbz2");
+        final TestFile tarFile = initializeTarFile(tmpDir.getDir().file("test.tbz2"),
+            Bzip2Archiver.getCompressor());
+        tarAndUntarAndCheckFileContents(tarFile);
+    }
 
-        context.checking(new Expectations(){{
-            allowing(copyAction).getArchivePath();
-            will(returnValue(tarFile));
-            allowing(copyAction).getCompressor();
-            will(returnValue(Bzip2Archiver.getCompressor()));
-        }});
+    @Test
+    public void tarFileContainsExpectedPermissions() {
+        final TestFile tarFile = initializeTarFile(tmpDir.getDir().file("test.tar"),
+            new SimpleCompressor());
 
-        visitor.startVisit(copyAction);
-        visitor.visitSpec(copySpec);
+        tar(dir("dir"), file("file"));
 
-        visitor.visitFile(file("dir/file1"));
-        visitor.visitFile(file("file2"));
+        Map<String, Integer> expected = new HashMap<String, Integer>();
+        expected.put("dir", 2);
+        expected.put("file", 1);
 
-        visitor.endVisit();
-
-        TestFile expandDir = tmpDir.getDir().file("expanded");
-        tarFile.untarTo(expandDir);
-        expandDir.file("dir/file1").assertContents(equalTo("contents of dir/file1"));
-        expandDir.file("file2").assertContents(equalTo("contents of file2"));
+        assertVisitsPermissions(new TarFileTree(new FileResource(tarFile), null),
+            expected);
     }
 
     @Test
     public void wrapsFailureToOpenOutputFile() {
-        final TestFile tarFile = tmpDir.createDir("test.tar");
-
-        context.checking(new Expectations(){{
-            allowing(copyAction).getArchivePath();
-            will(returnValue(tarFile));
-            allowing(copyAction).getCompressor();
-            will(returnValue(new SimpleCompressor()));
-        }});
+        final TestFile tarFile = initializeTarFile(tmpDir.createDir("test.tar"),
+            new SimpleCompressor());
 
         try {
             visitor.startVisit(copyAction);
@@ -157,17 +115,8 @@ public class TarCopySpecVisitorTest {
 
     @Test
     public void wrapsFailureToAddElement() {
-        final TestFile tarFile = tmpDir.getDir().file("test.tar");
-
-        context.checking(new Expectations(){{
-            allowing(copyAction).getArchivePath();
-            will(returnValue(tarFile));
-
-            allowing(copyAction).getCompressor();
-            will(returnValue(new SimpleCompressor(
-
-            )));
-        }});
+        final TestFile tarFile = initializeTarFile(tmpDir.getDir().file("test.tar"),
+            new SimpleCompressor());
 
         visitor.startVisit(copyAction);
         visitor.visitSpec(copySpec);
@@ -180,6 +129,31 @@ public class TarCopySpecVisitorTest {
             assertThat(e.getMessage(), equalTo(String.format("Could not add [dir/file1] to TAR '%s'.", tarFile)));
             assertThat(e.getCause(), sameInstance(failure));
         }
+    }
+
+    private TestFile initializeTarFile(final TestFile tarFile, final Compressor compressor) {
+        context.checking(new Expectations() {{
+            allowing(copyAction).getArchivePath();
+            will(returnValue(tarFile));
+            allowing(copyAction).getCompressor();
+            will(returnValue(compressor));
+        }});
+        return tarFile;
+    }
+
+    private void tar(FileVisitDetails... files) {
+        visitor.startVisit(copyAction);
+        visitor.visitSpec(copySpec);
+
+        for (FileVisitDetails f : files) {
+            if (f.isDirectory()) {
+                visitor.visitDir(f);
+            } else {
+                visitor.visitFile(f);
+            }
+        }
+
+        visitor.endVisit();
     }
 
     private FileVisitDetails file(final String path) {
@@ -195,6 +169,12 @@ public class TarCopySpecVisitorTest {
 
             allowing(details).getSize();
             will(returnValue((long)content.getBytes().length));
+
+            allowing(details).isDirectory();
+            will(returnValue(false));
+
+            allowing(details).getMode();
+            will(returnValue(1));
 
             allowing(details).copyTo(with(notNullValue(OutputStream.class)));
             will(new Action() {
@@ -212,6 +192,26 @@ public class TarCopySpecVisitorTest {
         return details;
     }
 
+    private FileVisitDetails dir(final String path) {
+        final FileVisitDetails details = context.mock(FileVisitDetails.class, path);
+
+        context.checking(new Expectations() {{
+            allowing(details).getRelativePath();
+            will(returnValue(RelativePath.parse(false, path)));
+
+            allowing(details).getLastModified();
+            will(returnValue(1000L));
+
+            allowing(details).isDirectory();
+            will(returnValue(true));
+
+            allowing(details).getMode();
+            will(returnValue(2));
+        }});
+
+        return details;
+    }
+
     private FileVisitDetails brokenFile(final String path, final Throwable failure) {
         final FileVisitDetails details = context.mock(FileVisitDetails.class, String.format("[%s]", path));
 
@@ -224,6 +224,12 @@ public class TarCopySpecVisitorTest {
 
             allowing(details).getSize();
             will(returnValue(1000L));
+
+            allowing(details).isDirectory();
+            will(returnValue(false));
+
+            allowing(details).getMode();
+            will(returnValue(1));
 
             allowing(details).copyTo(with(notNullValue(OutputStream.class)));
             will(new Action() {

@@ -19,6 +19,7 @@ import groovy.lang.Closure;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.PathValidation;
 import org.gradle.api.file.*;
+import org.gradle.api.internal.ProcessOperations;
 import org.gradle.api.internal.file.archive.TarFileTree;
 import org.gradle.api.internal.file.archive.ZipFileTree;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
@@ -43,7 +44,7 @@ import java.util.Map;
 
 import static org.gradle.util.ConfigureUtil.configure;
 
-public class DefaultFileOperations implements FileOperations {
+public class DefaultFileOperations implements FileOperations, ProcessOperations {
     private final FileResolver fileResolver;
     private final TaskResolver taskResolver;
     private final TemporaryFileProvider temporaryFileProvider;
@@ -82,11 +83,16 @@ public class DefaultFileOperations implements FileOperations {
         return new DefaultConfigurableFileTree(baseDir, fileResolver, taskResolver);
     }
 
+    public ConfigurableFileTree fileTree(Object baseDir, Closure closure) {
+        return ConfigureUtil.configure(closure, fileTree(baseDir));
+    }
+
     public ConfigurableFileTree fileTree(Map<String, ?> args) {
         return new DefaultConfigurableFileTree(args, fileResolver, taskResolver);
     }
 
     public ConfigurableFileTree fileTree(Closure closure) {
+        // This method is deprecated, but the deprecation warning is added on public classes that delegate to this. 
         return configure(closure, new DefaultConfigurableFileTree(Collections.emptyMap(), fileResolver, taskResolver));
     }
 

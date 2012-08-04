@@ -37,7 +37,7 @@
     <!-- customise the stylesheets to add to the <head> element -->
     <xsl:template name="output.html.stylesheets">
         <link href="base.css" rel="stylesheet" type="text/css"/>
-        <link href="style.css" rel="stylesheet" type="text/css"/>
+        <link href="docs.css" rel="stylesheet" type="text/css"/>
         <link href="dsl.css" rel="stylesheet" type="text/css"/>
     </xsl:template>
 

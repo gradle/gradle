@@ -25,6 +25,7 @@ public class CommandLineOption {
     private String description;
     private String subcommand;
     private String deprecationWarning;
+    private boolean experimental;
 
     public CommandLineOption(Iterable<String> options) {
         for (String option : options) {
@@ -56,10 +57,25 @@ public class CommandLineOption {
     }
 
     public String getDescription() {
-        if (deprecationWarning == null) {
-            return description;
+        StringBuilder result = new StringBuilder();
+        if (description != null) {
+            result.append(description);
         }
-        return description + " [deprecated - " + deprecationWarning + "].";
+        if (deprecationWarning != null) {
+            if (result.length() > 0) {
+                result.append(' ');
+            }
+            result.append("[deprecated - ");
+            result.append(deprecationWarning);
+            result.append("]");
+        }
+        if (experimental) {
+            if (result.length() > 0) {
+                result.append(' ');
+            }
+            result.append("[experimental]");
+        }
+        return result.toString();
     }
 
     public CommandLineOption hasDescription(String description) {
@@ -80,6 +96,11 @@ public class CommandLineOption {
         return this;
     }
 
+    public CommandLineOption experimental() {
+        experimental = true;
+        return this;
+    }
+    
     public String getDeprecationWarning() {
         return deprecationWarning;
     }

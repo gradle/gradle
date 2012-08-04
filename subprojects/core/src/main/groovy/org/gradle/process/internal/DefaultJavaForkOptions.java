@@ -18,8 +18,8 @@ package org.gradle.process.internal;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.process.JavaForkOptions;
-import org.gradle.util.Jvm;
 
 import java.util.Arrays;
 import java.util.List;
@@ -95,12 +95,28 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
         return this;
     }
 
+    public String getMinHeapSize() {
+        return options.getMinHeapSize();
+    }
+
+    public void setMinHeapSize(String heapSize) {
+        options.setMinHeapSize(heapSize);
+    }
+
     public String getMaxHeapSize() {
         return options.getMaxHeapSize();
     }
 
     public void setMaxHeapSize(String heapSize) {
         options.setMaxHeapSize(heapSize);
+    }
+
+    public String getDefaultCharacterEncoding() {
+        return options.getDefaultCharacterEncoding();
+    }
+
+    public void setDefaultCharacterEncoding(String defaultCharacterEncoding) {
+        options.setDefaultCharacterEncoding(defaultCharacterEncoding);
     }
 
     public boolean getEnableAssertions() {

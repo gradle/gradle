@@ -289,7 +289,7 @@ class IdeaModule {
     }
 
     void setOutputFile(File newOutputFile) {
-        name = newOutputFile.name.replaceFirst(/\.iml$/,"");
+        setName(newOutputFile.name.replaceFirst(/\.iml$/,""))
         iml.generateTo = newOutputFile.parentFile
     }
 
@@ -299,7 +299,7 @@ class IdeaModule {
      * @return dependencies
      */
     Set<Dependency> resolveDependencies() {
-        return new IdeaDependenciesProvider().provide(this, getPathFactory())
+        return new IdeaDependenciesProvider().provide(this)
     }
 
     /**

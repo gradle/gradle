@@ -73,7 +73,7 @@ public class IvyBackedArtifactPublisher implements ArtifactPublisher {
                 publishResolvers,
                 publishModuleDescriptorConverter.convert(configurationsToPublish, configuration.getModule()),
                 descriptorDestination,
-                ivy.getPublishEngine());
+                ivy.getEventManager());
     }
 
     private void writeDescriptorFile(File descriptorDestination, Set<Configuration> configurationsToPublish, Module module) {

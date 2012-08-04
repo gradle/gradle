@@ -27,6 +27,10 @@ public class CustomInstallTask extends InstallTask implements CustomInstallDeplo
         return super.getSettings();   
     }
 
+    public void clearAttachedArtifactsList() {
+        attachedArtifacts.clear();
+    }
+
     @Override
     public void doExecute() {
         LoggingHelper.injectLogger(getContainer(), getProject());

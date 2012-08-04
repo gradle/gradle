@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ public class FilteringClassLoader extends ClassLoader {
     private final Set<String> resourcePrefixes = new HashSet<String>();
     private final Set<String> resourceNames = new HashSet<String>();
     private final Set<String> classNames = new HashSet<String>();
+    private final Set<String> disallowedClassNames = new HashSet<String>();
 
     static {
         EXT_CLASS_LOADER = ClassLoader.getSystemClassLoader().getParent();
@@ -123,31 +124,34 @@ public class FilteringClassLoader extends ClassLoader {
         return false;
     }
 
-    private boolean allowed(Package p) {
-        if (SYSTEM_PACKAGES.contains(p.getName())) {
+    private boolean allowed(Package pkg) {
+        if (SYSTEM_PACKAGES.contains(pkg.getName())) {
             return true;
         }
-        if (packageNames.contains(p.getName())) {
+        if (packageNames.contains(pkg.getName())) {
             return true;
         }
         for (String packagePrefix : packagePrefixes) {
-            if (p.getName().startsWith(packagePrefix)) {
+            if (pkg.getName().startsWith(packagePrefix)) {
                 return true;
             }
         }
         return false;
     }
 
-    private boolean allowed(final Class<?> cl) {
+    private boolean allowed(final Class<?> clazz) {
         boolean systemClass = AccessController.doPrivileged(new PrivilegedAction<Boolean>() {
             public Boolean run() {
-                return cl.getClassLoader() == null || SYSTEM_CLASS_LOADERS.contains(cl.getClassLoader());
+                return clazz.getClassLoader() == null || SYSTEM_CLASS_LOADERS.contains(clazz.getClassLoader());
             }
         });
-        return systemClass || classAllowed(cl.getName());
+        return systemClass || classAllowed(clazz.getName());
     }
 
     private boolean classAllowed(String className) {
+        if (disallowedClassNames.contains(className)) {
+            return false;
+        }
         if (classNames.contains(className)) {
             return true;
         }
@@ -162,7 +166,7 @@ public class FilteringClassLoader extends ClassLoader {
     /**
      * Marks a package and all its sub-packages as visible. Also makes resources in those packages visible.
      *
-     * @param packageName The package name
+     * @param packageName the package name
      */
     public void allowPackage(String packageName) {
         packageNames.add(packageName);
@@ -171,27 +175,36 @@ public class FilteringClassLoader extends ClassLoader {
     }
 
     /**
-     * Marks a single class as visible
+     * Marks a single class as visible.
      *
-     * @param aClass The class
+     * @param clazz the class
      */
-    public void allowClass(Class<?> aClass) {
-        classNames.add(aClass.getName());
+    public void allowClass(Class<?> clazz) {
+        classNames.add(clazz.getName());
+    }
+
+    /**
+     * Marks a single class as not visible.
+     *
+     * @param className the class name
+     */
+    public void disallowClass(String className) {
+        disallowedClassNames.add(className);
     }
 
     /**
      * Marks all resources with the given prefix as visible.
      *
-     * @param resourcePrefix The resource prefix.
+     * @param resourcePrefix the resource prefix
      */
     public void allowResources(String resourcePrefix) {
         resourcePrefixes.add(resourcePrefix + "/");
     }
 
     /**
-     * Marks a single resource as visible
+     * Marks a single resource as visible.
      *
-     * @param resourceName The resource name
+     * @param resourceName the resource name
      */
     public void allowResource(String resourceName) {
         resourceNames.add(resourceName);

@@ -16,70 +16,42 @@
 
 package org.gradle.api.internal.tasks.testing.junit;
 
-import org.gradle.api.internal.tasks.testing.*;
-import org.gradle.util.IdGenerator;
-import org.gradle.util.TimeProvider;
-import org.junit.runner.Description;
+import org.gradle.internal.concurrent.ThreadSafe;
 import org.junit.runner.Request;
 import org.junit.runner.Runner;
-import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
 import org.junit.runner.notification.RunNotifier;
 
 public class JUnitTestClassExecuter {
     private final ClassLoader applicationClassLoader;
     private final RunListener listener;
-    private final TestResultProcessor resultProcessor;
-    private final IdGenerator<?> idGenerator;
-    private final TimeProvider timeProvider;
+    private final TestClassExecutionListener executionListener;
 
-    public JUnitTestClassExecuter(ClassLoader applicationClassLoader, RunListener listener, TestResultProcessor resultProcessor, IdGenerator<?> idGenerator, TimeProvider timeProvider) {
+    public JUnitTestClassExecuter(ClassLoader applicationClassLoader, RunListener listener, TestClassExecutionListener executionListener) {
+        assert executionListener instanceof ThreadSafe;
         this.applicationClassLoader = applicationClassLoader;
         this.listener = listener;
-        this.resultProcessor = resultProcessor;
-        this.idGenerator = idGenerator;
-        this.timeProvider = timeProvider;
+        this.executionListener = executionListener;
     }
 
     public void execute(String testClassName) {
-        TestDescriptorInternal testInternal = new DefaultTestClassDescriptor(idGenerator.generateId(), testClassName);
-        resultProcessor.started(testInternal, new TestStartEvent(timeProvider.getCurrentTime()));
+        executionListener.testClassStarted(testClassName);
 
-        Runner runner = createTest(testClassName);
+        Throwable failure = null;
+        try {
+            runTestClass(testClassName);
+        } catch (Throwable throwable) {
+            failure = throwable;
+        }
+
+        executionListener.testClassFinished(failure);
+    }
+
+    private void runTestClass(String testClassName) throws ClassNotFoundException {
+        Class<?> testClass = Class.forName(testClassName, true, applicationClassLoader);
+        Runner runner = Request.aClass(testClass).getRunner();
         RunNotifier notifier = new RunNotifier();
         notifier.addListener(listener);
         runner.run(notifier);
-
-        resultProcessor.completed(testInternal.getId(), new TestCompleteEvent(timeProvider.getCurrentTime()));
-    }
-
-    private Runner createTest(String testClassName) {
-        try {
-            Class<?> testClass = Class.forName(testClassName, true, applicationClassLoader);
-            return Request.aClass(testClass).getRunner();
-        } catch (Throwable e) {
-            return new BrokenTest(Description.createSuiteDescription(String.format("initializationError(%s)", testClassName)), e);
-        }
-    }
-
-    private static class BrokenTest extends Runner {
-        private final Throwable failure;
-        private final Description description;
-
-        public BrokenTest(Description description, Throwable failure) {
-            this.failure = failure;
-            this.description = description;
-        }
-
-        public Description getDescription() {
-            return description;
-        }
-
-        @Override
-        public void run(RunNotifier notifier) {
-            notifier.fireTestStarted(description);
-            notifier.fireTestFailure(new Failure(description, failure));
-            notifier.fireTestFinished(description);
-        }
     }
 }

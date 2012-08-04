@@ -40,6 +40,25 @@ public class GUtilTest extends spock.lang.Specification {
         toCamelCase("-") == ""
     }
 
+    def convertStringToLowerCamelCase() {
+        expect:
+        toLowerCamelCase(null) == null
+        toLowerCamelCase("") == ""
+        toLowerCamelCase("word") == "word"
+        toLowerCamelCase("twoWords") == "twoWords"
+        toLowerCamelCase("TwoWords") == "twoWords"
+        toLowerCamelCase("two-words") == "twoWords"
+        toLowerCamelCase("two.words") == "twoWords"
+        toLowerCamelCase("two words") == "twoWords"
+        toLowerCamelCase("two Words") == "twoWords"
+        toLowerCamelCase("Two Words") == "twoWords"
+        toLowerCamelCase(" Two  \t words\n") == "twoWords"
+        toLowerCamelCase("four or so Words") == "fourOrSoWords"
+        toLowerCamelCase("trailing-") == "trailing"
+        toLowerCamelCase("ABC") == "aBC"
+        toLowerCamelCase(".") == ""
+        toLowerCamelCase("-") == ""
+    }
     
     def convertStringToConstantName() {
         expect:

@@ -15,15 +15,21 @@
  */
 package org.gradle.testing
 
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
 import org.junit.Rule
 import org.junit.Test
+import org.junit.Before
 import spock.lang.Issue
 
 @Issue("GRADLE-1009")
 public class TestOutputListenerIntegrationTest extends AbstractIntegrationSpec {
     @Rule public final TestResources resources = new TestResources()
+
+    @Before
+    public void before() {
+        executer.allowExtraLogging = false
+    }
 
     @Test
     def "can use standard output listener for tests"() {
@@ -187,16 +193,16 @@ test {
     testLogging.showStandardStreams = true
 }
 """
-        when: "run without '-i'"
-        def result = executer.withTasks('test').run()
+        when: "run with quiet"
+        def result = executer.withArguments("-q").withTasks('test'). run()
         then:
         !result.output.contains('output from foo')
 
-        when: "run with '-i'"
-        result = executer.withTasks('cleanTest', 'test').withArguments('-i').run()
+        when: "run with lifecycle"
+        result = executer.setAllowExtraLogging(false).withTasks('cleanTest', 'test').run()
 
         then:
         result.output.contains('output from foo')
-        result.error.contains('error from foo')
+        result.output.contains('error from foo')
     }
 }

@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.ide.idea
 
+import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.project.DefaultProject
@@ -29,7 +30,6 @@ import spock.lang.Specification
 class IdeaPluginTest extends Specification {
     private final DefaultProject project = HelperUtil.createRootProject()
     private final Project childProject = HelperUtil.createChildProject(project, "child", new File("."))
-    //TODO SF - fix deprecation warnings
 
     def "adds 'ideaProject' task to root project"() {
         when:
@@ -41,12 +41,19 @@ class IdeaPluginTest extends Specification {
         ideaProjectTask instanceof GenerateIdeaProject
         ideaProjectTask.outputFile == new File(project.projectDir, project.name + ".ipr")
         ideaProjectTask.ideaProject.modules == [project.idea.module, childProject.idea.module]
-        ideaProjectTask.ideaProject.jdkName == "1.6"
+        ideaProjectTask.ideaProject.jdkName == JavaVersion.current().toString()
         ideaProjectTask.ideaProject.languageLevel.level == "JDK_1_6"
-        ideaProjectTask.wildcards == ['!?*.java', '!?*.groovy'] as Set
 
         childProject.tasks.findByName('ideaProject') == null
         childProject.tasks.findByName('cleanIdeaProject') == null
+    }
+
+    def "configures idea project"() {
+        when:
+        applyPluginToProjects()
+
+        then:
+        project.idea.project.wildcards == ['!?*.java', '!?*.groovy'] as Set
     }
 
     def "adds 'ideaWorkspace' task to root project"() {
@@ -78,14 +85,10 @@ class IdeaPluginTest extends Specification {
         project.apply(plugin: 'java')
 
         then:
-        project.idea.project.jdkName == project.sourceCompatibility.toString()
         project.idea.project.languageLevel.level == new IdeaLanguageLevel(project.sourceCompatibility).level
 
-        GenerateIdeaModule ideaModuleTask = project.ideaModule
-        ideaModuleTask.sourceDirs == project.sourceSets.main.allSource.srcDirs
-        ideaModuleTask.testSourceDirs == project.sourceSets.test.allSource.srcDirs
         def configurations = project.configurations
-        ideaModuleTask.scopes == [
+        project.idea.module.scopes == [
                 COMPILE: [plus: [configurations.compile], minus: []],
                 RUNTIME: [plus: [configurations.runtime], minus: [configurations.compile]],
                 TEST: [plus: [configurations.testRuntime], minus: [configurations.runtime]],
@@ -100,7 +103,7 @@ class IdeaPluginTest extends Specification {
         project.buildDir = project.file('target')
 
         then:
-        project.ideaModule.excludeDirs == [project.buildDir, project.file('.gradle')] as Set
+        project.idea.module.excludeDirs == [project.buildDir, project.file('.gradle')] as Set
     }
 
     def "adds 'cleanIdea' task to projects"() {
@@ -137,11 +140,6 @@ class IdeaPluginTest extends Specification {
         GenerateIdeaModule ideaModuleTask = project.ideaModule
         assert ideaModuleTask instanceof GenerateIdeaModule
         assert ideaModuleTask.outputFile == new File(project.projectDir, project.name + ".iml")
-        assert ideaModuleTask.moduleDir == project.projectDir
-        assert ideaModuleTask.sourceDirs == [] as Set
-        assert ideaModuleTask.testSourceDirs == [] as Set
-        assert ideaModuleTask.excludeDirs == [project.buildDir, project.file('.gradle')] as Set
-        assert ideaModuleTask.variables == [:]
         assertThatCleanIdeaDependsOnDeleteTask(project, project.cleanIdeaModule)
     }
 
@@ -151,7 +149,7 @@ class IdeaPluginTest extends Specification {
     }
 
     private applyPluginToProjects() {
-        project.apply plugin: 'idea'
-        childProject.apply plugin: 'idea'
+        project.apply plugin: IdeaPlugin
+        childProject.apply plugin: IdeaPlugin
     }
 }

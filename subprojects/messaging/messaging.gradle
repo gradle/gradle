@@ -1,0 +1,8 @@
+dependencies {
+    groovy libraries.groovy
+    publishCompile project(':baseServices')
+    publishCompile libraries.slf4j_api
+    publishCompile libraries.guava
+}
+
+useTestFixtures()

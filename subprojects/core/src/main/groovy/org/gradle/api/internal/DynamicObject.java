@@ -20,6 +20,13 @@ import groovy.lang.MissingPropertyException;
 
 import java.util.Map;
 
+/**
+ * An object that can be worked with in a dynamic fashion.
+ *
+ * The semantics of each method is completely up to the implementation. For example, {@link BeanDynamicObject}
+ * provides a dynamic view of the functionality of an object and does not provide any decoration or extra functionality.
+ * The {@link ExtensibleDynamicObject} implementation on the other hand does provide extra functionality.
+ */
 public interface DynamicObject {
     boolean hasProperty(String name);
 
@@ -32,4 +39,12 @@ public interface DynamicObject {
     boolean hasMethod(String name, Object... arguments);
 
     Object invokeMethod(String name, Object... arguments) throws MissingMethodException;
+
+    /**
+     * Used to indicate that the dynamic object may still be able to invoke the method, regardless of {@link #hasMethod(String, Object...)}
+     */
+    boolean isMayImplementMissingMethods();
+
+    boolean isMayImplementMissingProperties();
+
 }

@@ -22,7 +22,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.tasks.TaskInputs;
-import org.gradle.util.UncheckedException;
+import org.gradle.internal.UncheckedException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -102,7 +102,7 @@ public class DefaultTaskInputs implements TaskInputs {
                 try {
                     value = callable.call();
                 } catch (Exception e) {
-                    throw UncheckedException.asUncheckedException(e);
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
             } else if (value instanceof Closure) {
                 Closure closure = (Closure) value;

@@ -19,12 +19,19 @@ import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ResolvedConfiguration;
-import org.gradle.api.artifacts.ResolvedDependency;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.tasks.diagnostics.internal.dependencies.DependencyInfoCollector;
+import org.gradle.api.tasks.diagnostics.internal.dependencies.MergedResolvedConfiguration;
+import org.gradle.api.tasks.diagnostics.internal.dependencies.RenderableDependency;
+import org.gradle.api.tasks.diagnostics.internal.dependencies.RenderableDependencyNode;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.util.GUtil;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static org.gradle.logging.StyledTextOutput.Style.*;
 
@@ -72,16 +79,35 @@ public class AsciiReportRenderer extends TextReportRenderer implements Dependenc
     }
 
     public void completeConfiguration(Configuration configuration) {
+        //TODO SF - used for debugging purposes, remove later.
+        //System.out.println(((ConfigurationInternal) configuration).getDependencyGraphListener());
     }
 
-    public void render(ResolvedConfiguration resolvedConfiguration) throws IOException {
-        Set<MergedResolvedDependency> mergedRoots = mergeChildren(resolvedConfiguration.getFirstLevelModuleDependencies());
-        if (mergedRoots.isEmpty()) {
+    public void render(Configuration configuration) throws IOException {
+        DependencyInfoCollector collector = new DependencyInfoCollector();
+        ((ConfigurationInternal) configuration).setDependencyGraphListener(collector);
+
+        ResolvedConfiguration resolvedConfiguration = configuration.getResolvedConfiguration();
+
+        DependencyInfoCollector.DependencyNode graphRoot = collector.buildGraph();
+        RenderableDependency root;
+        if (graphRoot != null) {
+            root = new RenderableDependencyNode(graphRoot);
+        } else {
+            //fall back to old way in case the configuration was already resolved.
+            //TODO SF clean this up
+            root = new MergedResolvedConfiguration(resolvedConfiguration);
+        }
+
+        if (root.getChildren().isEmpty()) {
             getTextOutput().withStyle(Info).text("No dependencies");
             getTextOutput().println();
             return;
         }
-        renderChildren(mergedRoots, new HashSet<String>());
+
+        renderChildren(root.getChildren(), new HashSet<String>());
+
+        resolvedConfiguration.rethrowFailure();
     }
 
     public void complete() throws IOException {
@@ -92,8 +118,8 @@ public class AsciiReportRenderer extends TextReportRenderer implements Dependenc
         super.complete();
     }
     
-    private void render(final MergedResolvedDependency resolvedDependency, Set<String> visitedDependencyNames, boolean lastChild) {
-        final boolean isFirstVisitOfDependencyInConfiguration = visitedDependencyNames.add(resolvedDependency.getName());
+    private void render(final RenderableDependency resolvedDependency, Set<String> visitedDependencyNames, boolean lastChild) {
+        final boolean isFirstVisitOfDependencyInConfiguration = visitedDependencyNames.add(resolvedDependency.getId());
         if (!isFirstVisitOfDependencyInConfiguration) {
             hasCyclicDependencies = true;
         }
@@ -111,62 +137,18 @@ public class AsciiReportRenderer extends TextReportRenderer implements Dependenc
         }, lastChild);
 
         if (isFirstVisitOfDependencyInConfiguration) {
-            renderChildren(mergeChildren(resolvedDependency.getChildren()), visitedDependencyNames);
+            renderChildren(resolvedDependency.getChildren(), visitedDependencyNames);
         }
     }
 
-    private void renderChildren(Set<MergedResolvedDependency> children, Set<String> visitedDependencyNames) {
+    private void renderChildren(Set<RenderableDependency> children, Set<String> visitedDependencyNames) {
         renderer.startChildren();
-        List<MergedResolvedDependency> mergedChildren = new ArrayList<MergedResolvedDependency>(children);
+        List<RenderableDependency> mergedChildren = new ArrayList<RenderableDependency>(children);
         for (int i = 0; i < mergedChildren.size(); i++) {
-            MergedResolvedDependency dependency = mergedChildren.get(i);
+            RenderableDependency dependency = mergedChildren.get(i);
             render(dependency, visitedDependencyNames, i == mergedChildren.size() - 1);
         }
         renderer.completeChildren();
     }
 
-    private Set<MergedResolvedDependency> mergeChildren(Set<ResolvedDependency> children) {
-        Map<String, Set<ResolvedDependency>> mergedGroups = new LinkedHashMap<String, Set<ResolvedDependency>>();
-        for (ResolvedDependency child : children) {
-            Set<ResolvedDependency> mergeGroup = mergedGroups.get(child.getName());
-            if (mergeGroup == null) {
-                mergedGroups.put(child.getName(), mergeGroup = new LinkedHashSet<ResolvedDependency>());
-            }
-            mergeGroup.add(child);
-        }
-        Set<MergedResolvedDependency> mergedChildren = new LinkedHashSet<MergedResolvedDependency>();
-        for (Set<ResolvedDependency> mergedGroup : mergedGroups.values()) {
-            mergedChildren.add(new MergedResolvedDependency(mergedGroup));
-        }
-        return mergedChildren;
-    }
-
-    private static class MergedResolvedDependency {
-        private Set<ResolvedDependency> mergedResolvedDependencies = new LinkedHashSet<ResolvedDependency>();
-
-        public MergedResolvedDependency(Set<ResolvedDependency> mergedResolvedDependencies) {
-            assert !mergedResolvedDependencies.isEmpty();
-            this.mergedResolvedDependencies = mergedResolvedDependencies;
-        }
-
-        public String getName() {
-            return mergedResolvedDependencies.iterator().next().getName();
-        }
-
-        public String getConfiguration() {
-            String mergedConfiguration = "";
-            for (ResolvedDependency mergedResolvedDependency : mergedResolvedDependencies) {
-                mergedConfiguration += mergedResolvedDependency.getConfiguration() + ",";
-            }
-            return mergedConfiguration.substring(0, mergedConfiguration.length() - 1);
-        }
-
-        public Set<ResolvedDependency> getChildren() {
-            Set<ResolvedDependency> mergedChildren = new LinkedHashSet<ResolvedDependency>();
-            for (ResolvedDependency mergedResolvedDependency : mergedResolvedDependencies) {
-                mergedChildren.addAll(mergedResolvedDependency.getChildren());
-            }
-            return mergedChildren;
-        }
-    }
 }

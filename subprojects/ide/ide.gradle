@@ -22,9 +22,18 @@ dependencies {
     compile project(':ear')
     compile project(':toolingApi')
     compile libraries.slf4j_api
+    compile libraries.inject
 
     testCompile libraries.xmlunit
     testCompile project(':coreImpl')
 }
 
 useTestFixtures()
+
+eclipse {
+	classpath {
+    	file.whenMerged { classpath ->
+        	classpath.entries.removeAll { it.path.contains('src/integTest/resources') }
+        }
+    }
+}

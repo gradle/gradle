@@ -15,30 +15,20 @@
  */
 package org.gradle.cli;
 
-import java.util.Map;
-import java.util.HashMap;
+public class SystemPropertiesCommandLineConverter extends AbstractPropertiesCommandLineConverter {
 
-public class SystemPropertiesCommandLineConverter extends AbstractCommandLineConverter<Map<String, String>> {
-
-    private static final String SYSTEM_PROP = "D";
-
-    public void configure(CommandLineParser parser) {
-        parser.option(SYSTEM_PROP, "system-prop").hasArguments().hasDescription("Set system property of the JVM (e.g. -Dmyprop=myvalue).");
+    @Override
+    protected String getPropertyOption() {
+        return "D";
     }
 
-    protected Map<String, String> newInstance() {
-        return new HashMap<String, String>();
+    @Override
+    protected String getPropertyOptionDetailed() {
+        return "system-prop";
     }
 
-    public Map<String, String> convert(ParsedCommandLine options, Map<String, String> properties) throws CommandLineArgumentException {
-        for (String keyValueExpression : options.option(SYSTEM_PROP).getValues()) {
-            int pos = keyValueExpression.indexOf("=");
-            if (pos < 0) {
-                properties.put(keyValueExpression, "");
-            } else {
-                properties.put(keyValueExpression.substring(0, pos), keyValueExpression.substring(pos+1));
-            }
-        }
-        return properties;
+    @Override
+    protected String getPropertyOptionDescription() {
+        return "Set system property of the JVM (e.g. -Dmyprop=myvalue).";
     }
 }

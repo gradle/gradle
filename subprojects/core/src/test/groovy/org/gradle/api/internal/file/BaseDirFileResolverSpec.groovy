@@ -18,7 +18,7 @@ package org.gradle.api.internal.file
 import org.gradle.util.Requires
 import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestPrecondition
-import org.gradle.os.FileSystems
+import org.gradle.internal.nativeplatform.filesystem.FileSystems
 
 import org.junit.Rule
 import spock.lang.Specification
@@ -154,7 +154,7 @@ class BaseDirFileResolverSpec extends Specification {
         normalize(root) == root
 
         where:
-        root << File.listRoots()
+        root << getFsRoots()
     }
 
     @Requires(TestPrecondition.WINDOWS)
@@ -168,14 +168,13 @@ class BaseDirFileResolverSpec extends Specification {
     }
 
     def "normalizes relative path that refers to ancestor of file system root"() {
-        File root = File.listRoots()[0]
+        File root = getFsRoots()[0]
 
         expect:
         normalize("../../..", root) == root
     }
 
     def createLink(File link, File target) {
-        link.parentFile.mkdirs()
         FileSystems.default.createSymbolicLink(link, target)
     }
 
@@ -190,6 +189,10 @@ class BaseDirFileResolverSpec extends Specification {
     }
 
     def normalize(Object path, File baseDir = tmpDir.dir) {
-        new BaseDirFileResolver(baseDir).resolve(path)
+        new BaseDirFileResolver(FileSystems.default, baseDir).resolve(path)
+    }
+
+    private File[] getFsRoots() {
+        File.listRoots().findAll { !it.absolutePath.startsWith("A:") }
     }
 }

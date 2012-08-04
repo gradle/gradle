@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.DefaultDependencySet;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet;
+import org.gradle.api.internal.dependencygraph.DependencyGraphListener;
 import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
@@ -34,9 +35,8 @@ import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.listener.ListenerManager;
-import org.gradle.util.ConfigureUtil;
 import org.gradle.util.CollectionUtils;
-import org.gradle.util.DeprecationLogger;
+import org.gradle.util.ConfigureUtil;
 import org.gradle.util.WrapUtil;
 
 import java.io.File;
@@ -71,6 +71,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private State state = State.UNRESOLVED;
     private ResolvedConfiguration cachedResolvedConfiguration;
     private final DefaultResolutionStrategy resolutionStrategy;
+    private DependencyGraphListener dependencyGraphListener;
 
     public DefaultConfiguration(String path, String name, ConfigurationsProvider configurationsProvider,
                                 ArtifactDependencyResolver dependencyResolver, ListenerManager listenerManager,
@@ -231,12 +232,16 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     public ResolvedConfiguration getResolvedConfiguration() {
         synchronized (lock) {
             if (state == State.UNRESOLVED) {
+                DependencyResolutionListener broadcast = getDependencyResolutionBroadcast();
+                ResolvableDependencies incoming = getIncoming();
+                broadcast.beforeResolve(incoming);
                 cachedResolvedConfiguration = dependencyResolver.resolve(this);
                 if (cachedResolvedConfiguration.hasError()) {
                     state = State.RESOLVED_WITH_FAILURES;
                 } else {
                     state = State.RESOLVED;
                 }
+                broadcast.afterResolve(incoming);
             }
             return cachedResolvedConfiguration;
         }
@@ -294,11 +299,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return false;
     }
 
-    public TaskDependency getBuildArtifacts() {
-        DeprecationLogger.nagUserOfReplacedMethod("Configuration.getBuildArtifacts()", "getAllArtifacts().getBuildDependencies()");
-        return allArtifacts.getBuildDependencies();
-    }
-
     public DependencySet getDependencies() {
         return dependencies;
     }
@@ -307,47 +307,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return allDependencies;
     }
 
-    public <T extends Dependency> DomainObjectSet<T> getDependencies(Class<T> type) {
-        DeprecationLogger.nagUserOfReplacedMethod("Configuration.getDependencies(type)", "getDependencies().withType(type)");
-        return dependencies.withType(type);
-    }
-
-    public <T extends Dependency> DomainObjectSet<T> getAllDependencies(Class<T> type) {
-        DeprecationLogger.nagUserOfReplacedMethod("Configuration.getAllDependencies(type)", "getAllDependencies().withType(type)");
-        return allDependencies.withType(type);
-    }
-
-    public void addDependency(Dependency dependency) {
-        DeprecationLogger.nagUserOfReplacedMethod("Configuration.addDependency()", "getDependencies().add()");
-        throwExceptionIfNotInUnresolvedState();
-        dependencies.add(dependency);
-    }
-
-    public Configuration addArtifact(PublishArtifact artifact) {
-        DeprecationLogger.nagUserOfReplacedMethod("Configuration.addArtifact()", "getArtifacts().add()");
-        throwExceptionIfNotInUnresolvedState();
-        artifacts.add(artifact);
-        return this;
-    }
-
-    public Configuration removeArtifact(PublishArtifact artifact) {
-        DeprecationLogger.nagUserOfReplacedMethod("Configuration.removeArtifact()", "getArtifacts().remove()");
-        throwExceptionIfNotInUnresolvedState();
-        artifacts.remove(artifact);
-        return this;
-    }
-
     public PublishArtifactSet getArtifacts() {
         return artifacts;
     }
 
     public PublishArtifactSet getAllArtifacts() {
         return allArtifacts;
-    }
-
-    public FileCollection getAllArtifactFiles() {
-        DeprecationLogger.nagUserOfReplacedMethod("Configuration.getAllArtifactFiles()", "getAllArtifacts().getFiles()");
-        return allArtifacts.getFiles();
     }
 
     public Set<ExcludeRule> getExcludeRules() {
@@ -361,7 +326,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     public DefaultConfiguration exclude(Map<String, String> excludeRuleArgs) {
         throwExceptionIfNotInUnresolvedState();
-        excludeRules.add(new DefaultExcludeRule(excludeRuleArgs));
+        excludeRules.add(new DefaultExcludeRule(excludeRuleArgs.get(ExcludeRule.GROUP_KEY), excludeRuleArgs.get(ExcludeRule.MODULE_KEY)));
         return this;
     }
 
@@ -418,7 +383,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         for (Configuration excludeRuleSource : excludeRuleSources) {
             for (ExcludeRule excludeRule : excludeRuleSource.getExcludeRules()) {
-                copiedConfiguration.excludeRules.add(new DefaultExcludeRule(excludeRule.getExcludeArgs()));
+                copiedConfiguration.excludeRules.add(new DefaultExcludeRule(excludeRule.getGroup(), excludeRule.getModule()));
             }
         }
 
@@ -593,5 +558,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         public void afterResolve(Closure action) {
             resolutionListenerBroadcast.add("afterResolve", action);
         }
+    }
+
+    public void setDependencyGraphListener(DependencyGraphListener dependencyGraphListener) {
+        this.dependencyGraphListener = dependencyGraphListener;
+    }
+
+    public DependencyGraphListener getDependencyGraphListener() {
+        return dependencyGraphListener;
     }
 }

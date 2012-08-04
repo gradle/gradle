@@ -1,0 +1,6 @@
+task compare(type: CompareGradleBuilds) {
+    sourceVersion = "current"
+    targetVersion = "current"
+    sourceProjectDir = file("sourceBuild/")
+    targetProjectDir = file("targetBuild/")
+}

@@ -15,32 +15,29 @@
  */
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.api.internal.Factory;
 import org.gradle.initialization.GradleLauncherAction;
+import org.gradle.internal.Factory;
 import org.gradle.launcher.exec.GradleLauncherActionExecuter;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.internal.*;
-import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1;
 import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;
+import org.gradle.tooling.internal.provider.input.ProviderOperationParameters;
 
 /**
- * A {@link org.gradle.launcher.exec.GradleLauncherActionExecuter} which routes Gradle logging to those listeners specified in the {@link BuildOperationParametersVersion1} provided with a tooling api build
+ * A {@link org.gradle.launcher.exec.GradleLauncherActionExecuter} which routes Gradle logging to those listeners specified in the {@link ProviderOperationParameters} provided with a tooling api build
  * request.
  */
-public class LoggingBridgingGradleLauncherActionExecuter implements GradleLauncherActionExecuter<BuildOperationParametersVersion1> {
+public class LoggingBridgingGradleLauncherActionExecuter implements GradleLauncherActionExecuter<ProviderOperationParameters> {
     private final Factory<LoggingManagerInternal> loggingManagerFactory;
-    private final GradleLauncherActionExecuter<BuildOperationParametersVersion1> executer;
+    private final GradleLauncherActionExecuter<ProviderOperationParameters> executer;
 
-    public LoggingBridgingGradleLauncherActionExecuter(GradleLauncherActionExecuter<BuildOperationParametersVersion1> executer, Factory<LoggingManagerInternal> loggingManagerFactory) {
+    public LoggingBridgingGradleLauncherActionExecuter(GradleLauncherActionExecuter<ProviderOperationParameters> executer, Factory<LoggingManagerInternal> loggingManagerFactory) {
         this.executer = executer;
         this.loggingManagerFactory = loggingManagerFactory;
     }
 
-    public <T> T execute(GradleLauncherAction<T> action, BuildOperationParametersVersion1 actionParameters) {
+    public <T> T execute(GradleLauncherAction<T> action, ProviderOperationParameters actionParameters) {
         LoggingManagerInternal loggingManager = loggingManagerFactory.create();
-        if (!Boolean.TRUE.equals(actionParameters.isEmbedded())) {
-            loggingManager.disableStandardOutputCapture();
-        }
         if (actionParameters.getStandardOutput() != null) {
             loggingManager.addStandardOutputListener(new StreamBackedStandardOutputListener(actionParameters.getStandardOutput()));
         }
@@ -50,7 +47,7 @@ public class LoggingBridgingGradleLauncherActionExecuter implements GradleLaunch
         ProgressListenerVersion1 progressListener = actionParameters.getProgressListener();
         OutputEventListenerAdapter listener = new OutputEventListenerAdapter(progressListener);
         loggingManager.addOutputEventListener(listener);
-
+        loggingManager.setLevel(actionParameters.getBuildLogLevel());
         loggingManager.start();
         try {
             return executer.execute(action, actionParameters);

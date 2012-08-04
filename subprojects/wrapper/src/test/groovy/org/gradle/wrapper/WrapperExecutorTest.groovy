@@ -42,25 +42,57 @@ class WrapperExecutorTest extends Specification {
         propertiesFile.withOutputStream { properties.store(it, 'header') }
     }
 
-    def "uses properties file to determine distribution"() {
+    def "loads wrapper meta data from specified properties file"() {
         def wrapper = WrapperExecutor.forWrapperPropertiesFile(propertiesFile, System.out)
 
         expect:
         wrapper.distribution == new URI('http://server/test/gradle.zip')
+        wrapper.configuration.distribution == new URI('http://server/test/gradle.zip')
+        wrapper.configuration.distributionBase == 'testDistBase'
+        wrapper.configuration.distributionPath == 'testDistPath'
+        wrapper.configuration.zipBase == 'testZipBase'
+        wrapper.configuration.zipPath == 'testZipPath'
     }
 
-    def "loads wrapper meta data from project directory"() {
+    def "loads wrapper meta data from specified project directory"() {
         def wrapper = WrapperExecutor.forProjectDirectory(projectDir, System.out)
 
         expect:
         wrapper.distribution == new URI('http://server/test/gradle.zip')
+        wrapper.configuration.distribution == new URI('http://server/test/gradle.zip')
+        wrapper.configuration.distributionBase == 'testDistBase'
+        wrapper.configuration.distributionPath == 'testDistPath'
+        wrapper.configuration.zipBase == 'testZipBase'
+        wrapper.configuration.zipPath == 'testZipPath'
     }
 
-    def "can query for distribution when properties file does not exist in project directory"() {
+    def "uses default meta data when properties file does not exist in project directory"() {
         def wrapper = WrapperExecutor.forProjectDirectory(tmpDir.file('unknown'), System.out)
 
         expect:
         wrapper.distribution == null
+        wrapper.configuration.distribution == null
+        wrapper.configuration.distributionBase == PathAssembler.GRADLE_USER_HOME_STRING
+        wrapper.configuration.distributionPath == Install.DEFAULT_DISTRIBUTION_PATH
+        wrapper.configuration.zipBase == PathAssembler.GRADLE_USER_HOME_STRING
+        wrapper.configuration.zipPath == Install.DEFAULT_DISTRIBUTION_PATH
+    }
+
+    def "properties file need contain only the distribution URL"() {
+        given:
+        def properties = new Properties()
+        properties.distributionUrl = 'http://server/test/gradle.zip'
+        propertiesFile.withOutputStream { properties.store(it, 'header') }
+        
+        def wrapper = WrapperExecutor.forWrapperPropertiesFile(propertiesFile, System.out)
+
+        expect:
+        wrapper.distribution == new URI("http://server/test/gradle.zip")
+        wrapper.configuration.distribution == new URI("http://server/test/gradle.zip")
+        wrapper.configuration.distributionBase == PathAssembler.GRADLE_USER_HOME_STRING
+        wrapper.configuration.distributionPath == Install.DEFAULT_DISTRIBUTION_PATH
+        wrapper.configuration.zipBase == PathAssembler.GRADLE_USER_HOME_STRING
+        wrapper.configuration.zipPath == Install.DEFAULT_DISTRIBUTION_PATH
     }
 
     def "execute installs distribution and launches application"() {
@@ -71,7 +103,7 @@ class WrapperExecutorTest extends Specification {
         wrapper.execute(['arg'] as String[], install, start)
 
         then:
-        1 * install.createDist(new URI('http://server/test/gradle.zip'), 'testDistBase', 'testDistPath', 'testZipBase', 'testZipPath') >> installDir
+        1 * install.createDist(wrapper.configuration) >> installDir
         1 * start.start(['arg'] as String[], installDir)
         0 * _._
     }
@@ -89,26 +121,25 @@ class WrapperExecutorTest extends Specification {
         e.cause.message == "No value with key 'distributionUrl' specified in wrapper properties file '$propertiesFile'."
     }
 
-    def "execute fails when properties file does not exist"() {
-        propertiesFile.delete()
-        def wrapper = WrapperExecutor.forWrapperPropertiesFile(propertiesFile, System.out)
+    def "forWrapperPropertiesFile() fails when properties file does not exist"() {
+        def propertiesFile = tmpDir.file("unknown.properties")
 
         when:
-        wrapper.execute(['arg'] as String[], install, start)
+        WrapperExecutor.forWrapperPropertiesFile(propertiesFile, System.out)
 
         then:
-        FileNotFoundException e = thrown()
+        RuntimeException e = thrown()
         e.message == "Wrapper properties file '$propertiesFile' does not exist."
     }
 
-    def "allows old format of the wrapper"() {
+    def "allows old format of the wrapper properties"() {
         given:
         def properties = new Properties()
 
-        properties.distributionBase = 'testDistBase'
-        properties.distributionPath = 'testDistPath'
-        properties.zipStoreBase = 'testZipBase'
-        properties.zipStorePath = 'testZipPath'
+        properties.distributionBase = 'oldDistBase'
+        properties.distributionPath = 'oldDistPath'
+        properties.zipStoreBase = 'oldZipBase'
+        properties.zipStorePath = 'oldZipPath'
 
         properties.urlRoot="http://gradle.artifactoryonline.com/gradle/distributions"
         properties.distributionVersion="1.0-milestone-3"
@@ -117,11 +148,22 @@ class WrapperExecutorTest extends Specification {
 
         propertiesFile.withOutputStream { properties.store(it, 'header') }
 
+        and:
+        def out = new StringWriter()
+
         when:
-        WrapperExecutor.forWrapperPropertiesFile(propertiesFile, System.out)
+        def wrapper = WrapperExecutor.forWrapperPropertiesFile(propertiesFile, out)
 
         then:
-        noExceptionThrown()
+        wrapper.distribution == new URI("http://gradle.artifactoryonline.com/gradle/distributions/gradle-1.0-milestone-3-bin.zip")
+        wrapper.configuration.distribution == new URI("http://gradle.artifactoryonline.com/gradle/distributions/gradle-1.0-milestone-3-bin.zip")
+        wrapper.configuration.distributionBase == 'oldDistBase'
+        wrapper.configuration.distributionPath == 'oldDistPath'
+        wrapper.configuration.zipBase == 'oldZipBase'
+        wrapper.configuration.zipPath == 'oldZipPath'
+
+        and:
+        out.toString().trim() == "Wrapper properties file '$propertiesFile' contains deprecated entries 'urlRoot', 'distributionName', 'distributionVersion' and 'distributionClassifier'. These will be removed soon. Please use 'distributionUrl' instead."
     }
 
     def "reports error when none of the valid formats are met"() {
@@ -140,7 +182,7 @@ class WrapperExecutorTest extends Specification {
 
         then:
         Exception e = thrown()
-        e.cause.message.contains "key 'distributionUrl'"
+        e.cause.message == "No value with key 'distributionUrl' specified in wrapper properties file '$propertiesFile'."
     }
 
     def "supports relative distribution url"() {

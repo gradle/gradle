@@ -17,7 +17,7 @@ package org.gradle.plugins.binaries;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.internal.FactoryNamedDomainObjectContainer;
-import org.gradle.api.internal.Instantiator;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.api.internal.ReflectiveNamedDomainObjectFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.BasePlugin;
@@ -36,23 +36,24 @@ public class BinariesPlugin implements Plugin<ProjectInternal> {
         project.getPlugins().apply(BasePlugin.class);
 
         Instantiator instantiator = project.getServices().get(Instantiator.class);
-        project.getExtensions().add("executables", instantiator.newInstance(
+        project.getExtensions().create("compilers",
+                DefaultCompilerRegistry.class,
+                instantiator
+        );
+        DefaultCompilerRegistry registry = project.getExtensions().getByType(DefaultCompilerRegistry.class);
+
+        project.getExtensions().create("executables",
                 FactoryNamedDomainObjectContainer.class,
                 Executable.class,
                 instantiator,
-                new ReflectiveNamedDomainObjectFactory<Executable>(DefaultExecutable.class, project)
-        ));
-        project.getExtensions().add("libraries", instantiator.newInstance(
+                new ReflectiveNamedDomainObjectFactory<Executable>(DefaultExecutable.class, project, registry)
+        );
+        project.getExtensions().create("libraries",
                 FactoryNamedDomainObjectContainer.class,
                 Library.class,
                 instantiator,
-                new ReflectiveNamedDomainObjectFactory<Library>(DefaultLibrary.class, project)
-        ));
-
-        project.getExtensions().add("compilers", instantiator.newInstance(
-                DefaultCompilerRegistry.class,
-                instantiator
-        ));
+                new ReflectiveNamedDomainObjectFactory<Library>(DefaultLibrary.class, project, registry)
+        );
     }
 
 }

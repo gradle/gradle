@@ -15,25 +15,36 @@
  */
 package org.gradle.launcher.daemon.server.exec;
 
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
+import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
 import org.gradle.launcher.daemon.protocol.Build;
 import org.gradle.launcher.daemon.protocol.BuildStarted;
 import org.gradle.launcher.daemon.protocol.DaemonBusy;
-import org.gradle.launcher.daemon.server.DaemonStateCoordinator;
 
 /**
  * Updates the daemon idle/busy status, sending a DaemonBusy result back to the client if the daemon is busy.
  */
 public class StartBuildOrRespondWithBusy extends BuildCommandOnly {
+    
+    private static final Logger LOGGER = Logging.getLogger(StartBuildOrRespondWithBusy.class);
+    private final DaemonDiagnostics diagnostics;
+
+    public StartBuildOrRespondWithBusy(DaemonDiagnostics diagnostics) {
+        this.diagnostics = diagnostics;
+    }
 
     protected void doBuild(DaemonCommandExecution execution, Build build) {
-        DaemonStateCoordinator stateCoordinator = execution.getDaemonStateCoordinator();
+        DaemonStateControl stateCoordinator = execution.getDaemonStateControl();
 
         DaemonCommandExecution existingExecution = stateCoordinator.onStartCommand(execution);
         if (existingExecution != null) {
+            LOGGER.info("Daemon will not handle the request: {} because is busy executing: {}. Dispatching 'Busy' response...", build, existingExecution);
             execution.getConnection().dispatch(new DaemonBusy(existingExecution.getCommand()));
         } else {
             try {
-                execution.getConnection().dispatch(new BuildStarted(build));
+                LOGGER.info("Daemon is about to start building: " + build + ". Dispatching build started information...");
+                execution.getConnection().dispatch(new BuildStarted(diagnostics));
                 execution.proceed();
             } finally {
                 stateCoordinator.onFinishCommand();

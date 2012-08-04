@@ -20,7 +20,7 @@ package org.gradle.api.artifacts;
  *
  * @author Hans Dockter
  */
-public interface ExternalDependency extends ModuleDependency {
+public interface ExternalDependency extends ModuleDependency, ModuleVersionSelector {
     /**
      * Returns whether or not the version of this dependency should be enforced in the case of version conflicts.
      */

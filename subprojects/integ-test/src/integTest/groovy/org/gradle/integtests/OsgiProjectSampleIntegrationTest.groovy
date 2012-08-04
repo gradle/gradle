@@ -52,7 +52,7 @@ class OsgiProjectSampleIntegrationTest {
         assertEquals('2', manifest.mainAttributes.getValue('Bundle-ManifestVersion'))
         assertEquals('Bnd-1.50.0', manifest.mainAttributes.getValue('Tool'))
         assertTrue(start <= Long.parseLong(manifest.mainAttributes.getValue('Bnd-LastModified')))
-        assertEquals('1.0', manifest.mainAttributes.getValue('Bundle-Version'))
+        assertEquals('1.0.0', manifest.mainAttributes.getValue('Bundle-Version'))
         assertEquals('gradle_tooling.osgi', manifest.mainAttributes.getValue('Bundle-SymbolicName'))
         assertEquals( GradleVersion.current().version, manifest.mainAttributes.getValue('Built-By'))
     }

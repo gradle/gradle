@@ -16,10 +16,12 @@
 
 package org.gradle.integtests.samples
 
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
 import org.gradle.util.TestFile
 import org.junit.Rule
+import spock.lang.Timeout
+import spock.lang.Unroll
 
 /**
  * @author Hans Dockter
@@ -48,46 +50,70 @@ class SamplesWebQuickstartIntegrationTest extends AbstractIntegrationSpec {
         )
     }
 
-    def "can execute servlet"() {
-        given:
+    @Timeout(120)
+    @Unroll
+    def "can use #jettyTask for testing"() {
+        expect:
+        jettyLifecycle(jettyTask)
+
+        where:
+        jettyTask << ["jettyRun", "jettyRunWar"]
+    }
+
+    private void jettyLifecycle(String jettyStartTask) {
+        def portFinder = org.gradle.util.AvailablePortFinder.createPrivate()
+        def httpPort = portFinder.nextAvailable
+        def stopPort = portFinder.nextAvailable
+
         // Inject some int test stuff
         sample.dir.file('build.gradle') << """
-def portFinder = org.gradle.util.AvailablePortFinder.createPrivate()
+httpPort = ${httpPort}
+stopPort = ${stopPort}
 
-httpPort = portFinder.nextAvailable
-stopPort = portFinder.nextAvailable
-println "http port = \$httpPort, stop port = \$stopPort"
-
-[jettyRun, jettyRunWar]*.daemon = true
-
-task runTest(dependsOn: jettyRun) << {
-    callServlet()
-}
-
-task runWarTest(dependsOn: jettyRunWar) << {
-    callServlet()
-}
-
-private void callServlet() {
+task runTest << {
     URL url = new URL("http://localhost:\$httpPort/quickstart")
     println url.text
-    jettyStop.execute()
 }
 
+task sayHearthyGoodbye << {
+    //this task should last for a few seconds
+    //to neatly expose issues with jetty killing the main process
+    println "About to say goodbye..."
+    Thread.sleep(2000)
+    println "Jetty will miss you!"
+}
 """
 
-        when:
+        //starting jetty
         sample sample
-        run 'runTest'
+        def runJetty = executer.withTasks(jettyStartTask, "sayHearthyGoodbye").withArguments("-d").start()
 
-        then:
-        output.contains('hello Gradle')
+        //jetty is started
+        available("http://localhost:$httpPort/quickstart")
 
-        when:
+        //running web test then stopping jetty
         sample sample
-        run 'runWarTest'
+        def jettyStop = executer.withTasks('runTest', 'jettyStop').withArguments("-d").run()
 
-        then:
-        output.contains('hello Gradle')
+        //test has completed
+        assert jettyStop.output.contains('hello Gradle')
+
+        //jetty completed gracefully
+        runJetty.waitForFinish()
+        assert runJetty.standardOutput.contains("Jetty will miss you!")
+    }
+
+    void available(String theUrl) {
+        URL url = new URL(theUrl)
+        long expiry = System.currentTimeMillis() + 30000
+        while (System.currentTimeMillis() <= expiry) {
+            try {
+                url.text
+                return
+            } catch (ConnectException e) {
+                Thread.sleep(200)
+            }
+        }
+        throw new RuntimeException("Timeout waiting for jetty to become available.")
     }
 }

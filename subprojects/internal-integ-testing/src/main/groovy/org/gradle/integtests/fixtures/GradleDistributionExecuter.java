@@ -30,7 +30,7 @@ import static org.gradle.util.Matchers.containsLine;
 import static org.gradle.util.Matchers.matchesRegexp;
 
 /**
- * A Junit rule which provides a {@link GradleExecuter} implementation that executes Gradle using a given {@link
+ * A JUnit rule which provides a {@link GradleExecuter} implementation that executes Gradle using a given {@link
  * GradleDistribution}. If not supplied in the constructor, this rule locates a field on the test object with type
  * {@link GradleDistribution}.
  *
@@ -44,7 +44,11 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
     private boolean workingDirSet;
     private boolean userHomeSet;
     private boolean deprecationChecksOn = true;
-    private final Executer executerType;
+    private boolean stackTraceChecksOn = true;
+    private Executer executerType;
+
+    private boolean allowExtraLogging = true;
+    private boolean mustFork;
 
     public enum Executer {
         embedded(false),
@@ -81,6 +85,14 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
         reset();
     }
 
+    public boolean isMustFork() {
+        return mustFork;
+    }
+
+    public void setMustFork(boolean mustFork) {
+        this.mustFork = mustFork;
+    }
+
     public Executer getType() {
         return executerType;
     }
@@ -89,29 +101,30 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
         if (dist == null) {
             dist = RuleHelper.getField(target, GradleDistribution.class);
         }
-        reset();
         return base;
     }
 
     @Override
-    public GradleExecuter reset() {
+    public GradleDistributionExecuter reset() {
         super.reset();
         workingDirSet = false;
         userHomeSet = false;
         deprecationChecksOn = true;
+        stackTraceChecksOn = true;
+        mustFork = false;
         DeprecationLogger.reset();
         return this;
     }
 
     @Override
-    public GradleExecuter inDirectory(File directory) {
+    public GradleDistributionExecuter inDirectory(File directory) {
         super.inDirectory(directory);
         workingDirSet = true;
         return this;
     }
 
     @Override
-    public GradleExecuter withUserHomeDir(File userHomeDir) {
+    public GradleDistributionExecuter withUserHomeDir(File userHomeDir) {
         super.withUserHomeDir(userHomeDir);
         userHomeSet = true;
         return this;
@@ -119,13 +132,29 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
 
     public GradleDistributionExecuter withDeprecationChecksDisabled() {
         deprecationChecksOn = false;
+        // turn off stack traces too
+        stackTraceChecksOn = false;
+        return this;
+    }
+
+    public GradleDistributionExecuter withStackTraceChecksDisabled() {
+        stackTraceChecksOn = false;
+        return this;
+    }
+    
+    public GradleDistributionExecuter withForkingExecuter() {
+        if (!executerType.forks) {
+            executerType = Executer.forking;
+        }
         return this;
     }
 
     protected <T extends ExecutionResult> T checkResult(T result) {
-        // Assert that nothing unexpected was logged
-        assertOutputHasNoStackTraces(result);
-        assertErrorHasNoStackTraces(result);
+        if (stackTraceChecksOn) {
+            // Assert that nothing unexpected was logged
+            assertOutputHasNoStackTraces(result);
+            assertErrorHasNoStackTraces(result);
+        }
         if (deprecationChecksOn) {
             assertOutputHasNoDeprecationWarnings(result);
         }
@@ -141,14 +170,6 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
             }
 //            Assert.assertThat(unexpectedFiles, Matchers.isEmpty());
         }
-
-        /*
-        File resolversFile = new File(getUserHomeDir(), "caches/artifacts-2/.wharf/resolvers.kryo");
-        Assert.assertTrue(resolversFile.getParentFile().isDirectory());
-        if (resolversFile.exists()) {
-            Assert.assertThat(resolversFile.length(), Matchers.greaterThan(0L));
-        }
-        */
 
         return result;
     }
@@ -176,16 +197,25 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
 
     private void assertNoDeprecationWarnings(String output, String displayName) {
         boolean javacWarning = containsLine(matchesRegexp(".*use(s)? or override(s)? a deprecated API\\.")).matches(output);
-        boolean deprecationWarning = containsLine(matchesRegexp(".*deprecated.*")).matches(output);
+        boolean deprecationWarning = containsLine(matchesRegexp(".* deprecated.*")).matches(output);
         if (deprecationWarning && !javacWarning) {
             throw new AssertionError(String.format("%s contains a deprecation warning:%n=====%n%s%n=====%n", displayName, output));
         }
     }
 
     private void assertNoStackTraces(String output, String displayName) {
-        if (containsLine(matchesRegexp("\\s+at [\\w.$_]+\\([\\w._]+:\\d+\\)")).matches(output)) {
+        if (containsLine(matchesRegexp("\\s+(at\\s+)?[\\w.$_]+\\([\\w._]+:\\d+\\)")).matches(output)) {
             throw new AssertionError(String.format("%s contains an unexpected stack trace:%n=====%n%s%n=====%n", displayName, output));
         }
+    }
+
+    /**
+     * set true to allow the executer to increase the log level if necessary
+     * to help out debugging. Set false to make the executer never update the log level.
+     */
+    public GradleDistributionExecuter setAllowExtraLogging(boolean allowExtraLogging) {
+        this.allowExtraLogging = allowExtraLogging;
+        return this;
     }
 
     protected GradleExecuter configureExecuter() {
@@ -210,9 +240,11 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
 
         if (executerType.forks || !inProcessGradleExecuter.canExecute()) {
             boolean useDaemon = executerType == Executer.daemon && getExecutable() == null;
-            ForkingGradleExecuter forkingGradleExecuter = useDaemon ? new DaemonGradleExecuter(dist) : new ForkingGradleExecuter(dist.getGradleHomeDir());
+            ForkingGradleExecuter forkingGradleExecuter = useDaemon ? new DaemonGradleExecuter(dist, !isQuiet() && allowExtraLogging) : new ForkingGradleExecuter(dist.getGradleHomeDir());
             copyTo(forkingGradleExecuter);
-            forkingGradleExecuter.addGradleOpts(String.format("-Djava.io.tmpdir=%s", tmpDir));
+            if (!dist.shouldAvoidConfiguringTmpDir()) {
+                forkingGradleExecuter.addGradleOpts(String.format("-Djava.io.tmpdir=%s", tmpDir));
+            }
             returnedExecuter = forkingGradleExecuter;
 //        } else {
 //            System.setProperty("java.io.tmpdir", tmpDir.getAbsolutePath());

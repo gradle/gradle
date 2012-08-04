@@ -15,9 +15,9 @@
  */
 package org.gradle.integtests.openapi;
 
+import org.gradle.internal.UncheckedException;
 import org.gradle.openapi.external.foundation.RequestObserverVersion1;
 import org.gradle.openapi.external.foundation.RequestVersion1;
-import org.gradle.util.UncheckedException;
 
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
@@ -128,7 +128,7 @@ public class BlockingRequestObserver implements RequestObserverVersion1 {
                 throw failure;
             }
         } catch(Throwable t) {
-            throw UncheckedException.asUncheckedException(t);
+            throw UncheckedException.throwAsUncheckedException(t);
         } finally {
             lock.unlock();
         }

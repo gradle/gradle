@@ -17,7 +17,7 @@ package org.gradle.api.internal.notations;
 
 import org.gradle.api.artifacts.SelfResolvingDependency;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.Instantiator;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency;
 import org.gradle.api.internal.notations.api.NotationParser;
 import org.gradle.api.internal.notations.parsers.TypedNotationParser;

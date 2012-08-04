@@ -35,6 +35,8 @@ import org.junit.Test
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
 import static org.junit.Assert.fail
+import org.apache.tools.ant.Task
+import org.gradle.util.ClasspathUtil
 
 class DefaultIsolatedAntBuilderTest {
     private final ModuleRegistry moduleRegistry = new DefaultModuleRegistry()
@@ -42,11 +44,11 @@ class DefaultIsolatedAntBuilderTest {
     private final DefaultIsolatedAntBuilder builder = new DefaultIsolatedAntBuilder(registry, new DefaultClassLoaderFactory())
     private final TestAppender appender = new TestAppender()
     private final LoggingTestHelper helper = new LoggingTestHelper(appender)
-    private Collection classpath
+    private Collection<File> classpath
 
     @Before
     public void attachAppender() {
-        classpath = registry.getClassPathFiles("GROOVY")
+        classpath = registry.getClassPath("GROOVY").asFiles
         helper.attachAppender()
         helper.setLevel(Level.INFO);
     }
@@ -103,13 +105,37 @@ class DefaultIsolatedAntBuilderTest {
     }
 
     @Test
+    public void canAccessAntBuilderFromWithinClosures() {
+        builder.execute {
+            assertThat(ant, sameInstance(delegate))
+            
+            ant.property(name: 'prop', value: 'a message')
+            assertThat(project.properties.prop, equalTo('a message'))
+        }
+    }
+
+    @Test
     public void attachesLogger() {
         builder.execute {
             property(name: 'message', value: 'a message')
             echo('${message}')
         }
 
-        assertThat(appender.writer.toString(), equalTo('[ant:echo] a message'))
+        assertThat(appender.writer.toString(), equalTo('[[ant:echo] a message]'))
+    }
+
+    @Test
+    public void bridgesLogging() {
+        def classpath = ClasspathUtil.getClasspathForClass(TestAntTask)
+
+        builder.withClasspath([classpath]).execute {
+            taskdef(name: 'loggingTask', classname: TestAntTask.name)
+            loggingTask()
+        }
+
+        assertThat(appender.writer.toString(), containsString('[a jcl log message]'))
+        assertThat(appender.writer.toString(), containsString('[an slf4j log message]'))
+        assertThat(appender.writer.toString(), containsString('[a log4j log message]'))
     }
 
     @Test
@@ -134,6 +160,20 @@ class DefaultIsolatedAntBuilderTest {
     }
 
     @Test
+    public void cachesClassloaderForGivenAntAndGroovyImplementationClassPath() {
+        ClassLoader antClassLoader = null
+        builder.withClasspath([new File("no-existo.jar")]).execute {
+            antClassLoader = project.class.classLoader
+        }
+        ClassLoader antClassLoader2 = null
+        builder.withClasspath([new File("unknown.jar")]).execute {
+            antClassLoader2 = project.class.classLoader
+        }
+
+        assertThat(antClassLoader, sameInstance(antClassLoader2))
+    }
+
+    @Test
     public void setsContextClassLoader() {
         ClassLoader originalLoader = Thread.currentThread().contextClassLoader
         ClassLoader contextLoader = null
@@ -144,7 +184,7 @@ class DefaultIsolatedAntBuilderTest {
             contextLoader = Thread.currentThread().contextClassLoader
         }
 
-        assertThat(contextLoader, sameInstance(antProject.class.classLoader))
+        assertThat(contextLoader.loadClass(Project.name), sameInstance(antProject.class))
         assertThat(Thread.currentThread().contextClassLoader, sameInstance(originalLoader))
     }
 
@@ -164,14 +204,25 @@ class DefaultIsolatedAntBuilderTest {
     }
 }
 
+class TestAntTask extends Task {
+    @Override
+    void execute() {
+        org.apache.commons.logging.LogFactory.getLog('ant-test').info("a jcl log message")
+        org.slf4j.LoggerFactory.getLogger('ant-test').info("an slf4j log message")
+        org.apache.log4j.Logger.getLogger('ant-test').info("a log4j log message")
+    }
+}
+
 class TestAppender<LoggingEvent> extends AppenderBase<LoggingEvent> {
-    StringWriter writer = new StringWriter()
+    final StringWriter writer = new StringWriter()
 
     synchronized void doAppend(LoggingEvent e) {
         append(e)
     }
 
     protected void append(LoggingEvent e) {
-        writer.write(e.formattedMessage)
+        writer.append("[")
+        writer.append(e.formattedMessage)
+        writer.append("]")
     }
 }

@@ -15,6 +15,8 @@
  */
 package org.gradle.plugins.ide.eclipse.model
 
+import org.gradle.api.Nullable
+import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory
 
 /**
@@ -25,10 +27,12 @@ abstract class AbstractLibrary extends AbstractClasspathEntry {
     FileReference javadocPath
     FileReference library
     String declaredConfigurationName
+    @Nullable
+    ModuleVersionIdentifier moduleVersion
 
     AbstractLibrary(Node node, FileReferenceFactory fileReferenceFactory) {
         super(node)
-        javadocPath = fileReferenceFactory.fromPath(entryAttributes.javadoc_location)
+        javadocPath = fileReferenceFactory.fromJarURI(entryAttributes.javadoc_location)
     }
 
     AbstractLibrary(FileReference library) {
@@ -43,7 +47,7 @@ abstract class AbstractLibrary extends AbstractClasspathEntry {
 
     void setJavadocPath(FileReference path) {
         this.javadocPath = path
-        entryAttributes.javadoc_location = path ? path.path : null
+        entryAttributes.javadoc_location = path ? path.jarURL : null
     }
 
     void appendNode(Node node) {
@@ -87,6 +91,7 @@ abstract class AbstractLibrary extends AbstractClasspathEntry {
                 ", accessRules=" + accessRules +
                 ", sourcePath='" + sourcePath + '\'' +
                 ", javadocPath='" + javadocPath + '\'' +
+                ", id='" + moduleVersion + '\'' +
                 '}';
     }
 }

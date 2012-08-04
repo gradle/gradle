@@ -17,6 +17,9 @@ package org.gradle.cache.internal;
 
 import org.gradle.CacheUsage;
 import org.gradle.api.Action;
+import org.gradle.api.UncheckedIOException;
+import org.gradle.cache.CacheOpenException;
+import org.gradle.cache.CacheValidator;
 import org.gradle.cache.PersistentCache;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
@@ -30,18 +33,21 @@ import java.util.Properties;
 
 import static org.gradle.cache.internal.FileLockManager.LockMode;
 
-public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryStore {
+public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryStore implements ReferencablePersistentCache {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPersistentDirectoryCache.class);
     private final File propertiesFile;
     private final Properties properties = new Properties();
     private final CacheUsage cacheUsage;
     private final Action<? super PersistentCache> initAction;
+    private final CacheValidator validator;
+    private boolean didRebuild;
 
-    public DefaultPersistentDirectoryCache(File dir, String displayName, CacheUsage cacheUsage, Map<String, ?> properties, LockMode lockMode, Action<? super PersistentCache> initAction, FileLockManager lockManager) {
+    public DefaultPersistentDirectoryCache(File dir, String displayName, CacheUsage cacheUsage, CacheValidator validator, Map<String, ?> properties, LockMode lockMode, Action<? super PersistentCache> initAction, FileLockManager lockManager) {
         super(dir, displayName, lockMode, lockManager);
         if (lockMode == LockMode.None) {
             throw new UnsupportedOperationException("Locking mode None is not supported.");
         }
+        this.validator = validator;
         this.cacheUsage = cacheUsage;
         this.initAction = initAction;
         propertiesFile = new File(dir, "cache.properties");
@@ -56,13 +62,30 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
 
     protected void init() throws IOException {
         boolean valid = determineIfCacheIsValid(getLock());
-        if (!valid) {
-            // Escalate to exclusive lock and rebuild the cache
-            getLock().writeToFile(new Runnable() {
-                public void run() {
-                    buildCacheDir(initAction, getLock());
+        int tries = 3;
+        while (!valid) {
+            if (--tries < 0) {
+                throw new CacheOpenException(String.format("Failed to init valid cache for %s", this));
+            }
+            withExclusiveLock(new Action<FileLock>() {
+                public void execute(final FileLock fileLock) {
+                    boolean exclusiveLockValid;
+                    try {
+                        exclusiveLockValid = determineIfCacheIsValid(fileLock);
+                    } catch (IOException e) {
+                        throw new UncheckedIOException(e);
+                    }
+
+                    if (!exclusiveLockValid) {
+                        fileLock.writeFile(new Runnable() {
+                            public void run() {
+                                buildCacheDir(initAction, fileLock);
+                            }
+                        });
+                    }
                 }
             });
+            valid = determineIfCacheIsValid(getLock());
         }
     }
 
@@ -77,13 +100,22 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
             initAction.execute(this);
         }
         GUtil.saveProperties(properties, propertiesFile);
+        didRebuild = true;
     }
 
-    private boolean determineIfCacheIsValid(FileLock lock) throws IOException {
-        if (cacheUsage != CacheUsage.ON) {
-            LOGGER.debug("Invalidating {} as cache usage is set to rebuild.", this);
-            return false;
+    // made protected for DefaultPersistentDirectoryCacheTest.exceptionThrownIfValidCacheCannotBeInitd
+    protected boolean determineIfCacheIsValid(FileLock lock) throws IOException {
+        if (!didRebuild) {
+            if (cacheUsage != CacheUsage.ON) {
+                LOGGER.debug("Invalidating {} as cache usage is set to rebuild.", this);
+                return false;
+            }
+            if (validator!=null && !validator.isValid()) {
+                LOGGER.debug("Invalidating {} as cache validator return false.", this);
+                return false;
+            }
         }
+
         if (!lock.getUnlockedCleanly()) {
             LOGGER.debug("Invalidating {} as it was not closed cleanly.", this);
             return false;

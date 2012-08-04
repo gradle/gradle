@@ -15,13 +15,9 @@
  */
 package org.gradle.plugins.ide.api;
 
-import groovy.lang.Closure;
-import org.gradle.api.Action;
-import org.gradle.api.XmlProvider;
 import org.gradle.api.internal.XmlTransformer;
 import org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurationObject;
 import org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurationObjectGenerator;
-import org.gradle.util.DeprecationLogger;
 
 /**
  * A convenience superclass for those tasks which generate XML configuration files from a domain object of type T.
@@ -51,39 +47,4 @@ public abstract class XmlGeneratorTask<T extends PersistableConfigurationObject>
 
     protected abstract T create();
 
-    /**
-     * Deprecated. Moved to the relevant type. Where? For starters, see examples in {@link org.gradle.plugins.ide.idea.model.IdeaProject} or
-     * {@link org.gradle.plugins.ide.eclipse.model.EclipseProject}.
-     * <p>
-     * Adds a closure to be called when the XML document has been created. The XML is passed to the closure as a
-     * parameter in form of a {@link org.gradle.api.XmlProvider}. The closure can modify the XML before
-     * it is written to the output file.
-     *
-     * @param closure The closure to execute when the XML has been created.
-     */
-    @Deprecated
-    public void withXml(Closure closure) {
-        DeprecationLogger.nagUserWith("<someIdeTask>.withXml is deprecated! Moved to the relevant model object of eclipse/idea.\n"
-                + "As a starting point, refer to the dsl guide for IdeaProject or EclipseProject.\n"
-                + "For example, ideaProject.withXml was changed to idea.project.ipr.withXml");
-        xmlTransformer.addAction(closure);
-    }
-
-    /**
-     * Deprecated. Moved to the relevant type. Where? For starters, see examples in {@link org.gradle.plugins.ide.idea.model.IdeaProject} or
-     * {@link org.gradle.plugins.ide.eclipse.model.EclipseProject}.
-     * <p>
-     * Adds an action to be called when the XML document has been created. The XML is passed to the action as a
-     * parameter in form of a {@link org.gradle.api.XmlProvider}. The action can modify the XML before
-     * it is written to the output file.
-     *
-     * @param action The action to execute when the IPR XML has been created.
-     */
-    @Deprecated
-    public void withXml(Action<? super XmlProvider> action) {
-        DeprecationLogger.nagUserWith("<someIdeTask>.withXml is deprecated! Moved to the relevant model object of eclipse/idea.\n"
-                + "As a starting point, refer to the dsl guide for IdeaProject or EclipseProject.\n"
-                + "For example, ideaProject.withXml was changed to idea.project.ipr.withXml");
-        xmlTransformer.addAction(action);
-    }
 }

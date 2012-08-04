@@ -17,6 +17,7 @@ package org.gradle.api.plugins.quality
 
 import org.gradle.api.Project
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.reporting.ReportingExtension
 
 class GroovyCodeQualityPluginConvention {
     /**
@@ -54,6 +55,6 @@ class GroovyCodeQualityPluginConvention {
      * The directory to write CodeNarc reports into.
      */
     File getCodeNarcReportsDir() {
-        project.fileResolver.withBaseDir(project.reportsDir).resolve(codeNarcReportsDirName)
+        project.extensions.getByType(ReportingExtension).file(codeNarcReportsDirName)
     }
 }

@@ -36,7 +36,7 @@ import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Factory
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
-import org.gradle.util.LongIdGenerator
+import org.gradle.internal.id.LongIdGenerator
 import org.junit.Ignore
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent
 import org.gradle.api.internal.tasks.testing.TestStartEvent

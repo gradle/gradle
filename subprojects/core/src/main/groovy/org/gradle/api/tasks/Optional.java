@@ -15,10 +15,7 @@
  */
 package org.gradle.api.tasks;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 /**
  * <p>Marks a task property as optional. This means that a value does not have to be specified for the property, but any
@@ -38,7 +35,8 @@ import java.lang.annotation.Target;
  *
  * <li>{@link org.gradle.api.tasks.OutputDirectory}</li> </ul>
  */
+@Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD, ElementType.FIELD})
+@Target({ElementType.METHOD, ElementType.FIELD, ElementType.PARAMETER})
 public @interface Optional {
 }

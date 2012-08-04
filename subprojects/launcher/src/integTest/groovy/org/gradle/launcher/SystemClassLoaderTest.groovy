@@ -15,48 +15,72 @@
  */
 package org.gradle.launcher
 
-import spock.lang.*
-
-import org.gradle.integtests.fixtures.*
-import org.gradle.integtests.fixtures.internal.*
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.IgnoreIf
+import static org.gradle.integtests.fixtures.GradleDistributionExecuter.getSystemPropertyExecuter
 
 /**
  * Verifies that Gradle doesn't pollute the system class loader.
- * 
+ *
  * This is important for plugins that need to use isolated class loaders to avoid conflicts.
- * 
+ *
  * When running without the daemon, success is dependant on the start scripts doing the right thing.
  * When running with the daemon, success is dependent on DaemonConnector forking the daemon process with the right classpath.
- * 
- * This test is not meaningfull when running the embedded integration test mode, so we short circuit in that case.
+ *
+ * This test is not meaningful when running the embedded integration test mode, so we ignore it in that case.
  */
 class SystemClassLoaderTest extends AbstractIntegrationSpec {
 
     static heading = "systemClassLoader info"
-    
+    static noInfoHeading = "no systemClassLoader info"
+
+    /*
+        Note: The IBM ClassLoader.systemClassLoader does not throw ClassNotFoundException like it should when you ask
+        for a class it doesn't have, it simply returns null. I've not been able to find any official documentation
+        explaining why this is.
+    */
+    @IgnoreIf({ !getSystemPropertyExecuter().forks })
     def "daemon bootstrap classpath is bare bones"() {
         given:
         buildFile << """
-            task echo << { 
-                def systemLoaderUrls = ClassLoader.systemClassLoader.URLs
-                println "$heading"
-                println systemLoaderUrls.size()
-                println systemLoaderUrls[0]
+            task loadClasses << {
+                def systemLoader = ClassLoader.systemClassLoader
+
+                systemLoader.loadClass(org.gradle.launcher.GradleMain.name) // this should be on the classpath, it's from the launcher package
+
+                def nonLauncherOrCoreClass = "org.apache.commons.lang.WordUtils"
+
+                // Check that this is a dependency (somewhat redundant, but for good measure)
+                assert Project.classLoader.loadClass(nonLauncherOrCoreClass) != null
+
+                try {
+                    def clazz = systemLoader.loadClass(nonLauncherOrCoreClass)
+                    assert clazz == null : "ClassNotFoundException should have been thrown trying to load a “\${nonLauncherOrCoreClass}” class from the system classloader as its not a launcher or core class (loaded class: \$clazz)"
+                } catch (ClassNotFoundException e) {
+                    //
+                }
+
+                if (systemLoader instanceof java.net.URLClassLoader) {
+                    def systemLoaderUrls = systemLoader.URLs
+                    println "$heading"
+                    println systemLoaderUrls.size()
+                    println systemLoaderUrls[0]
+                } else {
+                    println "$noInfoHeading"
+                }
             }
         """
-        
+
         when:
-        run "echo"
-        
+        succeeds "loadClasses"
+
         then:
         def lines = output.readLines()
+        if (lines.find { it == noInfoHeading }) { return }
+
         lines.find { it == heading } // here for nicer output if the output isn't what we expect
         def headingIndex = lines.indexOf(heading)
-        !forkingExecuter || lines[headingIndex + 1] == "1"
-        !forkingExecuter || lines[headingIndex + 2].contains("gradle-launcher") 
-    }
-
-    boolean isForkingExecuter() {
-        executer.type.forks
+        lines[headingIndex + 1] == "1"
+        lines[headingIndex + 2].contains("gradle-launcher")
     }
 }

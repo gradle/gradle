@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.idea;
 
+import org.gradle.tooling.model.GradleModuleVersion;
 import org.gradle.tooling.model.idea.IdeaDependencyScope;
 import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency;
 
@@ -32,6 +33,7 @@ public class DefaultIdeaSingleEntryLibraryDependency implements IdeaSingleEntryL
     private File javadoc;
     private Boolean exported;
     private IdeaDependencyScope scope;
+    private GradleModuleVersion moduleVersion;
 
     public File getFile() {
         return file;
@@ -53,6 +55,10 @@ public class DefaultIdeaSingleEntryLibraryDependency implements IdeaSingleEntryL
 
     public File getJavadoc() {
         return javadoc;
+    }
+
+    public GradleModuleVersion getGradleModuleVersion() {
+        return moduleVersion;
     }
 
     public DefaultIdeaSingleEntryLibraryDependency setJavadoc(File javadoc) {
@@ -78,6 +84,11 @@ public class DefaultIdeaSingleEntryLibraryDependency implements IdeaSingleEntryL
         return this;
     }
 
+    public DefaultIdeaSingleEntryLibraryDependency setGradleModuleVersion(GradleModuleVersion moduleVersion) {
+        this.moduleVersion = moduleVersion;
+        return this;
+    }
+
     @Override
     public String toString() {
         return "IdeaLibraryDependency{"
@@ -86,6 +97,7 @@ public class DefaultIdeaSingleEntryLibraryDependency implements IdeaSingleEntryL
                 + ", javadoc=" + javadoc
                 + ", exported=" + exported
                 + ", scope='" + scope + '\''
+                + ", id='" + moduleVersion + '\''
                 + '}';
     }
 }

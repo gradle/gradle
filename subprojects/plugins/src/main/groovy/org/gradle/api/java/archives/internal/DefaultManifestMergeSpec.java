@@ -15,6 +15,7 @@
  */
 package org.gradle.api.java.archives.internal;
 
+import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.api.Action;
@@ -60,7 +61,7 @@ public class DefaultManifestMergeSpec implements ManifestMergeSpec {
     private DefaultManifest mergeManifest(DefaultManifest baseManifest, DefaultManifest toMergeManifest, FileResolver fileResolver) {
         DefaultManifest mergedManifest = new DefaultManifest(fileResolver);
         mergeSection(null, mergedManifest, baseManifest.getAttributes(), toMergeManifest.getAttributes());
-        Set<String> allSections = GUtil.addSets(baseManifest.getSections().keySet(), toMergeManifest.getSections().keySet());
+        Set<String> allSections = Sets.union(baseManifest.getSections().keySet(), toMergeManifest.getSections().keySet());
         for (String section : allSections) {
             mergeSection(section, mergedManifest,
                     GUtil.elvis(baseManifest.getSections().get(section), new DefaultAttributes()),

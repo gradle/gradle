@@ -17,7 +17,7 @@ package org.gradle.integtests.samples
 
 import org.gradle.integtests.fixtures.MavenRepository
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.junit.Rule
 
 class SamplesJavaApiAndImplIntegrationTest extends AbstractIntegrationSpec {

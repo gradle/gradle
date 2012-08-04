@@ -40,6 +40,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
     private final BuildListener buildListener;
     private final InitScriptHandler initScriptHandler;
     private final LoggingManagerInternal loggingManager;
+    private final ModelConfigurationListener modelConfigurationListener;
     private final BuildExecuter buildExecuter;
 
     /**
@@ -49,7 +50,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
     public DefaultGradleLauncher(GradleInternal gradle, InitScriptHandler initScriptHandler, SettingsHandler settingsHandler,
                                  BuildLoader buildLoader, BuildConfigurer buildConfigurer, BuildListener buildListener,
                                  ExceptionAnalyser exceptionAnalyser, LoggingManagerInternal loggingManager,
-                                 BuildExecuter buildExecuter) {
+                                 ModelConfigurationListener modelConfigurationListener, BuildExecuter buildExecuter) {
         this.gradle = gradle;
         this.initScriptHandler = initScriptHandler;
         this.settingsHandler = settingsHandler;
@@ -58,6 +59,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
         this.exceptionAnalyser = exceptionAnalyser;
         this.buildListener = buildListener;
         this.loggingManager = loggingManager;
+        this.modelConfigurationListener = modelConfigurationListener;
         this.buildExecuter = buildExecuter;
     }
 
@@ -136,6 +138,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
         // Configure build
         buildConfigurer.configure(gradle);
         buildListener.projectsEvaluated(gradle);
+        modelConfigurationListener.onConfigure(gradle);
 
         if (upTo == Stage.Configure) {
             return;

@@ -19,20 +19,27 @@ import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ProgressListener;
 import org.gradle.tooling.ResultHandler;
-import org.gradle.tooling.internal.protocol.ProjectVersion3;
-import org.gradle.tooling.model.Element;
+import org.gradle.tooling.internal.consumer.async.AsyncConnection;
+import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
+import org.gradle.tooling.internal.consumer.protocoladapter.ModelPropertyHandler;
+import org.gradle.tooling.internal.consumer.protocoladapter.ProtocolToModelAdapter;
+import org.gradle.tooling.model.Model;
+import org.gradle.tooling.model.UnsupportedMethodException;
+import org.gradle.tooling.model.internal.Exceptions;
 
+import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-public class DefaultModelBuilder<T extends Element> extends AbstractLongRunningOperation implements ModelBuilder<T> {
+public class DefaultModelBuilder<T extends Model, P> implements ModelBuilder<T> {
     private final Class<T> modelType;
-    private final Class<? extends ProjectVersion3> protocolType;
+    private final Class<P> protocolType;
     private final AsyncConnection connection;
     private final ProtocolToModelAdapter adapter;
+    private ConsumerOperationParameters operationParameters;
 
-    public DefaultModelBuilder(Class<T> modelType, Class<? extends ProjectVersion3> protocolType, AsyncConnection connection, ProtocolToModelAdapter adapter, ConnectionParameters parameters) {
-        super(parameters);
+    public DefaultModelBuilder(Class<T> modelType, Class<P> protocolType, AsyncConnection connection, ProtocolToModelAdapter adapter, ConnectionParameters parameters) {
+        operationParameters = new ConsumerOperationParameters(parameters);
         this.modelType = modelType;
         this.protocolType = protocolType;
         this.connection = connection;
@@ -46,49 +53,65 @@ public class DefaultModelBuilder<T extends Element> extends AbstractLongRunningO
     }
 
     public void get(final ResultHandler<? super T> handler) throws IllegalStateException {
-        ResultHandler<ProjectVersion3> adaptingHandler = new ProtocolToModelAdaptingHandler(handler);
-        connection.getModel(protocolType, operationParameters(), new ResultHandlerAdapter<ProjectVersion3>(adaptingHandler) {
+        ResultHandler<P> adaptingHandler = new ProtocolToModelAdaptingHandler(handler);
+        connection.getModel(protocolType, operationParameters, new ResultHandlerAdapter<P>(adaptingHandler) {
             @Override
             protected String connectionFailureMessage(Throwable failure) {
-                return String.format("Could not fetch model of type '%s' using %s.", modelType.getSimpleName(), connection.getDisplayName());
+                String message = String.format("Could not fetch model of type '%s' using %s.", modelType.getSimpleName(), connection.getDisplayName());
+                if (!(failure instanceof UnsupportedMethodException)
+                        && failure instanceof UnsupportedOperationException) {
+                    message += "\n" + Exceptions.INCOMPATIBLE_VERSION_HINT;
+                }
+                return message;
             }
         });
     }
 
-    @Override
-    public DefaultModelBuilder<T> setStandardOutput(OutputStream outputStream) {
-        super.setStandardOutput(outputStream);
+    public DefaultModelBuilder<T, P> withArguments(String... arguments) {
+        operationParameters.setArguments(arguments);
         return this;
     }
 
-    @Override
-    public DefaultModelBuilder<T> setStandardError(OutputStream outputStream) {
-        super.setStandardError(outputStream);
+    public DefaultModelBuilder<T, P> setStandardOutput(OutputStream outputStream) {
+        operationParameters.setStandardOutput(outputStream);
         return this;
     }
 
-    @Override
-    public DefaultModelBuilder<T> setStandardInput(InputStream inputStream) {
-        super.setStandardInput(inputStream);
+    public DefaultModelBuilder<T, P> setStandardError(OutputStream outputStream) {
+        operationParameters.setStandardError(outputStream);
         return this;
     }
 
-    @Override
-    public DefaultModelBuilder<T> addProgressListener(ProgressListener listener) {
-        super.addProgressListener(listener);
+    public DefaultModelBuilder<T, P> setStandardInput(InputStream inputStream) {
+        operationParameters.setStandardInput(inputStream);
         return this;
     }
 
-    private class ProtocolToModelAdaptingHandler implements ResultHandler<ProjectVersion3> {
+    public DefaultModelBuilder<T, P> setJavaHome(File javaHome) {
+        operationParameters.setJavaHome(javaHome);
+        return this;
+    }
+
+    public DefaultModelBuilder<T, P> setJvmArguments(String... jvmArguments) {
+        operationParameters.setJvmArguments(jvmArguments);
+        return this;
+    }
+
+    public DefaultModelBuilder<T, P> addProgressListener(ProgressListener listener) {
+        operationParameters.addProgressListener(listener);
+        return this;
+    }
+
+    private class ProtocolToModelAdaptingHandler implements ResultHandler<P> {
         private final ResultHandler<? super T> handler;
 
         public ProtocolToModelAdaptingHandler(ResultHandler<? super T> handler) {
             this.handler = handler;
         }
 
-        public void onComplete(ProjectVersion3 result) {
-            handler.onComplete(adapter.adapt(modelType, result));
-
+        public void onComplete(P result) {
+            ModelPropertyHandler propertyHandler = new ModelPropertyHandler(connection.getVersionDetails());
+            handler.onComplete(adapter.adapt(modelType, result, propertyHandler));
         }
 
         public void onFailure(GradleConnectionException failure) {

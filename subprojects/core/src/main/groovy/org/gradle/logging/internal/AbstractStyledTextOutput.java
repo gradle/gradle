@@ -16,12 +16,15 @@
 package org.gradle.logging.internal;
 
 import org.gradle.api.logging.StandardOutputListener;
+import org.gradle.internal.SystemProperties;
 import org.gradle.logging.StyledTextOutput;
-import org.gradle.util.SystemProperties;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
+/**
+ * Subclasses need to implement {@link #doAppend(String)}, and optionally {@link #doStyleChange(org.gradle.logging.StyledTextOutput.Style)}.
+ */
 public abstract class AbstractStyledTextOutput implements StyledTextOutput, StandardOutputListener {
     private Style style = Style.Normal;
 

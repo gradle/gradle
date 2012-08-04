@@ -15,24 +15,19 @@
  */
 package org.gradle.launcher.daemon.protocol;
 
-import org.gradle.initialization.BuildClientMetaData;
-
 import java.io.Serializable;
 
 public class Command implements Serializable {
-    private final BuildClientMetaData clientMetaData;
-    private final long identifier;
+    private final Object identifier;
 
-    public Command(BuildClientMetaData clientMetaData) {
-        this.clientMetaData = clientMetaData;
-        this.identifier = System.identityHashCode(this);
+    public Command(Object identifier) {
+        this.identifier = identifier;
     }
 
-    public BuildClientMetaData getClientMetaData() {
-        return clientMetaData;
-    }
-
-    public long getIdentifier() {
+    /**
+     * @return an id that is guaranteed to be unique in the same process
+     */
+    public Object getIdentifier() {
         return identifier;
     }
 

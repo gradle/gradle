@@ -1,0 +1,94 @@
+<chapter id="pmd_plugin">
+    <title>The PMD Plugin</title>
+    <para>The PMD plugin performs quality checks on your project's Java source files using <ulink url="http://pmd.sourceforge.net">PMD</ulink>
+        and generates reports from these checks.
+    </para>
+
+    <section>
+        <title>Usage</title>
+        <para>To use the PMD plugin, include in your build script:</para>
+        <sample id="usePmdPlugin" dir="codeQuality" title="Using the PMD plugin">
+            <sourcefile file="build.gradle" snippet="use-pmd-plugin"/>
+        </sample>
+        <para>The plugin adds a number of tasks to the project that perform the quality checks. You can execute the checks by running <userinput>gradle check</userinput>.</para>
+    </section>
+
+    <section>
+        <title>Tasks</title>
+        <para>The PMD plugin adds the following tasks to the project:</para>
+        <table>
+            <title>PMD plugin - tasks</title>
+            <thead>
+                <tr>
+                    <td>Task name</td>
+                    <td>Depends on</td>
+                    <td>Type</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <literal>pmdMain</literal>
+                </td>
+                <td>-</td>
+                <td><apilink class="org.gradle.api.plugins.quality.Pmd"/></td>
+                <td>Runs PMD against the production Java source files.</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>pmdTest</literal>
+                </td>
+                <td>-</td>
+                <td><apilink class="org.gradle.api.plugins.quality.Pmd"/></td>
+                <td>Runs PMD against the test Java source files.</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>pmd<replaceable>SourceSet</replaceable></literal>
+                </td>
+                <td>-</td>
+                <td><apilink class="org.gradle.api.plugins.quality.Pmd"/></td>
+                <td>Runs PMD against the given source set's Java source files.</td>
+            </tr>
+        </table>
+
+        <para>The PMD plugin adds the following dependencies to tasks defined by the Java plugin.</para>
+        <table>
+            <title>PMD plugin - additional task dependencies</title>
+            <thead>
+                <td>Task name</td>
+                <td>Depends on</td>
+            </thead>
+            <tr>
+                <td><literal>check</literal></td>
+                <td>All PMD tasks, including <literal>pmdMain</literal> and <literal>pmdTest</literal>.</td>
+            </tr>
+        </table>
+    </section>
+
+    <section>
+        <title>Dependency management</title>
+        <para>The PMD plugin adds the following dependency configurations:</para>
+        <table>
+            <title>PMD plugin - dependency configurations</title>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                    <td>Meaning</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <filename>pmd</filename>
+                </td>
+                <td>The PMD libraries to use</td>
+            </tr>
+        </table>
+    </section>
+
+    <section>
+        <title>Configuration</title>
+        <para>See <apilink class="org.gradle.api.plugins.quality.PmdExtension"/>.</para>
+    </section>
+
+</chapter>

@@ -22,7 +22,7 @@ import org.gradle.util.TestFile
 import org.junit.Test
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.AbstractIntegrationTest
 
 class BuildScriptExecutionIntegrationTest extends AbstractIntegrationTest {
 

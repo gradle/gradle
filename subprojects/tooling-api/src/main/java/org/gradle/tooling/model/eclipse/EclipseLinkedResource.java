@@ -18,6 +18,8 @@ package org.gradle.tooling.model.eclipse;
 
 /**
  * Linked resources are files and folders that are stored in locations in the file system outside of the project's location.
+ *
+ * @since 1.0-milestone-4
  */
 public interface EclipseLinkedResource {
 

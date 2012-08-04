@@ -15,7 +15,7 @@
  */
 package org.gradle.plugins.signing.signatory
 
-import org.gradle.plugins.signing.SigningSettings
+import org.gradle.plugins.signing.SigningExtension
 import org.gradle.api.Project
 
 /**
@@ -28,7 +28,7 @@ interface SignatoryProvider<T extends Signatory> {
      * 
      * @param settings The signing settings for the project the configure is happening for
      */
-    void configure(SigningSettings settings, Closure closure)
+    void configure(SigningExtension settings, Closure closure)
     
     /**
      * <p>Attempts to create a signatory for the project that will be used everywhere something is to be signed 

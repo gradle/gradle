@@ -44,4 +44,6 @@ public interface DirectoryCacheBuilder extends CacheBuilder<PersistentCache> {
      * cross-process access.
      */
     DirectoryCacheBuilder withInitializer(Action<? super PersistentCache> initializer);
+
+    DirectoryCacheBuilder withValidator(CacheValidator validator);
 }

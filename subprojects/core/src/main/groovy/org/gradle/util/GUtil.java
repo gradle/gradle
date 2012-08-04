@@ -21,6 +21,7 @@ import org.gradle.api.UncheckedIOException;
 
 import java.io.*;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -32,6 +33,9 @@ import static java.util.Collections.emptyList;
  * @author Hans Dockter
  */
 public class GUtil {
+    private static final Pattern WORD_SEPARATOR = Pattern.compile("\\W+");
+    private static final Pattern UPPER_LOWER = Pattern.compile("(\\p{Upper}*)(\\p{Lower}*)");
+
     public static <T extends Collection> T flatten(Object[] elements, T addTo, boolean flattenMaps) {
         return flatten(asList(elements), addTo, flattenMaps);
     }
@@ -51,7 +55,6 @@ public class GUtil {
     }
 
     public static <T extends Collection> T flatten(Collection elements, T addTo, boolean flattenMapsAndArrays) {
-        //TODO SF - for some reason, flattening of arrays is controlled by flattenMaps. Consider some refactorings.
         return flatten(elements, addTo, flattenMapsAndArrays, flattenMapsAndArrays);
     }
 
@@ -72,7 +75,6 @@ public class GUtil {
         return addTo;
     }
 
-    //TODO SF - consider moving all flatteing and collectionzizing methods to the CollectionUtil
     /**
      * Flattens input collections (including arrays *but* not maps).
      * If input is not a collection wraps it in a collection and returns it.
@@ -104,7 +106,7 @@ public class GUtil {
     }
 
     public static String join(Collection self, String separator) {
-        StringBuffer buffer = new StringBuffer();
+        StringBuilder buffer = new StringBuilder();
         boolean first = true;
 
         if (separator == null) {
@@ -148,22 +150,6 @@ public class GUtil {
 
     public static <T> T elvis(T object, T defaultValue) {
         return isTrue(object) ? object : defaultValue;
-    }
-
-    public static <T> Set<T> addSets(Iterable<? extends T>... sets) {
-        return addToCollection(new HashSet<T>(), sets);
-    }
-    
-    public static <T> Set<T> toSet(Iterable<? extends T> elements) {
-        return addToCollection(new HashSet<T>(), elements);
-    }
-
-    public static <T> List<T> addLists(Iterable<? extends T>... lists) {
-        return addToCollection(new ArrayList<T>(), lists);
-    }
-
-    public static <T> List<T> toList(Iterable<? extends T> list) {
-        return addToCollection(new ArrayList<T>(), list);
     }
 
     public static <V, T extends Collection<? super V>> T addToCollection(T dest, Iterable<? extends V>... srcs) {
@@ -215,7 +201,9 @@ public class GUtil {
 
     public static Properties loadProperties(URL url) {
         try {
-            return loadProperties(url.openStream());
+            URLConnection uc = url.openConnection();
+            uc.setUseCaches(false);
+            return loadProperties(uc.getInputStream());
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -276,7 +264,7 @@ public class GUtil {
             return null;
         }
         StringBuilder builder = new StringBuilder();
-        Matcher matcher = Pattern.compile("[^\\w]+").matcher(string);
+        Matcher matcher = WORD_SEPARATOR.matcher(string);
         int pos = 0;
         while (matcher.find()) {
             builder.append(StringUtils.capitalize(string.subSequence(pos, matcher.start()).toString()));
@@ -284,6 +272,17 @@ public class GUtil {
         }
         builder.append(StringUtils.capitalize(string.subSequence(pos, string.length()).toString()));
         return builder.toString();
+    }
+
+    public static String toLowerCamelCase(CharSequence string) {
+        String camelCase = toCamelCase(string);
+        if (camelCase == null) {
+            return null;
+        }
+        if (camelCase.length() == 0) {
+            return "";
+        }
+        return ((Character) camelCase.charAt(0)).toString().toLowerCase() + camelCase.subSequence(1, camelCase.length());
     }
 
     /**
@@ -303,13 +302,13 @@ public class GUtil {
         return toWords(string, ' ');
     }
 
-    private static String toWords(CharSequence string, char separator) {
+    public static String toWords(CharSequence string, char separator) {
         if (string == null) {
             return null;
         }
         StringBuilder builder = new StringBuilder();
         int pos = 0;
-        Matcher matcher = Pattern.compile("(\\p{Upper}*)(\\p{Lower}*)").matcher(string);
+        Matcher matcher = UPPER_LOWER.matcher(string);
         while (pos < string.length()) {
             matcher.find(pos);
             if (matcher.end() == pos) {
@@ -342,6 +341,11 @@ public class GUtil {
 
     public static byte[] serialize(Object object) {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        serialize(object, outputStream);
+        return outputStream.toByteArray();
+    }
+
+    public static void serialize(Object object, OutputStream outputStream) {
         try {
             ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
             objectOutputStream.writeObject(object);
@@ -349,7 +353,6 @@ public class GUtil {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-        return outputStream.toByteArray();
     }
 
     public static <T> Comparator<T> last(final Comparator<? super T> comparator, final T lastValue) {

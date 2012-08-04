@@ -15,16 +15,10 @@
  */
 package org.gradle.plugins.cpp.cdt.model
 
-import org.gradle.api.file.FileCollection
 import org.gradle.api.file.ConfigurableFileCollection
-
-import org.gradle.plugins.binaries.model.Binary
-import org.gradle.plugins.binaries.model.Library
-import org.gradle.plugins.binaries.model.Executable
-import org.gradle.plugins.binaries.model.HeaderExportingSourceSet
-import org.gradle.plugins.binaries.model.NativeDependencyCapableSourceSet
-
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.plugins.cpp.CppSourceSet
+import org.gradle.plugins.binaries.model.*
 
 /**
  * Exposes a more logical view of the actual .cproject descriptor file
@@ -35,10 +29,10 @@ class CprojectSettings {
     private final ConfigurableFileCollection includeRoots
     private final ConfigurableFileCollection libs
 
-    CprojectSettings(Binary binary) {
+    CprojectSettings(Binary binary, ProjectInternal project) {
         this.binary = binary
-        includeRoots = binary.project.files()
-        libs = binary.project.files()
+        includeRoots = project.files()
+        libs = project.files()
 
         binary.sourceSets.withType(HeaderExportingSourceSet).all {
             includeRoots.builtBy(it.exportedHeaders) // have to manually add because we use srcDirs in from, not the real collection

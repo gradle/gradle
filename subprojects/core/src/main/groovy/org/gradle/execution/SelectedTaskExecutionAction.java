@@ -18,7 +18,7 @@ package org.gradle.execution;
 import org.gradle.api.Task;
 import org.gradle.api.internal.AbstractMultiCauseException;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.util.UncheckedException;
+import org.gradle.internal.UncheckedException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,7 +49,7 @@ public class SelectedTaskExecutionAction implements BuildExecutionAction {
                 return;
             }
             if (failures.size() == 1) {
-                throw UncheckedException.asUncheckedException(failures.get(0));
+                throw UncheckedException.throwAsUncheckedException(failures.get(0));
             } else {
                 throw new AbstractMultiCauseException("Multiple tasks failed.", failures);
             }

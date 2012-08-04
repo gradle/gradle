@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
-import org.gradle.util.GUtil;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Test;
@@ -27,9 +26,11 @@ import java.io.File;
 import java.util.Collections;
 import java.util.Set;
 
+import static com.google.common.collect.Iterables.concat;
+import static com.google.common.collect.Sets.newHashSet;
 import static org.gradle.api.artifacts.ArtifactsTestUtils.createResolvedArtifact;
 import static org.gradle.util.Matchers.strictlyEqual;
-import static org.gradle.util.WrapUtil.*;
+import static org.gradle.util.WrapUtil.toSet;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
@@ -71,7 +72,6 @@ public class DefaultResolvedDependencyTest {
 
     @Test
     public void getParentArtifacts() {
-        Set<ResolvedArtifact> someModuleArtifacts = toSet(createArtifact("someResolvedArtifact"));
         DefaultResolvedDependency resolvedDependency = createResolvedDependency();
 
         Set<ResolvedArtifact> parent1SpecificArtifacts = toSet(createArtifact("parent1Specific"));
@@ -142,22 +142,22 @@ public class DefaultResolvedDependencyTest {
     public void getAllArtifacts() {
         DefaultResolvedDependency resolvedDependency = createResolvedDependency();
 
-        Set<ResolvedArtifact> parent1SpecificArtifacts = toSet(createArtifact("parent1Specific"));
+        Set<ResolvedArtifact> parent1SpecificArtifacts = newHashSet(createArtifact("parent1Specific"));
         DefaultResolvedDependency parentResolvedDependency1 = createAndAddParent("parent1", resolvedDependency, parent1SpecificArtifacts);
 
-        createAndAddParent("parent2", resolvedDependency, toSet(createArtifact("parent2Specific")));
+        createAndAddParent("parent2", resolvedDependency, newHashSet(createArtifact("parent2Specific")));
 
         DefaultResolvedDependency child = new DefaultResolvedDependency("someGroup", "someChild", "someVersion", "someChildConfiguration");
         resolvedDependency.getChildren().add(child);
 
-        Set<ResolvedArtifact> childParent1SpecificArtifacts = toSet(createArtifact("childParent1Specific"));
+        Set<ResolvedArtifact> childParent1SpecificArtifacts = newHashSet(createArtifact("childParent1Specific"));
         createAndAddParent("childParent1", child, childParent1SpecificArtifacts);
 
-        Set<ResolvedArtifact> childParent2SpecificArtifacts = toSet(createArtifact("childParent2Specific"));
+        Set<ResolvedArtifact> childParent2SpecificArtifacts = newHashSet(createArtifact("childParent2Specific"));
         createAndAddParent("childParent2", child, childParent2SpecificArtifacts);
 
-        assertThat(resolvedDependency.getAllArtifacts(parentResolvedDependency1),
-                equalTo(GUtil.addSets(parent1SpecificArtifacts, childParent1SpecificArtifacts, childParent2SpecificArtifacts)));
+        Iterable<ResolvedArtifact> allArtifacts = newHashSet(concat(parent1SpecificArtifacts, childParent1SpecificArtifacts, childParent2SpecificArtifacts));
+        assertThat(resolvedDependency.getAllArtifacts(parentResolvedDependency1), equalTo(allArtifacts));
     }
 
     @Test

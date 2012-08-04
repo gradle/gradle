@@ -17,8 +17,9 @@ package org.gradle.tooling.internal.consumer.loader
 
 import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.tooling.internal.consumer.Distribution
-import org.gradle.tooling.internal.protocol.ConnectionVersion4
+import org.gradle.tooling.internal.consumer.connection.ConsumerConnection
 import spock.lang.Specification
+import org.gradle.internal.classpath.DefaultClassPath
 
 class CachingToolingImplementationLoaderTest extends Specification {
     final ToolingImplementationLoader target = Mock()
@@ -26,52 +27,52 @@ class CachingToolingImplementationLoaderTest extends Specification {
     final CachingToolingImplementationLoader loader = new CachingToolingImplementationLoader(target)
 
     def delegatesToTargetLoaderToCreateImplementation() {
-        ConnectionVersion4 connectionImpl = Mock()
         final Distribution distribution = Mock()
+        final ConsumerConnection connection = Mock()
 
         when:
-        def impl = loader.create(distribution, loggerFactory)
+        def impl = loader.create(distribution, loggerFactory, true)
 
         then:
-        impl == connectionImpl
-        1 * target.create(distribution, loggerFactory) >> connectionImpl
-        _ * distribution.getToolingImplementationClasspath(loggerFactory) >> ([new File('a.jar')] as Set)
+        impl == connection
+        1 * target.create(distribution, loggerFactory, true) >> connection
+        _ * distribution.getToolingImplementationClasspath(loggerFactory) >> new DefaultClassPath(new File('a.jar'))
         0 * _._
     }
 
     def reusesImplementationWithSameClasspath() {
-        ConnectionVersion4 connectionImpl = Mock()
         final Distribution distribution = Mock()
+        final ConsumerConnection connection = Mock()
 
         when:
-        def impl = loader.create(distribution, loggerFactory)
-        def impl2 = loader.create(distribution, loggerFactory)
+        def impl = loader.create(distribution, loggerFactory, true)
+        def impl2 = loader.create(distribution, loggerFactory, true)
 
         then:
-        impl == connectionImpl
-        impl2 == connectionImpl
-        1 * target.create(distribution, loggerFactory) >> connectionImpl
-        _ * distribution.getToolingImplementationClasspath(loggerFactory) >> ([new File('a.jar')] as Set)
+        impl == connection
+        impl2 == connection
+        1 * target.create(distribution, loggerFactory, true) >> connection
+        _ * distribution.getToolingImplementationClasspath(loggerFactory) >> { new DefaultClassPath(new File('a.jar')) }
         0 * _._
     }
 
     def createsNewImplementationWhenClasspathNotSeenBefore() {
-        ConnectionVersion4 connectionImpl1 = Mock()
-        ConnectionVersion4 connectionImpl2 = Mock()
+        ConsumerConnection connection1 = Mock()
+        ConsumerConnection connection2 = Mock()
         Distribution distribution1 = Mock()
         Distribution distribution2 = Mock()
 
         when:
-        def impl = loader.create(distribution1, loggerFactory)
-        def impl2 = loader.create(distribution2, loggerFactory)
+        def impl = loader.create(distribution1, loggerFactory, true)
+        def impl2 = loader.create(distribution2, loggerFactory, false)
 
         then:
-        impl == connectionImpl1
-        impl2 == connectionImpl2
-        1 * target.create(distribution1, loggerFactory) >> connectionImpl1
-        1 * target.create(distribution2, loggerFactory) >> connectionImpl2
-        _ * distribution1.getToolingImplementationClasspath(loggerFactory) >> ([new File('a.jar')] as Set)
-        _ * distribution2.getToolingImplementationClasspath(loggerFactory) >> ([new File('b.jar')] as Set)
+        impl == connection1
+        impl2 == connection2
+        1 * target.create(distribution1, loggerFactory, true) >> connection1
+        1 * target.create(distribution2, loggerFactory, false) >> connection2
+        _ * distribution1.getToolingImplementationClasspath(loggerFactory) >> new DefaultClassPath(new File('a.jar'))
+        _ * distribution2.getToolingImplementationClasspath(loggerFactory) >> new DefaultClassPath(new File('b.jar'))
         0 * _._
     }
 }

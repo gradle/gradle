@@ -19,7 +19,7 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion;
-import org.gradle.util.TimeProvider;
+import org.gradle.internal.TimeProvider;
 
 import java.io.Serializable;
 

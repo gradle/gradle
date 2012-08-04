@@ -19,7 +19,6 @@ package org.gradle.api.tasks.compile
 import org.junit.Before
 import org.junit.Test
 import static org.junit.Assert.*;
-import static org.hamcrest.Matchers.*
 import static org.gradle.util.Matchers.*
 
 /**
@@ -48,6 +47,7 @@ class CompileOptionsTest {
         assertFalse(compileOptions.listFiles)
         assertFalse(compileOptions.verbose)
         assertFalse(compileOptions.fork)
+        assertFalse(compileOptions.useAnt)
 
         assertThat(compileOptions.compilerArgs, isEmpty())
         assertNull(compileOptions.encoding)
@@ -59,7 +59,7 @@ class CompileOptionsTest {
         assertNotNull(compileOptions.debugOptions)
     }
 
-    @Test public void testOptionMapForDebugAndForkOptions() {
+    @Test public void testOptionMapForDebugOptions() {
         Map optionMap = compileOptions.optionMap()
         assertEquals(optionMap.subMap(TEST_DEBUG_OPTION_MAP.keySet()), TEST_DEBUG_OPTION_MAP)
         assertEquals(optionMap.subMap(TEST_FORK_OPTION_MAP.keySet()), TEST_FORK_OPTION_MAP)
@@ -92,7 +92,6 @@ class CompileOptionsTest {
                 deprecation: 'deprecation',
                 warnings: 'nowarn',
                 debug: 'debug',
-                fork: 'fork',
                 includeJavaRuntime: 'includeJavaRuntime'
         ]
         booleans.keySet().each {compileOptions."$it" = true}

@@ -15,20 +15,20 @@
  */
 package org.gradle.plugins.signing.signatory.pgp
 
-import org.gradle.plugins.signing.SigningSettings
-import org.gradle.plugins.signing.signatory.Signatory
 import org.gradle.plugins.signing.signatory.SignatoryProvider
 
 import org.gradle.util.ConfigureUtil
 
 import org.gradle.api.Project
 
+import org.gradle.plugins.signing.SigningExtension
+
 class PgpSignatoryProvider implements SignatoryProvider/*<PgpSignatory>*/ { // Groovy can't deal with this - 1.7.10
     
     private final factory = new PgpSignatoryFactory()
     private final Map<String, PgpSignatory> signatories = [:]
     
-    void configure(SigningSettings settings, Closure closure) {
+    void configure(SigningExtension settings, Closure closure) {
         ConfigureUtil.configure(closure, new Dsl(settings.project, signatories, factory))
     }
     

@@ -26,12 +26,12 @@ import spock.lang.Unroll
 class FileCollectionSymlinkTest extends Specification {
     @Shared Project project = new ProjectBuilder().build()
 
-    @Shared File file = getTestFile("file")
-    @Shared File symlink = getTestFile("symlink")
-    @Shared File symlinked = getTestFile("symlinked")
-    @Shared File baseDir = file.parentFile
+    @Shared File baseDir = getTestFile("symlinks")
+    @Shared File file = new File(baseDir, "file")
+    @Shared File symlink = new File(baseDir, "symlink")
+    @Shared File symlinked = new File(baseDir, "symlinked")
 
-    @Unroll({"#desc can handle symlinks"})
+    @Unroll("#desc can handle symlinks")
     def "file collection can handle symlinks"() {
         expect:
         fileCollection.contains(file)

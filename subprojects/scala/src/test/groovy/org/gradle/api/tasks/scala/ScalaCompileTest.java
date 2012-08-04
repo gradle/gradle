@@ -17,11 +17,13 @@ package org.gradle.api.tasks.scala;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompiler;
+import org.gradle.api.internal.tasks.compile.Compiler;
+import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.AbstractCompileTest;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.JUnit4GroovyMockery;
+import org.hamcrest.core.IsNull;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Before;
@@ -29,13 +31,11 @@ import org.junit.Test;
 
 import java.io.File;
 
-import static org.gradle.util.Matchers.*;
-
 public class ScalaCompileTest extends AbstractCompileTest {
 
     private ScalaCompile scalaCompile;
 
-    private ScalaJavaJointCompiler scalaCompiler;
+    private Compiler<ScalaJavaJointCompileSpec> scalaCompiler;
     private JUnit4Mockery context = new JUnit4GroovyMockery();
 
     @Override
@@ -53,7 +53,7 @@ public class ScalaCompileTest extends AbstractCompileTest {
     public void setUp() {
         super.setUp();
         scalaCompile = createTask(ScalaCompile.class);
-        scalaCompiler = context.mock(ScalaJavaJointCompiler.class);
+        scalaCompiler = context.mock(Compiler.class);
         scalaCompile.setCompiler(scalaCompiler);
 
         GFileUtils.touch(new File(srcDir, "incl/file.scala"));
@@ -64,13 +64,7 @@ public class ScalaCompileTest extends AbstractCompileTest {
     public void testExecuteDoingWork() {
         setUpMocksAndAttributes(scalaCompile);
         context.checking(new Expectations() {{
-            one(scalaCompiler).setSource(with(hasSameItems(scalaCompile.getSource())));
-            one(scalaCompiler).setDestinationDir(scalaCompile.getDestinationDir());
-            one(scalaCompiler).setClasspath(scalaCompile.getClasspath());
-            one(scalaCompiler).setScalaClasspath(scalaCompile.getScalaClasspath());
-            one(scalaCompiler).setSourceCompatibility(scalaCompile.getSourceCompatibility());
-            one(scalaCompiler).setTargetCompatibility(scalaCompile.getTargetCompatibility());
-            one(scalaCompiler).execute();
+            one(scalaCompiler).execute(with(IsNull.<ScalaJavaJointCompileSpec>notNullValue()));
         }});
 
         scalaCompile.compile();

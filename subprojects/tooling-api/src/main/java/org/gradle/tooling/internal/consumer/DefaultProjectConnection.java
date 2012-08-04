@@ -16,21 +16,14 @@
 package org.gradle.tooling.internal.consumer;
 
 import org.gradle.tooling.*;
-import org.gradle.tooling.internal.protocol.*;
-import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
-import org.gradle.tooling.internal.protocol.eclipse.HierarchicalEclipseProjectVersion1;
-import org.gradle.tooling.model.*;
-import org.gradle.tooling.model.eclipse.EclipseProject;
-import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject;
-import org.gradle.tooling.model.idea.BasicIdeaProject;
-import org.gradle.tooling.model.idea.IdeaProject;
-
-import java.util.HashMap;
-import java.util.Map;
+import org.gradle.tooling.internal.consumer.async.AsyncConnection;
+import org.gradle.tooling.internal.consumer.protocoladapter.ProtocolToModelAdapter;
+import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
+import org.gradle.tooling.model.Model;
 
 class DefaultProjectConnection implements ProjectConnection {
     private final AsyncConnection connection;
-    private final Map<Class<? extends Element>, Class<? extends ProjectVersion3>> modelTypeMap = new HashMap<Class<? extends Element>, Class<? extends ProjectVersion3>>();
+    private final ModelMapping modelMapping = new ModelMapping();
     private ProtocolToModelAdapter adapter;
     private final ConnectionParameters parameters;
 
@@ -38,25 +31,17 @@ class DefaultProjectConnection implements ProjectConnection {
         this.connection = connection;
         this.parameters = parameters;
         this.adapter = adapter;
-        modelTypeMap.put(Project.class, ProjectVersion3.class);
-        modelTypeMap.put(BuildableProject.class, BuildableProjectVersion1.class);
-        modelTypeMap.put(HierarchicalProject.class, HierarchicalProjectVersion1.class);
-        modelTypeMap.put(HierarchicalEclipseProject.class, HierarchicalEclipseProjectVersion1.class);
-        modelTypeMap.put(EclipseProject.class, EclipseProjectVersion3.class);
-        modelTypeMap.put(IdeaProject.class, InternalIdeaProject.class);
-        modelTypeMap.put(GradleProject.class, InternalGradleProject.class);
-        modelTypeMap.put(BasicIdeaProject.class, InternalBasicIdeaProject.class);
     }
 
     public void close() {
         connection.stop();
     }
 
-    public <T extends Element> T getModel(Class<T> viewType) {
+    public <T extends Model> T getModel(Class<T> viewType) {
         return model(viewType).get();
     }
 
-    public <T extends Element> void getModel(final Class<T> viewType, final ResultHandler<? super T> handler) {
+    public <T extends Model> void getModel(final Class<T> viewType, final ResultHandler<? super T> handler) {
         model(viewType).get(handler);
     }
 
@@ -64,14 +49,18 @@ class DefaultProjectConnection implements ProjectConnection {
         return new DefaultBuildLauncher(connection, parameters);
     }
 
-    public <T extends Element> ModelBuilder<T> model(Class<T> modelType) {
-        return new DefaultModelBuilder<T>(modelType, mapToProtocol(modelType), connection, adapter, parameters);
+    public <T extends Model> ModelBuilder<T> model(Class<T> modelType) {
+        return new DefaultModelBuilder<T, Class>(modelType, mapToProtocol(modelType), connection, adapter, parameters);
     }
 
-    private Class<? extends ProjectVersion3> mapToProtocol(Class<? extends Element> viewType) {
-        Class<? extends ProjectVersion3> protocolViewType = modelTypeMap.get(viewType);
+    private Class mapToProtocol(Class<? extends Model> viewType) {
+        Class protocolViewType = modelMapping.getInternalType(viewType);
         if (protocolViewType == null) {
-            throw new UnsupportedVersionException(String.format("Model of type '%s' is not supported.", viewType.getSimpleName()));
+            throw new UnknownModelException(
+                    "Unknown model: '" + viewType.getSimpleName() + "'.\n"
+                        + "Most likely you are trying to acquire a model for a class that is not a valid Tooling API model class.\n"
+                        + "Review the documentation on the version of Tooling API you use to find out what models can be build."
+            );
         }
         return protocolViewType;
     }

@@ -28,6 +28,8 @@ import org.junit.runner.RunWith
 import org.gradle.api.internal.*
 import static org.junit.Assert.*
 import static org.hamcrest.Matchers.*
+import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.reflect.DirectInstantiator
 
 /**
  * @author Hans Dockter

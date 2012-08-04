@@ -7,7 +7,7 @@ greeting {
 
 class GreetingPlugin implements Plugin<Project> {
     void apply(Project project) {
-        project.extensions.greeting = new GreetingPluginExtension()
+        project.extensions.create("greeting", GreetingPluginExtension)
         project.task('hello') << {
             println "${project.greeting.message} from ${project.greeting.greeter}"
         }

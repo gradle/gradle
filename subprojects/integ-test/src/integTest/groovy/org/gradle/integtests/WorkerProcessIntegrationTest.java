@@ -28,16 +28,18 @@ import org.gradle.api.internal.file.BaseDirFileResolver;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.*;
+import org.gradle.internal.id.LongIdGenerator;
+import org.gradle.internal.nativeplatform.filesystem.FileSystems;
+import org.gradle.internal.nativeplatform.services.NativeServices;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.messaging.dispatch.MethodInvocation;
 import org.gradle.messaging.remote.MessagingServer;
 import org.gradle.messaging.remote.ObjectConnection;
 import org.gradle.messaging.remote.internal.MessagingServices;
-import org.gradle.os.jna.NativeEnvironment;
+import org.gradle.internal.nativeplatform.ProcessEnvironment;
 import org.gradle.process.internal.*;
 import org.gradle.process.internal.child.WorkerProcessClassPathProvider;
-import org.gradle.util.LongIdGenerator;
 import org.gradle.util.TemporaryFolder;
 import org.jmock.Expectations;
 import org.jmock.Sequence;
@@ -48,6 +50,9 @@ import org.junit.runner.RunWith;
 
 import java.io.ObjectInputStream;
 import java.io.Serializable;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -62,11 +67,12 @@ public class WorkerProcessIntegrationTest {
     private final MessagingServices messagingServices = new MessagingServices(getClass().getClassLoader());
     private final MessagingServer server = messagingServices.get(MessagingServer.class);
     @Rule public final TemporaryFolder tmpDir = new TemporaryFolder();
-    private final CacheFactory factory = new DefaultCacheFactory(new DefaultFileLockManager(new DefaultProcessMetaDataProvider(NativeEnvironment.current()))).create();
+    private final ProcessMetaDataProvider metaDataProvider = new DefaultProcessMetaDataProvider(new NativeServices().get(ProcessEnvironment.class));
+    private final CacheFactory factory = new DefaultCacheFactory(new DefaultFileLockManager(metaDataProvider)).create();
     private final CacheRepository cacheRepository = new DefaultCacheRepository(tmpDir.getDir(), null, CacheUsage.ON, factory);
     private final ModuleRegistry moduleRegistry = new DefaultModuleRegistry();
     private final ClassPathRegistry classPathRegistry = new DefaultClassPathRegistry(new DefaultClassPathProvider(moduleRegistry), new WorkerProcessClassPathProvider(cacheRepository, moduleRegistry));
-    private final DefaultWorkerProcessFactory workerFactory = new DefaultWorkerProcessFactory(LogLevel.INFO, server, classPathRegistry, new BaseDirFileResolver(tmpDir.getTestDir()), new LongIdGenerator());
+    private final DefaultWorkerProcessFactory workerFactory = new DefaultWorkerProcessFactory(LogLevel.INFO, server, classPathRegistry, new BaseDirFileResolver(FileSystems.getDefault(), tmpDir.getTestDir()), new LongIdGenerator());
     private final ListenerBroadcast<TestListenerInterface> broadcast = new ListenerBroadcast<TestListenerInterface>(
             TestListenerInterface.class);
     private final RemoteExceptionListener exceptionListener = new RemoteExceptionListener(broadcast);
@@ -157,15 +163,11 @@ public class WorkerProcessIntegrationTest {
 
     @Test
     public void handlesWorkerProcessWhenJvmFailsToStart() throws Throwable {
-        execute(mainClass("no-such-class").expectStartFailure());
+        execute(worker(new NoOpAction()).jvmArgs("--broken").expectStartFailure());
     }
 
     private ChildProcess worker(Action<WorkerProcessContext> action) {
         return new ChildProcess(action);
-    }
-
-    private ChildProcess mainClass(String mainClass) {
-        return new ChildProcess(new NoOpAction()).mainClass(mainClass);
     }
 
     void execute(ChildProcess... processes) throws Throwable {
@@ -184,7 +186,7 @@ public class WorkerProcessIntegrationTest {
         private boolean startFails;
         private WorkerProcess proc;
         private Action<WorkerProcessContext> action;
-        private String mainClass;
+        private List<String> jvmArgs = Collections.emptyList();
         private Action<ObjectConnection> serverAction;
 
         public ChildProcess(Action<WorkerProcessContext> action) {
@@ -203,15 +205,13 @@ public class WorkerProcessIntegrationTest {
 
         public void start() {
             WorkerProcessBuilder builder = workerFactory.create();
-            builder.applicationClasspath(classPathRegistry.getClassPathFiles("ANT"));
+            builder.applicationClasspath(classPathRegistry.getClassPath("ANT").getAsFiles());
             builder.sharedPackages("org.apache.tools.ant");
             builder.getJavaCommand().systemProperty("test.system.property", "value");
             builder.getJavaCommand().environment("TEST_ENV_VAR", "value");
             builder.worker(action);
 
-            if (mainClass != null) {
-                builder.getJavaCommand().setMain(mainClass);
-            }
+            builder.getJavaCommand().jvmArgs(jvmArgs);
 
             proc = builder.build();
             try {
@@ -239,13 +239,13 @@ public class WorkerProcessIntegrationTest {
             }
         }
 
-        public ChildProcess mainClass(String mainClass) {
-            this.mainClass = mainClass;
+        public ChildProcess onServer(Action<ObjectConnection> action) {
+            this.serverAction = action;
             return this;
         }
 
-        public ChildProcess onServer(Action<ObjectConnection> action) {
-            this.serverAction = action;
+        public ChildProcess jvmArgs(String... jvmArgs) {
+            this.jvmArgs = Arrays.asList(jvmArgs);
             return this;
         }
     }
@@ -287,7 +287,11 @@ public class WorkerProcessIntegrationTest {
             assertThat(antClassLoader, not(sameInstance(systemClassLoader)));
             assertThat(thisClassLoader, not(sameInstance(systemClassLoader)));
             assertThat(antClassLoader.getParent(), equalTo(systemClassLoader.getParent()));
-            assertThat(thisClassLoader.getParent().getParent().getParent(), sameInstance(antClassLoader));
+            try {
+                assertThat(thisClassLoader.loadClass(Project.class.getName()), sameInstance((Object)Project.class));
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            }
 
             // Send some messages
             TestListenerInterface sender = workerProcessContext.getServerConnection().addOutgoing(

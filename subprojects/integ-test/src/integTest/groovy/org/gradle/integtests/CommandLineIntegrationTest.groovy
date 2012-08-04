@@ -15,17 +15,16 @@
  */
 package org.gradle.integtests
 
-import org.apache.tools.ant.taskdefs.Chmod
 import org.gradle.integtests.fixtures.ExecutionFailure
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.os.FileSystems
-import org.gradle.os.OperatingSystem
-import org.junit.Ignore
+import org.gradle.internal.nativeplatform.filesystem.FileSystems
+import org.gradle.internal.os.OperatingSystem
 import org.junit.Rule
 import org.junit.Test
 import org.gradle.util.*
+import org.gradle.internal.jvm.Jvm
 
 public class CommandLineIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
@@ -160,7 +159,7 @@ public class CommandLineIntegrationTest {
         assert someAbsoluteDir.exists()
     }
 
-    @Test @Ignore
+    @Test
     public void systemPropGradleUserHomeHasPrecedenceOverEnvVariable() {
         // the actual testing is done in the build script.
         File gradleUserHomeDir = dist.testFile("customUserHome")
@@ -177,6 +176,9 @@ public class CommandLineIntegrationTest {
 
         def result = executer.usingExecutable(script.absolutePath).withTasks("help").run()
         assert result.output.contains("my app")
+
+        // Don't follow links when cleaning up test files
+        dist.temporaryFolder.dir.usingNativeTools().deleteDir()
     }
 
     @Test
@@ -184,10 +186,7 @@ public class CommandLineIntegrationTest {
         def binDir = dist.gradleHomeDir.file('bin')
         def newScript = binDir.file(OperatingSystem.current().getScriptName('my app'))
         binDir.file(OperatingSystem.current().getScriptName('gradle')).copyTo(newScript)
-        def chmod = new Chmod()
-        chmod.file = newScript
-        chmod.perm = "700"
-        AntUtil.execute(chmod)
+        newScript.permissions = 'rwx------'
 
         def result = executer.usingExecutable(newScript.absolutePath).withTasks("help").run()
         assert result.output.contains("my app")

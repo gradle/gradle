@@ -23,8 +23,8 @@ ear {
         displayName = "Custom Ear"  // defaults to project.name
         description = "My customized EAR for the Gradle documentation"  // defaults to project.description
 //      libraryDirectory = "APP-INF/lib"  // not needed, because setting libDirName above did this for us
-//      module("my.jar", "java")  // wouldn't deploy since my.jar isn't a deploy depencency
-//      webModule("my.war", "/")  // wouldn't deploy since my.war isn't a deploy depencency
+//      module("my.jar", "java")  // wouldn't deploy since my.jar isn't a deploy dependency
+//      webModule("my.war", "/")  // wouldn't deploy since my.war isn't a deploy dependency
         securityRole "admin"
         securityRole "superadmin"
         withXml { provider -> // add a custom node to the XML

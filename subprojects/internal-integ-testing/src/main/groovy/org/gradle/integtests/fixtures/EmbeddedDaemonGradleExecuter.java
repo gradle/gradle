@@ -15,10 +15,10 @@
  */
 package org.gradle.integtests.fixtures;
 
-import org.gradle.cli.CommandLineParser;
-import org.gradle.cli.ParsedCommandLine;
-import org.gradle.initialization.DefaultCommandLineConverter;
+import org.gradle.StartParameter;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.initialization.BuildClientMetaData;
+import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.launcher.cli.ExecuteBuildAction;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.EmbeddedDaemonClientServices;
@@ -83,22 +83,21 @@ public class EmbeddedDaemonGradleExecuter extends AbstractGradleExecuter {
 
     private LoggingManagerInternal createLoggingManager(StringBuilder output, StringBuilder error) {
         LoggingManagerInternal loggingManager = daemonClientServices.getLoggingServices().newInstance(LoggingManagerInternal.class);
-        loggingManager.disableStandardOutputCapture();
         loggingManager.addStandardOutputListener(new StreamBackedStandardOutputListener(output));
         loggingManager.addStandardErrorListener(new StreamBackedStandardOutputListener(error));
         return loggingManager;
     }
 
     private ExecuteBuildAction createBuildAction() {
-        CommandLineParser parser = new CommandLineParser();
         DefaultCommandLineConverter commandLineConverter = new DefaultCommandLineConverter();
-        commandLineConverter.configure(parser);
-        ParsedCommandLine commandLine = parser.parse(getAllArgs());
-        return new ExecuteBuildAction(getWorkingDir(), commandLine);
+        StartParameter startParameter = new StartParameter();
+        startParameter.setCurrentDir(getWorkingDir());
+        commandLineConverter.convert(getAllArgs(), startParameter);
+        return new ExecuteBuildAction(startParameter);
     }
 
     private BuildActionParameters createBuildActionParameters() {
-        return new DefaultBuildActionParameters(daemonClientServices.get(BuildClientMetaData.class), getStartTime(), System.getProperties(), getEnvironmentVars(), getWorkingDir());
+        return new DefaultBuildActionParameters(daemonClientServices.get(BuildClientMetaData.class), getStartTime(), System.getProperties(), getEnvironmentVars(), getWorkingDir(), LogLevel.LIFECYCLE);
     }
 
     private long getStartTime() {

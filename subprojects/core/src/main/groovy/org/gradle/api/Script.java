@@ -21,7 +21,6 @@ import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.initialization.dsl.ScriptHandler;
-import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.resources.ResourceHandler;
@@ -150,6 +149,13 @@ public interface Script {
     /**
      * <p>Creates a new {@code ConfigurableFileTree} using the given base directory. The given baseDir path is evaluated
      * as for {@link #file(Object)}.</p>
+     * 
+     * <p><b>Note:</b> to use a closure as the baseDir, you must explicitly cast the closure to {@code Object} to force
+     * the use of this method instead of {@link #fileTree(Closure)}. Example:</p>
+     *
+     * <pre>
+     * fileTree((Object){ someDir })
+     * </pre>
      *
      * <p>The returned file tree is lazy, so that it scans for files only when the contents of the file tree are
      * queried. The file tree is also live, so that it scans for files each time the contents of the file tree are
@@ -188,10 +194,32 @@ public interface Script {
      * queried. The file tree is also live, so that it scans for files each time the contents of the file tree are
      * queried.</p>
      *
+     * @deprecated Use {@link #fileTree(Object,Closure)} instead.
      * @param closure Closure to configure the {@code ConfigurableFileTree} object
      * @return the configured file tree. Never returns null.
      */
     ConfigurableFileTree fileTree(Closure closure);
+
+    /**
+     * <p>Creates a new {@code ConfigurableFileTree} using the given base directory. The given baseDir path is evaluated
+     * as for {@link #file(Object)}. The closure will be used to configure the new file tree. 
+     * The file tree is passed to the closure as its delegate.  Example:</p>
+     *
+     * <pre>
+     * fileTree('src') {
+     *    exclude '**&#47;.svn/**'
+     * }.copy { into 'dest'}
+     * </pre>
+     *
+     * <p>The returned file tree is lazy, so that it scans for files only when the contents of the file tree are
+     * queried. The file tree is also live, so that it scans for files each time the contents of the file tree are
+     * queried.</p>
+     *
+     * @param baseDir The base directory of the file tree. Evaluated as for {@link #file(Object)}.
+     * @param configureClosure Closure to configure the {@code ConfigurableFileTree} object.
+     * @return the configured file tree. Never returns null.
+     */
+    ConfigurableFileTree fileTree(Object baseDir, Closure configureClosure);
 
     /**
      * <p>Creates a new {@code FileTree} which contains the contents of the given ZIP file. The given zipPath path is
@@ -324,26 +352,6 @@ public interface Script {
      * @return the LoggingManager. Never returns null.
      */
     LoggingManager getLogging();
-
-    /**
-     * Disables redirection of standard output during script execution. By default redirection is enabled.
-     *
-     * @see #captureStandardOutput(org.gradle.api.logging.LogLevel)
-     */
-    @Deprecated
-    void disableStandardOutputCapture();
-
-    /**
-     * <p>Starts redirection of standard output during to the logging system during script execution. By default
-     * redirection is enabled and the output is redirected to the QUIET level. System.err is always redirected to the
-     * ERROR level.</p>
-     *
-     * @param level The level standard out should be logged to.
-     * @see #disableStandardOutputCapture()
-     * @deprecated Use the {@link org.gradle.api.logging.LoggingManager} returned by {@link #getLogging()} instead
-     */
-    @Deprecated
-    void captureStandardOutput(LogLevel level);
 
     /**
      * Returns the logger for this script. You can use this in your script to write log messages.

@@ -24,22 +24,21 @@ import org.gradle.api.internal.collections.FilteredCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.util.DeprecationLogger;
 
 import java.util.*;
 
 public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> implements DomainObjectCollection<T> {
 
-    private final Class<T> type;
+    private final Class<? extends T> type;
     private final CollectionEventRegister<T> eventRegister;
     private final Collection<T> store;
     private final Set<Runnable> mutateActions = new LinkedHashSet<Runnable>();
 
-    public DefaultDomainObjectCollection(Class<T> type, Collection<T> store) {
+    public DefaultDomainObjectCollection(Class<? extends T> type, Collection<T> store) {
         this(type, store, new CollectionEventRegister<T>());
     }
 
-    protected DefaultDomainObjectCollection(Class<T> type, Collection<T> store, CollectionEventRegister<T> eventRegister) {
+    protected DefaultDomainObjectCollection(Class<? extends T> type, Collection<T> store, CollectionEventRegister<T> eventRegister) {
         this.type = type;
         this.store = store;
         this.eventRegister = eventRegister;
@@ -49,7 +48,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         this(filter.getType(), collection.filteredStore(filter), collection.filteredEvents(filter));
     }
 
-    public Class<T> getType() {
+    public Class<? extends T> getType() {
         return type;
     }
 
@@ -69,7 +68,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         return new CollectionFilter<S>(type);
     }
 
-    protected <S extends T> CollectionFilter<S> createFilter(Class<S> type, Spec<? super S> spec) {
+    protected <S extends T> CollectionFilter<S> createFilter(Class<? extends S> type, Spec<? super S> spec) {
         return new CollectionFilter<S>(type, spec);
     }
 
@@ -97,40 +96,8 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         return filtered(createFilter(type));
     }
 
-    @Deprecated
-    public Set<T> getAll() {
-        DeprecationLogger.nagUserWith("The DomainObjectCollection.getAll() method is deprecated as DomainObjectCollection is now a Collection itself. Simply use the collection.");
-        return findAll(Specs.<T>satisfyAll());
-    }
-
-    @Deprecated
-    public Set<T> findAll(Spec<? super T> spec) {
-        DeprecationLogger.nagUserWith("The DomainObjectCollection.findAll() method is deprecated as DomainObjectCollection is now a Collection itself. Use the matching(Spec) method.");
-
-        Set<T> filtered = new LinkedHashSet<T>(size());
-        for (T t : getStore()) {
-            if (spec.isSatisfiedBy(t)) {
-                filtered.add(t);
-            }
-        }
-
-        return filtered;
-    }
-
     public Iterator<T> iterator() {
         return new IteratorImpl(getStore().iterator());
-    }
-
-    @Deprecated
-    public void allObjects(Action<? super T> action) {
-        DeprecationLogger.nagUserOfReplacedMethod("DomainObjectCollection.allObjects()", "all()");
-        all(action);
-    }
-
-    @Deprecated
-    public void allObjects(Closure action) {
-        DeprecationLogger.nagUserOfReplacedMethod("DomainObjectCollection.allObjects()", "all()");
-        all(action);
     }
 
     public void all(Action<? super T> action) {

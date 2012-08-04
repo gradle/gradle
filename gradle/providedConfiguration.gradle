@@ -1,0 +1,19 @@
+/**
+ * Adds a configuration named 'provided'. 'Provided' dependencies
+ * are incoming compile dependencies that aren't outgoing
+ * dependencies. In other words, they have no effect on transitive
+ * dependency management.
+ */
+
+configurations {
+    provided.extendsFrom(compile)
+    testCompile.extendsFrom(provided)
+}
+
+sourceSets.main {
+    compileClasspath = configurations.provided
+}
+
+plugins.withType(IdeaPlugin) {
+    idea.module.scopes.PROVIDED.plus += configurations.provided
+}

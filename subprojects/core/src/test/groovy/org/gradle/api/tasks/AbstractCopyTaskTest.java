@@ -37,7 +37,6 @@ public class AbstractCopyTaskTest extends AbstractTaskTest {
 
     @Before
     public void setUp() {
-        super.setUp();
         task = createTask(TestCopyTask.class);
         task.action = context.mock(CopyActionImpl.class);
         task.defaultSource = context.mock(FileCollection.class);
@@ -50,7 +49,7 @@ public class AbstractCopyTaskTest extends AbstractTaskTest {
 
     @Test
     public void usesDefaultSourceWhenNoSourceHasBeenSpecified() {
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             one(task.action).hasSource();
             will(returnValue(false));
 
@@ -61,7 +60,7 @@ public class AbstractCopyTaskTest extends AbstractTaskTest {
     @Test
     public void doesNotUseDefaultSourceWhenSourceHasBeenSpecifiedOnSpec() {
         final FileTree source = context.mock(FileTree.class, "source");
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             one(task.action).hasSource();
             will(returnValue(true));
             one(task.action).getAllSource();
@@ -69,6 +68,7 @@ public class AbstractCopyTaskTest extends AbstractTaskTest {
         }});
         assertThat(task.getSource(), sameInstance((FileCollection) source));
     }
+
 
     @Test
     public void copySpecMethodsDelegateToMainSpecOfCopyAction() {
@@ -91,6 +91,7 @@ public class AbstractCopyTaskTest extends AbstractTaskTest {
         }
 
         @Override
+        @SuppressWarnings("deprecation")
         public FileCollection getDefaultSource() {
             return defaultSource;
         }

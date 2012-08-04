@@ -16,9 +16,10 @@
 package org.gradle.api.internal.file.collections;
 
 import java.io.File;
+import java.io.Serializable;
 import java.util.Collection;
 
-public class SimpleFileCollection extends FileCollectionAdapter {
+public class SimpleFileCollection extends FileCollectionAdapter implements Serializable {
     public SimpleFileCollection(File... files) {
         super(new ListBackedFileSet(files));
     }

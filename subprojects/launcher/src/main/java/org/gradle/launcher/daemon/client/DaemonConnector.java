@@ -15,7 +15,7 @@
  */
 package org.gradle.launcher.daemon.client;
 
-import org.gradle.api.specs.Spec;
+import org.gradle.api.internal.specs.ExplainingSpec;
 import org.gradle.launcher.daemon.context.DaemonContext;
 
 /**
@@ -28,12 +28,15 @@ public interface DaemonConnector {
      *
      * @return A connection to a matching daemon, or null if none running.
      */
-    public DaemonConnection maybeConnect(Spec<? super DaemonContext> constraint);
+    public DaemonConnection maybeConnect(ExplainingSpec<DaemonContext> constraint);
 
     /**
      * Connects to a daemon that matches the given constraint, starting one if required.
      *
      * @return A connection to a matching daemon. Never returns null.
      */
-    public DaemonConnection connect(Spec<? super DaemonContext> constraint);
+    public DaemonConnection connect(ExplainingSpec<DaemonContext> constraint);
+
+    public DaemonConnection createConnection(ExplainingSpec<DaemonContext> constraint);
+
 }

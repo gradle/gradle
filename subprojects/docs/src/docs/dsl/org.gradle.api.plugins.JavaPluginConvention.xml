@@ -30,7 +30,7 @@
             </tr>
             <tr>
                 <td>testReportDir</td>
-                <td><literal><replaceable>${project.reportsDir}</replaceable>/<replaceable>${project.testReportDirName}</replaceable></literal></td>
+                <td><literal><replaceable>${project.reporting.baseDir}</replaceable>/<replaceable>${project.testReportDirName}</replaceable></literal></td>
             </tr>
             <tr>
                 <td>sourceSets</td>
@@ -38,7 +38,7 @@
             </tr>
             <tr>
                 <td>sourceCompatibility</td>
-                <td><literal>JavaVersion.JAVA_1_5</literal></td>
+                <td>Value of the current used JVM (e.g. <literal>JavaVersion.JAVA_1_6</literal> on a 1.6 JVM).</td>
             </tr>
             <tr>
                 <td>targetCompatibility</td>

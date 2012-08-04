@@ -17,7 +17,7 @@ package org.gradle.groovy.scripts;
 
 import org.gradle.api.internal.resource.Resource;
 import org.gradle.api.internal.resource.StringResource;
-import org.gradle.util.HashUtil;
+import org.gradle.util.hash.HashUtil;
 
 public class StringScriptSource implements ScriptSource {
     private final Resource resource;
@@ -27,7 +27,7 @@ public class StringScriptSource implements ScriptSource {
     }
 
     public String getClassName() {
-        return "script_" + HashUtil.createHash(resource.getText());
+        return "script_" + HashUtil.createCompactMD5(resource.getText());
     }
 
     public Resource getResource() {

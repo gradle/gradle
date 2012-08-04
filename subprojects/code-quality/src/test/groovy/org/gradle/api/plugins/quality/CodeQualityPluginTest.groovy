@@ -25,22 +25,33 @@ import static org.gradle.util.Matchers.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 import org.gradle.api.plugins.JavaBasePlugin
+import org.gradle.api.plugins.GroovyBasePlugin
 
 class CodeQualityPluginTest {
     private final Project project = HelperUtil.createRootProject()
     private final CodeQualityPlugin plugin = new CodeQualityPlugin()
 
-    @Test public void appliesReportingBasePlugin() {
+    @Test public void appliesCheckstyleAndCodeNarcPlugins() {
         plugin.apply(project)
 
         assertTrue(project.plugins.hasPlugin(ReportingBasePlugin))
+        assertTrue(project.plugins.hasPlugin(CheckstylePlugin))
+        assertTrue(project.plugins.hasPlugin(CodeNarcPlugin))
+        assertFalse(project.plugins.hasPlugin(JavaBasePlugin))
+        assertFalse(project.plugins.hasPlugin(GroovyBasePlugin))
     }
 
     @Test public void addsConventionObjectsToProject() {
         plugin.apply(project)
 
         assertThat(project.convention.plugins.javaCodeQuality, instanceOf(JavaCodeQualityPluginConvention))
+        assertThat(project.checkstyleProperties, equalTo([:]))
+        assertThat(project.checkstyleConfigFile, equalTo(project.file("config/checkstyle/checkstyle.xml")))
+        assertThat(project.file("build/checkstyle"), equalTo(project.checkstyleResultsDir))
+
         assertThat(project.convention.plugins.groovyCodeQuality, instanceOf(GroovyCodeQualityPluginConvention))
+        assertThat(project.codeNarcConfigFile, equalTo(project.file("config/codenarc/codenarc.xml")))
+        assertThat(project.codeNarcReportsDir, equalTo(project.file("build/reports/codenarc")))
     }
 
     @Test public void createsTasksAndAppliesMappingsForEachJavaSourceSet() {
@@ -51,28 +62,31 @@ class CodeQualityPluginTest {
 
         def task = project.tasks[CodeQualityPlugin.CHECKSTYLE_MAIN_TASK]
         assertThat(task, instanceOf(Checkstyle))
-        assertThat(task.defaultSource, equalTo(project.sourceSets.main.allJava))
+        assertThat(task.source as List, equalTo(project.sourceSets.main.allJava as List))
+        assertThat(task.checkstyleClasspath, equalTo(project.configurations.checkstyle))
         assertThat(task.configFile, equalTo(project.checkstyleConfigFile))
         assertThat(task.resultFile, equalTo(project.file("build/checkstyle/main.xml")))
-        assertThat(task.properties, equalTo(project.checkstyleProperties))
-        assertThat(task, dependsOn())
+        assertThat(task.configProperties, equalTo(project.checkstyleProperties))
+        assertThat(task, dependsOn(JavaPlugin.CLASSES_TASK_NAME))
 
         task = project.tasks[CodeQualityPlugin.CHECKSTYLE_TEST_TASK]
         assertThat(task, instanceOf(Checkstyle))
-        assertThat(task.defaultSource, equalTo(project.sourceSets.test.allJava))
+        assertThat(task.source as List, equalTo(project.sourceSets.test.allJava as List))
+        assertThat(task.checkstyleClasspath, equalTo(project.configurations.checkstyle))
         assertThat(task.configFile, equalTo(project.checkstyleConfigFile))
         assertThat(task.resultFile, equalTo(project.file("build/checkstyle/test.xml")))
         assertThat(task.properties, equalTo(project.checkstyleProperties))
-        assertThat(task, dependsOn(JavaPlugin.CLASSES_TASK_NAME))
+        assertThat(task, dependsOn(JavaPlugin.TEST_CLASSES_TASK_NAME))
 
         project.sourceSets.add('custom')
         task = project.tasks['checkstyleCustom']
         assertThat(task, instanceOf(Checkstyle))
-        assertThat(task.defaultSource, equalTo(project.sourceSets.custom.allJava))
+        assertThat(task.source as List, equalTo(project.sourceSets.custom.allJava as List))
+        assertThat(task.checkstyleClasspath, equalTo(project.configurations.checkstyle))
         assertThat(task.configFile, equalTo(project.checkstyleConfigFile))
         assertThat(task.resultFile, equalTo(project.file("build/checkstyle/custom.xml")))
         assertThat(task.properties, equalTo(project.checkstyleProperties))
-        assertThat(task, dependsOn())
+        assertThat(task, dependsOn("customClasses"))
 
         task = project.tasks[JavaBasePlugin.CHECK_TASK_NAME]
         assertThat(task, dependsOn(hasItems(CodeQualityPlugin.CHECKSTYLE_MAIN_TASK, CodeQualityPlugin.CHECKSTYLE_TEST_TASK, 'checkstyleCustom')))
@@ -85,14 +99,16 @@ class CodeQualityPluginTest {
 
         def task = project.tasks[CodeQualityPlugin.CODE_NARC_MAIN_TASK]
         assertThat(task, instanceOf(CodeNarc))
-        assertThat(task.defaultSource, equalTo(project.sourceSets.main.allGroovy))
+        assertThat(task.source as List, equalTo(project.sourceSets.main.allGroovy as List))
+        assertThat(task.codenarcClasspath, equalTo(project.configurations.codenarc))
         assertThat(task.configFile, equalTo(project.codeNarcConfigFile))
         assertThat(task.reportFile, equalTo(project.file("build/reports/codenarc/main.html")))
         assertThat(task, dependsOn())
 
         task = project.tasks[CodeQualityPlugin.CODE_NARC_TEST_TASK]
         assertThat(task, instanceOf(CodeNarc))
-        assertThat(task.defaultSource, equalTo(project.sourceSets.test.allGroovy))
+        assertThat(task.source as List, equalTo(project.sourceSets.test.allGroovy as List))
+        assertThat(task.codenarcClasspath, equalTo(project.configurations.codenarc))
         assertThat(task.configFile, equalTo(project.codeNarcConfigFile))
         assertThat(task.reportFormat, equalTo(project.codeNarcReportsFormat))
         assertThat(task.reportFile, equalTo(project.file("build/reports/codenarc/test.html")))
@@ -101,7 +117,8 @@ class CodeQualityPluginTest {
         project.sourceSets.add('custom')
         task = project.tasks['codenarcCustom']
         assertThat(task, instanceOf(CodeNarc))
-        assertThat(task.defaultSource, equalTo(project.sourceSets.custom.allGroovy))
+        assertThat(task.source as List, equalTo(project.sourceSets.custom.allGroovy as List))
+        assertThat(task.codenarcClasspath, equalTo(project.configurations.codenarc))
         assertThat(task.configFile, equalTo(project.codeNarcConfigFile))
         assertThat(task.reportFormat, equalTo(project.codeNarcReportsFormat))
         assertThat(task.reportFile, equalTo(project.file("build/reports/codenarc/custom.html")))
@@ -113,18 +130,29 @@ class CodeQualityPluginTest {
         assertThat(task, dependsOn(hasItem('codenarcCustom')))
     }
 
-    @Test public void configuresAdditionalTasksDefinedByTheBuildScript() {
+    @Test public void appliesMappingsForCheckstyleTasksWithoutRequiringTheJavaBasePluginToBeApplied() {
         plugin.apply(project)
 
-        def task = project.tasks.add('customCheckstyle', Checkstyle)
-        assertThat(task.source, isEmpty())
-        assertThat(task.configFile, equalTo(project.checkstyleConfigFile))
-        assertThat(task.resultFile, nullValue())
-        assertThat(task.classpath, nullValue())
+        project.checkstyleProperties.someProp = 'someValue'
 
-        task = project.tasks.add('customCodeNarc', CodeNarc)
+        def task = project.tasks.add('checkstyleApi', Checkstyle)
         assertThat(task.source, isEmpty())
-        assertThat(task.configFile, equalTo(project.codeNarcConfigFile))
-        assertThat(task.reportFile, nullValue())
+        assertThat(task.checkstyleClasspath, equalTo(project.configurations.checkstyle))
+        assertThat(task.configFile, equalTo(project.checkstyleConfigFile))
+        assertThat(task.resultFile, equalTo(project.file("build/checkstyle/api.xml")))
+        assertThat(task.configProperties, equalTo(project.checkstyleProperties))
     }
+
+    @Test public void appliesMappingsForCodeNarcTasksWithoutRequiringTheGroovyBasePluginToBeApplied() {
+        plugin.apply(project)
+
+        project.checkstyleProperties.someProp = 'someValue'
+
+        def task = project.tasks.add('codenarcApi', CodeNarc)
+        assertThat(task.source, isEmpty())
+        assertThat(task.codenarcClasspath, equalTo(project.configurations.codenarc))
+        assertThat(task.configFile, equalTo(project.codeNarcConfigFile))
+        assertThat(task.reportFile, equalTo(project.file("build/reports/codenarc/api.html")))
+    }
+
 }

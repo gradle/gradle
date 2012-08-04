@@ -22,6 +22,8 @@ import groovy.lang.*;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.plugins.ExtensionAware;
+import org.gradle.internal.reflect.DirectInstantiator;
+import org.gradle.internal.reflect.Instantiator;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
@@ -60,22 +62,19 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
             ClassBuilder<T> builder = start(type);
 
             boolean isConventionAware = type.getAnnotation(NoConventionMapping.class) == null;
-            boolean isDynamicAware = type.getAnnotation(NoDynamicObject.class) == null;
 
-            builder.startClass(isConventionAware, isDynamicAware);
+            builder.startClass(isConventionAware);
 
-            if (isDynamicAware && !DynamicObjectAware.class.isAssignableFrom(type)) {
+            if (!DynamicObjectAware.class.isAssignableFrom(type)) {
                 if (ExtensionAware.class.isAssignableFrom(type)) {
                     throw new UnsupportedOperationException("A type that implements ExtensionAware must currently also implement DynamicObjectAware.");
                 }
                 builder.mixInDynamicAware();
             }
-            if (isDynamicAware && !GroovyObject.class.isAssignableFrom(type)) {
+            if (!GroovyObject.class.isAssignableFrom(type)) {
                 builder.mixInGroovyObject();
             }
-            if (isDynamicAware) {
-                builder.addDynamicMethods();
-            }
+            builder.addDynamicMethods();
             if (isConventionAware && !IConventionAware.class.isAssignableFrom(type)) {
                 builder.mixInConventionAware();
             }
@@ -90,6 +89,7 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
             Collection<String> skipProperties = Arrays.asList("metaClass", "conventionMapping", "convention", "asDynamicObject", "extensions");
 
             Set<MetaBeanProperty> settableProperties = new HashSet<MetaBeanProperty>();
+            Set<MetaBeanProperty> conventionProperties = new HashSet<MetaBeanProperty>();
 
             MetaClass metaClass = GroovySystem.getMetaClassRegistry().getMetaClass(type);
             for (MetaProperty property : metaClass.getProperties()) {
@@ -106,8 +106,6 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
                     } else {
                         if (Modifier.isFinal(getter.getModifiers()) || Modifier.isPrivate(getter.getModifiers())) {
                             needsConventionMapping = false;
-                        } else if (getter.getReturnType().isPrimitive()) {
-                            needsConventionMapping = false;
                         } else {
                             Class declaringClass = getter.getDeclaringClass().getTheClass();
                             if (declaringClass.isAssignableFrom(noMappingClass)) {
@@ -117,6 +115,7 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
                     }
 
                     if (needsConventionMapping) {
+                        conventionProperties.add(metaBeanProperty);
                         builder.addGetter(metaBeanProperty);
                     }
 
@@ -168,11 +167,12 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
 
             for (MetaBeanProperty property : settableProperties) {
                 Collection<MetaMethod> methodsForProperty = methods.get(property.getName());
-                for (MetaMethod method : methodsForProperty) {
-                    builder.overrideSetMethod(property, method);
-                }
                 if (methodsForProperty.isEmpty()) {
                     builder.addSetMethod(property);
+                } else if (conventionProperties.contains(property)) {
+                    for (MetaMethod method : methodsForProperty) {
+                        builder.overrideSetMethod(property, method);
+                    }
                 }
             }
 
@@ -195,7 +195,7 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
     protected abstract <T> ClassBuilder<T> start(Class<T> type);
 
     protected interface ClassBuilder<T> {
-        void startClass(boolean isConventionAware, boolean isDynamicAware);
+        void startClass(boolean isConventionAware);
 
         void addConstructor(Constructor<?> constructor) throws Exception;
 

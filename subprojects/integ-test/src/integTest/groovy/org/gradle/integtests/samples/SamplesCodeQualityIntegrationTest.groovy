@@ -35,9 +35,9 @@ class SamplesCodeQualityIntegrationTest {
         TestFile projectDir = sample.dir
         TestFile buildDir = projectDir.file('build')
 
-        executer.inDirectory(projectDir).withTasks('check').run()
+        executer.inDirectory(projectDir).withForkingExecuter().withTasks('check').run()
 
-        buildDir.file('checkstyle/main.xml').assertIsFile()
+        buildDir.file('reports/checkstyle/main.xml').assertIsFile()
         buildDir.file('reports/codenarc/main.html').assertIsFile()
         buildDir.file('reports/codenarc/test.html').assertIsFile()
     }

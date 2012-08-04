@@ -75,7 +75,7 @@ class EclipseModel {
      * <p>
      * For examples see docs for {@link EclipseWtp}
      */
-    EclipseWtp wtp = new EclipseWtp()
+    EclipseWtp wtp
 
     /**
      * Configures eclipse project information
@@ -134,7 +134,7 @@ class EclipseModel {
     void pathVariables(Map<String, File> pathVariables) {
         assert pathVariables != null
         classpath.pathVariables.putAll pathVariables
-        if (wtp.component) {
+        if (wtp && wtp.component) {
             wtp.component.pathVariables.putAll pathVariables
         }
     }

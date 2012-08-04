@@ -15,19 +15,19 @@
  */
 package org.gradle.cache.internal;
 
-import org.gradle.api.internal.Factory;
-import org.gradle.util.UncheckedException;
+import org.gradle.internal.Factory;
+import org.gradle.internal.UncheckedException;
 
 import java.util.concurrent.Callable;
 
 public abstract class AbstractFileAccess implements FileAccess {
-    public <T> T readFromFile(final Callable<? extends T> action) throws LockTimeoutException {
-        return readFromFile(new Factory<T>() {
+    public <T> T readFile(final Callable<? extends T> action) throws LockTimeoutException, FileIntegrityViolationException {
+        return readFile(new Factory<T>() {
             public T create() {
                 try {
                     return action.call();
                 } catch (Exception e) {
-                    throw UncheckedException.asUncheckedException(e);
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
             }
         });

@@ -19,51 +19,42 @@ package org.gradle.api.internal.tasks.compile
 import org.gradle.api.AntBuilder
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.WorkResult
-import org.gradle.api.tasks.compile.CompileOptions
-import org.gradle.api.internal.Factory
+import org.gradle.internal.Factory
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 /**
  * @author Hans Dockter
  */
-class AntJavaCompiler implements JavaCompiler {
-    private static Logger logger = LoggerFactory.getLogger(AntJavaCompiler)
-    static final String CLASSPATH_ID = 'compile.classpath'
-    FileCollection source;
-    File destinationDir;
-    Iterable<File> classpath;
-    String sourceCompatibility;
-    String targetCompatibility;
-    CompileOptions compileOptions = new CompileOptions()
-    final Factory<AntBuilder> antBuilderFactory
+class AntJavaCompiler implements org.gradle.api.internal.tasks.compile.Compiler<JavaCompileSpec> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(AntJavaCompiler)
+    private static final String CLASSPATH_ID = 'compile.classpath'
+
+    private final Factory<AntBuilder> antBuilderFactory
 
     AntJavaCompiler(Factory<AntBuilder> antBuilderFactory) {
         this.antBuilderFactory = antBuilderFactory
     }
 
-    void setDependencyCacheDir(File dir) {
-        // don't care
-    }
-
-    WorkResult execute() {
+    WorkResult execute(JavaCompileSpec spec) {
         def ant = antBuilderFactory.create()
 
-        createAntClassPath(ant, classpath)
+        createAntClassPath(ant, spec.classpath)
         Map otherArgs = [
                 includeAntRuntime: false,
-                destdir: destinationDir,
+                destdir: spec.destinationDir,
                 classpathref: CLASSPATH_ID,
                 sourcepath: '',
-                target: targetCompatibility,
-                source: sourceCompatibility
+                target: spec.targetCompatibility,
+                source: spec.sourceCompatibility
         ]
 
-        Map options = otherArgs + compileOptions.optionMap()
-        logger.debug("Running ant javac with the following options {}", options)
+        Map options = otherArgs + spec.compileOptions.optionMap()
+        LOGGER.info("Compiling with Ant javac task.")
+        LOGGER.debug("Ant javac task options: {}", options)
         def task = ant.javac(options) {
-            source.addToAntBuilder(ant, 'src', FileCollection.AntType.MatchingTask)
-            compileOptions.compilerArgs.each {value ->
+            spec.source.addToAntBuilder(ant, 'src', FileCollection.AntType.MatchingTask)
+            spec.compileOptions.compilerArgs.each {value ->
                 compilerarg(value: value)
             }
         }
@@ -75,7 +66,7 @@ class AntJavaCompiler implements JavaCompiler {
     private void createAntClassPath(AntBuilder ant, Iterable classpath) {
         ant.path(id: CLASSPATH_ID) {
             classpath.each {
-                logger.debug("Add {} to Ant classpath!", it)
+                LOGGER.debug("Add {} to Ant classpath!", it)
                 pathelement(location: it)
             }
         }

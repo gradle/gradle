@@ -15,36 +15,19 @@
  */
 package org.gradle.api.internal;
 
-import org.gradle.api.plugins.Convention;
-import org.gradle.api.plugins.ExtensionContainer;
-
 /**
- * <p>Allows properties and method to be added to an object at run-time. Most implementations are generated at run-time
- * from existing classes, by a {@link org.gradle.api.internal.ClassGenerator} implementation.</p>
+ * An object that can present a dynamic view of itself.
  *
- * <p>A {@code DynamicObjectAware} implementation should add meta-object methods which provide the properties and
- * methods returned by {@link #getAsDynamicObject()}.</p>
+ * The exposed dynamic object <i>may</i> provide functionality over and above what the type implementing
+ * this interface can do. For example, the {@link DynamicObject} may provide the ability to register new
+ * properties or implement methods that this object does not provide in a concrete way.
  */
 public interface DynamicObjectAware {
-    /**
-     * Returns the convention object used by this dynamic object.
-     *
-     * @return The convention object. Never returns null.
-     */
-    Convention getConvention();
 
     /**
-     * Returns the extensions used by this dynamic object.
+     * Returns a {@link DynamicObject} for this object.
      *
-     * @return The extensions. Never returns null.
-     */
-    ExtensionContainer getExtensions();
-
-    /**
-     * Returns a {@link DynamicObject} which describes all the static and dynamic properties and methods of this
-     * object.
-     *
-     * @return The meta-info for this object.
+     * @return The dynamic object.
      */
     DynamicObject getAsDynamicObject();
 }

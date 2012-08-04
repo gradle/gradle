@@ -19,7 +19,7 @@ import org.gradle.integtests.fixtures.HttpServer
 import org.gradle.integtests.fixtures.MavenModule
 import org.gradle.integtests.fixtures.MavenRepository
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.junit.Rule
 
 class ArtifactOnlyResolutionIntegrationTest extends AbstractIntegrationSpec {
@@ -68,8 +68,7 @@ task retrieve(type: Sync) {
     def "can resolve and cache artifact-only dependencies from a HTTP repository with no descriptor"() {
         when:
         server.expectGetMissing('/repo1/group/projectA/1.0/projectA-1.0.pom')
-        // TODO:DAZ Should only be one request for jar
-        server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.jar', projectA.artifactFile)
+        server.expectHead('/repo1/group/projectA/1.0/projectA-1.0.jar', projectA.artifactFile)
         server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.jar', projectA.artifactFile)
 
         and:

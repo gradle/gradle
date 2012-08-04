@@ -34,7 +34,7 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
         ":signJar" in nonSkippedTasks
         
         and:
-        file("build", "libs", "sign.jar.asc").text
+        file("build", "libs", "sign-1.0.jar.asc").text
         
         when:
         run "signJar"
@@ -61,9 +61,9 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
         [":signJar", ":signJavadocJar", ":signSourcesJar"].every { it in nonSkippedTasks }
         
         and:
-        file("build", "libs", "sign.jar.asc").text
-        file("build", "libs", "sign-javadoc.jar.asc").text
-        file("build", "libs", "sign-sources.jar.asc").text
+        file("build", "libs", "sign-1.0.jar.asc").text
+        file("build", "libs", "sign-1.0-javadoc.jar.asc").text
+        file("build", "libs", "sign-1.0-sources.jar.asc").text
         
         when:
         run "signJar", "signJavadocJar", "signSourcesJar"
@@ -109,7 +109,7 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
         ":signJar" in nonSkippedTasks
         
         and:
-        file("build", "libs", "changed-custom.jar.asc").text
+        file("build", "libs", "changed-1.0-custom.jar.asc").text
         
     }
     

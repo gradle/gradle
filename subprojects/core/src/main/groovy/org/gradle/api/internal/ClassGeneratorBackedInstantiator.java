@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal;
 
+import org.gradle.internal.reflect.Instantiator;
+
 public class ClassGeneratorBackedInstantiator implements Instantiator {
     private final ClassGenerator classGenerator;
     private final Instantiator instantiator;
@@ -25,6 +27,16 @@ public class ClassGeneratorBackedInstantiator implements Instantiator {
     }
 
     public <T> T newInstance(Class<T> type, Object... parameters) {
-        return instantiator.newInstance(classGenerator.generate(type), parameters);
+        // During the construction of the object, it will look for this global instantiator.
+        // This is to support ExtensionContainer.add(String, Class, Object...) which facilitates
+        // making extensions ExtensionAware themselves.
+        // See: AsmBackedClassGenerator.MixInExtensibleDynamicObject#getInstantiator()
+        ThreadGlobalInstantiator.set(this);
+        try {
+            return instantiator.newInstance(classGenerator.generate(type), parameters);    
+        } finally {
+            ThreadGlobalInstantiator.set(null);
+        }
+        
     }
 }

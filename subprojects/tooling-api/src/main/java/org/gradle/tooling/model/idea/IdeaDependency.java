@@ -19,9 +19,9 @@ package org.gradle.tooling.model.idea;
 import org.gradle.tooling.model.Dependency;
 
 /**
- * Idea dependency
+ * IDEA dependency.
  *
- * @since 1.0-rc-1
+ * @since 1.0-milestone-5
  */
 public interface IdeaDependency extends Dependency {
 

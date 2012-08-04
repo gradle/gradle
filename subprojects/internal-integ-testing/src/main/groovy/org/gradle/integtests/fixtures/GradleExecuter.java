@@ -79,13 +79,6 @@ public interface GradleExecuter {
     GradleExecuter usingBuildScript(File buildScript);
 
     /**
-     * Uses the given build script
-     *
-     * @param scriptText The script text.
-     */
-    GradleExecuter usingBuildScript(String scriptText);
-
-    /**
      * Sets the user home dir. Set to null to use the default user home dir.
      */
     GradleExecuter withUserHomeDir(File userHomeDir);
@@ -132,9 +125,46 @@ public interface GradleExecuter {
     DaemonRegistry getDaemonRegistry();
 
     /**
-     * Creates a handle that allows a build to be executed asynchronously.
+     * Starts executing the build asynchronously.
      *
      * @return the handle, never null.
      */
-    GradleHandle createHandle();
+    GradleHandle start();
+
+    /**
+     * Only makes sense for the forking executor or foreground daemon.
+     *
+     * @param gradleOpts the jvm opts
+     *
+     * @return this executer
+     */
+    GradleExecuter withGradleOpts(String ... gradleOpts);
+
+    /**
+     * Sets the default character encoding to use.
+     *
+     * Only makes sense for forking executers.
+     *
+     * @return this executer
+     */
+    GradleExecuter withDefaultCharacterEncoding(String defaultCharacterEncoding);
+
+    /**
+     * Set the number of seconds an idle daemon should live for.
+     *
+     * @param secs
+     *
+     * @return this executer
+     */
+    GradleExecuter withDaemonIdleTimeoutSecs(int secs);
+
+    /**
+     * Set the working space for the daemon and launched daemons
+     *
+     * @param baseDir
+     *
+     * @return this executer
+     */
+    GradleExecuter withDaemonBaseDir(File baseDir);
+
 }

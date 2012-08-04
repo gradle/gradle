@@ -17,19 +17,15 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.core.settings.IvySettings;
 import org.gradle.api.artifacts.ArtifactRepositoryContainer;
-import org.gradle.api.internal.Factory;
-import org.gradle.api.internal.artifacts.ivyservice.filestore.FileStore;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DownloadingRepositoryCacheManager;
+import org.gradle.internal.Factory;
 
 import java.io.File;
 
 public class IvySettingsFactory implements Factory<IvySettings> {
     private final ArtifactCacheMetaData cacheMetaData;
-    private final FileStore fileStore;
 
-    public IvySettingsFactory(ArtifactCacheMetaData cacheMetaData, FileStore fileStore) {
+    public IvySettingsFactory(ArtifactCacheMetaData cacheMetaData) {
         this.cacheMetaData = cacheMetaData;
-        this.fileStore = fileStore;
     }
 
     public IvySettings create() {
@@ -38,9 +34,6 @@ public class IvySettingsFactory implements Factory<IvySettings> {
         ivySettings.setDefaultCacheIvyPattern(ArtifactRepositoryContainer.DEFAULT_CACHE_IVY_PATTERN);
         ivySettings.setDefaultCacheArtifactPattern(ArtifactRepositoryContainer.DEFAULT_CACHE_ARTIFACT_PATTERN);
         ivySettings.setVariable("ivy.log.modules.in.use", "false");
-
-
-        ivySettings.setDefaultRepositoryCacheManager(new DownloadingRepositoryCacheManager("downloading", fileStore, ivySettings));
 
         return ivySettings;
     }

@@ -24,12 +24,11 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.ParsedModuleStringNota
 import org.gradle.api.internal.notations.NotationParserBuilder;
 import org.gradle.api.internal.notations.api.NotationParser;
 import org.gradle.api.internal.notations.api.TopLevelNotationParser;
+import org.gradle.api.internal.notations.parsers.MapKey;
 import org.gradle.api.internal.notations.parsers.MapNotationParser;
 import org.gradle.api.internal.notations.parsers.TypedNotationParser;
 
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -58,14 +57,8 @@ public class ForcedModuleNotationParser implements TopLevelNotationParser, Notat
             candidateFormats.add("Maps, e.g. [group: 'org.gradle', name:'gradle-core', version: '1.0'].");
         }
 
-        @Override
-        protected Collection<String> getRequiredKeys() {
-            return Arrays.asList("group", "name", "version");
-        }
-
-        @Override
-        protected ModuleVersionSelector parseMap(Map<String, Object> values) {
-            return selector(get(values, "group"), get(values, "name"), get(values, "version"));
+        protected ModuleVersionSelector parseMap(@MapKey("group") String group, @MapKey("name") String name, @MapKey("version") String version) {
+            return selector(group, name, version);
         }
     }
 

@@ -1,6 +1,6 @@
 task transform {
-    srcFile = file('mountains.xml')
-    destDir = new File(buildDir, 'generated')
+    ext.srcFile = file('mountains.xml')
+    ext.destDir = new File(buildDir, 'generated')
     doLast {
         println "Transforming source file."
         destDir.mkdirs()

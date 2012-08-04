@@ -17,7 +17,7 @@ package org.gradle.integtests
 
 import org.junit.Ignore
 import org.junit.Test
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.AbstractIntegrationTest
 
 class TaskAutoDependencyIntegrationTest extends AbstractIntegrationTest {
     @Test

@@ -17,7 +17,7 @@
     <title>Groovy Quickstart</title>
 
     <para>To build a Groovy project, you use the <firstterm>Groovy plugin</firstterm>. This plugin extends the Java
-        plugin to add Groovy compilation capabilties to your project. Your project can contain Groovy source code,
+        plugin to add Groovy compilation capabilities to your project. Your project can contain Groovy source code,
         Java source code, or a mix of the two. In every other respect, a Groovy project is identical to a Java project,
         which we have already seen in <xref linkend="tutorial_java_projects"/>.
     </para>
@@ -32,15 +32,15 @@
         <para>This will also apply the Java plugin to the project, if it has not already been applied. The Groovy plugin
             extends the <literal>compile</literal> task to look for source files in directory
             <filename>src/main/groovy</filename>, and the <literal>compileTest</literal> task to look for test source
-            files in directory<filename>src/test/groovy</filename>. The compile tasks use joint compilation for these
+            files in directory <filename>src/test/groovy</filename>. The compile tasks use joint compilation for these
             directories, which means they can contain a mixture of java and groovy source files.
         </para>
         <para>To use the groovy compilation tasks, you must also declare the Groovy version to use and where to find the
             Groovy libraries. You do this by adding a dependency to the <literal>groovy</literal> configuration.
             The <literal>compile</literal> configuration inherits this dependency, so the groovy libraries will
-            be included in classpath when compiling Groovy and Java source.  For our sample, we will use Groovy 1.6.0
+            be included in classpath when compiling Groovy and Java source.  For our sample, we will use Groovy 1.7.10
             from the public Maven repository:</para>
-        <sample id="groovyQuickstart" dir="groovy/quickstart" title="Dependency on Groovy 1.6.0">
+        <sample id="groovyQuickstart" dir="groovy/quickstart" title="Dependency on Groovy 1.7.10">
             <sourcefile file="build.gradle" snippet="groovy-dependency"/>
         </sample>
         <para>Here is our complete build file:</para>

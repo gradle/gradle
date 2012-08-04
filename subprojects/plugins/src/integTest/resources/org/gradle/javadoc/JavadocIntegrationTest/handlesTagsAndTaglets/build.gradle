@@ -1,0 +1,23 @@
+import org.gradle.internal.jvm.Jvm
+
+apply plugin: "java"
+
+sourceSets {
+    taglet
+}
+
+dependencies {
+    tagletCompile files(Jvm.current().toolsJar)
+}
+
+javadoc {
+    dependsOn tagletClasses
+
+    options {
+        tags 'author'
+        tags 'deprecated'
+        tags 'customtag:t:"Custom Tag:"'
+        taglets 'CustomTaglet'
+        tagletPath sourceSets.taglet.output.classesDir
+    }
+}

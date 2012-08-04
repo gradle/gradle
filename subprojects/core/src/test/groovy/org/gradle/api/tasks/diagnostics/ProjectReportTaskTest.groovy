@@ -17,7 +17,7 @@ package org.gradle.api.tasks.diagnostics
 
 import org.gradle.api.Project
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.logging.internal.TestStyledTextOutput
+import org.gradle.logging.TestStyledTextOutput
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
 

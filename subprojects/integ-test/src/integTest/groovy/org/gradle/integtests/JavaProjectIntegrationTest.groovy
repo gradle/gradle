@@ -17,18 +17,11 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.ExecutionFailure
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.util.TestFile
 import org.junit.Test
 
 class JavaProjectIntegrationTest extends AbstractIntegrationTest {
-
-    @Test
-    public void handlesEmptyProject() {
-        testFile("build.gradle").writelns("apply plugin: 'java'");
-        inTestDirectory().withTasks("build").run();
-    }
-
     @Test
     public void compilationFailureBreaksBuild() {
         TestFile buildFile = testFile("build.gradle");
@@ -38,7 +31,7 @@ class JavaProjectIntegrationTest extends AbstractIntegrationTest {
         ExecutionFailure failure = usingBuildFile(buildFile).withTasks("build").runWithFailure();
 
         failure.assertHasDescription("Execution failed for task ':compileJava'");
-        failure.assertHasCause("Compile failed; see the compiler error output for details.");
+        failure.assertHasCause("Compilation failed; see the compiler error output for details.");
     }
 
     @Test
@@ -51,7 +44,7 @@ class JavaProjectIntegrationTest extends AbstractIntegrationTest {
         ExecutionFailure failure = usingBuildFile(buildFile).withTasks("build").runWithFailure();
 
         failure.assertHasDescription("Execution failed for task ':compileTestJava'");
-        failure.assertHasCause("Compile failed; see the compiler error output for details.");
+        failure.assertHasCause("Compilation failed; see the compiler error output for details.");
     }
 
     @Test

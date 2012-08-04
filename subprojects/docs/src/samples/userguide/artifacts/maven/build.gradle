@@ -70,10 +70,10 @@ uploadArchives {
 //END SNIPPET upload-with-ssh
 
 //START SNIPPET customize-installer
-configure(install.repositories.mavenInstaller) {
-    pom.project {
-        version '1.0Maven'
-        artifactId 'myName'
+install {
+    repositories.mavenInstaller {
+        pom.version = '1.0Maven'
+        pom.artifactId = 'myName'
     }
 }
 //END SNIPPET customize-installer

@@ -17,11 +17,13 @@ package org.gradle.tooling.internal.consumer
 
 import org.gradle.logging.ProgressLogger
 import org.gradle.logging.ProgressLoggerFactory
+import org.gradle.testing.internal.util.Network
 import org.gradle.util.DistributionLocator
 import org.gradle.util.GradleVersion
 import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestFile
 import org.junit.Rule
+import spock.lang.IgnoreIf
 import spock.lang.Specification
 
 class DistributionFactoryTest extends Specification {
@@ -69,7 +71,7 @@ class DistributionFactoryTest extends Specification {
 
         expect:
         def dist = factory.getDistribution(tmpDir.dir)
-        dist.getToolingImplementationClasspath(progressLoggerFactory) == [libA, libB] as Set
+        dist.getToolingImplementationClasspath(progressLoggerFactory).asFiles as Set == [libA, libB] as Set
     }
 
     def failsWhenInstallationDirectoryDoesNotExist() {
@@ -125,7 +127,7 @@ class DistributionFactoryTest extends Specification {
         def dist = factory.getDistribution(zipFile.toURI())
 
         expect:
-        dist.getToolingImplementationClasspath(progressLoggerFactory).collect { it.name } as Set == ['a.jar', 'b.jar'] as Set
+        dist.getToolingImplementationClasspath(progressLoggerFactory).asFiles.name as Set == ['a.jar', 'b.jar'] as Set
     }
 
     def reportsZipDownload() {
@@ -155,6 +157,7 @@ class DistributionFactoryTest extends Specification {
         0 * _._
     }
 
+    @IgnoreIf({ Network.offline })
     def failsWhenDistributionZipDoesNotExist() {
         URI zipFile = new URI("http://google.com/does-not-exist/gradle-1.0.zip")
         def dist = factory.getDistribution(zipFile)

@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.testing.testng;
 import com.google.common.collect.Maps;
 import org.gradle.api.internal.tasks.testing.*;
 import org.gradle.api.tasks.testing.TestResult;
-import org.gradle.util.IdGenerator;
+import org.gradle.internal.id.IdGenerator;
 import org.testng.ITestContext;
 import org.testng.ITestListener;
 import org.testng.ITestNGMethod;
@@ -128,7 +128,7 @@ public class TestNGTestResultProcessorAdapter implements ITestListener, TestNGCo
 
     public void onConfigurationFailure(ITestResult testResult) {
         if (failedConfigurations.put(testResult, true) != null) {
-            // work around for bug in TestNG 6.2+: listener is notified twice per event
+            // workaround for bug in TestNG 6.2 (apparently fixed in some 6.3.x): listener is notified twice per event
             return;
         }
         // Synthesise a test for the broken configuration method

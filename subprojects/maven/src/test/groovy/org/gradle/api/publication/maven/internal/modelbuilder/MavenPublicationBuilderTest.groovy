@@ -19,6 +19,7 @@ package org.gradle.api.publication.maven.internal.modelbuilder
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.publication.maven.MavenPublication
 import org.gradle.api.publication.maven.MavenScope
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.util.HelperUtil
 import spock.lang.Ignore
 import spock.lang.Specification
@@ -32,7 +33,7 @@ class MavenPublicationBuilderTest extends Specification {
 
     //building the publication early, before the plugins and configurations are applied
     //to make sure that the conventionMappings are tied correctly and lazily evaluated
-    MavenPublication publication = new MavenPublicationBuilder().build(project)
+    MavenPublication publication = new MavenPublicationBuilder(project.services.get(Instantiator)).build(project)
 
     def "populates model with basic information"() {
         when:

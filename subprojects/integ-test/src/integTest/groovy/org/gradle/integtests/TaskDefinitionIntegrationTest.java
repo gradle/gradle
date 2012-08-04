@@ -16,7 +16,7 @@
 
 package org.gradle.integtests;
 
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest;
+import org.gradle.integtests.fixtures.AbstractIntegrationTest;
 import org.junit.Test;
 
 public class TaskDefinitionIntegrationTest extends AbstractIntegrationTest {
@@ -36,7 +36,7 @@ public class TaskDefinitionIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void canDefineTasksUsingTaskKeywordAndGString() {
         testFile("build.gradle").writelns(
-                "v = 'Task'",
+                "ext.v = 'Task'",
                 "task \"nothing$v\"",
                 "task \"withAction$v\" << { }",
                 "task \"emptyOptions$v\"()",
@@ -74,9 +74,9 @@ public class TaskDefinitionIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void canDefineTasksUsingTaskMethodExpression() {
         testFile("build.gradle").writelns(
-                "a = 'a' == 'b' ? null: task(withAction) << { }",
+                "ext.a = 'a' == 'b' ? null: task(withAction) << { }",
                 "a = task(nothing)",
-                "a = task(emptyOptions())", "taskName = 'dynamic'",
+                "a = task(emptyOptions())", "ext.taskName = 'dynamic'",
                 "a = task(\"$taskName\") << { }",
                 "a = task('string')",
                 "a = task('stringWithAction') << { }",
@@ -98,7 +98,7 @@ public class TaskDefinitionIntegrationTest extends AbstractIntegrationTest {
                 "task(asMethod)\n{ description = 'value' }",
                 "task asStatement(type: TestTask) { property = 'value' }",
                 "task \"dynamic\"(type: TestTask) { property = 'value' }",
-                "v = task(asExpression, type: TestTask) { property = 'value' }",
+                "ext.v = task(asExpression, type: TestTask) { property = 'value' }",
                 "task(postConfigure, type: TestTask).configure { property = 'value' }",
                 "[asStatement, dynamic, asExpression, postConfigure].each { ",
                 "    assert 'value' == it.property",
@@ -121,13 +121,13 @@ public class TaskDefinitionIntegrationTest extends AbstractIntegrationTest {
                 "task taskNameMethod('d')",
                 "def addTaskMethod(String methodParam) { task methodParam }",
                 "addTaskMethod('e')",
-                "def addTaskWithClosure(String methodParam) { task(methodParam) { property = 'value' } }",
+                "def addTaskWithClosure(String methodParam) { task(methodParam) { ext.property = 'value' } }",
                 "addTaskWithClosure('f')",
                 "def addTaskWithMap(String methodParam) { task(methodParam, description: 'description') }",
                 "addTaskWithMap('g')",
-                "cl = { String taskNameParam -> task taskNameParam }",
+                "ext.cl = { String taskNameParam -> task taskNameParam }",
                 "cl.call('h')",
-                "cl = { String taskNameParam -> task(taskNameParam) { property = 'value' } }",
+                "cl = { String taskNameParam -> task(taskNameParam) { ext.property = 'value' } }",
                 "cl.call('i')",
                 "assert 'value' == f.property",
                 "assert 'value' == i.property",

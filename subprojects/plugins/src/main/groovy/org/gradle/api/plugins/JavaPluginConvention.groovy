@@ -16,15 +16,15 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.JavaVersion
-import org.gradle.api.Project
 import org.gradle.api.file.SourceDirectorySet
-import org.gradle.api.internal.Instantiator
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.DefaultSourceSetContainer
 import org.gradle.api.java.archives.Manifest
 import org.gradle.api.java.archives.internal.DefaultManifest
+import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.util.ConfigureUtil
 
 /**
@@ -61,15 +61,20 @@ class JavaPluginConvention {
     private JavaVersion srcCompat
     private JavaVersion targetCompat
 
+    /**
+     * Deprecated. Please use jar.metaInf instead. The property didn't add much value over the jar's setting
+     * and Gradle offers convenient ways of configuring all tasks of given type should someone needed.
+     * <p>
+     * The lines of metaInf file that will be configured by default to every jar task.
+     */
     @Deprecated
     List metaInf
 
     @Deprecated
     DefaultManifest manifest
 
-    JavaPluginConvention(Project project) {
+    JavaPluginConvention(ProjectInternal project, Instantiator instantiator) {
         this.project = project
-        def instantiator = project.services.get(Instantiator)
         sourceSets = instantiator.newInstance(DefaultSourceSetContainer.class, project.fileResolver, project.tasks, instantiator)
         dependencyCacheDirName = 'dependency-cache'
         docsDirName = 'docs'
@@ -132,14 +137,14 @@ class JavaPluginConvention {
     }
 
     private File getReportsDir() {
-        project.convention.plugins.reportingBase.reportsDir
+        project.extensions.getByType(ReportingExtension).baseDir
     }
 
     /**
      * Returns the source compatibility used for compiling Java sources.
      */
     JavaVersion getSourceCompatibility() {
-        srcCompat ?: JavaVersion.VERSION_1_5
+        srcCompat ?: JavaVersion.current()
     }
 
     /**

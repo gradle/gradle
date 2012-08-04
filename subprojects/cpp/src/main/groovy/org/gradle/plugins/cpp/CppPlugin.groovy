@@ -17,19 +17,84 @@ package org.gradle.plugins.cpp
 
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.plugins.BasePlugin
+import org.gradle.api.tasks.Sync
+import org.gradle.internal.os.OperatingSystem
+import org.gradle.plugins.binaries.BinariesPlugin
+import org.gradle.plugins.binaries.model.Binary
+import org.gradle.plugins.binaries.model.Executable
+import org.gradle.plugins.binaries.model.internal.DefaultCompilerRegistry
+import org.gradle.plugins.binaries.tasks.Compile
+import org.gradle.plugins.cpp.gpp.GppCompilerPlugin
+import org.gradle.plugins.cpp.gpp.internal.GppCompileSpecFactory
+import org.gradle.plugins.cpp.msvcpp.MicrosoftVisualCppPlugin
+import org.gradle.util.GUtil
 
 class CppPlugin implements Plugin<ProjectInternal> {
 
     void apply(ProjectInternal project) {
-        project.apply(plugin: "binaries")
-        project.apply(plugin: "gpp-compiler")
-        project.extensions.cpp = new CppExtension(project)
+        project.plugins.apply(BinariesPlugin)
+        project.plugins.apply(MicrosoftVisualCppPlugin)
+        project.plugins.apply(GppCompilerPlugin)
+        project.extensions.create("cpp", CppExtension, project)
+
+        project.extensions.getByType(DefaultCompilerRegistry).specFactory = new GppCompileSpecFactory(project)
 
         // Defaults for all cpp source sets
         project.cpp.sourceSets.all { sourceSet ->
             sourceSet.source.srcDir "src/${sourceSet.name}/cpp"
             sourceSet.exportedHeaders.srcDir "src/${sourceSet.name}/headers"
         }
+
+        // Defaults for all executables
+        project.executables.all { executable ->
+            configureExecutable(project, executable)
+        }
+
+        // Defaults for all libraries
+        project.libraries.all { library ->
+            configureBinary(project, library)
+        }
     }
 
+    def configureExecutable(ProjectInternal project, Executable executable) {
+        configureBinary(project, executable)
+
+        def baseName = GUtil.toCamelCase(executable.name).capitalize()
+        project.task("install${baseName}", type: Sync) {
+            description = "Installs a development image of $executable"
+            into { project.file("${project.buildDir}/install/$executable.name") }
+            dependsOn executable
+            if (OperatingSystem.current().windows) {
+                from { executable.spec.outputFile }
+                from { executable.sourceSets*.libs*.spec*.outputFile }
+            } else {
+                into("lib") {
+                    from { executable.spec.outputFile }
+                    from { executable.sourceSets*.libs*.spec*.outputFile }
+                }
+                doLast {
+                    def script = new File(destinationDir, executable.spec.outputFile.name)
+                    script.text = """
+#/bin/sh
+APP_BASE_NAME=`dirname "\$0"`
+export DYLD_LIBRARY_PATH="\$APP_BASE_NAME/lib"
+export LD_LIBRARY_PATH="\$APP_BASE_NAME/lib"
+exec "\$APP_BASE_NAME/lib/${executable.spec.outputFile.name}" \"\$@\"
+                    """
+                    ant.chmod(perm: 'u+x', file: script)
+                }
+            }
+        }
+    }
+
+    def configureBinary(ProjectInternal project, Binary binary) {
+        def baseName = GUtil.toCamelCase(binary.name).capitalize()
+
+        def task = project.task("compile${baseName}", type: Compile) {
+            description = "Compiles and links $binary"
+            group = BasePlugin.BUILD_GROUP
+        }
+        binary.spec.configure(task)
+    }
 }

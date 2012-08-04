@@ -23,7 +23,7 @@ package org.gradle.launcher.daemon.protocol;
  */
 public class CommandFailure extends Failure {
 
-    public CommandFailure(RuntimeException value) {
+    public CommandFailure(Throwable value) {
         super(value);
     }
 }

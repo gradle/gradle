@@ -17,7 +17,7 @@
 package org.gradle.api.tasks.diagnostics.internal
 
 import org.gradle.api.Rule
-import org.gradle.logging.internal.TestStyledTextOutput
+import org.gradle.logging.TestStyledTextOutput
 
 /**
  * @author Hans Dockter

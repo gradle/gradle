@@ -20,8 +20,8 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.tooling.internal.DefaultGradleProject;
-import org.gradle.tooling.internal.DefaultGradleTask;
+import org.gradle.tooling.internal.gradle.DefaultGradleProject;
+import org.gradle.tooling.internal.gradle.DefaultGradleTask;
 import org.gradle.tooling.internal.protocol.InternalGradleProject;
 import org.gradle.tooling.model.GradleTask;
 

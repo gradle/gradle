@@ -30,8 +30,11 @@ public interface CompileSpec extends Named {
     File getOutputFile();
     
     /**
-     * Do the compile
+     * Do the compile.
+     *
+     * @deprecated No replacement
      */
+    @Deprecated
     void compile();
     
     /**

@@ -18,7 +18,7 @@ package org.gradle.api.internal.notations;
 import org.gradle.api.artifacts.SelfResolvingDependency;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ClassPathRegistry;
-import org.gradle.api.internal.Instantiator;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.file.FileResolver;
@@ -27,7 +27,6 @@ import org.gradle.api.internal.notations.parsers.TypedNotationParser;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.Set;
 
 public class DependencyClassPathNotationParser
         extends TypedNotationParser<DependencyFactory.ClassPathNotation, SelfResolvingDependency>
@@ -52,7 +51,7 @@ public class DependencyClassPathNotationParser
     }
 
     public SelfResolvingDependency parseType(DependencyFactory.ClassPathNotation notation) {
-        Set<File> classpath = classPathRegistry.getClassPathFiles(notation.name());
+        Collection<File> classpath = classPathRegistry.getClassPath(notation.name()).getAsFiles();
         FileCollection files = fileResolver.resolveFiles(classpath);
         return instantiator.newInstance(DefaultSelfResolvingDependency.class, files);
     }

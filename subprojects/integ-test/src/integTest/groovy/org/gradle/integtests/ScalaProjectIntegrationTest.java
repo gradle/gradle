@@ -15,18 +15,10 @@
  */
 package org.gradle.integtests;
 
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest;
+import org.gradle.integtests.fixtures.AbstractIntegrationTest;
 import org.junit.Test;
 
 public class ScalaProjectIntegrationTest extends AbstractIntegrationTest {
-    @Test
-    public void handlesEmptyProject() {
-        testFile("build.gradle").writelns(
-                "apply plugin: 'scala'"
-        );
-        inTestDirectory().withTasks("build").run();
-    }
-
     @Test
     public void handlesJavaSourceOnly() {
         testFile("src/main/java/somepackage/SomeClass.java").writelns("public class SomeClass { }");

@@ -17,6 +17,7 @@ package org.gradle.api.plugins
 
 import org.gradle.api.Project
 import org.gradle.util.WrapUtil
+import org.gradle.api.reporting.ReportingExtension
 
 public class ProjectReportsPluginConvention {
     /**
@@ -33,7 +34,7 @@ public class ProjectReportsPluginConvention {
      * Returns the directory to generate the project reports into.
      */
     File getProjectReportDir() {
-        new File(project.convention.getPlugin(ReportingBasePluginConvention).reportsDir, projectReportDirName)
+        project.extensions.getByType(ReportingExtension).file(projectReportDirName)
     }
 
     Set<Project> getProjects() {

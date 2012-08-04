@@ -16,9 +16,12 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.file.RelativePath;
+import org.gradle.internal.nativeplatform.filesystem.FileSystem;
+import org.gradle.internal.nativeplatform.filesystem.FileSystems;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.TemporaryFolder;
 import org.gradle.util.TestFile;
+import org.gradle.util.TestPrecondition;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -28,6 +31,7 @@ import java.io.InputStream;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
+import static org.junit.Assume.assumeTrue;
 
 public class AbstractFileTreeElementTest {
     @Rule
@@ -35,8 +39,7 @@ public class AbstractFileTreeElementTest {
 
     @Test
     public void canCopyToOutputStream() {
-        TestFile src = tmpDir.file("src");
-        src.write("content");
+        TestFile src = writeToFile("src", "content");
 
         ByteArrayOutputStream outstr = new ByteArrayOutputStream();
         new TestFileTreeElement(src).copyTo(outstr);
@@ -46,8 +49,7 @@ public class AbstractFileTreeElementTest {
 
     @Test
     public void canCopyToFile() {
-        TestFile src = tmpDir.file("src");
-        src.write("content");
+        TestFile src = writeToFile("src", "content");
         TestFile dest = tmpDir.file("dir/dest");
 
         new TestFileTreeElement(src).copyTo(dest);
@@ -55,12 +57,52 @@ public class AbstractFileTreeElementTest {
         dest.assertIsFile();
         assertThat(dest.getText(), equalTo("content"));
     }
-    
+
+    @Test
+    public void copiedFileHasExpectedPermissions() throws Exception {
+        assumeTrue(TestPrecondition.FILE_PERMISSIONS.isFulfilled());
+
+        TestFile src = writeToFile("src", "");
+        TestFile dest = tmpDir.file("dest");
+
+        new TestFileTreeElement(src, 0666).copyTo(dest);
+        assertPermissionsEquals("666", dest);
+
+        new TestFileTreeElement(src, 0644).copyTo(dest);
+        assertPermissionsEquals("644", dest);
+    }
+
+    @Test
+    public void defaultPermissionValuesAreUsed() {
+        TestFileTreeElement dir = new TestFileTreeElement(tmpDir.getDir());
+        TestFileTreeElement file = new TestFileTreeElement(tmpDir.file("someFile"));
+
+        assertThat(dir.getMode(), equalTo(FileSystem.DEFAULT_DIR_MODE));
+        assertThat(file.getMode(), equalTo(FileSystem.DEFAULT_FILE_MODE));
+    }
+
+    private TestFile writeToFile(String name, String content) {
+        final TestFile result = tmpDir.file(name);
+        result.write(content);
+        return result;
+    }
+
+    private void assertPermissionsEquals(String expected, File f) throws Exception {
+        assertThat(Integer.toOctalString(FileSystems.getDefault().getUnixMode(f)),
+            equalTo(expected));
+    }
+
     private class TestFileTreeElement extends AbstractFileTreeElement {
         private final TestFile file;
+        private final Integer mode;
 
         public TestFileTreeElement(TestFile file) {
+            this(file, null);
+        }
+
+        public TestFileTreeElement(TestFile file, Integer mode) {
             this.file = file;
+            this.mode = mode;
         }
 
         public String getDisplayName() {
@@ -89,6 +131,12 @@ public class AbstractFileTreeElementTest {
 
         public InputStream open() {
             return GFileUtils.openInputStream(file);
+        }
+
+        public int getMode() {
+            return mode == null
+                ? super.getMode()
+                : mode;
         }
     }
 }

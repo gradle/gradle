@@ -19,6 +19,7 @@ package org.gradle.launcher.exec;
 
 import org.gradle.configuration.GradleLauncherMetaData
 import spock.lang.Specification
+import org.gradle.api.logging.LogLevel
 
 /**
  * @author: Szczepan Faber, created at: 9/6/11
@@ -27,7 +28,7 @@ public class DefaultBuildActionParametersTest extends Specification {
 
     def "is serializable"() {
         given:
-        def params = new DefaultBuildActionParameters(new GradleLauncherMetaData(), System.currentTimeMillis(), System.properties, System.getenv(), new File("."))
+        def params = new DefaultBuildActionParameters(new GradleLauncherMetaData(), System.currentTimeMillis(), System.properties, System.getenv(), new File("."), LogLevel.ERROR)
         ObjectOutputStream out = new ObjectOutputStream(new ByteArrayOutputStream());
 
         when:

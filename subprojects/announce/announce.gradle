@@ -21,8 +21,8 @@ dependencies {
     compile project(':plugins')
 }
 
-if (!Jvm.current().java6Compatible) {
-    sourceSets.main.groovy.exclude '**/AppleScriptBackedGrowlAnnouncer.*'
+if (!javaVersion.java6Compatible) {
+    sourceSets.main.groovy.exclude '**/jdk6/**'
 }
 
 useTestFixtures()

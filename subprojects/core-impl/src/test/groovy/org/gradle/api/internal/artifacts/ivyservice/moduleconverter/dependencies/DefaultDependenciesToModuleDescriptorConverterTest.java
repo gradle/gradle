@@ -46,8 +46,8 @@ import static org.junit.Assert.assertThat;
 public class DefaultDependenciesToModuleDescriptorConverterTest {
     private JUnit4Mockery context = new JUnit4GroovyMockery();
 
-    private static final ExcludeRule GRADLE_EXCLUDE_RULE_DUMMY_1 = new DefaultExcludeRule(toMap("org", "testOrg"));
-    private static final ExcludeRule GRADLE_EXCLUDE_RULE_DUMMY_2 = new DefaultExcludeRule(toMap("org2", "testOrg2"));
+    private static final ExcludeRule GRADLE_EXCLUDE_RULE_DUMMY_1 = new DefaultExcludeRule("testOrg", null);
+    private static final ExcludeRule GRADLE_EXCLUDE_RULE_DUMMY_2 = new DefaultExcludeRule(null, "testModule");
 
     private ModuleDependency dependencyDummy1 = context.mock(ModuleDependency.class, "dep1");
     private ModuleDependency dependencyDummy2 = context.mock(ModuleDependency.class, "dep2");

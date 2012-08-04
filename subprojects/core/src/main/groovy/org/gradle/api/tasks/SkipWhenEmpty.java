@@ -15,10 +15,7 @@
  */
 package org.gradle.api.tasks;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-import java.lang.annotation.ElementType;
+import java.lang.annotation.*;
 
 /**
  * <p>Attached to a task property to indicate that the task should be skipped when the value of the property is an empty
@@ -30,6 +27,7 @@ import java.lang.annotation.ElementType;
  *
  * <li>{@link org.gradle.api.tasks.InputDirectory}</li> </ul>
  */
+@Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.FIELD})
 public @interface SkipWhenEmpty {

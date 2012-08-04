@@ -17,7 +17,7 @@ package org.gradle.plugins.ide.internal.generator;
 
 
 import org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurationObject
-import org.gradle.util.UncheckedException
+import org.gradle.internal.UncheckedException
 
 public abstract class AbstractPersistableConfigurationObject implements PersistableConfigurationObject {
     public void load(File inputFile) {
@@ -29,7 +29,7 @@ public abstract class AbstractPersistableConfigurationObject implements Persista
                 inputStream.close();
             }
         } catch (Exception e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -46,7 +46,7 @@ public abstract class AbstractPersistableConfigurationObject implements Persista
                 inputStream.close();
             }
         } catch (Exception e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -61,7 +61,7 @@ public abstract class AbstractPersistableConfigurationObject implements Persista
                 outputStream.close();
             }
         } catch (IOException e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

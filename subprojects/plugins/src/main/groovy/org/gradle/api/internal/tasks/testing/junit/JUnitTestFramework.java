@@ -17,7 +17,8 @@
 package org.gradle.api.internal.tasks.testing.junit;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.project.ServiceRegistry;
+import org.gradle.internal.id.IdGenerator;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
@@ -26,8 +27,8 @@ import org.gradle.api.internal.tasks.testing.junit.report.DefaultTestReport;
 import org.gradle.api.internal.tasks.testing.junit.report.TestReporter;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.junit.JUnitOptions;
+import org.gradle.messaging.actor.ActorFactory;
 import org.gradle.process.internal.WorkerProcessBuilder;
-import org.gradle.util.IdGenerator;
 
 import java.io.File;
 import java.io.Serializable;
@@ -45,7 +46,7 @@ public class JUnitTestFramework implements TestFramework {
         this.testTask = testTask;
         reporter = new DefaultTestReport();
         options = new JUnitOptions();
-        detector = new JUnitDetector(testTask.getTestClassesDir(), testTask.getClasspath(), new ClassFileExtractionManager(testTask.getTemporaryDir()));
+        detector = new JUnitDetector(testTask.getTestClassesDir(), testTask.getClasspath(), new ClassFileExtractionManager(testTask.getTemporaryDirFactory()));
     }
 
     public WorkerTestClassProcessorFactory getProcessorFactory() {
@@ -100,7 +101,7 @@ public class JUnitTestFramework implements TestFramework {
         }
 
         public TestClassProcessor create(ServiceRegistry serviceRegistry) {
-            return new JUnitTestClassProcessor(testResultsDir, serviceRegistry.get(IdGenerator.class), new JULRedirector());
+            return new JUnitTestClassProcessor(testResultsDir, serviceRegistry.get(IdGenerator.class), serviceRegistry.get(ActorFactory.class), new JULRedirector());
         }
     }
 }

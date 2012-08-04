@@ -15,32 +15,33 @@
  */
 package org.gradle.build.docs.dsl.docbook
 
-import org.gradle.api.DefaultTask
-import org.gradle.api.tasks.OutputFile
-import org.gradle.api.tasks.InputFile
-import org.gradle.api.tasks.TaskAction
-import org.gradle.api.file.FileCollection
-import org.gradle.api.tasks.InputFiles
-import org.w3c.dom.Document
 import groovy.xml.dom.DOMCategory
-import org.w3c.dom.Element
+import org.gradle.api.DefaultTask
+import org.gradle.api.Project
 import org.gradle.api.tasks.InputDirectory
-import org.gradle.build.docs.XIncludeAwareXmlProvider
+import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.TaskAction
 import org.gradle.build.docs.BuildableDOMCategory
-import org.gradle.build.docs.dsl.model.ClassMetaData
+import org.gradle.build.docs.DocGenerationException
+import org.gradle.build.docs.XIncludeAwareXmlProvider
+import org.gradle.build.docs.dsl.links.ClassLinkMetaData
+import org.gradle.build.docs.dsl.links.LinkMetaData
+import org.gradle.build.docs.dsl.docbook.model.ClassExtensionMetaData
+import org.gradle.build.docs.dsl.source.model.ClassMetaData
 import org.gradle.build.docs.model.ClassMetaDataRepository
 import org.gradle.build.docs.model.SimpleClassMetaDataRepository
-import org.gradle.build.docs.dsl.LinkMetaData
-import org.gradle.api.Project
-import org.gradle.build.docs.dsl.ClassLinkMetaData
-import org.gradle.build.docs.dsl.model.ClassExtensionMetaData
+import org.w3c.dom.Document
+import org.w3c.dom.Element
+import org.gradle.build.docs.dsl.docbook.model.BlockDoc
+import org.gradle.build.docs.dsl.docbook.model.ClassDoc
 
 /**
  * Generates the docbook source for the DSL reference guide.
  *
  * Uses the following as input:
  * <ul>
- * <li>Meta-data extracted from the source by {@link org.gradle.build.docs.dsl.ExtractDslMetaDataTask}.</li>
+ * <li>Meta-data extracted from the source by {@link org.gradle.build.docs.dsl.source.ExtractDslMetaDataTask}.</li>
  * <li>Meta-data about the plugins, in the form of an XML file.</li>
  * <li>{@code sourceFile} - A main docbook template file containing the introductory material and a list of classes to document.</li>
  * <li>{@code classDocbookDir} - A directory that should contain docbook template for each class referenced in main docbook template.</li>
@@ -66,12 +67,10 @@ class AssembleDslDocTask extends DefaultTask {
     File destFile
     @OutputFile
     File linksFile
-    @InputFiles
-    FileCollection classpath;
 
     @TaskAction
     def transform() {
-        XIncludeAwareXmlProvider provider = new XIncludeAwareXmlProvider(classpath)
+        XIncludeAwareXmlProvider provider = new XIncludeAwareXmlProvider()
         provider.parse(sourceFile)
         transformDocument(provider.document)
         provider.write(destFile)
@@ -89,10 +88,13 @@ class AssembleDslDocTask extends DefaultTask {
         use(DOMCategory) {
             use(BuildableDOMCategory) {
                 Map<String, ClassExtensionMetaData> extensions = loadPluginsMetaData()
-                DslDocModel model = new DslDocModel(classDocbookDir, mainDocbookTemplate, classpath, classRepository, extensions)
+                DslDocModel model = new DslDocModel(classDocbookDir, mainDocbookTemplate, classRepository, extensions)
                 def root = mainDocbookTemplate.documentElement
                 root.section.table.each { Element table ->
-                    mergeContent(table, model, linkRepository)
+                    mergeContent(table, model)
+                }
+                model.classes.each {
+                    generateDocForType(root.ownerDocument, model, linkRepository, it)
                 }
             }
         }
@@ -101,13 +103,19 @@ class AssembleDslDocTask extends DefaultTask {
     }
 
     def loadPluginsMetaData() {
-        XIncludeAwareXmlProvider provider = new XIncludeAwareXmlProvider(classpath)
+        XIncludeAwareXmlProvider provider = new XIncludeAwareXmlProvider()
         provider.parse(pluginsMetaDataFile)
         Map<String, ClassExtensionMetaData> extensions = [:]
         provider.root.plugin.each { Element plugin ->
             def pluginId = plugin.'@id'
+            if (!pluginId) {
+                throw new RuntimeException("No id specified for plugin: ${plugin.'@description' ?: 'unknown'}")
+            }
             plugin.extends.each { Element e ->
                 def targetClass = e.'@targetClass'
+                if (!targetClass) {
+                    throw new RuntimeException("No targetClass specified for extention provided by plugin '$pluginId'.")
+                }
                 def extension = extensions[targetClass]
                 if (!extension) {
                     extension = new ClassExtensionMetaData(targetClass)
@@ -120,6 +128,9 @@ class AssembleDslDocTask extends DefaultTask {
                 def extensionClass = e.'@extensionClass'
                 if (extensionClass) {
                     def extensionId = e.'@id'
+                    if (!extensionId) {
+                        throw new RuntimeException("No id specified for extension '$extensionClass' for plugin '$pluginId'.")
+                    }
                     extension.addExtension(pluginId, extensionId, extensionClass)
                 }
             }
@@ -127,13 +138,13 @@ class AssembleDslDocTask extends DefaultTask {
         return extensions
     }
 
-    def mergeContent(Element typeTable, DslDocModel model, ClassMetaDataRepository<ClassLinkMetaData> linkRepository) {
+    def mergeContent(Element typeTable, DslDocModel model) {
         def title = typeTable.title[0].text()
 
         //TODO below checks makes it harder to add new sections
         //because the new section will work correctly only when the section title ends with 'types' :)
         if (title.matches('(?i).* types')) {
-            mergeTypes(typeTable, model, linkRepository)
+            mergeTypes(typeTable, model)
         } else if (title.matches('(?i).* blocks')) {
             mergeBlocks(typeTable, model)
         } else {
@@ -169,7 +180,7 @@ class AssembleDslDocTask extends DefaultTask {
         }
     }
 
-    def mergeTypes(Element typeTable, DslDocModel model, ClassMetaDataRepository<ClassLinkMetaData> linkRepository) {
+    def mergeTypes(Element typeTable, DslDocModel model) {
         typeTable.addFirst {
             thead {
                 tr {
@@ -180,17 +191,26 @@ class AssembleDslDocTask extends DefaultTask {
         }
 
         typeTable.tr.each { Element tr ->
-            mergeType(tr, model, linkRepository)
+            mergeType(tr, model)
         }
     }
 
-    def mergeType(Element typeTr, DslDocModel model, ClassMetaDataRepository<ClassLinkMetaData> linkRepository) {
+    def mergeType(Element typeTr, DslDocModel model) {
         String className = typeTr.td[0].text().trim()
         ClassDoc classDoc = model.getClassDoc(className)
+        typeTr.children = {
+            td {
+                link(linkend: classDoc.id) { literal(classDoc.simpleName) }
+            }
+            td(classDoc.description)
+        }
+    }
+
+    def generateDocForType(Document document, DslDocModel model, ClassMetaDataRepository<ClassLinkMetaData> linkRepository, ClassDoc classDoc) {
         try {
             //classDoc renderer renders the content of the class and also links to properties/methods
-            new ClassDocRenderer(new LinkRenderer(typeTr.ownerDocument, model)).mergeContent(classDoc)
-            def linkMetaData = linkRepository.get(className)
+            new ClassDocRenderer(new LinkRenderer(document, model)).mergeContent(classDoc, document.documentElement)
+            def linkMetaData = linkRepository.get(classDoc.name)
             linkMetaData.style = LinkMetaData.Style.Dsldoc
             classDoc.classMethods.each { methodDoc ->
                 linkMetaData.addMethod(methodDoc.metaData, LinkMetaData.Style.Dsldoc)
@@ -201,16 +221,9 @@ class AssembleDslDocTask extends DefaultTask {
             classDoc.classProperties.each { propertyDoc ->
                 linkMetaData.addGetterMethod(propertyDoc.name, propertyDoc.metaData.getter)
             }
-            Element root = typeTr.ownerDocument.documentElement
-            root << classDoc.classSection
-            typeTr.children = {
-                td {
-                    link(linkend: classDoc.id) { literal(classDoc.simpleName) }
-                }
-                td(classDoc.description)
-            }
         } catch (Exception e) {
-            throw new RuntimeException("Failed to generate documentation for class '$className'.", e)
+            throw new DocGenerationException("Failed to generate documentation for class '$classDoc.name'.", e)
         }
     }
 }
+

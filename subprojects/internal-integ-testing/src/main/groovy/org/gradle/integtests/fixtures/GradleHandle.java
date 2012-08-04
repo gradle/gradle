@@ -16,13 +16,9 @@
 package org.gradle.integtests.fixtures;
 
 public interface GradleHandle {
-
-    GradleExecuter getExecuter();
-
     String getStandardOutput();
     String getErrorOutput();
 
-    GradleHandle start();
     GradleHandle abort();
 
     ExecutionResult waitForFinish();

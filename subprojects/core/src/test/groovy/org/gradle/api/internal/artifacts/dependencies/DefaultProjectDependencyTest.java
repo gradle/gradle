@@ -205,21 +205,6 @@ public class DefaultProjectDependencyTest extends AbstractModuleDependencyTest {
         }});
     }
 
-    private void expectTargetConfigurationHasNoDependencies() {
-        context.checking(new Expectations() {{
-            TaskDependency dependencyStub = context.mock(TaskDependency.class);
-
-            allowing(projectConfigurationStub).getBuildDependencies();
-            will(returnValue(dependencyStub));
-
-            allowing(projectConfigurationStub).getBuildArtifacts();
-            will(returnValue(dependencyStub));
-
-            allowing(dependencyStub).getDependencies(null);
-            will(returnValue(toSet()));
-        }});
-    }
-
     @Test
     public void doesNotDependOnAnythingWhenProjectRebuildIsDisabled() {
         DefaultProjectDependency dependency = new DefaultProjectDependency(dependencyProjectStub,

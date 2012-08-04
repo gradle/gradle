@@ -15,14 +15,26 @@
  */
 package org.gradle.api.internal.file;
 
+import org.gradle.api.Nullable;
+
 import java.io.File;
 
 public interface TemporaryFileProvider {
     /**
-     * Allocates a new temporary file. Does not create the file.
+     * Allocates a new temporary file with the exact specified path,
+     * relative to the temporary file directory. Does not create the file.
+     * Provides no guarantees around whether the file already exists.
      *
      * @param path The tail path components for the file.
      * @return The file
      */
     File newTemporaryFile(String... path);
+
+    /**
+     * Allocates and creates a new temporary file with the given prefix, suffix,
+     * and path, relative to the temporary file directory.
+     */
+    File createTemporaryFile(@Nullable String prefix, @Nullable String suffix, @Nullable String... path);
+    
+    File createTemporaryDirectory(@Nullable String prefix, @Nullable String suffix, @Nullable String... path);
 }

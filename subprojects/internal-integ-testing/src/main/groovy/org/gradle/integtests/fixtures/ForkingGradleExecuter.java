@@ -18,40 +18,36 @@ package org.gradle.integtests.fixtures;
 
 import org.gradle.StartParameter;
 import org.gradle.cli.CommandLineParser;
-import org.gradle.cli.CommandLineParserFactory;
 import org.gradle.cli.SystemPropertiesCommandLineConverter;
+import org.gradle.internal.Factory;
+import org.gradle.internal.nativeplatform.jna.WindowsHandlesManipulator;
+import org.gradle.internal.os.OperatingSystem;
+import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
-import org.gradle.launcher.daemon.server.DaemonParameters;
-import org.gradle.os.OperatingSystem;
-import org.gradle.process.ExecResult;
-import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.ExecHandleBuilder;
-import org.gradle.process.internal.ExecHandleState;
 import org.gradle.util.TestFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 
 import static org.junit.Assert.fail;
 
 public class ForkingGradleExecuter extends AbstractGradleExecuter {
     private static final Logger LOG = LoggerFactory.getLogger(ForkingGradleExecuter.class);
     private final TestFile gradleHomeDir;
-    private final List<String> gradleOpts = new ArrayList<String>();
 
     public ForkingGradleExecuter(TestFile gradleHomeDir) {
         this.gradleHomeDir = gradleHomeDir;
         gradleOpts.add("-ea");
+        //uncomment for debugging
+//        gradleOpts.add("-Xdebug");
+//        gradleOpts.add("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005");
     }
 
     public TestFile getGradleHomeDir() {
@@ -72,15 +68,12 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
 
     protected Map<String, String> getSystemPropertiesFromArgs() {
         SystemPropertiesCommandLineConverter converter = new SystemPropertiesCommandLineConverter();
-        converter.setCommandLineParserFactory(new CommandLineParserFactory() {
-            public CommandLineParser create() {
-                return new CommandLineParser().allowUnknownOptions();
-            }
-        }); 
-        
-        return converter.convert(getAllArgs());
-        
+        CommandLineParser commandLineParser = new CommandLineParser();
+        converter.configure(commandLineParser);
+        commandLineParser.allowUnknownOptions();
+        return converter.convert(commandLineParser.parse(getAllArgs()));
     }
+
     /**
      * Adds some options to the GRADLE_OPTS environment variable to use.
      */
@@ -102,9 +95,6 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
                     + "If you are running tests from IDE make sure that gradle tasks that prepare the test image were executed. Last time it was 'intTestImage' task.");
         }
 
-        CommandBuilder commandBuilder = OperatingSystem.current().isWindows() ? new WindowsCommandBuilder()
-                : new UnixCommandBuilder();
-
         ExecHandleBuilder builder = new ExecHandleBuilder() {
             @Override
             public File getWorkingDir() {
@@ -113,23 +103,20 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
                 return ForkingGradleExecuter.this.getWorkingDir();
             }
         };
+
+        // Override some of the user's environment
         builder.environment("GRADLE_HOME", "");
         builder.environment("JAVA_HOME", getJavaHome());
         builder.environment("GRADLE_OPTS", formatGradleOpts());
+        builder.environment("JAVA_OPTS", "");
 
-        Map<String, String> envVars = new HashMap<String, String>(getAllEnvironmentVars());
-
-        // If the user's environment has JAVA_OPTS set, it will be inherited by the forked process.
-        // If we don't have explicit settings, explicit “null” it out to prevent env pollution.
-        if (!envVars.containsKey("JAVA_OPTS")) {
-            envVars.put("JAVA_OPTS", "");
-        }
-
-        builder.environment(envVars);
+        builder.environment(getAllEnvironmentVars());
         builder.workingDir(getWorkingDir());
         builder.setStandardInput(getStdin());
 
-        commandBuilder.build(builder);
+        ExecHandlerConfigurer configurer = OperatingSystem.current().isWindows() ? new WindowsConfigurer()
+                : new UnixConfigurer();
+        configurer.configure(builder);
 
         builder.args(getAllArgs());
 
@@ -139,16 +126,21 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         return builder;
     }
 
-    public GradleHandle createHandle() {
-        return new ForkingGradleHandle(this);
+    @Override
+    public GradleHandle doStart() {
+        return new ForkingGradleHandle(getDefaultCharacterEncoding(), new Factory<ExecHandleBuilder>() {
+            public ExecHandleBuilder create() {
+                return createExecHandleBuilder();
+            }
+        }).start();
     }
 
     protected ExecutionResult doRun() {
-        return createHandle().start().waitForFinish();
+        return start().waitForFinish();
     }
 
     protected ExecutionFailure doRunWithFailure() {
-        return createHandle().start().waitForFailure();
+        return start().waitForFailure();
     }
 
     private String formatGradleOpts() {
@@ -166,15 +158,20 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
                 result.append(gradleOpt);
             }
         }
+        
+        result.append(" -Dfile.encoding=");
+        result.append(getDefaultCharacterEncoding());
+        result.append(" -Dorg.gradle.deprecation.trace=true");
+
         return result.toString();
     }
 
-    private interface CommandBuilder {
-        void build(ExecHandleBuilder builder);
+    private interface ExecHandlerConfigurer {
+        void configure(ExecHandleBuilder builder);
     }
 
-    private class WindowsCommandBuilder implements CommandBuilder {
-        public void build(ExecHandleBuilder builder) {
+    private class WindowsConfigurer implements ExecHandlerConfigurer {
+        public void configure(ExecHandleBuilder builder) {
             String cmd;
             if (getExecutable() != null) {
                 cmd = getExecutable().replace('/', File.separatorChar);
@@ -197,11 +194,14 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
                                                       gradleHome,
                                                       path));
             builder.environment("GRADLE_EXIT_CONSOLE", "true");
+
+            LOG.info("Initializing windows process so that child process will be fully detached...");
+            new WindowsHandlesManipulator().uninheritStandardStreams();
         }
     }
 
-    private class UnixCommandBuilder implements CommandBuilder {
-        public void build(ExecHandleBuilder builder) {
+    private class UnixConfigurer implements ExecHandlerConfigurer {
+        public void configure(ExecHandleBuilder builder) {
             if (getExecutable() != null) {
                 File exe = new File(getExecutable());
                 if (exe.isAbsolute()) {
@@ -212,109 +212,6 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
             } else {
                 builder.executable(String.format("%s/bin/gradle", gradleHomeDir.getAbsolutePath()));
             }
-        }
-    }
-
-    private static class MultiplexingOutputStream extends OutputStream {
-        final OutputStream systemOut;
-        final OutputStream nonSystemOut;
-
-        public MultiplexingOutputStream(OutputStream systemOut, OutputStream nonSystemOut) {
-            this.systemOut = systemOut;
-            this.nonSystemOut = nonSystemOut;
-        }
-
-        public void write(int b) throws IOException {
-            nonSystemOut.write(b);
-            systemOut.write(b);
-        }
-    }
-
-    private static class ForkingGradleHandle extends OutputScrapingGradleHandle {
-        private static final Logger LOG = LoggerFactory.getLogger(ForkingGradleHandle.class);
-
-        final private ForkingGradleExecuter executer;
-
-        final private ByteArrayOutputStream standardOutput = new ByteArrayOutputStream();
-        final private ByteArrayOutputStream errorOutput = new ByteArrayOutputStream();
-
-        private ExecHandle execHandle;
-
-        public ForkingGradleHandle(ForkingGradleExecuter executer) {
-            this.executer = executer;
-        }
-
-        public ForkingGradleExecuter getExecuter() {
-            return executer;
-        }
-
-        public String getStandardOutput() {
-            return standardOutput.toString();
-        }
-
-        public String getErrorOutput() {
-            return errorOutput.toString();
-        }
-
-        public GradleHandle start() {
-            createExecHandle().start();
-            return this;
-        }
-
-        public GradleHandle abort() {
-            getExecHandle().abort();
-            return this;
-        }
-
-        public boolean isRunning() {
-            return execHandle != null && execHandle.getState() == ExecHandleState.STARTED;
-        }
-
-        protected ExecHandle getExecHandle() {
-            if (execHandle == null) {
-                throw new IllegalStateException("you must call start() before calling this method");
-            }
-
-            return execHandle;
-        }
-
-        protected ExecHandle createExecHandle() {
-            if (execHandle != null) {
-                throw new IllegalStateException("you have already called start() on this handle");
-            }
-
-            ExecHandleBuilder execBuilder = getExecuter().createExecHandleBuilder();
-            execBuilder.setStandardOutput(new MultiplexingOutputStream(System.out, standardOutput));
-            execBuilder.setErrorOutput(new MultiplexingOutputStream(System.err, errorOutput));
-            execHandle = execBuilder.build();
-
-            return execHandle;
-        }
-
-        public ExecutionResult waitForFinish() {
-            return waitForStop(false);
-        }
-
-        public ExecutionFailure waitForFailure() {
-            return (ExecutionFailure)waitForStop(true);
-        }
-
-        protected ExecutionResult waitForStop(boolean expectFailure) {
-            ExecHandle execHandle = getExecHandle();
-            ExecResult execResult = execHandle.waitForFinish();
-            execResult.rethrowFailure(); // nop if all ok
-
-            String output = getStandardOutput();
-            String error = getErrorOutput();
-
-            boolean didFail = execResult.getExitValue() != 0;
-            if (didFail != expectFailure) {
-                String message = String.format("Gradle execution %s in %s with: %s %nError:%n%s%n-----%n",
-                        expectFailure ? "did not fail" : "failed", execHandle.getDirectory(), execHandle.getCommand(), error);
-                throw new RuntimeException(message);
-            }
-
-            return expectFailure ? toExecutionFailure(output, error) : toExecutionResult(output, error);
         }
     }
 

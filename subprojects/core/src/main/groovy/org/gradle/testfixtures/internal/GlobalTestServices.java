@@ -15,8 +15,9 @@
  */
 package org.gradle.testfixtures.internal;
 
-import org.gradle.api.internal.Factory;
-import org.gradle.api.internal.project.DefaultServiceRegistry;
+import org.gradle.internal.Factory;
+import org.gradle.internal.TrueTimeProvider;
+import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.api.internal.project.GlobalServicesRegistry;
 import org.gradle.listener.DefaultListenerManager;
 import org.gradle.listener.ListenerManager;
@@ -27,7 +28,6 @@ import org.gradle.logging.internal.DefaultProgressLoggerFactory;
 import org.gradle.logging.internal.DefaultStyledTextOutputFactory;
 import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.logging.internal.ProgressListener;
-import org.gradle.util.TrueTimeProvider;
 
 public class GlobalTestServices extends GlobalServicesRegistry {
     public GlobalTestServices() {
@@ -51,6 +51,10 @@ public class GlobalTestServices extends GlobalServicesRegistry {
 
         protected StyledTextOutputFactory createStyledTextOutputFactory() {
             return new DefaultStyledTextOutputFactory(listenerManager.getBroadcaster(OutputEventListener.class), new TrueTimeProvider());
+        }
+
+        protected TestOutputEventListener createStubOutputEventListener() {
+            return new TestOutputEventListener();
         }
     }
 }

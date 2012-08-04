@@ -15,17 +15,16 @@
  */
 package org.gradle.process.internal;
 
-import org.apache.commons.io.output.CloseShieldOutputStream;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.process.BaseExecSpec;
-import org.gradle.util.GUtil;
+import org.gradle.process.internal.streams.SafeStreams;
+import org.gradle.process.internal.streams.StreamsForwarder;
+import org.gradle.process.internal.streams.StreamsHandler;
 
-import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -34,21 +33,29 @@ import java.util.List;
 public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOptions implements BaseExecSpec {
     private OutputStream standardOutput;
     private OutputStream errorOutput;
-    private InputStream input = new ByteArrayInputStream(new byte[0]);
+    private InputStream input;
     private String displayName;
     private final List<ExecHandleListener> listeners = new ArrayList<ExecHandleListener>();
     boolean ignoreExitValue;
+    boolean redirectErrorStream;
+    private StreamsHandler streamsHandler;
+    private int timeoutMillis = Integer.MAX_VALUE;
+    protected boolean daemon;
 
     public AbstractExecHandleBuilder(FileResolver fileResolver) {
         super(fileResolver);
-        standardOutput = new CloseShieldOutputStream(System.out);
-        errorOutput = new CloseShieldOutputStream(System.err);
+        standardOutput = SafeStreams.systemOut();
+        errorOutput = SafeStreams.systemErr();
+        input = SafeStreams.emptyInput();
     }
 
     public abstract List<String> getAllArguments();
 
     public List<String> getCommandLine() {
-        return GUtil.addLists(Collections.singleton(getExecutable()), getAllArguments());
+        List<String> commandLine = new ArrayList<String>();
+        commandLine.add(getExecutable());
+        commandLine.addAll(getAllArguments());
+        return commandLine;
     }
 
     public AbstractExecHandleBuilder setStandardInput(InputStream inputStream) {
@@ -97,8 +104,9 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
         return displayName == null ? String.format("command '%s'", getExecutable()) : displayName;
     }
 
-    public void setDisplayName(String displayName) {
+    public AbstractExecHandleBuilder setDisplayName(String displayName) {
         this.displayName = displayName;
+        return this;
     }
 
     public AbstractExecHandleBuilder listener(ExecHandleListener listener) {
@@ -108,14 +116,41 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
         this.listeners.add(listener);
         return this;
     }
-    
+
     public ExecHandle build() {
         String executable = getExecutable();
         if (StringUtils.isEmpty(executable)) {
             throw new IllegalStateException("execCommand == null!");
         }
 
+        StreamsHandler effectiveHandler = getEffectiveStreamsHandler();
         return new DefaultExecHandle(getDisplayName(), getWorkingDir(), executable, getAllArguments(), getActualEnvironment(),
-                standardOutput, errorOutput, input, listeners);
+                effectiveHandler, listeners, redirectErrorStream, timeoutMillis, daemon);
+    }
+
+    private StreamsHandler getEffectiveStreamsHandler() {
+        StreamsHandler effectiveHandler;
+        if (this.streamsHandler != null) {
+            effectiveHandler = this.streamsHandler;
+        } else {
+            boolean shouldReadErrorStream = !redirectErrorStream;
+            effectiveHandler = new StreamsForwarder(standardOutput, errorOutput, input, shouldReadErrorStream);
+        }
+        return effectiveHandler;
+    }
+
+    public AbstractExecHandleBuilder streamsHandler(StreamsHandler streamsHandler) {
+        this.streamsHandler = streamsHandler;
+        return this;
+    }
+
+    public AbstractExecHandleBuilder redirectErrorStream() {
+        this.redirectErrorStream = true;
+        return this;
+    }
+
+    public AbstractExecHandleBuilder setTimeout(int timeoutMillis) {
+        this.timeoutMillis = timeoutMillis;
+        return this;
     }
 }

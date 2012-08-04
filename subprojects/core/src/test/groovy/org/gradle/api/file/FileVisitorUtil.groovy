@@ -15,17 +15,18 @@
  */
 package org.gradle.api.file
 
-import static org.junit.Assert.*
-import static org.hamcrest.Matchers.*
 import org.gradle.api.internal.file.collections.MinimalFileTree
 import org.gradle.api.internal.file.collections.FileTreeAdapter
 
+import static org.junit.Assert.*
+import static org.hamcrest.Matchers.*
+
 class FileVisitorUtil {
-    static def assertCanStopVisiting(MinimalFileTree tree) {
+    static void assertCanStopVisiting(MinimalFileTree tree) {
         assertCanStopVisiting(new FileTreeAdapter(tree))
     }
 
-    static def assertCanStopVisiting(FileTree tree) {
+    static void assertCanStopVisiting(FileTree tree) {
         boolean found = false
         FileVisitor visitor = [
                 visitFile: {FileVisitDetails details ->
@@ -42,11 +43,11 @@ class FileVisitorUtil {
         assertTrue(found)
     }
 
-    static def assertVisits(MinimalFileTree tree, Iterable<String> expectedFiles, Iterable<String> expectedDirs) {
+    static void assertVisits(MinimalFileTree tree, Iterable<String> expectedFiles, Iterable<String> expectedDirs) {
         assertVisits(new FileTreeAdapter(tree), expectedFiles, expectedDirs)
     }
 
-    static def assertVisits(FileTree tree, Iterable<String> expectedFiles, Iterable<String> expectedDirs) {
+    static void assertVisits(FileTree tree, Iterable<String> expectedFiles, Iterable<String> expectedDirs) {
         Set files = [] as Set
         Set dirs = [] as Set
         FileVisitor visitor = [
@@ -56,7 +57,6 @@ class FileVisitorUtil {
                     }
                     assertTrue(files.add(details.relativePath.pathString))
                     assertTrue(details.relativePath.isFile())
-                    assertEquals(details.file.lastModified(), details.lastModified)
                     assertTrue(details.file.file)
                     ByteArrayOutputStream outstr = new ByteArrayOutputStream()
                     details.copyTo(outstr)
@@ -68,7 +68,6 @@ class FileVisitorUtil {
                     }
                     assertTrue(dirs.add(details.relativePath.pathString))
                     assertFalse(details.relativePath.isFile())
-                    assertEquals(details.file.lastModified(), details.lastModified)
                     assertTrue(details.file.directory)
                 }
         ] as FileVisitor
@@ -86,7 +85,7 @@ class FileVisitorUtil {
         assertThat(files, equalTo(expectedFiles + expectedDirs as Set))
     }
 
-    static def assertVisits(FileTree tree, Map<String, File> files) {
+    static void assertVisits(FileTree tree, Map<String, File> files) {
         Map<String, File> visited = [:]
         FileVisitor visitor = [
                 visitFile: {FileVisitDetails details ->
@@ -99,5 +98,17 @@ class FileVisitorUtil {
         tree.visit(visitor)
 
         assertThat(visited, equalTo(files))
+    }
+
+    static void assertVisitsPermissions(MinimalFileTree tree, Map<String, Integer> filesWithPermissions) {
+        assertVisitsPermissions(new FileTreeAdapter(tree), filesWithPermissions)
+    }
+
+    static void assertVisitsPermissions(FileTree tree, Map<String, Integer> filesWithPermissions) {
+        def visited = [:]
+        tree.visit {
+            visited[it.name] = it.mode
+        }
+        assertThat(visited, equalTo(filesWithPermissions))
     }
 }

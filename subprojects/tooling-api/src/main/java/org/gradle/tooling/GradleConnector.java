@@ -31,14 +31,25 @@ import java.net.URI;
  *
  * <li>Call {@link #connect()} to create the connection to a project.</li>
  *
- * <li>Optionally reuse the connector to create additional connections.</li>
- *
  * <li>When finished with the connection, call {@link ProjectConnection#close()} to clean up.</li>
  *
  * </ol>
  *
- * <p>{@code GradleConnector} instances are not thread-safe.
- * If you want to use the tooling api concurrently you *must* always create new instances using {@link #newConnector()} </p>
+ * Example:
+ * <pre autoTested=''>
+ * ProjectConnection connection = GradleConnector.newConnector()
+ *    .forProjectDirectory(new File("someProjectFolder"))
+ *    .connect();
+ *
+ * try {
+ *    connection.newBuild().forTasks("tasks").run();
+ * } finally {
+ *    connection.close();
+ * }
+ * </pre>
+ *
+ * <p>{@code GradleConnector} instances are not thread-safe. If you want to use a {@code GradleConnector} concurrently you <em>must</em> always create a
+ * new instance for each thread using {@link #newConnector()}. Note, however, the {@link ProjectConnection} instances that a connector creates are completely thread-safe.</p>
  */
 public abstract class GradleConnector {
 
@@ -87,7 +98,7 @@ public abstract class GradleConnector {
     public abstract GradleConnector forProjectDirectory(File projectDir);
 
     /**
-     * Specifies the user's Gradle home directory to use. Defaults to {@code ~/.gradle}
+     * Specifies the user's Gradle home directory to use. Defaults to {@code ~/.gradle}.
      *
      * @param gradleUserHomeDir The user's Gradle home directory to use.
      * @return this
@@ -101,6 +112,6 @@ public abstract class GradleConnector {
      * @throws UnsupportedVersionException When the target Gradle version does not support this version of the tooling API.
      * @throws GradleConnectionException On failure to establish a connection with the target Gradle version.
      */
-    public abstract ProjectConnection connect() throws GradleConnectionException;
+    public abstract ProjectConnection connect() throws GradleConnectionException, UnsupportedVersionException;
 
 }

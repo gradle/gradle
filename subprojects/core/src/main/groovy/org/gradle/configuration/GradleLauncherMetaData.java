@@ -16,7 +16,7 @@
 package org.gradle.configuration;
 
 import org.gradle.initialization.BuildClientMetaData;
-import org.gradle.util.UncheckedException;
+import org.gradle.internal.UncheckedException;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -32,7 +32,7 @@ public class GradleLauncherMetaData implements Serializable, BuildClientMetaData
                 output.append(arg);
             }
         } catch (IOException e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 }

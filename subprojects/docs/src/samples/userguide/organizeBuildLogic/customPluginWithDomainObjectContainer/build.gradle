@@ -19,12 +19,12 @@ task books << {
 }
 
 class DocumentationPlugin implements Plugin<Project> {
-    def void apply(Project project) {
+    void apply(Project project) {
         def books = project.container(Book)
         books.all {
             sourceFile = project.file("src/docs/$name")
         }
-        project.convention.plugins.documentation = new DocumentationPluginConvention(books)
+        project.extensions.books = books
     }
 }
 
@@ -34,17 +34,5 @@ class Book {
 
     Book(String name) {
         this.name = name
-    }
-}
-
-class DocumentationPluginConvention {
-    final NamedDomainObjectContainer<Book> books
-
-    DocumentationPluginConvention(NamedDomainObjectContainer<Book> books) {
-        this.books = books
-    }
-
-    def books(Closure cl) {
-        books.configure(cl)
     }
 }

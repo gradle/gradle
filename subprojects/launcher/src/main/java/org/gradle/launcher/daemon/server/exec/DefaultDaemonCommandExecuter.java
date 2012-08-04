@@ -15,16 +15,20 @@
  */
 package org.gradle.launcher.daemon.server.exec;
 
-import org.gradle.api.internal.project.ServiceRegistry;
-import org.gradle.initialization.DefaultGradleLauncherFactory;
 import org.gradle.initialization.GradleLauncherFactory;
+import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.nativeplatform.ProcessEnvironment;
 import org.gradle.launcher.daemon.context.DaemonContext;
+import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
 import org.gradle.launcher.daemon.protocol.Command;
-import org.gradle.launcher.daemon.server.DaemonStateCoordinator;
 import org.gradle.logging.LoggingManagerInternal;
-import org.gradle.messaging.concurrent.ExecutorFactory;
 import org.gradle.messaging.remote.internal.Connection;
 import org.gradle.messaging.remote.internal.DisconnectAwareConnectionDecorator;
+
+import java.io.File;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * The default implementation of how to execute commands that the daemon receives.
@@ -32,35 +36,46 @@ import org.gradle.messaging.remote.internal.DisconnectAwareConnectionDecorator;
 public class DefaultDaemonCommandExecuter implements DaemonCommandExecuter {
 
     private final ExecutorFactory executorFactory;
-    final private LoggingManagerInternal loggingManager;
-    final private GradleLauncherFactory launcherFactory;
+    private final LoggingManagerInternal loggingManager;
+    private final GradleLauncherFactory launcherFactory;
+    private final ProcessEnvironment processEnvironment;
+    private final File daemonLog;
 
-    public DefaultDaemonCommandExecuter(ServiceRegistry loggingServices, ExecutorFactory executorFactory) {
+    public DefaultDaemonCommandExecuter(GradleLauncherFactory launcherFactory, ExecutorFactory executorFactory,
+                                        ProcessEnvironment processEnvironment, LoggingManagerInternal loggingManager, File daemonLog) {
         this.executorFactory = executorFactory;
-        this.loggingManager = loggingServices.getFactory(LoggingManagerInternal.class).create();
-        this.launcherFactory = new DefaultGradleLauncherFactory(loggingServices);
+        this.processEnvironment = processEnvironment;
+        this.daemonLog = daemonLog;
+        this.loggingManager = loggingManager;
+        this.launcherFactory = launcherFactory;
     }
 
-    public void executeCommand(Connection<Object> connection, Command command, DaemonContext daemonContext, DaemonStateCoordinator daemonStateCoordinator) {
+    public void executeCommand(Connection<Object> connection, Command command, DaemonContext daemonContext, DaemonStateControl daemonStateControl) {
         new DaemonCommandExecution(
             new DisconnectAwareConnectionDecorator<Object>(connection, executorFactory.create("DefaultDaemonCommandExecuter > DisconnectAwareConnectionDecorator")),
             command,
             daemonContext,
-            daemonStateCoordinator,
+            daemonStateControl,
+            createActions(daemonContext)
+        ).proceed();
+    }
+
+    protected List<DaemonCommandAction> createActions(DaemonContext daemonContext) {
+        DaemonDiagnostics daemonDiagnostics = new DaemonDiagnostics(daemonLog, daemonContext.getPid());
+        return new LinkedList<DaemonCommandAction>(Arrays.asList(
             new StopConnectionAfterExecution(),
             new HandleClientDisconnectBeforeSendingCommand(),
             new CatchAndForwardDaemonFailure(),
             new HandleStop(),
-            new StartBuildOrRespondWithBusy(),
-            new EstablishBuildEnvironment(),
-            new LogToClient(loggingManager), // from this point down, logging is sent back to the client
+            new StartBuildOrRespondWithBusy(daemonDiagnostics),
+            new EstablishBuildEnvironment(processEnvironment),
+            new LogToClient(loggingManager, daemonDiagnostics), // from this point down, logging is sent back to the client
             new ForwardClientInput(executorFactory),
             new ReturnResult(),
+            new StartStopIfBuildAndStop(),
             new ResetDeprecationLogger(),
-            new CatchAndForwardDaemonFailureAsResult(),
             new WatchForDisconnection(),
             new ExecuteBuild(launcherFactory)
-        ).proceed();
+        ));
     }
-
 }

@@ -19,6 +19,7 @@ import org.gradle.api.PathValidation;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.resources.ReadableResource;
+import org.gradle.internal.Factory;
 
 import java.io.File;
 import java.net.URI;
@@ -30,7 +31,7 @@ public interface FileResolver {
 
     File resolve(Object path, PathValidation validation);
 
-    FileSource resolveLater(Object path);
+    Factory<File> resolveLater(Object path);
     
     FileCollection resolveFiles(Object... paths);
 

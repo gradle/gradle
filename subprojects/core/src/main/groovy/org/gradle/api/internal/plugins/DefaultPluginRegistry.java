@@ -20,6 +20,8 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Plugin;
 import org.gradle.api.plugins.PluginInstantiationException;
 import org.gradle.api.plugins.UnknownPluginException;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.reflect.ObjectInstantiationException;
 import org.gradle.util.GUtil;
 
 import java.net.URL;
@@ -35,38 +37,33 @@ public class DefaultPluginRegistry implements PluginRegistry {
     private final Map<String, Class<? extends Plugin>> idMappings = new HashMap<String, Class<? extends Plugin>>();
     private final DefaultPluginRegistry parent;
     private final ClassLoader classLoader;
+    private final Instantiator instantiator;
 
-    public DefaultPluginRegistry(ClassLoader classLoader) {
-        this(null, classLoader);
+    public DefaultPluginRegistry(ClassLoader classLoader, Instantiator instantiator) {
+        this(null, classLoader, instantiator);
     }
 
-    private DefaultPluginRegistry(DefaultPluginRegistry parent, ClassLoader classLoader) {
+    private DefaultPluginRegistry(DefaultPluginRegistry parent, ClassLoader classLoader, Instantiator instantiator) {
         this.parent = parent;
         this.classLoader = classLoader;
+        this.instantiator = instantiator;
     }
 
-    public PluginRegistry createChild(ClassLoader childClassPath) {
-        return new DefaultPluginRegistry(this, childClassPath);
+    public PluginRegistry createChild(ClassLoader childClassPath, Instantiator instantiator) {
+        return new DefaultPluginRegistry(this, childClassPath, instantiator);
     }
 
     public <T extends Plugin> T loadPlugin(Class<T> pluginClass) {
-        if (parent != null) {
-            return parent.loadPlugin(pluginClass);
-        }
-
         if (!Plugin.class.isAssignableFrom(pluginClass)) {
             throw new InvalidUserDataException(String.format(
                     "Cannot create plugin of type '%s' as it does not implement the Plugin interface.",
                     pluginClass.getSimpleName()));
         }
         try {
-            return pluginClass.newInstance();
-        } catch (InstantiationException e) {
+            return instantiator.newInstance(pluginClass);
+        } catch (ObjectInstantiationException e) {
             throw new PluginInstantiationException(String.format("Could not create plugin of type '%s'.",
                     pluginClass.getSimpleName()), e.getCause());
-        } catch (Exception e) {
-            throw new PluginInstantiationException(String.format("Could not create plugin of type '%s'.",
-                    pluginClass.getSimpleName()), e);
         }
     }
 

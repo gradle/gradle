@@ -15,8 +15,10 @@
  */
 package org.gradle.tooling.internal.consumer
 
-import org.gradle.tooling.UnsupportedVersionException
-import org.gradle.tooling.model.Project
+import org.gradle.tooling.UnknownModelException
+import org.gradle.tooling.internal.consumer.async.AsyncConnection
+import org.gradle.tooling.internal.consumer.protocoladapter.ProtocolToModelAdapter
+import org.gradle.tooling.model.GradleProject
 import spock.lang.Specification
 
 class DefaultProjectConnectionTest extends Specification {
@@ -27,7 +29,7 @@ class DefaultProjectConnectionTest extends Specification {
 
     def canCreateAModelBuilder() {
         expect:
-        connection.model(Project.class) instanceof DefaultModelBuilder
+        connection.model(GradleProject.class) instanceof DefaultModelBuilder
     }
 
     def canCreateABuildLauncher() {
@@ -40,8 +42,7 @@ class DefaultProjectConnectionTest extends Specification {
         connection.model(TestBuild.class)
 
         then:
-        UnsupportedVersionException e = thrown()
-        e.message == 'Model of type \'TestBuild\' is not supported.'
+        thrown(UnknownModelException)
     }
 
     def closeStopsBackingConnection() {
@@ -53,6 +54,6 @@ class DefaultProjectConnectionTest extends Specification {
     }
 }
 
-interface TestBuild extends Project {
+interface TestBuild extends GradleProject {
     
 }

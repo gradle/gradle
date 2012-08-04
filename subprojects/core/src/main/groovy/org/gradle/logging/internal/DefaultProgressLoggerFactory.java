@@ -16,10 +16,10 @@
 
 package org.gradle.logging.internal;
 
+import org.gradle.internal.TimeProvider;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.GUtil;
-import org.gradle.util.TimeProvider;
 
 public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
     private final ProgressListener progressListener;

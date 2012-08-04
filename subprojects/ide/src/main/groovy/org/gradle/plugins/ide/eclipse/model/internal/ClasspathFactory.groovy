@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.ide.eclipse.model.internal
 
+import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.plugins.ide.internal.IdeDependenciesExtractor
 import org.gradle.plugins.ide.internal.IdeDependenciesExtractor.IdeLocalFileDependency
 import org.gradle.plugins.ide.internal.IdeDependenciesExtractor.IdeProjectDependency
@@ -51,17 +52,15 @@ class ClasspathFactory {
 
     private final ClasspathEntryBuilder librariesCreator = new ClasspathEntryBuilder() {
         void update(List<ClasspathEntry> entries, EclipseClasspath classpath) {
-            def referenceFactory = classpath.fileReferenceFactory
-
             dependenciesExtractor.extractRepoFileDependencies(
                     classpath.project.configurations, classpath.plusConfigurations, classpath.minusConfigurations, classpath.downloadSources, classpath.downloadJavadoc)
             .each { IdeRepoFileDependency it ->
-                entries << createLibraryEntry(it.file, it.sourceFile, it.javadocFile, it.declaredConfiguration.name, referenceFactory)
+                entries << createLibraryEntry(it.file, it.sourceFile, it.javadocFile, it.declaredConfiguration.name, classpath, it.id)
             }
 
             dependenciesExtractor.extractLocalFileDependencies(classpath.plusConfigurations, classpath.minusConfigurations)
             .each { IdeLocalFileDependency it ->
-                entries << createLibraryEntry(it.file, null, null, it.declaredConfiguration.name, referenceFactory)
+                entries << createLibraryEntry(it.file, null, null, it.declaredConfiguration.name, classpath, null)
             }
         }
     }
@@ -75,6 +74,7 @@ class ClasspathFactory {
         outputCreator.update(entries, classpath)
         sourceFoldersCreator.populateForClasspath(entries, classpath)
         containersCreator.update(entries, classpath)
+
         if (classpath.projectDependenciesOnly) {
             projectDependenciesCreator.update(entries, classpath)
         } else {
@@ -85,20 +85,22 @@ class ClasspathFactory {
         return entries
     }
 
-    private AbstractLibrary createLibraryEntry(File binary, File source, File javadoc, String declaredConfigurationName, FileReferenceFactory referenceFactory) {
+    private AbstractLibrary createLibraryEntry(
+            File binary, File source, File javadoc, String declaredConfigurationName, EclipseClasspath classpath,
+            ModuleVersionIdentifier id) {
+        def referenceFactory = classpath.fileReferenceFactory
+
         def binaryRef = referenceFactory.fromFile(binary)
         def sourceRef = referenceFactory.fromFile(source)
-        def javadocRef = referenceFactory.fromFile(javadoc)
-        def out
-        if (binaryRef.relativeToPathVariable) {
-            out = new Variable(binaryRef)
-        } else {
-            out = new Library(binaryRef)
-        }
-        out.sourcePath = sourceRef
+        def javadocRef = referenceFactory.fromFile(javadoc);
+
+        AbstractLibrary out = binaryRef.relativeToPathVariable? new Variable(binaryRef) : new Library(binaryRef)
+
         out.javadocPath = javadocRef
+        out.sourcePath = sourceRef
         out.exported = true
         out.declaredConfigurationName = declaredConfigurationName
+        out.moduleVersion = id
         out
     }
 }

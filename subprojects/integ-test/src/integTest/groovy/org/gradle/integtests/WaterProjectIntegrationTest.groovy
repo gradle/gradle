@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.ExecutionResult
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.util.SystemProperties
+import org.gradle.internal.SystemProperties
 import org.junit.Rule
 import org.junit.Test
 

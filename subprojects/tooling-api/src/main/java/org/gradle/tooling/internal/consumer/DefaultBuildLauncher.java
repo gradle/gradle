@@ -18,21 +18,25 @@ package org.gradle.tooling.internal.consumer;
 import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.ProgressListener;
 import org.gradle.tooling.ResultHandler;
+import org.gradle.tooling.internal.consumer.async.AsyncConnection;
+import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.protocol.BuildParametersVersion1;
 import org.gradle.tooling.model.Task;
 
+import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-class DefaultBuildLauncher extends AbstractLongRunningOperation implements BuildLauncher {
+class DefaultBuildLauncher implements BuildLauncher {
     private final List<String> tasks = new ArrayList<String>();
     private final AsyncConnection connection;
+    private ConsumerOperationParameters operationParameters;
 
     public DefaultBuildLauncher(AsyncConnection connection, ConnectionParameters parameters) {
-        super(parameters);
+        operationParameters = new ConsumerOperationParameters(parameters);
         this.connection = connection;
     }
 
@@ -55,27 +59,38 @@ class DefaultBuildLauncher extends AbstractLongRunningOperation implements Build
         return this;
     }
 
-    @Override
+    public BuildLauncher withArguments(String... arguments) {
+        operationParameters.setArguments(arguments);
+        return this;
+    }
+
     public DefaultBuildLauncher setStandardError(OutputStream outputStream) {
-        super.setStandardError(outputStream);
+        operationParameters.setStandardError(outputStream);
         return this;
     }
 
-    @Override
     public DefaultBuildLauncher setStandardOutput(OutputStream outputStream) {
-        super.setStandardOutput(outputStream);
+        operationParameters.setStandardOutput(outputStream);
         return this;
     }
 
-    @Override
     public DefaultBuildLauncher setStandardInput(InputStream inputStream) {
-        super.setStandardInput(inputStream);
+        operationParameters.setStandardInput(inputStream);
         return this;
     }
 
-    @Override
+    public DefaultBuildLauncher setJavaHome(File javaHome) {
+        operationParameters.setJavaHome(javaHome);
+        return this;
+    }
+
+    public DefaultBuildLauncher setJvmArguments(String... jvmArguments) {
+        operationParameters.setJvmArguments(jvmArguments);
+        return this;
+    }
+
     public DefaultBuildLauncher addProgressListener(ProgressListener listener) {
-        super.addProgressListener(listener);
+        operationParameters.addProgressListener(listener);
         return this;
     }
 
@@ -86,7 +101,7 @@ class DefaultBuildLauncher extends AbstractLongRunningOperation implements Build
     }
 
     public void run(final ResultHandler<? super Void> handler) {
-        connection.executeBuild(new DefaultBuildParameters(), operationParameters(), new ResultHandlerAdapter<Void>(handler){
+        connection.executeBuild(new DefaultBuildParameters(), operationParameters, new ResultHandlerAdapter<Void>(handler){
             @Override
             protected String connectionFailureMessage(Throwable failure) {
                 return String.format("Could not execute build using %s.", connection.getDisplayName());

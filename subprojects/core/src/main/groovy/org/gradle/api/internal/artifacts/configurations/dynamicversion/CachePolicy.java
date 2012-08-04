@@ -15,12 +15,19 @@
  */
 package org.gradle.api.internal.artifacts.configurations.dynamicversion;
 
+import org.gradle.api.artifacts.ArtifactIdentifier;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
 
-public interface CachePolicy {
-    boolean mustRefreshDynamicVersion(ResolvedModuleVersion version, long ageMillis);
+import java.io.File;
 
-    boolean mustRefreshChangingModule(ResolvedModuleVersion version, long ageMillis);
-    
-    boolean mustRefreshMissingArtifact(long ageMillis);
+public interface CachePolicy {
+    boolean mustRefreshDynamicVersion(ModuleVersionSelector selector, ModuleVersionIdentifier moduleId, long ageMillis);
+
+    boolean mustRefreshModule(ModuleVersionIdentifier moduleVersionId, ResolvedModuleVersion resolvedModuleVersion, long ageMillis);
+
+    boolean mustRefreshChangingModule(ModuleVersionIdentifier moduleVersionId, ResolvedModuleVersion resolvedModuleVersion, long ageMillis);
+
+    boolean mustRefreshArtifact(ArtifactIdentifier artifactIdentifier, File cachedArtifactFile, long ageMillis);
 }

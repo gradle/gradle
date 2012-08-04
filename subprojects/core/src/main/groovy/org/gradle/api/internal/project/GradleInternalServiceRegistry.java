@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.project;
 
+import org.gradle.api.internal.DependencyInjectingInstantiator;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.changedetection.TaskArtifactStateCacheAccess;
@@ -22,6 +23,10 @@ import org.gradle.api.internal.changedetection.TaskCacheLockHandlingBuildExecute
 import org.gradle.api.internal.plugins.DefaultPluginRegistry;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.execution.*;
+import org.gradle.execution.taskgraph.DefaultTaskExecutor;
+import org.gradle.execution.taskgraph.DefaultTaskGraphExecuter;
+import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.listener.ListenerManager;
 
 import static java.util.Arrays.asList;
@@ -61,11 +66,12 @@ public class GradleInternalServiceRegistry extends DefaultServiceRegistry implem
     }
 
     protected TaskGraphExecuter createTaskGraphExecuter() {
-        return new DefaultTaskGraphExecuter(get(ListenerManager.class));
+        return new DefaultTaskGraphExecuter(get(ListenerManager.class), new DefaultTaskExecutor());
+//        return new DefaultTaskGraphExecuter(get(ListenerManager.class), new ParallelTaskExecutor(get(TaskArtifactStateCacheAccess.class)));
     }
 
     protected PluginRegistry createPluginRegistry() {
-        return new DefaultPluginRegistry(gradle.getScriptClassLoader());
+        return new DefaultPluginRegistry(gradle.getScriptClassLoader(), new DependencyInjectingInstantiator(this));
     }
 
     public ServiceRegistryFactory createFor(Object domainObject) {

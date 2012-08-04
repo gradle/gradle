@@ -18,11 +18,12 @@ package org.gradle.api.internal.notations
 import org.gradle.api.artifacts.SelfResolvingDependency
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.ClassPathRegistry
-import org.gradle.api.internal.Instantiator
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 import org.gradle.api.internal.file.FileResolver
 import spock.lang.Specification
+import org.gradle.internal.classpath.ClassPath
 
 public class DependencyClassPathNotationParserTest extends Specification {
     def instantiator = Mock(Instantiator.class)
@@ -34,10 +35,12 @@ public class DependencyClassPathNotationParserTest extends Specification {
         given:
         def dependency = Mock(SelfResolvingDependency.class)
         def fileCollection = Mock(FileCollection.class)
-        def files = [new File('foo')] as Set
+        def classpath = Mock(ClassPath.class)
+        def files = [new File('foo')]
 
         and:
-        classPathRegistry.getClassPathFiles('GRADLE_API') >> files
+        classPathRegistry.getClassPath('GRADLE_API') >> classpath
+        classpath.asFiles >> files
         fileResolver.resolveFiles(files) >> fileCollection
         instantiator.newInstance(DefaultSelfResolvingDependency.class, fileCollection as Object) >> dependency
 

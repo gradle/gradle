@@ -18,11 +18,12 @@ package org.gradle.logging.internal;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.specs.Spec;
-import org.gradle.api.specs.Specs;
-import org.gradle.os.OperatingSystem;
-
-import java.io.FileDescriptor;
+import org.gradle.internal.nativeplatform.NativeIntegrationUnavailableException;
+import org.gradle.internal.nativeplatform.NoOpTerminalDetector;
+import org.gradle.internal.nativeplatform.TerminalDetector;
+import org.gradle.internal.nativeplatform.jna.JnaBootPathConfigurer;
+import org.gradle.internal.nativeplatform.services.NativeServices;
+import org.gradle.internal.os.OperatingSystem;
 
 /**
  * @author: Szczepan Faber, created at: 9/12/11
@@ -31,14 +32,13 @@ public class TerminalDetectorFactory {
 
     private static final Logger LOGGER = Logging.getLogger(TerminalDetectorFactory.class);
 
-    public Spec<FileDescriptor> create(JnaBootPathConfigurer jnaBootPathConfigurer) {
+    public TerminalDetector create(JnaBootPathConfigurer jnaBootPathConfigurer) {
         try {
             jnaBootPathConfigurer.configure();
-            return new TerminalDetector();
-        } catch (JnaBootPathConfigurer.JnaNotAvailableException e) {
-            LOGGER.info("Unable to find native jna lib for current platform: " + OperatingSystem.current()
-                    + ". Details: " + e.getMessage());
-            return Specs.satisfyNone();
+            return new NativeServices().get(TerminalDetector.class);
+        } catch (NativeIntegrationUnavailableException e) {
+            LOGGER.debug("Unable to initialise the native integration for current platform: " + OperatingSystem.current() + ". Details: " + e.getMessage());
+            return new NoOpTerminalDetector();
         }
     }
 }

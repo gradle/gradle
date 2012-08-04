@@ -16,8 +16,9 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ModuleVersionSelector;
 
-public class DefaultModuleVersionIdentifier implements ModuleVersionIdentifier {
+public class DefaultModuleVersionIdentifier implements ModuleVersionIdentifier, ModuleVersionSelector {
     private final String group;
     private final String name;
     private final String version;

@@ -15,7 +15,7 @@
  */
 package org.gradle.integtests
 
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class MixedJavaAndWebProjectIntegrationTest extends AbstractIntegrationSpec {
     def "project can use classes from WAR project"() {

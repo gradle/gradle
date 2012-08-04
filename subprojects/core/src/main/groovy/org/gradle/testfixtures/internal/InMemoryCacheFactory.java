@@ -17,10 +17,11 @@ package org.gradle.testfixtures.internal;
 
 import org.gradle.CacheUsage;
 import org.gradle.api.Action;
-import org.gradle.api.internal.Factory;
+import org.gradle.internal.Factory;
 import org.gradle.api.internal.changedetection.InMemoryIndexedCache;
 import org.gradle.cache.*;
 import org.gradle.cache.internal.*;
+import org.gradle.messaging.serialize.Serializer;
 
 import java.io.File;
 import java.util.Collections;
@@ -28,10 +29,10 @@ import java.util.Map;
 
 public class InMemoryCacheFactory implements CacheFactory {
     public PersistentCache openStore(File storeDir, String displayName, FileLockManager.LockMode lockMode, Action<? super PersistentCache> initializer) throws CacheOpenException {
-        return open(storeDir, displayName, CacheUsage.ON, Collections.<String, Object>emptyMap(), lockMode, initializer);
+        return open(storeDir, displayName, CacheUsage.ON, null, Collections.<String, Object>emptyMap(), lockMode, initializer);
     }
 
-    public PersistentCache open(File cacheDir, String displayName, CacheUsage usage, Map<String, ?> properties, FileLockManager.LockMode lockMode, Action<? super PersistentCache> initializer) {
+    public PersistentCache open(File cacheDir, String displayName, CacheUsage usage, CacheValidator cacheValidator, Map<String, ?> properties, FileLockManager.LockMode lockMode, Action<? super PersistentCache> initializer) {
         cacheDir.mkdirs();
         InMemoryCache cache = new InMemoryCache(cacheDir);
         if (initializer != null) {
@@ -40,21 +41,25 @@ public class InMemoryCacheFactory implements CacheFactory {
         return cache;
     }
 
-    public <K, V> PersistentIndexedCache<K, V> openIndexedCache(File cacheDir, CacheUsage usage, Map<String, ?> properties, FileLockManager.LockMode lockMode, Serializer<V> serializer) {
+    public <K, V> PersistentIndexedCache<K, V> openIndexedCache(File cacheDir, CacheUsage usage, CacheValidator validator, Map<String, ?> properties, FileLockManager.LockMode lockMode, Serializer<V> serializer) {
         return new InMemoryIndexedCache<K, V>();
     }
 
-    public <E> PersistentStateCache<E> openStateCache(File cacheDir, CacheUsage usage, Map<String, ?> properties, FileLockManager.LockMode lockMode, Serializer<E> serializer) {
+    public <E> PersistentStateCache<E> openStateCache(File cacheDir, CacheUsage usage, CacheValidator validator, Map<String, ?> properties, FileLockManager.LockMode lockMode, Serializer<E> serializer) {
         cacheDir.mkdirs();
         return new SimpleStateCache<E>(new File(cacheDir, "state.bin"), new NoOpFileLock(), new DefaultSerializer<E>());
     }
 
     private static class NoOpFileLock extends AbstractFileAccess {
-        public <T> T readFromFile(Factory<? extends T> action) throws LockTimeoutException {
+        public <T> T readFile(Factory<? extends T> action) throws LockTimeoutException {
             return action.create();
         }
 
-        public void writeToFile(Runnable action) throws LockTimeoutException {
+        public void updateFile(Runnable action) throws LockTimeoutException {
+            action.run();
+        }
+
+        public void writeFile(Runnable action) throws LockTimeoutException {
             action.run();
         }
 

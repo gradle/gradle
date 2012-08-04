@@ -15,12 +15,12 @@
  */
 package org.gradle.api.internal.changedetection;
 
-import org.gradle.api.internal.Factory;
+import org.gradle.internal.Factory;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.cache.Serializer;
+import org.gradle.messaging.serialize.Serializer;
 import org.gradle.cache.internal.FileLockManager;
 import org.gradle.listener.LazyCreationProxy;
 

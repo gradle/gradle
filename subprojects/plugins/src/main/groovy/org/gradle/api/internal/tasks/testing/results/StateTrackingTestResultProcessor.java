@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.testing.results;
 
 import org.gradle.api.internal.tasks.testing.*;
+import org.gradle.api.tasks.testing.TestDescriptor;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 
 import java.util.HashMap;
@@ -24,8 +25,9 @@ import java.util.Map;
 
 public abstract class StateTrackingTestResultProcessor implements TestResultProcessor {
     private final Map<Object, TestState> executing = new HashMap<Object, TestState>();
+    private TestDescriptor currentParent;
 
-    public void started(TestDescriptorInternal test, TestStartEvent event) {
+    public final void started(TestDescriptorInternal test, TestStartEvent event) {
         TestDescriptorInternal parent = null;
         if (event.getParentId() != null) {
             parent = executing.get(event.getParentId()).test;
@@ -40,7 +42,7 @@ public abstract class StateTrackingTestResultProcessor implements TestResultProc
         started(state);
     }
 
-    public void completed(Object testId, TestCompleteEvent event) {
+    public final void completed(Object testId, TestCompleteEvent event) {
         TestState testState = executing.remove(testId);
         if (testState == null) {
             throw new IllegalArgumentException(String.format(
@@ -48,11 +50,22 @@ public abstract class StateTrackingTestResultProcessor implements TestResultProc
                     testId, executing.keySet()));
         }
 
+        //In case the output event arrives after completion of the test
+        //and we need to have a matching descriptor to inform the user which test this output belongs to
+        //we will use the current parent
+
+        //(SF) This approach should generally work because at the moment we reset capturing output per suite
+        //(see CaptureTestOutputTestResultProcessor) and that reset happens earlier in the chain.
+        //So in theory when suite is completed, the output redirector has been already stopped
+        //and there shouldn't be any output events passed
+        //See also GRADLE-2035
+        currentParent = testState.test.getParent();
+
         testState.completed(event);
         completed(testState);
     }
 
-    public void failure(Object testId, Throwable result) {
+    public final void failure(Object testId, Throwable result) {
         TestState testState = executing.get(testId);
         if (testState == null) {
             throw new IllegalArgumentException(String.format(
@@ -62,7 +75,26 @@ public abstract class StateTrackingTestResultProcessor implements TestResultProc
         testState.failures.add(result);
     }
 
-    public void output(Object testId, TestOutputEvent event) {
+    public final void output(Object testId, TestOutputEvent event) {
+        output(findDescriptor(testId), event);
+    }
+
+    private TestDescriptor findDescriptor(Object testId) {
+        TestState state = executing.get(testId);
+        if (state != null) {
+            return state.test;
+        }
+
+        TestDescriptor d = currentParent;
+        if (d != null) {
+            return d;
+        }
+
+        //in theory this should not happen
+        return new UnknownTestDescriptor();
+    }
+
+    protected void output(TestDescriptor descriptor, TestOutputEvent event) {
         // Don't care
     }
 

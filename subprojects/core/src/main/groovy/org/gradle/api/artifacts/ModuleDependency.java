@@ -21,15 +21,41 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * <p>A {@code ModuleDependency} is a {@link org.gradle.api.artifacts.Dependency} on a module outside the current
- * project.</p>
- *
- * <p>A module dependency is an entity. Its key consists of the fields {@code group, name, version, configuration}.</p>
+ * A {@code ModuleDependency} is a {@link org.gradle.api.artifacts.Dependency} on a module outside the current
+ * project.
+ * <p>
+ * For examples on configuring the exclude rules please refer to {@link #exclude(java.util.Map)}.
  */
 public interface ModuleDependency extends Dependency {
     /**
-     * Adds an exclude rule to exclude transitive dependencies of this dependency. You can also add exclude rules
-     * per-configuration. See {@link Configuration#getExcludeRules()}.
+     * Adds an exclude rule to exclude transitive dependencies of this dependency.
+     * <p>
+     * Excluding a particular transitive dependency does not guarantee that it does not show up
+     * in the dependencies of a given configuration.
+     * For example, some other dependency, which does not have any exclude rules,
+     * might pull in exactly the same transitive dependency.
+     * To guarantee that the transitive dependency is excluded from the entire configuration
+     * please use per-configuration exclude rules: {@link Configuration#getExcludeRules()}.
+     * In fact, in majority of cases the actual intention of configuring per-dependency exclusions
+     * is really excluding a dependency from the entire configuration (or classpath).
+     * <p>
+     * If your intention is to exclude a particular transitive dependency
+     * because you don't like the version it pulls in to the configuration
+     * then consider using forced versions' feature: {@link ResolutionStrategy#force(Object...)}.
+     *
+     * <pre autoTested=''>
+     * apply plugin: 'java' //so that I can declare 'compile' dependencies
+     *
+     * dependencies {
+     *   compile('org.hibernate:hibernate:3.1') {
+     *     //excluding a particular transitive dependency:
+     *     exclude module: 'cglib' //by artifact name
+     *     exclude group: 'org.jmock' //by group
+     *     exclude group: 'org.unwanted', module: 'iAmBuggy' //by both name and group
+     *   }
+     * }
+    
+     * </pre>
      *
      * @param excludeProperties the properties to define the exclude rule.
      * @return this

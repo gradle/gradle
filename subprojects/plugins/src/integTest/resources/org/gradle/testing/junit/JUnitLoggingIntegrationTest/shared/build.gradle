@@ -1,0 +1,23 @@
+apply plugin: "groovy"
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    groovy "org.codehaus.groovy:groovy-all:1.8.7"
+    testCompile "junit:junit:4.10"
+}
+
+test {
+    testLogging {
+        quiet {
+            events "skipped", "failed"
+            minGranularity 2
+            maxGranularity -1
+            displayGranularity 3
+            exceptionFormat "full"
+            stackTraceFilters "truncate", "groovy"
+        }
+    }
+}

@@ -35,7 +35,6 @@ import java.util.Map;
 public class DefaultCppSourceSet implements CppSourceSet {
 
     private final String name;
-    private final ProjectInternal project;
 
     private final DefaultSourceDirectorySet exportedHeaders;
     private final DefaultSourceDirectorySet source;
@@ -45,7 +44,6 @@ public class DefaultCppSourceSet implements CppSourceSet {
 
     public DefaultCppSourceSet(String name, ProjectInternal project) {
         this.name = name;
-        this.project = project;
 
         this.exportedHeaders = new DefaultSourceDirectorySet("exported headers", project.getFileResolver());
         this.source = new DefaultSourceDirectorySet("source", project.getFileResolver());

@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.testing.processors;
 import org.gradle.api.internal.tasks.testing.*;
 import org.gradle.api.internal.tasks.testing.results.AttachParentTestResultProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
-import org.gradle.util.TimeProvider;
+import org.gradle.internal.TimeProvider;
 
 public class TestMainAction implements Runnable {
     private final TestClassProcessor processor;
@@ -51,7 +51,7 @@ public class TestMainAction implements Runnable {
 
     private static class RootTestSuiteDescriptor extends DefaultTestSuiteDescriptor {
         public RootTestSuiteDescriptor() {
-            super("root", "");
+            super("root", "Test Run");
         }
 
         @Override

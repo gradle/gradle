@@ -15,7 +15,7 @@
  */
 package org.gradle.integtests
 
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class MixedWarAndEjbProjectIntegrationTest extends AbstractIntegrationSpec {
     def "project can use compiled classes from an EAR project"() {

@@ -16,43 +16,48 @@
 package org.gradle.api.internal.tasks.scala
 
 import spock.lang.Specification
-import org.gradle.api.internal.tasks.compile.JavaCompiler
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
+import org.gradle.api.internal.tasks.compile.JvmLanguageCompileSpec
+import org.gradle.api.internal.tasks.compile.Compiler
+import org.gradle.api.internal.tasks.compile.JavaCompileSpec
 
 class DefaultScalaJavaJointCompilerTest extends Specification {
-    private final ScalaCompiler scalaCompiler = Mock()
-    private final JavaCompiler javaCompiler = Mock()
+    private final Compiler<ScalaCompileSpec> scalaCompiler = Mock()
+    private final JvmLanguageCompileSpec scalaSpec = Mock()
+    private final Compiler<JavaCompileSpec> javaCompiler = Mock()
     private final FileCollection source = Mock()
     private final FileTree sourceTree = Mock()
     private final FileTree javaSource = Mock()
+    private final ScalaJavaJointCompileSpec spec = Mock()
     private final DefaultScalaJavaJointCompiler compiler = new DefaultScalaJavaJointCompiler(scalaCompiler, javaCompiler)
 
     def executesScalaCompilerThenJavaCompiler() {
-        compiler.source = source
+        given:
+        _ * spec.source >> source
 
         when:
-        def result = compiler.execute()
+        def result = compiler.execute(spec)
 
         then:
         result.didWork
-        1 * scalaCompiler.execute()
+        1 * scalaCompiler.execute(spec)
         1 * source.getAsFileTree() >> sourceTree
         1 * sourceTree.matching(!null) >> javaSource
-        _ * javaSource.isEmpty() >> false
-        1 * javaCompiler.setSource(!null)
-        1 * javaCompiler.execute()
+        javaSource.isEmpty() >> false
+        1 * spec.setSource(javaSource)
+        1 * javaCompiler.execute(spec)
     }
 
     def doesNotInvokeJavaCompilerWhenNoJavaSource() {
-        compiler.source = source
+        _ * spec.source >> source
 
         when:
-        def result = compiler.execute()
+        def result = compiler.execute(spec)
 
         then:
         result.didWork
-        1 * scalaCompiler.execute()
+        1 * scalaCompiler.execute(spec)
         1 * source.getAsFileTree() >> sourceTree
         1 * sourceTree.matching(!null) >> javaSource
         _ * javaSource.isEmpty() >> true

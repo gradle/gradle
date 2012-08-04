@@ -15,14 +15,22 @@
  */
 package org.gradle.api.internal
 
-import org.junit.Test
-import static org.junit.Assert.*
-import static org.hamcrest.Matchers.*
 import org.junit.Ignore
+import org.junit.Test
+import static org.hamcrest.Matchers.*
+import static org.junit.Assert.assertThat
+import static org.junit.Assert.fail
+import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.reflect.DirectInstantiator
 
 class AbstractNamedDomainObjectContainerTest {
     private final Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator())
     private final AbstractNamedDomainObjectContainer container = instantiator.newInstance(TestContainer.class, instantiator)
+
+    @Test
+    public void isDynamicObjectAware() {
+        assertThat(container, instanceOf(DynamicObjectAware));
+    }
 
     @Test
     public void canAddObjectWithName() {
@@ -165,7 +173,7 @@ class DynamicOwner {
                 add dynamicMethod('a', 'b', 'c')
                 add dynamicMethod { doesntGetEvaluated }
                 // delegate properties and methods - delegate is a TestObject
-                add all.size()
+                add owner.size()
                 prop = 'prop'
                 add prop
                 testObjectDynamicMethod { doesntGetEvaluated }

@@ -16,7 +16,7 @@
 package org.gradle.initialization;
 
 import org.gradle.api.GradleScriptException;
-import org.gradle.api.LocationAwareException;
+import org.gradle.api.internal.LocationAwareException;
 import org.gradle.api.internal.Contextual;
 import org.gradle.api.internal.MultiCauseException;
 import org.gradle.api.tasks.TaskExecutionException;
@@ -82,9 +82,9 @@ public class DefaultExceptionAnalyserTest {
     }
 
     @Test
-    public void wrapsDeepestContextualExceptionWithLocationAwareException() {
+    public void wrapsHighestContextualExceptionWithLocationAwareException() {
         Throwable cause = new ContextualException();
-        Throwable failure = new ContextualException(new RuntimeException(cause));
+        Throwable failure = new ContextualException(cause);
 
         DefaultExceptionAnalyser analyser = analyser();
 
@@ -92,9 +92,9 @@ public class DefaultExceptionAnalyserTest {
         assertThat(transformedFailure, instanceOf(LocationAwareException.class));
 
         LocationAwareException gse = (LocationAwareException) transformedFailure;
-        assertThat(gse.getTarget(), sameInstance(cause));
-        assertThat(gse.getCause(), sameInstance(cause));
-        assertThat(gse.getReportableCauses(), isEmpty());
+        assertThat(gse.getTarget(), sameInstance(failure));
+        assertThat(gse.getCause(), sameInstance(failure));
+        assertThat(gse.getReportableCauses(), equalTo(toList(cause)));
     }
 
     @Test

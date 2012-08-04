@@ -16,15 +16,16 @@
 package org.gradle.util
 
 import java.util.zip.ZipInputStream
-
 import org.apache.commons.lang.StringUtils
+import org.apache.tools.ant.Project
 import org.apache.tools.ant.taskdefs.Expand
+import org.apache.tools.ant.taskdefs.Tar
 import org.apache.tools.ant.taskdefs.Untar
-import org.gradle.api.UncheckedIOException
-import org.gradle.os.OperatingSystem
-
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
+import org.apache.tools.ant.taskdefs.Zip
+import static org.hamcrest.Matchers.equalTo
+import static org.junit.Assert.assertThat
+import static org.junit.Assert.assertTrue
+import org.apache.commons.io.FileUtils
 
 class TestFileHelper {
     TestFile file
@@ -51,7 +52,7 @@ class TestFileHelper {
             }
         }
 
-        if (nativeTools && OperatingSystem.current().isUnix()) {
+        if (nativeTools && isUnix()) {
             def process = ['unzip', '-o', file.absolutePath, '-d', target.absolutePath].execute()
             process.consumeProcessOutput(System.out, System.err)
             assertThat(process.waitFor(), equalTo(0))
@@ -61,13 +62,15 @@ class TestFileHelper {
         def unzip = new Expand()
         unzip.src = file
         unzip.dest = target
-        AntUtil.execute(unzip)
+
+        unzip.project = new Project()
+        unzip.execute()
     }
 
     void untarTo(File target, boolean nativeTools) {
-        if (nativeTools && OperatingSystem.current().isUnix()) {
+        if (nativeTools && isUnix()) {
             target.mkdirs()
-            def builder = new ProcessBuilder(['tar', '-xf', file.absolutePath])
+            def builder = new ProcessBuilder(['tar', '-xpf', file.absolutePath])
             builder.directory(target)
             def process = builder.start()
             process.consumeProcessOutput()
@@ -89,27 +92,116 @@ class TestFileHelper {
             untar.compression = method
         }
 
-        AntUtil.execute(untar)
+        untar.project = new Project()
+        untar.execute()
+    }
+
+    private boolean isUnix() {
+        return !System.getProperty('os.name').toLowerCase().contains('windows')
     }
 
     String getPermissions() {
-        def stat = org.gradle.os.PosixUtil.current().stat(file.absolutePath)
-        [6, 3, 0].collect {
-            def m = stat.mode() >> it
-            [m & 4 ? 'r' : '-', m & 2 ? 'w' : '-', m & 1 ? 'x' : '-']
-        }.flatten().join('')
+        def process = ["ls", "-ld", file.absolutePath].execute()
+        def result = process.inputStream.text
+        def error = process.errorStream.text
+        def retval = process.waitFor()
+        if (retval != 0) {
+            throw new RuntimeException("Could not list permissions for '$file': $error")
+        }
+        def perms = result.split()[0]
+        assert perms.matches("[d\\-][rwx\\-]{9}[@\\+]?")
+        return perms.substring(1, 10)
     }
 
     void setPermissions(String permissions) {
-        def m = [6, 3, 0].inject(0) { mode, pos ->
+        if (!isUnix()) {
+            return
+        }
+        int m = toMode(permissions)
+        setMode(m)
+    }
+
+    void setMode(int mode) {
+        def process = ["chmod", Integer.toOctalString(mode), file.absolutePath].execute()
+        def error = process.errorStream.text
+        def retval = process.waitFor()
+        if (retval != 0) {
+            throw new RuntimeException("Could not set permissions for '$file': $error")
+        }
+    }
+
+    private int toMode(String permissions) {
+        int m = [6, 3, 0].inject(0) { mode, pos ->
             mode |= permissions[9 - pos - 3] == 'r' ? 4 << pos : 0
             mode |= permissions[9 - pos - 2] == 'w' ? 2 << pos : 0
             mode |= permissions[9 - pos - 1] == 'x' ? 1 << pos : 0
             return mode
         }
-        def retval = org.gradle.os.PosixUtil.current().chmod(file.absolutePath, m)
+        return m
+    }
+
+    int getMode() {
+        return toMode(getPermissions())
+    }
+
+    void delete(boolean nativeTools) {
+        if (isUnix() && nativeTools) {
+            def process = ["rm", "-rf", file.absolutePath].execute()
+            def error = process.errorStream.text
+            def retval = process.waitFor()
+            if (retval != 0) {
+                throw new RuntimeException("Could not delete '$file': $error")
+            }
+        } else {
+            FileUtils.deleteQuietly(file);
+        }
+    }
+
+    String readLink() {
+        def process = ["readlink", file.absolutePath].execute()
+        def error = process.errorStream.text
+        def retval = process.waitFor()
         if (retval != 0) {
-            throw new UncheckedIOException("Could not set permissions of '${file}' to '${permissions}'.")
+            throw new RuntimeException("Could not read link '$file': $error")
+        }
+        return process.inputStream.text.trim()
+    }
+
+    Map<String, ?> exec(Object... args) {
+        def process = ([file.absolutePath] + (args as List)).execute()
+        def output = process.inputStream.text
+        def error = process.errorStream.text
+        if (process.waitFor() != 0) {
+            throw new RuntimeException("Could not execute $file. Error: $error, Output: $output")
+        }
+        return [out: output, error: error]
+    }
+
+    public void zipTo(TestFile zipFile, boolean nativeTools) {
+        if (nativeTools && isUnix()) {
+            def process = ['zip', zipFile.absolutePath, "-r", file.name].execute(null, zipFile.parentFile)
+            process.consumeProcessOutput(System.out, System.err)
+            assertThat(process.waitFor(), equalTo(0))
+        } else {
+            Zip zip = new Zip();
+            zip.setBasedir(file);
+            zip.setDestFile(zipFile);
+            zip.setProject(new Project());
+            zip.execute();
+        }
+    }
+
+    public void tarTo(TestFile tarFile, boolean nativeTools) {
+        if (nativeTools && isUnix()) {
+            def process = ['tar', "-cf", tarFile.absolutePath, file.name].execute(null, tarFile.parentFile)
+            process.consumeProcessOutput(System.out, System.err)
+            assertThat(process.waitFor(), equalTo(0))
+        } else {
+            Tar tar = new Tar();
+            tar.setBasedir(file);
+            tar.setDestFile(tarFile);
+            tar.setProject(new Project())
+            tar.execute()
         }
     }
 }

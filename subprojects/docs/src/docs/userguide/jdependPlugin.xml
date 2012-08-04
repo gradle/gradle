@@ -1,0 +1,95 @@
+<chapter id="jdepend_plugin">
+    <title>The JDepend Plugin</title>
+    <para>The JDepend plugin performs quality checks on your project's source files using <ulink url="http://clarkware.com/software/JDepend.html">JDepend</ulink>
+        and generates reports from these checks.
+    </para>
+
+    <section>
+        <title>Usage</title>
+        <para>To use the JDepend plugin, include in your build script:</para>
+        <sample id="useJDependPlugin" dir="codeQuality" title="Using the JDepend plugin">
+            <sourcefile file="build.gradle" snippet="use-jdepend-plugin"/>
+        </sample>
+        <para>The plugin adds a number of tasks to the project that perform the quality checks. You can execute the checks by running <userinput>gradle check</userinput>.</para>
+    </section>
+
+    <section>
+        <title>Tasks</title>
+        <para>The JDepend plugin adds the following tasks to the project:</para>
+        <table>
+            <title>JDepend plugin - tasks</title>
+            <thead>
+                <tr>
+                    <td>Task name</td>
+                    <td>Depends on</td>
+                    <td>Type</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <literal>jdependMain</literal>
+                </td>
+                <td><literal>classes</literal></td>
+                <td><apilink class="org.gradle.api.plugins.quality.JDepend"/></td>
+                <td>Runs JDepend against the production Java source files.</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>jdependTest</literal>
+                </td>
+                <td><literal>testClasses</literal></td>
+                <td><apilink class="org.gradle.api.plugins.quality.JDepend"/></td>
+                <td>Runs JDepend against the test Java source files.</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>jdepend<replaceable>SourceSet</replaceable></literal>
+                </td>
+                <td>
+                    <literal><replaceable>sourceSet</replaceable>Classes</literal>
+                </td>
+                <td><apilink class="org.gradle.api.plugins.quality.JDepend"/></td>
+                <td>Runs JDepend against the given source set's Java source files.</td>
+            </tr>
+        </table>
+
+        <para>The JDepend plugin adds the following dependencies to tasks defined by the Java plugin.</para>
+        <table>
+            <title>JDepend plugin - additional task dependencies</title>
+            <thead>
+                <td>Task name</td>
+                <td>Depends on</td>
+            </thead>
+            <tr>
+                <td><literal>check</literal></td>
+                <td>All JDepend tasks, including <literal>jdependMain</literal> and <literal>jdependTest</literal>.</td>
+            </tr>
+        </table>
+    </section>
+
+    <section>
+        <title>Dependency management</title>
+        <para>The JDepend plugin adds the following dependency configurations:</para>
+        <table>
+            <title>JDepend plugin - dependency configurations</title>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                    <td>Meaning</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <filename>jdepend</filename>
+                </td>
+                <td>The JDepend libraries to use</td>
+            </tr>
+        </table>
+    </section>
+
+    <section>
+        <title>Configuration</title>
+        <para>See <apilink class="org.gradle.api.plugins.quality.JDependExtension"/>.</para>
+    </section>
+</chapter>

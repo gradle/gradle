@@ -17,6 +17,7 @@ package org.gradle.tooling.internal.consumer
 
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ResultHandler
+import org.gradle.tooling.internal.consumer.async.AsyncConnection
 import org.gradle.tooling.model.Task
 import org.gradle.util.ConcurrentSpecification
 

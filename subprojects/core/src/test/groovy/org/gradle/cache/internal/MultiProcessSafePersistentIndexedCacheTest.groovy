@@ -15,7 +15,7 @@
  */
 package org.gradle.cache.internal
 
-import org.gradle.api.internal.Factory
+import org.gradle.internal.Factory
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache
 import spock.lang.Specification
 
@@ -30,7 +30,7 @@ class MultiProcessSafePersistentIndexedCacheTest extends Specification {
         cache.get("value")
 
         then:
-        1 * fileAccess.writeToFile(!null) >> { Runnable action -> action.run() }
+        1 * fileAccess.writeFile(!null) >> { Runnable action -> action.run() }
         1 * factory.create() >> backingCache
     }
 
@@ -45,7 +45,7 @@ class MultiProcessSafePersistentIndexedCacheTest extends Specification {
         result == "result"
 
         and:
-        1 * fileAccess.readFromFile(!null) >> { Factory action -> action.create() }
+        1 * fileAccess.readFile(!null) >> { Factory action -> action.create() }
         1 * backingCache.get("value") >> "result"
         0 * _._
     }
@@ -58,7 +58,7 @@ class MultiProcessSafePersistentIndexedCacheTest extends Specification {
         cache.put("key", "value")
 
         then:
-        1 * fileAccess.writeToFile(!null) >> { Runnable action -> action.run() }
+        1 * fileAccess.writeFile(!null) >> { Runnable action -> action.run() }
         1 * backingCache.put("key", "value")
         0 * _._
     }
@@ -71,7 +71,7 @@ class MultiProcessSafePersistentIndexedCacheTest extends Specification {
         cache.remove("key")
 
         then:
-        1 * fileAccess.writeToFile(!null) >> { Runnable action -> action.run() }
+        1 * fileAccess.writeFile(!null) >> { Runnable action -> action.run() }
         1 * backingCache.remove("key")
         0 * _._
     }
@@ -84,7 +84,7 @@ class MultiProcessSafePersistentIndexedCacheTest extends Specification {
         cache.close()
 
         then:
-        1 * fileAccess.writeToFile(!null) >> { Runnable action -> action.run() }
+        1 * fileAccess.writeFile(!null) >> { Runnable action -> action.run() }
         1 * backingCache.close()
         0 * _._
     }
@@ -97,7 +97,7 @@ class MultiProcessSafePersistentIndexedCacheTest extends Specification {
         cache.onEndWork()
 
         then:
-        1 * fileAccess.writeToFile(!null) >> { Runnable action -> action.run() }
+        1 * fileAccess.writeFile(!null) >> { Runnable action -> action.run() }
         1 * backingCache.close()
         0 * _._
     }
@@ -125,7 +125,7 @@ class MultiProcessSafePersistentIndexedCacheTest extends Specification {
         cache.close()
 
         then:
-        1 * fileAccess.writeToFile(!null) >> { Runnable action -> action.run() }
+        1 * fileAccess.writeFile(!null) >> { Runnable action -> action.run() }
         1 * backingCache.close()
         0 * _._
 
@@ -137,7 +137,7 @@ class MultiProcessSafePersistentIndexedCacheTest extends Specification {
     }
 
     def cacheOpened() {
-        1 * fileAccess.writeToFile(!null) >> { Runnable action -> action.run() }
+        1 * fileAccess.writeFile(!null) >> { Runnable action -> action.run() }
         1 * factory.create() >> backingCache
         
         cache.get("something")

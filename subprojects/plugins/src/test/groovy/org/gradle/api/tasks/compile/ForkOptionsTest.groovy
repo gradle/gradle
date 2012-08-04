@@ -33,10 +33,13 @@ class ForkOptionsTest {
     }
 
     @Test public void testCompileOptions() {
-        assertNull(forkOptions.executable)
-        assertNull(forkOptions.memoryInitialSize)
-        assertNull(forkOptions.memoryMaximumSize)
-        assertNull(forkOptions.tempDir)
+        forkOptions.with {
+            assert executable == null
+            assert memoryInitialSize == null
+            assert memoryMaximumSize == null
+            assert tempDir == null
+            assert jvmArgs == []
+        }
     }
 
     @Test public void testOptionMap() {
@@ -50,7 +53,7 @@ class ForkOptionsTest {
 
     @Test public void testDefine() {
         forkOptions.define(PROPS.keySet().inject([:]) { Map map, String prop ->
-            map[prop] = "${prop}Value"
+            map[prop] = "${prop}Value" as String
             map
         })
         PROPS.keySet().each {assertEquals("${it}Value" as String, forkOptions."${it}")}

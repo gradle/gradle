@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 
-import java.io.File;
 import java.util.Map;
 
 /**
@@ -199,10 +198,16 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * @param args The argument to create the repository
      * @return the added repository
      */
+    @SuppressWarnings("JavadocReference")
     DependencyResolver mavenRepo(Map<String, ?> args);
 
     /**
      * Adds a repository which is Maven compatible.
+     * 
+     * @param args The argument to create the repository
+     * @param configClosure Further configuration of the dependency resolver
+     * @return The created dependency resolver
+     * @see #mavenRepo(java.util.Map)
      */
     DependencyResolver mavenRepo(Map<String, ?> args, Closure configClosure);
 
@@ -238,10 +243,4 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      */
     IvyArtifactRepository ivy(Action<? super IvyArtifactRepository> action);
 
-    /**
-     * Returns the directory to write generated poms to.
-     * @deprecated Use {@link org.gradle.api.plugins.MavenPluginConvention#getMavenPomDir()} instead.
-     */
-    @Deprecated
-    File getMavenPomDir();
 }

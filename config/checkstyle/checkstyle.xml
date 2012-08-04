@@ -103,6 +103,9 @@
         <property name="headerFile" value="${checkstyleConfigDir}/required-header.txt"/>
     </module>
     <module name="FileTabCharacter"/>
+    <module name="RegexpSingleline">
+        <property name="format" value="To change body of implemented methods use File \| Settings \| File Templates"/>
+    </module>
 
     <!-- allows suppressing using the //CHECKSTYLE:ON //CHECKSTYLE:OFF -->
     <module name="SuppressionCommentFilter"/>

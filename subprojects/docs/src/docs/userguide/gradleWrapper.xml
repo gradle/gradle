@@ -15,26 +15,28 @@
   -->
 <chapter id='gradle_wrapper'>
     <title>The Gradle Wrapper</title>
-    <para>Gradle is a new tool. You can't expect it to be installed on machines beyond your sphere of influence. An
-        example are continuous integration server where Gradle is not installed and where you have no admin rights for
-        the machine. Or what if you provide an open source project and you want to make it as easy as possible for your
-        users to build it?
+    <para>
+        The Gradle Wrapper (henceforth referred to as the “wrapper) is the preferred way of starting a Gradle build. The wrapper
+        is a batch script on Windows, and a shell script for other operating systems. When you start a Gradle build via the wrapper,
+        Gradle will be automatically downloaded and used to run the build. 
     </para>
-    <para>There is a simple and good <apilink class="org.gradle.api.tasks.wrapper.Wrapper"/> task.
-        <footnote>
-            <para>If you download the Gradle source distribution or check out Gradle from SVN, you can build Gradle via
-                the Gradle wrapper. Gradle itself is continuously built by Bamboo and Teamcity via this wrapper. See
-                <ulink url='website:ci-server.html'/>
-            </para>
-        </footnote>
-        You can create such a task in your build script.
+    <para>
+        The wrapper is something you <emphasis>should</emphasis> check into version control. By distributing the wrapper with your project,
+        anyone can work with it without needing to install Gradle beforehand. Even better, users of the build are guaranteed to use the 
+        version of Gradle that the build was designed to work with. Of course, this is also great for 
+        <ulink url="http://en.wikipedia.org/wiki/Continuous_integration">continuous integration</ulink> servers (i.e. servers that regularly
+        build your project) as it requires no configuration on the server.
+    </para>
+    <para>
+        You install the wrapper into your project by adding and configuring a <apilink class="org.gradle.api.tasks.wrapper.Wrapper"/> 
+        task in your build script, and then executing it.
     </para>
     <sample id="wrapperSimple" dir="userguide/wrapper/simple" title="Wrapper task">
         <sourcefile file="build.gradle"/>
     </sample>
-    <para>The build master usually explicitly executes this task. After such
-        an execution you find the following new or updated files in your project directory (in case the default configuration of the wrapper task is
-        used).
+    <para>
+        After such an execution you find the following new or updated files in your project directory 
+        (in case the default configuration of the wrapper task is used).
     </para>
     <sample id="wrapperSimple" dir="userguide/wrapper/simple" title="Wrapper generated files">
         <layout after="wrapper">
@@ -44,8 +46,10 @@
             gradle/wrapper/gradle-wrapper.properties
         </layout>
     </sample>
-    <para>All these files must be submitted to your version control system. The <command>gradlew</command> command
-        can be used <emphasis>exactly</emphasis> the same way as the <command>gradle</command> command.
+    <para>
+        All of these files <emphasis>should</emphasis> be submitted to your version control system. This only needs to be done once. After
+        these files have been added to the project, the project should then be built with the added <command>gradlew</command> command.
+        The <command>gradlew</command> command can be used <emphasis>exactly</emphasis> the same way as the <command>gradle</command> command.
     </para>
     <para>If you want to switch to a new version of Gradle you don't need to rerun the wrapper task. It is good enough
         to change the respective entry in the <literal>gradle-wrapper.properties</literal> file. But if there is for
@@ -70,7 +74,7 @@
         </sample>
         <para>
             You can specify the download URL of the wrapper distribution. You can also specify where the wrapper distribution
-            should be stored and unpacked (either within the project or within the gradle user home dir). If the wrapper
+            should be stored and unpacked (either within the project or within the Gradle user home dir). If the wrapper
             is run and there is local archive of the wrapper distribution Gradle tries to download it and stores it at
             the specified place. If there is no unpacked wrapper distribution Gradle unpacks the local archive of the
             wrapper distribution at the specified place. All the configuration options have defaults except the version of the wrapper distribution.</para>
@@ -93,7 +97,7 @@
     </section>
     <section id='sec:environment_variable'>
         <title>Environment variable</title>
-        <para>Some rather exotic use cases might occur when working with the Gradle Wrapper. For example the continuos
+        <para>Some rather exotic use cases might occur when working with the Gradle Wrapper. For example the continuous
             integration server goes down during unzipping the Gradle distribution. As the distribution directory exists
             <command>gradlew</command>
             delegates to it but the distribution is corrupt. Or the zip-distribution was not properly downloaded. When

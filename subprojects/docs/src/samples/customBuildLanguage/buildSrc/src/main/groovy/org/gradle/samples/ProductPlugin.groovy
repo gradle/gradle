@@ -30,8 +30,7 @@ class ProductPlugin implements Plugin<Project> {
                 mavenCentral()
             }
 
-            def product = new ProductDefinition()
-            extensions.product = product
+            def product = extensions.create("product", ProductDefinition)
             product.distSrcDirs << rootProject.file('src/dist')
             product.distSrcDirs << project.file('src/dist')
 

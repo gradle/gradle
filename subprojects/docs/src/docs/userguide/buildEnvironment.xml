@@ -1,0 +1,128 @@
+<!--
+  ~ Copyright 2012 the original author or authors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<chapter id='build_environment'>
+    <title>The Build Environment</title>
+
+    <section id="sec:gradle_configuration_properties">
+        <title>Configuring the build environment via gradle.properties</title>
+        <para>Gradle provides several options that make it easy to configure the Java process that will be used to execute your build.
+            While it's possible to configure these in your local environment via GRADLE_OPTS or JAVA_OPTS,
+            certain settings like jvm memory settings, java home, daemon on/off
+            can be more useful if they can versioned with the project in your VCS so that
+            the entire team can work with consistent environment.
+            Setting up a consistent environment for your build is as simple as placing those settings into a <filename>gradle.properties</filename> file.
+            The configuration is applied in following order
+            (in case an option is configured in multiple locations the last one wins):
+            <itemizedlist>
+                <listitem>from <filename>gradle.properties</filename> located in project build dir.</listitem>
+                <listitem>from <filename>gradle.properties</filename> located in <literal>gradle user home</literal>.</listitem>
+                <listitem>from system properties, e.g. when <literal>-Dsome.property</literal> is used in the command line.</listitem>
+            </itemizedlist>
+        </para>
+        <para>
+            The following properties can be used to configure the Gradle build environment:
+            <varlistentry>
+                <term><literal>org.gradle.daemon</literal></term>
+                <listitem><para>When set to <literal>true</literal> the Gradle daemon is to run the build.
+                    For local developer builds this is our favorite property. The developer environment is optimized for speed and feedback
+                    so we nearly always run Gradle jobs with the daemon.
+                    We don't run CI builds with the daemon (i.e. a long running process)
+                    as the CI environment is optimized for consistency and reliability.
+                </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><literal>org.gradle.java.home</literal></term>
+                <listitem><para>Specifies the java home for the Gradle build process.
+                    The value can be set to either <literal>jdk</literal> or <literal>jre</literal> location,
+                    however, depending on what does your build do, <literal>jdk</literal> is safer.
+                    Reasonable default is used if the setting is unspecified.</para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><literal>org.gradle.jvmargs</literal></term>
+                <listitem><para>Specifies the jvmargs used for the daemon process.
+                    The setting is particularly useful for tweaking memory settings.
+                    At the moment the default settings are pretty generous with regards to memory.</para>
+                </listitem>
+            </varlistentry>
+        </para>
+        <section>
+            <title>Forked java processes</title>
+            <para>Many settings (like the java version and maximum heap size) can only be specified when launching a new JVM for the build process. This means that Gradle
+                must launch a separate JVM process to execute the build after parsing the various <filename>gradle.properties</filename> files.
+                When running with the daemon, a JVM with the correct parameters is started once and reused for each daemon build execution.
+                When Gradle is executed without the daemon, then a new JVM must be launched for every build execution,
+                unless the JVM launched by the Gradle start script happens to have the same parameters.
+            </para>
+            <para>
+            This launching of an extra JVM on every build execution is quite expensive, which is why we highly recommend that you use the Gradle Daemon if you are
+            specifying <literal>org.gradle.java.home</literal> or <literal>org.gradle.jvmargs</literal>. See <xref linkend="gradle_daemon"/> for more details.</para>
+        </section>
+    </section>
+
+    <section id='sec:accessing_the_web_via_a_proxy'>
+        <title>Accessing the web via a proxy</title>
+        <para>Configuring an HTTP proxy (for example for downloading dependencies) is done via standard JVM system properties. These properties can be set directly in the build script; for example <literal>
+                System.setProperty('http.proxyHost', 'www.somehost.org')</literal> for the proxy host. Alternatively, the properties can be specified in a gradle.properties file,
+            either in the build's root directory or in the Gradle home directory.
+        </para>
+        <example>
+            <title>Configuring an HTTP proxy</title>
+            <para><filename>gradle.properties</filename></para>
+            <programlisting><![CDATA[
+systemProp.http.proxyHost=www.somehost.org
+systemProp.http.proxyPort=8080
+systemProp.http.proxyUser=userid
+systemProp.http.proxyPassword=password
+systemProp.http.nonProxyHosts=*.nonproxyrepos.com|localhost	
+]]></programlisting>
+        </example>
+        <para>There are separate settings for HTTPS.</para>
+        <example>
+            <title>Configuring an HTTPS proxy</title>
+            <para><filename>gradle.properties</filename></para>
+            <programlisting><![CDATA[
+systemProp.https.proxyHost=www.somehost.org
+systemProp.https.proxyPort=8080
+systemProp.https.proxyUser=userid
+systemProp.https.proxyPassword=password
+systemProp.https.nonProxyHosts=*.nonproxyrepos.com|localhost
+]]></programlisting>
+        </example>
+        <para>We could not find a good overview for all possible proxy settings. One place to look are the constants
+            in a file from the Ant project. Here a
+            <ulink url='http://svn.apache.org/viewvc/ant/core/trunk/src/main/org/apache/tools/ant/util/ProxySetup.java?view=markup&amp;pathrev=556977'>
+                link
+            </ulink> to the Subversion view. The other is a
+            <ulink url='http://download.oracle.com/javase/6/docs/technotes/guides/net/properties.html'>
+                Networking Properties page
+            </ulink> from the JDK docs. If anyone knows a better overview, please let us know via the mailing list.
+        </para>
+        <section id='sub:ntlm_authentication'>
+            <title>NTLM Authentication</title>
+            <para>If your proxy requires NTLM authentication, you may need to provide the authentication domain as well as the username and password.
+                There are 2 ways that you can provide the domain for authenticating to a NTLM proxy:
+                <itemizedlist>
+                    <listitem>Set the <literal>http.proxyUser</literal> system property to a value like <literal><replaceable>domain</replaceable>/<replaceable>username</replaceable></literal>.
+                    </listitem>
+                    <listitem>Provide the authentication domain via the <literal>http.auth.ntlm.domain</literal> system property.
+                    </listitem>
+                </itemizedlist>
+            </para>
+        </section>
+    </section>
+</chapter>

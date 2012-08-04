@@ -16,28 +16,23 @@
 package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.internal.TaskOutputsInternal;
-import org.gradle.api.tasks.compile.GroovyCompileOptions;
 
-import java.io.File;
-
-public class IncrementalGroovyCompiler extends IncrementalJavaSourceCompiler<GroovyJavaJointCompiler> implements GroovyJavaJointCompiler {
+public class IncrementalGroovyCompiler extends IncrementalJavaCompilerSupport<GroovyJavaJointCompileSpec> {
+    private final Compiler<GroovyJavaJointCompileSpec> compiler;
     private final TaskOutputsInternal taskOutputs;
 
-    public IncrementalGroovyCompiler(GroovyJavaJointCompiler compiler, TaskOutputsInternal taskOutputs) {
-        super(compiler);
+    public IncrementalGroovyCompiler(Compiler<GroovyJavaJointCompileSpec> compiler, TaskOutputsInternal taskOutputs) {
+        this.compiler = compiler;
         this.taskOutputs = taskOutputs;
     }
 
-    public GroovyCompileOptions getGroovyCompileOptions() {
-        return getCompiler().getGroovyCompileOptions();
-    }
-
-    public void setGroovyClasspath(Iterable<File> classpath) {
-        getCompiler().setGroovyClasspath(classpath);
+    @Override
+    protected Compiler<GroovyJavaJointCompileSpec> getCompiler() {
+        return compiler;
     }
 
     @Override
-    protected StaleClassCleaner createCleaner() {
+    protected StaleClassCleaner createCleaner(GroovyJavaJointCompileSpec spec) {
         return new SimpleStaleClassCleaner(taskOutputs);
     }
 }

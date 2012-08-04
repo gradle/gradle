@@ -21,5 +21,10 @@ import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
  * Resolves a dependency to the meta-data for a module.
  */
 public interface DependencyToModuleResolver {
-    ModuleVersionResolver create(DependencyDescriptor dependencyDescriptor);
+    /**
+     * Resolves the given dependency to a module version id. Failures are packaged up in the returned result.
+     *
+     * @return null if not found.
+     */
+    ModuleVersionResolveResult resolve(DependencyDescriptor dependencyDescriptor);
 }

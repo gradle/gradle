@@ -17,7 +17,7 @@
 package org.gradle.configuration;
 
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.util.UncheckedException;
+import org.gradle.internal.UncheckedException;
 
 import java.net.URL;
 import java.io.InputStreamReader;
@@ -48,7 +48,7 @@ public class ImportsReader {
 
                 importsText = imports.toString();
             } catch (IOException e) {
-                throw UncheckedException.asUncheckedException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         }
 

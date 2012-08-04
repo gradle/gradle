@@ -17,6 +17,7 @@
 package org.gradle.api.internal.file;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.util.GUtil;
 
 import java.io.File;
@@ -30,7 +31,8 @@ import java.util.List;
 public class BaseDirFileResolver extends AbstractFileResolver {
     private final File baseDir;
 
-    public BaseDirFileResolver(File baseDir) {
+    public BaseDirFileResolver(FileSystem fileSystem, File baseDir) {
+        super(fileSystem);
         assert baseDir.isAbsolute() : String.format("base dir '%s' is not an absolute file.", baseDir);
         this.baseDir = baseDir;
     }

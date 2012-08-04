@@ -36,7 +36,7 @@ class DefaultMavenPublication implements MavenPublication {
     List<MavenArtifact> subArtifacts = []
     List<MavenDependency> dependencies = []
     MavenPomCustomizer pom
-    MavenArtifactRepository repository = new DefaultMavenArtifactRepository(new IdentityFileResolver(), new DefaultPasswordCredentials(), null)
+    MavenArtifactRepository repository = new DefaultMavenArtifactRepository(new IdentityFileResolver(), new DefaultPasswordCredentials(), null, null, null)
 
     void repository(Closure c) {
         ConfigureUtil.configure(c, getRepository())

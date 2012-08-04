@@ -85,4 +85,19 @@ class EclipseWtp {
     void facet(Closure action) {
         ConfigureUtil.configure(action, facet)
     }
+
+    /**
+     * Deprecated. EclipseWtp needs access to EclipseClasspath. Please use the other constructor.
+     */
+    @Deprecated
+    public EclipseWtp() {}
+
+    /**
+     * @param eclipseClasspath - wtp needs access to classpath
+     */
+    public EclipseWtp(EclipseClasspath eclipseClasspath) {
+        this.eclipseClasspath = eclipseClasspath
+    }
+
+    private EclipseClasspath eclipseClasspath
 }

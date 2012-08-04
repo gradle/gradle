@@ -15,44 +15,23 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.apache.ivy.Ivy;
 import org.apache.ivy.core.resolve.ResolveData;
-import org.apache.ivy.core.resolve.ResolveOptions;
-import org.apache.ivy.plugins.version.VersionMatcher;
-import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactToFileResolver;
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver;
-import org.gradle.api.internal.artifacts.ivyservice.SettingsConverter;
-import org.gradle.api.internal.artifacts.ivyservice.artifactcache.ArtifactResolutionCache;
-import org.gradle.util.WrapUtil;
 
 class DefaultIvyAdapter implements IvyAdapter {
-    private final Ivy ivy;
-    private final VersionMatcher versionMatcher;
+    private final ResolveData resolveData;
     private final UserResolverChain userResolver;
-    private final ArtifactResolutionCache artifactResolutionCache;
-    private final ResolutionStrategyInternal resolutionStrategy;
 
-    public DefaultIvyAdapter(Ivy ivy, ArtifactResolutionCache artifactResolutionCache, ResolutionStrategyInternal resolutionStrategy) {
-        this.ivy = ivy;
-        this.artifactResolutionCache = artifactResolutionCache;
-        this.resolutionStrategy = resolutionStrategy;
-        userResolver = (UserResolverChain) ivy.getSettings().getResolver(SettingsConverter.USER_RESOLVER_CHAIN_NAME);
-        versionMatcher = ivy.getSettings().getVersionMatcher();
+    public DefaultIvyAdapter(ResolveData resolveData, UserResolverChain userResolverChain) {
+        this.resolveData = resolveData;
+        userResolver = userResolverChain;
     }
 
-    public ResolveData getResolveData(String configurationName) {
-        ResolveOptions options = new ResolveOptions();
-        options.setDownload(false);
-        options.setConfs(WrapUtil.toArray(configurationName));
-        return new ResolveData(ivy.getResolveEngine(), options);
+    public ResolveData getResolveData() {
+        return resolveData;
     }
 
-    public DependencyToModuleResolver getDependencyToModuleResolver(ResolveData resolveData) {
-        return new IvyResolverBackedDependencyToModuleResolver(ivy, resolveData, userResolver, versionMatcher);
-    }
-
-    public ArtifactToFileResolver getArtifactToFileResolver() {
-        return new IvyResolverBackedArtifactToFileResolver(userResolver, artifactResolutionCache, resolutionStrategy.getCachePolicy());
+    public DependencyToModuleResolver getDependencyToModuleResolver() {
+        return userResolver;
     }
 }

@@ -27,25 +27,23 @@ import org.gradle.api.internal.project.AbstractProject;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.AnnotationProcessingTaskFactory;
-import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.project.taskfactory.TaskFactory;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskStateInternal;
-import org.gradle.api.logging.LogLevel;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.util.*;
 import org.jmock.Expectations;
 import org.jmock.lib.legacy.ClassImposteriser;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import spock.lang.Issue;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static org.gradle.util.Matchers.*;
-import static org.hamcrest.Matchers.*;
+import static org.gradle.util.Matchers.dependsOn;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.*;
 
 /**
@@ -56,17 +54,12 @@ public abstract class AbstractTaskTest {
     @Rule
     public TemporaryFolder tmpDir = new TemporaryFolder();
 
-    private AbstractProject project;
+    private AbstractProject project = HelperUtil.createRootProject();
 
     protected JUnit4GroovyMockery context = new JUnit4GroovyMockery() {{
         setImposteriser(ClassImposteriser.INSTANCE);
     }};
-    private static final ITaskFactory TASK_FACTORY = new AnnotationProcessingTaskFactory(new TaskFactory(new AsmBackedClassGenerator()));
-
-    @Before
-    public void setUp() {
-        project = HelperUtil.createRootProject();
-    }
+    private final AnnotationProcessingTaskFactory rootFactory = new AnnotationProcessingTaskFactory(new TaskFactory(new AsmBackedClassGenerator()));
 
     public abstract AbstractTask getTask();
 
@@ -74,14 +67,12 @@ public abstract class AbstractTaskTest {
         return createTask(type, project, TEST_TASK_NAME);
     }
 
-    public Task createTask(Project project, String name) {
+    public Task createTask(ProjectInternal project, String name) {
         return createTask(getTask().getClass(), project, name);
     }
 
-    public <T extends AbstractTask> T createTask(Class<T> type, Project project, String name) {
-        Task task = TASK_FACTORY.createTask((ProjectInternal) project,
-                GUtil.map(Task.TASK_TYPE, type,
-                        Task.TASK_NAME, name));
+    public <T extends AbstractTask> T createTask(Class<T> type, ProjectInternal project, String name) {
+        Task task = rootFactory.createChild(project, new DirectInstantiator()).createTask(GUtil.map(Task.TASK_TYPE, type, Task.TASK_NAME, name));
         assertTrue(type.isAssignableFrom(task.getClass()));
         return type.cast(task);
     }
@@ -93,7 +84,6 @@ public abstract class AbstractTaskTest {
         assertNull(getTask().getDescription());
         assertSame(project, getTask().getProject());
         assertNotNull(getTask().getStandardOutputCapture());
-        assertEquals(new HashMap(), getTask().getAdditionalProperties());
         assertNotNull(getTask().getInputs());
         assertNotNull(getTask().getOutputs());
         assertNotNull(getTask().getOnlyIf());
@@ -135,47 +125,18 @@ public abstract class AbstractTaskTest {
     }
 
     @Test
-    public void testDoFirst() {
-        Action<Task> action1 = createTaskAction();
-        Action<Task> action2 = createTaskAction();
-        int actionSizeBefore = getTask().getActions().size();
-        assertSame(getTask(), getTask().doFirst(action2));
-        assertEquals(actionSizeBefore + 1, getTask().getActions().size());
-        assertEquals(action2, getTask().getActions().get(0));
-        assertSame(getTask(), getTask().doFirst(action1));
-        assertEquals(action1, getTask().getActions().get(0));
-    }
-
-    @Test
-    public void testDoLast() {
-        Action<Task> action1 = createTaskAction();
-        Action<Task> action2 = createTaskAction();
-        int actionSizeBefore = getTask().getActions().size();
-        assertSame(getTask(), getTask().doLast(action1));
-        assertEquals(actionSizeBefore + 1, getTask().getActions().size());
-        assertEquals(action1, getTask().getActions().get(getTask().getActions().size() - 1));
-        assertSame(getTask(), getTask().doLast(action2));
-        assertEquals(action2, getTask().getActions().get(getTask().getActions().size() - 1));
-    }
-
-    @Test
     public void testDeleteAllActions() {
         Action<Task> action1 = createTaskAction();
         Action<Task> action2 = createTaskAction();
         getTask().doLast(action1);
         getTask().doLast(action2);
         assertSame(getTask(), getTask().deleteAllActions());
-        assertEquals(new ArrayList(), getTask().getActions());
+        assertTrue(getTask().getActions().isEmpty());
     }
 
     @Test(expected = InvalidUserDataException.class)
     public void testAddActionWithNull() {
         getTask().doLast((Closure) null);
-    }
-
-    @Test
-    public void testAddActionsWithClosures() {
-        GroovyTaskTestHelper.checkAddActionsWithClosures(getTask());
     }
 
     @Test
@@ -192,31 +153,12 @@ public abstract class AbstractTaskTest {
         task.execute();
     }
 
-    @Test
-    public void testConfigure() {
-        getTask().setActions(new ArrayList());
-        GroovyTaskTestHelper.checkConfigure(getTask());
-    }
-
     public AbstractProject getProject() {
         return project;
     }
 
     public void setProject(AbstractProject project) {
         this.project = project;
-    }
-
-    @Test
-    public void disableStandardOutCapture() {
-        getTask().disableStandardOutputCapture();
-        assertFalse(getTask().getLogging().isStandardOutputCaptureEnabled());
-    }
-
-    @Test
-    public void captureStandardOut() {
-        getTask().captureStandardOutput(LogLevel.DEBUG);
-        assertTrue(getTask().getLogging().isStandardOutputCaptureEnabled());
-        assertEquals(LogLevel.DEBUG, getTask().getLogging().getStandardOutputCaptureLevel());
     }
 
     @Test
@@ -333,9 +275,20 @@ public abstract class AbstractTaskTest {
     public static Action<Task> createTaskAction() {
         return new Action<Task>() {
             public void execute(Task task) {
-
             }
         };
     }
-
+    
+    @Test
+    @Issue("http://issues.gradle.org/browse/GRADLE-2022")
+    public void testGoodErrorMessageWhenTaskInstantiatedDirectly() {
+        try {
+            Class<? extends AbstractTask> clazz = getTask().getClass();
+            clazz.newInstance();
+            throw new RuntimeException("Direct instantiation of " + clazz + " should have produced an exception");
+        } catch (Exception e) {
+            assertEquals(TaskInstantiationException.class, e.getClass());
+            assert e.getMessage().contains("has been instantiated directly which is not supported");
+        }
+    }
 }

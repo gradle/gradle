@@ -17,9 +17,9 @@
 package org.gradle.cache.internal;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.internal.Factory;
+import org.gradle.internal.Factory;
 import org.gradle.cache.PersistentStateCache;
-import org.gradle.cache.Serializer;
+import org.gradle.messaging.serialize.Serializer;
 
 import java.io.*;
 
@@ -35,7 +35,7 @@ public class SimpleStateCache<T> implements PersistentStateCache<T> {
     }
 
     public T get() {
-        return fileAccess.readFromFile(new Factory<T>() {
+        return fileAccess.readFile(new Factory<T>() {
             public T create() {
                 return deserialize();
             }
@@ -43,7 +43,7 @@ public class SimpleStateCache<T> implements PersistentStateCache<T> {
     }
 
     public void set(final T newValue) {
-        fileAccess.writeToFile(new Runnable() {
+        fileAccess.writeFile(new Runnable() {
             public void run() {
                 serialize(newValue);
             }
@@ -51,7 +51,7 @@ public class SimpleStateCache<T> implements PersistentStateCache<T> {
     }
 
     public void update(final UpdateAction<T> updateAction) {
-        fileAccess.writeToFile(new Runnable() {
+        fileAccess.updateFile(new Runnable() {
             public void run() {
                 T oldValue = deserialize();
                 T newValue = updateAction.update(oldValue);

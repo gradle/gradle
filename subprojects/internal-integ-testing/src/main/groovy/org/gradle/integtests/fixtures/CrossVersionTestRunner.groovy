@@ -15,12 +15,14 @@
  */
 package org.gradle.integtests.fixtures
 
-import org.gradle.integtests.fixtures.internal.CrossVersionIntegrationSpec
+import org.gradle.util.GradleVersion
 
 /**
  * <p>Executes instances of {@link CrossVersionIntegrationSpec} against each previous Gradle version.
  *
  * <p>Sets the {@link CrossVersionIntegrationSpec#previous} property of the test instance before executing it.
+ *
+ * <p>A test class can be annotated with {@link TargetVersions} to specify the set of versions the test is compatible with.
  */
 class CrossVersionTestRunner extends AbstractCompatibilityTestRunner {
     CrossVersionTestRunner(Class<? extends CrossVersionIntegrationSpec> target) {
@@ -28,11 +30,11 @@ class CrossVersionTestRunner extends AbstractCompatibilityTestRunner {
     }
 
     @Override
-    protected List<PreviousVersionExecution> createExecutions() {
-        return previous.collect { new PreviousVersionExecution(it) }
+    protected void createExecutions() {
+        previous.each { add(new PreviousVersionExecution(it)) }
     }
 
-    private static class PreviousVersionExecution extends AbstractCompatibilityTestRunner.Execution {
+    private static class PreviousVersionExecution extends AbstractMultiTestRunner.Execution {
         final BasicGradleDistribution previousVersion
 
         PreviousVersionExecution(BasicGradleDistribution previousVersion) {
@@ -51,16 +53,24 @@ class CrossVersionTestRunner extends AbstractCompatibilityTestRunner {
 
         @Override
         protected boolean isEnabled() {
-            TargetGradleVersions targetGradleVersions = target.getAnnotation(TargetGradleVersions)
+            TargetVersions targetGradleVersions = target.getAnnotation(TargetVersions)
             if (!targetGradleVersions) {
                 return true
             }
             for (String targetGradleVersion: targetGradleVersions.value()) {
-                if (previousVersion.version == targetGradleVersion) {
+                if (isMatching(targetGradleVersion, previousVersion.version)) {
                     return true
                 }
             }
             return false
+        }
+        
+        private boolean isMatching(String targetGradleVersion, String candidate) {
+            if (targetGradleVersion.endsWith('+')) {
+                def minVersion = targetGradleVersion.substring(0, targetGradleVersion.length() - 1)
+                return GradleVersion.version(minVersion) <= GradleVersion.version(candidate)
+            }
+            return targetGradleVersion == candidate
         }
     }
 }

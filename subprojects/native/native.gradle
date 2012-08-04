@@ -1,16 +1,28 @@
 /*
     This project contains various native operating system integration utilities.
 */
+apply from: "$rootDir/gradle/classycle.gradle"
+
 dependencies {
     groovy libraries.groovy
+
+    compile project(':baseServices')
     compile libraries.commons_io
     compile libraries.slf4j_api
     compile libraries.jna
     compile module('org.jruby.ext.posix:jna-posix:1.0.3') {
         dependency libraries.jna
     }
+    compile module('org.fusesource.jansi:jansi:1.2.1') {
+        dependency libraries.jna
+    }
     compile libraries.guava
     compile libraries.jcip
+}
+
+if (!javaVersion.java7) {
+    sourceSets.main.java.exclude '**/jdk7/**'
+    sourceSets.test.groovy.exclude '**/jdk7/**'
 }
 
 useTestFixtures()

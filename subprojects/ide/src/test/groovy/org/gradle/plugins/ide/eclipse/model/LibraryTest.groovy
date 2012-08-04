@@ -15,20 +15,20 @@
  */
 package org.gradle.plugins.ide.eclipse.model
 
-import spock.lang.Specification
 import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory
 import org.gradle.util.Matchers
+import spock.lang.Specification
 
 /**
  * @author Hans Dockter
  */
 
 class LibraryTest extends Specification {
-    final static String XML_TEXT = '''
+    final static String XML_TEXT_TEMPLATE = '''
                     <classpathentry exported="true" kind="lib" path="/ant.jar" sourcepath="/ant-src.jar">
                         <attributes>
                             <attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="mynative"/>
-                            <attribute name="javadoc_location" value="jar:file:/ant-javadoc.jar!/path"/>
+                            <attribute name="javadoc_location" value="jar:%FILE_URI%!/"/>
                         </attributes>
                         <accessrules>
                             <accessrule kind="nonaccessible" pattern="secret**"/>
@@ -36,9 +36,16 @@ class LibraryTest extends Specification {
                     </classpathentry>'''
     final fileReferenceFactory = new FileReferenceFactory()
 
+    String platformXml;
+
+    def setup(){
+        //xml differs on windows and mac due to required absolute paths for javadoc uri
+        platformXml = XML_TEXT_TEMPLATE.replace("%FILE_URI%", new File("ant-javadoc.jar").toURI().toString());
+    }
+
     def canReadFromXml() {
         when:
-        Library library = new Library(new XmlParser().parseText(XML_TEXT), fileReferenceFactory)
+        Library library = new Library(new XmlParser().parseText(platformXml), fileReferenceFactory)
 
         then:
         library == createLibrary()
@@ -71,7 +78,7 @@ class LibraryTest extends Specification {
         library.nativeLibraryLocation = 'mynative'
         library.accessRules += [new AccessRule('nonaccessible', 'secret**')]
         library.sourcePath = fileReferenceFactory.fromPath("/ant-src.jar")
-        library.javadocPath = fileReferenceFactory.fromPath("jar:file:/ant-javadoc.jar!/path")
+        library.javadocPath = fileReferenceFactory.fromJarURI("jar:${new File("ant-javadoc.jar").toURI()}!/");
         return library
     }
 }

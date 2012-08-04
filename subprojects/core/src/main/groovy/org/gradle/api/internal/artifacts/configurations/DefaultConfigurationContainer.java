@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.UnknownConfigurationException;
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
 import org.gradle.api.internal.DomainObjectContext;
-import org.gradle.api.internal.Instantiator;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.listener.ListenerManager;
 
@@ -63,7 +63,6 @@ public class DefaultConfigurationContainer extends AbstractNamedDomainObjectCont
                 dependencyMetaDataProvider, new DefaultResolutionStrategy());
     }
 
-    // Override deprecated version from DomainObjectCollection (through AbstractNamedDomainObjectContainer)
     public Set<Configuration> getAll() {
         return this;
     }

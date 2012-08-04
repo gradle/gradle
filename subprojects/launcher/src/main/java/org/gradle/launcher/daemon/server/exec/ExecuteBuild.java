@@ -15,13 +15,13 @@
  */
 package org.gradle.launcher.daemon.server.exec;
 
-import org.gradle.api.GradleException;
-import org.gradle.launcher.daemon.protocol.Build;
-import org.gradle.initialization.GradleLauncherFactory;
-import org.gradle.launcher.exec.ReportedException;
-
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.initialization.GradleLauncherFactory;
+import org.gradle.launcher.daemon.logging.DaemonMessages;
+import org.gradle.launcher.daemon.protocol.Build;
+import org.gradle.launcher.exec.InProcessGradleLauncherActionExecuter;
+import org.gradle.launcher.exec.ReportedException;
 
 /**
  * Actually executes the build.
@@ -39,19 +39,21 @@ public class ExecuteBuild extends BuildCommandOnly {
     }
 
     protected void doBuild(DaemonCommandExecution execution, Build build) {
-        LOGGER.info("executing build with daemon context: {}", execution.getDaemonContext());
-        
+        LOGGER.info("Executing build with daemon context: {}", execution.getDaemonContext());
+        InProcessGradleLauncherActionExecuter executer = new InProcessGradleLauncherActionExecuter(launcherFactory);
         try {
-            execution.setResult(build.run(launcherFactory));
-        } catch (GradleException e) {
+            execution.setResult(executer.execute(build.getAction(), build.getParameters()));
+        } catch (ReportedException e) {
             /*
-                We have have to wrap in a ReportedException so the other side doesn't re log this exception, because it's already
+                We have to wrap in a ReportedException so the other side doesn't re-log this exception, because it's already
                 been logged by the GradleLauncher infrastructure, and that logging has been shipped over to the other side.
                 
                 This doesn't seem right. Perhaps we should assume on the client side that all “build failures” (opposed to daemon infrastructure failures)
                 have already been logged and do away with this wrapper.
             */
-            execution.setException(new ReportedException(e));
+            execution.setException(e);
+        } finally {
+            LOGGER.debug(DaemonMessages.FINISHED_BUILD);
         }
 
         execution.proceed(); // ExecuteBuild should be the last action, but in case we want to decorate the result in the future

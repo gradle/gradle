@@ -15,39 +15,51 @@
  */
 package org.gradle.launcher.daemon.server.exec;
 
+import org.gradle.api.logging.LogLevel;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
+import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
+import org.gradle.launcher.daemon.logging.DaemonMessages;
+import org.gradle.launcher.daemon.protocol.Build;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.internal.OutputEvent;
 import org.gradle.logging.internal.OutputEventListener;
-import org.gradle.launcher.daemon.protocol.Build;
 
 class LogToClient extends BuildCommandOnly {
-    
+
+    private static final Logger LOGGER = Logging.getLogger(LogToClient.class);
+
     private final LoggingManagerInternal loggingManager;
-    
-    public LogToClient(LoggingManagerInternal loggingManager) {
+    private final DaemonDiagnostics diagnostics;
+
+    public LogToClient(LoggingManagerInternal loggingManager, DaemonDiagnostics diagnostics) {
         this.loggingManager = loggingManager;
+        this.diagnostics = diagnostics;
     }
-        
+
     protected void doBuild(final DaemonCommandExecution execution, Build build) {
+        final LogLevel buildLogLevel = build.getParameters().getLogLevel();
         OutputEventListener listener = new OutputEventListener() {
             public void onOutput(OutputEvent event) {
                 try {
-                    execution.getConnection().dispatch(event);
+                    if (event.getLogLevel().compareTo(buildLogLevel) >= 0) {
+                        execution.getConnection().dispatch(event);
+                    }
                 } catch (Exception e) {
                     //Ignore. It means the client has disconnected so no point sending him any log output.
                     //we should be checking if client still listens elsewhere anyway.
                 }
             }
         };
-        
-        loggingManager.setLevel(build.getStartParameter().getLogLevel());
-        loggingManager.start();
+
+        LOGGER.info(DaemonMessages.ABOUT_TO_START_RELAYING_LOGS);
         loggingManager.addOutputEventListener(listener);
+        LOGGER.info(DaemonMessages.STARTED_RELAYING_LOGS + diagnostics.getPid() + "). The daemon log file: " + diagnostics.getDaemonLog());
+
         try {
             execution.proceed();
         } finally {
             loggingManager.removeOutputEventListener(listener);
-            loggingManager.stop();
         }
     } 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,141 +16,82 @@
 
 package org.gradle.util;
 
-import org.apache.tools.ant.util.JavaEnvUtils;
-import org.gradle.os.OperatingSystem;
+import org.gradle.internal.jvm.JavaHomeException;
+import org.gradle.internal.jvm.JavaInfo;
 
 import java.io.File;
-import java.util.HashMap;
 import java.util.Map;
 
-public class Jvm {
-    private final OperatingSystem os;
+@Deprecated
+public class Jvm implements JavaInfo {
+    private final org.gradle.internal.jvm.Jvm jvm;
+
+    public Jvm(org.gradle.internal.jvm.Jvm current) {
+        this.jvm = current;
+    }
 
     public static Jvm current() {
-        String vendor = System.getProperty("java.vm.vendor");
-        if (vendor.toLowerCase().startsWith("apple inc.")) {
-            return new AppleJvm(OperatingSystem.current());
-        }
-        return new Jvm(OperatingSystem.current());
+        DeprecationLogger.nagUserWith("The class org.gradle.util.Jvm has been deprecated and will be removed in the next version of Gradle.");
+        return new Jvm(org.gradle.internal.jvm.Jvm.current());
     }
 
-    public Jvm(OperatingSystem os) {
-        this.os = os;
+    public File getJavaExecutable() throws JavaHomeException {
+        return jvm.getJavaExecutable();
     }
 
-    @Override
-    public String toString() {
-        return String.format("%s (%s %s)", System.getProperty("java.version"), System.getProperty("java.vm.vendor"), System.getProperty("java.vm.version"));
+    public File getJavadocExecutable() throws JavaHomeException {
+        return jvm.getJavadocExecutable();
     }
 
-    public File getJavaExecutable() {
-        return new File(JavaEnvUtils.getJdkExecutable("java"));
+    public File getExecutable(String name) throws JavaHomeException {
+        return jvm.getExecutable(name);
     }
 
-    public File getJavadocExecutable() {
-        return new File(JavaEnvUtils.getJdkExecutable("javadoc"));
+    public boolean isJava5() {
+        return jvm.getJavaVersion().isJava5();
     }
 
-    public File getExecutable(String name) {
-        return new File(JavaEnvUtils.getJdkExecutable(name));
+    public boolean isJava6() {
+        return jvm.getJavaVersion().isJava6();
+    }
+
+    public boolean isJava7() {
+        return jvm.getJavaVersion().isJava7();
     }
 
     public boolean isJava5Compatible() {
-        return System.getProperty("java.version").startsWith("1.5") || isJava6Compatible();
+        return jvm.getJavaVersion().isJava5Compatible();
     }
 
     public boolean isJava6Compatible() {
-        return System.getProperty("java.version").startsWith("1.6");
+        return jvm.getJavaVersion().isJava6Compatible();
     }
 
     public File getJavaHome() {
-        File toolsJar = getToolsJar();
-        return toolsJar == null ? getDefaultJavaHome() : toolsJar.getParentFile().getParentFile();
-    }
-
-    private File getDefaultJavaHome() {
-        return GFileUtils.canonicalise(new File(System.getProperty("java.home")));
+        return jvm.getJavaHome();
     }
 
     public File getRuntimeJar() {
-        File javaHome = getDefaultJavaHome();
-        File runtimeJar = new File(javaHome, "lib/rt.jar");
-        return runtimeJar.exists() ? runtimeJar : null;
+        return jvm.getRuntimeJar();
     }
 
     public File getToolsJar() {
-        File javaHome = getDefaultJavaHome();
-        File toolsJar = new File(javaHome, "lib/tools.jar");
-        if (toolsJar.exists()) {
-            return toolsJar;
-        }
-        if (javaHome.getName().equalsIgnoreCase("jre")) {
-            javaHome = javaHome.getParentFile();
-            toolsJar = new File(javaHome, "lib/tools.jar");
-            if (toolsJar.exists()) {
-                return toolsJar;
-            }
-        }
-        if (javaHome.getName().matches("jre\\d+") && os.isWindows()) {
-            javaHome = new File(javaHome.getParentFile(), String.format("jdk%s", System.getProperty("java.version")));
-            toolsJar = new File(javaHome, "lib/tools.jar");
-            if (toolsJar.exists()) {
-                return toolsJar;
-            }
-        }
-
-        return null;
+        return jvm.getToolsJar();
     }
 
     public Map<String, ?> getInheritableEnvironmentVariables(Map<String, ?> envVars) {
-        return envVars;
+        return jvm.getInheritableEnvironmentVariables(envVars);
     }
 
     public boolean getSupportsAppleScript() {
-        return false;
+        return jvm.getSupportsAppleScript();
     }
 
-    /**
-     * Note: Implementation assumes that an Apple JVM always comes with a JDK rather than a JRE,
-     * but this is likely an over-simplification.
-     */
-    public static class AppleJvm extends Jvm {
-        public AppleJvm(OperatingSystem os) {
-            super(os);
-        }
-
-        @Override
-        public File getJavaHome() {
-            return super.getDefaultJavaHome();
-        }
-
-        @Override
-        public File getRuntimeJar() {
-            File javaHome = super.getDefaultJavaHome();
-            File runtimeJar = new File(javaHome.getParentFile(), "Classes/classes.jar");
-            return runtimeJar.exists() ? runtimeJar : null;
-        }
-
-        @Override
-        public File getToolsJar() {
-            return getRuntimeJar();
-        }
-
-        @Override
-        public Map<String, ?> getInheritableEnvironmentVariables(Map<String, ?> envVars) {
-            Map<String, Object> vars = new HashMap<String, Object>();
-            for (Map.Entry<String, ?> entry : envVars.entrySet()) {
-                if (entry.getKey().matches("APP_NAME_\\d+") || entry.getKey().matches("JAVA_MAIN_CLASS_\\d+")) {
-                    continue;
-                }
-                vars.put(entry.getKey(), entry.getValue());
-            }
-            return vars;
-        }
-
-        @Override
-        public boolean getSupportsAppleScript() {
-            return true;
-        }
+    public boolean isIbmJvm() {
+        return jvm.isIbmJvm();
+    }
+    
+    public String toString(){
+        return jvm.toString();
     }
 }

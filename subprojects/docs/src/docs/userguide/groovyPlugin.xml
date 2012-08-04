@@ -162,7 +162,7 @@
         <para>Gradle is written in Groovy and allows you to write your build scripts in Groovy. But this is an internal
             aspect of Gradle which is strictly separated from building Groovy projects. You are free to choose the Groovy
             version your project should be build with. This Groovy version is not just used for compiling your code and
-            running your tests. The <literal>groovyc</literal> compiler and the the <literal>groovydoc</literal>
+            running your tests. The <literal>groovyc</literal> compiler and the <literal>groovydoc</literal>
             tool are also taken from the Groovy version you provide. As usual, with freedom comes responsibility ;). You are
             not just free to choose a Groovy version, you have to provide one. Gradle expects that the groovy libraries are
             assigned to the <literal>groovy</literal> dependency configuration. Here is an example using the public Maven
@@ -306,7 +306,7 @@
                     <literal>destinationDir</literal>
                 </td>
                 <td><classname>File</classname>.</td>
-                <td><literal><replaceable>sourceSet</replaceable>.classesDir</literal></td>
+                <td><literal><replaceable>sourceSet</replaceable>.output.classesDir</literal></td>
             </tr>
             <tr>
                 <td>

@@ -23,6 +23,8 @@ import org.gradle.api.internal.file.copy.CopyActionImpl;
 import org.gradle.api.internal.file.copy.CopySpecSource;
 import org.gradle.api.internal.file.copy.ReadableCopySpec;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.Factory;
+import org.gradle.util.DeprecationLogger;
 
 import java.io.FilterReader;
 import java.util.Map;
@@ -49,8 +51,14 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
             }
         }
     }
-    
+
+    /**
+     * Returns the default source for this task.
+     * @deprecated Use getSource() instead.
+     */
+    @Deprecated
     public FileCollection getDefaultSource() {
+        DeprecationLogger.nagUserOfReplacedMethod("AbstractCopyTask.getDefaultSource()", "getSource()");
         return null;
     }
 
@@ -60,7 +68,15 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      */
     @InputFiles @SkipWhenEmpty @Optional
     public FileCollection getSource() {
-        return getCopyAction().hasSource() ? getCopyAction().getAllSource() : getDefaultSource();
+        if(getCopyAction().hasSource()){
+            return getCopyAction().getAllSource();
+        }else{
+            return DeprecationLogger.whileDisabled(new Factory<FileCollection>() {
+                public FileCollection create() {
+                    return getDefaultSource();
+                }
+            });
+        }
     }
     
     protected abstract CopyActionImpl getCopyAction();
@@ -298,21 +314,21 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     /**
      * {@inheritDoc}
      */
-    public int getDirMode() {
+    public Integer getDirMode() {
         return getMainSpec().getDirMode();
     }
 
     /**
      * {@inheritDoc}
      */
-    public int getFileMode() {
+    public Integer getFileMode() {
         return getMainSpec().getFileMode();
     }
 
     /**
      * {@inheritDoc}
      */
-    public AbstractCopyTask setDirMode(int mode) {
+    public AbstractCopyTask setDirMode(Integer mode) {
         getMainSpec().setDirMode(mode);
         return this;
     }
@@ -320,7 +336,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     /**
      * {@inheritDoc}
      */
-    public AbstractCopyTask setFileMode(int mode) {
+    public AbstractCopyTask setFileMode(Integer mode) {
         getMainSpec().setFileMode(mode);
         return this;
     }

@@ -34,6 +34,7 @@ import org.gradle.api.internal.project.taskfactory.DependencyAutoWireTaskFactory
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.project.taskfactory.TaskFactory;
 import org.gradle.cache.CacheRepository;
+import org.gradle.cache.CacheValidator;
 import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.DefaultCacheRepository;
 import org.gradle.configuration.*;
@@ -42,16 +43,26 @@ import org.gradle.groovy.scripts.ScriptCompilerFactory;
 import org.gradle.groovy.scripts.ScriptExecutionListener;
 import org.gradle.groovy.scripts.internal.*;
 import org.gradle.initialization.*;
+import org.gradle.internal.Factory;
+import org.gradle.internal.TimeProvider;
+import org.gradle.internal.TrueTimeProvider;
+import org.gradle.internal.concurrent.DefaultExecutorFactory;
+import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.id.LongIdGenerator;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.ServiceLocator;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.listener.ListenerManager;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.messaging.actor.ActorFactory;
 import org.gradle.messaging.actor.internal.DefaultActorFactory;
-import org.gradle.messaging.concurrent.DefaultExecutorFactory;
-import org.gradle.messaging.concurrent.ExecutorFactory;
 import org.gradle.messaging.remote.MessagingServer;
 import org.gradle.process.internal.DefaultWorkerProcessFactory;
 import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.process.internal.child.WorkerProcessClassPathProvider;
+import org.gradle.profile.ProfileEventAdapter;
+import org.gradle.profile.ProfileListener;
 import org.gradle.util.*;
 
 /**
@@ -80,9 +91,7 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     }
 
     protected IProjectFactory createProjectFactory() {
-        return new ProjectFactory(
-                startParameter.getBuildScriptSource(),
-                get(Instantiator.class));
+        return new ProjectFactory(get(Instantiator.class));
     }
 
     protected ListenerManager createListenerManager(ListenerManager listenerManager) {
@@ -123,7 +132,7 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
         return new DefaultCacheRepository(startParameter.getGradleUserHomeDir(), startParameter.getProjectCacheDir(),
                 startParameter.getCacheUsage(), factory);
     }
-
+    
     protected ProjectEvaluator createProjectEvaluator() {
         return new LifecycleProjectEvaluator(
                 new BuildScriptProcessor(
@@ -140,11 +149,17 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     protected ScriptCompilerFactory createScriptCompileFactory() {
         ScriptExecutionListener scriptExecutionListener = get(ListenerManager.class).getBroadcaster(ScriptExecutionListener.class);
         EmptyScriptGenerator emptyScriptGenerator = new AsmBackedEmptyScriptGenerator();
+        CacheValidator scriptCacheInvalidator =  new CacheValidator() {
+            public boolean isValid() {
+                return !get(StartParameter.class).isRecompileScripts();
+            }
+        };
         return new DefaultScriptCompilerFactory(
                 new CachingScriptClassCompiler(
                         new ShortCircuitEmptyScriptCompiler(
                                 new FileCacheBackedScriptClassCompiler(
                                         get(CacheRepository.class),
+                                        scriptCacheInvalidator,
                                         new DefaultScriptCompilationHandler(
                                                 emptyScriptGenerator)),
                                 emptyScriptGenerator)),
@@ -212,6 +227,10 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
                 new ProjectEvaluationConfigurer(),
                 new ProjectDependencies2TaskResolver(),
                 new ImplicitTasksConfigurer());
+    }
+    
+    protected ProfileEventAdapter createProfileEventAdapter() {
+        return new ProfileEventAdapter(get(BuildRequestMetaData.class), get(TimeProvider.class), get(ListenerManager.class).getBroadcaster(ProfileListener.class));
     }
 
     protected DependencyManagementServices createDependencyManagementServices() {

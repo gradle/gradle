@@ -16,33 +16,44 @@
 
 package org.gradle.api.internal.artifacts.repositories;
 
+import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.*;
-import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.artifacts.ResolverFactory;
-import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenCacheLocator;
+import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
+import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex;
+import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
 
+import java.io.File;
 import java.util.Map;
 
 /**
  * @author Hans Dockter
  */
 public class DefaultResolverFactory implements ResolverFactory {
-    private final LocalMavenCacheLocator localMavenCacheLocator;
+    private final LocalMavenRepositoryLocator localMavenRepositoryLocator;
     private final FileResolver fileResolver;
     private final Instantiator instantiator;
     private final RepositoryTransportFactory transportFactory;
+    private final LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder;
+    private final CachedExternalResourceIndex<String> cachedExternalResourceIndex;
 
-    public DefaultResolverFactory(LocalMavenCacheLocator localMavenCacheLocator, FileResolver fileResolver, Instantiator instantiator, RepositoryTransportFactory transportFactory) {
-        this.localMavenCacheLocator = localMavenCacheLocator;
+    public DefaultResolverFactory(LocalMavenRepositoryLocator localMavenRepositoryLocator, FileResolver fileResolver, Instantiator instantiator,
+                                  RepositoryTransportFactory transportFactory,
+                                  LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder,
+                                  CachedExternalResourceIndex<String> cachedExternalResourceIndex) {
+        this.localMavenRepositoryLocator = localMavenRepositoryLocator;
         this.fileResolver = fileResolver;
         this.instantiator = instantiator;
         this.transportFactory = transportFactory;
+        this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
+        this.cachedExternalResourceIndex = cachedExternalResourceIndex;
     }
 
     public ArtifactRepository createRepository(Object userDescription) {
@@ -67,16 +78,17 @@ public class DefaultResolverFactory implements ResolverFactory {
         } else {
             throw new InvalidUserDataException(String.format("Cannot create a DependencyResolver instance from %s", userDescription));
         }
-        return new FixedResolverArtifactRepository(result);
+        return new CustomResolverArtifactRepository(result, transportFactory);
     }
 
     public FlatDirectoryArtifactRepository createFlatDirRepository() {
-        return instantiator.newInstance(DefaultFlatDirArtifactRepository.class, fileResolver);
+        return instantiator.newInstance(DefaultFlatDirArtifactRepository.class, fileResolver, transportFactory);
     }
 
     public MavenArtifactRepository createMavenLocalRepository() {
         MavenArtifactRepository mavenRepository = createMavenRepository();
-        mavenRepository.setUrl(localMavenCacheLocator.getLocalMavenCache());
+        final File localMavenRepository = localMavenRepositoryLocator.getLocalMavenRepository();
+        mavenRepository.setUrl(localMavenRepository);
         return mavenRepository;
     }
 
@@ -87,11 +99,15 @@ public class DefaultResolverFactory implements ResolverFactory {
     }
 
     public IvyArtifactRepository createIvyRepository() {
-        return instantiator.newInstance(DefaultIvyArtifactRepository.class, fileResolver, createPasswordCredentials(), transportFactory);
+        return instantiator.newInstance(DefaultIvyArtifactRepository.class, fileResolver, createPasswordCredentials(), transportFactory,
+                locallyAvailableResourceFinder, cachedExternalResourceIndex
+        );
     }
 
     public MavenArtifactRepository createMavenRepository() {
-        return instantiator.newInstance(DefaultMavenArtifactRepository.class, fileResolver, createPasswordCredentials(), transportFactory);
+        return instantiator.newInstance(DefaultMavenArtifactRepository.class, fileResolver, createPasswordCredentials(), transportFactory,
+                locallyAvailableResourceFinder, cachedExternalResourceIndex
+        );
     }
 
     private PasswordCredentials createPasswordCredentials() {

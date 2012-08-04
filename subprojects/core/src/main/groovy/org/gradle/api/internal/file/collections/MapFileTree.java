@@ -19,8 +19,8 @@ import groovy.lang.Closure;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
+import org.gradle.internal.Factory;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
-import org.gradle.api.internal.Factory;
 
 import java.io.File;
 import java.io.InputStream;

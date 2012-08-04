@@ -22,7 +22,7 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.plugins.ide.eclipse.EclipsePlugin;
 import org.gradle.plugins.ide.eclipse.model.*;
-import org.gradle.tooling.internal.*;
+import org.gradle.tooling.internal.eclipse.*;
 import org.gradle.tooling.internal.protocol.BuildableProjectVersion1;
 import org.gradle.tooling.internal.protocol.ExternalDependencyVersion1;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectDependencyVersion2;
@@ -97,12 +97,13 @@ public class EclipseModelBuilder implements BuildsModel {
         final List<EclipseSourceDirectoryVersion1> sourceDirectories = new LinkedList<EclipseSourceDirectoryVersion1>();
 
         for (ClasspathEntry entry : entries) {
+            //TODO SF find out why we leave out Variables here.
             if (entry instanceof Library) {
                 AbstractLibrary library = (AbstractLibrary) entry;
                 final File file = library.getLibrary().getFile();
                 final File source = library.getSourcePath() == null ? null : library.getSourcePath().getFile();
                 final File javadoc = library.getJavadocPath() == null ? null : library.getJavadocPath().getFile();
-                externalDependencies.add(new DefaultExternalDependency(file, javadoc, source));
+                externalDependencies.add(new DefaultEclipseExternalDependency(file, javadoc, source, library.getModuleVersion()));
             } else if (entry instanceof ProjectDependency) {
                 final ProjectDependency projectDependency = (ProjectDependency) entry;
                 final String path = StringUtils.removeStart(projectDependency.getPath(), "/");

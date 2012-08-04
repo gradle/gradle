@@ -40,6 +40,11 @@ public class TestResources implements MethodRule {
     private final Collection<String> extraResources;
     private final Resources resources = new Resources();
 
+    // allows to leave instantiation to Spock
+    public TestResources() {
+        this(new String[0]);
+    }
+
     public TestResources(String... extraResources) {
         this.extraResources = Arrays.asList(extraResources);
     }

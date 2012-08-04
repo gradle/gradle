@@ -20,8 +20,8 @@ import org.apache.ivy.plugins.resolver.DependencyResolver
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.artifacts.repositories.ArtifactRepository
-import org.gradle.api.internal.DirectInstantiator
-import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenCacheLocator
+import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.util.JUnit4GroovyMockery
@@ -30,6 +30,8 @@ import org.jmock.integration.junit4.JMock
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder
+import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex
 
 /**
  * @author Hans Dockter
@@ -43,10 +45,16 @@ class DefaultResolverFactoryTest {
     static final URI TEST_REPO2_URL = new URI('http://www.gradleware.com/')
 
     final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
-    final LocalMavenCacheLocator localMavenCacheLocator = context.mock(LocalMavenCacheLocator.class)
+    final LocalMavenRepositoryLocator localMavenRepoLocator = context.mock(LocalMavenRepositoryLocator.class)
     final FileResolver fileResolver = context.mock(FileResolver.class)
     final RepositoryTransportFactory transportFactory = context.mock(RepositoryTransportFactory.class)
-    final DefaultResolverFactory factory = new DefaultResolverFactory(localMavenCacheLocator, fileResolver, new DirectInstantiator(), transportFactory)
+    final LocallyAvailableResourceFinder locallyAvailableResourceFinder = context.mock(LocallyAvailableResourceFinder.class)
+    final CachedExternalResourceIndex cachedExternalResourceIndex = context.mock(CachedExternalResourceIndex);
+
+
+    final DefaultResolverFactory factory = new DefaultResolverFactory(
+            localMavenRepoLocator, fileResolver, new DirectInstantiator(), transportFactory, locallyAvailableResourceFinder, cachedExternalResourceIndex
+    )
 
     @Before public void setup() {
         context.checking {
@@ -108,7 +116,7 @@ class DefaultResolverFactoryTest {
         File repoDir = new File(".m2/repository")
 
         context.checking {
-            one(localMavenCacheLocator).getLocalMavenCache()
+            one(localMavenRepoLocator).getLocalMavenRepository()
             will(returnValue(repoDir))
             allowing(fileResolver).resolveUri(repoDir)
             will(returnValue(repoDir.toURI()))

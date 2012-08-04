@@ -20,20 +20,20 @@ import groovy.lang.GroovySystem;
 import org.apache.ivy.Ivy;
 import org.apache.tools.ant.Main;
 import org.gradle.api.GradleException;
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.os.OperatingSystem;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
+import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.os.OperatingSystem;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.net.URLConnection;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Properties;
 import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -44,7 +44,7 @@ import java.util.regex.Pattern;
  */
 public class GradleVersion implements Comparable<GradleVersion> {
     public final static String URL = "http://www.gradle.org";
-    private final static Pattern VERSION_PATTERN = Pattern.compile("(\\d+(\\.\\d+)+)(-(\\p{Alpha}+)-(\\d+[a-z]?))?(-(\\d{14}[-+]\\d{4}))?");
+    private final static Pattern VERSION_PATTERN = Pattern.compile("(\\d+(\\.\\d+)+)(-(\\p{Alpha}+)-(\\d+[a-z]?))?(-(\\d{14}([-+]\\d{4})?))?");
 
     private final String version;
     private final String buildTime;
@@ -53,28 +53,34 @@ public class GradleVersion implements Comparable<GradleVersion> {
     private final Stage stage;
     private static final GradleVersion CURRENT;
 
-    public static final String RESOURCE_NAME = "/org/gradle/releases.xml";
+    public static final String RESOURCE_NAME = "/org/gradle/build-receipt.properties";
 
+    // TODO - get rid of this static initialiser nonsense
     static {
         URL resource = GradleVersion.class.getResource(RESOURCE_NAME);
-        Document document;
+
+        InputStream inputStream = null;
         try {
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder builder = factory.newDocumentBuilder();
-            InputStream inputStream = resource.openStream();
-            try {
-                document = builder.parse(inputStream);
-            } finally {
-                inputStream.close();
-            }
-            NodeList currentElements = document.getDocumentElement().getElementsByTagName("current");
-            if (currentElements.getLength() != 1) {
-                throw new GradleException(String.format("Expected to find 1 <current> element, found %s.", currentElements.getLength()));
-            }
-            Element currentRelease = (Element) currentElements.item(0);
-            CURRENT = new GradleVersion(currentRelease.getAttribute("version"), new SimpleDateFormat("yyyyMMddHHmmssZ").parse(currentRelease.getAttribute("build-time")));
+            URLConnection connection = resource.openConnection();
+            inputStream = connection.getInputStream();
+            Properties properties = new Properties();
+            properties.load(inputStream);
+
+            String version = properties.get("versionNumber").toString();
+            String buildTimestamp = properties.get("buildTimestamp").toString();
+            Date buildTime = new SimpleDateFormat("yyyyMMddHHmmssZ").parse(buildTimestamp);
+
+            CURRENT = new GradleVersion(version, buildTime);
         } catch (Exception e) {
             throw new GradleException(String.format("Could not load version details from resource '%s'.", resource), e);
+        } finally {
+            if (inputStream != null) {
+                try {
+                    inputStream.close();
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+            }
         }
     }
 
@@ -91,8 +97,13 @@ public class GradleVersion implements Comparable<GradleVersion> {
         this.buildTime = buildTime == null ? null : formatBuildTime(buildTime);
         Matcher matcher = VERSION_PATTERN.matcher(version);
         if (!matcher.matches()) {
-            throw new InvalidUserDataException(String.format("Unexpected Gradle version '%s'.", version));
+            // Unrecognized version
+            versionPart = null;
+            snapshot = null;
+            stage = null;
+            return;
         }
+
         versionPart = matcher.group(1);
 
         if (matcher.group(3) != null) {
@@ -112,9 +123,15 @@ public class GradleVersion implements Comparable<GradleVersion> {
 
         if (matcher.group(7) != null) {
             try {
-                snapshot = new SimpleDateFormat("yyyyMMddHHmmssZ").parse(matcher.group(7)).getTime();
+                if (matcher.group(8) != null) {
+                    snapshot = new SimpleDateFormat("yyyyMMddHHmmssZ").parse(matcher.group(7)).getTime();
+                } else {
+                    SimpleDateFormat format = new SimpleDateFormat("yyyyMMddHHmmss");
+                    format.setTimeZone(TimeZone.getTimeZone("UTC"));
+                    snapshot = format.parse(matcher.group(7)).getTime();
+                }
             } catch (ParseException e) {
-                throw UncheckedException.asUncheckedException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         } else {
             snapshot = null;
@@ -141,15 +158,31 @@ public class GradleVersion implements Comparable<GradleVersion> {
     }
 
     public boolean isSnapshot() {
-        return snapshot != null;
+        return versionPart == null || snapshot != null;
+    }
+
+    private boolean isNonSymbolicNumber() {
+        return versionPart.equals("0.0");
     }
 
     public int compareTo(GradleVersion gradleVersion) {
+        assertCanQueryParts();
+        gradleVersion.assertCanQueryParts();
+
+        if (isNonSymbolicNumber() && !gradleVersion.isNonSymbolicNumber()) {
+            return 1;
+        } else if (!isNonSymbolicNumber() && gradleVersion.isNonSymbolicNumber()) {
+            return -1;
+        }
+
         String[] majorVersionParts = versionPart.split("\\.");
         String[] otherMajorVersionParts = gradleVersion.versionPart.split("\\.");
+
+
         for (int i = 0; i < majorVersionParts.length && i < otherMajorVersionParts.length; i++) {
             int part = Integer.parseInt(majorVersionParts[i]);
             int otherPart = Integer.parseInt(otherMajorVersionParts[i]);
+
             if (part > otherPart) {
                 return 1;
             }
@@ -188,6 +221,12 @@ public class GradleVersion implements Comparable<GradleVersion> {
         }
 
         return 0;
+    }
+
+    private void assertCanQueryParts() {
+        if (versionPart == null) {
+            throw new IllegalArgumentException(String.format("Cannot compare unrecognized Gradle version '%s'.", version));
+        }
     }
 
     @Override

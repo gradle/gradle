@@ -17,7 +17,7 @@ package org.gradle.api.internal.changedetection;
 
 import org.gradle.api.UncheckedIOException;
 import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.util.UncheckedException;
+import org.gradle.internal.UncheckedException;
 
 import java.io.*;
 import java.util.HashMap;
@@ -38,7 +38,7 @@ public class InMemoryIndexedCache<K, V> implements PersistentIndexedCache<K, V> 
             ByteArrayInputStream instr = new ByteArrayInputStream(serialised);
             return (V)new ObjectInputStream(instr).readObject();
         } catch (Exception e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

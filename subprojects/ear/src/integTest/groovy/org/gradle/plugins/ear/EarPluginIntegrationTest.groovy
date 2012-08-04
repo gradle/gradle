@@ -16,10 +16,9 @@
 
 package org.gradle.plugins.ear
 
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.junit.Before
 import org.junit.Test
-import spock.lang.Issue
 
 /**
  * @author: Szczepan Faber, created at: 6/3/11
@@ -141,13 +140,4 @@ ear {
         assert file("unzipped/META-INF/stuff/yetAnotherFile.txt").assertExists()
         assert file("unzipped/META-INF/application.xml").text == applicationXml
     }
-    
-    @Test
-    @Issue("http://issues.gradle.org/browse/GRADLE-1885")
-    void "existence of war task should not create build directory"() {
-        file("build.gradle") << "apply plugin: 'ear'"
-        executer.withTasks('tasks').run()
-        assert !file("build").exists()
-    }
-    
 }

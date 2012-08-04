@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.artifacts.UnknownConfigurationException
 import org.gradle.api.internal.DomainObjectContext
-import org.gradle.api.internal.Instantiator
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver
 import org.gradle.listener.ListenerManager
 import org.gradle.util.HelperUtil

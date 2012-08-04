@@ -22,7 +22,7 @@ import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.api.internal.tasks.testing.TestStartEvent
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo
 import org.gradle.util.JUnit4GroovyMockery
-import org.gradle.util.LongIdGenerator
+import org.gradle.internal.id.LongIdGenerator
 import org.gradle.util.TemporaryFolder
 import org.jmock.integration.junit4.JMock
 import org.junit.Before
@@ -42,13 +42,16 @@ import junit.extensions.TestSetup
 import org.junit.After
 import org.gradle.api.tasks.testing.TestResult
 import junit.framework.TestSuite
+import org.gradle.messaging.actor.ActorFactory
+import org.gradle.messaging.actor.TestActorFactory
 
 @RunWith(JMock.class)
 class JUnitTestClassProcessorTest {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     @Rule public final TemporaryFolder tmpDir = new TemporaryFolder();
     private final TestResultProcessor resultProcessor = context.mock(TestResultProcessor.class);
-    private final JUnitTestClassProcessor processor = new JUnitTestClassProcessor(tmpDir.dir, new LongIdGenerator(), {} as StandardOutputRedirector);
+    private final ActorFactory actorFactory = new TestActorFactory()
+    private final JUnitTestClassProcessor processor = new JUnitTestClassProcessor(tmpDir.dir, new LongIdGenerator(), actorFactory, {} as StandardOutputRedirector);
 
     @Test
     public void executesAJUnit4TestClass() {
@@ -571,6 +574,71 @@ class JUnitTestClassProcessorTest {
     }
 
     @Test
+    public void executesATestClassWithRunnerThatBreaksBeforeRunningAnyTests() {
+        context.checking {
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestDescriptorInternal suite ->
+                assertThat(suite.name, equalTo(ATestClassWithBrokenRunner.class.name))
+            }
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestDescriptorInternal test ->
+                assertThat(test.name, equalTo('initializationError'))
+                assertThat(test.className, equalTo(ATestClassWithBrokenRunner.class.name))
+            }
+            one(resultProcessor).failure(2L, CustomRunnerWithBrokenRunMethod.failure)
+            one(resultProcessor).completed(withParam(equalTo(2L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, nullValue())
+            }
+            one(resultProcessor).completed(withParam(equalTo(1L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, nullValue())
+            }
+        }
+
+        processor.startProcessing(resultProcessor);
+        processor.processTestClass(testClass(ATestClassWithBrokenRunner.class));
+        processor.stop();
+    }
+
+    @Test
+    public void executesATestClassWithRunnerThatBreaksAfterRunningSomeTests() {
+        context.checking {
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestDescriptorInternal suite ->
+                assertThat(suite.name, equalTo(ATestClassWithRunnerThatBreaksAfterRuningSomeTests.class.name))
+            }
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestDescriptorInternal test ->
+                assertThat(test.name, equalTo('ok1'))
+                assertThat(test.className, equalTo(ATestClassWithRunnerThatBreaksAfterRuningSomeTests.class.name))
+            }
+            one(resultProcessor).completed(withParam(equalTo(2L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, nullValue())
+            }
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestDescriptorInternal test ->
+                assertThat(test.name, equalTo('broken'))
+                assertThat(test.className, equalTo(ATestClassWithRunnerThatBreaksAfterRuningSomeTests.class.name))
+            }
+            one(resultProcessor).failure(3L, CustomRunnerWithRunMethodThatBreaksAfterRunningSomeTests.failure)
+            one(resultProcessor).completed(withParam(equalTo(3L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, nullValue())
+            }
+            one(resultProcessor).completed(withParam(equalTo(1L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, nullValue())
+            }
+        }
+
+        processor.startProcessing(resultProcessor);
+        processor.processTestClass(testClass(ATestClassWithRunnerThatBreaksAfterRuningSomeTests.class));
+        processor.stop();
+    }
+
+    @Test
     public void executesATestClassWhichCannotBeLoaded() {
         String testClassName = 'org.gradle.api.internal.tasks.testing.junit.ATestClassWhichCannotBeLoaded'
 
@@ -828,6 +896,49 @@ public class CustomRunnerWithBrokenConstructor extends Runner {
 
     void run(RunNotifier notifier) {
         throw new UnsupportedOperationException();
+    }
+}
+
+@RunWith(CustomRunnerWithBrokenRunMethod.class)
+public class ATestClassWithBrokenRunner {}
+
+public class CustomRunnerWithBrokenRunMethod extends Runner {
+    static RuntimeException failure = new RuntimeException()
+    final Class<?> type
+
+    def CustomRunnerWithBrokenRunMethod(Class<?> type) {
+        this.type = type
+    }
+
+    Description getDescription() {
+        return Description.createSuiteDescription(type)
+    }
+
+    void run(RunNotifier notifier) {
+        throw failure.fillInStackTrace();
+    }
+}
+
+@RunWith(CustomRunnerWithRunMethodThatBreaksAfterRunningSomeTests.class)
+public class ATestClassWithRunnerThatBreaksAfterRuningSomeTests {}
+
+public class CustomRunnerWithRunMethodThatBreaksAfterRunningSomeTests extends Runner {
+    static RuntimeException failure = new RuntimeException()
+    final Class<?> type
+
+    def CustomRunnerWithRunMethodThatBreaksAfterRunningSomeTests(Class<?> type) {
+        this.type = type
+    }
+
+    Description getDescription() {
+        return Description.createSuiteDescription(type)
+    }
+
+    void run(RunNotifier notifier) {
+        notifier.fireTestStarted(Description.createTestDescription(type, "ok1"))
+        notifier.fireTestFinished(Description.createTestDescription(type, "ok1"))
+        notifier.fireTestStarted(Description.createTestDescription(type, "broken"))
+        throw failure.fillInStackTrace();
     }
 }
 

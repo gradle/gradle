@@ -15,8 +15,8 @@
  */
 package org.gradle.api.specs;
 
+import com.google.common.collect.Iterables;
 import groovy.lang.Closure;
-import org.gradle.util.GUtil;
 
 import java.util.Arrays;
 
@@ -46,7 +46,7 @@ public class AndSpec<T> extends CompositeSpec<T> {
     }
 
     public AndSpec<T> and(Spec<? super T>... specs) {
-        return new AndSpec<T>(GUtil.addLists(getSpecs(), Arrays.asList(specs)));
+        return new AndSpec<T>(Iterables.concat(getSpecs(), Arrays.asList(specs)));
     }
 
     public AndSpec<T> and(Closure spec) {

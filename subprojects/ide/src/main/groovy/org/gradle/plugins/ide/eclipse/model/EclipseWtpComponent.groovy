@@ -19,9 +19,9 @@ package org.gradle.plugins.ide.eclipse.model
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.dsl.ConventionProperty
 import org.gradle.plugins.ide.api.XmlFileContentMerger
+import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory
 import org.gradle.plugins.ide.eclipse.model.internal.WtpComponentFactory
 import org.gradle.util.ConfigureUtil
-import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory
 
 /**
  * Enables fine-tuning wtp component details of the Eclipse plugin
@@ -53,6 +53,7 @@ import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory
  *       deployName = 'killerApp'
  *
  *       //you can alter the wb-resource elements. sourceDirs is a ConventionProperty.
+ *       //non-existing source dirs won't be added to the component file.
  *       sourceDirs += file('someExtraFolder')
  *
  *       //you can alter the files are to be transformed into dependent-module elements:
@@ -62,6 +63,7 @@ import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory
  *       minusConfigurations += configurations.anotherConfiguration
  *
  *       //you can add a wb-resource elements; mandatory keys: 'sourcePath', 'deployPath':
+ *       //if sourcePath points to non-existing folder it will *not* be added.
  *       resource sourcePath: 'extra/resource', deployPath: 'deployment/resource'
  *
  *       //you can add a wb-property elements; mandatory keys: 'name', 'value':
@@ -120,6 +122,9 @@ class EclipseWtpComponent {
      * {@link ConventionProperty} for the source directories to be transformed into wb-resource elements.
      * <p>
      * For examples see docs for {@link EclipseWtp}
+     * <p>
+     * Only source dirs that exist will be added to the wtp component file.
+     * Non-existing resource directory declarations lead to errors when project is imported into Eclipse.
      */
     Set<File> sourceDirs
 
@@ -165,6 +170,11 @@ class EclipseWtpComponent {
      * {@link ConventionProperty} for additional wb-resource elements.
      * <p>
      * For examples see docs for {@link EclipseWtp}
+     * <p>
+     * Only resources that link to an existing directory ({@code WbResource#sourcePath})
+     * will be added to the wtp component file.
+     * The reason is that non-existing resource directory declarations
+     * lead to errors when project is imported into Eclipse.
      */
     List<WbResource> resources = []
 

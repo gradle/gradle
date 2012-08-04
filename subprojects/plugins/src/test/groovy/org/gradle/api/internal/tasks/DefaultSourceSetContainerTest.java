@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.internal.DirectInstantiator;
+import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.api.tasks.SourceSet;
 import org.junit.Test;
 

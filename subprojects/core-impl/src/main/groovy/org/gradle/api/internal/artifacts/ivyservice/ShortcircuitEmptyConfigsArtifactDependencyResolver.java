@@ -43,6 +43,10 @@ public class ShortcircuitEmptyConfigsArtifactDependencyResolver implements Artif
                 public Set<File> getFiles(Spec<? super Dependency> dependencySpec) {
                     return Collections.emptySet();
                 }
+
+                public Set<ResolvedArtifact> getArtifacts(Spec<? super Dependency> dependencySpec) {
+                    return Collections.emptySet();
+                }
             };
         }
 

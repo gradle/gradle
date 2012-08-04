@@ -16,13 +16,9 @@
 package org.gradle.launcher.daemon.context;
 
 import com.google.common.base.Joiner;
-import com.google.common.base.Splitter;
-import com.google.common.collect.Lists;
 
 import java.io.File;
 import java.util.List;
-import java.util.regex.Pattern;
-import java.util.regex.Matcher;
 
 /**
  * Keep in mind that this is a serialized value object.
@@ -31,13 +27,15 @@ import java.util.regex.Matcher;
  */
 public class DefaultDaemonContext implements DaemonContext {
 
+    private final String uid;
     private final File javaHome;
     private final File daemonRegistryDir;
     private final Long pid;
     private final Integer idleTimeout;
     private final List<String> daemonOpts;
 
-    public DefaultDaemonContext(File javaHome, File daemonRegistryDir, Long pid, Integer idleTimeout, List<String> daemonOpts) {
+    public DefaultDaemonContext(String uid, File javaHome, File daemonRegistryDir, Long pid, Integer idleTimeout, List<String> daemonOpts) {
+        this.uid = uid;
         this.javaHome = javaHome;
         this.daemonRegistryDir = daemonRegistryDir;
         this.pid = pid;
@@ -45,26 +43,13 @@ public class DefaultDaemonContext implements DaemonContext {
         this.daemonOpts = daemonOpts;
     }
 
-    public static DaemonContext parseFrom(String source) {
-        Pattern pattern = Pattern.compile("^.*DefaultDaemonContext\\[javaHome=([^\\n]+),daemonRegistryDir=([^\\n]+),pid=([^\\n]+),idleTimeout=(.+?),daemonOpts=([^\\n]+)].*",
-                Pattern.MULTILINE + Pattern.DOTALL);
-        Matcher matcher = pattern.matcher(source);
-
-        if (matcher.matches()) {
-            String javaHome = matcher.group(1);
-            String daemonRegistryDir = matcher.group(2);
-            Long pid = Long.parseLong(matcher.group(3));
-            Integer idleTimeout = Integer.decode(matcher.group(4));
-            List<String> jvmOpts = Lists.newArrayList(Splitter.on(',').split(matcher.group(5)));
-            return new DefaultDaemonContext(new File(javaHome), new File(daemonRegistryDir), pid, idleTimeout, jvmOpts);
-        } else {
-            throw new IllegalStateException("unable to parse DefaultDaemonContext from source: " + source);
-        }
+    public String toString() {
+        return String.format("DefaultDaemonContext[uid=%s,javaHome=%s,daemonRegistryDir=%s,pid=%s,idleTimeout=%s,daemonOpts=%s]",
+                uid, javaHome, daemonRegistryDir, pid, idleTimeout, Joiner.on(',').join(daemonOpts));
     }
 
-    public String toString() {
-        return String.format("DefaultDaemonContext[javaHome=%s,daemonRegistryDir=%s,pid=%s,idleTimeout=%s,daemonOpts=%s]",
-                javaHome, daemonRegistryDir, pid, idleTimeout, Joiner.on(',').join(daemonOpts));
+    public String getUid() {
+        return uid;
     }
 
     public File getJavaHome() {

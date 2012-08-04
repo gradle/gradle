@@ -99,8 +99,9 @@
 
         <section>
             <title>Using custom Ant tasks in your build</title>
-            <para>To make custom tasks available in your build, you use the <literal>typedef</literal> Ant task, just
-                as you would in a <literal>build.xml</literal> file. You can then refer to the custom Ant task as you
+            <para>To make custom tasks available in your build,
+                you can use the <literal>taskdef</literal> (usually easier) or <literal>typedef</literal> Ant task,
+                just as you would in a <literal>build.xml</literal> file. You can then refer to the custom Ant task as you
                 would a built-in Ant task.
             </para>
             <sample id="useExternalAntTask" dir="userguide/ant/useExternalAntTask" title="Using a custom Ant task">

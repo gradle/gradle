@@ -23,7 +23,7 @@ import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.util.ConfigureUtil
 import org.gradle.util.HelperUtil
-import org.gradle.util.Jvm
+import org.gradle.internal.jvm.Jvm
 
 import spock.lang.Specification
 import spock.lang.Issue

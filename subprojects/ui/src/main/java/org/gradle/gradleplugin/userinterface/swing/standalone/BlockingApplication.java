@@ -15,7 +15,7 @@
  */
 package org.gradle.gradleplugin.userinterface.swing.standalone;
 
-import org.gradle.util.UncheckedException;
+import org.gradle.internal.UncheckedException;
 
 import javax.swing.*;
 import java.lang.reflect.InvocationTargetException;
@@ -62,9 +62,9 @@ public class BlockingApplication {
                 }
             });
         } catch (InterruptedException e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         } catch (InvocationTargetException e) {
-            throw UncheckedException.asUncheckedException(e.getCause());
+            throw UncheckedException.unwrapAndRethrow(e);
         }
 
         //the calling thread will now block until the caller is complete.

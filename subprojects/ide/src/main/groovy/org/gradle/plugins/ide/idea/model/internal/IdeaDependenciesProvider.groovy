@@ -17,37 +17,20 @@
 package org.gradle.plugins.ide.idea.model.internal
 
 import org.gradle.api.Project
-import org.gradle.api.artifacts.Configuration
-import org.gradle.plugins.ide.idea.model.FilePath
 import org.gradle.plugins.ide.idea.model.IdeaModule
-import org.gradle.plugins.ide.idea.model.PathFactory
 import org.gradle.plugins.ide.idea.model.SingleEntryModuleLibrary
 import org.gradle.plugins.ide.internal.IdeDependenciesExtractor
 
 /**
- * TODO SF - later do some clean up in this class.
- * For example remove unnecessary fields, pass configuration instead of scope name, etc.
- *
  * @author Szczepan Faber, created at: 4/1/11
  */
 class IdeaDependenciesProvider {
 
-    Project project
-    Map<String, Map<String, Collection<Configuration>>> scopes
-    boolean downloadSources
-    boolean downloadJavadoc
-    PathFactory pathFactory
-    boolean offline
-
     private final IdeDependenciesExtractor dependenciesExtractor = new IdeDependenciesExtractor()
+    Closure getPath;
 
-    Set<org.gradle.plugins.ide.idea.model.Dependency> provide(IdeaModule ideaModule, PathFactory pathFactory) {
-        this.project = ideaModule.project
-        this.scopes = ideaModule.scopes
-        this.downloadSources = ideaModule.downloadSources
-        this.downloadJavadoc = ideaModule.downloadJavadoc
-        this.pathFactory = pathFactory
-        this.offline = ideaModule.offline
+    Set<org.gradle.plugins.ide.idea.model.Dependency> provide(IdeaModule ideaModule) {
+        getPath = { File file -> file? ideaModule.pathFactory.path(file) : null }
 
         Set result = new LinkedHashSet()
         ideaModule.singleEntryLibraries.each { scope, files ->
@@ -58,46 +41,47 @@ class IdeaDependenciesProvider {
             }
         }
 
-        scopes.keySet().each { scope ->
-            result.addAll(getModuleLibraries(scope))
-            result.addAll(getModules(scope))
+        ideaModule.scopes.each { scopeName, scopeMap ->
+            result.addAll(getModuleLibraries(ideaModule, scopeName, scopeMap))
+            result.addAll(getModules(ideaModule.project, scopeName, scopeMap))
             result
         }
 
         return result
     }
 
-    protected Set getModules(String scope) {
-        def s = scopes[scope]
-        if (s) {
-            return dependenciesExtractor.extractProjectDependencies(s.plus, s.minus).collect {
-                new ModuleDependencyBuilder().create(it.project, scope)
-            }
+    protected Set getModules(Project project, String scopeName, Map scopeMap) {
+        if (!scopeMap) {
+            return []
         }
-        return []
+        return dependenciesExtractor.extractProjectDependencies(scopeMap.plus, scopeMap.minus).collect {
+                new ModuleDependencyBuilder().create(it.project, scopeName)
+        }
     }
 
-    protected Set getModuleLibraries(String scope) {
-        if (!scopes[scope]) { return [] }
+    protected Set getModuleLibraries(IdeaModule ideaModule, String scopeName, Map scopeMap) {
+        if (!scopeMap) {
+            return []
+        }
 
         LinkedHashSet moduleLibraries = []
 
-        if (!offline) {
+        if (!ideaModule.offline) {
             def repoFileDependencies = dependenciesExtractor.extractRepoFileDependencies(
-                    project.configurations, scopes[scope].plus, scopes[scope].minus, downloadSources, downloadJavadoc)
+                    ideaModule.project.configurations, scopeMap.plus, scopeMap.minus, 
+                    ideaModule.downloadSources, ideaModule.downloadJavadoc)
 
             repoFileDependencies.each {
-                moduleLibraries << new SingleEntryModuleLibrary(getPath(it.file), getPath(it.javadocFile), getPath(it.sourceFile), scope)
+                def library = new SingleEntryModuleLibrary(
+                        getPath(it.file), getPath(it.javadocFile), getPath(it.sourceFile), scopeName)
+                library.moduleVersion = it.id
+                moduleLibraries << library
             }
         }
 
-        dependenciesExtractor.extractLocalFileDependencies(scopes[scope].plus, scopes[scope].minus).each {
-            moduleLibraries << new SingleEntryModuleLibrary(getPath(it.file), scope)
+        dependenciesExtractor.extractLocalFileDependencies(scopeMap.plus, scopeMap.minus).each {
+            moduleLibraries << new SingleEntryModuleLibrary(getPath(it.file), scopeName)
         }
         moduleLibraries
-    }
-
-    protected FilePath getPath(File file) {
-        file? pathFactory.path(file) : null
     }
 }

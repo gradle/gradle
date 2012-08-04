@@ -15,12 +15,12 @@
  */
 package org.gradle.api.internal.changedetection;
 
-import org.gradle.util.HashUtil;
+import org.gradle.util.hash.HashUtil;
 
 import java.io.File;
 
 public class DefaultHasher implements Hasher {
     public byte[] hash(File file) {
-        return HashUtil.createHash(file);
+        return HashUtil.createHash(file, "MD5").asByteArray();
     }
 }

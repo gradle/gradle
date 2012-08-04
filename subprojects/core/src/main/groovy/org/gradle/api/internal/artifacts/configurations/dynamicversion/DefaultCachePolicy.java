@@ -15,48 +15,203 @@
  */
 package org.gradle.api.internal.artifacts.configurations.dynamicversion;
 
+import org.gradle.api.Action;
+import org.gradle.api.artifacts.ArtifactIdentifier;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
+import org.gradle.api.artifacts.cache.ArtifactResolutionControl;
+import org.gradle.api.artifacts.cache.DependencyResolutionControl;
+import org.gradle.api.artifacts.cache.ModuleResolutionControl;
+import org.gradle.api.artifacts.cache.ResolutionControl;
+import org.gradle.api.artifacts.cache.ResolutionRules;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class DefaultCachePolicy implements CachePolicy {
+public class DefaultCachePolicy implements CachePolicy, ResolutionRules {
     private static final int SECONDS_IN_DAY = 24 * 60 * 60;
-    private Duration dynamicVersionExpiry = new Duration(SECONDS_IN_DAY, TimeUnit.SECONDS);
-    private Duration changingModuleExpiry = new Duration(SECONDS_IN_DAY, TimeUnit.SECONDS);
 
+    private final List<Action<? super DependencyResolutionControl>> dependencyCacheRules = new ArrayList<Action<? super DependencyResolutionControl>>();
+    private final List<Action<? super ModuleResolutionControl>> moduleCacheRules = new ArrayList<Action<? super ModuleResolutionControl>>();
+    private final List<Action<? super ArtifactResolutionControl>> artifactCacheRules = new ArrayList<Action<? super ArtifactResolutionControl>>();
 
-    public void cacheDynamicVersionsFor(int value, TimeUnit unit) {
-        dynamicVersionExpiry = new Duration(value, unit);
+    public DefaultCachePolicy() {
+        cacheDynamicVersionsFor(SECONDS_IN_DAY, TimeUnit.SECONDS);
+        cacheChangingModulesFor(SECONDS_IN_DAY, TimeUnit.SECONDS);
+        cacheMissingModulesAndArtifactsFor(SECONDS_IN_DAY, TimeUnit.SECONDS);
     }
 
-    public void cacheChangingModulesFor(int value, TimeUnit units) {
-        changingModuleExpiry = new Duration(value, units);
+    public void eachDependency(Action<? super DependencyResolutionControl> rule) {
+        dependencyCacheRules.add(0, rule);
     }
 
-    public boolean mustRefreshDynamicVersion(final ResolvedModuleVersion version, final long ageMillis) {
-        return ageMillis >= dynamicVersionExpiry.getMillis();
+    public void eachModule(Action<? super ModuleResolutionControl> rule) {
+        moduleCacheRules.add(0, rule);
     }
 
-    public boolean mustRefreshChangingModule(final ResolvedModuleVersion version, final long ageMillis) {
-        return ageMillis >= changingModuleExpiry.getMillis();
+    public void eachArtifact(Action<? super ArtifactResolutionControl> rule) {
+        artifactCacheRules.add(0, rule);
     }
 
-    public boolean mustRefreshMissingArtifact(long ageMillis) {
-        return ageMillis >= changingModuleExpiry.getMillis();
+    public void cacheDynamicVersionsFor(final int value, final TimeUnit unit) {
+        eachDependency(new Action<DependencyResolutionControl>() {
+            public void execute(DependencyResolutionControl dependencyResolutionControl) {
+                dependencyResolutionControl.cacheFor(value, unit);
+            }
+        });
     }
 
-    private static class Duration {
-        private final int value;
-        private final TimeUnit units;
+    public void cacheChangingModulesFor(final int value, final TimeUnit units) {
+        eachModule(new Action<ModuleResolutionControl>() {
+            public void execute(ModuleResolutionControl moduleResolutionControl) {
+                if (moduleResolutionControl.isChanging()) {
+                    moduleResolutionControl.cacheFor(value, units);
+                }
+            }
+        });
+    }
+    
+    private void cacheMissingModulesAndArtifactsFor(final int value, final TimeUnit units) {
+        eachModule(new Action<ModuleResolutionControl>() {
+            public void execute(ModuleResolutionControl moduleResolutionControl) {
+                if (moduleResolutionControl.getCachedResult() == null) {
+                    moduleResolutionControl.cacheFor(value, units);
+                }
+            }
+        });
+        eachArtifact(new Action<ArtifactResolutionControl>() {
+            public void execute(ArtifactResolutionControl artifactResolutionControl) {
+                if (artifactResolutionControl.getCachedResult() == null) {
+                    artifactResolutionControl.cacheFor(value, units);
+                }
+            }
+        });
+    }
 
-        private Duration(int value, TimeUnit units) {
-            this.value = value;
-            this.units = units;
+    public boolean mustRefreshDynamicVersion(ModuleVersionSelector selector, ModuleVersionIdentifier moduleId, long ageMillis) {
+        CachedDependencyResolutionControl dependencyResolutionControl = new CachedDependencyResolutionControl(selector, moduleId, ageMillis);
+
+        for (Action<? super DependencyResolutionControl> rule : dependencyCacheRules) {
+            rule.execute(dependencyResolutionControl);
+            if (dependencyResolutionControl.ruleMatch()) {
+                return dependencyResolutionControl.mustCheck();
+            }
         }
         
-        public long getMillis() {
-            return TimeUnit.MILLISECONDS.convert(value, units);
+        return false;
+    }
+
+    public boolean mustRefreshModule(ModuleVersionIdentifier moduleVersionId, ResolvedModuleVersion resolvedModuleVersion, final long ageMillis) {
+        return mustRefreshModule(moduleVersionId, resolvedModuleVersion, ageMillis, false);
+    }
+
+    public boolean mustRefreshChangingModule(ModuleVersionIdentifier moduleVersionId, ResolvedModuleVersion resolvedModuleVersion, long ageMillis) {
+        return mustRefreshModule(moduleVersionId, resolvedModuleVersion, ageMillis, true);
+    }
+
+    private boolean mustRefreshModule(ModuleVersionIdentifier moduleVersionId, ResolvedModuleVersion version, long ageMillis, boolean changingModule) {
+        CachedModuleResolutionControl moduleResolutionControl = new CachedModuleResolutionControl(moduleVersionId, version, changingModule, ageMillis);
+
+        for (Action<? super ModuleResolutionControl> rule : moduleCacheRules) {
+            rule.execute(moduleResolutionControl);
+            if (moduleResolutionControl.ruleMatch()) {
+                return moduleResolutionControl.mustCheck();
+            }
+        }
+
+        return false;
+    }
+
+    public boolean mustRefreshArtifact(ArtifactIdentifier artifactIdentifier, File cachedArtifactFile, long ageMillis) {
+        CachedArtifactResolutionControl artifactResolutionControl = new CachedArtifactResolutionControl(artifactIdentifier, cachedArtifactFile, ageMillis);
+
+        for (Action<? super ArtifactResolutionControl> rule : artifactCacheRules) {
+            rule.execute(artifactResolutionControl);
+            if (artifactResolutionControl.ruleMatch()) {
+                return artifactResolutionControl.mustCheck();
+            }
+        }
+
+        return false;
+    }
+
+    private abstract static class AbstractResolutionControl<A, B> implements ResolutionControl<A, B> {
+        private final A request;
+        private final B cachedResult;
+        private final long ageMillis;
+        private boolean ruleMatch;
+        private boolean mustCheck;
+
+        private AbstractResolutionControl(A request, B cachedResult, long ageMillis) {
+            this.request = request;
+            this.cachedResult = cachedResult;
+            this.ageMillis = ageMillis;
+        }
+
+        public A getRequest() {
+            return request;
+        }
+
+        public B getCachedResult() {
+            return cachedResult;
+        }
+
+        public void cacheFor(int value, TimeUnit units) {
+            long timeoutMillis = TimeUnit.MILLISECONDS.convert(value, units);
+            if (ageMillis <= timeoutMillis) {
+                setMustCheck(false);
+            } else {
+                setMustCheck(true);
+            }
+        }
+
+        public void useCachedResult() {
+            setMustCheck(false);
+        }
+
+        public void refresh() {
+            setMustCheck(true);
+        }
+        
+        private void setMustCheck(boolean val) {
+            ruleMatch = true;
+            mustCheck = val;
+        }
+        
+        public boolean ruleMatch() {
+            return ruleMatch;
+        }
+        
+        public boolean mustCheck() {
+            return mustCheck;
+        }
+    }
+    
+    private class CachedDependencyResolutionControl extends AbstractResolutionControl<ModuleVersionSelector, ModuleVersionIdentifier> implements DependencyResolutionControl {
+        private CachedDependencyResolutionControl(ModuleVersionSelector request, ModuleVersionIdentifier cachedVersion, long ageMillis) {
+            super(request, cachedVersion, ageMillis);
+        }
+    }
+    
+    private class CachedModuleResolutionControl extends AbstractResolutionControl<ModuleVersionIdentifier, ResolvedModuleVersion> implements ModuleResolutionControl {
+        private final boolean changing;
+
+        private CachedModuleResolutionControl(ModuleVersionIdentifier moduleVersionId, ResolvedModuleVersion cachedVersion, boolean changing, long ageMillis) {
+            super(moduleVersionId, cachedVersion, ageMillis);
+            this.changing = changing;
+        }
+
+        public boolean isChanging() {
+            return changing;
         }
     }
 
+    private class CachedArtifactResolutionControl extends AbstractResolutionControl<ArtifactIdentifier, File> implements ArtifactResolutionControl {
+        private CachedArtifactResolutionControl(ArtifactIdentifier artifactIdentifier, File cachedResult, long ageMillis) {
+            super(artifactIdentifier, cachedResult, ageMillis);
+        }
+    }
 }

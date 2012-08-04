@@ -15,8 +15,8 @@
  */
 package org.gradle.integtests.fixtures;
 
-import org.gradle.os.OperatingSystem;
-import org.gradle.util.Jvm;
+import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.util.TestFile;
 
 public interface BasicGradleDistribution {
@@ -53,7 +53,12 @@ public interface BasicGradleDistribution {
     /**
      * Returns true if the daemon is supported by this distribution.
      */
-    boolean daemonSupported();
+    boolean isDaemonSupported();
+
+    /**
+     * Returns true if the configuring daemon idle timeout feature is supported by this distribution.
+     */
+    boolean isDaemonIdleTimeoutConfigurable();
 
     /**
      *
@@ -67,7 +72,7 @@ public interface BasicGradleDistribution {
     boolean isOpenApiSupported();
 
     /**
-     * Returns true if the wrapper can execute a build using the given version.
+     * Returns true if the wrapper from this distribution can execute a build using the specified version.
      */
     boolean wrapperCanExecute(String version);
 }

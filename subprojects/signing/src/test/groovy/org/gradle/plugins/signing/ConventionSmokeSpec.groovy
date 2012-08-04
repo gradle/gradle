@@ -17,6 +17,7 @@ package org.gradle.plugins.signing
 
 
 import org.gradle.plugins.signing.signatory.SignatoryProvider
+import spock.lang.Unroll
 
 class ConventionSmokeSpec extends SigningProjectSpec {
     
@@ -45,7 +46,7 @@ class ConventionSmokeSpec extends SigningProjectSpec {
     def "signing configuration"() {
         expect:
         signing != null
-        signing instanceof SigningSettings
+        signing instanceof SigningExtension
         signing.project == project
     }
     
@@ -57,6 +58,37 @@ class ConventionSmokeSpec extends SigningProjectSpec {
     def "default type"() {
         expect:
         signing.signatureType.extension == "asc"
+    }
+    
+    @Unroll
+    def "required has flexible input"() {
+        when:
+        signing.required = value
+        
+        then:
+        signing.required == required
+
+        where:
+        value | required
+        true  | true
+        false | false
+        []    | false
+        ""    | false
+    }
+    
+    def "can supply a callable as the required value"() {
+        given:
+        def flag = false
+        signing.required { flag }
+        
+        expect:
+        !signing.required
+        
+        when:
+        flag = true
+        
+        then:
+        signing.required
     }
     
 

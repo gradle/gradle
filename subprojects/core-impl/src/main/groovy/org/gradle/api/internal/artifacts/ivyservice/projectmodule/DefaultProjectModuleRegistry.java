@@ -46,9 +46,9 @@ public class DefaultProjectModuleRegistry implements ProjectModuleRegistry {
             for (Artifact artifact : projectDescriptor.getAllArtifacts()) {
                 if (artifact.getName().equals(artifactDescriptor.getName()) && artifact.getExt().equals(
                         artifactDescriptor.getExt())) {
-                    String path = artifact.getExtraAttribute(DefaultIvyDependencyPublisher.FILE_PATH_EXTRA_ATTRIBUTE);
+                    String path = artifact.getExtraAttribute(DefaultIvyDependencyPublisher.FILE_ABSOLUTE_PATH_EXTRA_ATTRIBUTE);
                     ReflectionUtil.invoke(artifactDescriptor, "setExtraAttribute",
-                            new Object[]{DefaultIvyDependencyPublisher.FILE_PATH_EXTRA_ATTRIBUTE, path});
+                            new Object[]{DefaultIvyDependencyPublisher.FILE_ABSOLUTE_PATH_EXTRA_ATTRIBUTE, path});
                 }
             }
         }

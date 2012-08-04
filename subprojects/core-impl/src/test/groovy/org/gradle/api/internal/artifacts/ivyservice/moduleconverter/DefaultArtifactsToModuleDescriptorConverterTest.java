@@ -86,7 +86,7 @@ public class DefaultArtifactsToModuleDescriptorConverterTest {
     @Test
     public void testResolveStrategy() {
         PublishArtifact publishArtifact = createNamedPublishArtifact("someName");
-        Map<String, String> expectedExtraAttributes = WrapUtil.toMap(DefaultIvyDependencyPublisher.FILE_PATH_EXTRA_ATTRIBUTE, publishArtifact.getFile().getAbsolutePath());
+        Map<String, String> expectedExtraAttributes = WrapUtil.toMap(DefaultIvyDependencyPublisher.FILE_ABSOLUTE_PATH_EXTRA_ATTRIBUTE, publishArtifact.getFile().getAbsolutePath());
         assertThat(
                 DefaultArtifactsToModuleDescriptorConverter.RESOLVE_STRATEGY.createExtraAttributes(publishArtifact),
                 equalTo(expectedExtraAttributes));

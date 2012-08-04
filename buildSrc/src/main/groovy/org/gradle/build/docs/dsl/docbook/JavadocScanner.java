@@ -15,7 +15,7 @@
  */
 package org.gradle.build.docs.dsl.docbook;
 
-import org.gradle.util.UncheckedException;
+import org.gradle.internal.UncheckedException;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -148,7 +148,7 @@ class JavadocScanner {
                 builder.append("\n");
             }
         } catch (IOException e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
         input.insert(pos, builder.toString().trim());
     }

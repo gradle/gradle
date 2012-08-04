@@ -15,7 +15,7 @@
  */
 package org.gradle.cache.internal;
 
-import org.gradle.api.internal.Factory;
+import org.gradle.internal.Factory;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache;
 
@@ -33,16 +33,22 @@ public class MultiProcessSafePersistentIndexedCache<K, V> implements PersistentI
 
     public V get(final K key) {
         final PersistentIndexedCache<K, V> cache = getCache();
-        return fileAccess.readFromFile(new Factory<V>() {
-            public V create() {
-                return cache.get(key);
-            }
-        });
+        try {
+            return fileAccess.readFile(new Factory<V>() {
+                public V create() {
+                    return cache.get(key);
+                }
+            });
+        } catch (FileIntegrityViolationException e) {
+            return null;
+        }
     }
 
     public void put(final K key, final V value) {
         final PersistentIndexedCache<K, V> cache = getCache();
-        fileAccess.writeToFile(new Runnable() {
+        // Use writeFile because the cache can internally recover from datafile
+        // corruption, so we don't care at this level if it's corrupt
+        fileAccess.writeFile(new Runnable() {
             public void run() {
                 cache.put(key, value);
             }
@@ -51,7 +57,9 @@ public class MultiProcessSafePersistentIndexedCache<K, V> implements PersistentI
 
     public void remove(final K key) {
         final PersistentIndexedCache<K, V> cache = getCache();
-        fileAccess.writeToFile(new Runnable() {
+        // Use writeFile because the cache can internally recover from datafile
+        // corruption, so we don't care at this level if it's corrupt
+        fileAccess.writeFile(new Runnable() {
             public void run() {
                 cache.remove(key);
             }
@@ -68,7 +76,7 @@ public class MultiProcessSafePersistentIndexedCache<K, V> implements PersistentI
     public void close() {
         if (cache != null) {
             try {
-                fileAccess.writeToFile(new Runnable() {
+                fileAccess.writeFile(new Runnable() {
                     public void run() {
                         cache.close();
                     }
@@ -81,7 +89,9 @@ public class MultiProcessSafePersistentIndexedCache<K, V> implements PersistentI
 
     private PersistentIndexedCache<K, V> getCache() {
         if (cache == null) {
-            fileAccess.writeToFile(new Runnable() {
+            // Use writeFile because the cache can internally recover from datafile
+            // corruption, so we don't care at this level if it's corrupt
+            fileAccess.writeFile(new Runnable() {
                 public void run() {
                     cache = factory.create();
                 }

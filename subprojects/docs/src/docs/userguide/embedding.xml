@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright 2009 the original author or authors.
+  ~ Copyright 2011 the original author or authors.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -13,10 +13,97 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<chapter id="embedding" xmlns:xi="http://www.w3.org/2001/XInclude">
+<chapter id="embedding">
     <title>Embedding Gradle</title>
 
-    <para>t.b.d.
-    </para>
+    <section id='sec:Introduction'>
+        <title>Introduction to the Tooling API</title>
+        <para>The 1.0 milestone 3 release brought a new API called the tooling API,
+            which you can use for embedding Gradle. This API allows you to execute and monitor builds,
+            and to query Gradle about the details of a build.
+            The main audience for this API is IDE, CI server, other UI authors, or integration testing of your Gradle plugins.
+            However, it is open for anyone who needs to embed Gradle in their application.
+        </para>
+
+        <para>A fundamental characteristic of the tooling API is that it operates in a version independent way.
+            This means that you can use the same API to work with different target versions of Gradle.
+            The tooling API is Gradle wrapper aware and, by default,
+            uses the same target Gradle version as that used by the wrapper-powered project.
+        </para>
+
+        <para>Some features that the tooling API provides today:
+            <itemizedlist>
+                <listitem>You can query Gradle for the details of a build,
+                    including the project hierarchy and the project dependencies,
+                    external dependencies (including source and javadoc jars),
+                    source directories and tasks of each project.
+                </listitem>
+                <listitem>You can execute a build, and listen to stdout and stderr logging and progress
+                    (e.g. the stuff shown in the 'status bar' when you run on the command line).
+                </listitem>
+                <listitem>Tooling API can download and install the appropriate Gradle version, similar to the wrapper.
+                    Bear in mind that the tooling API is wrapper aware so you should not need to configure a Gradle distribution directly.
+                </listitem>
+                <listitem>The implementation is lightweight, with only a small number of dependencies.
+                    It is also a well-behaved library, and makes no assumptions about your class loader structure or logging configuration.
+                    This makes the API easy to bundle in your application.
+                </listitem>
+            </itemizedlist>
+        </para>
+
+        <para>In future we may support other interesting features:
+            <itemizedlist>
+                <listitem>Performance. The API gives us the opportunity to do lots of caching,
+                    static analysis and preemptive work, to make things faster for the user.
+                </listitem>
+                <listitem>Better progress monitoring and build cancellation.
+                    For example, allowing test execution to be monitored.
+                </listitem>
+                <listitem>Notifications when things in the build change, so that UIs and models can be updated.
+                    For example, your Eclipse or IDEA project will update immediately, in the background.
+                </listitem>
+                <listitem>Validating and prompting for user supplied configuration.
+                </listitem>
+                <listitem>Prompting for and managing user credentials.
+                </listitem>
+            </itemizedlist>
+        </para>
+
+        <para>The Tooling API is the official and recommended way to embed Gradle.
+            This means that the existing APIs, namely <apilink class="org.gradle.GradleLauncher"/>
+            and the open API (the UIFactory and friends),
+            are deprecated and will be removed in some future version of Gradle.
+            If you happen to use one of the above APIs, please consider changing your application to use the tooling API instead.
+        </para>
+    </section>
+
+    <section id='sec:Daemon'>
+        <title>Tooling API and the Gradle Build Daemon</title>
+        <para>Please take a look at <xref linkend="gradle_daemon"/>.
+            The Tooling API uses the daemon all the time, e.g. you cannot officially use the Tooling API without the daemon.
+            This means that subsequent calls to the Tooling API, be it model building requests or task executing requests
+            can be executed in the same long-living process. <xref linkend="gradle_daemon"/> contains more details about the daemon,
+            specifically information on situations when new daemons are forked.
+        </para>
+    </section>
+
+    <section id='sec:Quickstart'>
+        <title>Quickstart</title>
+        <para>Since the tooling API is an interface for a programmer most of the documentation lives in the Javadoc.
+            This is exactly our intention - we don't expect this chapter to grow very much.
+            Instead we will add more code samples and improve the Javadoc documentation.
+            The main entry point to the tooling API is the
+            <apilink class="org.gradle.tooling.GradleConnector"/>.
+            You can navigate from there and find code samples and other instructions.
+            Pretty effective way of learning how to use the tooling API is checking out and running
+            the <emphasis>samples</emphasis> that live in <filename>$gradleHome/samples/toolingApi</filename>.
+        </para>
+        <para>
+            If you're embedding Gradle and you're looking for exact set of dependencies the tooling API Jar requires
+            please look at one of the samples in <filename>$gradleHome/samples/toolingApi</filename>.
+            The dependencies are declared in the Gradle build scripts.
+            You can also find the repository declarations where the Jars are obtained from.
+        </para>
+    </section>
 
 </chapter>

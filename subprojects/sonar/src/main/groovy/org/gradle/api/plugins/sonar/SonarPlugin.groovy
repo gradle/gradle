@@ -17,13 +17,15 @@ package org.gradle.api.plugins.sonar
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.internal.Instantiator
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.util.GradleVersion
-import org.gradle.util.Jvm
+import org.gradle.internal.jvm.Jvm
 import org.gradle.api.plugins.sonar.model.*
+
+import javax.inject.Inject
 
 /**
  * A plugin for integrating with <a href="http://www.sonarsource.org">Sonar</a>,
@@ -42,10 +44,14 @@ import org.gradle.api.plugins.sonar.model.*
 class SonarPlugin implements Plugin<ProjectInternal> {
     static final String SONAR_ANALYZE_TASK_NAME = "sonarAnalyze"
 
-    private Instantiator instantiator
+    private final Instantiator instantiator
+
+    @Inject
+    SonarPlugin(Instantiator instantiator) {
+        this.instantiator = instantiator
+    }
 
     void apply(ProjectInternal project) {
-        instantiator = project.services.get(Instantiator)
         def task = configureSonarTask(project)
         def model = configureSonarRootModel(project)
         task.rootModel = model
@@ -58,8 +64,7 @@ class SonarPlugin implements Plugin<ProjectInternal> {
     }
 
     private SonarRootModel configureSonarRootModel(Project project) {
-        def model = instantiator.newInstance(SonarRootModel)
-        project.extensions.sonar = model
+        def model = project.extensions.create("sonar", SonarRootModel)
         model.conventionMapping.with {
             bootstrapDir = { new File(project.buildDir, "sonar") }
             gradleVersion = { GradleVersion.current().version }
@@ -89,10 +94,9 @@ class SonarPlugin implements Plugin<ProjectInternal> {
 
     private void configureSubprojects(Project parentProject, SonarModel parentModel) {
         for (childProject in parentProject.childProjects.values()) {
-            def childModel = instantiator.newInstance(SonarProjectModel)
+            def childModel = childProject.extensions.create("sonar", SonarProjectModel)
             parentModel.childModels << childModel
 
-            childProject.extensions.sonar = childModel
             childModel.project = configureSonarProject(childProject)
 
             configureSubprojects(childProject, childModel)

@@ -69,7 +69,7 @@ class BuildAggregationIntegrationTest {
     @Test
     public void reportsNestedBuildFailure() {
         TestFile other = dist.testFile('other.gradle') << '''
-            1/0
+            throw new ArithmeticException('broken')
 '''
 
         dist.testFile('build.gradle') << '''
@@ -83,7 +83,7 @@ class BuildAggregationIntegrationTest {
         failure.assertHasFileName("Build file '${other}'")
         failure.assertHasLineNumber(2)
         failure.assertHasDescription('A problem occurred evaluating root project')
-        failure.assertThatCause(containsString('Division by zero'))
+        failure.assertHasCause('broken')
     }
 
     @Test

@@ -15,8 +15,7 @@
  */
 package org.gradle.util
 
-import org.gradle.os.OperatingSystem
-import org.gradle.os.FileSystems
+import org.gradle.internal.os.OperatingSystem
 
 enum TestPrecondition {
     SWING({
@@ -25,14 +24,23 @@ enum TestPrecondition {
     JNA({
         !UNKNOWN_OS.fulfilled
     }),
+    NO_JNA({
+        UNKNOWN_OS.fulfilled
+    }),
     SYMLINKS({
-        FileSystems.default.canCreateSymbolicLink()
+        MAC_OS_X.fulfilled || LINUX.fulfilled
+    }),
+    NO_SYMLINKS({
+        !SYMLINKS.fulfilled
     }),
     CASE_INSENSITIVE_FS({
-        !FileSystems.default.caseSensitive
+        MAC_OS_X.fulfilled || WINDOWS.fulfilled
     }),
     FILE_PERMISSIONS({
         MAC_OS_X.fulfilled || LINUX.fulfilled
+    }),
+    NO_FILE_PERMISSIONS({
+        !FILE_PERMISSIONS.fulfilled
     }),
     SET_ENV_VARIABLE({
         !UNKNOWN_OS.fulfilled
@@ -46,6 +54,9 @@ enum TestPrecondition {
     NO_FILE_LOCK_ON_OPEN({
         MAC_OS_X.fulfilled || LINUX.fulfilled
     }),
+    MANDATORY_FILE_LOCKING({
+        OperatingSystem.current().windows
+    }),
     WINDOWS({
         OperatingSystem.current().windows
     }),
@@ -58,8 +69,29 @@ enum TestPrecondition {
     LINUX({
         OperatingSystem.current().linux
     }),
+    UNIX({
+        OperatingSystem.current().unix
+    }),
     UNKNOWN_OS({
         OperatingSystem.current().name == "unknown operating system"
+    }),
+    NOT_UNKNOWN_OS({
+        !UNKNOWN_OS.fulfilled
+    }),
+    JDK5({
+        System.getProperty("java.version").startsWith("1.5")
+    }),
+    JDK6({
+        System.getProperty("java.version").startsWith("1.6")
+    }),
+    JDK7({
+        System.getProperty("java.version").startsWith("1.7")
+    }),
+    NOT_JDK7({
+        !JDK7.fulfilled
+    }),
+    JDK7_POSIX({
+        JDK7.fulfilled && NOT_WINDOWS.fulfilled
     });
 
     /**

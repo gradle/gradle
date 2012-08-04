@@ -22,38 +22,38 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import spock.lang.Specification
 
 class VersionForcingDependencyToModuleResolverTest extends Specification {
-    final DependencyToModuleResolver target = Mock()
+    final DependencyToModuleVersionIdResolver target = Mock()
     final ModuleRevisionId forced = new ModuleRevisionId(new ModuleId('group', 'module'), 'forced')
     final VersionForcingDependencyToModuleResolver resolver = new VersionForcingDependencyToModuleResolver(target, [new DefaultModuleVersionSelector('group', 'module', 'forced')])
 
     def "passes through dependency when it does not match any forced group and module"() {
-        ModuleVersionResolver version = Mock()
+        ModuleVersionIdResolveResult resolvedVersion = Mock()
         def differentGroup = dependency('other', 'module')
 
         when:
-        def result = resolver.create(differentGroup)
+        def result = resolver.resolve(differentGroup)
 
         then:
-        result == version
+        result == resolvedVersion
 
         and:
-        1 * target.create(differentGroup) >> version
+        1 * target.resolve(differentGroup) >> resolvedVersion
     }
 
     def "replaces dependency when it matches a forced group and module"() {
-        ModuleVersionResolver version = Mock()
+        ModuleVersionIdResolveResult resolvedVersion = Mock()
         DependencyDescriptor modified = Mock()
         def dep = dependency('group', 'module')
 
         when:
-        def result = resolver.create(dep)
+        def result = resolver.resolve(dep)
 
         then:
-        result == version
+        result == resolvedVersion
 
         and:
         1 * dep.clone(forced) >> modified
-        1 * target.create(modified) >> version
+        1 * target.resolve(modified) >> resolvedVersion
     }
 
     def dependency(String group, String module) {

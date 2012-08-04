@@ -21,12 +21,13 @@ import groovy.io.PlatformLineWriter
 import junit.framework.AssertionFailedError
 import org.apache.tools.ant.taskdefs.Delete
 import org.gradle.util.AntUtil
-import org.gradle.util.SystemProperties
+import org.gradle.internal.SystemProperties
 import org.junit.Assert
 import org.junit.runner.Description
 import org.junit.runner.Runner
 import org.junit.runner.notification.Failure
 import org.junit.runner.notification.RunNotifier
+import java.util.regex.Pattern
 
 class UserGuideSamplesRunner extends Runner {
     private static final String NL = SystemProperties.lineSeparator
@@ -36,23 +37,36 @@ class UserGuideSamplesRunner extends Runner {
     Map<Description, SampleRun> samples;
     GradleDistribution dist = new GradleDistribution()
     GradleDistributionExecuter executer = new GradleDistributionExecuter(dist)
+    Pattern dirFilter = null 
 
     def UserGuideSamplesRunner(Class<?> testClass) {
         this.testClass = testClass
         this.description = Description.createSuiteDescription(testClass)
+        this.dirFilter = getDirFilterPattern()
         samples = new LinkedHashMap()
         for (sample in getScriptsForSamples(dist.userGuideInfoDir)) {
-            Description childDescription = Description.createTestDescription(testClass, sample.id)
-            description.addChild(childDescription)
-            samples.put(childDescription, sample)
+            if (shouldInclude(sample)) {
+                Description childDescription = Description.createTestDescription(testClass, sample.id)
+                description.addChild(childDescription)
+                samples.put(childDescription, sample)
 
-            println "Sample $sample.id dir: $sample.subDir"
-            sample.runs.each { println "    args: $it.args expect: $it.outputFile" }
+                println "Sample $sample.id dir: $sample.subDir"
+                sample.runs.each { println "    args: $it.args expect: $it.outputFile" }
+            }
         }
+    }
+
+    private static Pattern getDirFilterPattern() {
+        String filter = System.properties["org.gradle.userguide.samples.filter"]
+        filter ? Pattern.compile(filter) : null
     }
 
     Description getDescription() {
         return description
+    }
+
+    private boolean shouldInclude(SampleRun run) {
+        dirFilter ? run.subDir ==~ dirFilter : true
     }
 
     void run(RunNotifier notifier) {
@@ -87,7 +101,7 @@ class UserGuideSamplesRunner extends Runner {
             println("Test Id: $run.id, dir: $run.subDir, args: $run.args")
             File rootProjectDir = dist.samplesDir.file(run.subDir)
 
-            executer.inDirectory(rootProjectDir).withArguments(run.args as String[]).withEnvironmentVars(run.envs)
+            executer.setAllowExtraLogging(false).inDirectory(rootProjectDir).withArguments(run.args as String[]).withEnvironmentVars(run.envs)
 
             ExecutionResult result = run.expectFailure ? executer.runWithFailure() : executer.run()
             if (run.outputFile) {
@@ -158,12 +172,7 @@ class UserGuideSamplesRunner extends Runner {
             return lines;
         }
         List<String> result = new ArrayList<String>()
-        int pos = 0
-        if (lines[0] == 'Note: the Gradle build daemon is an experimental feature.' && lines[1] == 'As such, you may experience unexpected build failures. You may need to occasionally stop the daemon.') {
-            pos = 2
-        }
-        for (int i = pos; i < lines.size(); i++) {
-            String line =  lines.get(i);
+        for (String line : lines) {
             if (line.matches('Download .+')) {
                 // ignore
             } else {

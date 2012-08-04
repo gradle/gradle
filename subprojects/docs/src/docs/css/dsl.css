@@ -1,12 +1,16 @@
 
+.caution {
+    font-weight: bold;
+}
+
 .sidebar {
     margin-top: 2em;
     margin-left: 1.8em;
-    margin-right: 1.4em;
+    margin-right: 0em;
     position: absolute;
     top: 0;
     left: 0;
-    width: 13em;
+    width: 15em;
 }
 
 .content {
@@ -33,6 +37,7 @@
     margin-bottom: 0.4em;
     font-weight: bold;
     color: #505050;
+    font-size: 15px
 }
 
 .sidebar li.selected {
@@ -53,10 +58,6 @@
 
 .sidebar ul.sections {
     padding-left: 1em;
-}
-
-.book .titlepage .releaseinfo {
-    color: #666666;
 }
 
 .segmentedlist {
@@ -105,12 +106,16 @@
     -webkit-border-radius: 4px;
     -moz-border-radius: 4px;
     border-radius: 4px;
+    font-family: "courier", monospace;
 }
 
 .signature .literal {
-    font-size: 120%;
     font-weight: bold;
     color: #5283a1;
     padding-left: 0.4em;
     padding-right: 0.2em;
+}
+
+.content tbody p {
+    margin: 0;
 }

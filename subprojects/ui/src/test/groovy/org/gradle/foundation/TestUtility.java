@@ -16,7 +16,6 @@
 package org.gradle.foundation;
 
 import junit.framework.Assert;
-import junit.framework.AssertionFailedError;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskContainer;
@@ -26,7 +25,7 @@ import org.gradle.gradleplugin.foundation.GradlePluginLord;
 import org.gradle.gradleplugin.foundation.request.ExecutionRequest;
 import org.gradle.gradleplugin.foundation.request.RefreshTaskListRequest;
 import org.gradle.gradleplugin.foundation.request.Request;
-import org.gradle.util.UncheckedException;
+import org.gradle.internal.UncheckedException;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 
@@ -204,12 +203,12 @@ public class TestUtility {
             T expectedObject = expectedObjecsList.remove(0);
 
             if (!actualObjecs.contains(expectedObject)) {
-                throw new AssertionFailedError("Failed to locate object. Sought object:\n" + expectedObject + "\n\nExpected:\n" + dumpList(expectedObjects) + "\nActual:\n" + dumpList(actualObjecs));
+                throw new AssertionError("Failed to locate object. Sought object:\n" + expectedObject + "\n\nExpected:\n" + dumpList(expectedObjects) + "\nActual:\n" + dumpList(actualObjecs));
             }
         }
 
         if (actualObjecs.size() != expectedObjects.size()) {
-            throw new AssertionFailedError("Expected " + expectedObjects.size() + " items but found " + actualObjecs.size() + "\nExpected:\n" + dumpList(expectedObjects) + "\nActual:\n" + dumpList(
+            throw new AssertionError("Expected " + expectedObjects.size() + " items but found " + actualObjecs.size() + "\nExpected:\n" + dumpList(expectedObjects) + "\nActual:\n" + dumpList(
                     actualObjecs));
         }
     }
@@ -255,7 +254,7 @@ public class TestUtility {
 
         public File promptForFile(FileFilter fileFilters) {
             if (promptCount == 100) {
-                throw new AssertionFailedError("Possible endless loop. PromptForFile has been called 100 times.");
+                throw new AssertionError("Possible endless loop. PromptForFile has been called 100 times.");
             }
 
             promptCount++;
@@ -273,7 +272,7 @@ public class TestUtility {
         }
 
         public void reportError(String error) {
-            throw new AssertionFailedError("Unexpected error: " + error);
+            throw new AssertionError("Unexpected error: " + error);
         }
     }
 
@@ -290,7 +289,7 @@ public class TestUtility {
 
         public File promptForFile(FileFilter fileFilters) {
             if (promptCount == 100) {
-                throw new AssertionFailedError("Possible endless loop. PromptForFile has been called 100 times.");
+                throw new AssertionError("Possible endless loop. PromptForFile has been called 100 times.");
             }
 
             promptCount++;
@@ -298,7 +297,7 @@ public class TestUtility {
         }
 
         public void reportError(String error) {
-            throw new AssertionFailedError("Unexpected error: " + error);
+            throw new AssertionError("Unexpected error: " + error);
         }
     }
 
@@ -368,7 +367,7 @@ public class TestUtility {
         try {
             completed = complete.await(maximumWaitValue, maximumWaitUnits);
         } catch (InterruptedException e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
 
         gradlePluginLord.removeRequestObserver(observer);
@@ -376,10 +375,10 @@ public class TestUtility {
         if (!completed) {
             //its still running. Something is wrong.
             request.cancel(); //just to clean up after ourselves a little, cancel the request.
-            throw new AssertionFailedError("Failed to complete refresh in alotted time: " + maximumWaitValue + " " + maximumWaitUnits + ". Considering this failed.");
+            throw new AssertionError("Failed to complete refresh in alotted time: " + maximumWaitValue + " " + maximumWaitUnits + ". Considering this failed.");
         }
         if (errorOutput.get() != null) {
-            throw new AssertionFailedError(String.format("Command failed with output:%n%s", errorOutput.get()));
+            throw new AssertionError(String.format("Command failed with output:%n%s", errorOutput.get()));
         }
     }
 
@@ -426,7 +425,7 @@ public class TestUtility {
         try {
             timeout = !complete.await(maximumWaitSeconds, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
 
         gradlePluginLord.removeRequestObserver(observer);
@@ -434,7 +433,7 @@ public class TestUtility {
         if (timeout) {
             //its still running. Something is wrong.
             request.cancel(); //just to clean up after ourselves a little, cancel the request.
-            throw new AssertionFailedError("Failed to comlete execution in alotted time: " + maximumWaitSeconds + " seconds. Considering this failed.");
+            throw new AssertionError("Failed to comlete execution in alotted time: " + maximumWaitSeconds + " seconds. Considering this failed.");
         }
     }
 }

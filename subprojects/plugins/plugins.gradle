@@ -14,8 +14,14 @@
  * limitations under the License.
  */
 
+apply from: "$rootDir/gradle/providedConfiguration.gradle"
+
 configurations {
     testFixtures
+}
+
+if (!javaVersion.java6Compatible) {
+    sourceSets.main.groovy.exclude '**/jdk6/**'
 }
 
 dependencies {
@@ -32,9 +38,11 @@ dependencies {
     compile libraries.slf4j_api
     compile 'org.testng:testng:6.3.1'
 
+    provided files(jvm.toolsJar) // for SunJavaCompiler
+
     runtime libraries.commons_cli
 
-    testCompile 'net.sourceforge.nekohtml:nekohtml:1.9.14'
+    testCompile libraries.nekohtml
 }
 
 evaluationDependsOn(":wrapper")
@@ -42,7 +50,7 @@ task wrapperJar(type: Copy) {
     from project(":wrapper").executableJar.outputs.files
     into generatedResourcesDir
 }
-sourceSets.main.output.dir generatedResourcesDir, buildBy: wrapperJar
+sourceSets.main.output.dir generatedResourcesDir, builtBy: wrapperJar
 
 test {
     exclude 'org/gradle/api/internal/tasks/testing/junit/ATestClass*.*'
@@ -52,3 +60,13 @@ test {
 
 useTestFixtures()
 useTestFixtures(sourceSet: "testFixtures")
+
+eclipse {
+	classpath {
+		file.whenMerged { classpath ->
+			classpath.entries.removeAll {it.path.contains('/plugins/build/classes') }
+			classpath.entries.removeAll {it.path.contains('/plugins/build/resources') }
+            classpath.entries.removeAll { it.path.contains('src/integTest/resources') }
+		}
+	}
+}

@@ -23,7 +23,6 @@ import org.gradle.logging.ProgressLogger
 import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.tests.fixtures.ConcurrentTestUtil
 import org.gradle.tooling.internal.consumer.Distribution
-import spock.lang.Ignore
 import spock.lang.Specification
 
 /**
@@ -43,7 +42,7 @@ public class SynchronizedToolingImplementationLoaderTest extends Specification {
 
     def "reports progress when busy"() {
         when:
-        loader.create(distro, factory)
+        loader.create(distro, factory, true)
 
         then: "stubs"
         1 * loader.lock.tryLock() >> false
@@ -56,7 +55,7 @@ public class SynchronizedToolingImplementationLoaderTest extends Specification {
         then:
         1 * loader.lock.lock()
         then:
-        1 * loader.delegate.create(distro, factory)
+        1 * loader.delegate.create(distro, factory, true)
         then:
         1 * logger.completed()
         1 * loader.lock.unlock()
@@ -65,12 +64,12 @@ public class SynchronizedToolingImplementationLoaderTest extends Specification {
 
     def "does not report progress when appropriate"() {
         when:
-        loader.create(distro, factory)
+        loader.create(distro, factory, true)
 
         then:
         1 * loader.lock.tryLock() >> true
         then:
-        1 * loader.delegate.create(distro, factory)
+        1 * loader.delegate.create(distro, factory, true)
         then:
         1 * loader.lock.unlock()
         0 * _
@@ -85,28 +84,10 @@ public class SynchronizedToolingImplementationLoaderTest extends Specification {
 
         when:
         5.times {
-            concurrent.start { loader.create(distro, factory) }
+            concurrent.start { loader.create(distro, factory, true) }
         }
 
         then:
         concurrent.finished()
-    }
-
-    @Ignore
-    //below demonstrates somewhat inconvenient interference between spock and ConcurrentTestUtil
-    //if you remove @Ignore the test will pass only when used with @IgnoreRest
-    //this test lives only to demonstrate the issue. If you remove this test no coverage is lost.
-    def "safely delegates creation of distro"() {
-        given:
-        loader.lock = new ReentrantLock()
-        factory.newOperation(_ as Class) >> logger
-
-        when:
-        2.times {
-            concurrent.start { loader.create(distro, factory) }
-        }
-        then:
-        concurrent.finished()
-        2 * loader.delegate.create(distro, factory)
     }
 }

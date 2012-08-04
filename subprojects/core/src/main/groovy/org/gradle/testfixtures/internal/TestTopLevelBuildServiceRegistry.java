@@ -17,7 +17,7 @@ package org.gradle.testfixtures.internal;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleDistributionLocator;
-import org.gradle.api.internal.project.ServiceRegistry;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.api.internal.project.TopLevelBuildServiceRegistry;
 import org.gradle.cache.internal.CacheFactory;
 import org.gradle.configuration.GradleLauncherMetaData;

@@ -26,6 +26,8 @@ import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecException;
 import org.gradle.util.GUtil;
 
+import groovy.lang.Closure;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -35,7 +37,7 @@ import java.util.List;
  * <p>Generates HTML API documentation for Java classes.</p>
  * <p>
  * If you create your own Javadoc tasks remember to specify the 'source' property!
- * Without source the javadoc task will not create any documentation. Example:
+ * Without source the Javadoc task will not create any documentation. Example:
  * <pre autoTested=''>
  * apply plugin: 'java'
  *
@@ -59,7 +61,7 @@ import java.util.List;
  *
  * task generateRestApiDocs(type: Javadoc) {
  *   source = sourceSets.main.allJava
- *   destinationDir = file("${reportsDir.absolutePath}/rest-api-docs")
+ *   destinationDir = reporting.file("rest-api-docs")
  *   options.docletpath = configurations.jaxDoclet.files.asType(List)
  *   options.doclet = "com.lunatech.doclets.jax.jaxrs.JAXRSDoclet"
  *   options.addStringOption("jaxrscontext", "http://localhost:8080/myapp")
@@ -205,7 +207,7 @@ public class Javadoc extends SourceTask {
     }
 
     /**
-     * Returns whether javadoc generation is accompanied by verbose output.
+     * Returns whether Javadoc generation is accompanied by verbose output.
      *
      * @see #setVerbose(boolean)
      */
@@ -214,8 +216,8 @@ public class Javadoc extends SourceTask {
     }
 
     /**
-     * Sets whether javadoc generation is accompanied by verbose output or not. The verbose output is done via println
-     * (by the underlying ant task). Thus it is not handled by our logging.
+     * Sets whether Javadoc generation is accompanied by verbose output or not. The verbose output is done via println
+     * (by the underlying Ant task). Thus it is not handled by our logging.
      *
      * @param verbose Whether the output should be verbose.
      */
@@ -245,7 +247,7 @@ public class Javadoc extends SourceTask {
     }
 
     /**
-     * Returns the javadoc generation options.
+     * Returns the Javadoc generation options.
      *
      * @return The options. Never returns null.
      */
@@ -255,7 +257,7 @@ public class Javadoc extends SourceTask {
     }
 
     /**
-     * Sets the javadoc generation options.
+     * Sets the Javadoc generation options.
      *
      * @param options The options. Must not be null.
      */
@@ -264,8 +266,17 @@ public class Javadoc extends SourceTask {
     }
 
     /**
-     * Specifies whether this task should fail when errors are encountered during javadoc generation. When {@code true},
-     * this task will fail on javadoc error. When {@code false}, this task will ignore javadoc errors.
+     * Convenience method for configuring Javadoc generation options.
+     *
+     * @param block The configuration block for Javadoc generation options.
+     */
+    public void options(Closure block) {
+        getProject().configure(getOptions(), block);
+    }
+
+    /**
+     * Specifies whether this task should fail when errors are encountered during Javadoc generation. When {@code true},
+     * this task will fail on Javadoc error. When {@code false}, this task will ignore Javadoc errors.
      */
     @Input
     public boolean isFailOnError() {
@@ -281,8 +292,8 @@ public class Javadoc extends SourceTask {
     }
 
     /**
-     * Returns the javadoc executable to use to generation the javadoc. When {@code null}, the javadoc executable for
-     * the current jvm is used.
+     * Returns the Javadoc executable to use to generate the Javadoc. When {@code null}, the Javadoc executable for
+     * the current JVM is used.
      *
      * @return The executable. May be null.
      */

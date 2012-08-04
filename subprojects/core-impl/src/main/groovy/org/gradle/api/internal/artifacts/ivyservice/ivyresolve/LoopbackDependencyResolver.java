@@ -15,39 +15,34 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.apache.ivy.core.IvyContext;
 import org.apache.ivy.core.cache.ArtifactOrigin;
 import org.apache.ivy.core.module.descriptor.Artifact;
+import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.apache.ivy.core.report.ArtifactDownloadReport;
-import org.apache.ivy.core.report.DownloadReport;
-import org.apache.ivy.core.resolve.DownloadOptions;
 import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
-import org.apache.ivy.core.search.ModuleEntry;
-import org.apache.ivy.core.search.OrganisationEntry;
-import org.apache.ivy.core.search.RevisionEntry;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.ResolverSettings;
-import org.apache.ivy.plugins.resolver.util.ResolvedResource;
-import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
-import org.gradle.util.UncheckedException;
+import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionNotFoundException;
+import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveResult;
+import org.gradle.internal.Factory;
 
+import java.io.File;
 import java.text.ParseException;
-import java.util.Arrays;
-import java.util.Map;
 
 /**
- * The main entry point for a {@link DependencyResolver} to call back into the dependency
- * resolution mechanism.
+ * The main entry point for a {@link DependencyResolver} to call back into the dependency resolution mechanism.
  */
-public class LoopbackDependencyResolver extends DelegatingDependencyResolver {
+public class LoopbackDependencyResolver extends RestrictedDependencyResolver {
     private final String name;
+    private final UserResolverChain userResolverChain;
     private final CacheLockingManager cacheLockingManager;
 
-    public LoopbackDependencyResolver(String name, DependencyResolver resolver, CacheLockingManager cacheLockingManager) {
-        super(resolver);
+    public LoopbackDependencyResolver(String name, UserResolverChain userResolverChain, CacheLockingManager cacheLockingManager) {
         this.name = name;
+        this.userResolverChain = userResolverChain;
         this.cacheLockingManager = cacheLockingManager;
     }
 
@@ -58,54 +53,24 @@ public class LoopbackDependencyResolver extends DelegatingDependencyResolver {
 
     @Override
     public void setSettings(ResolverSettings settings) {
-        // Ignore
+        userResolverChain.setSettings(settings);
     }
 
     @Override
     public ResolvedModuleRevision getDependency(final DependencyDescriptor dd, final ResolveData data) throws ParseException {
+        final DependencyResolver loopback = this;
         return cacheLockingManager.useCache(String.format("Resolve %s", dd), new Factory<ResolvedModuleRevision>() {
             public ResolvedModuleRevision create() {
+                ModuleVersionResolveResult dependency;
+                IvyContext ivyContext = IvyContext.pushNewCopyContext();
                 try {
-                    return getResolver().getDependency(dd, data);
-                } catch (ParseException e) {
-                    throw UncheckedException.asUncheckedException(e);
+                    ivyContext.setResolveData(data);
+                    dependency = userResolverChain.resolve(dd);
+                } finally {
+                    IvyContext.popContext();
                 }
-            }
-        });
-    }
-
-    @Override
-    public ArtifactDownloadReport download(final ArtifactOrigin artifact, final DownloadOptions options) {
-        return cacheLockingManager.useCache(String.format("download %s", artifact), new Factory<ArtifactDownloadReport>() {
-            public ArtifactDownloadReport create() {
-                return getResolver().download(artifact, options);
-            }
-        });
-    }
-
-    @Override
-    public DownloadReport download(final Artifact[] artifacts, final DownloadOptions options) {
-        return cacheLockingManager.useCache(String.format("Download %s", Arrays.toString(artifacts)), new Factory<DownloadReport>() {
-            public DownloadReport create() {
-                return getResolver().download(artifacts, options);
-            }
-        });
-    }
-
-    @Override
-    public ResolvedResource findIvyFileRef(final DependencyDescriptor dd, final ResolveData data) {
-        return cacheLockingManager.useCache(String.format("Locate ivy file for %s", dd), new Factory<ResolvedResource>() {
-            public ResolvedResource create() {
-                return getResolver().findIvyFileRef(dd, data);
-            }
-        });
-    }
-
-    @Override
-    public boolean exists(final Artifact artifact) {
-        return cacheLockingManager.useCache(String.format("Locate %s", artifact), new Factory<Boolean>() {
-            public Boolean create() {
-                return getResolver().exists(artifact);
+                // TODO:DAZ Need to create a metadata download report here
+                return new ResolvedModuleRevision(loopback, loopback, dependency.getDescriptor(), null);
             }
         });
     }
@@ -114,33 +79,16 @@ public class LoopbackDependencyResolver extends DelegatingDependencyResolver {
     public ArtifactOrigin locate(final Artifact artifact) {
         return cacheLockingManager.useCache(String.format("Locate %s", artifact), new Factory<ArtifactOrigin>() {
             public ArtifactOrigin create() {
-                return getResolver().locate(artifact);
+                try {
+                    DependencyDescriptor dependencyDescriptor = new DefaultDependencyDescriptor(artifact.getModuleRevisionId(), false);
+                    File artifactFile = userResolverChain.resolve(dependencyDescriptor).getArtifactResolver().resolve(artifact).getFile();
+                    return new ArtifactOrigin(artifact, false, artifactFile.getAbsolutePath());
+                } catch (ModuleVersionNotFoundException e) {
+                    return null;
+                } catch (ArtifactNotFoundException e) {
+                    return null;
+                }
             }
         });
-    }
-
-    @Override
-    public ModuleEntry[] listModules(OrganisationEntry org) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public OrganisationEntry[] listOrganisations() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public RevisionEntry[] listRevisions(ModuleEntry module) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public String[] listTokenValues(String token, Map otherTokenValues) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Map[] listTokenValues(String[] tokens, Map criteria) {
-        throw new UnsupportedOperationException();
     }
 }

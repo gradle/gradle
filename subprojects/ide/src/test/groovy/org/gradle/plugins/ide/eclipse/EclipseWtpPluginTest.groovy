@@ -17,7 +17,7 @@
 package org.gradle.plugins.ide.eclipse
 
 import org.gradle.api.internal.project.DefaultProject
-import org.gradle.plugins.ide.eclipse.model.BuildCommand
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.plugins.ide.eclipse.model.Facet
 import org.gradle.plugins.ide.eclipse.model.Facet.FacetType
 import org.gradle.plugins.ide.eclipse.model.WbResource
@@ -31,7 +31,7 @@ import spock.lang.Specification
 class EclipseWtpPluginTest extends Specification {
 
     private final DefaultProject project = HelperUtil.createRootProject()
-    private final EclipseWtpPlugin wtpPlugin = new EclipseWtpPlugin()
+    private final EclipseWtpPlugin wtpPlugin = new EclipseWtpPlugin(project.services.get(Instantiator))
 
     def "has description"() {
         when:
@@ -60,6 +60,7 @@ class EclipseWtpPluginTest extends Specification {
      def applyToWarProject_shouldHaveWebProjectAndClasspathTask() {
         when:
         project.apply(plugin: 'war')
+        project.sourceCompatibility = 1.5
         wtpPlugin.apply(project)
 
         then:
@@ -67,14 +68,6 @@ class EclipseWtpPluginTest extends Specification {
             assert project.tasks.cleanEclipseWtp.dependsOn.contains(it)
         }
 
-        checkEclipseProjectTask([
-                new BuildCommand('org.eclipse.jdt.core.javabuilder'),
-                new BuildCommand('org.eclipse.wst.common.project.facet.core.builder'),
-                new BuildCommand('org.eclipse.wst.validation.validationbuilder')],
-                ['org.eclipse.jdt.core.javanature',
-                        'org.eclipse.wst.common.project.facet.core.nature',
-                        'org.eclipse.wst.common.modulecore.ModuleCoreNature',
-                        'org.eclipse.jem.workbench.JavaEMFNature'])
         checkEclipseClasspath([project.configurations.testRuntime])
         checkEclipseWtpComponentForWar()
         checkEclipseWtpFacet([
@@ -105,13 +98,6 @@ class EclipseWtpPluginTest extends Specification {
         [project.cleanEclipseWtpComponent, project.cleanEclipseWtpFacet].each {
             assert project.cleanEclipseWtp.dependsOn.contains(it)
         }
-        checkEclipseProjectTask([
-                new BuildCommand('org.eclipse.wst.common.project.facet.core.builder'),
-                new BuildCommand('org.eclipse.wst.validation.validationbuilder')],
-                ['org.eclipse.jdt.core.javanature',
-                        'org.eclipse.wst.common.project.facet.core.nature',
-                        'org.eclipse.wst.common.modulecore.ModuleCoreNature',
-                        'org.eclipse.jem.workbench.JavaEMFNature'])
         checkEclipseClasspath([project.configurations.testRuntime])
         checkEclipseWtpComponentForEar()
         checkEclipseWtpFacet([
@@ -143,7 +129,6 @@ class EclipseWtpPluginTest extends Specification {
         assert project.tasks.eclipseWtp.taskDependencies.getDependencies(project.tasks.eclipse).contains(eclipseWtpFacet)
         assert eclipseWtpFacet.inputFile == project.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
         assert eclipseWtpFacet.outputFile == project.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
-        assert eclipseWtpFacet.facets == facets
     }
 
     private void checkEclipseWtpComponentForWar() {
@@ -164,14 +149,16 @@ class EclipseWtpPluginTest extends Specification {
         assert eclipseWtpComponent.component.libDeployPath == "/WEB-INF/lib"
     }
 
-    private void checkEclipseProjectTask(List buildCommands, List natures) {
-        GenerateEclipseProject eclipseProjectTask = project.eclipseProject
-        assert eclipseProjectTask.buildCommands == buildCommands
-        assert eclipseProjectTask.natures == natures
-    }
-
     private void checkEclipseClasspath(def configurations) {
         GenerateEclipseClasspath eclipseClasspath = project.tasks.eclipseClasspath
         assert eclipseClasspath.plusConfigurations == configurations
+    }
+
+    def applyToEarProjectWithoutJavaPlugin_shouldUseAppDirInWtpComponentSource() {
+        when:
+        project.apply(plugin: 'ear')
+        wtpPlugin.apply(project)
+        then:
+        project.eclipseWtpComponent.sourceDirs == [project.file(project.appDirName)] as Set
     }
 }

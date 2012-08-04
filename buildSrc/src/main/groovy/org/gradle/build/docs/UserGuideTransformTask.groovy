@@ -20,9 +20,8 @@ package org.gradle.build.docs
 import groovy.xml.dom.DOMCategory
 import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.file.FileCollection
-import org.gradle.build.docs.dsl.ClassLinkMetaData
-import org.gradle.build.docs.dsl.LinkMetaData
+import org.gradle.build.docs.dsl.links.ClassLinkMetaData
+import org.gradle.build.docs.dsl.links.LinkMetaData
 import org.gradle.build.docs.model.ClassMetaDataRepository
 import org.gradle.build.docs.model.SimpleClassMetaDataRepository
 import org.w3c.dom.Document
@@ -42,14 +41,12 @@ import org.gradle.api.tasks.*
 public class UserGuideTransformTask extends DefaultTask {
     @Input
     String getVersion() { return project.version.toString() }
-    @Input
-    String javadocUrl
-    @Input
-    String groovydocUrl
-    @Input
-    String dsldocUrl
-    @Input
-    String websiteUrl
+
+    def javadocUrl
+    def groovydocUrl
+    def dsldocUrl
+    def websiteUrl
+
     @InputFile
     File sourceFile
     @InputFile
@@ -60,14 +57,28 @@ public class UserGuideTransformTask extends DefaultTask {
     File snippetsDir
     @Input
     Set<String> tags = new HashSet()
-    @InputFiles
-    FileCollection classpath;
 
     final SampleElementValidator validator = new SampleElementValidator();
 
+    @Input String getJavadocUrl() {
+        javadocUrl
+    }
+
+    @Input String getGroovydocUrl() {
+        groovydocUrl
+    }
+
+    @Input String getDsldocUrl() {
+        dsldocUrl
+    }
+
+    @Input String getWebsiteUrl() {
+        websiteUrl
+    }
+
     @TaskAction
     def transform() {
-        XIncludeAwareXmlProvider provider = new XIncludeAwareXmlProvider(classpath)
+        XIncludeAwareXmlProvider provider = new XIncludeAwareXmlProvider()
         provider.parse(sourceFile)
         transform(provider.document)
         provider.write(destFile)
@@ -117,24 +128,21 @@ public class UserGuideTransformTask extends DefaultTask {
 
             def classMetaData = linkRepository.get(className)
             LinkMetaData linkMetaData = methodName ? classMetaData.getMethod(methodName) : classMetaData.classLink
-            String style = linkMetaData.style.toString().toLowerCase()
+            String style = element.'@style' ?: linkMetaData.style.toString().toLowerCase()
 
             Element ulinkElement = doc.createElement('ulink')
 
             String href
-            switch (style) {
-                case 'dsldoc':
-                    href = "$dsldocUrl/${className}.html"
-                    break
-                case 'groovydoc':
-                    href = "$groovydocUrl/${className.replace('.', '/')}.html"
-                    break;
-                case 'javadoc':
-                    href = "$javadocUrl/${className.replace('.', '/')}.html"
-                    break;
-                default:
-                    throw new InvalidUserDataException("Unknown api link style '$style'.")
+            if (style == 'dsldoc') {
+                href = "$dsldocUrl/${className}.html"
+            } else if (style == "groovydoc" || style == "javadoc") {
+                def base = style == "groovydoc" ? groovydocUrl : javadocUrl
+                def packageName = classMetaData.packageName
+                href = "$base/${packageName.replace('.', '/')}/${className.substring(packageName.length()+1)}.html"
+            } else {
+                throw new InvalidUserDataException("Unknown api link style '$style'.")
             }
+
             if (linkMetaData.urlFragment) {
                 href = "$href#$linkMetaData.urlFragment"
             }
@@ -164,7 +172,7 @@ public class UserGuideTransformTask extends DefaultTask {
     }
 
     def transformSamples(Document doc) {
-        XIncludeAwareXmlProvider samplesXmlProvider = new XIncludeAwareXmlProvider(classpath)
+        XIncludeAwareXmlProvider samplesXmlProvider = new XIncludeAwareXmlProvider()
         samplesXmlProvider.emptyDoc() << {
             samples()
         }

@@ -20,11 +20,10 @@ import org.apache.commons.lang.StringUtils;
 import org.fusesource.jansi.Ansi;
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.util.SystemProperties;
+import org.gradle.internal.SystemProperties;
 
 import java.io.Flushable;
 import java.io.IOException;
-import java.util.Iterator;
 
 public class AnsiConsole implements Console {
     private final static String EOL = SystemProperties.getLineSeparator();
@@ -193,7 +192,7 @@ public class AnsiConsole implements Console {
         }
     }
 
-    private class TextAreaImpl extends AbstractStyledTextOutput implements TextArea, Widget {
+    private class TextAreaImpl extends AbstractLineChoppingStyledTextOutput implements TextArea, Widget {
         private final Container container;
         private int width;
         boolean extraEol;
@@ -218,7 +217,7 @@ public class AnsiConsole implements Console {
         }
 
         @Override
-        protected void doAppend(final String text) {
+        protected void doLineText(final CharSequence text, final boolean terminatesLine) {
             if (text.length() == 0) {
                 return;
             }
@@ -226,83 +225,16 @@ public class AnsiConsole implements Console {
                 public void execute(Ansi ansi) {
                     ColorMap.Color color = colorMap.getColourFor(getStyle());
                     color.on(ansi);
-
-                    Iterator<String> tokenizer = new LineSplitter(text);
-                    while (tokenizer.hasNext()) {
-                        String token = tokenizer.next();
-                        if (token.equals(EOL)) {
-                            width = 0;
-                            extraEol = false;
-                        } else {
-                            width += token.length();
-                        }
-                        ansi.a(token);
+                    if (terminatesLine) {
+                        width = 0;
+                        extraEol = false;
+                    } else {
+                        width += text.length();
                     }
-
+                    ansi.a(text.toString());
                     color.off(ansi);
                 }
             });
-        }
-    }
-
-    private static class LineSplitter implements Iterator<String> {
-        private final CharSequence text;
-        private int start;
-        private int end;
-
-        private LineSplitter(CharSequence text) {
-            this.text = text;
-            findNext();
-        }
-
-        public boolean findNext() {
-            if (end == text.length()) {
-                start = -1;
-                return false;
-            }
-            if (startsWithEol(text, end)) {
-                start = end;
-                end = start + EOL.length();
-                return true;
-            }
-            int pos = end;
-            while (pos < text.length()) {
-                if (startsWithEol(text, pos)) {
-                    start = end;
-                    end = pos;
-                    return true;
-                }
-                pos++;
-            }
-            start = end;
-            end = text.length();
-            return true;
-        }
-
-        private boolean startsWithEol(CharSequence text, int startAt) {
-            if (startAt + EOL.length() > text.length()) {
-                return false;
-            }
-            for (int i = 0; i < EOL.length(); i++) {
-                if (EOL.charAt(i) != text.charAt(startAt + i)) {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        public boolean hasNext() {
-            return start >= 0;
-        }
-
-        public String next() {
-            CharSequence next = text.subSequence(start, end);
-            findNext();
-            return next.toString();
-        }
-
-        public void remove() {
-            throw new UnsupportedOperationException();
         }
     }
 }

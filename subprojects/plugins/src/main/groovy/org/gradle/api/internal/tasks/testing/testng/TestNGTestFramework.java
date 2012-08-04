@@ -18,7 +18,8 @@ package org.gradle.api.internal.tasks.testing.testng;
 
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.internal.project.ServiceRegistry;
+import org.gradle.internal.id.IdGenerator;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
@@ -27,7 +28,6 @@ import org.gradle.api.internal.tasks.testing.junit.JULRedirector;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.testng.TestNGOptions;
 import org.gradle.process.internal.WorkerProcessBuilder;
-import org.gradle.util.IdGenerator;
 
 import java.io.File;
 import java.io.Serializable;
@@ -46,7 +46,7 @@ public class TestNGTestFramework implements TestFramework {
         this.testTask = testTask;
         options = new TestNGOptions(testTask.getProject().getProjectDir());
         options.setAnnotationsOnSourceCompatibility(JavaVersion.toVersion(testTask.getProject().property("sourceCompatibility")));
-        detector = new TestNGDetector(testTask.getTestClassesDir(), testTask.getClasspath(), new ClassFileExtractionManager(testTask.getTemporaryDir()));
+        detector = new TestNGDetector(testTask.getTestClassesDir(), testTask.getClasspath(), new ClassFileExtractionManager(testTask.getTemporaryDirFactory()));
     }
 
     public WorkerTestClassProcessorFactory getProcessorFactory() {

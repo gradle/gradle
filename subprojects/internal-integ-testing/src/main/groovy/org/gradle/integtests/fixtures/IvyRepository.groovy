@@ -16,9 +16,9 @@
 package org.gradle.integtests.fixtures
 
 import org.gradle.util.TestFile
-import junit.framework.AssertionFailedError
+import org.gradle.util.hash.HashUtil
+
 import java.util.regex.Pattern
-import java.security.MessageDigest
 
 class IvyRepository {
     final TestFile rootDir
@@ -45,6 +45,7 @@ class IvyModule {
     final List dependencies = []
     final Map<String, Map> configurations = [:]
     final List artifacts = []
+    String status = "integration"
     int publishCount
 
     IvyModule(TestFile moduleDir, String organisation, String module, String revision) {
@@ -72,17 +73,31 @@ class IvyModule {
         return this
     }
 
+    IvyModule dependsOn(String ... modules) {
+        modules.each { dependsOn(organisation, it, revision) }
+        return this
+    }
+
     IvyModule nonTransitive(String config) {
         configurations[config].transitive = false
         return this
     }
 
-    File getIvyFile() {
+    IvyModule withStatus(String status) {
+        this.status = status;
+        return this
+    }
+
+    TestFile getIvyFile() {
         return moduleDir.file("ivy-${revision}.xml")
     }
 
     TestFile getJarFile() {
         return moduleDir.file("$module-${revision}.jar")
+    }
+
+    TestFile sha1File(File file) {
+        return moduleDir.file("${file.name}.sha1")
     }
 
     /**
@@ -99,77 +114,139 @@ class IvyModule {
     IvyModule publish() {
         moduleDir.createDir()
 
-        ivyFile.text = """<?xml version="1.0" encoding="UTF-8"?>
+        publish(ivyFile) {
+            ivyFile.text = """<?xml version="1.0" encoding="UTF-8"?>
 <ivy-module version="1.0" xmlns:m="http://ant.apache.org/ivy/maven">
+    <!-- ${publishCount} -->
 	<info organisation="${organisation}"
 		module="${module}"
 		revision="${revision}"
+		status="${status}"
 	/>
 	<configurations>"""
-        configurations.each { name, config ->
-            ivyFile << "<conf name='$name' visibility='public'"
-            if (config.extendsFrom) {
-                ivyFile << " extends='${config.extendsFrom.join(',')}'"
+            configurations.each { name, config ->
+                ivyFile << "<conf name='$name' visibility='public'"
+                if (config.extendsFrom) {
+                    ivyFile << " extends='${config.extendsFrom.join(',')}'"
+                }
+                if (!config.transitive) {
+                    ivyFile << " transitive='false'"
+                }
+                ivyFile << "/>"
             }
-            if (!config.transitive) {
-                ivyFile << " transitive='false'"
-            }
-            ivyFile << "/>"
-        }
-	ivyFile << """</configurations>
+            ivyFile << """</configurations>
 	<publications>
 """
-        artifacts.each { artifact ->
-            file(artifact) << "add some content so that file size isn't zero: $publishCount"
-            ivyFile << """<artifact name="${artifact.name}" type="${artifact.type}" ext="${artifact.type}" conf="*" m:classifier="${artifact.classifier ?: ''}"/>
+            artifacts.each { artifact ->
+                def artifactFile = file(artifact)
+                publish(artifactFile) {
+                    artifactFile << "${artifactFile.name} : $publishCount"
+                }
+                ivyFile << """<artifact name="${artifact.name}" type="${artifact.type}" ext="${artifact.type}" conf="*" m:classifier="${artifact.classifier ?: ''}"/>
 """
-        }
-        ivyFile << """
+            }
+            ivyFile << """
 	</publications>
 	<dependencies>
 """
-        dependencies.each { dep ->
-            ivyFile << """<dependency org="${dep.organisation}" name="${dep.module}" rev="${dep.revision}"/>
+            dependencies.each { dep ->
+                ivyFile << """<dependency org="${dep.organisation}" name="${dep.module}" rev="${dep.revision}"/>
 """
-        }
-        ivyFile << """
+            }
+            ivyFile << """
     </dependencies>
 </ivy-module>
         """
-
+        }
         return this
     }
 
-    private File file(def artifact) {
+    private TestFile file(artifact) {
         return moduleDir.file("${artifact.name}-${revision}${artifact.classifier ? '-' + artifact.classifier : ''}.${artifact.type}")
+    }
+
+    private publish(File file, Closure cl) {
+        def lastModifiedTime = file.exists() ? file.lastModified() : null
+        cl.call(file)
+        if (lastModifiedTime != null) {
+            file.setLastModified(lastModifiedTime + 2000)
+        }
+        sha1File(file).text = getHash(file, "SHA1")
     }
 
     /**
      * Asserts that exactly the given artifacts have been published.
      */
     void assertArtifactsPublished(String... names) {
-        assert moduleDir.list() as Set == names as Set
+        Set allFileNames = [];
+        for (name in names) {
+            allFileNames += [name, "${name}.sha1"]
+        }
+        assert moduleDir.list() as Set == allFileNames
     }
 
-    private String getHash(File file, String algorithm) {
-        MessageDigest messageDigest = MessageDigest.getInstance(algorithm)
-        messageDigest.update(file.bytes)
-        return new BigInteger(1, messageDigest.digest()).toString(16)
+    void assertChecksumPublishedFor(TestFile testFile) {
+        def sha1File = sha1File(testFile)
+        sha1File.assertIsFile()
+        assert sha1File.text == getHash(testFile, "SHA1")
     }
 
-    TestFile sha1File(File file) {
-        def sha1File = moduleDir.file("${file.name}.sha1")
-        sha1File.text = getHash(file, "SHA1")
-        return sha1File
+    String getHash(File file, String algorithm) {
+        return HashUtil.createHash(file, algorithm).asHexString()
     }
 
     IvyDescriptor getIvy() {
         return new IvyDescriptor(ivyFile)
     }
+
+    def expectIvyHead(HttpServer server, prefix = null) {
+        server.expectHead(ivyPath(prefix), ivyFile)
+    }
+
+    def expectIvyGet(HttpServer server, prefix = null) {
+        server.expectGet(ivyPath(prefix), ivyFile)
+    }
+
+    def ivyPath(prefix = null) {
+        path(prefix, ivyFile.name)
+    }
+
+    def expectIvySha1Get(HttpServer server, prefix = null) {
+        server.expectGet(ivySha1Path(prefix), sha1File(ivyFile))
+    }
+
+    def ivySha1Path(prefix = null) {
+        ivyPath(prefix) + ".sha1"
+    }
+
+    def expectArtifactHead(HttpServer server, prefix = null) {
+        server.expectHead(artifactPath(prefix), jarFile)
+    }
+
+    def expectArtifactGet(HttpServer server, prefix = null) {
+        server.expectGet(artifactPath(prefix), jarFile)
+    }
+
+    def artifactPath(prefix = null) {
+        path(prefix, jarFile.name)
+    }
+
+    def expectArtifactSha1Get(HttpServer server, prefix = null) {
+        server.expectGet(artifactSha1Path(prefix), sha1File(jarFile))
+    }
+
+    def artifactSha1Path(prefix = null) {
+        artifactPath(prefix) + ".sha1"
+    }
+
+    def path(prefix = null, String filename) {
+        "${prefix == null ? "" : prefix}/${organisation}/${module}/${revision}/${filename}"
+    }
 }
 
 class IvyDescriptor {
     final Map<String, IvyConfiguration> configurations = [:]
+    Map<String, IvyArtifact> artifacts = [:]
 
     IvyDescriptor(File ivyFile) {
         def ivy = new XmlParser().parse(ivyFile)
@@ -186,6 +263,15 @@ class IvyDescriptor {
             }
             config.addDependency(dep.@org, dep.@name, dep.@rev)
         }
+        ivy.publications.artifact.each { artifact ->
+            def ivyArtifact = new IvyArtifact(name: artifact.@name, type: artifact.@type, ext: artifact.@ext, conf: artifact.@conf.split(",") as List)
+            artifacts.put(ivyArtifact.name, ivyArtifact)
+        }
+    }
+
+    IvyArtifact expectArtifact(String name) {
+        assert artifacts.containsKey(name)
+        artifacts[name]
     }
 }
 
@@ -199,7 +285,14 @@ class IvyConfiguration {
     void assertDependsOn(String org, String module, String revision) {
         def dep = [org: org, module: module, revision: revision]
         if (!dependencies.find { it == dep}) {
-            throw new AssertionFailedError("Could not find expected dependency $dep. Actual: $dependencies")
+            throw new AssertionError("Could not find expected dependency $dep. Actual: $dependencies")
         }
     }
+}
+
+class IvyArtifact {
+    String name
+    String type
+    String ext
+    List<String> conf
 }

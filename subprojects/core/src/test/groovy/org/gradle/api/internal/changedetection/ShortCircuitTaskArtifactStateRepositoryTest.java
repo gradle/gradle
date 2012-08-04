@@ -77,13 +77,24 @@ public class ShortCircuitTaskArtifactStateRepositoryTest {
     }
 
     @Test
-    public void taskArtifactsAreOutOfDateWhenStartParameterOverrideIsSet() {
+    public void taskArtifactsAreOutOfDateWhenStartParameterOverrideNoOptIsSet() {
         TaskInternal task = taskWithOutputs();
         expectTaskStateCreated(task);
 
         TaskArtifactState state = repository.getStateFor(task);
 
-        startParameter.setNoOpt(true);
+        startParameter.setRerunTasks(true);
+        assertFalse(state.isUpToDate());
+    }
+
+    @Test
+    public void taskArtifactsAreOutOfDateWhenStartParameterOverrideRerunTasksIsSet() {
+        TaskInternal task = taskWithOutputs();
+        expectTaskStateCreated(task);
+
+        TaskArtifactState state = repository.getStateFor(task);
+
+        startParameter.setRerunTasks(true);
         assertFalse(state.isUpToDate());
     }
 

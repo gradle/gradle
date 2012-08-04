@@ -18,6 +18,7 @@ package org.gradle.api.internal.notations.parsers
 import spock.lang.Specification
 import org.gradle.api.internal.notations.api.UnsupportedNotationException
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.tasks.Optional
 
 class MapNotationParserTest extends Specification {
     final DummyParser parser = new DummyParser()
@@ -39,12 +40,23 @@ class MapNotationParserTest extends Specification {
         object.prop1 == null
     }
 
-    def "configures properties of converted object using extra keys"() {
+    def "configures properties of converted object using extra properties"() {
         expect:
         def object = parser.parseNotation([name: 'name', version: 'version', prop1: 'prop1', optional: '1.2'])
         object.key1 == 'name'
         object.key2 == 'version'
         object.prop1 == 'prop1'
+    }
+
+    def "does not mutate original map"() {
+        def source = [name: 'name', version: 'version', prop1: 'prop1', optional: '1.2']
+        def copy = new HashMap<String, Object>(source)
+        
+        when:
+        parser.parseNotation(source)
+        
+        then:
+        source == copy
     }
 
     def "does not parse map with missing keys"() {
@@ -56,6 +68,23 @@ class MapNotationParserTest extends Specification {
         e.message == 'Required keys [version] are missing from map {name=name}.'
     }
 
+    def "treats empty strings and null values as missing"() {
+        when:
+        parser.parseNotation([name: null, version: ''])
+
+        then:
+        InvalidUserDataException e = thrown()
+        e.message.startsWith 'Required keys [name, version] are missing from map '
+    }
+
+    def "does not parse map with unknown extra properties"() {
+        when:
+        parser.parseNotation([name: 'name', version: 1.2, unknown: 'unknown'])
+
+        then:
+        MissingFieldException e = thrown()
+    }
+
     def "does not parse notation that is not a map"() {
         when:
         parser.parseNotation('string')
@@ -65,19 +94,10 @@ class MapNotationParserTest extends Specification {
     }
     
     static class DummyParser extends MapNotationParser<TargetObject> {
-        @Override
-        protected Collection<String> getRequiredKeys() {
-            return ['name', 'version']
-        }
-
-        @Override
-        protected Collection<String> getOptionalKeys() {
-            return ['optional']
-        }
-
-        @Override
-        protected TargetObject parseMap(Map<String, Object> values) {
-            return new TargetObject(key1:  values.name, key2:  values.version, optional:  values.optional)
+        protected TargetObject parseMap(@MapKey('name') String name,
+                                        @MapKey('version') String version,
+                                        @Optional @MapKey('optional') optional) {
+            return new TargetObject(key1:  name, key2:  version, optional:  optional)
         }
     }
 

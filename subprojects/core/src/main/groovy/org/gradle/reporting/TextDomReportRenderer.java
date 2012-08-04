@@ -15,7 +15,7 @@
  */
 package org.gradle.reporting;
 
-import org.gradle.util.UncheckedException;
+import org.gradle.internal.UncheckedException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -44,7 +44,7 @@ public class TextDomReportRenderer<T> extends DomReportRenderer<T> {
                 parent.appendChild(adopted);
             }
         } catch (Exception e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 }

@@ -16,7 +16,7 @@
 package org.gradle.api.internal.notations;
 
 import org.gradle.api.artifacts.ProjectDependency;
-import org.gradle.api.internal.Instantiator;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.api.internal.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;

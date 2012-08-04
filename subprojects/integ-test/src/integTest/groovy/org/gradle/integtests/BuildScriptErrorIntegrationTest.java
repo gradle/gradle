@@ -15,8 +15,8 @@
  */
 package org.gradle.integtests;
 
+import org.gradle.integtests.fixtures.AbstractIntegrationTest;
 import org.gradle.integtests.fixtures.ExecutionFailure;
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest;
 import org.gradle.util.TestFile;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -56,7 +56,7 @@ public class BuildScriptErrorIntegrationTest extends AbstractIntegrationTest {
 
         TestFile buildFile = testFile("build.gradle");
         buildFile.writelns(
-                "dependsOn 'child'",
+                "evaluationDependsOn 'child'",
                 "task t");
 
         TestFile childBuildFile = testFile("child/build.gradle");

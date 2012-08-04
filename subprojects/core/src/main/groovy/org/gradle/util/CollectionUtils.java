@@ -15,17 +15,24 @@
  */
 package org.gradle.util;
 
-import org.gradle.api.specs.Spec;
+import com.google.common.collect.Lists;
 import org.gradle.api.Transformer;
+import org.gradle.api.specs.Spec;
 
-import java.util.List;
-import java.util.LinkedList;
-import java.util.Set;
-import java.util.LinkedHashSet;
-import java.util.Collection;
+import java.util.*;
 
-abstract public class CollectionUtils {
+public abstract class CollectionUtils {
 
+    public static <T> T findFirst(Iterable<T> source, Spec<? super T> filter) {
+        for (T item : source) {
+            if (filter.isSatisfiedBy(item)) {
+                return item;
+            }
+        }
+
+        return null;
+    }
+    
     public static <T> Set<T> filter(Set<T> set, Spec<? super T> filter) {
         return filter(set, new LinkedHashSet<T>(), filter);
     }
@@ -44,14 +51,70 @@ abstract public class CollectionUtils {
     }
 
     public static <R, I> List<R> collect(List<? extends I> list, Transformer<R, I> transformer) {
-        return collect(list, new LinkedList<R>(), transformer);
+        return collect(list, new ArrayList<R>(list.size()), transformer);
     }
 
-    public static <R, I, C extends Collection<R>> C collect(Collection<? extends I> source, C destination, Transformer<R, I> transformer) {
+    public static <R, I> Set<R> collect(Set<? extends I> set, Transformer<R, I> transformer) {
+        return collect(set, new HashSet<R>(), transformer);
+    }
+
+    public static <R, I, C extends Collection<R>> C collect(Iterable<? extends I> source, C destination, Transformer<R, I> transformer) {
         for (I item : source) {
             destination.add(transformer.transform(item));
         }
         return destination;
+    }
+
+    public static List<String> toStringList(Iterable<?> iterable) {
+        List<String> result = Lists.newArrayList();
+        for (Object elem : iterable) {
+            result.add(elem.toString());
+        }
+        return result;
+    }
+    
+    public static <E> List<E> compact(List<E> list) {
+        boolean foundAtLeastOneNull = false;
+        List<E> compacted = null;
+        int i = 0;
+        
+        for (E element : list) {
+            if (element == null) {
+                if (!foundAtLeastOneNull) {
+                    compacted = new ArrayList<E>(list.size());
+                    if (i > 0) {
+                        compacted.addAll(list.subList(0, i));
+                    }
+                }
+                foundAtLeastOneNull = true;
+            } else if (foundAtLeastOneNull) {
+                compacted.add(element);
+            }
+            ++i;
+        }
+
+        return foundAtLeastOneNull ? compacted : list;
+    }
+
+    public static <C extends Collection<String>> C stringize(Iterable<?> source, C destination) {
+        return collect(source, destination, new ToStringTransformer());
+    }
+
+    public static List<String> stringize(List<?> source) {
+        return stringize(source, new ArrayList<String>(source.size()));
+    }
+
+    public static <E> boolean replace(List<E> list, Spec<? super E> filter, Transformer<E, ? super E> transformer) {
+        boolean replaced = false;
+        int i = 0;
+        for (E it : list) {
+            if (filter.isSatisfiedBy(it)) {
+                list.set(i, transformer.transform(it));
+                replaced = true;
+            }
+            ++i;
+        }
+        return replaced;
     }
 
 }

@@ -17,6 +17,7 @@ package org.gradle.testing.testng
 
 import org.junit.Rule
 import org.junit.Test
+import org.junit.Before
 import spock.lang.Issue
 import org.gradle.integtests.fixtures.*
 import static org.gradle.util.Matchers.containsLine
@@ -30,6 +31,11 @@ class TestNGIntegrationTest {
     @Rule public GradleDistribution dist = new GradleDistribution()
     @Rule public GradleDistributionExecuter executer = new GradleDistributionExecuter()
     @Rule public TestResources resources = new TestResources()
+
+    @Before
+    public void before() {
+        executer.allowExtraLogging = false
+    }
 
     @Test
     void executesTestsInCorrectEnvironment() {
@@ -46,20 +52,20 @@ class TestNGIntegrationTest {
     void canListenForTestResults() {
         ExecutionResult result = executer.withTasks("test").run();
 
-        assertThat(result.getOutput(), containsLine("START [tests] []"));
-        assertThat(result.getOutput(), containsLine("FINISH [tests] []"));
-        assertThat(result.getOutput(), containsLine("START [test process 'Gradle Worker 1'] [Gradle Worker 1]"));
-        assertThat(result.getOutput(), containsLine("FINISH [test process 'Gradle Worker 1'] [Gradle Worker 1]"));
-        assertThat(result.getOutput(), containsLine("START [test 'Gradle test'] [Gradle test]"));
-        assertThat(result.getOutput(), containsLine("FINISH [test 'Gradle test'] [Gradle test]"));
-        assertThat(result.getOutput(), containsLine("START [test method pass(SomeTest)] [pass]"));
-        assertThat(result.getOutput(), containsLine("FINISH [test method pass(SomeTest)] [pass] [null]"));
-        assertThat(result.getOutput(), containsLine("START [test method fail(SomeTest)] [fail]"));
-        assertThat(result.getOutput(), containsLine("FINISH [test method fail(SomeTest)] [fail] [java.lang.AssertionError]"));
-        assertThat(result.getOutput(), containsLine("START [test method knownError(SomeTest)] [knownError]"));
-        assertThat(result.getOutput(), containsLine("FINISH [test method knownError(SomeTest)] [knownError] [java.lang.RuntimeException: message]"));
-        assertThat(result.getOutput(), containsLine("START [test method unknownError(SomeTest)] [unknownError]"));
-        assertThat(result.getOutput(), containsLine("FINISH [test method unknownError(SomeTest)] [unknownError] [AppException: null]"));
+        assert containsLine(result.getOutput(), "START [tests] [Test Run]");
+        assert containsLine(result.getOutput(), "FINISH [tests] [Test Run]");
+        assert containsLine(result.getOutput(), "START [test process 'Gradle Worker 1'] [Gradle Worker 1]");
+        assert containsLine(result.getOutput(), "FINISH [test process 'Gradle Worker 1'] [Gradle Worker 1]");
+        assert containsLine(result.getOutput(), "START [test 'Gradle test'] [Gradle test]");
+        assert containsLine(result.getOutput(), "FINISH [test 'Gradle test'] [Gradle test]");
+        assert containsLine(result.getOutput(), "START [test method pass(SomeTest)] [pass]");
+        assert containsLine(result.getOutput(), "FINISH [test method pass(SomeTest)] [pass] [null]");
+        assert containsLine(result.getOutput(), "START [test method fail(SomeTest)] [fail]");
+        assert containsLine(result.getOutput(), "FINISH [test method fail(SomeTest)] [fail] [java.lang.AssertionError]");
+        assert containsLine(result.getOutput(), "START [test method knownError(SomeTest)] [knownError]");
+        assert containsLine(result.getOutput(), "FINISH [test method knownError(SomeTest)] [knownError] [java.lang.RuntimeException: message]");
+        assert containsLine(result.getOutput(), "START [test method unknownError(SomeTest)] [unknownError]");
+        assert containsLine(result.getOutput(), "FINISH [test method unknownError(SomeTest)] [unknownError] [AppException: null]");
     }
 
     @Test
@@ -96,7 +102,7 @@ class TestNGIntegrationTest {
         doJavaJdk15Failing("6.3.1")
     }
 
-    private doJavaJdk15Failing(String testNGVersion) {
+    private void doJavaJdk15Failing(String testNGVersion) {
         def execution = executer.withTasks("test").withArguments("-PtestNGVersion=$testNGVersion").runWithFailure().assertThatCause(startsWith('There were failing tests'))
 
         def result = new TestNGExecutionResult(dist.testDir)
@@ -106,10 +112,6 @@ class TestNGIntegrationTest {
         result.testClass('org.gradle.BrokenAfterSuite').assertConfigMethodFailed('cleanup')
         result.testClass('org.gradle.TestWithBrokenMethodDependency').assertTestFailed('broken', equalTo('broken'))
         result.testClass('org.gradle.TestWithBrokenMethodDependency').assertTestSkipped('okTest')
-        assertThat(execution.error, containsString('Test org.gradle.BadTest FAILED'))
-        assertThat(execution.error, containsString('Test org.gradle.TestWithBrokenSetup FAILED'))
-        assertThat(execution.error, containsString('Test org.gradle.BrokenAfterSuite FAILED'))
-        assertThat(execution.error, containsString('Test org.gradle.TestWithBrokenMethodDependency FAILED'))
     }
 
     @Issue("GRADLE-1532")
@@ -145,5 +147,13 @@ test {
 
 """
         executer.withTasks("test").run()
+    }
+    
+    @Test
+    void supportsTestGroups() {
+        executer.withTasks("test").run()
+        def result = new TestNGExecutionResult(dist.testDir)
+        result.assertTestClassesExecuted('org.gradle.groups.SomeTest')
+        result.testClass('org.gradle.groups.SomeTest').assertTestsExecuted("databaseTest")
     }
 }

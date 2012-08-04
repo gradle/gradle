@@ -17,14 +17,13 @@ package org.gradle.api.internal.artifacts
 
 import org.apache.ivy.core.module.descriptor.Artifact
 import org.gradle.api.artifacts.ResolvedDependency
-import org.gradle.api.internal.file.FileSource
+import org.gradle.api.artifacts.ResolvedModuleVersion
+import org.gradle.internal.Factory
 import org.gradle.util.Matchers
 import spock.lang.Specification
 
-import org.gradle.api.artifacts.ResolvedModuleVersion
-
 class DefaultResolvedArtifactTest extends Specification {
-    final FileSource artifactSource = Mock()
+    final Factory artifactSource = Mock()
 
     def "uses extended attributes to determine classifier"() {
         Artifact ivyArtifact = Mock()

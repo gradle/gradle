@@ -15,20 +15,21 @@
  */
 package org.gradle.integtests.resolve.artifactreuse
 
+import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.gradle.integtests.fixtures.HttpServer
 import org.gradle.integtests.fixtures.MavenRepository
-import org.gradle.integtests.fixtures.TargetGradleVersions
-import org.gradle.integtests.fixtures.internal.CrossVersionIntegrationSpec
-import org.junit.Rule
 
-@TargetGradleVersions(['1.0-milestone-6'])
+import org.junit.Rule
+import org.gradle.integtests.fixtures.TargetVersions
+
+@TargetVersions('1.0-milestone-6+')
 class CacheReuseCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
     @Rule public final HttpServer server = new HttpServer()
 
-    def "uses cached artifacts from previous Gradle version"() {
+    def "uses cached artifacts from previous Gradle version when no sha1 header"() {
         given:
-        def projectB = new MavenRepository(file('repo')).module('group', 'projectB').publish()
-
+        def projectB = new MavenRepository(file('repo')).module('org.name', 'projectB').publish()
+        server.sendSha1Header = false
         server.start()
         buildFile << """
 repositories {
@@ -36,7 +37,7 @@ repositories {
 }
 configurations { compile }
 dependencies {
-    compile 'group:projectB:1.0'
+    compile 'org.name:projectB:1.0'
 }
 
 task retrieve(type: Sync) {
@@ -48,7 +49,7 @@ task retrieve(type: Sync) {
         def userHome = file('user-home')
 
         when:
-        server.allowGet('/group', file('repo/group'))
+        server.allowGetOrHead('/org', file('repo/org'))
 
         and:
         version previous withUserHomeDir userHome withTasks 'retrieve' withArguments '-i' run()
@@ -59,8 +60,10 @@ task retrieve(type: Sync) {
 
         when:
         server.resetExpectations()
-        server.expectGet("/group/projectB/1.0/projectB-1.0.pom.sha1", projectB.sha1File(projectB.pomFile))
-        server.expectGet("/group/projectB/1.0/projectB-1.0.jar.sha1", projectB.sha1File(projectB.artifactFile))
+        projectB.allowPomHead(server)
+        projectB.allowPomSha1GetOrHead(server)
+        projectB.allowArtifactHead(server)
+        projectB.allowArtifactSha1GetOrHead(server)
 
         and:
         version current withUserHomeDir userHome withTasks 'retrieve' withArguments '-i' run()
@@ -70,4 +73,48 @@ task retrieve(type: Sync) {
         file('libs/projectB-1.0.jar').assertContentsHaveNotChangedSince(snapshot)
     }
 
+    def "uses cached artifacts from previous Gradle version with sha1 header"() {
+        given:
+        def projectB = new MavenRepository(file('repo')).module('org.name', 'projectB').publish()
+        server.sendSha1Header = true
+        server.start()
+        buildFile << """
+repositories {
+    maven { url 'http://localhost:${server.port}' }
+}
+configurations { compile }
+dependencies {
+    compile 'org.name:projectB:1.0'
+}
+
+task retrieve(type: Sync) {
+    into 'libs'
+    from configurations.compile
+}
+"""
+        and:
+        def userHome = file('user-home')
+
+        when:
+        server.allowGetOrHead('/org', file('repo/org'))
+
+        and:
+        version previous withUserHomeDir userHome withTasks 'retrieve' withArguments '-i' run()
+
+        then:
+        file('libs').assertHasDescendants('projectB-1.0.jar')
+        def snapshot = file('libs/projectB-1.0.jar').snapshot()
+
+        when:
+        server.resetExpectations()
+        projectB.allowPomHead(server)
+        projectB.allowArtifactHead(server)
+
+        and:
+        version current withUserHomeDir userHome withTasks 'retrieve' withArguments '-i' run()
+
+        then:
+        file('libs').assertHasDescendants('projectB-1.0.jar')
+        file('libs/projectB-1.0.jar').assertContentsHaveNotChangedSince(snapshot)
+    }
 }

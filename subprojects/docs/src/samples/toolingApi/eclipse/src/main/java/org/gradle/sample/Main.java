@@ -5,12 +5,22 @@ import org.gradle.tooling.model.*;
 import org.gradle.tooling.model.eclipse.*;
 
 import java.io.File;
+import java.lang.String;
+import java.lang.System;
 
 public class Main {
     public static void main(String[] args) {
         // Configure the connector and create the connection
         GradleConnector connector = GradleConnector.newConnector();
         connector.forProjectDirectory(new File("."));
+
+        if (args.length > 0) {
+            connector.useInstallation(new File(args[0]));
+            if (args.length > 1) {
+                connector.useGradleUserHomeDir(new File(args[1]));
+            }
+        }
+
         if (args.length > 0) {
             connector.useInstallation(new File(args[0]));
         }

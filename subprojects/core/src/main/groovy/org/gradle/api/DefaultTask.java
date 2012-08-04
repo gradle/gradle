@@ -22,7 +22,7 @@ import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.NoConventionMapping;
 
 /**
- * {@code DefaultTask} is the standard {@link Task} implementation. You can extend this to implement your own tasks.
+ * {@code DefaultTask} is the standard {@link Task} implementation. You can extend this to implement your own task types.
  *
  * @author Hans Dockter
  */

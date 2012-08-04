@@ -140,7 +140,7 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
 
     /**
      * In none super class mode a test class is published when the class is a test and it is not abstract. In super
-     * class mode it musn't publish the class otherwise it will get published multiple times (for each extending
+     * class mode it must not publish the class otherwise it will get published multiple times (for each extending
      * class).
      */
     protected void publishTestClass(boolean isTest, TestClassVisitor classVisitor, boolean superClass) {

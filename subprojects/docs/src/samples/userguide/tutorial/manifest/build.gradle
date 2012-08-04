@@ -10,7 +10,7 @@ jar {
 // END SNIPPET add-to-manifest
 
 // START SNIPPET custom-manifest
-sharedManifest = manifest {
+ext.sharedManifest = manifest {
     attributes("Implementation-Title": "Gradle", "Implementation-Version": version)
 }
 task fooJar(type: Jar) {

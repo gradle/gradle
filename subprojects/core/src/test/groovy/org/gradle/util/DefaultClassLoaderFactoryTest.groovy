@@ -70,7 +70,7 @@ class DefaultClassLoaderFactoryTest extends Specification {
         assert ClassLoader.getSystemResource("META-INF/services/javax.xml.parsers.SAXParserFactory")
 
         when:
-        def cl = new URLClassLoader(classpath as URL[], factory.createFilteringClassLoader(getClass().classLoader))
+        def cl = new URLClassLoader(classpath.collect { it.toURL() } as URL[], factory.createFilteringClassLoader(getClass().classLoader))
         def c = cl.loadClass(DefaultClassLoaderFactoryTestHelper.name)
 
         then:
@@ -85,7 +85,7 @@ class DefaultClassLoaderFactoryTest extends Specification {
     }
 
     def getClasspath() {
-        return [ClasspathUtil.getClasspathForClass(DefaultClassLoaderFactoryTestHelper)].collect { it.toURI().toURL() }
+        return [ClasspathUtil.getClasspathForClass(DefaultClassLoaderFactoryTestHelper)].collect { it.toURI() }
     }
 }
 

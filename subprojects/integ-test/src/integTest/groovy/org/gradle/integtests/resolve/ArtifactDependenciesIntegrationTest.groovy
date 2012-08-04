@@ -18,7 +18,7 @@ package org.gradle.integtests.resolve
 import org.gradle.integtests.fixtures.ExecutionFailure
 import org.gradle.integtests.fixtures.MavenRepository
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.util.TestFile
 import org.junit.Before
 import org.junit.Rule
@@ -209,7 +209,9 @@ task test << {
 }
 """
 
-        inTestDirectory().withTasks('test').run()
+        executer.withDeprecationChecksDisabled()
+        def result = inTestDirectory().withTasks('test').run()
+        assert result.output.contains('relying on packaging to define the extension of the main artifact is deprecated')
     }
 
     @Test
@@ -347,7 +349,9 @@ task test << {
     checkDeps configurations.extendedWithType, ['external1-1.0.zip', 'external1-1.0-baseClassifier.jar', 'external1-1.0.txt']
 }
 """
-        inTestDirectory().withTasks('test').run()
+        executer.withDeprecationChecksDisabled()
+        def result = inTestDirectory().withTasks('test').run()
+        assert result.output.contains('relying on packaging to define the extension of the main artifact is deprecated')
     }
 
     @Test

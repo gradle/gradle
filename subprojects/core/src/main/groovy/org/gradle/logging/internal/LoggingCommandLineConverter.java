@@ -17,16 +17,18 @@ package org.gradle.logging.internal;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
-import org.gradle.cli.CommandLineArgumentException;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.cli.AbstractCommandLineConverter;
+import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
-import org.gradle.api.logging.LogLevel;
 import org.gradle.logging.LoggingConfiguration;
 import org.gradle.logging.ShowStacktrace;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 public class LoggingCommandLineConverter extends AbstractCommandLineConverter<LoggingConfiguration> {
     public static final String DEBUG = "d";
@@ -139,6 +141,15 @@ public class LoggingCommandLineConverter extends AbstractCommandLineConverter<Lo
      */
     public Collection<LogLevel> getLogLevels() {
         return Collections.unmodifiableCollection(logLevelMap.values());
+    }
+
+    /**
+     * @return the set of short option strings that are used to configure log levels.
+     */
+    public Set<String> getLogLevelOptions() {
+        Set<String> options = new HashSet<String>(logLevelMap.keySet());
+        options.remove("");
+        return options;
     }
 
     /**

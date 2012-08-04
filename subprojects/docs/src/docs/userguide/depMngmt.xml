@@ -150,8 +150,9 @@
                 When you resolve a <emphasis>changing module</emphasis>, the artifacts are named using the version you requested,
                 but the underlying artifacts may change over time.
             </para>
-            <para>By default, Gradle caches dynamic versions for 24 hours. You can change this cache expiry time for a configuration using the resolution strategy.
-                See <xref linkend='sub:controlling_caching'/> for details.
+            <para>By default, Gradle caches dynamic versions and changing modules for 24 hours.
+                You can override the default cache modes using <link linkend="sec:cache_command_line_options">command line options</link>.
+                You can change the cache expiry times in your build using the <literal>resolution strategy</literal> (see <xref linkend='sec:controlling_caching'/>).
             </para>
         </section>
         <section id='sub:dependency_management_and_java'>
@@ -439,21 +440,38 @@
                 Have also a look at the API documentation of <apilink class="org.gradle.api.artifacts.Dependency"/> and
                 <apilink class="org.gradle.api.artifacts.Configuration"/>.
             </para>
-        </section>
-        <section id='sub:controlling_caching'>
-            <title>Fine-tuned control over dependency caching</title>
-            <para>You can fine-tune certain aspects of caching using the <literal>ResolutionStrategy</literal> for a configuration.</para>
-            <para>By default, Gradle caches dynamic versions for 24 hours. To change how long Gradle will cache the resolved version for a dynamic version, use:
+            <para>
+                Not every transitive dependency can be excluded - some transitive dependencies might be essential
+                for correct runtime behavior of the application. Generally, one can exclude transitive
+                dependencies that are either not required by runtime or that are guaranteed to be available
+                on the target environment/platform.
             </para>
-            <sample id="dynamic-version-cache-control" dir="userguide/artifacts/resolutionStrategy" title="Dynamic version cache control">
-                <sourcefile file="build.gradle" snippet="dynamic-version-cache-control"/>
-            </sample>
-            <para>By default, Gradle caches changing modules for 24 hours. To change how long Gradle will cache the meta-data and artifacts for a changing module, use:
+            <para>
+                Should you exclude per-dependency or per-configuration?
+                It turns out that in majority of cases you want to use the per-configuration exclusion.
+                Here are the some exemplary reasons why one might want to exclude a transitive dependency.
+                Bear in mind that for some of those use cases there are better solutions than exclusions!
+                <itemizedlist>
+                    <listitem>The dependency is undesired due to licensing reasons.</listitem>
+                    <listitem>The dependency is not available in any of remote repositories.</listitem>
+                    <listitem>The dependency is not needed for runtime.</listitem>
+                    <listitem>The dependency has a version that conflicts with a desired version.
+                        For that use case please refer to <xref linkend='sub:version_conflicts'/>
+                        and the documentation on <apilink class='org.gradle.api.artifacts.ResolutionStrategy'/>
+                        for a potentially better solution to the problem.
+                    </listitem>
+                </itemizedlist>
+                Basically, in most of the cases excluding the transitive dependency should be done per configuration.
+                This way the dependency declaration is more explicit. It is also more accurate because a per-dependency
+                exclude rule does not guarantee the given transitive dependency does not show up in the configuration.
+                For example, some other dependency, which does not have any exclude rules, might pull in
+                that unwanted transitive dependency.
             </para>
-            <sample id="changing-module-cache-control" dir="userguide/artifacts/resolutionStrategy" title="Changing module cache control">
-                <sourcefile file="build.gradle" snippet="changing-module-cache-control"/>
-            </sample>
-            <para>For more details, take a look at the API documentation for <apilink class="org.gradle.api.artifacts.ResolutionStrategy"/>.</para>
+            <para>
+                Other examples of the dependency exclusions can be found in the reference for
+                <apilink class='org.gradle.api.artifacts.ModuleDependency'/> or
+                <apilink class='org.gradle.api.artifacts.dsl.DependencyHandler'/>.
+            </para>
         </section>
         <section>
             <title>Optional attributes</title>
@@ -494,7 +512,7 @@
             </para>
         </section>
     </section>
-    <section>
+    <section id='sec:working_with_dependencies'>
         <title>Working with dependencies</title>
         <para>For the examples below we have the following dependencies setup:</para>
         <sample id="configurationHandlingSetup" dir="userguide/artifacts/configurationHandling" title="Configuration.copy">
@@ -529,7 +547,7 @@
         <para>The <code>Configuration.files</code> method always retrieves all artifacts of the <emphasis>whole</emphasis> configuration. It
         then filters the retrieved files by specified dependencies. As you can see in the example, transitive dependencies are included.
         </para>
-        <para>You can also copy a configuration. You can optionally specify that only a subset of dependencies from the orginal configuration
+        <para>You can also copy a configuration. You can optionally specify that only a subset of dependencies from the original configuration
             should be copied. The copying methods come in two flavors. The <code>copy</code> method copies only the dependencies belonging
             explicitly to the configuration. The <code>copyRecursive</code> method copies all the dependencies, including the dependencies from extended
             configurations.
@@ -563,12 +581,15 @@
     </section>
     <section id='sec:repositories'>
         <title>Repositories</title>
-        <para>Gradle repository management, based on Apache Ivy, gives you a lot of freedom
-            regarding repository layout and retrieval policies. Additionally Gradle provides various convenience
-            method to add pre-configured repositories.
+        <para>Gradle repository management, based on Apache Ivy, gives you a lot of freedom regarding repository layout and retrieval policies.
+            Additionally Gradle provides various convenience method to add pre-configured repositories.
         </para>
-        <para>There are several different types of repositories you can declare:</para>
+        <para>You may configure any number of repositories, each of which is treated independently by Gradle. If Gradle finds a module descriptor in a
+        particular repository, it will attempt to download all of the artifacts for that module from <emphasis>the same repository</emphasis>.
+        Although module meta-data and module artifacts must be located in the same repository, it is possible to compose a single repository of multiple
+        URLs, giving multiple locations to search for meta-data files and jar files.</para>
 
+        <para>There are several different types of repositories you can declare:</para>
         <table>
             <title>Repository types</title>
             <thead>
@@ -616,6 +637,9 @@
             <sample id="mavenLocalRepo" dir="userguide/artifacts/defineRepository" title="Adding the local Maven cache as a repository">
                 <sourcefile file="build.gradle" snippet="maven-local"/>
             </sample>
+            <para>Gradle uses the same logic as maven to identify the location of your local maven cache. If a local repository location is defined in a <filename>settings.xml</filename>, this location will be used.
+                The <filename>settings.xml</filename> in <filename><replaceable>USER_HOME</replaceable>/.m2</filename> takes precedence over the <filename>settings.xml</filename> in <filename><replaceable>M2_HOME</replaceable>/conf</filename>.
+                If no <filename>settings.xml</filename> is available, Gradle uses the default location <filename><replaceable>USER_HOME</replaceable>/.m2/repository</filename>.</para>
         </section>
 
         <section id='sub:maven_repo'>
@@ -647,7 +671,7 @@
 
         <section id='sec:flat_dir_resolver'>
             <title>Flat directory repository</title>
-            <para>If you want to use a (flat) filesytem directory as a repository, simply type:
+            <para>If you want to use a (flat) filesystem directory as a repository, simply type:
             </para>
             <sample id="flatDirMulti" dir="userguide/artifacts/defineRepository" title="Flat repository resolver">
                 <sourcefile file="build.gradle" snippet="flat-dir-multi"/>
@@ -703,13 +727,6 @@
                 <sourcefile file="build.gradle" snippet="configure-resolver"/>
             </sample>
         </section>
-        <section id='sub:cache'>
-            <title>Cache</title>
-            <para>When Gradle downloads artifacts from remote repositories it stores them in a local cache located at
-                <filename><replaceable>USER_HOME</replaceable>/.gradle/caches/artifacts</filename>. When Gradle downloads artifacts from a
-                local repository (e.g. maven local, or a flat directory repository), the cache is not used.
-            </para>
-        </section>
         <section id='sub:more_about_ivy_resolvers'>
             <title>More about Ivy resolvers</title>
             <para>Gradle, thanks to Ivy under its hood, is extremely flexible regarding repositories:
@@ -758,14 +775,161 @@ someroot/[artifact]-[revision].[ext]
             </para>
         </section>
     </section>
+    <section id='sec:dependency_resolution'>
+        <title>How dependency resolution works</title>
+        <para>Gradle takes your dependency declarations and repository definitions and attempts to download all of your dependencies by a process called <emphasis>dependency resolution</emphasis>.
+        Below is a brief outline of how this process works.</para>
+        <itemizedlist>
+            <listitem>
+                <para>
+                    Given a required dependency, Gradle first attempts to resolve the <emphasis>module</emphasis> for that dependency. Each repository is inspected in order, searching
+                    first for a <emphasis>module descriptor</emphasis> file (pom or ivy file) that indicates the presence of that module. If no module descriptor is found,
+                    Gradle will search for the presence of the primary <emphasis>module artifact</emphasis> file indicating that the module exists in the repository.
+                </para>
+                <itemizedlist>
+                    <listitem>
+                        <para>If the dependency is declared as a dynamic version (like <literal>1.+</literal>), Gradle will resolve this to the newest available static version (like <literal>1.2</literal>)
+                            in the repository. For maven repositories, this is done using the <literal>maven-metadata.xml</literal> file, while for ivy repositories this is done by directory listing.</para>
+                    </listitem>
+                    <listitem>
+                        <para>If the module descriptor is a <literal>pom</literal> file that has a parent pom declared, Gradle will recursively attempt to resolve each of the parent modules for the pom.</para>
+                    </listitem>
+                </itemizedlist>
+            </listitem>
+            <listitem>
+                <para>Once each repository has been inspected for the module, Gradle will choose the 'best' one to use. This is done using the following criteria:
+                    <itemizedlist>
+                        <listitem>For a dynamic version, a 'higher' static version is preferred over a 'lower' version.</listitem>
+                        <listitem>Modules declared by a module descriptor file (ivy or pom file) are preferred over modules that have an artifact file only.</listitem>
+                        <listitem>Modules from earlier repositories are preferred over modules in later repositories.</listitem>
+                    </itemizedlist>
+                </para>
+                <para>When the dependency is declared by a static version and a module descriptor file is found in a repository, there is no need to continue searching later
+                repositories and the remainder of the process is short-circuited.</para>
+            </listitem>
+            <listitem>
+                <para>All of the artifacts for the module are then requested from the <emphasis>same repository</emphasis> that was chosen in the process above.</para>
+            </listitem>
+        </itemizedlist>
+    </section>
+    <section id='sec:dependency_cache'>
+        <title>The dependency cache</title>
+        <para>Gradle contains a highly sophisticated dependency caching mechanism, which seeks to minimise the number of remote requests made in
+        dependency resolution, while striving to guarantee that the results of dependency resolution are correct and reproducible.
+        </para>
+        <para>
+            The Gradle dependency cache consists of 2 key types of storage:</para>
+        <itemizedlist>
+            <listitem>
+                <para>A file-based store of downloaded artifacts, including binaries like jars as well as raw downloaded meta-data like pom files and ivy files.
+                      The storage path for a downloaded artifact includes the SHA1 checksum, meaning that 2 artifacts with the same name but different content can easily be cached.
+                </para>
+            </listitem>
+            <listitem>
+                <para>A binary store of resolved module meta-data, including the results of resolving dynamic versions, module descriptors, and artifacts.</para>
+            </listitem>
+        </itemizedlist>
+        <para>Separating the storage of downloaded artifacts from the cache metadata permits us to do some very powerful things with our cache that would be difficult with a transparent,
+            file-only cache layout.</para>
+        <para>The Gradle cache does not allow the local cache to hide problems and creating mysterious and difficult to debug behavior
+            that has been a challenge with many build tools. This new behavior is implemented in a bandwidth and storage efficient way.
+            In doing so, Gradle enables reliable and reproducible enterprise builds.</para>
+
+        <section id='sec:cache_features'>
+            <title>Key features of the Gradle dependency cache</title>
+            <section id='sub:cache_metadata'>
+                <title>Separate metadata cache</title>
+                <para>
+                    Gradle keeps a record of various aspects of dependency resolution in binary format in the metadata cache.
+                    The information stored in the metadata cache includes:
+                    <itemizedlist>
+                        <listitem>The result of resolving a dynamic version (eg 1.+) to a concrete version (eg 1.2).</listitem>
+                        <listitem>The resolved module metadata for a particular module, including module artifacts and module dependencies.</listitem>
+                        <listitem>The resolved artifact metadata for a particular artifact, including a pointer to the downloaded artifact file.</listitem>
+                        <listitem>The <emphasis>absence</emphasis> of a particular module or artifact in a particular repository,
+                            eliminating repeated attempts to access a resource that does not exist. </listitem>
+                    </itemizedlist>
+                    Every entry in the metadata cache includes a record of the repository that provided the information as well as a timestamp that can be used for cache expiry.
+                </para>
+            </section>
+            <section id='sub:cache_repository_independence'>
+                <title>Repository caches are independent</title>
+                <para>As described above, for each repository there is a separate metadata cache. A repository is identified by its URL, type and layout.
+                    If a module or artifact has not been previously resolved from <emphasis>this repository</emphasis>, Gradle will attempt to resolve the module
+                    against the repository. This will always involve a remote lookup on the repository, however in many cases no download will be required (see <xref linkend='sub:cache_artifact_reuse'/>, below).</para>
+                <para>Dependency resolution will fail if the required artifacts are not available in any repository specified by the build,
+                    regardless whether the local cache has retrieved this artifact from a different repository.
+                    Repository independence allows builds to be isolated from each other in an advanced way that no build tool has done before.
+                    This is a key feature to create builds that are reliable and reproducible in any environment.</para>
+            </section>
+            <section id='sub:cache_artifact_reuse'>
+                <title>Artifact reuse</title>
+                <para>Before downloading an artifact, Gradle tries to determine the checksum of the required artifact by downloading the sha file associated
+                    with that artifact. If the checksum can be retrieved, an artifact is not downloaded if an artifact already exists with the same id and checksum.
+                    If the checksum cannot be retrieved from the remote server, the artifact will be downloaded (and ignored if it matches an existing artifact).</para>
+                <para>As well as considering artifacts downloaded from a different repository, Gradle will also attempt to reuse artifacts found in the local Maven Repository.
+                    If a candidate artifact has been downloaded by Maven, Gradle will use this artifact if it can be verified to match the checksum declared by the remote server.</para>
+            </section>
+            <section id='sub:cache_checksum_storage'>
+                <title>Checksum based storage</title>
+                <para>
+                    It is possible for different repositories to provide a different binary artifact in response to the same artifact identifier. This is often the case with Maven SNAPSHOT
+                    artifacts, but can also be true for any artifact which is republished without changing it's identifier.
+                    By caching artifacts based on their SHA1 checksum, Gradle is able to maintain multiple versions of the same artifact. This means that when resolving against
+                    one repository Gradle will never overwrite the cached artifact file from a different repository. This is done without requiring a separate artifact file store per repository.
+                </para>
+            </section>
+            <section id='sub:cache_locking'>
+                <title>Cache Locking</title>
+                <para>
+                    The Gradle dependency cache uses file-based locking to ensure that it can safely be used by multiple Gradle processes concurrently. The lock is held whenever the binary
+                    meta-data store is being read or written, but is released for slow operations such as downloading remote artifacts.
+                </para>
+            </section>
+        </section>
+        <section id='sec:cache_command_line_options'>
+            <title>Command line options to override caching</title>
+            <section id='sub:cache_offline'>
+                <title>Offline</title>
+                <para>The <literal>--offline</literal> command line switch tells Gradle to always use dependency modules from the cache, regardless if they are due to be checked again.
+                    When running with offline, Gradle will never attempt to access the network to perform dependency resolution.
+                    If required modules are not present in the dependency cache, build execution will fail.</para>
+            </section>
+            <section id='sub:cache_refresh'>
+                <title>Refresh</title>
+                <para>At times, the Gradle Dependency Cache can be out of sync with the actual state of the configured repositories. Perhaps a repository was initially misconfigured,
+                    or perhaps a "non-changing" module was published incorrectly. To refresh all dependencies in the dependency cache, use the <literal>--refresh-dependencies</literal>
+                    option on the command line.</para>
+                <para>The <literal>--refresh-dependencies</literal> option tells Gradle to ignore all cached entries for resolved modules and artifacts.
+                    A fresh resolve will be performed against all configured repositories, with dynamic versions recalculated, modules refreshed, and artifacts downloaded.
+                    However, where possible Gradle will attempt to if the previously downloaded artifacts are valid before downloading again.
+                    This is done by comparing published SHA1 values in the repository with the SHA1 values for existing downloaded artifacts.</para>
+            </section>
+        </section>
+        <section id='sec:controlling_caching'>
+            <title>Fine-tuned control over dependency caching</title>
+            <para>You can fine-tune certain aspects of caching using the <literal>ResolutionStrategy</literal> for a configuration.</para>
+            <para>By default, Gradle caches dynamic versions for 24 hours. To change how long Gradle will cache the resolved version for a dynamic version, use:
+            </para>
+            <sample id="dynamic-version-cache-control" dir="userguide/artifacts/resolutionStrategy" title="Dynamic version cache control">
+                <sourcefile file="build.gradle" snippet="dynamic-version-cache-control"/>
+            </sample>
+            <para>By default, Gradle caches changing modules for 24 hours. To change how long Gradle will cache the meta-data and artifacts for a changing module, use:
+            </para>
+            <sample id="changing-module-cache-control" dir="userguide/artifacts/resolutionStrategy" title="Changing module cache control">
+                <sourcefile file="build.gradle" snippet="changing-module-cache-control"/>
+            </sample>
+            <para>For more details, take a look at the API documentation for <apilink class="org.gradle.api.artifacts.ResolutionStrategy"/>.</para>
+        </section>
+    </section>
     <section id='sec:strategies_of_transitive_dependency_management'>
         <title>Strategies for transitive dependency management</title>
-        <para>Many projects rely on the <ulink url='http://repo1.maven.org/maven2'>Maven2 repository</ulink>. This is not
+        <para>Many projects rely on the <ulink url='http://repo1.maven.org/maven2'>Maven Central repository</ulink>. This is not
             without problems.
         </para>
         <itemizedlist>
             <listitem>
-                <para>The IBibilio repository can be down or has a very long response time.
+                <para>The Maven Central repository can be down or has a very long response time.
                 </para>
             </listitem>
             <listitem>
@@ -780,27 +944,27 @@ someroot/[artifact]-[revision].[ext]
                 </para>
             </listitem>
         </itemizedlist>
-        <para>If your project relies on the IBibilio repository you are likely to need an additional custom repository,
+        <para>If your project relies on the Maven Central repository you are likely to need an additional custom repository,
             because:
         </para>
         <itemizedlist>
             <listitem>
-                <para>You might need dependencies that are not uploaded to IBibilio yet.
+                <para>You might need dependencies that are not uploaded to Maven Central yet.
                 </para>
             </listitem>
             <listitem>
-                <para>You want to deal properly with wrong metadata in a IBibilio <literal>pom.xml</literal>.
+                <para>You want to deal properly with wrong metadata in a Maven Central <literal>pom.xml</literal>.
                 </para>
             </listitem>
             <listitem>
                 <para>You don't want to expose people who want to build your project, to the
-                    downtimes or sometimes very long response times of IBibilio.
+                    downtimes or sometimes very long response times of Maven Central.
                 </para>
             </listitem>
         </itemizedlist>
         <para>It is not a big deal to set-up a custom repository.
             <footnote>
-                <para>If you want to shield your project from the downtimes of IBibilio things get more complicated. You
+                <para>If you want to shield your project from the downtimes of Maven Central things get more complicated. You
                     probably want to set-up a repository proxy for this. In an enterprise environment this is rather
                     common. For an open source project it looks like overkill.
                 </para>

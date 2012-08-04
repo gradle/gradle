@@ -25,7 +25,8 @@ class ModuleVersionResolveExceptionTest extends Specification {
         def b = ModuleRevisionId.newInstance("org", "b", "5")
         def c = ModuleRevisionId.newInstance("org", "c", "1.0")
 
-        def exception = new ModuleVersionResolveException("broken")
+        def cause = new RuntimeException()
+        def exception = new ModuleVersionResolveException("broken", cause)
         def onePath = exception.withIncomingPaths([[a, b, c]])
         def twoPaths = exception.withIncomingPaths([[a, b, c], [a, c]])
 
@@ -36,6 +37,7 @@ class ModuleVersionResolveExceptionTest extends Specification {
 Required by:
     org:a:1.2 > org:b:5 > org:c:1.0''')
         onePath.stackTrace == exception.stackTrace
+        onePath.cause == cause
 
         twoPaths.message == toPlatformLineSeparators('''broken
 Required by:

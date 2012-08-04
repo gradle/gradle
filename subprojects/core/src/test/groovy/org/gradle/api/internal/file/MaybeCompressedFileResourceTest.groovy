@@ -30,6 +30,9 @@ public class MaybeCompressedFileResourceTest extends Specification {
         expect:
         new MaybeCompressedFileResource(new FileResource(new File("foo"))).resource instanceof FileResource
         new MaybeCompressedFileResource(new FileResource(new File("foo.tgz"))).resource instanceof GzipArchiver
+        new MaybeCompressedFileResource(new FileResource(new File("foo.gz"))).resource instanceof GzipArchiver
+        new MaybeCompressedFileResource(new FileResource(new File("foo.bz2"))).resource instanceof Bzip2Archiver
         new MaybeCompressedFileResource(new FileResource(new File("foo.tbz2"))).resource instanceof Bzip2Archiver
+
     }
 }

@@ -18,10 +18,7 @@ package org.gradle.api.publication.maven.internal.ant;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Exclusion;
 import org.gradle.api.GradleException;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.DependencyArtifact;
-import org.gradle.api.artifacts.ExcludeRule;
-import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.artifacts.*;
 import org.gradle.api.artifacts.maven.Conf2ScopeMapping;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.publication.maven.internal.ExcludeRuleConverter;
@@ -118,7 +115,12 @@ public class DefaultPomDependenciesConverter implements PomDependenciesConverter
             Set<Configuration> configurations) {
         Dependency mavenDependency =  new Dependency();
         mavenDependency.setGroupId(dependency.getGroup());
-        mavenDependency.setArtifactId(name);
+        if (dependency instanceof ProjectDependency) {
+            String artifactId = new ProjectDependencyArtifactIdExtractorHack((ProjectDependency) dependency).extract();
+            mavenDependency.setArtifactId(artifactId);
+        } else {
+            mavenDependency.setArtifactId(name);
+        }
         mavenDependency.setVersion(dependency.getVersion());
         mavenDependency.setType(type);
         mavenDependency.setScope(scope);

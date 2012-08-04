@@ -16,15 +16,14 @@
 
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.BuildAdapter;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.invocation.Gradle;
+import org.gradle.initialization.ModelConfigurationListener;
 import org.gradle.tooling.internal.protocol.ProjectVersion3;
 
 /**
  * @author Szczepan Faber, @date: 25.03.11
  */
-public class ModelBuildingAdapter extends BuildAdapter {
+public class ModelBuildingAdapter implements ModelConfigurationListener {
 
     private final BuildsModel builder;
     private ProjectVersion3 eclipseProject;
@@ -33,9 +32,8 @@ public class ModelBuildingAdapter extends BuildAdapter {
         this.builder = builder;
     }
 
-    @Override
-    public void projectsEvaluated(Gradle gradle) {
-        eclipseProject = builder.buildAll((GradleInternal) gradle);
+    public void onConfigure(GradleInternal model) {
+        eclipseProject = builder.buildAll(model);
     }
 
     public ProjectVersion3 getProject() {

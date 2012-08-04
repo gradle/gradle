@@ -27,7 +27,9 @@ import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
-import org.gradle.util.HashUtil;
+import org.gradle.internal.nativeplatform.filesystem.FileSystem;
+import org.gradle.util.DeprecationLogger;
+import org.gradle.util.hash.HashUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -44,7 +46,7 @@ public class ZipFileTree implements MinimalFileTree, FileSystemMirroringFileTree
 
     public ZipFileTree(File zipFile, File tmpDir) {
         this.zipFile = zipFile;
-        String expandDirName = String.format("%s_%s", zipFile.getName(), HashUtil.createHash(zipFile.getAbsolutePath()));
+        String expandDirName = String.format("%s_%s", zipFile.getName(), HashUtil.createCompactMD5(zipFile.getAbsolutePath()));
         this.tmpDir = new File(tmpDir, expandDirName);
     }
 
@@ -58,6 +60,8 @@ public class ZipFileTree implements MinimalFileTree, FileSystemMirroringFileTree
 
     public void visit(FileVisitor visitor) {
         if (!zipFile.exists()) {
+            DeprecationLogger.nagUserWith(String.format("The specified zip file %s does not exist and will be silently ignored."
+                + " This behaviour has been deprecated and will cause an error in the next version of Gradle.", getDisplayName()));
             return;
         }
         if (!zipFile.isFile()) {
@@ -144,6 +148,19 @@ public class ZipFileTree implements MinimalFileTree, FileSystemMirroringFileTree
 
         public RelativePath getRelativePath() {
             return new RelativePath(!entry.isDirectory(), entry.getName().split("/"));
+        }
+
+        public int getMode() {
+            int unixMode = entry.getUnixMode() & 0777;
+            if(unixMode == 0){
+                //no mode infos available - fall back to defaults
+                if(isDirectory()){
+                    unixMode = FileSystem.DEFAULT_DIR_MODE;
+                }else{
+                    unixMode = FileSystem.DEFAULT_FILE_MODE;
+                }
+            }
+            return unixMode;
         }
     }
 }

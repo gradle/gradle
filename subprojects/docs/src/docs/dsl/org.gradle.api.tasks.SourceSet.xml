@@ -22,16 +22,8 @@
                 <td/>
             </tr>
             <tr>
-                <td>classes</td>
-                <td>See <apilink class="org.gradle.api.tasks.SourceSetOutput"/></td>
-            </tr>
-            <tr>
                 <td>output</td>
                 <td>See <apilink class="org.gradle.api.tasks.SourceSetOutput"/></td>
-            </tr>
-            <tr>
-                <td>classesDir</td>
-                <td><literal><replaceable>${project.buildDir}</replaceable>/classes/<replaceable>${sourceSet.name}</replaceable></literal></td>
             </tr>
             <tr>
                 <td>compileClasspath</td>
@@ -47,7 +39,7 @@
             </tr>
             <tr>
                 <td>runtimeClasspath</td>
-                <td><literal>sourceSet.classes + project.configurations.runtime</literal> (or <literal>sourceSet.classes + project.configurations.testRuntime</literal> for the <literal>test</literal> source set).</td>
+                <td><literal>sourceSet.output + project.configurations.runtime</literal> (or <literal>sourceSet.output + project.configurations.testRuntime</literal> for the <literal>test</literal> source set).</td>
             </tr>
         </table>
     </section>

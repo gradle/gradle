@@ -29,6 +29,14 @@ public interface PropertyActionContext {
     Class<?> getType();
 
     /**
+     * If the property has an instance variable, returns the declared type of the instance variable.
+     *
+     * This may be different to {@link #getType()} if the public getter has a different return type.
+     * If there is no instance variable for this property, will return null.
+     */
+    Class<?> getInstanceVariableType();
+
+    /**
      * Returns the target for this property.
      */
     AnnotatedElement getTarget();

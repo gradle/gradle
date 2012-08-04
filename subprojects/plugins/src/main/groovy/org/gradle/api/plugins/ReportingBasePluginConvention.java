@@ -15,61 +15,86 @@
  */
 package org.gradle.api.plugins;
 
-import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.reporting.ReportingExtension;
+import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
+import java.util.concurrent.Callable;
 
 /**
  * <p>A {@code BasePluginConvention} defines the convention properties and methods used by the {@link
  * ReportingBasePlugin}.</p>
+ * <p>
+ * This convention has been deprecated. Use the reporting extension instead:
+ * </p>
+ * <pre>
+ * reporting {
+ *     baseDir "the-reports"
+ * }
+ * </pre>
+ *
+ * @deprecated This convention has been deprecated and replaced by {@link ReportingExtension}
  */
+@Deprecated
 public class ReportingBasePluginConvention {
-    private String reportsDirName = "reports";
-    private ProjectInternal project;
+    private ReportingExtension extension;
+    private final ProjectInternal project;
 
-    public ReportingBasePluginConvention(ProjectInternal project) {
+    public ReportingBasePluginConvention(ProjectInternal project, ReportingExtension extension) {
         this.project = project;
+        this.extension = extension;
     }
 
     /**
      * Returns the name of the reports directory, relative to the project's build directory.
      *
+     * @deprecated use {@link org.gradle.api.reporting.ReportingExtension#getBaseDir()}
      * @return The reports directory name. Never returns null.
      */
+    @Deprecated
     public String getReportsDirName() {
-        return reportsDirName;
+        DeprecationLogger.nagUserOfReplacedProperty("reportsDirName", "reporting.baseDir");
+        return extension.getBaseDir().getName();
     }
 
     /**
      * Sets the name of the reports directory, relative to the project's build directory.
      *
+     * @deprecated use {@link ReportingExtension#setBaseDir(Object)}
      * @param reportsDirName The reports directory name. Should not be null.
      */
-    public void setReportsDirName(String reportsDirName) {
-        this.reportsDirName = reportsDirName;
+    @Deprecated
+    public void setReportsDirName(final String reportsDirName) {
+        DeprecationLogger.nagUserOfReplacedProperty("reportsDirName", "reporting.baseDir");
+        extension.setBaseDir(new Callable<File>() {
+            public File call() throws Exception {
+                return project.getFileResolver().withBaseDir(project.getBuildDir()).resolve(reportsDirName);
+            }
+        });
     }
 
     /**
      * Returns the directory containing all reports for this project.
      *
+     * @deprecated use {@link org.gradle.api.reporting.ReportingExtension#getBaseDir()}
      * @return The reports directory. Never returns null.
      */
+    @Deprecated
     public File getReportsDir() {
-        return project.getFileResolver().withBaseDir(project.getBuildDir()).resolve(reportsDirName);
+        DeprecationLogger.nagUserOfReplacedProperty("reportsDir", "reporting.baseDir");
+        return extension.getBaseDir();
     }
 
     /**
      * Returns the title for API documentation for the project.
      *
+     * @deprecated use {@link org.gradle.api.reporting.ReportingExtension#getApiDocTitle()}
      * @return The title. Never returns null.
      */
+    @Deprecated
     public String getApiDocTitle() {
-        Object version = project.getVersion();
-        if (Project.DEFAULT_VERSION.equals(version)) {
-            return String.format("%s API", project.getName());
-        } else {
-            return String.format("%s %s API", project.getName(), version);
-        }
+        DeprecationLogger.nagUserOfReplacedProperty("apiDocTitle", "reporting.apiDocTitle");
+        return extension.getApiDocTitle();
     }
 }

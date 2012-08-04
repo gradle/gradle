@@ -1,0 +1,37 @@
+
+configurations {
+    classycle
+}
+
+dependencies {
+    classycle 'classycle:classycle:1.4@jar'
+}
+
+sourceSets.all { sourceSet ->
+    def taskName = sourceSet.getTaskName('classycle', null)
+    task(taskName){
+        def reportFile = reporting.file("classcycle/${sourceSet.name}.xml")
+        inputs.files sourceSet.output
+        outputs.file reportFile
+        doLast {
+            if (!sourceSet.output.classesDir.directory) {
+                return;
+            }
+            ant.taskdef(name: "classycleDependencyCheck", classname: "classycle.ant.DependencyCheckingTask", classpath: configurations.classycle.asPath)
+            reportFile.parentFile.mkdirs()
+            try {
+                ant.classycleDependencyCheck(reportFile: reportFile, failOnUnwantedDependencies: true, mergeInnerClasses: true,
+                    """
+                        check absenceOfPackageCycles > 1 in org.gradle.*
+                    """
+                ) {
+                    fileset(dir: sourceSet.output.classesDir)
+                }
+            } catch(Exception e) {
+                throw new RuntimeException("Classycle check failed: $e.message. See report at $reportFile", e)
+            }
+        }
+    }
+    check.dependsOn taskName
+    codeQuality.dependsOn taskName
+}

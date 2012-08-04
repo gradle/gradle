@@ -17,9 +17,11 @@
 package org.gradle.plugins.ide.eclipse
 
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
+import spock.lang.Issue
 
 /**
  * @author Szczepan Faber, created at: 4/19/11
@@ -35,6 +37,7 @@ class EclipseWtpModelIntegrationTest extends AbstractEclipseIntegrationTest {
     void allowsConfiguringEclipseWtp() {
         //given
         file('someExtraSourceDir').mkdirs()
+        file('src/foo/bar').mkdirs()
 
         def repoDir = file("repo")
         maven(repoDir).module("gradle", "foo").publish()
@@ -221,7 +224,7 @@ eclipse {
         runEclipseTask """
 apply plugin: 'java'
 apply plugin: 'war'
-apply plugin: 'eclipse'
+apply plugin: 'eclipse-wtp'
 
 configurations {
   configOne
@@ -235,14 +238,18 @@ dependencies {
 
 eclipse {
   wtp {
-    plusConfigurations += configurations.configOne
-    minusConfigurations += configurations.configTwo
+    component {
+        plusConfigurations += configurations.configOne
+        minusConfigurations += configurations.configTwo
+    }
   }
 }
         """
 
         def component = getFile([:], '.settings/org.eclipse.wst.common.component').text
-        //then build assertions - at the moment the test blows up
+        assert component.contains('foo.txt')
+        assert component.contains('bar.txt')
+        assert !component.contains('baz.txt')
     }
 
     @Test
@@ -256,25 +263,345 @@ eclipse {
 project(':impl') {
   apply plugin: 'java'
   apply plugin: 'war'
-  apply plugin: 'eclipse'
+  apply plugin: 'eclipse-wtp'
 
   dependencies { compile project(':contrib') }
 }
 
 project(':contrib') {
   apply plugin: 'java'
-  apply plugin: 'eclipse'
+  apply plugin: 'eclipse-wtp'
 }
 """
         //when
         executer.usingSettingsFile(settings).usingBuildScript(build).withTasks('eclipse').run()
 
         //then
-        getComponentFile(project: 'impl')
-        getFacetFile(project: 'impl')
+        assert getComponentFile(project: 'impl').exists()
+        assert getFacetFile(project: 'impl').exists()
 
-        getComponentFile(project: 'contrib')
-        getFacetFile(project: 'contrib')
+        assert getComponentFile(project: 'contrib').exists()
+        assert getFacetFile(project: 'contrib').exists()
+    }
+
+    @Test
+    @Issue("GRADLE-1881")
+    void "uses eclipse project name for wtp module dependencies"() {
+        //given
+        def settings = file('settings.gradle')
+        settings << "include 'impl', 'contrib'"
+
+        def build = file('build.gradle')
+        build << """
+project(':impl') {
+  apply plugin: 'java'
+  apply plugin: 'war'
+  apply plugin: 'eclipse-wtp'
+
+  dependencies { compile project(':contrib') }
+
+  eclipse.project.name = 'cool-impl'
+}
+
+project(':contrib') {
+  apply plugin: 'java'
+  apply plugin: 'eclipse-wtp'
+  //should not have war nor ear applied
+
+  eclipse.project.name = 'cool-contrib'
+}
+"""
+        //when
+        executer.usingSettingsFile(settings).usingBuildScript(build).withTasks('eclipse').run()
+
+        //then
+        //the deploy name is correct:
+        assert getComponentFile(project: 'impl').text.contains('deploy-name="cool-impl"')
+        //the dependent-module name is correct:
+        assert getComponentFile(project: 'impl').text.contains('handle="module:/resource/cool-contrib/cool-contrib"')
+        //the submodule name is correct:
+        assert getComponentFile(project: 'contrib').text.contains('deploy-name="cool-contrib"')
+    }
+
+    @Test
+    @Issue("GRADLE-1881")
+    void "does not explode if dependent project does not have eclipse plugin"() {
+        //given
+        def settings = file('settings.gradle')
+        settings << "include 'impl', 'contrib'"
+
+        def build = file('build.gradle')
+        build << """
+project(':impl') {
+  apply plugin: 'java'
+  apply plugin: 'war'
+  apply plugin: 'eclipse-wtp'
+
+  dependencies { compile project(':contrib') }
+
+  eclipse.project.name = 'cool-impl'
+}
+
+project(':contrib') {
+  apply plugin: 'java'
+}
+"""
+        //when
+        executer.usingSettingsFile(settings).usingBuildScript(build).withTasks('eclipse').run()
+
+        //then no exception thrown
+    }
+
+    @Test
+    @Issue("GRADLE-2030")
+    void "component for war plugin does not contain non-existing source and resource dirs"() {
+        //given
+        file('xxxSource').createDir()
+        file('xxxResource').createDir()
+
+        //when
+        runEclipseTask """
+          apply plugin: 'java'
+          apply plugin: 'war'
+          apply plugin: 'eclipse-wtp'
+          
+          sourceSets.main.java.srcDirs 'yyySource', 'xxxSource'
+
+          eclipse.wtp.component {
+            resource sourcePath: 'xxxResource', deployPath: 'deploy-xxx'
+            resource sourcePath: 'yyyResource', deployPath: 'deploy-yyy'
+          }
+"""
+        //then
+        def component = getComponentFile().text
+
+        assert component.contains('xxxSource')
+        assert !component.contains('yyySource')
+
+        assert component.contains('xxxResource')
+        assert !component.contains('yyyResource')
+    }
+
+    @Test
+    @Issue("GRADLE-2030")
+    void "component for ear plugin does not contain non-existing source and resource dirs"() {
+        //given
+        file('xxxSource').createDir()
+        file('xxxResource').createDir()
+
+        //when
+        runEclipseTask """
+          apply plugin: 'java'
+          apply plugin: 'ear'
+          apply plugin: 'eclipse-wtp'
+
+          sourceSets.main.java.srcDirs 'yyySource', 'xxxSource'
+
+          appDirName = 'nonExistingAppDir'
+
+          eclipse.wtp.component {
+            resource sourcePath: 'xxxResource', deployPath: 'deploy-xxx'
+            resource sourcePath: 'yyyResource', deployPath: 'deploy-yyy'
+          }
+"""
+        //then
+        def component = getComponentFile().text
+
+        assert component.contains('xxxSource')
+        assert !component.contains('yyySource')
+
+        assert component.contains('xxxResource')
+        assert !component.contains('yyyResource')
+        
+        assert !component.contains('nonExistingAppDir')
+    }
+
+    @Test
+    void "component for ear plugin contains the app dir"() {
+        //given
+        file('coolAppDir').createDir()
+
+        //when
+        runEclipseTask """
+          apply plugin: 'java'
+          apply plugin: 'ear'
+          apply plugin: 'eclipse-wtp'
+
+          appDirName = 'coolAppDir'
+"""
+        //then
+        def component = getComponentFile().text
+
+        assert component.contains('coolAppDir')
+    }
+
+    @Test
+    @Issue("GRADLE-1974")
+    void "may use web libraries container"() {
+        //given
+        //adding a little bit more stress with a subproject and some web resources:
+        file("src/main/webapp/index.jsp") << "<html>Hey!</html>"
+        file("settings.gradle") << "include 'someCoolLib'"
+
+        file("build.gradle") << """
+            apply plugin: 'war'
+            apply plugin: 'eclipse-wtp'
+
+            project(':someCoolLib') {
+              apply plugin: 'java'
+              apply plugin: 'eclipse-wtp'
+            }
+
+            repositories { mavenCentral() }
+
+            dependencies {
+              compile 'commons-io:commons-io:1.4'
+              compile project(':someCoolLib')
+            }
+        """
+
+        //when
+        executer.withTasks("eclipse").run()
+
+        //then the container is configured
+        assert getClasspathFile().text.contains(EclipseWtpPlugin.WEB_LIBS_CONTAINER)
+    }
+
+    @Test
+    @Issue("GRADLE-1974")
+    void "the web container is not present without war+wtp combo"() {
+        //given
+        file("build.gradle") << """
+            apply plugin: 'java' //anything but not war
+            apply plugin: 'eclipse-wtp'
+        """
+
+        //when
+        executer.withTasks("eclipse").run()
+
+        //then container is added only once:
+        assert !getClasspathFile().text.contains(EclipseWtpPlugin.WEB_LIBS_CONTAINER)
+    }
+
+    @Test
+    @Issue("GRADLE-1707")
+    void "the library and variable classpath entries are marked as component non-dependency"() {
+        //given
+        file('libs/myFoo.jar').touch()
+
+        file("build.gradle") << """
+            apply plugin: 'war'
+            apply plugin: 'eclipse-wtp'
+
+            repositories { mavenCentral() }
+
+            dependencies {
+              compile 'commons-io:commons-io:1.4'
+              compile files('libs/myFoo.jar')
+            }
+
+            eclipse.pathVariables MY_LIBS: file('libs')
+        """
+
+        //when
+        executer.withTasks("eclipse").run()
+
+        //then
+        def classpath = getClasspathFile(print: true).text
+        def component = getComponentFile().text
+
+        //the jar dependency is configured in the WTP component file and in the classpath
+        assert classpath.contains('commons-io')
+        assert component.contains('commons-io')
+
+        assert classpath.contains('kind="var" path="MY_LIBS/myFoo.jar"')
+        assert component.contains('myFoo.jar')
+
+        //the jar dependencies are configured as non-dependency in the .classpath
+        classpath.count(AbstractClasspathEntry.COMPONENT_NON_DEPENDENCY_ATTRIBUTE) == 2
+        classpath.count(AbstractClasspathEntry.COMPONENT_DEPENDENCY_ATTRIBUTE) == 0
+    }
+
+    @Test
+    @Issue("GRADLE-1707")
+    void "classpath entries are protected from conflicting component dependency attributes"() {
+        //given
+        file("build.gradle") << """
+            apply plugin: 'war'
+            apply plugin: 'eclipse-wtp'
+
+            repositories { mavenCentral() }
+
+            dependencies {
+              compile 'commons-io:commons-io:1.4'
+            }
+
+            import org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry
+
+            eclipse.classpath.file.whenMerged { cp ->
+              cp.entries.each {
+                if(it instanceof AbstractClasspathEntry) {
+                  //some people have workarounds in their builds and configure the component dependency,
+                  //just like here:
+                  it.entryAttributes[AbstractClasspathEntry.COMPONENT_DEPENDENCY_ATTRIBUTE] = 'WEB-INF/lib'
+                }
+              }
+            }
+        """
+
+        //when
+        executer.withTasks("eclipse").run()
+
+        //then
+        def classpath = getClasspathFile(print: true).text
+        //component dependency wins:
+        assert classpath.contains(AbstractClasspathEntry.COMPONENT_DEPENDENCY_ATTRIBUTE)
+        //non-dependency (our default) loses:
+        assert !classpath.contains(AbstractClasspathEntry.COMPONENT_NON_DEPENDENCY_ATTRIBUTE)
+    }
+
+    @Test
+    @Issue("GRADLE-1412")
+    void "dependent project's library and variable classpath entries contain necessary dependency attribute"() {
+        //given
+        file('libs/myFoo.jar').touch()
+        file('settings.gradle') << "include 'someLib'"
+
+        file("build.gradle") << """
+            apply plugin: 'war'
+            apply plugin: 'eclipse-wtp'
+
+            dependencies {
+                compile project(':someLib')
+            }
+
+            project(':someLib') {
+                apply plugin: 'java'
+                apply plugin: 'eclipse-wtp'
+                
+                repositories { mavenCentral() }
+
+                dependencies {
+                  compile 'commons-io:commons-io:1.4'
+                  compile files('libs/myFoo.jar')
+                }
+
+                eclipse.pathVariables MY_LIBS: file('libs')
+            }
+        """
+
+        //when
+        executer.withTasks("eclipse").run()
+
+        //then
+        def classpath = getClasspathFile(project: 'someLib', print: true).text
+
+        //contains both entries
+        assert classpath.contains('kind="var" path="MY_LIBS/myFoo.jar"')
+        assert classpath.contains('commons-io')
+
+        //both var and lib entries have the attribute
+        classpath.count('<attribute name="org.eclipse.jst.component.dependency" value="../"/>') == 2
     }
 
     protected def contains(String ... contents) {

@@ -23,13 +23,13 @@ import java.util.concurrent.CopyOnWriteArrayList;
 /**
  * A {@code ClassLoader} which delegates to multiple parent ClassLoaders.
  */
-public class MultiParentClassLoader extends ClassLoader {
+public class MultiParentClassLoader extends ClassLoader implements ClasspathSource {
     private final List<ClassLoader> parents;
     private final JavaMethod<ClassLoader, Package[]> getPackagesMethod;
     private final JavaMethod<ClassLoader, Package> getPackageMethod;
 
     public MultiParentClassLoader(ClassLoader... parents) {
-        super(parents.length == 0 ? null : parents[0]);
+        super(null);
         this.parents = new CopyOnWriteArrayList<ClassLoader>(Arrays.asList(parents));
         getPackagesMethod = JavaMethod.create(ClassLoader.class, Package[].class, "getPackages");
         getPackageMethod = JavaMethod.create(ClassLoader.class, Package.class, "getPackage", String.class);
@@ -37,6 +37,12 @@ public class MultiParentClassLoader extends ClassLoader {
 
     public void addParent(ClassLoader parent) {
         parents.add(parent);
+    }
+
+    public void collectClasspath(Collection<? super URL> classpath) {
+        for (ClassLoader parent : parents) {
+            new ClassLoaderBackedClasspathSource(parent).collectClasspath(classpath);
+        }
     }
 
     @Override

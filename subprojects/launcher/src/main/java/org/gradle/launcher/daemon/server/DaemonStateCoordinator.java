@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,12 @@
 
 package org.gradle.launcher.daemon.server;
 
-import org.gradle.util.UncheckedException;
 import org.gradle.api.logging.Logging;
-
-import org.gradle.messaging.concurrent.Stoppable;
-import org.gradle.messaging.concurrent.AsyncStoppable;
-import org.gradle.messaging.concurrent.DefaultExecutorFactory;
-
+import org.gradle.internal.Stoppable;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.launcher.daemon.server.exec.DaemonCommandExecution;
+import org.gradle.launcher.daemon.server.exec.DaemonStateControl;
 
 import java.util.Date;
 import java.util.concurrent.locks.Condition;
@@ -38,13 +36,14 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  * This is not exposed to clients of the daemon.
  */
-public class DaemonStateCoordinator implements Stoppable, AsyncStoppable {
+public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
 
     private static final org.gradle.api.logging.Logger LOGGER = Logging.getLogger(DaemonStateCoordinator.class);
 
     private final Lock lock = new ReentrantLock();
-    private final Condition condition = lock.newCondition();
+    Condition condition = lock.newCondition();
 
+    private boolean stoppingOrStopped;
     private boolean stopped;
     private long lastActivityAt = -1;
     private DaemonCommandExecution currentCommandExecution;
@@ -53,12 +52,14 @@ public class DaemonStateCoordinator implements Stoppable, AsyncStoppable {
     private final Runnable onStartCommand;
     private final Runnable onFinishCommand;
     private final Runnable onStop;
+    private final Runnable onStopRequested;
 
-    public DaemonStateCoordinator(Runnable onStart, Runnable onStartCommand, Runnable onFinishCommand, Runnable onStop) {
+    public DaemonStateCoordinator(Runnable onStart, Runnable onStartCommand, Runnable onFinishCommand, Runnable onStop, Runnable onStopRequested) {
         this.onStart = onStart;
         this.onStartCommand = onStartCommand;
         this.onFinishCommand = onFinishCommand;
         this.onStop = onStop;
+        this.onStopRequested = onStopRequested;
     }
 
     /**
@@ -71,7 +72,7 @@ public class DaemonStateCoordinator implements Stoppable, AsyncStoppable {
                 try {
                     condition.await();
                 } catch (InterruptedException e) {
-                    throw UncheckedException.asUncheckedException(e);
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
             }
         } finally {
@@ -124,7 +125,7 @@ public class DaemonStateCoordinator implements Stoppable, AsyncStoppable {
                         throw new IllegalStateException("waiting for daemon to stop or idle timeout, daemon has started but is not busy or idle, this shouldn't happen");
                     }
                 } catch (InterruptedException e) {
-                    throw UncheckedException.asUncheckedException(e);
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
             }
         } finally {
@@ -138,24 +139,80 @@ public class DaemonStateCoordinator implements Stoppable, AsyncStoppable {
         }
     }
 
+    /**
+     * Perform a stop, but wait until the daemon is idle to cut any open connections.
+     *
+     * The daemon will be removed from the registry upon calling this regardless of whether it is busy or not.
+     * If it is idle, this method will block until the daemon fully stops.
+     *
+     * If the daemon is busy, this method will return after removing the daemon from the registry but before the
+     * daemon is fully stopped. In this case, the daemon will stop as soon as {@link #onFinishCommand()} is called.
+     */
+    public void stopAsSoonAsIdle() {
+        lock.lock();
+        try {
+            LOGGER.debug("Stop as soon as idle requested. The daemon is busy: " + isBusy());
+            if (isBusy()) {
+                onStopRequested.run();
+                stoppingOrStopped = true;
+            } else {
+               stop();
+            }
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    /**
+     * Forcibly stops the daemon, even if it is busy.
+     *
+     * If the daemon is busy and the client is waiting for a response, it may receive “null” from the daemon
+     * as the connection may be closed by this method before the result is sent back.
+     *
+     * @see #stopAsSoonAsIdle()
+     */
     public void stop() {
         lock.lock();
         try {
             LOGGER.debug("Stop requested. The daemon is running a build: " + isBusy());
-            stopped = true;
+            if (!isStoppingOrStopped()) {
+                onStopRequested.run();
+            }
+            stoppingOrStopped = true;
             onStop.run();
+            stopped = true;
             condition.signalAll();
         } finally {
             lock.unlock();
         }
     }
 
-    public void requestStop() {
-        new DefaultExecutorFactory().create("Daemon Async Stop Request").execute(new Runnable() {
-            public void run() {
-                stop();
+    Runnable asyncStop = new Runnable() {
+        public void run() {
+            new DefaultExecutorFactory().create("Daemon Async Stop Request").execute(new Runnable() {
+                public void run() {
+                    stop();
+                }
+            });
+        }
+    };
+
+    /**
+     * @return returns false if the daemon was already requested to stop
+     */
+    public boolean requestStop() {
+        lock.lock();
+        try {
+            if (stoppingOrStopped) {
+                return false;
             }
-        });
+            stoppingOrStopped = true;
+            onStopRequested.run(); //blocking
+            asyncStop.run(); //not blocking
+            return true;
+        } finally {
+            lock.unlock();
+        }
     }
 
     /**
@@ -194,6 +251,8 @@ public class DaemonStateCoordinator implements Stoppable, AsyncStoppable {
      * <p>
      * If the daemon is currently idle, this method will return {@code null}. If it is busy, it will return what was the
      * current execution which will considered to be complete (putting the daemon back in idle state).
+     * <p>
+     * If {@link #stopAsSoonAsIdle()} was previously called, this method will block while the daemon {@link #stop() stops}
      */
     public DaemonCommandExecution onFinishCommand() {
         lock.lock();
@@ -205,8 +264,12 @@ public class DaemonStateCoordinator implements Stoppable, AsyncStoppable {
                 LOGGER.debug("onFinishCommand() called while execution = {}", execution);
                 currentCommandExecution = null;
                 updateActivityTimestamp();
-                onFinishCommand.run();
-                condition.signalAll();
+                if (isStoppingOrStopped()) {
+                    stop();
+                } else {
+                    onFinishCommand.run();
+                    condition.signalAll();
+                }
             }
 
             return execution;
@@ -263,6 +326,10 @@ public class DaemonStateCoordinator implements Stoppable, AsyncStoppable {
 
     public boolean isStopped() {
         return stopped;
+    }
+
+    public boolean isStoppingOrStopped() {
+        return stoppingOrStopped;
     }
 
     public boolean isIdle() {

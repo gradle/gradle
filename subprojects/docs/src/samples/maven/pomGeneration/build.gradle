@@ -58,8 +58,8 @@ uploadArchives {
 
 // Customize the contents of the pom
 
-installer = install.repositories.mavenInstaller
-deployer = uploadArchives.repositories.mavenDeployer
+ext.installer = install.repositories.mavenInstaller
+ext.deployer = uploadArchives.repositories.mavenDeployer
 
 [installer, deployer]*.pom*.version = '1.0MVN'
 installer.pom.project {

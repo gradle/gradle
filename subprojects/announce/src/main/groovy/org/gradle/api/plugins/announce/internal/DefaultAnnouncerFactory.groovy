@@ -15,20 +15,26 @@
  */
 package org.gradle.api.plugins.announce.internal
 
-import org.gradle.api.plugins.announce.Announcer
 import org.gradle.api.InvalidUserDataException
-import org.gradle.os.OperatingSystem
+import org.gradle.api.JavaVersion
+import org.gradle.api.internal.ProcessOperations
 import org.gradle.api.plugins.announce.AnnouncePluginExtension
-import org.gradle.util.Jvm
+import org.gradle.api.plugins.announce.Announcer
+import org.gradle.internal.jvm.Jvm
+import org.gradle.internal.os.OperatingSystem
 
 /**
  * @author Hans Dockter
  */
 class DefaultAnnouncerFactory implements AnnouncerFactory {
     private final AnnouncePluginExtension announcePluginConvention
+    private final IconProvider iconProvider
+    private final ProcessOperations processOperations
 
-    DefaultAnnouncerFactory(announcePluginConvention) {
+    DefaultAnnouncerFactory(AnnouncePluginExtension announcePluginConvention, ProcessOperations processOperations, IconProvider iconProvider) {
         this.announcePluginConvention = announcePluginConvention
+        this.iconProvider = iconProvider
+        this.processOperations = processOperations
     }
 
     Announcer createAnnouncer(String type) {
@@ -51,18 +57,18 @@ class DefaultAnnouncerFactory implements AnnouncerFactory {
                 String password = announcePluginConvention.password
                 return new Twitter(username, password)
             case "notify-send":
-                return new NotifySend(announcePluginConvention.project)
+                return new NotifySend(processOperations, iconProvider)
             case "snarl":
-                return new Snarl()
+                return new Snarl(iconProvider)
             case "growl":
-                if (Jvm.current().supportsAppleScript) {
+                if (JavaVersion.current().java6Compatible && Jvm.current().supportsAppleScript) {
                     try {
-                        return getClass().getClassLoader().loadClass("org.gradle.api.plugins.announce.internal.AppleScriptBackedGrowlAnnouncer").newInstance()
+                        return getClass().getClassLoader().loadClass("org.gradle.api.plugins.announce.internal.jdk6.AppleScriptBackedGrowlAnnouncer").newInstance(iconProvider)
                     } catch (ClassNotFoundException e) {
                         // Ignore and fall back to growl notify
                     }
                 }
-                return new GrowlNotifyBackedAnnouncer(announcePluginConvention.project)
+                return new GrowlNotifyBackedAnnouncer(processOperations, iconProvider)
             default:
                 return null
         }

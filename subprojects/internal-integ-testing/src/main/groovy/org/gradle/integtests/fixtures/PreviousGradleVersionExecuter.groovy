@@ -18,20 +18,30 @@ package org.gradle.integtests.fixtures
 import org.gradle.CacheUsage
 import org.gradle.api.Action
 import org.gradle.cache.PersistentCache
+import org.gradle.cache.internal.CacheFactory
 import org.gradle.cache.internal.DefaultCacheFactory
 import org.gradle.cache.internal.DefaultFileLockManager
 import org.gradle.cache.internal.DefaultProcessMetaDataProvider
 import org.gradle.cache.internal.FileLockManager.LockMode
+import org.gradle.internal.jvm.Jvm
+import org.gradle.internal.nativeplatform.ProcessEnvironment
+import org.gradle.internal.nativeplatform.services.NativeServices
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.launcher.daemon.registry.DaemonRegistry
-import org.gradle.os.OperatingSystem
-import org.gradle.os.jna.NativeEnvironment
 import org.gradle.util.DistributionLocator
 import org.gradle.util.GradleVersion
-import org.gradle.util.Jvm
 import org.gradle.util.TestFile
 
 public class PreviousGradleVersionExecuter extends AbstractGradleExecuter implements BasicGradleDistribution {
-    private static final CACHE_FACTORY = new DefaultCacheFactory(new DefaultFileLockManager(new DefaultProcessMetaDataProvider(NativeEnvironment.current()))).create()
+    private static final CACHE_FACTORY = createCacheFactory()
+
+    private static CacheFactory createCacheFactory() {
+        return new DefaultCacheFactory(
+                new DefaultFileLockManager(
+                        new DefaultProcessMetaDataProvider(
+                                new NativeServices().get(ProcessEnvironment)))).create()
+    }
+
     private final GradleDistribution dist
     final GradleVersion version
     private final TestFile versionDir
@@ -56,8 +66,16 @@ public class PreviousGradleVersionExecuter extends AbstractGradleExecuter implem
     }
 
     boolean worksWith(Jvm jvm) {
+        // Milestone 4 was broken on the IBM jvm
+        if (jvm.ibmJvm && version == GradleVersion.version('1.0-milestone-4')) {
+            return false
+        }
         // 0.9-rc-1 was broken for Java 5
-        return version == GradleVersion.version('0.9-rc-1') ? jvm.isJava6Compatible() : jvm.isJava5Compatible()
+        if (version == GradleVersion.version('0.9-rc-1')) {
+            return jvm.javaVersion.isJava6Compatible()
+        }
+
+        return jvm.javaVersion.isJava5Compatible()
     }
 
     boolean worksWith(OperatingSystem os) {
@@ -72,7 +90,12 @@ public class PreviousGradleVersionExecuter extends AbstractGradleExecuter implem
         throw new UnsupportedOperationException()
     }
     
-    boolean daemonSupported() {
+    boolean isDaemonSupported() {
+        // Milestone 7 was broken on the IBM jvm
+        if (Jvm.current().ibmJvm && version == GradleVersion.version('1.0-milestone-7')) {
+            return false
+        }
+
         if (OperatingSystem.current().isWindows()) {
             // On windows, daemon is ok for anything > 1.0-milestone-3
             return version > GradleVersion.version('1.0-milestone-3')
@@ -80,6 +103,10 @@ public class PreviousGradleVersionExecuter extends AbstractGradleExecuter implem
             // Daemon is ok for anything >= 0.9
             return version >= GradleVersion.version('0.9')
         }
+    }
+
+    boolean isDaemonIdleTimeoutConfigurable() {
+        return version > GradleVersion.version('1.0-milestone-6')
     }
 
     boolean isOpenApiSupported() {
@@ -92,11 +119,18 @@ public class PreviousGradleVersionExecuter extends AbstractGradleExecuter implem
 
     boolean wrapperCanExecute(String version) {
         if (version == '0.8' || this.version == GradleVersion.version('0.8')) {
+            // There was a breaking change after 0.8
             return false
         }
         if (this.version == GradleVersion.version('0.9.1')) {
             // 0.9.1 couldn't handle anything with a timestamp whose timezone was behind GMT
             return version.matches('.*+\\d{4}')
+        }
+        if (this.version >= GradleVersion.version('0.9.2') && this.version <= GradleVersion.version('1.0-milestone-2')) {
+            // These versions couldn't handle milestone patches
+            if (version.matches('1.0-milestone-\\d+[a-z]-.+')) {
+                return false
+            }
         }
         return true
     }
@@ -118,7 +152,7 @@ public class PreviousGradleVersionExecuter extends AbstractGradleExecuter implem
     }
 
     private URL getBinDistributionUrl() {
-        return new URL(new DistributionLocator().getDistributionFor(version))
+        return new DistributionLocator().getDistributionFor(version).toURL()
     }
 
     def TestFile getGradleHomeDir() {
@@ -134,7 +168,7 @@ public class PreviousGradleVersionExecuter extends AbstractGradleExecuter implem
                 zipFile.copyFrom(url)
                 zipFile.usingNativeTools().unzipTo(versionDir)
             }
-            cache = CACHE_FACTORY.open(versionDir, version.toString(), CacheUsage.ON, [:], LockMode.Shared, downloadAction as Action)
+            cache = CACHE_FACTORY.open(versionDir, version.toString(), CacheUsage.ON, null, [:], LockMode.Shared, downloadAction as Action)
         }
         zipFile.assertIsFile()
         homeDir.assertIsDir()

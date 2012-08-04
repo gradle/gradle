@@ -15,11 +15,14 @@
  */
 package org.gradle.api.internal.file;
 
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.RelativePath;
+import org.gradle.internal.nativeplatform.filesystem.FileSystems;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.io.InputStream;
+import java.io.IOException;
 
 public class DefaultFileTreeElement extends AbstractFileTreeElement {
     private final File file;
@@ -56,5 +59,13 @@ public class DefaultFileTreeElement extends AbstractFileTreeElement {
 
     public RelativePath getRelativePath() {
         return relativePath;
+    }
+
+    public int getMode() {
+        try {
+            return FileSystems.getDefault().getUnixMode(file);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 }

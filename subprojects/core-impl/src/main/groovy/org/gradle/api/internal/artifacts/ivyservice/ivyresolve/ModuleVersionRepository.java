@@ -17,27 +17,29 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.apache.ivy.core.report.DownloadReport;
-import org.apache.ivy.core.resolve.DownloadOptions;
-import org.apache.ivy.core.resolve.ResolveData;
-import org.apache.ivy.core.resolve.ResolvedModuleRevision;
+import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 
 /**
  * A repository of module versions.
  *
  * <p>Current contains a subset of methods from {@link org.apache.ivy.plugins.resolver.DependencyResolver}, while we transition away from it.
- * The plan is to sync with (or replace with) {@link org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolver}.
+ * The plan is to sync with (or replace with) {@link org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver}.
  */
 public interface ModuleVersionRepository {
     String getId();
 
-    ResolvedModuleRevision getDependency(DependencyDescriptor dd, ResolveData data);
+    String getName();
 
-    DownloadReport download(Artifact[] artifacts, DownloadOptions options);
+    /**
+     * @return null if not found.
+     */
+    ModuleVersionDescriptor getDependency(DependencyDescriptor dd) throws ModuleVersionResolveException;
 
-    // TODO - should be part of the meta-data returned by getDependency()
-    boolean isChanging(ResolvedModuleRevision revision, ResolveData resolveData);
+    /**
+     * @return null if not found.
+     */
+    DownloadedArtifact download(Artifact artifact) throws ArtifactResolveException;
 
-    // TODO - should be internal to the implementation of this
+    // TODO - should be internal to the implementation of this (is only used to communicate DependencyResolverAdapter -> CachingModuleVersionRepository)
     boolean isLocal();
 }

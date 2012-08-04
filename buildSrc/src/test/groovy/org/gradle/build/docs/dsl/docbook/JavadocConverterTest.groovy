@@ -16,9 +16,9 @@
 package org.gradle.build.docs.dsl.docbook
 
 import org.gradle.build.docs.XmlSpecification
-import org.gradle.build.docs.dsl.model.ClassMetaData
-import org.gradle.build.docs.dsl.model.PropertyMetaData
-import org.gradle.build.docs.dsl.model.MethodMetaData
+import org.gradle.build.docs.dsl.source.model.ClassMetaData
+import org.gradle.build.docs.dsl.source.model.PropertyMetaData
+import org.gradle.build.docs.dsl.source.model.MethodMetaData
 
 class JavadocConverterTest extends XmlSpecification {
     final ClassMetaData classMetaData = Mock()
@@ -245,6 +245,16 @@ literal code</programlisting><para> does something.
         then:
         format(result.docbook) == '<para><link linkend="org.gradle.Class.anchor">some value</link></para>'
         _ * classMetaData.className >> 'org.gradle.Class'
+    }
+
+    def convertsAnAElementWithAnHref() {
+        _ * classMetaData.rawCommentText >> '<a href="http://gradle.org">some value</a>'
+
+        when:
+        def result = parser.parse(classMetaData, listener)
+
+        then:
+        format(result.docbook) == '<para><ulink url="http://gradle.org">some value</ulink></para>'
     }
 
     def convertsAnEmElementToAnEmphasisElement() {

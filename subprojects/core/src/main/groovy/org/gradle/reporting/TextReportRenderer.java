@@ -15,7 +15,7 @@
  */
 package org.gradle.reporting;
 
-import org.gradle.util.UncheckedException;
+import org.gradle.internal.UncheckedException;
 
 import java.io.*;
 
@@ -38,7 +38,7 @@ public abstract class TextReportRenderer<T> {
                 writer.close();
             }
         } catch (Exception e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 }

@@ -21,6 +21,7 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.tasks.Delete
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.plugins.ide.eclipse.model.BuildCommand
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
@@ -30,7 +31,7 @@ import spock.lang.Specification
  */
 class EclipsePluginTest extends Specification {
     private final DefaultProject project = HelperUtil.createRootProject()
-    private final EclipsePlugin eclipsePlugin = new EclipsePlugin()
+    private final EclipsePlugin eclipsePlugin = new EclipsePlugin(project.services.get(Instantiator))
 
     def applyToBaseProject_shouldOnlyHaveEclipseProjectTask() {
         when:
@@ -130,12 +131,6 @@ class EclipsePluginTest extends Specification {
         GenerateEclipseProject eclipseProjectTask = project.eclipseProject
         assert eclipseProjectTask instanceof GenerateEclipseProject
         assert project.tasks.eclipse.taskDependencies.getDependencies(project.tasks.eclipse).contains(eclipseProjectTask)
-        assert eclipseProjectTask.buildCommands == buildCommands
-        assert eclipseProjectTask.natures == natures
-        assert eclipseProjectTask.links == [] as Set
-        assert eclipseProjectTask.referencedProjects == [] as Set
-        assert eclipseProjectTask.comment == null
-        assert eclipseProjectTask.projectName == project.name
         assert eclipseProjectTask.outputFile == project.file('.project')
     }
 
@@ -154,8 +149,6 @@ class EclipsePluginTest extends Specification {
     private void checkEclipseJdt() {
         GenerateEclipseJdt eclipseJdt = project.eclipseJdt
         assert project.tasks.eclipse.taskDependencies.getDependencies(project.tasks.eclipse).contains(eclipseJdt)
-        assert eclipseJdt.sourceCompatibility == project.sourceCompatibility
-        assert eclipseJdt.targetCompatibility == project.targetCompatibility
         assert eclipseJdt.outputFile == project.file('.settings/org.eclipse.jdt.core.prefs')
     }
 

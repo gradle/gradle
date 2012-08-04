@@ -15,7 +15,7 @@
  */
 package org.gradle.integtests
 
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.ExecutionFailure
 import org.gradle.util.TestFile
 import org.junit.Test
@@ -27,14 +27,14 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationTest {
         buildFile.writelns(
                 "task('do-stuff').doFirst",
                 "{",
-                "1/0",
+                "throw new ArithmeticException('broken')",
                 "}")
         ExecutionFailure failure = usingBuildFile(buildFile).withTasks("do-stuff").runWithFailure()
 
         failure.assertHasFileName(String.format("Build file '%s'", buildFile))
         failure.assertHasLineNumber(3)
         failure.assertHasDescription("Execution failed for task ':do-stuff'")
-        failure.assertHasCause("Division by zero")
+        failure.assertHasCause("broken")
     }
 
     @Test

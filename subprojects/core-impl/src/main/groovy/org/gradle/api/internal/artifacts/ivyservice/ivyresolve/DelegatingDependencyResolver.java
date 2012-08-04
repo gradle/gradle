@@ -38,8 +38,9 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.util.Map;
 
-public class DelegatingDependencyResolver implements DependencyResolver {
+abstract class DelegatingDependencyResolver implements DependencyResolver {
     private final DependencyResolver resolver;
+    private ResolverSettings settings;
 
     public DelegatingDependencyResolver(DependencyResolver resolver) {
         this.resolver = resolver;
@@ -51,6 +52,15 @@ public class DelegatingDependencyResolver implements DependencyResolver {
 
     public String getName() {
         return resolver.getName();
+    }
+
+    public ResolverSettings getSettings() {
+        return settings;
+    }
+
+    public void setSettings(ResolverSettings settings) {
+        this.settings = settings;
+        resolver.setSettings(settings);
     }
 
     public Namespace getNamespace() {
@@ -134,10 +144,6 @@ public class DelegatingDependencyResolver implements DependencyResolver {
     }
 
     public void dumpSettings() {
-        throw new UnsupportedOperationException();
-    }
-
-    public void setSettings(ResolverSettings settings) {
         throw new UnsupportedOperationException();
     }
 }

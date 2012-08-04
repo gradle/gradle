@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.cache
 
-import org.gradle.api.internal.Factory
+import org.gradle.internal.Factory
 
 import spock.lang.*
 

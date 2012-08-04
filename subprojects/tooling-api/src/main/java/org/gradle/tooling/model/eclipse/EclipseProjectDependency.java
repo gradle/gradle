@@ -22,8 +22,10 @@ import org.gradle.tooling.model.ProjectDependency;
  */
 public interface EclipseProjectDependency extends ProjectDependency {
     /**
-     * {@inheritDoc}
-     */
+    * Returns the target of this dependency.
+    *
+    * @return The target project. Does not return null.
+    */
     HierarchicalEclipseProject getTargetProject();
 
     /**

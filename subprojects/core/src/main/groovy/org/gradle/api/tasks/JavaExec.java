@@ -19,7 +19,6 @@ package org.gradle.api.tasks;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.specs.Specs;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.ProcessForkOptions;
@@ -43,11 +42,10 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     public JavaExec() {
         FileResolver fileResolver = getServices().get(FileResolver.class);
         javaExecHandleBuilder = new DefaultJavaExecAction(fileResolver);
-        getOutputs().upToDateWhen(Specs.<Object>satisfyNone());
     }
 
     @TaskAction
-    void exec() {
+    public void exec() {
         setMain(getMain()); // make convention mapping work (at least for 'main')
         javaExecHandleBuilder.execute();
     }
@@ -147,6 +145,34 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     public JavaExec bootstrapClasspath(Object... classpath) {
         javaExecHandleBuilder.bootstrapClasspath(classpath);
         return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public String getMinHeapSize() {
+        return javaExecHandleBuilder.getMinHeapSize();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void setMinHeapSize(String heapSize) {
+        javaExecHandleBuilder.setMinHeapSize(heapSize);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public String getDefaultCharacterEncoding() {
+        return javaExecHandleBuilder.getDefaultCharacterEncoding();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void setDefaultCharacterEncoding(String defaultCharacterEncoding) {
+        javaExecHandleBuilder.setDefaultCharacterEncoding(defaultCharacterEncoding);
     }
 
     /**

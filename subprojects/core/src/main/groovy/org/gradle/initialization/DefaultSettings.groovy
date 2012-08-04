@@ -17,8 +17,8 @@
 package org.gradle.initialization
 
 import org.gradle.StartParameter
-import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.api.internal.GradleInternal
+import org.gradle.groovy.scripts.ScriptSource
 
 /**
  * @author Hans Dockter
@@ -33,11 +33,4 @@ public class DefaultSettings extends BaseSettings {
       super(gradle, projectDescriptorRegistry, classloader, settingsDir, settingsScript, startParameter)
     }
 
-    def propertyMissing(String property) {
-        return dynamicObjectHelper.getProperty(property)
-    }
-
-    void setProperty(String name, value) {
-        dynamicObjectHelper.setProperty(name, value) 
-    }
 }

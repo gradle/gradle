@@ -4,5 +4,6 @@ dependencies { testCompile 'junit:junit:4.8.2', 'ant:ant:1.6.1', 'ant:ant-launch
 test {
     systemProperties.testSysProperty = 'value'
     systemProperties.projectDir = projectDir
+    systemProperties.expectedClassPath = sourceSets.test.runtimeClasspath.asPath
     environment.TEST_ENV_VAR = 'value'
 }

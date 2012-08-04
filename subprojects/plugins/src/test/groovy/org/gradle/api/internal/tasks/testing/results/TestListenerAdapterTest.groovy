@@ -15,12 +15,14 @@
  */
 package org.gradle.api.internal.tasks.testing.results
 
-import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter.UnableToFindTest
 import org.gradle.api.tasks.testing.TestResult.ResultType
-import org.junit.Test
-import spock.lang.Specification
 import org.gradle.api.internal.tasks.testing.*
 import org.gradle.api.tasks.testing.*
+
+import org.junit.Test
+
+import spock.lang.Issue
+import spock.lang.Specification
 
 class TestListenerAdapterTest extends Specification {
 
@@ -37,7 +39,7 @@ class TestListenerAdapterTest extends Specification {
 
         then:
         1 * listener.beforeTest({ it instanceof DecoratingTestDescriptor && it.descriptor == test })
-        0 * _._
+        0 * _
     }
 
     public void notifiesAfter() {
@@ -54,7 +56,7 @@ class TestListenerAdapterTest extends Specification {
                 { it instanceof DecoratingTestDescriptor && it.descriptor == test },
                 { it.successfulTestCount == 1 && it.testCount == 1 && it.failedTestCount == 0 }
         )
-        0 * _._
+        0 * _
     }
 
     public void createsAResultForATestWithFailure() {
@@ -69,9 +71,9 @@ class TestListenerAdapterTest extends Specification {
 
         then:
         1 * listener.beforeTest(_)
-        1 * listener.afterTest( { it.descriptor == test },
-            { it.successfulTestCount == 0 && it.testCount == 1 && it.failedTestCount == 1 && it.exception.is(failure) })
-        0 * _._
+        1 * listener.afterTest({ it.descriptor == test },
+                { it.successfulTestCount == 0 && it.testCount == 1 && it.failedTestCount == 1 && it.exception.is(failure) })
+        0 * _
     }
 
     public void createsAResultForATestWithMultipleFailures() {
@@ -88,7 +90,7 @@ class TestListenerAdapterTest extends Specification {
 
         then:
         1 * listener.afterTest(_,
-            { it.exception.is(failure1) && it.exceptions == [failure1, failure2] })
+                { it.exception.is(failure1) && it.exceptions == [failure1, failure2] })
     }
 
     public void createsAnAggregateResultForEmptyTestSuite() {
@@ -104,7 +106,7 @@ class TestListenerAdapterTest extends Specification {
         1 * listener.afterSuite({it.descriptor == suite}, {
             it.testCount == 0 && it.resultType == ResultType.SUCCESS
         })
-        0 * _._
+        0 * _
     }
 
     public void createsAnAggregateResultForTestSuiteWithPassedTest() {
@@ -122,8 +124,8 @@ class TestListenerAdapterTest extends Specification {
         1 * listener.beforeSuite({it.descriptor == suite})
         1 * listener.beforeTest({it.descriptor == test})
         1 * listener.afterTest({it.descriptor == test}, _ as TestResult)
-        1 * listener.afterSuite({it.descriptor == suite}, { it.testCount == 1 } )
-        0 * _._
+        1 * listener.afterSuite({it.descriptor == suite}, { it.testCount == 1 })
+        0 * _
     }
 
     public void createsAnAggregateResultForTestSuiteWithFailedTest() {
@@ -147,8 +149,8 @@ class TestListenerAdapterTest extends Specification {
         1 * listener.beforeTest({it.descriptor == broken && it.parent.descriptor == suite})
         1 * listener.afterTest({it.descriptor == ok}, _ as TestResult)
         1 * listener.afterTest({it.descriptor == broken}, _ as TestResult)
-        1 * listener.afterSuite({it.descriptor == suite}, { it.testCount == 2 && it.failedTestCount == 1 && it.successfulTestCount == 1 } )
-        0 * _._
+        1 * listener.afterSuite({it.descriptor == suite}, { it.testCount == 2 && it.failedTestCount == 1 && it.successfulTestCount == 1 })
+        0 * _
     }
 
     public void createsAnAggregateResultForTestSuiteWithSkippedTest() {
@@ -167,8 +169,8 @@ class TestListenerAdapterTest extends Specification {
         1 * listener.beforeTest({it.descriptor == test && it.parent.descriptor == suite})
         1 * listener.afterTest({it.descriptor == test}, _ as TestResult)
         1 * listener.afterSuite({it.descriptor == suite},
-                { it.resultType == ResultType.SUCCESS && it.testCount == 1 && it.failedTestCount == 0 && it.successfulTestCount == 0 } )
-        0 * _._
+                { it.resultType == ResultType.SUCCESS && it.testCount == 1 && it.failedTestCount == 0 && it.successfulTestCount == 0 })
+        0 * _
     }
 
     @Test
@@ -205,11 +207,11 @@ class TestListenerAdapterTest extends Specification {
         1 * listener.afterTest({it.descriptor == ok}, _ as TestResult)
         1 * listener.afterTest({it.descriptor == broken}, _ as TestResult)
 
-        1 * listener.afterSuite({it.descriptor == root},   { it.successfulTestCount == 1 && it.testCount == 2 && it.resultType == ResultType.FAILURE})
+        1 * listener.afterSuite({it.descriptor == root}, { it.successfulTestCount == 1 && it.testCount == 2 && it.resultType == ResultType.FAILURE})
         1 * listener.afterSuite({it.descriptor == suite1}, { it.successfulTestCount == 1 && it.testCount == 1 && it.resultType == ResultType.SUCCESS})
         1 * listener.afterSuite({it.descriptor == suite2}, { it.successfulTestCount == 0 && it.testCount == 1 && it.resultType == ResultType.FAILURE})
 
-        0 * _._
+        0 * _
     }
 
     public void createsAnAggregateResultForTestSuiteWithFailure() {
@@ -230,8 +232,8 @@ class TestListenerAdapterTest extends Specification {
         1 * listener.beforeTest({it.descriptor == test && it.parent.descriptor == suite})
         1 * listener.afterTest({it.descriptor == test}, _ as TestResult)
         1 * listener.afterSuite({it.descriptor == suite},
-                { it.resultType == ResultType.FAILURE && it.exception.is(failure) && it.exceptions == [failure] } )
-        0 * _._
+                { it.resultType == ResultType.FAILURE && it.exception.is(failure) && it.exceptions == [failure] })
+        0 * _
     }
 
     def "notifies output listener"() {
@@ -247,7 +249,8 @@ class TestListenerAdapterTest extends Specification {
         1 * outputListener.onOutput({it.descriptor == test}, event)
     }
 
-    def "fails gracefully if the test that incurred the output event is unknown"() {
+    @Issue("GRADLE-2035")
+    def "behaves gracefully even if cannot match output to the test"() {
         given:
         def event = new DefaultTestOutputEvent(TestOutputEvent.Destination.StdOut, "hey!")
 
@@ -255,6 +258,67 @@ class TestListenerAdapterTest extends Specification {
         adapter.output("testid", event)
 
         then:
-        thrown(UnableToFindTest)
+        1 * outputListener.onOutput({it instanceof UnknownTestDescriptor}, event)
+    }
+
+    @Issue("GRADLE-2035")
+    def "output can be received after test completion"() {
+        given:
+        TestDescriptor suite = new DefaultTestSuiteDescriptor("1", "DogTest");
+        TestDescriptor test1 = new DefaultTestDescriptor("1.1", "DogTest", "shouldBarkAtStrangers");
+
+        def woof = new DefaultTestOutputEvent(TestOutputEvent.Destination.StdOut, "woof woof!")
+
+        when:
+        adapter.started(suite, new TestStartEvent(100L))
+        adapter.started(test1, new TestStartEvent(100L, '1'))
+
+        adapter.completed('1.1', new TestCompleteEvent(200L))
+        adapter.output('1.1', woof)
+
+        adapter.completed('1', new TestCompleteEvent(200L))
+
+        then:
+        1 * outputListener.onOutput({ it.id == '1' }, woof)
+    }
+
+    @Issue("GRADLE-2035")
+    def "outputs for completed tests use parent descriptors"() {
+        given:
+        TestDescriptor root = new DefaultTestSuiteDescriptor("1", "CanineSuite");
+        TestDescriptor suite = new DefaultTestSuiteDescriptor("1.1", "DogTest");
+        TestDescriptor test1 = new DefaultTestDescriptor("1.1.1", "DogTest", "shouldBarkAtStrangers");
+        TestDescriptor test2 = new DefaultTestDescriptor("1.1.2", "DogTest", "shouldLoiter");
+
+        def woof = new DefaultTestOutputEvent(TestOutputEvent.Destination.StdOut, "woof woof!")
+        def grrr = new DefaultTestOutputEvent(TestOutputEvent.Destination.StdErr, "grrr!")
+
+        when:
+        adapter.started(root, new TestStartEvent(1))
+        adapter.started(suite, new TestStartEvent(1, '1'))
+        adapter.started(test1, new TestStartEvent(1, '1.1'))
+        adapter.started(test2, new TestStartEvent(1, '1.1'))
+
+        adapter.completed('1.1.1', new TestCompleteEvent(1))
+
+        //test completed but we receive an output
+        adapter.output('1.1.1', woof)
+
+        adapter.completed('1.1.2', new TestCompleteEvent(1))
+        adapter.completed('1.1', new TestCompleteEvent(1))
+
+        //the suite is completed but for we receive an output
+        adapter.output('1.1.1', woof)
+
+        adapter.completed('1', new TestCompleteEvent(1))
+
+        //all tests are completed but we receive an output for one of the other tests
+        adapter.output('1.1.2', grrr)
+
+        then:
+        1 * outputListener.onOutput({ it instanceof DecoratingTestDescriptor && it.id == '1.1' }, woof)
+        1 * outputListener.onOutput({ it instanceof DecoratingTestDescriptor && it.id == '1' }, woof)
+        1 * outputListener.onOutput({ it instanceof UnknownTestDescriptor }, grrr)
+        0 * outputListener._
     }
 }

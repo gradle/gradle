@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.idea;
 
-import org.gradle.api.GradleException;
 import org.gradle.tooling.internal.protocol.InternalIdeaProject;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.HierarchicalElement;
@@ -85,11 +84,11 @@ public class DefaultIdeaProject implements InternalIdeaProject, IdeaProject, Ser
     }
 
     public File getProjectDirectory() {
-        throw new GradleException("This method should not be used.");
+        throw new UnsupportedOperationException("This method should not be used.");
     }
 
     public String getPath() {
-        throw new GradleException("This method should not be used.");
+        throw new UnsupportedOperationException("This method should not be used.");
     }
 
     public DefaultIdeaProject setChildren(Collection<? extends IdeaModule> children) {

@@ -24,8 +24,10 @@ import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.cache.CacheRepository;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.execution.DefaultBuildExecuter;
-import org.gradle.execution.DefaultTaskGraphExecuter;
+import org.gradle.execution.taskgraph.DefaultTaskGraphExecuter;
 import org.gradle.execution.TaskGraphExecuter;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.listener.ListenerManager;
 import org.gradle.util.JUnit4GroovyMockery;
@@ -77,6 +79,11 @@ public class GradleInternalServiceRegistryTest {
 
     @Test
     public void providesAPluginRegistry() {
+        context.checking(new Expectations(){{
+            allowing(parent).get(Instantiator.class);
+            will(returnValue(context.mock(Instantiator.class)));
+        }});
+
         assertThat(registry.get(PluginRegistry.class), instanceOf(DefaultPluginRegistry.class));
         assertThat(registry.get(PluginRegistry.class), sameInstance(registry.get(PluginRegistry.class)));
     }

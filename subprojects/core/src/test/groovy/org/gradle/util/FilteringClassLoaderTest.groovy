@@ -30,12 +30,12 @@ class FilteringClassLoaderTest {
     private final FilteringClassLoader classLoader = new FilteringClassLoader(FilteringClassLoaderTest.class.getClassLoader())
 
     @Test
-    public void passesThroughSystemClasses() {
+    void passesThroughSystemClasses() {
         assertThat(classLoader.loadClass(String.class.name), sameInstance(String.class))
     }
 
     @Test
-    public void passesThroughSystemPackages() {
+    void passesThroughSystemPackages() {
         assertThat(classLoader.getPackage('java.lang'), notNullValue(Package.class))
         assertThat(classLoader.getPackages(), hasPackage('java.lang'))
     }
@@ -46,14 +46,14 @@ class FilteringClassLoaderTest {
     }
 
     @Test
-    public void passesThroughSystemResources() {
+    void passesThroughSystemResources() {
         assertThat(classLoader.getResource('com/sun/jndi/ldap/jndiprovider.properties'), notNullValue())
         assertThat(classLoader.getResourceAsStream('com/sun/jndi/ldap/jndiprovider.properties'), notNullValue())
         assertTrue(classLoader.getResources('com/sun/jndi/ldap/jndiprovider.properties').hasMoreElements())
     }
 
     @Test
-    public void filtersClasses() {
+    void filtersClasses() {
         classLoader.parent.loadClass(Test.class.name)
 
         try {
@@ -71,7 +71,7 @@ class FilteringClassLoaderTest {
     }
 
     @Test
-    public void filtersPackages() {
+    void filtersPackages() {
         assertThat(classLoader.parent.getPackage('org.junit'), notNullValue())
 
         assertThat(classLoader.getPackage('org.junit'), nullValue())
@@ -79,7 +79,7 @@ class FilteringClassLoaderTest {
     }
 
     @Test
-    public void filtersResources() {
+    void filtersResources() {
         assertThat(classLoader.parent.getResource('org/gradle/util/ClassLoaderTest.txt'), notNullValue())
         assertThat(classLoader.getResource('org/gradle/util/ClassLoaderTest.txt'), nullValue())
         assertThat(classLoader.getResourceAsStream('org/gradle/util/ClassLoaderTest.txt'), nullValue())
@@ -87,7 +87,7 @@ class FilteringClassLoaderTest {
     }
 
     @Test
-    public void passesThroughClassesInSpecifiedPackages() {
+    void passesThroughClassesInSpecifiedPackages() {
         classLoader.allowPackage('org.junit')
         assertThat(classLoader.loadClass(Test.class.name), sameInstance(Test.class))
         assertThat(classLoader.loadClass(Test.class.name, false), sameInstance(Test.class))
@@ -95,7 +95,7 @@ class FilteringClassLoaderTest {
     }
 
     @Test
-    public void passesThroughSpecifiedClasses() {
+    void passesThroughSpecifiedClasses() {
         classLoader.allowClass(Test.class)
         assertThat(classLoader.loadClass(Test.class.name), sameInstance(Test.class))
         try {
@@ -107,7 +107,24 @@ class FilteringClassLoaderTest {
     }
 
     @Test
-    public void passesThroughSpecifiedPackages() {
+    void filtersSpecifiedClasses() {
+        classLoader.allowPackage("org.junit")
+        classLoader.disallowClass("org.junit.Test")
+
+        canLoadClass(Before)
+        cannotLoadClass(Test)
+    }
+
+    @Test
+    void disallowClassWinsOverAllowClass() {
+        classLoader.allowClass(Test)
+        classLoader.disallowClass(Test.name)
+
+        cannotLoadClass(Test)
+    }
+
+    @Test
+    void passesThroughSpecifiedPackages() {
         assertThat(classLoader.getPackage('org.junit'), nullValue())
         assertThat(classLoader.getPackages(), not(hasPackage('org.junit')))
 
@@ -120,7 +137,7 @@ class FilteringClassLoaderTest {
     }
 
     @Test
-    public void passesThroughResourcesInSpecifiedPackages() {
+    void passesThroughResourcesInSpecifiedPackages() {
         assertThat(classLoader.getResource('org/gradle/util/ClassLoaderTest.txt'), nullValue())
 
         classLoader.allowPackage('org.gradle')
@@ -131,7 +148,7 @@ class FilteringClassLoaderTest {
     }
 
     @Test
-    public void passesThroughResourcesWithSpecifiedPrefix() {
+    void passesThroughResourcesWithSpecifiedPrefix() {
         assertThat(classLoader.getResource('org/gradle/util/ClassLoaderTest.txt'), nullValue())
 
         classLoader.allowResources('org/gradle')
@@ -142,7 +159,7 @@ class FilteringClassLoaderTest {
     }
 
     @Test
-    public void passesThroughSpecifiedResources() {
+    void passesThroughSpecifiedResources() {
         assertThat(classLoader.getResource('org/gradle/util/ClassLoaderTest.txt'), nullValue())
 
         classLoader.allowResource('org/gradle/util/ClassLoaderTest.txt')
@@ -150,5 +167,16 @@ class FilteringClassLoaderTest {
         assertThat(classLoader.getResource('org/gradle/util/ClassLoaderTest.txt'), notNullValue())
         assertThat(classLoader.getResourceAsStream('org/gradle/util/ClassLoaderTest.txt'), notNullValue())
         assertTrue(classLoader.getResources('org/gradle/util/ClassLoaderTest.txt').hasMoreElements())
+    }
+
+    void canLoadClass(Class<?> clazz) {
+        assert classLoader.loadClass(clazz.name) == clazz
+    }
+
+    void cannotLoadClass(Class<?> clazz) {
+        try {
+            classLoader.loadClass(clazz.name)
+            fail()
+        } catch (ClassNotFoundException expected) {}
     }
 }

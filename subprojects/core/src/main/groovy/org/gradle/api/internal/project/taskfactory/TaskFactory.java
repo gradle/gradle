@@ -16,16 +16,19 @@
 package org.gradle.api.internal.project.taskfactory;
 
 import groovy.lang.Closure;
-import org.gradle.api.*;
+import org.gradle.api.Action;
+import org.gradle.api.DefaultTask;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Task;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.TaskInstantiationException;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.reflect.ObjectInstantiationException;
 import org.gradle.util.GUtil;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -36,12 +39,24 @@ import java.util.concurrent.Callable;
 public class TaskFactory implements ITaskFactory {
     public static final String GENERATE_SUBCLASS = "generateSubclass";
     private final ClassGenerator generator;
+    private final ProjectInternal project;
+    private final Instantiator instantiator;
 
     public TaskFactory(ClassGenerator generator) {
-        this.generator = generator;
+        this(generator, null, null);
     }
 
-    public TaskInternal createTask(ProjectInternal project, Map<String, ?> args) {
+    TaskFactory(ClassGenerator generator, ProjectInternal project, Instantiator instantiator) {
+        this.generator = generator;
+        this.project = project;
+        this.instantiator = instantiator;
+    }
+
+    public ITaskFactory createChild(ProjectInternal project, Instantiator instantiator) {
+        return new TaskFactory(generator, project, instantiator);
+    }
+
+    public TaskInternal createTask(Map<String, ?> args) {
         Map<String, Object> actualArgs = new HashMap<String, Object>(args);
         checkTaskArgsAndCreateDefaultValues(actualArgs);
 
@@ -85,34 +100,20 @@ public class TaskFactory implements ITaskFactory {
                     type.getSimpleName()));
         }
 
-        Class<? extends TaskInternal> generatedType;
+        final Class<? extends TaskInternal> generatedType;
         if (generateGetters) {
             generatedType = generator.generate(type);
         } else {
             generatedType = type;
         }
 
-        final Constructor<? extends TaskInternal> constructor;
-        final Object[] params;
-        try {
-            constructor = generatedType.getDeclaredConstructor();
-            params = new Object[0];
-        } catch (NoSuchMethodException e) {
-            // Ignore
-            throw new InvalidUserDataException(String.format(
-                    "Cannot create task of type '%s' as it does not have a public no-args constructor.",
-                    type.getSimpleName()));
-        }
-
         return AbstractTask.injectIntoNewInstance(project, name, new Callable<TaskInternal>() {
             public TaskInternal call() throws Exception {
                 try {
-                    return constructor.newInstance(params);
-                } catch (InvocationTargetException e) {
+                    return instantiator.newInstance(generatedType);
+                } catch (ObjectInstantiationException e) {
                     throw new TaskInstantiationException(String.format("Could not create task of type '%s'.", type.getSimpleName()),
                             e.getCause());
-                } catch (Exception e) {
-                    throw new TaskInstantiationException(String.format("Could not create task of type '%s'.", type.getSimpleName()), e);
                 }
             }
         });

@@ -16,6 +16,7 @@
 package org.gradle.api.internal
 
 import spock.lang.*
+import org.gradle.internal.reflect.DirectInstantiator
 
 class NestedConfigureAutoCreateNamedDomainObjectContainerSpec extends Specification {
 

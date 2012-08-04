@@ -90,9 +90,9 @@
         <title>Dependency management</title>
         <para>The Ear plugin adds two dependency configurations: <literal>deploy</literal> and
             <literal>earlib</literal>. All dependencies in the <literal>deploy</literal> configuration are
-            placed in the root of the EAR archive, and are <em>not</em> transitive. All dependencies in the
+            placed in the root of the EAR archive, and are <emphasis>not</emphasis> transitive. All dependencies in the
             <literal>earlib</literal> configuration are placed in the 'lib' directory in the EAR archive and
-            <em>are</em> transitive.
+            <emphasis>are</emphasis> transitive.
         </para>
     </section>
 

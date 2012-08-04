@@ -66,7 +66,7 @@ public class JUnit4GroovyMockery extends JUnit4Mockery {
                     try {
                         field.set(mock, true);
                     } catch (IllegalAccessException e) {
-                        throw UncheckedException.asUncheckedException(e);
+                        throw new RuntimeException(e);
                     }
                     break;
                 }

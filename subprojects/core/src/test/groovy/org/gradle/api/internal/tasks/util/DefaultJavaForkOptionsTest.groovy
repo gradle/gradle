@@ -17,22 +17,22 @@
 
 package org.gradle.api.internal.tasks.util
 
-import static org.hamcrest.Matchers.*
-
+import java.nio.charset.Charset
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.IdentityFileResolver
 import org.gradle.process.JavaForkOptions
 import org.gradle.process.internal.DefaultJavaForkOptions
 import org.gradle.util.JUnit4GroovyMockery
-import org.gradle.util.Jvm
+import org.gradle.internal.jvm.Jvm
 import org.jmock.integration.junit4.JMock
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import static org.gradle.util.Matchers.isEmpty
 import static org.gradle.util.Matchers.isEmptyMap
+import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
-import org.junit.Before
 
 @RunWith(JMock.class)
 public class DefaultJavaForkOptionsTest {
@@ -53,11 +53,12 @@ public class DefaultJavaForkOptionsTest {
         assertThat(options.executable, notNullValue())
         assertThat(options.jvmArgs, isEmpty())
         assertThat(options.systemProperties, isEmptyMap())
+        assertThat(options.minHeapSize, nullValue())
         assertThat(options.maxHeapSize, nullValue())
         assertThat(options.bootstrapClasspath.files, isEmpty())
         assertFalse(options.enableAssertions)
         assertFalse(options.debug)
-        assertThat(options.allJvmArgs, isEmpty())
+        assertThat(options.allJvmArgs, equalTo([fileEncodingProperty()]))
     }
 
     @Test
@@ -90,7 +91,7 @@ public class DefaultJavaForkOptionsTest {
         options.systemProperties(key: 12, key2: null, "key3": 'value')
         options.jvmArgs('arg1')
 
-        assertThat(options.allJvmArgs, equalTo(['arg1', '-Dkey=12', '-Dkey2', '-Dkey3=value']))
+        assertThat(options.allJvmArgs, equalTo(['-Dkey=12', '-Dkey2', '-Dkey3=value', 'arg1', fileEncodingProperty()]))
     }
 
     @Test
@@ -98,7 +99,7 @@ public class DefaultJavaForkOptionsTest {
         options.systemProperties(key: 12)
         options.jvmArgs('-Dkey=new value', '-Dkey2')
 
-        assertThat(options.systemProperties, equalTo(key: 'new value', key2: null))
+        assertThat(options.systemProperties, equalTo(key: 'new value', key2: ''))
 
         options.allJvmArgs = []
 
@@ -110,11 +111,35 @@ public class DefaultJavaForkOptionsTest {
     }
 
     @Test
+    public void allJvmArgsIncludeMinHeapSize() {
+        options.minHeapSize = '64m'
+        options.jvmArgs('arg1')
+
+        assertThat(options.allJvmArgs, equalTo(['arg1', '-Xms64m', fileEncodingProperty()]))
+    }
+
+    @Test
     public void allJvmArgsIncludeMaxHeapSize() {
         options.maxHeapSize = '1g'
         options.jvmArgs('arg1')
 
-        assertThat(options.allJvmArgs, equalTo(['arg1', '-Xmx1g']))
+        assertThat(options.allJvmArgs, equalTo(['arg1', '-Xmx1g', fileEncodingProperty()]))
+    }
+
+    @Test
+    public void minHeapSizeIsUpdatedWhenSetUsingJvmArgs() {
+        options.minHeapSize = '64m'
+        options.jvmArgs('-Xms128m')
+
+        assertThat(options.minHeapSize, equalTo('128m'))
+
+        options.allJvmArgs = []
+
+        assertThat(options.minHeapSize, nullValue())
+
+        options.allJvmArgs = ['-Xms92m']
+
+        assertThat(options.minHeapSize, equalTo('92m'))
     }
 
     @Test
@@ -135,11 +160,11 @@ public class DefaultJavaForkOptionsTest {
 
     @Test
     public void allJvmArgsIncludeAssertionsEnabled() {
-        assertThat(options.allJvmArgs, equalTo([]))
+        assertThat(options.allJvmArgs, equalTo([fileEncodingProperty()]))
 
         options.enableAssertions = true
 
-        assertThat(options.allJvmArgs, equalTo(['-ea']))
+        assertThat(options.allJvmArgs, equalTo([fileEncodingProperty(), '-ea']))
     }
 
     @Test
@@ -160,11 +185,11 @@ public class DefaultJavaForkOptionsTest {
 
     @Test
     public void allJvmArgsIncludeDebugArgs() {
-        assertThat(options.allJvmArgs, equalTo([]))
+        assertThat(options.allJvmArgs, equalTo([fileEncodingProperty()]))
 
         options.debug = true
 
-        assertThat(options.allJvmArgs, equalTo(['-Xdebug', '-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005']))
+        assertThat(options.allJvmArgs, equalTo([fileEncodingProperty(), '-Xdebug', '-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005']))
     }
 
     @Test
@@ -196,7 +221,7 @@ public class DefaultJavaForkOptionsTest {
         assertTrue(options.debug)
         assertThat(options.jvmArgs, equalTo([]))
     }
-    
+
     @Test
     public void canSetBootstrapClasspath() {
         def bootstrapClasspath = [:] as FileCollection
@@ -226,7 +251,7 @@ public class DefaultJavaForkOptionsTest {
             will(returnValue([isEmpty: {false}, getAsPath: {'<classpath>'}] as FileCollection))
         }
 
-        assertThat(options.allJvmArgs, equalTo(['-Xbootclasspath:' + files.join(System.properties['path.separator'])]))
+        assertThat(options.allJvmArgs, equalTo(['-Xbootclasspath:' + files.join(System.properties['path.separator']), fileEncodingProperty()]))
     }
 
     @Test
@@ -245,6 +270,7 @@ public class DefaultJavaForkOptionsTest {
         options.executable('executable')
         options.jvmArgs('arg')
         options.systemProperties(key: 12)
+        options.minHeapSize = '64m'
         options.maxHeapSize = '1g'
 
         JavaForkOptions target = context.mock(JavaForkOptions.class)
@@ -252,6 +278,7 @@ public class DefaultJavaForkOptionsTest {
             one(target).setExecutable('executable')
             one(target).setJvmArgs(['arg'])
             one(target).setSystemProperties(key: 12)
+            one(target).setMinHeapSize('64m')
             one(target).setMaxHeapSize('1g')
             one(target).setBootstrapClasspath(options.bootstrapClasspath)
             one(target).setEnableAssertions(false)
@@ -260,6 +287,10 @@ public class DefaultJavaForkOptionsTest {
         }
 
         options.copyTo(target)
+    }
+
+    private String fileEncodingProperty(String encoding = Charset.defaultCharset().name()) {
+        return "-Dfile.encoding=$encoding"
     }
 }
 

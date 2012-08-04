@@ -18,10 +18,8 @@ package org.gradle.api.internal.artifacts.repositories;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
 
-import java.util.Collection;
-
 public class FixedResolverArtifactRepository implements ArtifactRepository, ArtifactRepositoryInternal {
-    private final DependencyResolver resolver;
+    protected final DependencyResolver resolver;
 
     public FixedResolverArtifactRepository(DependencyResolver resolver) {
         this.resolver = resolver;
@@ -35,7 +33,7 @@ public class FixedResolverArtifactRepository implements ArtifactRepository, Arti
         resolver.setName(name);
     }
 
-    public void createResolvers(Collection<DependencyResolver> resolvers) {
-        resolvers.add(resolver);
+    public DependencyResolver createResolver() {
+        return resolver;
     }
 }

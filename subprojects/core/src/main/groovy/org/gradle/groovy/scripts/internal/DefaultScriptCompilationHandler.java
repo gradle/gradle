@@ -28,12 +28,12 @@ import org.codehaus.groovy.control.*;
 import org.codehaus.groovy.control.messages.SyntaxErrorMessage;
 import org.codehaus.groovy.syntax.SyntaxException;
 import org.gradle.api.GradleException;
-import org.gradle.api.ScriptCompilationException;
+import org.gradle.groovy.scripts.ScriptCompilationException;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.Transformer;
+import org.gradle.internal.UncheckedException;
 import org.gradle.util.Clock;
 import org.gradle.util.GFileUtils;
-import org.gradle.util.UncheckedException;
 import org.gradle.util.WrapUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -144,7 +144,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                     nameField.setAccessible(true);
                     nameField.set(sourceUnit, source.getDisplayName());
                 } catch (Exception failure) {
-                    throw UncheckedException.asUncheckedException(failure);
+                    throw UncheckedException.throwAsUncheckedException(failure);
                 }
             }
         }
@@ -172,6 +172,10 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                     classLoader);
             return urlClassLoader.loadClass(source.getClassName()).asSubclass(scriptBaseClass);
         } catch (Exception e) {
+            File expectedClassFile = new File(scriptCacheDir, source.getClassName()+".class");
+            if(!expectedClassFile.exists()){
+                throw new GradleException(String.format("Could not load compiled classes for %s from cache. Expected class file %s does not exist.", source.getDisplayName(), expectedClassFile.getAbsolutePath()), e);
+            }
             throw new GradleException(String.format("Could not load compiled classes for %s from cache.", source.getDisplayName()), e);
         }
     }

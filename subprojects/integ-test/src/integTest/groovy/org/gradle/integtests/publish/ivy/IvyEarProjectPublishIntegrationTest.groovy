@@ -16,7 +16,7 @@
 package org.gradle.integtests.publish.ivy
 
 import org.gradle.integtests.fixtures.IvyRepository
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class IvyEarProjectPublishIntegrationTest extends AbstractIntegrationSpec {
     public void "publishes EAR only for mixed java and WAR and EAR project"() {

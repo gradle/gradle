@@ -20,7 +20,6 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Rule;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
-import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
@@ -45,7 +44,7 @@ public class DefaultTaskContainerTest {
     private final ITaskFactory taskFactory = context.mock(ITaskFactory.class);
     private final ProjectInternal project = context.mock(ProjectInternal.class, "<project>");
     private int taskCount;
-    private final DefaultTaskContainer container = new DefaultTaskContainer(project, context.mock(Instantiator.class), taskFactory);
+    private final DefaultTaskContainer container = new DefaultTaskContainer(project, context.mock(org.gradle.internal.reflect.Instantiator.class), taskFactory);
 
     @Test
     public void addsTaskWithMap() {
@@ -53,7 +52,7 @@ public class DefaultTaskContainerTest {
         final Task task = task("task");
 
         context.checking(new Expectations(){{
-            one(taskFactory).createTask(project, options);
+            one(taskFactory).createTask(options);
             will(returnValue(task));
         }});
         assertThat(container.add(options), sameInstance(task));
@@ -66,7 +65,7 @@ public class DefaultTaskContainerTest {
         final Task task = task("task");
 
         context.checking(new Expectations(){{
-            one(taskFactory).createTask(project, options);
+            one(taskFactory).createTask(options);
             will(returnValue(task));
         }});
         assertThat(container.add("task"), sameInstance(task));
@@ -78,7 +77,7 @@ public class DefaultTaskContainerTest {
         final Task task = task("task");
 
         context.checking(new Expectations(){{
-            one(taskFactory).createTask(project, options);
+            one(taskFactory).createTask(options);
             will(returnValue(task));
         }});
         assertThat(container.add("task", Task.class), sameInstance(task));
@@ -91,7 +90,7 @@ public class DefaultTaskContainerTest {
         final Task task = task("task");
 
         context.checking(new Expectations(){{
-            one(taskFactory).createTask(project, options);
+            one(taskFactory).createTask(options);
             will(returnValue(task));
             one(task).configure(action);
             will(returnValue(task));
@@ -105,7 +104,7 @@ public class DefaultTaskContainerTest {
         final Task task = task("task");
 
         context.checking(new Expectations(){{
-            one(taskFactory).createTask(project, options);
+            one(taskFactory).createTask(options);
             will(returnValue(task));
         }});
         assertThat(container.replace("task"), sameInstance(task));
@@ -118,7 +117,7 @@ public class DefaultTaskContainerTest {
         final Task task = task("task");
 
         context.checking(new Expectations(){{
-            one(taskFactory).createTask(project, options);
+            one(taskFactory).createTask(options);
             will(returnValue(task));
         }});
         assertThat(container.replace("task", Task.class), sameInstance(task));
@@ -133,7 +132,7 @@ public class DefaultTaskContainerTest {
         container.addRule(rule);
 
         context.checking(new Expectations(){{
-            one(taskFactory).createTask(project, options);
+            one(taskFactory).createTask(options);
             will(returnValue(task));
         }});
 
@@ -145,7 +144,7 @@ public class DefaultTaskContainerTest {
         final Task task = addTask("task");
 
         context.checking(new Expectations() {{
-            one(taskFactory).createTask(project, singletonMap(Task.TASK_NAME, "task"));
+            one(taskFactory).createTask(singletonMap(Task.TASK_NAME, "task"));
             will(returnValue(task("task")));
         }});
 
@@ -165,7 +164,7 @@ public class DefaultTaskContainerTest {
 
         final Task newTask = task("task");
         context.checking(new Expectations() {{
-            one(taskFactory).createTask(project, singletonMap(Task.TASK_NAME, "task"));
+            one(taskFactory).createTask(singletonMap(Task.TASK_NAME, "task"));
             will(returnValue(newTask));
         }});
         
@@ -291,7 +290,7 @@ public class DefaultTaskContainerTest {
         final Task task = task(name);
         final Map<String, ?> options = singletonMap(Task.TASK_NAME, name);
         context.checking(new Expectations() {{
-            one(taskFactory).createTask(project, options);
+            one(taskFactory).createTask(options);
             will(returnValue(task));
         }});
         container.add(name);

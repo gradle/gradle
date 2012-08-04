@@ -15,29 +15,50 @@
  */
 package org.gradle.build.docs.dsl.docbook
 
+import org.gradle.build.docs.dsl.docbook.model.DslElementDoc
+import org.gradle.build.docs.dsl.docbook.model.ClassDoc
+import org.gradle.build.docs.dsl.docbook.model.ClassExtensionDoc
+import org.w3c.dom.Element
+
 class ClassDocRenderer {
     private final LinkRenderer linkRenderer
     private final GenerationListener listener = new DefaultGenerationListener()
+    private final PropertyTableRenderer propertyTableRenderer = new PropertyTableRenderer()
+    private final PropertiesDetailRenderer propertiesDetailRenderer
+    private Element propertiesSummarySection
+    private Element propertiesDetailSection
+    private Element methodsSummarySection
+    private Element methodsDetailSection
+    private Element blocksSummarySection
+    private Element blocksDetailSection
 
     ClassDocRenderer(LinkRenderer linkRenderer) {
         this.linkRenderer = linkRenderer
+        propertiesDetailRenderer = new PropertiesDetailRenderer(linkRenderer, listener)
     }
 
-    void mergeContent(ClassDoc classDoc) {
-        listener.start("class $classDoc.className")
+    void mergeContent(ClassDoc classDoc, Element parent) {
+        listener.start("class $classDoc.name")
         try {
-            mergeDescription(classDoc)
-            mergeProperties(classDoc)
-            mergeMethods(classDoc)
-            mergeBlocks(classDoc)
-            mergeExtensions(classDoc)
+            def chapter = parent.ownerDocument.createElement("chapter")
+            parent.appendChild(chapter)
+            mergeDescription(classDoc, chapter)
+            mergeProperties(classDoc, chapter)
+            mergeBlocks(classDoc, chapter)
+            mergeMethods(classDoc, chapter)
+            mergeExtensions(classDoc, chapter)
         } finally {
+            propertiesSummarySection = null
+            propertiesDetailSection = null
+            methodsSummarySection = null
+            methodsDetailSection = null
+            blocksSummarySection = null
+            blocksDetailSection = null
             listener.finish()
         }
     }
 
-    void mergeDescription(ClassDoc classDoc) {
-        def classContent = classDoc.classSection
+    void mergeDescription(ClassDoc classDoc, Element classContent) {
         classContent.setAttribute('id', classDoc.id)
         classContent.addFirst {
             title(classDoc.simpleName)
@@ -47,114 +68,90 @@ class ClassDocRenderer {
                     seg { apilink('class': classDoc.name, style: classDoc.style) }
                 }
             }
+            addWarnings(classDoc, 'class', delegate)
             appendChildren classDoc.comment
+            appendChildren classDoc.classSection.childNodes.findAll { it instanceof Element && it.tagName != 'section' }
         }
     }
 
-    void mergeProperties(ClassDoc classDoc) {
-        def propertiesTable = classDoc.propertiesTable
-        def propertiesSection = classDoc.propertiesSection
-        def classProperties = classDoc.classProperties
-
-        if (classProperties.isEmpty()) {
-            propertiesSection.children = {
+    void mergeProperties(ClassDoc classDoc, Element classContent) {
+        propertiesSummarySection = classContent << {
+            section {
                 title('Properties')
+            }
+        }
+
+        def classProperties = classDoc.classProperties
+        if (classProperties.isEmpty()) {
+            propertiesSummarySection << {
                 para('No properties')
             }
             return
         }
 
-        def propertyTableHeader = propertiesTable.thead[0].tr[0]
-        def cells = propertyTableHeader.td.collect { it }
-        cells = cells.subList(1, cells.size())
+        def propertiesTable = propertiesSummarySection << {
+            table { }
+        }
 
         propertiesTable.children = {
             title("Properties - $classDoc.simpleName")
-            thead {
-                tr { td('Property'); td('Description') }
-            }
-            classProperties.each { propDoc ->
-                tr {
-                    td { link(linkend: propDoc.id) { literal(propDoc.name) } }
-                    td { appendChild(propDoc.description) }
-                }
-            }
         }
+        propertyTableRenderer.renderTo(classProperties, propertiesTable)
 
-        propertiesSection.addAfter {
+        propertiesDetailSection = classContent << {
             section {
                 title('Property details')
-                classProperties.each { propDoc ->
-                    section(id: propDoc.id, role: 'detail') {
-                        title {
-                            appendChild linkRenderer.link(propDoc.metaData.type, listener)
-                            text(' ')
-                            literal(propDoc.name)
-                            if (!propDoc.metaData.writeable) {
-                                text(' (read-only)')
-                            }
-                        }
-                        appendChildren propDoc.comment
-                        if (propDoc.additionalValues) {
-                            segmentedlist {
-                                propDoc.additionalValues.each { attributeDoc ->
-                                    segtitle { appendChildren(attributeDoc.title) }
-                                }
-                                seglistitem {
-                                    propDoc.additionalValues.each { ExtraAttributeDoc attributeDoc ->
-                                        seg { appendChildren(attributeDoc.value) }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
             }
+        }
+        classProperties.each { propDoc ->
+            propertiesDetailRenderer.renderTo(propDoc, propertiesDetailSection)
         }
     }
 
-    void mergeMethods(ClassDoc classDoc) {
-        def methodsSection = classDoc.methodsSection
-        def methodsTable = classDoc.methodsTable
-        def classMethods = classDoc.classMethods
+    void mergeMethods(ClassDoc classDoc, Element classContent) {
+        methodsSummarySection = classContent << {
+            section { title('Methods') }
+        }
 
+        def classMethods = classDoc.classMethods
         if (classMethods.isEmpty()) {
-            methodsSection.children = {
-                title('Methods')
+            methodsSummarySection << {
                 para('No methods')
             }
             return
         }
 
-        methodsTable.children = {
-            title("Methods - $classDoc.simpleName")
-            thead {
-                tr {
-                    td('Method')
-                    td('Description')
-                }
-            }
-            classMethods.each { method ->
-                tr {
-                    td {
-                        literal {
-                            link(linkend: method.id) { text(method.name) }
-                            text('(')
-                            method.metaData.parameters.eachWithIndex { param, index ->
-                                if ( index > 0 ) {
-                                    text(', ')
-                                }
-                                text(param.name)
-                            }
-                            text(')')
-                        }
+        methodsSummarySection << {
+            table {
+                title("Methods - $classDoc.simpleName")
+                thead {
+                    tr {
+                        td('Method')
+                        td('Description')
                     }
-                    td { appendChild method.description }
+                }
+                classMethods.each { method ->
+                    tr {
+                        td {
+                            literal {
+                                link(linkend: method.id) { text(method.name) }
+                                text('(')
+                                method.metaData.parameters.eachWithIndex { param, index ->
+                                    if ( index > 0 ) {
+                                        text(', ')
+                                    }
+                                    text(param.name)
+                                }
+                                text(')')
+                            }
+                        }
+                        td { appendChild method.description }
+                    }
                 }
             }
         }
 
-        methodsSection.addAfter {
+        methodsDetailSection = classContent << {
             section {
                 title('Method details')
                 classMethods.each { method ->
@@ -173,6 +170,7 @@ class ClassDocRenderer {
                             }
                             text(')')
                         }
+                        addWarnings(method, 'method', delegate)
                         appendChildren method.comment
                     }
                 }
@@ -180,38 +178,38 @@ class ClassDocRenderer {
         }
     }
 
-    void mergeBlocks(ClassDoc classDoc) {
-        def targetSection = classDoc.methodsSection
-        def classBlocks = classDoc.classBlocks
+    void mergeBlocks(ClassDoc classDoc, Element classContent) {
+        blocksSummarySection = classContent << {
+            section {
+                title('Script blocks')
+            }
+        }
 
+        def classBlocks = classDoc.classBlocks
         if (classBlocks.isEmpty()) {
-            targetSection.addBefore {
-                section {
-                    title('Script blocks')
-                    para('No script blocks')
-                }
+            blocksSummarySection << {
+                para('No script blocks')
             }
             return
         }
 
-        targetSection.addBefore {
-            section {
-                title('Script blocks')
-                table {
-                    title("Script blocks - $classDoc.simpleName")
-                    thead {
-                        tr {
-                            td('Block'); td('Description')
-                        }
+        blocksSummarySection << {
+            table {
+                title("Script blocks - $classDoc.simpleName")
+                thead {
+                    tr {
+                        td('Block'); td('Description')
                     }
-                    classBlocks.each { block ->
-                        tr {
-                            td { link(linkend: block.id) { literal(block.name) } }
-                            td { appendChild block.description }
-                        }
+                }
+                classBlocks.each { block ->
+                    tr {
+                        td { link(linkend: block.id) { literal(block.name) } }
+                        td { appendChild block.description }
                     }
                 }
             }
+        }
+        blocksDetailSection = classContent << {
             section {
                 title('Script block details')
                 classBlocks.each { block ->
@@ -219,6 +217,7 @@ class ClassDocRenderer {
                         title {
                             literal(block.name); text(' { }')
                         }
+                        addWarnings(block, 'script block', delegate)
                         appendChildren block.comment
                         segmentedlist {
                             segtitle('Delegates to')
@@ -243,70 +242,62 @@ class ClassDocRenderer {
         }
     }
 
-    void mergeExtensions(ClassDoc classDoc) {
+    void addWarnings(DslElementDoc elementDoc, String description, Object delegate) {
+        if (elementDoc.deprecated) {
+            delegate.caution {
+                para{
+                    text("Note: This $description is ")
+                    link(linkend: 'dsl-element-types', "deprecated")
+                    text(" and will be removed in the next major version of Gradle.")
+                }
+            }
+        }
+        if (elementDoc.experimental) {
+            delegate.caution {
+                para{
+                    text("Note: This $description is ")
+                    link(linkend: 'dsl-element-types', "experimental")
+                    text(" and may change in a future version of Gradle.")
+                }
+            }
+        }
+    }
+
+    void mergeExtensions(ClassDoc classDoc, Element classContent) {
         if (!classDoc.classExtensions) {
             return
         }
-        mergeExtensionProperties(classDoc)
-        mergeExtensionMethods(classDoc)
-        mergeExtensionBlocks(classDoc)
+        mergeExtensionProperties(classDoc, propertiesSummarySection, propertiesDetailSection)
+        mergeExtensionMethods(classDoc, methodsSummarySection, methodsDetailSection)
+        mergeExtensionBlocks(classDoc, blocksSummarySection, blocksDetailSection)
     }
 
-    void mergeExtensionProperties(ClassDoc classDoc) {
-        classDoc.propertiesTable.addAfter {
+    void mergeExtensionProperties(ClassDoc classDoc, Element summaryParent, Element detailParent) {
+        summaryParent << {
             classDoc.classExtensions.each { ClassExtensionDoc extension ->
                 if (!extension.extensionProperties) {
                     return
                 }
-                section {
+                def section = section {
                     title { text("Properties added by the "); literal(extension.pluginId); text(" plugin") }
                     titleabbrev { literal(extension.pluginId); text(" plugin") }
                     table {
                         title { text("Properties - "); literal(extension.pluginId); text(" plugin") }
-                        thead { tr { td('Property'); td('Description') } }
-                        extension.extensionProperties.each { propertyDoc ->
-                            tr {
-                                td { link(linkend: propertyDoc.id) { literal(propertyDoc.name) } }
-                                td { appendChild propertyDoc.description }
-                            }
-                        }
                     }
                 }
+                propertyTableRenderer.renderTo(extension.extensionProperties, section.table[0])
             }
         }
-        classDoc.propertyDetailsSection << {
-            classDoc.classExtensions.each { ClassExtensionDoc extension ->
-                extension.extensionProperties.each { propDoc ->
-                    section(id: propDoc.id, role: 'detail') {
-                        title {
-                            appendChild linkRenderer.link(propDoc.metaData.type, listener)
-                            text(' ')
-                            literal(propDoc.name)
-                            if (!propDoc.metaData.writeable) {
-                                text(' (read-only)')
-                            }
-                        }
-                        appendChildren propDoc.comment
-                        if (propDoc.additionalValues) {
-                            segmentedlist {
-                                propDoc.additionalValues.each { attributeDoc ->
-                                    segtitle { appendChildren(attributeDoc.title) }
-                                }
-                                seglistitem {
-                                    propDoc.additionalValues.each { ExtraAttributeDoc attributeDoc ->
-                                        seg { appendChildren(attributeDoc.value) }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+
+        classDoc.classExtensions.each { ClassExtensionDoc extension ->
+            extension.extensionProperties.each { propDoc ->
+                propertiesDetailRenderer.renderTo(propDoc, detailParent)
             }
         }
     }
 
-    void mergeExtensionMethods(ClassDoc classDoc) {
-        classDoc.methodsTable.addAfter {
+    void mergeExtensionMethods(ClassDoc classDoc, Element summaryParent, Element detailParent) {
+        summaryParent << {
             classDoc.classExtensions.each { ClassExtensionDoc extension ->
                 if (!extension.extensionMethods) {
                     return
@@ -339,7 +330,7 @@ class ClassDocRenderer {
                 }
             }
         }
-        classDoc.methodDetailsSection << {
+        detailParent << {
             classDoc.classExtensions.each { ClassExtensionDoc extension ->
                 extension.extensionMethods.each { method ->
                     section(id: method.id, role: 'detail') {
@@ -364,8 +355,8 @@ class ClassDocRenderer {
         }
     }
 
-    void mergeExtensionBlocks(ClassDoc classDoc) {
-        classDoc.blocksTable.addAfter {
+    void mergeExtensionBlocks(ClassDoc classDoc, Element summaryParent, Element detailParent) {
+        summaryParent << {
             classDoc.classExtensions.each { ClassExtensionDoc extension ->
                 if (!extension.extensionBlocks) {
                     return
@@ -387,7 +378,7 @@ class ClassDocRenderer {
                 }
             }
         }
-        classDoc.blockDetailsSection << {
+        detailParent << {
             classDoc.classExtensions.each { ClassExtensionDoc extension ->
                 extension.extensionBlocks.each { block ->
                     section(id: block.id, role: 'detail') {

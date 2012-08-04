@@ -28,26 +28,25 @@ class GenerateIdeaModuleTest extends Specification {
     DefaultProject project = HelperUtil.createRootProject()
     Project childProject = HelperUtil.createChildProject(project, "child", new File("."))
     Project grandChildProject = HelperUtil.createChildProject(childProject, "grandChild", new File("."))
-    IdeaPlugin ideaPlugin = new IdeaPlugin()
 
     def "moduleName controls outputFile"() {
         given:
         applyPluginToProjects()
-        assert childProject.ideaModule.moduleName == "child"
+        assert childProject.idea.module.name == "child"
         def existingOutputFolder = childProject.ideaModule.outputFile.parentFile
 
         when:
-        childProject.ideaModule.moduleName = "foo"
+        childProject.idea.module.name = "foo"
 
         then:
-        childProject.ideaModule.moduleName == "foo"
+        childProject.idea.module.name == "foo"
         childProject.ideaModule.outputFile.name == "foo.iml"
         childProject.ideaModule.outputFile.parentFile == existingOutputFolder
     }
 
     private applyPluginToProjects() {
-        ideaPlugin.apply(project)
-        ideaPlugin.apply(childProject)
-        ideaPlugin.apply(grandChildProject)
+        project.apply plugin: IdeaPlugin
+        childProject.apply plugin: IdeaPlugin
+        grandChildProject.apply plugin: IdeaPlugin
     }
 }

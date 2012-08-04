@@ -18,24 +18,24 @@ package org.gradle.api.internal.artifacts
 import org.gradle.StartParameter
 import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.DomainObjectContext
-import org.gradle.api.internal.Factory
-import org.gradle.api.internal.Instantiator
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.project.ServiceRegistry
 import org.gradle.cache.CacheRepository
+import org.gradle.cache.DirectoryCacheBuilder
+import org.gradle.cache.PersistentCache
 import org.gradle.cache.internal.FileLockManager
+import org.gradle.internal.Factory
+import org.gradle.internal.service.ServiceRegistry
 import org.gradle.listener.ListenerManager
 import org.gradle.logging.LoggingManagerInternal
 import org.gradle.logging.ProgressLoggerFactory
-import org.gradle.util.TimeProvider
+import org.gradle.internal.TimeProvider
 import spock.lang.Specification
-import org.gradle.cache.DirectoryCacheBuilder
-import org.gradle.cache.PersistentCache
 
 class DefaultDependencyManagementServicesTest extends Specification {
     final ServiceRegistry parent = Mock()

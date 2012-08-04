@@ -5,19 +5,37 @@
             <thead>
                 <tr>
                     <td>Name</td>
-                    <td>Default with <literal>code-quality</literal> plugin</td>
+                    <td>Default with <literal>checkstyle</literal> plugin</td>
                 </tr>
             </thead>
-            <tr><td>classpath</td><td><literal><replaceable>sourceSet</replaceable>.compileClasspath</literal></td></tr>
-            <tr><td>configFile</td><td><literal>project.checkstyleConfigFile</literal></td></tr>
-            <tr><td>ignoreFailures</td><td><literal>false</literal></td></tr>
-            <tr><td>properties</td><td><literal>project.checkstyleProperties</literal></td></tr>
             <tr>
-                <td>resultFile</td>
-                <td>
-                    <filename><replaceable>${project.checkstyleResultsDir}</replaceable>/<replaceable>${sourceSet.name}</replaceable>.xml</filename>
-                </td></tr>
-            <tr><td>source</td><td><literal><replaceable>sourceSet</replaceable>.allJava</literal></td></tr>
+                <td>classpath</td>
+                <td><literal><replaceable>sourceSet</replaceable>.output</literal></td>
+            </tr>
+            <tr>
+                <td>configFile</td>
+                <td><literal>project.checkstyle.configFile</literal></td>
+            </tr>
+            <tr>
+                <td>ignoreFailures</td>
+                <td><literal>project.checkstyle.ignoreFailures</literal></td>
+            </tr>
+            <tr>
+                <td>configProperties</td>
+                <td><literal>project.checkstyle.configProperties</literal></td>
+            </tr>
+            <tr>
+                <td>source</td>
+                <td><literal><replaceable>sourceSet</replaceable>.allJava</literal></td>
+            </tr>
+            <tr>
+                <td>checkstyleClasspath</td>
+                <td><literal>project.configurations.checkstyle</literal></td>
+            </tr>
+            <tr>
+                <td>reports</td>
+                <td></td>
+            </tr>
         </table>
     </section>
     <section>
@@ -28,6 +46,9 @@
                     <td>Name</td>
                 </tr>
             </thead>
+            <tr>
+                <td>reports</td>
+            </tr>
         </table>
     </section>
 </section>

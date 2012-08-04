@@ -15,10 +15,11 @@
  */
 package org.gradle.plugins.ide.eclipse.model;
 
-import org.gradle.api.JavaVersion;
-import org.gradle.plugins.ide.internal.generator.PropertiesPersistableConfigurationObject;
-
 import java.util.Properties;
+
+import org.gradle.api.JavaVersion;
+import org.gradle.api.internal.PropertiesTransformer;
+import org.gradle.plugins.ide.internal.generator.PropertiesPersistableConfigurationObject;
 
 /**
  * Represents the Eclipse JDT settings.
@@ -27,6 +28,10 @@ public class Jdt extends PropertiesPersistableConfigurationObject {
     private JavaVersion sourceCompatibility;
     private JavaVersion targetCompatibility;
 
+    public Jdt(PropertiesTransformer transformer) {
+        super(transformer);
+    }
+    
     /**
      * Sets the source compatibility for the compiler.
      */

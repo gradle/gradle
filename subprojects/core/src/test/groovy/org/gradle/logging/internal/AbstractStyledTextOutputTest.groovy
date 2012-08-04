@@ -16,7 +16,8 @@
 package org.gradle.logging.internal
 
 import org.gradle.logging.StyledTextOutput.Style
-import org.gradle.util.SystemProperties
+import org.gradle.internal.SystemProperties
+import org.gradle.logging.TestStyledTextOutput
 
 class AbstractStyledTextOutputTest extends OutputSpecification {
     private final TestStyledTextOutput output = new TestStyledTextOutput()
@@ -174,60 +175,3 @@ class AbstractStyledTextOutputTest extends OutputSpecification {
     }
 }
 
-class TestStyledTextOutput extends AbstractStyledTextOutput {
-    StringBuilder result = new StringBuilder()
-
-    @Override
-    String toString() {
-        result.toString()
-    }
-
-    def TestStyledTextOutput ignoreStyle() {
-        return new TestStyledTextOutput() {
-            @Override protected void doStyleChange(Style style) {
-            }
-        }
-    }
-
-    def String getRawValue() {
-        return result.toString()
-    }
-
-    /**
-     * Returns the normalised value of this text output. Normalises:
-     * - style changes to {style} where _style_ is the lowercase name of the style.
-     * - line endings to \n
-     * - stack traces to {stacktrace}\n
-     */
-    def String getValue() {
-        StringBuilder normalised = new StringBuilder()
-
-        String eol = SystemProperties.lineSeparator
-        boolean inStackTrace = false
-        new StringTokenizer(result.toString().replaceAll(eol, '\n'), '\n', true).each { String line ->
-            if (line == '\n') {
-                if (!inStackTrace) {
-                    normalised.append('\n')
-                }
-            } else if (line.matches(/\s+at .+\(.+\)/)) {
-                if (!inStackTrace) {
-                    normalised.append('{stacktrace}\n')
-                }
-                inStackTrace = true
-            } else {
-                inStackTrace = false
-                normalised.append(line)
-            }
-        }
-        return normalised.toString()
-    }
-
-    @Override protected void doStyleChange(Style style) {
-        result.append("{${style.toString().toLowerCase()}}")
-    }
-
-    @Override
-    protected void doAppend(String text) {
-        result.append(text)
-    }
-}

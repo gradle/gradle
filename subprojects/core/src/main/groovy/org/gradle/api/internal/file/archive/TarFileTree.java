@@ -29,8 +29,9 @@ import org.gradle.api.internal.file.collections.MinimalFileTree;
 import org.gradle.api.resources.MissingResourceException;
 import org.gradle.api.resources.ReadableResource;
 import org.gradle.api.resources.ResourceException;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GFileUtils;
-import org.gradle.util.HashUtil;
+import org.gradle.util.hash.HashUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -43,7 +44,7 @@ public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree
 
     public TarFileTree(ReadableResource resource, File tmpDir) {
         this.resource = resource;
-        String expandDirName = String.format("%s_%s", resource.getBaseName(), HashUtil.createHash(resource.getURI().toString()));
+        String expandDirName = String.format("%s_%s", resource.getBaseName(), HashUtil.createCompactMD5(resource.getURI().toString()));
         this.tmpDir = new File(tmpDir, expandDirName);
     }
 
@@ -61,6 +62,8 @@ public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree
             inputStream = resource.read();
             assert inputStream != null;
         } catch (MissingResourceException e) {
+            DeprecationLogger.nagUserWith(String.format("The specified tar file %s does not exist and will be silently ignored."
+                    + " This behaviour has been deprecated and will cause an error in the next version of Gradle.", getDisplayName()));
             return;
         } catch (ResourceException e) {
             throw new InvalidUserDataException(String.format("Cannot expand %s.", getDisplayName()), e);
@@ -149,6 +152,10 @@ public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree
 
         public RelativePath getRelativePath() {
             return new RelativePath(!entry.isDirectory(), entry.getName().split("/"));
+        }
+
+        public int getMode() {
+            return entry.getMode() & 0777;
         }
     }
 

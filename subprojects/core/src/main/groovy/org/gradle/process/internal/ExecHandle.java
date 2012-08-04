@@ -46,6 +46,11 @@ public interface ExecHandle {
 
     void abort();
 
+    /**
+     * Waits for the process to finish.
+     *
+     * @return result
+     */
     ExecResult waitForFinish();
 
     void addListener(ExecHandleListener listener);

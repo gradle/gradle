@@ -16,9 +16,9 @@
 package org.gradle.process.internal;
 
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.FileSource;
+import org.gradle.internal.Factory;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.process.ProcessForkOptions;
-import org.gradle.util.Jvm;
 
 import java.io.File;
 import java.util.HashMap;
@@ -27,7 +27,7 @@ import java.util.Map;
 public class DefaultProcessForkOptions implements ProcessForkOptions {
     private final FileResolver resolver;
     private Object executable;
-    private FileSource workingDir;
+    private Factory<File> workingDir;
     private final Map<String, Object> environment = new HashMap<String, Object>(Jvm.current().getInheritableEnvironmentVariables(System.getenv()));
 
     public DefaultProcessForkOptions(FileResolver resolver) {
@@ -53,7 +53,7 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
     }
 
     public File getWorkingDir() {
-        return workingDir.get();
+        return workingDir.create();
     }
 
     public void setWorkingDir(Object dir) {

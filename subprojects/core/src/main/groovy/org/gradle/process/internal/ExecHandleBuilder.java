@@ -16,11 +16,15 @@
 
 package org.gradle.process.internal;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.process.ExecSpec;
 import org.gradle.util.GUtil;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -39,13 +43,18 @@ public class ExecHandleBuilder extends AbstractExecHandleBuilder implements Exec
         super(fileResolver);
     }
 
+    public ExecHandleBuilder executable(Object executable) {
+        super.executable(executable);
+        return this;
+    }
+
     public ExecHandleBuilder commandLine(Object... arguments) {
         commandLine(Arrays.asList(arguments));
         return this;
     }
 
-    public ExecSpec commandLine(Iterable<?> args) {
-        List<Object> argsList = GUtil.addLists(args);
+    public ExecHandleBuilder commandLine(Iterable<?> args) {
+        List<Object> argsList = Lists.newArrayList(args);
         executable(argsList.get(0));
         setArgs(argsList.subList(1, argsList.size()));
         return this;
@@ -67,7 +76,7 @@ public class ExecHandleBuilder extends AbstractExecHandleBuilder implements Exec
         return this;
     }
 
-    public ExecSpec args(Iterable<?> args) {
+    public ExecHandleBuilder args(Iterable<?> args) {
         GUtil.addToCollection(arguments, args);
         return this;
     }
@@ -94,6 +103,53 @@ public class ExecHandleBuilder extends AbstractExecHandleBuilder implements Exec
     @Override
     public ExecHandleBuilder setIgnoreExitValue(boolean ignoreExitValue) {
         super.setIgnoreExitValue(ignoreExitValue);
+        return this;
+    }
+
+    @Override
+    public ExecHandleBuilder workingDir(Object dir) {
+        super.workingDir(dir);
+        return this;
+    }
+
+    @Override
+    public ExecHandleBuilder setDisplayName(String displayName) {
+        super.setDisplayName(displayName);
+        return this;
+    }
+
+    public ExecHandleBuilder noStandardInput() {
+        setStandardInput(new ByteArrayInputStream(new byte[0]));
+        return this;
+    }
+
+    public ExecHandleBuilder redirectErrorStream() {
+        super.redirectErrorStream();
+        return this;
+    }
+
+    public ExecHandleBuilder setStandardOutput(OutputStream outputStream) {
+        super.setStandardOutput(outputStream);
+        return this;
+    }
+
+    public ExecHandleBuilder setStandardInput(InputStream inputStream) {
+        super.setStandardInput(inputStream);
+        return this;
+    }
+
+    public ExecHandleBuilder listener(ExecHandleListener listener) {
+        super.listener(listener);
+        return this;
+    }
+
+    public ExecHandleBuilder setTimeout(int timeoutMillis) {
+        super.setTimeout(timeoutMillis);
+        return this;
+    }
+
+    public ExecHandleBuilder setDaemon(boolean daemon) {
+        super.daemon = daemon;
         return this;
     }
 }

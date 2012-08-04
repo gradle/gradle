@@ -15,35 +15,44 @@
  */
 package org.gradle.launcher.daemon.server;
 
-import org.gradle.api.internal.file.IdentityFileResolver;
-import org.gradle.api.internal.project.DefaultServiceRegistry;
-import org.gradle.api.internal.project.ServiceRegistry;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
+import org.gradle.initialization.DefaultGradleLauncherFactory;
+import org.gradle.internal.concurrent.DefaultExecutorFactory;
+import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.nativeplatform.ProcessEnvironment;
+import org.gradle.internal.nativeplatform.services.NativeServices;
+import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.launcher.daemon.configuration.DaemonServerConfiguration;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.context.DaemonContextBuilder;
+import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
 import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter;
-import org.gradle.messaging.concurrent.DefaultExecutorFactory;
-import org.gradle.messaging.concurrent.ExecutorFactory;
-import org.gradle.process.internal.JvmOptions;
+import org.gradle.logging.LoggingManagerInternal;
 
 import java.io.File;
-import java.lang.management.ManagementFactory;
+import java.util.UUID;
 
 /**
  * Takes care of instantiating and wiring together the services required by the daemon server.
  */
 public class DaemonServices extends DefaultServiceRegistry {
-    private final File daemonBaseDir;
-    private final Integer idleTimeoutMs;
+    private final DaemonServerConfiguration configuration;
     private final ServiceRegistry loggingServices;
+    private final LoggingManagerInternal loggingManager;
+    private final static Logger LOGGER = Logging.getLogger(DaemonServices.class);
 
-    public DaemonServices(File daemonBaseDir, Integer idleTimeoutMs, ServiceRegistry loggingServices) {
-        this.daemonBaseDir = daemonBaseDir;
-        this.idleTimeoutMs = idleTimeoutMs;
+    public DaemonServices(DaemonServerConfiguration configuration, ServiceRegistry loggingServices,
+                          LoggingManagerInternal loggingManager) {
+        this.configuration = configuration;
         this.loggingServices = loggingServices;
+        this.loggingManager = loggingManager;
 
-        add(new DaemonRegistryServices(daemonBaseDir));
+        add(new NativeServices());
+        add(new DaemonRegistryServices(configuration.getBaseDir()));
     }
 
     protected ExecutorFactory createExecutorFactory() {
@@ -51,15 +60,23 @@ public class DaemonServices extends DefaultServiceRegistry {
     }
 
     protected DaemonContext createDaemonContext() {
-        DaemonContextBuilder builder = new DaemonContextBuilder();
-        builder.setDaemonRegistryDir(daemonBaseDir);
-        builder.setIdleTimeout(idleTimeoutMs);
+        DaemonContextBuilder builder = new DaemonContextBuilder(get(ProcessEnvironment.class));
+        builder.setDaemonRegistryDir(configuration.getBaseDir());
+        builder.setIdleTimeout(configuration.getIdleTimeout());
+        builder.setUid(configuration.getUid());
 
-        JvmOptions jvmOptions = new JvmOptions(new IdentityFileResolver());
-        jvmOptions.setAllJvmArgs(ManagementFactory.getRuntimeMXBean().getInputArguments());
-        builder.setDaemonOpts(jvmOptions.getAllJvmArgsWithoutSystemProperties());
+        LOGGER.debug("Creating daemon context with opts: {}", configuration.getJvmOptions());
+        
+        builder.setDaemonOpts(configuration.getJvmOptions());
 
         return builder.create();
+    }
+    
+    public File getDaemonLogFile() {
+        final DaemonContext daemonContext = get(DaemonContext.class);
+        final Long pid = daemonContext.getPid();
+        String fileName = String.format("daemon-%s.out.log", pid == null ? UUID.randomUUID() : pid);
+        return new File(get(DaemonDir.class).getVersionedDir(), fileName);
     }
 
     protected Daemon createDaemon() {
@@ -69,8 +86,11 @@ public class DaemonServices extends DefaultServiceRegistry {
                 get(DaemonContext.class),
                 "password",
                 new DefaultDaemonCommandExecuter(
-                        loggingServices,
-                        get(ExecutorFactory.class)),
+                        new DefaultGradleLauncherFactory(loggingServices),
+                        get(ExecutorFactory.class),
+                        get(ProcessEnvironment.class),
+                        loggingManager,
+                        getDaemonLogFile()),
                 get(ExecutorFactory.class));
     }
 

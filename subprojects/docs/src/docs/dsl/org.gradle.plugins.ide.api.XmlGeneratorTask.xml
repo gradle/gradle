@@ -17,9 +17,6 @@
                     <td>Name</td>
                 </tr>
             </thead>
-            <tr>
-                <td>withXml</td>
-            </tr>
         </table>
     </section>
 </section>

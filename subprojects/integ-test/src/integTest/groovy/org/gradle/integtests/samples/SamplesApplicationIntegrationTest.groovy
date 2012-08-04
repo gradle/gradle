@@ -21,9 +21,9 @@ import spock.lang.Specification
 import org.gradle.integtests.fixtures.*
 
 class SamplesApplicationIntegrationTest extends Specification {
-    @Rule public final GradleDistribution distribution = new GradleDistribution()
-    @Rule public final GradleExecuter executer = new GradleDistributionExecuter()
-    @Rule public final Sample sample = new Sample('application')
+    @Rule GradleDistribution distribution = new GradleDistribution()
+    @Rule GradleDistributionExecuter executer = new GradleDistributionExecuter()
+    @Rule Sample sample = new Sample('application')
 
     def canRunTheApplicationUsingRunTask() {
         when:

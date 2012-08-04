@@ -16,7 +16,7 @@
 package org.gradle.integtests.publish.maven
 
 import org.gradle.integtests.fixtures.MavenRepository
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class MavenEarProjectPublishIntegrationTest extends AbstractIntegrationSpec {
     public void "publishes EAR only for mixed java and WAR and EAR project"() {

@@ -20,7 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.util.DefaultClassLoaderFactory;
 
 import java.io.Serializable;
-import java.net.URL;
+import java.net.URI;
 import java.util.Collection;
 import java.util.concurrent.Callable;
 
@@ -29,9 +29,9 @@ import java.util.concurrent.Callable;
  */
 public class IsolatedApplicationClassLoaderWorker implements Callable<Void>, Serializable {
     private final Action<WorkerContext> worker;
-    private final Collection<URL> applicationClassPath;
+    private final Collection<URI> applicationClassPath;
 
-    public IsolatedApplicationClassLoaderWorker(Collection<URL> applicationClassPath, Action<WorkerContext> worker) {
+    public IsolatedApplicationClassLoaderWorker(Collection<URI> applicationClassPath, Action<WorkerContext> worker) {
         this.applicationClassPath = applicationClassPath;
         this.worker = worker;
     }

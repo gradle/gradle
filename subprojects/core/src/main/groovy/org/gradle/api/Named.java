@@ -42,7 +42,7 @@ public interface Named {
             return object.getName();
         }
         
-        public static <T> org.gradle.api.Namer<T> forType(Class<T> type) {
+        public static <T> org.gradle.api.Namer<? super T> forType(Class<? extends T> type) {
             if (Named.class.isAssignableFrom(type)) {
                 return (org.gradle.api.Namer<T>)new Namer();
             } else {

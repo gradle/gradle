@@ -17,16 +17,12 @@
 package org.gradle.tooling.model;
 
 /**
- * Is associated with a Gradle project.
- * <p>
- * Via the gradle project you can access (list, run, etc.) gradle tasks
+ * An element that is associated with a Gradle project. Via the Gradle project you can access (list, run, etc.) Gradle tasks.
  */
 public interface HasGradleProject {
 
     /**
-     * The associated gradle project.
-     * <p>
-     * Via the gradle project you can access (list, run, etc.) gradle tasks
+     * The associated Gradle project. Via the gradle project you can access (list, run, etc.) Gradle tasks.
      */
     GradleProject getGradleProject();
 }

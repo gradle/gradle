@@ -16,7 +16,7 @@
 package org.gradle.api.internal.changedetection;
 
 import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.cache.Serializer;
+import org.gradle.messaging.serialize.Serializer;
 import org.gradle.util.TemporaryFolder;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;

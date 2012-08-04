@@ -17,6 +17,7 @@
 package org.gradle.util
 
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class TextUtilTest extends Specification {
     private static String sep = "separator"
@@ -36,8 +37,36 @@ class TextUtilTest extends Specification {
         TextUtil.toPlatformLineSeparators(original) == converted
 
         where:
-        original | converted
+        original                          | converted
         "one\rtwo\nthree\r\nfour\n\rfive" | "one${platformSep}two${platformSep}three${platformSep}four${platformSep}${platformSep}five"
-        "\n\n" | "${platformSep}${platformSep}"
+        "\n\n"                            | "${platformSep}${platformSep}"
+    }
+
+    def containsWhitespace() {
+        expect:
+        TextUtil.containsWhitespace(str) == whitespace
+
+        where:
+        str       | whitespace
+        "abcde"   | false
+        "abc de"  | true
+        " abcde"  | true
+        "abcde "  | true
+        "abc\tde" | true
+        "abc\nde" | true
+    }
+
+    @Unroll
+    def indent() {
+        expect:
+        TextUtil.indent(text, indent) == result
+
+        where:
+        text            | indent | result
+        ""              | ""     | ""
+        "abc"           | "  "   | "  abc"
+        "abc"           | "def"  | "defabc"
+        "abc\ndef\nghi" | " "    | " abc\n def\n ghi"
+        "abc\n\t\n   \nghi" | "X"    | "Xabc\n\t\n   \nXghi"
     }
 }

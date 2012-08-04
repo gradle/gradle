@@ -29,11 +29,11 @@ import java.util.Set;
 
 public class DefaultDomainObjectSet<T> extends DefaultDomainObjectCollection<T> implements DomainObjectSet<T> {
 
-    public DefaultDomainObjectSet(Class<T> type) {
+    public DefaultDomainObjectSet(Class<? extends T> type) {
         this(type, new LinkedHashSet<T>());
     }
 
-    public DefaultDomainObjectSet(Class<T> type, Collection<T> store) {
+    public DefaultDomainObjectSet(Class<? extends T> type, Collection<T> store) {
         super(type, store);
     }
 
@@ -41,7 +41,7 @@ public class DefaultDomainObjectSet<T> extends DefaultDomainObjectCollection<T> 
         this(filter.getType(), store.filteredStore(filter), store.filteredEvents(filter));
     }
 
-    protected DefaultDomainObjectSet(Class<T> type, Collection<T> store, CollectionEventRegister<T> eventRegister) {
+    protected DefaultDomainObjectSet(Class<? extends T> type, Collection<T> store, CollectionEventRegister<T> eventRegister) {
         super(type, store, eventRegister);
     }
 

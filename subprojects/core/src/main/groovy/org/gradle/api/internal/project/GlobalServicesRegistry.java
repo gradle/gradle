@@ -27,13 +27,18 @@ import org.gradle.cli.CommandLineConverter;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.DefaultClassLoaderRegistry;
 import org.gradle.initialization.DefaultCommandLineConverter;
+import org.gradle.internal.Factory;
+import org.gradle.internal.nativeplatform.ProcessEnvironment;
+import org.gradle.internal.nativeplatform.services.NativeServices;
+import org.gradle.internal.reflect.DirectInstantiator;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.listener.DefaultListenerManager;
 import org.gradle.listener.ListenerManager;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.messaging.remote.MessagingServer;
 import org.gradle.messaging.remote.internal.MessagingServices;
-import org.gradle.os.*;
-import org.gradle.os.jna.NativeEnvironment;
 import org.gradle.util.ClassLoaderFactory;
 import org.gradle.util.DefaultClassLoaderFactory;
 
@@ -47,6 +52,7 @@ public class GlobalServicesRegistry extends DefaultServiceRegistry {
 
     public GlobalServicesRegistry(ServiceRegistry loggingServices) {
         super(loggingServices);
+        add(new NativeServices());
     }
 
     protected CommandLineConverter<StartParameter> createCommandLine2StartParameterConverter() {
@@ -97,10 +103,6 @@ public class GlobalServicesRegistry extends DefaultServiceRegistry {
         return new ClassGeneratorBackedInstantiator(get(ClassGenerator.class), new DirectInstantiator());
     }
 
-    protected ProcessEnvironment createProcessEnvironment() {
-        return NativeEnvironment.current();
-    }
-    
     protected FileLockManager createFileLockManager() {
         return new DefaultFileLockManager(new DefaultProcessMetaDataProvider(get(ProcessEnvironment.class)));
     }

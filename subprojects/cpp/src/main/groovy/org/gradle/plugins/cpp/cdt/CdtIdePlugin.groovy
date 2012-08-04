@@ -54,7 +54,7 @@ class CdtIdePlugin implements Plugin<Project> {
             
             [project.executables, project.libraries]*.all { binary ->
                 if (binary.name == "main") {
-                    task.settings = new CprojectSettings(binary)
+                    task.settings = new CprojectSettings(binary, project)
                 }
             }
             

@@ -29,6 +29,8 @@ import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.initialization.DefaultClassLoaderRegistry;
 import org.gradle.initialization.DefaultCommandLineConverter;
+import org.gradle.internal.nativeplatform.*;
+import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.listener.DefaultListenerManager;
 import org.gradle.listener.ListenerManager;
 import org.gradle.logging.LoggingManagerInternal;
@@ -41,6 +43,7 @@ import org.gradle.util.DefaultClassLoaderFactory;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
 public class GlobalServicesRegistryTest {
@@ -114,11 +117,21 @@ public class GlobalServicesRegistryTest {
     
     @Test
     public void providesAnInstantiator() {
-        assertThat(registry.get(Instantiator.class), instanceOf(ClassGeneratorBackedInstantiator.class));
+        assertThat(registry.get(org.gradle.internal.reflect.Instantiator.class), instanceOf(ClassGeneratorBackedInstantiator.class));
     }
 
     @Test
     public void providesAFileLockManager() {
         assertThat(registry.get(FileLockManager.class), instanceOf(DefaultFileLockManager.class));
+    }
+
+    @Test
+    public void providesAProcessEnvironment() {
+        assertThat(registry.get(ProcessEnvironment.class), notNullValue());
+    }
+
+    @Test
+    public void providesAFileSystem() {
+        assertThat(registry.get(FileSystem.class), notNullValue());
     }
 }

@@ -16,14 +16,14 @@
 
 package org.gradle.initialization;
 
-import org.apache.tools.ant.Project;
 import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.util.*;
 
 import java.io.File;
-import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.Collections;
 
 public class DefaultClassLoaderRegistry implements ClassLoaderRegistry {
     private final FilteringClassLoader rootClassLoader;
@@ -31,23 +31,23 @@ public class DefaultClassLoaderRegistry implements ClassLoaderRegistry {
     private final ClassLoader pluginsClassLoader;
 
     public DefaultClassLoaderRegistry(ClassPathRegistry classPathRegistry, ClassLoaderFactory classLoaderFactory) {
-        // Add in tools.jar to the Ant classloader
-        ClassLoader antClassLoader = Project.class.getClassLoader();
+        // Add in tools.jar to the systemClassloader parent
         File toolsJar = Jvm.current().getToolsJar();
         if (toolsJar != null) {
-            ClasspathUtil.addUrl((URLClassLoader) antClassLoader, GFileUtils.toURLs(Collections.singleton(toolsJar)));
+            final ClassLoader systemClassLoaderParent = ClassLoader.getSystemClassLoader().getParent();
+            ClasspathUtil.addUrl((URLClassLoader) systemClassLoaderParent, new DefaultClassPath(toolsJar).getAsURLs());
         }
 
         ClassLoader runtimeClassLoader = getClass().getClassLoader();
 
         // Core impl
-        URL[] coreImplClassPath = classPathRegistry.getClassPathUrls("GRADLE_CORE_IMPL");
-        coreImplClassLoader = new URLClassLoader(coreImplClassPath, runtimeClassLoader);
+        ClassPath coreImplClassPath = classPathRegistry.getClassPath("GRADLE_CORE_IMPL");
+        coreImplClassLoader = new MutableURLClassLoader(runtimeClassLoader, coreImplClassPath);
 
         // Add in libs for plugins
-        URL[] pluginsClassPath = classPathRegistry.getClassPathUrls("GRADLE_PLUGINS");
+        ClassPath pluginsClassPath = classPathRegistry.getClassPath("GRADLE_PLUGINS");
         MultiParentClassLoader pluginsImports = new MultiParentClassLoader(runtimeClassLoader, coreImplClassLoader);
-        pluginsClassLoader = new URLClassLoader(pluginsClassPath, pluginsImports);
+        pluginsClassLoader = new MutableURLClassLoader(pluginsImports, pluginsClassPath);
 
         rootClassLoader = classLoaderFactory.createFilteringClassLoader(pluginsClassLoader);
         rootClassLoader.allowPackage("org.gradle");
@@ -60,6 +60,7 @@ public class DefaultClassLoaderRegistry implements ClassLoaderRegistry {
         rootClassLoader.allowPackage("org.slf4j");
         rootClassLoader.allowPackage("org.apache.commons.logging");
         rootClassLoader.allowPackage("org.apache.log4j");
+        rootClassLoader.allowPackage("javax.inject");
     }
 
     public ClassLoader getRootClassLoader() {

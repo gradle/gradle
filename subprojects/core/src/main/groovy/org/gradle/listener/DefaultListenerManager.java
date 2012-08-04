@@ -17,7 +17,6 @@
 package org.gradle.listener;
 
 import groovy.lang.Closure;
-import org.gradle.messaging.dispatch.BroadcastDispatch;
 import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.messaging.dispatch.MethodInvocation;
 import org.gradle.messaging.dispatch.ReflectionDispatch;

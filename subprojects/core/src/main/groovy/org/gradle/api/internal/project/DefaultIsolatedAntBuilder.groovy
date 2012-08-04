@@ -15,30 +15,32 @@
  */
 package org.gradle.api.internal.project
 
-import org.gradle.api.internal.project.ant.BasicAntBuilder
-import org.gradle.api.internal.project.ant.AntLoggingAdapter
-import org.gradle.util.*
 import org.gradle.api.internal.ClassPathRegistry
+import org.gradle.api.internal.project.ant.AntLoggingAdapter
+import org.gradle.api.internal.project.ant.BasicAntBuilder
+import org.gradle.util.*
+import org.gradle.internal.jvm.Jvm
+import org.gradle.internal.classpath.DefaultClassPath
 
 class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
-    private final Map<List<File>, Map<String, Object>> classloaders
+    private final Map<List<File>, ClassLoader> baseClassloaders = [:]
+    private final Map<List<File>, Map<String, Object>> classloaders = [:]
     private final ClassPathRegistry classPathRegistry
     private final ClassLoaderFactory classLoaderFactory
     private final Iterable<File> groovyClasspath
-    private final Iterable<File> libClasspath
+    private final Iterable<File> libClasspath = []
 
     def DefaultIsolatedAntBuilder(ClassPathRegistry classPathRegistry, ClassLoaderFactory classLoaderFactory) {
         this.classPathRegistry = classPathRegistry
         this.classLoaderFactory = classLoaderFactory
-        classloaders = [:]
-        groovyClasspath = classPathRegistry.getClassPathFiles("GROOVY")
-        libClasspath = []
+        groovyClasspath = classPathRegistry.getClassPath("GROOVY").asFiles
     }
 
     private DefaultIsolatedAntBuilder(DefaultIsolatedAntBuilder copy, Iterable<File> groovyClasspath, Iterable<File> libClasspath) {
         this.classPathRegistry = copy.classPathRegistry
         this.classLoaderFactory = copy.classLoaderFactory
         this.classloaders = copy.classloaders
+        this.baseClassloaders = copy.baseClassloaders
         this.groovyClasspath = groovyClasspath
         this.libClasspath = libClasspath
     }
@@ -52,9 +54,23 @@ class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
     }
 
     void execute(Closure antClosure) {
+        List<File> baseClasspath = []
+        baseClasspath.addAll(classPathRegistry.getClassPath("ANT").asFiles)
+        baseClasspath.addAll(groovyClasspath as List)
+
+        ClassLoader baseLoader = baseClassloaders[baseClasspath]
+        if (baseLoader == null) {
+            // Need tools.jar for compile tasks
+            List<File> fullClasspath = baseClasspath
+            File toolsJar = Jvm.current().toolsJar
+            if (toolsJar) {
+                fullClasspath += toolsJar
+            }
+            baseLoader = classLoaderFactory.createIsolatedClassLoader(new DefaultClassPath(fullClasspath))
+            baseClassloaders[baseClasspath] = baseLoader
+        }
+
         List<File> normalisedClasspath = []
-        normalisedClasspath.addAll(classPathRegistry.getClassPathFiles("ANT"))
-        normalisedClasspath.addAll(groovyClasspath as List)
         normalisedClasspath.addAll(libClasspath as List)
 
         Map<String, Object> classloadersForPath = classloaders[normalisedClasspath]
@@ -64,23 +80,18 @@ class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
             antLoader = classloadersForPath.antLoader
             gradleLoader = classloadersForPath.gradleLoader
         } else {
-            // Need tools.jar for compile tasks
-            List<File> fullClasspath = normalisedClasspath
-            File toolsJar = Jvm.current().toolsJar
-            if (toolsJar) {
-                fullClasspath += toolsJar
-            }
-
-            Closure converter = {File file -> file.toURI().toURL() }
-            List<URL> classpathUrls = fullClasspath.collect(converter)
-            // Need gradle core to pick up ant logging adapter
-            URL[] gradleCoreUrls = classPathRegistry.getClassPathUrls("GRADLE_CORE")
+            // Need gradle core to pick up ant logging adapter, AntBuilder and such
+            def gradleCoreUrls = classPathRegistry.getClassPath("GRADLE_CORE")
 
             FilteringClassLoader loggingLoader = new FilteringClassLoader(getClass().classLoader)
             loggingLoader.allowPackage('org.slf4j')
+            loggingLoader.allowPackage('org.apache.commons.logging')
+            loggingLoader.allowPackage('org.apache.log4j')
+            ClassLoader parent = new MultiParentClassLoader(baseLoader, loggingLoader)
 
-            antLoader = classLoaderFactory.createIsolatedClassLoader(classpathUrls)
-            gradleLoader = new URLClassLoader(gradleCoreUrls, new MultiParentClassLoader(antLoader, loggingLoader))
+            List<URL> classpathUrls = normalisedClasspath.collect { it.toURI().toURL() }
+            antLoader = new URLClassLoader(classpathUrls as URL[], parent)
+            gradleLoader = new MutableURLClassLoader(parent, gradleCoreUrls)
 
             classloaders[normalisedClasspath] = [antLoader: antLoader, gradleLoader: gradleLoader]
         }
@@ -97,7 +108,7 @@ class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
             // Ideally, we'd delegate directly to the AntBuilder, but it's Closure class is different to our caller's
             // Closure class, so the AntBuilder's methodMissing() doesn't work. It just converts our Closures to String
             // because they are not an instanceof it's Closure class
-            Object delegate = new AntBuilderDelegate(antBuilder)
+            Object delegate = new AntBuilderDelegate(antBuilder, antLoader)
             ConfigureUtil.configure(antClosure, delegate)
         } finally {
             Thread.currentThread().contextClassLoader = originalLoader
@@ -106,10 +117,31 @@ class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
 }
 
 class AntBuilderDelegate extends BuilderSupport {
-    def Object builder
+    final Object builder
+    final ClassLoader antlibClassLoader
 
-    def AntBuilderDelegate(builder) {
+    def AntBuilderDelegate(builder, antlibClassLoader) {
         this.builder = builder;
+        this.antlibClassLoader = antlibClassLoader
+    }
+
+    def getAnt() {
+        return this
+    }
+    
+    def taskdef(Map<String, ?> args) {
+        if (args.keySet() == ['name', 'classname'] as Set) {
+            builder.project.addTaskDefinition(args.name, antlibClassLoader.loadClass(args.classname))            
+        } else if (args.keySet() == ['resource'] as Set) {
+            antlibClassLoader.getResource(args.resource).withInputStream { instr ->
+                def xml = new XmlParser().parse(instr)
+                xml.taskdef.each {
+                    builder.project.addTaskDefinition(it.@name, antlibClassLoader.loadClass(it.@classname))
+                }
+            }            
+        } else {
+            throw new RuntimeException("Unsupported parameters for taskdef().")
+        }
     }
 
     def propertyMissing(String name) {

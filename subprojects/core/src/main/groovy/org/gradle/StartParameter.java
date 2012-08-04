@@ -16,33 +16,23 @@
 
 package org.gradle;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
-import org.gradle.api.internal.artifacts.ProjectDependenciesBuildInstruction;
-import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.groovy.scripts.StringScriptSource;
-import org.gradle.groovy.scripts.UriScriptSource;
-import org.gradle.initialization.BuildFileProjectSpec;
-import org.gradle.initialization.DefaultProjectSpec;
-import org.gradle.initialization.ProjectDirectoryProjectSpec;
-import org.gradle.initialization.ProjectSpec;
+import org.gradle.internal.SystemProperties;
 import org.gradle.logging.LoggingConfiguration;
 import org.gradle.util.GFileUtils;
-import org.gradle.util.GUtil;
-import org.gradle.util.SystemProperties;
 
 import java.io.File;
 import java.io.Serializable;
 import java.util.*;
 
 /**
- * <p>{@code StartParameter} defines the configuration used by a {@link GradleLauncher} instance to execute a build. The
- * properties of {@code StartParameter} generally correspond to the command-line options of Gradle. You pass a {@code
- * StartParameter} instance to {@link GradleLauncher#newInstance(StartParameter)} when you create a new {@code Gradle}
- * instance.</p>
+ * <p>{@code StartParameter} defines the configuration used by a {@link GradleLauncher} instance to execute a build. The properties of {@code StartParameter} generally correspond to the command-line
+ * options of Gradle. You pass a {@code StartParameter} instance to {@link GradleLauncher#newInstance(StartParameter)} when you create a new {@code Gradle} instance.</p>
  *
- * <p>You can obtain an instance of a {@code StartParameter} by either creating a new one, or duplicating an existing
- * one using {@link #newInstance} or {@link #newBuild}.</p>
+ * <p>You can obtain an instance of a {@code StartParameter} by either creating a new one, or duplicating an existing one using {@link #newInstance} or {@link #newBuild}.</p>
  *
  * @author Hans Dockter
  * @see GradleLauncher
@@ -56,29 +46,29 @@ public class StartParameter extends LoggingConfiguration implements Serializable
 
     private List<String> taskNames = new ArrayList<String>();
     private Set<String> excludedTaskNames = new HashSet<String>();
-    private ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction
-            = new ProjectDependenciesBuildInstruction(true);
+    private boolean buildProjectDependencies = true;
     private File currentDir;
+    private File projectDir;
     private boolean searchUpwards = true;
     private Map<String, String> projectProperties = new HashMap<String, String>();
     private Map<String, String> systemPropertiesArgs = new HashMap<String, String>();
     private File gradleUserHomeDir;
     private CacheUsage cacheUsage = CacheUsage.ON;
-    private ScriptSource buildScriptSource;
-    private ScriptSource settingsScriptSource;
-    private ProjectSpec defaultProjectSelector;
+    private File settingsFile;
+    private boolean useEmptySettings;
     private File buildFile;
     private List<File> initScripts = new ArrayList<File>();
     private boolean dryRun;
-    private boolean noOpt;
+    private boolean rerunTasks;
     private boolean profile;
     private boolean continueOnFailure;
+    private boolean offline;
     private File projectCacheDir;
+    private boolean refreshDependencies;
+    private boolean recompileScripts;
 
     /**
      * Sets the project's cache location. Set to null to use the default location.
-     *
-     * @param projectCacheDir
      */
     public void setProjectCacheDir(File projectCacheDir) {
         this.projectCacheDir = projectCacheDir;
@@ -94,8 +84,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     }
 
     /**
-     * Creates a {@code StartParameter} with default values. This is roughly equivalent to running Gradle on the
-     * command-line with no arguments.
+     * Creates a {@code StartParameter} with default values. This is roughly equivalent to running Gradle on the command-line with no arguments.
      */
     public StartParameter() {
         String gradleUserHome = System.getProperty(GRADLE_USER_HOME_PROPERTY_KEY);
@@ -118,33 +107,35 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     public StartParameter newInstance() {
         StartParameter startParameter = new StartParameter();
         startParameter.buildFile = buildFile;
+        startParameter.projectDir = projectDir;
+        startParameter.settingsFile = settingsFile;
+        startParameter.useEmptySettings = useEmptySettings;
         startParameter.taskNames = taskNames;
-        startParameter.projectDependenciesBuildInstruction = projectDependenciesBuildInstruction;
+        startParameter.buildProjectDependencies = buildProjectDependencies;
         startParameter.currentDir = currentDir;
         startParameter.searchUpwards = searchUpwards;
         startParameter.projectProperties = projectProperties;
         startParameter.systemPropertiesArgs = systemPropertiesArgs;
         startParameter.gradleUserHomeDir = gradleUserHomeDir;
         startParameter.cacheUsage = cacheUsage;
-        startParameter.buildScriptSource = buildScriptSource;
-        startParameter.settingsScriptSource = settingsScriptSource;
-        startParameter.initScripts = new ArrayList<File>(initScripts); 
-        startParameter.defaultProjectSelector = defaultProjectSelector;
+        startParameter.initScripts = new ArrayList<File>(initScripts);
         startParameter.setLogLevel(getLogLevel());
         startParameter.setColorOutput(isColorOutput());
         startParameter.setShowStacktrace(getShowStacktrace());
         startParameter.dryRun = dryRun;
-        startParameter.noOpt = noOpt;
+        startParameter.rerunTasks = rerunTasks;
+        startParameter.recompileScripts = recompileScripts;
         startParameter.profile = profile;
         startParameter.projectCacheDir = projectCacheDir;
         startParameter.continueOnFailure = continueOnFailure;
+        startParameter.offline = offline;
+        startParameter.refreshDependencies = refreshDependencies;
         return startParameter;
     }
 
     /**
-     * <p>Creates the parameters for a new build, using these parameters as a template. Copies the environmental
-     * properties from this parameter (eg gradle user home dir, etc), but does not copy the build specific properties
-     * (eg task names).</p>
+     * <p>Creates the parameters for a new build, using these parameters as a template. Copies the environmental properties from this parameter (eg gradle user home dir, etc), but does not copy the
+     * build specific properties (eg task names).</p>
      *
      * @return The new parameters.
      */
@@ -157,6 +148,10 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         startParameter.setShowStacktrace(getShowStacktrace());
         startParameter.profile = profile;
         startParameter.continueOnFailure = continueOnFailure;
+        startParameter.offline = offline;
+        startParameter.rerunTasks = rerunTasks;
+        startParameter.recompileScripts = recompileScripts;
+        startParameter.refreshDependencies = refreshDependencies;
         return startParameter;
     }
 
@@ -169,8 +164,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     }
 
     /**
-     * Returns the build file to use to select the default project. Returns null when the build file is not used to
-     * select the default project.
+     * Returns the build file to use to select the default project. Returns null when the build file is not used to select the default project.
      *
      * @return The build file. May be null.
      */
@@ -179,8 +173,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     }
 
     /**
-     * Sets the build file to use to select the default project. Use null to disable selecting the default project using
-     * the build file.
+     * Sets the build file to use to select the default project. Use null to disable selecting the default project using the build file.
      *
      * @param buildFile The build file. May be null.
      */
@@ -190,69 +183,47 @@ public class StartParameter extends LoggingConfiguration implements Serializable
             setCurrentDir(null);
         } else {
             this.buildFile = GFileUtils.canonicalise(buildFile);
-            currentDir = this.buildFile.getParentFile();
-            defaultProjectSelector = new BuildFileProjectSpec(this.buildFile);
+            setProjectDir(this.buildFile.getParentFile());
         }
     }
 
     /**
-     * <p>Returns the {@link ScriptSource} to use for the build file for this build. Returns null when the default build
-     * file(s) are to be used. This source is used for <em>all</em> projects included in the build.</p>
+     * Specifies that an empty settings script should be used.
      *
-     * @return The build file source, or null to use the defaults.
-     */
-    public ScriptSource getBuildScriptSource() {
-        return buildScriptSource;
-    }
-
-    /**
-     * <p>Returns the {@link ScriptSource} to use for the settings script for this build. Returns null when the default
-     * settings script is to be used.</p>
+     * This means that even if a settings file exists in the conventional location, or has been previously specified by {@link #setSettingsFile(java.io.File)}, it will not be used.
      *
-     * @return The settings script source, or null to use the default.
-     */
-    public ScriptSource getSettingsScriptSource() {
-        return settingsScriptSource;
-    }
-
-    /**
-     * <p>Sets the {@link ScriptSource} to use for the settings script. Set to null to use the default settings
-     * script.</p>
+     * If {@link #setSettingsFile(java.io.File)} is called after this, it will supersede calling this method.
      *
-     * @param settingsScriptSource The settings script source.
-     */
-    public void setSettingsScriptSource(ScriptSource settingsScriptSource) {
-        this.settingsScriptSource = settingsScriptSource;
-    }
-
-    /**
-     * <p>Specifies that the given script should be used as the build file for this build. Uses an empty settings file.
-     * </p>
-     *
-     * @param buildScriptText The script to use as the build file.
      * @return this
      */
-    public StartParameter useEmbeddedBuildFile(String buildScriptText) {
-        return setBuildScriptSource(new StringScriptSource("embedded build file", buildScriptText));
-    }
-    
-    /**
-     * <p>Specifies that the given script should be used as the build file for this build. Uses an empty settings file.
-     * </p>
-     *
-     * @param buildScript The script to use as the build file.
-     * @return this
-     */
-    public StartParameter setBuildScriptSource(ScriptSource buildScript) {
-        buildScriptSource = buildScript;
-        settingsScriptSource = new StringScriptSource("empty settings file", "");
+    public StartParameter useEmptySettings() {
         searchUpwards = false;
+        useEmptySettings = true;
+        settingsFile = null;
         return this;
     }
 
     /**
-     * Returns the names of the tasks to execute in this build. When empty, the default tasks for the project will be
-     * executed.
+     * Deprecated. Use {@link #useEmptySettings()}.
+     *
+     * @deprecated use {@link #useEmptySettings()}
+     */
+    @Deprecated
+    public StartParameter useEmptySettingsScript() {
+        return useEmptySettings();
+    }
+
+    /**
+     * Returns whether an empty settings script will be used regardless of whether one exists in the default location.
+     *
+     * @return Whether to use empty settings or not.
+     */
+    public boolean isUseEmptySettings() {
+        return useEmptySettings;
+    }
+
+    /**
+     * Returns the names of the tasks to execute in this build. When empty, the default tasks for the project will be executed.
      *
      * @return the names of the tasks to execute in this build. Never returns null.
      */
@@ -261,13 +232,13 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     }
 
     /**
-     * <p>Sets the tasks to execute in this build. Set to an empty list, or null, to execute the default tasks for the
-     * project. The tasks are executed in the order provided, subject to dependency between the tasks.</p>
+     * <p>Sets the tasks to execute in this build. Set to an empty list, or null, to execute the default tasks for the project. The tasks are executed in the order provided, subject to dependency
+     * between the tasks.</p>
      *
      * @param taskNames the names of the tasks to execute in this build.
      */
     public void setTaskNames(Iterable<String> taskNames) {
-        this.taskNames = GUtil.toList(taskNames);
+        this.taskNames = Lists.newArrayList(taskNames);
     }
 
     /**
@@ -285,7 +256,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      * @param excludedTaskNames The task names. Can be null.
      */
     public void setExcludedTaskNames(Iterable<String> excludedTaskNames) {
-        this.excludedTaskNames = GUtil.toSet(excludedTaskNames);
+        this.excludedTaskNames = Sets.newLinkedHashSet(excludedTaskNames);
     }
 
     /**
@@ -298,8 +269,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     }
 
     /**
-     * Sets the directory to use to select the default project, and to search for the settings file. Set to null to use
-     * the default current directory.
+     * Sets the directory to use to select the default project, and to search for the settings file. Set to null to use the default current directory.
      *
      * @param currentDir The directory. Should not be null.
      */
@@ -309,7 +279,6 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         } else {
             this.currentDir = GFileUtils.canonicalise(new File(System.getProperty("user.dir")));
         }
-        defaultProjectSelector = null;
     }
 
     public boolean isSearchUpwards() {
@@ -337,15 +306,13 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     }
 
     /**
-     * Returns a newly constructed map that is the JVM system properties merged with the system property args.
-     * <p>
-     * System property args take precedency overy JVM system properties.
-     * 
+     * Returns a newly constructed map that is the JVM system properties merged with the system property args. <p> System property args take precedency overy JVM system properties.
+     *
      * @return The merged system properties
      */
     public Map<String, String> getMergedSystemProperties() {
         Map<String, String> merged = new HashMap<String, String>();
-        merged.putAll((Map)System.getProperties());
+        merged.putAll((Map) System.getProperties());
         merged.putAll(getSystemPropertiesArgs());
         return merged;
     }
@@ -368,19 +335,37 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         this.gradleUserHomeDir = gradleUserHomeDir == null ? DEFAULT_GRADLE_USER_HOME : GFileUtils.canonicalise(gradleUserHomeDir);
     }
 
-    public ProjectDependenciesBuildInstruction getProjectDependenciesBuildInstruction() {
-        return projectDependenciesBuildInstruction;
+    /**
+     * Returns true if project dependencies are to be built, false if they should not be. The default is true.
+     */
+    public boolean isBuildProjectDependencies() {
+        return buildProjectDependencies;
     }
 
-    public void setProjectDependenciesBuildInstruction(
-            ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction) {
-        this.projectDependenciesBuildInstruction = projectDependenciesBuildInstruction;
+    /**
+     * Specifies whether project dependencies should be built. Defaults to true.
+     *
+     * @return this
+     */
+    public StartParameter setBuildProjectDependencies(boolean build) {
+        this.buildProjectDependencies = build;
+        return this;
     }
 
+    /**
+     *  Returns the configured CacheUsage.
+     *  @deprecated Use {@link #isRecompileScripts} and/or {@link #isRerunTasks} instead.
+     * */
+    @Deprecated
     public CacheUsage getCacheUsage() {
         return cacheUsage;
     }
 
+    /**
+     *  Sets the Cache usage.
+     *  @deprecated Use {@link #setRecompileScripts} and/or {@link #setRerunTasks} instead.
+     * */
+    @Deprecated
     public void setCacheUsage(CacheUsage cacheUsage) {
         this.cacheUsage = cacheUsage;
     }
@@ -393,12 +378,25 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         this.dryRun = dryRun;
     }
 
+    /**
+     * Returns task optimization disabled flag.
+     *
+     * @deprecated Use {@link #isRerunTasks} instead.
+     * */
+    @Deprecated
     public boolean isNoOpt() {
-        return noOpt;
+        return rerunTasks;
     }
 
+   /**
+    * Get task optimization disabled.
+    *
+    * @param noOpt The boolean value for disabling task optimization.
+    * @deprecated Use {@link #setRefreshDependencies(boolean)} instead.
+    */
+    @Deprecated
     public void setNoOpt(boolean noOpt) {
-        this.noOpt = noOpt;
+        this.rerunTasks = noOpt;
     }
 
     /**
@@ -408,31 +406,48 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      */
     public void setSettingsFile(File settingsFile) {
         if (settingsFile == null) {
-            settingsScriptSource = null;
+            this.settingsFile = null;
         } else {
-            File canonicalFile = GFileUtils.canonicalise(settingsFile);
-            currentDir = canonicalFile.getParentFile();
-            settingsScriptSource = new UriScriptSource("settings file", canonicalFile);
+            this.useEmptySettings = false;
+            this.settingsFile = GFileUtils.canonicalise(settingsFile);
+            currentDir = this.settingsFile.getParentFile();
         }
     }
 
     /**
-     * Adds the given file to the list of init scripts that are run before the build starts.  This list is in
-     * addition to the user init script located in ${user.home}/.gradle/init.gradle.
-     * @param initScriptFile The init script to be run during the Gradle invocation.
+     * Returns the explicit settings file to use for the build, or null.
+     *
+     * Will return null if the default settings file is to be used. However, if {@link #isUseEmptySettings()} returns true, then no settings file at all will be used.
+     *
+     * @return The settings file. May be null.
+     * @see #isUseEmptySettings()
+     */
+    public File getSettingsFile() {
+        return settingsFile;
+    }
+
+    /**
+     * Adds the given file to the list of init scripts that are run before the build starts.  This list is in addition to the default init scripts.
+     *
+     * @param initScriptFile The init scripts.
      */
     public void addInitScript(File initScriptFile) {
         initScripts.add(initScriptFile);
     }
 
+    /**
+     * Sets the list of init scripts to be run before the build starts. This list is in addition to the default init scripts.
+     *
+     * @param initScripts The init scripts.
+     */
     public void setInitScripts(List<File> initScripts) {
         this.initScripts = initScripts;
     }
 
     /**
-     * Returns all explicitly added init scripts that will be run before the build starts.  This list does not
-     * contain the user init script located in ${user.home}/.gradle/init.gradle, even though that init script
-     * will also be run.
+     * Returns all explicitly added init scripts that will be run before the build starts.  This list does not contain the user init script located in ${user.home}/.gradle/init.gradle, even though
+     * that init script will also be run.
+     *
      * @return list of all explicitly added init scripts.
      */
     public List<File> getInitScripts() {
@@ -440,42 +455,35 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     }
 
     /**
-     * Returns the selector used to choose the default project of the build. This is the project used as the starting
-     * point for resolving task names, and for determining the default tasks.
-     *
-     * @return The default project. Never returns null.
-     */
-    public ProjectSpec getDefaultProjectSelector() {
-        return defaultProjectSelector != null ? defaultProjectSelector : new DefaultProjectSpec(currentDir);
-    }
-
-    /**
-     * Sets the selector used to choose the default project of the build.
-     *
-     * @param defaultProjectSelector The selector. Should not be null.
-     */
-    public void setDefaultProjectSelector(ProjectSpec defaultProjectSelector) {
-        this.defaultProjectSelector = defaultProjectSelector;
-    }
-
-    /**
-     * Sets the project directory to use to select the default project. Use null to use the default criteria for
-     * selecting the default project.
+     * Sets the project directory to use to select the default project. Use null to use the default criteria for selecting the default project.
      *
      * @param projectDir The project directory. May be null.
      */
     public void setProjectDir(File projectDir) {
         if (projectDir == null) {
             setCurrentDir(null);
+            this.projectDir = null;
         } else {
             File canonicalFile = GFileUtils.canonicalise(projectDir);
             currentDir = canonicalFile;
-            defaultProjectSelector = new ProjectDirectoryProjectSpec(canonicalFile);
+            this.projectDir = canonicalFile;
         }
     }
 
     /**
+     * Returns the project dir to use to select the default project.
+     *
+     * Returns null when the build file is not used to select the default project
+     *
+     * @return The project dir. May be null.
+     */
+    public File getProjectDir() {
+        return projectDir;
+    }
+
+    /**
      * Specifies if a profile report should be generated.
+     *
      * @param profile true if a profile report should be generated
      */
     public void setProfile(boolean profile) {
@@ -503,6 +511,80 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         this.continueOnFailure = continueOnFailure;
     }
 
+    /**
+     * Specifies whether the build should be performed offline (ie without network access).
+     */
+    public boolean isOffline() {
+        return offline;
+    }
+
+    /**
+     * Specifies whether the build should be performed offline (ie without network access).
+     */
+    public void setOffline(boolean offline) {
+        this.offline = offline;
+    }
+
+    /**
+     * Supplies the refresh options to use for the build.
+     * @deprecated Use {@link #setRefreshDependencies(boolean)} instead.
+     */
+    @Deprecated
+    public void setRefreshOptions(RefreshOptions refreshOptions) {
+        this.refreshDependencies = refreshOptions.refreshDependencies();
+    }
+
+    /**
+     * Returns the refresh options used for the build.
+     * @deprecated Use {@link #isRefreshDependencies()} instead.
+     */
+    @Deprecated
+    public RefreshOptions getRefreshOptions() {
+        return isRefreshDependencies() ? new RefreshOptions(Arrays.asList(RefreshOptions.Option.DEPENDENCIES)) : RefreshOptions.NONE;
+    }
+
+    /**
+     * Specifies whether the dependencies should be refreshed..
+     */
+    public boolean isRefreshDependencies() {
+        return refreshDependencies;
+    }
+
+    /**
+     * Specifies whether the dependencies should be refreshed..
+     */
+    public void setRefreshDependencies(boolean refreshDependencies) {
+        this.refreshDependencies = refreshDependencies;
+    }
+
+    /**
+     * Specifies whether the cached task results should be ignored and each task should be forced to be executed.
+     */
+    public boolean isRerunTasks() {
+        return rerunTasks;
+    }
+
+    /**
+     * Specifies whether the cached task results should be ignored and each task should be forced to be executed.
+     */
+    public void setRerunTasks(boolean rerunTasks) {
+        this.rerunTasks = rerunTasks;
+    }
+
+    /**
+     * Specifies whether the build scripts should be recompiled.
+     */
+    public boolean isRecompileScripts() {
+        return recompileScripts;
+    }
+
+    /**
+     * Specifies whether the build scripts should be recompiled.
+     */
+    public void setRecompileScripts(boolean recompileScripts) {
+        this.recompileScripts = recompileScripts;
+    }
+
     @Override
     public String toString() {
         return "StartParameter{"
@@ -514,16 +596,15 @@ public class StartParameter extends LoggingConfiguration implements Serializable
                 + ", systemPropertiesArgs=" + systemPropertiesArgs
                 + ", gradleUserHomeDir=" + gradleUserHomeDir
                 + ", cacheUsage=" + cacheUsage
-                + ", buildScriptSource=" + buildScriptSource
-                + ", settingsScriptSource=" + settingsScriptSource
-                + ", defaultProjectSelector=" + defaultProjectSelector
                 + ", logLevel=" + getLogLevel()
                 + ", showStacktrace=" + getShowStacktrace()
                 + ", buildFile=" + buildFile
                 + ", initScripts=" + initScripts
                 + ", dryRun=" + dryRun
-                + ", noOpt=" + noOpt
-                + ", profile=" + profile
+                + ", rerunTasks=" + rerunTasks
+                + ", recompileScripts=" + recompileScripts
+                + ", offline=" + offline
+                + ", refreshDependencies=" + refreshDependencies
                 + '}';
     }
 }

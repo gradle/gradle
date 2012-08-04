@@ -17,7 +17,7 @@
 package org.gradle.api.publication.maven.internal.modelbuilder
 
 import org.gradle.api.Project
-import org.gradle.api.internal.Instantiator
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.publication.maven.MavenPublication
 import org.gradle.api.publication.maven.internal.model.DefaultMavenArtifact
@@ -28,15 +28,20 @@ import org.gradle.api.tasks.bundling.Jar
  * @author: Szczepan Faber, created at: 5/13/11
  */
 class MavenPublicationBuilder {
+    private final Instantiator instantiator
+
+    MavenPublicationBuilder(Instantiator instantiator) {
+        this.instantiator = instantiator
+    }
 
     MavenPublication build(Project project) {
-        DefaultMavenPublication publication = project.services.get(Instantiator).newInstance(DefaultMavenPublication)
-        publication.mainArtifact = project.services.get(Instantiator).newInstance(DefaultMavenArtifact)
+        DefaultMavenPublication publication = instantiator.newInstance(DefaultMavenPublication)
+        publication.mainArtifact = instantiator.newInstance(DefaultMavenArtifact)
         //@Peter, I was prolific with comments because I wasn't sure I'll be able to pair soon. Get rid of comments if you like.
 
         //basic values can be easily extracted from the project:
         publication.conventionMapping.description = { project.description }
-        publication.conventionMapping.groupId = { project.group.toString()? project.group.toString() : 'unspecified.group'}
+        publication.conventionMapping.groupId = { project.group.toString() ? project.group.toString() : 'unspecified.group'}
         publication.conventionMapping.version = { project.version.toString() }
         publication.modelVersion = '4.0.0'
 

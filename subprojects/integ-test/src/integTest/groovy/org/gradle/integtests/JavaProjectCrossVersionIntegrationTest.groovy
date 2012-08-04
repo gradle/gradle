@@ -15,7 +15,7 @@
  */
 package org.gradle.integtests
 
-import org.gradle.integtests.fixtures.internal.CrossVersionIntegrationSpec
+import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.junit.Test
 
 class JavaProjectCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
@@ -23,7 +23,12 @@ class JavaProjectCrossVersionIntegrationTest extends CrossVersionIntegrationSpec
     public void "can upgrade and downgrade Gradle version used to build Java project"() {
         given:
         buildFile << """
-usePlugin('java')
+if (gradle.gradleVersion == "0.8") {
+    usePlugin('java')
+} else {
+    apply plugin: 'java'
+}
+
 
 task custom(type: org.gradle.CustomTask)
         """

@@ -17,6 +17,7 @@ package org.gradle.util;
 
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
+
 import java.util.*;
 
 /**

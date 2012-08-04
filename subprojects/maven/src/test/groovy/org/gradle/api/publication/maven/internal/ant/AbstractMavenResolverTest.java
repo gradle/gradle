@@ -109,6 +109,7 @@ public abstract class AbstractMavenResolverTest {
 
         context.checking(new Expectations() {
             {
+                allowing((CustomInstallDeployTaskSupport) getInstallDeployTask()).clearAttachedArtifactsList();
                 allowing((CustomInstallDeployTaskSupport) getInstallDeployTask()).getSettings();
                 will(returnValue(mavenSettingsMock));
                 allowing((CustomInstallDeployTaskSupport) getInstallDeployTask()).getProject();

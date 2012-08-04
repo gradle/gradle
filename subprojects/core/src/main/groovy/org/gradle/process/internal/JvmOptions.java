@@ -20,30 +20,41 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.process.JavaForkOptions;
+import org.gradle.util.internal.ArgumentsSplitter;
 
 import java.io.File;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class JvmOptions {
-    private final Pattern sysPropPattern = Pattern.compile("-D(.+?)=(.*)");
-    private final Pattern noArgSysPropPattern = Pattern.compile("-D([^=]+)");
-    private final Pattern maxHeapPattern = Pattern.compile("-Xmx(.+)");
-    private final Pattern bootstrapPattern = Pattern.compile("-Xbootclasspath:(.+)");
+    private static final Pattern SYS_PROP_PATTERN = Pattern.compile("-D(.+?)=(.*)");
+    private static final Pattern DEFAULT_ENCODING_PATTERN = Pattern.compile("-Dfile\\Q.\\Eencoding=(.*)");
+    private static final Pattern NO_ARG_SYS_PROP_PATTERN = Pattern.compile("-D([^=]+)");
+    private static final Pattern MIN_HEAP_PATTERN = Pattern.compile("-Xms(.+)");
+    private static final Pattern MAX_HEAP_PATTERN = Pattern.compile("-Xmx(.+)");
+    private static final Pattern BOOTSTRAP_PATTERN = Pattern.compile("-Xbootclasspath:(.+)");
+    private static final String FILE_ENCODING_KEY = "file.encoding";
+
     private final List<Object> extraJvmArgs = new ArrayList<Object>();
     private final Map<String, Object> systemProperties = new TreeMap<String, Object>();
     private DefaultConfigurableFileCollection bootstrapClasspath;
+    private String minHeapSize;
     private String maxHeapSize;
     private boolean assertionsEnabled;
     private boolean debug;
+    private String defaultCharacterEncoding;
 
     public JvmOptions(FileResolver resolver) {
         this.bootstrapClasspath = new DefaultConfigurableFileCollection(resolver, null);
     }
 
+    /**
+     * @return all jvm args including system properties
+     */
     public List<String> getAllJvmArgs() {
-        List<String> args = getAllJvmArgsWithoutSystemProperties();
+        List<String> args = new LinkedList<String>();
         for (Map.Entry<String, Object> entry : getSystemProperties().entrySet()) {
             if (entry.getValue() != null) {
                 args.add(String.format("-D%s=%s", entry.getKey(), entry.getValue().toString()));
@@ -51,12 +62,35 @@ public class JvmOptions {
                 args.add(String.format("-D%s", entry.getKey()));
             }
         }
+
+        // We have to add these after the system properties so they can override any system properties
+        // (identical properties later in the command line override earlier ones)
+        args.addAll(getAllImmutableJvmArgs());
+
         return args;
     }
-    
-    public List<String> getAllJvmArgsWithoutSystemProperties() {
+
+    /**
+     * @return all immutable jvm args. It excludes most system properties.
+     * Only implicitly immutable system properties like "file.encoding" are included.
+     * The result is a subset of options returned by {@link #getAllJvmArgs()}
+     */
+    public List<String> getAllImmutableJvmArgs() {
         List<String> args = new ArrayList<String>();
         args.addAll(getJvmArgs());
+        args.addAll(getManagedJvmArgs());
+        return args;
+    }
+
+    /**
+     * @return the list of jvm args we manage explicitly, for example, max heaps size or file encoding.
+     * The result is a subset of options returned by {@link #getAllImmutableJvmArgs()}
+     */
+    public List<String> getManagedJvmArgs() {
+        List<String> args = new ArrayList<String>();
+        if (minHeapSize != null) {
+            args.add(String.format("-Xms%s", minHeapSize));
+        }
         if (maxHeapSize != null) {
             args.add(String.format("-Xmx%s", maxHeapSize));
         }
@@ -64,6 +98,11 @@ public class JvmOptions {
         if (!bootstrapClasspath.isEmpty()) {
             args.add(String.format("-Xbootclasspath:%s", bootstrapClasspath.getAsPath()));
         }
+
+        // This is implemented as a system property, but doesn't really function like one
+        // So we include it in this “no system property” set.
+        addDefaultEncodingJvmArg(args);
+
         if (assertionsEnabled) {
             args.add("-ea");
         }
@@ -76,6 +115,7 @@ public class JvmOptions {
 
     public void setAllJvmArgs(Iterable<?> arguments) {
         systemProperties.clear();
+        minHeapSize = null;
         maxHeapSize = null;
         extraJvmArgs.clear();
         assertionsEnabled = false;
@@ -98,24 +138,35 @@ public class JvmOptions {
     public void jvmArgs(Iterable<?> arguments) {
         for (Object argument : arguments) {
             String argStr = argument.toString();
-            Matcher matcher = sysPropPattern.matcher(argStr);
+
+            Matcher matcher = DEFAULT_ENCODING_PATTERN.matcher(argStr);
+            if (matcher.matches()) {
+                defaultCharacterEncoding = matcher.group(1);
+                continue;
+            }
+            matcher = SYS_PROP_PATTERN.matcher(argStr);
             if (matcher.matches()) {
                 systemProperties.put(matcher.group(1), matcher.group(2));
                 continue;
             }
-            matcher = noArgSysPropPattern.matcher(argStr);
+            matcher = NO_ARG_SYS_PROP_PATTERN.matcher(argStr);
             if (matcher.matches()) {
-                systemProperties.put(matcher.group(1), null);
+                systemProperties.put(matcher.group(1), "");
                 continue;
             }
-            matcher = maxHeapPattern.matcher(argStr);
+            matcher = MIN_HEAP_PATTERN.matcher(argStr);
+            if (matcher.matches()) {
+                minHeapSize = matcher.group(1);
+                continue;
+            }
+            matcher = MAX_HEAP_PATTERN.matcher(argStr);
             if (matcher.matches()) {
                 maxHeapSize = matcher.group(1);
                 continue;
             }
-            matcher = bootstrapPattern.matcher(argStr);
+            matcher = BOOTSTRAP_PATTERN.matcher(argStr);
             if (matcher.matches()) {
-                setBootstrapClasspath(matcher.group(1).split(Pattern.quote(File.pathSeparator)));
+                setBootstrapClasspath((Object[])matcher.group(1).split(Pattern.quote(File.pathSeparator)));
                 continue;
             }
             if (argStr.equals("-ea") || argStr.equals("-enableassertions")) {
@@ -160,15 +211,23 @@ public class JvmOptions {
 
     public void setSystemProperties(Map<String, ?> properties) {
         systemProperties.clear();
-        systemProperties.putAll(properties);
+        systemProperties(properties);
     }
 
     public void systemProperties(Map<String, ?> properties) {
+        final Object fileEncoding = properties.remove(FILE_ENCODING_KEY);
+        if (fileEncoding != null) {
+            defaultCharacterEncoding = fileEncoding.toString();
+        }
         systemProperties.putAll(properties);
     }
 
     public void systemProperty(String name, Object value) {
-        systemProperties.put(name, value);
+        if (name.equals(FILE_ENCODING_KEY)) {
+            defaultCharacterEncoding = value.toString();
+        } else {
+            systemProperties.put(name, value);
+        }
     }
 
     public FileCollection getBootstrapClasspath() {
@@ -187,12 +246,43 @@ public class JvmOptions {
         this.bootstrapClasspath.from(classpath);
     }
 
+    public String getMinHeapSize() {
+        return minHeapSize;
+    }
+
+    public void setMinHeapSize(String heapSize) {
+        this.minHeapSize = heapSize;
+    }
+
     public String getMaxHeapSize() {
         return maxHeapSize;
     }
 
     public void setMaxHeapSize(String heapSize) {
         this.maxHeapSize = heapSize;
+    }
+
+    public String getDefaultCharacterEncoding() {
+        return defaultCharacterEncoding;
+    }
+
+    public String getEffectiveDefaultCharacterEncoding() {
+        if (defaultCharacterEncoding != null) {
+            return defaultCharacterEncoding;
+        } else {
+            return Charset.defaultCharset().name();
+        }
+    }
+
+    private void addDefaultEncodingJvmArg(List<String> jvmArgs) {
+        // The “file.encoding” system property is not part of the JVM standard, but both the
+        // Sun and IBM JVMs support this system property. We should at some point abstract this
+        // behind the Jvm class.
+        jvmArgs.add(String.format("-Dfile.encoding=%s", getEffectiveDefaultCharacterEncoding()));
+    }
+
+    public void setDefaultCharacterEncoding(String defaultCharacterEncoding) {
+        this.defaultCharacterEncoding = defaultCharacterEncoding;
     }
 
     public boolean getEnableAssertions() {
@@ -214,9 +304,15 @@ public class JvmOptions {
     public void copyTo(JavaForkOptions target) {
         target.setJvmArgs(extraJvmArgs);
         target.setSystemProperties(systemProperties);
+        target.setMinHeapSize(minHeapSize);
         target.setMaxHeapSize(maxHeapSize);
         target.setBootstrapClasspath(bootstrapClasspath);
         target.setEnableAssertions(assertionsEnabled);
         target.setDebug(debug);
+        target.setDefaultCharacterEncoding(defaultCharacterEncoding);
+    }
+
+    public static List<String> fromString(String input) {
+        return ArgumentsSplitter.split(input);
     }
 }

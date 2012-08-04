@@ -20,20 +20,20 @@ import org.gradle.GradleLauncher;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.DefaultGradleLauncher;
 import org.gradle.initialization.GradleLauncherAction;
-import org.gradle.tooling.internal.protocol.ProjectVersion3;
-import org.gradle.util.UncheckedException;
+import org.gradle.internal.UncheckedException;
 
 import java.io.Serializable;
+import java.lang.reflect.InvocationTargetException;
 
-class DelegatingBuildModelAction implements GradleLauncherAction<ProjectVersion3>, Serializable {
-    private transient GradleLauncherAction<ProjectVersion3> action;
-    private final Class<? extends ProjectVersion3> type;
+class DelegatingBuildModelAction<T> implements GradleLauncherAction<T>, Serializable {
+    private transient GradleLauncherAction<T> action;
+    private final Class<? extends T> type;
 
-    public DelegatingBuildModelAction(Class<? extends ProjectVersion3> type) {
+    public DelegatingBuildModelAction(Class<T> type) {
         this.type = type;
     }
 
-    public ProjectVersion3 getResult() {
+    public T getResult() {
         return action.getResult();
     }
 
@@ -44,12 +44,13 @@ class DelegatingBuildModelAction implements GradleLauncherAction<ProjectVersion3
 
     @SuppressWarnings("unchecked")
     private void loadAction(DefaultGradleLauncher launcher) {
-        DefaultGradleLauncher gradleLauncher = launcher;
-        ClassLoaderRegistry classLoaderRegistry = gradleLauncher.getGradle().getServices().get(ClassLoaderRegistry.class);
+        ClassLoaderRegistry classLoaderRegistry = launcher.getGradle().getServices().get(ClassLoaderRegistry.class);
         try {
-            action = (GradleLauncherAction<ProjectVersion3>) classLoaderRegistry.getRootClassLoader().loadClass("org.gradle.tooling.internal.provider.BuildModelAction").getConstructor(Class.class).newInstance(type);
+            action = (GradleLauncherAction<T>) classLoaderRegistry.getRootClassLoader().loadClass("org.gradle.tooling.internal.provider.BuildModelAction").getConstructor(Class.class).newInstance(type);
+        } catch (InvocationTargetException e) {
+            throw UncheckedException.unwrapAndRethrow(e);
         } catch (Exception e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 }

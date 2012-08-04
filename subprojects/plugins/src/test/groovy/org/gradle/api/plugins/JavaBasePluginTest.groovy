@@ -17,18 +17,20 @@ package org.gradle.api.plugins
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
+import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.Compile
 import org.gradle.api.tasks.javadoc.Javadoc
+import org.gradle.api.tasks.testing.Test
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.util.HelperUtil
 import org.gradle.util.Matchers
-import spock.lang.Specification
-import static org.gradle.util.WrapUtil.toLinkedSet
-import static org.gradle.util.Matchers.*
-import org.gradle.api.tasks.testing.Test
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
+import spock.lang.Specification
+import static org.gradle.util.Matchers.sameCollection
+import static org.gradle.util.WrapUtil.toLinkedSet
 
 /**
  * @author Hans Dockter
@@ -38,7 +40,7 @@ class JavaBasePluginTest extends Specification {
     @Rule
     public SetSystemProperties sysProperties = new SetSystemProperties()
     private final Project project = HelperUtil.createRootProject()
-    private final JavaBasePlugin javaBasePlugin = new JavaBasePlugin()
+    private final JavaBasePlugin javaBasePlugin = new JavaBasePlugin(project.services.get(Instantiator))
 
     void appliesBasePluginsAndAddsConventionObject() {
         when:
@@ -67,16 +69,17 @@ class JavaBasePluginTest extends Specification {
         processResources instanceof Copy
         Matchers.dependsOn().matches(processResources)
         processResources.destinationDir == project.sourceSets.custom.output.resourcesDir
-        processResources.defaultSource == project.sourceSets.custom.resources
+        def resources = processResources.source
+        resources sameCollection(project.sourceSets.custom.resources)
 
         def compileJava = project.tasks['compileCustomJava']
         compileJava.description == 'Compiles the custom Java source.'
         compileJava instanceof Compile
         Matchers.dependsOn().matches(compileJava)
-        compileJava.defaultSource == project.sourceSets.custom.java
         compileJava.classpath.is(project.sourceSets.custom.compileClasspath)
         compileJava.destinationDir == project.sourceSets.custom.output.classesDir
-
+        def sources = compileJava.source
+        sources sameCollection(project.sourceSets.custom.java)
         def classes = project.tasks['customClasses']
         classes.description == 'Assembles the custom classes.'
         classes instanceof DefaultTask
@@ -133,23 +136,23 @@ class JavaBasePluginTest extends Specification {
         javaBasePlugin.apply(project)
 
         then:
-        def compile = project.createTask('customCompile', type: Compile)
+        def compile = project.task('customCompile', type: Compile)
         compile.sourceCompatibility == project.sourceCompatibility.toString()
 
-        def test = project.createTask('customTest', type: Test.class)
+        def test = project.task('customTest', type: Test.class)
         test.workingDir == project.projectDir
         test.testResultsDir == project.testResultsDir
         test.testReportDir == project.testReportDir
 
-        def javadoc = project.createTask('customJavadoc', type: Javadoc)
+        def javadoc = project.task('customJavadoc', type: Javadoc)
         javadoc.destinationDir == project.file("$project.docsDir/javadoc")
-        javadoc.title == project.apiDocTitle
+        javadoc.title == project.extensions.getByType(ReportingExtension).apiDocTitle
     }
 
     void appliesMappingsToCustomJarTasks() {
         when:
         javaBasePlugin.apply(project)
-        def task = project.createTask('customJar', type: Jar)
+        def task = project.task('customJar', type: Jar)
 
         then:
         Matchers.dependsOn().matches(task)

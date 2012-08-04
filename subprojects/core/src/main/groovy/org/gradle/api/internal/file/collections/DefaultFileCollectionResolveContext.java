@@ -22,8 +22,9 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.tasks.TaskOutputs;
+import org.gradle.internal.UncheckedException;
 import org.gradle.util.GUtil;
-import org.gradle.util.UncheckedException;
 
 import java.io.File;
 import java.util.*;
@@ -103,6 +104,9 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
             } else if (element instanceof Task) {
                 Task task = (Task) element;
                 queue.add(0, task.getOutputs().getFiles());
+            } else if (element instanceof TaskOutputs) {
+                TaskOutputs outputs = (TaskOutputs) element;
+                queue.add(0, outputs.getFiles());
             } else if (element instanceof Closure) {
                 Closure closure = (Closure) element;
                 Object closureResult = closure.call();
@@ -115,7 +119,7 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
                 try {
                     callableResult = callable.call();
                 } catch (Exception e) {
-                    throw UncheckedException.asUncheckedException(e);
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
                 if (callableResult != null) {
                     queue.add(0, callableResult);

@@ -49,6 +49,7 @@ public class BuildProfile {
     private long projectsLoaded;
     private long projectsEvaluated;
     private long buildFinished;
+    private boolean successful;
 
     public BuildProfile(Gradle gradle) {
         this.gradle = gradle;
@@ -189,7 +190,7 @@ public class BuildProfile {
      * @return
      */
     public long getElapsedTotal() { 
-    return buildFinished - profilingStarted;
+        return buildFinished - profilingStarted;
     }
 
     /**
@@ -235,5 +236,13 @@ public class BuildProfile {
             result += projectProfile.getTasks().getElapsedTime();
         }
         return result;
+    }
+
+    public boolean isSuccessful() {
+        return successful;
+    }
+
+    public void setSuccessful(boolean successful) {
+        this.successful = successful;
     }
 }

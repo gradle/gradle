@@ -19,6 +19,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Namer;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
 
 public abstract class AbstractNamedDomainObjectContainer<T> extends DefaultNamedDomainObjectSet<T> implements NamedDomainObjectContainer<T> {

@@ -17,45 +17,33 @@
 package org.gradle.process.internal.child;
 
 import org.gradle.api.Action;
-import org.gradle.util.ClassLoaderObjectInputStream;
-import org.gradle.util.ClasspathUtil;
-import org.gradle.util.GFileUtils;
-import org.gradle.util.GUtil;
+import org.gradle.internal.io.ClassLoaderObjectInputStream;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.net.URLClassLoader;
-import java.util.Collection;
 import java.util.concurrent.Callable;
 
 /**
  * <p>Stage 3 of the start-up for a worker process with the application classes loaded in the system ClassLoader. Takes
  * care of adding the application classes to the system ClassLoader and then invoking the next stage of start-up.</p>
+ * TODO:DAZ No longer adds application classes to system ClassLoader: is this required at all?
  *
  * <p> Instantiated in the worker bootstrap ClassLoader and invoked from {@link org.gradle.process.internal.launcher.BootstrapClassLoaderWorker}.
  * See {@link ApplicationClassesInSystemClassLoaderWorkerFactory} for details.</p>
  */
 public class SystemApplicationClassLoaderWorker implements Callable<Void> {
     private final byte[] serializedWorker;
-    private final Collection<File> applicationClassPath;
 
-    public SystemApplicationClassLoaderWorker(Collection<File> applicationClassPath, byte[] serializedWorker) {
-        this.applicationClassPath = applicationClassPath;
+    public SystemApplicationClassLoaderWorker(byte[] serializedWorker) {
         this.serializedWorker = serializedWorker;
     }
 
     public Void call() throws Exception {
-        final ClassLoader applicationClassLoader = ClassLoader.getSystemClassLoader();
-        ClasspathUtil.addUrl((URLClassLoader) applicationClassLoader, GFileUtils.toURLs(applicationClassPath));
-        System.setProperty("java.class.path", GUtil.join(applicationClassPath, File.pathSeparator));
-
-        ClassLoaderObjectInputStream instr = new ClassLoaderObjectInputStream(new ByteArrayInputStream(
-                serializedWorker), getClass().getClassLoader());
+        ClassLoaderObjectInputStream instr = new ClassLoaderObjectInputStream(new ByteArrayInputStream(serializedWorker), getClass().getClassLoader());
         final Action<WorkerContext> action = (Action<WorkerContext>) instr.readObject();
 
         action.execute(new WorkerContext() {
             public ClassLoader getApplicationClassLoader() {
-                return applicationClassLoader;
+                return ClassLoader.getSystemClassLoader();
             }
         });
 

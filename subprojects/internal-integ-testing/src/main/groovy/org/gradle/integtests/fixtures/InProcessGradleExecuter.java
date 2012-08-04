@@ -16,31 +16,40 @@
 
 package org.gradle.integtests.fixtures;
 
-import junit.framework.AssertionFailedError;
+import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.GradleLauncher;
 import org.gradle.StartParameter;
 import org.gradle.api.GradleException;
-import org.gradle.api.LocationAwareException;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
+import org.gradle.api.initialization.Settings;
+import org.gradle.api.internal.LocationAwareException;
+import org.gradle.api.internal.classpath.DefaultModuleRegistry;
+import org.gradle.api.internal.file.IdentityFileResolver;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.initialization.DefaultGradleLauncherFactory;
+import org.gradle.internal.Factory;
+import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.nativeplatform.ProcessEnvironment;
+import org.gradle.internal.nativeplatform.services.NativeServices;
+import org.gradle.launcher.Main;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
-import org.gradle.os.ProcessEnvironment;
-import org.gradle.os.jna.NativeEnvironment;
-import org.gradle.util.Jvm;
+import org.gradle.process.internal.JavaExecHandleBuilder;
+import org.gradle.util.DeprecationLogger;
 import org.hamcrest.Matcher;
 
 import java.io.File;
 import java.io.InputStream;
 import java.io.StringWriter;
+import java.nio.charset.Charset;
 import java.util.*;
 
 import static org.gradle.util.Matchers.*;
@@ -48,7 +57,7 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 public class InProcessGradleExecuter extends AbstractGradleExecuter {
-    private final ProcessEnvironment processEnvironment = NativeEnvironment.current();
+    private final ProcessEnvironment processEnvironment = new NativeServices().get(ProcessEnvironment.class);
 
     @Override
     protected ExecutionResult doRun() {
@@ -56,7 +65,11 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         OutputListenerImpl errorListener = new OutputListenerImpl();
         BuildListenerImpl buildListener = new BuildListenerImpl();
         BuildResult result = doRun(outputListener, errorListener, buildListener);
-        result.rethrowFailure();
+        try {
+            result.rethrowFailure();
+        } catch (Exception e) {
+            throw new UnexpectedBuildFailure(e);
+        }
         return new InProcessExecutionResult(buildListener.executedTasks, buildListener.skippedTasks,
                 outputListener.toString(), errorListener.toString());
     }
@@ -68,11 +81,26 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         BuildListenerImpl buildListener = new BuildListenerImpl();
         try {
             doRun(outputListener, errorListener, buildListener).rethrowFailure();
-            throw new AssertionFailedError("expected build to fail but it did not.");
+            throw new AssertionError("expected build to fail but it did not.");
         } catch (GradleException e) {
             return new InProcessExecutionFailure(buildListener.executedTasks, buildListener.skippedTasks,
                     outputListener.writer.toString(), errorListener.writer.toString(), e);
         }
+    }
+
+    @Override
+    protected GradleHandle doStart() {
+        return new ForkingGradleHandle(getDefaultCharacterEncoding(), new Factory<JavaExecHandleBuilder>() {
+            public JavaExecHandleBuilder create() {
+                JavaExecHandleBuilder builder = new JavaExecHandleBuilder(new IdentityFileResolver());
+                builder.workingDir(getWorkingDir());
+                Set<File> classpath = new DefaultModuleRegistry().getFullClasspath();
+                builder.classpath(classpath);
+                builder.setMain(Main.class.getName());
+                builder.args(getAllArgs());
+                return builder;
+            }
+        }).start();
     }
 
     private BuildResult doRun(final OutputListenerImpl outputListener, OutputListenerImpl errorListener,
@@ -132,6 +160,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
     public void assertCanExecute() {
         assertNull(getExecutable());
         assertEquals(getJavaHome(), Jvm.current().getJavaHome());
+        assertEquals(getDefaultCharacterEncoding(), Charset.defaultCharset().name());
     }
 
     public boolean canExecute() {
@@ -143,13 +172,33 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         return true;
     }
 
-    private static class BuildListenerImpl implements TaskExecutionGraphListener {
+    private static class BuildListenerImpl implements TaskExecutionGraphListener, BuildListener {
         private final List<String> executedTasks = new ArrayList<String>();
         private final Set<String> skippedTasks = new HashSet<String>();
 
         public void graphPopulated(TaskExecutionGraph graph) {
             List<Task> planned = new ArrayList<Task>(graph.getAllTasks());
             graph.addTaskExecutionListener(new TaskListenerImpl(planned, executedTasks, skippedTasks));
+        }
+
+        public void buildStarted(Gradle gradle) {
+            DeprecationLogger.setLogTrace(true);
+        }
+
+        public void settingsEvaluated(Settings settings) {
+
+        }
+
+        public void projectsLoaded(Gradle gradle) {
+
+        }
+
+        public void projectsEvaluated(Gradle gradle) {
+
+        }
+
+        public void buildFinished(BuildResult result) {
+            DeprecationLogger.setLogTrace(false);
         }
     }
 

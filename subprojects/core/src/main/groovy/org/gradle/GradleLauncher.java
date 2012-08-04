@@ -20,8 +20,12 @@ import org.gradle.initialization.DefaultGradleLauncherFactory;
 import org.gradle.initialization.GradleLauncherFactory;
 
 /**
- * <p>{@code GradleLauncher} is the main entry point for embedding Gradle. You use this class to manage a Gradle build,
- * as follows:</p>
+ * <p>{@code GradleLauncher} is mildly deprecated. It is being replaced by the Tooling API.
+ * If you're interested in embedding Gradle you should read the new user guide chapter on embedding Gradle.
+ * The main entry point to the Tooling API (and embedding Gradle) is {@code org.gradle.tooling.GradleConnector}.
+ *
+ * <p>You should try using the Tooling API ({@code GradleConnector}) instead of {@code GradleLauncher}.
+ * However, if you need some capability that isn't yet implemented in the Tooling API here is how you use {@code GradleLauncher}:
  *
  * <ol>
  *

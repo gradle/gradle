@@ -21,6 +21,7 @@ import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
 
 import java.io.File;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * A JUnit rule which provides a unique temporary folder for the test.
@@ -29,9 +30,11 @@ public class TemporaryFolder implements MethodRule, TestFileContext {
     private TestFile dir;
     private String prefix;
     private static TestFile root;
+    private static AtomicInteger testCounter = new AtomicInteger(1);
 
     static {
-        root = new TestFile(new File("build/tmp/tests"));
+        // NOTE: the space in the directory name is intentional
+        root = new TestFile(new File("build/tmp/test files"));
     }
 
     public TestFile getDir() {
@@ -55,10 +58,10 @@ public class TemporaryFolder implements MethodRule, TestFileContext {
         StackTraceElement[] stackTrace = new RuntimeException().getStackTrace();
         for (StackTraceElement element : stackTrace) {
             if (element.getClassName().endsWith("Test") || element.getClassName().endsWith("Spec")) {
-                return StringUtils.substringAfterLast(element.getClassName(), ".") + "/unknown-test";
+                return StringUtils.substringAfterLast(element.getClassName(), ".") + "/unknown-test-" + testCounter.getAndIncrement();
             }
         }
-        return "unknown-test-class";
+        return "unknown-test-class-" + testCounter.getAndIncrement();
     }
 
     public Statement apply(final Statement base, final FrameworkMethod method, final Object target) {
@@ -75,7 +78,7 @@ public class TemporaryFolder implements MethodRule, TestFileContext {
 
     private void init(FrameworkMethod method, Object target) {
         if (prefix == null) {
-            String safeMethodName = method.getName().replaceAll("\\s", "_");
+            String safeMethodName = method.getName().replaceAll("\\s", "_").replace(File.pathSeparator, "_").replace(":", "_");
             if (safeMethodName.length() > 64) {
                 safeMethodName = safeMethodName.substring(0, 32) + "..." + safeMethodName.substring(safeMethodName.length() - 32);
             }

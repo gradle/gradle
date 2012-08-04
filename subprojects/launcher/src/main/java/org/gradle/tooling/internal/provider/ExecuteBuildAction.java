@@ -17,26 +17,14 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.BuildResult;
 import org.gradle.GradleLauncher;
-import org.gradle.StartParameter;
 import org.gradle.initialization.GradleLauncherAction;
-import org.gradle.launcher.exec.InitializationAware;
 
 import java.io.Serializable;
-import java.util.List;
 
-class ExecuteBuildAction implements GradleLauncherAction<Void>, InitializationAware, Serializable {
-    private final List<String> tasks;
-
-    public ExecuteBuildAction(List<String> tasks) {
-        this.tasks = tasks;
-    }
+public class ExecuteBuildAction implements GradleLauncherAction<Void>, Serializable {
 
     public Void getResult() {
         return null;
-    }
-
-    public void configureStartParameter(StartParameter startParameter) {
-        startParameter.setTaskNames(tasks);
     }
 
     public BuildResult run(GradleLauncher gradleLauncher) {

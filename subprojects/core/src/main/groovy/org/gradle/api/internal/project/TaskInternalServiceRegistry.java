@@ -18,9 +18,11 @@ package org.gradle.api.internal.project;
 
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
+import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.api.internal.tasks.DefaultTaskInputs;
 import org.gradle.api.internal.tasks.DefaultTaskOutputs;
 import org.gradle.api.tasks.TaskInputs;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
 
 /**

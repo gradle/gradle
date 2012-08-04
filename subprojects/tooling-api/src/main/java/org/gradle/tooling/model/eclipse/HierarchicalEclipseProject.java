@@ -17,12 +17,14 @@ package org.gradle.tooling.model.eclipse;
 
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.HierarchicalElement;
-import org.gradle.tooling.model.HierarchicalProject;
+import org.gradle.tooling.model.UnsupportedMethodException;
+
+import java.io.File;
 
 /**
  * Represents the basic information about an Eclipse project.
  */
-public interface HierarchicalEclipseProject extends HierarchicalProject, HierarchicalElement {
+public interface HierarchicalEclipseProject extends HierarchicalElement {
     /**
      * {@inheritDoc}
      */
@@ -51,7 +53,18 @@ public interface HierarchicalEclipseProject extends HierarchicalProject, Hierarc
      * Returns the linked resources for this project.
      *
      * @return The linked resources.
-     * @since 1.0-milestone-3
+     * @since 1.0-milestone-4
+     * @throws org.gradle.tooling.model.UnsupportedMethodException
+     *  When the target Gradle version does not support this information.
+     *  You can safely catch ignore this exception and query the model for other information.
      */
-    DomainObjectSet<? extends EclipseLinkedResource> getLinkedResources();
+    DomainObjectSet<? extends EclipseLinkedResource> getLinkedResources() throws UnsupportedMethodException;
+
+    /**
+     * Returns the project directory for this project.
+     *
+     * @return The project directory.
+     */
+    File getProjectDirectory();
+
 }

@@ -19,6 +19,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.util.GUtil;
 
 import java.io.File;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.ListIterator;
@@ -31,7 +32,7 @@ import java.util.ListIterator;
  *
  * @author Steve Appling
  */
-public class RelativePath {
+public class RelativePath implements Serializable {
     private final boolean endsWithFile;
     private final String[] segments;
 

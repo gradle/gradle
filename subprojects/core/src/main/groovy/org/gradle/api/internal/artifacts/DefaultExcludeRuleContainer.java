@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ExcludeRuleContainer;
+import org.gradle.api.internal.notations.api.NotationParser;
 
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -28,6 +29,8 @@ import java.util.Set;
  */
 public class DefaultExcludeRuleContainer implements ExcludeRuleContainer {
     private Set<ExcludeRule> addedRules = new LinkedHashSet<ExcludeRule>();
+    private NotationParser<ExcludeRule> notationParser = new ExcludeRuleNotationParser<ExcludeRule>();
+    //TODO has usage of NotationParserBuilder here any advantage?
 
     public DefaultExcludeRuleContainer() {
     }
@@ -37,7 +40,7 @@ public class DefaultExcludeRuleContainer implements ExcludeRuleContainer {
     }
 
     public void add(Map<String, String> args) {
-        addedRules.add(new DefaultExcludeRule(args));
+        addedRules.add(notationParser.parseNotation(args));
     }
 
     public Set<ExcludeRule> getRules() {

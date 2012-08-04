@@ -23,7 +23,6 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.internal.file.copy.EmptyCopySpecVisitor;
-import org.gradle.api.internal.file.copy.ReadableCopySpec;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,7 +31,6 @@ import java.io.OutputStream;
 public class TarCopySpecVisitor extends EmptyCopySpecVisitor {
     private TarOutputStream tarOutStr;
     private File tarFile;
-    private ReadableCopySpec spec;
 
     public void startVisit(CopyAction action) {
         TarCopyAction archiveAction = (TarCopyAction) action;
@@ -53,12 +51,7 @@ public class TarCopySpecVisitor extends EmptyCopySpecVisitor {
             throw new UncheckedIOException(e);
         } finally {
             tarOutStr = null;
-            spec = null;
         }
-    }
-
-    public void visitSpec(ReadableCopySpec spec) {
-        this.spec = spec;
     }
 
     public void visitFile(FileVisitDetails fileDetails) {
@@ -66,7 +59,7 @@ public class TarCopySpecVisitor extends EmptyCopySpecVisitor {
             TarEntry archiveEntry = new TarEntry(fileDetails.getRelativePath().getPathString());
             archiveEntry.setModTime(fileDetails.getLastModified());
             archiveEntry.setSize(fileDetails.getSize());
-            archiveEntry.setMode(UnixStat.FILE_FLAG | spec.getFileMode());
+            archiveEntry.setMode(UnixStat.FILE_FLAG | fileDetails.getMode());
             tarOutStr.putNextEntry(archiveEntry);
             fileDetails.copyTo(tarOutStr);
             tarOutStr.closeEntry();
@@ -80,7 +73,7 @@ public class TarCopySpecVisitor extends EmptyCopySpecVisitor {
             // Trailing slash on name indicates entry is a directory
             TarEntry archiveEntry = new TarEntry(dirDetails.getRelativePath().getPathString() + '/');
             archiveEntry.setModTime(dirDetails.getLastModified());
-            archiveEntry.setMode(UnixStat.DIR_FLAG | spec.getDirMode());
+            archiveEntry.setMode(UnixStat.DIR_FLAG | dirDetails.getMode());
             tarOutStr.putNextEntry(archiveEntry);
             tarOutStr.closeEntry();
         } catch (Exception e) {

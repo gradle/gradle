@@ -23,10 +23,9 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.ArtifactRepositoryContainer
 import org.gradle.api.artifacts.UnknownRepositoryException
 import org.gradle.api.artifacts.repositories.ArtifactRepository
-import org.gradle.api.internal.Instantiator
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal
 import org.gradle.util.JUnit4GroovyMockery
-import org.hamcrest.Matchers
 import org.jmock.integration.junit4.JMock
 import org.junit.Before
 import org.junit.Test
@@ -83,9 +82,9 @@ class DefaultArtifactRepositoryContainerTest {
             allowing(resolverFactoryMock).createRepository(expectedUserDescription); will(returnValue(repo1))
             allowing(resolverFactoryMock).createRepository(expectedUserDescription2); will(returnValue(repo2))
             allowing(resolverFactoryMock).createRepository(expectedUserDescription3); will(returnValue(repo3))
-            allowing(repo1).createResolvers(withParam(Matchers.notNullValue())); will { arg -> arg << expectedResolver }
-            allowing(repo2).createResolvers(withParam(Matchers.notNullValue())); will { arg -> arg << expectedResolver2 }
-            allowing(repo3).createResolvers(withParam(Matchers.notNullValue())); will { arg -> arg << expectedResolver3 }
+            allowing(repo1).createResolver(); will(returnValue(expectedResolver))
+            allowing(repo2).createResolver(); will(returnValue(expectedResolver2))
+            allowing(repo3).createResolver(); will(returnValue(expectedResolver3))
         }
         resolverContainer = createResolverContainer()
     }
@@ -150,9 +149,9 @@ class DefaultArtifactRepositoryContainerTest {
         resolverContainer.addFirst(repository1)
         resolverContainer.addFirst(repository2)
 
-        assert resolverContainer.all as List == [repository2, repository1]
+        assert resolverContainer == [repository2, repository1]
         assert resolverContainer.collect { it } == [repository2, repository1]
-        assert resolverContainer.matching { true }.all as List == [repository2, repository1]
+        assert resolverContainer.matching { true } == [repository2, repository1]
         assert resolverContainer.matching { true }.collect { it } == [repository2, repository1]
     }
 
@@ -168,7 +167,7 @@ class DefaultArtifactRepositoryContainerTest {
         resolverContainer.addLast(repository1)
         resolverContainer.addLast(repository2)
 
-        assert resolverContainer.all as List == [repository1, repository2]
+        assert resolverContainer == [repository1, repository2]
     }
     
     @Test public void testAddFirstUsingUserDescription() {

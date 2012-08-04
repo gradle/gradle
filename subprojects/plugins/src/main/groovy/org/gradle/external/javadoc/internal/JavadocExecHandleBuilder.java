@@ -18,10 +18,10 @@ package org.gradle.external.javadoc.internal;
 
 import org.gradle.api.GradleException;
 import org.gradle.external.javadoc.MinimalJavadocOptions;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.process.internal.DefaultExecAction;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.util.GUtil;
-import org.gradle.util.Jvm;
 
 import java.io.File;
 import java.io.IOException;

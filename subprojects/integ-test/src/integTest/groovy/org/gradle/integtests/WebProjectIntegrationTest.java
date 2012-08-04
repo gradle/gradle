@@ -15,21 +15,11 @@
  */
 package org.gradle.integtests;
 
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest;
+import org.gradle.integtests.fixtures.AbstractIntegrationTest;
 import org.gradle.util.TestFile;
 import org.junit.Test;
 
 public class WebProjectIntegrationTest extends AbstractIntegrationTest {
-    @Test
-    public void handlesEmptyProject() {
-        TestFile buildFile = testFile("build.gradle");
-        buildFile.writelns(
-                "apply plugin: 'war'"
-        );
-
-        usingBuildFile(buildFile).withTasks("build").run();
-    }
-
     @Test
     public void createsAWar() {
         testFile("settings.gradle").writelns("rootProject.name = 'test'");
@@ -49,7 +39,6 @@ public class WebProjectIntegrationTest extends AbstractIntegrationTest {
         TestFile buildFile = testFile("build.gradle");
         buildFile.writelns(
                 "apply plugin: 'war'",
-                "jar.enabled = true",
                 "buildDir = 'output'",
                 "libsDirName = 'archives'",
                 "archivesBaseName = 'test'",
@@ -67,7 +56,6 @@ public class WebProjectIntegrationTest extends AbstractIntegrationTest {
         TestFile buildFile = testFile("build.gradle");
         buildFile.writelns(
                 "apply plugin: 'war'",
-                "jar.enabled = true",
                 "version = ''"
         );
         testFile("src/main/resources/org/gradle/resource.file").write("some resource");

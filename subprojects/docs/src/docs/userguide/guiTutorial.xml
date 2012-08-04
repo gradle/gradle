@@ -15,7 +15,7 @@
   -->
 <chapter id="tutorial_gradle_gui">
     <title>Using the Gradle Graphical User Interface</title>
-    <para>In addition to supporting a traditional command line interface, gradle offers
+    <para>In addition to supporting a traditional command line interface, Gradle offers
     a graphical user interface.  This is a stand alone user interface that can be launched with the
     <command>--gui</command> option.</para>
     <example>
@@ -24,16 +24,16 @@
 gradle --gui
 ]]></programlisting>
     </example>
-    <para>Note that this command blocks until the gradle GUI is closed.  Under *nix it is probably preferable to run
+    <para>Note that this command blocks until the Gradle GUI is closed.  Under *nix it is probably preferable to run
         this as a background task (<command>gradle --gui&amp;</command>)</para>
-    <para>If you run this from your gradle project working directory, you should see a tree of tasks.</para>
+    <para>If you run this from your Gradle project working directory, you should see a tree of tasks.</para>
     <figure>
         <title>GUI Task Tree</title>
         <imageobject>
             <imagedata fileref="img/guiTaskTree.png" width="586px" depth="597px"/>
         </imageobject>
     </figure>
-    <para>It is preferable to run this command from your gradle project directory so that the settings of the UI will be
+    <para>It is preferable to run this command from your Gradle project directory so that the settings of the UI will be
         stored in your project directory. However, you can run it then change the working directory via the Setup tab in
         the UI.
     </para>
@@ -63,7 +63,7 @@ gradle --gui
         <title>Favorites</title>
         <para>
             The Favorites tab is place to store commonly-executed commands. These can be complex commands
-            (anything that's legal to gradle) and you can provide them with a display name. This is useful for creating,
+            (anything that's legal to Gradle) and you can provide them with a display name. This is useful for creating,
             say, a custom build command that explicitly skips tests, documentation, and samples that you could call
             &quot;fast build&quot;.
         </para>
@@ -77,7 +77,7 @@ gradle --gui
     <section>
         <title>Command Line</title>
         <para>
-            The Command Line tab is place to execute a single gradle command directly.
+            The Command Line tab is place to execute a single Gradle command directly.
             Just enter whatever you would normally enter after 'gradle' on the command line.  This also provides
             a place to try out commands before adding them to favorites.
         </para>
@@ -95,7 +95,7 @@ gradle --gui
         <itemizedlist>
             <listitem>
                 <para>Current Directory</para>
-                <para>Defines the root directory of your gradle project (typically where build.gradle is located).</para>
+                <para>Defines the root directory of your Gradle project (typically where build.gradle is located).</para>
             </listitem>
 
             <listitem>
@@ -115,7 +115,7 @@ gradle --gui
             <listitem>
                 <para>Use Custom Gradle Executor - Advanced feature</para>
                 <para>
-                    This provides you with an alternate way to launch gradle commands.
+                    This provides you with an alternate way to launch Gradle commands.
                     This is useful if your project requires some extra setup that is done inside another batch file or shell script
                     (such as specifying an init script).
                 </para>

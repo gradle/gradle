@@ -22,6 +22,7 @@ import org.gradle.api.file.FileTreeElement
 import org.gradle.api.internal.tasks.DefaultScalaSourceSet
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPluginConvention
+import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.scala.ScalaCompile
 import org.gradle.api.tasks.scala.ScalaDoc
@@ -54,7 +55,7 @@ public class ScalaBasePlugin implements Plugin<Project> {
             scalaCompile.dependsOn sourceSet.compileJavaTaskName
             javaPlugin.configureForSourceSet(sourceSet, scalaCompile);
             scalaCompile.description = "Compiles the $sourceSet.scala.";
-            scalaCompile.conventionMapping.defaultSource = { sourceSet.scala }
+            scalaCompile.source = sourceSet.scala
 
             project.tasks[sourceSet.classesTaskName].dependsOn(taskName)
         }
@@ -69,7 +70,7 @@ public class ScalaBasePlugin implements Plugin<Project> {
     private void configureScaladoc(final Project project) {
         project.getTasks().withType(ScalaDoc.class) {ScalaDoc scalaDoc ->
             scalaDoc.conventionMapping.destinationDir = { project.file("$project.docsDir/scaladoc") }
-            scalaDoc.conventionMapping.title = { project.apiDocTitle }
+            scalaDoc.conventionMapping.title = { project.extensions.getByType(ReportingExtension).apiDocTitle }
             scalaDoc.scalaClasspath = project.configurations[SCALA_TOOLS_CONFIGURATION_NAME]
         }
     }

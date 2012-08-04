@@ -16,18 +16,12 @@
 package org.gradle.integtests.resolve;
 
 
-import org.gradle.integtests.fixtures.HttpServer
-import org.gradle.integtests.fixtures.IvyRepository
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
-import org.junit.Rule
 import org.junit.Test
 
 /**
  * @author Hans Dockter
  */
-public class ClientModuleDependenciesResolveIntegrationTest extends AbstractIntegrationSpec {
-    @Rule public final HttpServer server = new HttpServer()
-
+public class ClientModuleDependenciesResolveIntegrationTest extends AbstractDependencyResolutionTest {
     @Test
     public void testResolve() {
         when:
@@ -71,7 +65,9 @@ task listJars << {
 }
 """
         server.expectGet('/repo/group/projectB/1.3/ivy-1.3.xml', projectB.ivyFile)
-        server.expectGetMissing('/repo/group/projectA/1.2/projectA-1.2.jar')
+        server.expectGetMissing('/repo/group/projectA/1.2/ivy-1.2.xml')
+        server.expectHeadMissing('/repo/group/projectA/1.2/projectA-1.2.jar')
+        server.expectGet('/repo2/group/projectA/1.2/ivy-1.2.xml', projectA.ivyFile)
         server.expectGet('/repo2/group/projectA/1.2/projectA-1.2.jar', projectA.jarFile)
         server.expectGet('/repo/group/projectB/1.3/projectB-1.3.jar', projectB.jarFile)
 
@@ -80,15 +76,8 @@ task listJars << {
 
 //        given:
         server.resetExpectations()
-        // TODO - should not require this - artifact has been cached
-        server.expectGetMissing('/repo/group/projectA/1.2/projectA-1.2.jar')
 
 //        expect:
         succeeds('listJars')
     }
-
-    IvyRepository ivyRepo() {
-        return new IvyRepository(file('ivy-repo'))
-    }
-
 }

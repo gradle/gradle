@@ -22,11 +22,12 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
 import org.gradle.api.internal.DynamicObject;
-import org.gradle.api.internal.Instantiator;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.api.internal.NamedDomainObjectContainerConfigureDelegate;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.util.ConfigureUtil;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 
 import java.util.HashMap;
@@ -46,7 +47,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         Object replaceStr = mutableOptions.remove(Task.TASK_OVERWRITE);
         boolean replace = replaceStr != null && "true".equals(replaceStr.toString());
 
-        Task task = taskFactory.createTask(project, mutableOptions);
+        Task task = taskFactory.createTask(mutableOptions);
         String name = task.getName();
 
         Task existing = findByNameWithoutRules(name);
@@ -115,6 +116,11 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     public Task resolveTask(Object path) {
         if (!GUtil.isTrue(path)) {
             throw new InvalidUserDataException("A path must be specified!");
+        }
+        if(!(path instanceof CharSequence)) {
+            DeprecationLogger.nagUserWith(String.format("Converting class %s to a task dependency using toString()."
+                    + " This has been deprecated and will be removed in the next version of Gradle. Please use org.gradle.api.Task, java.lang.String, "
+                    + "org.gradle.api.Buildable, org.gradle.tasks.TaskDependency or a Closure to declare your task dependencies.", path.getClass().getName()));
         }
         return getByPath(path.toString());
     }

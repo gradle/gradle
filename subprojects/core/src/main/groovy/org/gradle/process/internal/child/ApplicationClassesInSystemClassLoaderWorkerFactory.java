@@ -16,15 +16,21 @@
 
 package org.gradle.process.internal.child;
 
+import com.google.common.io.ByteStreams;
+import com.google.common.io.InputSupplier;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.messaging.remote.Address;
+import org.gradle.process.JavaExecSpec;
 import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.process.internal.launcher.BootstrapClassLoaderWorker;
+import org.gradle.process.internal.launcher.GradleWorkerMain;
 import org.gradle.util.GUtil;
 
-import java.io.File;
+import java.io.*;
 import java.net.URL;
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -33,11 +39,11 @@ import java.util.concurrent.Callable;
  *
  * <p>Class loader hierarchy:</p>
  * <pre>
- *                              bootstrap
+ *                            jvm bootstrap
  *                                 |
  *                +----------------+--------------+
  *                |                               |
- *              system                      worker bootstrap
+ *            jvm system                      worker bootstrap
  *  (GradleWorkerMain, application) (SystemApplicationClassLoaderWorker, logging)
  *                |                   (ImplementationClassLoaderWorker)
  *                |                               |
@@ -49,9 +55,11 @@ import java.util.concurrent.Callable;
  *                          implementation
  *         (ActionExecutionWorker + worker action implementation)
  * </pre>
- *
  */
 public class ApplicationClassesInSystemClassLoaderWorkerFactory implements WorkerFactory {
+
+    private final static Logger LOGGER = Logging.getLogger(ApplicationClassesInSystemClassLoaderWorkerFactory.class);
+
     private final Object workerId;
     private final String displayName;
     private final WorkerProcessBuilder processBuilder;
@@ -60,8 +68,8 @@ public class ApplicationClassesInSystemClassLoaderWorkerFactory implements Worke
     private final ClassPathRegistry classPathRegistry;
 
     public ApplicationClassesInSystemClassLoaderWorkerFactory(Object workerId, String displayName, WorkerProcessBuilder processBuilder,
-                                          List<URL> implementationClassPath, Address serverAddress,
-                                          ClassPathRegistry classPathRegistry) {
+                                                              List<URL> implementationClassPath, Address serverAddress,
+                                                              ClassPathRegistry classPathRegistry) {
         this.workerId = workerId;
         this.displayName = displayName;
         this.processBuilder = processBuilder;
@@ -70,8 +78,33 @@ public class ApplicationClassesInSystemClassLoaderWorkerFactory implements Worke
         this.classPathRegistry = classPathRegistry;
     }
 
-    public Collection<File> getSystemClasspath() {
-        return classPathRegistry.getClassPathFiles("WORKER_MAIN");
+    public void prepareJavaCommand(JavaExecSpec execSpec) {
+        execSpec.setMain("jarjar." + GradleWorkerMain.class.getName());
+        execSpec.classpath(classPathRegistry.getClassPath("WORKER_MAIN").getAsFiles());
+        Object requestedSecurityManager = execSpec.getSystemProperties().get("java.security.manager");
+        if (requestedSecurityManager != null) {
+            execSpec.systemProperty("org.gradle.security.manager", requestedSecurityManager);
+        }
+        execSpec.systemProperty("java.security.manager", "jarjar." + BootstrapSecurityManager.class.getName());
+        try {
+            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+            DataOutputStream outstr = new DataOutputStream(new EncodedStream.EncodedOutput(bytes));
+            LOGGER.debug("Writing an application classpath to child process' standard input.");
+            outstr.writeInt(processBuilder.getApplicationClasspath().size());
+            for (File file : processBuilder.getApplicationClasspath()) {
+                outstr.writeUTF(file.getAbsolutePath());
+            }
+            outstr.close();
+            final InputStream originalStdin = execSpec.getStandardInput();
+            InputStream input = ByteStreams.join(ByteStreams.newInputStreamSupplier(bytes.toByteArray()), new InputSupplier<InputStream>() {
+                public InputStream getInput() throws IOException {
+                    return originalStdin;
+                }
+            }).getInput();
+            execSpec.setStandardInput(input);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     public Callable<?> create() {
@@ -81,6 +114,7 @@ public class ApplicationClassesInSystemClassLoaderWorkerFactory implements Worke
                 implementationClassPath, injectedWorker);
         byte[] serializedWorker = GUtil.serialize(worker);
 
-        return new BootstrapClassLoaderWorker(classPathRegistry.getClassPath("WORKER_PROCESS"), processBuilder.getApplicationClasspath(), serializedWorker);
+        return new BootstrapClassLoaderWorker(classPathRegistry.getClassPath("WORKER_PROCESS").getAsURLs(), serializedWorker);
     }
+
 }

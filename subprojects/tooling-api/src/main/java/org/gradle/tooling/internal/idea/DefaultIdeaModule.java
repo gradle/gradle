@@ -25,16 +25,14 @@ import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Collections;
 
 /**
  * @author: Szczepan Faber, created at: 7/25/11
  */
 public class DefaultIdeaModule implements Serializable, IdeaModule {
-
-//    public static final long serialVersionUID = 1L;
 
     private String name;
     private List<? extends IdeaContentRoot> contentRoots = new LinkedList<IdeaContentRoot>();

@@ -19,10 +19,10 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.util.ObservableUrlClassLoader;
+import org.gradle.util.MutableURLClassLoader;
 
 public class NoClassLoaderUpdateScriptHandler extends AbstractScriptHandler {
-    public NoClassLoaderUpdateScriptHandler(ObservableUrlClassLoader classLoader, RepositoryHandler repositoryHandler,
+    public NoClassLoaderUpdateScriptHandler(MutableURLClassLoader classLoader, RepositoryHandler repositoryHandler,
                                             DependencyHandler dependencyHandler, ScriptSource scriptSource,
                                             ConfigurationContainer configContainer) {
         super(classLoader, repositoryHandler, dependencyHandler, scriptSource, configContainer);

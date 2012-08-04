@@ -28,7 +28,6 @@ import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.plugins.Convention;
@@ -67,8 +66,9 @@ import java.util.Set;
  * <code>Project</code> instances.</li>
  *
  * <li>Finally, evaluate each <code>Project</code> by executing its <code>{@value #DEFAULT_BUILD_FILE}</code> file, if
- * present, against the project. The project are evaulated in breadth-wise order, such that a project is evaulated
- * before its child projects. This order can be overridden by adding an evaluation dependency.</li>
+ * present, against the project. The project are evaluated in breadth-wise order, such that a project is evaluated
+ * before its child projects. This order can be overridden by calling <code>{@link #evaluationDependsOnChildren()}</code> or by adding an
+ * explicit evaluation dependency using <code>{@link #evaluationDependsOn(String)}</code>.</li>
  *
  * </ul>
  *
@@ -95,21 +95,19 @@ import java.util.Set;
  * <p>Projects are arranged into a hierarchy of projects. A project has a name, and a fully qualified path which
  * uniquely identifies it in the hierarchy.</p>
  *
- * <h3>Build scripts</h3>
+ * <a name="properties"/> <h3>Properties</h3>
  *
  * <p>Gradle executes the project's build file against the <code>Project</code> instance to configure the project. Any
- * property or method which your script uses which is not defined in the script is delegated through to the associated
- * <code>Project</code> object.  This means, that you can use any of the methods and properties on the
- * <code>Project</code> interface directly in your script.</p><p>For example:
+ * property or method which your script uses is delegated through to the associated <code>Project</code> object.  This
+ * means, that you can use any of the methods and properties on the <code>Project</code> interface directly in your script.
+ * </p><p>For example:
  * <pre>
  * defaultTasks('some-task')  // Delegates to Project.defaultTasks()
- * reportDir = file('reports') // Delegates to Project.file() and Project.setProperty()
+ * reportsDir = file('reports') // Delegates to Project.file() and the Java Plugin
  * </pre>
  * <p>You can also access the <code>Project</code> instance using the <code>project</code> property. This can make the
  * script clearer in some cases. For example, you could use <code>project.name</code> rather than <code>name</code> to
  * access the project's name.</p>
- *
- * <a name="properties"/> <h4>Dynamic Properties</h4>
  *
  * <p>A project has 5 property 'scopes', which it searches for properties. You can access these properties by name in
  * your build file, or by calling the project's {@link #property(String)} method. The scopes are:</p>
@@ -141,8 +139,33 @@ import java.util.Set;
  * scope it finds the property in.  See {@link #property(String)} for more details.</p>
  *
  * <p>When writing a property, the project searches the above scopes in order, and sets the property in the first scope
- * it finds the property in. If not found, the project adds the property to its map of additional properties. See {@link
- * #setProperty(String, Object)} for more details.</p>
+ * it finds the property in. If not found, the project adds the property to its map of additional properties.  For the
+ * next few releases a deprecation warning will be issued when trying to set a property that does not exist. Dynamic
+ * properties will eventually be removed entirely, meaning that this will be a fatal error in future versions of Gradle.
+ * See Extra Properties to learn how to add properties dynamically. </p>
+ *
+ * <a name="extraproperties"/> <h4>Extra Properties</h4>
+ *
+ * All extra properties must be created through the &quot;ext&quot; namespace. Once extra properties have been created,
+ * they are available on the owning object (in the below case the Project, Task, and sub-projects respectively) and can
+ * be read and changed. It's only the initial declaration that needs to be done via the namespace.
+ *
+ * <pre>
+ * project.ext.prop1 = "foo"
+ * task doStuff {
+ *     ext.prop2 = "bar"
+ * }
+ * subprojects { ext.${prop3} = false }
+ * </pre>
+ *
+ * Reading extra properties is done through the &quot;ext&quot; or through the owning object.
+ *
+ * <pre>
+ * ext.isSnapshot = version.endsWith("-SNAPSHOT")
+ * if (isSnapshot) {
+ *     // do snapshot stuff
+ * }
+ * </pre>
  *
  * <h4>Dynamic Methods</h4>
  *
@@ -224,24 +247,6 @@ public interface Project extends Comparable<Project>, ExtensionAware {
      * @param path The build directory. This is evaluated as for {@link #file(Object)}
      */
     void setBuildDir(Object path);
-
-    /**
-     * <p>Returns the name of the build directory of this project. It is resolved relative to the project directory of
-     * this project to determine the build directory. The default value is {@value #DEFAULT_BUILD_DIR_NAME}.</p>
-     *
-     * @return The build dir name. Never returns null.
-     */
-    @Deprecated
-    String getBuildDirName();
-
-    /**
-     * <p>Sets the build directory name of this project.</p>
-     *
-     * @param buildDirName The build dir name. Should not be null.
-     * @deprecated Use {@link #setBuildDir(Object)} instead.
-     */
-    @Deprecated
-    void setBuildDirName(String buildDirName);
 
     /**
      * <p>Returns the build file Gradle will evaluate against this project object. The default is <code> {@value
@@ -391,28 +396,6 @@ public interface Project extends Comparable<Project>, ExtensionAware {
     Set<Project> getSubprojects();
 
     /**
-     * <p>Applies a {@link Plugin} to this project.</p>
-     *
-     * @param pluginId The id of the plugin.
-     * @return This project.
-     * @deprecated You should use the {@link #apply(java.util.Map)} or {@link #apply(groovy.lang.Closure)} method
-     *             instead.
-     */
-    @Deprecated
-    Project usePlugin(String pluginId);
-
-    /**
-     * <p>Applies a {@link Plugin} to this project.</p>
-     *
-     * @param pluginClass The class of the plugin.  This class must implement the {@link Plugin} interface.
-     * @return This project.
-     * @deprecated You should use the {@link #apply(java.util.Map)} or {@link #apply(groovy.lang.Closure)} method
-     *             instead.
-     */
-    @Deprecated
-    Project usePlugin(Class<? extends Plugin> pluginClass);
-
-    /**
      * <p>Creates a {@link Task} with the given name and adds it to this project. Calling this method is equivalent to
      * calling {@link #task(java.util.Map, String)} with an empty options map.</p>
      *
@@ -502,139 +485,6 @@ public interface Project extends Comparable<Project>, ExtensionAware {
     Task task(String name, Closure configureClosure);
 
     /**
-     * <p>Creates a {@link Task} with the given name and adds it to this project. Calling this method is equivalent to
-     * calling {@link #createTask(java.util.Map, String)} with an empty options map.</p>
-     *
-     * <p>After the task is added to the project, it is made available as a property of the project, so that you can
-     * reference the task by name in your build file.  See <a href="#properties">here</a> for more details</p>
-     *
-     * <p>If a task with the given name already exists in this project, an exception is thrown.</p>
-     *
-     * @param name The name of the task to be created
-     * @return The newly created task object
-     * @throws InvalidUserDataException If a task with the given name already exists in this project.
-     * @deprecated You should use {@link #task(String)} instead.
-     */
-    @Deprecated
-    Task createTask(String name) throws InvalidUserDataException;
-
-    /**
-     * <p>Creates a {@link Task} with the given name and adds it to this project. Before the task is returned, the given
-     * action is passed to the task's {@link Task#doFirst(Action)} method. Calling this method is equivalent to calling
-     * {@link #createTask(java.util.Map, String, Action)} with an empty options map.</p>
-     *
-     * <p>After the task is added to the project, it is made available as a property of the project, so that you can
-     * reference the task by name in your build file.  See <a href="#properties">here</a> for more details</p>
-     *
-     * <p>If a task with the given name already exists in this project, an exception is thrown.</p>
-     *
-     * @param name The name of the task to be created
-     * @param action The action to be passed to the {@link Task#doFirst(Action)} method of the created task.
-     * @return The newly created task object
-     * @throws InvalidUserDataException If a task with the given name already exists in this project.
-     * @deprecated You should use {@link #task(java.util.Map, String)} instead.
-     */
-    @Deprecated
-    Task createTask(String name, Action<? super Task> action) throws InvalidUserDataException;
-
-    /**
-     * <p>Creates a {@link Task} with the given name and adds it to this project. A map of creation options can be
-     * passed to this method to control how the task is created. The following options are available:</p>
-     *
-     * <table>
-     *
-     * <tr><th>Option</th><th>Description</th><th>Default Value</th></tr>
-     *
-     * <tr><td><code>{@value org.gradle.api.Task#TASK_TYPE}</code></td><td>The class of the task to
-     * create.</td><td>{@link org.gradle.api.DefaultTask}</td></tr>
-     *
-     * <tr><td><code>{@value org.gradle.api.Task#TASK_OVERWRITE}</code></td><td>Replace an existing
-     * task?</td><td><code>false</code></td></tr>
-     *
-     * <tr><td><code>{@value org.gradle.api.Task#TASK_DEPENDS_ON}</code></td><td>A task name or set of task names which
-     * this task depends on</td><td><code>[]</code></td></tr>
-     *
-     * </table>
-     *
-     * <p>After the task is added to the project, it is made available as a property of the project, so that you can
-     * reference the task by name in your build file.  See <a href="#properties">here</a> for more details</p>
-     *
-     * <p>If a task with the given name already exists in this project and the <code>override</code> option is not set
-     * to true, an exception is thrown.</p>
-     *
-     * @param args The task creation options.
-     * @param name The name of the task to be created
-     * @return The newly created task object
-     * @throws InvalidUserDataException If a task with the given name already exists in this project.
-     * @deprecated You should use {@link #task(java.util.Map, String)} instead.
-     */
-    @Deprecated
-    Task createTask(Map<String, ?> args, String name) throws InvalidUserDataException;
-
-    /**
-     * <p>Creates a {@link Task} with the given name and adds it to this project. Before the task is returned, the given
-     * action is passed to the task's {@link Task#doFirst(Action)} method. A map of creation options can be passed to
-     * this method to control how the task is created. See {@link #createTask(java.util.Map, String)} for the available
-     * options.</p>
-     *
-     * <p>After the task is added to the project, it is made available as a property of the project, so that you can
-     * reference the task by name in your build file.  See <a href="#properties">here</a> for more details</p>
-     *
-     * <p>If a task with the given name already exists in this project and the <code>override</code> option is not set
-     * to true, an exception is thrown.</p>
-     *
-     * @param args The task creation options.
-     * @param name The name of the task to be created
-     * @param action The action to be passed to the {@link Task#doFirst(Action)} method of the created task.
-     * @return The newly created task object
-     * @throws InvalidUserDataException If a task with the given name already exists in this project.
-     * @deprecated You should use {@link #task(java.util.Map, String)} instead.
-     */
-    @Deprecated
-    Task createTask(Map<String, ?> args, String name, Action<? super Task> action) throws InvalidUserDataException;
-
-    /**
-     * <p>Creates a {@link Task} with the given name and adds it to this project. Before the task is returned, the given
-     * action closure is passed to the task's {@link Task#doFirst(Closure)} method. Calling this method is equivalent to
-     * calling {@link #createTask(java.util.Map, String, Closure)} with an empty options map.</p>
-     *
-     * <p>After the task is added to the project, it is made available as a property of the project, so that you can
-     * reference the task by name in your build file.  See <a href="#properties">here</a> for more details</p>
-     *
-     * <p>If a task with the given name already exists in this project, an exception is thrown.</p>
-     *
-     * @param name The name of the task to be created
-     * @param action The closure to be passed to the {@link Task#doFirst(Closure)} method of the created task.
-     * @return The newly created task object
-     * @throws InvalidUserDataException If a task with the given name already exists in this project.
-     * @deprecated You should use {@link #task(java.util.Map, String)} instead.
-     */
-    @Deprecated
-    Task createTask(String name, Closure action);
-
-    /**
-     * <p>Creates a {@link Task} with the given name and adds it to this project. Before the task is returned, the given
-     * action closure is passed to the task's {@link Task#doFirst(Closure)} method. A map of creation options can be
-     * passed to this method to control how the task is created. See {@link #createTask(java.util.Map, String)} for the
-     * available options.</p>
-     *
-     * <p>After the task is added to the project, it is made available as a property of the project, so that you can
-     * reference the task by name in your build file.  See <a href="#properties">here</a> for more details</p>
-     *
-     * <p>If a task with the given name already exists in this project and the <code>override</code> option is not set
-     * to true, an exception is thrown.</p>
-     *
-     * @param args The task creation options.
-     * @param name The name of the task to be created
-     * @param action The closure to be passed to the {@link Task#doFirst(Closure)} method of the created task.
-     * @return The newly created task object
-     * @throws InvalidUserDataException If a task with the given name already exists in this project.
-     * @deprecated You should use {@link #task(java.util.Map, String)} instead.
-     */
-    @Deprecated
-    Task createTask(Map<String, ?> args, String name, Closure action);
-
-    /**
      * <p>Returns the path of this project.  The path is the fully qualified name of the project.</p>
      *
      * @return The path. Never returns null.
@@ -668,22 +518,26 @@ public interface Project extends Comparable<Project>, ExtensionAware {
     /**
      * <p>Declares that this project has an execution dependency on the project with the given path.</p>
      *
+     * @deprecated Use {@link Task#dependsOn(Object...)} instead.
      * @param path The path of the project which this project depends on.
      * @throws UnknownProjectException If no project with the given path exists.
      */
+    @Deprecated
     void dependsOn(String path) throws UnknownProjectException;
 
     /**
      * <p>Declares that this project has an execution dependency on the project with the given path.</p>
      *
+     * @deprecated Use {@link Task#dependsOn(Object...)} instead.
      * @param path The path of the project which this project depends on.
      * @param evaluateDependsOnProject If true, adds an evaluation dependency.
      * @throws UnknownProjectException If no project with the given path exists.
      */
+    @Deprecated
     void dependsOn(String path, boolean evaluateDependsOnProject) throws UnknownProjectException;
 
     /**
-     * <p>Declares that this project has an evaulation dependency on the project with the given path.</p>
+     * <p>Declares that this project has an evaluation dependency on the project with the given path.</p>
      *
      * @param path The path of the project which this project depends on.
      * @return The project which this project depends on.
@@ -692,25 +546,39 @@ public interface Project extends Comparable<Project>, ExtensionAware {
     Project evaluationDependsOn(String path) throws UnknownProjectException;
 
     /**
+     * <p>Declares that this project has an evaluation dependency on each of its child projects.</p>
+     *
+     */
+    void evaluationDependsOnChildren();
+
+    /**
      * <p>Declares that all child projects of this project have an execution dependency on this project.</p>
      *
+     * @deprecated Use {@link Task#dependsOn(Object...)} instead.
      * @return this project.
      */
+    @Deprecated
     Project childrenDependOnMe();
 
     /**
-     * <p>Declares that this project have an execution dependency on each of its child projects.</p>
+     * <p>Declares that this project has an execution dependency on each of its child projects.</p>
      *
+     * @deprecated Use {@link Task#dependsOn(Object...)} instead.
      * @return this project.
      */
+    @Deprecated
     Project dependsOnChildren();
 
     /**
-     * <p>Declares that this project have an execution dependency on each of its child projects.</p>
+     * <p>Declares that this project has an execution dependency on each of its child projects.</p>
      *
+     * @deprecated To definde task dependencies use {@link Task#dependsOn(Object...)} instead.
+     * For declaring evaluation dependencies to child projects, use evaluation dependencies
+     * use {@link #evaluationDependsOnChildren()}.
      * @param evaluateDependsOnProject If true, adds an evaluation dependency.
      * @return this project.
      */
+    @Deprecated
     Project dependsOnChildren(boolean evaluateDependsOnProject);
 
     /**
@@ -773,20 +641,21 @@ public interface Project extends Comparable<Project>, ExtensionAware {
      *
      * <ul>
      *
-     * <li>{@link File}. If the file is an absolute file, it is returned as is. Otherwise, the file's path is
+     * <li>A {@link CharSequence}, including {@link String} or {@link groovy.lang.GString}. Interpreted relative to the project directory. A string
+     * that starts with {@code file:} is treated as a file URL.</li>
+     *
+     * <li>A {@link File}. If the file is an absolute file, it is returned as is. Otherwise, the file's path is
      * interpreted relative to the project directory.</li>
      *
-     * <li>{@link java.net.URI} or {@link java.net.URL}. The URL's path is interpreted as the file path. Currently, only
+     * <li>A {@link java.net.URI} or {@link java.net.URL}. The URL's path is interpreted as the file path. Currently, only
      * {@code file:} URLs are supported.
      *
-     * <li>{@link Closure}. The closure's return value is resolved recursively.</li>
+     * <li>A {@link Closure}. The closure's return value is resolved recursively.</li>
      *
-     * <li>{@link java.util.concurrent.Callable}. The callable's return value is resolved recursively.</li>
+     * <li>A {@link java.util.concurrent.Callable}. The callable's return value is resolved recursively.</li>
      *
-     * <li>{@link Object}. The object's {@code toString()} value is interpreted as a path. If the path is a relative
-     * path, the project directory will be used as a base directory. A String starting with {@code file:} is treated as
-     * a file URL.</li>
-     *
+     * <li>An Object. Its {@code toString()} value is treated the same way as a String.
+     * This is deprecated and will be removed in the next version of Gradle.</li>
      * </ul>
      *
      * @param path The object to resolve as a File.
@@ -828,12 +697,12 @@ public interface Project extends Comparable<Project>, ExtensionAware {
      * <p>Returns a {@link ConfigurableFileCollection} containing the given files. You can pass any of the following
      * types to this method:</p>
      *
-     * <ul> <li>A {@link String}. Interpreted relative to the project directory, as for {@link #file(Object)}. A string
+     * <ul> <li>A {@link CharSequence}, including {@link String} or {@link groovy.lang.GString}. Interpreted relative to the project directory, as for {@link #file(Object)}. A string
      * that starts with {@code file:} is treated as a file URL.</li>
      *
      * <li>A {@link File}. Interpreted relative to the project directory, as for {@link #file(Object)}.</li>
      *
-     * <li>{@link java.net.URI} or {@link java.net.URL}. The URL's path is interpreted as a file path. Currently, only
+     * <li>A {@link java.net.URI} or {@link java.net.URL}. The URL's path is interpreted as a file path. Currently, only
      * {@code file:} URLs are supported.
      *
      * <li>A {@link java.util.Collection}, {@link Iterable}, or an array. May contain any of the types listed here. The elements of the collection
@@ -849,10 +718,14 @@ public interface Project extends Comparable<Project>, ExtensionAware {
      * <li>A Closure. May return any of the types listed here. The return value of the closure is recursively converted
      * to files. A {@code null} return value is treated as an empty collection.</li>
      *
-     * <li>An Object. Its {@code toString()} value is treated the same way as a String, as for {@link
-     * #file(Object)}.</li> </ul>
-     *
      * <li>A {@link Task}. Converted to the task's output files.</li>
+     *
+     * <li>A {@link org.gradle.api.tasks.TaskOutputs}. Converted to the output files the related task.</li>
+     *
+     * <li>An Object. Its {@code toString()} value is treated the same way as a String, as for {@link #file(Object)}.
+     * This has been deprecated and will be removed in the next version of Gradle.</li>
+     *
+     * </ul>
      *
      * <p>The returned file collection is lazy, so that the paths are evaluated only when the contents of the file
      * collection are queried. The file collection is also live, so that it evaluates the above each time the contents
@@ -888,6 +761,13 @@ public interface Project extends Comparable<Project>, ExtensionAware {
      * <p>Creates a new {@code ConfigurableFileTree} using the given base directory. The given baseDir path is evaluated
      * as for {@link #file(Object)}.</p>
      *
+     * <p><b>Note:</b> to use a closure as the baseDir, you must explicitly cast the closure to {@code Object} to force
+     * the use of this method instead of {@link #fileTree(Closure)}. Example:</p>
+     *
+     * <pre>
+     * fileTree((Object){ someDir })
+     * </pre>
+     *
      * <p>The returned file tree is lazy, so that it scans for files only when the contents of the file tree are
      * queried. The file tree is also live, so that it scans for files each time the contents of the file tree are
      * queried.</p>
@@ -896,6 +776,27 @@ public interface Project extends Comparable<Project>, ExtensionAware {
      * @return the file tree. Never returns null.
      */
     ConfigurableFileTree fileTree(Object baseDir);
+
+    /**
+     * <p>Creates a new {@code ConfigurableFileTree} using the given base directory. The given baseDir path is evaluated
+     * as for {@link #file(Object)}. The closure will be used to configure the new file tree.
+     * The file tree is passed to the closure as its delegate.  Example:</p>
+     *
+     * <pre>
+     * fileTree('src') {
+     *    exclude '**&#47;.svn/**'
+     * }.copy { into 'dest'}
+     * </pre>
+     *
+     * <p>The returned file tree is lazy, so that it scans for files only when the contents of the file tree are
+     * queried. The file tree is also live, so that it scans for files each time the contents of the file tree are
+     * queried.</p>
+     *
+     * @param baseDir The base directory of the file tree. Evaluated as for {@link #file(Object)}.
+     * @param configureClosure Closure to configure the {@code ConfigurableFileTree} object.
+     * @return the configured file tree. Never returns null.
+     */
+    ConfigurableFileTree fileTree(Object baseDir, Closure configureClosure);
 
     /**
      * <p>Creates a new {@code ConfigurableFileTree} using the provided map of arguments.  The map will be applied as
@@ -929,9 +830,11 @@ public interface Project extends Comparable<Project>, ExtensionAware {
      * queried. The file tree is also live, so that it scans for files each time the contents of the file tree are
      * queried.</p>
      *
+     * @deprecated Use {@link #fileTree(Object,Closure)} instead.
      * @param closure Closure to configure the {@code ConfigurableFileTree} object
      * @return the configured file tree. Never returns null.
      */
+    @Deprecated
     ConfigurableFileTree fileTree(Closure closure);
 
     /**
@@ -1018,16 +921,6 @@ public interface Project extends Comparable<Project>, ExtensionAware {
      * @return the result of the execution
      */
     ExecResult exec(Closure closure);
-
-    /**
-     * <p>Converts a name to an absolute project path, resolving names relative to this project.</p>
-     *
-     * @param path The path to convert.
-     * @return The absolute path.
-     * @deprecated Use {@link #absoluteProjectPath(String)} instead.
-     */
-    @Deprecated
-    String absolutePath(String path);
 
     /**
      * <p>Converts a name to an absolute project path, resolving names relative to this project.</p>
@@ -1266,7 +1159,7 @@ public interface Project extends Comparable<Project>, ExtensionAware {
     /**
      * <p>Adds a closure to be called immediately after this project has been evaluated. The project is passed to the
      * closure as a parameter. Such a listener gets notified when the build file belonging to this project has been
-     * executed. A parent project may for example add such a listener to its child project. Such a listener can futher
+     * executed. A parent project may for example add such a listener to its child project. Such a listener can further
      * configure those child projects based on the state of the child projects after their build files have been
      * run.</p>
      *
@@ -1340,30 +1233,6 @@ public interface Project extends Comparable<Project>, ExtensionAware {
      * @return the LoggingManager. Never returns null.
      */
     LoggingManager getLogging();
-
-    /**
-     * Disables redirection of standard output during project evaluation. By default redirection is enabled.
-     *
-     * @see #captureStandardOutput(org.gradle.api.logging.LogLevel)
-     */
-    @Deprecated
-    void disableStandardOutputCapture();
-
-    /**
-     * <p>Starts redirection of standard output during to the logging system during project evaluation. By default
-     * redirection is enabled and the output is redirected to the QUIET level. System.err is always redirected to the
-     * ERROR level. Redirection of output at execution time can be configured via the tasks.</p>
-     *
-     * <p>In a multi-project this is a per-project setting.</p>
-     *
-     * @param level The level standard out should be logged to.
-     * @see #disableStandardOutputCapture()
-     * @see Task#captureStandardOutput(org.gradle.api.logging.LogLevel)
-     * @see org.gradle.api.Task#disableStandardOutputCapture()
-     * @deprecated Use the {@link org.gradle.api.logging.LoggingManager} returned by {@link #getLogging()} instead
-     */
-    @Deprecated
-    void captureStandardOutput(LogLevel level);
 
     /**
      * <p>Configures an object via a closure, with the closure's delegate set to the supplied object. This way you don't
@@ -1553,7 +1422,7 @@ public interface Project extends Comparable<Project>, ExtensionAware {
 
     /**
      * <p>Creates a container for managing named objects of the specified type. The specified type must have a public constructor which takes the name as a String parameter.<p>
-     * 
+     *
      * <p>All objects <b>MUST</b> expose their name as a bean property named "name". The name must be constant for the life of the object.</p>
      *
      * @param type The type of objects for the container to contain.
@@ -1564,7 +1433,7 @@ public interface Project extends Comparable<Project>, ExtensionAware {
 
     /**
      * <p>Creates a container for managing named objects of the specified type. The given factory is used to create object instances.</p>
-     * 
+     *
      * <p>All objects <b>MUST</b> expose their name as a bean property named "name". The name must be constant for the life of the object.</p>
      *
      * @param type The type of objects for the container to contain.
@@ -1577,7 +1446,7 @@ public interface Project extends Comparable<Project>, ExtensionAware {
     /**
      * <p>Creates a container for managing named objects of the specified type. The given closure is used to create object instances. The name of the instance to be created is passed as a parameter to
      * the closure.</p>
-     * 
+     *
      * <p>All objects <b>MUST</b> expose their name as a bean property named "name". The name must be constant for the life of the object.</p>
      *
      * @param type The type of objects for the container to contain.

@@ -16,6 +16,9 @@
 package org.gradle.foundation.ipc.gradle;
 
 import org.apache.commons.io.IOUtils;
+import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.file.TemporaryFileProvider;
+import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -25,9 +28,9 @@ import org.gradle.foundation.ipc.basic.ExecutionInfo;
 import org.gradle.foundation.ipc.basic.MessageObject;
 import org.gradle.foundation.ipc.basic.ProcessLauncherServer;
 import org.gradle.initialization.DefaultCommandLineConverter;
+import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.logging.ShowStacktrace;
-import org.gradle.os.OperatingSystem;
-import org.gradle.util.Jvm;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -49,7 +52,8 @@ public abstract class AbstractGradleServerProtocol implements ProcessLauncherSer
     private static final String INIT_SCRIPT_EXTENSION = ".gradle";
 
     private final Logger logger = Logging.getLogger(AbstractGradleServerProtocol.class);
-
+    private final TemporaryFileProvider temporaryFileProvider = new TmpDirTemporaryFileProvider();
+    
     protected ProcessLauncherServer server;
     private boolean continueConnection;
     private boolean waitingOnHandshakeCompletion;
@@ -251,7 +255,7 @@ public abstract class AbstractGradleServerProtocol implements ProcessLauncherSer
         CommandLineAssistant commandLineAssistant = new CommandLineAssistant();
 
         //add whatever the user ran
-        String[] individualCommandLineArguments = commandLineAssistant.breakUpCommandLine(commandLine);
+        String[] individualCommandLineArguments = CommandLineAssistant.breakUpCommandLine(commandLine);
         executionCommandLine.addAll(Arrays.asList(individualCommandLineArguments));
 
         File initStriptPath = getInitScriptFile();
@@ -360,8 +364,8 @@ public abstract class AbstractGradleServerProtocol implements ProcessLauncherSer
     protected File extractInitScriptFile(Class resourceClass, String resourceName) {
         File file = null;
         try {
-            file = File.createTempFile(resourceName, INIT_SCRIPT_EXTENSION);
-        } catch (IOException e) {
+            file = temporaryFileProvider.createTemporaryFile(resourceName, INIT_SCRIPT_EXTENSION);
+        } catch (UncheckedIOException e) {
             logger.error("Creating init script file temp file", e);
             return null;
         }

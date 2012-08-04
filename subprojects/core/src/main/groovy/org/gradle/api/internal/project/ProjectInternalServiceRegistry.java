@@ -21,8 +21,7 @@ import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.internal.Factory;
-import org.gradle.api.internal.Instantiator;
+import org.gradle.api.internal.DependencyInjectingInstantiator;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
 import org.gradle.api.internal.artifacts.DefaultModule;
@@ -36,15 +35,18 @@ import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
-import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.plugins.DefaultProjectsPluginContainer;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.ant.AntLoggingAdapter;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.tasks.DefaultTaskContainerFactory;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
-import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.PluginContainer;
+import org.gradle.internal.Factory;
+import org.gradle.internal.nativeplatform.filesystem.FileSystem;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
 
 import java.io.File;
@@ -61,24 +63,24 @@ public class ProjectInternalServiceRegistry extends DefaultServiceRegistry imple
     }
 
     protected PluginRegistry createPluginRegistry(PluginRegistry parentRegistry) {
-        return parentRegistry.createChild(get(ScriptClassLoaderProvider.class).getClassLoader());
+        return parentRegistry.createChild(get(ScriptClassLoaderProvider.class).getClassLoader(), new DependencyInjectingInstantiator(this));
     }
 
     protected FileResolver createFileResolver() {
-        return new BaseDirFileResolver(project.getProjectDir());
+        return new BaseDirFileResolver(get(FileSystem.class), project.getProjectDir());
     }
 
     protected LoggingManagerInternal createLoggingManager() {
         return getFactory(LoggingManagerInternal.class).create();
     }
 
-    protected FileOperations createFileOperations() {
+    protected DefaultFileOperations createFileOperations() {
         return new DefaultFileOperations(get(FileResolver.class), project.getTasks(), get(TemporaryFileProvider.class));
     }
 
     protected TemporaryFileProvider createTemporaryFileProvider() {
-        return new DefaultTemporaryFileProvider(new FileSource() {
-            public File get() {
+        return new DefaultTemporaryFileProvider(new Factory<File>() {
+            public File create() {
                 return new File(project.getBuildDir(), "tmp");
             }
         });
@@ -92,12 +94,12 @@ public class ProjectInternalServiceRegistry extends DefaultServiceRegistry imple
         return new DefaultProjectsPluginContainer(get(PluginRegistry.class), project);
     }
 
-    protected Factory<TaskContainerInternal> createTaskContainerInternal() {
-        return new DefaultTaskContainerFactory(get(Instantiator.class), get(ITaskFactory.class), project);
+    protected ITaskFactory createTaskFactory(ITaskFactory parentFactory) {
+        return parentFactory.createChild(project, get(Instantiator.class));
     }
 
-    protected Convention createConvention() {
-        return new DefaultConvention();
+    protected Factory<TaskContainerInternal> createTaskContainerInternal() {
+        return new DefaultTaskContainerFactory(get(Instantiator.class), get(ITaskFactory.class), project);
     }
 
     //TODO SF what's going on here?

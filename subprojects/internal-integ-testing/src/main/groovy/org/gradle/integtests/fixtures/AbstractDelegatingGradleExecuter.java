@@ -32,8 +32,9 @@ public abstract class AbstractDelegatingGradleExecuter extends AbstractGradleExe
         return configureExecuter().getDaemonRegistry();
     }
 
-    public GradleHandle createHandle() {
-        return configureExecuter().createHandle();
+    @Override
+    public GradleHandle doStart() {
+        return configureExecuter().start();
     }
 
     protected abstract GradleExecuter configureExecuter();

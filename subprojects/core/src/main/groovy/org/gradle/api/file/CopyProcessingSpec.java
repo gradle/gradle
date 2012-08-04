@@ -70,41 +70,45 @@ public interface CopyProcessingSpec extends ContentFilterable {
     CopyProcessingSpec rename(Pattern sourceRegEx, String replaceWith);
 
     /**
-     * Returns the Unix permissions to use for the target files. It is dependent on the copy action implementation
-     * whether these permissions will actually be applied.
+     * Returns the Unix permissions to use for the target files. {@code null} means that existing
+     * permissions are preserved. It is dependent on the copy action implementation whether these permissions
+     * will actually be applied.
      *
-     * @return The file permissions.
+     * @return The file permissions, or {@code null} if existing permissions should be preserved.
      */
-    int getFileMode();
+    Integer getFileMode();
 
     /**
-     * Sets the Unix permissions to use for the target files. It is dependent on the copy action implementation whether
-     * these permissions will actually be applied.
+     * Sets the Unix permissions to use for the target files. {@code null} means that existing
+     * permissions are preserved. It is dependent on the copy action implementation whether these permissions
+     * will actually be applied.
      *
      * @param mode The file permissions.
      * @return this
      */
-    CopyProcessingSpec setFileMode(int mode);
+    CopyProcessingSpec setFileMode(Integer mode);
 
     /**
-     * Returns the Unix permissions to use for the target directories. It is dependent on the copy action implementation
-     * whether these permissions will actually be applied.
+     * Returns the Unix permissions to use for the target directories. {@code null} means that existing
+     * permissions are preserved. It is dependent on the copy action implementation whether these permissions
+     * will actually be applied.
      *
-     * @return The directory permissions.
+     * @return The directory permissions, or {@code null} if existing permissions should be preserved.
      */
-    int getDirMode();
+    Integer getDirMode();
 
     /**
-     * Sets the Unix permissions to use for the target directories. It is dependent on the copy action implementation
-     * whether these permissions will actually be applied.
+     * Sets the Unix permissions to use for the target directories. {@code null} means that existing
+     * permissions are preserved. It is dependent on the copy action implementation whether these permissions
+     * will actually be applied.
      *
      * @param mode The directory permissions.
      * @return this
      */
-    CopyProcessingSpec setDirMode(int mode);
+    CopyProcessingSpec setDirMode(Integer mode);
 
     /**
-     * Adds an action to be applied to each file as it about to be copied into its destination. The action can change
+     * Adds an action to be applied to each file as it is about to be copied into its destination. The action can change
      * the destination path of the file, filter the contents of the file, or exclude the file from the result entirely.
      * Actions are executed in the order added, and are inherited from the parent spec.
      *

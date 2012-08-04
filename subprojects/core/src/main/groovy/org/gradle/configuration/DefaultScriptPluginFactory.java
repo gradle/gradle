@@ -16,13 +16,13 @@
 
 package org.gradle.configuration;
 
-import org.gradle.api.internal.Factory;
-import org.gradle.api.internal.artifacts.dsl.BuildScriptClasspathScriptTransformer;
-import org.gradle.api.internal.artifacts.dsl.BuildScriptTransformer;
+import org.gradle.internal.Factory;
+import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.groovy.scripts.internal.BuildScriptClasspathScriptTransformer;
+import org.gradle.groovy.scripts.internal.BuildScriptTransformer;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
-import org.gradle.api.internal.project.DefaultServiceRegistry;
 import org.gradle.groovy.scripts.*;
 import org.gradle.logging.LoggingManagerInternal;
 

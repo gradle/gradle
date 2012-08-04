@@ -15,11 +15,10 @@
  */
 package org.gradle.integtests
 
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ArtifactBuilder
 import org.gradle.integtests.fixtures.ExecutionResult
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
 import org.gradle.util.TestFile
-import org.gradle.util.TextUtil
 
 class InitScriptExecutionIntegrationTest extends AbstractIntegrationSpec {
     def "executes init.gradle from user home dir"() {
@@ -41,18 +40,19 @@ class InitScriptExecutionIntegrationTest extends AbstractIntegrationSpec {
         distribution.requireOwnUserHomeDir()
 
         and:
-        distribution.userHomeDir.file('init.d/a.gradle') << 'println "init a"'
-        distribution.userHomeDir.file('init.d/b.gradle') << 'println "init b"'
-        distribution.userHomeDir.file('init.d/c.gradle') << 'println "init c"'
+        distribution.userHomeDir.file('init.d/a.gradle') << 'println "init #a#"'
+        distribution.userHomeDir.file('init.d/b.gradle') << 'println "init #b#"'
+        distribution.userHomeDir.file('init.d/c.gradle') << 'println "init #c#"'
 
         when:
         run()
 
         then:
-        output.contains TextUtil.toPlatformLineSeparators('''init a
-init b
-init c
-''')
+        def a = output.indexOf('init #a#') 
+        def b = output.indexOf('init #b#') 
+        def c = output.indexOf('init #c#') 
+        a < b
+        b < c
     }
 
     def "executes init script with correct environment"() {

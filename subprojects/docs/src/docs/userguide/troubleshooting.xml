@@ -1,0 +1,58 @@
+<!--
+  ~ Copyright 2009 the original author or authors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<chapter id='troubleshooting'>
+    <title>Troubleshooting</title>
+    <note>
+        <para>
+            This chapter is currently a work in progress.
+        </para>
+    </note>
+    <para>
+        When using Gradle (or any software package), you can run into problems. You may not understand
+        how to use a particular feature, or you may encounter a defect. Or, you may have a general question
+        about Gradle.
+    </para>
+    <para>
+        This chapter gives some advice for troubleshooting problems and explains how to get help with your problems.
+    </para>
+    
+    <section>
+        <title>Working through problems</title>
+        <para>
+            If you are encountering problems, one of the first things to try is using the very latest release of Gradle. New versions of Gradle are
+            released frequently with bug fixes and new features. The problem you are having may have been fixed in a new release.
+        </para>
+        <para>
+            If you are using the Gradle Daemon, try temporarily disabling the daemon (you can pass the command line switch <literal>--no-daemon</literal>).
+            The Gradle Daemon is currently an experimental feature and may introduce build failures.
+            More information about troubleshooting daemon is located in <xref linkend="gradle_daemon"/>.
+        </para>
+    </section>
+    <section>
+        <title>Getting help</title>
+        <para>
+            The place to go for help with Gradle is <ulink url="http://forums.gradle.org">http://forums.gradle.org</ulink>.
+            The Gradle Forums is the place where you can report problems and ask questions to the Gradle 
+            developers and other community members.
+        </para>
+        <para>
+            If something's not working for you, posting a question or problem report to the forums is the fastest way 
+            to get help. It's also the place to post improvement suggestions or new ideas. The development team 
+            frequently posts news items and announces releases via the forum, making it a great way to stay up to 
+            date with the latest Gradle developments.
+        </para>
+    </section>
+</chapter>

@@ -51,7 +51,7 @@ class SigningTasksSpec extends SigningProjectSpec {
         useJavadocAndSourceJars()
         
         when:
-        def signJarTask = signing.sign(jar)
+        def signJarTask = signing.sign(jar).first()
         
         then:
         signJarTask.name == "signJar"

@@ -19,13 +19,15 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.Task;
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.execution.TaskValidator;
-import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.*;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ReflectionUtil;
 
+import java.io.File;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
@@ -39,13 +41,30 @@ import java.util.concurrent.Callable;
  */
 public class AnnotationProcessingTaskFactory implements ITaskFactory {
     private final ITaskFactory taskFactory;
-    private final Map<Class, List<Action<Task>>> actionsForType = new HashMap<Class, List<Action<Task>>>();
+    private final Map<Class, List<Action<Task>>> actionsForType;
+    
+    private final Transformer<Iterable<File>, Object> filePropertyTransformer = new Transformer<Iterable<File>, Object>() {
+        public Iterable<File> transform(Object original) {
+            File file = (File) original;
+            return file == null ? Collections.<File>emptyList() : Collections.singleton(file);
+        }
+    };
+
+    private final Transformer<Iterable<File>, Object> iterableFilePropertyTransformer = new Transformer<Iterable<File>, Object>() {
+        @SuppressWarnings("unchecked")
+        public Iterable<File> transform(Object original) {
+            return original != null ? (Iterable<File>) original : Collections.<File>emptyList();
+        }
+    };
+    
     private final List<? extends PropertyAnnotationHandler> handlers = Arrays.asList(
             new InputFilePropertyAnnotationHandler(),
             new InputDirectoryPropertyAnnotationHandler(),
             new InputFilesPropertyAnnotationHandler(),
-            new OutputFilePropertyAnnotationHandler(),
-            new OutputDirectoryPropertyAnnotationHandler(),
+            new OutputFilePropertyAnnotationHandler(OutputFile.class, filePropertyTransformer),
+            new OutputFilePropertyAnnotationHandler(OutputFiles.class, iterableFilePropertyTransformer),
+            new OutputDirectoryPropertyAnnotationHandler(OutputDirectory.class, filePropertyTransformer),
+            new OutputDirectoryPropertyAnnotationHandler(OutputDirectories.class, iterableFilePropertyTransformer),
             new InputPropertyAnnotationHandler(),
             new NestedBeanPropertyAnnotationHandler());
     private final ValidationAction notNullValidator = new ValidationAction() {
@@ -58,10 +77,20 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
 
     public AnnotationProcessingTaskFactory(ITaskFactory taskFactory) {
         this.taskFactory = taskFactory;
+        this.actionsForType = new HashMap<Class, List<Action<Task>>>();
     }
 
-    public TaskInternal createTask(ProjectInternal project, Map<String, ?> args) {
-        TaskInternal task = taskFactory.createTask(project, args);
+    private AnnotationProcessingTaskFactory(Map<Class, List<Action<Task>>> actionsForType, ITaskFactory taskFactory) {
+        this.actionsForType = actionsForType;
+        this.taskFactory = taskFactory;
+    }
+
+    public ITaskFactory createChild(ProjectInternal project, Instantiator instantiator) {
+        return new AnnotationProcessingTaskFactory(actionsForType, taskFactory.createChild(project, instantiator));
+    }
+
+    public TaskInternal createTask(Map<String, ?> args) {
+        TaskInternal task = taskFactory.createTask(args);
 
         Class<? extends Task> type = task.getClass();
         List<Action<Task>> actions = actionsForType.get(type);
@@ -126,7 +155,13 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
         methods.add(method.getName());
         actions.add(new Action<Task>() {
             public void execute(Task task) {
-                ReflectionUtil.invoke(task, method.getName(), new Object[0]);
+                ClassLoader original = Thread.currentThread().getContextClassLoader();
+                Thread.currentThread().setContextClassLoader(method.getDeclaringClass().getClassLoader());
+                try {
+                    ReflectionUtil.invoke(task, method.getName());
+                } finally {
+                    Thread.currentThread().setContextClassLoader(original);
+                }
             }
         });
     }
@@ -182,7 +217,7 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
                 if (parent != null) {
                     propertyName = parent.getName() + '.' + propertyName;
                 }
-                PropertyInfo propertyInfo = new PropertyInfo(this, parent, propertyName, method);
+                PropertyInfo propertyInfo = new PropertyInfo(type, this, parent, propertyName, method);
 
                 attachValidationActions(propertyInfo, fieldName);
 
@@ -265,12 +300,14 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
         private ValidationAction notNullValidator = NO_OP_VALIDATION_ACTION;
         private UpdateAction configureAction = NO_OP_CONFIGURATION_ACTION;
         public boolean required;
+        private final Class<?> type;
 
-        private PropertyInfo(Validator validator, PropertyInfo parent, String propertyName, Method method) {
+        private PropertyInfo(Class<?> type, Validator validator, PropertyInfo parent, String propertyName, Method method) {
+            this.type = type;
             this.validator = validator;
             this.parent = parent;
             this.propertyName = propertyName;
-            this.method = method;
+            this.method = method;   
         }
 
         @Override
@@ -284,6 +321,19 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
 
         public Class<?> getType() {
             return method.getReturnType();
+        }
+
+        public Class<?> getInstanceVariableType() {
+            Class<?> currentType = type;
+            while (!currentType.equals(Object.class)) {
+                try {
+                    return currentType.getDeclaredField(propertyName).getType();
+                } catch (NoSuchFieldException e) {
+                    currentType = currentType.getSuperclass();
+                }
+            }
+
+            return null;
         }
 
         public AnnotatedElement getTarget() {
@@ -316,7 +366,7 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
                 bean = parentValue.getValue();
             }
 
-            final Object value = ReflectionUtil.invoke(bean, method.getName(), new Object[0]);
+            final Object value = ReflectionUtil.invoke(bean, method.getName());
 
             return new PropertyValue() {
                 public Object getValue() {

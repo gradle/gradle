@@ -15,14 +15,30 @@
  */
 package org.gradle.plugins.cpp.gpp
 
-import org.gradle.api.Project
 import org.gradle.api.Plugin
+import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.internal.Factory
+import org.gradle.internal.os.OperatingSystem
+import org.gradle.plugins.binaries.BinariesPlugin
+import org.gradle.plugins.binaries.model.CompilerRegistry
+import org.gradle.plugins.cpp.gpp.internal.GppCompilerAdapter
+import org.gradle.process.internal.DefaultExecAction
+import org.gradle.process.internal.ExecAction
 
-class GppCompilerPlugin implements Plugin<Project> {
+/**
+ * A {@link Plugin} which makes the <a href="http://gcc.gnu.org/">GNU G++ compiler</a> available for compiling C/C++ code.
+ */
+class GppCompilerPlugin implements Plugin<ProjectInternal> {
 
-    void apply(Project project) {
-        project.apply(plugin: "binaries")
-        project.compilers << new Gpp()
+    void apply(ProjectInternal project) {
+        project.plugins.apply(BinariesPlugin)
+        project.extensions.getByType(CompilerRegistry).add(new GppCompilerAdapter(
+                OperatingSystem.current(),
+                new Factory<ExecAction>() {
+                    ExecAction create() {
+                        new DefaultExecAction(project.getFileResolver())
+                    }
+                }))
     }
 
 }

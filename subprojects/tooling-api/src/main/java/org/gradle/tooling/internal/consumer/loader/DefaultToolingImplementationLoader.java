@@ -15,19 +15,19 @@
  */
 package org.gradle.tooling.internal.consumer.loader;
 
-import org.gradle.api.internal.Factory;
+import org.gradle.internal.Factory;
+import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.service.ServiceLocator;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.internal.consumer.Distribution;
+import org.gradle.tooling.internal.consumer.connection.AdaptedConnection;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 import org.gradle.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.net.URL;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -43,7 +43,7 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
         this.classLoader = classLoader;
     }
 
-    public ConnectionVersion4 create(Distribution distribution, ProgressLoggerFactory progressLoggerFactory) {
+    public AdaptedConnection create(Distribution distribution, ProgressLoggerFactory progressLoggerFactory, boolean verboseLogging) {
         LOGGER.debug("Using tooling provider from {}", distribution.getDisplayName());
         ClassLoader classLoader = createImplementationClassLoader(distribution, progressLoggerFactory);
         ServiceLocator serviceLocator = new ServiceLocator(classLoader);
@@ -55,7 +55,12 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
                 String protocolVersion = m.group(1);
                 throw new UnsupportedVersionException(String.format("The specified %s is not supported by this tooling API version (%s, protocol version %s)", distribution.getDisplayName(), GradleVersion.current().getVersion(), protocolVersion));
             }
-            return factory.create();
+            // ConnectionVersion4 is a part of the protocol and cannot be easily changed.
+            ConnectionVersion4 connection = factory.create();
+            // Adopting the connection to a refactoring friendly type that the consumer owns
+            AdaptedConnection adaptedConnection = new AdaptedConnection(connection);
+            adaptedConnection.configureLogging(verboseLogging);
+            return adaptedConnection;
         } catch (UnsupportedVersionException e) {
             throw e;
         } catch (Throwable t) {
@@ -64,11 +69,10 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
     }
 
     private ClassLoader createImplementationClassLoader(Distribution distribution, ProgressLoggerFactory progressLoggerFactory) {
-        Set<File> implementationClasspath = distribution.getToolingImplementationClasspath(progressLoggerFactory);
+        ClassPath implementationClasspath = distribution.getToolingImplementationClasspath(progressLoggerFactory);
         LOGGER.debug("Using tooling provider classpath: {}", implementationClasspath);
-        URL[] urls = GFileUtils.toURLArray(implementationClasspath);
         FilteringClassLoader filteringClassLoader = new FilteringClassLoader(classLoader);
         filteringClassLoader.allowPackage("org.gradle.tooling.internal.protocol");
-        return new ObservableUrlClassLoader(filteringClassLoader, urls);
+        return new MutableURLClassLoader(filteringClassLoader, implementationClasspath.getAsURLArray());
     }
 }

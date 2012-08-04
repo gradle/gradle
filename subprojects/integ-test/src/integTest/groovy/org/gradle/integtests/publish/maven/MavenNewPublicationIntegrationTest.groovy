@@ -18,8 +18,8 @@ package org.gradle.integtests.publish.maven
 
 import org.gradle.integtests.fixtures.HttpServer
 import org.gradle.integtests.fixtures.MavenRepository
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
-import org.gradle.util.SystemProperties
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.SystemProperties
 import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
@@ -35,7 +35,7 @@ class MavenNewPublicationIntegrationTest extends AbstractIntegrationSpec {
         file('build.gradle') << """
 apply plugin: 'java'
 apply plugin: 'maven'
-new org.gradle.api.publication.PublicationPlugin().apply(project)
+apply plugin: org.gradle.api.publication.PublicationPlugin
 
 group = 'org.test'
 archivesBaseName = 'someCoolProject'
@@ -58,7 +58,7 @@ publications.maven.repository.url = '${repo().uri}'
         file('build.gradle') << """
 apply plugin: 'java'
 apply plugin: 'maven'
-new org.gradle.api.publication.PublicationPlugin().apply(project)
+apply plugin: org.gradle.api.publication.PublicationPlugin
 
 group = 'org.test'
 archivesBaseName = 'someCoolProject'
@@ -85,7 +85,7 @@ version = '5.0-SNAPSHOT'
         file('build.gradle') << """
 apply plugin: 'java'
 apply plugin: 'maven'
-new org.gradle.api.publication.PublicationPlugin().apply(project)
+apply plugin: org.gradle.api.publication.PublicationPlugin
 
 group = 'org.test'
 archivesBaseName = 'someCoolProject'

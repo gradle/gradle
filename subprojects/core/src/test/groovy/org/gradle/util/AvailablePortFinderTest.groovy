@@ -21,47 +21,6 @@ import spock.lang.Specification
 class AvailablePortFinderTest extends Specification {
     AvailablePortFinder portFinder
 
-    def "port range defaults to well-known and registered ports"() {
-        when:
-        portFinder = AvailablePortFinder.create()
-
-        then:
-        portFinder.fromPort == AvailablePortFinder.MIN_WELL_KNOWN_PORT
-        portFinder.toPort == AvailablePortFinder.MAX_REGISTERED_PORT
-    }
-
-    def "can create port finder with private range"() {
-        when:
-        portFinder = AvailablePortFinder.createPrivate()
-
-        then:
-        portFinder.fromPort == AvailablePortFinder.MIN_PRIVATE_PORT
-        portFinder.toPort == AvailablePortFinder.MAX_PRIVATE_PORT
-    }
-
-    def "can create port finder with custom range"() {
-        when:
-        portFinder = AvailablePortFinder.create(42, 12345)
-
-        then:
-        portFinder.fromPort == 42
-        portFinder.toPort == 12345
-    }
-
-    def "cannot create port finder with invalid port range"() {
-        when:
-        portFinder = AvailablePortFinder.create(from, to)
-
-        then:
-        thrown(IllegalArgumentException)
-
-        where:
-        from | to
-        -1   | 9
-        1    | 65536
-        5    | 3
-    }
-
     def "can test for and find an available port"() {
         portFinder = AvailablePortFinder.createPrivate()
 

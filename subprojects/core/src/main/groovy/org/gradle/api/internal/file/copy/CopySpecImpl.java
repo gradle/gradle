@@ -16,7 +16,6 @@
 package org.gradle.api.internal.file.copy;
 
 import groovy.lang.Closure;
-import org.apache.tools.zip.UnixStat;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.api.Action;
 import org.gradle.api.file.*;
@@ -46,10 +45,12 @@ public class CopySpecImpl implements CopySpec, ReadableCopySpec {
     private Integer fileMode;
     private Boolean caseSensitive;
     private Boolean includeEmptyDirs;
+    private PathNotationParser<String> pathNotationParser;
 
     private CopySpecImpl(FileResolver resolver, CopySpecImpl parentSpec) {
         this.parentSpec = parentSpec;
         this.resolver = resolver;
+        this.pathNotationParser = new PathNotationParser<String>();
         sourcePaths = new LinkedHashSet<Object>();
         childSpecs = new ArrayList<ReadableCopySpec>();
         patternSet = new PatternSet();
@@ -162,16 +163,7 @@ public class CopySpecImpl implements CopySpec, ReadableCopySpec {
     }
 
     private String resolveToPath(Object destDir) {
-        Object value = destDir;
-        while (true) {
-            if (value instanceof Closure) {
-                Closure closure = (Closure) value;
-                value = closure.call();
-            } else {
-                break;
-            }
-        }
-        return value.toString();
+        return pathNotationParser.parseNotation(destDir);
     }
 
     public PatternSet getPatternSet() {
@@ -341,32 +333,32 @@ public class CopySpecImpl implements CopySpec, ReadableCopySpec {
         return this;
     }
 
-    public int getDirMode() {
+    public Integer getDirMode() {
         if (dirMode != null) {
             return dirMode;
         }
         if (parentSpec != null) {
             return parentSpec.getDirMode();
         }
-        return UnixStat.DEFAULT_DIR_PERM;
+        return null;
     }
 
-    public int getFileMode() {
+    public Integer getFileMode() {
         if (fileMode != null) {
             return fileMode;
         }
         if (parentSpec != null) {
             return parentSpec.getFileMode();
         }
-        return UnixStat.DEFAULT_FILE_PERM;
+        return null;
     }
 
-    public CopyProcessingSpec setDirMode(int mode) {
+    public CopyProcessingSpec setDirMode(Integer mode) {
         dirMode = mode;
         return this;
     }
 
-    public CopyProcessingSpec setFileMode(int mode) {
+    public CopyProcessingSpec setFileMode(Integer mode) {
         fileMode = mode;
         return this;
     }
@@ -434,11 +426,11 @@ public class CopySpecImpl implements CopySpec, ReadableCopySpec {
             return root.getDestPath().append(spec.getDestPath());
         }
 
-        public int getFileMode() {
+        public Integer getFileMode() {
             return spec.getFileMode();
         }
 
-        public int getDirMode() {
+        public Integer getDirMode() {
             return spec.getDirMode();
         }
 

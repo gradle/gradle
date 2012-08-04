@@ -30,14 +30,9 @@ public class DefaultGradleConnector extends GradleConnector {
     private static final Logger LOGGER = LoggerFactory.getLogger(GradleConnector.class);
     private final ConnectionFactory connectionFactory;
     private final DistributionFactory distributionFactory;
-    private File projectDir;
-    private File gradleUserHomeDir;
     private Distribution distribution;
-    private Boolean searchUpwards;
-    private Boolean embedded;
-    private Integer daemonMaxIdleTimeValue;
-    private TimeUnit daemonMaxIdleTimeUnits;
-    private boolean verboseLogging;
+
+    private final DefaultConnectionParameters connectionParameters = new DefaultConnectionParameters();
 
     public DefaultGradleConnector(ConnectionFactory connectionFactory, DistributionFactory distributionFactory) {
         this.connectionFactory = connectionFactory;
@@ -70,43 +65,29 @@ public class DefaultGradleConnector extends GradleConnector {
     }
 
     public GradleConnector forProjectDirectory(File projectDir) {
-        this.projectDir = projectDir;
+        connectionParameters.setProjectDir(projectDir);
         return this;
     }
 
     public GradleConnector useGradleUserHomeDir(File gradleUserHomeDir) {
-        this.gradleUserHomeDir = gradleUserHomeDir;
+        connectionParameters.setGradleUserHomeDir(gradleUserHomeDir);
         return this;
     }
 
     public GradleConnector searchUpwards(boolean searchUpwards) {
-        this.searchUpwards = searchUpwards;
+        connectionParameters.setSearchUpwards(searchUpwards);
         return this;
     }
 
     public GradleConnector embedded(boolean embedded) {
-        this.embedded = embedded;
+        connectionParameters.setEmbedded(embedded);
         return this;
     }
 
     public GradleConnector daemonMaxIdleTime(int timeoutValue, TimeUnit timeoutUnits) {
-        this.daemonMaxIdleTimeValue = timeoutValue;
-        this.daemonMaxIdleTimeUnits = timeoutUnits;
+        connectionParameters.setDaemonMaxIdleTimeValue(timeoutValue);
+        connectionParameters.setDaemonMaxIdleTimeUnits(timeoutUnits);
         return this;
-    }
-
-    public ProjectConnection connect() throws GradleConnectionException {
-        LOGGER.debug("Connecting from tooling API consumer version {}", GradleVersion.current().getVersion());
-
-        if (projectDir == null) {
-            throw new IllegalStateException("A project directory must be specified before creating a connection.");
-        }
-        if (distribution == null) {
-            distribution = distributionFactory.getDefaultDistribution(projectDir, searchUpwards != null ? searchUpwards : true);
-        }
-        DefaultConnectionParameters params = new DefaultConnectionParameters(projectDir, gradleUserHomeDir, searchUpwards,
-                embedded, daemonMaxIdleTimeValue, daemonMaxIdleTimeUnits, verboseLogging);
-        return connectionFactory.create(distribution, params);
     }
 
     /**
@@ -116,8 +97,20 @@ public class DefaultGradleConnector extends GradleConnector {
      * @return
      */
     public DefaultGradleConnector setVerboseLogging(boolean verboseLogging) {
-        this.verboseLogging = true;
+        connectionParameters.setVerboseLogging(verboseLogging);
         return this;
+    }
+
+    public ProjectConnection connect() throws GradleConnectionException {
+        LOGGER.debug("Connecting from tooling API consumer version {}", GradleVersion.current().getVersion());
+
+        if (connectionParameters.getProjectDir() == null) {
+            throw new IllegalStateException("A project directory must be specified before creating a connection.");
+        }
+        if (distribution == null) {
+            distribution = distributionFactory.getDefaultDistribution(connectionParameters.getProjectDir(), connectionParameters.isSearchUpwards() != null ? connectionParameters.isSearchUpwards() : true);
+        }
+        return connectionFactory.create(distribution, connectionParameters);
     }
 
     ConnectionFactory getConnectionFactory() {

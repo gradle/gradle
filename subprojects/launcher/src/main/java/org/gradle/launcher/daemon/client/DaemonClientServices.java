@@ -15,44 +15,42 @@
  */
 package org.gradle.launcher.daemon.client;
 
-import org.gradle.api.internal.project.ServiceRegistry;
+import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.launcher.daemon.bootstrap.DaemonGreeter;
+import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.context.DaemonContextBuilder;
 import org.gradle.launcher.daemon.registry.DaemonDir;
-import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
-import org.gradle.launcher.daemon.server.DaemonParameters;
 
 import java.io.InputStream;
-import java.util.List;
 
 /**
  * Takes care of instantiating and wiring together the services required by the daemon client.
  */
 public class DaemonClientServices extends DaemonClientServicesSupport {
-    private final List<String> daemonOpts;
-    private final int idleTimeout;
-    private final ServiceRegistry registryServices;
+    private final DaemonParameters daemonParameters;
 
     public DaemonClientServices(ServiceRegistry loggingServices, DaemonParameters daemonParameters, InputStream buildStandardInput) {
         super(loggingServices, buildStandardInput);
-        this.daemonOpts = daemonParameters.getJvmArgs();
-        this.idleTimeout = daemonParameters.getIdleTimeout();
-        this.registryServices = new DaemonRegistryServices(daemonParameters.getBaseDir());
-        add(registryServices);
+        this.daemonParameters = daemonParameters;
+        add(new DaemonRegistryServices(daemonParameters.getBaseDir()));
     }
 
-    // here to satisfy DaemonClientServicesSupport contract
-    protected DaemonRegistry createDaemonRegistry() {
-        return registryServices.get(DaemonRegistry.class);
+    public DaemonStarter createDaemonStarter() {
+        return new DefaultDaemonStarter(get(DaemonDir.class), daemonParameters, get(DaemonGreeter.class));
     }
 
-    public Runnable makeDaemonStarter() {
-        return new DaemonStarter(registryServices.get(DaemonDir.class), daemonOpts, idleTimeout);
+    protected DaemonGreeter createDaemonGreeter() {
+        return new DaemonGreeter(get(DocumentationRegistry.class));
     }
 
     protected void configureDaemonContextBuilder(DaemonContextBuilder builder) {
-        builder.setDaemonRegistryDir(registryServices.get(DaemonDir.class).getBaseDir());
-        builder.setDaemonOpts(daemonOpts);
+        builder.setDaemonRegistryDir(get(DaemonDir.class).getBaseDir());
+        builder.useDaemonParameters(daemonParameters);
     }
 
+    public DaemonParameters getDaemonParameters() {
+        return daemonParameters;
+    }
 }

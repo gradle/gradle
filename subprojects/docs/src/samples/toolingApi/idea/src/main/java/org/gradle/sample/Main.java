@@ -11,8 +11,12 @@ public class Main {
         // Configure the connector and create the connection
         GradleConnector connector = GradleConnector.newConnector();
         connector.forProjectDirectory(new File("."));
+
         if (args.length > 0) {
             connector.useInstallation(new File(args[0]));
+            if (args.length > 1) {
+                connector.useGradleUserHomeDir(new File(args[1]));
+            }
         }
 
         ProjectConnection connection = connector.connect();

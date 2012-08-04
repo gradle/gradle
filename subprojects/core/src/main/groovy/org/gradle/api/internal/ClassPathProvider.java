@@ -16,12 +16,11 @@
 
 package org.gradle.api.internal;
 
-import java.io.File;
-import java.util.Set;
+import org.gradle.internal.classpath.ClassPath;
 
 public interface ClassPathProvider {
     /**
      * Returns the files for the given classpath, if known. Returns null for unknown classpath.
      */
-    Set<File> findClassPath(String name);
+    ClassPath findClassPath(String name);
 }

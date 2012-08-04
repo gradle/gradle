@@ -13,7 +13,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<chapter id='tutorial_this_and_that' xmlns:xi="http://www.w3.org/2001/XInclude">
+<chapter id='tutorial_this_and_that'>
     <title>Tutorial - 'This and That'</title>
     <section id='sec:directory_creation'>
         <title>Directory creation</title>
@@ -29,22 +29,6 @@
             <sourcefile file="build.gradle"/>
             <output args="-q compile"/>
         </sample>
-        <para>But Gradle offers you also <emphasis>Directory Tasks</emphasis> to deal with this.</para>
-        <sample id="directoryTask" dir="userguide/tutorial/directoryTask" title="Directory creation with Directory tasks">
-            <sourcefile file="build.gradle"/>
-            <output args="-q otherResources"/>
-        </sample>
-        <para>A <emphasis>Directory Task</emphasis>
-            is a simple task whose name is a relative path to the project dir
-            <footnote>
-                <para>The notation <literal>dir('/somepath')</literal> is a convenience method for
-                    <literal>tasks.add('somepath', type: Directory)</literal>
-                </para>
-            </footnote>
-            . During the execution phase the directory corresponding to this path gets created if it does not exist yet.
-            Another interesting thing to note in this example, is that you can also pass tasks objects to the dependsOn
-            declaration of a task.
-        </para>
     </section>
     <section id='sec:gradle_properties_and_system_properties'>
         <title>Gradle properties and system properties</title>
@@ -102,36 +86,7 @@
             </para>
         </section>
     </section>
-    <section id='sec:accessing_the_web_via_a_proxy'>
-        <title>Accessing the web via a proxy</title>
-        <para>Setting a proxy for web access (for example for downloading dependencies) is easy. Gradle does not need to
-            provide special functionality for this. The JVM can be instructed to go via proxy by setting certain system
-            properties. You could set these system properties directly in your build script with <literal>
-                System.properties['proxy.proxyUser'] = 'userid'</literal>. An arguably nicer way is shown in
-            <xref linkend='sec:gradle_properties_and_system_properties'/>. Your gradle.properties file could look like
-            this:
-        </para>
-        <example>
-            <title>Accessing the web via a proxy</title>
-            <para><filename>gradle.properties</filename></para>
-            <programlisting><![CDATA[
-systemProp.http.proxyHost=www.somehost.org
-systemProp.http.proxyPort=8080
-systemProp.http.proxyUser=userid
-systemProp.http.proxyPassword=password
-systemProp.http.nonProxyHosts=*.nonproxyrepos.com|localhost	
-]]></programlisting>
-        </example>
-        <para>We could not find a good overview for all possible proxy settings. One place to look are the constants
-            in a file from the ant project. Here a
-            <ulink url='http://svn.apache.org/viewvc/ant/core/trunk/src/main/org/apache/tools/ant/util/ProxySetup.java?view=markup&amp;pathrev=556977'>
-                link
-            </ulink> to the svn view. The other is a
-            <ulink url='http://download.oracle.com/javase/6/docs/technotes/guides/net/properties.html'>
-                Networking Properties page
-            </ulink> from the JDK docs. If anyone knows a better overview please let us know via the mailing list.
-        </para>
-    </section>
+
     <section id="sec:configuring_using_external_script">
         <title>Configuring the project using an external build script</title>
         <para>You can configure the current project using an external build script. All of the Gradle build language
@@ -169,7 +124,7 @@ systemProp.http.nonProxyHosts=*.nonproxyrepos.com|localhost
             <filename>.gradle</filename> directory in which it puts the compiled script. The next time you run this
             build, Gradle uses the compiled script, if the script has not changed since it was compiled.  Otherwise the
             script gets compiled and the new version is stored in the cache. If you run Gradle with the
-            <option>-C rebuild</option> option, the cached script is discarded and the script is compiled and stored
+            <option>--recompile-scripts</option> option, the cached script is discarded and the script is compiled and stored
             in the cache. This way you can force Gradle to rebuild the cache.
         </para>
     </section>

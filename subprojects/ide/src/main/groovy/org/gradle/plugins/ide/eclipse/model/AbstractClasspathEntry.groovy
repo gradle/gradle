@@ -23,6 +23,8 @@ import org.gradle.plugins.ide.eclipse.model.internal.PathUtil
 // TODO: consider entryAttributes in equals, hashCode, and toString
 abstract class AbstractClasspathEntry implements ClasspathEntry {
     private static final String NATIVE_LIBRARY_ATTRIBUTE = 'org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY'
+    public static final String COMPONENT_NON_DEPENDENCY_ATTRIBUTE = 'org.eclipse.jst.component.nondependency'
+    public static final String COMPONENT_DEPENDENCY_ATTRIBUTE = 'org.eclipse.jst.component.dependency'
 
     String path
     boolean exported
@@ -102,8 +104,15 @@ abstract class AbstractClasspathEntry implements ClasspathEntry {
     }
 
     void writeEntryAttributes(Node node) {
-        def effectiveEntryAttrs = entryAttributes.findAll { it.value }
+        def effectiveEntryAttrs = entryAttributes.findAll { it.value || it.key == COMPONENT_NON_DEPENDENCY_ATTRIBUTE }
         if (!effectiveEntryAttrs) { return }
+
+        if (effectiveEntryAttrs.containsKey(COMPONENT_DEPENDENCY_ATTRIBUTE)
+                && effectiveEntryAttrs.containsKey(COMPONENT_NON_DEPENDENCY_ATTRIBUTE)) {
+            //For conflicting component dependency entries, the non-dependency loses
+            //because it is our default and it means the user has configured something else.
+            effectiveEntryAttrs.remove(COMPONENT_NON_DEPENDENCY_ATTRIBUTE)
+        }
 
         Node attributesNode = node.children().find { it.name()  == 'attributes' } ?: node.appendNode('attributes')
         effectiveEntryAttrs.each { key, value ->

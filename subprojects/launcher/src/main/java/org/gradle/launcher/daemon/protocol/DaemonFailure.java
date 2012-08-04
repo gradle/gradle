@@ -23,8 +23,7 @@ package org.gradle.launcher.daemon.protocol;
  * but the command itself failed.
  */
 public class DaemonFailure extends Failure {
-    
-    public DaemonFailure(RuntimeException value) {
+    public DaemonFailure(Throwable value) {
         super(value);
     }
 }
