@@ -25,13 +25,8 @@ class ClassDocRenderer {
     private final GenerationListener listener = new DefaultGenerationListener()
     private final PropertyTableRenderer propertyTableRenderer = new PropertyTableRenderer()
     private final MethodTableRenderer methodTableRenderer = new MethodTableRenderer()
+    private final ClassDescriptionRenderer descriptionRenderer = new ClassDescriptionRenderer()
     private final PropertiesDetailRenderer propertiesDetailRenderer
-    private Element propertiesSummarySection
-    private Element propertiesDetailSection
-    private Element methodsSummarySection
-    private Element methodsDetailSection
-    private Element blocksSummarySection
-    private Element blocksDetailSection
 
     ClassDocRenderer(LinkRenderer linkRenderer) {
         this.linkRenderer = linkRenderer
@@ -43,40 +38,19 @@ class ClassDocRenderer {
         try {
             def chapter = parent.ownerDocument.createElement("chapter")
             parent.appendChild(chapter)
-            mergeDescription(classDoc, chapter)
+            chapter.setAttribute('id', classDoc.id)
+            descriptionRenderer.renderTo(classDoc, chapter)
             mergeProperties(classDoc, chapter)
             mergeBlocks(classDoc, chapter)
             mergeMethods(classDoc, chapter)
-            mergeExtensions(classDoc, chapter)
         } finally {
-            propertiesSummarySection = null
-            propertiesDetailSection = null
-            methodsSummarySection = null
-            methodsDetailSection = null
-            blocksSummarySection = null
-            blocksDetailSection = null
             listener.finish()
         }
     }
 
-    void mergeDescription(ClassDoc classDoc, Element classContent) {
-        classContent.setAttribute('id', classDoc.id)
-        classContent.addFirst {
-            title(classDoc.simpleName)
-            segmentedlist {
-                segtitle('API Documentation')
-                seglistitem {
-                    seg { apilink('class': classDoc.name, style: classDoc.style) }
-                }
-            }
-            addWarnings(classDoc, 'class', delegate)
-            appendChildren classDoc.comment
-            appendChildren classDoc.classSection.childNodes.findAll { it instanceof Element && it.tagName != 'section' }
-        }
-    }
-
     void mergeProperties(ClassDoc classDoc, Element classContent) {
-        propertiesSummarySection = classContent << {
+
+        Element propertiesSummarySection = classContent << {
             section {
                 title('Properties')
             }
@@ -99,7 +73,7 @@ class ClassDocRenderer {
         }
         propertyTableRenderer.renderTo(classProperties, propertiesTable)
 
-        propertiesDetailSection = classContent << {
+        Element propertiesDetailSection = classContent << {
             section {
                 title('Property details')
             }
@@ -107,10 +81,12 @@ class ClassDocRenderer {
         classProperties.each { propDoc ->
             propertiesDetailRenderer.renderTo(propDoc, propertiesDetailSection)
         }
+
+        mergeExtensionProperties(classDoc, propertiesSummarySection, propertiesDetailSection)
     }
 
     void mergeMethods(ClassDoc classDoc, Element classContent) {
-        methodsSummarySection = classContent << {
+        Element methodsSummarySection = classContent << {
             section { title('Methods') }
         }
 
@@ -129,7 +105,7 @@ class ClassDocRenderer {
         }
         methodTableRenderer.renderTo(classMethods, table)
 
-        methodsDetailSection = classContent << {
+        Element methodsDetailSection = classContent << {
             section {
                 title('Method details')
                 classMethods.each { method ->
@@ -154,10 +130,12 @@ class ClassDocRenderer {
                 }
             }
         }
+
+        mergeExtensionMethods(classDoc, methodsSummarySection, methodsDetailSection)
     }
 
     void mergeBlocks(ClassDoc classDoc, Element classContent) {
-        blocksSummarySection = classContent << {
+        Element blocksSummarySection = classContent << {
             section {
                 title('Script blocks')
             }
@@ -187,7 +165,7 @@ class ClassDocRenderer {
                 }
             }
         }
-        blocksDetailSection = classContent << {
+        Element blocksDetailSection = classContent << {
             section {
                 title('Script block details')
                 classBlocks.each { block ->
@@ -218,6 +196,8 @@ class ClassDocRenderer {
                 }
             }
         }
+
+        mergeExtensionBlocks(classDoc, blocksSummarySection, blocksDetailSection)
     }
 
     void addWarnings(DslElementDoc elementDoc, String description, Object delegate) {
@@ -241,18 +221,9 @@ class ClassDocRenderer {
         }
     }
 
-    void mergeExtensions(ClassDoc classDoc, Element classContent) {
-        if (!classDoc.classExtensions) {
-            return
-        }
-        mergeExtensionProperties(classDoc, propertiesSummarySection, propertiesDetailSection)
-        mergeExtensionMethods(classDoc, methodsSummarySection, methodsDetailSection)
-        mergeExtensionBlocks(classDoc, blocksSummarySection, blocksDetailSection)
-    }
-
     void mergeExtensionProperties(ClassDoc classDoc, Element summaryParent, Element detailParent) {
-        summaryParent << {
-            classDoc.classExtensions.each { ClassExtensionDoc extension ->
+        classDoc.classExtensions.each { ClassExtensionDoc extension ->
+            summaryParent << {
                 if (!extension.extensionProperties) {
                     return
                 }
@@ -265,9 +236,7 @@ class ClassDocRenderer {
                 }
                 propertyTableRenderer.renderTo(extension.extensionProperties, section.table[0])
             }
-        }
 
-        classDoc.classExtensions.each { ClassExtensionDoc extension ->
             extension.extensionProperties.each { propDoc ->
                 propertiesDetailRenderer.renderTo(propDoc, detailParent)
             }
@@ -275,7 +244,6 @@ class ClassDocRenderer {
     }
 
     void mergeExtensionMethods(ClassDoc classDoc, Element summaryParent, Element detailParent) {
-
         classDoc.classExtensions.each { ClassExtensionDoc extension ->
             if (!extension.extensionMethods) {
                 return
@@ -319,8 +287,8 @@ class ClassDocRenderer {
     }
 
     void mergeExtensionBlocks(ClassDoc classDoc, Element summaryParent, Element detailParent) {
-        summaryParent << {
-            classDoc.classExtensions.each { ClassExtensionDoc extension ->
+        classDoc.classExtensions.each { ClassExtensionDoc extension ->
+            summaryParent << {
                 if (!extension.extensionBlocks) {
                     return
                 }
@@ -340,9 +308,7 @@ class ClassDocRenderer {
                     }
                 }
             }
-        }
-        detailParent << {
-            classDoc.classExtensions.each { ClassExtensionDoc extension ->
+            detailParent << {
                 extension.extensionBlocks.each { block ->
                     section(id: block.id, role: 'detail') {
                         title {

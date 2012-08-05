@@ -87,27 +87,44 @@ class ClassDocRendererTest extends XmlSpecification {
         ''')
 
         ClassDoc classDoc = classDoc('org.gradle.Class', id: 'classId', content: sourceContent, comment: 'class comment')
+        _ * classDoc.classProperties >> []
+        _ * classDoc.classMethods >> []
+        _ * classDoc.classBlocks >> []
 
         when:
-        def result = parse('<chapter/>')
+        def result = parse('<root/>')
         withCategories {
-            renderer.mergeDescription(classDoc, result)
+            renderer.mergeContent(classDoc, result)
         }
 
         then:
-        formatTree(result) == '''<chapter id="classId">
-    <title>Class</title>
-    <segmentedlist>
-        <segtitle>API Documentation</segtitle>
-        <seglistitem>
-            <seg>
-                <apilink class="org.gradle.Class" style="java"/>
-            </seg>
-        </seglistitem>
-    </segmentedlist>
-    <para>class comment</para>
-    <para>Some custom content</para>
-</chapter>'''
+        formatTree(result) == '''<root>
+    <chapter id="classId">
+        <title>Class</title>
+        <segmentedlist>
+            <segtitle>API Documentation</segtitle>
+            <seglistitem>
+                <seg>
+                    <apilink class="org.gradle.Class" style="java"/>
+                </seg>
+            </seglistitem>
+        </segmentedlist>
+        <para>class comment</para>
+        <para>Some custom content</para>
+        <section>
+            <title>Properties</title>
+            <para>No properties</para>
+        </section>
+        <section>
+            <title>Script blocks</title>
+            <para>No script blocks</para>
+        </section>
+        <section>
+            <title>Methods</title>
+            <para>No methods</para>
+        </section>
+    </chapter>
+</root>'''
     }
     
     def mergesPropertyMetaDataIntoPropertiesSection() {

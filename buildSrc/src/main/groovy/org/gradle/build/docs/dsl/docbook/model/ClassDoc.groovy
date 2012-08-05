@@ -95,7 +95,7 @@ class ClassDoc implements DslElementDoc {
         classExtensions.add(extensionDoc)
     }
 
-    def getClassSection() { return classSection }
+    Element getClassSection() { return classSection }
 
     Element getPropertiesTable() { return propertiesTable }
 
