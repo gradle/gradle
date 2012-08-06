@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.repositories;
 
+import org.apache.ivy.plugins.repository.Repository;
 import org.apache.ivy.plugins.resolver.*;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 
@@ -40,10 +41,10 @@ public class CustomResolverArtifactRepository extends FixedResolverArtifactRepos
             ((FileSystemResolver) dependencyResolver).setLocal(true);
             ((FileSystemResolver) dependencyResolver).setRepositoryCacheManager(repositoryTransportFactory.getLocalCacheManager());
         }
-//        if (dependencyResolver instanceof RepositoryResolver) {
-//            Repository repository = ((RepositoryResolver) dependencyResolver).getRepository();
-//            repositoryTransportFactory.attachListener(repository);
-//        }
+        if (dependencyResolver instanceof RepositoryResolver) {
+            Repository repository = ((RepositoryResolver) dependencyResolver).getRepository();
+            repositoryTransportFactory.attachListener(repository);
+        }
         if (dependencyResolver instanceof DualResolver) {
             DualResolver dualResolver = (DualResolver) dependencyResolver;
             configureResolver(dualResolver.getIvyResolver(), false);

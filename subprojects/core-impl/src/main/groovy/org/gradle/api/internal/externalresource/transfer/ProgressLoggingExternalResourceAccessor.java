@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 
-public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLoggingExternalResourceHandler implements ExternalResourceAccessor {
+public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLoggingHandler implements ExternalResourceAccessor {
     private final static Logger LOGGER = LoggerFactory.getLogger(ProgressLoggingExternalResourceAccessor.class);
     private final ExternalResourceAccessor delegate;
 
@@ -41,7 +41,7 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
     public ExternalResource getResource(String location) throws IOException {
         ExternalResource resource = delegate.getResource(location);
         if (resource != null) {
-            return new ProgressLoggingExternalResource(resource, progressLoggerFactory);
+            return new ProgressLoggingExternalResource(resource);
         } else {
             return null;
         }
@@ -59,11 +59,9 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
 
     private class ProgressLoggingExternalResource implements ExternalResource {
         private ExternalResource resource;
-        private ProgressLoggerFactory progressLoggerFactory;
 
-        private ProgressLoggingExternalResource(ExternalResource resource, ProgressLoggerFactory progressLoggerFactory) {
+        private ProgressLoggingExternalResource(ExternalResource resource) {
             this.resource = resource;
-            this.progressLoggerFactory = progressLoggerFactory;
         }
 
         /**
@@ -83,7 +81,7 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
         }
 
         public void writeTo(OutputStream outputStream) throws IOException {  //get rid of CopyProgress Logger
-            ProgressLogger progressLogger = startProgress(String.format("Download %s", getName()));
+            ProgressLogger progressLogger = startProgress(String.format("Download %s", getName()), null);
             final ProgressLoggingOutputStream progressLoggingOutputStream = new ProgressLoggingOutputStream(outputStream, progressLogger, resource.getContentLength());
             try {
                 resource.writeTo(progressLoggingOutputStream);

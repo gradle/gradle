@@ -19,17 +19,17 @@ package org.gradle.api.internal.externalresource.transfer;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
 
-public class AbstractProgressLoggingExternalResourceHandler {
+public class AbstractProgressLoggingHandler {
     protected final ProgressLoggerFactory progressLoggerFactory;
 
-    public AbstractProgressLoggingExternalResourceHandler(ProgressLoggerFactory progressLoggerFactory) {
+    public AbstractProgressLoggingHandler(ProgressLoggerFactory progressLoggerFactory) {
         this.progressLoggerFactory = progressLoggerFactory;
     }
 
-    protected ProgressLogger startProgress(String description) {
-        ProgressLogger progressLogger = progressLoggerFactory.newOperation(getClass());
+    protected ProgressLogger startProgress(String description, Class loggingClass) {
+        ProgressLogger progressLogger = progressLoggerFactory.newOperation(loggingClass != null ? loggingClass : getClass());
         progressLogger.setDescription(description);
-        progressLogger.setShortDescription(description);
+        progressLogger.setLoggingHeader(description);
         progressLogger.started();
         return progressLogger;
     }

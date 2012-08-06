@@ -23,7 +23,7 @@ import org.gradle.logging.ProgressLoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 
-public class ProgressLoggingExternalResourceUploader extends AbstractProgressLoggingExternalResourceHandler implements ExternalResourceUploader {
+public class ProgressLoggingExternalResourceUploader extends AbstractProgressLoggingHandler implements ExternalResourceUploader {
     private final ExternalResourceUploader delegate;
 
     public ProgressLoggingExternalResourceUploader(ExternalResourceUploader delegate, ProgressLoggerFactory progressLoggerFactory) {
@@ -32,7 +32,7 @@ public class ProgressLoggingExternalResourceUploader extends AbstractProgressLog
     }
 
     public void upload(final Factory<InputStream> source, final Long contentLength, String destination) throws IOException {
-        final ProgressLogger progressLogger = startProgress(String.format("Upload to %s", destination));
+        final ProgressLogger progressLogger = startProgress(String.format("Upload to %s", destination), null);
         try {
             delegate.upload(new Factory<InputStream>() {
                 public InputStream create() {
