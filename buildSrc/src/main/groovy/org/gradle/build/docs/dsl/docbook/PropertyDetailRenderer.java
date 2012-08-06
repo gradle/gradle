@@ -22,12 +22,12 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
-public class PropertiesDetailRenderer {
+public class PropertyDetailRenderer {
     private final GenerationListener listener;
     private final LinkRenderer linkRenderer;
     private final ElementWarningsRenderer warningsRenderer = new ElementWarningsRenderer();
 
-    public PropertiesDetailRenderer(LinkRenderer linkRenderer, GenerationListener listener) {
+    public PropertyDetailRenderer(LinkRenderer linkRenderer, GenerationListener listener) {
         this.linkRenderer = linkRenderer;
         this.listener = listener;
     }

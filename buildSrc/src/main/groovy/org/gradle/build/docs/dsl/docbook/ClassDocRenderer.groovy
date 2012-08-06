@@ -15,7 +15,6 @@
  */
 package org.gradle.build.docs.dsl.docbook
 
-import org.gradle.build.docs.dsl.docbook.model.DslElementDoc
 import org.gradle.build.docs.dsl.docbook.model.ClassDoc
 import org.gradle.build.docs.dsl.docbook.model.ClassExtensionDoc
 import org.w3c.dom.Element
@@ -26,11 +25,15 @@ class ClassDocRenderer {
     private final PropertyTableRenderer propertyTableRenderer = new PropertyTableRenderer()
     private final MethodTableRenderer methodTableRenderer = new MethodTableRenderer()
     private final ClassDescriptionRenderer descriptionRenderer = new ClassDescriptionRenderer()
-    private final PropertiesDetailRenderer propertiesDetailRenderer
+    private final PropertyDetailRenderer propertiesDetailRenderer
+    private final MethodDetailRenderer methodDetailRenderer
+    private final BlockDetailRenderer blockDetailRenderer
 
     ClassDocRenderer(LinkRenderer linkRenderer) {
         this.linkRenderer = linkRenderer
-        propertiesDetailRenderer = new PropertiesDetailRenderer(linkRenderer, listener)
+        propertiesDetailRenderer = new PropertyDetailRenderer(linkRenderer, listener)
+        methodDetailRenderer = new MethodDetailRenderer(linkRenderer, listener)
+        blockDetailRenderer = new BlockDetailRenderer(linkRenderer, listener)
     }
 
     void mergeContent(ClassDoc classDoc, Element parent) {
@@ -108,27 +111,10 @@ class ClassDocRenderer {
         Element methodsDetailSection = classContent << {
             section {
                 title('Method details')
-                classMethods.each { method ->
-                    section(id: method.id, role: 'detail') {
-                        title {
-                            appendChild linkRenderer.link(method.metaData.returnType, listener)
-                            text(' ')
-                            literal(method.name)
-                            text('(')
-                            method.metaData.parameters.eachWithIndex {param, i ->
-                                if (i > 0) {
-                                    text(', ')
-                                }
-                                appendChild linkRenderer.link(param.type, listener)
-                                text(" $param.name")
-                            }
-                            text(')')
-                        }
-                        addWarnings(method, 'method', delegate)
-                        appendChildren method.comment
-                    }
-                }
             }
+        }
+        classMethods.each { method ->
+            methodDetailRenderer.renderTo(method, methodsDetailSection)
         }
 
         mergeExtensionMethods(classDoc, methodsSummarySection, methodsDetailSection)
@@ -168,57 +154,13 @@ class ClassDocRenderer {
         Element blocksDetailSection = classContent << {
             section {
                 title('Script block details')
-                classBlocks.each { block ->
-                    section(id: block.id, role: 'detail') {
-                        title {
-                            literal(block.name); text(' { }')
-                        }
-                        addWarnings(block, 'script block', delegate)
-                        appendChildren block.comment
-                        segmentedlist {
-                            segtitle('Delegates to')
-                            seglistitem {
-                                seg {
-                                    if (block.multiValued) {
-                                        text('Each ')
-                                        appendChild linkRenderer.link(block.type, listener)
-                                        text(' in ')
-                                        link(linkend: block.blockProperty.id) { literal(block.blockProperty.name) }
-                                    } else {
-                                        appendChild linkRenderer.link(block.type, listener)
-                                        text(' from ')
-                                        link(linkend: block.blockProperty.id) { literal(block.blockProperty.name) }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
             }
+        }
+        classBlocks.each { block ->
+            blockDetailRenderer.renderTo(block, blocksDetailSection)
         }
 
         mergeExtensionBlocks(classDoc, blocksSummarySection, blocksDetailSection)
-    }
-
-    void addWarnings(DslElementDoc elementDoc, String description, Object delegate) {
-        if (elementDoc.deprecated) {
-            delegate.caution {
-                para{
-                    text("Note: This $description is ")
-                    link(linkend: 'dsl-element-types', "deprecated")
-                    text(" and will be removed in the next major version of Gradle.")
-                }
-            }
-        }
-        if (elementDoc.experimental) {
-            delegate.caution {
-                para{
-                    text("Note: This $description is ")
-                    link(linkend: 'dsl-element-types', "experimental")
-                    text(" and may change in a future version of Gradle.")
-                }
-            }
-        }
     }
 
     void mergeExtensionProperties(ClassDoc classDoc, Element summaryParent, Element detailParent) {
@@ -262,26 +204,8 @@ class ClassDocRenderer {
             }
             methodTableRenderer.renderTo(extension.extensionMethods, summaryTable)
 
-            detailParent << {
-                extension.extensionMethods.each { method ->
-                    section(id: method.id, role: 'detail') {
-                        title {
-                            appendChild linkRenderer.link(method.metaData.returnType, listener)
-                            text(' ')
-                            literal(method.name)
-                            text('(')
-                            method.metaData.parameters.eachWithIndex {param, i ->
-                                if (i > 0) {
-                                    text(', ')
-                                }
-                                appendChild linkRenderer.link(param.type, listener)
-                                text(" $param.name")
-                            }
-                            text(')')
-                        }
-                        appendChildren method.comment
-                    }
-                }
+            extension.extensionMethods.each { method ->
+                methodDetailRenderer.renderTo(method, detailParent)
             }
         }
     }
@@ -308,32 +232,8 @@ class ClassDocRenderer {
                     }
                 }
             }
-            detailParent << {
-                extension.extensionBlocks.each { block ->
-                    section(id: block.id, role: 'detail') {
-                        title {
-                            literal(block.name); text(' { }')
-                        }
-                        appendChildren block.comment
-                        segmentedlist {
-                            segtitle('Delegates to')
-                            seglistitem {
-                                seg {
-                                    if (block.multiValued) {
-                                        text('Each ')
-                                        appendChild linkRenderer.link(block.type, listener)
-                                        text(' in ')
-                                        link(linkend: block.blockProperty.id) { literal(block.blockProperty.name) }
-                                    } else {
-                                        appendChild linkRenderer.link(block.type, listener)
-                                        text(' from ')
-                                        link(linkend: block.blockProperty.id) { literal(block.blockProperty.name) }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+            extension.extensionBlocks.each { block ->
+                blockDetailRenderer.renderTo(block, detailParent)
             }
         }
     }

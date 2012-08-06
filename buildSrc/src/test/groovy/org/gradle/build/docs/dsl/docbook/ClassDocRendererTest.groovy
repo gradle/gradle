@@ -344,7 +344,7 @@ class ClassDocRendererTest extends XmlSpecification {
 
 
         when:
-        def result = parse('<chapter/>')
+        def result = parse('<chapter/>', document)
         withCategories {
             renderer.mergeMethods(classDoc, result)
         }
@@ -413,7 +413,7 @@ class ClassDocRendererTest extends XmlSpecification {
 
 
         when:
-        def result = parse('<chapter/>')
+        def result = parse('<chapter/>', document)
         withCategories {
             renderer.mergeMethods(classDoc, result)
         }
@@ -533,8 +533,9 @@ class ClassDocRendererTest extends XmlSpecification {
             </chapter>
         ''')
         ClassDoc classDoc = classDoc('Class', content: content)
-        BlockDoc block = blockDoc('block', id: 'blockId', description: 'block description', comment: 'block comment', type: 'org.gradle.Type')
-        _ * classDoc.classBlocks >> [block]
+        BlockDoc block1 = blockDoc('block1', id: 'block1', description: 'block1 description', comment: 'block1 comment', type: 'org.gradle.Type')
+        BlockDoc block2 = blockDoc('block2', id: 'block2', description: 'block2 description', comment: 'block2 comment', type: 'org.gradle.Type', multivalued: true)
+        _ * classDoc.classBlocks >> [block1, block2]
 
         when:
         def result = parse('<chapter/>', document)
@@ -556,26 +557,47 @@ class ClassDocRendererTest extends XmlSpecification {
             </thead>
             <tr>
                 <td>
-                    <link linkend="blockId">
-                        <literal>block</literal>
+                    <link linkend="block1">
+                        <literal>block1</literal>
                     </link>
                 </td>
                 <td>
-                    <para>block description</para>
+                    <para>block1 description</para>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <link linkend="block2">
+                        <literal>block2</literal>
+                    </link>
+                </td>
+                <td>
+                    <para>block2 description</para>
                 </td>
             </tr>
         </table>
     </section>
     <section>
         <title>Script block details</title>
-        <section id="blockId" role="detail">
-            <title><literal>block</literal> { }</title>
-            <para>block comment</para>
+        <section id="block1" role="detail">
+            <title><literal>block1</literal> { }</title>
+            <para>block1 comment</para>
             <segmentedlist>
                 <segtitle>Delegates to</segtitle>
                 <seglistitem>
-                    <seg><classname>org.gradle.Type</classname> from <link linkend="block">
-                            <literal>block</literal></link></seg>
+                    <seg><classname>org.gradle.Type</classname> from <link linkend="block1">
+                            <literal>block1</literal></link></seg>
+                </seglistitem>
+            </segmentedlist>
+        </section>
+        <section id="block2" role="detail">
+            <title><literal>block2</literal> { }</title>
+            <para>block2 comment</para>
+            <segmentedlist>
+                <segtitle>Delegates to</segtitle>
+                <seglistitem>
+                    <seg>Each <classname>org.gradle.Type</classname> in <link linkend="block2">
+                            <literal>block2</literal></link></seg>
                 </seglistitem>
             </segmentedlist>
         </section>
@@ -726,6 +748,7 @@ class ClassDocRendererTest extends XmlSpecification {
         _ * blockDoc.comment >> [parse("<para>${args.comment ?: 'comment'}</para>")]
         _ * blockDoc.type >> new TypeMetaData(args.type ?: 'BlockType')
         _ * blockDoc.blockProperty >> blockPropDoc
+        _ * blockDoc.multiValued >> (args.multivalued ?: false)
         blockDoc
     }
 
