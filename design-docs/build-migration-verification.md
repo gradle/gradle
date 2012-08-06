@@ -116,10 +116,35 @@ There should be a way to construct a build function model manually. Therefore, w
 
 # User visible changes
 
-It's not clear at this time, how users will interact with this feature.
+There are several options for how this functionality may present to the user. However, the final outcome is likely to be a HTML report identifying the encountered differences, and explaining the input build functions models. If the result is sufficiently simple it may be possible to use a plain text output, possibly direct to the console, but this is unlikely.
 
-The final output is likely to be a HTML report identifying the encountered differences, and explaining the input build function
-models.
+## Invocation
+
+### Gradle Upgrades
+
+Typically, Gradle upgrade migrations will be quick; the verification process will require little configuration and will have a short lifecycle. Parity is expected without any development effort. Given this, and the fact that we are trying to encourage users to upgrade frequently, this could perhaps be optimised to a simple command line invocation.
+
+    ./gradlew verify-gradle-upgrade [--gradleVersion=1.3]
+
+The idea being that this would be all the user would need to do. That is, they would not need to install any plugin or add anything to their build script to make this work. A user can run this at any time on any project.
+
+#### Non trivial upgrades
+
+There may be cases however where the upgrade is not a quick process and changes need to be made to upgrade successfully. Ideally, the user can make the accommodations for the new version somehow and then re-run the comparison. This simple CLI approach may not work in this scenario as the changes needed for the new version cannot be isolated. One option may be to “snapshot” the input model from the current version to use for future comparison, freeing the user to make changes to the project. 
+
+It may be better to be able to externalise the process. That is, the user can generate a standalone build that runs the verification process. In this scenario the recommended approach would be to have two separate copies of the project on the filesystem. Each copy could be checked out from a separate VCS branch. The user would make the changes in the “update” branch until the builds were at parity (with no deprecation warnings etc.) and then merge back into the mainline. At this point they can dispose of the temporary migration harness.
+
+### Build System Migration
+
+For anything other than a Gradle upgrade, the lifecycle is likely to be different and a different user interface is likely to be necessary. There will be some configuration required to define the input model from the other system. 
+
+This is assuming that we are unable to interpret 100% of builds driven by other systems that are candidates for being migrated to Gradle. We may be able to compare simple Maven builds to Gradle builds without configuration (because we can translate the POM to our model), but this will not be possible for all Maven builds.
+
+There is likely also need for the verification to be tracked over time. That is, users should not be required to develop a parallel Gradle build before they can compare. It would be much more useful to be verifying subsets during the development of the Gradle build. Furthermore, complex projects are likely to use a strategy of using both systems in parallel for a time. Being able to run the verification process as part of the project automation (e.g. via the CI server) would be helpful.
+
+The question then becomes: “where does this configuration live?”, or: “what owns the verification process?”
+
+There will always be a Gradle build involved, i.e. the target build. One option would be to configure the verification via this build. This has some appeal as this build is a natural target in this process and it makes sense to “compare” from the POV of this project.
 
 # Integration test coverage
 
