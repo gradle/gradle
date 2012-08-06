@@ -261,6 +261,7 @@ test fixtures have an API and an implementation?
 * Has an implementation
     * This is a runtime usage
     * Depends on zero or more native libraries. Each native library may have an associated install path and soname.
+* Has a debug usage
 * Common variants
     * Operating system
     * Architecture
@@ -268,6 +269,7 @@ test fixtures have an API and an implementation?
     * multi-threaded vs single-threaded (on windows)
     * Compiler
     * Statically vs dynamically linked
+* Dependencies generally vary per variant (eg need libcurses on linux, but not on windows).
 * May bundle static native libraries.
 
 ## Native executable
