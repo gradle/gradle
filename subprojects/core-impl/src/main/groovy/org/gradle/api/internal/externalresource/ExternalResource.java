@@ -26,6 +26,9 @@ import java.io.OutputStream;
 public interface ExternalResource extends Resource {
     void writeTo(File destination) throws IOException;
 
+    /**
+     * Writes to the given stream. Does not close the stream.
+     */
     void writeTo(OutputStream destination) throws IOException;
 
     void close() throws IOException;

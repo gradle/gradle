@@ -27,7 +27,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-public interface ExternalResourceRepository /*extends Repository*/ {
+public interface ExternalResourceRepository {
 
     void downloadResource(ExternalResource resource, File destination) throws IOException;
 
