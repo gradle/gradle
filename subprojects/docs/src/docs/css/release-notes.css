@@ -31,9 +31,10 @@ button.display-toggle {
 
 section.footer {
   font-size: 75%;
-  margin: 6em 0 0;
+  margin-top: 3em;
   padding-top: 1em;
-  border-top: 1px dashed #999;
+  width: 100%;
+  border-top: solid #d0d0d0 0.4em;
   text-align: center;
 }
 

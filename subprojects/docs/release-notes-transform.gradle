@@ -158,7 +158,7 @@ decorateReleaseNotes {
     // Add the footer
     transform {
         def footer = body().append("<section class='footer'/>").children().last()
-        footer.html("Gradle @version@ Release Notes<br />— <a href='http://gradle.org'>www.gradle.org</a> —")
+        footer.html("Gradle @version@ Release Notes<br />")
     }
     
     // Syntax highlighting
