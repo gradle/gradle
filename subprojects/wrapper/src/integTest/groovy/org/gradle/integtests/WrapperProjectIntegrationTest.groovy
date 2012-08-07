@@ -16,21 +16,19 @@
 
 package org.gradle.integtests
 
-import org.gradle.util.Requires
 import org.gradle.util.SetSystemProperties
-import org.gradle.util.TestPrecondition
 import org.gradle.util.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
 import org.gradle.integtests.fixtures.*
 
+import static org.gradle.integtests.fixtures.UserAgentMatcher.matchesApplicationName
 import static org.hamcrest.Matchers.containsString
 import static org.junit.Assert.assertThat
 
 /**
  * @author Hans Dockter
  */
-@Requires(TestPrecondition.NOT_UNKNOWN_OS) //TODO fix passing unknown os params to forked test jvm
 class WrapperProjectIntegrationTest extends AbstractIntegrationSpec {
     @Rule HttpServer server = new HttpServer()
     @Rule TestProxyServer proxyServer = new TestProxyServer(server)
@@ -38,6 +36,9 @@ class WrapperProjectIntegrationTest extends AbstractIntegrationSpec {
 
     void setup() {
         server.start()
+        //pass os.name, os.arch and os.version to the system.properties file (needed for unknown os tests)
+        file("gradle.properties") << System.properties.findAll {key, value -> key.startsWith("os.")}.collect {key, value -> "systemProp.${key}=$value"}.join("\n")
+        server.expectUserAgent(matchesApplicationName("gradlew"))
     }
 
     GradleDistributionExecuter getWrapperExecuter() {
@@ -67,7 +68,7 @@ class WrapperProjectIntegrationTest extends AbstractIntegrationSpec {
 """
 
         executer.withTasks('wrapper').run()
-        server.allowGetOrHead("/gradlew/dist", distribution.binDistribution, UserAgentMatcher.matchesUserAgent("gradlew"))
+        server.allowGetOrHead("/gradlew/dist", distribution.binDistribution)
     }
 
     public void "has non-zero exit code on build failure"() {

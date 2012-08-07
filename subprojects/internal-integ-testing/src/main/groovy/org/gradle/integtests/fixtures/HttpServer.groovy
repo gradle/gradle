@@ -43,6 +43,8 @@ class HttpServer extends ExternalResource {
     private Throwable failure
     private final List<Expection> expections = []
 
+    private Matcher expectedUserAgent = null
+
     enum AuthScheme {
         BASIC(new BasicAuthHandler()), DIGEST(new DigestAuthHandler())
 
@@ -111,6 +113,10 @@ class HttpServer extends ExternalResource {
         }
     }
 
+    void expectUserAgent(UserAgentMatcher userAgent){
+        this.expectedUserAgent = userAgent;
+    }
+
     void resetExpectations() {
         try {
             if (failure != null) {
@@ -121,6 +127,7 @@ class HttpServer extends ExternalResource {
             }
         } finally {
             failure = null
+            expectedUserAgent = null
             expections.clear()
             collection.setHandlers()
         }
@@ -134,8 +141,8 @@ class HttpServer extends ExternalResource {
     /**
      * Adds a given file at the given URL. The source file can be either a file or a directory.
      */
-    void allowGetOrHead(String path, File srcFile, Matcher userAgent = null) {
-        allow(path, true, ['GET', 'HEAD'], fileHandler(path, srcFile, null, null, userAgent))
+    void allowGetOrHead(String path, File srcFile) {
+        allow(path, true, ['GET', 'HEAD'], fileHandler(path, srcFile))
     }
 
     /**
@@ -152,16 +159,15 @@ class HttpServer extends ExternalResource {
         allow(path, true, ['GET', 'HEAD'], withAuthentication(path, username, password, fileHandler(path, srcFile)))
     }
 
-    private Action fileHandler(String path, File srcFile, Long lastModified = null, Long contentLength = null, Matcher expectedUserAgent = null) {
+    private Action fileHandler(String path, File srcFile, Long lastModified = null, Long contentLength = null) {
         return new Action() {
             String getDisplayName() {
                 return "return contents of $srcFile.name"
             }
 
             void handle(HttpServletRequest request, HttpServletResponse response) {
-                if(expectedUserAgent!=null){
+                if(HttpServer.this.expectedUserAgent!=null){
                     String receivedUserAgent = request.getHeader("User-Agent")
-
                     if(!expectedUserAgent.matches(receivedUserAgent)){
                         response.sendError(412, String.format("Precondition Failed: Expected User-Agent: '%s' but was '%s'",expectedUserAgent, receivedUserAgent));
                     }
