@@ -21,6 +21,8 @@ import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.internal.ClassGenerator;
+import org.gradle.api.internal.ClassGeneratorBackedInstantiator;
 import org.gradle.api.internal.DependencyInjectingInstantiator;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
@@ -95,14 +97,13 @@ public class ProjectInternalServiceRegistry extends DefaultServiceRegistry imple
     }
 
     protected ITaskFactory createTaskFactory(ITaskFactory parentFactory) {
-        return parentFactory.createChild(project, get(Instantiator.class));
+        return parentFactory.createChild(project, new ClassGeneratorBackedInstantiator(get(ClassGenerator.class), new DependencyInjectingInstantiator(this)));
     }
 
     protected Factory<TaskContainerInternal> createTaskContainerInternal() {
         return new DefaultTaskContainerFactory(get(Instantiator.class), get(ITaskFactory.class), project);
     }
 
-    //TODO SF what's going on here?
     protected Factory<ArtifactPublicationServices> createRepositoryHandlerFactory() {
         return get(DependencyResolutionServices.class).getPublishServicesFactory();
     }

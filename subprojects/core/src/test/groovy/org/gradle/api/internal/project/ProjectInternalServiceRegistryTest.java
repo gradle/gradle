@@ -115,7 +115,8 @@ public class ProjectInternalServiceRegistryTest {
         final ITaskFactory childFactory = context.mock(ITaskFactory.class);
 
         context.checking(new Expectations() {{
-            one(taskFactory).createChild(project, instantiator);
+            Matcher matcher = instanceOf(ClassGeneratorBackedInstantiator.class);
+            one(taskFactory).createChild(with(sameInstance(project)), with((Matcher<Instantiator>)matcher));
             will(returnValue(childFactory));
         }});
 
