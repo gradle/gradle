@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.binaries.model.internal;
+package org.gradle.plugins.cpp
 
-import org.gradle.plugins.cpp.CppCompile;
+import org.gradle.plugins.binaries.tasks.Compile
 
-public interface CompileTaskAware {
-    void configure(CppCompile compileTask);
+class CppCompile extends Compile {
 }

@@ -1,0 +1,31 @@
+<section>
+    <section>
+        <title>Properties</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                    <td>Default with <literal>java</literal> plugin </td>
+                </tr>
+            </thead>
+            <tr>
+                <td>options</td>
+                <td/>
+            </tr>
+            <tr>
+                <td>source</td>
+                <td><literal><replaceable>sourceSet</replaceable>.java</literal></td>
+            </tr>
+        </table>
+    </section>
+    <section>
+        <title>Methods</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                </tr>
+            </thead>
+        </table>
+    </section>
+</section>

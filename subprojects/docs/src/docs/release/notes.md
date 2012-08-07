@@ -10,6 +10,14 @@ Please let us know if you encounter any issues during the upgrade to Gradle 1.2,
 
 ### Deprecations
 
+#### Task class renames
+
+To avoid ambiguity, the Java and C++ `Compile` task classes have been renamed. The Java `org.gradle.api.tasks.compile.Compile` task class has been renamed to `org.gradle.api.tasks.compile.JavaCompile`, and
+the experimental C++ `org.gradle.plugins.binaries.tasks.Compile` task class has been renamed to `org.gradle.plugins.cpp.CppCompile`.
+
+For backwards compatibility, the old classes are still available, but are now deprecated. The old Java `Compile` class will be removed in Gradle 2.0.
+The old experimental C++ `Compile` class will be removed in Gradle 1.3.
+
 <a name="constructors"> </a>
 #### Plugin constructor handling
 
@@ -18,9 +26,9 @@ are handled by Gradle. These changes are fully backwards compatible, but some co
 
 If your plugin implementation has exactly one default constructor, nothing has changed. This should be the case for the majority of plugins.
 
-If your plugin implementation has multiple constructors, you will need to add an @javax.inject.Inject annotation to the default constructor. The implementation will continue to work
+If your plugin implementation has multiple constructors, you will need to add an `@javax.inject.Inject` annotation to the default constructor. The implementation will continue to work
 without this, but you will receive a deprecation warning. In Gradle 2.0, a plugin implementation with multiple constructors will be required to annotated exactly one constructor
-with an @Inject annotation.
+with an `@Inject` annotation.
 
 ### Potential breaking changes
 

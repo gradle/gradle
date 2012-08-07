@@ -29,7 +29,7 @@ public class Directory extends DefaultTask {
     File dir
     
     Directory() {
-        DeprecationLogger.nagUserOfReplacedTask("Directory", "Project.mkdir(java.lang.Object)");
+        DeprecationLogger.nagUserOfReplacedTaskType("Directory", "Project.mkdir(java.lang.Object) method");
         if (new File(name).isAbsolute()) { throw new InvalidUserDataException('Path must not be absolute.')}
         dir = project.file(name)
     }

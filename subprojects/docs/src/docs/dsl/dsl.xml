@@ -234,6 +234,9 @@
                 <td>org.gradle.api.tasks.bundling.Jar</td>
             </tr>
             <tr>
+                <td>org.gradle.api.tasks.compile.JavaCompile</td>
+            </tr>
+            <tr>
                 <td>org.gradle.api.tasks.javadoc.Javadoc</td>
             </tr>
             <tr>

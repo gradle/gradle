@@ -26,6 +26,7 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 
@@ -33,13 +34,18 @@ import java.io.File;
  * Compiles Java source files.
  *
  * @author Hans Dockter
+ * @deprecated This class has been replaced by {@link JavaCompile}.
  */
+@Deprecated
 public class Compile extends AbstractCompile {
     private Compiler<JavaCompileSpec> javaCompiler;
     private File dependencyCacheDir;
     private final JavaCompileSpec spec = new DefaultJavaCompileSpec();
 
     public Compile() {
+        if (!(this instanceof JavaCompile)) {
+            DeprecationLogger.nagUserOfReplacedTaskType("Compile", "JavaCompile task type");
+        }
         Factory<AntBuilder> antBuilderFactory = getServices().getFactory(AntBuilder.class);
         JavaCompilerFactory inProcessCompilerFactory = new InProcessJavaCompilerFactory();
         ProjectInternal projectInternal = (ProjectInternal) getProject();

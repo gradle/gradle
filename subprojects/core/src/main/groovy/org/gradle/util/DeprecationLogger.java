@@ -67,10 +67,10 @@ public class DeprecationLogger {
         }
     }
 
-    public static void nagUserOfReplacedTask(String taskName, String replacement) {
+    public static void nagUserOfReplacedTaskType(String taskName, String replacement) {
         if (isEnabled() && TASKS.add(taskName)) {
             LOGGER.warn(String.format(
-                    "The %s task has been deprecated and will be removed in the next version of Gradle. Please use the %s instead.",
+                    "The %s task type has been deprecated and will be removed in the next version of Gradle. Please use the %s instead.",
                     taskName, replacement));
             logTraceIfNecessary();
         }

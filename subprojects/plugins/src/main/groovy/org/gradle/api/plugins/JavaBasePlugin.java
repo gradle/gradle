@@ -27,7 +27,7 @@ import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.compile.AbstractCompile;
-import org.gradle.api.tasks.compile.Compile;
+import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.TestDescriptor;
@@ -130,7 +130,7 @@ public class JavaBasePlugin implements Plugin<Project> {
                 });
 
                 String compileTaskName = sourceSet.getCompileJavaTaskName();
-                Compile compileJava = project.getTasks().add(compileTaskName, Compile.class);
+                JavaCompile compileJava = project.getTasks().add(compileTaskName, JavaCompile.class);
                 configureForSourceSet(sourceSet, compileJava);
 
                 Task classes = project.getTasks().add(sourceSet.getClassesTaskName());
@@ -177,8 +177,8 @@ public class JavaBasePlugin implements Plugin<Project> {
                 });
             }
         });
-        project.getTasks().withType(Compile.class, new Action<Compile>() {
-            public void execute(final Compile compile) {
+        project.getTasks().withType(JavaCompile.class, new Action<JavaCompile>() {
+            public void execute(final JavaCompile compile) {
                 ConventionMapping conventionMapping = compile.getConventionMapping();
                 conventionMapping.map("dependencyCacheDir", new Callable<Object>() {
                     public Object call() throws Exception {

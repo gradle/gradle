@@ -26,7 +26,6 @@ import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.bundling.Jar
-import org.gradle.api.tasks.compile.Compile
 import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.util.HelperUtil
 import org.gradle.util.TemporaryFolder
@@ -37,6 +36,7 @@ import static org.gradle.util.WrapUtil.toLinkedSet
 import static org.gradle.util.WrapUtil.toSet
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
+import org.gradle.api.tasks.compile.JavaCompile
 
 /**
  * @author Hans Dockter
@@ -141,7 +141,7 @@ class JavaPluginTest {
         assertThat(task.destinationDir, equalTo(project.sourceSets.main.output.resourcesDir))
 
         task = project.tasks[JavaPlugin.COMPILE_JAVA_TASK_NAME]
-        assertThat(task, instanceOf(Compile))
+        assertThat(task, instanceOf(JavaCompile))
         assertThat(task, dependsOn())
         assertThat(task.classpath, sameInstance(project.sourceSets.main.compileClasspath))
         assertThat(task.destinationDir, equalTo(project.sourceSets.main.output.classesDir))
@@ -158,7 +158,7 @@ class JavaPluginTest {
         assertThat(task.destinationDir, equalTo(project.sourceSets.test.output.resourcesDir))
 
         task = project.tasks[JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME]
-        assertThat(task, instanceOf(Compile))
+        assertThat(task, instanceOf(JavaCompile))
         assertThat(task, dependsOn(JavaPlugin.CLASSES_TASK_NAME))
         assertThat(task.classpath, sameInstance(project.sourceSets.test.compileClasspath))
         assertThat(task.destinationDir, equalTo(project.sourceSets.test.output.classesDir))
