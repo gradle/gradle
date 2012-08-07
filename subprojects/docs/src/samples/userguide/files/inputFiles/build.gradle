@@ -1,4 +1,4 @@
-task compile(type: Compile)
+task compile(type: JavaCompile)
 
 // START SNIPPET set-input-files
 // Use a File object to specify the source directory
