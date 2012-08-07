@@ -19,21 +19,21 @@ For backwards compatibility, the old classes are still available, but are now de
 The old experimental C++ `Compile` class will be removed in Gradle 1.3.
 
 <a name="constructors"> </a>
-#### Plugin constructor handling
+#### Changes to plugin and task constructor handling
 
-As a first step towards handling JSR-330 style dependency injection for plugin implementations, we have made some changes to how plugin constructors
+As a first step towards handling JSR-330 style dependency injection for plugin and task instances, we have made some changes to how constructors for these types
 are handled by Gradle. These changes are fully backwards compatible, but some combinations of constructors are now deprecated.
 
-If your plugin implementation has exactly one default constructor, nothing has changed. This should be the case for the majority of plugins.
+If your plugin or task implementation class has exactly one default constructor, nothing has changed. This should be the case for the majority of implementations.
 
-If your plugin implementation has multiple constructors, you will need to add an `@javax.inject.Inject` annotation to the default constructor. The implementation will continue to work
-without this, but you will receive a deprecation warning. In Gradle 2.0, a plugin implementation with multiple constructors will be required to annotated exactly one constructor
-with an `@Inject` annotation.
+If your implementation class has multiple constructors, you will need to add an `@javax.inject.Inject` annotation to the default constructor. The implementation will continue to work
+without this, but you will receive a deprecation warning. In Gradle 2.0, a plugin or task implementation with multiple constructors will be required to annotate exactly one
+constructor with an `@Inject` annotation.
 
 ### Potential breaking changes
 
-See [Plugin constructor handling](#constructors) above. The changes should be backwards compatible. Please let us know if you come across a situation where
-a plugin implementation that worked with previous versions of Gradle does not work with Gradle 1.2.
+See [constructor handling](#constructors) above. The changes should be backwards compatible. Please let us know if you come across a situation where
+a plugin or task implementation that worked with previous versions of Gradle does not work with Gradle 1.2.
 
 ## Fixed Issues
 
