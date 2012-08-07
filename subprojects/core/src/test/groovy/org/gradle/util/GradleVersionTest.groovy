@@ -238,7 +238,7 @@ OS: ${OperatingSystem.current()}
 
     def userAgentString() {
         OperatingSystem os = OperatingSystem.current()
-        String expectedText = "Gradle/${version.version} (${os.name};${os.version};${System.getProperty("os.arch")}) (${System.getProperty("java.vendor")};${Jvm.current().getJavaVersion()})"
+        String expectedText = "Gradle/${version.version} (${os.name};${os.version};${System.getProperty("os.arch")}) (${System.getProperty("java.vendor")};${System.getProperty("java.version")})"
         expect:
         version.userAgentString == expectedText
     }
