@@ -159,9 +159,8 @@ public class DisconnectableInputStream extends BulkReadInputStream {
     }
 
     /**
-     * Closes this {@code InputStream} for reading. Any threads blocked in read() will receive a {@link
-     * java.nio.channels.AsynchronousCloseException}. Also requests that the reader thread stop reading, if possible,
-     * but does not block waiting for this to happen.
+     * Closes this {@code InputStream} for reading. Any threads blocked in read() will receive an end-of-stream. Also requests that the
+     * reader thread stop reading, if possible, but does not block waiting for this to happen.
      *
      * <p>NOTE: this method does not close the source input stream.</p>
      */
