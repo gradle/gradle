@@ -284,43 +284,50 @@ class ClassDocRendererTest extends XmlSpecification {
         ClassDoc targetClassDoc = classDoc('Class', content: content)
         ClassExtensionDoc extensionDoc = extensionDoc('thingo')
         PropertyDoc propertyDoc = propertyDoc('propName', id: 'propId')
+        _ * targetClassDoc.classProperties >> []
         _ * targetClassDoc.classExtensions >> [extensionDoc]
         _ * extensionDoc.extensionProperties >> [propertyDoc]
 
         when:
         def result = parse('<chapter/>', document)
         withCategories {
-            renderer.mergeExtensionProperties(targetClassDoc, result, result)
+            renderer.mergeProperties(targetClassDoc, result)
         }
 
         then:
         formatTree(result) == '''<chapter>
     <section>
-        <title>Properties added by the <literal>thingo</literal> plugin</title>
-        <titleabbrev><literal>thingo</literal> plugin</titleabbrev>
-        <table>
-            <title>Properties - <literal>thingo</literal> plugin</title>
-            <thead>
+        <title>Properties</title>
+        <section>
+            <title>Properties added by the <literal>thingo</literal> plugin</title>
+            <titleabbrev><literal>thingo</literal> plugin</titleabbrev>
+            <table>
+                <title>Properties - <literal>thingo</literal> plugin</title>
+                <thead>
+                    <tr>
+                        <td>Property</td>
+                        <td>Description</td>
+                    </tr>
+                </thead>
                 <tr>
-                    <td>Property</td>
-                    <td>Description</td>
+                    <td>
+                        <link linkend="propId">
+                            <literal>propName</literal>
+                        </link>
+                    </td>
+                    <td>
+                        <para>description</para>
+                    </td>
                 </tr>
-            </thead>
-            <tr>
-                <td>
-                    <link linkend="propId">
-                        <literal>propName</literal>
-                    </link>
-                </td>
-                <td>
-                    <para>description</para>
-                </td>
-            </tr>
-        </table>
+            </table>
+        </section>
     </section>
-    <section id="propId" role="detail">
-        <title><classname>SomeType</classname> <literal>propName</literal> (read-only)</title>
-        <para>comment</para>
+    <section>
+        <title>Property details</title>
+        <section id="propId" role="detail">
+            <title><classname>SomeType</classname> <literal>propName</literal> (read-only)</title>
+            <para>comment</para>
+        </section>
     </section>
 </chapter>'''
     }
