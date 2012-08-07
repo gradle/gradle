@@ -65,7 +65,11 @@ class ProgressLoggingExternalResourceAccessorTest extends Specification {
         accessor.getResource("location") >> externalResource
         externalResource.getName() >> "test resource"
         externalResource.getContentLength() >> 64 * 1024
-        externalResource.writeTo(_) >> { OutputStream stream -> stream.write(new byte[10],0,10) }
+        externalResource.writeTo(_) >> { OutputStream stream ->
+            stream.write(new byte[10],0,5)
+            stream.write(new byte[10])
+            stream.write(12)
+        }
         when:
         def processLoggableResource = progressLoggerAccessor.getResource("location")
         and:
@@ -73,8 +77,11 @@ class ProgressLoggingExternalResourceAccessorTest extends Specification {
         then:
         1 * progressLoggerFactory.newOperation(_) >> progressLogger
         1 * progressLogger.started()
-        1 * progressLogger.progress("10 B/64 KB downloaded")
+        1 * progressLogger.progress("5 B/64 KB downloaded")
+        1 * progressLogger.progress("15 B/64 KB downloaded")
+        1 * progressLogger.progress("16 B/64 KB downloaded")
         1 * progressLogger.completed()
+        0 * progressLogger.progress(_)
     }
 
     @Unroll

@@ -24,13 +24,10 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.hash.HashValue;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.*;
 
 public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLoggingHandler implements ExternalResourceAccessor {
-    private final static Logger LOGGER = LoggerFactory.getLogger(ProgressLoggingExternalResourceAccessor.class);
     private final ExternalResourceAccessor delegate;
 
     public ProgressLoggingExternalResourceAccessor(ExternalResourceAccessor delegate, ProgressLoggerFactory progressLoggerFactory) {
@@ -72,11 +69,7 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
             try {
                 writeTo(output);
             } finally {
-                try {
-                    output.close();
-                } catch (IOException e) {
-                    LOGGER.info(String.format("Unable to close FileOutputStream of %s", destination.getAbsolutePath()), e);
-                }
+                output.close();
             }
         }
 
@@ -140,7 +133,6 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
         private final ProgressLogger progressLogger;
         private long contentLength;
 
-
         public ProgressLoggingOutputStream(OutputStream outputStream, ProgressLogger progressLogger, long contentLength) {
             this.outputStream = outputStream;
             this.progressLogger = progressLogger;
@@ -148,13 +140,29 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
         }
 
         @Override
+        public void flush() throws IOException {
+            outputStream.flush();
+        }
+
+        @Override
+        public void close() throws IOException {
+            outputStream.close();
+        }
+
+        @Override
         public void write(int b) throws IOException {
             outputStream.write(b);
+            totalWritten++;
+            doLogProgress();
         }
 
         public void write(byte b[], int off, int len) throws IOException {
             outputStream.write(b, off, len);
             totalWritten += len;
+            doLogProgress();
+        }
+
+        private void doLogProgress() {
             logProgress(progressLogger, totalWritten, contentLength, "downloaded");
         }
     }
