@@ -60,13 +60,6 @@ public class ResourceVersionLister implements VersionLister {
         }
     }
 
-    protected String[] listVersions(ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact) {
-        ModuleRevisionId idWithoutRevision = ModuleRevisionId.newInstance(moduleRevisionId, IvyPatternHelper.getTokenString(IvyPatternHelper.REVISION_KEY));
-        String partiallyResolvedPattern = IvyPatternHelper.substitute(pattern, idWithoutRevision, artifact);
-        LOGGER.debug("Listing all in {}", partiallyResolvedPattern);
-        return ResolverHelper.listTokenValues(repository, partiallyResolvedPattern, IvyPatternHelper.REVISION_KEY);
-    }
-
     // lists all the values a revision token listed by a given url lister
     private List<String> listRevisionToken(String pattern) throws IOException {
         pattern = repository.standardize(pattern);

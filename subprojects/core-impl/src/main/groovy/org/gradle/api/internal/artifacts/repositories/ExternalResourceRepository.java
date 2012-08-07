@@ -16,23 +16,41 @@
 
 package org.gradle.api.internal.artifacts.repositories;
 
-import org.apache.ivy.plugins.repository.Repository;
+import org.apache.ivy.core.module.descriptor.Artifact;
 import org.gradle.api.Nullable;
-import org.gradle.api.internal.externalresource.cached.CachedExternalResource;
 import org.gradle.api.internal.externalresource.ExternalResource;
-import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
+import org.gradle.api.internal.externalresource.cached.CachedExternalResource;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceCandidates;
+import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
-public interface ExternalResourceRepository extends Repository {
+public interface ExternalResourceRepository /*extends Repository*/ {
 
     void downloadResource(ExternalResource resource, File destination) throws IOException;
 
     ExternalResource getResource(String source) throws IOException;
 
     ExternalResource getResource(String source, @Nullable LocallyAvailableResourceCandidates localCandidates, @Nullable CachedExternalResource cached) throws IOException;
+
+    /**
+     * Transfer a resource to the repository
+     *
+     * @param artifact
+     *            The artifact to be transferred.
+     * @param source
+     *            The local file to be transferred.
+     * @param destination
+     *            Where to transfer the resource.
+     * @param overwrite
+     *            Whether the transfer should overwrite an existing resource.
+     * @throws IOException
+     *             On publication failure.
+     */
+    void put(Artifact artifact, File source, String destination, boolean overwrite)
+            throws IOException;
 
     /**
      * Fetches only the metadata for the result.
@@ -43,4 +61,31 @@ public interface ExternalResourceRepository extends Repository {
      */
     @Nullable
     ExternalResourceMetaData getResourceMetaData(String source) throws IOException;
+
+    /**
+     * Return a listing of resources names
+     *
+     * @param parent
+     *            The parent directory from which to generate the listing.
+     * @return A listing of the parent directory's file content, as a List of String.
+     * @throws IOException
+     *             On listing failure.
+     */
+    List list(String parent) throws IOException;
+
+    /**
+     * Get the repository's file separator string.
+     *
+     * @return The repository's file separator delimiter
+     */
+    String getFileSeparator();
+
+    /**
+     * Normalize a string.
+     *
+     * @param source
+     *            The string to normalize.
+     * @return The normalized string.
+     */
+    String standardize(String source);
 }

@@ -18,15 +18,12 @@ package org.gradle.api.internal.artifacts.repositories;
 
 import org.apache.ivy.core.IvyPatternHelper;
 import org.apache.ivy.core.cache.ArtifactOrigin;
-import org.apache.ivy.core.event.EventManager;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.apache.ivy.core.report.DownloadReport;
-import org.apache.ivy.core.resolve.DownloadOptions;
 import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.plugins.repository.Resource;
 import org.apache.ivy.plugins.resolver.BasicResolver;
@@ -217,20 +214,6 @@ public class ExternalResourceResolver extends BasicResolver {
             return new ResolvedResource(resource, version);
         }
         return null;
-    }
-
-    public DownloadReport download(Artifact[] artifacts, DownloadOptions options) {
-        EventManager eventManager = getEventManager();
-        try {
-            if (eventManager != null) {
-                repository.addTransferListener(eventManager);
-            }
-            return super.download(artifacts, options);
-        } finally {
-            if (eventManager != null) {
-                repository.removeTransferListener(eventManager);
-            }
-        }
     }
 
     protected ResolvedResource findResourceUsingPattern(ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact, ResourceMDParser resourceParser, Date date, boolean forDownload) {
