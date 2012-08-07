@@ -16,29 +16,30 @@
 apply from: "$rootDir/gradle/classycle.gradle"
 
 dependencies {
-	groovy libraries.groovy
-	compile project(":cli")
-	testCompile libraries.ant
+    groovy libraries.groovy
+    compile project(":cli")
+    testCompile libraries.ant
 
-	integTestRuntime rootProject.configurations.testRuntime.allDependencies
+    integTestRuntime rootProject.configurations.testRuntime.allDependencies
 }
 
 task executableJar(type: Jar) {
-	archiveName = 'gradle-wrapper.jar'
-	from sourceSets.main.output
-	from configurations.runtime.allDependencies.withType(ProjectDependency).collect { it.dependencyProject.sourceSets.main.output }
+    archiveName = 'gradle-wrapper.jar'
+    from sourceSets.main.output
+    from tasks.getByPath(":createBuildReceipt")
+    from configurations.runtime.allDependencies.withType(ProjectDependency).collect { it.dependencyProject.sourceSets.main.output }
 }
 
 integTestTasks.all {
-	inputs.files { project(":distributions").binZip }
+    inputs.files { project(":distributions").binZip }
 }
 
 useTestFixtures()
 
 eclipse {
-	classpath {
-		file.whenMerged { classpath ->
-			classpath.entries.removeAll {it.path.contains('/wrapper') }
-		}
-	}
+    classpath {
+        file.whenMerged { classpath ->
+            classpath.entries.removeAll {it.path.contains('/wrapper') }
+        }
+    }
 }

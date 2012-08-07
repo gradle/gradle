@@ -18,6 +18,7 @@ package org.gradle.wrapper;
 
 import java.io.*;
 import java.net.*;
+import java.util.Properties;
 
 /**
  * @author Hans Dockter
@@ -25,8 +26,12 @@ import java.net.*;
 public class Download implements IDownload {
     private static final int PROGRESS_CHUNK = 20000;
     private static final int BUFFER_SIZE = 10000;
+    private final String applicationName;
+    private final String applicationVersion;
 
-    public Download() {
+    public Download(String applicationName, String applicationVersion) {
+        this.applicationName = applicationName;
+        this.applicationVersion = applicationVersion;
         configureProxyAuthentication();
     }
 
@@ -80,13 +85,30 @@ public class Download implements IDownload {
     }
 
     private String calculateUserAgent() {
-        String applicationName = System.getProperty("org.gradle.appname");
+        String appVersion = applicationVersion == null ? readVersionFromBuildReceipt() : applicationVersion;
         String javaVendor = System.getProperty("java.vendor");
         String javaVersion = System.getProperty("java.version");
         String osName = System.getProperty("os.name");
         String osVersion = System.getProperty("os.version");
         String osArch = System.getProperty("os.arch");
-        return String.format("%s (OSS;%s;%s;%s) (JVM;%s;%s)   )", applicationName, osName, osVersion, osArch, javaVendor, javaVersion);
+        return String.format("%s/%s (OSS;%s;%s;%s) (JVM;%s;%s)", applicationName, appVersion, osName, osVersion, osArch, javaVendor, javaVersion);
+    }
+
+    private String readVersionFromBuildReceipt() {
+        final InputStream resourceAsStream = getClass().getResourceAsStream("/build-receipt.properties");
+        if (resourceAsStream != null) {
+            Properties buildReceipt = new Properties();
+            try {
+                buildReceipt.load(resourceAsStream);
+                final String versionNumber = buildReceipt.getProperty("versionNumber");
+                if (versionNumber != null) {
+                    return versionNumber;
+                }
+            } catch (IOException e) {
+                //we swallow this exception here
+            }
+        }
+        return "n.a.";
     }
 
     private static class SystemPropertiesProxyAuthenticator extends

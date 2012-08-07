@@ -20,7 +20,8 @@ import org.gradle.util.TemporaryFolder
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import static org.junit.Assert.*
+
+import static org.junit.Assert.assertEquals
 
 /**
  * @author Hans Dockter
@@ -35,8 +36,8 @@ class DownloadTest {
     @Rule
     public TemporaryFolder tmpDir = new TemporaryFolder();
 
-    @Before public void setUp()  {
-        download = new Download()
+    @Before public void setUp() {
+        download = new Download("gradlew", "aVersion")
         testDir = tmpDir.dir
         rootDir = new File(testDir, 'root')
         downloadFile = new File(rootDir, 'file')

@@ -21,9 +21,11 @@ import org.hamcrest.*;
 public class UserAgentMatcher extends BaseMatcher {
 
     private final String applicationName;
+    private final String version;
 
-    public UserAgentMatcher(String applicationName) {
+    public UserAgentMatcher(String applicationName, String version) {
         this.applicationName = applicationName;
+        this.version = version;
     }
 
     public void describeTo(Description description) {
@@ -31,8 +33,8 @@ public class UserAgentMatcher extends BaseMatcher {
     }
 
     @Factory
-    public static Matcher matchesApplicationName(String applicationName) {
-        return new UserAgentMatcher(applicationName);
+    public static Matcher matchesNameAndVersion(String applicationName, String version) {
+        return new UserAgentMatcher(applicationName, version);
     }
 
     public boolean matches(Object o) {
@@ -41,7 +43,7 @@ public class UserAgentMatcher extends BaseMatcher {
         String osName = System.getProperty("os.name");
         String osVersion = System.getProperty("os.version");
         String osArch = System.getProperty("os.arch");
-        String testString = String.format("%s (OSS;%s;%s;%s) (JVM;%s;%s)   )", applicationName, osName, osVersion, osArch, javaVendor, javaVersion);
+        String testString = String.format("%s/%s (OSS;%s;%s;%s) (JVM;%s;%s)", applicationName, version, osName, osVersion, osArch, javaVendor, javaVersion);
         return Matchers.equalTo(testString).matches(o);
     }
 }
