@@ -117,4 +117,15 @@ public abstract class CollectionUtils {
         return replaced;
     }
 
+    public static <K, V> void collectMap(Map<K, V> destination, Iterable<? extends V> items, Transformer<? extends K, ? super V> keyGenerator) {
+        for (V item : items)  {
+            destination.put(keyGenerator.transform(item), item);
+        }
+    }
+
+    public static <K, V> Map<K, V> collectMap(Iterable<? extends V> items, Transformer<? extends K, ? super V> keyGenerator) {
+        Map<K, V> map = new LinkedHashMap<K, V>();
+        collectMap(map, items, keyGenerator);
+        return map;
+    }
 }
