@@ -266,6 +266,19 @@ public class GradleVersion implements Comparable<GradleVersion> {
         return sb.toString();
     }
 
+    public String getUserAgentString() {
+        OperatingSystem os = OperatingSystem.current();
+        String javaVendor = System.getProperty("java.vendor");
+        String javaVersion = System.getProperty("java.version");
+        return String.format("Gradle/%s (%s;%s;%s) (%s;%s)",
+                GradleVersion.current().getVersion(),
+                os.getName(),
+                os.getVersion(),
+                System.getProperty("os.arch"),
+                javaVendor,
+                javaVersion);
+    }
+
     static final class Stage implements Comparable<Stage> {
         final int stage;
         final int number;

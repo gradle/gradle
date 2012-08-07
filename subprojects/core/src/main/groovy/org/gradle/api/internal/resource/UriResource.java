@@ -17,13 +17,16 @@
 package org.gradle.api.internal.resource;
 
 import org.apache.commons.io.IOUtils;
+import org.gradle.util.GradleVersion;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.net.URLConnection;
 
-import static org.gradle.util.GFileUtils.*;
+import static org.gradle.util.GFileUtils.canonicalise;
 
 public class UriResource implements Resource {
     private final File sourceFile;
@@ -51,7 +54,7 @@ public class UriResource implements Resource {
             throw new ResourceException(String.format("Could not read %s as it is a directory.", getDisplayName()));
         }
         try {
-            InputStream inputStream = sourceUri.toURL().openStream();
+            InputStream inputStream = getInputStream(sourceUri);
             try {
                 return IOUtils.toString(inputStream);
             } finally {
@@ -66,7 +69,7 @@ public class UriResource implements Resource {
 
     public boolean getExists() {
         try {
-            InputStream inputStream = sourceUri.toURL().openStream();
+            InputStream inputStream = getInputStream(sourceUri);
             try {
                 return true;
             } finally {
@@ -77,6 +80,12 @@ public class UriResource implements Resource {
         } catch (Exception e) {
             throw new ResourceException(String.format("Could not determine if %s exists.", getDisplayName()), e);
         }
+    }
+
+    private InputStream getInputStream(URI url) throws IOException {
+        final URLConnection urlConnection = url.toURL().openConnection();
+        urlConnection.setRequestProperty("User-Agent", GradleVersion.current().getUserAgentString());
+        return urlConnection.getInputStream();
     }
 
     public File getFile() {

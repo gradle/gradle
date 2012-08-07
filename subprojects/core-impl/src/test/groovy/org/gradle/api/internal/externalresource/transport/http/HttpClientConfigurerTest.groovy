@@ -18,9 +18,10 @@ package org.gradle.api.internal.externalresource.transport.http
 import org.apache.http.auth.AuthScope
 import org.apache.http.impl.client.DefaultHttpClient
 import org.apache.http.impl.conn.ProxySelectorRoutePlanner
-import org.gradle.api.artifacts.repositories.PasswordCredentials
-import spock.lang.Specification
 import org.apache.http.params.HttpProtocolParams
+import org.gradle.api.artifacts.repositories.PasswordCredentials
+import org.gradle.util.GradleVersion
+import spock.lang.Specification
 
 public class HttpClientConfigurerTest extends Specification {
     DefaultHttpClient httpClient = new DefaultHttpClient()
@@ -28,19 +29,19 @@ public class HttpClientConfigurerTest extends Specification {
     HttpSettings httpSettings = Mock()
     HttpProxySettings proxySettings = Mock()
     HttpClientConfigurer configurer = new HttpClientConfigurer(httpSettings)
-    
+
     def "configures http client with no credentials or proxy"() {
         httpSettings.credentials >> credentials
         httpSettings.proxySettings >> proxySettings
 
         when:
         configurer.configure(httpClient)
-        
+
         then:
         httpClient.getRoutePlanner() instanceof ProxySelectorRoutePlanner
         httpClient.getHttpRequestRetryHandler().retryRequest(new IOException(), 1, null) == false
     }
-    
+
     def "configures http client with proxy credentials"() {
         httpSettings.credentials >> credentials
         httpSettings.proxySettings >> proxySettings
@@ -97,6 +98,6 @@ public class HttpClientConfigurerTest extends Specification {
         configurer.configure(httpClient)
 
         then:
-        HttpProtocolParams.getUserAgent(httpClient.params).startsWith('Gradle')
+        HttpProtocolParams.getUserAgent(httpClient.params) == GradleVersion.current().userAgentString
     }
 }

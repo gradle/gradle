@@ -29,7 +29,7 @@ public class UserAgentMatcher extends BaseMatcher {
     }
 
     public void describeTo(Description description) {
-        description.appendText("User-Agent does not match").appendValue(applicationName);
+        description.appendValue(expectedUserAgentString());
     }
 
     @Factory
@@ -38,12 +38,16 @@ public class UserAgentMatcher extends BaseMatcher {
     }
 
     public boolean matches(Object o) {
+        String testString = expectedUserAgentString();
+        return Matchers.equalTo(testString).matches(o);
+    }
+
+    private String expectedUserAgentString() {
         String javaVendor = System.getProperty("java.vendor");
         String javaVersion = System.getProperty("java.version");
         String osName = System.getProperty("os.name");
         String osVersion = System.getProperty("os.version");
         String osArch = System.getProperty("os.arch");
-        String testString = String.format("%s/%s (OSS;%s;%s;%s) (JVM;%s;%s)", applicationName, version, osName, osVersion, osArch, javaVendor, javaVersion);
-        return Matchers.equalTo(testString).matches(o);
+        return String.format("%s/%s (%s;%s;%s) (%s;%s)", applicationName, version, osName, osVersion, osArch, javaVendor, javaVersion);
     }
 }

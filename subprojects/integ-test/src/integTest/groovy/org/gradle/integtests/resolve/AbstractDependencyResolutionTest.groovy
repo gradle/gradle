@@ -17,15 +17,19 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.junit.Rule
 import org.gradle.integtests.fixtures.HttpServer
 import org.gradle.integtests.fixtures.IvyRepository
 import org.gradle.integtests.fixtures.MavenRepository
+import org.gradle.util.GradleVersion
+import org.junit.Rule
+
+import static org.gradle.integtests.fixtures.UserAgentMatcher.matchesNameAndVersion
 
 abstract class AbstractDependencyResolutionTest extends AbstractIntegrationSpec {
     @Rule public final HttpServer server = new HttpServer()
 
     def "setup"() {
+        server.expectUserAgent(matchesNameAndVersion("Gradle", GradleVersion.current().getVersion()))
         requireOwnUserHomeDir()
     }
 

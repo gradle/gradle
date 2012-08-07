@@ -100,8 +100,7 @@ public class HttpClientConfigurer {
     }
 
     public void configureUserAgent(DefaultHttpClient httpClient) {
-        String userAgent = "Gradle/" + GradleVersion.current().getVersion();
-        HttpProtocolParams.setUserAgent(httpClient.getParams(), userAgent);
+        HttpProtocolParams.setUserAgent(httpClient.getParams(), GradleVersion.current().getUserAgentString());
     }
 
     static class PreemptiveAuth implements HttpRequestInterceptor {

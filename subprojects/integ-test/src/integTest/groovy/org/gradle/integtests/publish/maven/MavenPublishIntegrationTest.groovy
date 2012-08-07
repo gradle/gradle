@@ -18,8 +18,11 @@ package org.gradle.integtests.publish.maven
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.HttpServer
 import org.gradle.integtests.fixtures.MavenRepository
+import org.gradle.util.GradleVersion
 import org.junit.Rule
 import spock.lang.Unroll
+
+import static org.gradle.integtests.fixtures.UserAgentMatcher.matchesNameAndVersion
 
 class MavenPublishIntegrationTest extends AbstractIntegrationSpec {
     @Rule public final HttpServer server = new HttpServer()
@@ -167,7 +170,6 @@ uploadArchives {
     def "can publish multiple deployments with attached artifacts"() {
         given:
         server.start()
-
         settingsFile << "rootProject.name = 'someCoolProject'"
         buildFile << """
 apply plugin:'java'
@@ -229,7 +231,7 @@ uploadArchives {
         then:
         succeeds 'uploadArchives'
     }
-    
+
     def "can publish to an unauthenticated HTTP repository"() {
         given:
         server.start()
@@ -275,6 +277,7 @@ uploadArchives {
         def username = 'testuser'
         def password = 'password'
         server.start()
+        server.expectUserAgent(matchesNameAndVersion("Gradle", GradleVersion.current().version))
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
 apply plugin: 'java'
