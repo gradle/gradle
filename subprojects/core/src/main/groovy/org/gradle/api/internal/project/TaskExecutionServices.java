@@ -18,12 +18,14 @@ package org.gradle.api.internal.project;
 import org.gradle.StartParameter;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.internal.changedetection.*;
-import org.gradle.internal.id.RandomLongIdGenerator;
-import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.execution.*;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
+import org.gradle.execution.taskgraph.TaskPlanExecutor;
+import org.gradle.execution.taskgraph.TaskPlanExecutorFactory;
+import org.gradle.internal.id.RandomLongIdGenerator;
+import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.listener.ListenerManager;
 
@@ -74,5 +76,11 @@ public class TaskExecutionServices extends DefaultServiceRegistry {
                                 fileSnapshotter,
                                 outputFilesSnapshotter)),
                 new DefaultFileCacheListener());
+    }
+
+    protected TaskPlanExecutor createTaskExecutorFactory() {
+        StartParameter startParameter = get(StartParameter.class);
+        TaskArtifactStateCacheAccess cacheAccess = get(TaskArtifactStateCacheAccess.class);
+        return new TaskPlanExecutorFactory(cacheAccess, startParameter.getParallelExecutorCount()).create();
     }
 }

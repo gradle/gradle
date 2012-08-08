@@ -39,14 +39,14 @@ import java.util.Set;
 public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
     private static Logger logger = LoggerFactory.getLogger(DefaultTaskGraphExecuter.class);
 
-    private final TaskExecutor taskExecutor;
+    private final TaskPlanExecutor taskPlanExecutor;
     private final ListenerBroadcast<TaskExecutionGraphListener> graphListeners;
     private final ListenerBroadcast<TaskExecutionListener> taskListeners;
     private final DefaultTaskExecutionPlan taskExecutionPlan = new DefaultTaskExecutionPlan();
     private boolean populated;
 
-    public DefaultTaskGraphExecuter(ListenerManager listenerManager, TaskExecutor taskExecutor) {
-        this.taskExecutor = taskExecutor;
+    public DefaultTaskGraphExecuter(ListenerManager listenerManager, TaskPlanExecutor taskPlanExecutor) {
+        this.taskPlanExecutor = taskPlanExecutor;
         graphListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionGraphListener.class);
         taskListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionListener.class);
     }
@@ -80,7 +80,7 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
 
         graphListeners.getSource().graphPopulated(this);
         try {
-            taskExecutor.process(taskExecutionPlan, taskListeners.getSource());
+            taskPlanExecutor.process(taskExecutionPlan, taskListeners.getSource());
             logger.debug("Timing: Executing the DAG took " + clock.getTime());
         } finally {
             taskExecutionPlan.clear();

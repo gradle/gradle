@@ -29,15 +29,16 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-public class ParallelTaskExecutor extends DefaultTaskExecutor {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ParallelTaskExecutor.class);
-    private static final int EXECUTOR_COUNT = 2;
+class ParallelTaskPlanExecutor extends DefaultTaskPlanExecutor {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ParallelTaskPlanExecutor.class);
 
     private final List<Thread> executorThreads = new ArrayList<Thread>();
     private final TaskArtifactStateCacheAccess stateCacheAccess;
+    private final int executorCount;
 
-    public ParallelTaskExecutor(TaskArtifactStateCacheAccess cacheAccess) {
+    public ParallelTaskPlanExecutor(TaskArtifactStateCacheAccess cacheAccess, int numberOfParallelExecutors) {
         this.stateCacheAccess = cacheAccess;
+        this.executorCount = numberOfParallelExecutors == -1 ? 4 : numberOfParallelExecutors;
     }
 
     public void process(final TaskExecutionPlan taskExecutionPlan, final TaskExecutionListener taskListener) {
@@ -52,7 +53,7 @@ public class ParallelTaskExecutor extends DefaultTaskExecutor {
 
     private void doProcess(TaskExecutionPlan taskExecutionPlan, TaskExecutionListener taskListener) {
         List<Project> projects = getAllProjects(taskExecutionPlan);
-        int numExecutors = Math.min(EXECUTOR_COUNT, projects.size());
+        int numExecutors = Math.min(executorCount, projects.size());
 
         for (int i = 0; i < numExecutors; i++) {
             TaskExecutorWorker worker = new TaskExecutorWorker(taskExecutionPlan, taskListener);
@@ -96,6 +97,8 @@ public class ParallelTaskExecutor extends DefaultTaskExecutor {
                 executeTaskWithCacheLock(taskInfo);
                 LOGGER.warn("Executed: " + taskInfo.getTask().getPath());
             }
+
+            LOGGER.warn(Thread.currentThread() + " stopping");
         }
 
         private void executeTaskWithCacheLock(final TaskInfo taskInfo) {

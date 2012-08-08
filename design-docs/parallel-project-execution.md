@@ -35,9 +35,9 @@ would need to be executed sequentially, while decoupled project groups could be 
 
 To execute a multi-project build in parallel the user must also declare that they would like their projects executed in parallel, via a command-line switch:
 
-    --parallel-executors
+    --parallel-executor
         \\ Tells Gradle to execute decoupled projects in parallel. Gradle will attempt to determine the optimal number of executors to use.
-    --parallel-executors=4
+    --parallel-executor-threads=4
         \\ Tells Gradle to execute decouple projects in parallel, using the specified number of executors.
 
 

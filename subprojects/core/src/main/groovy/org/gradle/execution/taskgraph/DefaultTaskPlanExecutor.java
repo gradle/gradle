@@ -23,8 +23,8 @@ import org.gradle.api.specs.Specs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DefaultTaskExecutor implements TaskExecutor {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTaskExecutor.class);
+class DefaultTaskPlanExecutor implements TaskPlanExecutor {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTaskPlanExecutor.class);
 
     public void process(TaskExecutionPlan taskExecutionPlan, TaskExecutionListener taskListener) {
         Spec<TaskInfo> anyTask = Specs.satisfyAll();

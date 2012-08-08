@@ -18,6 +18,6 @@ package org.gradle.execution.taskgraph;
 
 import org.gradle.api.execution.TaskExecutionListener;
 
-public interface TaskExecutor {
+public interface TaskPlanExecutor {
     void process(TaskExecutionPlan taskExecutionPlan, TaskExecutionListener taskListener);
 }

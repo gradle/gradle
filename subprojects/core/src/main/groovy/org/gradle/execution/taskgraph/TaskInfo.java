@@ -20,7 +20,7 @@ import org.gradle.api.internal.TaskInternal;
 
 import java.util.Set;
 
-public class TaskInfo {
+class TaskInfo {
 
     private enum TaskExecutionState {
         READY, EXECUTING, SUCCEEDED, FAILED

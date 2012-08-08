@@ -34,7 +34,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * A reusable implementation of TaskExecutionPlan. The {@link #addToTaskGraph(java.util.Collection)} and {@link #clear()} methods are NOT threadsafe, and callers must synchronize
  * access to these methods.
  */
-public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
+class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
     private final LinkedHashMap<Task, TaskInfo> executionPlan = new LinkedHashMap<Task, TaskInfo>();
