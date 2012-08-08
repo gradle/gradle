@@ -31,6 +31,12 @@ abstract class AbstractDependencyResolutionTest extends AbstractIntegrationSpec 
     def "setup"() {
         server.expectUserAgent(matchesNameAndVersion("Gradle", GradleVersion.current().getVersion()))
         requireOwnUserHomeDir()
+        writeOsSysPropsToGradleProperties()
+    }
+
+    //needed atm, for tests on unknown os
+    void writeOsSysPropsToGradleProperties() {
+        file("gradle.properties") << System.properties.findAll {key, value -> key.startsWith("os.")}.collect {key, value -> "systemProp.${key}=$value"}.join("\n")
     }
 
     IvyRepository ivyRepo(def dir = 'ivy-repo') {
