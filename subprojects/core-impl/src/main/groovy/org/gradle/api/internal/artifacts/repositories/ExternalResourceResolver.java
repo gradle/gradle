@@ -308,7 +308,12 @@ public class ExternalResourceResolver extends BasicResolver {
             throw new IllegalArgumentException("Can only download ExternalResource");
         }
 
-        repository.downloadResource((ExternalResource) resource, destination);
+        ExternalResource externalResource = (ExternalResource) resource;
+        try {
+            externalResource.writeTo(destination);
+        } finally {
+            externalResource.close();
+        }
         return destination.length();
     }
 

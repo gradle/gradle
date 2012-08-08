@@ -36,11 +36,10 @@ import java.io.*;
 import java.util.List;
 
 public class DefaultExternalResourceRepository implements ExternalResourceRepository {
-
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultExternalResourceRepository.class);
     private final TemporaryFileProvider temporaryFileProvider = new TmpDirTemporaryFileProvider();
 
-    private String name;
+    private final String name;
     private final ExternalResourceAccessor accessor;
     private final ExternalResourceUploader uploader;
     private final ExternalResourceLister lister;
@@ -66,18 +65,6 @@ public class DefaultExternalResourceRepository implements ExternalResourceReposi
 
     public ExternalResourceMetaData getResourceMetaData(String source) throws IOException {
         return accessor.getMetaData(source);
-    }
-
-    public void downloadResource(ExternalResource resource, File destination) throws IOException {
-        try {
-            resource.writeTo(destination);
-        } catch (IOException e) {
-            throw e;
-        } catch (Exception e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        } finally {
-            resource.close();
-        }
     }
 
     public void put(File source, String destination) throws IOException {
@@ -133,15 +120,7 @@ public class DefaultExternalResourceRepository implements ExternalResourceReposi
         return source.replace('\\', '/');
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public String toString() {
-        return getName();
+        return name;
     }
 }

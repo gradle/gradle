@@ -28,8 +28,6 @@ import java.util.List;
 
 public interface ExternalResourceRepository {
 
-    void downloadResource(ExternalResource resource, File destination) throws IOException;
-
     ExternalResource getResource(String source) throws IOException;
 
     ExternalResource getResource(String source, @Nullable LocallyAvailableResourceCandidates localCandidates, @Nullable CachedExternalResource cached) throws IOException;
