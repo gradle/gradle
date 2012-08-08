@@ -18,8 +18,10 @@ projects. Such features will include configuration of projects in parallel, re-u
 
 To execute a multi-project build in parallel the user must first declare that their projects are decoupled via a command-line switch:
 
-    --decoupled-projects : Indicates that the direct access between all projects should be prohibited (1)
-    --decoupled-projects=warn : Indicates that Gradle should warn about project coupling, but allow the build to continue (2)
+    --decoupled-projects 
+        // Indicates that the direct access between all projects should be prohibited (1)
+    --decoupled-projects=warn
+        // Indicates that Gradle should warn about project coupling, but allow the build to continue (2)
 
 Projects will get a fail-fast copy of the multi-project model, that will prohibit direct, undeclared access to the model of other projects (--decoupled-projects).
 Since configuration-time decoupling is _not_ strictly required for parallel project execution, it will also be useful to provide a model that warns about inter-project coupling,
@@ -33,26 +35,27 @@ would need to be executed sequentially, while decoupled project groups could be 
 
 To execute a multi-project build in parallel the user must also declare that they would like their projects executed in parallel, via a command-line switch:
 
-    --parallel-executors : Tells Gradle to execute decoupled projects in parallel. Gradle will attempt to determine the optimal number of executors to use.
-    --parallel-executors=4 : Tells Gradle to execute decouple projects in parallel, using the specified number of executors.
+    --parallel-executors
+        \\ Tells Gradle to execute decoupled projects in parallel. Gradle will attempt to determine the optimal number of executors to use.
+    --parallel-executors=4
+        \\ Tells Gradle to execute decouple projects in parallel, using the specified number of executors.
 
-Stop scheduling new tasks on failure. (not like --continue)
-When run in sequence, build execution stops after the first task failure. When run in parallel, each project will build as much as possible as long as all dependencies are satisfied. (like --continue)
 
 ## Handling Build Failures
 
 Similar to sequential execution, by default Gradle will attempt to stop execution as soon as possible after a task failure occurs. Any tasks currently in progress will be completed, but no new
 tasks will be scheduled once a task failure is detected.
 
-Once a task has failed, the console status bar will report that the build is currently 'failed' and the number of failures detected:
+Once a task has failed, the console status bar will report that the build is currently 'failed' and the number of failures detected. 
 `> Build Failed (1) > :A:producerA`
+This console output would be useful for `--continue` as well.
 
 ## Reporting multiple build failures
 
 Parallel execution implies that multiple failures may occur for a single build execution. The build output will need to handle this possibility.
 
-Display composite output with all failures reported.
-====================
+#### Display composite output with all failures reported:
+
     FAILURE: Build failed with 2 exceptions.
 
     * Exception 1 at:
@@ -74,8 +77,7 @@ Display composite output with all failures reported.
 
     BUILD FAILED
 
-When run with --stacktrace, include the stack trace output for each exception:
-====================
+#### When run with --stacktrace, include the stack trace output for each exception:
 
     FAILURE: Build failed with 2 exceptions.
 
@@ -123,7 +125,6 @@ When run with --stacktrace, include the stack trace output for each exception:
     Run with --info or --debug option to get more log output.
 
     BUILD FAILED
-============
 
 Any enhancement to report multiple failures should work equally well for `--continue`.
 
@@ -131,44 +132,44 @@ Any enhancement to report multiple failures should work equally well for `--cont
 
 Completely interleved logging may be very confusing:
 
-[:A:task1] About to start 'A1'
-[:B:task1] About to start 'B1'
-[:A:task1] Doing some work for 'A1'
-[:B:task1] Doing some work for 'B1'
-[:A:task1] Doing more work for 'A1'
-[:B:task1] Finishing 'B1'
-[:A:task1] Finishing 'A1'
+    [:A:task1] About to start 'A1'
+    [:B:task1] About to start 'B1'
+    [:A:task1] Doing some work for 'A1'
+    [:B:task1] Doing some work for 'B1'
+    [:A:task1] Doing more work for 'A1'
+    [:B:task1] Finishing 'B1'
+    [:A:task1] Finishing 'A1'
 
 By buffering log messages and flushing to console in a smart way we could provide
 a reasonable user experience. For example, we could flush when no message has arrived for 500ms, or when we have not flushed for 5s.
 
-:A:task1
-About to start 'A1'
-Doing some work for 'A1'
-:B:task1
-About to start 'B1'
-Doing some work for 'B1'
-:A:task1
-Doing more work for 'A1'
-:B:task1
-Finishing 'B1'
-:A:task1
-Finishing 'A1'
+    :A:task1
+    About to start 'A1'
+    Doing some work for 'A1'
+    :B:task1
+    About to start 'B1'
+    Doing some work for 'B1'
+    :A:task1
+    Doing more work for 'A1'
+    :B:task1
+    Finishing 'B1'
+    :A:task1
+    Finishing 'A1'
 
 The output could be enhanced with some extra structure, if it proved useful:
 
-[:A:task1]
-| Doing some work for 'A1'
-| Doing some more work for 'A1'
-[:B:task1]
-| Doing some work for 'B1'
-| Doing some more work for 'B1'
-[:A:task1]
-| Even more work for 'A1'
-[:B:task1]
-| Finishing 'B1'
-[:A:task1]
-| Finishing 'A1'
+    [:A:task1]
+    | Doing some work for 'A1'
+    | Doing some more work for 'A1'
+    [:B:task1]
+    | Doing some work for 'B1'
+    | Doing some more work for 'B1'
+    [:A:task1]
+    | Even more work for 'A1'
+    [:B:task1]
+    | Finishing 'B1'
+    [:A:task1]
+    | Finishing 'A1'
 
 Alternatively, we could flush the log messages to console only when the task has completed, providing a similar output to the sequential build. This would have the benefit of making post-hoc analysis
 of the build output simpler, with the downside of providing no feedback during task execution. Execution feedback could be provided by enhancing the logging DSL so that it was easier to push
@@ -182,9 +183,9 @@ The current status bar text displays the current state of execution of a single 
 
 In addition, for a low number of executing threads (<=4), we could display a separate status line per build process:
 
-    > Build failed > :A:producerA
-    > Building > :B:task1 > Resolving dependencies ':runtime'
-    > Building > :C:task2 > 4Mb / 10Mb downloaded
+    1 > Build failed > :A:producerA
+    2 > Building > :B:task1 > Resolving dependencies ':runtime'
+    3 > Building > :C:task2 > 4Mb / 10Mb downloaded
     > Build failed > 23 Tasks completed > 1 task failed [:A:task1] > 2 running [:B:task1, :C:task2]
 
 # Integration test coverage
@@ -203,8 +204,9 @@ Happy-day:
 Sad-day:
 
 - Task dependency cycle across projects: A:task1->B:task1->C:task1->A:task1
-- Project dependency fails: A->B and B fails
-- One project dependency fails: A->[B,C] and C->D and B fails
+- Project dependency fails: A:1->B:1 and B:1 fails
+- One of a set of dependencies fails: A->[B,C] and C->D and B fails
+- Multiple independent dependencies fail: A->[B,C] and both B & C fail
 
 # Implementation approach
 
