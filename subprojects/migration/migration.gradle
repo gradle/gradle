@@ -28,6 +28,7 @@ eclipse {
 	classpath {
 		file.whenMerged { classpath ->
 			classpath.entries.removeAll { it.path.contains('src/integTest/resources') }
+            classpath.entries.removeAll { it.path.contains('/migration/build/') }
 		}
 	}
 }
