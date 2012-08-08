@@ -48,6 +48,8 @@ credentials {
         def repo = new IvyRepository(distribution.testFile('ivy-repo'))
         module = repo.module("org.gradle", "publish", "2")
         module.moduleDir.mkdirs()
+        //for unknown os tests
+        file("gradle.properties") << System.properties.findAll {key, value -> key.startsWith("os.")}.collect {key, value -> "systemProp.${key}=$value"}.join("\n")
         server.expectUserAgent(matchesNameAndVersion("Gradle", GradleVersion.current().getVersion()))
     }
 
