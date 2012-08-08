@@ -45,9 +45,10 @@ public class UserAgentMatcher extends BaseMatcher {
     private String expectedUserAgentString() {
         String javaVendor = System.getProperty("java.vendor");
         String javaVersion = System.getProperty("java.version");
+        String javaVendorVersion = System.getProperty("java.vm.version");
         String osName = System.getProperty("os.name");
         String osVersion = System.getProperty("os.version");
         String osArch = System.getProperty("os.arch");
-        return String.format("%s/%s (%s;%s;%s) (%s;%s)", applicationName, version, osName, osVersion, osArch, javaVendor, javaVersion);
+        return String.format("%s/%s (%s;%s;%s) (%s;%s;%s)", applicationName, version, osName, osVersion, osArch, javaVendor, javaVersion, javaVendorVersion);
     }
 }
