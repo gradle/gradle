@@ -6,8 +6,8 @@ Here are the new features introduced in Gradle 1.2.
 
 ### HTTP requests now provide Gradle related version information
 
-Gradle, the Gradle Wrapper and the Gradle Tooling API now provide version information in the Http User-Agent header when http resources are triggered. 
-Especially for larger corporations, this can be very helpful to gather information about which Gradle versions and in what environment they are used. The User-Agent header now includes information about
+Gradle, the Gradle Wrapper and the Gradle Tooling API now provide version information in the User-Agent header when HTTP resources are accessed. 
+Especially for larger corporations, this can be very helpful to gather information about which versions of Gradle are used in which environment. The User-Agent header now includes information about
 
 * the used Gradle application (Gradle, Gradle Wrapper or Gradle Tooling API) + Version
 * the Operating System (name, version, architecture) 
