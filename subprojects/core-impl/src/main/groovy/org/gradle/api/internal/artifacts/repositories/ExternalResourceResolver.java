@@ -329,7 +329,7 @@ public class ExternalResourceResolver extends BasicResolver {
 
         String destination = getDestination(destinationPattern, artifact, moduleRevisionId);
 
-        put(artifact, src, destination, overwrite);
+        put(src, destination);
         LOGGER.info("Published {} to {}", artifact.getName(), hidePassword(destination));
     }
 
@@ -337,7 +337,7 @@ public class ExternalResourceResolver extends BasicResolver {
         return IvyPatternHelper.substitute(pattern, moduleRevisionId, artifact);
     }
 
-    private void put(Artifact artifact, File src, String destination, boolean overwrite) throws IOException {
+    private void put(File src, String destination) throws IOException {
         // verify the checksum algorithms before uploading artifacts!
         String[] checksums = getChecksumAlgorithms();
         for (String checksum : checksums) {
@@ -346,20 +346,19 @@ public class ExternalResourceResolver extends BasicResolver {
             }
         }
 
-        repository.put(artifact, src, destination, overwrite);
+        repository.put(src, destination);
         for (String checksum : checksums) {
-            putChecksum(artifact, src, destination, overwrite, checksum);
+            putChecksum(src, destination, checksum);
         }
     }
 
-    private void putChecksum(Artifact artifact, File src, String destination, boolean overwrite,
+    private void putChecksum(File src, String destination,
                              String algorithm) throws IOException {
         File csFile = temporaryFileProvider.createTemporaryFile("ivytemp", algorithm);
         try {
             FileUtil.copy(new ByteArrayInputStream(ChecksumHelper.computeAsString(src, algorithm)
                     .getBytes()), csFile, null);
-            repository.put(DefaultArtifact.cloneWithAnotherTypeAndExt(artifact, algorithm,
-                    artifact.getExt() + "." + algorithm), csFile, destination + "." + algorithm, overwrite);
+            repository.put(csFile, destination + "." + algorithm);
         } finally {
             csFile.delete();
         }

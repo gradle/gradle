@@ -17,8 +17,6 @@
 package org.gradle.api.internal.artifacts.repositories;
 
 
-import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.plugins.repository.TransferListener;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.cached.CachedExternalResource;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceCandidates;
@@ -70,10 +68,6 @@ public class DefaultExternalResourceRepository implements ExternalResourceReposi
         return accessor.getMetaData(source);
     }
 
-    public void get(String source, File destination) throws IOException {
-        throw new UnsupportedOperationException();
-    }
-
     public void downloadResource(ExternalResource resource, File destination) throws IOException {
         try {
             resource.writeTo(destination);
@@ -86,15 +80,15 @@ public class DefaultExternalResourceRepository implements ExternalResourceReposi
         }
     }
 
-    public void put(Artifact artifact, File source, String destination, boolean overwrite) throws IOException {
-        put(source, destination, overwrite);
-        putChecksum("SHA1", source, destination, overwrite);
+    public void put(File source, String destination) throws IOException {
+        doPut(source, destination);
+        putChecksum("SHA1", source, destination);
     }
 
-    private void putChecksum(String algorithm, File source, String destination, boolean overwrite) throws IOException {
+    private void putChecksum(String algorithm, File source, String destination) throws IOException {
         File checksumFile = createChecksumFile(source, algorithm);
         String checksumDestination = destination + "." + algorithm.toLowerCase();
-        put(checksumFile, checksumDestination, overwrite);
+        doPut(checksumFile, checksumDestination);
     }
 
     private File createChecksumFile(File src, String algorithm) {
@@ -104,19 +98,17 @@ public class DefaultExternalResourceRepository implements ExternalResourceReposi
         return csFile;
     }
 
-    protected void put(final File source, String destination, boolean overwrite) throws IOException {
+    protected void doPut(final File source, String destination) throws IOException {
         LOGGER.debug("Attempting to put resource {}.", destination);
         assert source.isFile();
         try {
             uploader.upload(new Factory<InputStream>() {
                 public InputStream create() {
-                    FileInputStream fis = null;
                     try {
-                        fis = new FileInputStream(source);
+                        return new FileInputStream(source);
                     } catch (FileNotFoundException e) {
-                        UncheckedException.throwAsUncheckedException(e);
+                        throw UncheckedException.throwAsUncheckedException(e);
                     }
-                    return fis;
                 }
             }, source.length(), destination);
         } catch (IOException e) {
@@ -126,20 +118,8 @@ public class DefaultExternalResourceRepository implements ExternalResourceReposi
         }
     }
 
-    public List list(String parent) throws IOException {
+    public List<String> list(String parent) throws IOException {
         return lister.list(parent);
-    }
-
-    public void addTransferListener(TransferListener listener) {
-        throw new UnsupportedOperationException("addTransferListener(TransferListener) is not implemented");
-    }
-
-    public void removeTransferListener(TransferListener listener) {
-        throw new UnsupportedOperationException("removeTransferListener(TransferListener) is not implemented");
-    }
-
-    public boolean hasTransferListener(TransferListener listener) {
-        throw new UnsupportedOperationException("hasTransferListener(TransferListener) is not implemented");
     }
 
     /**
