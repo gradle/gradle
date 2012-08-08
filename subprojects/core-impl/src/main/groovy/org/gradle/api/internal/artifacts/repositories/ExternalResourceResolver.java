@@ -24,6 +24,8 @@ import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.apache.ivy.core.report.ArtifactDownloadReport;
+import org.apache.ivy.core.resolve.DownloadOptions;
 import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.plugins.repository.Resource;
 import org.apache.ivy.plugins.resolver.BasicResolver;
@@ -270,9 +272,15 @@ public class ExternalResourceResolver extends BasicResolver {
         }
     }
 
+    @Override
+    public ArtifactDownloadReport download(ArtifactOrigin origin, DownloadOptions options) {
+        // This is never used
+        throw new UnsupportedOperationException();
+    }
+
     protected Resource getResource(String source) throws IOException {
-        ExternalResource resource = repository.getResource(source);
-        return resource == null ? new MissingExternalResource(source) : resource;
+        // This is never used
+        throw new UnsupportedOperationException();
     }
 
     protected Resource getResource(String source, Artifact target, boolean forDownload) throws IOException {

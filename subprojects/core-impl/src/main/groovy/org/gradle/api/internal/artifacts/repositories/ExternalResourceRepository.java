@@ -28,8 +28,20 @@ import java.util.List;
 
 public interface ExternalResourceRepository {
 
+    /**
+     * Attempts to fetch the given resource.
+     *
+     * @return null if the resource is not found.
+     * @throws IOException
+     */
     ExternalResource getResource(String source) throws IOException;
 
+    /**
+     * Attempts to fetch the given resource.
+     *
+     * @return null if the resource is not found.
+     * @throws IOException
+     */
     ExternalResource getResource(String source, @Nullable LocallyAvailableResourceCandidates localCandidates, @Nullable CachedExternalResource cached) throws IOException;
 
     /**
