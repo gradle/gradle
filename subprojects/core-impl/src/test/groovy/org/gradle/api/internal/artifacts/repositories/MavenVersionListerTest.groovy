@@ -18,9 +18,12 @@ package org.gradle.api.internal.artifacts.repositories
 
 import org.apache.ivy.core.module.descriptor.Artifact
 import org.apache.ivy.core.module.id.ModuleRevisionId
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.internal.externalresource.ExternalResource
 import org.gradle.api.internal.resource.ResourceNotFoundException
+import org.xml.sax.SAXParseException
 import spock.lang.Specification
+import org.gradle.api.internal.resource.ResourceException
 
 class MavenVersionListerTest extends Specification {
     def repo = Mock(ExternalResourceRepository)
@@ -28,48 +31,73 @@ class MavenVersionListerTest extends Specification {
     def moduleRevisionId = ModuleRevisionId.newInstance("org.acme", "testproject", "1.0")
 
     def repository = Mock(ExternalResourceRepository)
-    def root = "localhost:8081/testRepo/"
+    def pattern = "localhost:8081/testRepo/" + MavenPattern.M2_PATTERN
+    String metaDataPattern = 'localhost:8081/testRepo/org.acme/testproject/maven-metadata.xml'
 
     def resource = Mock(ExternalResource)
-    def resourceInputStream = Mock(InputStream)
 
-    MavenVersionLister lister = new MavenVersionLister(repository, root)
+    MavenVersionLister lister = new MavenVersionLister(repository)
+
+    def "getVersionList parses maven-metadata.xml"() {
+        when:
+        def result = lister.getVersionList(moduleRevisionId, pattern, artifact)
+
+        then:
+        result.versionStrings == ['1.1', '1.2']
+        1 * repository.getResource(metaDataPattern) >> resource
+        1 * resource.openStream() >> new ByteArrayInputStream("""
+<metadata>
+    <versioning>
+        <versions>
+            <version>1.1</version>
+            <version>1.2</version>
+        </versions>
+    </versioning>
+</metadata>""".bytes)
+    }
 
     def "getVersionList throws ResourceNotFoundException when maven-metadata not available"() {
-        setup:
-        1 * repository.getResource(_) >> null;
         when:
-        lister.getVersionList(moduleRevisionId, MavenPattern.M2_PATTERN, artifact)
+        lister.getVersionList(moduleRevisionId, pattern, artifact)
+
         then:
         thrown(ResourceNotFoundException)
+        1 * repository.getResource(metaDataPattern) >> null
+        0 * repository._
     }
 
     def "getVersionList throws ResourceException when maven-metadata cannot be parsed"() {
-        setup:
-        1 * repository.getResource(_) >> resource;
-        1 * resource.openStream() >> resourceInputStream
-
         when:
-        lister.getVersionList(moduleRevisionId, MavenPattern.M2_PATTERN, artifact)
+        lister.getVersionList(moduleRevisionId, pattern, artifact)
+
         then:
-        thrown(org.gradle.api.internal.resource.ResourceException)
+        ResourceException e = thrown()
+        e.cause instanceof SAXParseException
         1 * resource.close()
+        1 * repository.getResource(metaDataPattern) >> resource;
+        1 * resource.openStream() >> new ByteArrayInputStream("yo".bytes)
+        0 * repository._
     }
 
     def "getVersionList throws ResourceException when maven-metadata cannot be loaded"() {
-        setup:
-        1 * repository.getResource(_) >> {throw new IOException()};
+        def failure = new IOException()
 
         when:
-        lister.getVersionList(moduleRevisionId, MavenPattern.M2_PATTERN, artifact)
+        lister.getVersionList(moduleRevisionId, pattern, artifact)
+
         then:
-        thrown(org.gradle.api.internal.resource.ResourceException)
+        ResourceException e = thrown()
+        e.cause == failure
+        1 * repository.getResource(metaDataPattern) >> { throw failure }
+        0 * repository._
     }
 
-    def "getVersionList throws ResourceNotFoundException for non M2 compatible pattern"() {
+    def "getVersionList throws InvalidUserDataException for non M2 compatible pattern"() {
         when:
         lister.getVersionList(moduleRevisionId, "/non/m2/pattern", artifact)
+
         then:
-        thrown(ResourceNotFoundException)
+        thrown(InvalidUserDataException)
+        0 * repository._
     }
 }

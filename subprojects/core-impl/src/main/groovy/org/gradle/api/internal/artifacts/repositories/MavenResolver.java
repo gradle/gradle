@@ -56,7 +56,7 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
                          CachedExternalResourceIndex<String> cachedExternalResourceIndex) {
         super(name,
                 transport.getRepository(),
-                new ChainedVersionLister(new MavenVersionLister(transport.getRepository(), transport.convertToPath(rootUri)), new ResourceVersionLister(transport.getRepository())),
+                new ChainedVersionLister(new MavenVersionLister(transport.getRepository()), new ResourceVersionLister(transport.getRepository())),
                 locallyAvailableResourceFinder,
                 cachedExternalResourceIndex);
         transport.configureCacheManager(this);
@@ -221,7 +221,7 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
         this.useMavenMetadata = useMavenMetadata;
         if (useMavenMetadata) {
             this.versionLister = new ChainedVersionLister(
-                    new MavenVersionLister(getRepository(), root),
+                    new MavenVersionLister(getRepository()),
                     new ResourceVersionLister(getRepository()));
         } else {
             this.versionLister = new ResourceVersionLister(getRepository());
