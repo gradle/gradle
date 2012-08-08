@@ -32,7 +32,6 @@ public interface ExternalResourceRepository {
      * Attempts to fetch the given resource.
      *
      * @return null if the resource is not found.
-     * @throws IOException
      */
     ExternalResource getResource(String source) throws IOException;
 
@@ -40,19 +39,15 @@ public interface ExternalResourceRepository {
      * Attempts to fetch the given resource.
      *
      * @return null if the resource is not found.
-     * @throws IOException
      */
     ExternalResource getResource(String source, @Nullable LocallyAvailableResourceCandidates localCandidates, @Nullable CachedExternalResource cached) throws IOException;
 
     /**
      * Transfer a resource to the repository
      *
-     * @param source
-     *            The local file to be transferred.
-     * @param destination
-     *            Where to transfer the resource.
-     * @throws IOException
-     *             On publication failure.
+     * @param source The local file to be transferred.
+     * @param destination Where to transfer the resource.
+     * @throws IOException On publication failure.
      */
     void put(File source, String destination) throws IOException;
 
@@ -61,7 +56,6 @@ public interface ExternalResourceRepository {
      *
      * @param source The location of the resource to obtain the metadata for
      * @return The resource metadata, or null if the resource does not exist
-     * @throws IOException
      */
     @Nullable
     ExternalResourceMetaData getResourceMetaData(String source) throws IOException;
@@ -69,27 +63,9 @@ public interface ExternalResourceRepository {
     /**
      * Return a listing of resources names
      *
-     * @param parent
-     *            The parent directory from which to generate the listing.
+     * @param parent The parent directory from which to generate the listing.
      * @return A listing of the parent directory's file content, as a List of String.
-     * @throws IOException
-     *             On listing failure.
+     * @throws IOException On listing failure.
      */
     List<String> list(String parent) throws IOException;
-
-    /**
-     * Get the repository's file separator string.
-     *
-     * @return The repository's file separator delimiter
-     */
-    String getFileSeparator();
-
-    /**
-     * Normalize a string.
-     *
-     * @param source
-     *            The string to normalize.
-     * @return The normalized string.
-     */
-    String standardize(String source);
 }

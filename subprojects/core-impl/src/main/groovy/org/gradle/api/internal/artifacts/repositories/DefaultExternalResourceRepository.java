@@ -109,17 +109,6 @@ public class DefaultExternalResourceRepository implements ExternalResourceReposi
         return lister.list(parent);
     }
 
-    /**
-     * followed methods are taken from AbstractRepository for compatibility reasons. Revisit them later.
-     */
-    public String getFileSeparator() {
-        return "/";
-    }
-
-    public String standardize(String source) {
-        return source.replace('\\', '/');
-    }
-
     public String toString() {
         return name;
     }
