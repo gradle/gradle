@@ -51,12 +51,16 @@ public class GradleInternalServiceRegistryTest {
     private final GradleInternalServiceRegistry registry = new GradleInternalServiceRegistry(parent, gradle);
     private final StartParameter startParameter = new StartParameter();
     private final ListenerManager listenerManager = context.mock(ListenerManager.class);
+    private final CacheRepository cacheRepository = context.mock(CacheRepository.class);
+
 
     @Before
     public void setUp() {
         context.checking(new Expectations() {{
             allowing(parent).get(ListenerManager.class);
             will(returnValue(listenerManager));
+            allowing(parent).get(CacheRepository.class);
+            will(returnValue(cacheRepository));
             allowing(gradle).getStartParameter();
             will(returnValue(startParameter));
             allowing(gradle).getScriptClassLoader();
