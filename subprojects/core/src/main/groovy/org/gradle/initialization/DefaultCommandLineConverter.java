@@ -85,12 +85,8 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         parser.option(OFFLINE).hasDescription("The build should operate without accessing network resources.");
         parser.option(REFRESH).hasArguments().hasDescription("Refresh the state of resources of the type(s) specified. Currently only 'dependencies' is supported.").deprecated("Use '--refresh-dependencies' instead.");
         parser.option(REFRESH_DEPENDENCIES).hasDescription("Refresh the state of dependencies.");
-        parser.option(PARALLEL_EXECUTOR).hasDescription(
-                "Build projects in parallel, attempting to determine the optimal number of executor threads to use. " +
-                "This feature is in development and highly experimental. Many builds will not run correctly with this option.").experimental();
-        parser.option(PARALLEL_EXECUTOR_THREADS).hasArgument().hasDescription(
-                "Build projects in parallel, using the specified number of executor threads. " +
-                "This feature is in development and highly experimental. Many builds will not run correctly with this option.").experimental();
+        parser.option(PARALLEL_EXECUTOR).hasDescription("Build projects in parallel, attempting to determine the optimal number of executor threads to use.").experimental();
+        parser.option(PARALLEL_EXECUTOR_THREADS).hasArgument().hasDescription("Build projects in parallel, using the specified number of executor threads.").experimental();
     }
 
     @Override

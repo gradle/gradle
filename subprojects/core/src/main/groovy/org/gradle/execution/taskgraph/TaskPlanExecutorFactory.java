@@ -18,8 +18,12 @@ package org.gradle.execution.taskgraph;
 
 import org.gradle.api.internal.changedetection.TaskArtifactStateCacheAccess;
 import org.gradle.internal.Factory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TaskPlanExecutorFactory implements Factory<TaskPlanExecutor> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(TaskPlanExecutorFactory.class);
+
     private final TaskArtifactStateCacheAccess taskArtifactStateCacheAccess;
     private final int parallelExecutors;
 
@@ -31,6 +35,7 @@ public class TaskPlanExecutorFactory implements Factory<TaskPlanExecutor> {
     public TaskPlanExecutor create() {
         ExecutionOptions options = new ExecutionOptions(parallelExecutors);
         if (options.executeProjectsInParallel()) {
+            LOGGER.warn("Parallel project execution is pre-alpha and highly experimental. Many builds will not run correctly with this option.");
             return new ParallelTaskPlanExecutor(taskArtifactStateCacheAccess, options.numberOfParallelExecutors());
         }
         return new DefaultTaskPlanExecutor();
