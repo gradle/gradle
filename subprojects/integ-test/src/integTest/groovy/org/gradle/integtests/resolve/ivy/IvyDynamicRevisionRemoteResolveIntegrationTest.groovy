@@ -449,6 +449,44 @@ task retrieve(type: Sync) {
         file('libs/projectB-2.2.jar').assertIsCopyOf(projectB2.jarFile)
     }
 
+    public void "resolves dynamic version with 2 repositories where first repo results in 404 for directory listing"() {
+        server.start()
+        given:
+        def repo = ivyRepo()
+        def moduleA = repo.module('group', 'projectA').publish()
+
+        and:
+        buildFile << """
+            repositories {
+                ivy { url "http://localhost:${server.port}/repo1" }
+                ivy { url "http://localhost:${server.port}/repo2" }
+            }
+            configurations { compile }
+            dependencies {
+                compile 'group:projectA:1.+'
+            }
+            task listJars << {
+                assert configurations.compile.collect { it.name } == ['projectA-1.0.jar']
+            }
+            """
+
+        when:
+        server.expectGetMissing('/repo1/group/projectA/')
+        server.expectGetMissing('/repo1/group/projectA/')
+        server.expectGetDirectoryListing("/repo2/group/projectA/", moduleA.moduleDir.parentFile)
+        server.expectGet('/repo2/group/projectA/1.0/ivy-1.0.xml', moduleA.ivyFile)
+        server.expectGet('/repo2/group/projectA/1.0/projectA-1.0.jar', moduleA.jarFile)
+
+        then:
+        succeeds('listJars')
+
+        when:
+        server.resetExpectations()
+        // No extra calls for cached dependencies
+        then:
+        succeeds('listJars')
+    }
+
     private def serveUpDynamicRevision(IvyModule module, String prefix = "") {
         server.expectGetDirectoryListing("${prefix}/${module.organisation}/${module.module}/", module.moduleDir.parentFile)
         server.expectGet("${prefix}/${module.organisation}/${module.module}/${module.revision}/ivy-${module.revision}.xml", module.ivyFile)
