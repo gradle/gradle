@@ -15,6 +15,21 @@ Especially for larger corporations, this can be very helpful to gather informati
 
 An example for a Gradle generated user-agent string: "**Gradle/1.2 (Mac OS X;10.8;amd64) (Oracle Corporation;1.7.0_04-ea;23.0-b12)**"
 
+### Experimental support for building projects in parallel
+
+Over the coming releases, we'll be adding support for parallel execution of independent projects in a multi-project build. By building separate projects in parallel, Gradle
+will enable better hardware utilisation and faster build times.
+
+Gradle 1.2 introduces the first experimental support for this feature, via the `--parallel-executor` and `--parallel-executor-threads` [command-line options](http://gradle.org/docs/nightly/userguide/gradle_command_line.html).
+By using these options Gradle will attempt to _execute_ multiple projects in parallel build threads, after first configuring all projects sequentially.
+
+Note that to guarantee successful parallel execution of projects, your multi-project build must contain only [decoupled projects](http://gradle.org/docs/nightly/userguide/multi_project_builds.html#sec:decoupled_projects).
+While configuration-time decoupling is not strictly required for parallel project execution, we do not intend on supporting a separate model of decoupling that permits configuration-time
+coupling with execution-time decoupling. At this time there are no checks implemented to ensure that projects are decoupled, and unexpected behaviour may result from executing a build with coupled
+projects using the new parallel executor.
+
+**This feature is pre-alpha and highly experimental. Many multi-project builds will behave unexpectedly when run using parallel project execution.**
+
 ## Upgrading from Gradle 1.1
 
 Please let us know if you encounter any issues during the upgrade to Gradle 1.2, that are not listed below.

@@ -307,7 +307,7 @@
                     downloads a jar with the name of the module. But sometimes, even if the repository contains module descriptors,  you want to download only the artifact jar, without
                     the dependencies.
                     <footnote>
-                        <para>Gradle supports partial multiproject builds (see<xref linkend='multi_project_builds'/>).
+                        <para>Gradle supports partial multiproject builds (see <xref linkend='multi_project_builds'/>).
                         </para>
                     </footnote>
                     And sometimes you want to download a zip from a repository, that does not have module descriptors.
