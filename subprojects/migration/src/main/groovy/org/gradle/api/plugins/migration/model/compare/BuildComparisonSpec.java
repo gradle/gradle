@@ -24,20 +24,25 @@ import java.util.Set;
 
 /**
  * A specification of how two sets of build outcomes are to be compared.
+ *
+ * Instances should be read only.
  */
 public interface BuildComparisonSpec {
 
     /**
      * The complete list of outcomes from the from side.
      *
-     * @return The complete list of outcomes from the from side. Never null.
+     * The returned collection is always immutable.
+     *
+     * @return The complete (immutable) list of outcomes from the from side. Never null.
      */
     Set<BuildOutcome> getFrom();
 
     /**
      * The complete list of outcomes from the to side.
      *
-     * @return The complete list of outcomes from the to side. Never null.
+     *
+     * @return The complete (immutable) list of outcomes from the to side. Never null.
      */
     Set<BuildOutcome> getTo();
 
@@ -46,9 +51,9 @@ public interface BuildComparisonSpec {
      *
      * The outcomes should be compared in the order of the list.
      * <p>
-     * Not all of the outcomes in the from and to sets will necessarily be associated.
+     * Not all of the outcomes in the from and to sets will necessarily need be associated.
      *
-     * @return
+     * @return The (immutable) list of associated build outcomes.
      */
     List<BuildOutcomeAssociation<?>> getOutcomeAssociations();
 

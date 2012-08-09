@@ -25,30 +25,25 @@ import java.util.*;
 
 public class DefaultBuildComparisonSpec implements BuildComparisonSpec {
 
-    private final Set<BuildOutcome> from = new HashSet<BuildOutcome>();
-    private final Set<BuildOutcome> to = new HashSet<BuildOutcome>();
-    private final List<BuildOutcomeAssociation<?>> outcomeAssociations = new LinkedList<BuildOutcomeAssociation<?>>();
+    private final Set<BuildOutcome> from;
+    private final Set<BuildOutcome> to;
+    private final List<BuildOutcomeAssociation<?>> outcomeAssociations;
+
+    public DefaultBuildComparisonSpec(Set<BuildOutcome> from, Set<BuildOutcome> to, List<BuildOutcomeAssociation<?>> outcomeAssociations) {
+        this.from = Collections.unmodifiableSet(new HashSet<BuildOutcome>(from));
+        this.to = Collections.unmodifiableSet(new HashSet<BuildOutcome>(to));
+        this.outcomeAssociations = Collections.unmodifiableList(new ArrayList<BuildOutcomeAssociation<?>>(outcomeAssociations));
+    }
 
     public Set<BuildOutcome> getFrom() {
-        return Collections.unmodifiableSet(from);
+        return from;
     }
 
     public Set<BuildOutcome> getTo() {
-        return Collections.unmodifiableSet(to);
+        return to;
     }
 
     public List<BuildOutcomeAssociation<?>> getOutcomeAssociations() {
-        return Collections.unmodifiableList(outcomeAssociations);
+        return outcomeAssociations;
     }
-
-    public <A extends BuildOutcome, F extends A, T extends A> BuildOutcomeAssociation<A> associate(F from, T to, Class<A> type) {
-        this.from.add(from);
-        this.to.add(to);
-
-        BuildOutcomeAssociation<A> outcomeAssociation = new DefaultBuildOutcomeAssociation<A>(from, to, type);
-        outcomeAssociations.add(outcomeAssociation);
-
-        return outcomeAssociation;
-    }
-
 }
