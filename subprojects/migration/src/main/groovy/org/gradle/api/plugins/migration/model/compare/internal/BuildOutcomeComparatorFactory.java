@@ -20,6 +20,6 @@ import org.gradle.api.plugins.migration.model.outcome.BuildOutcome;
 
 public interface BuildOutcomeComparatorFactory {
 
-    <T extends BuildOutcome> BuildOutcomeComparator<T> getComparator(Class<T> outcomeType);
+    <T extends BuildOutcome> BuildOutcomeComparator<T, ?> getComparator(Class<T> outcomeType);
 
 }
