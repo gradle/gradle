@@ -195,7 +195,7 @@ In addition to this, we should beef up our coverage for multi-project build scen
 Happy-day:
 
 - Multiple, unrelated projects
-- A depends on published artifact of B
+- A->B->C
 - A->[B,C] where B->C
 - A->[B,D] where B->C->D
 - A->[B,C] where B->D and C->D
