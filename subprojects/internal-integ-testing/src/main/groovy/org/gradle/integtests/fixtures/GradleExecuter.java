@@ -60,6 +60,11 @@ public interface GradleExecuter {
     GradleExecuter withArguments(List<String> args);
 
     /**
+     * Adds an additional command-line argument to use when executing the build.
+     */
+    GradleExecuter withArgument(String arg);
+
+    /**
      * Sets the environment variables to use when executing the build. Defaults to the environment of this process.
      */
     GradleExecuter withEnvironmentVars(Map<String, ?> environment);
@@ -166,5 +171,4 @@ public interface GradleExecuter {
      * @return this executer
      */
     GradleExecuter withDaemonBaseDir(File baseDir);
-
 }

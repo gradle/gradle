@@ -56,12 +56,20 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
         embedded(false),
         forking(true),
         daemon(true),
-        embeddedDaemon(false);
+        embeddedDaemon(false),
+        embeddedParallel(false, true),
+        parallel(true, true);
 
         final public boolean forks;
+        final public boolean executeParallel;
 
         Executer(boolean forks) {
+            this(forks, false);
+        }
+
+        Executer(boolean forks, boolean parallel) {
             this.forks = forks;
+            this.executeParallel = parallel;
         }
     }
 
@@ -235,6 +243,10 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
         GradleExecuter gradleExecuter = createExecuter(executerType);
         copyTo(gradleExecuter);
 
+        if (executerType.executeParallel) {
+            gradleExecuter.withArgument("--parallel-executor");
+        }
+
         configureTmpDir(gradleExecuter);
         configureForSettingsFile(gradleExecuter);
 
@@ -249,17 +261,23 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
         switch (executerType) {
             case embeddedDaemon:
                 return new EmbeddedDaemonGradleExecuter();
+            case embeddedParallel:
             case embedded:
-                if (getJavaHome().equals(Jvm.current().getJavaHome()) && getDefaultCharacterEncoding().equals(Charset.defaultCharset().name())) {
+                if (canExecuteInProcess()) {
                     return new InProcessGradleExecuter();
                 }
                 return createForkingExecuter();
             case daemon:
                 return new DaemonGradleExecuter(dist, !isQuiet() && allowExtraLogging);
+            case parallel:
             case forking:
                 return createForkingExecuter();
         }
         throw new RuntimeException("Not a supported executer type: " + executerType);
+    }
+
+    private boolean canExecuteInProcess() {
+        return getJavaHome().equals(Jvm.current().getJavaHome()) && getDefaultCharacterEncoding().equals(Charset.defaultCharset().name());
     }
 
     private GradleExecuter createForkingExecuter() {
