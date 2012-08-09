@@ -43,7 +43,7 @@ abstract class AbstractDependencyResolutionTest extends AbstractIntegrationSpec 
         return new IvyRepository(distribution.testFile(dir))
     }
 
-    MavenRepository mavenRepo() {
-        return new MavenRepository(file('repo'))
+    MavenRepository mavenRepo(String name = "repo") {
+        return new MavenRepository(file(name))
     }
 }
