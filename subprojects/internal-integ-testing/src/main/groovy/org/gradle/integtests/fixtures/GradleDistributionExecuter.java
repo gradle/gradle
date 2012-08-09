@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.fixtures;
 
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.TestFile;
 import org.gradle.util.TextUtil;
@@ -23,6 +24,7 @@ import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
 
 import java.io.File;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -230,32 +232,50 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
             throw new RuntimeException("Assertions must be enabled when running integration tests.");
         }
 
-        InProcessGradleExecuter inProcessGradleExecuter = new InProcessGradleExecuter();
-        copyTo(inProcessGradleExecuter);
+        GradleExecuter gradleExecuter = createExecuter(executerType);
+        copyTo(gradleExecuter);
 
-        GradleExecuter returnedExecuter = inProcessGradleExecuter;
+        configureTmpDir(gradleExecuter);
+        configureForSettingsFile(gradleExecuter);
 
+        return gradleExecuter;
+    }
+
+    private GradleExecuter createExecuter(Executer executerType) {
+        if (getExecutable() != null) {
+            return createForkingExecuter();
+        }
+
+        switch (executerType) {
+            case embeddedDaemon:
+                return new EmbeddedDaemonGradleExecuter();
+            case embedded:
+                if (getJavaHome().equals(Jvm.current().getJavaHome()) && getDefaultCharacterEncoding().equals(Charset.defaultCharset().name())) {
+                    return new InProcessGradleExecuter();
+                }
+                return createForkingExecuter();
+            case daemon:
+                return new DaemonGradleExecuter(dist, !isQuiet() && allowExtraLogging);
+            case forking:
+                return createForkingExecuter();
+        }
+        throw new RuntimeException("Not a supported executer type: " + executerType);
+    }
+
+    private GradleExecuter createForkingExecuter() {
+        return new ForkingGradleExecuter(dist.getGradleHomeDir());
+    }
+
+    private void configureTmpDir(GradleExecuter gradleExecuter) {
         TestFile tmpDir = getTmpDir();
         tmpDir.deleteDir().createDir();
 
-        if (executerType.forks || !inProcessGradleExecuter.canExecute()) {
-            boolean useDaemon = executerType == Executer.daemon && getExecutable() == null;
-            ForkingGradleExecuter forkingGradleExecuter = useDaemon ? new DaemonGradleExecuter(dist, !isQuiet() && allowExtraLogging) : new ForkingGradleExecuter(dist.getGradleHomeDir());
-            copyTo(forkingGradleExecuter);
-            if (!dist.shouldAvoidConfiguringTmpDir()) {
-                forkingGradleExecuter.addGradleOpts(String.format("-Djava.io.tmpdir=%s", tmpDir));
-            }
-            returnedExecuter = forkingGradleExecuter;
-//        } else {
-//            System.setProperty("java.io.tmpdir", tmpDir.getAbsolutePath());
+        if (gradleExecuter instanceof ForkingGradleExecuter && !dist.shouldAvoidConfiguringTmpDir()) {
+            ((ForkingGradleExecuter) gradleExecuter).addGradleOpts(String.format("-Djava.io.tmpdir=%s", tmpDir));
         }
+    }
 
-        if (executerType == Executer.embeddedDaemon) {
-            GradleExecuter embeddedDaemonExecutor = new EmbeddedDaemonGradleExecuter();
-            copyTo(embeddedDaemonExecutor);
-            returnedExecuter = embeddedDaemonExecutor;
-        }
-
+    private void configureForSettingsFile(GradleExecuter gradleExecuter) {
         boolean settingsFound = false;
         for (
                 TestFile dir = new TestFile(getWorkingDir()); dir != null && dist.isFileUnderTest(dir) && !settingsFound;
@@ -265,10 +285,8 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
             }
         }
         if (settingsFound) {
-            returnedExecuter.withSearchUpwards();
+            gradleExecuter.withSearchUpwards();
         }
-
-        return returnedExecuter;
     }
 
     private TestFile getTmpDir() {
