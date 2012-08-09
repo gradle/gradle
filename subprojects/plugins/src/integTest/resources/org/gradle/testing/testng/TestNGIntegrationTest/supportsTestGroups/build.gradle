@@ -4,13 +4,17 @@ repositories {
     mavenCentral()
 }
 
+ext {
+    ngIncluded = "database"
+    ngExcluded = "slow"
+}
 dependencies {
     testCompile "org.testng:testng:6.3.1"
 }
 
 test {
     useTestNG {
-        includeGroups "database"
-        excludeGroups "slow"
+        includeGroups ngIncluded
+        excludeGroups ngExcluded
     }
 }
