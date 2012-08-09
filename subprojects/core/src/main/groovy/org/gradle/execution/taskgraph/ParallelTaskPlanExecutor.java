@@ -93,9 +93,7 @@ class ParallelTaskPlanExecutor extends DefaultTaskPlanExecutor {
         public void run() {
             TaskInfo taskInfo;
             while ((taskInfo = taskExecutionPlan.getTaskToExecute(getTaskSpec())) != null) {
-                LOGGER.warn("Got task to execute: " + taskInfo.getTask().getPath());
                 executeTaskWithCacheLock(taskInfo);
-                LOGGER.warn("Executed: " + taskInfo.getTask().getPath());
             }
 
             LOGGER.warn(Thread.currentThread() + " stopping");
@@ -106,9 +104,7 @@ class ParallelTaskPlanExecutor extends DefaultTaskPlanExecutor {
             LOGGER.warn(taskPath + " (" + Thread.currentThread() + " - start");
             stateCacheAccess.useCache("Executing " + taskPath, new Runnable() {
                 public void run() {
-                    LOGGER.warn(taskPath + " (" + Thread.currentThread() + ") - have cache: executing");
                     processTask(taskInfo, taskExecutionPlan, taskListener);
-                    LOGGER.warn(taskPath + " (" + Thread.currentThread() + ") - execute done: releasing cache");
                 }
             });
             LOGGER.warn(taskPath + " (" + Thread.currentThread() + ") - complete");

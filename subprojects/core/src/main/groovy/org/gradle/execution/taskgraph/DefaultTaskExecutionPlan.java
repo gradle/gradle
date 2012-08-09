@@ -93,7 +93,12 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     public void clear() {
-        executionPlan.clear();
+        lock.lock();
+        try {
+            executionPlan.clear();
+        } finally {
+            lock.unlock();
+        }
     }
 
     public List<Task> getTasks() {
