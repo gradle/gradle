@@ -30,36 +30,29 @@ class DefaultTaskPlanExecutor implements TaskPlanExecutor {
         Spec<TaskInfo> anyTask = Specs.satisfyAll();
         TaskInfo taskInfo = taskExecutionPlan.getTaskToExecute(anyTask);
         while (taskInfo != null) {
-            executeTask(taskInfo, taskExecutionPlan, taskListener);
+            processTask(taskInfo, taskExecutionPlan, taskListener);
             taskInfo = taskExecutionPlan.getTaskToExecute(anyTask);
         }
         taskExecutionPlan.awaitCompletion();
     }
 
-    protected void executeTask(TaskInfo taskInfo, TaskExecutionPlan taskExecutionPlan, TaskExecutionListener taskListener) {
-        TaskInternal task = taskInfo.getTask();
-        for (TaskInfo dependency : taskInfo.getDependencies()) {
-            if (!dependency.isComplete()) {
-                // Cannot execute this task, as some dependencies have not been executed
-                String message = String.format("Cannot execute %s, as dependency %s has not been executed", task.getPath(), dependency.getTask().getPath());
-                // TODO:DAZ This should not be warning
-                LOGGER.warn(message);
-                return;
-            }
+    protected void processTask(TaskInfo taskInfo, TaskExecutionPlan taskExecutionPlan, TaskExecutionListener taskListener) {
+        try {
+            executeTask(taskInfo, taskListener);
+        } catch (Throwable e) {
+            taskInfo.setExecutionFailure(e);
+        } finally {
+            taskExecutionPlan.taskComplete(taskInfo);
         }
+    }
 
+    private void executeTask(TaskInfo taskInfo, TaskExecutionListener taskListener) {
+        TaskInternal task = taskInfo.getTask();
         taskListener.beforeExecute(task);
         try {
             task.executeWithoutThrowingTaskFailure();
         } finally {
             taskListener.afterExecute(task, task.getState());
-        }
-
-        if (task.getState().getFailure() != null) {
-            // TODO Not sure if we play well with --continue
-            taskExecutionPlan.taskFailed(taskInfo);
-        } else {
-            taskExecutionPlan.taskComplete(taskInfo);
         }
     }
 }

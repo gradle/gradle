@@ -39,7 +39,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private final Condition condition = lock.newCondition();
     private final LinkedHashMap<Task, TaskInfo> executionPlan = new LinkedHashMap<Task, TaskInfo>();
     private Spec<? super Task> filter = Specs.satisfyAll();
-    private Exception failure;
+    private Throwable failure;
 
     private TaskFailureHandler failureHandler = new RethrowingFailureHandler();
 
@@ -114,7 +114,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
             TaskInfo nextMatching;
             while ((nextMatching = getNextReadyAndMatching(criteria)) != null) {
-                while (!nextMatching.dependenciesExecuted()) {
+                while (!nextMatching.allDependenciesComplete()) {
                     try {
                         condition.await();
                     } catch (InterruptedException e) {
@@ -122,12 +122,12 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                     }
                 }
 
-                nextMatching.startExecution();
-
-                if (nextMatching.dependenciesFailed()) {
-                    abortTask(nextMatching);
-                } else {
+                if (nextMatching.allDependenciesSuccessful()) {
+                    nextMatching.startExecution();
                     return nextMatching;
+                } else {
+                    nextMatching.skipExecution();
+                    condition.signalAll();
                 }
             }
 
@@ -148,41 +148,39 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         return null;
     }
 
-    private void abortTask(TaskInfo taskInfo) {
-        taskInfo.executionFailed();
-        condition.signalAll();
-    }
-
-    public void taskComplete(TaskInfo task) {
+    public void taskComplete(TaskInfo taskInfo) {
         lock.lock();
         try {
-            task.executionSucceeded();
-            condition.signalAll();
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    public void taskFailed(TaskInfo taskInfo) {
-        lock.lock();
-        try {
-            taskInfo.executionFailed();
-            try {
-                failureHandler.onTaskFailure(taskInfo.getTask());
-            } catch (Exception e) {
-                abortExecution(e);
+            if (taskInfo.isFailed()) {
+                handleFailure(taskInfo);
             }
+
+            taskInfo.finishExecution();
             condition.signalAll();
         } finally {
             lock.unlock();
         }
     }
 
-    private void abortExecution(Exception e) {
+    private void handleFailure(TaskInfo taskInfo) {
+        if (taskInfo.getExecutionFailure() != null) {
+            abortExecution(taskInfo.getExecutionFailure());
+            return;
+        }
+
+        try {
+            failureHandler.onTaskFailure(taskInfo.getTask());
+        } catch (Exception e) {
+            // The failure handler rethrows exception: this means that execution of other tasks is aborted
+            abortExecution(e);
+        }
+    }
+
+    private void abortExecution(Throwable e) {
+        // Allow currently executing tasks to complete, but skip everything else.
         for (TaskInfo taskInfo : executionPlan.values()) {
             if (taskInfo.isReady()) {
-                taskInfo.startExecution();
-                taskInfo.executionFailed();
+                taskInfo.skipExecution();
             }
         }
         this.failure = e;
@@ -199,7 +197,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 }
             }
             if (failure != null) {
-                UncheckedException.throwAsUncheckedException(failure);
+                throw UncheckedException.throwAsUncheckedException(failure);
             }
         } finally {
             lock.unlock();

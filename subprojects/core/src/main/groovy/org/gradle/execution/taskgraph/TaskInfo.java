@@ -23,12 +23,13 @@ import java.util.Set;
 class TaskInfo {
 
     private enum TaskExecutionState {
-        READY, EXECUTING, SUCCEEDED, FAILED
+        READY, EXECUTING, EXECUTED, SKIPPED
     }
 
     private final TaskInternal task;
     private final Set<TaskInfo> dependencies;
     private TaskExecutionState state;
+    private Throwable executionFailure;
 
     public TaskInfo(TaskInternal task, Set<TaskInfo> dependencies) {
         this.task = task;
@@ -49,11 +50,15 @@ class TaskInfo {
     }
 
     public boolean isComplete() {
-        return state == TaskExecutionState.SUCCEEDED || state == TaskExecutionState.FAILED;
+        return state == TaskExecutionState.EXECUTED || state == TaskExecutionState.SKIPPED;
+    }
+
+    public boolean isSuccessful() {
+        return state == TaskExecutionState.EXECUTED && !isFailed();
     }
 
     public boolean isFailed() {
-        return state == TaskExecutionState.FAILED;
+        return getTaskFailure() != null || getExecutionFailure() != null;
     }
 
     public void startExecution() {
@@ -61,33 +66,44 @@ class TaskInfo {
         state = TaskExecutionState.EXECUTING;
     }
 
-    public void executionSucceeded() {
+    public void finishExecution() {
         assert state == TaskExecutionState.EXECUTING;
-        state = TaskExecutionState.SUCCEEDED;
+        state = TaskExecutionState.EXECUTED;
     }
 
-    public void executionFailed() {
-        assert state == TaskExecutionState.EXECUTING;
-        state = TaskExecutionState.FAILED;
+    public void skipExecution() {
+        assert state == TaskExecutionState.READY;
+        state = TaskExecutionState.SKIPPED;
     }
 
-    public boolean dependenciesExecuted() {
+    public void setExecutionFailure(Throwable failure) {
+        assert state == TaskExecutionState.EXECUTING;
+        this.executionFailure = failure;
+    }
+
+    public Throwable getExecutionFailure() {
+        return this.executionFailure;
+    }
+
+    public Throwable getTaskFailure() {
+        return this.getTask().getState().getFailure();
+    }
+
+    public boolean allDependenciesComplete() {
         for (TaskInfo dependency : getDependencies()) {
             if (!dependency.isComplete()) {
-                System.out.printf("Cannot start %s because %s is not yet executed\n", getTask().getPath(), dependency.getTask().getPath());
                 return false;
             }
         }
         return true;
     }
 
-    public boolean dependenciesFailed() {
+    public boolean allDependenciesSuccessful() {
         for (TaskInfo dependency : getDependencies()) {
-            if (dependency.isFailed()) {
-                return true;
+            if (!dependency.isSuccessful()) {
+                return false;
             }
         }
-        return false;
+        return true;
     }
-
 }

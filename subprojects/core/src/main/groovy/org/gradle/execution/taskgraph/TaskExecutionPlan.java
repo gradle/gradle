@@ -23,7 +23,6 @@ import java.util.List;
 
 /**
  * Represents a graph of dependent tasks, returned in execution order.
- * TODO:DAZ Make TaskInfo private to this guy, and deal with Task instances outside.
  */
 public interface TaskExecutionPlan {
     /**
@@ -36,16 +35,10 @@ public interface TaskExecutionPlan {
     TaskInfo getTaskToExecute(Spec<TaskInfo> criteria);
 
     /**
-     * Signals to the plan that this task has completed successfully.
+     * Signals to the plan that execution of this task has completed. Execution is complete if the task succeeds, fails, or an exception is thrown during execution.
      * @param task the completed task.
      */
     void taskComplete(TaskInfo task);
-
-    /**
-     * Signals to the plan that this task has completed with failure. Other tasks that depend on this task will not be executed.
-     * @param task the failed task.
-     */
-    void taskFailed(TaskInfo task);
 
     /**
      * Blocks until all tasks in the plan have been processed. This method will only return when every task in the plan has either completed, failed or been skipped.

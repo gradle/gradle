@@ -107,7 +107,7 @@ class ParallelTaskPlanExecutor extends DefaultTaskPlanExecutor {
             stateCacheAccess.useCache("Executing " + taskPath, new Runnable() {
                 public void run() {
                     LOGGER.warn(taskPath + " (" + Thread.currentThread() + ") - have cache: executing");
-                    executeTask(taskInfo, taskExecutionPlan, taskListener);
+                    processTask(taskInfo, taskExecutionPlan, taskListener);
                     LOGGER.warn(taskPath + " (" + Thread.currentThread() + ") - execute done: releasing cache");
                 }
             });

@@ -161,15 +161,16 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         thrown CircularReferenceException
     }
 
-    def "stops returning tasks on first failure when no failure handler provided"() {
+    def "stops returning tasks on task execution failure"() {
         RuntimeException failure = new RuntimeException("failure");
-        Task a = brokenTask("a", failure);
+        Task a = task("a");
         Task b = task("b");
+        executionPlan.addToTaskGraph([a, b])
 
         when:
-        executionPlan.addToTaskGraph([a, b])
-        def taskInfo = executionPlan.getTaskToExecute(anyTask)
-        executionPlan.taskFailed(taskInfo)
+        def taskInfoA = executionPlan.getTaskToExecute(anyTask)
+        taskInfoA.executionFailure = failure
+        executionPlan.taskComplete(taskInfoA)
 
         then:
         executedTasks == []
@@ -182,10 +183,31 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         e == failure
     }
 
-    def "stops execution on failure when failure handler indicates that execution should stop"() {
+    def "stops returning tasks on first task failure when no failure handler provided"() {
         RuntimeException failure = new RuntimeException("failure");
         Task a = brokenTask("a", failure);
         Task b = task("b");
+
+        when:
+        executionPlan.addToTaskGraph([a, b])
+
+        then:
+        executedTasks == [a]
+
+        when:
+        executionPlan.awaitCompletion()
+
+        then:
+        RuntimeException e = thrown()
+        e == failure
+    }
+
+    def "stops execution on task failure when failure handler indicates that execution should stop"() {
+        RuntimeException failure = new RuntimeException("failure");
+        Task a = brokenTask("a", failure);
+        Task b = task("b");
+
+        executionPlan.addToTaskGraph([a, b])
 
         TaskFailureHandler handler = Mock()
         RuntimeException wrappedFailure = new RuntimeException("wrapped");
@@ -195,12 +217,9 @@ public class DefaultTaskExecutionPlanTest extends Specification {
 
         when:
         executionPlan.useFailureHandler(handler);
-        executionPlan.addToTaskGraph([a, b])
-        final def taskInfo = executionPlan.getTaskToExecute(anyTask)
-        executionPlan.taskFailed(taskInfo)
 
         then:
-        executedTasks == []
+        executedTasks == [a]
 
         when:
         executionPlan.awaitCompletion()
@@ -210,32 +229,27 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         e == wrappedFailure
     }
 
-    def "continues to return tasks when failure handler indicates that execution should continue"() {
+    def "continues to return tasks and returns successfully when failure handler indicates that execution should continue"() {
         RuntimeException failure = new RuntimeException();
         Task a = brokenTask("a", failure);
         Task b = task("b");
+        executionPlan.addToTaskGraph([a, b])
 
         TaskFailureHandler handler = Mock()
-        RuntimeException wrappedFailure = new RuntimeException("wrapped");
         handler.onTaskFailure(a) >> {
-            throw wrappedFailure
         }
 
         when:
         executionPlan.useFailureHandler(handler);
-        executionPlan.addToTaskGraph([a, b])
-        final def taskInfo = executionPlan.getTaskToExecute(anyTask)
-        executionPlan.taskFailed(taskInfo)
 
         then:
-        executedTasks == []
+        executedTasks == [a, b]
 
         when:
         executionPlan.awaitCompletion()
 
         then:
-        RuntimeException e = thrown()
-        e == wrappedFailure
+        notThrown(RuntimeException)
     }
 
     def "does not attempt to execute tasks whose dependencies failed to execute"() {
@@ -243,6 +257,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         final Task a = brokenTask("a", failure)
         final Task b = task("b", a)
         final Task c = task("c")
+        executionPlan.addToTaskGraph([b, c])
 
         TaskFailureHandler handler = Mock()
         handler.onTaskFailure(a) >> {
@@ -251,12 +266,9 @@ public class DefaultTaskExecutionPlanTest extends Specification {
 
         when:
         executionPlan.useFailureHandler(handler)
-        executionPlan.addToTaskGraph([b, c])
-        final def taskInfo = executionPlan.getTaskToExecute(anyTask)
-        executionPlan.taskFailed(taskInfo)
 
         then:
-        executedTasks == [c]
+        executedTasks == [a, c]
 
         when:
         executionPlan.awaitCompletion()
