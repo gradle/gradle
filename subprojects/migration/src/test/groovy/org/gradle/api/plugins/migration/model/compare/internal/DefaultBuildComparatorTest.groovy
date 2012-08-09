@@ -28,7 +28,7 @@ class DefaultBuildComparatorTest extends Specification {
 
     def outcomeComparatorFactory = new DefaultBuildOutcomeComparatorFactory()
     def buildComparator = new DefaultBuildComparator(outcomeComparatorFactory)
-    def comparisonSpecBuilder = new DefaultBuildComparisonSpecBuilder()
+    def specBuilder = new DefaultBuildComparisonSpecBuilder()
 
     def setup() {
         outcomeComparatorFactory.registerComparator(new StringBuildOutcomeComparator())
@@ -46,15 +46,38 @@ class DefaultBuildComparatorTest extends Specification {
         results.comparisons[1].distance == 0
     }
 
+    def "comparison with unassociateds"() {
+        when:
+        def uncomparedFrom = toStringOutcome("a")
+        def uncomparedTo = toStringOutcome("a")
+        specBuilder.addUnassociatedFrom(uncomparedFrom)
+        specBuilder.addUnassociatedTo(uncomparedTo)
+        associateStrings("c", "c")
+
+        then:
+        def results = compareBuilds()
+        results.comparisons.first().distance == 0
+        results.uncomparedFrom == [uncomparedFrom] as Set
+        results.uncomparedTo == [uncomparedTo] as Set
+    }
+
+    def "empty spec is ok"() {
+        expect:
+        def result = compareBuilds()
+        result.comparisons.empty
+        result.uncomparedFrom.empty
+        result.uncomparedTo.empty
+    }
+
     protected int distance(String from, String to) {
         getLevenshteinDistance(from, to)
     }
 
     protected BuildComparisonResult compareBuilds() {
-        buildComparator.compareBuilds(comparisonSpecBuilder.build())
+        buildComparator.compareBuilds(specBuilder.build())
     }
 
-    void associateStrings(BuildComparisonSpecBuilder builder = comparisonSpecBuilder, from, to) {
+    void associateStrings(BuildComparisonSpecBuilder builder = specBuilder, from, to) {
         builder.associate(toStringOutcome(from), toStringOutcome(to), StringBuildOutcome)
     }
 
