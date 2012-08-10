@@ -244,7 +244,7 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
         copyTo(gradleExecuter);
 
         if (executerType.executeParallel) {
-            gradleExecuter.withArgument("--parallel-executor");
+            gradleExecuter.withArgument("--parallel-executor-threads=4");
         }
 
         configureTmpDir(gradleExecuter);
