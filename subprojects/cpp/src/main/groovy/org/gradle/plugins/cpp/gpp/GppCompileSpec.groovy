@@ -30,9 +30,10 @@ import org.gradle.plugins.cpp.compiler.capability.StandardCppCompiler
 import org.gradle.plugins.cpp.internal.CppCompileSpec
 import org.gradle.util.DeprecationLogger
 import org.gradle.api.file.ConfigurableFileCollection
-import org.gradle.api.Task
+
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.internal.tasks.DefaultTaskDependency
+import org.gradle.plugins.cpp.CppCompile
 
 class GppCompileSpec implements CompileSpec, StandardCppCompiler, CompileTaskAware, CppCompileSpec {
     Binary binary
@@ -58,7 +59,7 @@ class GppCompileSpec implements CompileSpec, StandardCppCompiler, CompileTaskAwa
         source = project.files()
     }
 
-    void configure(Compile task) {
+    void configure(CppCompile task) {
         this.task = task
         task.spec = this
         task.compiler = compiler

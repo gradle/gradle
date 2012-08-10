@@ -48,7 +48,7 @@ import java.net.URI;
  * }
  * </pre>
  *
- * <p>{@code GradleConnector} instances are not thread-safe. If you want to use a {@code GradleConnector} concurrently you *must* always create a
+ * <p>{@code GradleConnector} instances are not thread-safe. If you want to use a {@code GradleConnector} concurrently you <em>must</em> always create a
  * new instance for each thread using {@link #newConnector()}. Note, however, the {@link ProjectConnection} instances that a connector creates are completely thread-safe.</p>
  */
 public abstract class GradleConnector {

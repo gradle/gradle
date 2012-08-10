@@ -16,15 +16,13 @@ import com.uwyn.jhighlight.renderer.XhtmlRendererFactory
 decorateReleaseNotes {
     
     ext {
-        styleFile = file("src/docs/release/content/style.css")
-        fontRegularFile = file("src/docs/release/content/Lato-regular.woff")
-        fontBoldFile = file("src/docs/release/content/Lato-bold.woff")
-        logoFile = file("src/docs/release/content/logo.gif")
+        baseStyleFile = file("$cssFiles.dir/base.css")
+        releaseNotesStyleFile = file("$cssFiles.dir/release-notes.css")
         jqueryFile = file("src/docs/release/content/jquery-1.7.2-min.js")
         scriptFile = file("src/docs/release/content/script.js")
     }
     
-    inputs.files([styleFile, fontRegularFile, fontBoldFile, logoFile, jqueryFile, scriptFile])
+    inputs.files([baseStyleFile, releaseNotesStyleFile, jqueryFile, scriptFile])
     
     transform {
         outputSettings().indentAmount(2).prettyPrint(true)
@@ -34,12 +32,8 @@ decorateReleaseNotes {
         head().
             append("<meta charset='utf-8'>").
             append("<title>Gradle @version@ Release Notes</title>")
-        
-        def styleText = styleFile.text.
-            replace("@regular-font-base64@", fontRegularFile.bytes.encodeBase64().toString()).
-            replace("@bold-font-base64@", fontBoldFile.bytes.encodeBase64().toString())
-        
-        head().append("<style>p{}</style>").children().last().childNode(0).attr("data", styleText)
+
+        head().append("<style>p{}</style>").children().last().childNode(0).attr("data", baseStyleFile.text + releaseNotesStyleFile.text)
         
         head().append("<script type='text/javascript'>1;</script>").children().last().childNode(0).attr("data", jqueryFile.text)
         head().append("<script type='text/javascript'>1;</script>").children().last().childNode(0).attr("data", scriptFile.text)
@@ -157,14 +151,14 @@ decorateReleaseNotes {
     
     // Add the heading
     transform {
-        body().prepend("<h1>@version@ Release Notes</h1>")
-        body().prepend("<img class='logo' alt='Gradle Logo' src='data:image/gif;base64,${logoFile.bytes.encodeBase64()}' />")
+        body().prepend("<h3 class='releaseinfo'>Version @version@</h3>")
+        body().prepend("<h1>Gradle Release Notes</h1>")
     }
     
     // Add the footer
     transform {
         def footer = body().append("<section class='footer'/>").children().last()
-        footer.html("Gradle @version@ Release Notes<br />— <a href='http://gradle.org'>www.gradle.org</a> —")
+        footer.html("Gradle @version@ Release Notes<br />")
     }
     
     // Syntax highlighting

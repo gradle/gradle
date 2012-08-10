@@ -19,6 +19,7 @@ package org.gradle.api.tasks.compile;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.tasks.AbstractConventionTaskTest;
 import org.gradle.util.WrapUtil;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
@@ -45,9 +46,8 @@ public abstract class AbstractCompileTest extends AbstractConventionTaskTest {
 
     protected abstract AbstractCompile getCompile();
 
-    @Override
+    @Before
     public void setUp() {
-        super.setUp();
         destDir = getProject().file("destDir");
         depCacheDir = getProject().file("depCache");
         srcDir = getProject().file("src");

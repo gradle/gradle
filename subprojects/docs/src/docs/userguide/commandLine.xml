@@ -156,6 +156,28 @@
         </varlistentry>
         <varlistentry>
             <term>
+                <option>--parallel-executor</option>
+            </term>
+            <listitem>
+                <para>
+                    Build projects in parallel. Gradle will attempt to determine the optimal number of executor threads to use.
+                    This option should only be used with decoupled projects (see <xref linkend="sec:decoupled_projects"/>).
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <option>--parallel-executor-threads</option>
+            </term>
+            <listitem>
+                <para>
+                    Build projects in parallel, using the specified number of executor threads. For example<literal>--parallel-executor-threads=3</literal>.
+                    This option should only be used with decoupled projects (see <xref linkend="sec:decoupled_projects"/>).
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
                 <option>--profile</option>
             </term>
             <listitem>

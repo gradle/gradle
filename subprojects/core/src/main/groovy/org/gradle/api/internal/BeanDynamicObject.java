@@ -32,14 +32,20 @@ public class BeanDynamicObject extends AbstractDynamicObject {
     private final Object bean;
     private final boolean includeProperties;
     private final DynamicObject delegate;
+    private final boolean implementsMissing;
 
     public BeanDynamicObject(Object bean) {
         this(bean, true);
     }
 
     private BeanDynamicObject(Object bean, boolean includeProperties) {
+        this(bean, includeProperties, true);
+    }
+
+    private BeanDynamicObject(Object bean, boolean includeProperties, boolean implementsMissing) {
         this.bean = bean;
         this.includeProperties = includeProperties;
+        this.implementsMissing = implementsMissing;
         this.delegate = determineDelegate(bean);
     }
 
@@ -53,6 +59,10 @@ public class BeanDynamicObject extends AbstractDynamicObject {
     
     public BeanDynamicObject withNoProperties() {
         return new BeanDynamicObject(bean, false);
+    }
+
+    public BeanDynamicObject withNotImplementsMissing() {
+        return new BeanDynamicObject(bean, includeProperties, false);
     }
 
     @Override
@@ -70,6 +80,16 @@ public class BeanDynamicObject extends AbstractDynamicObject {
         } else {
             return GroovySystem.getMetaClassRegistry().getMetaClass(bean.getClass());
         }
+    }
+
+    @Override
+    public boolean isMayImplementMissingMethods() {
+        return implementsMissing && delegate.isMayImplementMissingMethods();
+    }
+
+    @Override
+    public boolean isMayImplementMissingProperties() {
+        return implementsMissing && includeProperties && delegate.isMayImplementMissingProperties();
     }
 
     @Override
@@ -202,6 +222,14 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             } catch (MissingMethodException e) {
                 throw methodMissingException(name, arguments);
             }
+        }
+
+        public boolean isMayImplementMissingMethods() {
+            return true;
+        }
+
+        public boolean isMayImplementMissingProperties() {
+            return true;
         }
     }
 

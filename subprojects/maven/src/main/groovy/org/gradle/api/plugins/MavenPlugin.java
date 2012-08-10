@@ -31,6 +31,7 @@ import org.gradle.api.publication.maven.internal.DefaultMavenFactory;
 import org.gradle.api.publication.maven.internal.DefaultMavenRepositoryHandlerConvention;
 import org.gradle.api.publication.maven.internal.MavenFactory;
 import org.gradle.api.tasks.Upload;
+import org.gradle.internal.Factory;
 import org.gradle.logging.LoggingManagerInternal;
 
 /**
@@ -50,6 +51,12 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
 
     public static final String INSTALL_TASK_NAME = "install";
 
+    private final Factory<LoggingManagerInternal> loggingManagerFactory;
+
+    public MavenPlugin(Factory<LoggingManagerInternal> loggingManagerFactory) {
+        this.loggingManagerFactory = loggingManagerFactory;
+    }
+
     public void apply(final ProjectInternal project) {
         project.getPlugins().apply(BasePlugin.class);
 
@@ -57,7 +64,7 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
         final MavenPluginConvention pluginConvention = addConventionObject(project, mavenFactory);
         final DefaultDeployerFactory deployerFactory = new DefaultDeployerFactory(
                 mavenFactory,
-                project.getServices().getFactory(LoggingManagerInternal.class),
+                loggingManagerFactory,
                 project.getFileResolver(),
                 pluginConvention,
                 project.getConfigurations(),

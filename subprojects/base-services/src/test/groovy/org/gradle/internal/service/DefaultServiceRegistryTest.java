@@ -23,12 +23,12 @@ import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.util.Map;
 
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 @RunWith(JMock.class)
 public class DefaultServiceRegistryTest {
@@ -38,10 +38,10 @@ public class DefaultServiceRegistryTest {
     @Test
     public void throwsExceptionForUnknownService() {
         try {
-            registry.get(Map.class);
+            registry.get(StringBuilder.class);
             fail();
         } catch (IllegalArgumentException e) {
-            assertThat(e.getMessage(), equalTo("No service of type Map available in TestRegistry."));
+            assertThat(e.getMessage(), equalTo("No service of type StringBuilder available in TestRegistry."));
         }
     }
 
@@ -65,15 +65,15 @@ public class DefaultServiceRegistryTest {
         TestRegistry registry = new TestRegistry(parent);
 
         context.checking(new Expectations(){{
-            one(parent).get(Map.class);
-            will(throwException(new UnknownServiceException(Map.class, "fail")));
+            one(parent).get(StringBuilder.class);
+            will(throwException(new UnknownServiceException(StringBuilder.class, "fail")));
         }});
 
         try {
-            registry.get(Map.class);
+            registry.get(StringBuilder.class);
             fail();
         } catch (IllegalArgumentException e) {
-            assertThat(e.getMessage(), equalTo("No service of type Map available in TestRegistry."));
+            assertThat(e.getMessage(), equalTo("No service of type StringBuilder available in TestRegistry."));
         }
     }
 
@@ -123,6 +123,16 @@ public class DefaultServiceRegistryTest {
     }
 
     @Test
+    public void failsWhenArrayClassRequested() {
+        try {
+            registry.get(String[].class);
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertThat(e.getMessage(), equalTo("Cannot locate service of array type String[]."));
+        }
+    }
+
+    @Test
     public void usesDecoratorMethodToDecorateParentServiceInstance() {
         final ServiceRegistry parent = context.mock(ServiceRegistry.class);
         ServiceRegistry registry = new RegistryWithDecoratorMethods(parent);
@@ -160,6 +170,39 @@ public class DefaultServiceRegistryTest {
             }
         });
         assertThat(registry.getFactory(String.class).create(), equalTo("value"));
+    }
+
+    @Test
+    public void canGetAFactoryUsingParameterisedFactoryType() throws NoSuchFieldException {
+        ServiceRegistry registry = new RegistryWithMultipleFactoryMethods();
+
+        Factory<String> stringFactory = (Factory<String>) registry.get(getStringFactoryType());
+        assertEquals(stringFactory.create(), "hello");
+
+        Factory<Number> numberFactory = (Factory<Number>) registry.get(getNumberFactoryType());
+        assertEquals(numberFactory.create(), 12);
+    }
+
+    @Test
+    public void canGetAFactoryUsingFactoryTypeWithBounds() throws NoSuchFieldException {
+        Factory<? super BigDecimal> superBigDecimalFactory = (Factory<? super BigDecimal>) registry.get(getSuperBigDecimalFactoryType());
+        assertEquals(superBigDecimalFactory.create(), BigDecimal.valueOf(0));
+
+        Factory<? extends BigDecimal> extendsBigDecimalFactory = (Factory<? extends BigDecimal>) registry.get(getExtendsBigDecimalFactoryType());
+        assertEquals(extendsBigDecimalFactory.create(), BigDecimal.valueOf(1));
+
+        Factory<? extends Number> extendsNumberFactory = (Factory<? extends Number>) registry.get(getExtendsNumberFactoryType());
+        assertEquals(extendsNumberFactory.create(), BigDecimal.valueOf(2));
+    }
+
+    @Test
+    public void cannotGetAFactoryUsingRawFactoryType() {
+        try {
+            registry.get(Factory.class);
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertThat(e.getMessage(), equalTo("Cannot locate service of raw type Factory. Use getFactory() or get(Type) instead."));
+        }
     }
 
     @Test
@@ -397,6 +440,32 @@ public class DefaultServiceRegistryTest {
         }
     }
 
+    private Factory<Number> numberFactory;
+    private Factory<String> stringFactory;
+    private Factory<? super BigDecimal> superBigDecimalFactory;
+    private Factory<? extends BigDecimal> extendsBigDecimalFactory;
+    private Factory<? extends Number> extendsNumberFactory;
+
+    private Type getNumberFactoryType() throws NoSuchFieldException {
+        return getClass().getDeclaredField("numberFactory").getGenericType();
+    }
+
+    private Type getStringFactoryType() throws NoSuchFieldException {
+        return getClass().getDeclaredField("stringFactory").getGenericType();
+    }
+
+    private Type getSuperBigDecimalFactoryType() throws NoSuchFieldException {
+        return getClass().getDeclaredField("superBigDecimalFactory").getGenericType();
+    }
+
+    private Type getExtendsBigDecimalFactoryType() throws NoSuchFieldException {
+        return getClass().getDeclaredField("extendsBigDecimalFactory").getGenericType();
+    }
+
+    private Type getExtendsNumberFactoryType() throws NoSuchFieldException {
+        return getClass().getDeclaredField("extendsNumberFactory").getGenericType();
+    }
+
     private static class TestRegistry extends DefaultServiceRegistry {
         public TestRegistry() {
         }
@@ -463,6 +532,24 @@ public class DefaultServiceRegistryTest {
             return new Factory<String>() {
                 public String create() {
                     return createString();
+                }
+            };
+        }
+    }
+
+    private static class RegistryWithMultipleFactoryMethods extends DefaultServiceRegistry {
+        Factory<Number> createObjectFactory() {
+            return new Factory<Number>() {
+                public Number create() {
+                    return 12;
+                }
+            };
+        }
+
+        Factory<String> createStringFactory() {
+            return new Factory<String>() {
+                public String create() {
+                    return "hello";
                 }
             };
         }

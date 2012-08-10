@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.repositories;
 import org.apache.ivy.core.IvyPatternHelper;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.apache.ivy.plugins.resolver.util.ResolverHelper;
 import org.gradle.api.internal.resource.ResourceException;
 import org.gradle.api.internal.resource.ResourceNotFoundException;
 import org.slf4j.Logger;
@@ -39,11 +38,10 @@ public class ResourceVersionLister implements VersionLister {
     public static final int REV_TOKEN_LENGTH = REVISION_TOKEN.length();
 
     private final ExternalResourceRepository repository;
-    private final String fileSep;
+    private final String fileSeparator = "/";
 
     public ResourceVersionLister(ExternalResourceRepository repository) {
         this.repository = repository;
-        this.fileSep = repository.getFileSeparator();
     }
 
     public VersionList getVersionList(ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact) throws ResourceException, ResourceNotFoundException {
@@ -51,25 +49,16 @@ public class ResourceVersionLister implements VersionLister {
         String partiallyResolvedPattern = IvyPatternHelper.substitute(pattern, idWithoutRevision, artifact);
         LOGGER.debug("Listing all in {}", partiallyResolvedPattern);
         try {
-//            final String[] strings = ResolverHelper.listTokenValues(repository, partiallyResolvedPattern, IvyPatternHelper.REVISION_KEY);
             final List<String> versionStrings = listRevisionToken(partiallyResolvedPattern);
-
             return new DefaultVersionList(versionStrings);
         } catch (IOException e) {
             throw new ResourceException("Unable to load Versions", e);
         }
     }
 
-    protected String[] listVersions(ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact) {
-        ModuleRevisionId idWithoutRevision = ModuleRevisionId.newInstance(moduleRevisionId, IvyPatternHelper.getTokenString(IvyPatternHelper.REVISION_KEY));
-        String partiallyResolvedPattern = IvyPatternHelper.substitute(pattern, idWithoutRevision, artifact);
-        LOGGER.debug("Listing all in {}", partiallyResolvedPattern);
-        return ResolverHelper.listTokenValues(repository, partiallyResolvedPattern, IvyPatternHelper.REVISION_KEY);
-    }
-
     // lists all the values a revision token listed by a given url lister
     private List<String> listRevisionToken(String pattern) throws IOException {
-        pattern = repository.standardize(pattern);
+        pattern = standardize(pattern);
         if (!pattern.contains(REVISION_TOKEN)) {
             LOGGER.info("revision token not defined in pattern {}.", pattern);
             return Collections.emptyList();
@@ -78,7 +67,7 @@ public class ResourceVersionLister implements VersionLister {
         if (revisionMatchesDirectoryName(pattern)) {
             return listAll(prefix);
         } else {
-            int parentFolderSlashIndex = prefix.lastIndexOf(fileSep);
+            int parentFolderSlashIndex = prefix.lastIndexOf(fileSeparator);
             String revisionParentFolder = parentFolderSlashIndex == -1 ? "" : prefix.substring(0, parentFolderSlashIndex);
             LOGGER.debug("using {} to list all in {} ", repository, revisionParentFolder);
             List<String> all = repository.list(revisionParentFolder);
@@ -91,6 +80,10 @@ public class ResourceVersionLister implements VersionLister {
             LOGGER.debug("{} matched {}" + pattern, ret.size(), pattern);
             return ret;
         }
+    }
+
+    private String standardize(String source) {
+        return source.replace('\\', '/');
     }
 
     private List<String> filterMatchedValues(List<String> all, final Pattern p) {
@@ -106,7 +99,7 @@ public class ResourceVersionLister implements VersionLister {
     }
 
     private Pattern createRegexPattern(String pattern, int prefixLastSlashIndex) {
-        int endNameIndex = pattern.indexOf(fileSep, prefixLastSlashIndex + 1);
+        int endNameIndex = pattern.indexOf(fileSeparator, prefixLastSlashIndex + 1);
         String namePattern;
         if (endNameIndex != -1) {
             namePattern = pattern.substring(prefixLastSlashIndex + 1, endNameIndex);
@@ -116,8 +109,8 @@ public class ResourceVersionLister implements VersionLister {
         namePattern = namePattern.replaceAll("\\.", "\\\\.");
 
         String acceptNamePattern = ".*?"
-                + namePattern.replaceAll("\\[revision\\]", "([^" + fileSep + "]+)")
-                + "($|" + fileSep + ".*)";
+                + namePattern.replaceAll("\\[revision\\]", "([^" + fileSeparator + "]+)")
+                + "($|" + fileSeparator + ".*)";
 
         return Pattern.compile(acceptNamePattern);
     }
@@ -126,9 +119,9 @@ public class ResourceVersionLister implements VersionLister {
         int index = pattern.indexOf(REVISION_TOKEN);
         boolean patternStartsWithRevisionToken = index == 0;
         return (pattern.length() <= index + REV_TOKEN_LENGTH)
-                    || fileSep.equals(pattern.substring(index + REV_TOKEN_LENGTH, index + REV_TOKEN_LENGTH + 1)) // first revision token is followed by file separator
+                || fileSeparator.equals(pattern.substring(index + REV_TOKEN_LENGTH, index + REV_TOKEN_LENGTH + 1)) // first revision token is followed by file separator
                 && (patternStartsWithRevisionToken
-                    || fileSep.equals(pattern.substring(index - 1, index))); // first revision token is prefixed by file separator
+                || fileSeparator.equals(pattern.substring(index - 1, index))); // first revision token is prefixed by file separator
     }
 
     private List<String> listAll(String parent) throws IOException {
@@ -145,10 +138,10 @@ public class ResourceVersionLister implements VersionLister {
     private List<String> extractVersionInfoFromPaths(List<String> paths) {
         List<String> ret = new ArrayList<String>(paths.size());
         for (String fullpath : paths) {
-            if (fullpath.endsWith(fileSep)) {
+            if (fullpath.endsWith(fileSeparator)) {
                 fullpath = fullpath.substring(0, fullpath.length() - 1);
             }
-            int slashIndex = fullpath.lastIndexOf(fileSep);
+            int slashIndex = fullpath.lastIndexOf(fileSeparator);
             ret.add(fullpath.substring(slashIndex + 1));
         }
         return ret;

@@ -17,8 +17,6 @@ package org.gradle.internal.reflect
 
 import spock.lang.Specification
 
-import org.gradle.internal.UncheckedException
-
 class DirectInstantiatorTest extends Specification {
     final DirectInstantiator instantiator = new DirectInstantiator()
 
@@ -69,15 +67,16 @@ class DirectInstantiatorTest extends Specification {
         instantiator.newInstance(TypeWithAmbiguousConstructor, "param")
 
         then:
-        IllegalArgumentException e = thrown()
-        e.message == "Found multiple public constructors for ${TypeWithAmbiguousConstructor} which accept parameters [param]."
+        ObjectInstantiationException e = thrown()
+        e.cause instanceof IllegalArgumentException
+        e.cause.message == "Found multiple public constructors for ${TypeWithAmbiguousConstructor} which accept parameters [param]."
 
         when:
         instantiator.newInstance(TypeWithAmbiguousConstructor, true)
 
         then:
         e = thrown()
-        e.message == "Found multiple public constructors for ${TypeWithAmbiguousConstructor} which accept parameters [true]."
+        e.cause.message == "Found multiple public constructors for ${TypeWithAmbiguousConstructor} which accept parameters [true]."
     }
 
     def "fails when target class has no matching public constructor"() {
@@ -87,22 +86,23 @@ class DirectInstantiatorTest extends Specification {
         instantiator.newInstance(SomeType, param)
 
         then:
-        IllegalArgumentException e = thrown()
-        e.message == "Could not find any public constructor for ${SomeType} which accepts parameters [${param}]."
+        ObjectInstantiationException e = thrown()
+        e.cause instanceof IllegalArgumentException
+        e.cause.message == "Could not find any public constructor for ${SomeType} which accepts parameters [${param}]."
 
         when:
         instantiator.newInstance(SomeType, "a", "b")
 
         then:
         e = thrown()
-        e.message == "Could not find any public constructor for ${SomeType} which accepts parameters [a, b]."
+        e.cause.message == "Could not find any public constructor for ${SomeType} which accepts parameters [a, b]."
 
         when:
         instantiator.newInstance(SomeType, false)
 
         then:
         e = thrown()
-        e.message == "Could not find any public constructor for ${SomeType} which accepts parameters [false]."
+        e.cause.message == "Could not find any public constructor for ${SomeType} which accepts parameters [false]."
 
         when:
 
@@ -110,7 +110,7 @@ class DirectInstantiatorTest extends Specification {
 
         then:
         e = thrown()
-        e.message == "Could not find any public constructor for ${SomeTypeWithPrimitiveTypes} which accepts parameters [a]."
+        e.cause.message == "Could not find any public constructor for ${SomeTypeWithPrimitiveTypes} which accepts parameters [a]."
 
         when:
 
@@ -118,7 +118,7 @@ class DirectInstantiatorTest extends Specification {
 
         then:
         e = thrown()
-        e.message == "Could not find any public constructor for ${SomeTypeWithPrimitiveTypes} which accepts parameters [22]."
+        e.cause.message == "Could not find any public constructor for ${SomeTypeWithPrimitiveTypes} which accepts parameters [22]."
 
         when:
 
@@ -126,24 +126,16 @@ class DirectInstantiatorTest extends Specification {
 
         then:
         e = thrown()
-        e.message == "Could not find any public constructor for ${SomeTypeWithPrimitiveTypes} which accepts parameters [null]."
+        e.cause.message == "Could not find any public constructor for ${SomeTypeWithPrimitiveTypes} which accepts parameters [null]."
     }
 
-    def "rethrows unchecked exception thrown by constructor"() {
+    def "wraps exception thrown by constructor"() {
         when:
         instantiator.newInstance(BrokenType, false)
 
         then:
-        RuntimeException e = thrown()
-        e.message == 'broken'
-    }
-
-    def "wraps checked exception thrown by constructor"() {
-        when:
-        instantiator.newInstance(BrokenType, true)
-
-        then:
-        UncheckedException e = thrown()
+        ObjectInstantiationException e = thrown()
+        e.cause instanceof RuntimeException
         e.cause.message == 'broken'
     }
 }

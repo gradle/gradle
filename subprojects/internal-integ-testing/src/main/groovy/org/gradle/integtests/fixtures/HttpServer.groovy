@@ -16,6 +16,7 @@
 package org.gradle.integtests.fixtures
 
 import org.gradle.util.hash.HashUtil
+import org.hamcrest.Matcher
 import org.junit.rules.ExternalResource
 import org.mortbay.jetty.handler.AbstractHandler
 import org.mortbay.jetty.handler.HandlerCollection
@@ -41,6 +42,8 @@ class HttpServer extends ExternalResource {
     AuthScheme authenticationScheme = AuthScheme.BASIC
     private Throwable failure
     private final List<Expection> expections = []
+
+    private Matcher expectedUserAgent = null
 
     enum AuthScheme {
         BASIC(new BasicAuthHandler()), DIGEST(new DigestAuthHandler())
@@ -110,6 +113,10 @@ class HttpServer extends ExternalResource {
         }
     }
 
+    void expectUserAgent(UserAgentMatcher userAgent) {
+        this.expectedUserAgent = userAgent;
+    }
+
     void resetExpectations() {
         try {
             if (failure != null) {
@@ -120,6 +127,7 @@ class HttpServer extends ExternalResource {
             }
         } finally {
             failure = null
+            expectedUserAgent = null
             expections.clear()
             collection.setHandlers()
         }
@@ -158,6 +166,13 @@ class HttpServer extends ExternalResource {
             }
 
             void handle(HttpServletRequest request, HttpServletResponse response) {
+                if (HttpServer.this.expectedUserAgent != null) {
+                    String receivedUserAgent = request.getHeader("User-Agent")
+                    if (!expectedUserAgent.matches(receivedUserAgent)) {
+                        response.sendError(412, String.format("Precondition Failed: Expected User-Agent: '%s' but was '%s'", expectedUserAgent, receivedUserAgent));
+                        return;
+                    }
+                }
                 def file
                 if (request.pathInfo == path) {
                     file = srcFile
@@ -385,6 +400,13 @@ class HttpServer extends ExternalResource {
             }
 
             void handle(HttpServletRequest request, HttpServletResponse response) {
+                if (HttpServer.this.expectedUserAgent != null) {
+                    String receivedUserAgent = request.getHeader("User-Agent")
+                    if (!expectedUserAgent.matches(receivedUserAgent)) {
+                        response.sendError(412, String.format("Precondition Failed: Expected User-Agent: '%s' but was '%s'", expectedUserAgent, receivedUserAgent))
+                        return;
+                    }
+                }
                 destFile.bytes = request.inputStream.bytes
                 response.setStatus(statusCode)
             }
@@ -401,6 +423,7 @@ class HttpServer extends ExternalResource {
             }
 
             void handle(HttpServletRequest request, HttpServletResponse response) {
+
                 if (request.remoteUser != username) {
                     response.sendError(500, "unexpected username '${request.remoteUser}'")
                     return

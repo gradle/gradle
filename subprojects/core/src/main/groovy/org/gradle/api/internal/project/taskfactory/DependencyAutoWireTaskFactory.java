@@ -17,34 +17,27 @@ package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.internal.reflect.Instantiator;
 
-import java.util.HashMap;
 import java.util.Map;
 
 /**
  * A {@link ITaskFactory} which wires the dependencies of a task based on its input files.
  */
 public class DependencyAutoWireTaskFactory implements ITaskFactory {
-    public static final String DEPENDENCY_AUTO_WIRE = "dependencyAutoWire";
     private final ITaskFactory taskFactory;
 
     public DependencyAutoWireTaskFactory(ITaskFactory taskFactory) {
         this.taskFactory = taskFactory;
     }
 
-    public TaskInternal createTask(ProjectInternal project, Map<String, ?> args) {
-        Map<String, Object> actualArgs = new HashMap<String, Object>(args);
-        boolean autoWire = remove(actualArgs, DEPENDENCY_AUTO_WIRE);
-
-        TaskInternal task = taskFactory.createTask(project, actualArgs);
-        if (autoWire) {
-            task.dependsOn(task.getInputs().getFiles());
-        }
-        return task;
+    public ITaskFactory createChild(ProjectInternal project, Instantiator instantiator) {
+        return new DependencyAutoWireTaskFactory(taskFactory.createChild(project, instantiator));
     }
 
-    private boolean remove(Map<String, ?> args, String key) {
-        Object value = args.remove(key);
-        return value == null ? true : Boolean.valueOf(value.toString());
+    public TaskInternal createTask(Map<String, ?> args) {
+        TaskInternal task = taskFactory.createTask(args);
+        task.dependsOn(task.getInputs().getFiles());
+        return task;
     }
 }

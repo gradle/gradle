@@ -166,7 +166,7 @@
     <section id="sec:specifying_multiple_files">
         <title>Specifying a set of input files</title>
         <para>Many objects in Gradle have properties which accept a set of input files. For example, the
-            <apilink class="org.gradle.api.tasks.compile.Compile"/> task has a <literal>source</literal> property,
+            <apilink class="org.gradle.api.tasks.compile.JavaCompile"/> task has a <literal>source</literal> property,
             which defines the source files to compile. You can set the value of this property using any of the types
             supported by the <link linkend="sec:file_collections">files()</link> method, which we have seen in above.
             This means you can set the property using, for example, a <classname>File</classname>, <classname>String</classname>,

@@ -27,7 +27,6 @@ class ZipTest extends AbstractArchiveTaskTest {
     Zip zip
 
     @Before public void setUp()  {
-        super.setUp()
         zip = createTask(Zip)
         configure(zip)
         zip.from tmpDir.createFile('file.txt')

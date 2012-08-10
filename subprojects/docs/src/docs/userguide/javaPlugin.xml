@@ -69,7 +69,7 @@
                 <td>All tasks which produce the compile classpath. This includes the <literal>jar</literal> task for
                     project dependencies included in the <literal>compile</literal> configuration.
                 </td>
-                <td><apilink class="org.gradle.api.tasks.compile.Compile"/></td>
+                <td><apilink class="org.gradle.api.tasks.compile.JavaCompile"/></td>
                 <td>Compiles production Java source files using javac.</td>
             </tr>
             <tr>
@@ -98,7 +98,7 @@
                 <td>
                     <literal>compile</literal>, plus all tasks which produce the test compile classpath.
                 </td>
-                <td><apilink class="org.gradle.api.tasks.compile.Compile"/></td>
+                <td><apilink class="org.gradle.api.tasks.compile.JavaCompile"/></td>
                 <td>Compiles test Java source files using javac.</td>
             </tr>
             <tr>
@@ -199,7 +199,7 @@
                 <td>
                     All tasks which produce the source set's compile classpath.
                 </td>
-                <td><apilink class="org.gradle.api.tasks.compile.Compile"/></td>
+                <td><apilink class="org.gradle.api.tasks.compile.JavaCompile"/></td>
                 <td>Compiles the given source set's Java source files using javac.</td>
             </tr>
             <tr>
@@ -1057,7 +1057,7 @@
 
     <section id='sec:compile'>
         <title>CompileJava</title>
-        <para>The Java plugin adds a <apilink class="org.gradle.api.tasks.compile.Compile"/> instance for each
+        <para>The Java plugin adds a <apilink class="org.gradle.api.tasks.compile.JavaCompile"/> instance for each
             source set in the project. Some of the most common configuration options are shown below.
         </para>
         <table>

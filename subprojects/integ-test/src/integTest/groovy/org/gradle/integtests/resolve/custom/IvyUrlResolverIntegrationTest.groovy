@@ -19,6 +19,10 @@ import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
 
 class IvyUrlResolverIntegrationTest extends AbstractDependencyResolutionTest {
 
+    def setup() {
+        server.expectUserAgent(null) // custom resolver uses apache/ivy as useragent strings
+    }
+
     public void "can resolve and cache dependencies from an HTTP Ivy repository"() {
         server.start()
         given:

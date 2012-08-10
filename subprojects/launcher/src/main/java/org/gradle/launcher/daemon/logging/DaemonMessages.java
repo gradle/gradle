@@ -16,11 +16,7 @@
 
 package org.gradle.launcher.daemon.logging;
 
-/**
- * by Szczepan Faber, created at: 1/19/12
- */
-public class DaemonMessages {
-    
+public abstract class DaemonMessages {
     public final static String PROCESS_STARTED = "Daemon server started.";
     public final static String ABOUT_TO_CLOSE_STREAMS = "Daemon started. About to close the streams. Daemon details: ";
     public final static String STARTED_RELAYING_LOGS = "The client will now receive all logging from the daemon (pid: ";

@@ -37,7 +37,6 @@ class DirectoryTest extends AbstractTaskTest {
     }
 
     @Before public void setUp() {
-        super.setUp()
         directoryForAbstractTest = createTask(Directory.class)
         directory = createTask(Directory.class, project, TASK_DIR_NAME)
     }

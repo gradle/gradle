@@ -25,6 +25,8 @@ import org.gradle.plugins.ide.idea.internal.IdeaNameDeduper
 import org.gradle.plugins.ide.internal.IdePlugin
 import org.gradle.plugins.ide.idea.model.*
 
+import javax.inject.Inject
+
 /**
  * Adds a GenerateIdeaModule task. When applied to a root project, also adds a GenerateIdeaProject task.
  * For projects that have the Java plugin applied, the tasks receive additional Java-specific configuration.
@@ -33,7 +35,13 @@ import org.gradle.plugins.ide.idea.model.*
  */
 class IdeaPlugin extends IdePlugin {
 
+    private final Instantiator instantiator
     IdeaModel model
+
+    @Inject
+    IdeaPlugin(Instantiator instantiator) {
+        this.instantiator = instantiator
+    }
 
     @Override protected String getLifecycleTaskName() {
         return 'idea'
@@ -43,7 +51,7 @@ class IdeaPlugin extends IdePlugin {
         lifecycleTask.description = 'Generates IDEA project files (IML, IPR, IWS)'
         cleanTask.description = 'Cleans IDEA project files (IML, IPR)'
 
-        model= project.extensions.create("idea", IdeaModel)
+        model = project.extensions.create("idea", IdeaModel)
 
         configureIdeaWorkspace(project)
         configureIdeaProject(project)
@@ -79,7 +87,7 @@ class IdeaPlugin extends IdePlugin {
     private configureIdeaModule(Project project) {
         def task = project.task('ideaModule', description: 'Generates IDEA module files (IML)', type: GenerateIdeaModule) {
             def iml = new IdeaModuleIml(xmlTransformer, project.projectDir)
-            module = services.get(Instantiator).newInstance(IdeaModule, project, iml)
+            module = instantiator.newInstance(IdeaModule, project, iml)
 
             model.module = module
 
@@ -106,7 +114,7 @@ class IdeaPlugin extends IdePlugin {
         if (isRoot(project)) {
             def task = project.task('ideaProject', description: 'Generates IDEA project file (IPR)', type: GenerateIdeaProject) {
                 def ipr = new XmlFileContentMerger(xmlTransformer)
-                ideaProject = services.get(Instantiator).newInstance(IdeaProject, ipr)
+                ideaProject = instantiator.newInstance(IdeaProject, ipr)
 
                 model.project = ideaProject
 
@@ -152,10 +160,12 @@ class IdeaPlugin extends IdePlugin {
                     RUNTIME: [plus: [configurations.runtime], minus: [configurations.compile]],
                     TEST: [plus: [configurations.testRuntime], minus: [configurations.runtime]]
             ]
-            module.conventionMapping.singleEntryLibraries = { [
-                    RUNTIME: project.sourceSets.main.output.dirs,
-                    TEST: project.sourceSets.test.output.dirs
-            ] }
+            module.conventionMapping.singleEntryLibraries = {
+                [
+                        RUNTIME: project.sourceSets.main.output.dirs,
+                        TEST: project.sourceSets.test.output.dirs
+                ]
+            }
             dependsOn {
                 project.sourceSets.main.output.dirs + project.sourceSets.test.output.dirs
             }

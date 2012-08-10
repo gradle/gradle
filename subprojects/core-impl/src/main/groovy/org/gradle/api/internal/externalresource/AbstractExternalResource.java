@@ -15,23 +15,26 @@
  */
 package org.gradle.api.internal.externalresource;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.ivy.plugins.repository.Resource;
-import org.apache.ivy.util.CopyProgressListener;
-import org.apache.ivy.util.FileUtil;
 
 import java.io.*;
 
 public abstract class AbstractExternalResource implements ExternalResource {
-    public void writeTo(File destination, CopyProgressListener progress) throws IOException {
+
+    public void writeTo(File destination) throws IOException {
         FileOutputStream output = new FileOutputStream(destination);
-        writeTo(output, progress);
-        output.close();
+        try {
+            writeTo(output);
+        } finally {
+            output.close();
+        }
     }
 
-    public void writeTo(OutputStream output, CopyProgressListener progress) throws IOException {
+    public void writeTo(OutputStream output) throws IOException {
         InputStream input = openStream();
         try {
-            FileUtil.copy(input, output, progress);
+            IOUtils.copy(input, output);
         } finally {
             input.close();
         }
@@ -44,5 +47,4 @@ public abstract class AbstractExternalResource implements ExternalResource {
 
     public void close() throws IOException {
     }
-
 }

@@ -18,16 +18,18 @@ package org.gradle.api.internal.artifacts.repositories;
 
 import org.apache.ivy.core.IvyPatternHelper;
 import org.apache.ivy.core.cache.ArtifactOrigin;
-import org.apache.ivy.core.event.EventManager;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.apache.ivy.core.report.DownloadReport;
+import org.apache.ivy.core.report.ArtifactDownloadReport;
 import org.apache.ivy.core.resolve.DownloadOptions;
 import org.apache.ivy.core.resolve.ResolveData;
+import org.apache.ivy.core.search.ModuleEntry;
+import org.apache.ivy.core.search.OrganisationEntry;
+import org.apache.ivy.core.search.RevisionEntry;
 import org.apache.ivy.plugins.repository.Resource;
 import org.apache.ivy.plugins.resolver.BasicResolver;
 import org.apache.ivy.plugins.resolver.util.MDResolvedResource;
@@ -94,10 +96,6 @@ public class ExternalResourceResolver extends BasicResolver {
         return findResourceUsingPatterns(mrid, ivyPatterns, DefaultArtifact.newIvyArtifact(mrid, data.getDate()), getRMDParser(dd, data), data.getDate(), true);
     }
 
-    protected ResolvedResource findArtifactRef(Artifact artifact, Date date) {
-        throw new UnsupportedOperationException();
-    }
-
     @Override
     protected ResolvedResource findFirstArtifactRef(ModuleDescriptor md, DependencyDescriptor dd,
                                                     ResolveData data) {
@@ -114,7 +112,8 @@ public class ExternalResourceResolver extends BasicResolver {
 
     @Override
     public boolean exists(Artifact artifact) {
-        return locate(artifact) != null;
+        // This is never used
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -219,20 +218,6 @@ public class ExternalResourceResolver extends BasicResolver {
         return null;
     }
 
-    public DownloadReport download(Artifact[] artifacts, DownloadOptions options) {
-        EventManager eventManager = getEventManager();
-        try {
-            if (eventManager != null) {
-                repository.addTransferListener(eventManager);
-            }
-            return super.download(artifacts, options);
-        } finally {
-            if (eventManager != null) {
-                repository.removeTransferListener(eventManager);
-            }
-        }
-    }
-
     protected ResolvedResource findResourceUsingPattern(ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact, ResourceMDParser resourceParser, Date date, boolean forDownload) {
         String name = getName();
         VersionMatcher versionMatcher = getSettings().getVersionMatcher();
@@ -287,9 +272,62 @@ public class ExternalResourceResolver extends BasicResolver {
         }
     }
 
+    @Override
+    public ArtifactDownloadReport download(ArtifactOrigin origin, DownloadOptions options) {
+        // This is never used
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void reportFailure() {
+        // This is never used
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void reportFailure(Artifact art) {
+        // This is never used
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String[] listTokenValues(String token, Map otherTokenValues) {
+        // This is never used
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Map[] listTokenValues(String[] tokens, Map criteria) {
+        // This is never used
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public OrganisationEntry[] listOrganisations() {
+        // This is never used
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public ModuleEntry[] listModules(OrganisationEntry org) {
+        // This is never used
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public RevisionEntry[] listRevisions(ModuleEntry mod) {
+                // This is never used
+        throw new UnsupportedOperationException();
+    }
+
+    protected ResolvedResource findArtifactRef(Artifact artifact, Date date) {
+        // This is never used
+        throw new UnsupportedOperationException();
+    }
+
     protected Resource getResource(String source) throws IOException {
-        ExternalResource resource = repository.getResource(source);
-        return resource == null ? new MissingExternalResource(source) : resource;
+        // This is never used
+        throw new UnsupportedOperationException();
     }
 
     protected Resource getResource(String source, Artifact target, boolean forDownload) throws IOException {
@@ -325,7 +363,12 @@ public class ExternalResourceResolver extends BasicResolver {
             throw new IllegalArgumentException("Can only download ExternalResource");
         }
 
-        repository.downloadResource((ExternalResource) resource, destination);
+        ExternalResource externalResource = (ExternalResource) resource;
+        try {
+            externalResource.writeTo(destination);
+        } finally {
+            externalResource.close();
+        }
         return destination.length();
     }
 
@@ -346,7 +389,7 @@ public class ExternalResourceResolver extends BasicResolver {
 
         String destination = getDestination(destinationPattern, artifact, moduleRevisionId);
 
-        put(artifact, src, destination, overwrite);
+        put(src, destination);
         LOGGER.info("Published {} to {}", artifact.getName(), hidePassword(destination));
     }
 
@@ -354,7 +397,7 @@ public class ExternalResourceResolver extends BasicResolver {
         return IvyPatternHelper.substitute(pattern, moduleRevisionId, artifact);
     }
 
-    private void put(Artifact artifact, File src, String destination, boolean overwrite) throws IOException {
+    private void put(File src, String destination) throws IOException {
         // verify the checksum algorithms before uploading artifacts!
         String[] checksums = getChecksumAlgorithms();
         for (String checksum : checksums) {
@@ -363,20 +406,19 @@ public class ExternalResourceResolver extends BasicResolver {
             }
         }
 
-        repository.put(artifact, src, destination, overwrite);
+        repository.put(src, destination);
         for (String checksum : checksums) {
-            putChecksum(artifact, src, destination, overwrite, checksum);
+            putChecksum(src, destination, checksum);
         }
     }
 
-    private void putChecksum(Artifact artifact, File src, String destination, boolean overwrite,
+    private void putChecksum(File src, String destination,
                              String algorithm) throws IOException {
         File csFile = temporaryFileProvider.createTemporaryFile("ivytemp", algorithm);
         try {
             FileUtil.copy(new ByteArrayInputStream(ChecksumHelper.computeAsString(src, algorithm)
                     .getBytes()), csFile, null);
-            repository.put(DefaultArtifact.cloneWithAnotherTypeAndExt(artifact, algorithm,
-                    artifact.getExt() + "." + algorithm), csFile, destination + "." + algorithm, overwrite);
+            repository.put(csFile, destination + "." + algorithm);
         } finally {
             csFile.delete();
         }

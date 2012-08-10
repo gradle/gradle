@@ -53,6 +53,9 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
     private static final String PROJECT_CACHE_DIR = "project-cache-dir";
     private static final String RECOMPILE_SCRIPTS = "recompile-scripts";
 
+    private static final String PARALLEL_EXECUTOR = "parallel-executor";
+    private static final String PARALLEL_EXECUTOR_THREADS = "parallel-executor-threads";
+
     private final CommandLineConverter<LoggingConfiguration> loggingConfigurationCommandLineConverter = new LoggingCommandLineConverter();
     private final SystemPropertiesCommandLineConverter systemPropertiesCommandLineConverter = new SystemPropertiesCommandLineConverter();
     private final ProjectPropertiesCommandLineConverter projectPropertiesCommandLineConverter = new ProjectPropertiesCommandLineConverter();
@@ -82,6 +85,8 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         parser.option(OFFLINE).hasDescription("The build should operate without accessing network resources.");
         parser.option(REFRESH).hasArguments().hasDescription("Refresh the state of resources of the type(s) specified. Currently only 'dependencies' is supported.").deprecated("Use '--refresh-dependencies' instead.");
         parser.option(REFRESH_DEPENDENCIES).hasDescription("Refresh the state of dependencies.");
+        parser.option(PARALLEL_EXECUTOR).hasDescription("Build projects in parallel. Gradle will attempt to determine the optimal number of executor threads to use.").experimental();
+        parser.option(PARALLEL_EXECUTOR_THREADS).hasArgument().hasDescription("Build projects in parallel, using the specified number of executor threads.").experimental();
     }
 
     @Override
@@ -178,6 +183,19 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
 
         if (options.hasOption(REFRESH_DEPENDENCIES)) {
             startParameter.setRefreshDependencies(true);
+        }
+
+        if (options.hasOption(PARALLEL_EXECUTOR)) {
+            startParameter.setParallelExecutorCount(-1);
+        }
+
+        if (options.hasOption(PARALLEL_EXECUTOR_THREADS)) {
+            try {
+                int parallelExecutors = Integer.parseInt(options.option(PARALLEL_EXECUTOR_THREADS).getValue());
+                startParameter.setParallelExecutorCount(parallelExecutors);
+            } catch (NumberFormatException e) {
+                throw new CommandLineArgumentException(String.format("Not a numeric argument for %s", PARALLEL_EXECUTOR_THREADS));
+            }
         }
 
         return startParameter;

@@ -36,24 +36,24 @@ public class BinariesPlugin implements Plugin<ProjectInternal> {
         project.getPlugins().apply(BasePlugin.class);
 
         Instantiator instantiator = project.getServices().get(Instantiator.class);
-        project.getExtensions().add("compilers", instantiator.newInstance(
+        project.getExtensions().create("compilers",
                 DefaultCompilerRegistry.class,
                 instantiator
-        ));
+        );
         DefaultCompilerRegistry registry = project.getExtensions().getByType(DefaultCompilerRegistry.class);
 
-        project.getExtensions().add("executables", instantiator.newInstance(
+        project.getExtensions().create("executables",
                 FactoryNamedDomainObjectContainer.class,
                 Executable.class,
                 instantiator,
                 new ReflectiveNamedDomainObjectFactory<Executable>(DefaultExecutable.class, project, registry)
-        ));
-        project.getExtensions().add("libraries", instantiator.newInstance(
+        );
+        project.getExtensions().create("libraries",
                 FactoryNamedDomainObjectContainer.class,
                 Library.class,
                 instantiator,
                 new ReflectiveNamedDomainObjectFactory<Library>(DefaultLibrary.class, project, registry)
-        ));
+        );
     }
 
 }

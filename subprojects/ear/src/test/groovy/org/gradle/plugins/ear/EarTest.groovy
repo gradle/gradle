@@ -30,10 +30,7 @@ class EarTest extends AbstractArchiveTaskTest {
 
     Ear ear
 
-    Map filesFromDepencencyManager
-
     @Before public void setUp() {
-        super.setUp()
         ear = createTask(Ear)
         configure(ear)
     }

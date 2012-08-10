@@ -53,7 +53,7 @@ public class DefaultLocalMavenRepositoryLocator implements LocalMavenRepositoryL
             }
             return new File(resolvePlaceholders(repoPath.trim()));
         } catch (SettingsBuildingException e) {
-            throw new CannotLocateLocalMavenRepositoryException("Unable to parse local maven settings", e);
+            throw new CannotLocateLocalMavenRepositoryException("Unable to parse local maven settings.", e);
         }
     }
 

@@ -37,6 +37,7 @@ dependencies {
     compile libraries.jcip
     compile libraries.jul_to_slf4j
     compile module('com.googlecode.jarjar:jarjar:1.3')
+    compile libraries.inject
 
     compile project(":cli")
     compile project(":native")
@@ -98,4 +99,12 @@ class PluginsManifest extends DefaultTask {
     def generate() {
         propertiesFile.withOutputStream { pluginProperties.save(it, 'plugin definitions') }
     }
+}
+
+eclipse {
+	classpath {
+		file.whenMerged { classpath ->
+			classpath.entries.removeAll {it.path.contains('/core') }
+		}
+	}
 }

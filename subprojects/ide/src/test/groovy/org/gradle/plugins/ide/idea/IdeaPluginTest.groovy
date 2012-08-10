@@ -149,7 +149,7 @@ class IdeaPluginTest extends Specification {
     }
 
     private applyPluginToProjects() {
-        project.apply plugin: 'idea'
-        childProject.apply plugin: 'idea'
+        project.apply plugin: IdeaPlugin
+        childProject.apply plugin: IdeaPlugin
     }
 }

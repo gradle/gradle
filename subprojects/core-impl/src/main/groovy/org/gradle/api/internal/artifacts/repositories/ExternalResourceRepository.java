@@ -16,31 +16,56 @@
 
 package org.gradle.api.internal.artifacts.repositories;
 
-import org.apache.ivy.plugins.repository.Repository;
 import org.gradle.api.Nullable;
-import org.gradle.api.internal.externalresource.cached.CachedExternalResource;
 import org.gradle.api.internal.externalresource.ExternalResource;
-import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
+import org.gradle.api.internal.externalresource.cached.CachedExternalResource;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceCandidates;
+import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
-public interface ExternalResourceRepository extends Repository {
+public interface ExternalResourceRepository {
 
-    void downloadResource(ExternalResource resource, File destination) throws IOException;
-
+    /**
+     * Attempts to fetch the given resource.
+     *
+     * @return null if the resource is not found.
+     */
     ExternalResource getResource(String source) throws IOException;
 
+    /**
+     * Attempts to fetch the given resource.
+     *
+     * @return null if the resource is not found.
+     */
     ExternalResource getResource(String source, @Nullable LocallyAvailableResourceCandidates localCandidates, @Nullable CachedExternalResource cached) throws IOException;
+
+    /**
+     * Transfer a resource to the repository
+     *
+     * @param source The local file to be transferred.
+     * @param destination Where to transfer the resource.
+     * @throws IOException On publication failure.
+     */
+    void put(File source, String destination) throws IOException;
 
     /**
      * Fetches only the metadata for the result.
      *
      * @param source The location of the resource to obtain the metadata for
      * @return The resource metadata, or null if the resource does not exist
-     * @throws IOException
      */
     @Nullable
     ExternalResourceMetaData getResourceMetaData(String source) throws IOException;
+
+    /**
+     * Return a listing of resources names
+     *
+     * @param parent The parent directory from which to generate the listing.
+     * @return A listing of the parent directory's file content, as a List of String.
+     * @throws IOException On listing failure.
+     */
+    List<String> list(String parent) throws IOException;
 }

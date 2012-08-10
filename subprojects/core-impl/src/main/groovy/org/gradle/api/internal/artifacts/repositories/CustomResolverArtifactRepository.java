@@ -36,7 +36,7 @@ public class CustomResolverArtifactRepository extends FixedResolverArtifactRepos
                 ((AbstractResolver) resolver).setRepositoryCacheManager(repositoryTransportFactory.getDownloadingCacheManager());
             }
         }
-        
+
         if (dependencyResolver instanceof FileSystemResolver) {
             ((FileSystemResolver) dependencyResolver).setLocal(true);
             ((FileSystemResolver) dependencyResolver).setRepositoryCacheManager(repositoryTransportFactory.getLocalCacheManager());

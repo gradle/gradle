@@ -19,17 +19,20 @@ package org.gradle.plugins.javascript.base
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
-import org.gradle.api.internal.artifacts.ResolverFactory
-import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.BasePlugin
 
+import javax.inject.Inject
+
 class JavaScriptBasePlugin implements Plugin<Project> {
+    private final DependencyResolutionServices dependencyResolutionServices
+
+    @Inject
+    JavaScriptBasePlugin(DependencyResolutionServices dependencyResolutionServices) {
+        this.dependencyResolutionServices = dependencyResolutionServices
+    }
 
     void apply(Project project) {
-        ProjectInternal projectInternal = project as ProjectInternal
-
         project.apply(plugin: BasePlugin)
-        ResolverFactory resolverFactory = projectInternal.services.get(DependencyResolutionServices).resolverFactory
-        JavaScriptExtension extension = project.extensions.create(JavaScriptExtension.NAME, JavaScriptExtension, resolverFactory)
+        project.extensions.create(JavaScriptExtension.NAME, JavaScriptExtension, dependencyResolutionServices.resolverFactory)
     }
 }

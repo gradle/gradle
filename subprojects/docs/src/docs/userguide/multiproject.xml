@@ -550,6 +550,21 @@
             </para>
         </section>
     </section>
+    <section id="sec:decoupled_projects">
+        <title>Decoupled Projects</title>
+        <para>Gradle allows any project to access any other project during both the configuration and execution phases. While this provides a great deal of power
+            and flexibility to the build author, it also limits the flexibility that Gradle has when building those projects. For instance, this tight _coupling_ of projects
+            effectively prevents Gradle from building multiple projects in parallel, or from substituting a pre-built artifact in place of a project dependency.
+        </para>
+        <para>Two projects are said to be _decoupled_ if they do not directly access each other's project model. Decoupled projects may only interact in terms of
+            declared dependencies: project dependencies (<xref linkend='sub:project_dependencies'/>) and/or task dependencies (<xref linkend='sec:task_dependencies'/>).
+            This means that using any form of shared build script logic or configuration injection (eg. <literal>allprojects</literal>, <literal>subprojects</literal>, etc)
+            will cause your projects to be coupled.
+        </para>
+        <para>As we extend the concept of project decoupling and provide features that take advantage of decoupled projects, we will also introduce new features to
+            help you to solve common use cases (like configuration injection) without causing your projects to be coupled.
+        </para>
+    </section>
     <section id="sec:multiproject_build_and_test">
         <title>Multi-Project Building and Testing</title>
         <para>The <literal>build</literal> task of the Java plugin is typically used to compile, test, and perform

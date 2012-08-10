@@ -40,13 +40,13 @@ public class GradleWrapperMain {
 
         Properties systemProperties = System.getProperties();
         systemProperties.putAll(parseSystemPropertiesFromArgs(args));
-        
+
         addSystemProperties(rootDir);
 
         WrapperExecutor wrapperExecutor = WrapperExecutor.forWrapperPropertiesFile(propertiesFile, System.out);
         wrapperExecutor.execute(
                 args,
-                new Install(new Download(), new PathAssembler(gradleUserHome())),
+                new Install(new Download("gradlew", null), new PathAssembler(gradleUserHome())),
                 new BootstrapMainStarter());
     }
 
@@ -57,7 +57,7 @@ public class GradleWrapperMain {
         commandLineParser.allowUnknownOptions();
         return converter.convert(commandLineParser.parse(args));
     }
-    
+
     private static void addSystemProperties(File rootDir) {
         System.getProperties().putAll(SystemPropertiesHandler.getSystemProperties(new File(gradleUserHome(), "gradle.properties")));
         System.getProperties().putAll(SystemPropertiesHandler.getSystemProperties(new File(rootDir, "gradle.properties")));
@@ -88,7 +88,7 @@ public class GradleWrapperMain {
         String gradleUserHome = System.getProperty(GRADLE_USER_HOME_PROPERTY_KEY);
         if (gradleUserHome != null) {
             return new File(gradleUserHome);
-        } else if((gradleUserHome = System.getenv(GRADLE_USER_HOME_ENV_KEY)) != null) {
+        } else if ((gradleUserHome = System.getenv(GRADLE_USER_HOME_ENV_KEY)) != null) {
             return new File(gradleUserHome);
         } else {
             return new File(DEFAULT_GRADLE_USER_HOME);

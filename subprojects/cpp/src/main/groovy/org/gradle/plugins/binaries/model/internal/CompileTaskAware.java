@@ -16,8 +16,8 @@
 
 package org.gradle.plugins.binaries.model.internal;
 
-import org.gradle.plugins.binaries.tasks.Compile;
+import org.gradle.plugins.cpp.CppCompile;
 
 public interface CompileTaskAware {
-    void configure(Compile compileTask);
+    void configure(CppCompile compileTask);
 }

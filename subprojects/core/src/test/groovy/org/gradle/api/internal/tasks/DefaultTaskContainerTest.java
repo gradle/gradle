@@ -52,7 +52,7 @@ public class DefaultTaskContainerTest {
         final Task task = task("task");
 
         context.checking(new Expectations(){{
-            one(taskFactory).createTask(project, options);
+            one(taskFactory).createTask(options);
             will(returnValue(task));
         }});
         assertThat(container.add(options), sameInstance(task));
@@ -65,7 +65,7 @@ public class DefaultTaskContainerTest {
         final Task task = task("task");
 
         context.checking(new Expectations(){{
-            one(taskFactory).createTask(project, options);
+            one(taskFactory).createTask(options);
             will(returnValue(task));
         }});
         assertThat(container.add("task"), sameInstance(task));
@@ -77,7 +77,7 @@ public class DefaultTaskContainerTest {
         final Task task = task("task");
 
         context.checking(new Expectations(){{
-            one(taskFactory).createTask(project, options);
+            one(taskFactory).createTask(options);
             will(returnValue(task));
         }});
         assertThat(container.add("task", Task.class), sameInstance(task));
@@ -90,7 +90,7 @@ public class DefaultTaskContainerTest {
         final Task task = task("task");
 
         context.checking(new Expectations(){{
-            one(taskFactory).createTask(project, options);
+            one(taskFactory).createTask(options);
             will(returnValue(task));
             one(task).configure(action);
             will(returnValue(task));
@@ -104,7 +104,7 @@ public class DefaultTaskContainerTest {
         final Task task = task("task");
 
         context.checking(new Expectations(){{
-            one(taskFactory).createTask(project, options);
+            one(taskFactory).createTask(options);
             will(returnValue(task));
         }});
         assertThat(container.replace("task"), sameInstance(task));
@@ -117,7 +117,7 @@ public class DefaultTaskContainerTest {
         final Task task = task("task");
 
         context.checking(new Expectations(){{
-            one(taskFactory).createTask(project, options);
+            one(taskFactory).createTask(options);
             will(returnValue(task));
         }});
         assertThat(container.replace("task", Task.class), sameInstance(task));
@@ -132,7 +132,7 @@ public class DefaultTaskContainerTest {
         container.addRule(rule);
 
         context.checking(new Expectations(){{
-            one(taskFactory).createTask(project, options);
+            one(taskFactory).createTask(options);
             will(returnValue(task));
         }});
 
@@ -144,7 +144,7 @@ public class DefaultTaskContainerTest {
         final Task task = addTask("task");
 
         context.checking(new Expectations() {{
-            one(taskFactory).createTask(project, singletonMap(Task.TASK_NAME, "task"));
+            one(taskFactory).createTask(singletonMap(Task.TASK_NAME, "task"));
             will(returnValue(task("task")));
         }});
 
@@ -164,7 +164,7 @@ public class DefaultTaskContainerTest {
 
         final Task newTask = task("task");
         context.checking(new Expectations() {{
-            one(taskFactory).createTask(project, singletonMap(Task.TASK_NAME, "task"));
+            one(taskFactory).createTask(singletonMap(Task.TASK_NAME, "task"));
             will(returnValue(newTask));
         }});
         
@@ -290,7 +290,7 @@ public class DefaultTaskContainerTest {
         final Task task = task(name);
         final Map<String, ?> options = singletonMap(Task.TASK_NAME, name);
         context.checking(new Expectations() {{
-            one(taskFactory).createTask(project, options);
+            one(taskFactory).createTask(options);
             will(returnValue(task));
         }});
         container.add(name);

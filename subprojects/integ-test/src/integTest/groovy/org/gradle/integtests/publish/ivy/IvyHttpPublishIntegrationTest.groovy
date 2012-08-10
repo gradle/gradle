@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.HttpServer
 import org.gradle.integtests.fixtures.IvyModule
 import org.gradle.integtests.fixtures.IvyRepository
+import org.gradle.util.GradleVersion
 import org.gradle.util.Jvm
 import org.gradle.util.TestFile
 import org.gradle.util.TextUtil
@@ -28,6 +29,8 @@ import org.hamcrest.Matchers
 import org.junit.Rule
 import org.mortbay.jetty.HttpStatus
 import spock.lang.Unroll
+
+import static org.gradle.integtests.fixtures.UserAgentMatcher.matchesNameAndVersion
 
 public class IvyHttpPublishIntegrationTest extends AbstractIntegrationSpec {
     private static final String BAD_CREDENTIALS = '''
@@ -45,6 +48,9 @@ credentials {
         def repo = new IvyRepository(distribution.testFile('ivy-repo'))
         module = repo.module("org.gradle", "publish", "2")
         module.moduleDir.mkdirs()
+        //for unknown os tests
+        file("gradle.properties") << System.properties.findAll {key, value -> key.startsWith("os.")}.collect {key, value -> "systemProp.${key}=$value"}.join("\n")
+        server.expectUserAgent(matchesNameAndVersion("Gradle", GradleVersion.current().getVersion()))
     }
 
     public void canPublishToUnauthenticatedHttpRepository() {

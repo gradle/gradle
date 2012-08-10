@@ -92,7 +92,7 @@ class DefaultCacheFactoryTest extends Specification {
             then:
             cache instanceof DelegateOnDemandPersistentDirectoryCache
             cache.baseDir == tmpDir.dir
-            cache.toString().startsWith "Delegate On Demand Cache for <display>"
+            cache.toString().startsWith "On Demand Cache for <display>"
 
             when:
             factory.close()

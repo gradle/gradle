@@ -103,6 +103,12 @@ class CollectionUtilsTest extends Specification {
         !replace(l, spec { false }, transformer { it })
     }
 
+    def "collect as map"() {
+        expect:
+        collectMap([1,2,3], transformer { it * 10 }) == [10: 1, 20: 2, 30: 3]
+        collectMap([], transformer { it * 10 }) == [:]
+    }
+
     Spec<?> spec(Closure c) {
         Specs.convertClosureToSpec(c)
     }

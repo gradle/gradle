@@ -129,7 +129,7 @@ public class DistributionFactory {
             progressLogger.setDescription(String.format("Download %s", address));
             progressLogger.started();
             try {
-                new Download().download(address, destination);
+                new Download("Gradle Tooling API", GradleVersion.current().getVersion()).download(address, destination);
             } finally {
                 progressLogger.completed();
             }

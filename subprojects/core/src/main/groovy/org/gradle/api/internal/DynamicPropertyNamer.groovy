@@ -44,17 +44,4 @@ class DynamicPropertyNamer implements Namer<Object> {
         
         name.toString()
     }
-
-    private static class NoNamingPropertyException extends RuntimeException {
-        NoNamingPropertyException(Object thing, String property) {
-            super("Unable to determine the name of '$thing' because it does not have a '$property' property")
-        }
-    }
-    
-    private static class NullNamingPropertyException extends RuntimeException {
-        NullNamingPropertyException(Object thing, String property) {
-            super("Unable to determine the name of '$thing' because its value for the naming property '$property' is null")
-        }
-    }
-    
 }

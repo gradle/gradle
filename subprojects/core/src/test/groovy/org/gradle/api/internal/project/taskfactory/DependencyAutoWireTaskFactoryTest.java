@@ -17,16 +17,16 @@ package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.TaskInputs;
-import static org.gradle.util.GUtil.*;
-import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import static org.gradle.util.GUtil.map;
+import static org.hamcrest.Matchers.sameInstance;
+import static org.junit.Assert.assertThat;
 
 @RunWith(JMock.class)
 public class DependencyAutoWireTaskFactoryTest {
@@ -37,12 +37,11 @@ public class DependencyAutoWireTaskFactoryTest {
     @Test
     public void addsDependencyOnInputFiles() {
         final TaskInternal task = context.mock(TaskInternal.class);
-        final ProjectInternal project = context.mock(ProjectInternal.class);
         final TaskInputs taskInputs = context.mock(TaskInputs.class);
         final FileCollection inputFiles = context.mock(FileCollection.class);
 
         context.checking(new Expectations() {{
-            one(delegate).createTask(project, map());
+            one(delegate).createTask(map());
             will(returnValue(task));
             allowing(task).getInputs();
             will(returnValue(taskInputs));
@@ -51,6 +50,6 @@ public class DependencyAutoWireTaskFactoryTest {
             one(task).dependsOn(inputFiles);
         }});
 
-        assertThat(factory.createTask(project, map()), sameInstance(task));
+        assertThat(factory.createTask(map()), sameInstance(task));
     }
 }

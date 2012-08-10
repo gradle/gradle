@@ -32,7 +32,6 @@ class MavenResolverTest extends Specification {
 
     def setup() {
         repositoryTransport.getRepository() >> repository
-        repository.getFileSeparator() >> "/"
     }
 
     @Unroll

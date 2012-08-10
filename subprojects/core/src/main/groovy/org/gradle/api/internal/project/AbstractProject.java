@@ -241,7 +241,7 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
     }
 
     public void setScript(Script buildScript) {
-        extensibleDynamicObject.addObject(new BeanDynamicObject(buildScript).withNoProperties(),
+        extensibleDynamicObject.addObject(new BeanDynamicObject(buildScript).withNoProperties().withNotImplementsMissing(),
                 ExtensibleDynamicObject.Location.BeforeConvention);
     }
 

@@ -27,15 +27,14 @@ import org.gradle.api.internal.project.AbstractProject;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.AnnotationProcessingTaskFactory;
-import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.project.taskfactory.TaskFactory;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.util.*;
 import org.jmock.Expectations;
 import org.jmock.lib.legacy.ClassImposteriser;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import spock.lang.Issue;
@@ -55,17 +54,12 @@ public abstract class AbstractTaskTest {
     @Rule
     public TemporaryFolder tmpDir = new TemporaryFolder();
 
-    private AbstractProject project;
+    private AbstractProject project = HelperUtil.createRootProject();
 
     protected JUnit4GroovyMockery context = new JUnit4GroovyMockery() {{
         setImposteriser(ClassImposteriser.INSTANCE);
     }};
-    private static final ITaskFactory TASK_FACTORY = new AnnotationProcessingTaskFactory(new TaskFactory(new AsmBackedClassGenerator()));
-
-    @Before
-    public void setUp() {
-        project = HelperUtil.createRootProject();
-    }
+    private final AnnotationProcessingTaskFactory rootFactory = new AnnotationProcessingTaskFactory(new TaskFactory(new AsmBackedClassGenerator()));
 
     public abstract AbstractTask getTask();
 
@@ -73,14 +67,12 @@ public abstract class AbstractTaskTest {
         return createTask(type, project, TEST_TASK_NAME);
     }
 
-    public Task createTask(Project project, String name) {
+    public Task createTask(ProjectInternal project, String name) {
         return createTask(getTask().getClass(), project, name);
     }
 
-    public <T extends AbstractTask> T createTask(Class<T> type, Project project, String name) {
-        Task task = TASK_FACTORY.createTask((ProjectInternal) project,
-                GUtil.map(Task.TASK_TYPE, type,
-                        Task.TASK_NAME, name));
+    public <T extends AbstractTask> T createTask(Class<T> type, ProjectInternal project, String name) {
+        Task task = rootFactory.createChild(project, new DirectInstantiator()).createTask(GUtil.map(Task.TASK_TYPE, type, Task.TASK_NAME, name));
         assertTrue(type.isAssignableFrom(task.getClass()));
         return type.cast(task);
     }

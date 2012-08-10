@@ -24,7 +24,6 @@ import org.gradle.plugins.binaries.BinariesPlugin
 import org.gradle.plugins.binaries.model.Binary
 import org.gradle.plugins.binaries.model.Executable
 import org.gradle.plugins.binaries.model.internal.DefaultCompilerRegistry
-import org.gradle.plugins.binaries.tasks.Compile
 import org.gradle.plugins.cpp.gpp.GppCompilerPlugin
 import org.gradle.plugins.cpp.gpp.internal.GppCompileSpecFactory
 import org.gradle.plugins.cpp.msvcpp.MicrosoftVisualCppPlugin
@@ -91,7 +90,7 @@ exec "\$APP_BASE_NAME/lib/${executable.spec.outputFile.name}" \"\$@\"
     def configureBinary(ProjectInternal project, Binary binary) {
         def baseName = GUtil.toCamelCase(binary.name).capitalize()
 
-        def task = project.task("compile${baseName}", type: Compile) {
+        def task = project.task("compile${baseName}", type: CppCompile) {
             description = "Compiles and links $binary"
             group = BasePlugin.BUILD_GROUP
         }

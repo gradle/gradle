@@ -163,15 +163,6 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         assertEquals(getDefaultCharacterEncoding(), Charset.defaultCharset().name());
     }
 
-    public boolean canExecute() {
-        try {
-            assertCanExecute();
-        } catch (AssertionError e) {
-            return false;
-        }
-        return true;
-    }
-
     private static class BuildListenerImpl implements TaskExecutionGraphListener, BuildListener {
         private final List<String> executedTasks = new ArrayList<String>();
         private final Set<String> skippedTasks = new HashSet<String>();

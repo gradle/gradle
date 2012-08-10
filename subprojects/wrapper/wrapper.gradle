@@ -26,6 +26,7 @@ dependencies {
 task executableJar(type: Jar) {
     archiveName = 'gradle-wrapper.jar'
     from sourceSets.main.output
+    from tasks.getByPath(":createBuildReceipt")
     from configurations.runtime.allDependencies.withType(ProjectDependency).collect { it.dependencyProject.sourceSets.main.output }
 }
 
@@ -35,3 +36,10 @@ integTestTasks.all {
 
 useTestFixtures()
 
+eclipse {
+    classpath {
+        file.whenMerged { classpath ->
+            classpath.entries.removeAll {it.path.contains('/wrapper') }
+        }
+    }
+}

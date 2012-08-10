@@ -21,6 +21,7 @@ import org.apache.ivy.Ivy;
 import org.apache.tools.ant.Main;
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.SystemProperties;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
@@ -264,6 +265,22 @@ public class GradleVersion implements Comparable<GradleVersion> {
         sb.append(OperatingSystem.current());
         sb.append("\n");
         return sb.toString();
+    }
+
+    public String getUserAgentString() {
+        OperatingSystem os = OperatingSystem.current();
+        final String osArch = System.getProperty("os.arch");
+        String javaVendor = System.getProperty("java.vendor");
+        String javaVersion = SystemProperties.getJavaVersion();
+        String javaVendorVersion = System.getProperty("java.vm.version");
+        return String.format("Gradle/%s (%s;%s;%s) (%s;%s;%s)",
+                GradleVersion.current().getVersion(),
+                os.getName(),
+                os.getVersion(),
+                osArch,
+                javaVendor,
+                javaVersion,
+                javaVendorVersion);
     }
 
     static final class Stage implements Comparable<Stage> {

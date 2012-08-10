@@ -37,7 +37,6 @@ public class AbstractCopyTaskTest extends AbstractTaskTest {
 
     @Before
     public void setUp() {
-        super.setUp();
         task = createTask(TestCopyTask.class);
         task.action = context.mock(CopyActionImpl.class);
         task.defaultSource = context.mock(FileCollection.class);

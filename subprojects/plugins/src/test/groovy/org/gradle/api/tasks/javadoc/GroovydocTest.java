@@ -36,7 +36,6 @@ public class GroovydocTest extends AbstractConventionTaskTest {
 
     @Before
     public void setUp() {
-        super.setUp();
         groovydoc = createTask(Groovydoc.class);
     }
 

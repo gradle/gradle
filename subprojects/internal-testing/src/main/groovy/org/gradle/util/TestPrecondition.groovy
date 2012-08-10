@@ -75,6 +75,9 @@ enum TestPrecondition {
     UNKNOWN_OS({
         OperatingSystem.current().name == "unknown operating system"
     }),
+    NOT_UNKNOWN_OS({
+        !UNKNOWN_OS.fulfilled
+    }),
     JDK5({
         System.getProperty("java.version").startsWith("1.5")
     }),

@@ -58,7 +58,6 @@ public class JavadocTest extends AbstractConventionTaskTest {
 
     @Before
     public void setUp() {
-        super.setUp();
         task = createTask(Javadoc.class);
         task.setClasspath(configurationMock);
         task.setExecutable(executable);

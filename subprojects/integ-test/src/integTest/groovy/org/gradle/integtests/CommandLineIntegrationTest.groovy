@@ -84,7 +84,7 @@ public class CommandLineIntegrationTest {
         } else {
             // Set up a fake bin directory, containing the things that the script needs, minus any java that might be in /usr/bin
             def binDir = dist.testFile('fake-bin')
-            ['basename', 'dirname', 'uname', 'which'].each { linkToBinary(it, binDir) }
+            ['basename', 'dirname', 'uname', 'which', 'bash'].each { linkToBinary(it, binDir) }
             path = binDir.absolutePath
         }
 

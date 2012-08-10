@@ -17,11 +17,8 @@
 package org.gradle.wrapper;
 
 import java.io.*;
-import java.net.Authenticator;
-import java.net.PasswordAuthentication;
-import java.net.URI;
-import java.net.URL;
-import java.net.URLConnection;
+import java.net.*;
+import java.util.Properties;
 
 /**
  * @author Hans Dockter
@@ -29,8 +26,12 @@ import java.net.URLConnection;
 public class Download implements IDownload {
     private static final int PROGRESS_CHUNK = 20000;
     private static final int BUFFER_SIZE = 10000;
+    private final String applicationName;
+    private final String applicationVersion;
 
-    public Download() {
+    public Download(String applicationName, String applicationVersion) {
+        this.applicationName = applicationName;
+        this.applicationVersion = applicationVersion;
         configureProxyAuthentication();
     }
 
@@ -49,15 +50,17 @@ public class Download implements IDownload {
         downloadInternal(address, destination);
     }
 
-    private void downloadInternal(URI address, File destination) throws Exception {
+    private void downloadInternal(URI address, File destination)
+            throws Exception {
         OutputStream out = null;
         URLConnection conn;
         InputStream in = null;
         try {
             URL url = address.toURL();
-            out = new BufferedOutputStream(
-                    new FileOutputStream(destination));
+            out = new BufferedOutputStream(new FileOutputStream(destination));
             conn = url.openConnection();
+            final String userAgentValue = calculateUserAgent();
+            conn.setRequestProperty("User-Agent", userAgentValue);
             in = conn.getInputStream();
             byte[] buffer = new byte[BUFFER_SIZE];
             int numRead;
@@ -81,13 +84,41 @@ public class Download implements IDownload {
         }
     }
 
-    private static class SystemPropertiesProxyAuthenticator extends Authenticator {
+    private String calculateUserAgent() {
+        String appVersion = applicationVersion == null ? readVersionFromBuildReceipt() : applicationVersion;
+        String javaVendor = System.getProperty("java.vendor");
+        String javaVersion = System.getProperty("java.version");
+        String javaVendorVersion = System.getProperty("java.vm.version");
+        String osName = System.getProperty("os.name");
+        String osVersion = System.getProperty("os.version");
+        String osArch = System.getProperty("os.arch");
+        return String.format("%s/%s (%s;%s;%s) (%s;%s;%s)", applicationName, appVersion, osName, osVersion, osArch, javaVendor, javaVersion, javaVendorVersion);
+    }
+
+    private String readVersionFromBuildReceipt() {
+        final InputStream resourceAsStream = getClass().getResourceAsStream("/build-receipt.properties");
+        if (resourceAsStream != null) {
+            Properties buildReceipt = new Properties();
+            try {
+                buildReceipt.load(resourceAsStream);
+                final String versionNumber = buildReceipt.getProperty("versionNumber");
+                if (versionNumber != null) {
+                    return versionNumber;
+                }
+            } catch (IOException e) {
+                //we swallow this exception here
+            }
+        }
+        return "n.a.";
+    }
+
+    private static class SystemPropertiesProxyAuthenticator extends
+            Authenticator {
         @Override
         protected PasswordAuthentication getPasswordAuthentication() {
             return new PasswordAuthentication(
-                    System.getProperty("http.proxyUser"),
-                    System.getProperty("http.proxyPassword", "").toCharArray());
+                    System.getProperty("http.proxyUser"), System.getProperty(
+                    "http.proxyPassword", "").toCharArray());
         }
     }
-
 }

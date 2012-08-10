@@ -24,6 +24,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.execution.TaskValidator;
 import org.gradle.api.tasks.*;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ReflectionUtil;
 
 import java.io.File;
@@ -40,7 +41,7 @@ import java.util.concurrent.Callable;
  */
 public class AnnotationProcessingTaskFactory implements ITaskFactory {
     private final ITaskFactory taskFactory;
-    private final Map<Class, List<Action<Task>>> actionsForType = new HashMap<Class, List<Action<Task>>>();
+    private final Map<Class, List<Action<Task>>> actionsForType;
     
     private final Transformer<Iterable<File>, Object> filePropertyTransformer = new Transformer<Iterable<File>, Object>() {
         public Iterable<File> transform(Object original) {
@@ -76,10 +77,20 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
 
     public AnnotationProcessingTaskFactory(ITaskFactory taskFactory) {
         this.taskFactory = taskFactory;
+        this.actionsForType = new HashMap<Class, List<Action<Task>>>();
     }
 
-    public TaskInternal createTask(ProjectInternal project, Map<String, ?> args) {
-        TaskInternal task = taskFactory.createTask(project, args);
+    private AnnotationProcessingTaskFactory(Map<Class, List<Action<Task>>> actionsForType, ITaskFactory taskFactory) {
+        this.actionsForType = actionsForType;
+        this.taskFactory = taskFactory;
+    }
+
+    public ITaskFactory createChild(ProjectInternal project, Instantiator instantiator) {
+        return new AnnotationProcessingTaskFactory(actionsForType, taskFactory.createChild(project, instantiator));
+    }
+
+    public TaskInternal createTask(Map<String, ?> args) {
+        TaskInternal task = taskFactory.createTask(args);
 
         Class<? extends Task> type = task.getClass();
         List<Action<Task>> actions = actionsForType.get(type);

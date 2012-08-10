@@ -73,8 +73,9 @@
     <!--
       -
       - 1. Adding new types:
-      - To add more types to this guide, add them to one of the following tables. The contents of
-      - ${classname}.xml for each type listed below is then included in the guide.
+      - There are 2 ways to include a new types to this guide:
+      -     * Types referenced by a property are automatically included, if there is a corresponding ${typename}.xml in the DSL source directory.
+      -     * Types listed in one of the following tables are included. There must be a corresponding ${typename}.xml in the DSL source directory.
       -
       - 2. Adding new sections:
       - The section title should end with 'types' (see AssembleDslDocTask.mergeContent)
@@ -176,9 +177,6 @@
             <tr>
                 <td>org.gradle.api.artifacts.dsl.ArtifactHandler</td>
             </tr>
-            <tr>
-                <td>org.gradle.api.tasks.testing.logging.TestLoggingContainer</td>
-            </tr>
         </table>
     </section>
 
@@ -234,6 +232,9 @@
             </tr>
             <tr>
                 <td>org.gradle.api.tasks.bundling.Jar</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.tasks.compile.JavaCompile</td>
             </tr>
             <tr>
                 <td>org.gradle.api.tasks.javadoc.Javadoc</td>
@@ -401,7 +402,7 @@
         <para>Some elements of the DSL are marked as <firstterm>experimental</firstterm>. This means that the element is a work-in-progress,
             and may require some changes before it is ready to become public. These changes are based on feedback as these features are used in
             real builds. Please feel free to try an experimental element and give us your feedback, but please be aware that it may change in
-            future versions of Gradle. Note that this includes minor versions.
+            future versions of Gradle, including minor versions.
         </para>
         <para>Finally, there are also some <firstterm>internal</firstterm> undocumented features present in Gradle.
             These are intended to be used in Gradle itself, and may change at any time.

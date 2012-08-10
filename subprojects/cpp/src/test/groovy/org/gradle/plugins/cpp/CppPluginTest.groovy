@@ -20,7 +20,6 @@ import spock.lang.Specification
 import org.gradle.util.HelperUtil
 import org.gradle.plugins.cpp.gpp.GppCompileSpec
 import org.gradle.plugins.cpp.gpp.GppLibraryCompileSpec
-import org.gradle.plugins.binaries.tasks.Compile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.api.NamedDomainObjectContainer
@@ -151,7 +150,7 @@ class CppPluginTest extends Specification {
 
         then:
         def compile = project.tasks['compileTest']
-        compile instanceof Compile
+        compile instanceof CppCompile
         compile.spec == project.executables.test.spec
 
         def install = project.tasks['installTest']
@@ -219,7 +218,7 @@ class CppPluginTest extends Specification {
 
         then:
         def compile = project.tasks['compileTest']
-        compile instanceof Compile
+        compile instanceof CppCompile
         compile.spec == project.libraries.test.spec
     }
 }

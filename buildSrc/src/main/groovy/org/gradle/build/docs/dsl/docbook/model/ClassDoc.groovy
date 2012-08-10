@@ -74,28 +74,28 @@ class ClassDoc implements DslElementDoc {
     Collection<PropertyDoc> getClassProperties() { return classProperties }
 
     void addClassProperty(PropertyDoc propertyDoc) {
-        classProperties.add(propertyDoc)
+        classProperties.add(propertyDoc.forClass(this))
     }
 
     Collection<MethodDoc> getClassMethods() { return classMethods }
 
     void addClassMethod(MethodDoc methodDoc) {
-        classMethods.add(methodDoc)
+        classMethods.add(methodDoc.forClass(this))
     }
 
-    def getClassBlocks() { return classBlocks }
+    Collection<BlockDoc> getClassBlocks() { return classBlocks }
 
     void addClassBlock(BlockDoc blockDoc) {
-        classBlocks.add(blockDoc)
+        classBlocks.add(blockDoc.forClass(this))
     }
 
-    def getClassExtensions() { return classExtensions }
+    Collection<ClassExtensionDoc> getClassExtensions() { return classExtensions }
 
     void addClassExtension(ClassExtensionDoc extensionDoc) {
         classExtensions.add(extensionDoc)
     }
 
-    def getClassSection() { return classSection }
+    Element getClassSection() { return classSection }
 
     Element getPropertiesTable() { return propertiesTable }
 
@@ -114,6 +114,7 @@ class ClassDoc implements DslElementDoc {
     def getBlockDetailsSection() { return getSection('Script block details') }
 
     ClassDoc mergeContent() {
+        classProperties.sort { it.name }
         classMethods.sort { it.metaData.overrideSignature }
         classBlocks.sort { it.name }
         classExtensions.sort { it.pluginId }
@@ -149,11 +150,10 @@ class ClassDoc implements DslElementDoc {
     }
 
     Element getDescription() {
-        def paras = classSection.para
-        if (paras.size() < 1) {
-            throw new RuntimeException("Docbook content for $className does not contain a description paragraph.")
+        if (comment.isEmpty() || comment[0].tagName != 'para') {
+            throw new RuntimeException("Class $className does not have a description paragraph.")
         }
-        return paras[0]
+        return comment[0]
     }
 
     PropertyDoc findProperty(String name) {

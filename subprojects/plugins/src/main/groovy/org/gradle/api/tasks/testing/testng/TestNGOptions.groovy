@@ -125,7 +125,7 @@ public class TestNGOptions extends TestFrameworkOptions implements Serializable 
     /**
      * Add suite files by Strings. Each suiteFile String should be a path relative to the project root.
      */
-    void suites(String ... suiteFiles) {
+    void suites(String... suiteFiles) {
         suiteFiles.each {
             suiteXmlFiles.add(new File(projectDir, it))
         }
@@ -134,7 +134,7 @@ public class TestNGOptions extends TestFrameworkOptions implements Serializable 
     /**
      * Add suite files by File objects.
      */
-    void suites(File ... suiteFiles) {
+    void suites(File... suiteFiles) {
         suiteXmlFiles.addAll(Arrays.asList(suiteFiles))
     }
 
@@ -171,12 +171,12 @@ public class TestNGOptions extends TestFrameworkOptions implements Serializable 
         this
     }
 
-    TestNGOptions includeGroups(String ... includeGroups) {
+    TestNGOptions includeGroups(String... includeGroups) {
         this.includeGroups.addAll(Arrays.asList(includeGroups))
         this
     }
 
-    TestNGOptions excludeGroups(String ... excludeGroups) {
+    TestNGOptions excludeGroups(String... excludeGroups) {
         this.excludeGroups.addAll(Arrays.asList(excludeGroups))
         this
     }
@@ -194,16 +194,14 @@ public class TestNGOptions extends TestFrameworkOptions implements Serializable 
     Object propertyMissing(String name) {
         if (suiteXmlBuilder != null) {
             return suiteXmlBuilder.getMetaClass()."${name}"
-        } else {
-            return super.propertyMissing(name)
         }
+        throw new MissingPropertyException(name, getClass());
     }
 
     Object methodMissing(String name, Object args) {
         if (suiteXmlBuilder != null) {
             return suiteXmlBuilder.getMetaClass().invokeMethod(suiteXmlBuilder, name, args)
-        } else {
-            return super.methodMissing(name, args)
         }
+        throw new MissingMethodException(name, getClass(), args)
     }
 }

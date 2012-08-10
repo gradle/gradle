@@ -15,9 +15,8 @@
  */
 package org.gradle.util;
 
+import org.gradle.api.Action;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.concurrent.DefaultExecutorFactory;
-import org.gradle.internal.concurrent.ExecutorFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,23 +37,35 @@ public class DisconnectableInputStream extends BulkReadInputStream {
     private boolean closed;
     private boolean inputFinished;
 
+    /*
+        The song and dance with Action<Runnable> is to ease testing.
+        See DisconnectableInputStreamTest
+     */
+
+    static class ThreadExecuter implements Action<Runnable> {
+        public void execute(Runnable runnable) {
+            Thread thread = new Thread(runnable);
+            thread.setName("DisconnectableInputStream source reader");
+            thread.setDaemon(true);
+            thread.start();
+        }
+    }
+
     public DisconnectableInputStream(InputStream source) {
-        // We use our own executor factory, as there is no way to break a worker thread out of source.read() below
-        this(source, new DefaultExecutorFactory(), 1024);
+        this(source, 1024);
     }
 
-    public DisconnectableInputStream(InputStream source, int bufferLength) {
-        // We use our own executor factory, as there is no way to break a worker thread out of source.read() below
-        this(source, new DefaultExecutorFactory(), bufferLength);
+    public DisconnectableInputStream(final InputStream source, int bufferLength) {
+        this(source, new ThreadExecuter(), bufferLength);
     }
 
-    DisconnectableInputStream(InputStream source, ExecutorFactory executorFactory) {
-        this(source, executorFactory, 1024);
+    DisconnectableInputStream(InputStream source, Action<Runnable> executer) {
+        this(source, executer, 1024);
     }
 
-    DisconnectableInputStream(final InputStream source, ExecutorFactory executorFactory, int bufferLength) {
+    DisconnectableInputStream(final InputStream source, Action<Runnable> executer, int bufferLength) {
         buffer = new byte[bufferLength];
-        executorFactory.create("read input").execute(new Runnable() {
+        Runnable consume = new Runnable() {
             public void run() {
                 try {
                     while (true) {
@@ -114,7 +125,9 @@ public class DisconnectableInputStream extends BulkReadInputStream {
                     throw UncheckedException.throwAsUncheckedException(throwable);
                 }
             }
-        });
+        };
+
+        executer.execute(consume);
     }
 
     @Override
@@ -146,9 +159,8 @@ public class DisconnectableInputStream extends BulkReadInputStream {
     }
 
     /**
-     * Closes this {@code InputStream} for reading. Any threads blocked in read() will receive a {@link
-     * java.nio.channels.AsynchronousCloseException}. Also requests that the reader thread stop reading, if possible,
-     * but does not block waiting for this to happen.
+     * Closes this {@code InputStream} for reading. Any threads blocked in read() will receive an end-of-stream. Also requests that the
+     * reader thread stop reading, if possible, but does not block waiting for this to happen.
      *
      * <p>NOTE: this method does not close the source input stream.</p>
      */

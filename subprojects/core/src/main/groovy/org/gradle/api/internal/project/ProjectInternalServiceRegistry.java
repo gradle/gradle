@@ -21,7 +21,9 @@ import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.internal.reflect.Instantiator;
+import org.gradle.api.internal.ClassGenerator;
+import org.gradle.api.internal.ClassGeneratorBackedInstantiator;
+import org.gradle.api.internal.DependencyInjectingInstantiator;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
 import org.gradle.api.internal.artifacts.DefaultModule;
@@ -44,6 +46,7 @@ import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.internal.Factory;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
@@ -62,7 +65,7 @@ public class ProjectInternalServiceRegistry extends DefaultServiceRegistry imple
     }
 
     protected PluginRegistry createPluginRegistry(PluginRegistry parentRegistry) {
-        return parentRegistry.createChild(get(ScriptClassLoaderProvider.class).getClassLoader());
+        return parentRegistry.createChild(get(ScriptClassLoaderProvider.class).getClassLoader(), new DependencyInjectingInstantiator(this));
     }
 
     protected FileResolver createFileResolver() {
@@ -93,11 +96,14 @@ public class ProjectInternalServiceRegistry extends DefaultServiceRegistry imple
         return new DefaultProjectsPluginContainer(get(PluginRegistry.class), project);
     }
 
+    protected ITaskFactory createTaskFactory(ITaskFactory parentFactory) {
+        return parentFactory.createChild(project, new ClassGeneratorBackedInstantiator(get(ClassGenerator.class), new DependencyInjectingInstantiator(this)));
+    }
+
     protected Factory<TaskContainerInternal> createTaskContainerInternal() {
         return new DefaultTaskContainerFactory(get(Instantiator.class), get(ITaskFactory.class), project);
     }
 
-    //TODO SF what's going on here?
     protected Factory<ArtifactPublicationServices> createRepositoryHandlerFactory() {
         return get(DependencyResolutionServices.class).getPublishServicesFactory();
     }

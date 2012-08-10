@@ -189,6 +189,14 @@ public class ExtensibleDynamicObject extends CompositeDynamicObject implements H
         public Object invokeMethod(String name, Object... arguments) {
             return snapshotInheritable().invokeMethod(name, arguments);
         }
+
+        public boolean isMayImplementMissingMethods() {
+            return snapshotInheritable().isMayImplementMissingMethods();
+        }
+
+        public boolean isMayImplementMissingProperties() {
+            return snapshotInheritable().isMayImplementMissingProperties();
+        }
     }
 
 }

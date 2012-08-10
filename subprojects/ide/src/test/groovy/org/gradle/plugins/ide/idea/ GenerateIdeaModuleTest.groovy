@@ -28,7 +28,6 @@ class GenerateIdeaModuleTest extends Specification {
     DefaultProject project = HelperUtil.createRootProject()
     Project childProject = HelperUtil.createChildProject(project, "child", new File("."))
     Project grandChildProject = HelperUtil.createChildProject(childProject, "grandChild", new File("."))
-    IdeaPlugin ideaPlugin = new IdeaPlugin()
 
     def "moduleName controls outputFile"() {
         given:
@@ -46,8 +45,8 @@ class GenerateIdeaModuleTest extends Specification {
     }
 
     private applyPluginToProjects() {
-        ideaPlugin.apply(project)
-        ideaPlugin.apply(childProject)
-        ideaPlugin.apply(grandChildProject)
+        project.apply plugin: IdeaPlugin
+        childProject.apply plugin: IdeaPlugin
+        grandChildProject.apply plugin: IdeaPlugin
     }
 }

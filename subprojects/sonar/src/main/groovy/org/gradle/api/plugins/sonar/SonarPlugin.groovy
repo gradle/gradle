@@ -25,6 +25,8 @@ import org.gradle.util.GradleVersion
 import org.gradle.internal.jvm.Jvm
 import org.gradle.api.plugins.sonar.model.*
 
+import javax.inject.Inject
+
 /**
  * A plugin for integrating with <a href="http://www.sonarsource.org">Sonar</a>,
  * a web-based platform for managing code quality. Adds a task named <tt>sonarAnalyze</tt>
@@ -42,10 +44,14 @@ import org.gradle.api.plugins.sonar.model.*
 class SonarPlugin implements Plugin<ProjectInternal> {
     static final String SONAR_ANALYZE_TASK_NAME = "sonarAnalyze"
 
-    private Instantiator instantiator
+    private final Instantiator instantiator
+
+    @Inject
+    SonarPlugin(Instantiator instantiator) {
+        this.instantiator = instantiator
+    }
 
     void apply(ProjectInternal project) {
-        instantiator = project.services.get(Instantiator)
         def task = configureSonarTask(project)
         def model = configureSonarRootModel(project)
         task.rootModel = model

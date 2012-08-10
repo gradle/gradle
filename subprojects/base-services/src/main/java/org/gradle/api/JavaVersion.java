@@ -57,7 +57,10 @@ public enum JavaVersion {
 
         Matcher matcher = Pattern.compile("1\\.(\\d)(\\D.*)?").matcher(name);
         if (matcher.matches()) {
-            return values()[Integer.parseInt(matcher.group(1)) - 1];
+            int versionIdx = Integer.parseInt(matcher.group(1)) - 1;
+            if (versionIdx >= 0 && versionIdx < values().length) {
+                return values()[versionIdx];
+            }
         }
         throw new IllegalArgumentException(String.format("Could not determine java version from '%s'.", name));
     }

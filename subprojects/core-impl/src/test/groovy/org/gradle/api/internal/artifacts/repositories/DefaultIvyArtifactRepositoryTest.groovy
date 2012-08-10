@@ -25,6 +25,7 @@ import org.gradle.api.internal.externalresource.cached.CachedExternalResourceInd
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder
 import org.gradle.api.internal.file.FileResolver
 import spock.lang.Specification
+import org.gradle.logging.ProgressLoggerFactory
 
 class DefaultIvyArtifactRepositoryTest extends Specification {
     final FileResolver fileResolver = Mock()
@@ -33,6 +34,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
     final RepositoryCacheManager cacheManager = Mock()
     final LocallyAvailableResourceFinder locallyAvailableResourceFinder = Mock()
     final CachedExternalResourceIndex cachedExternalResourceIndex = Mock()
+    final ProgressLoggerFactory progressLoggerFactory = Mock()
     final DefaultIvyArtifactRepository repository = new DefaultIvyArtifactRepository(
             fileResolver, credentials, transportFactory, locallyAvailableResourceFinder, cachedExternalResourceIndex
     )
@@ -232,7 +234,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
     }
 
     private HttpTransport createHttpTransport(String name, PasswordCredentials credentials) {
-        return new HttpTransport(name, credentials, cacheManager)
+        return new HttpTransport(name, credentials, cacheManager, progressLoggerFactory)
     }
 
 }

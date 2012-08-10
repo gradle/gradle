@@ -17,13 +17,3 @@ dependencies {
 }
 
 mainClassName = 'org.gradle.sample.Main'
-
-run {
-    ["org.gradle.daemon.idletimeout", "org.gradle.daemon.registry.base"].each {
-        def value = gradle.startParameter.mergedSystemProperties[it]
-        if (value) {
-            systemProperty it, value
-        }
-    }
-    systemProperty "gradle.user.home", gradle.startParameter.gradleUserHomeDir
-}

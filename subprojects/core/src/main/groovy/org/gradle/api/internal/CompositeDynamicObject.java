@@ -41,6 +41,26 @@ public abstract class CompositeDynamicObject extends AbstractDynamicObject {
     }
 
     @Override
+    public boolean isMayImplementMissingMethods() {
+        for (DynamicObject object : objects) {
+            if (object.isMayImplementMissingMethods()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean isMayImplementMissingProperties() {
+        for (DynamicObject object : objects) {
+            if (object.isMayImplementMissingProperties()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
     public boolean hasProperty(String name) {
         for (DynamicObject object : objects) {
             if (object.hasProperty(name)) {
@@ -57,6 +77,17 @@ public abstract class CompositeDynamicObject extends AbstractDynamicObject {
                 return object.getProperty(name);
             }
         }
+
+        for (DynamicObject object : objects) {
+            if (object.isMayImplementMissingProperties()) {
+                try {
+                    return object.getProperty(name);
+                } catch (MissingPropertyException e) {
+                    // ignore
+                }
+            }
+        }
+
         return super.getProperty(name);
     }
 
@@ -68,6 +99,18 @@ public abstract class CompositeDynamicObject extends AbstractDynamicObject {
                 return;
             }
         }
+
+        for (DynamicObject object : updateObjects) {
+            if (object.isMayImplementMissingProperties()) {
+                try {
+                    object.setProperty(name, value);
+                    return;
+                } catch (MissingPropertyException e) {
+                    // ignore
+                }
+            }
+        }
+
         updateObjects[updateObjects.length - 1].setProperty(name, value);
     }
 
@@ -106,6 +149,16 @@ public abstract class CompositeDynamicObject extends AbstractDynamicObject {
                 Closure closure = (Closure) property;
                 closure.setResolveStrategy(Closure.DELEGATE_FIRST);
                 return closure.call(arguments);
+            }
+        }
+
+        for (DynamicObject object : objects) {
+            if (object.isMayImplementMissingMethods()) {
+                try {
+                    return object.invokeMethod(name, arguments);
+                } catch (MissingMethodException e) {
+                    // ignore
+                }
             }
         }
 

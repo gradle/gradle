@@ -25,6 +25,7 @@ import org.gradle.api.internal.file.FileResolver
 import spock.lang.Specification
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder
 import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex
+import org.gradle.logging.ProgressLoggerFactory
 
 class DefaultMavenArtifactRepositoryTest extends Specification {
     final FileResolver resolver = Mock()
@@ -35,6 +36,8 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
     final CachedExternalResourceIndex cachedExternalResourceIndex = Mock()
 
     final DefaultMavenArtifactRepository repository = new DefaultMavenArtifactRepository(resolver, credentials, transportFactory, locallyAvailableResourceFinder, cachedExternalResourceIndex)
+    final ProgressLoggerFactory progressLoggerFactory = Mock();
+
 
     def "creates local repository"() {
         given:
@@ -105,7 +108,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
     }
 
     private HttpTransport createHttpTransport(String repo, PasswordCredentials credentials) {
-        return new HttpTransport(repo, credentials, cacheManager)
+        return new HttpTransport(repo, credentials, cacheManager, progressLoggerFactory)
     }
 
     def "fails when no root url specified"() {

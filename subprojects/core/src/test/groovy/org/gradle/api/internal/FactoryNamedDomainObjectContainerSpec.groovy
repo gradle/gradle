@@ -20,6 +20,7 @@ import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.api.Namer
 import spock.lang.Specification
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.reflect.ObjectInstantiationException
 
 class FactoryNamedDomainObjectContainerSpec extends Specification {
     final NamedDomainObjectFactory<String> factory = Mock()
@@ -100,7 +101,7 @@ class FactoryNamedDomainObjectContainerSpec extends Specification {
         getInstance()
 
         then:
-        thrown IllegalArgumentException
+        thrown ObjectInstantiationException
     }
 
     static class NoConstructor {}

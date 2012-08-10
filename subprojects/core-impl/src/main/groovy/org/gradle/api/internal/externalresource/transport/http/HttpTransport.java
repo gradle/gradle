@@ -21,6 +21,9 @@ import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.internal.artifacts.repositories.DefaultExternalResourceRepository;
 import org.gradle.api.internal.artifacts.repositories.ExternalResourceRepository;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
+import org.gradle.api.internal.externalresource.transfer.ProgressLoggingExternalResourceAccessor;
+import org.gradle.api.internal.externalresource.transfer.ProgressLoggingExternalResourceUploader;
+import org.gradle.logging.ProgressLoggerFactory;
 
 import java.net.URI;
 
@@ -28,18 +31,24 @@ public class HttpTransport implements RepositoryTransport {
     private final String name;
     private final PasswordCredentials credentials;
     private final RepositoryCacheManager repositoryCacheManager;
+    private ProgressLoggerFactory progressLoggerFactory;
 
-    public HttpTransport(String name, PasswordCredentials credentials, RepositoryCacheManager repositoryCacheManager) {
+    public HttpTransport(String name, PasswordCredentials credentials, RepositoryCacheManager repositoryCacheManager, ProgressLoggerFactory progressLoggerFactory) {
         this.name = name;
         this.credentials = credentials;
         this.repositoryCacheManager = repositoryCacheManager;
+        this.progressLoggerFactory = progressLoggerFactory;
     }
 
     public ExternalResourceRepository getRepository() {
         HttpClientHelper http = new HttpClientHelper(new DefaultHttpSettings(credentials));
         final HttpResourceAccessor accessor = new HttpResourceAccessor(http);
+        final HttpResourceUploader uploader = new HttpResourceUploader(http);
         return new DefaultExternalResourceRepository(
-                name, accessor, new HttpResourceUploader(http), new HttpResourceLister(accessor)
+                name,
+                new ProgressLoggingExternalResourceAccessor(accessor, progressLoggerFactory),
+                new ProgressLoggingExternalResourceUploader(uploader, progressLoggerFactory),
+                new HttpResourceLister(accessor)
         );
     }
 

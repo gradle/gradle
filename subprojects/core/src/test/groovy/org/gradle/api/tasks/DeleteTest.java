@@ -46,7 +46,6 @@ public class DeleteTest extends AbstractConventionTaskTest {
 
     @Before
     public void setUp() {
-        super.setUp();
         delete = createTask(Delete.class);
         DefaultFileOperations fileOperations = (DefaultFileOperations) ((DefaultProject)
                 delete.getProject()).getServices().get(FileOperations.class);

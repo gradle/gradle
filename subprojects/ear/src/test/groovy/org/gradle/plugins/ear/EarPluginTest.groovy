@@ -33,6 +33,7 @@ import static org.gradle.util.TextUtil.toPlatformLineSeparators
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 import org.gradle.api.plugins.JavaBasePlugin
+import org.gradle.internal.reflect.Instantiator
 
 /**
  * @author David Gileadi
@@ -58,7 +59,7 @@ class EarPluginTest {
     @Before
     public void setUp() {
         project = HelperUtil.createRootProject()
-        earPlugin = new EarPlugin()
+        earPlugin = new EarPlugin(project.services.get(Instantiator))
     }
 
     @Test public void appliesBasePluginAndAddsConvention() {

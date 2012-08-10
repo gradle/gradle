@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,39 +16,39 @@
 package org.gradle.api.internal.artifacts.repositories;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.ivy.plugins.repository.Resource;
 import org.apache.ivy.plugins.repository.TransferEvent;
 import org.apache.ivy.plugins.repository.TransferListener;
+import org.gradle.api.internal.externalresource.transfer.AbstractProgressLoggingHandler;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
 
-public class ProgressLoggingTransferListener implements TransferListener {
-    private final ProgressLoggerFactory progressLoggerFactory;
+public class ProgressLoggingTransferListener extends AbstractProgressLoggingHandler implements TransferListener {
     private final Class loggingClass;
     private ProgressLogger logger;
     private long total;
 
     public ProgressLoggingTransferListener(ProgressLoggerFactory progressLoggerFactory, Class loggingClass) {
-        this.progressLoggerFactory = progressLoggerFactory;
+        super(progressLoggerFactory);
         this.loggingClass = loggingClass;
     }
 
     public void transferProgress(TransferEvent evt) {
-        if (evt.getResource().isLocal()) {
+        final Resource resource = evt.getResource();
+        if (resource.isLocal()) {
             return;
         }
-        if (evt.getEventType() == TransferEvent.TRANSFER_STARTED) {
+        final int eventType = evt.getEventType();
+        if (eventType == TransferEvent.TRANSFER_STARTED) {
             total = 0;
-            logger = progressLoggerFactory.newOperation(loggingClass);
-            String description = String.format("%s %s", StringUtils.capitalize(getRequestType(evt)), evt.getResource().getName());
-            logger.setDescription(description);
-            logger.setLoggingHeader(description);
-            logger.started();
+            String description = String.format("%s %s", StringUtils.capitalize(getRequestType(evt)), resource.getName());
+            logger = startProgress(description, loggingClass);
         }
-        if (evt.getEventType() == TransferEvent.TRANSFER_PROGRESS) {
+        if (eventType == TransferEvent.TRANSFER_PROGRESS) {
             total += evt.getLength();
-            logger.progress(String.format("%s/%s %sed", getLengthText(total), getLengthText(evt), getRequestType(evt)));
+            logProgress(logger, total, evt.getTotalLength(), getRequestType(evt) + "ed");
         }
-        if (evt.getEventType() == TransferEvent.TRANSFER_COMPLETED) {
+        if (eventType == TransferEvent.TRANSFER_COMPLETED) {
             logger.completed();
         }
     }
@@ -60,22 +60,4 @@ public class ProgressLoggingTransferListener implements TransferListener {
             return "download";
         }
     }
-
-    private static String getLengthText(TransferEvent evt) {
-        return getLengthText(evt.isTotalLengthSet() ? evt.getTotalLength() : null);
-    }
-
-    private static String getLengthText(Long bytes) {
-        if (bytes == null) {
-            return "unknown size";
-        }
-        if (bytes < 1024) {
-            return bytes + " B";
-        } else if (bytes < 1048576) {
-            return (bytes / 1024) + " KB";
-        } else {
-            return String.format("%.2f MB", bytes / 1048576.0);
-        }
-    }
-
 }

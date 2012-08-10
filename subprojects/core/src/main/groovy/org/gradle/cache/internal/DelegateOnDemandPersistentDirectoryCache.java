@@ -88,7 +88,7 @@ public class DelegateOnDemandPersistentDirectoryCache implements ReferencablePer
                 delegateCache.close();
             }
         } else {
-            throw new CacheOpenException("Cannot run operation on not opened cache");
+            throw new CacheOpenException("Cannot run operation on cache that has not been opened.");
         }
     }
 
@@ -105,6 +105,6 @@ public class DelegateOnDemandPersistentDirectoryCache implements ReferencablePer
     }
 
     public String toString(){
-        return String.format("Delegate On Demand Cache for %s", delegateCache.toString());
+        return String.format("On Demand Cache for %s", delegateCache.toString());
     }
 }

@@ -17,11 +17,6 @@
 package org.gradle.api.internal.artifacts.repositories;
 
 
-import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.plugins.repository.AbstractRepository;
-import org.apache.ivy.plugins.repository.BasicResource;
-import org.apache.ivy.plugins.repository.RepositoryCopyProgressListener;
-import org.apache.ivy.plugins.repository.TransferEvent;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.cached.CachedExternalResource;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceCandidates;
@@ -29,6 +24,7 @@ import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaDat
 import org.gradle.api.internal.externalresource.transfer.*;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
+import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.hash.HashUtil;
@@ -36,16 +32,14 @@ import org.gradle.util.hash.HashValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.List;
 
-public class DefaultExternalResourceRepository extends AbstractRepository implements ExternalResourceRepository {
-
+public class DefaultExternalResourceRepository implements ExternalResourceRepository {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultExternalResourceRepository.class);
-    private final RepositoryCopyProgressListener progress = new RepositoryCopyProgressListener(this);
     private final TemporaryFileProvider temporaryFileProvider = new TmpDirTemporaryFileProvider();
 
+    private final String name;
     private final ExternalResourceAccessor accessor;
     private final ExternalResourceUploader uploader;
     private final ExternalResourceLister lister;
@@ -53,7 +47,7 @@ public class DefaultExternalResourceRepository extends AbstractRepository implem
     private final CacheAwareExternalResourceAccessor cacheAwareAccessor;
 
     public DefaultExternalResourceRepository(String name, ExternalResourceAccessor accessor, ExternalResourceUploader uploader, ExternalResourceLister lister) {
-        setName(name);
+        this.name = name;
         this.accessor = accessor;
         this.uploader = uploader;
         this.lister = lister;
@@ -65,7 +59,7 @@ public class DefaultExternalResourceRepository extends AbstractRepository implem
         return accessor.getResource(source);
     }
 
-    public ExternalResource getResource(String source, LocallyAvailableResourceCandidates localCandidates, CachedExternalResource cached) throws IOException{
+    public ExternalResource getResource(String source, LocallyAvailableResourceCandidates localCandidates, CachedExternalResource cached) throws IOException {
         return cacheAwareAccessor.getResource(source, localCandidates, cached);
     }
 
@@ -73,37 +67,15 @@ public class DefaultExternalResourceRepository extends AbstractRepository implem
         return accessor.getMetaData(source);
     }
 
-    public void get(String source, File destination) throws IOException {
-        throw new UnsupportedOperationException();
+    public void put(File source, String destination) throws IOException {
+        doPut(source, destination);
+        putChecksum("SHA1", source, destination);
     }
 
-    public void downloadResource(ExternalResource resource, File destination) throws IOException {
-        fireTransferInitiated(resource, TransferEvent.REQUEST_GET);
-        try {
-            progress.setTotalLength(resource.getContentLength() > 0 ? resource.getContentLength() : null);
-            resource.writeTo(destination, progress);
-        } catch (IOException e) {
-            fireTransferError(e);
-            throw e;
-        } catch (Exception e) {
-            fireTransferError(e);
-            throw UncheckedException.throwAsUncheckedException(e);
-        } finally {
-            progress.setTotalLength(null);
-            resource.close();
-        }
-    }
-
-    @Override
-    public void put(Artifact artifact, File source, String destination, boolean overwrite) throws IOException {
-        put(source, destination, overwrite);
-        putChecksum("SHA1", source, destination, overwrite);
-    }
-
-    private void putChecksum(String algorithm, File source, String destination, boolean overwrite) throws IOException {
+    private void putChecksum(String algorithm, File source, String destination) throws IOException {
         File checksumFile = createChecksumFile(source, algorithm);
         String checksumDestination = destination + "." + algorithm.toLowerCase();
-        put(checksumFile, checksumDestination, overwrite);
+        doPut(checksumFile, checksumDestination);
     }
 
     private File createChecksumFile(File src, String algorithm) {
@@ -113,26 +85,31 @@ public class DefaultExternalResourceRepository extends AbstractRepository implem
         return csFile;
     }
 
-    @Override
-    protected void put(File source, String destination, boolean overwrite) throws IOException {
+    protected void doPut(final File source, String destination) throws IOException {
         LOGGER.debug("Attempting to put resource {}.", destination);
         assert source.isFile();
-        fireTransferInitiated(new BasicResource(destination, true, source.length(), source.lastModified(), false), TransferEvent.REQUEST_PUT);
         try {
-            progress.setTotalLength(source.length());
-            uploader.upload(source, destination, overwrite);
+            uploader.upload(new Factory<InputStream>() {
+                public InputStream create() {
+                    try {
+                        return new FileInputStream(source);
+                    } catch (FileNotFoundException e) {
+                        throw UncheckedException.throwAsUncheckedException(e);
+                    }
+                }
+            }, source.length(), destination);
         } catch (IOException e) {
-            fireTransferError(e);
             throw e;
         } catch (Exception e) {
-            fireTransferError(e);
             throw UncheckedException.throwAsUncheckedException(e);
-        } finally {
-            progress.setTotalLength(null);
         }
     }
 
-    public List list(String parent) throws IOException {
+    public List<String> list(String parent) throws IOException {
         return lister.list(parent);
+    }
+
+    public String toString() {
+        return name;
     }
 }

@@ -20,9 +20,9 @@ import org.gradle.api.Project
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.bundling.Jar
-import org.gradle.api.tasks.compile.Compile
 import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.api.tasks.testing.Test
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.util.HelperUtil
 import org.gradle.util.Matchers
 import org.gradle.util.SetSystemProperties
@@ -30,6 +30,7 @@ import org.junit.Rule
 import spock.lang.Specification
 import static org.gradle.util.Matchers.sameCollection
 import static org.gradle.util.WrapUtil.toLinkedSet
+import org.gradle.api.tasks.compile.JavaCompile
 
 /**
  * @author Hans Dockter
@@ -39,7 +40,7 @@ class JavaBasePluginTest extends Specification {
     @Rule
     public SetSystemProperties sysProperties = new SetSystemProperties()
     private final Project project = HelperUtil.createRootProject()
-    private final JavaBasePlugin javaBasePlugin = new JavaBasePlugin()
+    private final JavaBasePlugin javaBasePlugin = new JavaBasePlugin(project.services.get(Instantiator))
 
     void appliesBasePluginsAndAddsConventionObject() {
         when:
@@ -73,7 +74,7 @@ class JavaBasePluginTest extends Specification {
 
         def compileJava = project.tasks['compileCustomJava']
         compileJava.description == 'Compiles the custom Java source.'
-        compileJava instanceof Compile
+        compileJava instanceof JavaCompile
         Matchers.dependsOn().matches(compileJava)
         compileJava.classpath.is(project.sourceSets.custom.compileClasspath)
         compileJava.destinationDir == project.sourceSets.custom.output.classesDir
@@ -135,7 +136,7 @@ class JavaBasePluginTest extends Specification {
         javaBasePlugin.apply(project)
 
         then:
-        def compile = project.task('customCompile', type: Compile)
+        def compile = project.task('customCompile', type: JavaCompile)
         compile.sourceCompatibility == project.sourceCompatibility.toString()
 
         def test = project.task('customTest', type: Test.class)

@@ -31,6 +31,7 @@ public class JavaVersionSpec extends Specification {
         JavaVersion.VERSION_1_5.toString() == "1.5"
         JavaVersion.VERSION_1_6.toString() == "1.6"
         JavaVersion.VERSION_1_7.toString() == "1.7"
+        JavaVersion.VERSION_1_8.toString() == "1.8"
     }
 
     def convertsStringToVersion() {
@@ -59,6 +60,7 @@ public class JavaVersionSpec extends Specification {
         conversionFails("  ");
 
         conversionFails("1.54");
+        conversionFails("1.9");
         conversionFails("1.10");
         conversionFails("2.0");
         conversionFails("1_4");

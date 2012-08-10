@@ -22,7 +22,9 @@ public interface Instantiator {
 
     /**
      * Create a new instance of T, using {@code parameters} as the construction parameters.
+     *
+     * @throws ObjectInstantiationException On failure to create the new instance.
      */
-    <T> T newInstance(Class<T> type, Object... parameters);
+    <T> T newInstance(Class<T> type, Object... parameters) throws ObjectInstantiationException;
 
 }

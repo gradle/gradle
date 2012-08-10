@@ -19,10 +19,22 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.internal.tasks.compile.Compiler
 import org.gradle.api.tasks.TaskAction
 import org.gradle.plugins.binaries.model.CompileSpec
+import org.gradle.util.DeprecationLogger
+import org.gradle.plugins.cpp.CppCompile
 
+/**
+ * @deprecated This class has been replaced by {@link org.gradle.plugins.cpp.CppCompile}.
+ */
+@Deprecated
 class Compile extends DefaultTask {
     CompileSpec spec
     Compiler compiler
+
+    Compile() {
+        if (!(this instanceof CppCompile)) {
+            DeprecationLogger.nagUserOfReplacedTaskType("Compile", "CppCompile task type")
+        }
+    }
 
     @TaskAction
     void compile() {

@@ -31,7 +31,6 @@ class ResourceVersionListerTest extends Specification {
     def ResourceVersionLister lister;
 
     def setup() {
-        repo.getFileSeparator() >> "/"
         lister = new ResourceVersionLister(repo)
     }
 
@@ -39,7 +38,6 @@ class ResourceVersionListerTest extends Specification {
         setup:
         def testPattern = "/a/pattern/with/[revision]/"
         1 * repo.list(_) >> { throw new IOException("Test IO Exception") }
-        repo.standardize(testPattern) >> testPattern
         when:
         lister.getVersionList(moduleRevisionId, testPattern, artifact)
         then:
@@ -49,7 +47,6 @@ class ResourceVersionListerTest extends Specification {
     def "getVersionList throws ResourceNotFoundException for missing resource"() {
         setup:
         1 * repo.list(_) >> null
-        1 * repo.standardize(testPattern) >> testPattern
         when:
         lister.getVersionList(moduleRevisionId, testPattern, artifact)
         then:
@@ -61,7 +58,6 @@ class ResourceVersionListerTest extends Specification {
     def "getVersionList returns empty VersionList when repository contains empty list"() {
         setup:
         1 * repo.list(_) >> []
-        1 * repo.standardize("/some/[revision]") >> "/some/[revision]"
         expect:
         lister.getVersionList(moduleRevisionId, "/some/[revision]", artifact).empty
     }
@@ -70,7 +66,6 @@ class ResourceVersionListerTest extends Specification {
     def "getVersionList resolves versions from from pattern with '#testPattern'"() {
         setup:
         1 * repo.list(repoListingPath) >> repoResult
-        1 * repo.standardize(testPattern) >> testPattern
         when:
         def versionList = lister.getVersionList(moduleRevisionId, testPattern, artifact)
         then:
@@ -95,8 +90,6 @@ class ResourceVersionListerTest extends Specification {
     }
 
     def "getVersionList substitutes non revision placeholders from pattern before hitting repository"() {
-        setup:
-        1 * repo.standardize(partiallyResolvedPattern) >> partiallyResolvedPattern
         when:
         lister.getVersionList(moduleRevisionId, inputPattern, artifact)
         then:
@@ -113,7 +106,6 @@ class ResourceVersionListerTest extends Specification {
     def "getVersionList returns empty version list when pattern has no revision token"() {
         setup:
         repo.list(_) >> repoResult
-        repo.standardize(testPattern) >> testPattern
         when:
         def versionList = lister.getVersionList(moduleRevisionId, testPattern, artifact)
         then:

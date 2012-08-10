@@ -29,7 +29,6 @@ class JarTest extends AbstractArchiveTaskTest {
     Jar jar
 
     @Before public void setUp()  {
-        super.setUp()
         jar = createTask(Jar)
         configure(jar)
     }

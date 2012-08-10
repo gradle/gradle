@@ -23,6 +23,7 @@ dependencies {
     compile project(":plugins")
     compile libraries.guava
     compile libraries.slf4j_api
+    compile libraries.inject
     compile "org.codehaus.sonar:sonar-batch-bootstrapper:2.9@jar"
 
     // minimal dependencies to make our code compile

@@ -24,6 +24,11 @@ task multi(type: ProjectGeneratorTask, description: 'Generates a multi-project b
     sourceFiles = 100
 }
 
+task parallel(type: ProjectGeneratorTask, description: 'Generates a multi-project build') {
+    projects = 8
+    sourceFiles = 1000
+}
+
 task mixedSize(type: ProjectGeneratorTask) {
     projects = 400
     sourceFiles = 100

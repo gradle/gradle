@@ -128,36 +128,24 @@ class MethodMetaDataTest extends Specification {
         _ * superClassMetaData.interfaces >> []
     }
 
-    def "is deprecated when @Deprecated is attached to method or owner is deprecated"() {
-        ClassMetaData deprecatedClass = Mock()
+    def "is deprecated when @Deprecated is attached to method"() {
         def notDeprecated = new MethodMetaData('param', owner)
         def deprecated = new MethodMetaData('param', owner)
-        def ownerDeprecated = new MethodMetaData('param', deprecatedClass)
-
-        given:
         deprecated.addAnnotationTypeName(Deprecated.class.name)
-        deprecatedClass.deprecated >> true
 
         expect:
         !notDeprecated.deprecated
         deprecated.deprecated
-        ownerDeprecated.deprecated
     }
 
-    def "is experimental when @Experimental is attached to method or owner is experimental"() {
-        ClassMetaData experimentalClass = Mock()
+    def "is experimental when @Experimental is attached to method"() {
         def notExperimental = new MethodMetaData('param', owner)
         def experimental = new MethodMetaData('param', owner)
-        def ownerExperimental = new MethodMetaData('param', experimentalClass)
-
-        given:
         experimental.addAnnotationTypeName("org.gradle.api.Experimental")
-        experimentalClass.experimental >> true
 
         expect:
         !notExperimental.experimental
         experimental.experimental
-        ownerExperimental.experimental
     }
 
 }

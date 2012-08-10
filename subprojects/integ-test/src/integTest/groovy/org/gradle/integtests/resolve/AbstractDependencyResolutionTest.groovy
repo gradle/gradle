@@ -17,23 +17,33 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.junit.Rule
 import org.gradle.integtests.fixtures.HttpServer
 import org.gradle.integtests.fixtures.IvyRepository
 import org.gradle.integtests.fixtures.MavenRepository
+import org.gradle.util.GradleVersion
+import org.junit.Rule
+
+import static org.gradle.integtests.fixtures.UserAgentMatcher.matchesNameAndVersion
 
 abstract class AbstractDependencyResolutionTest extends AbstractIntegrationSpec {
     @Rule public final HttpServer server = new HttpServer()
 
     def "setup"() {
+        server.expectUserAgent(matchesNameAndVersion("Gradle", GradleVersion.current().getVersion()))
         requireOwnUserHomeDir()
+        writeOsSysPropsToGradleProperties()
+    }
+
+    //needed atm, for tests on unknown os
+    void writeOsSysPropsToGradleProperties() {
+        file("gradle.properties") << System.properties.findAll {key, value -> key.startsWith("os.")}.collect {key, value -> "systemProp.${key}=$value"}.join("\n")
     }
 
     IvyRepository ivyRepo(def dir = 'ivy-repo') {
         return new IvyRepository(distribution.testFile(dir))
     }
 
-    MavenRepository mavenRepo() {
-        return new MavenRepository(file('repo'))
+    MavenRepository mavenRepo(String name = "repo") {
+        return new MavenRepository(file(name))
     }
 }

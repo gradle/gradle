@@ -25,11 +25,12 @@ import org.w3c.dom.*
 abstract class XmlSpecification extends Specification {
     final Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument()
 
-    def parse(String str) {
+    def parse(String str, Document document = null) {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance()
         factory.setNamespaceAware(true)
         DocumentBuilder builder = factory.newDocumentBuilder()
-        return builder.parse(new InputSource(new StringReader(str))).documentElement
+        def parsed = builder.parse(new InputSource(new StringReader(str))).documentElement
+        return document ? document.importNode(parsed, true) : parsed
     }
 
     def formatTree(Closure cl) {
@@ -79,6 +80,10 @@ abstract class XmlSpecification extends Specification {
             for (int i = 0; i < element.attributes.length; i++) {
                 Attr attr = element.attributes.item(i)
                 target.append(" $attr.name=\"$attr.value\"")
+            }
+
+            element.childNodes.findAll { it instanceof Text }.each {
+                assert it.textContent != null : "Found null text element in <$element.tagName>"
             }
 
             List<Node> trimmedContent = element.childNodes.collect { it };
