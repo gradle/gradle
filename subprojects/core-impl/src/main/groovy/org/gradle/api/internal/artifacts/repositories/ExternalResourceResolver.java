@@ -27,6 +27,9 @@ import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.report.ArtifactDownloadReport;
 import org.apache.ivy.core.resolve.DownloadOptions;
 import org.apache.ivy.core.resolve.ResolveData;
+import org.apache.ivy.core.search.ModuleEntry;
+import org.apache.ivy.core.search.OrganisationEntry;
+import org.apache.ivy.core.search.RevisionEntry;
 import org.apache.ivy.plugins.repository.Resource;
 import org.apache.ivy.plugins.resolver.BasicResolver;
 import org.apache.ivy.plugins.resolver.util.MDResolvedResource;
@@ -93,10 +96,6 @@ public class ExternalResourceResolver extends BasicResolver {
         return findResourceUsingPatterns(mrid, ivyPatterns, DefaultArtifact.newIvyArtifact(mrid, data.getDate()), getRMDParser(dd, data), data.getDate(), true);
     }
 
-    protected ResolvedResource findArtifactRef(Artifact artifact, Date date) {
-        throw new UnsupportedOperationException();
-    }
-
     @Override
     protected ResolvedResource findFirstArtifactRef(ModuleDescriptor md, DependencyDescriptor dd,
                                                     ResolveData data) {
@@ -113,7 +112,8 @@ public class ExternalResourceResolver extends BasicResolver {
 
     @Override
     public boolean exists(Artifact artifact) {
-        return locate(artifact) != null;
+        // This is never used
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -274,6 +274,53 @@ public class ExternalResourceResolver extends BasicResolver {
 
     @Override
     public ArtifactDownloadReport download(ArtifactOrigin origin, DownloadOptions options) {
+        // This is never used
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void reportFailure() {
+        // This is never used
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void reportFailure(Artifact art) {
+        // This is never used
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String[] listTokenValues(String token, Map otherTokenValues) {
+        // This is never used
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Map[] listTokenValues(String[] tokens, Map criteria) {
+        // This is never used
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public OrganisationEntry[] listOrganisations() {
+        // This is never used
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public ModuleEntry[] listModules(OrganisationEntry org) {
+        // This is never used
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public RevisionEntry[] listRevisions(ModuleEntry mod) {
+                // This is never used
+        throw new UnsupportedOperationException();
+    }
+
+    protected ResolvedResource findArtifactRef(Artifact artifact, Date date) {
         // This is never used
         throw new UnsupportedOperationException();
     }
