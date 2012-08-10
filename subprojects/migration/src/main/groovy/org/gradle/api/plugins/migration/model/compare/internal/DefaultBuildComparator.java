@@ -59,7 +59,7 @@ public class DefaultBuildComparator implements BuildComparator {
 
             // TODO - error if there are unknowns?
             if (!unknown) {
-                BuildOutcomeComparator<? extends BuildOutcome> comparator = comparatorFactory.getComparator(outcomeAssociation.getType());
+                BuildOutcomeComparator<?, ?> comparator = comparatorFactory.getComparator(outcomeAssociation.getType());
                 if (comparator == null) {
                     // TODO - better exception
                     throw new RuntimeException(String.format("No comparator for %s", outcomeAssociation.getType()));

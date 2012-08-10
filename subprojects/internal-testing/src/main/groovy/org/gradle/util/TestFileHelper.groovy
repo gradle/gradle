@@ -187,6 +187,9 @@ class TestFileHelper {
             zip.setBasedir(file);
             zip.setDestFile(zipFile);
             zip.setProject(new Project());
+            def whenEmpty = new Zip.WhenEmpty()
+            whenEmpty.setValue("create")
+            zip.setWhenempty(whenEmpty);
             zip.execute();
         }
     }

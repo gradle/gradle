@@ -13,13 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.migration.model.compare.internal;
 
-import org.gradle.api.plugins.migration.model.compare.BuildOutcomeComparator;
+package org.gradle.api.plugins.migration.model.outcome.internal;
+
 import org.gradle.api.plugins.migration.model.outcome.BuildOutcome;
 
-public interface BuildOutcomeComparatorFactory {
+public abstract class BuildOutcomeSupport implements BuildOutcome {
 
-    <T extends BuildOutcome> BuildOutcomeComparator<T, ?> getComparator(Class<T> outcomeType);
+    private final String name;
+    private final String description;
 
+    protected BuildOutcomeSupport(String name, String description) {
+        this.name = name;
+        this.description = description;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
 }

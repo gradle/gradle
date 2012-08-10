@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.plugins.migration.model.compare.internal;
 
-import org.gradle.api.plugins.migration.model.compare.BuildOutcomeComparator;
-import org.gradle.api.plugins.migration.model.outcome.BuildOutcome;
-
-public interface BuildOutcomeComparatorFactory {
-
-    <T extends BuildOutcome> BuildOutcomeComparator<T, ?> getComparator(Class<T> outcomeType);
-
+public enum ComparisonResultType {
+    EQUAL,
+    UNEQUAL,
+    FROM_ONLY,
+    TO_ONLY
 }

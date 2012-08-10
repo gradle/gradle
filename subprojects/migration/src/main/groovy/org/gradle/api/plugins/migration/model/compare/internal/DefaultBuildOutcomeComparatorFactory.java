@@ -24,19 +24,19 @@ import java.util.Map;
 
 public class DefaultBuildOutcomeComparatorFactory implements BuildOutcomeComparatorFactory {
 
-    Map<Class<? extends BuildOutcome>, BuildOutcomeComparator<? extends BuildOutcome>> comparators = new HashMap<Class<? extends BuildOutcome>, BuildOutcomeComparator<? extends BuildOutcome>>();
+    Map<Class<? extends BuildOutcome>, BuildOutcomeComparator<?, ?>> comparators = new HashMap<Class<? extends BuildOutcome>, BuildOutcomeComparator<?, ?>>();
 
-    public <T extends BuildOutcome> BuildOutcomeComparator<T> getComparator(Class<T> outcomeType) {
-        BuildOutcomeComparator<?> comparator = comparators.get(outcomeType);
+    public <T extends BuildOutcome> BuildOutcomeComparator<T, ?> getComparator(Class<T> outcomeType) {
+        BuildOutcomeComparator<?, ?> comparator = comparators.get(outcomeType);
         if (comparator != null) {
             //noinspection unchecked
-            return (BuildOutcomeComparator<T>) comparator;
+            return (BuildOutcomeComparator<T, ?>) comparator;
         } else {
             return null;
         }
     }
 
-    void registerComparator(BuildOutcomeComparator<?> comparator) {
+    void registerComparator(BuildOutcomeComparator<?, ?> comparator) {
         comparators.put(comparator.getComparedType(), comparator);
     }
 }

@@ -13,13 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.migration.model.compare.internal;
 
-import org.gradle.api.plugins.migration.model.compare.BuildOutcomeComparator;
+package org.gradle.api.plugins.migration.model.compare;
+
+import org.gradle.api.plugins.migration.model.association.BuildOutcomeAssociation;
 import org.gradle.api.plugins.migration.model.outcome.BuildOutcome;
 
-public interface BuildOutcomeComparatorFactory {
+/**
+ * Builder for build comparison specifications.
+ */
+public interface BuildComparisonSpecBuilder {
 
-    <T extends BuildOutcome> BuildOutcomeComparator<T, ?> getComparator(Class<T> outcomeType);
+    <A extends BuildOutcome, F extends A, T extends A> BuildOutcomeAssociation<A> associate(F from, T to, Class<A> type);
+
+    <F extends BuildOutcome> void addUnassociatedFrom(F from);
+
+    <T extends BuildOutcome> void addUnassociatedTo(T to);
+
+    BuildComparisonSpec build();
 
 }

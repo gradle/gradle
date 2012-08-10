@@ -20,13 +20,13 @@ import org.gradle.api.plugins.migration.model.compare.BuildOutcomeComparator
 import org.gradle.api.plugins.migration.model.compare.BuildOutcomeComparisonResult
 import org.gradle.api.plugins.migration.model.association.BuildOutcomeAssociation
 
-class StringBuildOutcomeComparator implements BuildOutcomeComparator<StringBuildOutcome> {
+class StringBuildOutcomeComparator implements BuildOutcomeComparator<StringBuildOutcome, StringBuildOutcomeComparisonResult> {
 
     Class<StringBuildOutcome> getComparedType() {
         StringBuildOutcome
     }
 
-    BuildOutcomeComparisonResult<StringBuildOutcome> compare(BuildOutcomeAssociation<StringBuildOutcome> association) {
+    StringBuildOutcomeComparisonResult compare(BuildOutcomeAssociation<StringBuildOutcome> association) {
         new StringBuildOutcomeComparisonResult(association)
     }
 }

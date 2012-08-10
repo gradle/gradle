@@ -13,13 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.migration.model.compare.internal;
 
-import org.gradle.api.plugins.migration.model.compare.BuildOutcomeComparator;
-import org.gradle.api.plugins.migration.model.outcome.BuildOutcome;
+package org.gradle.api.plugins.migration.model.outcome.internal.archive.entry;
 
-public interface BuildOutcomeComparatorFactory {
+import org.gradle.api.Transformer;
 
-    <T extends BuildOutcome> BuildOutcomeComparator<T, ?> getComparator(Class<T> outcomeType);
+import java.util.zip.ZipEntry;
 
+public class ZipEntryToArchiveEntryTransformer implements Transformer<ArchiveEntry, ZipEntry> {
+
+    public ArchiveEntry transform(ZipEntry zipEntry) {
+        ArchiveEntry archiveEntry = new ArchiveEntry();
+        archiveEntry.setPath(zipEntry.getName());
+        archiveEntry.setCrc(zipEntry.getCrc());
+        archiveEntry.setDirectory(zipEntry.isDirectory());
+        archiveEntry.setSize(zipEntry.getSize());
+        return archiveEntry;
+    }
 }

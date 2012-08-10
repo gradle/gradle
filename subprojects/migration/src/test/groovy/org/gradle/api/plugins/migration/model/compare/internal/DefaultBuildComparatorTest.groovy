@@ -16,37 +16,69 @@
 
 package org.gradle.api.plugins.migration.model.compare.internal
 
-import spock.lang.Specification
-import org.gradle.api.plugins.migration.fixtures.outcome.StringBuildOutcomeComparator
 import org.gradle.api.plugins.migration.fixtures.outcome.StringBuildOutcome
+import org.gradle.api.plugins.migration.fixtures.outcome.StringBuildOutcomeComparator
 import org.gradle.api.plugins.migration.model.compare.BuildComparisonResult
+import org.gradle.api.plugins.migration.model.compare.BuildComparisonSpecBuilder
+import spock.lang.Specification
 
 import static org.apache.commons.lang.StringUtils.getLevenshteinDistance
 
 class DefaultBuildComparatorTest extends Specification {
 
-    def "do stuff"() {
-        given:
-        def outcomeComparatorFactory = new DefaultBuildOutcomeComparatorFactory()
-        def buildComparator = new DefaultBuildComparator(outcomeComparatorFactory)
-        def comparisonSpec = new DefaultBuildComparisonSpec()
+    def outcomeComparatorFactory = new DefaultBuildOutcomeComparatorFactory()
+    def buildComparator = new DefaultBuildComparator(outcomeComparatorFactory)
+    def specBuilder = new DefaultBuildComparisonSpecBuilder()
 
-        when:
+    def setup() {
         outcomeComparatorFactory.registerComparator(new StringBuildOutcomeComparator())
+    }
 
-        associateStrings(comparisonSpec, "abc", "abd")
-        associateStrings(comparisonSpec, "123", "123")
-
-        BuildComparisonResult results = buildComparator.compareBuilds(comparisonSpec)
+    def "simple comparison"() {
+        when:
+        associateStrings("abc", "abd")
+        associateStrings("123", "123")
 
         then:
+        def results = compareBuilds()
         results.comparisons.size() == 2
-        results.comparisons[0].distance == getLevenshteinDistance("abc", "abd")
+        results.comparisons[0].distance == distance("abc", "abd")
         results.comparisons[1].distance == 0
     }
 
-    void associateStrings(DefaultBuildComparisonSpec spec, from, to) {
-        spec.associate(toStringOutcome(from),  toStringOutcome(to), StringBuildOutcome)
+    def "comparison with unassociateds"() {
+        when:
+        def uncomparedFrom = toStringOutcome("a")
+        def uncomparedTo = toStringOutcome("a")
+        specBuilder.addUnassociatedFrom(uncomparedFrom)
+        specBuilder.addUnassociatedTo(uncomparedTo)
+        associateStrings("c", "c")
+
+        then:
+        def results = compareBuilds()
+        results.comparisons.first().distance == 0
+        results.uncomparedFrom == [uncomparedFrom] as Set
+        results.uncomparedTo == [uncomparedTo] as Set
+    }
+
+    def "empty spec is ok"() {
+        expect:
+        def result = compareBuilds()
+        result.comparisons.empty
+        result.uncomparedFrom.empty
+        result.uncomparedTo.empty
+    }
+
+    protected int distance(String from, String to) {
+        getLevenshteinDistance(from, to)
+    }
+
+    protected BuildComparisonResult compareBuilds() {
+        buildComparator.compareBuilds(specBuilder.build())
+    }
+
+    void associateStrings(BuildComparisonSpecBuilder builder = specBuilder, from, to) {
+        builder.associate(toStringOutcome(from), toStringOutcome(to), StringBuildOutcome)
     }
 
     StringBuildOutcome toStringOutcome(name, value = name) {

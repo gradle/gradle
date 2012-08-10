@@ -23,13 +23,10 @@ import org.gradle.api.plugins.migration.model.outcome.BuildOutcome;
  * An object that can compare two build outcomes of a common type.
  *
  * @param <T> The common type of the outcomes to be compared.
+ * @param <R> The type of the result returned by the comparison.
  */
-public interface BuildOutcomeComparator<T extends BuildOutcome> {
+public interface BuildOutcomeComparator<T extends BuildOutcome, R extends BuildOutcomeComparisonResult<T>> {
 
-    /*
-        TODO - This type should specify the type of the result
-        e.g. BuildOutcomeComparator<T extends BuildOutcome, R extends BuildOutcomeComparisonResult<T>>
-     */
     /**
      * The type of outcomes that this comparator can compare.
      *
@@ -43,6 +40,6 @@ public interface BuildOutcomeComparator<T extends BuildOutcome> {
      * @param association The associated outcomes to compare.
      * @return The result of the comparison. Never null.
      */
-    BuildOutcomeComparisonResult<T> compare(BuildOutcomeAssociation<T> association);
-    
+    R compare(BuildOutcomeAssociation<T> association);
+
 }
