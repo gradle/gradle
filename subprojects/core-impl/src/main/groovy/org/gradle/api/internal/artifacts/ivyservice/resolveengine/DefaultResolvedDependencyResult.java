@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.dependencygraph.api.ResolvedDependencyResult;
 
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -31,7 +32,7 @@ public class DefaultResolvedDependencyResult implements ResolvedDependencyResult
     DefaultResolvedModuleVersionResult selected;
     private final Set<String> configurations = new LinkedHashSet<String>();
 
-    public DefaultResolvedDependencyResult(ModuleVersionIdentifier requested, ModuleVersionIdentifier selected, Set<String> configurations) {
+    public DefaultResolvedDependencyResult(ModuleVersionIdentifier requested, ModuleVersionIdentifier selected, Collection<String> configurations) {
         this.requested = requested;
         this.selected = new DefaultResolvedModuleVersionResult(selected);
         this.configurations.addAll(configurations);
