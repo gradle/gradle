@@ -147,9 +147,13 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 if (cl.isPrimitive()) {
                     builder.append(Type.getType(cl).getDescriptor());
                 } else {
-                    builder.append('L');
-                    builder.append(cl.getName().replace('.', '/'));
-                    builder.append(';');
+                    if (cl.isArray()) {
+                        builder.append(cl.getName().replace('.', '/'));
+                    } else {
+                        builder.append('L');
+                        builder.append(cl.getName().replace('.', '/'));
+                        builder.append(';');
+                    }
                 }
             } else if (type instanceof ParameterizedType) {
                 ParameterizedType parameterizedType = (ParameterizedType) type;
