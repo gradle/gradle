@@ -31,7 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Uses the Jar service resource specification to locate service implementations.
  */
-public class ServiceLocator implements ServiceRegistry {
+public class ServiceLocator extends AbstractServiceRegistry {
     private final ClassLoader classLoader;
     private final Map<Class<?>, Object> implementations = new ConcurrentHashMap<Class<?>, Object>();
 
@@ -39,7 +39,7 @@ public class ServiceLocator implements ServiceRegistry {
         this.classLoader = classLoader;
     }
 
-    public <T> T get(Class<T> serviceType) throws UnknownServiceException {
+    public <T> T doGet(Class<T> serviceType) throws UnknownServiceException {
         synchronized (implementations) {
             T implementation = serviceType.cast(implementations.get(serviceType));
             if (implementation == null) {
@@ -67,10 +67,6 @@ public class ServiceLocator implements ServiceRegistry {
             return null;
         }
         return new ServiceFactory<T>(serviceType, implementationClass);
-    }
-
-    public <T> T newInstance(Class<T> type) throws UnknownServiceException {
-        return getFactory(type).create();
     }
 
     <T> Class<? extends T> findServiceImplementationClass(Class<T> serviceType) {

@@ -44,7 +44,7 @@ import java.util.*;
  *
  * <p>Service registries are arranged in a hierarchy. If a service of a given type cannot be located, the registry uses its parent registry, if any, to locate the service.</p>
  */
-public class DefaultServiceRegistry implements ServiceRegistry {
+public class DefaultServiceRegistry extends AbstractServiceRegistry {
     private final List<Provider> providers = new LinkedList<Provider>();
     private final OwnServices ownServices;
     private final List<Provider> registeredProviders;
@@ -135,7 +135,7 @@ public class DefaultServiceRegistry implements ServiceRegistry {
         }
     }
 
-    public <T> T get(Class<T> serviceType) throws IllegalArgumentException {
+    public <T> T doGet(Class<T> serviceType) throws IllegalArgumentException {
         if (closed) {
             throw new IllegalStateException(String.format("Cannot locate service of type %s, as %s has been closed.",
                     serviceType.getSimpleName(), this));
@@ -167,10 +167,6 @@ public class DefaultServiceRegistry implements ServiceRegistry {
 
         throw new UnknownServiceException(type, String.format("No factory for objects of type %s available in %s.",
                 type.getSimpleName(), this));
-    }
-
-    public <T> T newInstance(Class<T> type) {
-        return getFactory(type).create();
     }
 
     private static Object invoke(Method method, Object target, Object... args) {

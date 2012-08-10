@@ -17,12 +17,14 @@ package org.gradle.internal.service;
 
 import org.gradle.internal.Factory;
 
+import java.lang.reflect.Type;
+
 /**
  * A registry of services.
  */
 public interface ServiceRegistry {
     /**
-     * Locates the service of the given type. There is a single instance for each service type.
+     * Locates the service of the given type.
      *
      * @param serviceType The service type.
      * @param <T>         The service type.
@@ -31,6 +33,16 @@ public interface ServiceRegistry {
      * @throws ServiceLookupException On failure to lookup the specified service.
      */
     <T> T get(Class<T> serviceType) throws UnknownServiceException, ServiceLookupException;
+
+    /**
+     * Locates the service of the given type.
+     *
+     * @param serviceType The service type.
+     * @return The service instance. Never returns null.
+     * @throws UnknownServiceException When there is no service of the given type available.
+     * @throws ServiceLookupException On failure to lookup the specified service.
+     */
+    Object get(Type serviceType) throws UnknownServiceException, ServiceLookupException;
 
     /**
      * Locates a factory which can create services of the given type.
