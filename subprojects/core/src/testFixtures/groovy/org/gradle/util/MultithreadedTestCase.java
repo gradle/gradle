@@ -342,7 +342,7 @@ public class MultithreadedTestCase {
         start(new Runnable() {
             public void run() {
                 try {
-                    Thread.sleep(200L);
+                    Thread.sleep(500L);
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
