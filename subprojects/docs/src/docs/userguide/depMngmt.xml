@@ -17,56 +17,53 @@
     <title>Dependency Management</title>
     <section id='sec:Introduction'>
         <title>Introduction</title>
-        <para>This chapter gives an overview of issues related with dependency management and presents how Gradle can be used to overcome them.
-        </para>
         <para>Gradle offers a very good support for dependency management. If you are familiar with Maven or Ivy approach you will be delighted to learn that:
         <itemizedlist>
             <listitem>
-                <para>All the concepts that you already know and like are still there and are fully supported by Gradle. The current dependency management solutions all require to work with XML descriptor files and are usually
-        based on remote repositories for downloading the dependencies. Gradle fully supports this approach.
-                </para>
-            </listitem>
-            <listitem>
-                <para>Gradle works <emphasis>perfectly</emphasis> with your existent dependency management
+                <para>Gradle fully supports transitive dependency management. Gradle also works <emphasis>perfectly</emphasis> with your existent dependency management
                     infrastructure, be it Maven or Ivy. All the repositories you have set up with your custom POM or
                     ivy files can be used as they are. No changes necessary.
                 </para>
             </listitem>
             <listitem>
-                <para>Additionally, Gradle offers a simpler approach, which might be better suited for some projects.
+                <para>If you don't use transitive dependency management and your external libraries live just as files in version control or on some shared drive, Gradle provides powerful functionality
+                    to support this.
+                </para>
+            </listitem>
+            <listitem>
+                <para>Gradle provides an additional, optional support for transitive dependency management that is not based on XML descriptor files called Module Dependencies, where you describe
+                    the dependency hierarchy in the build script.
+                </para>
+            </listitem>
+            <listitem>
+                <para>The job of a build system is to support all major patterns for how people deal with dependencies, not to force people in a certain way of doing things. In particular for migration scenarios
+                    it is extremely important that any current approach is supported so that you can use the same input structure in the new evolving Gradle build than in the existing build as long as it
+                    is in production. That enables you to compare the results. Gradle is extremely flexible. So even if your project is using a custom dependency management or say an Eclipse .classpath file as master data for dependency management,
+                    it would be very easy to write a little adaptor plugin to use this data in Gradle. For migration purposes this is a common technique with Gradle. Once you have migrated, it might be a good idea though not to
+                    use a .classpath file for dependency metadata any longer :).
                 </para>
             </listitem>
         </itemizedlist>
         </para>
     </section>
     <section id='sec:dependency_management_overview'>
-        <title>Dependency management overview</title>
-        <para>We think dependency management is very important for almost any project. Yet the kind of dependency
+        <title>Dependency Management Best Practices.</title>
+        <para>We have an opinion on what are dependency management best practices. As usual, Gradle does not force our opinion onto you, but supports any kind of pattern you want to use. Nonetheless
+            we would like to share our opinion.
+        </para>
+        <para>We think good dependency management is very important for almost any project. Yet the kind of dependency
             management you need depends on the complexity and the environment of your project. Is your project a
             distribution or a library? Is it part of an enterprise environment, where it is integrated into other
-            projects builds or not? But all types of projects share the following requirements:
+            projects builds or not? But all types of projects should follow the rules below:
         </para>
-        <itemizedlist>
-            <listitem>
-                <para>The version of the jar must be easy to recognize. Sometimes the version is in the Manifest file of
-                    the jar, often not. And even if, it is rather painful to always look into the Manifest file to learn
-                    about the version. Therefore we think that you should only use jars which have their version as part
-                    of their file name.
-                </para>
-            </listitem>
-            <listitem>
-                <para>It hopes to be clear what are the first level dependencies and what are the transitive ones. There
-                    are different ways to achieve this. We will look at this later.
-                </para>
-            </listitem>
-            <listitem>
-                <para>Conflicting versions of the same jar should be detected and either resolved or cause an exception.
-                </para>
-            </listitem>
-        </itemizedlist>
         <section id='sub:versioning_the_jar_name'>
             <title>Versioning the jar name</title>
-            <para>Why do we think this is necessary? Without a dependency management as described above, your are likely
+            <para>The version of the jar must be easy to recognize. Sometimes the version is in the Manifest file of
+                the jar, often not. And even if, it is rather painful to always look into the Manifest file to learn
+                about the version. Therefore we think that you should only use jars which have their version as part
+                of their file name. If you are using transitive dependency management you are forced to do this in any case.
+            </para>
+            <para>Why do we think this is important? Without a dependency management as described above, your are likely
                 to burn your fingers sooner or later. If it is unclear which version of a jar your are using, this can
                 introduce subtle bugs which are very hard to find. For example there might be a project which uses
                 Hibernate 3.0.4. There are some problems with Hibernate so a developer installs version 3.0.5 of
@@ -77,32 +74,41 @@
             </para>
         </section>
         <section id='sub:transitive_dependency_management'>
-            <title>Transitive dependency management</title>
+            <title>Use some form of transitive dependency management</title>
+            <para>When we talk about transitive dependency management, we mean any technique that enables to distinguish
+                between what are the first level dependencies and what are the transitive ones. We will about different techniques for this later on.
+            </para>
             <para>Why is transitive dependency management so important? If you don't know which dependencies are first
-                level dependencies and which ones are transitive you will soon lose control over your build. Even
-                Gradle has already 20+ jars. An enterprise project using Spring, Hibernate, etc. easily ends up with
-                100+ jars. There is no way to memorize where all these jars come from. If you want to get rid of a first
+                level dependencies and which ones are transitive you will soon lose control over your build. Even a non enterprise project
+                Gradle has already 100+ jars. An enterprise project using Spring, Hibernate, etc. easily ends up with
+                many more jars. There is no way to memorize where all these jars come from. If you want to get rid of a first
                 level dependency you can't be sure which other jars you should remove. Because a dependency of a
                 first level dependency might also be a first level dependency itself. Or it might be a transitive
                 dependency of another of your first level dependencies. Many first level dependencies are runtime
                 dependencies and the transitive dependencies are of course all runtime dependencies. So the compiler
                 won't help you much here. The end of the story is, as we have seen very often, no one dares to remove
                 any jar any longer. The project classpath is a complete mess and if a classpath problem arises, hell on
-                earth invites you for a ride. In one of my former projects, I found some ldap related jar in the
-                classpath, whose sheer presence, as I found out after much research, accelerated LDAP access. So
+                earth invites you for a ride. In one of our former projects, we found some ldap related jar in the
+                classpath, whose sheer presence, as we found out after much research, accelerated LDAP access. So
                 removing this jar would not have led to any errors at compile or runtime.
             </para>
             <para>Gradle offers you different ways to express what are first level and what are transitive dependencies.
                 Gradle allows you for example to store your jars in CVS or SVN without XML descriptor files and still
-                use transitive dependency management. Gradle also validates your dependency hierarchy against the
-                reality of your code by using only the first level dependencies for compiling.
+                use transitive dependency management. Also, not all techniques for transitive dependency management deal with
+                the problem described above equally well.
             </para>
         </section>
         <section id='sub:version_conflicts'>
             <title>Version conflicts</title>
-            <para>In your dependency description you tell Gradle which version of a dependency is needed by another
-                dependency. This frequently leads to conflicts. Different dependencies rely on different versions of
-                another dependency. The JVM unfortunately does not offer yet any easy way, to have different versions of
+            <para>Conflicting versions of the same jar should be detected and either resolved or cause an exception. If you don't use
+                transitive dependency management, version conflicts are undetected and the mostly accidental fragile order of the classpath
+                will determine, what version of a dependency will win. For example adding a dependency with a particular version to a subproject
+                might change that order and then will led to all kind of surprising side effects. You might also want to learn where conflicting
+                versions are used as you might want to consolidate on a particular version of an dependency across your organization. With a good conflict
+                reporting that information can be used to communicate with the teams to solve this.
+            </para>
+            <para>It is common that different dependencies rely on different versions of
+                another dependency which leads to a version conflictm as The JVM unfortunately does not offer yet any easy way, to have different versions of
                 the same jar in the classpath (see <xref linkend='sub:dependency_management_and_java'/>).</para>
             <para>Gradle offers following conflict resolution strategies:
                 <itemizedlist>
@@ -112,6 +118,8 @@
                     <listitem><emphasis>Fail</emphasis> - fail eagerly on version conflict.
                         Useful if you need extra control and manage the conflicts manually.
                         Introduced in <code>1.0-milestone-6</code>. See <apilink class='org.gradle.api.artifacts.ResolutionStrategy'/> for reference on managing the conflict resolution strategies.
+                    </listitem>
+                    <listitem>We are working on making conflict resolution fully customizable.
                     </listitem>
                 </itemizedlist>
                 Gradle provides means to resolve version conflicts:
@@ -167,17 +175,9 @@
                 particular jar. Both also use repositories where the actual jars are placed together with their
                 descriptor files. And both offer resolution for conflicting jar versions in one form or the other. Yet
                 we think the differences of both approaches are significant
-                in terms of flexibility and maintainability. Beside this, Ivy fully supports the Maven dependency
-                handling. So with Ivy you have access to both worlds. We like Ivy very much. Gradle uses it under the
-                hood for its dependency management. Ivy is most often used via Ant and XML descriptors. But it also has
-                an API. We integrate deeply with Ivy via its API. This enables us to build new concepts on top
-                of Ivy which Ivy does not offer itself.
-            </para>
-            <para>Right now there is a lot of movement in the field of dependency handling. There is OSGi and there is
-                JSR-294, Improved Modularity Support in the JavaTM Programming Language.
-                OSGi is available already, JSR-294 is supposed to be shipped with Java 7. These technologies
-                deal, amongst many other things, also with a painful problem which is neither solved by Maven nor by Ivy. This is enabling different
-                versions of the same jar to be used at runtime.
+                in terms of flexibility and maintainability. Originally Gradle did use Ivy under the
+                hood for its dependency management. This has been replaced with a native Gradle dependency resolution engine. This resolution engine
+                supports both pom and ivy descriptor files.
             </para>
         </section>
     </section>
