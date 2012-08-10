@@ -19,6 +19,7 @@ import org.gradle.api.Transformer
 import org.gradle.api.specs.Spec
 import org.gradle.api.specs.Specs
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import static org.gradle.util.CollectionUtils.*
 
@@ -103,9 +104,39 @@ class CollectionUtilsTest extends Specification {
         !replace(l, spec { false }, transformer { it })
     }
 
+    @Unroll
+    "diffing sets"() {
+        given:
+        def leftSet = left as Set
+        def rightSet = right as Set
+        def leftOnlySet = leftOnly as Set
+        def rightOnlySet = rightOnly as Set
+
+        when:
+        def diff = diffSetsBy(leftSet, rightSet, transformer { it + 10 })
+
+        then:
+        diff.leftOnly == leftOnlySet
+        diff.common.size() == common.size()
+        if (common) {
+            common.each { inCommon ->
+                diff.common.find { it.left == inCommon && it.right == inCommon }
+            }
+        }
+        diff.rightOnly == rightOnlySet
+
+        where:
+        left      | right     | leftOnly  | rightOnly | common
+        [1, 2, 3] | [2, 3, 4] | [1]       | [4]       | [2, 3]
+        []        | []        | []        | []        | []
+        [1, 2, 3] | []        | [1, 2, 3] | []        | []
+        []        | [1, 2, 3] | []        | [1, 2, 3] | []
+        [1, 2, 3] | [1, 2, 3] | []        | []        | [1, 2, 3]
+    }
+
     def "collect as map"() {
         expect:
-        collectMap([1,2,3], transformer { it * 10 }) == [10: 1, 20: 2, 30: 3]
+        collectMap([1, 2, 3], transformer { it * 10 }) == [10: 1, 20: 2, 30: 3]
         collectMap([], transformer { it * 10 }) == [:]
     }
 

@@ -128,4 +128,60 @@ public abstract class CollectionUtils {
         collectMap(map, items, keyGenerator);
         return map;
     }
+
+    /**
+     * The result of diffing two sets.
+     *
+     * @param <T> The type of element the sets contain
+     * @see CollectionUtils#diffSetsBy(java.util.Set, java.util.Set, org.gradle.api.Transformer)
+     */
+    public static class SetDiff<T> {
+        public static class Pair<T> {
+            public T left;
+            public T right;
+        }
+        public Set<T> leftOnly = new HashSet<T>();
+        public Set<Pair<T>> common = new HashSet<Pair<T>>();
+        public Set<T> rightOnly = new HashSet<T>();
+    }
+
+    /**
+     * Provides a “diff report” of how the two sets are similar and how they are different, comparing the entries by some aspect.
+     *
+     * The transformer is used to generate the value to use to compare the entries by. That is, the entries are not
+     * compared by equals by an attribute or characteristic.
+     *
+     * The transformer is expected to produce a unique value for each entry in a single set. Behaviour is undefined if
+     * this condition is not met.
+     *
+     * @param left The set on the “left” side of the comparison.
+     * @param right The set on the “right” side of the comparison.
+     * @param compareBy Provides the value to compare entries from either side by
+     * @param <T> The type of the entry objects
+     * @return A representation of the difference
+     */
+    public static <T> SetDiff<T> diffSetsBy(Set<? extends T> left, Set<? extends T> right, Transformer<?, T> compareBy) {
+        SetDiff<T> setDiff = new SetDiff<T>();
+
+        Map<Object, T> indexedLeft = collectMap(left, compareBy);
+        Map<Object, T> indexedRight = collectMap(right, compareBy);
+
+        for (Map.Entry<Object, T> leftEntry : indexedLeft.entrySet()) {
+            T rightValue = indexedRight.remove(leftEntry.getKey());
+            if (rightValue == null) {
+                setDiff.leftOnly.add(leftEntry.getValue());
+            } else {
+                SetDiff.Pair<T> pair = new SetDiff.Pair<T>();
+                pair.left = leftEntry.getValue();
+                pair.right = rightValue;
+                setDiff.common.add(pair);
+            }
+        }
+
+        for (T rightValue : indexedRight.values()) {
+            setDiff.rightOnly.add(rightValue);
+        }
+
+        return setDiff;
+    }
 }
