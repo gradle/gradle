@@ -554,6 +554,7 @@ class ClassDocRendererTest extends XmlSpecification {
         BlockDoc block1 = blockDoc('block1', id: 'block1', description: 'block1 description', comment: 'block1 comment', type: 'org.gradle.Type')
         BlockDoc block2 = blockDoc('block2', id: 'block2', description: 'block2 description', comment: 'block2 comment', type: 'org.gradle.Type', multivalued: true)
         _ * classDoc.classBlocks >> [block1, block2]
+        _ * classDoc.classExtensions >> []
 
         when:
         def result = parse('<chapter/>', document)
@@ -636,50 +637,57 @@ class ClassDocRendererTest extends XmlSpecification {
         ClassDoc targetClassDoc = classDoc('Class', content: content)
         ClassExtensionDoc extensionDoc = extensionDoc('thingo')
         BlockDoc blockDoc = blockDoc('blockName', id: 'blockId')
+        _ * targetClassDoc.classBlocks >> []
         _ * targetClassDoc.classExtensions >> [extensionDoc]
         _ * extensionDoc.extensionBlocks >> [blockDoc]
 
         when:
         def result = parse('<chapter/>', document)
         withCategories {
-            renderer.mergeExtensionBlocks(targetClassDoc, result, result)
+            renderer.mergeBlocks(targetClassDoc, result)
         }
 
         then:
         formatTree(result) == '''<chapter>
     <section>
-        <title>Script blocks added by the <literal>thingo</literal> plugin</title>
-        <titleabbrev><literal>thingo</literal> plugin</titleabbrev>
-        <table>
-            <title>Script blocks - <literal>thingo</literal> plugin</title>
-            <thead>
+        <title>Script blocks</title>
+        <section>
+            <title>Script blocks added by the <literal>thingo</literal> plugin</title>
+            <titleabbrev><literal>thingo</literal> plugin</titleabbrev>
+            <table>
+                <title>Script blocks - <literal>thingo</literal> plugin</title>
+                <thead>
+                    <tr>
+                        <td>Block</td>
+                        <td>Description</td>
+                    </tr>
+                </thead>
                 <tr>
-                    <td>Block</td>
-                    <td>Description</td>
+                    <td>
+                        <link linkend="blockId">
+                            <literal>blockName</literal>
+                        </link>
+                    </td>
+                    <td>
+                        <para>description</para>
+                    </td>
                 </tr>
-            </thead>
-            <tr>
-                <td>
-                    <link linkend="blockId">
-                        <literal>blockName</literal>
-                    </link>
-                </td>
-                <td>
-                    <para>description</para>
-                </td>
-            </tr>
-        </table>
+            </table>
+        </section>
     </section>
-    <section id="blockId" role="detail">
-        <title><literal>blockName</literal> { }</title>
-        <para>comment</para>
-        <segmentedlist>
-            <segtitle>Delegates to</segtitle>
-            <seglistitem>
-                <seg><classname>BlockType</classname> from <link linkend="blockName">
-                        <literal>blockName</literal></link></seg>
-            </seglistitem>
-        </segmentedlist>
+    <section>
+        <title>Script block details</title>
+        <section id="blockId" role="detail">
+            <title><literal>blockName</literal> { }</title>
+            <para>comment</para>
+            <segmentedlist>
+                <segtitle>Delegates to</segtitle>
+                <seglistitem>
+                    <seg><classname>BlockType</classname> from <link linkend="blockName">
+                            <literal>blockName</literal></link></seg>
+                </seglistitem>
+            </segmentedlist>
+        </section>
     </section>
 </chapter>'''
     }

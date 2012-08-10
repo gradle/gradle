@@ -83,7 +83,7 @@ class ClassDoc implements DslElementDoc {
         classMethods.add(methodDoc.forClass(this))
     }
 
-    def getClassBlocks() { return classBlocks }
+    Collection<BlockDoc> getClassBlocks() { return classBlocks }
 
     void addClassBlock(BlockDoc blockDoc) {
         classBlocks.add(blockDoc.forClass(this))
