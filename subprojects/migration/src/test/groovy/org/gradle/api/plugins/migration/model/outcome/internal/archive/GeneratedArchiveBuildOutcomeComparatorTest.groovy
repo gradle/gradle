@@ -17,7 +17,7 @@
 package org.gradle.api.plugins.migration.model.outcome.internal.archive
 
 import org.gradle.api.Transformer
-import org.gradle.api.plugins.migration.model.association.internal.DefaultBuildOutcomeAssociation
+import org.gradle.api.plugins.migration.model.outcome.internal.DefaultBuildOutcomeAssociation
 import org.gradle.api.plugins.migration.model.outcome.internal.archive.entry.ArchiveEntry
 import org.gradle.api.plugins.migration.model.outcome.internal.archive.entry.ArchiveEntryComparison
 import spock.lang.Specification

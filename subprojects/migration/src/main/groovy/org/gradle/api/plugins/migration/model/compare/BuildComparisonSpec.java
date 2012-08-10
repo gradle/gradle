@@ -16,7 +16,7 @@
 
 package org.gradle.api.plugins.migration.model.compare;
 
-import org.gradle.api.plugins.migration.model.association.BuildOutcomeAssociation;
+import org.gradle.api.plugins.migration.model.outcome.BuildOutcomeAssociation;
 import org.gradle.api.plugins.migration.model.outcome.BuildOutcome;
 
 import java.util.List;

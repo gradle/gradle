@@ -20,7 +20,7 @@ import spock.lang.Specification
 import org.gradle.api.plugins.migration.model.compare.BuildOutcomeComparator
 import org.gradle.api.plugins.migration.model.outcome.BuildOutcome
 import org.gradle.api.plugins.migration.model.compare.BuildOutcomeComparisonResult
-import org.gradle.api.plugins.migration.model.association.BuildOutcomeAssociation
+import org.gradle.api.plugins.migration.model.outcome.BuildOutcomeAssociation
 
 class DefaultBuildOutcomeComparatorFactoryTest extends Specification {
 

@@ -16,7 +16,7 @@
 
 package org.gradle.api.plugins.migration.fixtures.outcome
 
-import org.gradle.api.plugins.migration.model.association.BuildOutcomeAssociation
+import org.gradle.api.plugins.migration.model.outcome.BuildOutcomeAssociation
 import org.gradle.api.plugins.migration.model.compare.BuildOutcomeComparisonResultSupport
 
 import static org.apache.commons.lang.StringUtils.getLevenshteinDistance

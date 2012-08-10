@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.migration.model.association;
+package org.gradle.api.plugins.migration.model.outcome;
 
 import org.gradle.api.plugins.migration.model.outcome.BuildOutcome;
 

@@ -17,8 +17,8 @@
 package org.gradle.api.plugins.migration.fixtures.outcome
 
 import org.gradle.api.plugins.migration.model.compare.BuildOutcomeComparator
-import org.gradle.api.plugins.migration.model.compare.BuildOutcomeComparisonResult
-import org.gradle.api.plugins.migration.model.association.BuildOutcomeAssociation
+
+import org.gradle.api.plugins.migration.model.outcome.BuildOutcomeAssociation
 
 class StringBuildOutcomeComparator implements BuildOutcomeComparator<StringBuildOutcome, StringBuildOutcomeComparisonResult> {
 
