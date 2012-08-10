@@ -127,6 +127,11 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                     }
                 }
 
+                // The task state could have been modified while we waited for dependency completion. Check that it is still 'ready'.
+                if (!nextMatching.isReady()) {
+                    continue;
+                }
+
                 if (nextMatching.allDependenciesSuccessful()) {
                     nextMatching.startExecution();
                     return nextMatching;
