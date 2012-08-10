@@ -16,7 +16,9 @@
 
 package org.gradle.integtests;
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec;
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+
+import static org.hamcrest.Matchers.containsString
 
 public class MultiProjectDependencyIntegrationTest extends AbstractIntegrationSpec {
 
@@ -36,8 +38,8 @@ allprojects {
 """
     }
 
-    def "will honour :c->[:a,:b]"() {
-        projectDependency from: ':c', to: [':a', ':b']
+    def "project dependency c->[a,b]"() {
+        projectDependency from: 'c', to: ['a', 'b']
         when:
         run ':c:build'
 
@@ -48,10 +50,10 @@ allprojects {
         depsCopied 'c', ['a', 'b']
     }
 
-    def "will honour :c->:b->:a"() {
+    def "project dependency c->b->a"() {
 
-        projectDependency from: ':c', to: [':b']
-        projectDependency from: ':b', to: [':a']
+        projectDependency from: 'c', to: ['b']
+        projectDependency from: 'b', to: ['a']
 
         when:
         run ':c:build'
@@ -63,10 +65,10 @@ allprojects {
         depsCopied 'a', []
     }
 
-    def "will honour :a->[:b,:c] where :b->:c"() {
+    def "project dependency a->[b,c] and b->c"() {
 
-        projectDependency from: ':a', to: [':b', ':c']
-        projectDependency from: ':b', to: [':c']
+        projectDependency from: 'a', to: ['b', 'c']
+        projectDependency from: 'b', to: ['c']
 
         when:
         run ':a:build'
@@ -78,11 +80,11 @@ allprojects {
         depsCopied 'c', []
     }
 
-    def "will honour :a->[:b,:d] where :b->:c->:d"() {
+    def "project dependency a->[b,d] and b->c->d"() {
 
-        projectDependency from: ':a', to: [':b', ':d']
-        projectDependency from: ':b', to: [':c']
-        projectDependency from: ':c', to: [':d']
+        projectDependency from: 'a', to: ['b', 'd']
+        projectDependency from: 'b', to: ['c']
+        projectDependency from: 'c', to: ['d']
 
         when:
         run ':a:build'
@@ -95,16 +97,127 @@ allprojects {
         depsCopied 'd', []
     }
 
+    def "project dependency a->[b,c] and b->d and c->d"() {
+
+        projectDependency from: 'a', to: ['b', 'c']
+        projectDependency from: 'b', to: ['d']
+        projectDependency from: 'c', to: ['d']
+
+        when:
+        run ':a:build'
+
+        then:
+        jarsBuilt 'a', 'b', 'c', 'd'
+        depsCopied 'a', ['b', 'c', 'd']
+        depsCopied 'b', ['d']
+        depsCopied 'c', ['d']
+        depsCopied 'd', []
+    }
+
+    def "circular project dependency without task cycle a->b->c->a:2"() {
+
+        projectDependency from: 'a', to: ['b']
+        projectDependency from: 'b', to: ['c']
+
+        def outputValue = System.currentTimeMillis()
+
+        buildFile << """
+project(':a') {
+    task writeOutputFile << {
+        file('build').mkdirs()
+        file('build/output.txt') << "${outputValue}"
+    }
+}
+project(':c') {
+    compileJava.dependsOn ':a:writeOutputFile'
+}
+"""
+
+        when:
+        run ':a:build'
+
+        then:
+        jarsBuilt 'a', 'b', 'c'
+        depsCopied 'a', ['b', 'c']
+        depsCopied 'b', ['c']
+        depsCopied 'c', []
+
+        and:
+        file('a/build/output.txt').text == "$outputValue"
+    }
+
+    def "project dependency cycle a->b->c->a"() {
+        projectDependency from: 'a', to: ['b']
+        projectDependency from: 'b', to: ['c']
+        projectDependency from: 'c', to: ['a']
+
+        when:
+        fails ':a:build'
+
+        then:
+        failure.assertHasNoCause()
+        failure.assertThatDescription(containsString("Circular dependency between tasks. Cycle includes [task ':a:compileJava', task ':a:jar']."))
+    }
+
+    def "project dependency a->b->c->d and c fails"() {
+        projectDependency from: 'a', to: ['b']
+        projectDependency from: 'b', to: ['c']
+        projectDependency from: 'c', to: ['d']
+        failingBuild 'c'
+
+        when:
+        fails ':a:build'
+
+        then:
+        failure.assertHasCause 'failure'
+
+        and:
+        jarsBuilt 'd'
+        jarsNotBuilt 'a', 'b', 'c'
+    }
+
+    def "project dependency a->[b,c] and b->d and c fails"() {
+        projectDependency from: 'a', to: ['b', 'c']
+        projectDependency from: 'b', to: ['d']
+        failingBuild 'c'
+
+        when:
+        fails ':a:build'
+
+        then:
+        failure.assertHasCause 'failure'
+
+        and:
+        jarsBuilt 'b', 'd' // These _may_ be built in parallel execution
+        jarsNotBuilt 'a', 'c'
+    }
+
+    def "project dependency a->[b,c] and both b & c fail"() {
+        projectDependency from: 'a', to: ['b', 'c']
+        failingBuild 'b'
+        failingBuild 'c'
+
+        when:
+        fails ':a:build'
+
+        then:
+        failure.assertHasCause 'failure'
+
+        and:
+        jarsNotBuilt 'a', 'b', 'c'
+
+    }
+
     def projectDependency(def link) {
         def from = link['from']
         def to = link['to']
 
         def dependencies = to.collect {
-            "compile project('${it}')"
+            "compile project(':${it}')"
         }.join('\n')
 
         buildFile << """
-project('$from') {
+project(':$from') {
     dependencies {
         ${dependencies}
     }
@@ -112,9 +225,26 @@ project('$from') {
 """
     }
 
+    def failingBuild(def project) {
+        buildFile << """
+project(':$project') {
+    task fail << {
+        throw new RuntimeException('failure')
+    }
+    jar.dependsOn fail
+}
+"""
+    }
+
     def jarsBuilt(String... projects) {
         projects.each {
             file("${it}/build/libs/${it}.jar").assertExists()
+        }
+    }
+
+    def jarsNotBuilt(String... projects) {
+        projects.each {
+            file("${it}/build/libs/${it}.jar").assertDoesNotExist()
         }
     }
 
