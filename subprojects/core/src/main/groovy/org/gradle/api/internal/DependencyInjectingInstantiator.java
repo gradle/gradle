@@ -82,7 +82,7 @@ public class DependencyInjectingInstantiator implements Instantiator {
                 resolvedParameters[i] = parameters[pos];
                 pos++;
             } else {
-                resolvedParameters[i] = services.get(targetType);
+                resolvedParameters[i] = services.get(match.getGenericParameterTypes()[i]);
             }
         }
         if (pos != parameters.length) {

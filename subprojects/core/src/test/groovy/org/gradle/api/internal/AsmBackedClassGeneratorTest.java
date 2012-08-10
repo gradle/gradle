@@ -28,6 +28,8 @@ import org.gradle.internal.reflect.ObjectInstantiationException;
 import org.junit.Test;
 import spock.lang.Issue;
 
+import java.io.IOException;
+import java.lang.reflect.*;
 import java.util.*;
 import java.util.concurrent.Callable;
 
@@ -110,6 +112,142 @@ public class AsmBackedClassGeneratorTest {
 
         bean = generatedClass.getConstructor().newInstance();
         assertThat(bean.getProp(), equalTo("default value"));
+    }
+
+    @Test
+    public void includesGenericTypeInformationForOverriddenConstructor() throws Exception {
+        Class<?> generatedClass = generator.generate(BeanWithComplexConstructor.class);
+        Constructor<?> constructor = generatedClass.getDeclaredConstructors()[0];
+
+        assertThat(constructor.getTypeParameters().length, equalTo(3));
+
+        assertThat(constructor.getGenericParameterTypes().length, equalTo(12));
+
+        // Callable
+        Type paramType = constructor.getGenericParameterTypes()[0];
+        assertThat(paramType, equalTo((Type) Callable.class));
+
+        // Callable<String>
+        paramType = constructor.getGenericParameterTypes()[1];
+        assertThat(paramType, instanceOf(ParameterizedType.class));
+        ParameterizedType parameterizedType = (ParameterizedType) paramType;
+        assertThat(parameterizedType.getRawType(), equalTo((Type) Callable.class));
+        assertThat(parameterizedType.getActualTypeArguments()[0], equalTo((Type) String.class));
+
+        // Callable<? extends String>
+        paramType = constructor.getGenericParameterTypes()[2];
+        assertThat(paramType, instanceOf(ParameterizedType.class));
+        parameterizedType = (ParameterizedType) paramType;
+        assertThat(parameterizedType.getRawType(), equalTo((Type) Callable.class));
+        assertThat(parameterizedType.getActualTypeArguments()[0], instanceOf(WildcardType.class));
+        WildcardType wildcard = (WildcardType) parameterizedType.getActualTypeArguments()[0];
+        assertThat(wildcard.getUpperBounds().length, equalTo(1));
+        assertThat(wildcard.getUpperBounds()[0], equalTo((Type)String.class));
+        assertThat(wildcard.getLowerBounds().length, equalTo(0));
+
+        // Callable<? super String>
+        paramType = constructor.getGenericParameterTypes()[3];
+        assertThat(paramType, instanceOf(ParameterizedType.class));
+        parameterizedType = (ParameterizedType) paramType;
+        assertThat(parameterizedType.getRawType(), equalTo((Type) Callable.class));
+        assertThat(parameterizedType.getActualTypeArguments()[0], instanceOf(WildcardType.class));
+        wildcard = (WildcardType) parameterizedType.getActualTypeArguments()[0];
+        assertThat(wildcard.getUpperBounds().length, equalTo(1));
+        assertThat(wildcard.getUpperBounds()[0], equalTo((Type)Object.class));
+        assertThat(wildcard.getLowerBounds().length, equalTo(1));
+        assertThat(wildcard.getLowerBounds()[0], equalTo((Type)String.class));
+
+        // Callable<?>
+        paramType = constructor.getGenericParameterTypes()[4];
+        assertThat(paramType, instanceOf(ParameterizedType.class));
+        parameterizedType = (ParameterizedType) paramType;
+        assertThat(parameterizedType.getRawType(), equalTo((Type) Callable.class));
+        assertThat(parameterizedType.getActualTypeArguments()[0], instanceOf(WildcardType.class));
+        wildcard = (WildcardType) parameterizedType.getActualTypeArguments()[0];
+        assertThat(wildcard.getUpperBounds().length, equalTo(1));
+        assertThat(wildcard.getUpperBounds()[0], equalTo((Type)Object.class));
+        assertThat(wildcard.getLowerBounds().length, equalTo(0));
+
+        // Callable<? extends Callable<?>>
+        paramType = constructor.getGenericParameterTypes()[5];
+        assertThat(paramType, instanceOf(ParameterizedType.class));
+        parameterizedType = (ParameterizedType) paramType;
+        assertThat(parameterizedType.getRawType(), equalTo((Type) Callable.class));
+        assertThat(parameterizedType.getActualTypeArguments()[0], instanceOf(WildcardType.class));
+        wildcard = (WildcardType) parameterizedType.getActualTypeArguments()[0];
+        assertThat(wildcard.getUpperBounds().length, equalTo(1));
+        assertThat(wildcard.getLowerBounds().length, equalTo(0));
+        assertThat(wildcard.getUpperBounds()[0], instanceOf(ParameterizedType.class));
+        parameterizedType = (ParameterizedType) wildcard.getUpperBounds()[0];
+        assertThat(parameterizedType.getRawType(), equalTo((Type) Callable.class));
+        assertThat(parameterizedType.getActualTypeArguments()[0], instanceOf(WildcardType.class));
+        wildcard = (WildcardType) parameterizedType.getActualTypeArguments()[0];
+        assertThat(wildcard.getUpperBounds().length, equalTo(1));
+        assertThat(wildcard.getUpperBounds()[0], equalTo((Type) Object.class));
+        assertThat(wildcard.getLowerBounds().length, equalTo(0));
+
+        // Callable<S>
+        paramType = constructor.getGenericParameterTypes()[6];
+        assertThat(paramType, instanceOf(ParameterizedType.class));
+        parameterizedType = (ParameterizedType) paramType;
+        assertThat(parameterizedType.getRawType(), equalTo((Type) Callable.class));
+        assertThat(parameterizedType.getActualTypeArguments()[0], instanceOf(TypeVariable.class));
+        TypeVariable typeVariable = (TypeVariable) parameterizedType.getActualTypeArguments()[0];
+        assertThat(typeVariable.getName(), equalTo("S"));
+        assertThat(typeVariable.getBounds()[0], instanceOf(ParameterizedType.class));
+
+        // Callable<? extends T>
+        paramType = constructor.getGenericParameterTypes()[7];
+        assertThat(paramType, instanceOf(ParameterizedType.class));
+        parameterizedType = (ParameterizedType) paramType;
+        assertThat(parameterizedType.getRawType(), equalTo((Type) Callable.class));
+        assertThat(parameterizedType.getActualTypeArguments()[0], instanceOf(WildcardType.class));
+        wildcard = (WildcardType) parameterizedType.getActualTypeArguments()[0];
+        assertThat(wildcard.getUpperBounds().length, equalTo(1));
+        assertThat(wildcard.getLowerBounds().length, equalTo(0));
+        assertThat(wildcard.getUpperBounds()[0], instanceOf(TypeVariable.class));
+        typeVariable = (TypeVariable) wildcard.getUpperBounds()[0];
+        assertThat(typeVariable.getName(), equalTo("T"));
+        assertThat(typeVariable.getBounds()[0], equalTo((Type) IOException.class));
+
+        // V
+        paramType = constructor.getGenericParameterTypes()[8];
+        assertThat(paramType, instanceOf(TypeVariable.class));
+        typeVariable = (TypeVariable) paramType;
+        assertThat(typeVariable.getName(), equalTo("V"));
+        assertThat(typeVariable.getBounds()[0], equalTo((Type) Object.class));
+
+        // String[]
+        paramType = constructor.getGenericParameterTypes()[9];
+        assertThat(paramType, instanceOf(GenericArrayType.class));
+        GenericArrayType arrayType = (GenericArrayType) paramType;
+        assertThat(arrayType.getGenericComponentType(), equalTo((Type) String.class));
+
+        // List<? extends String>[]
+        paramType = constructor.getGenericParameterTypes()[10];
+        assertThat(paramType, instanceOf(GenericArrayType.class));
+        arrayType = (GenericArrayType) paramType;
+        assertThat(arrayType.getGenericComponentType(), instanceOf(ParameterizedType.class));
+        parameterizedType = (ParameterizedType) arrayType.getGenericComponentType();
+        assertThat(parameterizedType.getRawType(), equalTo((Type) List.class));
+        assertThat(parameterizedType.getActualTypeArguments().length, equalTo(1));
+        assertThat(parameterizedType.getActualTypeArguments()[0], instanceOf(WildcardType.class));
+
+        // boolean
+        paramType = constructor.getGenericParameterTypes()[11];
+        assertThat(paramType, equalTo((Type) Boolean.TYPE));
+
+        assertThat(constructor.getGenericExceptionTypes().length, equalTo(2));
+
+        // throws Exception
+        Type exceptionType = constructor.getGenericExceptionTypes()[0];
+        assertThat(exceptionType, equalTo((Type) Exception.class));
+
+        // throws T
+        exceptionType = constructor.getGenericExceptionTypes()[1];
+        assertThat(exceptionType, instanceOf(TypeVariable.class));
+        typeVariable = (TypeVariable) exceptionType;
+        assertThat(typeVariable.getName(), equalTo("T"));
     }
 
     @Test
@@ -552,6 +690,24 @@ public class AsmBackedClassGeneratorTest {
 
         public BeanWithConstructor(int value) {
             setProp(String.valueOf(value));
+        }
+    }
+
+    public static class BeanWithComplexConstructor {
+        public <T extends IOException, S extends Callable<String>, V> BeanWithComplexConstructor(
+                Callable rawValue,
+                Callable<String> value,
+                Callable<? extends String> subType,
+                Callable<? super String> superType,
+                Callable<?> wildcard,
+                Callable<? extends Callable<?>> nested,
+                Callable<S> typeVar,
+                Callable<? extends T> typeVarWithBounds,
+                V genericVar,
+                String[] array,
+                List<? extends String>[] genericArray,
+                boolean primitive
+        ) throws Exception, T {
         }
     }
 

@@ -23,9 +23,9 @@ import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.ReflectionUtil;
 import org.objectweb.asm.*;
+import org.objectweb.asm.Type;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
+import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -83,7 +83,10 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             }
             String methodDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE, paramTypes.toArray(
                     new Type[paramTypes.size()]));
-            MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, "<init>", methodDescriptor, null,
+
+            String signature = signature(constructor);
+
+            MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, "<init>", methodDescriptor, signature,
                     new String[0]);
             methodVisitor.visitCode();
 
@@ -108,6 +111,97 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             methodVisitor.visitInsn(Opcodes.RETURN);
             methodVisitor.visitMaxs(0, 0);
             methodVisitor.visitEnd();
+        }
+
+        /**
+         * Generates the signature for the given constructor
+         */
+        private String signature(Constructor<?> constructor) {
+            StringBuilder builder = new StringBuilder();
+            if (constructor.getTypeParameters().length > 0) {
+                builder.append('<');
+                for (TypeVariable<?> typeVariable : constructor.getTypeParameters()) {
+                    builder.append(typeVariable.getName());
+                    for (java.lang.reflect.Type bound : typeVariable.getBounds()) {
+                        builder.append(':');
+                        visitType(bound, builder);
+                    }
+                }
+                builder.append('>');
+            }
+            builder.append('(');
+            for (java.lang.reflect.Type paramType : constructor.getGenericParameterTypes()) {
+                visitType(paramType, builder);
+            }
+            builder.append(")V");
+            for (java.lang.reflect.Type exceptionType : constructor.getGenericExceptionTypes()) {
+                builder.append('^');
+                visitType(exceptionType, builder);
+            }
+            return builder.toString();
+        }
+
+        private void visitType(java.lang.reflect.Type type, StringBuilder builder) {
+            if (type instanceof Class) {
+                Class<?> cl = (Class<?>) type;
+                if (cl.isPrimitive()) {
+                    builder.append(Type.getType(cl).getDescriptor());
+                } else {
+                    builder.append('L');
+                    builder.append(cl.getName().replace('.', '/'));
+                    builder.append(';');
+                }
+            } else if (type instanceof ParameterizedType) {
+                ParameterizedType parameterizedType = (ParameterizedType) type;
+                visitNested(parameterizedType.getRawType(), builder);
+                builder.append('<');
+                for (java.lang.reflect.Type param : parameterizedType.getActualTypeArguments()) {
+                    visitType(param, builder);
+                }
+                builder.append(">;");
+            } else if (type instanceof WildcardType) {
+                WildcardType wildcardType = (WildcardType) type;
+                if (wildcardType.getUpperBounds().length == 1 && wildcardType.getUpperBounds()[0].equals(Object.class)) {
+                    if (wildcardType.getLowerBounds().length == 0) {
+                        builder.append('*');
+                        return;
+                    }
+                } else {
+                    for (java.lang.reflect.Type upperType : wildcardType.getUpperBounds()) {
+                        builder.append('+');
+                        visitType(upperType, builder);
+                    }
+                }
+                for (java.lang.reflect.Type lowerType : wildcardType.getLowerBounds()) {
+                    builder.append('-');
+                    visitType(lowerType, builder);
+                }
+            } else if (type instanceof TypeVariable) {
+                TypeVariable<?> typeVar = (TypeVariable) type;
+                builder.append('T');
+                builder.append(typeVar.getName());
+                builder.append(';');
+            } else if (type instanceof GenericArrayType) {
+                GenericArrayType arrayType = (GenericArrayType) type;
+                builder.append('[');
+                visitType(arrayType.getGenericComponentType(), builder);
+            } else {
+                throw new IllegalArgumentException(String.format("Cannot generate signature for %s.", type));
+            }
+        }
+
+        private void visitNested(java.lang.reflect.Type type, StringBuilder builder) {
+            if (type instanceof Class) {
+                Class<?> cl = (Class<?>) type;
+                if (cl.isPrimitive()) {
+                    builder.append(Type.getType(cl).getDescriptor());
+                } else {
+                    builder.append('L');
+                    builder.append(cl.getName().replace('.', '/'));
+                }
+            } else {
+                visitType(type, builder);
+            }
         }
 
         public void mixInDynamicAware() throws Exception {
