@@ -25,8 +25,10 @@ import org.gradle.api.plugins.quality.internal.findbugs.FindBugsSpecBuilder
 import org.gradle.api.reporting.Reporting
 import org.gradle.api.tasks.*
 import org.gradle.api.logging.LogLevel
+import org.gradle.internal.Factory
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.logging.ConsoleRenderer
+import org.gradle.process.internal.WorkerProcessBuilder
 
 /**
  * Analyzes code with <a href="http://findbugs.sourceforge.net">FindBugs</a>.
@@ -67,8 +69,11 @@ class FindBugs extends SourceTask implements VerificationTask, Reporting<FindBug
     @Nested
     private final FindBugsReportsImpl reports
 
-    FindBugs(Instantiator instantiator) {
+    private final Factory<WorkerProcessBuilder> workerFactory
+
+    FindBugs(Instantiator instantiator, Factory<WorkerProcessBuilder> workerFactory) {
         reports = instantiator.newInstance(FindBugsReportsImpl, this)
+        this.workerFactory = workerFactory
     }
 
     /**
@@ -117,7 +122,7 @@ class FindBugs extends SourceTask implements VerificationTask, Reporting<FindBug
         logging.captureStandardOutput(LogLevel.DEBUG)
         logging.captureStandardError(LogLevel.DEBUG)
 
-        FindBugsResult findbugsResult = manager.runWorker(getProject(), getFindbugsClasspath(), spec)
+        FindBugsResult findbugsResult = manager.runWorker(getProject().getProjectDir(), workerFactory, getFindbugsClasspath(), spec)
         evaluateResult(findbugsResult);
     }
 

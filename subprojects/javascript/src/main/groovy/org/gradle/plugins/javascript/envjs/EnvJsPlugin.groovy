@@ -36,9 +36,13 @@ import org.gradle.plugins.javascript.rhino.worker.internal.DefaultRhinoWorkerHan
 import org.gradle.process.internal.WorkerProcessBuilder
 
 import static org.gradle.plugins.javascript.envjs.EnvJsExtension.*
-import org.gradle.api.logging.LogLevel
 
 class EnvJsPlugin implements Plugin<Project> {
+    private final Factory<WorkerProcessBuilder> workerProcessBuilderFactory
+
+    EnvJsPlugin(Factory<WorkerProcessBuilder> workerProcessBuilderFactory) {
+        this.workerProcessBuilderFactory = workerProcessBuilderFactory
+    }
 
     void apply(Project project) {
         project.plugins.apply(RhinoPlugin)
@@ -59,10 +63,8 @@ class EnvJsPlugin implements Plugin<Project> {
         project.tasks.withType(BrowserEvaluate) { BrowserEvaluate task ->
             conventionMapping.with {
                 map("evaluator") {
-                    Factory<WorkerProcessBuilder> workerProcessBuilderFactory = project.services.getFactory(WorkerProcessBuilder);
                     RhinoWorkerHandleFactory handleFactory = new DefaultRhinoWorkerHandleFactory(workerProcessBuilderFactory);
 
-                    LogLevel logLevel = task.logging.level
                     File workDir = project.projectDir
                     Factory<File> envJsFactory = new Factory<File>() {
                         File create() {
