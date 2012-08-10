@@ -37,8 +37,12 @@ class ParallelTaskPlanExecutor extends DefaultTaskPlanExecutor {
     private final int executorCount;
 
     public ParallelTaskPlanExecutor(TaskArtifactStateCacheAccess cacheAccess, int numberOfParallelExecutors) {
+        if (numberOfParallelExecutors < 1) {
+            throw new IllegalArgumentException("Not a valid number of parallel executors: " + numberOfParallelExecutors);
+        }
+
         this.stateCacheAccess = cacheAccess;
-        this.executorCount = numberOfParallelExecutors == -1 ? 4 : numberOfParallelExecutors;
+        this.executorCount = numberOfParallelExecutors;
     }
 
     public void process(final TaskExecutionPlan taskExecutionPlan, final TaskExecutionListener taskListener) {

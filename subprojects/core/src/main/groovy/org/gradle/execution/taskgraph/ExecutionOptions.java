@@ -28,6 +28,9 @@ class ExecutionOptions {
     }
 
     public int numberOfParallelExecutors() {
-        return parallelExecutors == -1 ? 2 : parallelExecutors;
+        if (parallelExecutors == -1) {
+            return Math.min(1, Runtime.getRuntime().availableProcessors());
+        }
+        return Math.min(1, parallelExecutors);
     }
 }
