@@ -16,24 +16,25 @@
 
 package org.gradle.api.tasks.diagnostics.internal.dependencies;
 
+import org.gradle.api.internal.dependencygraph.api.DependencyGraph;
 import org.gradle.api.internal.dependencygraph.api.DependencyGraphListener;
-import org.gradle.api.internal.dependencygraph.api.DependencyGraphNode;
+import org.gradle.api.internal.dependencygraph.api.ResolvedModuleVersionResult;
 
 /**
  * by Szczepan Faber, created at: 7/31/12
  */
 public class RenderableGraphProvider implements DependencyGraphListener {
 
-    private DependencyGraphNode root;
-
-    public void whenResolved(DependencyGraphNode root) {
-        this.root = root;
-    }
+    private ResolvedModuleVersionResult root;
 
     public RenderableDependency getRoot() {
         if (root == null) {
-            return null;
+            return null; //TODO SF
         }
-        return new RenderableDependencyNode(root);
+        return new RenderableRoot(root);
+    }
+
+    public void withDependencyGraph(DependencyGraph dependencyGraph) {
+        this.root = dependencyGraph.getRoot();
     }
 }

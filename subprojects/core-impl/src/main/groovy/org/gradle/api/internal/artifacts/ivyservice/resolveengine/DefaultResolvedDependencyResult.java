@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.internal.dependencygraph.api.DependencyModule;
+import org.gradle.api.internal.dependencygraph.api.ResolvedDependencyResult;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -25,41 +25,41 @@ import java.util.Set;
 /**
  * by Szczepan Faber, created at: 7/26/12
  */
-public class DefaultDependencyModule implements DependencyModule {
+public class DefaultResolvedDependencyResult implements ResolvedDependencyResult {
 
-    ModuleVersionIdentifier asked;
-    ModuleVersionIdentifier selected;
+    ModuleVersionIdentifier requested;
+    DefaultResolvedModuleVersionResult selected;
     private final Set<String> configurations = new LinkedHashSet<String>();
 
-    public DefaultDependencyModule(ModuleVersionIdentifier asked, ModuleVersionIdentifier selected, Set<String> configurations) {
-        this.asked = asked;
-        this.selected = selected;
+    public DefaultResolvedDependencyResult(ModuleVersionIdentifier requested, ModuleVersionIdentifier selected, Set<String> configurations) {
+        this.requested = requested;
+        this.selected = new DefaultResolvedModuleVersionResult(selected);
         this.configurations.addAll(configurations);
     }
 
     @Override
     public String toString() {
-        if (!asked.equals(selected)) {
+        if (!requested.equals(selected.getId())) {
             //TODO SF the report should not depend on the toString()
-            return asked() + " -> " + selected.getVersion();
+            return asked() + " -> " + selected.getId().getVersion();
         } else {
             return asked();
         }
     }
 
     private String asked() {
-        return asked.getGroup() + ":" + asked.getName() + ":" + asked.getVersion();
+        return requested.getGroup() + ":" + requested.getName() + ":" + requested.getVersion();
     }
 
-    public ModuleVersionIdentifier getAsked() {
-        return asked;
+    public ModuleVersionIdentifier getRequested() {
+        return requested;
     }
 
-    public ModuleVersionIdentifier getSelected() {
+    public DefaultResolvedModuleVersionResult getSelected() {
         return selected;
     }
 
-    public Set<String> getConfigurations() {
+    public Set<String> getSelectedConfigurations() {
         return configurations;
     }
 
@@ -77,9 +77,9 @@ public class DefaultDependencyModule implements DependencyModule {
             return false;
         }
 
-        DefaultDependencyModule that = (DefaultDependencyModule) o;
+        DefaultResolvedDependencyResult that = (DefaultResolvedDependencyResult) o;
 
-        if (asked != null ? !asked.equals(that.asked) : that.asked != null) {
+        if (requested != null ? !requested.equals(that.requested) : that.requested != null) {
             return false;
         }
         if (configurations != null ? !configurations.equals(that.configurations) : that.configurations != null) {
@@ -94,7 +94,7 @@ public class DefaultDependencyModule implements DependencyModule {
 
     @Override
     public int hashCode() {
-        int result = asked != null ? asked.hashCode() : 0;
+        int result = requested != null ? requested.hashCode() : 0;
         result = 31 * result + (selected != null ? selected.hashCode() : 0);
         result = 31 * result + (configurations != null ? configurations.hashCode() : 0);
         return result;

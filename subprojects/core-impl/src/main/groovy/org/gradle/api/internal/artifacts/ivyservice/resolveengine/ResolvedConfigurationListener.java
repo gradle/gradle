@@ -27,7 +27,7 @@ public interface ResolvedConfigurationListener {
 
     void start(ResolvedConfigurationIdentifier root);
 
-    void resolvedConfiguration(ResolvedConfigurationIdentifier id, List<DefaultDependencyModule> dependencies);
+    void resolvedConfiguration(ResolvedConfigurationIdentifier id, List<DefaultResolvedDependencyResult> dependencies);
 
     void completed();
 

@@ -17,10 +17,9 @@
 package org.gradle.api.internal.dependencygraph.api;
 
 /**
- * by Szczepan Faber, created at: 7/31/12
+ * by Szczepan Faber, created at: 8/10/12
  */
-public interface DependencyGraphListener {
+public interface DependencyGraph {
 
-    void withDependencyGraph(DependencyGraph dependencyGraph);
-
+    ResolvedModuleVersionResult getRoot();
 }

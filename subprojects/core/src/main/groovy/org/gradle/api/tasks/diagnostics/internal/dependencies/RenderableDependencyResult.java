@@ -19,8 +19,7 @@ package org.gradle.api.tasks.diagnostics.internal.dependencies;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Collections2;
-import com.google.common.collect.Sets;
-import org.gradle.api.internal.dependencygraph.api.DependencyGraphNode;
+import org.gradle.api.internal.dependencygraph.api.ResolvedDependencyResult;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -28,34 +27,30 @@ import java.util.Set;
 /**
  * by Szczepan Faber, created at: 7/27/12
  */
-public class RenderableDependencyNode implements RenderableDependency {
+public class RenderableDependencyResult implements RenderableDependency {
 
-    private final DependencyGraphNode dependencyNode;
+    private final ResolvedDependencyResult dependency;
 
-    public RenderableDependencyNode(DependencyGraphNode dependencyNode) {
-        this.dependencyNode = dependencyNode;
+    public RenderableDependencyResult(ResolvedDependencyResult dependency) {
+        this.dependency = dependency;
     }
 
     public String getName() {
-        return dependencyNode.getId().toString();
+        return dependency.toString();
     }
 
     public String getId() {
-        return dependencyNode.getId().getSelected().toString();
+        return dependency.getSelected().getId().toString();
     }
 
     public String getConfiguration() {
-        return Joiner.on(",").join(dependencyNode.getId().getConfigurations());
+        return Joiner.on(",").join(dependency.getSelectedConfigurations());
     }
 
     public Set<RenderableDependency> getChildren() {
-        if (dependencyNode == null) {
-            return Sets.newHashSet();
-        }
-        return new LinkedHashSet(Collections2.transform(dependencyNode.getDependencies(),
-                new Function<DependencyGraphNode, Object>() {
-            public Object apply(DependencyGraphNode input) {
-                return new RenderableDependencyNode(input);
+        return new LinkedHashSet(Collections2.transform(dependency.getSelected().getDependencies(), new Function<ResolvedDependencyResult, RenderableDependency>() {
+            public RenderableDependency apply(ResolvedDependencyResult input) {
+                return new RenderableDependencyResult(input);
             }
         }));
     }

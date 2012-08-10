@@ -34,7 +34,7 @@ public class ResolvedConfigurationListenerFactory {
 
     public static class NoOpDependencyGraphListener implements ResolvedConfigurationListener {
         public void start(ResolvedConfigurationIdentifier root) {}
-        public void resolvedConfiguration(ResolvedConfigurationIdentifier id, List<DefaultDependencyModule> dependencies) {}
+        public void resolvedConfiguration(ResolvedConfigurationIdentifier id, List<DefaultResolvedDependencyResult> dependencies) {}
         public void completed() {}
     }
 }

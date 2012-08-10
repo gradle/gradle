@@ -16,14 +16,16 @@
 
 package org.gradle.api.internal.dependencygraph.api;
 
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+
 import java.util.Set;
 
 /**
- * by Szczepan Faber, created at: 7/31/12
+ * by Szczepan Faber, created at: 8/10/12
  */
-public interface DependencyGraphNode {
+public interface ResolvedDependencyResult {
 
-    DependencyModule getId();
-
-    Set<? extends DependencyGraphNode> getDependencies();
+    ModuleVersionIdentifier getRequested(); //TODO SF use ModuleVersionSelector
+    ResolvedModuleVersionResult getSelected();
+    Set<String> getSelectedConfigurations();
 }

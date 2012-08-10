@@ -21,13 +21,12 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import java.util.Set;
 
 /**
- * by Szczepan Faber, created at: 7/31/12
+ * by Szczepan Faber, created at: 8/10/12
  */
-public interface DependencyModule {
+public interface ResolvedModuleVersionResult {
 
-    ModuleVersionIdentifier getAsked();
+    ModuleVersionIdentifier getId();
 
-    ModuleVersionIdentifier getSelected();
+    Set<? extends ResolvedDependencyResult> getDependencies();
 
-    Set<String> getConfigurations();
 }

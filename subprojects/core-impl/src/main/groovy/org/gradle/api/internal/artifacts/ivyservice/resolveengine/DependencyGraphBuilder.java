@@ -162,15 +162,14 @@ public class DependencyGraphBuilder {
         ResolvedConfigurationIdentifier id = toId(resolvedConfiguration);
         List<DependencyEdge> out = Lists.newLinkedList(resolvedConfiguration.outgoingEdges);
 
-        //transform is lazy which means it won't
-        List<DefaultDependencyModule> to = Lists.transform(out, new Function<DependencyEdge, DefaultDependencyModule>() {
-            public DefaultDependencyModule apply(DependencyEdge input) {
+        List<DefaultResolvedDependencyResult> to = Lists.transform(out, new Function<DependencyEdge, DefaultResolvedDependencyResult>() {
+            public DefaultResolvedDependencyResult apply(DependencyEdge input) {
                 List<String> targetConfigurations = Lists.transform(Lists.newLinkedList(input.targetConfigurations), new Function<ConfigurationNode, String>() {
                     public String apply(ConfigurationNode input) {
                         return input.configurationName;
                     }
                 });
-                return new DefaultDependencyModule(new DefaultModuleVersionIdentifier(
+                return new DefaultResolvedDependencyResult(new DefaultModuleVersionIdentifier(
                         input.dependencyDescriptor.getDependencyRevisionId().getOrganisation(),
                         input.dependencyDescriptor.getDependencyRevisionId().getName(),
                         input.dependencyDescriptor.getDependencyRevisionId().getRevision()),
@@ -180,6 +179,7 @@ public class DependencyGraphBuilder {
             }
         });
 
+        //TODO SF lets not use DefaultResolvedDependencyResult here
         listener.resolvedConfiguration(id, to);
     }
 

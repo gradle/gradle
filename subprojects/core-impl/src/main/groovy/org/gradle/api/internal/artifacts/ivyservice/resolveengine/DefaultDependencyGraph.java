@@ -14,13 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.dependencygraph.api;
+package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
+
+import org.gradle.api.internal.dependencygraph.api.DependencyGraph;
+import org.gradle.api.internal.dependencygraph.api.ResolvedModuleVersionResult;
 
 /**
- * by Szczepan Faber, created at: 7/31/12
+ * by Szczepan Faber, created at: 8/10/12
  */
-public interface DependencyGraphListener {
+public class DefaultDependencyGraph implements DependencyGraph {
 
-    void withDependencyGraph(DependencyGraph dependencyGraph);
+    private final ResolvedModuleVersionResult result;
 
+    public DefaultDependencyGraph(ResolvedModuleVersionResult result) {
+        this.result = result;
+    }
+
+    public ResolvedModuleVersionResult getRoot() {
+        return result;
+    }
 }
