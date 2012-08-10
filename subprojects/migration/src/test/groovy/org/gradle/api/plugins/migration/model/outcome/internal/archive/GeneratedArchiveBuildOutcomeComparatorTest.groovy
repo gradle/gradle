@@ -28,8 +28,8 @@ class GeneratedArchiveBuildOutcomeComparatorTest extends Specification {
 
     def transformer = Mock(Transformer)
     def comparator = new GeneratedArchiveBuildOutcomeComparator(transformer)
-    def from = new GeneratedArchiveBuildOutcome("from", "from", "from", new File("from"))
-    def to = new GeneratedArchiveBuildOutcome("to", "to", "to", new File("to"))
+    def from = new GeneratedArchiveBuildOutcome("from", "from", new File("from"))
+    def to = new GeneratedArchiveBuildOutcome("to", "to", new File("to"))
 
     def association = new DefaultBuildOutcomeAssociation(from, to, GeneratedArchiveBuildOutcome)
 

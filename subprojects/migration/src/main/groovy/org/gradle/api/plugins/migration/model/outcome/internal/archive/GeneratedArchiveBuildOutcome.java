@@ -22,17 +22,11 @@ import java.io.File;
 
 public class GeneratedArchiveBuildOutcome extends BuildOutcomeSupport {
 
-    private final String relativePath;
     private final File archiveFile;
 
-    public GeneratedArchiveBuildOutcome(String name, String description, String relativePath, File archiveFile) {
+    public GeneratedArchiveBuildOutcome(String name, String description, File archiveFile) {
         super(name, description);
-        this.relativePath = relativePath;
         this.archiveFile = archiveFile;
-    }
-
-    public String getRelativePath() {
-        return relativePath;
     }
 
     /**
