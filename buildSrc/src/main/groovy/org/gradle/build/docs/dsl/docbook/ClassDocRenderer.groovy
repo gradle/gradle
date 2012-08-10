@@ -22,20 +22,16 @@ import org.w3c.dom.Element
 class ClassDocRenderer {
     private final LinkRenderer linkRenderer
     private final GenerationListener listener = new DefaultGenerationListener()
-    private final PropertyTableRenderer propertyTableRenderer = new PropertyTableRenderer()
-    private final MethodTableRenderer methodTableRenderer = new MethodTableRenderer()
     private final ClassDescriptionRenderer descriptionRenderer = new ClassDescriptionRenderer()
-    private final PropertyDetailRenderer propertiesDetailRenderer
-    private final MethodDetailRenderer methodDetailRenderer
     private final BlockDetailRenderer blockDetailRenderer
-    private final ExtensionPropertiesSummaryRenderer extensionPropertiesSummaryRenderer
+    private final PropertiesRenderer propertiesRenderer
+    private final MethodsRenderer methodsRenderer
 
     ClassDocRenderer(LinkRenderer linkRenderer) {
         this.linkRenderer = linkRenderer
-        propertiesDetailRenderer = new PropertyDetailRenderer(linkRenderer, listener)
-        methodDetailRenderer = new MethodDetailRenderer(linkRenderer, listener)
         blockDetailRenderer = new BlockDetailRenderer(linkRenderer, listener)
-        extensionPropertiesSummaryRenderer = new ExtensionPropertiesSummaryRenderer(propertyTableRenderer)
+        propertiesRenderer = new PropertiesRenderer(linkRenderer, listener)
+        methodsRenderer = new MethodsRenderer(linkRenderer, listener)
     }
 
     void mergeContent(ClassDoc classDoc, Element parent) {
@@ -54,81 +50,11 @@ class ClassDocRenderer {
     }
 
     void mergeProperties(ClassDoc classDoc, Element classContent) {
-
-        Element propertiesSummarySection = classContent << {
-            section {
-                title('Properties')
-            }
-        }
-
-        boolean hasProperties = false
-        def classProperties = classDoc.classProperties
-        if (!classProperties.isEmpty()) {
-            hasProperties = true
-            def propertiesTable = propertiesSummarySection << {
-                table {
-                    title("Properties - $classDoc.simpleName")
-                }
-            }
-            propertyTableRenderer.renderTo(classProperties, propertiesTable)
-        }
-
-        classDoc.classExtensions.each { ClassExtensionDoc extension ->
-            hasProperties |= !extension.extensionProperties.empty
-            extensionPropertiesSummaryRenderer.renderTo(extension, propertiesSummarySection)
-        }
-
-        if (!hasProperties) {
-            propertiesSummarySection << { para('No properties') }
-            return
-        }
-
-        Element propertiesDetailSection = classContent << {
-            section {
-                title('Property details')
-            }
-        }
-        classProperties.each { propDoc ->
-            propertiesDetailRenderer.renderTo(propDoc, propertiesDetailSection)
-        }
-
-        classDoc.classExtensions.each { ClassExtensionDoc extension ->
-            extension.extensionProperties.each { propDoc ->
-                propertiesDetailRenderer.renderTo(propDoc, propertiesDetailSection)
-            }
-        }
+        propertiesRenderer.renderTo(classDoc, classContent)
     }
 
     void mergeMethods(ClassDoc classDoc, Element classContent) {
-        Element methodsSummarySection = classContent << {
-            section { title('Methods') }
-        }
-
-        def classMethods = classDoc.classMethods
-        if (classMethods.isEmpty()) {
-            methodsSummarySection << {
-                para('No methods')
-            }
-            return
-        }
-
-        def table = methodsSummarySection << {
-            table {
-                title("Methods - $classDoc.simpleName")
-            }
-        }
-        methodTableRenderer.renderTo(classMethods, table)
-
-        Element methodsDetailSection = classContent << {
-            section {
-                title('Method details')
-            }
-        }
-        classMethods.each { method ->
-            methodDetailRenderer.renderTo(method, methodsDetailSection)
-        }
-
-        mergeExtensionMethods(classDoc, methodsSummarySection, methodsDetailSection)
+        methodsRenderer.renderTo(classDoc, classContent)
     }
 
     void mergeBlocks(ClassDoc classDoc, Element classContent) {
@@ -172,31 +98,6 @@ class ClassDocRenderer {
         }
 
         mergeExtensionBlocks(classDoc, blocksSummarySection, blocksDetailSection)
-    }
-
-    void mergeExtensionMethods(ClassDoc classDoc, Element summaryParent, Element detailParent) {
-        classDoc.classExtensions.each { ClassExtensionDoc extension ->
-            if (!extension.extensionMethods) {
-                return
-            }
-
-            def summarySection = summaryParent << {
-                section {
-                    title { text("Methods added by the "); literal(extension.pluginId); text(" plugin") }
-                    titleabbrev { literal(extension.pluginId); text(" plugin") }
-                }
-            }
-            def summaryTable = summarySection << {
-                table {
-                    title { text("Methods - "); literal(extension.pluginId); text(" plugin") }
-                }
-            }
-            methodTableRenderer.renderTo(extension.extensionMethods, summaryTable)
-
-            extension.extensionMethods.each { method ->
-                methodDetailRenderer.renderTo(method, detailParent)
-            }
-        }
     }
 
     void mergeExtensionBlocks(ClassDoc classDoc, Element summaryParent, Element detailParent) {

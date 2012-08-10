@@ -43,6 +43,7 @@ class ClassDocRendererTest extends XmlSpecification {
         _ * classDoc.classProperties >> []
         _ * classDoc.classMethods >> []
         _ * classDoc.classBlocks >> []
+        _ * classDoc.classExtensions >> []
 
         when:
         def result = parse('<root/>')
@@ -90,6 +91,7 @@ class ClassDocRendererTest extends XmlSpecification {
         _ * classDoc.classProperties >> []
         _ * classDoc.classMethods >> []
         _ * classDoc.classBlocks >> []
+        _ * classDoc.classExtensions >> []
 
         when:
         def result = parse('<root/>')
@@ -143,6 +145,7 @@ class ClassDocRendererTest extends XmlSpecification {
         ClassDoc classDoc = classDoc('Class', content: content)
         PropertyDoc propDoc = propertyDoc('propName', id: 'propId', description: 'prop description', comment: 'prop comment', type: 'org.gradle.Type', attributes: [extraAttribute])
         _ * classDoc.classProperties >> [propDoc]
+        _ * classDoc.classExtensions >> []
 
         when:
         def result = parse('<chapter/>', document)
@@ -207,6 +210,7 @@ class ClassDocRendererTest extends XmlSpecification {
         PropertyDoc deprecatedProp = propertyDoc('deprecatedProperty', id: 'prop1', description: 'prop1 description', comment: 'prop1 comment', type: 'org.gradle.Type', deprecated: true)
         PropertyDoc experimentalProp = propertyDoc('experimentalProperty', id: 'prop2', description: 'prop2 description', comment: 'prop2 comment', type: 'org.gradle.Type', experimental: true)
         _ * classDoc.classProperties >> [deprecatedProp, experimentalProp]
+        _ * classDoc.classExtensions >> []
 
         when:
         def result = parse('<chapter/>', document)
@@ -348,7 +352,7 @@ class ClassDocRendererTest extends XmlSpecification {
         MethodDoc method1 = methodDoc('methodName', id: 'method1Id', returnType: 'ReturnType1', description: 'method description', comment: 'method comment')
         MethodDoc method2 = methodDoc('methodName', id: 'method2Id', returnType: 'ReturnType2', description: 'overloaded description', comment: 'overloaded comment', paramTypes: ['ParamType'])
         _ * classDoc.classMethods >> [method1, method2]
-
+        _ * classDoc.classExtensions >> []
 
         when:
         def result = parse('<chapter/>', document)
@@ -417,7 +421,7 @@ class ClassDocRendererTest extends XmlSpecification {
         MethodDoc method1 = methodDoc('deprecated', id: 'method1Id', returnType: 'ReturnType1', description: 'method description', comment: 'method comment', deprecated: true)
         MethodDoc method2 = methodDoc('experimental', id: 'method2Id', returnType: 'ReturnType2', description: 'overloaded description', comment: 'overloaded comment', paramTypes: ['ParamType'], experimental: true)
         _ * classDoc.classMethods >> [method1, method2]
-
+        _ * classDoc.classExtensions >> []
 
         when:
         def result = parse('<chapter/>', document)
@@ -492,41 +496,48 @@ class ClassDocRendererTest extends XmlSpecification {
         ClassDoc targetClassDoc = classDoc('Class', content: content)
         ClassExtensionDoc extensionDoc = extensionDoc('thingo')
         MethodDoc methodDoc = methodDoc('methodName', id: 'methodId')
+        _ * targetClassDoc.classMethods >> []
         _ * targetClassDoc.classExtensions >> [extensionDoc]
         _ * extensionDoc.extensionMethods >> [methodDoc]
 
         when:
         def result = parse('<chapter/>', document)
         withCategories {
-            renderer.mergeExtensionMethods(targetClassDoc, result, result)
+            renderer.mergeMethods(targetClassDoc, result)
         }
 
         then:
         formatTree(result) == '''<chapter>
     <section>
-        <title>Methods added by the <literal>thingo</literal> plugin</title>
-        <titleabbrev><literal>thingo</literal> plugin</titleabbrev>
-        <table>
-            <title>Methods - <literal>thingo</literal> plugin</title>
-            <thead>
+        <title>Methods</title>
+        <section>
+            <title>Methods added by the <literal>thingo</literal> plugin</title>
+            <titleabbrev><literal>thingo</literal> plugin</titleabbrev>
+            <table>
+                <title>Methods - <literal>thingo</literal> plugin</title>
+                <thead>
+                    <tr>
+                        <td>Method</td>
+                        <td>Description</td>
+                    </tr>
+                </thead>
                 <tr>
-                    <td>Method</td>
-                    <td>Description</td>
+                    <td>
+                        <literal><link linkend="methodId">methodName</link>()</literal>
+                    </td>
+                    <td>
+                        <para>description</para>
+                    </td>
                 </tr>
-            </thead>
-            <tr>
-                <td>
-                    <literal><link linkend="methodId">methodName</link>()</literal>
-                </td>
-                <td>
-                    <para>description</para>
-                </td>
-            </tr>
-        </table>
+            </table>
+        </section>
     </section>
-    <section id="methodId" role="detail">
-        <title><classname>ReturnType</classname> <literal>methodName</literal>()</title>
-        <para>comment</para>
+    <section>
+        <title>Method details</title>
+        <section id="methodId" role="detail">
+            <title><classname>ReturnType</classname> <literal>methodName</literal>()</title>
+            <para>comment</para>
+        </section>
     </section>
 </chapter>'''
     }

@@ -89,7 +89,7 @@ class ClassDoc implements DslElementDoc {
         classBlocks.add(blockDoc.forClass(this))
     }
 
-    def getClassExtensions() { return classExtensions }
+    Collection<ClassExtensionDoc> getClassExtensions() { return classExtensions }
 
     void addClassExtension(ClassExtensionDoc extensionDoc) {
         classExtensions.add(extensionDoc)
