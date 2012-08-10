@@ -27,6 +27,9 @@ import org.gradle.api.plugins.migration.model.compare.internal.DefaultBuildCompa
 import org.gradle.api.plugins.migration.model.outcome.BuildOutcome;
 import org.gradle.api.tasks.TaskAction;
 
+/**
+ * Compares build outcomes.
+ */
 public class CompareBuildOutcomes extends DefaultTask {
 
     private BuildComparisonSpec buildComparisonSpec;
