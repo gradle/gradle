@@ -41,6 +41,9 @@ buildTypes {
     // Tests using the daemon mode
     daemonTest "daemonIntegTest", noDistTests: true, useIncomingDistributions: true
 
+    // Run the integration tests using the parallel executer
+    parallelTest "parallelIntegTest", noDistTests: true
+
     // Used for cross version tests on CI
     crossVersionTest "forkingIntegTest", crossVersionTestsOnly: "", testAllVersions: "", noDistTests: true, useIncomingDistributions: true
 

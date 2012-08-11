@@ -56,7 +56,7 @@ task integTest(type: Test) {
 }
 check.dependsOn(integTest)
 
-['embedded', 'forking', 'daemon', 'embeddedDaemon'].each { mode ->
+['embedded', 'forking', 'daemon', 'embeddedDaemon', 'parallel'].each { mode ->
     def taskName = "${mode}IntegTest"
     tasks.addRule(taskName) { name ->
         if (name == taskName) { 
