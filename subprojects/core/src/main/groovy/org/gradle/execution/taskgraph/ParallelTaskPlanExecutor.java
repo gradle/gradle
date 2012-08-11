@@ -100,18 +100,18 @@ class ParallelTaskPlanExecutor extends DefaultTaskPlanExecutor {
                 executeTaskWithCacheLock(taskInfo);
             }
 
-            LOGGER.warn(Thread.currentThread() + " stopping");
+            LOGGER.info(Thread.currentThread() + " stopping");
         }
 
         private void executeTaskWithCacheLock(final TaskInfo taskInfo) {
             final String taskPath = taskInfo.getTask().getPath();
-            LOGGER.warn(taskPath + " (" + Thread.currentThread() + " - start");
+            LOGGER.info(taskPath + " (" + Thread.currentThread() + " - start");
             stateCacheAccess.useCache("Executing " + taskPath, new Runnable() {
                 public void run() {
                     processTask(taskInfo, taskExecutionPlan, taskListener);
                 }
             });
-            LOGGER.warn(taskPath + " (" + Thread.currentThread() + ") - complete");
+            LOGGER.info(taskPath + " (" + Thread.currentThread() + ") - complete");
         }
 
         public void addProject(Project project) {
