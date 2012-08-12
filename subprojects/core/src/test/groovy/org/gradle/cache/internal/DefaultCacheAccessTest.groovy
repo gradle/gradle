@@ -15,12 +15,14 @@
  */
 package org.gradle.cache.internal
 
+import org.gradle.cache.internal.btree.BTreePersistentIndexedCache
 import org.gradle.internal.Factory
 import org.gradle.messaging.serialize.Serializer
-import org.gradle.cache.internal.btree.BTreePersistentIndexedCache
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
+import spock.lang.Ignore
 import spock.lang.Specification
+
 import static org.gradle.cache.internal.FileLockManager.LockMode.*
 
 class DefaultCacheAccessTest extends Specification {
@@ -136,7 +138,7 @@ class DefaultCacheAccessTest extends Specification {
 
         then:
         1 * action.create() >> {
-            cache.get("key")
+            canAccess cache
         }
         1 * lockManager.lock(lockFile, Exclusive, "<display-name>", "some operation") >> lock
         _ * lock.readFile(_)
@@ -160,7 +162,7 @@ class DefaultCacheAccessTest extends Specification {
 
         then:
         1 * action.create() >> {
-            cache.get("key")
+            canAccess cache
         }
         _ * lock.readFile(_)
         _ * lock.writeFile(_)
@@ -182,15 +184,62 @@ class DefaultCacheAccessTest extends Specification {
 
         then:
         1 * action.create() >> {
-            cache.get("key")
+            canAccess cache
             manager.longRunningOperation("nested", longRunningAction)
-            cache.get("key")
+            canAccess cache
         }
         1 * longRunningAction.create()
         2 * lockManager.lock(lockFile, Exclusive, "<display-name>", "some operation") >> lock
         _ * lock.readFile(_)
         _ * lock.writeFile(_)
         2 * lock.close()
+        0 * _._
+    }
+
+    def "releases lock before nested long running operation and reacquires after"() {
+        Factory<String> action = Mock()
+        Factory<String> lockInsideLongRunningOperation = Mock()
+        Factory<String> nestedLongRunningAction = Mock()
+        Factory<String> deeplyNestedAction = Mock()
+
+        FileLock anotherLock = Mock()
+
+        given:
+        manager.open(None)
+        def cache = manager.newCache(targetFile, String, Integer)
+
+        when:
+        manager.useCache("some operation", action)
+
+        then:
+        1 * action.create() >> {
+            canAccess cache
+            manager.longRunningOperation("nested", lockInsideLongRunningOperation)
+            canAccess cache
+        }
+        1 * lockInsideLongRunningOperation.create() >> {
+            cannotAccess cache
+            manager.useCache("nested operation", nestedLongRunningAction)
+            cannotAccess cache
+        }
+        1 * nestedLongRunningAction.create() >> {
+            canAccess cache
+            manager.longRunningOperation("nested-2", deeplyNestedAction)
+            canAccess cache
+        }
+        1 * deeplyNestedAction.create() >> {
+            cannotAccess cache
+        }
+
+        2 * lockManager.lock(lockFile, Exclusive, "<display-name>", "some operation") >> lock
+        _ * lock.readFile(_)
+        _ * lock.writeFile(_)
+        2 * lock.close()
+
+        2 * lockManager.lock(lockFile, Exclusive, "<display-name>", "nested operation") >> anotherLock
+        _ * anotherLock.readFile(_)
+        _ * anotherLock.writeFile(_)
+        2 * anotherLock.close()
         0 * _._
     }
 
@@ -207,6 +256,27 @@ class DefaultCacheAccessTest extends Specification {
     }
 
     def "cannot use cache from within long running operation"() {
+        Factory<String> action = Mock()
+        Factory<String> longRunningAction = Mock()
+
+        given:
+        manager.open(None)
+        def cache = manager.newCache(targetFile, String, Integer)
+
+        when:
+        manager.useCache("some operation", action)
+
+        then:
+        1 * action.create() >> {
+            manager.longRunningOperation("nested", longRunningAction)
+        }
+        1 * longRunningAction.create() >> {
+            cannotAccess cache
+        }
+        0 * _._
+    }
+
+    def "can nest actions and long running operations"() {
         Factory<String> action = Mock()
         Factory<String> longRunningAction = Mock()
 
@@ -245,20 +315,30 @@ class DefaultCacheAccessTest extends Specification {
 
         then:
         1 * action.create() >> {
-            cache.get("key")
+            println '1'
+            canAccess cache
             manager.longRunningOperation("nested", longRunningAction)
+            println '-11'
+            canAccess cache
+            println '-1'
         }
         1 * longRunningAction.create() >> {
+            println '2'
+            cannotAccess cache
             manager.useCache("nested 2", nestedAction)
+            cannotAccess cache
+            println '-2'
         }
         1 * nestedAction.create() >> {
-            cache.get("key")
+            println '3'
+            canAccess cache
+            println '-3'
         }
-        1 * lockManager.lock(lockFile, Exclusive, "<display-name>", "some operation") >> lock
+        2 * lockManager.lock(lockFile, Exclusive, "<display-name>", "some operation") >> lock
         1 * lockManager.lock(lockFile, Exclusive, "<display-name>", "nested 2") >> lock
         _ * lock.readFile(_)
         _ * lock.writeFile(_)
-        2 * lock.close()
+        3 * lock.close()
         0 * _._
     }
 
@@ -276,17 +356,22 @@ class DefaultCacheAccessTest extends Specification {
 
         then:
         1 * action.create() >> {
-            cache.get("key")
+            canAccess cache
             manager.longRunningOperation("nested", longRunningAction)
+            canAccess cache
         }
         1 * longRunningAction.create() >> {
+            cannotAccess cache
             manager.longRunningOperation("nested 2", nestedAction)
+            cannotAccess cache
         }
-        1 * nestedAction.create()
-        1 * lockManager.lock(lockFile, Exclusive, "<display-name>", "some operation") >> lock
+        1 * nestedAction.create() >> {
+            cannotAccess cache
+        }
+        2 * lockManager.lock(lockFile, Exclusive, "<display-name>", "some operation") >> lock
         _ * lock.readFile(_)
         _ * lock.writeFile(_)
-        1 * lock.close()
+        2 * lock.close()
         0 * _._
     }
 
@@ -303,11 +388,12 @@ class DefaultCacheAccessTest extends Specification {
 
         then:
         1 * action.create() >> {
-            cache.get("key")
+            canAccess cache
             manager.useCache("nested", nestedAction)
+            canAccess cache
         }
         1 * nestedAction.create() >> {
-            cache.get("key")
+            canAccess cache
         }
         1 * lockManager.lock(lockFile, Exclusive, "<display-name>", "some operation") >> lock
         _ * lock.readFile(_)
@@ -328,7 +414,7 @@ class DefaultCacheAccessTest extends Specification {
 
         then:
         1 * action.create() >> {
-            cache.get("key")
+            canAccess cache
         }
         1 * lockManager.lock(lockFile, Exclusive, "<display-name>", "some operation") >> lock
         _ * lock.readFile(_)
@@ -360,6 +446,23 @@ class DefaultCacheAccessTest extends Specification {
         1 * backingCache.close()
         1 * lock.close()
         0 * _._
+    }
+
+    def canAccess(def cache) {
+        try {
+            cache.get("key")
+        } catch (IllegalStateException e) {
+            assert false : "Should be able to access cache here"
+        }
+    }
+
+    def cannotAccess(def cache) {
+        try {
+            cache.get("key")
+            assert false : "Should not be able to access cache here"
+        } catch (IllegalStateException e) {
+            assert e.message == 'The <display-name> has not been locked.'
+        }
     }
 
 }
