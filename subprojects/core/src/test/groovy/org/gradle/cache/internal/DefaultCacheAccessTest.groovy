@@ -20,7 +20,6 @@ import org.gradle.internal.Factory
 import org.gradle.messaging.serialize.Serializer
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
-import spock.lang.Ignore
 import spock.lang.Specification
 
 import static org.gradle.cache.internal.FileLockManager.LockMode.*

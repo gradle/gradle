@@ -47,6 +47,7 @@ public class DefaultCacheAccess implements CacheAccess {
     private Thread owner;
     private FileLockManager.LockMode lockMode;
     private FileLock fileLock;
+    // TODO:DAZ This can probably be part of the per-thread operation stack
     private boolean started;
     private final ThreadLocal<CacheOperationStack> operationStack = new ThreadLocal<CacheOperationStack>() {
         @Override
@@ -136,7 +137,7 @@ public class DefaultCacheAccess implements CacheAccess {
                 }
             }
         } finally {
-            unlockCache();
+            unlockCache(operationDisplayName);
         }
     }
 
@@ -157,12 +158,11 @@ public class DefaultCacheAccess implements CacheAccess {
         }
     }
 
-    private void unlockCache() {
+    private void unlockCache(String operationDisplayName) {
         lock.lock();
         try {
-            // TODO: Assert a cache action, not a long running operation at the head of the stack
-            operationStack.get().pop();
-            if (operationStack.get().noCacheLock()) {
+            operationStack.get().popCacheAction(operationDisplayName);
+            if (!operationStack.get().isInCacheAction()) {
                 owner = null;
                 condition.signalAll();
             }
@@ -172,12 +172,12 @@ public class DefaultCacheAccess implements CacheAccess {
     }
 
     public <T> T longRunningOperation(String operationDisplayName, Factory<? extends T> action) {
-        if (threadIsInLongRunningOperation()) {
+        if (operationStack.get().isInLongRunningOperation()) {
             operationStack.get().pushLongRunningOperation(operationDisplayName);
             try {
                 return action.create();
             } finally {
-                operationStack.get().pop();
+                operationStack.get().popLongRunningOperation(operationDisplayName);
             }
         }
 
@@ -192,11 +192,6 @@ public class DefaultCacheAccess implements CacheAccess {
                 onStartWork();
             }
         }
-    }
-
-    private boolean threadIsInLongRunningOperation() {
-        CacheOperationStack cacheOperationStack = operationStack.get();
-        return !cacheOperationStack.isEmpty() && cacheOperationStack.peek().longRunningOperation;
     }
 
     private void checkThreadIsOwner() {
@@ -236,10 +231,7 @@ public class DefaultCacheAccess implements CacheAccess {
                 }
             }
             owner = Thread.currentThread();
-            CacheOperation operation = operationStack.get().pop();
-            if (!(operation.longRunningOperation && operation.description.equals(description))) {
-                throw new IllegalStateException();
-            }
+            operationStack.get().popLongRunningOperation(description);
         } finally {
             lock.unlock();
         }
@@ -269,7 +261,7 @@ public class DefaultCacheAccess implements CacheAccess {
         try {
             caches.add(indexedCache);
             if (started) {
-                indexedCache.onStartWork(operationStack.get().peek().description);
+                indexedCache.onStartWork(operationStack.get().getDescription());
             }
         } finally {
             lock.unlock();
@@ -288,7 +280,7 @@ public class DefaultCacheAccess implements CacheAccess {
 
         started = true;
         for (MultiProcessSafePersistentIndexedCache<?, ?> cache : caches) {
-            cache.onStartWork(operationStack.get().peek().description);
+            cache.onStartWork(operationStack.get().getDescription());
         }
         return true;
     }
@@ -322,7 +314,7 @@ public class DefaultCacheAccess implements CacheAccess {
             lock.unlock();
         }
         if (fileLock == null) {
-            fileLock = lockManager.lock(lockFile, Exclusive, cacheDiplayName, operationStack.get().peek().description);
+            fileLock = lockManager.lock(lockFile, Exclusive, cacheDiplayName, operationStack.get().getDescription());
         }
         return fileLock;
     }
@@ -344,38 +336,48 @@ public class DefaultCacheAccess implements CacheAccess {
     private class CacheOperationStack {
         private final List<CacheOperation> operations = new ArrayList<CacheOperation>();
 
-        public CacheOperation peek() {
-            if (isEmpty()) {
-                return null;
-            }
-            return operations.get(0);
+        public String getDescription() {
+            checkNotEmpty();
+            return operations.get(0).description;
         }
 
-        public CacheOperation pop() {
-            if (isEmpty()) {
-                return null;
-            }
-            return operations.remove(0);
-        }
-
-        public void pushCacheAction(String description) {
-            push(new CacheOperation(description, false));
+        public boolean isInLongRunningOperation() {
+            return !operations.isEmpty() && operations.get(0).longRunningOperation;
         }
 
         public void pushLongRunningOperation(String description) {
-            push(new CacheOperation(description, true));
+            operations.add(0, new CacheOperation(description, true));
         }
 
-        public void push(CacheOperation operation) {
-            operations.add(0, operation);
+        public void popLongRunningOperation(String description) {
+            pop(description, true);
         }
 
-        public boolean isEmpty() {
-            return operations.isEmpty();
+        public boolean isInCacheAction() {
+            return !operations.isEmpty() && !operations.get(0).longRunningOperation;
         }
 
-        public boolean noCacheLock() {
-            return isEmpty() || peek().longRunningOperation;
+        public void pushCacheAction(String description) {
+            operations.add(0, new CacheOperation(description, false));
+        }
+
+        public void popCacheAction(String description) {
+            pop(description, false);
+        }
+
+        private CacheOperation pop(String description, boolean longRunningOperation) {
+            checkNotEmpty();
+            CacheOperation operation = operations.remove(0);
+            if (operation.description.equals(description) && operation.longRunningOperation == longRunningOperation) {
+                return operation;
+            }
+            throw new IllegalStateException();
+        }
+
+        private void checkNotEmpty() {
+            if (operations.isEmpty()) {
+                throw new IllegalStateException();
+            }
         }
     }
 
