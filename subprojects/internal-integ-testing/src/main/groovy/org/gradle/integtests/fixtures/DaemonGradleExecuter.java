@@ -28,11 +28,13 @@ public class DaemonGradleExecuter extends ForkingGradleExecuter {
 
     private final GradleDistribution distribution;
     private final boolean allowExtraLogging;
+    private final boolean noDefaultJvmArgs;
 
-    public DaemonGradleExecuter(GradleDistribution distribution, boolean allowExtraLogging) {
+    public DaemonGradleExecuter(GradleDistribution distribution, boolean allowExtraLogging, boolean noDefaultJvmArgs) {
         super(distribution.getGradleHomeDir());
         this.distribution = distribution;
         this.allowExtraLogging = allowExtraLogging;
+        this.noDefaultJvmArgs = noDefaultJvmArgs;
     }
 
     @Override
@@ -82,9 +84,7 @@ public class DaemonGradleExecuter extends ForkingGradleExecuter {
     }
 
     private void configureJvmArgs(List<String> args) {
-        // TODO - clean this up. It's a workaround to provide some way for the client of this executer to
-        // specify that no jvm args should be provided
-        if(!args.remove("-Dorg.gradle.jvmargs=")){
+        if(!noDefaultJvmArgs) {
             String jvmArgs  = "-Dorg.gradle.jvmargs=-ea -XX:MaxPermSize=256m -XX:+HeapDumpOnOutOfMemoryError";
             if (JavaVersion.current().isJava5()) {
                 jvmArgs = String.format("%s %s", jvmArgs, "-XX:+CMSPermGenSweepingEnabled");

@@ -109,6 +109,11 @@ public interface GradleExecuter {
     GradleExecuter withStdIn(InputStream stdin);
 
     /**
+     * Specifies that the executer should not set any default jvm args.
+     */
+    GradleExecuter withNoDefaultJvmArgs();
+
+    /**
      * Executes the requested build, asserting that the build succeeds. Resets the configuration of this executer.
      *
      * @return The result.

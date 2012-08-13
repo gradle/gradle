@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.junit.Rule
 import org.slf4j.LoggerFactory
 import spock.lang.Specification
+
 import static org.gradle.integtests.fixtures.GradleDistributionExecuter.Executer.daemon
 
 /**
@@ -43,6 +44,6 @@ class DaemonIntegrationSpec extends Specification {
 
     void buildSucceeds(String script) {
         distribution.file('build.gradle') << script
-        executer.withArguments("--info", "-Dorg.gradle.jvmargs=").run()
+        executer.withArguments("--info").withNoDefaultJvmArgs().run()
     }
 }

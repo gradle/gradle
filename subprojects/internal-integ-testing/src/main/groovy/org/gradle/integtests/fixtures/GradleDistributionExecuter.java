@@ -268,7 +268,7 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
                 }
                 return createForkingExecuter();
             case daemon:
-                return new DaemonGradleExecuter(dist, !isQuiet() && allowExtraLogging);
+                return new DaemonGradleExecuter(dist, !isQuiet() && allowExtraLogging, noDefaultJvmArgs);
             case parallel:
             case forking:
                 return createForkingExecuter();

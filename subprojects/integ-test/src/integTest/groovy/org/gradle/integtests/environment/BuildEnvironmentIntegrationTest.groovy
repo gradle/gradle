@@ -18,7 +18,6 @@ package org.gradle.integtests.environment
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.internal.jvm.Jvm
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -175,12 +174,7 @@ assert System.getProperty('some-prop') == 'some-value'
 """
 
         when:
-        executer.withForkingExecuter()
-        // TODO:DAZ cleanup the setting of default jvm args for daemon and forking executer
-        if (executer.type == GradleDistributionExecuter.Executer.daemon ) {
-            executer.withArguments("-Dorg.gradle.jvmargs=")
-        }
-        executer.run()
+        executer.withForkingExecuter().withNoDefaultJvmArgs().run()
 
         then:
         noExceptionThrown()
