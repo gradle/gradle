@@ -16,8 +16,8 @@
 
 package org.gradle.api.plugins.migration.model.outcome.internal.archive;
 
-import org.gradle.api.plugins.migration.model.outcome.BuildOutcomeAssociation;
 import org.gradle.api.plugins.migration.model.compare.BuildOutcomeComparisonResultSupport;
+import org.gradle.api.plugins.migration.model.outcome.BuildOutcomeAssociation;
 import org.gradle.api.plugins.migration.model.outcome.internal.archive.entry.ArchiveEntryComparison;
 
 import java.util.SortedSet;
