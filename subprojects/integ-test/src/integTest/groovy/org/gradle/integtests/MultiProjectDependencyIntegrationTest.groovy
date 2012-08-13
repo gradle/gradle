@@ -19,6 +19,8 @@ package org.gradle.integtests;
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 import static org.hamcrest.Matchers.containsString
+import spock.lang.IgnoreIf
+import org.gradle.integtests.fixtures.GradleDistributionExecuter
 
 public class MultiProjectDependencyIntegrationTest extends AbstractIntegrationSpec {
 
@@ -177,6 +179,7 @@ project(':c') {
         jarsNotBuilt 'a', 'b', 'c'
     }
 
+    @IgnoreIf({GradleDistributionExecuter.systemPropertyExecuter.executeParallel})
     def "project dependency a->[b,c] and b->d and c fails"() {
         projectDependency from: 'a', to: ['b', 'c']
         projectDependency from: 'b', to: ['d']
