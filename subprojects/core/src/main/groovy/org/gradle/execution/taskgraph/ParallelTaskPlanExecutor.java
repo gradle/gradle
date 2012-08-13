@@ -41,6 +41,8 @@ class ParallelTaskPlanExecutor extends DefaultTaskPlanExecutor {
             throw new IllegalArgumentException("Not a valid number of parallel executors: " + numberOfParallelExecutors);
         }
 
+        LOGGER.info("Using {} parallel executor threads", numberOfParallelExecutors);
+
         this.stateCacheAccess = cacheAccess;
         this.executorCount = numberOfParallelExecutors;
     }

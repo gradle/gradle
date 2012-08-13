@@ -29,8 +29,8 @@ class ExecutionOptions {
 
     public int numberOfParallelExecutors() {
         if (parallelExecutors == -1) {
-            return Math.min(1, Runtime.getRuntime().availableProcessors());
+            return Runtime.getRuntime().availableProcessors();
         }
-        return Math.min(1, parallelExecutors);
+        return parallelExecutors;
     }
 }

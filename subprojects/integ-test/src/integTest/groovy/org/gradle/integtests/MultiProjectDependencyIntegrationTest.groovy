@@ -36,6 +36,7 @@ allprojects {
     compileJava.dependsOn copyLibs
 }
 """
+        executer.withArgument('--info')
     }
 
     def "project dependency c->[a,b]"() {
