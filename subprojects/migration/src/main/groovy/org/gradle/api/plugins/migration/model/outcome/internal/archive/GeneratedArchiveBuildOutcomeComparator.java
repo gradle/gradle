@@ -49,14 +49,14 @@ public class GeneratedArchiveBuildOutcomeComparator implements BuildOutcomeCompa
         GeneratedArchiveBuildOutcome to = association.getTo();
 
         Set<ArchiveEntry> fromEntries;
-        if (from.getArchiveFile() != null) {
+        if (from.getArchiveFile() != null && from.getArchiveFile().exists()) {
             fromEntries = archiveToEntriesTransformer.transform(from.getArchiveFile());
         } else {
             fromEntries = Collections.emptySet();
         }
 
         Set<ArchiveEntry> toEntries;
-        if (to.getArchiveFile() != null) {
+        if (to.getArchiveFile() != null && to.getArchiveFile().exists()) {
             toEntries = archiveToEntriesTransformer.transform(to.getArchiveFile());
         } else {
             toEntries = Collections.emptySet();
