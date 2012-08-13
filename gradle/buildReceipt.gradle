@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import org.gradle.internal.os.OperatingSystem
+
 ext {
     buildReceiptFileName = "build-receipt.properties"
 
@@ -53,8 +55,11 @@ task determineCommitId {
             if (file(".git").exists()) {
                 def baos = new ByteArrayOutputStream()
                 exec {
-                    executable "git"
-                    args "log", "-1", "--format=%H"
+                    commandLine = ["git", "log", "-1", "--format=%H"]
+                    if (OperatingSystem.current().windows) {
+                        commandLine = ["cmd", "/c"] + commandLine
+                    }
+
                     standardOutput = baos
                 }
                 new String(baos.toByteArray(), "utf8").trim()
