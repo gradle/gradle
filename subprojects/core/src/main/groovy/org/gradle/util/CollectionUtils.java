@@ -171,6 +171,13 @@ public abstract class CollectionUtils {
      * @return A representation of the difference
      */
     public static <T> SetDiff<T> diffSetsBy(Set<? extends T> left, Set<? extends T> right, Transformer<?, T> compareBy) {
+        if (left == null) {
+            throw new NullPointerException("'left' set is null");
+        }
+        if (right == null) {
+            throw new NullPointerException("'right' set is null");
+        }
+
         SetDiff<T> setDiff = new SetDiff<T>();
 
         Map<Object, T> indexedLeft = collectMap(left, compareBy);
