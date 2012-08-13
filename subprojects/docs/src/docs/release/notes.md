@@ -41,6 +41,17 @@ Please let us know if you encounter any issues during the upgrade to Gradle 1.2,
 
 ### Deprecations
 
+#### The `useMavenMetadata` property for Maven repositories
+
+The `useMavenMetadata` property has been deprecated for resolvers returned by `repositories.mavenRepo()`. This property controls whether Gradle should
+search for a `maven-metadata.xml` file when attempting to determine the versions that are available for a particular module. The default value is `true`,
+which means Gradle will look for a `maven-metadata.xml` file and then fall back to a directory listing if not present. When set to `false` Gradle will
+use a directory listing only.
+
+Thanks to the various improvements we've made to make dependency management must more efficient, there is no longer a performance penalty for searching
+for the `maven-metadata.xml` file. This means this property is no longer useful and will be removed in Gradle 2.0.
+
+
 #### Task class renames
 
 To avoid ambiguity, the Java and C++ `Compile` task classes have been renamed. The Java `org.gradle.api.tasks.compile.Compile` task class has been renamed to `org.gradle.api.tasks.compile.JavaCompile`, and

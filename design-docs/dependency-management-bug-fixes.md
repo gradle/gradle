@@ -154,63 +154,6 @@ And a test that regular resolve succeeds from http repository when settings.xml 
 * Implement m2 repository location with Maven3
 * Use jarjar to repackage the required maven3 classes and include them in the Gradle distro.
 
-## Dynamic versions work with authenticated repositories
-
-* GRADLE-2318: Repository credentials not used when resolving dynamic versions from an Ivy repository
-* GRADLE-2199: IvyArtifactRepository does not handle dynamic artifact versions
-
-### Description
-
-We are using org.apache.ivy.util.url.ApacheURLLister to obtain a list of versions from a directory listing, and this code is not using the supplied credentials.
-Thus dependency resolution fails for dynamic versions with and authenticated ivy repository.
-
-### Strategic solution
-
-We should take the opportunity to remove a bit more ivy code from our dependency resolution, and to handle listing of available versions in a more consistent manner
-between ivy/maven and http/filesystem. Longer term it may be useful to be able to recombine these: eg. maven-metadata.xml for listing versions with ivy.xml for module descriptor.
-
-### User visible changes
-
-* Dynamic versions resolved against an authenticated ivy repository will use configured credentials for that repository.
-* If the repository returns a 404 for the directory listing, we treat the module as missing from that repository
-* If the resolve is unable to list the versions of a module within a repository for any other reason, we treat the repository as broken for that module.
-A warning will be emitted and that repository will be skipped and resolve will continue with next repository. Broken response is not cached.
-    * If the user does not have credentials + permissions to list directory content.
-    * If the directory listing request results in an HTTP failure (500, Exception).
-    * If the directory listing response cannot be parsed to extract the module versions.
-
-### Integration test coverage
-
-* Happy-day tests
-    * Resolve dynamic version against an authenticated ivy repository
-    * Resolve a dynamic version and SNAPSHOT (unique & non-unique) against an authenticated maven repository
-    * Resolve a dynamic version against 2 repositories, where the first one does not contain the module (returns 404 for directory listing).
-* Sad-day tests: when module is considered broken in repository, repository is skipped and warning is emitted. Integ test should demonstrate that result is not cached, so repository
-  will recover on subsequent resolve.
-    * No credentials supplied (401 unauthorized)
-    * 500 response from server
-* Unit-test coverage for 'broken' module (verify that appropriate exception is thrown):
-    * No credentials supplied.
-    * Invalid credentials supplied.
-    * User has permissions to get individual artefacts, but does not have permission to list directories.
-    * We get a 500 or other unexpected response for the directory list HTTP request.
-    * We get a response with an entity of an unknown content type.
-    * We get a response whose entity we cannot parse.
-    * We get a ConnectException or other exception for the directory list HTTP request.
-* Extending existing coverage
-    * Happy-day test: Resolve a Maven version range (declared as [1.0, 2.0) in a POM and referenced transitively) against a (non-authenticated) maven repository
-
-### Implementation approach
-
-Replace the existing HTTP implementation of ExternalResourceLister so that it doesn't use ApacheURLLister. It should instead be backed by a ExternalResourceAccessor
-to access the directory listing resource, with the code for parsing the Apache directory listing result adopted from ApacheURLLister.
-
-At a higher abstraction layer, we could introduce an API that is able to list all available versions for a module; this would replace the current use of ResolverHelper in ExternalResourceResolver.
-for now we'll need an implementation backed by ExternalResourceRepository#list (hence ExternalResourceLister) and another backed by maven-metadata.xml.
-
-Later we may add a ModuleVersionLister backed by an Artifactory REST listing, our own file format, etc... The idea would be that these ModuleVersionLister
-implementations will be pluggable in the future, so you could combine maven-metadata.xml with ivy.xml in a single repository, for example.
-
 ## Allow resolution of java-source and javadoc types from maven repositories (and other types: tests, ejb-client)
 
 * GRADLE-201: Enable support for retrieving source artifacts of a module
@@ -421,3 +364,59 @@ this ignored test.
     * MavenDeployer already uses archivesBaseName when publishing, so no change needed to publication
 * Modify PublishModuleDescriptorConverter (ProjectDependencyDescriptorFactory) so that it uses the publish coordinates of a project when creating a published descriptor for a project dependency.
 
+## Dynamic versions work with authenticated repositories
+
+* GRADLE-2318: Repository credentials not used when resolving dynamic versions from an Ivy repository
+* GRADLE-2199: IvyArtifactRepository does not handle dynamic artifact versions
+
+### Description
+
+We are using org.apache.ivy.util.url.ApacheURLLister to obtain a list of versions from a directory listing, and this code is not using the supplied credentials.
+Thus dependency resolution fails for dynamic versions with and authenticated ivy repository.
+
+### Strategic solution
+
+We should take the opportunity to remove a bit more ivy code from our dependency resolution, and to handle listing of available versions in a more consistent manner
+between ivy/maven and http/filesystem. Longer term it may be useful to be able to recombine these: eg. maven-metadata.xml for listing versions with ivy.xml for module descriptor.
+
+### User visible changes
+
+* Dynamic versions resolved against an authenticated ivy repository will use configured credentials for that repository.
+* If the repository returns a 404 for the directory listing, we treat the module as missing from that repository
+* If the resolve is unable to list the versions of a module within a repository for any other reason, we treat the repository as broken for that module.
+A warning will be emitted and that repository will be skipped and resolve will continue with next repository. Broken response is not cached.
+    * If the user does not have credentials + permissions to list directory content.
+    * If the directory listing request results in an HTTP failure (500, Exception).
+    * If the directory listing response cannot be parsed to extract the module versions.
+
+### Integration test coverage
+
+* Happy-day tests
+    * Resolve dynamic version against an authenticated ivy repository
+    * Resolve a dynamic version and SNAPSHOT (unique & non-unique) against an authenticated maven repository
+    * Resolve a dynamic version against 2 repositories, where the first one does not contain the module (returns 404 for directory listing).
+* Sad-day tests: when module is considered broken in repository, repository is skipped and warning is emitted. Integ test should demonstrate that result is not cached, so repository
+  will recover on subsequent resolve.
+    * No credentials supplied (401 unauthorized)
+    * 500 response from server
+* Unit-test coverage for 'broken' module (verify that appropriate exception is thrown):
+    * No credentials supplied.
+    * Invalid credentials supplied.
+    * User has permissions to get individual artefacts, but does not have permission to list directories.
+    * We get a 500 or other unexpected response for the directory list HTTP request.
+    * We get a response with an entity of an unknown content type.
+    * We get a response whose entity we cannot parse.
+    * We get a ConnectException or other exception for the directory list HTTP request.
+* Extending existing coverage
+    * Happy-day test: Resolve a Maven version range (declared as [1.0, 2.0) in a POM and referenced transitively) against a (non-authenticated) maven repository
+
+### Implementation approach
+
+Replace the existing HTTP implementation of ExternalResourceLister so that it doesn't use ApacheURLLister. It should instead be backed by a ExternalResourceAccessor
+to access the directory listing resource, with the code for parsing the Apache directory listing result adopted from ApacheURLLister.
+
+At a higher abstraction layer, we could introduce an API that is able to list all available versions for a module; this would replace the current use of ResolverHelper in ExternalResourceResolver.
+for now we'll need an implementation backed by ExternalResourceRepository#list (hence ExternalResourceLister) and another backed by maven-metadata.xml.
+
+Later we may add a ModuleVersionLister backed by an Artifactory REST listing, our own file format, etc... The idea would be that these ModuleVersionLister
+implementations will be pluggable in the future, so you could combine maven-metadata.xml with ivy.xml in a single repository, for example.
