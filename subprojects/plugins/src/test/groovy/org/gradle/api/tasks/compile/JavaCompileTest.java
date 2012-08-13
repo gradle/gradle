@@ -38,8 +38,8 @@ import org.gradle.api.internal.tasks.compile.Compiler;
  * @author Hans Dockter
  */
 @RunWith(org.jmock.integration.junit4.JMock.class)
-public class CompileTest extends AbstractCompileTest {
-    private Compile compile;
+public class JavaCompileTest extends AbstractCompileTest {
+    private JavaCompile compile;
 
     private Compiler<JavaCompileSpec> compilerMock;
 
@@ -47,7 +47,7 @@ public class CompileTest extends AbstractCompileTest {
 
     @Before public void setUp()  {
         super.setUp();
-        compile = createTask(Compile.class);
+        compile = createTask(JavaCompile.class);
         compilerMock = context.mock(Compiler.class);
         compile.setJavaCompiler(compilerMock);
 
@@ -83,8 +83,7 @@ public class CompileTest extends AbstractCompileTest {
         assertFalse(compile.getDidWork());
     }
 
-    // todo We need to do this to make the compiler happy. We need to file a Jira to Groovy.
-    public Compile getCompile() {
+    public JavaCompile getCompile() {
         return compile;
     }
 }

@@ -29,7 +29,7 @@ import java.util.*;
 public class ChainedVersionLister implements VersionLister {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ExternalResourceResolver.class);
-    private List<VersionLister> versionListers = new ArrayList<VersionLister>();
+    private final List<VersionLister> versionListers;
 
     public ChainedVersionLister(VersionLister... versionlisters) {
         this.versionListers = Arrays.asList(versionlisters);
