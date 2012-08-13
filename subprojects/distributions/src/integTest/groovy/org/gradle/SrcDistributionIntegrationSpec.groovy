@@ -29,6 +29,9 @@ class SrcDistributionIntegrationSpec extends DistributionIntegrationSpec {
         given:
         TestFile contentsDir = unpackDistribution("src")
 
+        expect:
+        !contentsDir.file(".git").exists()
+
         when:
         executer.with {
             withDeprecationChecksDisabled()
