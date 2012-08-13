@@ -43,23 +43,21 @@ class MavenMetadataLoader {
         MavenMetadata metadata = new MavenMetadata();
         try {
             parseMavenMetadataInfo(metadataLocation, metadata);
-        } catch (IOException e) {
-            throw new ResourceException("Unable to load Maven Metadata file", e);
+        } catch (ResourceException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ResourceException(String.format("Unable to load Maven meta-data from %s.", metadataLocation), e);
         }
         return metadata;
     }
 
-    private void parseMavenMetadataInfo(final String metadataLocation, final MavenMetadata metadata) throws IOException, ResourceNotFoundException, ResourceException {
+    private void parseMavenMetadataInfo(final String metadataLocation, final MavenMetadata metadata) throws Exception {
         final ExternalResource resource = repository.getResource(metadataLocation);
         if (resource == null) {
-            throw new ResourceNotFoundException(String.format("maven-metadata not available: %s", metadataLocation));
+            throw new ResourceNotFoundException(String.format("Maven meta-data not available: %s", metadataLocation));
         }
         try {
             parseMavenMetadataInto(resource, metadata);
-        } catch (SAXException e) {
-            throw new ResourceException("Unable to parse Maven Metadata file", e);
-        } catch (ParserConfigurationException e) {
-            throw new ResourceException("Unable to parse Maven Metadata file", e);
         } finally {
             resource.close();
         }

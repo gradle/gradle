@@ -32,7 +32,7 @@ class MavenVersionListerTest extends Specification {
 
     def repository = Mock(ExternalResourceRepository)
     def pattern = "localhost:8081/testRepo/" + MavenPattern.M2_PATTERN
-    String metaDataPattern = 'localhost:8081/testRepo/org.acme/testproject/maven-metadata.xml'
+    String metaDataResource = 'localhost:8081/testRepo/org.acme/testproject/maven-metadata.xml'
 
     def resource = Mock(ExternalResource)
 
@@ -44,7 +44,7 @@ class MavenVersionListerTest extends Specification {
 
         then:
         result.versionStrings == ['1.1', '1.2']
-        1 * repository.getResource(metaDataPattern) >> resource
+        1 * repository.getResource(metaDataResource) >> resource
         1 * resource.openStream() >> new ByteArrayInputStream("""
 <metadata>
     <versioning>
@@ -61,8 +61,9 @@ class MavenVersionListerTest extends Specification {
         lister.getVersionList(moduleRevisionId, pattern, artifact)
 
         then:
-        thrown(ResourceNotFoundException)
-        1 * repository.getResource(metaDataPattern) >> null
+        ResourceNotFoundException e = thrown()
+        e.message == "Maven meta-data not available: $metaDataResource"
+        1 * repository.getResource(metaDataResource) >> null
         0 * repository._
     }
 
@@ -72,9 +73,10 @@ class MavenVersionListerTest extends Specification {
 
         then:
         ResourceException e = thrown()
+        e.message == "Unable to load Maven meta-data from $metaDataResource."
         e.cause instanceof SAXParseException
         1 * resource.close()
-        1 * repository.getResource(metaDataPattern) >> resource;
+        1 * repository.getResource(metaDataResource) >> resource;
         1 * resource.openStream() >> new ByteArrayInputStream("yo".bytes)
         0 * repository._
     }
@@ -87,8 +89,9 @@ class MavenVersionListerTest extends Specification {
 
         then:
         ResourceException e = thrown()
+        e.message == "Unable to load Maven meta-data from $metaDataResource."
         e.cause == failure
-        1 * repository.getResource(metaDataPattern) >> { throw failure }
+        1 * repository.getResource(metaDataResource) >> { throw failure }
         0 * repository._
     }
 

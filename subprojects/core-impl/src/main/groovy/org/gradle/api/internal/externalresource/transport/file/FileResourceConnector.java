@@ -57,24 +57,18 @@ public class FileResourceConnector implements ExternalResourceLister, ExternalRe
             target.delete();
         } // if target is writable, the copy will overwrite it without requiring a delete
         target.getParentFile().mkdirs();
-        final FileOutputStream fileOutputStream = new FileOutputStream(target);
-        final InputStream sourceInputStream = source.create();
+        FileOutputStream fileOutputStream = new FileOutputStream(target);
         try {
-            if (IOUtils.copy(sourceInputStream, fileOutputStream) == -1) {
-                throw new IOException(String.format("File copy failed from %s to %s", source, target));
+            InputStream sourceInputStream = source.create();
+            try {
+                if (IOUtils.copy(sourceInputStream, fileOutputStream) == -1) {
+                    throw new IOException(String.format("File copy failed from %s to %s", source, target));
+                }
+            } finally {
+                sourceInputStream.close();
             }
         } finally {
-            closeStream(fileOutputStream);
-            closeStream(sourceInputStream);
-
-        }
-    }
-
-    private void closeStream(Closeable closable) {
-        try {
-            closable.close();
-        } catch (IOException ex) {
-            LOGGER.warn("Unable to close stream.", ex);
+            fileOutputStream.close();
         }
     }
 

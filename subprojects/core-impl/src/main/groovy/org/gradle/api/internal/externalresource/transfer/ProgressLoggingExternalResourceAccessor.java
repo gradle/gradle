@@ -20,7 +20,6 @@ import org.apache.ivy.plugins.repository.Resource;
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
-import org.gradle.internal.UncheckedException;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.hash.HashValue;
@@ -73,17 +72,11 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
             }
         }
 
-        public void writeTo(OutputStream outputStream) throws IOException {  //get rid of CopyProgress Logger
+        public void writeTo(OutputStream outputStream) throws IOException {
             ProgressLogger progressLogger = startProgress(String.format("Download %s", getName()), null);
             final ProgressLoggingOutputStream progressLoggingOutputStream = new ProgressLoggingOutputStream(outputStream, progressLogger, resource.getContentLength());
             try {
                 resource.writeTo(progressLoggingOutputStream);
-            } catch (IOException e) {
-                progressLogger.completed(String.format("Failed to write %s.", getName()));
-                throw e;
-            } catch (Exception e) {
-                progressLogger.completed(String.format("Failed to write %s.", getName()));
-                throw UncheckedException.throwAsUncheckedException(e);
             } finally {
                 progressLogger.completed();
             }

@@ -39,20 +39,24 @@ public class HttpResourceLister implements ExternalResourceLister {
         try {
             baseURI = new URI(parent);
         } catch (URISyntaxException ex) {
-            throw new ResourceException(String.format("Unable to create URI from String '%s' ", parent), ex);
+            throw new ResourceException(String.format("Unable to create URI from string '%s' ", parent), ex);
         }
-        final ExternalResource resource = accessor.getResource(baseURI.toString());
+        final HttpResponseResource resource = accessor.getResource(baseURI.toString());
         if (resource == null) {
             return null;
         }
-        byte[] resourceContent = loadResourceContent(resource);
-        String contentType = getContentType(resource);
-        ApacheDirectoryListingParser directoryListingParser = new ApacheDirectoryListingParser();
         try {
-            List<URI> uris = directoryListingParser.parse(baseURI, resourceContent, contentType);
-            return convertToStringList(uris);
-        } catch (Exception e) {
-            throw new ResourceException("Unable to parse Http directory listing", e);
+            byte[] resourceContent = loadResourceContent(resource);
+            String contentType = resource.getContentType();
+            ApacheDirectoryListingParser directoryListingParser = new ApacheDirectoryListingParser();
+            try {
+                List<URI> uris = directoryListingParser.parse(baseURI, resourceContent, contentType);
+                return convertToStringList(uris);
+            } catch (Exception e) {
+                throw new ResourceException("Unable to parse Http directory listing", e);
+            }
+        } finally {
+            resource.close();
         }
     }
 
@@ -64,26 +68,9 @@ public class HttpResourceLister implements ExternalResourceLister {
         return ret;
     }
 
-    private String getContentType(ExternalResource resource) {
-        if (resource instanceof HttpResponseResource) {
-            return ((HttpResponseResource) resource).getContentType();
-        }
-        return null;
-    }
-
-    byte[] loadResourceContent(ExternalResource resource) throws IOException {
+    private byte[] loadResourceContent(ExternalResource resource) throws IOException {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        try {
-            resource.writeTo(outputStream);
-            return outputStream.toByteArray();
-        } finally {
-            try {
-                outputStream.close();
-            } finally {
-                resource.close();
-            }
-        }
+        resource.writeTo(outputStream);
+        return outputStream.toByteArray();
     }
-
-
 }
