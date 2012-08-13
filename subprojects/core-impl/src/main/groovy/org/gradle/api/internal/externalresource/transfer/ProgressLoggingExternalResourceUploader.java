@@ -58,17 +58,31 @@ public class ProgressLoggingExternalResourceUploader extends AbstractProgressLog
         }
 
         @Override
+        public void close() throws IOException {
+            inputStream.close();
+        }
+
+        @Override
         public int read() throws IOException {
-            return inputStream.read();
+            int result = inputStream.read();
+            if (result >= 0) {
+                totalRead++;
+                doLogProgress();
+            }
+            return result;
         }
 
         public int read(byte[] b, int off, int len) throws IOException {
             int read = inputStream.read(b, off, len);
-            if (read != -1) {
+            if (read > 0) {
                 totalRead += read;
-                logProgress(progressLogger, totalRead, contentLength, "uploaded");
+                doLogProgress();
             }
             return read;
+        }
+
+        private void doLogProgress() {
+            logProgress(progressLogger, totalRead, contentLength, "uploaded");
         }
     }
 }
