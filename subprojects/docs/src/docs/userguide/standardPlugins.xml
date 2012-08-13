@@ -220,7 +220,7 @@
                 <td>-</td>
                 <td>-</td>
                 <td>
-                    <para>Adds support for converting an existing maven build into a Gradle project.
+                    <para>Adds experimental support for converting an existing maven build into a Gradle project.
                     </para>
                 </td>
             </tr>
