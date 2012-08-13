@@ -17,27 +17,21 @@
 package org.gradle.api.plugins.migration
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.tasks.TaskAction
 import org.gradle.api.GradleException
-import org.gradle.tooling.model.internal.migration.ProjectOutput
-import org.gradle.tooling.GradleConnector
-import org.gradle.api.plugins.migration.internal.BuildOutputComparator
-import org.gradle.api.plugins.migration.internal.LoggingBuildComparisonListener
-import org.gradle.api.plugins.migration.gradle.internal.GradleBuildOutcomeSetTransformer
-import org.gradle.api.plugins.migration.model.compare.BuildComparator
-import org.gradle.api.plugins.migration.model.compare.internal.DefaultBuildComparator
-import org.gradle.api.plugins.migration.model.compare.BuildComparisonResult
 import org.gradle.api.logging.Logger
-import org.gradle.api.plugins.migration.model.outcome.BuildOutcome
-import org.gradle.api.plugins.migration.model.compare.BuildOutcomeComparisonResult
-import org.gradle.api.plugins.migration.model.compare.internal.BuildOutcomeComparatorFactory
-import org.gradle.api.plugins.migration.model.compare.internal.DefaultBuildOutcomeComparatorFactory
-import org.gradle.api.plugins.migration.model.outcome.internal.archive.GeneratedArchiveBuildOutcomeComparator
-import org.gradle.api.plugins.migration.model.compare.internal.BuildComparisonSpecFactory
-import org.gradle.api.plugins.migration.model.outcome.internal.ByTypeAndNameBuildOutcomeAssociator
-import org.gradle.api.plugins.migration.model.outcome.internal.BuildOutcomeAssociator
-import org.gradle.api.plugins.migration.model.outcome.internal.archive.GeneratedArchiveBuildOutcome
+import org.gradle.api.plugins.migration.gradle.internal.GradleBuildOutcomeSetTransformer
 import org.gradle.api.plugins.migration.model.compare.BuildComparisonSpec
+import org.gradle.api.plugins.migration.model.compare.BuildOutcomeComparisonResult
+import org.gradle.api.plugins.migration.model.compare.internal.BuildComparisonSpecFactory
+import org.gradle.api.plugins.migration.model.compare.internal.DefaultBuildComparator
+import org.gradle.api.plugins.migration.model.compare.internal.DefaultBuildOutcomeComparatorFactory
+import org.gradle.api.plugins.migration.model.outcome.BuildOutcome
+import org.gradle.api.plugins.migration.model.outcome.internal.ByTypeAndNameBuildOutcomeAssociator
+import org.gradle.api.plugins.migration.model.outcome.internal.archive.GeneratedArchiveBuildOutcome
+import org.gradle.api.plugins.migration.model.outcome.internal.archive.GeneratedArchiveBuildOutcomeComparator
+import org.gradle.api.tasks.TaskAction
+import org.gradle.tooling.GradleConnector
+import org.gradle.tooling.model.internal.migration.ProjectOutput
 
 class CompareGradleBuilds extends DefaultTask {
     String sourceVersion
