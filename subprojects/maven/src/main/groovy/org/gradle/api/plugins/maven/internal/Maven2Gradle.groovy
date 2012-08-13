@@ -16,7 +16,7 @@
 
 
 
-package org.gradle.api.internal.bootstrap
+package org.gradle.api.plugins.maven.internal
 
 /**
  * This script obtains  the effective pom of the current project, reads its dependencies

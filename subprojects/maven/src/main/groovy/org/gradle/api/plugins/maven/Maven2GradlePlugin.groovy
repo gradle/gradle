@@ -14,24 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins
 
-import org.gradle.api.internal.bootstrap.ConvertMavenToGradle
-import org.gradle.testfixtures.ProjectBuilder
-import spock.lang.Specification
+
+package org.gradle.api.plugins.maven
+
+import org.gradle.api.Experimental
+import org.gradle.api.Plugin
+import org.gradle.api.Project
 
 /**
  * by Szczepan Faber, created at: 8/1/12
  */
-class Maven2GradlePluginSpec extends Specification {
+@Experimental
+class Maven2GradlePlugin implements Plugin<Project>{
+    void apply(Project project) {
+        project.task("maven2Gradle", type: ConvertMaven2Gradle) {
+            group = 'Bootstrap experimental'
+            description = '[experimental] Attempts to generate gradle builds from maven project.'
 
-    def project = new ProjectBuilder().build()
-
-    def "applies plugin"() {
-        when:
-        project.plugins.apply Maven2GradlePlugin
-
-        then:
-        project.tasks.maven2Gradle instanceof ConvertMavenToGradle
+            verbose = false
+            keepFile = false
+        }
     }
 }

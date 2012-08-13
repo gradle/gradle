@@ -16,25 +16,28 @@
 
 
 
-package org.gradle.api.internal.bootstrap
+package org.gradle.api.plugins.maven
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.Experimental
+import org.gradle.api.logging.Logger
+import org.gradle.api.logging.Logging
+import org.gradle.api.plugins.maven.internal.Maven2Gradle
 import org.gradle.api.tasks.TaskAction
-import org.gradle.util.DeprecationLogger
 
 /**
  * by Szczepan Faber, created at: 8/1/12
  */
 @Experimental
-class ConvertMavenToGradle extends DefaultTask {
+class ConvertMaven2Gradle extends DefaultTask {
 
-    boolean verbose;
+    private final static Logger LOG = Logging.getLogger(ConvertMaven2Gradle.class)
+    boolean verbose
     boolean keepFile
 
     @TaskAction
     void convertNow() {
-        DeprecationLogger.nagUserWith("""
+        LOG.lifecycle("""
 ---------------
 Maven to Gradle conversion is *experimental*.
 Please use it, report any problems and share your feedback with us.
