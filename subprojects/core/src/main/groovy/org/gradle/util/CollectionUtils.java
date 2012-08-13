@@ -129,6 +129,16 @@ public abstract class CollectionUtils {
         return map;
     }
 
+    public static <T> boolean every(Iterable<T> things, Spec<? super T> predicate) {
+        for (T thing : things) {
+            if (!predicate.isSatisfiedBy(thing)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     /**
      * The result of diffing two sets.
      *

@@ -140,6 +140,14 @@ class CollectionUtilsTest extends Specification {
         collectMap([], transformer { it * 10 }) == [:]
     }
 
+    def "every"() {
+        expect:
+        every([1, 2, 3], spec { it < 4 })
+        !every([1, 2, 4], spec { it < 4 })
+        !every([1], spec { it instanceof String })
+        every([], spec { false })
+    }
+
     Spec<?> spec(Closure c) {
         Specs.convertClosureToSpec(c)
     }
