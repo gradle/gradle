@@ -18,8 +18,9 @@ package org.gradle.api.plugins.migration
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
 import org.junit.Rule
-import org.gradle.util.TextUtil
 
 class MigrationVerificationPluginIntegrationSpec extends AbstractIntegrationSpec {
     @Rule TestResources testResources
@@ -31,25 +32,21 @@ class MigrationVerificationPluginIntegrationSpec extends AbstractIntegrationSpec
         run("compare")
 
         then:
-        output.contains("Compared outcomes:")
+        def html = html("build/comparison.html")
 
-        // Disabled until reporting is implemented.
-//        looksLike output, """
-//Comparing build 'source build' with 'target build'
-//Comparing outputs of project ':'
-//Comparing archive 'testBuild.jar'
-//Archive entry 'org/gradle/ChangedClass.class': Size changed from 409 to 486
-//Archive entry 'org/gradle/DifferentCrcClass.class': CRC changed from \\d+ to \\d+
-//Archive entry 'org/gradle/SourceBuildOnlyClass.class' only exists in build 'source build'
-//Archive entry 'org/gradle/TargetBuildOnlyClass.class' only exists in build 'target build'
-//Finished comparing archive 'testBuild.jar'
-//Finished comparing outputs of project ':'
-//Finished comparing build 'source build' with 'target build'
-//        """
-        true
+        // Name of outcome
+        html.select("h3").text() == ":jar"
+
+        // Entry comparisons
+        def rows = html.select("tr").tail().collectEntries { [it.select("td")[0].text(), it.select("td")[1].text()] }
+        rows.size() == 4
+        rows["org/gradle/ChangedClass.class"] == "from is 409 bytes - to is 486 bytes (+77)"
+        rows["org/gradle/DifferentCrcClass.class"] == "files are same size but with different content"
+        rows["org/gradle/SourceBuildOnlyClass.class"] == "from only"
+        rows["org/gradle/TargetBuildOnlyClass.class"] == "to only"
     }
 
-    private void looksLike(text, pattern) {
-        assert text =~ TextUtil.toPlatformLineSeparators(pattern.trim())
+    Document html(path) {
+        Jsoup.parse(file(path), "utf8")
     }
 }

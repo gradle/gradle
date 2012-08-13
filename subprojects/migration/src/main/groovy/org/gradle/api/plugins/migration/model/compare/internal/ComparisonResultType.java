@@ -21,5 +21,9 @@ public enum ComparisonResultType {
     UNEQUAL,
     FROM_ONLY,
     TO_ONLY,
-    NON_EXISTENT // doesn't exist on either side, nothing to compare
+    NON_EXISTENT; // doesn't exist on either side, nothing to compare
+
+    public void throwUnsupported() throws UnsupportedOperationException {
+        throw new UnsupportedOperationException(String.format("Support for result type '%s' has not been implemented in this context", toString()));
+    }
 }

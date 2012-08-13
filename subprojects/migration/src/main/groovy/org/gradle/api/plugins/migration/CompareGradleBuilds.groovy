@@ -18,10 +18,8 @@ package org.gradle.api.plugins.migration
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
-import org.gradle.api.logging.Logger
 import org.gradle.api.plugins.migration.gradle.internal.GradleBuildOutcomeSetTransformer
 import org.gradle.api.plugins.migration.model.compare.BuildComparisonSpec
-import org.gradle.api.plugins.migration.model.compare.BuildOutcomeComparisonResult
 import org.gradle.api.plugins.migration.model.compare.internal.BuildComparisonSpecFactory
 import org.gradle.api.plugins.migration.model.compare.internal.DefaultBuildComparator
 import org.gradle.api.plugins.migration.model.compare.internal.DefaultBuildOutcomeComparatorFactory
@@ -29,6 +27,11 @@ import org.gradle.api.plugins.migration.model.outcome.BuildOutcome
 import org.gradle.api.plugins.migration.model.outcome.internal.ByTypeAndNameBuildOutcomeAssociator
 import org.gradle.api.plugins.migration.model.outcome.internal.archive.GeneratedArchiveBuildOutcome
 import org.gradle.api.plugins.migration.model.outcome.internal.archive.GeneratedArchiveBuildOutcomeComparator
+import org.gradle.api.plugins.migration.model.outcome.internal.archive.entry.GeneratedArchiveBuildOutcomeComparisonResultHtmlRenderer
+import org.gradle.api.plugins.migration.model.render.internal.DefaultBuildOutcomeComparisonResultRendererFactory
+import org.gradle.api.plugins.migration.model.render.internal.html.HtmlBuildComparisonResultRenderer
+import org.gradle.api.plugins.migration.model.render.internal.html.HtmlRenderContext
+import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.model.internal.migration.ProjectOutput
@@ -39,11 +42,15 @@ class CompareGradleBuilds extends DefaultTask {
     File sourceProjectDir
     File targetProjectDir
 
+    @OutputFile File htmlReport
+
     @TaskAction
     void compare() {
         if (sourceProjectDir.equals(targetProjectDir)) {
             throw new GradleException("Same source and target project directory isn't supported yet (would need to make sure that separate build output directories are used)")
         }
+
+        // Build the outcome model and outcomes
 
         def toOutcomeTransformer = new GradleBuildOutcomeSetTransformer()
 
@@ -53,6 +60,8 @@ class CompareGradleBuilds extends DefaultTask {
         def fromOutcomes = toOutcomeTransformer.transform(fromOutput)
         def toOutcomes = toOutcomeTransformer.transform(toOutput)
 
+        // Associate from each side (create spec)
+
         def outcomeAssociator = new ByTypeAndNameBuildOutcomeAssociator<BuildOutcome>(GeneratedArchiveBuildOutcome)
         def specFactory = new BuildComparisonSpecFactory(outcomeAssociator)
         BuildComparisonSpec comparisonSpec = specFactory.createSpec(fromOutcomes, toOutcomes)
@@ -60,30 +69,19 @@ class CompareGradleBuilds extends DefaultTask {
         def comparatorFactory = new DefaultBuildOutcomeComparatorFactory()
         comparatorFactory.registerComparator(new GeneratedArchiveBuildOutcomeComparator())
 
+        // Compare
+
         def buildComparator = new DefaultBuildComparator(comparatorFactory)
         def result = buildComparator.compareBuilds(comparisonSpec)
 
-        Logger logger = getLogger();
+        // Render
 
-        if (!result.getUncomparedFrom().isEmpty()) {
-            logger.lifecycle("Uncompared outcomes on FROM side:");
-            for (BuildOutcome outcome : result.getUncomparedFrom()) {
-                logger.lifecycle(" > {}", outcome);
-            }
-        }
+        def renderers = new DefaultBuildOutcomeComparisonResultRendererFactory(HtmlRenderContext)
+        renderers.registerRenderer(new GeneratedArchiveBuildOutcomeComparisonResultHtmlRenderer())
+        def renderer = new HtmlBuildComparisonResultRenderer(renderers, null, null, null)
 
-        if (!result.getUncomparedTo().isEmpty()) {
-            logger.lifecycle("Uncompared outcomes on TO side:");
-            for (BuildOutcome outcome : result.getUncomparedTo()) {
-                logger.lifecycle(" > {}", outcome);
-            }
-        }
-
-        if (!result.getComparisons().isEmpty()) {
-            logger.lifecycle("Compared outcomes:");
-            for (BuildOutcomeComparisonResult comparisonResult : result.getComparisons()) {
-                logger.lifecycle(" > {}", comparisonResult);
-            }
+        htmlReport.withWriter("utf8") {
+            renderer.render(result, it)
         }
     }
 
