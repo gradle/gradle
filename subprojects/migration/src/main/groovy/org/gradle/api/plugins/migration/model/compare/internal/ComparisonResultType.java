@@ -20,5 +20,6 @@ public enum ComparisonResultType {
     EQUAL,
     UNEQUAL,
     FROM_ONLY,
-    TO_ONLY
+    TO_ONLY,
+    NON_EXISTENT // doesn't exist on either side, nothing to compare
 }
