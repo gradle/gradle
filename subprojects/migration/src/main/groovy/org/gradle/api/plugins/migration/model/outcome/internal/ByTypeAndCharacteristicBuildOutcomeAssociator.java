@@ -21,10 +21,10 @@ import org.gradle.api.plugins.migration.model.outcome.BuildOutcome;
 
 public class ByTypeAndCharacteristicBuildOutcomeAssociator<T extends BuildOutcome> implements BuildOutcomeAssociator {
 
-    private final Class<T> type;
+    private final Class<? extends T> type;
     private final Transformer<?, T> characteristicTransformer;
 
-    public ByTypeAndCharacteristicBuildOutcomeAssociator(Class<T> type, Transformer<?, T> characteristicTransformer) {
+    public ByTypeAndCharacteristicBuildOutcomeAssociator(Class<? extends T> type, Transformer<?, T> characteristicTransformer) {
         this.type = type;
         this.characteristicTransformer = characteristicTransformer;
     }

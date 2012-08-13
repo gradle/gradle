@@ -20,7 +20,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.plugins.migration.model.outcome.BuildOutcome;
 
 public class ByTypeAndNameBuildOutcomeAssociator<T extends BuildOutcome> extends ByTypeAndCharacteristicBuildOutcomeAssociator<T> {
-    public ByTypeAndNameBuildOutcomeAssociator(Class<T> type) {
+    public ByTypeAndNameBuildOutcomeAssociator(Class<? extends T> type) {
         super(type, new Transformer<String, T>() {
             public String transform(T outcome) {
                 return outcome.getName();
