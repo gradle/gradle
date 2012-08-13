@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,17 @@
  * limitations under the License.
  */
 
-dependencies {
-    groovy libraries.groovy
+package org.gradle.api.plugins.migration.model.render.internal;
 
-    compile project(":core")
-    compile project(":toolingApi")
-    compile libraries.guava
-    compile libraries.slf4j_api
+import org.gradle.api.plugins.migration.model.compare.BuildComparisonResult;
 
-    testCompile "org.jsoup:jsoup:1.6.3"
-}
+/**
+ * Renders a build comparison result to a context.
+ *
+ * @param <C> The type of the context object.
+ */
+public interface BuildComparisonResultRenderer<C> {
 
-useTestFixtures()
-eclipse {
-	classpath {
-		file.whenMerged { classpath ->
-			classpath.entries.removeAll { it.path.contains('src/integTest/resources') }
-            classpath.entries.removeAll { it.path.contains('/migration/build/') }
-		}
-	}
+    void render(BuildComparisonResult result, C context);
+
 }
