@@ -18,7 +18,6 @@ package org.gradle.wrapper;
 
 import java.io.*;
 import java.net.*;
-import java.util.Properties;
 
 /**
  * @author Hans Dockter
@@ -85,7 +84,8 @@ public class Download implements IDownload {
     }
 
     private String calculateUserAgent() {
-        String appVersion = applicationVersion == null ? readVersionFromBuildReceipt() : applicationVersion;
+        String appVersion = applicationVersion;
+
         String javaVendor = System.getProperty("java.vendor");
         String javaVersion = System.getProperty("java.version");
         String javaVendorVersion = System.getProperty("java.vm.version");
@@ -93,23 +93,6 @@ public class Download implements IDownload {
         String osVersion = System.getProperty("os.version");
         String osArch = System.getProperty("os.arch");
         return String.format("%s/%s (%s;%s;%s) (%s;%s;%s)", applicationName, appVersion, osName, osVersion, osArch, javaVendor, javaVersion, javaVendorVersion);
-    }
-
-    private String readVersionFromBuildReceipt() {
-        final InputStream resourceAsStream = getClass().getResourceAsStream("/build-receipt.properties");
-        if (resourceAsStream != null) {
-            Properties buildReceipt = new Properties();
-            try {
-                buildReceipt.load(resourceAsStream);
-                final String versionNumber = buildReceipt.getProperty("versionNumber");
-                if (versionNumber != null) {
-                    return versionNumber;
-                }
-            } catch (IOException e) {
-                //we swallow this exception here
-            }
-        }
-        return "n.a.";
     }
 
     private static class SystemPropertiesProxyAuthenticator extends

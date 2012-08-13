@@ -23,10 +23,16 @@ dependencies {
     integTestRuntime rootProject.configurations.testRuntime.allDependencies
 }
 
+task buildReceiptResource(type: Copy, dependsOn: rootProject.createBuildReceipt) {
+    into generatedTestResourcesDir
+    from rootProject.createBuildReceipt.receiptFile
+}
+sourceSets.test.output.dir generatedTestResourcesDir, builtBy: buildReceiptResource
+
 task executableJar(type: Jar) {
     archiveName = 'gradle-wrapper.jar'
     from sourceSets.main.output
-    from tasks.getByPath(":createBuildReceipt")
+    from rootProject.createBuildReceipt
     from configurations.runtime.allDependencies.withType(ProjectDependency).collect { it.dependencyProject.sourceSets.main.output }
 }
 

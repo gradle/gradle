@@ -12,6 +12,7 @@ ext {
     compileTasks = tasks.matching { it instanceof Compile || it instanceof GroovyCompile }
     testTasks = tasks.withType(Test)
     generatedResourcesDir = file("$buildDir/generated-resources/main")
+    generatedTestResourcesDir = file("$buildDir/generated-resources/test")
     jarTasks = tasks.withType(Jar)
 }
 
