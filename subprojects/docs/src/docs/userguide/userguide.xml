@@ -69,6 +69,7 @@
     <xi:include href='announcePlugin.xml'/>
     <xi:include href='buildAnnouncementsPlugin.xml'/>
     <xi:include href='applicationPlugin.xml'/>
+    <xi:include href='bootstrapPlugin.xml'/>
 	<xi:include href='depMngmt.xml'/>
     <xi:include href='artifactMngmt.xml'/>
     <xi:include href='mavenPlugin.xml'/>
@@ -82,7 +83,6 @@
     <xi:include href='initscripts.xml'/>
     <xi:include href='gradleWrapper.xml'/>
     <xi:include href='embedding.xml'/>
-    <xi:include href='bootstrapPlugin.xml'/>
     <!-- this is generated -->
     <xi:include href='../../../build/src/samplesList.xml'/>
     <xi:include href='potentialTraps.xml'/>

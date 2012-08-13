@@ -213,6 +213,17 @@
                     </para>
                 </td>
             </tr>
+            <tr>
+                <td>
+                    <link linkend="bootstrap_plugin"><literal>maven2Gradle</literal></link>
+                </td>
+                <td>-</td>
+                <td>-</td>
+                <td>
+                    <para>Adds support for converting an existing maven build into a Gradle project.
+                    </para>
+                </td>
+            </tr>
         </table>
     </section>
     <section>
