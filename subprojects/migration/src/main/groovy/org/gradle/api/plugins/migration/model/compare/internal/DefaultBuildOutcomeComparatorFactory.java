@@ -36,7 +36,7 @@ public class DefaultBuildOutcomeComparatorFactory implements BuildOutcomeCompara
         }
     }
 
-    void registerComparator(BuildOutcomeComparator<?, ?> comparator) {
+    public void registerComparator(BuildOutcomeComparator<?, ?> comparator) {
         comparators.put(comparator.getComparedType(), comparator);
     }
 }

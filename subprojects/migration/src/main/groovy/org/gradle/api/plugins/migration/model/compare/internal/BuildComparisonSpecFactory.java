@@ -32,7 +32,7 @@ public class BuildComparisonSpecFactory {
         this.associator = associator;
     }
 
-    BuildComparisonSpec createSpec(Set<BuildOutcome> from, Set<BuildOutcome> to) {
+    public BuildComparisonSpec createSpec(Set<BuildOutcome> from, Set<BuildOutcome> to) {
         BuildComparisonSpecBuilder builder = new DefaultBuildComparisonSpecBuilder();
 
         Set<BuildOutcome> toCopy = new HashSet<BuildOutcome>(to);

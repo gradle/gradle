@@ -23,6 +23,21 @@ import org.gradle.tooling.model.internal.migration.ProjectOutput
 import org.gradle.tooling.GradleConnector
 import org.gradle.api.plugins.migration.internal.BuildOutputComparator
 import org.gradle.api.plugins.migration.internal.LoggingBuildComparisonListener
+import org.gradle.api.plugins.migration.gradle.internal.GradleBuildOutcomeSetTransformer
+import org.gradle.api.plugins.migration.model.compare.BuildComparator
+import org.gradle.api.plugins.migration.model.compare.internal.DefaultBuildComparator
+import org.gradle.api.plugins.migration.model.compare.BuildComparisonResult
+import org.gradle.api.logging.Logger
+import org.gradle.api.plugins.migration.model.outcome.BuildOutcome
+import org.gradle.api.plugins.migration.model.compare.BuildOutcomeComparisonResult
+import org.gradle.api.plugins.migration.model.compare.internal.BuildOutcomeComparatorFactory
+import org.gradle.api.plugins.migration.model.compare.internal.DefaultBuildOutcomeComparatorFactory
+import org.gradle.api.plugins.migration.model.outcome.internal.archive.GeneratedArchiveBuildOutcomeComparator
+import org.gradle.api.plugins.migration.model.compare.internal.BuildComparisonSpecFactory
+import org.gradle.api.plugins.migration.model.outcome.internal.ByTypeAndNameBuildOutcomeAssociator
+import org.gradle.api.plugins.migration.model.outcome.internal.BuildOutcomeAssociator
+import org.gradle.api.plugins.migration.model.outcome.internal.archive.GeneratedArchiveBuildOutcome
+import org.gradle.api.plugins.migration.model.compare.BuildComparisonSpec
 
 class CompareGradleBuilds extends DefaultTask {
     String sourceVersion
@@ -35,10 +50,47 @@ class CompareGradleBuilds extends DefaultTask {
         if (sourceProjectDir.equals(targetProjectDir)) {
             throw new GradleException("Same source and target project directory isn't supported yet (would need to make sure that separate build output directories are used)")
         }
-        def sourceBuildOutput = generateBuildOutput(sourceVersion, sourceProjectDir)
-        def targetBuildOutput = generateBuildOutput(targetVersion, targetProjectDir)
-        def listener = new LoggingBuildComparisonListener()
-        new BuildOutputComparator(listener).compareBuilds(sourceBuildOutput, targetBuildOutput)
+
+        def toOutcomeTransformer = new GradleBuildOutcomeSetTransformer()
+
+        def fromOutput = generateBuildOutput(sourceVersion, sourceProjectDir)
+        def toOutput = generateBuildOutput(targetVersion, targetProjectDir)
+
+        def fromOutcomes = toOutcomeTransformer.transform(fromOutput)
+        def toOutcomes = toOutcomeTransformer.transform(toOutput)
+
+        def outcomeAssociator = new ByTypeAndNameBuildOutcomeAssociator<BuildOutcome>(GeneratedArchiveBuildOutcome)
+        def specFactory = new BuildComparisonSpecFactory(outcomeAssociator)
+        BuildComparisonSpec comparisonSpec = specFactory.createSpec(fromOutcomes, toOutcomes)
+
+        def comparatorFactory = new DefaultBuildOutcomeComparatorFactory()
+        comparatorFactory.registerComparator(new GeneratedArchiveBuildOutcomeComparator())
+
+        def buildComparator = new DefaultBuildComparator(comparatorFactory)
+        def result = buildComparator.compareBuilds(comparisonSpec)
+
+        Logger logger = getLogger();
+
+        if (!result.getUncomparedFrom().isEmpty()) {
+            logger.lifecycle("Uncompared outcomes on FROM side:");
+            for (BuildOutcome outcome : result.getUncomparedFrom()) {
+                logger.lifecycle(" > {}", outcome);
+            }
+        }
+
+        if (!result.getUncomparedTo().isEmpty()) {
+            logger.lifecycle("Uncompared outcomes on TO side:");
+            for (BuildOutcome outcome : result.getUncomparedTo()) {
+                logger.lifecycle(" > {}", outcome);
+            }
+        }
+
+        if (!result.getComparisons().isEmpty()) {
+            logger.lifecycle("Compared outcomes:");
+            for (BuildOutcomeComparisonResult comparisonResult : result.getComparisons()) {
+                logger.lifecycle(" > {}", comparisonResult);
+            }
+        }
     }
 
     private ProjectOutput generateBuildOutput(String gradleVersion, File other) {
