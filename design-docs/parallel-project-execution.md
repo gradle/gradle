@@ -214,7 +214,9 @@ Sad-day:
 - Add a command-line option to enable the parallel executer, and specify the number of build threads that should be started.
 - Introduce a GradleExecuter test fixture that will execute a build using the parallel option. Configure an experimental CI build that uses this executer.
 - Increase integration test coverage for multi-project builds, for all forms of execution. Add additional integration tests for cases specific to parallel execution.
+- Review and fix thread-safety of: compiler daemon, profiler, task up-to-date checking, dependency resolution and publication code.
 - Warn when project coupling is detected while executing projects in parallel
+- When using the parallel executer, give each project is given a copy of the model. This will prevent things sporadically failing due to timing issues.
 - Gracefully handle multiple failures when executing projects in parallel
 - Buffer all output for a task and only flush to console when it is complete. No special handling for large amounts of console output.
 - Provide basic summary status bar for parallel project execution
@@ -222,6 +224,7 @@ Sad-day:
 - Add a command-line option to specify that projects are decoupled: both warning and failing modes should be supported.
 - More sophisticated task logging: interleved project output with some buffering and pretty-printing
 - Display multiple status bars, one for each build executor and one summary (up to a certain threshold).
+- Link up the number of parallel task executers and the number of parallel test executers.
 
 # Open issues
 
