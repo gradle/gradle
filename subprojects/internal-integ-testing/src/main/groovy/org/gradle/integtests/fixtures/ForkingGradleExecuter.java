@@ -128,11 +128,15 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
 
     @Override
     public GradleHandle doStart() {
-        return new ForkingGradleHandle(getDefaultCharacterEncoding(), new Factory<ExecHandleBuilder>() {
+        return createGradleHandle(getDefaultCharacterEncoding(), new Factory<ExecHandleBuilder>() {
             public ExecHandleBuilder create() {
                 return createExecHandleBuilder();
             }
         }).start();
+    }
+
+    protected ForkingGradleHandle createGradleHandle(String encoding, Factory<ExecHandleBuilder> execHandleFactory) {
+        return new ForkingGradleHandle(encoding, execHandleFactory);
     }
 
     protected ExecutionResult doRun() {

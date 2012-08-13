@@ -57,7 +57,6 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
         forking(true),
         daemon(true),
         embeddedDaemon(false),
-        embeddedParallel(false, true),
         parallel(true, true);
 
         final public boolean forks;
@@ -243,10 +242,6 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
         GradleExecuter gradleExecuter = createExecuter(executerType);
         copyTo(gradleExecuter);
 
-        if (executerType.executeParallel) {
-            gradleExecuter.withArgument("--parallel-executor-threads=4");
-        }
-
         configureTmpDir(gradleExecuter);
         configureForSettingsFile(gradleExecuter);
 
@@ -261,7 +256,6 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
         switch (executerType) {
             case embeddedDaemon:
                 return new EmbeddedDaemonGradleExecuter();
-            case embeddedParallel:
             case embedded:
                 if (canExecuteInProcess()) {
                     return new InProcessGradleExecuter();
@@ -270,6 +264,7 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
             case daemon:
                 return new DaemonGradleExecuter(dist, !isQuiet() && allowExtraLogging, noDefaultJvmArgs);
             case parallel:
+                return new ParallelForkingGradleExecuter(dist.getGradleHomeDir());
             case forking:
                 return createForkingExecuter();
         }

@@ -172,12 +172,7 @@ class UserGuideSamplesRunner extends Runner {
             return lines;
         }
         List<String> result = new ArrayList<String>()
-        int pos = 0
-        if (lines[0] == 'Parallel project execution is pre-alpha and highly experimental. Many builds will not run correctly with this option.') {
-            pos = 1
-        }
-        for (int i = pos; i < lines.size(); i++) {
-            String line =  lines.get(i);
+        for (String line : lines) {
             if (line.matches('Download .+')) {
                 // ignore
             } else {
