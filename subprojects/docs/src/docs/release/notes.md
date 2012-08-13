@@ -3,6 +3,28 @@
 
 Here are the new features introduced in Gradle 1.2.
 
+### Experimental Maven-to-Gradle conversion utility
+
+We would like to make it as easy as possible to migrate from a different build tool to Gradle.
+Say you have a maven build, be it multi-module or single-module.
+Using the new [Bootstrap plugin](http://gradle.org/docs/nightly/userguide/bootstrap_plugin.html)
+you can 'initialize' the Gradle project right inside your maven project.
+This means that build.gradle and settings.gradle files are generated automatically for you.
+Now you can run both builds should you want to compare the build outputs
+and start enjoying Gradle!
+Maven conversion support is a first step towards a general-purpose bootstrap plugin.
+In future it will be able to initialize a Gradle project not only from maven
+but also from different models, for example: IDE metadata or ant.
+
+Maven conversion utility is currently experimental. It is highly useful though not yet perfect.
+The initial implementation was heavily inspired on an existing open source conversion utility called
+[maven2gradle](https://github.com/jbaruch/maven2gradle)
+founded by Baruch Sadogursky and developed by Antony Stubbs and Matthew McCullough.
+Gradle team would like to thank the community for such an outstanding contribution!
+
+For more information on available features and the usage please refer to the
+[user guide](http://gradle.org/docs/nightly/userguide/bootstrap_plugin.html).
+
 ### Documentation facelift
 
 Our documentation has received a facelift to match our new style. Check out the new look [DSL Reference](dsl/index.html) and [User Guide](userguide/userguide.html).
