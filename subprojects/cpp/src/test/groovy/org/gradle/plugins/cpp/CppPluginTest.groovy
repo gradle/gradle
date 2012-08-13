@@ -39,13 +39,24 @@ class CppPluginTest extends Specification {
         project.libraries instanceof NamedDomainObjectContainer
     }
 
-    def "compiler adapters are available"() {
+    @Requires(TestPrecondition.WINDOWS)
+    def "gcc and visual cpp adapters are available on windows"() {
         given:
         project.plugins.apply(CppPlugin)
 
         expect:
         project.compilers.collect { it.name } == ['gpp', 'visualCpp']
         project.compilers.searchOrder.collect { it.name } == ['visualCpp', 'gpp']
+    }
+
+    @Requires(TestPrecondition.UNIX)
+    def "gcc adapter is available on unix"() {
+        given:
+        project.plugins.apply(CppPlugin)
+
+        expect:
+        project.compilers.collect { it.name } == ['gpp']
+        project.compilers.searchOrder.collect { it.name } == ['gpp']
     }
 
     def "can create some cpp source sets"() {

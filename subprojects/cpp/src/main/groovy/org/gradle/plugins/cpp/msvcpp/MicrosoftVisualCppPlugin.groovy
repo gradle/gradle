@@ -34,6 +34,11 @@ import org.gradle.internal.os.OperatingSystem
 class MicrosoftVisualCppPlugin implements Plugin<ProjectInternal> {
     void apply(ProjectInternal project) {
         project.plugins.apply(BinariesPlugin)
+
+        if (!OperatingSystem.current().windows) {
+            return
+        }
+
         project.extensions.getByType(CompilerRegistry).add(new VisualCppCompilerAdapter(
                 OperatingSystem.current(),
                 new Factory<ExecAction>() {
