@@ -51,8 +51,10 @@ public class ResourceVersionLister implements VersionLister {
         try {
             final List<String> versionStrings = listRevisionToken(partiallyResolvedPattern);
             return new DefaultVersionList(versionStrings);
-        } catch (IOException e) {
-            throw new ResourceException("Unable to load Versions", e);
+        } catch (ResourceNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ResourceException(String.format("Could not list versions using pattern '%s'.", pattern), e);
         }
     }
 
@@ -68,15 +70,15 @@ public class ResourceVersionLister implements VersionLister {
             return listAll(prefix);
         } else {
             int parentFolderSlashIndex = prefix.lastIndexOf(fileSeparator);
-            String revisionParentFolder = parentFolderSlashIndex == -1 ? "" : prefix.substring(0, parentFolderSlashIndex);
+            String revisionParentFolder = parentFolderSlashIndex == -1 ? "" : prefix.substring(0, parentFolderSlashIndex + 1);
             LOGGER.debug("using {} to list all in {} ", repository, revisionParentFolder);
             List<String> all = repository.list(revisionParentFolder);
             if (all == null) {
-                throw new ResourceNotFoundException(String.format("Can not load %s for listing resources", revisionParentFolder));
+                throw new ResourceNotFoundException(String.format("Cannot list versions from %s.", revisionParentFolder));
             }
             LOGGER.debug("found {} urls", all.size());
             Pattern regexPattern = createRegexPattern(pattern, parentFolderSlashIndex);
-            List ret = filterMatchedValues(all, regexPattern);
+            List<String> ret = filterMatchedValues(all, regexPattern);
             LOGGER.debug("{} matched {}" + pattern, ret.size(), pattern);
             return ret;
         }
@@ -116,23 +118,27 @@ public class ResourceVersionLister implements VersionLister {
     }
 
     private boolean revisionMatchesDirectoryName(String pattern) {
-        int index = pattern.indexOf(REVISION_TOKEN);
-        boolean patternStartsWithRevisionToken = index == 0;
-        return (pattern.length() <= index + REV_TOKEN_LENGTH)
-                || fileSeparator.equals(pattern.substring(index + REV_TOKEN_LENGTH, index + REV_TOKEN_LENGTH + 1)) // first revision token is followed by file separator
-                && (patternStartsWithRevisionToken
-                || fileSeparator.equals(pattern.substring(index - 1, index))); // first revision token is prefixed by file separator
+        int startToken = pattern.indexOf(REVISION_TOKEN);
+        if (startToken > 0 && !pattern.substring(startToken - 1, startToken).equals(fileSeparator)) {
+            // previous character is not a separator
+            return false;
+        }
+        int endToken = startToken + REV_TOKEN_LENGTH;
+        if (endToken < pattern.length() && !pattern.substring(endToken, endToken + 1).equals(fileSeparator)) {
+            // next character is not a separator
+            return false;
+        }
+        return true;
     }
 
     private List<String> listAll(String parent) throws IOException {
         LOGGER.debug("using {} to list all in {}", repository, parent);
         List<String> fullPaths = repository.list(parent);
         if (fullPaths == null) {
-            throw new ResourceNotFoundException(String.format("Unable to load %s for listing versions", parent));
+            throw new ResourceNotFoundException(String.format("Cannot list versions from %s.", parent));
         }
         LOGGER.debug("found {} resources", fullPaths.size());
-        List<String> names = extractVersionInfoFromPaths(fullPaths);
-        return names;
+        return extractVersionInfoFromPaths(fullPaths);
     }
 
     private List<String> extractVersionInfoFromPaths(List<String> paths) {
