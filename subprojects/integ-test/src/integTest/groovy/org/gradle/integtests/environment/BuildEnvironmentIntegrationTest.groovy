@@ -162,7 +162,7 @@ assert classesDir.directory
         def out = executer.withForkingExecuter().run().output
 
         then:
-        out.contains("javaHome=" + alternateJavaHome.absolutePath)
+        out.contains("javaHome=" + alternateJavaHome.canonicalPath)
     }
 
     def "jvm args from gradle properties should be used to run build"() {
