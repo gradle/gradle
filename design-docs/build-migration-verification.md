@@ -194,6 +194,9 @@ The user should be able to opt-out of the inference (manual configuration) or mo
 
 The outcomes for a Gradle build can be inferred by inspecting the build model. This can be done in a cross version compatibility way by using the Tooling API.
 
+To do this, we must actually execute the build. This is because any task is free to modify the model during execution. Therefore the tooling API will
+have to provide the model of the outputs after the build has executed.
+
 ## Maven Model Inference
 
 The model for a maven build can likely be inferred for a reasonably high percentage of real world maven builds by understanding the Maven model.
@@ -207,6 +210,9 @@ If this is insufficent the user will have to use the provided DSL/API to build t
 # Open issues
 
 ## General
+
+* To generate a model of the Gradle build outputs: how do we determine which tasks produce outputs, run those tasks, then
+inspect the build model for the configuration of where the archives are?
 
 * Does verification always include execution of the "old" and "new" builds, or can it work off preexisting outputs?
 
