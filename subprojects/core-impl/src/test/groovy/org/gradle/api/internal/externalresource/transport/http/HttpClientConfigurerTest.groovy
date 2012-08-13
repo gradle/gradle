@@ -20,7 +20,7 @@ import org.apache.http.impl.client.DefaultHttpClient
 import org.apache.http.impl.conn.ProxySelectorRoutePlanner
 import org.apache.http.params.HttpProtocolParams
 import org.gradle.api.artifacts.repositories.PasswordCredentials
-import org.gradle.util.GradleVersion
+import org.gradle.api.internal.resource.UriResource
 import spock.lang.Specification
 
 public class HttpClientConfigurerTest extends Specification {
@@ -98,6 +98,6 @@ public class HttpClientConfigurerTest extends Specification {
         configurer.configure(httpClient)
 
         then:
-        HttpProtocolParams.getUserAgent(httpClient.params) == GradleVersion.current().userAgentString
+        HttpProtocolParams.getUserAgent(httpClient.params) == UriResource.userAgentString
     }
 }

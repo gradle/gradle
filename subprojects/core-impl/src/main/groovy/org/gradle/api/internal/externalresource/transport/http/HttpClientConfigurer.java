@@ -35,8 +35,8 @@ import org.apache.http.protocol.HttpContext;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.internal.externalresource.transport.http.ntlm.NTLMCredentials;
 import org.gradle.api.internal.externalresource.transport.http.ntlm.NTLMSchemeFactory;
+import org.gradle.api.internal.resource.UriResource;
 import org.gradle.util.GUtil;
-import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -100,7 +100,7 @@ public class HttpClientConfigurer {
     }
 
     public void configureUserAgent(DefaultHttpClient httpClient) {
-        HttpProtocolParams.setUserAgent(httpClient.getParams(), GradleVersion.current().getUserAgentString());
+        HttpProtocolParams.setUserAgent(httpClient.getParams(), UriResource.getUserAgentString());
     }
 
     static class PreemptiveAuth implements HttpRequestInterceptor {

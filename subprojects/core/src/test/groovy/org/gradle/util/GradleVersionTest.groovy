@@ -235,11 +235,4 @@ OS: ${OperatingSystem.current()}
         expect:
         version.prettyPrint() == expectedText
     }
-
-    def userAgentString() {
-        OperatingSystem os = OperatingSystem.current()
-        String expectedText = "Gradle/${version.version} (${os.name};${os.version};${System.getProperty("os.arch")}) (${System.getProperty("java.vendor")};${System.getProperty("java.version")};${System.getProperty("java.vm.version")})"
-        expect:
-        version.userAgentString == expectedText
-    }
 }

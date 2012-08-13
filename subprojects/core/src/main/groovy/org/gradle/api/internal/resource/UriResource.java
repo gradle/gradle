@@ -17,6 +17,7 @@
 package org.gradle.api.internal.resource;
 
 import org.apache.commons.io.IOUtils;
+import org.gradle.internal.SystemProperties;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
@@ -84,7 +85,7 @@ public class UriResource implements Resource {
 
     private InputStream getInputStream(URI url) throws IOException {
         final URLConnection urlConnection = url.toURL().openConnection();
-        urlConnection.setRequestProperty("User-Agent", GradleVersion.current().getUserAgentString());
+        urlConnection.setRequestProperty("User-Agent", getUserAgentString());
         return urlConnection.getInputStream();
     }
 
@@ -95,4 +96,22 @@ public class UriResource implements Resource {
     public URI getURI() {
         return sourceUri;
     }
+
+    public static String getUserAgentString() {
+        String osName = System.getProperty("os.name");
+        String osVersion = System.getProperty("os.version");
+        String osArch = System.getProperty("os.arch");
+        String javaVendor = System.getProperty("java.vendor");
+        String javaVersion = SystemProperties.getJavaVersion();
+        String javaVendorVersion = System.getProperty("java.vm.version");
+        return String.format("Gradle/%s (%s;%s;%s) (%s;%s;%s)",
+                GradleVersion.current().getVersion(),
+                osName,
+                osVersion,
+                osArch,
+                javaVendor,
+                javaVersion,
+                javaVendorVersion);
+    }
+
 }
