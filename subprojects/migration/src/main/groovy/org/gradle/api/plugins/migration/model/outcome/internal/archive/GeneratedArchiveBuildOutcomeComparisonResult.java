@@ -17,9 +17,13 @@
 package org.gradle.api.plugins.migration.model.outcome.internal.archive;
 
 import org.gradle.api.plugins.migration.model.compare.BuildOutcomeComparisonResultSupport;
+import org.gradle.api.plugins.migration.model.compare.internal.ComparisonResultType;
 import org.gradle.api.plugins.migration.model.outcome.BuildOutcomeAssociation;
 import org.gradle.api.plugins.migration.model.outcome.internal.archive.entry.ArchiveEntryComparison;
+import org.gradle.api.specs.Spec;
+import org.gradle.util.CollectionUtils;
 
+import java.io.File;
 import java.util.SortedSet;
 
 public class GeneratedArchiveBuildOutcomeComparisonResult extends BuildOutcomeComparisonResultSupport<GeneratedArchiveBuildOutcome> {
@@ -33,5 +37,28 @@ public class GeneratedArchiveBuildOutcomeComparisonResult extends BuildOutcomeCo
 
     public SortedSet<ArchiveEntryComparison> getEntryComparisons() {
         return entryComparisons;
+    }
+
+    public ComparisonResultType getComparisonResultType() {
+        File fromFile = getCompared().getFrom().getArchiveFile();
+        File toFile = getCompared().getTo().getArchiveFile();
+
+        if (fromFile.exists() && toFile.exists()) {
+            if (CollectionUtils.every(getEntryComparisons(), new Spec<ArchiveEntryComparison>() {
+                public boolean isSatisfiedBy(ArchiveEntryComparison element) {
+                    return element.getComparisonResultType() == ComparisonResultType.EQUAL;
+                }
+            })) {
+                return ComparisonResultType.EQUAL;
+            } else {
+                return ComparisonResultType.UNEQUAL;
+            }
+        } else if (!fromFile.exists() && !toFile.exists()) {
+            return ComparisonResultType.NON_EXISTENT;
+        } else if (!toFile.exists()) {
+            return ComparisonResultType.FROM_ONLY;
+        } else {
+            return ComparisonResultType.TO_ONLY;
+        }
     }
 }

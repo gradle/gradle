@@ -20,47 +20,59 @@ import org.gradle.api.Transformer
 import org.gradle.api.plugins.migration.model.outcome.internal.DefaultBuildOutcomeAssociation
 import org.gradle.api.plugins.migration.model.outcome.internal.archive.entry.ArchiveEntry
 import org.gradle.api.plugins.migration.model.outcome.internal.archive.entry.ArchiveEntryComparison
+import org.gradle.util.TemporaryFolder
+import org.junit.Rule
 import spock.lang.Specification
 
 import static org.gradle.api.plugins.migration.model.compare.internal.ComparisonResultType.*
 
 class GeneratedArchiveBuildOutcomeComparatorTest extends Specification {
 
+    @Rule TemporaryFolder dir = new TemporaryFolder()
+
     def transformer = Mock(Transformer)
     def comparator = new GeneratedArchiveBuildOutcomeComparator(transformer)
-    def from = new GeneratedArchiveBuildOutcome("from", "from", new File("from"))
-    def to = new GeneratedArchiveBuildOutcome("to", "to", new File("to"))
 
-    def association = new DefaultBuildOutcomeAssociation(from, to, GeneratedArchiveBuildOutcome)
+    def existingFrom = outcome("from")
+    def existingTo = outcome("to")
+
+    protected DefaultBuildOutcomeAssociation associate(from, to) {
+        new DefaultBuildOutcomeAssociation(from, to, GeneratedArchiveBuildOutcome)
+    }
 
     ArchiveEntry entry(Map attrs) {
         new ArchiveEntry(attrs)
     }
 
-    def "compare"() {
+    void mockEntries(File archive, ArchiveEntry... entries) {
+        interaction {
+            _ * transformer.transform(archive) >>> [entries as Set]
+        }
+    }
+
+    def "compare entries"() {
         when:
-        1 * transformer.transform(from.archiveFile) >>> [[
+        mockEntries(existingFrom.archiveFile,
                 entry(path: "f1"),
                 entry(path: "d1/"),
                 entry(path: "d1/f1", size: 10), // diff
                 entry(path: "d1/f2"), // only in from
                 entry(path: "d2/"), // only in from
                 entry(path: "f2") // only in from
-        ] as Set]
+        )
 
         and:
-        1 * transformer.transform(to.archiveFile) >>> [[
+        mockEntries(existingTo.archiveFile,
                 entry(path: "f1"),
                 entry(path: "d1/"),
                 entry(path: "d1/f1", size: 20),
                 entry(path: "d1/f3"), // only in to
                 entry(path: "d3/"), // only in to
                 entry(path: "f3") // only in to
-        ] as Set]
-
+        )
 
         then:
-        def result = comparator.compare(association)
+        def result = compare(existingFrom, existingTo)
         result.entryComparisons*.path == ["d1/", "d1/f1", "d1/f2", "d1/f3", "d2/", "d3/", "f1", "f2", "f3"]
         Map<String, ArchiveEntryComparison> indexed = result.entryComparisons.collectEntries { [it.path, it] }
 
@@ -78,4 +90,29 @@ class GeneratedArchiveBuildOutcomeComparatorTest extends Specification {
     }
 
 
+    def "comparison result types"() {
+        given:
+        def unequal = outcome("unequal")
+        def notExistingFrom = outcome("no-from", dir.file("no-from"))
+        def notExistingTo = outcome("no-to", dir.file("no-to"))
+
+        mockEntries(existingFrom.archiveFile, entry(path: "f1"))
+        mockEntries(existingTo.archiveFile, entry(path: "f1"))
+        mockEntries(unequal.archiveFile, entry(path: "f1", size: 20))
+
+        expect:
+        compare(existingFrom, existingTo).comparisonResultType == EQUAL
+        compare(notExistingFrom, existingTo).comparisonResultType == TO_ONLY
+        compare(existingFrom, notExistingTo).comparisonResultType == FROM_ONLY
+        compare(existingFrom, unequal).comparisonResultType == UNEQUAL
+        compare(notExistingFrom, notExistingTo).comparisonResultType == NON_EXISTENT
+    }
+
+    protected GeneratedArchiveBuildOutcomeComparisonResult compare(from, to) {
+        comparator.compare(associate(from, to))
+    }
+
+    GeneratedArchiveBuildOutcome outcome(String name, File file = dir.createFile(name)) {
+        new GeneratedArchiveBuildOutcome(name, name, file)
+    }
 }
