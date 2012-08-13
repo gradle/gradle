@@ -21,6 +21,8 @@ import org.gradle.api.plugins.migration.model.outcome.BuildOutcomeAssociation;
 import org.gradle.api.plugins.migration.model.compare.BuildOutcomeComparator;
 import org.gradle.api.plugins.migration.model.outcome.internal.archive.entry.ArchiveEntry;
 import org.gradle.api.plugins.migration.model.outcome.internal.archive.entry.ArchiveEntryComparison;
+import org.gradle.api.plugins.migration.model.outcome.internal.archive.entry.FileToArchiveEntrySetTransformer;
+import org.gradle.api.plugins.migration.model.outcome.internal.archive.entry.ZipEntryToArchiveEntryTransformer;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
@@ -30,7 +32,11 @@ public class GeneratedArchiveBuildOutcomeComparator implements BuildOutcomeCompa
 
     private final Transformer<Set<ArchiveEntry>, File> archiveToEntriesTransformer;
 
-    public GeneratedArchiveBuildOutcomeComparator(Transformer<Set<ArchiveEntry>, File> archiveToEntriesTransformer) {
+    public GeneratedArchiveBuildOutcomeComparator() {
+        this(new FileToArchiveEntrySetTransformer(new ZipEntryToArchiveEntryTransformer()));
+    }
+
+    GeneratedArchiveBuildOutcomeComparator(Transformer<Set<ArchiveEntry>, File> archiveToEntriesTransformer) {
         this.archiveToEntriesTransformer = archiveToEntriesTransformer;
     }
 
