@@ -29,6 +29,4 @@ public interface ResolvedConfigurationListener {
 
     void resolvedConfiguration(ResolvedConfigurationIdentifier id, List<DefaultResolvedDependencyResult> dependencies);
 
-    void completed();
-
 }

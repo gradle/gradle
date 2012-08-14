@@ -17,14 +17,15 @@ package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencyResolutionListener;
-import org.gradle.api.internal.dependencygraph.api.DependencyGraphListener;
+import org.gradle.api.internal.dependencygraph.api.DependencyGraph;
 
 public interface ConfigurationInternal extends Configuration, DependencyMetaDataProvider {
     DependencyResolutionListener getDependencyResolutionBroadcast();
 
     ResolutionStrategyInternal getResolutionStrategy();
 
-    void setDependencyGraphListener(DependencyGraphListener dependencyGraphListener);
+    DependencyGraph getDependencyGraph();
 
-    DependencyGraphListener getDependencyGraphListener();
+    void setDependencyGraph(DependencyGraph dependencyGraph);
+
 }
