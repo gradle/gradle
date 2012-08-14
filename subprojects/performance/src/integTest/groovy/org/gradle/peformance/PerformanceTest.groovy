@@ -16,8 +16,7 @@
 
 package org.gradle.peformance
 
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.ReleasedVersions
+import org.gradle.peformance.fixture.MemoryInfoCollector
 import org.gradle.peformance.fixture.PerformanceTestRunner
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -26,9 +25,6 @@ import spock.lang.Unroll
  * by Szczepan Faber, created at: 2/9/12
  */
 class PerformanceTest extends Specification {
-
-    def current = new GradleDistribution()
-    def previous = new ReleasedVersions(current).last
 
     @Unroll("Project '#testProject' ran #runs times. Current release is not slower than the previous one.")
     def "speed"() {
@@ -43,7 +39,7 @@ class PerformanceTest extends Specification {
     }
 
     @Unroll("Project '#testProject' with heap size: #heapSize. Current release does not require more memory than the previous one.")
-    def "memory"() {
+    def "memoryCap"() {
         expect:
         def result = new PerformanceTestRunner(testProject: testProject, runs: 1, gradleOpts: [heapSize]).run()
         result.assertEveryBuildSucceeds()
@@ -52,5 +48,36 @@ class PerformanceTest extends Specification {
         testProject | heapSize
         "small"     | '-Xmx19m' //fails with 16m
         "multi"     | '-Xmx66m' //fails with 54m on my box, with 60m on ci
+    }
+
+    @Unroll("Project '#testProject' max memory regression: '#maxRegression'. Current release does not require more memory than the previous one.")
+    def "memory"() {
+        expect:
+        def result = new PerformanceTestRunner(testProject: testProject,
+                runs: 3,
+                dataCollector: new MemoryInfoCollector(outputFileName: "build/totalMemoryUsed.txt"),
+                tasksToRun: ['clean', 'build', 'totalMemoryUsed'],
+                gradleOpts: ['-Xms5m']).run()
+        result.assertMemoryUsed(maxRegression)
+
+        where:
+        testProject       | maxRegression
+        "small"           | 0.01
+        "multi"           | 0.01
+    }
+
+    @Unroll("Project '#testProject'. The dependency report task does not consume more memory.")
+    def "dependencyReport"() {
+        expect:
+        def result = new PerformanceTestRunner(testProject: testProject, runs: runs,
+                gradleOpts:  ["-Xms5m", "-Xmx512m"],
+                dataCollector: new MemoryInfoCollector(outputFileName: "build/totalMemoryUsed.txt"),
+                tasksToRun: ['clean', task, 'totalMemoryUsed']).run()
+        result.assertMemoryUsed(maxRegression)
+
+        where:
+        testProject       | task               | runs | maxRegression
+        "lotDependencies" | 'dependencyReport' | 3    | 0.05
+        //TODO SF we should be able to catch up here once we stop using the old model
     }
 }

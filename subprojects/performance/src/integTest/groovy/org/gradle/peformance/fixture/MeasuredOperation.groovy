@@ -25,9 +25,14 @@ public class MeasuredOperation {
     long executionTime
     Exception exception
     String prettyTime
+    long totalMemoryUsed
     
     String toString() {
-        prettyTime
+        (totalMemoryUsed == 0)? prettyTime : prettyTime + ", " + getPrettyBytes()
+    }
+
+    String getPrettyBytes() {
+        humanReadableByteCount(totalMemoryUsed)
     }
 
     static MeasuredOperation measure(Closure operation) {
@@ -35,7 +40,7 @@ public class MeasuredOperation {
         def clock = new Clock()
         clock.reset()
         try {
-            operation()
+            operation(out)
         } catch (Exception e) {
             out.exception = e
         }
@@ -43,5 +48,16 @@ public class MeasuredOperation {
         out.prettyTime = clock.time
         out.executionTime = clock.timeInMs
         return out
+    }
+
+    //stolen from the web, TODO SF, replace with commons or something
+    static String humanReadableByteCount(long bytes, boolean si = true) {
+        int unit = si ? 1000 : 1024;
+        if (bytes < unit) {
+            return bytes + " B";
+        }
+        int exp = (int) (Math.log(bytes) / Math.log(unit));
+        String pre = (si ? "kMGTPE" : "KMGTPE").charAt(exp-1)
+        return String.format("%.1f %sB", bytes / Math.pow(unit, exp), pre);
     }
 }

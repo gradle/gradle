@@ -53,4 +53,32 @@ dependencies {
 }
 <% } %>
 
+task dependencyReport(type: DependencyReportTask) {
+    outputFile = new File(buildDir, "dependencies.txt")
+}
+
 <% } %>
+
+if (parent == null) {
+    task totalMemoryUsed
+}
+
+gradle.taskGraph.whenReady {
+    if (it.hasTask(":totalMemoryUsed")) {
+        def memoryTrend = [0]
+
+        project.allprojects {
+            tasks.all {
+                doLast {
+                    memoryTrend << Runtime.getRuntime().totalMemory()
+                }
+            }
+        }
+
+        rootProject.totalMemoryUsed.doLast {
+            buildDir.mkdirs()
+            new File(buildDir, "totalMemoryUsed.txt").text = memoryTrend.max()
+        }
+    }
+}
+

@@ -31,6 +31,12 @@ public class PerformanceTestRunner {
     int warmUpRuns
     int accuracyMs
     List<String> gradleOpts
+    List<String> tasksToRun = ['clean', 'build']
+    DataCollector dataCollector = new DataCollector() {
+        void collect(File testProjectDir, MeasuredOperation operation) {
+            //no op
+        }
+    }
 
     def results
 
@@ -50,21 +56,23 @@ public class PerformanceTestRunner {
     }
 
     void runOnce() {
-        def previousExecuter = executer(previous, testProject)
-        def previousResult = MeasuredOperation.measure {
+        File projectDir = new TestProjectLocator().findProjectDir(testProject)
+        def previousExecuter = executer(previous, projectDir)
+        def previousResult = MeasuredOperation.measure { MeasuredOperation operation ->
             previousExecuter.run()
+            dataCollector.collect(projectDir, operation)
         }
 
-        def currentExecuter = executer(current, testProject)
-        def currentResult = MeasuredOperation.measure {
+        def currentExecuter = executer(current, projectDir)
+        def currentResult = MeasuredOperation.measure { MeasuredOperation operation ->
             currentExecuter.run()
+            dataCollector.collect(projectDir, operation)
         }
 
         results.addResult(previousResult, currentResult)
     }
 
-    GradleExecuter executer(BasicGradleDistribution dist, String testProjectName) {
-        def projectDir = new TestProjectLocator().findProjectDir(testProjectName)
+    GradleExecuter executer(BasicGradleDistribution dist, File projectDir) {
         def executer
         if (dist instanceof GradleDistribution) {
             executer = new GradleDistributionExecuter(GradleDistributionExecuter.Executer.forking, dist)
@@ -74,6 +82,6 @@ public class PerformanceTestRunner {
         if (gradleOpts) {
             executer.withGradleOpts(gradleOpts as String[])
         }
-        return executer.withArguments('-u').inDirectory(projectDir).withTasks('clean', 'build')
+        return executer.withArguments('-u').inDirectory(projectDir).withTasks(tasksToRun)
     }
 }

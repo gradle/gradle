@@ -46,12 +46,54 @@ public class PerformanceResults {
         assert previousExceptions.isEmpty() & currentExceptions.isEmpty()
     }
 
+    void assertMemoryUsed(double maxRegression) {
+        assertEveryBuildSucceeds()
+
+        List previousBytes = previous.collect { it.totalMemoryUsed }
+        List currentBytes = current.collect { it.totalMemoryUsed }
+
+        long averagePrevious = previousBytes.sum() / previous.size()
+        long averageCurrent  = currentBytes.sum() / current.size()
+
+        def difference = []
+        for(int i = 0; i<previous.size(); i++) {
+            int percentage = percent(previousBytes[i], currentBytes[i])
+            difference << "$percentage%"
+        }
+
+        long previousMax = previousBytes.max()
+        long currentMin = currentBytes.min()
+        long minDifference = percent(previousMax, currentMin)
+
+        println ("\n---------------\nBuild stats. $displayName:\n"
+                + " -previous    : $previous\n"
+                + " -current     : $current\n"
+                + " -diff(%)     : $difference\n"
+                + " -min diff(%) : $minDifference%\n"
+                + "---------------\n")
+
+        assert (currentMin - (maxRegression * currentMin)) <= previousMax : """
+Looks like the current gradle requires more memory than the latest release.
+  Previous release stats: ${previous}
+  Current gradle stats:   ${current}
+  Difference in memory consumption: ${difference}
+  Currently configured max regression: $maxRegression
+"""
+    }
+
+    private double percent(long x, long y) {
+        if (y == 0) {
+            return 0
+        }
+        100 * (1d - x / y)
+    }
+
     void assertCurrentReleaseIsNotSlower() {
         assertEveryBuildSucceeds()
         long averagePrevious = previous.collect { it.executionTime }.sum() / previous.size()
         long averageCurrent  = current.collect { it.executionTime }.sum() / current.size()
 
-        LOGGER.info("\n---------------\nBuild duration stats. $displayName:\n"
+        println ("\n---------------\nBuild stats. $displayName:\n"
             + " -previous: $previous\n"
             + " -current : $current\n---------------\n")
 
