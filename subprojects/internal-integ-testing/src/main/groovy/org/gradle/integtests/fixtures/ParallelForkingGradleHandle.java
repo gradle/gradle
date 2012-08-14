@@ -57,7 +57,7 @@ public class ParallelForkingGradleHandle extends ForkingGradleHandle {
         @Override
         public String getOutput() {
             String output = super.getOutput();
-            if (output.startsWith((PARALLEL_EXECUTION_WARNING))) {
+            if (output.startsWith(PARALLEL_EXECUTION_WARNING)) {
                 return output.substring(PARALLEL_EXECUTION_WARNING.length());
             }
             return output;
