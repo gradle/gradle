@@ -20,24 +20,37 @@ import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
 
-// TODO:DAZ Thread-safety for parallel execution
+// TODO:DAZ Think about a better way to do thread-safety here, maybe
 public class DependencyResolutionLogger implements DependencyResolutionListener {
     private final ProgressLoggerFactory loggerFactory;
-    private ProgressLogger logger;
+    private final ThreadLocal<ProgressLogger> progressLogger = new ThreadLocal<ProgressLogger>();
 
     public DependencyResolutionLogger(ProgressLoggerFactory loggerFactory) {
         this.loggerFactory = loggerFactory;
     }
 
     public void beforeResolve(ResolvableDependencies dependencies) {
-        logger = loggerFactory.newOperation(DependencyResolutionLogger.class);
+        checkLogger(false);
+        ProgressLogger logger = loggerFactory.newOperation(DependencyResolutionLogger.class);
         logger.setDescription(String.format("Resolve %s", dependencies));
         logger.setShortDescription(String.format("Resolving %s", dependencies));
         logger.started();
+        progressLogger.set(logger);
     }
 
     public void afterResolve(ResolvableDependencies dependencies) {
-        logger.completed();
-        logger = null;
+        checkLogger(true);
+        progressLogger.get().completed();
+        progressLogger.remove();
+    }
+
+    private void checkLogger(boolean shouldExist) {
+        ProgressLogger logger = progressLogger.get();
+        if (shouldExist && logger == null) {
+            throw new IllegalStateException("Logging operation not started");
+        }
+        if (!shouldExist && logger != null) {
+            throw new IllegalStateException("Logging operation already in progress");
+        }
     }
 }
