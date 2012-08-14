@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
 
+// TODO:DAZ Thread-safety for parallel execution
 public class DependencyResolutionLogger implements DependencyResolutionListener {
     private final ProgressLoggerFactory loggerFactory;
     private ProgressLogger logger;
