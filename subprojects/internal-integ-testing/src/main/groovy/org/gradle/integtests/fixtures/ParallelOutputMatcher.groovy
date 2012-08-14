@@ -27,7 +27,7 @@ import org.gradle.internal.SystemProperties
 class ParallelOutputMatcher extends SequentialOutputMatcher {
     private static final String NL = SystemProperties.lineSeparator
 
-    protected void assertOutputLinesMatch(List<String> expectedLines, List<String> actualLines, boolean ignoreExtraLines) {
+    protected void assertOutputLinesMatch(List<String> expectedLines, List<String> actualLines, boolean ignoreExtraLines, String actual) {
         List<String> unmatchedLines = new ArrayList<String>(actualLines)
         expectedLines.removeAll('')
         unmatchedLines.removeAll('')
@@ -39,12 +39,13 @@ class ParallelOutputMatcher extends SequentialOutputMatcher {
             if (matchedLine) {
                 unmatchedLines.remove(matchedLine)
             } else {
-                Assert.fail("Line missing from output.${NL}${expectedLine}${NL}---")
+                Assert.fail("Line missing from output.${NL}${expectedLine}${NL}---${NL}Actual output:${NL}$actual${NL}---")
             }
         }
 
         if (!(ignoreExtraLines || unmatchedLines.empty)) {
-            Assert.fail("Extra lines in output.${NL}" + unmatchedLines.join('\n'))
+            def unmatched = unmatchedLines.join(NL)
+            Assert.fail("Extra lines in output.${NL}${unmatched}${NL}---${NL}Actual output:${NL}$actual${NL}---")
         }
     }
 }

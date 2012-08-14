@@ -30,10 +30,10 @@ class SequentialOutputMatcher {
     public void assertOutputMatches(String expected, String actual, boolean ignoreExtraLines) {
         List actualLines = normaliseOutput(actual.readLines())
         List expectedLines = expected.readLines()
-        assertOutputLinesMatch(expectedLines, actualLines, ignoreExtraLines)
+        assertOutputLinesMatch(expectedLines, actualLines, ignoreExtraLines, actual)
     }
 
-    protected void assertOutputLinesMatch(List<String> expectedLines, List<String> actualLines, boolean ignoreExtraLines) {
+    protected void assertOutputLinesMatch(List<String> expectedLines, List<String> actualLines, boolean ignoreExtraLines, String actual) {
         int pos = 0
         for (; pos < actualLines.size() && pos < expectedLines.size(); pos++) {
             String expectedLine = expectedLines[pos]
