@@ -268,6 +268,11 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
             return output;
         }
 
+        public ExecutionResult assertOutputEquals(String expectedOutput, boolean ignoreExtraLines) {
+            new SequentialOutputMatcher().assertOutputMatches(expectedOutput, getOutput(), ignoreExtraLines);
+            return this;
+        }
+
         public String getError() {
             return error;
         }

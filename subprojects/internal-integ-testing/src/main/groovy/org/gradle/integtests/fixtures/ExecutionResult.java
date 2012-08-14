@@ -23,6 +23,8 @@ public interface ExecutionResult {
 
     String getError();
 
+    ExecutionResult assertOutputEquals(String expectedOutput, boolean ignoreExtraLines);
+
     /**
      * Returns the tasks have been executed in order (includes tasks that were skipped). Note: ignores buildSrc tasks.
      */

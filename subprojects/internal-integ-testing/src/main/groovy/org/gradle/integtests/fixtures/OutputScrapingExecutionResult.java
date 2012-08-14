@@ -47,6 +47,11 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         return output;
     }
 
+    public ExecutionResult assertOutputEquals(String expectedOutput, boolean ignoreExtraLines) {
+        new SequentialOutputMatcher().assertOutputMatches(expectedOutput, getOutput(), ignoreExtraLines);
+        return this;
+    }
+
     public String getError() {
         return error;
     }
@@ -54,7 +59,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     public List<String> getExecutedTasks() {
         return grepTasks(taskPattern);
     }
-    
+
     public ExecutionResult assertTasksExecuted(String... taskPaths) {
         List<String> expectedTasks = Arrays.asList(taskPaths);
         assertThat(String.format("Expected tasks %s not found in process output:%n%s", expectedTasks, getOutput()), getExecutedTasks(), equalTo(expectedTasks));
@@ -64,7 +69,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     public Set<String> getSkippedTasks() {
         return new HashSet<String>(grepTasks(skippedTaskPattern));
     }
-    
+
     public ExecutionResult assertTasksSkipped(String... taskPaths) {
         Set<String> expectedTasks = new HashSet<String>(Arrays.asList(taskPaths));
         assertThat(String.format("Expected skipped tasks %s not found in process output:%n%s", expectedTasks, getOutput()), getSkippedTasks(), equalTo(expectedTasks));

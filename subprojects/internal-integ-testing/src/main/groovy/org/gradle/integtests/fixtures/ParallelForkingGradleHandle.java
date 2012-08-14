@@ -19,7 +19,9 @@ package org.gradle.integtests.fixtures;
 import org.gradle.internal.Factory;
 import org.gradle.process.internal.AbstractExecHandleBuilder;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -34,16 +36,19 @@ public class ParallelForkingGradleHandle extends ForkingGradleHandle {
 
     @Override
     protected ExecutionResult toExecutionResult(String output, String error) {
-        return new ParallelExecutionFailure(transformStandardOutput(output), transformErrorOutput(error));
+        return new ParallelExecutionResult(transformStandardOutput(output), transformErrorOutput(error));
     }
 
     @Override
     protected ExecutionResult toExecutionFailure(String output, String error) {
-        return new ParallelExecutionFailure(transformStandardOutput(output), transformErrorOutput(error));
+        return new ParallelExecutionResult(transformStandardOutput(output), transformErrorOutput(error));
     }
 
-    private static class ParallelExecutionFailure extends OutputScrapingExecutionFailure {
-        public ParallelExecutionFailure(String output, String error) {
+    /**
+     * Need a different output comparator for parallel execution.
+     */
+    private static class ParallelExecutionResult extends OutputScrapingExecutionFailure {
+        public ParallelExecutionResult(String output, String error) {
             super(output, error);
         }
 
@@ -61,6 +66,12 @@ public class ParallelForkingGradleHandle extends ForkingGradleHandle {
                 return output.substring(PARALLEL_EXECUTION_WARNING.length());
             }
             return output;
+        }
+
+        @Override
+        public ExecutionResult assertOutputEquals(String expectedOutput, boolean ignoreExtraLines) {
+            new ParallelOutputMatcher().assertOutputMatches(expectedOutput, getOutput(), ignoreExtraLines);
+            return this;
         }
     }
 }

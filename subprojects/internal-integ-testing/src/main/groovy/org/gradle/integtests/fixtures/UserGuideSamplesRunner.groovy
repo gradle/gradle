@@ -107,7 +107,7 @@ class UserGuideSamplesRunner extends Runner {
             if (run.outputFile) {
                 String expectedResult = replaceWithPlatformNewLines(dist.userGuideOutputDir.file(run.outputFile).text)
                 try {
-                    compareStrings(expectedResult, result.output, run.ignoreExtraLines)
+                    result.assertOutputEquals(expectedResult, run.ignoreExtraLines)
                 } catch (AssertionFailedError e) {
                     println 'Expected Result:'
                     println expectedResult
@@ -135,70 +135,10 @@ class UserGuideSamplesRunner extends Runner {
         }
     }
 
-    private def compareStrings(String expected, String actual, boolean ignoreExtraLines) {
-        List actualLines = normaliseOutput(actual.readLines())
-        List expectedLines = expected.readLines()
-        int pos = 0
-        for (; pos < actualLines.size() && pos < expectedLines.size(); pos++) {
-            String expectedLine = expectedLines[pos]
-            String actualLine = actualLines[pos]
-            boolean matches = compare(expectedLine, actualLine)
-            if (!matches) {
-                if (expectedLine.contains(actualLine)) {
-                    Assert.fail("Missing text at line ${pos + 1}.${NL}Expected: ${expectedLine}${NL}Actual: ${actualLine}${NL}---${NL}Actual output:${NL}$actual${NL}---")
-                }
-                if (actualLine.contains(expectedLine)) {
-                    Assert.fail("Extra text at line ${pos + 1}.${NL}Expected: ${expectedLine}${NL}Actual: ${actualLine}${NL}---${NL}Actual output:${NL}$actual${NL}---")
-                }
-                Assert.fail("Unexpected value at line ${pos + 1}.${NL}Expected: ${expectedLine}${NL}Actual: ${actualLine}${NL}---${NL}Actual output:${NL}$actual${NL}---")
-            }
-        }
-        if (pos == actualLines.size() && pos < expectedLines.size()) {
-            Assert.fail("Lines missing from actual result, starting at line ${pos + 1}.${NL}Expected: ${expectedLines[pos]}${NL}Actual output:${NL}$actual${NL}---")
-        }
-        if (!ignoreExtraLines && pos < actualLines.size() && pos == expectedLines.size()) {
-            Assert.fail("Extra lines in actual result, starting at line ${pos + 1}.${NL}Actual: ${actualLines[pos]}${NL}Actual output:${NL}$actual${NL}---")
-        }
-    }
-
     static String replaceWithPlatformNewLines(String text) {
         StringWriter stringWriter = new StringWriter()
         new PlatformLineWriter(stringWriter).withWriter { it.write(text) }
         stringWriter.toString()
-    }
-
-    List<String> normaliseOutput(List<String> lines) {
-        if (lines.empty) {
-            return lines;
-        }
-        List<String> result = new ArrayList<String>()
-        for (String line : lines) {
-            if (line.matches('Download .+')) {
-                // ignore
-            } else {
-                result << line
-            }
-        }
-        return result
-    }
-
-    boolean compare(String expected, String actual) {
-        if (actual == expected) {
-            return true
-        }
-
-        if (expected == 'Total time: 1 secs') {
-            return actual.matches('Total time: .+ secs')
-        }
-        
-        // Normalise default object toString() values
-        actual = actual.replaceAll('(\\w+(\\.\\w+)*)@\\p{XDigit}+', '$1@12345')
-        // Normalise $samplesDir
-        actual = actual.replaceAll(java.util.regex.Pattern.quote(dist.samplesDir.absolutePath), '/home/user/gradle/samples')
-        // Normalise file separators
-        actual = actual.replaceAll(java.util.regex.Pattern.quote(File.separator), '/')
-
-        return actual == expected
     }
 
     static Collection<SampleRun> getScriptsForSamples(File userguideInfoDir) {
