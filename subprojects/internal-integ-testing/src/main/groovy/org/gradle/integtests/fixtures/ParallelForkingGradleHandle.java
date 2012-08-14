@@ -22,7 +22,6 @@ import org.gradle.process.internal.AbstractExecHandleBuilder;
 import java.util.*;
 
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertThat;
 
 public class ParallelForkingGradleHandle extends ForkingGradleHandle {
