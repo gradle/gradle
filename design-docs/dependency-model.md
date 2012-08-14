@@ -374,12 +374,18 @@ test fixtures have an API and an implementation?
 
 * Is-a JVM component
 * Packaged as a .apk artefact
+* Bundles Java application and zero or more native jni libraries
 * Common variants
     * Debug vs release
+    * jvm bytecode or dalvik bytecode. This affects dependency resolution, in that when you are compiling, you need to use the jvm bytecode artifacts,
+      but when packaging, you should prefer to use dalvik bytecode artifacts (to avoid converting them again). You also want to run a dependency
+      through dex once, and then reuse that artifact for subsequent packaging.
 
 ## Android library
 
-* Can only be packaged as source?
+* Have an API jar, which is a compile-time usage, and a classes jar, which is a runtime usage.
+* Provide a bunch of resources and native JNI libraries.
+* Packaged as a ZIP.
 
 ## iPhone application
 

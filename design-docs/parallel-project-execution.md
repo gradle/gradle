@@ -239,4 +239,4 @@ Each project build will be executed in a different thread in the same build proc
 - Parallel execution of tasks within a single project
 - Allowing decoupled projects to switch between downloading binary artifacts and rebuilding artifacts from source for dependencies
 - Providing features that enable projects to be more easily decoupled at configuration and execution time
-- Configuration of projects in parallel
+- Configuration of projects in parallel. See [project-configuration-model](project-configuration-model.md)

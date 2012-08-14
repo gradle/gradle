@@ -139,6 +139,10 @@ To generate the binaries:
 * For linux + intel CPU, run with gcc with -m32 or -m64.
 * For mac, run gcc with -arch i386, -arch x86_64, -arch ppc, -arch ppc64. Can include multiple times to generate a universal binary.
 
+Native architecture names:
+
+* OS X: i386, x86_64, ppc, ppc64
+
 <a name="multiple-operating-systems"></a>
 # Binaries built for multiple operating systems
 
