@@ -30,6 +30,7 @@ public class DefaultResolvedModuleVersionResult implements ResolvedModuleVersion
     private final Set<DefaultResolvedDependencyResult> dependencies = new LinkedHashSet<DefaultResolvedDependencyResult>();
 
     public DefaultResolvedModuleVersionResult(ModuleVersionIdentifier id) {
+        assert id != null;
         this.id = id;
     }
 
@@ -41,7 +42,11 @@ public class DefaultResolvedModuleVersionResult implements ResolvedModuleVersion
         return dependencies;
     }
 
-    //TODO SF tests
+    public DefaultResolvedModuleVersionResult addDependency(DefaultResolvedDependencyResult dependencyResult) {
+        this.dependencies.add(dependencyResult);
+        return this;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -53,20 +58,11 @@ public class DefaultResolvedModuleVersionResult implements ResolvedModuleVersion
 
         ResolvedModuleVersionResult that = (ResolvedModuleVersionResult) o;
 
-        if (dependencies != null ? !dependencies.equals(that.getDependencies()) : that.getDependencies() != null) {
-            return false;
-        }
-        if (id != null ? !id.equals(that.getId()) : that.getId() != null) {
-            return false;
-        }
-
-        return true;
+        return id.equals(that.getId());
     }
 
     @Override
     public int hashCode() {
-        int result = id != null ? id.hashCode() : 0;
-        result = 31 * result + (dependencies != null ? dependencies.hashCode() : 0);
-        return result;
+        return id.hashCode();
     }
 }
