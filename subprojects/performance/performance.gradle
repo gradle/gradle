@@ -78,6 +78,7 @@ gradle.taskGraph.whenReady {
         project.tasks.all {
             logger.info("Skipping $it because task 'performanceTest' was not requested.")
             enabled = false
+            //TODO SF we should disable only certain tasks.
         }
     }
 }
