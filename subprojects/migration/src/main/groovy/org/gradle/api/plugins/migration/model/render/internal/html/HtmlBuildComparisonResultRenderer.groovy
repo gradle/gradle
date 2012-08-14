@@ -29,10 +29,6 @@ class HtmlBuildComparisonResultRenderer implements BuildComparisonResultRenderer
     private final PartRenderer headerPart
     private final PartRenderer footerPart
 
-    static interface PartRenderer {
-        void render(BuildComparisonResult result, HtmlRenderContext context)
-    }
-
     private final BuildOutcomeComparisonResultRendererFactory<HtmlRenderContext> renderers
 
     HtmlBuildComparisonResultRenderer(
