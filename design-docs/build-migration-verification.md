@@ -256,6 +256,16 @@ It may be sufficient to just expose the underlying tasks.
       compare instanceof CompareBuildOutcomes
     }
 
+##### Upgrading from pre 1.2 Gradle versions
+
+Gradle 1.2 will be the first version of Gradle that as this comparison functionality. As such, special accommodations need to be made to help people upgrading from earlier versions.
+
+The issue is that to generate the outcomes model, a tooling API model is needed that will not be available in older Gradle versions. In this scenario, instead of
+generating the outcomes we can infer them from the other side of the comparison (as we will do for Ant and Maven initially). This implies that at least one side
+of the comparison must be 1.2 or higher.
+
+There's an implementation difficulty in this in that `GenerateGradleBuildOutcomes` will need extra configuration in this mode (namely, the set of outcomes to duplicate).
+
 #### Gradle Upgrade *plugin*
 
 There will be a plugin tailored to running Gradle upgrade comparisons, named `verify-gradle-upgrade`.
@@ -271,6 +281,77 @@ This object would also likely expose the reporting options from the comparison t
     verifyGradleUpgrade.reporting {
       html.destination = file("blah.html")
     }
+
+The actual comparison task (that the user invokes) that this plugin adds would be called `verifyUpgrade`.
+
+#### Outcomes inference *task*
+
+There will be a task (`GenerateInferredBuildOutcomes` *implements* `GenerateGradleBuildOutcomes`) that executes a process and builds an outcomes model by inferring it 
+from another model.
+
+This task will accept as configuration:
+
+* A “base” directory
+* A build outcomes model (to infer from)
+* An exec spec (or, the task exposes an exec spec for configuration)
+
+In this case, the system that we are generating outcomes for is opaque in terms of modelling the outcomes. After executing the process, the set of outcomes is inferred based on the input outcomes model. That is, a new outcome is generated for each outcome in the input outcomes model adjusted to be related to *this* build (e.g. adjusting relative paths to the given base dir).
+
+#### Gradle Migration Comparison *domain object* 
+
+Similar to `GradleBuildComparison`, there will be a domain object (named `GradleMigrationComparison`) that performs a similar function except that the *to*
+side is based around a `GenerateInferredBuildOutcomes` task.
+
+#### Gradle migration *plugin*
+
+There will be a plugin tailored to running migration comparisons, named `verify-gradle-migration`. This plugin is tailored to configuring a comparison between a 
+non-Gradle *from* system and a Gradle build on the *to* side. This plugin will (at least initially) be what users migrating from Ant or Maven will use.
+
+The plugin will add an instance of `GradleMigrationComparison` as a language extension.
+
+e.g.
+
+    apply plugin: 'verify-gradle-migration'
+    
+    verifyGradleMigration {
+      from.exec {
+        executable "ant"
+        args "build"
+      }
+    }
+
+The actual comparison task (that the user will invoke) would be named `verifyMigration`. 
+
+##### From inference
+
+It may be possible to infer sensible defaults for the from build exec. For example, if a `build.xml` is found we can preconfigure for Ant and similarly for a `pom.xml`
+file and Maven.
+
+As we will be inferring the “from” model from the Gradle model (“to” side), this implies that the “to” side is as at least Gradle 1.2 (as earlier versions) do
+not have the necessary Tooling API models.
+
+#### “Manual mode” & Extensibility
+
+The entire comparison process (including build outcomes modelling etc.) is comprised of many types of objects. There are 3 general categories:
+
+* Objects used to build a comparison specification
+* Objects used to compare two builds and model the result of the comparison
+* Objects to render the results into human friendly formats
+
+The plugins and tasks listed above assemble these lower level pieces into meaningful arrangements. In the initial implementation, providing extensibility is not a design goal. For example, using one of the plugins above effective hard codes the types of outcomes that can be compared and rendered. 
+
+The underlying lower level pieces will facilitate this kind of extensibility. The plugins and language extensions will not provide “hooks” into these extensibility aspects. For example, it will not be possible to “register” a new kind of outcome to be compared when using the plugins. This may change over time.
+
+It will be possible to use the functionality in a kind of manual mode. That is, you get no out of the box wiring from a Gradle plugin but can assemble and extend
+the lower level pieces to suit your needs. Over time we may add sugary builders or something similar as language extensions to make this kind of manual mode easier but this is not an immediate priority.
+
+---
+
+**What will be private?**
+
+This assemble-it-yourself fallback may affect which classes are public. If we want to allow people to build their own comparison toolkit we may need to publicise more than what we would otherwise. Another option is to keep such classes internal and have users use the internal classes if they need the functionality, but that seems a cop out.
+
+Yet another option would be to be extremely careful about exposing any *classes* to the public API, but expose many *interfaces*. This would also imply that we may need to expose some kind of service registry for getting at our implementations via interface.
 
 ## Sources Inference
 
