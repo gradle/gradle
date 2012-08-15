@@ -34,6 +34,10 @@ daemonIntegTest {
     exclude "**/DistributionIntegrationTest.class" //fragile - heavily depends on external repos and does not contribute too much to the daemon suite anyway
 }
 
+parallelIntegTest {
+    systemProperty "org.gradle.userguide.samples.exclude", "multiProjectBuildSrc,multiprojectMessagesHack"
+}
+
 eclipse {
 	classpath {
 		file.whenMerged { classpath ->

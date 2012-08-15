@@ -36,15 +36,17 @@ class UserGuideSamplesRunner extends Runner {
 
     Class<?> testClass
     Description description
-    Map<Description, SampleRun> samples;
+    Map<Description, SampleRun> samples
     GradleDistribution dist = new GradleDistribution()
     GradleDistributionExecuter executer = new GradleDistributionExecuter(dist)
-    Pattern dirFilter = null 
+    Pattern dirFilter = null
+    List excludes
 
     def UserGuideSamplesRunner(Class<?> testClass) {
         this.testClass = testClass
         this.description = Description.createSuiteDescription(testClass)
         this.dirFilter = getDirFilterPattern()
+        this.excludes = getExcludes()
         samples = new LinkedHashMap()
         for (sample in getScriptsForSamples(dist.userGuideInfoDir)) {
             if (shouldInclude(sample)) {
@@ -63,11 +65,23 @@ class UserGuideSamplesRunner extends Runner {
         filter ? Pattern.compile(filter) : null
     }
 
+    def getExcludes() {
+        List excludes = []
+        String excludesString = System.properties["org.gradle.userguide.samples.exclude"] ?: "";
+        excludesString.split(',').each {
+            excludes.add it
+        }
+        return excludes
+    }
+
     Description getDescription() {
         return description
     }
 
     private boolean shouldInclude(SampleRun run) {
+        if (excludes.contains(run.id)) {
+            return false
+        }
         dirFilter ? run.subDir ==~ dirFilter : true
     }
 
