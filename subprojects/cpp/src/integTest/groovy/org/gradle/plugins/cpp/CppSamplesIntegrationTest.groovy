@@ -46,18 +46,23 @@ class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
     // Does not work on windows, due to GRADLE-2118
     @Requires(TestPrecondition.NOT_WINDOWS)
     def "dependencies"() {
-        given:
-        sample dependencies
-        
         when:
-        run ":lib:uploadArchives", ":exe:uploadArchives"
+        sample dependencies
+        run ":lib:uploadArchives"
+
+        then:
+        sharedLibrary("cpp/dependencies/lib/build/binaries/lib").isFile()
+        file("cpp/dependencies/lib/build/repo/some-org/some-lib/1.0/some-lib-1.0-so.so").isFile()
+
+        when:
+        sample dependencies
+        run ":exe:uploadArchives"
         
         then:
         ":exe:mainExtractHeaders" in nonSkippedTasks
         ":exe:compileMain" in nonSkippedTasks
         
         and:
-        sharedLibrary("cpp/dependencies/lib/build/binaries/lib").isFile()
         executable("cpp/dependencies/exe/build/binaries/exe").isFile()
         file("cpp/dependencies/exe/build/repo/dependencies/exe/1.0/exe-1.0.exe").exists()
     }
