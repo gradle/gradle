@@ -106,6 +106,7 @@ class UserGuideSamplesRunner extends Runner {
             ExecutionResult result = run.expectFailure ? executer.runWithFailure() : executer.run()
             if (run.outputFile) {
                 String expectedResult = replaceWithPlatformNewLines(dist.userGuideOutputDir.file(run.outputFile).text)
+                expectedResult = replaceWithRealSamplesDir(expectedResult)
                 try {
                     result.assertOutputEquals(expectedResult, run.ignoreExtraLines)
                 } catch (AssertionFailedError e) {
@@ -135,10 +136,14 @@ class UserGuideSamplesRunner extends Runner {
         }
     }
 
-    static String replaceWithPlatformNewLines(String text) {
+    private String replaceWithPlatformNewLines(String text) {
         StringWriter stringWriter = new StringWriter()
         new PlatformLineWriter(stringWriter).withWriter { it.write(text) }
         stringWriter.toString()
+    }
+
+    private String replaceWithRealSamplesDir(String text) {
+        text.replaceAll(Pattern.quote('/home/user/gradle/samples'), dist.samplesDir.absolutePath)
     }
 
     static Collection<SampleRun> getScriptsForSamples(File userguideInfoDir) {

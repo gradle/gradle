@@ -83,8 +83,6 @@ class SequentialOutputMatcher {
 
         // Normalise default object toString() values
         actual = actual.replaceAll('(\\w+(\\.\\w+)*)@\\p{XDigit}+', '$1@12345')
-        // Normalise $samplesDir
-//        actual = actual.replaceAll(java.util.regex.Pattern.quote(dist.samplesDir.absolutePath), '/home/user/gradle/samples')
         // Normalise file separators
         actual = actual.replaceAll(java.util.regex.Pattern.quote(File.separator), '/')
 
