@@ -18,7 +18,9 @@ package org.gradle.integtests.samples
 import org.junit.*
 
 import org.gradle.integtests.fixtures.*
+import spock.lang.IgnoreIf
 
+@IgnoreIf({GradleDistributionExecuter.systemPropertyExecuter.executeParallel}) // Need to fix thread-safety of compiler daemon
 class SamplesMultiProjectBuildSrcIntegrationTest extends AbstractIntegrationSpec {
 
   @Rule public final Sample sample = new Sample()

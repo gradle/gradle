@@ -20,6 +20,8 @@ import org.junit.Rule
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.IgnoreIf
+import org.gradle.integtests.fixtures.GradleDistributionExecuter
 
 class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
     @Rule public final Sample exewithlib = new Sample('cpp/exewithlib')
@@ -44,6 +46,7 @@ class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
 
     // Does not work on windows, due to GRADLE-2118
     @Requires(TestPrecondition.NOT_WINDOWS)
+    @IgnoreIf({GradleDistributionExecuter.systemPropertyExecuter.executeParallel})
     def "dependencies"() {
         given:
         sample dependencies
