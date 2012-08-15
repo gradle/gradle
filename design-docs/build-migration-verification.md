@@ -167,7 +167,7 @@ Builds that are known to be equivalent can be compared. Builds that are known to
 
 # Implementation approach
 
-## User Interface
+## User Interaction
 
 The functionality is packaged as one or more plugins. The plugin, amongst other things, adds a task (e.g. `compareBuilds`) that invokes the comparison process.
 
@@ -176,13 +176,101 @@ There will need to be other tasks and model elements that feed into this compari
 ### Modification free comparison
 
 It is desirable to support a mode of operation where the user does not need to modify their build to use this functionality. This could be achieved if Gradle can 
-infer that a plugin should be applied to fullfil what it was asked to do and if the Gradle project model is suitably externally configurable.
+infer that a plugin should be applied to fullfil what it was asked to do and if the Gradle project model is sufficiently externally configurable.
 
 For example, the user could test a Gradle upgrade by executing:
 
     ./gradlew compareBuild toVersion=1.3
 
 This would implicitly apply the plugin that provides the comparison functionality and compare with Gradle 1.3.
+
+### Plugins/Tasks/DSL
+
+#### Comparison *task*
+
+At the heart of this process, will be a task (named `CompareBuildOutcomes`) implementation that does the following:
+
+* Accepts a specification of the comparison (the outcomes from both sides of the comparison, and how they are associated)
+* Accepts a build outcomes comparator (that performs the comparison process and returns a result object)
+* Renders the result to one or more formats (using the `Reporting` types)
+
+This task will be very light as all it's doing is joining the elements together and invoking the comparison then rendering. It's unlikely that users will interact directly with this task other than to configure the reporting.
+
+#### GenerateBuildOutcomes *task* *interface*
+
+A new `Task` subinterface (named `GenerateBuildOutcomes`) will be introduced for tasks that perform some work to generate and fulfill build outcomes.
+
+This interface will have one additional method that provides the model of the outcomes after task execution.
+
+#### Gradle Build model *task*
+
+This task (named `GenerateGradleBuildOutcomes` *implements* `GenerateBuildOutcomes`) will be responsible for building and fulfilling the outcomes model for Gradle builds.
+
+The task accepts as configuration:
+
+* The filesystem location of the to-be-built Gradle project (defaults to current project)
+* The target Gradle version of the to-be-built Gradle project (default to version in use)
+* The invocation to use to build the outcomes (defaults to `assemble`)
+
+--- 
+
+##### Questions
+
+**What snapshots the archives?**
+
+Does this task snapshot the archives to some kind of storage location (because a subsequent execution of the project in the same place could override files that we need for comparison)? Probably not. What to do here is going to be specific to each kind of outcome. 
+
+Another option would be to have the outcome objects do any inspection at this point and transfer the file system objects into in memory representations. This would avoid the overwrite issue, but will result in unnecessary work being performed as information about the outcome may never be required.
+
+**What madness do we unleash by building over the top?**
+
+In the Gradle upgrade case, this task will be re-executing the build that is running this task… twice (once for from version, once for to version). Besides outputs being overwritten by subsequent builds, it's not clear how feasible this is given that the different Gradle versions may write differen data structures to places like the `.gradle` directory.
+
+#### Gradle Comparison *domain object*
+
+A new domain object (named `GradleBuildComparison`) will be added to serve as the specification for a Gradle to Gradle comparison. 
+
+This object will create and configure (i.e. wire together):
+
+* A `GenerateGradleBuildOutcomes` task for the 'from' version
+* A `GenerateGradleBuildOutcomes` task for the 'to' version
+* A `CompareBuildOutcomes` task
+
+This object serves as a kind of controller, integrating the pieces of the comparison toolkit necessary for a gradle to gradle comparison.
+
+The API of this object will largely be composed of subsets of the API of its constituent tasks, aiming to unify them in a meaningful way.
+
+e.g.
+
+    extensions.create("comparison", GradleBuildComparison)
+    comparison {
+      from.gradleVersion = "1.3"
+      to.gradleVersion = "1.5"
+      tasks "assemble" // configures both sides
+    }
+
+It may be sufficient to just expose the underlying tasks.
+
+    comparison {
+      from instanceof GenerateGradleBuildOutcomes
+      compare instanceof CompareBuildOutcomes
+    }
+
+#### Gradle Upgrade *plugin*
+
+There will be a plugin tailored to running Gradle upgrade comparisons, named `verify-gradle-upgrade`.
+
+The application of this plugin will add an instance of `GradleBuildComparison` as a build language extension (named `verifyGradleUpgrade`).
+
+    apply plugin: 'verify-gradle-upgrade'
+    
+    verifyGradleUpgrade.to.gradleVersion "1.4"
+
+This object would also likely expose the reporting options from the comparison task.
+
+    verifyGradleUpgrade.reporting {
+      html.destination = file("blah.html")
+    }
 
 ## Sources Inference
 
