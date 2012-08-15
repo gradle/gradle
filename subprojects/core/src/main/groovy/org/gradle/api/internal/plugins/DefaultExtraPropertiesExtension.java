@@ -53,7 +53,7 @@ public class DefaultExtraPropertiesExtension extends GroovyObjectSupport impleme
         try {
             return get(name);
         } catch (UnknownPropertyException e) {
-            throw new MissingPropertyException(e.getMessage());
+            throw new MissingPropertyException(e.getMessage(), name, null);
         }
     }
 

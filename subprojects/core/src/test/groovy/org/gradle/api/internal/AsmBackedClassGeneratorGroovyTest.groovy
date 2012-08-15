@@ -19,6 +19,7 @@ package org.gradle.api.internal
 import org.gradle.internal.reflect.DirectInstantiator
 import spock.lang.Specification
 import spock.lang.Issue
+import org.gradle.util.ConfigureUtil
 
 class AsmBackedClassGeneratorGroovyTest extends Specification {
 
@@ -33,22 +34,52 @@ class AsmBackedClassGeneratorGroovyTest extends Specification {
     def "can use dynamic object as closure delegate"() {
         given:
         def thing = create(DynamicThing)
-        def closure = {
+
+        when:
+        conf(thing) {
             m1(1,2,3)
             p1 = 1
             p1 = p1 + 1
         }
 
-        and:
-        closure.delegate = thing
-        closure.resolveStrategy = Closure.DELEGATE_FIRST
-
-        when:
-        closure()
-
         then:
         thing.methods.size() == 1
         thing.props.p1 == 2
+    }
+
+    def "unassociated missing exceptions are thrown"() {
+        given:
+        def thing1 = create(DynamicThing)
+
+        when:
+        thing1.onMethodMissing = { name, args -> [].foo() }
+        conf(thing1) { m1() }
+
+        then:
+        def e = thrown(groovy.lang.MissingMethodException)
+        e.method == "foo"
+
+        when:
+        thing1.onPropertyMissingGet = { new Object().bar }
+        conf(thing1) { abc }
+
+        then:
+        e = thrown(groovy.lang.MissingPropertyException)
+        e.property == "bar"
+
+        when:
+        thing1.onPropertyMissingSet = { name, value -> new Object().baz = true }
+        conf(thing1) { abc = true }
+
+        then:
+        e = thrown(groovy.lang.MissingPropertyException)
+        e.property == "baz"
+
+    }
+
+
+    def conf(o, c) {
+        ConfigureUtil.configure(c, o)
     }
 }
 
@@ -56,15 +87,19 @@ class DynamicThing {
     def methods = [:]
     def props = [:]
 
+    Closure onMethodMissing = { name, args -> methods[name] = args.toList() }
+    Closure onPropertyMissingGet = { name -> props[name] }
+    Closure onPropertyMissingSet = { name, value -> props[name] = value }
+
     def methodMissing(String name, args) {
-        methods[name] = args.toList()
+        onMethodMissing(name, args)
     }
 
     def propertyMissing(String name) {
-        props[name]
+        onPropertyMissingGet(name)
     }
 
     def propertyMissing(String name, value) {
-        props[name] = value
+        onPropertyMissingSet(name, value)
     }
 }
