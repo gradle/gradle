@@ -371,7 +371,7 @@ allprojects {
         module2.pomFile << '    ' // ensure it's a different length to the first one
 
         and:
-        settingsFile << "include 'lock', 'resolve'"
+        settingsFile << "include 'first', 'second'"
         buildFile << """
 def fileLocks = [:]
 subprojects {
@@ -405,8 +405,9 @@ subprojects {
     }
     retrieve.dependsOn 'lock'
 }
-project('resolve') {
-    retrieve.dependsOn ':lock:retrieve'
+project('second') {
+    lock.dependsOn ':first:lock'
+    retrieve.dependsOn ':first:retrieve'
 
     task cleanup << {
         fileLocks.each { key, value ->
@@ -438,8 +439,8 @@ project('resolve') {
         run 'cleanup'
 
         and:
-        file('lock/build/testproject-1.0-SNAPSHOT.jar').assertIsCopyOf(module.artifactFile)
-        file('resolve/build/testproject-1.0-SNAPSHOT.jar').assertIsCopyOf(module2.artifactFile)
+        file('first/build/testproject-1.0-SNAPSHOT.jar').assertIsCopyOf(module.artifactFile)
+        file('second/build/testproject-1.0-SNAPSHOT.jar').assertIsCopyOf(module2.artifactFile)
     }
 
     def "avoid redownload unchanged artifact when no checksum available"() {

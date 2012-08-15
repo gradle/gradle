@@ -91,6 +91,7 @@ project('b') {
     repositories {
         ivy { url "http://localhost:${server.port}/repo-b" }
     }
+    retrieve.dependsOn(':a:retrieve')
 }
 """
 
@@ -145,6 +146,7 @@ project('b') {
     repositories {
         ivy { url "http://localhost:${server.port}/repo-b" }
     }
+    retrieve.dependsOn(':a:retrieve')
 }
 """
 
