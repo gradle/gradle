@@ -63,11 +63,11 @@ import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.process.internal.child.WorkerProcessClassPathProvider;
 import org.gradle.profile.ProfileEventAdapter;
 import org.gradle.profile.ProfileListener;
-import org.gradle.util.*;
+import org.gradle.util.ClassLoaderFactory;
+import org.gradle.util.MultiParentClassLoader;
 
 /**
- * Contains the singleton services which are shared by all builds executed by a single {@link org.gradle.GradleLauncher}
- * invocation.
+ * Contains the singleton services which are shared by all builds executed by a single {@link org.gradle.GradleLauncher} invocation.
  */
 public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry implements ServiceRegistryFactory {
     private final StartParameter startParameter;
@@ -85,7 +85,7 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     protected TimeProvider createTimeProvider() {
         return new TrueTimeProvider();
     }
-    
+
     protected ExecutorFactory createExecutorFactory() {
         return new DefaultExecutorFactory();
     }
@@ -132,7 +132,7 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
         return new DefaultCacheRepository(startParameter.getGradleUserHomeDir(), startParameter.getProjectCacheDir(),
                 startParameter.getCacheUsage(), factory);
     }
-    
+
     protected ProjectEvaluator createProjectEvaluator() {
         return new LifecycleProjectEvaluator(
                 new BuildScriptProcessor(
@@ -149,7 +149,7 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     protected ScriptCompilerFactory createScriptCompileFactory() {
         ScriptExecutionListener scriptExecutionListener = get(ListenerManager.class).getBroadcaster(ScriptExecutionListener.class);
         EmptyScriptGenerator emptyScriptGenerator = new AsmBackedEmptyScriptGenerator();
-        CacheValidator scriptCacheInvalidator =  new CacheValidator() {
+        CacheValidator scriptCacheInvalidator = new CacheValidator() {
             public boolean isValid() {
                 return !get(StartParameter.class).isRecompileScripts();
             }
@@ -178,7 +178,7 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     protected MultiParentClassLoader createRootClassLoader() {
         return get(ClassLoaderRegistry.class).createScriptClassLoader();
     }
-    
+
     protected InitScriptHandler createInitScriptHandler() {
         return new InitScriptHandler(
                 new CompositeInitScriptFinder(
@@ -194,9 +194,11 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     protected SettingsProcessor createSettingsProcessor() {
         return new PropertiesLoadingSettingsProcessor(
                 new ScriptEvaluatingSettingsProcessor(
-                    get(ScriptPluginFactory.class),
-                    new SettingsFactory(
-                        new DefaultProjectDescriptorRegistry()),
+                        get(ScriptPluginFactory.class),
+                        new SettingsFactory(
+                                new DefaultProjectDescriptorRegistry(),
+                                get(Instantiator.class)
+                        ),
                         get(IGradlePropertiesLoader.class)),
                 get(IGradlePropertiesLoader.class));
     }
@@ -228,7 +230,7 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
                 new ProjectDependencies2TaskResolver(),
                 new ImplicitTasksConfigurer());
     }
-    
+
     protected ProfileEventAdapter createProfileEventAdapter() {
         return new ProfileEventAdapter(get(BuildRequestMetaData.class), get(TimeProvider.class), get(ListenerManager.class).getBroadcaster(ProfileListener.class));
     }

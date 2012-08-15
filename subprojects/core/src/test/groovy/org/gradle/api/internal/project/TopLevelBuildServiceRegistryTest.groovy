@@ -77,6 +77,7 @@ public class TopLevelBuildServiceRegistryTest extends Specification {
         parent.getFactory(LoggingManagerInternal) >> Mock(Factory)
         parent.get(ModuleRegistry) >> new DefaultModuleRegistry()
         parent.get(PluginModuleRegistry) >> Mock(PluginModuleRegistry)
+        parent.get(Instantiator) >> ThreadGlobalInstantiator.getOrCreate()
     }
 
     def delegatesToParentForUnknownService() {

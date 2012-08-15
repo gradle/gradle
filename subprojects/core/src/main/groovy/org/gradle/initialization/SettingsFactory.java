@@ -29,16 +29,18 @@ import java.util.Map;
  * @author Hans Dockter
  */
 public class SettingsFactory {
-    private IProjectDescriptorRegistry projectDescriptorRegistry;
+    private final IProjectDescriptorRegistry projectDescriptorRegistry;
+    private final Instantiator instantiator;
 
-    public SettingsFactory(IProjectDescriptorRegistry projectDescriptorRegistry) {
+    public SettingsFactory(IProjectDescriptorRegistry projectDescriptorRegistry, Instantiator instantiator) {
         this.projectDescriptorRegistry = projectDescriptorRegistry;
+        this.instantiator = instantiator;
     }
 
     public SettingsInternal createSettings(GradleInternal gradle, File settingsDir, ScriptSource settingsScript,
                                            Map<String, String> gradleProperties, StartParameter startParameter,
                                            URLClassLoader classloader) {
-        Instantiator instantiator = ThreadGlobalInstantiator.getOrCreate();
+
         DefaultSettings settings = instantiator.newInstance(DefaultSettings.class,
                 gradle, projectDescriptorRegistry, classloader, settingsDir, settingsScript, startParameter
         );
