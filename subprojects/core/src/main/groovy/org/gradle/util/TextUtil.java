@@ -19,6 +19,7 @@ package org.gradle.util;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.gradle.internal.SystemProperties;
 
+import java.io.File;
 import java.util.regex.Pattern;
 
 public class TextUtil {
@@ -57,6 +58,13 @@ public class TextUtil {
      */
     public static String toPlatformLineSeparators(String str) {
         return str == null ? null : convertLineSeparators(str, getPlatformLineSeparator());
+    }
+
+    /**
+     * Converts all native file separators in the specified string to '/'.
+     */
+    public static String normaliseFileSeparators(String path) {
+        return path.replaceAll(Pattern.quote(File.separator), "/");
     }
 
     /**

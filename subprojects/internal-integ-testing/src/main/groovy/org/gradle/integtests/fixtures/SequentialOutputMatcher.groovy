@@ -20,6 +20,7 @@ package org.gradle.integtests.fixtures
 
 import org.gradle.internal.SystemProperties
 import org.junit.Assert
+import org.gradle.util.TextUtil
 
 /**
  * Check that the actual output lines match the expected output lines in content and order.
@@ -84,7 +85,7 @@ class SequentialOutputMatcher {
         // Normalise default object toString() values
         actual = actual.replaceAll('(\\w+(\\.\\w+)*)@\\p{XDigit}+', '$1@12345')
         // Normalise file separators
-        actual = actual.replaceAll(java.util.regex.Pattern.quote(File.separator), '/')
+        actual = TextUtil.normaliseFileSeparators(actual)
 
         return actual == expected
     }

@@ -20,14 +20,16 @@ import com.google.common.collect.ListMultimap
 import groovy.io.PlatformLineWriter
 import junit.framework.AssertionFailedError
 import org.apache.tools.ant.taskdefs.Delete
-import org.gradle.util.AntUtil
 import org.gradle.internal.SystemProperties
+import org.gradle.util.AntUtil
 import org.junit.Assert
 import org.junit.runner.Description
 import org.junit.runner.Runner
 import org.junit.runner.notification.Failure
 import org.junit.runner.notification.RunNotifier
+
 import java.util.regex.Pattern
+import org.gradle.util.TextUtil
 
 class UserGuideSamplesRunner extends Runner {
     private static final String NL = SystemProperties.lineSeparator
@@ -143,7 +145,8 @@ class UserGuideSamplesRunner extends Runner {
     }
 
     private String replaceWithRealSamplesDir(String text) {
-        text.replaceAll(Pattern.quote('/home/user/gradle/samples'), dist.samplesDir.absolutePath)
+        def normalisedSamplesDir = TextUtil.normaliseFileSeparators(dist.samplesDir.absolutePath)
+        return text.replaceAll(Pattern.quote('/home/user/gradle/samples'), normalisedSamplesDir)
     }
 
     static Collection<SampleRun> getScriptsForSamples(File userguideInfoDir) {
