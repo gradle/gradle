@@ -80,13 +80,17 @@ class DependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
     def "renders dependencies even if the configuration was already resolved"() {
         given:
         repo.module("foo", "bar", 1.0).publish()
+        repo.module("foo", "bar", 2.0).publish()
 
         file("build.gradle") << """
             repositories {
                 maven { url "${repo.uri}" }
             }
             configurations { foo }
-            dependencies { foo 'foo:bar:1.0' }
+            dependencies {
+                foo 'foo:bar:1.0'
+                foo 'foo:bar:2.0'
+            }
 
             task resolveConf << {
                 configurations.foo.each { println it }
@@ -97,7 +101,7 @@ class DependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         run "resolveConf", "dependencies"
 
         then:
-        output.contains "\\--- foo:bar:1.0"
+        output.contains "foo:bar:1.0 -> 2.0"
     }
 
     def "renders selected versions in case of a conflict"() {

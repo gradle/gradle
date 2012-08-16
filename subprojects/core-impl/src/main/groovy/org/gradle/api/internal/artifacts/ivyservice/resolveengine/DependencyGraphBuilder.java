@@ -165,11 +165,12 @@ public class DependencyGraphBuilder {
                         return input.configurationName;
                     }
                 });
-                return new DefaultResolvedDependencyResult(new DefaultModuleVersionIdentifier(
-                        input.dependencyDescriptor.getDependencyRevisionId().getOrganisation(),
-                        input.dependencyDescriptor.getDependencyRevisionId().getName(),
-                        input.dependencyDescriptor.getDependencyRevisionId().getRevision()),
-                        toId(input.targetModuleRevision),
+                return new DefaultResolvedDependencyResult(
+                        new DefaultModuleVersionIdentifier(
+                            input.dependencyDescriptor.getDependencyRevisionId().getOrganisation(),
+                            input.dependencyDescriptor.getDependencyRevisionId().getName(),
+                            input.dependencyDescriptor.getDependencyRevisionId().getRevision()),
+                        toId(input),
                         new LinkedHashSet<String>(targetConfigurations)
                     );
             }
@@ -187,8 +188,21 @@ public class DependencyGraphBuilder {
                 node.configurationName);
     }
 
-    private ModuleVersionIdentifier toId(DefaultModuleRevisionResolveState m) {
-        return new DefaultModuleVersionIdentifier(m.id.getOrganisation(), m.id.getName(), m.getRevision());
+    private ModuleVersionIdentifier toId(DependencyEdge edge) {
+        if (edge.targetModuleRevision == null) {
+            //this situation is detected by DependencyGraphBuilderTest which uses mocks
+            //it suppose to mean that the dependency is unresolved.
+            //I've tried but I was not able to reproduce this with an integ test
+            //it might be that it is not necessary code and the unit test/code needs to be tweaked.
+            //For now I'm using the dependency descriptor get the necessary information
+            //TODO SF revist when implementing the 'unresolved' dependency story
+            ModuleRevisionId revId = edge.dependencyDescriptor.getDependencyRevisionId();
+            return new DefaultModuleVersionIdentifier(revId.getName(), revId.getOrganisation(), revId.getRevision());
+        }
+        return new DefaultModuleVersionIdentifier(
+                edge.targetModuleRevision.id.getOrganisation(),
+                edge.targetModuleRevision.id.getName(),
+                edge.targetModuleRevision.getRevision());
     }
 
     private static class FailureState {

@@ -561,7 +561,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public DependencyGraph getDependencyGraph() {
-        getResolvedConfiguration();
+        //TODO SF this will get cleaned when we move the graph to the ResolvedConfiguration
+        resolve();
         return dependencyGraph;
     }
 

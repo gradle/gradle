@@ -87,13 +87,14 @@ public class AsciiReportRenderer extends TextReportRenderer implements Dependenc
 
         DependencyGraph graph = ((ConfigurationInternal) configuration).getDependencyGraph();
 
-        RenderableDependency root = new RenderableRoot(graph.getRoot());
-
-        if (root.getChildren().isEmpty()) {
+        //TODO SF clean up this null check when moving the graph to the ResolvedDependency type
+        if (graph == null || graph.getRoot().getDependencies().isEmpty()) {
             getTextOutput().withStyle(Info).text("No dependencies");
             getTextOutput().println();
             return;
         }
+
+        RenderableDependency root = new RenderableRoot(graph.getRoot());
 
         renderChildren(root.getChildren(), new HashSet<String>());
 
