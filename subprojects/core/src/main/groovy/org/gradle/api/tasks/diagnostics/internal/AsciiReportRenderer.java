@@ -18,6 +18,7 @@ package org.gradle.api.tasks.diagnostics.internal;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.internal.dependencygraph.api.DependencyGraph;
 import org.gradle.api.tasks.diagnostics.internal.dependencies.RenderableDependency;
@@ -90,7 +91,7 @@ public class AsciiReportRenderer extends TextReportRenderer implements Dependenc
             return;
         }
 
-        renderChildren(root.getChildren(), new HashSet<String>());
+        renderChildren(root.getChildren(), new HashSet<ModuleVersionIdentifier>());
 
         resolvedConfiguration.rethrowFailure();
     }
@@ -103,7 +104,7 @@ public class AsciiReportRenderer extends TextReportRenderer implements Dependenc
         super.complete();
     }
     
-    private void render(final RenderableDependency resolvedDependency, Set<String> visitedDependencyNames, boolean lastChild) {
+    private void render(final RenderableDependency resolvedDependency, Set<ModuleVersionIdentifier> visitedDependencyNames, boolean lastChild) {
         final boolean isFirstVisitOfDependencyInConfiguration = visitedDependencyNames.add(resolvedDependency.getId());
         if (!isFirstVisitOfDependencyInConfiguration) {
             hasCyclicDependencies = true;
@@ -126,7 +127,7 @@ public class AsciiReportRenderer extends TextReportRenderer implements Dependenc
         }
     }
 
-    private void renderChildren(Set<RenderableDependency> children, Set<String> visitedDependencyNames) {
+    private void renderChildren(Set<RenderableDependency> children, Set<ModuleVersionIdentifier> visitedDependencyNames) {
         renderer.startChildren();
         List<RenderableDependency> mergedChildren = new ArrayList<RenderableDependency>(children);
         for (int i = 0; i < mergedChildren.size(); i++) {

@@ -16,13 +16,15 @@
 
 package org.gradle.api.tasks.diagnostics.internal.dependencies;
 
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+
 import java.util.Set;
 
 /**
 * by Szczepan Faber, created at: 7/27/12
 */
 public interface RenderableDependency {
-    String getId();
+    ModuleVersionIdentifier getId();
     String getName();
     String getConfiguration();
     Set<RenderableDependency> getChildren();

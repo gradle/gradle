@@ -18,6 +18,7 @@ package org.gradle.api.tasks.diagnostics.internal.dependencies;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.dependencygraph.api.ResolvedDependencyResult;
 import org.gradle.api.internal.dependencygraph.api.ResolvedModuleVersionResult;
 
@@ -35,16 +36,16 @@ public class RenderableRoot implements RenderableDependency {
         this.root = root;
     }
 
-    public String getId() {
-        return root.getId().toString();
+    public ModuleVersionIdentifier getId() {
+        return root.getId();
     }
 
     public String getName() {
-        return getId();
+        return getId().toString();
     }
 
     public String getConfiguration() {
-        return getId();
+        return getId().toString();
     }
 
     public Set<RenderableDependency> getChildren() {

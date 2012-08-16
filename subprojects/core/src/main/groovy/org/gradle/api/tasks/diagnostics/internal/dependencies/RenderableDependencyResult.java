@@ -19,6 +19,7 @@ package org.gradle.api.tasks.diagnostics.internal.dependencies;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Collections2;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.dependencygraph.api.ResolvedDependencyResult;
 
 import java.util.LinkedHashSet;
@@ -39,8 +40,8 @@ public class RenderableDependencyResult implements RenderableDependency {
         return dependency.toString();
     }
 
-    public String getId() {
-        return dependency.getSelected().getId().toString();
+    public ModuleVersionIdentifier getId() {
+        return dependency.getSelected().getId();
     }
 
     public String getConfiguration() {
