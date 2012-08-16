@@ -53,8 +53,6 @@ public interface LenientConfiguration {
     /**
      * Gets successfully resolved artifacts for dependencies that match given dependency spec.
      *
-     * TODO SF We need to pair and model the successfully and unsuccessfully resolved artifacts much better.
-     *
      * @param dependencySpec dependency spec
      * @return successfully resolved artifacts for dependencies that match given dependency spec
      */

@@ -76,10 +76,7 @@ public class AsciiReportRenderer extends TextReportRenderer implements Dependenc
         return GUtil.isTrue(configuration.getDescription()) ? " - " + configuration.getDescription() : "";
     }
 
-    public void completeConfiguration(Configuration configuration) {
-        //TODO SF - used for debugging purposes, remove later.
-        //System.out.println(((ConfigurationInternal) configuration).getDependencyGraphListener());
-    }
+    public void completeConfiguration(Configuration configuration) {}
 
     public void render(Configuration configuration) throws IOException {
         ResolvedConfiguration resolvedConfiguration = configuration.getResolvedConfiguration();
@@ -87,7 +84,6 @@ public class AsciiReportRenderer extends TextReportRenderer implements Dependenc
         DependencyGraph graph = resolvedConfiguration.getDependencyGraph();
         RenderableDependency root = new RenderableRoot(graph.getRoot());
 
-        //TODO SF clean up this null check when moving the graph to the ResolvedDependency type
         if (root.getChildren().isEmpty()) {
             getTextOutput().withStyle(Info).text("No dependencies");
             getTextOutput().println();

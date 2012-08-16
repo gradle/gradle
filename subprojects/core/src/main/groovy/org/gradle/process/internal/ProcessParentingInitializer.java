@@ -16,10 +16,10 @@
 
 package org.gradle.process.internal;
 
-import org.gradle.internal.concurrent.Synchronizer;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Factory;
+import org.gradle.internal.concurrent.Synchronizer;
 import org.gradle.internal.nativeplatform.jna.WindowsHandlesManipulator;
 import org.gradle.internal.os.OperatingSystem;
 
@@ -65,7 +65,6 @@ public class ProcessParentingInitializer {
         if (initialized) {
             return operation.create();
         }
-        //TODO SF the interface can be deleted.
         return synchronizer.synchronize(new Factory<T>() {
             public T create() {
                 if (initialized) {
