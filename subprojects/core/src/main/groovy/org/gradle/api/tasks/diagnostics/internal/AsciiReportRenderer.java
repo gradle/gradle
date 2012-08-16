@@ -20,9 +20,9 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
-import org.gradle.api.tasks.diagnostics.internal.dependencies.MergedResolvedConfiguration;
+import org.gradle.api.internal.dependencygraph.api.DependencyGraph;
 import org.gradle.api.tasks.diagnostics.internal.dependencies.RenderableDependency;
-import org.gradle.api.tasks.diagnostics.internal.dependencies.RenderableGraphProvider;
+import org.gradle.api.tasks.diagnostics.internal.dependencies.RenderableRoot;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.util.GUtil;
 
@@ -83,17 +83,11 @@ public class AsciiReportRenderer extends TextReportRenderer implements Dependenc
     }
 
     public void render(Configuration configuration) throws IOException {
-        RenderableGraphProvider graphProvider = new RenderableGraphProvider();
-        ((ConfigurationInternal) configuration).setDependencyGraphListener(graphProvider);
-
         ResolvedConfiguration resolvedConfiguration = configuration.getResolvedConfiguration();
 
-        RenderableDependency root = graphProvider.getRoot();
-        if (root == null) {
-            //fall back to old way in case the configuration was already resolved.
-            //TODO SF clean this up
-            root = new MergedResolvedConfiguration(resolvedConfiguration);
-        }
+        DependencyGraph graph = ((ConfigurationInternal) configuration).getDependencyGraph();
+
+        RenderableDependency root = new RenderableRoot(graph.getRoot());
 
         if (root.getChildren().isEmpty()) {
             getTextOutput().withStyle(Info).text("No dependencies");

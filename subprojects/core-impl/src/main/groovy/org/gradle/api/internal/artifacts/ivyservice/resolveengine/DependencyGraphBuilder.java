@@ -57,7 +57,9 @@ public class DependencyGraphBuilder {
         traverseGraph(resolveState);
 
         DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, resolveState.root.getResult());
-        assembleResult(resolveState, result, new ResolvedConfigurationListenerFactory().create(configuration.getDependencyGraphListener()));
+        DependencyGraphProvider graphProvider = new DependencyGraphProvider();
+        assembleResult(resolveState, result, graphProvider);
+        configuration.setDependencyGraph(graphProvider.getGraph());
 
         return result;
     }
@@ -149,16 +151,10 @@ public class DependencyGraphBuilder {
 
             notifyListener(listener, resolvedConfiguration);
         }
-        listener.completed();
         failureState.attachFailures(result);
     }
 
     private void notifyListener(ResolvedConfigurationListener listener, ConfigurationNode resolvedConfiguration) {
-        if(listener instanceof ResolvedConfigurationListenerFactory.NoOpDependencyGraphListener) {
-            //TODO SF - a hack to reduce impact. Some more refactorings and coverage and we should be able to remove it.
-            return;
-        }
-
         ResolvedConfigurationIdentifier id = toId(resolvedConfiguration);
         List<DependencyEdge> out = Lists.newLinkedList(resolvedConfiguration.outgoingEdges);
 

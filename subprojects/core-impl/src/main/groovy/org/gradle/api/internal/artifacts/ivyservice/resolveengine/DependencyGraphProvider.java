@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
-import org.gradle.api.internal.dependencygraph.api.DependencyGraphListener;
+import org.gradle.api.internal.dependencygraph.api.DependencyGraph;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -34,11 +34,6 @@ public class DependencyGraphProvider implements ResolvedConfigurationListener {
     private ResolvedConfigurationIdentifier root;
     private Map<ModuleVersionIdentifier, Map<String, DefaultResolvedDependencyResult>> deps
             = new LinkedHashMap<ModuleVersionIdentifier, Map<String, DefaultResolvedDependencyResult>>();
-    private final DependencyGraphListener dependencyGraphListener;
-
-    public DependencyGraphProvider(DependencyGraphListener dependencyGraphListener) {
-        this.dependencyGraphListener = dependencyGraphListener;
-    }
 
     public void start(ResolvedConfigurationIdentifier root) {
         this.root = root;
@@ -61,8 +56,8 @@ public class DependencyGraphProvider implements ResolvedConfigurationListener {
         }
     }
 
-    public void completed() {
-        dependencyGraphListener.withDependencyGraph(new DefaultDependencyGraph(buildGraph()));
+    public DependencyGraph getGraph() {
+        return new DefaultDependencyGraph(buildGraph());
     }
 
     private DefaultResolvedModuleVersionResult buildGraph() {
