@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,17 @@
  * limitations under the License.
  */
 
-dependencies {
-    groovy libraries.groovy
+package org.gradle.api.plugins.migration.reporting.internal;
 
-    compile project(":core")
-    compile project(":toolingApi")
-    compile project(":plugins") // reporting infrastructure
-    compile libraries.guava
-    compile libraries.slf4j_api
+import org.gradle.api.plugins.migration.model.render.internal.BuildComparisonResultRenderer;
+import org.gradle.api.reporting.Report;
 
-    testCompile "org.jsoup:jsoup:1.6.3"
-}
+/*
+    This is private right now, but we might publicise it and use it to allow configuring the renderer.
+    That doesn't seem quite right though.
+ */
+public interface BuildComparisonReport<T extends BuildComparisonResultRenderer> extends Report {
 
-useTestFixtures()
-eclipse {
-	classpath {
-		file.whenMerged { classpath ->
-			classpath.entries.removeAll { it.path.contains('src/integTest/resources') }
-            classpath.entries.removeAll { it.path.contains('/migration/build/') }
-		}
-	}
+    T getRenderer();
+
 }

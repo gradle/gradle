@@ -31,18 +31,32 @@ import org.gradle.api.plugins.migration.model.outcome.internal.archive.entry.Gen
 import org.gradle.api.plugins.migration.model.render.internal.DefaultBuildOutcomeComparisonResultRendererFactory
 import org.gradle.api.plugins.migration.model.render.internal.html.HtmlBuildComparisonResultRenderer
 import org.gradle.api.plugins.migration.model.render.internal.html.HtmlRenderContext
-import org.gradle.api.tasks.OutputFile
+import org.gradle.api.plugins.migration.reporting.BuildComparisonReports
+import org.gradle.api.plugins.migration.reporting.internal.BuildComparisonReportsImpl
+import org.gradle.api.reporting.Reporting
+import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.TaskAction
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.model.internal.migration.ProjectOutput
 
-class CompareGradleBuilds extends DefaultTask {
+class CompareGradleBuilds extends DefaultTask implements Reporting<BuildComparisonReports> {
+
     String sourceVersion
     String targetVersion
     File sourceProjectDir
     File targetProjectDir
 
-    @OutputFile File htmlReport
+    @Nested
+    private BuildComparisonReportsImpl reports
+
+    CompareGradleBuilds(Instantiator instantiator) {
+        def renderers = new DefaultBuildOutcomeComparisonResultRendererFactory(HtmlRenderContext)
+        renderers.registerRenderer(new GeneratedArchiveBuildOutcomeComparisonResultHtmlRenderer())
+        def renderer = new HtmlBuildComparisonResultRenderer(renderers, null, null, null)
+
+        reports = instantiator.newInstance(BuildComparisonReportsImpl, this, renderer)
+    }
 
     @TaskAction
     void compare() {
@@ -75,13 +89,8 @@ class CompareGradleBuilds extends DefaultTask {
         def result = buildComparator.compareBuilds(comparisonSpec)
 
         // Render
-
-        def renderers = new DefaultBuildOutcomeComparisonResultRendererFactory(HtmlRenderContext)
-        renderers.registerRenderer(new GeneratedArchiveBuildOutcomeComparisonResultHtmlRenderer())
-        def renderer = new HtmlBuildComparisonResultRenderer(renderers, null, null, null)
-
-        htmlReport.withWriter("utf8") {
-            renderer.render(result, it)
+        if (reports.html.enabled) {
+            reports.html.render(result)
         }
     }
 
@@ -101,6 +110,14 @@ class CompareGradleBuilds extends DefaultTask {
         } finally {
             connection.close()
         }
+    }
+
+    BuildComparisonReports getReports() {
+        reports
+    }
+
+    BuildComparisonReports reports(Closure closure) {
+        reports.configure(closure)
     }
 }
 
