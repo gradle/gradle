@@ -15,6 +15,8 @@
  */
 package org.gradle.api.artifacts;
 
+import org.gradle.api.Experimental;
+import org.gradle.api.internal.dependencygraph.api.DependencyGraph;
 import org.gradle.api.specs.Spec;
 
 import java.io.File;
@@ -81,4 +83,12 @@ public interface ResolvedConfiguration {
      * @throws ResolveException when the resolve was not successful.
      */
     Set<ResolvedArtifact> getResolvedArtifacts() throws ResolveException;
+
+    /**
+     * Resolves the configuration (in not resolved already) and returns an instance of {@link DependencyGraph}
+     *
+     * @return the dependency graph
+     */
+    @Experimental
+    DependencyGraph getDependencyGraph();
 }

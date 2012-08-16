@@ -41,6 +41,7 @@ class DependencyGraphBuilderTest extends Specification {
     final ResolveData resolveData = new ResolveData(resolveEngine, new ResolveOptions())
     final ModuleConflictResolver conflictResolver = Mock()
     final DependencyToModuleVersionIdResolver dependencyResolver = Mock()
+    final ResolvedConfigurationListener listener = Mock()
     final DefaultModuleDescriptor root = revision('root')
     final DependencyGraphBuilder builder = new DependencyGraphBuilder(moduleDescriptorConverter, resolvedArtifactFactory, dependencyResolver, conflictResolver)
 
@@ -64,7 +65,7 @@ class DependencyGraphBuilderTest extends Specification {
         doesNotResolve b, c
 
         when:
-        def result = builder.resolve(configuration, resolveData)
+        def result = builder.resolve(configuration, resolveData, listener)
         result.rethrowFailure()
 
         then:
@@ -85,7 +86,7 @@ class DependencyGraphBuilderTest extends Specification {
         doesNotResolve c, d
 
         when:
-        def result = builder.resolve(configuration, resolveData)
+        def result = builder.resolve(configuration, resolveData, listener)
         result.rethrowFailure()
 
         then:
@@ -108,7 +109,7 @@ class DependencyGraphBuilderTest extends Specification {
         doesNotResolve evicted, e
 
         when:
-        def result = builder.resolve(configuration, resolveData)
+        def result = builder.resolve(configuration, resolveData, listener)
         result.rethrowFailure()
 
         then:
@@ -138,7 +139,7 @@ class DependencyGraphBuilderTest extends Specification {
         traverses selected, e
 
         when:
-        def result = builder.resolve(configuration, resolveData)
+        def result = builder.resolve(configuration, resolveData, listener)
         result.rethrowFailure()
 
         then:
@@ -168,7 +169,7 @@ class DependencyGraphBuilderTest extends Specification {
         traverses selected, e
 
         when:
-        def result = builder.resolve(configuration, resolveData)
+        def result = builder.resolve(configuration, resolveData, listener)
         result.rethrowFailure()
 
         then:
@@ -194,7 +195,7 @@ class DependencyGraphBuilderTest extends Specification {
         doesNotResolve evicted, c
 
         when:
-        def result = builder.resolve(configuration, resolveData)
+        def result = builder.resolve(configuration, resolveData, listener)
         result.rethrowFailure()
 
         then:
@@ -223,7 +224,7 @@ class DependencyGraphBuilderTest extends Specification {
         doesNotResolve b, evicted
 
         when:
-        def result = builder.resolve(configuration, resolveData)
+        def result = builder.resolve(configuration, resolveData, listener)
         result.rethrowFailure()
 
         then:
@@ -253,7 +254,7 @@ class DependencyGraphBuilderTest extends Specification {
         doesNotResolve selectedB, evictedA2
 
         when:
-        def result = builder.resolve(configuration, resolveData)
+        def result = builder.resolve(configuration, resolveData, listener)
         result.rethrowFailure()
 
         then:
@@ -289,7 +290,7 @@ class DependencyGraphBuilderTest extends Specification {
         traverses e, selected // conflict is deeper than 'b', to ensure 'b' has been visited
 
         when:
-        def result = builder.resolve(configuration, resolveData)
+        def result = builder.resolve(configuration, resolveData, listener)
         result.rethrowFailure()
 
         then:
@@ -319,7 +320,7 @@ class DependencyGraphBuilderTest extends Specification {
         traverses e, selected // conflict is deeper than 'b', to ensure 'b' has been visited
 
         when:
-        def result = builder.resolve(configuration, resolveData)
+        def result = builder.resolve(configuration, resolveData, listener)
         result.rethrowFailure()
 
         then:
@@ -342,7 +343,7 @@ class DependencyGraphBuilderTest extends Specification {
         doesNotResolve b, c
 
         when:
-        def result = builder.resolve(configuration, resolveData)
+        def result = builder.resolve(configuration, resolveData, listener)
         result.rethrowFailure()
 
         then:
@@ -357,7 +358,7 @@ class DependencyGraphBuilderTest extends Specification {
         doesNotResolve root, evicted
 
         when:
-        def result = builder.resolve(configuration, resolveData)
+        def result = builder.resolve(configuration, resolveData, listener)
         result.rethrowFailure()
 
         then:
@@ -382,7 +383,7 @@ class DependencyGraphBuilderTest extends Specification {
         doesNotResolve d, c
 
         when:
-        def result = builder.resolve(configuration, resolveData)
+        def result = builder.resolve(configuration, resolveData, listener)
         result.rethrowFailure()
 
         then:
@@ -403,7 +404,7 @@ class DependencyGraphBuilderTest extends Specification {
         traverses d, c
 
         when:
-        def result = builder.resolve(configuration, resolveData)
+        def result = builder.resolve(configuration, resolveData, listener)
         result.rethrowFailure()
 
         then:
@@ -422,7 +423,7 @@ class DependencyGraphBuilderTest extends Specification {
         doesNotResolve c, a
 
         when:
-        def result = builder.resolve(configuration, resolveData)
+        def result = builder.resolve(configuration, resolveData, listener)
         result.rethrowFailure()
 
         then:
@@ -445,7 +446,7 @@ class DependencyGraphBuilderTest extends Specification {
         doesNotResolve d, e
 
         when:
-        def result = builder.resolve(configuration, resolveData)
+        def result = builder.resolve(configuration, resolveData, listener)
         result.rethrowFailure()
 
         then:
@@ -464,7 +465,7 @@ class DependencyGraphBuilderTest extends Specification {
         traverses a, b
 
         when:
-        def result = builder.resolve(configuration, resolveData)
+        def result = builder.resolve(configuration, resolveData, listener)
         result.rethrowFailure()
 
         then:
@@ -482,7 +483,7 @@ class DependencyGraphBuilderTest extends Specification {
         doesNotResolve b, c
 
         when:
-        def result = builder.resolve(configuration, resolveData)
+        def result = builder.resolve(configuration, resolveData, listener)
         result.rethrowFailure()
 
         then:
@@ -502,7 +503,7 @@ class DependencyGraphBuilderTest extends Specification {
         doesNotResolve b, c
 
         when:
-        def result = builder.resolve(configuration, resolveData)
+        def result = builder.resolve(configuration, resolveData, listener)
 
         then:
         result.unresolvedModuleDependencies.size() == 1
@@ -532,7 +533,7 @@ class DependencyGraphBuilderTest extends Specification {
         brokenSelector a, 'unknown'
 
         when:
-        def result = builder.resolve(configuration, resolveData)
+        def result = builder.resolve(configuration, resolveData, listener)
 
         then:
         result.unresolvedModuleDependencies.size() == 1
@@ -561,7 +562,7 @@ class DependencyGraphBuilderTest extends Specification {
         doesNotResolve b, c
 
         when:
-        def result = builder.resolve(configuration, resolveData)
+        def result = builder.resolve(configuration, resolveData, listener)
 
         then:
         result.unresolvedModuleDependencies.size() == 1
@@ -591,7 +592,7 @@ class DependencyGraphBuilderTest extends Specification {
         doesNotResolve b, c
 
         when:
-        def result = builder.resolve(configuration, resolveData)
+        def result = builder.resolve(configuration, resolveData, listener)
 
         then:
         result.unresolvedModuleDependencies.size() == 1
@@ -621,7 +622,7 @@ class DependencyGraphBuilderTest extends Specification {
         doesNotResolve b, c
 
         when:
-        def result = builder.resolve(configuration, resolveData)
+        def result = builder.resolve(configuration, resolveData, listener)
 
         then:
         result.unresolvedModuleDependencies.size() == 1
@@ -650,7 +651,7 @@ class DependencyGraphBuilderTest extends Specification {
         traversesMissing b, c
 
         when:
-        def result = builder.resolve(configuration, resolveData)
+        def result = builder.resolve(configuration, resolveData, listener)
 
         then:
         result.unresolvedModuleDependencies.size() == 1
@@ -684,7 +685,7 @@ class DependencyGraphBuilderTest extends Specification {
         doesNotResolve selected, c
 
         when:
-        def result = builder.resolve(configuration, resolveData)
+        def result = builder.resolve(configuration, resolveData, listener)
 
         then:
         1 * conflictResolver.select(!null, !null) >> { Collection<ModuleRevisionResolveState> candidates, ModuleRevisionResolveState root ->
@@ -714,7 +715,7 @@ class DependencyGraphBuilderTest extends Specification {
         traversesMissing b, selected
 
         when:
-        def result = builder.resolve(configuration, resolveData)
+        def result = builder.resolve(configuration, resolveData, listener)
         result.rethrowFailure()
 
         then:
@@ -738,7 +739,7 @@ class DependencyGraphBuilderTest extends Specification {
         traverses b, selected
 
         when:
-        def result = builder.resolve(configuration, resolveData)
+        def result = builder.resolve(configuration, resolveData, listener)
         result.rethrowFailure()
 
         then:
@@ -762,7 +763,7 @@ class DependencyGraphBuilderTest extends Specification {
         traverses c, selected
 
         when:
-        def result = builder.resolve(configuration, resolveData)
+        def result = builder.resolve(configuration, resolveData, listener)
         result.rethrowFailure()
 
         then:
@@ -784,7 +785,7 @@ class DependencyGraphBuilderTest extends Specification {
         doesNotResolve b, evicted
 
         when:
-        def result = builder.resolve(configuration, resolveData)
+        def result = builder.resolve(configuration, resolveData, listener)
         result.rethrowFailure()
 
         then:

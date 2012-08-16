@@ -50,16 +50,14 @@ public class DependencyGraphBuilder {
         this.conflictResolver = new ForcedModuleConflictResolver(conflictResolver);
     }
 
-    public DefaultLenientConfiguration resolve(ConfigurationInternal configuration, ResolveData resolveData) throws ResolveException {
+    public DefaultLenientConfiguration resolve(ConfigurationInternal configuration, ResolveData resolveData, ResolvedConfigurationListener listener) throws ResolveException {
         ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convert(configuration.getAll(), configuration.getModule());
 
         ResolveState resolveState = new ResolveState(moduleDescriptor, configuration.getName(), dependencyResolver, resolveData);
         traverseGraph(resolveState);
 
         DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, resolveState.root.getResult());
-        DependencyGraphProvider graphProvider = new DependencyGraphProvider();
-        assembleResult(resolveState, result, graphProvider);
-        configuration.setDependencyGraph(graphProvider.getGraph());
+        assembleResult(resolveState, result, listener);
 
         return result;
     }

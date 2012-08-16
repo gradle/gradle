@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts;
 
+import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 
@@ -73,5 +74,9 @@ public class DefaultModuleVersionIdentifier implements ModuleVersionIdentifier, 
     @Override
     public int hashCode() {
         return group.hashCode() ^ name.hashCode() ^ version.hashCode();
+    }
+
+    public static ModuleVersionIdentifier newId(Module module) {
+        return new DefaultModuleVersionIdentifier(module.getGroup(), module.getName(), module.getVersion());
     }
 }

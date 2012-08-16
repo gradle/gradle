@@ -64,7 +64,8 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         }
 
         DependencyGraphBuilder builder = new DependencyGraphBuilder(moduleDescriptorConverter, resolvedArtifactFactory, idResolver, conflictResolver);
-        DefaultLenientConfiguration result = builder.resolve(configuration, ivyAdapter.getResolveData());
-        return new DefaultResolvedConfiguration(result);
+        DependencyGraphProvider graphProvider = new DependencyGraphProvider();
+        DefaultLenientConfiguration result = builder.resolve(configuration, ivyAdapter.getResolveData(), graphProvider);
+        return new DefaultResolvedConfiguration(result, graphProvider.getGraph());
     }
 }

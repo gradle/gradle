@@ -19,7 +19,6 @@ import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ResolvedConfiguration;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.dependencygraph.api.DependencyGraph;
 import org.gradle.api.tasks.diagnostics.internal.dependencies.RenderableDependency;
 import org.gradle.api.tasks.diagnostics.internal.dependencies.RenderableRoot;
@@ -85,16 +84,15 @@ public class AsciiReportRenderer extends TextReportRenderer implements Dependenc
     public void render(Configuration configuration) throws IOException {
         ResolvedConfiguration resolvedConfiguration = configuration.getResolvedConfiguration();
 
-        DependencyGraph graph = ((ConfigurationInternal) configuration).getDependencyGraph();
+        DependencyGraph graph = resolvedConfiguration.getDependencyGraph();
+        RenderableDependency root = new RenderableRoot(graph.getRoot());
 
         //TODO SF clean up this null check when moving the graph to the ResolvedDependency type
-        if (graph == null || graph.getRoot().getDependencies().isEmpty()) {
+        if (root.getChildren().isEmpty()) {
             getTextOutput().withStyle(Info).text("No dependencies");
             getTextOutput().println();
             return;
         }
-
-        RenderableDependency root = new RenderableRoot(graph.getRoot());
 
         renderChildren(root.getChildren(), new HashSet<String>());
 
