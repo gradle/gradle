@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.dependencygraph.api;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ModuleVersionSelector;
 
 import java.util.Set;
 
@@ -25,7 +25,7 @@ import java.util.Set;
  */
 public interface ResolvedDependencyResult {
 
-    ModuleVersionIdentifier getRequested(); //TODO SF use ModuleVersionSelector
+    ModuleVersionSelector getRequested();
     ResolvedModuleVersionResult getSelected();
     Set<String> getSelectedConfigurations();
 }

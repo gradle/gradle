@@ -17,6 +17,8 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.dependencygraph.api.ResolvedDependencyResult;
 
 import java.util.Collection;
@@ -28,11 +30,11 @@ import java.util.Set;
  */
 public class DefaultResolvedDependencyResult implements ResolvedDependencyResult {
 
-    ModuleVersionIdentifier requested;
+    ModuleVersionSelector requested;
     DefaultResolvedModuleVersionResult selected;
     private final Set<String> configurations = new LinkedHashSet<String>();
 
-    public DefaultResolvedDependencyResult(ModuleVersionIdentifier requested, ModuleVersionIdentifier selected, Collection<String> configurations) {
+    public DefaultResolvedDependencyResult(ModuleVersionSelector requested, ModuleVersionIdentifier selected, Collection<String> configurations) {
         this.requested = requested;
         this.selected = new DefaultResolvedModuleVersionResult(selected);
         this.configurations.addAll(configurations);
@@ -40,7 +42,7 @@ public class DefaultResolvedDependencyResult implements ResolvedDependencyResult
 
     @Override
     public String toString() {
-        if (!requested.equals(selected.getId())) {
+        if (!DefaultModuleVersionIdentifier.newId(requested).equals(selected.getId())) {
             //TODO SF the report should not depend on the toString()
             return asked() + " -> " + selected.getId().getVersion();
         } else {
@@ -52,7 +54,7 @@ public class DefaultResolvedDependencyResult implements ResolvedDependencyResult
         return requested.getGroup() + ":" + requested.getName() + ":" + requested.getVersion();
     }
 
-    public ModuleVersionIdentifier getRequested() {
+    public ModuleVersionSelector getRequested() {
         return requested;
     }
 

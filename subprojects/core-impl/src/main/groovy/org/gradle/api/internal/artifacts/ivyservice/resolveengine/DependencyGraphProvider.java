@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
-import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.dependencygraph.api.DependencyGraph;
@@ -25,6 +24,9 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
+import static com.google.common.collect.Sets.newHashSet;
+import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector;
 
 /**
  * by Szczepan Faber, created at: 7/26/12
@@ -62,7 +64,7 @@ public class DependencyGraphProvider implements ResolvedConfigurationListener {
 
     private DefaultResolvedModuleVersionResult buildGraph() {
         Map<DefaultResolvedDependencyResult, DefaultResolvedModuleVersionResult> visited = new HashMap<DefaultResolvedDependencyResult, DefaultResolvedModuleVersionResult>();
-        DefaultResolvedDependencyResult id = new DefaultResolvedDependencyResult(root.getId(), root.getId(), Sets.newHashSet(root.getConfiguration()));
+        DefaultResolvedDependencyResult id = new DefaultResolvedDependencyResult(newSelector(root.getId()), root.getId(), newHashSet(root.getConfiguration()));
         return buildNode(id, visited);
     }
 

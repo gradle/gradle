@@ -79,4 +79,8 @@ public class DefaultModuleVersionIdentifier implements ModuleVersionIdentifier, 
     public static ModuleVersionIdentifier newId(Module module) {
         return new DefaultModuleVersionIdentifier(module.getGroup(), module.getName(), module.getVersion());
     }
+
+    public static ModuleVersionIdentifier newId(ModuleVersionSelector selector) {
+        return new DefaultModuleVersionIdentifier(selector.getGroup(), selector.getName(), selector.getVersion());
+    }
 }

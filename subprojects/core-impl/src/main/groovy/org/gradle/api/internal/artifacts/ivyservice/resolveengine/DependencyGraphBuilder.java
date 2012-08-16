@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
@@ -164,7 +165,7 @@ public class DependencyGraphBuilder {
                     }
                 });
                 return new DefaultResolvedDependencyResult(
-                        new DefaultModuleVersionIdentifier(
+                        new DefaultModuleVersionSelector(
                             input.dependencyDescriptor.getDependencyRevisionId().getOrganisation(),
                             input.dependencyDescriptor.getDependencyRevisionId().getName(),
                             input.dependencyDescriptor.getDependencyRevisionId().getRevision()),
