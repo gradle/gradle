@@ -34,8 +34,8 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.new
 public class DependencyGraphProvider implements ResolvedConfigurationListener {
 
     private ResolvedConfigurationIdentifier root;
-    private Map<ModuleVersionIdentifier, Map<String, DefaultResolvedDependencyResult>> deps
-            = new LinkedHashMap<ModuleVersionIdentifier, Map<String, DefaultResolvedDependencyResult>>();
+    private Map<ModuleVersionIdentifier, Map<Object, DefaultResolvedDependencyResult>> deps
+            = new LinkedHashMap<ModuleVersionIdentifier, Map<Object, DefaultResolvedDependencyResult>>();
 
     public void start(ResolvedConfigurationIdentifier root) {
         this.root = root;
@@ -43,16 +43,16 @@ public class DependencyGraphProvider implements ResolvedConfigurationListener {
 
     public void resolvedConfiguration(ResolvedConfigurationIdentifier id, List<DefaultResolvedDependencyResult> dependencies) {
         if (!deps.containsKey(id.getId())) {
-            deps.put(id.getId(), new LinkedHashMap<String, DefaultResolvedDependencyResult>());
+            deps.put(id.getId(), new LinkedHashMap<Object, DefaultResolvedDependencyResult>());
         }
         if (!dependencies.isEmpty()) {
-            //TODO SF I don't have to do this aggregation here. There is a simpler way.
-            Map<String, DefaultResolvedDependencyResult> accumulatedDependencies = deps.get(id.getId());
+            //The configurations are merged into the dependencies that have the same selected+requested
+            Map<Object, DefaultResolvedDependencyResult> accumulatedDependencies = deps.get(id.getId());
             for (DefaultResolvedDependencyResult d : dependencies) {
                 if (accumulatedDependencies.containsKey(d.toString())) {
-                    accumulatedDependencies.get(d.toString()).appendConfigurations(d.getSelectedConfigurations());
+                    accumulatedDependencies.get(d.getSelectionId()).appendConfigurations(d.getSelectedConfigurations());
                 } else {
-                    accumulatedDependencies.put(d.toString(), d);
+                    accumulatedDependencies.put(d.getSelectionId(), d);
                 }
             }
         }
@@ -75,7 +75,7 @@ public class DependencyGraphProvider implements ResolvedConfigurationListener {
         DefaultResolvedModuleVersionResult node = id.getSelected();
         visited.put(id, node);
 
-        Map<String, DefaultResolvedDependencyResult> theDeps = this.deps.get(id.getSelected().getId());
+        Map<Object, DefaultResolvedDependencyResult> theDeps = this.deps.get(id.getSelected().getId());
         if (theDeps == null) {
             return node;
         }

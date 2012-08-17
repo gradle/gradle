@@ -29,22 +29,20 @@ import java.util.Set;
  */
 public class DefaultResolvedDependencyResult implements ResolvedDependencyResult {
 
-    ModuleVersionSelector requested;
-    DefaultResolvedModuleVersionResult selected;
     private final Set<String> configurations = new LinkedHashSet<String>();
+    private final SelectionId selection;
 
     public DefaultResolvedDependencyResult(ModuleVersionSelector requested, ModuleVersionIdentifier selected, Collection<String> configurations) {
-        this.requested = requested;
-        this.selected = new DefaultResolvedModuleVersionResult(selected);
+        selection = new SelectionId(requested, new DefaultResolvedModuleVersionResult(selected));
         this.configurations.addAll(configurations);
     }
 
     public ModuleVersionSelector getRequested() {
-        return requested;
+        return selection.requested;
     }
 
     public DefaultResolvedModuleVersionResult getSelected() {
-        return selected;
+        return selection.selected;
     }
 
     public Set<String> getSelectedConfigurations() {
@@ -55,11 +53,55 @@ public class DefaultResolvedDependencyResult implements ResolvedDependencyResult
         this.configurations.addAll(configurations);
     }
 
+    //we merge the configurations into dependency results that have the same 'selectionId'
+    //(a combination of 'selected' and 'requested'
+    public Object getSelectionId() {
+        return selection;
+    }
+
+    private static class SelectionId {
+        final ModuleVersionSelector requested;
+        final DefaultResolvedModuleVersionResult selected;
+
+        public SelectionId(ModuleVersionSelector requested, DefaultResolvedModuleVersionResult selected) {
+            this.requested = requested;
+            this.selected = selected;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (!(o instanceof SelectionId)) {
+                return false;
+            }
+
+            SelectionId selection = (SelectionId) o;
+
+            if (!requested.equals(selection.requested)) {
+                return false;
+            }
+            if (!selected.equals(selection.selected)) {
+                return false;
+            }
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = requested.hashCode();
+            result = 31 * result + selected.hashCode();
+            return result;
+        }
+    }
+
     @Override
     public String toString() {
         return "ResolvedDependencyResult{"
-                + "requested=" + requested
-                + ", selected=" + selected
+                + "requested=" + selection.requested
+                + ", selected=" + selection.selected
                 + ", configurations=" + configurations
                 + '}';
     }
@@ -70,19 +112,16 @@ public class DefaultResolvedDependencyResult implements ResolvedDependencyResult
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (!(o instanceof DefaultResolvedDependencyResult)) {
             return false;
         }
 
         DefaultResolvedDependencyResult that = (DefaultResolvedDependencyResult) o;
 
-        if (requested != null ? !requested.equals(that.requested) : that.requested != null) {
+        if (!configurations.equals(that.configurations)) {
             return false;
         }
-        if (configurations != null ? !configurations.equals(that.configurations) : that.configurations != null) {
-            return false;
-        }
-        if (selected != null ? !selected.equals(that.selected) : that.selected != null) {
+        if (!selection.equals(that.selection)) {
             return false;
         }
 
@@ -91,9 +130,8 @@ public class DefaultResolvedDependencyResult implements ResolvedDependencyResult
 
     @Override
     public int hashCode() {
-        int result = requested != null ? requested.hashCode() : 0;
-        result = 31 * result + (selected != null ? selected.hashCode() : 0);
-        result = 31 * result + (configurations != null ? configurations.hashCode() : 0);
+        int result = configurations.hashCode();
+        result = 31 * result + selection.hashCode();
         return result;
     }
 }
