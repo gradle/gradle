@@ -42,10 +42,18 @@ public class EmptyResolutionResult implements ResolutionResult {
             public Set<? extends ResolvedDependencyResult> getDependencies() {
                 return Collections.emptySet();
             }
+
+            public Set<? extends ResolvedModuleVersionResult> getDependees() {
+                return Collections.emptySet();
+            }
         };
     }
 
     public ResolvedModuleVersionResult getRoot() {
         return root;
+    }
+
+    public Set<? extends ResolvedDependencyResult> getAllDependencies() {
+        return Collections.emptySet();
     }
 }

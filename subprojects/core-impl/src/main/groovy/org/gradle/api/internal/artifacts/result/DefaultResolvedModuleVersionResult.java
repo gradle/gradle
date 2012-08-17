@@ -28,6 +28,7 @@ import java.util.Set;
 public class DefaultResolvedModuleVersionResult implements ResolvedModuleVersionResult {
     private final ModuleVersionIdentifier id;
     private final Set<DefaultResolvedDependencyResult> dependencies = new LinkedHashSet<DefaultResolvedDependencyResult>();
+    private final Set<DefaultResolvedModuleVersionResult> dependees = new LinkedHashSet<DefaultResolvedModuleVersionResult>();
 
     public DefaultResolvedModuleVersionResult(ModuleVersionIdentifier id) {
         assert id != null;
@@ -42,8 +43,13 @@ public class DefaultResolvedModuleVersionResult implements ResolvedModuleVersion
         return dependencies;
     }
 
-    public DefaultResolvedModuleVersionResult addDependency(DefaultResolvedDependencyResult dependencyResult) {
+    public Set<DefaultResolvedModuleVersionResult> getDependees() {
+        return dependees;
+    }
+
+    public DefaultResolvedModuleVersionResult linkDependency(DefaultResolvedDependencyResult dependencyResult) {
         this.dependencies.add(dependencyResult);
+        dependencyResult.getSelected().dependees.add(this);
         return this;
     }
 
@@ -64,5 +70,10 @@ public class DefaultResolvedModuleVersionResult implements ResolvedModuleVersion
     @Override
     public int hashCode() {
         return id.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return id.getGroup() + ":" + id.getName() + ":" + id.getVersion();
     }
 }

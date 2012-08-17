@@ -46,7 +46,7 @@ class DefaultResolvedModuleVersionResultSpec extends Specification {
     def "equals does not consider dependencies"() {
         def result = newModule("group", "module", "version")
         def differentDeps = newModule("group", "module", "version")
-                .addDependency(newDependency())
+                .linkDependency(newDependency())
 
         expect:
         result == differentDeps
@@ -57,7 +57,7 @@ class DefaultResolvedModuleVersionResultSpec extends Specification {
 
         def dependency = newDependency("a", "c", "2")
         def selectedModule = dependency.selected
-        selectedModule.addDependency(dependency)
+        selectedModule.linkDependency(dependency)
 
         expect:
         selectedModule.hashCode()
