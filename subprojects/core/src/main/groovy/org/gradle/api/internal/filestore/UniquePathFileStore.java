@@ -74,12 +74,12 @@ public class UniquePathFileStore implements FileStore<String>, FileStoreSearcher
             throw new GradleException(String.format("Unable to create filestore directory %s", parentDir));
         }
         if (!contentFile.renameTo(storageFile)) {
-            throw new GradleException(String.format("Failed to copy downloaded content into storage file: %s", storageFile));
+            throw new GradleException(String.format("Failed to copy file '%s' into filestore at '%s' ", contentFile, storageFile));
         }
     }
 
     public Set<? extends FileStoreEntry> search(String pattern) {
-        final Set<DefaultFileStoreEntry<String>> entries = new HashSet<DefaultFileStoreEntry<String>>();
+        final Set<DefaultFileStoreEntry> entries = new HashSet<DefaultFileStoreEntry>();
         findFiles(pattern).visit(new EmptyFileVisitor() {
             public void visitFile(FileVisitDetails fileDetails) {
                 entries.add(new DefaultFileStoreEntry(fileDetails.getFile()));
