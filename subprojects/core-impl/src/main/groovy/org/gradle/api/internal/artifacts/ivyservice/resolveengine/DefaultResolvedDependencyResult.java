@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.dependencygraph.api.ResolvedDependencyResult;
 
 import java.util.Collection;
@@ -40,20 +39,6 @@ public class DefaultResolvedDependencyResult implements ResolvedDependencyResult
         this.configurations.addAll(configurations);
     }
 
-    @Override
-    public String toString() {
-        if (!DefaultModuleVersionIdentifier.newId(requested).equals(selected.getId())) {
-            //TODO SF the report should not depend on the toString()
-            return asked() + " -> " + selected.getId().getVersion();
-        } else {
-            return asked();
-        }
-    }
-
-    private String asked() {
-        return requested.getGroup() + ":" + requested.getName() + ":" + requested.getVersion();
-    }
-
     public ModuleVersionSelector getRequested() {
         return requested;
     }
@@ -68,6 +53,15 @@ public class DefaultResolvedDependencyResult implements ResolvedDependencyResult
 
     public void appendConfigurations(Set<String> configurations) {
         this.configurations.addAll(configurations);
+    }
+
+    @Override
+    public String toString() {
+        return "ResolvedDependencyResult{"
+                + "requested=" + requested
+                + ", selected=" + selected
+                + ", configurations=" + configurations
+                + '}';
     }
 
     //TODO SF tests

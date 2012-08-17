@@ -20,6 +20,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Collections2;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.dependencygraph.api.ResolvedDependencyResult;
 
 import java.util.LinkedHashSet;
@@ -37,7 +38,19 @@ public class RenderableDependencyResult implements RenderableDependency {
     }
 
     public String getName() {
-        return dependency.toString();
+        if (!requestedEqualsSelected(dependency)) {
+            return requested() + " -> " + dependency.getSelected().getId().getVersion();
+        } else {
+            return requested();
+        }
+    }
+
+    private static boolean requestedEqualsSelected(ResolvedDependencyResult dependency) {
+        return DefaultModuleVersionIdentifier.newId(dependency.getRequested()).equals(dependency.getSelected().getId());
+    }
+
+    private String requested() {
+        return dependency.getRequested().getGroup() + ":" + dependency.getRequested().getName() + ":" + dependency.getRequested().getVersion();
     }
 
     public ModuleVersionIdentifier getId() {
