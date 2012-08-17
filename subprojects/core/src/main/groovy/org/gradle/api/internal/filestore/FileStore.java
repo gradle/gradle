@@ -18,7 +18,7 @@ package org.gradle.api.internal.filestore;
 import java.io.File;
 
 public interface FileStore<K> {
-    File add(K key, File contentFile);
+    FileStoreEntry add(K key, File contentFile);
 
     File getTempFile();
 }

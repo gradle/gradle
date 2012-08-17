@@ -33,7 +33,7 @@ public class GroupedAndNamedUniqueFileStore<K> implements FileStore<K>, FileStor
         this.namer = namer;
     }
 
-    public File add(K key, File contentFile) {
+    public FileStoreEntry add(K key, File contentFile) {
         return delegate.add(toPath(key, getChecksum(contentFile)), contentFile);
     }
 

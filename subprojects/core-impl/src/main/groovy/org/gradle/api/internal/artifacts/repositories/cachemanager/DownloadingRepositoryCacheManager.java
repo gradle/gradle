@@ -100,7 +100,7 @@ public class DownloadingRepositoryCacheManager extends AbstractRepositoryCacheMa
         File tempFile = fileStore.getTempFile();
         resourceDownloader.download(artifact, artifactRef.getResource(), tempFile);
 
-        File fileInFileStore = fileStore.add(artifact.getId(), tempFile);
+        File fileInFileStore = fileStore.add(artifact.getId(), tempFile).getFile();
 
         if (artifactRef.getResource() instanceof ExternalResource) {
             ExternalResource resource = (ExternalResource) artifactRef.getResource();

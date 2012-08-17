@@ -50,12 +50,12 @@ public class UniquePathFileStore implements FileStore<String>, FileStoreSearcher
         return baseDir;
     }
 
-    public File add(String path, File contentFile) {
+    public FileStoreEntry add(String path, File contentFile) {
         File destination = getFile(path);
         if (!destination.exists()) {
             saveIntoFileStore(contentFile, destination);
         }
-        return destination;
+        return new DefaultFileStoreEntry(destination);
     }
 
     private File getFile(String path) {
