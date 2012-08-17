@@ -30,7 +30,7 @@ class DependencyInsightReportTaskIntegrationTest extends AbstractIntegrationSpec
         distribution.requireOwnUserHomeDir()
     }
 
-    def "renders the dependency tree"() {
+    def "renders the dependency insight"() {
         given:
         repo.module("org", "leaf1").publish()
         repo.module("org", "leaf2").publish()
@@ -69,7 +69,6 @@ class DependencyInsightReportTaskIntegrationTest extends AbstractIntegrationSpec
 org:leaf2:1.0
 \\--- org:middle1:1.0
      \\--- org:toplevel:1.0
-          \\--- conf
 """))
     }
 }

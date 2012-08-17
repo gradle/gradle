@@ -102,7 +102,7 @@ public class DefaultResolvedDependencyResult implements ResolvedDependencyResult
 
     @Override
     public String toString() {
-        return selection.requested.getGroup() + ":" + selection.requested.getName() + ":" + selection.requested.getVersion();
+        return ResolvedDependencyResultPrinter.print(this);
     }
 
     @Override

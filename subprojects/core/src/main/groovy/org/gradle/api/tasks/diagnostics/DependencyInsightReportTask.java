@@ -19,6 +19,7 @@ package org.gradle.api.tasks.diagnostics;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.internal.artifacts.dependencygraph.ResolvedDependencyResultPrinter;
 import org.gradle.api.internal.dependencygraph.api.DependencyGraph;
 import org.gradle.api.internal.dependencygraph.api.ResolvedDependencyResult;
 import org.gradle.api.internal.dependencygraph.api.ResolvedModuleVersionResult;
@@ -57,7 +58,7 @@ public class DependencyInsightReportTask extends DefaultTask {
         Set<? extends ResolvedDependencyResult> allDependencies = dependencyGraph.getAllDependencies();
 
         for (final ResolvedDependencyResult dependencyResult : allDependencies) {
-            String requested = dependencyResult.getRequested().getGroup() + ":" + dependencyResult.getRequested().getName();
+            String requested = ResolvedDependencyResultPrinter.print(dependencyResult);
             if (requested.contains(dependency)) {
                 renderer.visit(new Action<StyledTextOutput>() {
                     public void execute(StyledTextOutput styledTextOutput) {
@@ -82,12 +83,8 @@ public class DependencyInsightReportTask extends DefaultTask {
     private void render(final ResolvedModuleVersionResult dependee, boolean last) {
         Set<? extends ResolvedModuleVersionResult> dependees = dependee.getDependees();
         if (dependees.size() == 0) {
-            //root
-            renderer.visit(new Action<StyledTextOutput>() {
-                public void execute(StyledTextOutput styledTextOutput) {
-                    styledTextOutput.text(configuration.getName());
-                }
-            }, last);
+            //root, don't print it.
+            output.println();
             return;
         }
         renderer.visit(new Action<StyledTextOutput>() {
