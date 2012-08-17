@@ -81,10 +81,15 @@ public class AsciiReportRenderer extends TextReportRenderer implements Dependenc
 
     public void render(Configuration configuration) throws IOException {
         ResolvedConfiguration resolvedConfiguration = configuration.getResolvedConfiguration();
-
         DependencyGraph graph = resolvedConfiguration.getDependencyGraph();
         RenderableDependency root = new RenderableRoot(graph.getRoot());
 
+        renderNow(root);
+
+        resolvedConfiguration.rethrowFailure();
+    }
+
+    void renderNow(RenderableDependency root) {
         if (root.getChildren().isEmpty()) {
             getTextOutput().withStyle(Info).text("No dependencies");
             getTextOutput().println();
@@ -92,8 +97,6 @@ public class AsciiReportRenderer extends TextReportRenderer implements Dependenc
         }
 
         renderChildren(root.getChildren(), new HashSet<ModuleVersionIdentifier>());
-
-        resolvedConfiguration.rethrowFailure();
     }
 
     public void complete() throws IOException {

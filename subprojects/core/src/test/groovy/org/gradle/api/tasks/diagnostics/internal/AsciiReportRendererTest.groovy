@@ -17,12 +17,12 @@ package org.gradle.api.tasks.diagnostics.internal
 
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.ResolvedConfiguration
-import org.gradle.api.artifacts.ResolvedDependency
+import org.gradle.api.artifacts.ModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
+import org.gradle.api.tasks.diagnostics.internal.dependencies.RenderableDependency
 import org.gradle.logging.TestStyledTextOutput
 import org.gradle.util.HelperUtil
-import spock.lang.Ignore
 import spock.lang.Specification
 
 class AsciiReportRendererTest extends Specification {
@@ -64,37 +64,24 @@ class AsciiReportRendererTest extends Specification {
         ]
     }
 
-    @Ignore //TODO SF - refactor & fix those tests (and one below, too)
     def rendersDependencyTreeForConfiguration() {
-        ResolvedConfiguration resolvedConfig = Mock()
         ConfigurationInternal configuration = Mock()
-        configuration.getResolvedConfiguration() >> resolvedConfig
-        ResolvedDependency dep1 = Mock()
-        ResolvedDependency dep11 = Mock()
-        ResolvedDependency dep2 = Mock()
-        ResolvedDependency dep21 = Mock()
-        ResolvedDependency dep22 = Mock()
         configuration.name >> 'config'
-        resolvedConfig.getFirstLevelModuleDependencies() >> {[dep1, dep2] as LinkedHashSet}
-        dep1.getChildren() >> {[dep11] as LinkedHashSet}
-        dep1.getName() >> 'dep1'
-        dep1.getConfiguration() >> 'config1'
-        dep11.getChildren() >> {[] as LinkedHashSet}
-        dep11.getName() >> 'dep1.1'
-        dep11.getConfiguration() >> 'config1.1'
-        dep2.getChildren() >> {[dep21, dep22] as LinkedHashSet}
-        dep2.getName() >> 'dep2'
-        dep2.getConfiguration() >> 'config2'
-        dep21.getChildren() >> {[] as LinkedHashSet}
-        dep21.getName() >> 'dep2.1'
-        dep21.getConfiguration() >> 'config2.1'
-        dep22.getChildren() >> {[] as LinkedHashSet}
-        dep22.getName() >> 'dep2.2'
-        dep22.getConfiguration() >> 'config2.2'
+
+        def root = new SimpleDependency("root", "config")
+        def dep1 = new SimpleDependency("dep1", "config1")
+        def dep11 = new SimpleDependency("dep1.1", "config1.1")
+        def dep2 = new SimpleDependency("dep2", "config2")
+        def dep21 = new SimpleDependency("dep2.1", "config2.1")
+        def dep22 = new SimpleDependency("dep2.2", "config2.2")
+
+        root.children.addAll(dep1, dep2)
+        dep1.children.addAll(dep11)
+        dep2.children.addAll(dep21, dep22)
 
         when:
         renderer.startConfiguration(configuration)
-        renderer.render(configuration)
+        renderer.renderNow(root)
 
         then:
         textOutput.value.readLines() == [
@@ -107,18 +94,26 @@ class AsciiReportRendererTest extends Specification {
         ]
     }
 
-    @Ignore
     def rendersDependencyTreeForEmptyConfiguration() {
-        ConfigurationInternal configuration = Mock()
-        ResolvedConfiguration resolvedConfiguration = Mock()
-
-        configuration.getResolvedConfiguration() >> resolvedConfiguration
-        configuration.getDependencyGraph()
+        def root = new SimpleDependency("root", "config")
 
         when:
-        renderer.render(configuration)
+        renderer.renderNow(root)
 
         then:
         textOutput.value.readLines() == ['No dependencies']
+    }
+
+    private class SimpleDependency implements RenderableDependency {
+        ModuleVersionIdentifier id
+        String name
+        String configuration
+        Set<RenderableDependency> children = new LinkedHashSet<RenderableDependency>()
+
+        SimpleDependency(String name, String config) {
+            this.name = name
+            this.configuration = config
+            this.id = new DefaultModuleVersionIdentifier(name, name, '1.0')
+        }
     }
 }

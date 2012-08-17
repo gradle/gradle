@@ -77,10 +77,13 @@ public class DependencyGraphProvider implements ResolvedConfigurationListener {
 
         Map<Object, DefaultResolvedDependencyResult> theDeps = this.deps.get(id.getSelected().getId());
         if (theDeps == null) {
+            //does not have any dependencies, return.
             return node;
         }
         for (DefaultResolvedDependencyResult sel : theDeps.values()) {
+            //recursively feed with the dependencies
             buildNode(sel, visited);
+            //add dependency to the currently built node
             node.addDependency(sel);
         }
 
