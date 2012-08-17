@@ -52,7 +52,8 @@ public class TaskExecutionLogger implements TaskExecutionListener {
 
     public void afterExecute(Task task, TaskState state) {
         ProgressLogger currentTask = currentTasks.remove(task);
-        currentTask.completed(state.getSkipMessage());
+        String taskMessage = state.getFailure() != null ? "FAILED" : state.getSkipMessage();
+        currentTask.completed(taskMessage);
     }
 
     private String getDisplayName(Task task) {
