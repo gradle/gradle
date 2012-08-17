@@ -47,7 +47,7 @@ public class GroupedAndNamedUniqueFileStore<K> implements FileStore<K>, FileStor
 
         return String.format("%s/%s/%s", group, checksumPart, name);
     }
-    
+
     private String getChecksum(File contentFile) {
         return HashUtil.createHash(contentFile, "SHA1").asHexString();
     }

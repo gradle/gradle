@@ -21,9 +21,9 @@ import org.gradle.util.hash.HashValue;
 
 import java.io.File;
 
-public class DefaultFileStoreEntry implements FileStoreEntry {
+public class DefaultFileStoreEntry<K> implements FileStoreEntry {
 
-    private File file;
+    private final File file;
 
     public DefaultFileStoreEntry(File file) {
         this.file = file;
@@ -36,4 +36,5 @@ public class DefaultFileStoreEntry implements FileStoreEntry {
     public HashValue getSha1() {
         return HashUtil.createHash(file, "SHA1");
     }
+
 }

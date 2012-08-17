@@ -55,7 +55,7 @@ public class UniquePathFileStore implements FileStore<String>, FileStoreSearcher
         if (!destination.exists()) {
             saveIntoFileStore(contentFile, destination);
         }
-        return new DefaultFileStoreEntry(destination);
+        return new DefaultFileStoreEntry<String>(destination);
     }
 
     private File getFile(String path) {
@@ -79,7 +79,7 @@ public class UniquePathFileStore implements FileStore<String>, FileStoreSearcher
     }
 
     public Set<? extends FileStoreEntry> search(String pattern) {
-        final Set<DefaultFileStoreEntry> entries = new HashSet<DefaultFileStoreEntry>();
+        final Set<DefaultFileStoreEntry<String>> entries = new HashSet<DefaultFileStoreEntry<String>>();
         findFiles(pattern).visit(new EmptyFileVisitor() {
             public void visitFile(FileVisitDetails fileDetails) {
                 entries.add(new DefaultFileStoreEntry(fileDetails.getFile()));
