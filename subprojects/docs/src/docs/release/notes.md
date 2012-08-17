@@ -37,7 +37,7 @@ for `ResolvedConfiguration.getResolutionResult()` (TODO link).
 Over the coming releases, we'll be adding support for parallel execution of independent projects in a multi-project build. By building separate projects in parallel, Gradle
 will enable better hardware utilisation and faster build times.
 
-Gradle 1.2 introduces the first experimental support for this feature, via the `--parallel-executor` and `--parallel-executor-threads` [command-line options](http://gradle.org/docs/nightly/userguide/gradle_command_line.html).
+Gradle 1.2 introduces the first experimental support for this feature, via the `--parallel` and `--parallel-threads` [command-line options](http://gradle.org/docs/nightly/userguide/gradle_command_line.html).
 By using these options Gradle will attempt to _execute_ multiple projects in parallel build threads, after first configuring all projects sequentially.
 
 Note that to guarantee successful parallel execution of projects, your multi-project build must contain only [decoupled projects](http://gradle.org/docs/nightly/userguide/multi_project_builds.html#sec:decoupled_projects).

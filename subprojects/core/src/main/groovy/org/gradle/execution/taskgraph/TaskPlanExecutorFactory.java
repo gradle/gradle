@@ -25,18 +25,18 @@ public class TaskPlanExecutorFactory implements Factory<TaskPlanExecutor> {
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskPlanExecutorFactory.class);
 
     private final TaskArtifactStateCacheAccess taskArtifactStateCacheAccess;
-    private final int parallelExecutors;
+    private final int parallelThreads;
 
-    public TaskPlanExecutorFactory(TaskArtifactStateCacheAccess taskArtifactStateCacheAccess, int parallelExecutors) {
+    public TaskPlanExecutorFactory(TaskArtifactStateCacheAccess taskArtifactStateCacheAccess, int parallelThreads) {
         this.taskArtifactStateCacheAccess = taskArtifactStateCacheAccess;
-        this.parallelExecutors = parallelExecutors;
+        this.parallelThreads = parallelThreads;
     }
 
     public TaskPlanExecutor create() {
-        ExecutionOptions options = new ExecutionOptions(parallelExecutors);
+        ExecutionOptions options = new ExecutionOptions(parallelThreads);
         if (options.executeProjectsInParallel()) {
             LOGGER.warn("Parallel project execution is pre-alpha and highly experimental. Many builds will not run correctly with this option.");
-            return new ParallelTaskPlanExecutor(taskArtifactStateCacheAccess, options.numberOfParallelExecutors());
+            return new ParallelTaskPlanExecutor(taskArtifactStateCacheAccess, options.numberOfParallelThreads());
         }
         return new DefaultTaskPlanExecutor();
 

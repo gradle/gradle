@@ -81,6 +81,6 @@ public class TaskExecutionServices extends DefaultServiceRegistry {
     protected TaskPlanExecutor createTaskExecutorFactory() {
         StartParameter startParameter = gradle.getStartParameter();
         TaskArtifactStateCacheAccess cacheAccess = get(TaskArtifactStateCacheAccess.class);
-        return new TaskPlanExecutorFactory(cacheAccess, startParameter.getParallelExecutorCount()).create();
+        return new TaskPlanExecutorFactory(cacheAccess, startParameter.getParallelThreadCount()).create();
     }
 }

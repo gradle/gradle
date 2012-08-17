@@ -27,7 +27,7 @@ class ExecutionOptions {
         return parallelExecutors != 0;
     }
 
-    public int numberOfParallelExecutors() {
+    public int numberOfParallelThreads() {
         if (parallelExecutors == -1) {
             return Runtime.getRuntime().availableProcessors();
         }

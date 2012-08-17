@@ -66,7 +66,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     private File projectCacheDir;
     private boolean refreshDependencies;
     private boolean recompileScripts;
-    private int parallelExecutorCount;
+    private int parallelThreadCount;
 
     /**
      * Sets the project's cache location. Set to null to use the default location.
@@ -131,7 +131,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         startParameter.continueOnFailure = continueOnFailure;
         startParameter.offline = offline;
         startParameter.refreshDependencies = refreshDependencies;
-        startParameter.parallelExecutorCount = parallelExecutorCount;
+        startParameter.parallelThreadCount = parallelThreadCount;
         return startParameter;
     }
 
@@ -154,7 +154,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         startParameter.rerunTasks = rerunTasks;
         startParameter.recompileScripts = recompileScripts;
         startParameter.refreshDependencies = refreshDependencies;
-        startParameter.parallelExecutorCount = parallelExecutorCount;
+        startParameter.parallelThreadCount = parallelThreadCount;
         return startParameter;
     }
 
@@ -589,22 +589,22 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     }
 
     /**
-     * Returns the number of parallel executors to use for build execution.
+     * Returns the number of parallel threads to use for build execution.
      *
      * <0: Automatically determine the optimal number of executors to use.
      *  0: Do not use parallel execution.
      * >0: Use this many parallel execution threads.
      */
-    public int getParallelExecutorCount() {
-        return parallelExecutorCount;
+    public int getParallelThreadCount() {
+        return parallelThreadCount;
     }
 
     /**
-     * Specifies the number of parallel executors to use for build execution.
+     * Specifies the number of parallel threads to use for build execution.
      * {@see #getParallelExecutorCount}
      */
-    public void setParallelExecutorCount(int parallelExecutorCount) {
-        this.parallelExecutorCount = parallelExecutorCount;
+    public void setParallelThreadCount(int parallelThreadCount) {
+        this.parallelThreadCount = parallelThreadCount;
     }
 
     @Override

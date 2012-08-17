@@ -156,7 +156,7 @@
         </varlistentry>
         <varlistentry>
             <term>
-                <option>--parallel-executor</option>
+                <option>--parallel</option>
             </term>
             <listitem>
                 <para>
@@ -167,11 +167,11 @@
         </varlistentry>
         <varlistentry>
             <term>
-                <option>--parallel-executor-threads</option>
+                <option>--parallel-threads</option>
             </term>
             <listitem>
                 <para>
-                    Build projects in parallel, using the specified number of executor threads. For example<literal>--parallel-executor-threads=3</literal>.
+                    Build projects in parallel, using the specified number of executor threads. For example<literal>--parallel-threads=3</literal>.
                     This option should only be used with decoupled projects (see <xref linkend="sec:decoupled_projects"/>).
                 </para>
             </listitem>

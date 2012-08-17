@@ -32,7 +32,7 @@ public class ParallelForkingGradleExecuter extends ForkingGradleExecuter {
     protected List<String> getAllArgs() {
         List<String> args = new ArrayList<String>();
         args.addAll(super.getAllArgs());
-        args.add("--parallel-executor-threads=4");
+        args.add("--parallel-threads=4");
         return args;
     }
 

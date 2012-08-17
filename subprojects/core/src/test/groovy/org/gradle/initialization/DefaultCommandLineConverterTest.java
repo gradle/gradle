@@ -110,7 +110,7 @@ public class DefaultCommandLineConverterTest {
         assertEquals(expectedRefreshOptions, startParameter.getRefreshOptions());
         assertEquals(expectedRefreshDependencies, startParameter.isRefreshDependencies());
         assertEquals(expectedProjectCacheDir, startParameter.getProjectCacheDir());
-        assertEquals(expectedParallelExecutorCount, startParameter.getParallelExecutorCount());
+        assertEquals(expectedParallelExecutorCount, startParameter.getParallelThreadCount());
     }
 
     @Test
@@ -391,17 +391,17 @@ public class DefaultCommandLineConverterTest {
     @Test
     public void withParallelExecutor() {
         expectedParallelExecutorCount = -1;
-        checkConversion("--parallel-executor");
+        checkConversion("--parallel");
     }
 
     @Test
     public void withParallelExecutorThreads() {
         expectedParallelExecutorCount = 5;
-        checkConversion("--parallel-executor-threads", "5");
+        checkConversion("--parallel-threads", "5");
     }
 
     @Test(expected = CommandLineArgumentException.class)
     public void withInvalidParallelExecutorThreads() {
-        checkConversion("--parallel-executor-threads", "foo");
+        checkConversion("--parallel-threads", "foo");
     }
 }
