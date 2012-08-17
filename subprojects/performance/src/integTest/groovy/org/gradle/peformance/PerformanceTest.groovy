@@ -33,9 +33,10 @@ class PerformanceTest extends Specification {
         result.assertCurrentReleaseIsNotSlower()
 
         where:
-        testProject | runs | accuracyMs
-        "small"     | 10   | 500
-        "multi"     | 10   | 1000
+        testProject         | runs | accuracyMs
+        "small"             | 5    | 500
+        "multi"             | 5    | 1000
+        "lotDependencies"   | 3    | 10000
     }
 
     @Unroll("Project '#testProject' with heap size: #heapSize. Current release does not require more memory than the previous one.")
