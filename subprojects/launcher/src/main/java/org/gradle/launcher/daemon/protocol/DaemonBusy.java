@@ -20,9 +20,5 @@ package org.gradle.launcher.daemon.protocol;
  * Returned when the daemon is busy running a different command. The command that the
  * daemon is running is the value of this result.
  */
-public class DaemonBusy extends Result<Command> {
-
-    public DaemonBusy(Command value) {
-        super(value);
-    }
+public class DaemonBusy {
 }
