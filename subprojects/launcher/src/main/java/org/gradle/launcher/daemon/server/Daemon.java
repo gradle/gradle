@@ -40,7 +40,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * <p>
  * See {@link org.gradle.launcher.daemon.client.DaemonClient} for a description of the daemon communication protocol.
  */
-public class Daemon implements Runnable, Stoppable {
+public class Daemon implements Stoppable {
 
     private static final Logger LOGGER = Logging.getLogger(Daemon.class);
 
@@ -201,24 +201,6 @@ public class Daemon implements Runnable, Stoppable {
     }
 
     /**
-     * Blocks until this daemon is stopped by something else (i.e. does not ask it to stop)
-     */
-    public void awaitStop() {
-        LOGGER.debug("awaitStop() called on daemon");
-        stateCoordinator.awaitStop();
-    }
-
-    /**
-     * Waits until the daemon is either stopped, or has been idle for the given number of milliseconds.
-     *
-     * @return true if it was stopped, false if it hit the given idle timeout.
-     */
-    public boolean awaitStopOrIdleTimeout(int idleTimeout) {
-        LOGGER.debug("awaitStopOrIdleTimeout({}) called on daemon", idleTimeout);
-        return stateCoordinator.awaitStopOrIdleTimeout(idleTimeout);
-    }
-
-    /**
      * Waits for the daemon to be idle for the specified number of milliseconds.
      * 
      * @throws DaemonStoppedException if the daemon is explicitly stopped instead of idling out.
@@ -227,13 +209,4 @@ public class Daemon implements Runnable, Stoppable {
         LOGGER.debug("awaitIdleTimeout({}) called on daemon", idleTimeout);
         stateCoordinator.awaitIdleTimeout(idleTimeout);
     }
-
-    /**
-     * Starts the daemon, blocking until it is stopped (either by Stop command or by another thread calling stop())
-     */
-    public void run() {
-        start();
-        awaitStop();
-    }
-
 }

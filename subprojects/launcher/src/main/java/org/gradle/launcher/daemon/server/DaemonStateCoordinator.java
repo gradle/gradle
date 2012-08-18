@@ -63,24 +63,6 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
     }
 
     /**
-     * Waits until stopped.
-     */
-    public void awaitStop() {
-        lock.lock();
-        try {
-            while (!isStopped()) {
-                try {
-                    condition.await();
-                } catch (InterruptedException e) {
-                    throw UncheckedException.throwAsUncheckedException(e);
-                }
-            }
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    /**
      * Called once when the daemon is up and ready for connections.
      */
     public void start() {
@@ -282,18 +264,6 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
         long now = System.currentTimeMillis();
         LOGGER.debug("updating lastActivityAt to {}", now);
         lastActivityAt = now;
-    }
-
-    /**
-     * The current command execution, or {@code null} if the daemon is idle.
-     */
-    public DaemonCommandExecution getCurrentCommandExecution() {
-        lock.lock();
-        try {
-            return currentCommandExecution;
-        } finally {
-            lock.unlock();
-        }
     }
 
     /**
