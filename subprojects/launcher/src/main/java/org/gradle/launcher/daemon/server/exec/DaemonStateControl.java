@@ -24,7 +24,7 @@ public interface DaemonStateControl {
      * If it is idle, this method will block until the daemon fully stops.
      *
      * If the daemon is busy, this method will return after removing the daemon from the registry but before the
-     * daemon is fully stopped. In this case, the daemon will stop as soon as {@link #onFinishCommand()} is called.
+     * daemon is fully stopped. In this case, the daemon will stop as soon as {@link #runCommand(Runnable, String)} has completed.
      */
     void stopAsSoonAsIdle();
 
@@ -34,21 +34,9 @@ public interface DaemonStateControl {
     boolean requestStop();
 
     /**
-     * Called when the execution of a command begins.
-     * <p>
-     * If the daemon is busy (i.e. already executing a command), this method will return the existing
-     * execution which the caller should be prepared for without considering the given execution to be in progress.
-     * If the daemon is idle the return value will be {@code null} and the given execution will be considered in progress.
+     * Runs the given command. At the completion of the command, if {@link #stopAsSoonAsIdle()} was previously called, this method will block while the daemon stops.
+     *
+     * @throws DaemonBusyException If this daemon is currently executing another command.
      */
-    DaemonCommandExecution onStartCommand(DaemonCommandExecution execution);
-
-    /**
-     * Called when the execution of a command is complete (or at least the daemon is available for new commands).
-     * <p>
-     * If the daemon is currently idle, this method will return {@code null}. If it is busy, it will return what was the
-     * current execution which will considered to be complete (putting the daemon back in idle state).
-     * <p>
-     * If {@link #stopAsSoonAsIdle()} was previously called, this method will block while the daemon stops.
-     */
-    DaemonCommandExecution onFinishCommand();
+    void runCommand(Runnable command, String commandDisplayName) throws DaemonBusyException;
 }

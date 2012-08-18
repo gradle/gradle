@@ -20,7 +20,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.Stoppable;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
-import org.gradle.launcher.daemon.server.exec.DaemonCommandExecution;
+import org.gradle.launcher.daemon.server.exec.DaemonBusyException;
 import org.gradle.launcher.daemon.server.exec.DaemonStateControl;
 
 import java.util.Date;
@@ -46,7 +46,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
     private boolean stoppingOrStopped;
     private boolean stopped;
     private long lastActivityAt = -1;
-    private DaemonCommandExecution currentCommandExecution;
+    private String currentCommandExecution;
 
     private final Runnable onStart;
     private final Runnable onStartCommand;
@@ -197,6 +197,15 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
         }
     }
 
+    public void runCommand(Runnable command, String commandDisplayName) throws DaemonBusyException {
+        onStartCommand(commandDisplayName);
+        try {
+            command.run();
+        } finally {
+            onFinishCommand();
+        }
+    }
+
     /**
      * Called when the execution of a command begins.
      * <p>
@@ -204,7 +213,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
      * execution which the caller should be prepared for without considering the given execution to be in progress.
      * If the daemon is idle the return value will be {@code null} and the given execution will be considered in progress.
      */
-    public DaemonCommandExecution onStartCommand(DaemonCommandExecution execution) {
+    private void onStartCommand(String commandDisplayName) {
         lock.lock();
         try {
             if (currentCommandExecution != null) { // daemon is busy
@@ -213,15 +222,14 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
                     sending a command. The UpdateDaemonStateAndHandleBusyDaemon command action will send back a DaemonBusy result
                     to the client which will then just try another daemon, making this a non-error condition.
                 */
-                LOGGER.debug("onStartCommand({}) called while currentCommandExecution = {}", execution, currentCommandExecution);
-                return currentCommandExecution;
+                LOGGER.debug("onStartCommand({}) called while currentCommandExecution = {}", commandDisplayName, currentCommandExecution);
+                throw new DaemonBusyException(currentCommandExecution);
             } else {
-                LOGGER.debug("onStartCommand({}) called after {} mins of idle", execution, getIdleMinutes());
-                currentCommandExecution = execution;
+                LOGGER.debug("onStartCommand({}) called after {} mins of idle", commandDisplayName, getIdleMinutes());
+                currentCommandExecution = commandDisplayName;
                 updateActivityTimestamp();
                 onStartCommand.run();
                 condition.signalAll();
-                return null;
             }
         } finally {
             lock.unlock();
@@ -236,10 +244,10 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
      * <p>
      * If {@link #stopAsSoonAsIdle()} was previously called, this method will block while the daemon {@link #stop() stops}
      */
-    public DaemonCommandExecution onFinishCommand() {
+    private void onFinishCommand() {
         lock.lock();
         try {
-            DaemonCommandExecution execution = currentCommandExecution;
+            String execution = currentCommandExecution;
             if (execution == null) {
                 LOGGER.warn("onFinishCommand() called while currentCommandExecution is null");
             } else {
@@ -253,8 +261,6 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
                     condition.signalAll();
                 }
             }
-
-            return execution;
         } finally {
             lock.unlock();
         }

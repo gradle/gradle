@@ -34,21 +34,20 @@ public class StartBuildOrRespondWithBusy extends BuildCommandOnly {
         this.diagnostics = diagnostics;
     }
 
-    protected void doBuild(DaemonCommandExecution execution, Build build) {
+    protected void doBuild(final DaemonCommandExecution execution, final Build build) {
         DaemonStateControl stateCoordinator = execution.getDaemonStateControl();
 
-        DaemonCommandExecution existingExecution = stateCoordinator.onStartCommand(execution);
-        if (existingExecution != null) {
-            LOGGER.info("Daemon will not handle the request: {} because is busy executing: {}. Dispatching 'Busy' response...", build, existingExecution);
+        try {
+            stateCoordinator.runCommand(new Runnable() {
+                public void run() {
+                    LOGGER.info("Daemon is about to start building: " + build + ". Dispatching build started information...");
+                    execution.getConnection().dispatch(new BuildStarted(diagnostics));
+                    execution.proceed();
+                }
+            }, execution.toString());
+        } catch (DaemonBusyException e) {
+            LOGGER.info("Daemon will not handle the request: {} because is busy executing: {}. Dispatching 'Busy' response...", build, e.getOperationDisplayName());
             execution.getConnection().dispatch(new DaemonBusy());
-        } else {
-            try {
-                LOGGER.info("Daemon is about to start building: " + build + ". Dispatching build started information...");
-                execution.getConnection().dispatch(new BuildStarted(diagnostics));
-                execution.proceed();
-            } finally {
-                stateCoordinator.onFinishCommand();
-            }
         }
     }
 }
