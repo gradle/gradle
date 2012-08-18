@@ -52,7 +52,7 @@ public class Daemon implements Stoppable {
 
     private DaemonStateCoordinator stateCoordinator;
 
-    private final StoppableExecutor handlersExecutor;
+    private final StoppableExecutor workers;
 
     private final Lock lifecyleLock = new ReentrantLock();
 
@@ -71,7 +71,7 @@ public class Daemon implements Stoppable {
         this.daemonContext = daemonContext;
         this.password = password;
         this.commandExecuter = commandExecuter;
-        handlersExecutor = executorFactory.create("Daemon Connection Handler");
+        workers = executorFactory.create("Daemon");
     }
 
     public String getUid() {
@@ -104,8 +104,9 @@ public class Daemon implements Stoppable {
 
                     //we're spinning a thread to do work to avoid blocking the connection
                     //This means that the Daemon potentially can do multiple things but we only allows a single build at a time
-                    handlersExecutor.execute(new Runnable() {
+                    workers.execute(new Runnable() {
                         private Command command;
+
                         public void run() {
                             try {
                                 command = (Command) connection.receive();
@@ -168,7 +169,7 @@ public class Daemon implements Stoppable {
                 }
             };
 
-            stateCoordinator = new DaemonStateCoordinator(onStart, onStartCommand, onFinishCommand, onStop, onStopRequested);
+            stateCoordinator = new DaemonStateCoordinator(workers, onStart, onStartCommand, onFinishCommand, onStop, onStopRequested);
 
             // ready, set, go
             stateCoordinator.start();

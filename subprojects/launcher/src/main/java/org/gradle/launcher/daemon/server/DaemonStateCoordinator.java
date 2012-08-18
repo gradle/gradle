@@ -19,11 +19,11 @@ package org.gradle.launcher.daemon.server;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Stoppable;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.launcher.daemon.server.exec.DaemonBusyException;
 import org.gradle.launcher.daemon.server.exec.DaemonStateControl;
 
 import java.util.Date;
+import java.util.concurrent.Executor;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -41,20 +41,22 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
     private static final org.gradle.api.logging.Logger LOGGER = Logging.getLogger(DaemonStateCoordinator.class);
 
     private final Lock lock = new ReentrantLock();
-    Condition condition = lock.newCondition();
+    private final Condition condition = lock.newCondition();
 
     private boolean stoppingOrStopped;
     private boolean stopped;
     private long lastActivityAt = -1;
     private String currentCommandExecution;
 
+    private final Executor executor;
     private final Runnable onStart;
     private final Runnable onStartCommand;
     private final Runnable onFinishCommand;
     private final Runnable onStop;
     private final Runnable onStopRequested;
 
-    public DaemonStateCoordinator(Runnable onStart, Runnable onStartCommand, Runnable onFinishCommand, Runnable onStop, Runnable onStopRequested) {
+    public DaemonStateCoordinator(Executor executor, Runnable onStart, Runnable onStartCommand, Runnable onFinishCommand, Runnable onStop, Runnable onStopRequested) {
+        this.executor = executor;
         this.onStart = onStart;
         this.onStartCommand = onStartCommand;
         this.onFinishCommand = onFinishCommand;
@@ -169,16 +171,6 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
         }
     }
 
-    Runnable asyncStop = new Runnable() {
-        public void run() {
-            new DefaultExecutorFactory().create("Daemon Async Stop Request").execute(new Runnable() {
-                public void run() {
-                    stop();
-                }
-            });
-        }
-    };
-
     /**
      * @return returns false if the daemon was already requested to stop
      */
@@ -190,7 +182,12 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
             }
             stoppingOrStopped = true;
             onStopRequested.run(); //blocking
-            asyncStop.run(); //not blocking
+            // not blocking
+            executor.execute(new Runnable() {
+                public void run() {
+                    stop();
+                }
+            });
             return true;
         } finally {
             lock.unlock();

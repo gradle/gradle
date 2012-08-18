@@ -16,52 +16,55 @@
 package org.gradle.launcher.daemon.server
 
 import org.gradle.launcher.daemon.server.exec.DaemonBusyException
-
-import java.util.concurrent.locks.Condition
+import org.gradle.util.MockExecutor
 import spock.lang.Specification
 
 /**
  * by Szczepan Faber, created at: 2/6/12
  */
 class DaemonStateCoordinatorTest extends Specification {
-
     final Runnable onStart = Mock(Runnable)
     final Runnable onStartCommand = Mock(Runnable)
     final Runnable onFinishCommand = Mock(Runnable)
     final Runnable onStopRequested = Mock(Runnable)
     final Runnable onStop = Mock(Runnable)
-    def coordinator = new DaemonStateCoordinator(onStart, onStartCommand, onFinishCommand, onStop, onStopRequested)
+    final MockExecutor executor = new MockExecutor()
+    def coordinator = new DaemonStateCoordinator(executor, onStart, onStartCommand, onFinishCommand, onStop, onStopRequested)
 
-    def "requesting stop lifecycle"() {
-        coordinator.asyncStop = Mock(Runnable)
-
+    def "requesting stop stops asynchronously"() {
         expect:
         !coordinator.stopped
 
-        when: "requested first time"
+        when:
         def passOne = coordinator.requestStop()
 
-        then: "retruns true and schedules stopping"
+        then:
         passOne == true
-        1 * coordinator.asyncStop.run()
-        1 * onStopRequested.run()
         coordinator.stoppingOrStopped
         !coordinator.stopped
+        1 * onStopRequested.run()
+        0 * _._
 
-        when: "requested again"
+        when:
+        executor.runNow()
+
+        then:
+        coordinator.stoppingOrStopped
+        coordinator.stopped
+        1 * onStop.run()
+        0 * _._
+
+        when:
         def passTwo = coordinator.requestStop()
 
-        then: "only returns false"
+        then:
         passTwo == false
-        0 * coordinator.asyncStop.run()
-        0 * onStopRequested.run()
         coordinator.stoppingOrStopped
-        !coordinator.stopped
+        coordinator.stopped
+        0 *_._
     }
 
     def "stopping lifecycle"() {
-        coordinator.condition = Mock(Condition)
-
         expect:
         !coordinator.stopped
 
@@ -69,19 +72,17 @@ class DaemonStateCoordinatorTest extends Specification {
         coordinator.stop()
 
         then: "stops"
+        coordinator.stopped
         1 * onStop.run()
         1 * onStopRequested.run()
-        1 * coordinator.condition.signalAll()
-        coordinator.stopped
 
         when: "requested again"
         coordinator.stop()
 
         then:
-        0 * onStopRequested.run()
-        1 * onStop.run()
-        1 * coordinator.condition.signalAll()
         coordinator.stopped
+        1 * onStop.run()
+        0 * _._
     }
 
     def "runs actions when command is run"() {
@@ -134,7 +135,7 @@ class DaemonStateCoordinatorTest extends Specification {
         e.message == 'This daemon is currently executing: command'
     }
 
-    def "stopAsSoonAsIdle when idle"() {
+    def "stopAsSoonAsIdle stops immediately when idle"() {
         given:
         coordinator.start()
 
@@ -153,7 +154,7 @@ class DaemonStateCoordinatorTest extends Specification {
         1 * onStop.run()
     }
 
-    def "stopAsSoonAsIdle when busy"() {
+    def "stopAsSoonAsIdle stops once current command has completed"() {
         Runnable command = Mock()
 
         given:
