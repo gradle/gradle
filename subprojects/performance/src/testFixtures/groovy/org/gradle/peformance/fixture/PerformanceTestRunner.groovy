@@ -38,7 +38,7 @@ public class PerformanceTestRunner {
         }
     }
 
-    def results
+    PerformanceResults results
 
     PerformanceResults run() {
         results = new PerformanceResults(accuracyMs: accuracyMs, displayName: "Results for test project '$testProject'")
@@ -60,14 +60,14 @@ public class PerformanceTestRunner {
         def previousExecuter = executer(previous, projectDir)
         def previousResult = MeasuredOperation.measure { MeasuredOperation operation ->
             previousExecuter.run()
-            dataCollector.collect(projectDir, operation)
         }
+        dataCollector.collect(projectDir, previousResult)
 
         def currentExecuter = executer(current, projectDir)
         def currentResult = MeasuredOperation.measure { MeasuredOperation operation ->
             currentExecuter.run()
-            dataCollector.collect(projectDir, operation)
         }
+        dataCollector.collect(projectDir, currentResult)
 
         results.addResult(previousResult, currentResult)
     }

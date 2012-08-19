@@ -44,6 +44,9 @@ buildTypes {
     // Run the integration tests using the parallel executer
     parallelTest "parallelIntegTest", noDistTests: true
 
+    // Run the performance tests
+    performanceTest "performance:integTest"
+
     // Used for cross version tests on CI
     crossVersionTest "forkingIntegTest", crossVersionTestsOnly: "", testAllVersions: "", noDistTests: true, useIncomingDistributions: true
 
@@ -58,7 +61,7 @@ ext {
     jvm = org.gradle.internal.jvm.Jvm.current()
     javaVersion = JavaVersion.current()
     isCiServer = System.getenv().containsKey("TEAMCITY_VERSION")
-    isWindows = System.getProperty("os.name").toLowerCase().contains("windows")
+    isWindows = org.gradle.internal.os.OperatingSystem.current().windows
 
     if (project.hasProperty("maxParallelForks")) {
         project.maxParallelForks = Integer.valueOf(project.maxParallelForks, 10)

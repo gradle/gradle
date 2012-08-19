@@ -17,6 +17,7 @@
 package org.gradle.peformance.fixture
 
 import org.gradle.api.logging.Logging
+import java.math.RoundingMode
 
 public class PerformanceResults {
 
@@ -49,61 +50,57 @@ public class PerformanceResults {
     void assertMemoryUsed(double maxRegression) {
         assertEveryBuildSucceeds()
 
-        List previousBytes = previous.collect { it.totalMemoryUsed }
-        List currentBytes = current.collect { it.totalMemoryUsed }
+        List<Long> previousBytes = previous.collect { it.totalMemoryUsed }
+        List<Long> currentBytes = current.collect { it.totalMemoryUsed }
 
-        long averagePrevious = previousBytes.sum() / previous.size()
-        long averageCurrent  = currentBytes.sum() / current.size()
+        def averagePrevious = (previousBytes.sum() / previous.size()).setScale(2, RoundingMode.HALF_UP)
+        def averageCurrent  = (currentBytes.sum() / current.size()).setScale(2, RoundingMode.HALF_UP)
 
-        def difference = []
-        for(int i = 0; i<previous.size(); i++) {
-            int percentage = percent(previousBytes[i], currentBytes[i])
-            difference << "$percentage%"
-        }
+        println ("""---------------
+Build stats. $displayName:
+ -previous: $previous
+ -previous average: ${averagePrevious} b, min: ${previousBytes.min()} b, max: ${previousBytes.max()} b
+ -current: $current
+ -current average: ${averageCurrent} b, min: ${currentBytes.min()} b, max: ${currentBytes.max()} b
+ -change: ${percentChange(averageCurrent, averagePrevious)}%
+---------------""")
 
-        long previousMax = previousBytes.max()
-        long currentMin = currentBytes.min()
-        long minDifference = percent(previousMax, currentMin)
-
-        println ("\n---------------\nBuild stats. $displayName:\n"
-                + " -previous    : $previous\n"
-                + " -current     : $current\n"
-                + " -diff(%)     : $difference\n"
-                + " -min diff(%) : $minDifference%\n"
-                + "---------------\n")
-
-        assert (currentMin - (maxRegression * currentMin)) <= previousMax : """
-Looks like the current gradle requires more memory than the latest release.
-  Previous release stats: ${previous}
-  Current gradle stats:   ${current}
-  Difference in memory consumption: ${difference}
-  Currently configured max regression: $maxRegression
+        assert (averageCurrent - (maxRegression * averagePrevious)) <= averagePrevious : """Looks like the current gradle requires more memory than the latest release.
+  Previous release stats: ${previousBytes}
+  Current gradle stats:   ${currentBytes}
+  Difference in memory consumption: ${averageCurrent - averagePrevious} bytes
+  Currently configured max regression: $maxRegression (${averagePrevious * maxRegression})
 """
     }
 
-    private double percent(long x, long y) {
-        if (y == 0) {
-            return 0
-        }
-        100 * (1d - x / y)
+    private Number percentChange(Number current, Number previous) {
+        def result = 100 * (previous-current) / previous
+        return result
     }
 
     void assertCurrentReleaseIsNotSlower() {
         assertEveryBuildSucceeds()
-        long averagePrevious = previous.collect { it.executionTime }.sum() / previous.size()
-        long averageCurrent  = current.collect { it.executionTime }.sum() / current.size()
+        def previousTimes = previous.collect { it.executionTime }
+        def averagePrevious = (previousTimes.sum() / previous.size()).setScale(2, RoundingMode.HALF_UP)
+        def currentTimes = current.collect { it.executionTime }
+        def averageCurrent  = (currentTimes.sum() / current.size()).setScale(2, RoundingMode.HALF_UP)
 
-        println ("\n---------------\nBuild stats. $displayName:\n"
-            + " -previous: $previous\n"
-            + " -current : $current\n---------------\n")
+        println("""---------------
+Build stats. $displayName:
+ -previous: $previousTimes
+ -previous average: $averagePrevious ms, min: ${previousTimes.min()} ms, max: ${previousTimes.max()} ms
+ -current : $currentTimes
+ -current average: $averageCurrent ms, min: ${currentTimes.min()} ms, max: ${currentTimes.max()} ms
+ -change: ${percentChange(averageCurrent, averagePrevious)}%
+---------------""")
 
         if (averageCurrent > averagePrevious) {
             LOGGER.warn("Before applying any statistical tuning, the current release average build time is slower than the previous.")
         }
 
         assert (averageCurrent - accuracyMs) <= averagePrevious : """Looks like the current gradle is slower than latest release.
-  Previous release build times: ${previous}
-  Current gradle build times:   ${current}
+  Previous release build times: ${previousTimes}
+  Current gradle build times:   ${currentTimes}
   Difference between average current and average previous: ${averageCurrent - averagePrevious} millis.
   Currently configured accuracy treshold: $accuracyMs
 """

@@ -33,6 +33,6 @@ class TestProjectLocator {
         def message = "Looks like the test project '$name' was not generated.\nI've tried to find it at:\n"
         dirs.each { message += "  $it\n" }
         message +="Please run 'gradlew performance:$name' to generate the test project."
-        assert false: message
+        throw new IllegalArgumentException(message)
     }
 }

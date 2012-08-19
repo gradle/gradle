@@ -51,13 +51,13 @@ public class MeasuredOperation {
     }
 
     //stolen from the web, TODO SF, replace with commons or something
-    static String humanReadableByteCount(long bytes, boolean si = true) {
-        int unit = si ? 1000 : 1024;
+    static String humanReadableByteCount(long bytes) {
+        int unit = 1024;
         if (bytes < unit) {
             return bytes + " B";
         }
         int exp = (int) (Math.log(bytes) / Math.log(unit));
-        String pre = (si ? "kMGTPE" : "KMGTPE").charAt(exp-1)
+        String pre = "kMGTPE".charAt(exp-1)
         return String.format("%.1f %sB", bytes / Math.pow(unit, exp), pre);
     }
 }
