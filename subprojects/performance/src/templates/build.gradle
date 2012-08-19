@@ -1,5 +1,6 @@
 import java.lang.management.ManagementFactory
 import java.math.RoundingMode
+import java.lang.management.MemoryType
 
 /*
 * Copyright 2010 the original author or authors.
@@ -62,40 +63,21 @@ task dependencyReport(type: DependencyReportTask) {
 
 <% } %>
 
-if (parent == null) {
-    task totalMemoryUsed
-}
-
-gradle.taskGraph.whenReady {
-    if (it.hasTask(":totalMemoryUsed")) {
-        def memoryTrend = [0]
-
-        project.allprojects {
-            tasks.all {
-                doLast {
-                    memoryTrend << Runtime.getRuntime().totalMemory()
-                }
-            }
-        }
-
-        rootProject.totalMemoryUsed.doLast {
-            buildDir.mkdirs()
-            new File(buildDir, "totalMemoryUsed.txt").text = memoryTrend.max()
-        }
-    }
-}
-
 if (project == rootProject) {
     gradle.buildFinished {
         def heap = ManagementFactory.memoryMXBean.heapMemoryUsage
         def nonHeap = ManagementFactory.memoryMXBean.nonHeapMemoryUsage
+        println "BEFORE GC"
         println "heap: \${format(heap.used)} (initial \${format(heap.init)}, commited \${format(heap.committed)}, max \${format(heap.max)}"
         println "nonHeap: \${format(nonHeap.used)} (initial \${format(nonHeap.init)}, commited \${format(nonHeap.committed)}, max \${format(nonHeap.max)}"
+
         ManagementFactory.memoryMXBean.gc()
         heap = ManagementFactory.memoryMXBean.heapMemoryUsage
         nonHeap = ManagementFactory.memoryMXBean.nonHeapMemoryUsage
+        println "AFTER GC"
         println "heap: \${format(heap.used)} (initial \${format(heap.init)}, commited \${format(heap.committed)}, max \${format(heap.max)}"
         println "nonHeap: \${format(nonHeap.used)} (initial \${format(nonHeap.init)}, commited \${format(nonHeap.committed)}, max \${format(nonHeap.max)}"
+        new File(buildDir, "totalMemoryUsed.txt").text = heap.used
     }
 }
 

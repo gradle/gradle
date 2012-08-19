@@ -32,11 +32,7 @@ public class PerformanceTestRunner {
     int accuracyMs
     List<String> gradleOpts
     List<String> tasksToRun = ['clean', 'build']
-    DataCollector dataCollector = new DataCollector() {
-        void collect(File testProjectDir, MeasuredOperation operation) {
-            //no op
-        }
-    }
+    DataCollector dataCollector = new MemoryInfoCollector(outputFileName: "build/totalMemoryUsed.txt")
 
     PerformanceResults results
 
@@ -82,6 +78,7 @@ public class PerformanceTestRunner {
         if (gradleOpts) {
             executer.withGradleOpts(gradleOpts as String[])
         }
+        executer.withUserHomeDir(current.userHomeDir)
         return executer.withArguments('-u').inDirectory(projectDir).withTasks(tasksToRun)
     }
 }
