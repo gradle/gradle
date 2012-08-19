@@ -29,9 +29,9 @@ public interface DaemonStateControl {
     void stopAsSoonAsIdle();
 
     /**
-     * @return returns false if the daemon was already requested to stop
+     * Forcefully stops the daemon. Does not wait until the daemon is idle. Does not block until the stop has completed.
      */
-    boolean requestStop();
+    void requestStop();
 
     /**
      * Runs the given command. At the completion of the command, if {@link #stopAsSoonAsIdle()} was previously called, this method will block while the daemon stops.

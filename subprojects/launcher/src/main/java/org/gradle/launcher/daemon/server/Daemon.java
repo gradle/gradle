@@ -94,7 +94,6 @@ public class Daemon implements Stoppable {
             if (stateCoordinator != null) {
                 throw new IllegalStateException("cannot start daemon as it is already running");
             }
-            
 
             // Get ready to accept connections, but we are assuming that no connections will be established
             // because we have not yet advertised that we are open for business by entering our address into
