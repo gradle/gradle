@@ -170,12 +170,10 @@ public class DaemonMain extends EntryPoint {
         return daemon;
     }
 
-    private void redirectOutputsAndInput(OutputStream log) {
+    private void redirectOutputsAndInput(PrintStream printStream) {
         this.originalOut = System.out;
         this.originalErr = System.err;
         //InputStream originalIn = System.in;
-
-        PrintStream printStream = new PrintStream(log, true);
 
         System.setOut(printStream);
         System.setErr(printStream);
