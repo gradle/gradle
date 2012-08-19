@@ -24,10 +24,14 @@ public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implem
     private String sourceCompatibility;
     private String targetCompatibility;
     private File dependencyCacheDir;
-    private final CompileOptions compileOptions = new CompileOptions();
+    private CompileOptions compileOptions;
 
     public CompileOptions getCompileOptions() {
         return compileOptions;
+    }
+
+    public void setCompileOptions(CompileOptions compileOptions) {
+        this.compileOptions = compileOptions;
     }
 
     public File getDependencyCacheDir() {

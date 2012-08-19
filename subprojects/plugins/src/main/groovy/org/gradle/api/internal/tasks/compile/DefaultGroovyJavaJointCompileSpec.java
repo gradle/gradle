@@ -21,11 +21,15 @@ import org.gradle.api.tasks.compile.GroovyCompileOptions;
 import java.io.File;
 
 public class DefaultGroovyJavaJointCompileSpec extends DefaultJavaCompileSpec implements GroovyJavaJointCompileSpec {
-    private final GroovyCompileOptions compileOptions = new GroovyCompileOptions();
+    private GroovyCompileOptions compileOptions;
     private Iterable<File> groovyClasspath;
 
     public GroovyCompileOptions getGroovyCompileOptions() {
         return compileOptions;
+    }
+
+    public void setGroovyCompileOptions(GroovyCompileOptions compileOptions) {
+        this.compileOptions = compileOptions;
     }
 
     public Iterable<File> getGroovyClasspath() {

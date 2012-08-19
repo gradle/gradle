@@ -22,11 +22,15 @@ import org.gradle.api.tasks.scala.ScalaCompileOptions;
 import java.io.File;
 
 public class DefaultScalaJavaJointCompileSpec extends DefaultJavaCompileSpec implements ScalaJavaJointCompileSpec {
-    private final ScalaCompileOptions options = new ScalaCompileOptions();
+    private ScalaCompileOptions options;
     private Iterable<File> scalaClasspath;
 
     public ScalaCompileOptions getScalaCompileOptions() {
         return options;
+    }
+
+    public void setScalaCompileOptions(ScalaCompileOptions options) {
+        this.options = options;
     }
 
     public Iterable<File> getScalaClasspath() {

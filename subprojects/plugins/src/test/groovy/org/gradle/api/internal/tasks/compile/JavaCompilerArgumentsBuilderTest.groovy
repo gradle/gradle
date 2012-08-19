@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.tasks.compile
 
+import org.gradle.api.tasks.compile.CompileOptions
 import spock.lang.Specification
 import org.gradle.api.JavaVersion
 import org.gradle.api.internal.file.collections.SimpleFileCollection
@@ -22,6 +23,10 @@ import org.gradle.api.internal.file.collections.SimpleFileCollection
 class JavaCompilerArgumentsBuilderTest extends Specification {
     def spec = new DefaultJavaCompileSpec()
     def builder = new JavaCompilerArgumentsBuilder(spec)
+
+    def setup() {
+        spec.compileOptions = new CompileOptions()
+    }
 
     def "generates options for an unconfigured spec"() {
         expect:

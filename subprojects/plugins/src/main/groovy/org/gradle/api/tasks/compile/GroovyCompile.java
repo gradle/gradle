@@ -43,7 +43,8 @@ import java.util.List;
 public class GroovyCompile extends AbstractCompile {
     private Compiler<GroovyJavaJointCompileSpec> compiler;
     private FileCollection groovyClasspath;
-    private final GroovyJavaJointCompileSpec spec = new DefaultGroovyJavaJointCompileSpec();
+    private final CompileOptions compileOptions = new CompileOptions();
+    private final GroovyCompileOptions groovyCompileOptions = new GroovyCompileOptions();
     private final TemporaryFileProvider tempFileProvider;
     
     public GroovyCompile() {
@@ -63,12 +64,15 @@ public class GroovyCompile extends AbstractCompile {
     protected void compile() {
         List<File> taskClasspath = new ArrayList<File>(getGroovyClasspath().getFiles());
         throwExceptionIfTaskClasspathIsEmpty(taskClasspath);
+        DefaultGroovyJavaJointCompileSpec spec = new DefaultGroovyJavaJointCompileSpec();
         spec.setSource(getSource());
         spec.setDestinationDir(getDestinationDir());
         spec.setClasspath(getClasspath());
         spec.setSourceCompatibility(getSourceCompatibility());
         spec.setTargetCompatibility(getTargetCompatibility());
         spec.setGroovyClasspath(taskClasspath);
+        spec.setCompileOptions(compileOptions);
+        spec.setGroovyCompileOptions(groovyCompileOptions);
         if (spec.getGroovyCompileOptions().getStubDir() == null) {
             File dir = tempFileProvider.newTemporaryFile("groovy-java-stubs");
             dir.mkdirs();
@@ -92,7 +96,7 @@ public class GroovyCompile extends AbstractCompile {
      */
     @Nested
     public GroovyCompileOptions getGroovyOptions() {
-        return spec.getGroovyCompileOptions();
+        return groovyCompileOptions;
     }
 
     /**
@@ -102,7 +106,7 @@ public class GroovyCompile extends AbstractCompile {
      */
     @Nested
     public CompileOptions getOptions() {
-        return spec.getCompileOptions();
+        return compileOptions;
     }
 
     /**

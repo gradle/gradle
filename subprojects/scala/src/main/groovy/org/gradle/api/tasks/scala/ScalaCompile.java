@@ -34,7 +34,8 @@ import org.gradle.api.internal.tasks.compile.Compiler;
 public class ScalaCompile extends AbstractCompile {
     private FileCollection scalaClasspath;
     private Compiler<ScalaJavaJointCompileSpec> compiler;
-    private final ScalaJavaJointCompileSpec spec = new DefaultScalaJavaJointCompileSpec();
+    private final CompileOptions compileOptions = new CompileOptions();
+    private final ScalaCompileOptions scalaCompileOptions = new ScalaCompileOptions();
 
     public ScalaCompile() {
         Compiler<ScalaCompileSpec> scalaCompiler = new AntScalaCompiler(getServices().get(IsolatedAntBuilder.class));
@@ -67,7 +68,7 @@ public class ScalaCompile extends AbstractCompile {
      */
     @Nested
     public ScalaCompileOptions getScalaCompileOptions() {
-        return spec.getScalaCompileOptions();
+        return scalaCompileOptions;
     }
 
     /**
@@ -75,18 +76,21 @@ public class ScalaCompile extends AbstractCompile {
      */
     @Nested
     public CompileOptions getOptions() {
-        return spec.getCompileOptions();
+        return compileOptions;
     }
 
     @Override
     protected void compile() {
         FileTree source = getSource();
+        DefaultScalaJavaJointCompileSpec spec = new DefaultScalaJavaJointCompileSpec();
         spec.setSource(source);
         spec.setDestinationDir(getDestinationDir());
         spec.setClasspath(getClasspath());
         spec.setScalaClasspath(getScalaClasspath());
         spec.setSourceCompatibility(getSourceCompatibility());
         spec.setTargetCompatibility(getTargetCompatibility());
+        spec.setCompileOptions(compileOptions);
+        spec.setScalaCompileOptions(scalaCompileOptions);
         compiler.execute(spec);
     }
 }
