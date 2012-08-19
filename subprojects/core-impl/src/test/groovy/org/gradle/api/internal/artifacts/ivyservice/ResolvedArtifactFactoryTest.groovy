@@ -34,7 +34,7 @@ class ResolvedArtifactFactoryTest extends Specification {
         File file = new File("something.jar")
 
         given:
-        artifact.extraAttributes >> [:]
+        artifact.qualifiedExtraAttributes >> [:]
 
         when:
         ResolvedArtifact resolvedArtifact = factory.create(resolvedDependency, artifact, artifactResolver)

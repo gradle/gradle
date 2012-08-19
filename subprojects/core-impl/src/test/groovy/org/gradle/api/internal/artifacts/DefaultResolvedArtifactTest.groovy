@@ -65,7 +65,7 @@ class DefaultResolvedArtifactTest extends Specification {
         _ * artifact.name >> name
         _ * artifact.type >> type
         _ * artifact.ext >> extension
-        _ * artifact.extraAttributes >> attributes
+        _ * artifact.qualifiedExtraAttributes >> attributes
         return artifact
     }
 

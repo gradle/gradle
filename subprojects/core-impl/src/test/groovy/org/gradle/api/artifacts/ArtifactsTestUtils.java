@@ -38,6 +38,8 @@ public class ArtifactsTestUtils {
             will(returnValue(extension));
             allowing(artifactStub).getExtraAttributes();
             will(returnValue(Collections.emptyMap()));
+            allowing(artifactStub).getQualifiedExtraAttributes();
+            will(returnValue(Collections.emptyMap()));
             allowing(artifactStub).getExtraAttribute(with(org.hamcrest.Matchers.notNullValue(String.class)));
             will(returnValue(null));
         }});

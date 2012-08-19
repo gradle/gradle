@@ -46,7 +46,7 @@ public class DefaultResolvedArtifact implements ResolvedArtifact {
         this.name = artifact.getName();
         this.type = artifact.getType();
         this.ext = artifact.getExt();
-        this.extraAttributes = new HashMap<String, String>(artifact.getExtraAttributes());
+        this.extraAttributes = new HashMap<String, String>(artifact.getQualifiedExtraAttributes());
         this.artifactSource = artifactSource;
     }
 
