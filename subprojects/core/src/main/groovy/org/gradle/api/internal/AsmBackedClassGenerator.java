@@ -21,7 +21,7 @@ import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.util.ReflectionUtil;
+import org.gradle.util.JavaMethod;
 import org.objectweb.asm.*;
 import org.objectweb.asm.Type;
 
@@ -30,6 +30,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AsmBackedClassGenerator extends AbstractClassGenerator {
+    private static final JavaMethod<ClassLoader,Class> DEFINE_CLASS_METHOD = JavaMethod.create(ClassLoader.class, Class.class, "defineClass", String.class, byte[].class, Integer.TYPE, Integer.TYPE);
+
     @Override
     protected <T> ClassBuilder<T> start(Class<T> type) {
         return new ClassBuilderImpl<T>(type);
@@ -785,9 +787,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             visitor.visitEnd();
 
             byte[] bytecode = visitor.toByteArray();
-            return (Class<T>) ReflectionUtil.invoke(type.getClassLoader(), "defineClass", new Object[]{
-                    typeName, bytecode, 0, bytecode.length
-            });
+            return DEFINE_CLASS_METHOD.invoke(type.getClassLoader(), typeName, bytecode, 0, bytecode.length);
         }
     }
 
