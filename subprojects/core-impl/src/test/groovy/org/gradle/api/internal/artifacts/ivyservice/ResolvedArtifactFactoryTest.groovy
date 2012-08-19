@@ -33,6 +33,9 @@ class ResolvedArtifactFactoryTest extends Specification {
         ResolvedDependency resolvedDependency = Mock()
         File file = new File("something.jar")
 
+        given:
+        artifact.extraAttributes >> [:]
+
         when:
         ResolvedArtifact resolvedArtifact = factory.create(resolvedDependency, artifact, artifactResolver)
 

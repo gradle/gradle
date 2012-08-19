@@ -26,12 +26,9 @@ class DefaultResolvedArtifactTest extends Specification {
     final Factory artifactSource = Mock()
 
     def "uses extended attributes to determine classifier"() {
-        Artifact ivyArtifact = Mock()
+        Artifact ivyArtifact = ivyArtifact("name", "type", "ext", ['m:classifier': 'classifier'])
         ResolvedDependency dependency = Mock()
         def artifact = new DefaultResolvedArtifact(dependency, ivyArtifact, artifactSource)
-
-        given:
-        _ * ivyArtifact.getExtraAttribute("m:classifier") >> "classifier"
 
         expect:
         artifact.classifier == 'classifier'
