@@ -25,23 +25,6 @@ Gradle team would like to thank the community for such an outstanding contributi
 For more information on available features and the usage please refer to the
 [user guide](http://gradle.org/docs/nightly/userguide/bootstrap_plugin.html).
 
-### Documentation facelift
-
-Our documentation has received a facelift to match our new style. Check out the new look [DSL Reference](dsl/index.html) and [User Guide](userguide/userguide.html).
-
-The [DSL Reference](dsl/index.html) now indicates which features are deprecated or experimental.
-
-### HTTP requests now provide Gradle related version information
-
-Gradle, the Gradle Wrapper and the Gradle Tooling API now provide version information in the `User-Agent` header when HTTP resources are accessed.
-Especially for larger corporations, this can be very helpful to gather information about which versions of Gradle are used in which environment. The `User-Agent` header now includes information about
-
-* the used Gradle application (Gradle, Gradle Wrapper or Gradle Tooling API) + Version
-* the Operating System (name, version, architecture) 
-* the Java version (vendor, version)
-
-An example for a Gradle generated user-agent string: "**Gradle/1.2 (Mac OS X;10.8;amd64) (Oracle Corporation;1.7.0_04-ea;23.0-b12)**"
-
 ### Experimental support for building projects in parallel
 
 Over the coming releases, we'll be adding support for parallel execution of independent projects in a multi-project build. By building separate projects in parallel, Gradle
@@ -56,6 +39,32 @@ coupling with execution-time decoupling. At this time there are no checks implem
 projects using the new parallel executor.
 
 **This feature is pre-alpha and highly experimental. Many multi-project builds will behave unexpectedly when run using parallel project execution.**
+
+### Documentation facelift
+
+Our documentation has received a facelift to match our new style. Check out the new look [DSL Reference](dsl/index.html) and [User Guide](userguide/userguide.html).
+
+The [DSL Reference](dsl/index.html) now indicates which features are deprecated or experimental.
+
+### HTTP requests now provide Gradle related version information
+
+Gradle, the Gradle Wrapper and the Gradle Tooling API now provide version information in the `User-Agent` header when HTTP resources are accessed.
+Especially for larger organisations, this can be very helpful to gather information about which versions of Gradle are used in which environment.
+
+#### What information is provided?
+
+The `User-Agent` header now includes information about
+
+* The used Gradle application (Gradle, Gradle Wrapper or Gradle Tooling API) + Version
+* The Operating System (name, version, architecture)
+* The Java version (vendor, version)
+
+An example for a Gradle generated user-agent string: "**Gradle/1.2 (Mac OS X;10.8;amd64) (Oracle Corporation;1.7.0_04-ea;23.0-b12)**"
+
+### Uses less heap space
+
+We've continued to improve our dependency resolution engine, so that it now requires much less heap space. A moderately sized multi-project build can
+expect to see a 20-25% reduction in heap usage thanks to these improvements.
 
 ## Upgrading from Gradle 1.1
 
@@ -72,7 +81,6 @@ use a directory listing only.
 
 Thanks to the various improvements we've made to make dependency management must more efficient, there is no longer a performance penalty for searching
 for the `maven-metadata.xml` file. This means this property is no longer useful and will be removed in Gradle 2.0.
-
 
 #### Task class renames
 
