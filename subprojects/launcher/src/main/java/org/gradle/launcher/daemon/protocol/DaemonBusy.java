@@ -16,9 +16,10 @@
 
 package org.gradle.launcher.daemon.protocol;
 
+import java.io.Serializable;
+
 /**
- * Returned when the daemon is busy running a different command. The command that the
- * daemon is running is the value of this result.
+ * Returned when the daemon is busy running a different command.
  */
-public class DaemonBusy {
+public class DaemonBusy implements Serializable {
 }

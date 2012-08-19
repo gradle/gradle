@@ -32,14 +32,16 @@ class DaemonStateCoordinatorTest extends Specification {
     def coordinator = new DaemonStateCoordinator(executor, onStart, onStartCommand, onFinishCommand, onStop, onStopRequested)
 
     def "requesting stop stops asynchronously"() {
+        given:
+        coordinator.start()
+
         expect:
         !coordinator.stopped
 
         when:
-        def passOne = coordinator.requestStop()
+        coordinator.requestStop()
 
         then:
-        passOne == true
         coordinator.stoppingOrStopped
         !coordinator.stopped
         1 * onStopRequested.run()
@@ -55,16 +57,18 @@ class DaemonStateCoordinatorTest extends Specification {
         0 * _._
 
         when:
-        def passTwo = coordinator.requestStop()
+        coordinator.requestStop()
 
         then:
-        passTwo == false
         coordinator.stoppingOrStopped
         coordinator.stopped
-        0 *_._
+        0 * _._
     }
 
     def "stopping lifecycle"() {
+        given:
+        coordinator.start()
+
         expect:
         !coordinator.stopped
 
@@ -81,7 +85,6 @@ class DaemonStateCoordinatorTest extends Specification {
 
         then:
         coordinator.stopped
-        1 * onStop.run()
         0 * _._
     }
 
