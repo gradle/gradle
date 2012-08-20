@@ -43,6 +43,25 @@ class PerformanceTest extends Specification {
         "lotDependencies" | 5    | 1000
     }
 
+    @Unroll("Project '#testProject' up-to-date build")
+    def "build"() {
+        expect:
+        def result = new PerformanceTestRunner(testProject: testProject,
+                tasksToRun: ['build'],
+                runs: runs,
+                warmUpRuns: 1,
+                accuracyMs: accuracyMs
+        ).run()
+        result.assertCurrentReleaseIsNotSlower()
+        result.assertMemoryUsed(0.01)
+
+        where:
+        testProject       | runs | accuracyMs
+        "small"           | 5    | 500
+        "multi"           | 5    | 1000
+        "lotDependencies" | 5    | 1000
+    }
+
     @Unroll("Project '#testProject' dependency report")
     def "dependency report"() {
         expect:
