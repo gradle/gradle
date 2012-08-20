@@ -25,10 +25,16 @@ import org.gradle.internal.os.OperatingSystem
 apply plugin: 'base'
 apply plugin: 'pegdown'
 apply plugin: 'jsoup'
+apply plugin: 'javascript-base'
+
+repositories {
+    add javaScript.googleApisRepository
+}
 
 configurations {
     userGuideStyleSheets
     userGuideTask
+    jquery
 }
 
 dependencies {
@@ -39,6 +45,7 @@ dependencies {
     userGuideTask 'xslthl:xslthl:2.0.1@jar'
 
     userGuideStyleSheets 'docbook:docbook-xsl:1.75.2@zip'
+    jquery "jquery:jquery.min:1.8.0@js"
 }
 
 ext {

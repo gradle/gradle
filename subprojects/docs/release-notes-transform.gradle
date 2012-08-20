@@ -18,7 +18,7 @@ decorateReleaseNotes {
     ext {
         baseStyleFile = file("$cssFiles.dir/base.css")
         releaseNotesStyleFile = file("$cssFiles.dir/release-notes.css")
-        jqueryFile = file("src/docs/release/content/jquery-1.7.2-min.js")
+        jqueryFile = configurations.jquery.singleFile
         scriptFile = file("src/docs/release/content/script.js")
     }
     
