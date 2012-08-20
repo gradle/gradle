@@ -42,8 +42,8 @@ class ClassPageRenderer extends PageRenderer<ClassTestResults> {
             tr = append(table, "tr");
             Element td = appendWithText(tr, "td", test.getName());
             td.setAttribute("class", test.getStatusClass());
-            appendWithText(td, "td", test.getFormattedDuration());
-            td = appendWithText(td, "td", test.getFormattedResultType());
+            appendWithText(tr, "td", test.getFormattedDuration());
+            td = appendWithText(tr, "td", test.getFormattedResultType());
             td.setAttribute("class", test.getStatusClass());
         }
     }

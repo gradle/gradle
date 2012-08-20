@@ -41,10 +41,10 @@ class PackagePageRenderer extends PageRenderer<PackageTestResults> {
             Element td = append(tr, "td");
             td.setAttribute("class", testClass.getStatusClass());
             appendLink(td, String.format("%s.html", testClass.getName()), testClass.getSimpleName());
-            appendWithText(td, "td", testClass.getTestCount());
-            appendWithText(td, "td", testClass.getFailureCount());
-            appendWithText(td, "td", testClass.getFormattedDuration());
-            td = appendWithText(td, "td", testClass.getFormattedSuccessRate());
+            appendWithText(tr, "td", testClass.getTestCount());
+            appendWithText(tr, "td", testClass.getFailureCount());
+            appendWithText(tr, "td", testClass.getFormattedDuration());
+            td = appendWithText(tr, "td", testClass.getFormattedSuccessRate());
             td.setAttribute("class", testClass.getStatusClass());
         }
     }

@@ -53,10 +53,10 @@ class OverviewPageRenderer extends PageRenderer<AllTestResults> {
             Element td = append(tr, "td");
             td.setAttribute("class", testPackage.getStatusClass());
             appendLink(td, String.format("%s.html", testPackage.getName()), testPackage.getName());
-            appendWithText(td, "td", testPackage.getTestCount());
-            appendWithText(td, "td", testPackage.getFailureCount());
-            appendWithText(td, "td", testPackage.getFormattedDuration());
-            td = appendWithText(td, "td", testPackage.getFormattedSuccessRate());
+            appendWithText(tr, "td", testPackage.getTestCount());
+            appendWithText(tr, "td", testPackage.getFailureCount());
+            appendWithText(tr, "td", testPackage.getFormattedDuration());
+            td = appendWithText(tr, "td", testPackage.getFormattedSuccessRate());
             td.setAttribute("class", testPackage.getStatusClass());
         }
     }
@@ -76,10 +76,10 @@ class OverviewPageRenderer extends PageRenderer<AllTestResults> {
                 Element td = append(tr, "td");
                 td.setAttribute("class", testClass.getStatusClass());
                 appendLink(td, String.format("%s.html", testClass.getName()), testClass.getName());
-                appendWithText(td, "td", testClass.getTestCount());
-                appendWithText(td, "td", testClass.getFailureCount());
-                appendWithText(td, "td", testClass.getFormattedDuration());
-                td = appendWithText(td, "td", testClass.getFormattedSuccessRate());
+                appendWithText(tr, "td", testClass.getTestCount());
+                appendWithText(tr, "td", testClass.getFailureCount());
+                appendWithText(tr, "td", testClass.getFormattedDuration());
+                td = appendWithText(tr, "td", testClass.getFormattedSuccessRate());
                 td.setAttribute("class", testClass.getStatusClass());
             }
         }
