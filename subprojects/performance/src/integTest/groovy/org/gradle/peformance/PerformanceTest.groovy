@@ -95,7 +95,7 @@ class PerformanceTest extends Specification {
         testProject       | runs | accuracyMs
         "small"           | 5    | 500
         "multi"           | 5    | 1000
-        "lotDependencies" | 5    | 1000
+//        "lotDependencies" | 5    | 1000
     }
 
     @Unroll("Project '#testProject' idea")
@@ -114,6 +114,6 @@ class PerformanceTest extends Specification {
         testProject       | runs | accuracyMs
         "small"           | 5    | 500
         "multi"           | 5    | 1000
-        "lotDependencies" | 5    | 1000
+//        "lotDependencies" | 5    | 1000
     }
 }

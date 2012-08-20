@@ -47,7 +47,7 @@ task largeMulti(type: ProjectGeneratorTask, description: 'Generates a large mult
 }
 
 task lotDependencies(type: ProjectGeneratorTask, description: 'Generates a small multi-project build with a large Dependency Graph'){
-    projects = 25
+    projects = 5
     sourceFiles = 100
 
     dependencyGraph {
