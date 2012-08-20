@@ -24,7 +24,12 @@ testCompile - Classpath for compiling the test sources.
      \--- foo:bar:3.0 [default] (*)
 </pre>
 
-2. Consider a new report that focuses on the version conflict information.
+2. Consider a new console report that traverses the graph the opposite way.
+
+Not sure how to call this report.
+The idea is to traverse the graph the other way and print information who depends on a given dependency.
+This report is useful to track where the given version of some dependency was picked up from in case of conflict resolution.
+This report could drive some conveniences to our DependencyGraph API.
 
 # Integration test coverage
 
@@ -42,6 +47,8 @@ testCompile - Classpath for compiling the test sources.
     root->foo:2.0->bar:2.5
     root->bar:1.5
 
+* include maven snapshots
+
 * avoid regression of current features:
     * subtree is omitted (*)
     * the configurations are shown
@@ -54,9 +61,8 @@ testCompile - Classpath for compiling the test sources.
     3. leave the codebase in a better state than it was
         (kinda obvious, but wanted to point out that we should end up with better internal model, some clean-up with legacy ivy impl, etc.)
 2. Be cautious with DependencyGraphBuilder - it's most complex and it is the heart of resolution.
-3. I plan to create a working prototype that incurs small changes in the internal types (and no changes in public types).
-    This allows me to understand the problem and required abstractions better. I plan to drive the requirement top-down.
-    This is also a nice incremental step.
+3. We should not incur increased memory usage - try to serialize the dependency graph and make it available on demand.
+    Make sure it does not make things slower.
 
 ## Potential approaches to ResolvedDependency
 
@@ -65,25 +71,8 @@ testCompile - Classpath for compiling the test sources.
      If not listener provided then we graph builder works as usual
 2. Make the ResolvedDependency graph work based on the new model. This will require some kind of an adapter.
 
-## Potential stories:
+# Open issues / ideas
 
-* Add performance test coverage for builds with complex dependency graph.
-* Make some changes to the command-line dependency report, making use of new internal APIs.
-* Expose the dependency graph via a public experimental API.
-* Add an HTML dependency report.
-
-# Open issues
-
-1. The plan/goals for the lower-level API.
-2. The design of the new dependency graph. Rough plan from the email thread:
-
->     - The replacement for ResolvedDependency should be reachable from ResolvedConfiguration, and would eventually replace getFirstLevelModuleDependencies() plus the corresponding stuff on LenientConfiguration.
->     - It would be a graph, with the nodes representing resolved module versions (using ResolvedModuleVersion or some subtype). The edges would represent resolved dependencies (using some new interface).
->     - The nodes need to provide the module version id, plus the set of outgoing dependencies, plus the set of artefacts for the module. The edges need the above attributes, i.e. the requested module version, a set of references to the module versions that matched, and a reference to the module version that was selected.
->     - We might think about making the nodes also carry resolution failure information, so that unresolved dependencies end up in the appropriate place in the graph.
->     - Later, we'd add some conveniences to ResolvedConfiguration to do some traversal of this graph in interesting ways - find me all the module versions, find me all the artefacts, find me all the files, find me all the unresolved dependencies, and so on.
->     - I would also think about wrapping access to the graph in some kind of action
-
-# Notes
-
-This feature is sponsored by client.
+1. Model the unresolved dependencies - how to carry the resolution failure?
+2. Later, we'd add some conveniences to ResolvedConfiguration to do some traversal of this graph in interesting ways - find me all the module versions, find me all the artefacts, find me all the files, find me all the unresolved dependencies, and so on.
+3. I would also think about wrapping access to the graph in some kind of action
