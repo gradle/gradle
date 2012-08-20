@@ -50,13 +50,51 @@ class PerformanceTest extends Specification {
                 tasksToRun: ['dependencyReport'],
                 runs: runs,
                 warmUpRuns: 1,
-                accuracyMs: 1000
+                accuracyMs: accuracyMs
         ).run()
         result.assertCurrentReleaseIsNotSlower()
         result.assertMemoryUsed(0.05)
 
         where:
-        testProject       | runs
-        "lotDependencies" | 3
+        testProject       | runs | accuracyMs
+        "lotDependencies" | 3    | 3000
+    }
+
+    @Unroll("Project '#testProject' eclipse")
+    def "eclipse"() {
+        expect:
+        def result = new PerformanceTestRunner(testProject: testProject,
+                tasksToRun: ['eclipse'],
+                runs: runs,
+                warmUpRuns: 1,
+                accuracyMs: accuracyMs
+        ).run()
+        result.assertCurrentReleaseIsNotSlower()
+        result.assertMemoryUsed(0.01)
+
+        where:
+        testProject       | runs | accuracyMs
+        "small"           | 5    | 500
+        "multi"           | 5    | 1000
+        "lotDependencies" | 5    | 1000
+    }
+
+    @Unroll("Project '#testProject' idea")
+    def "idea"() {
+        expect:
+        def result = new PerformanceTestRunner(testProject: testProject,
+                tasksToRun: ['idea'],
+                runs: runs,
+                warmUpRuns: 1,
+                accuracyMs: accuracyMs
+        ).run()
+        result.assertCurrentReleaseIsNotSlower()
+        result.assertMemoryUsed(0.01)
+
+        where:
+        testProject       | runs | accuracyMs
+        "small"           | 5    | 500
+        "multi"           | 5    | 1000
+        "lotDependencies" | 5    | 1000
     }
 }

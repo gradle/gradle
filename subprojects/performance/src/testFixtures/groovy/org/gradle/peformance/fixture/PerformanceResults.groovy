@@ -74,7 +74,7 @@ Build stats. $displayName:
     }
 
     private Number percentChange(Number current, Number previous) {
-        def result = 100 * (previous-current) / previous
+        def result = (100 * (previous-current) / previous).setScale(2, RoundingMode.HALF_UP)
         return result
     }
 
