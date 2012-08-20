@@ -22,30 +22,18 @@ but there are other interesting outcomes that users may want information about. 
 * Analysing code (where the same classes analysed? was the configuration the same? where the results the same?)
 * A “build run” - e.g. a clean build that compiles, analyses, tests (does this take an equivalent amount of time?)
 
----
-
-**Questions:**
-
-* Do we want to include things like compile classpaths for compilation and runtime classpaths for test execution?
-
-Changes in these things may not necessarily produce different final outcomes. For example, the compile may succeed and the tests may pass but if there is
-an unexpected and unintentional change in a classpath that is something that you are likely to want to know about.
-
 ## Comparison
 
-Given two sets of outcomes, both individual outcomes and the set as an entity will need to be compared. 
+Given two sets of outcomes, both individual outcomes and the set as an entity will need to be compared. Outcomes that are logically equivalent shall be compared to each other. For example, given that both builds produce the same logical artifact, this artifact as produced by each build can be compared. The sets of outcomes will be compared to identify outcomes that only exist in (or are missing from, depending on your perspective) one of the sets.
 
-Outcomes that are logically equivalent shall be compared to each other. For example, both builds produce the same logical artifact. These outcomes can be 
-compared to check they are equivalent. However, the goal may not be absolute equivalence but explainable difference. Some examples of explainable difference are:
+However, the goal may not be absolute equivalence but explainable difference. Some examples of explainable difference are:
 
 * Embedded timestamps in outputs (e.g. Groovy classfiles, test result files)
 * Environmental context (e.g. system properties in test result files)
 * Acceptable path differences
 
 This may influence the information display to be less focussed on a binary yes/no and more focussed on illuminating what the differences are
-and providing some insight on the risk of the differences.
-
-The sets of outcomes will need to be compared. If one build has an outcome that the other does not, that will need to be indicated to the user.
+and providing some insight on the risk of the differences. It will be possible to compensate for expected difference by transforming the outcomes before comparison, usually to remove content that is expected to be different.
 
 # Modelling Build Outcomes
 
@@ -57,7 +45,7 @@ do less automatically. That is, the user may need to specify some or all of the 
 
 Even for the scenario where we can completely generate the build outcomes model automatically, we _may_ still require a level of user intervention.
 For example, the user may not wish to compare test execution between two models because they are irreconcilably different and this has been accepted.
-However, this may be a function of the comparison and not of the input models.
+This should be a function of the comparison and not of the input models.
 
 ## Modelling the relationship between two models
 
@@ -72,18 +60,21 @@ comparison, the association may not be inferrable or may only be weakly inferrab
 
 ## Upgrading to a new Gradle version
 
-In this case, a single Gradle project “executed” by two different Gradle versions is being compared. This is likely to be undertaken by someone wanting to upgrade the Gradle version used by their project and are seeking reassurance
-that things will be ok after they upgrade.
+This functionality can be used by users to gain confidence in a Gradle upgrade. This should lower the cost/risk for users to “stay current”, which is something we want to encourage.
+
+Users should be able to use this functionality to gain confidence that an upgrade to a newer Gradle version will not “break their build”. We also want to require as
+little user intervention/configuration as possible to perform this.
 
 ### Upgrades that require changes
 
 The potential upgrade may include changes to the configuration of the build. New Gradle versions introduce deprecations and changes, and as such
 users will want to be able to verify that the build functions the same after making any accommodations for changes in the new version.
 
+This is effectively a variant of the case below, where the build executions are executed with different versions.
+
 ## Making speculative changes to a Gradle build
 
-In this case, a single Gradle project is being compared before/after some change is made to the build configuration, which does not include a change
-in the Gradle version used to build. This is likely to be undertaken by someone wanting to “test” a change to the build.
+In this case, a single Gradle project is being compared before/after some change is made to the build configuration. This is likely to be undertaken by someone wanting to “test” a change to the build.
 
 This is largely the same as the “Upgrading Gradle” case, except there may be intentional differences. That is, there may be expected difference
 and the difference is what is being verified. There will also be the case of wanting to make changes that have no functional impact (e.g. removing
@@ -91,40 +82,30 @@ redundant configuration).
 
 ## Migrating from another tool to Gradle
 
-In this case, a project is looking to move from some tool to Gradle. This feature can be used to illuminate the process and potentially provide a
-checkpoint of when it is complete.
+In this case, a project is looking to move from some tool to Gradle. This feature could be used to verify that the migration is “complete” (i.e. performed when
+the replacement Gradle build is considerered to be “done”) or can be used regularly during the development of the replacement build to track/verify the progress.
 
 Ideally, the comparison phase will be agnostic to the “source” of the build outcome model. That is, the comparison phase compares like outcomes
  and functions can be modelled in a general way that is source agnostic. For example, the creation of a JAR archive can be modelled in a way that is
- not unique to the build system that created it. Therefore, working with a different system is largely about constructing a build function model for
+ not unique to the build system that created it. Therefore, working with a different system is largely about constructing a build outcome model for
  that system/build.
 
-Another difference may be the lifecycle of the comparison process. For a Gradle-to-Gradle “migration”, the timeframe is likely to be short as
-there is not likely to be significant development involved. For a NonGradle-to-Gradle “migration”, there may be significant development involved
-(i.e. to develop the Gradle build) which would imply the comparison will be run over time. The user may wish to use this feature to track
-the progress of the development of the Gradle build by periodically running the comparison.
+In this case, there is likely to be a reasonable amount of configuration required by the user. Where the outcomes cannot be inferred, the user will have to
+specify what they are and will have to associate them to the equivalent Gradle outcomes.
 
 ### Maven
 
-Given Maven's predictable operation and well defined model, it may be possible to generate a build function model automatically. Given that we
-intend to create functionality for interpreting a Maven model (to either port it to Gradle or integrate with it), this seems reasonable.
+Given Maven's predictable operation and well defined model, it may be possible infer the relevant build outcomes and associate them with the Gradle equivalent. We could just expect Maven's default output and allow the user to tune from there.
 
-There may still need to be manual intervention to deal with things like Maven plugins that we don't understand.
+If the Maven build is heavily customised, the user may need to back out of any of our inference.
 
 ### Ant
 
-Given Ant's lack of a model, generating a build outcome model for an Ant build automatically may not be possible. What we will do is guess that the Ant build has the 
-same outcomes as the build it is being compared to. 
-
-### Something else
-
-There should be a way to construct a build outcome model manually. Therefore, we could potential work with any system.
-
-This is not a high priority.
+Given Ant's lack of a model, generating a build outcome model for an Ant build automatically will not be possible.
 
 # The “result”
 
-It may not be desirable to “fail the comparison” if there is any difference; there may be some expected or accepted differences. However, it would be desirable to give the user a yes/no answer. This would mean that:
+It may not be desirable to “fail the comparison” if there is _any_ difference as there may be some expected or accepted differences. However, it would be desirable to give the user a yes/no answer. This would mean that:
 
 1. The goal *has* to be complete parity
 2. The expected differences are specifiable
@@ -134,22 +115,46 @@ The third option seems the most preferable.
 
 Detailed information can be presented as an HTML report.
 
-# What is to be compared
+# What is to be compared (i.e. outcomes)
 
-Initially, two types of outcomes will be compared:
+The majority of builds produce one or more file artifacts, and this is their primary purpose. The comparison functionality will revolve around comparing files. Furthermore, it is generally not practical to “see inside” a system other than Gradle. The only feasible means of communication with an “other” system is via the file system. 
+
+It may be desirable to compare things that are not naturally files. For the case where a system other than Gradle is involved, the strategy will be to have the other system serialise a representation of the outcome of interest to the file system for comparison. For example, the details of test execution could be compared by comparing JUnit XML output or internal compile classpaths can be compared by writing the classpath out to a text file with each entry to one line.
+
+For the case of Gradle to Gradle comparisons it may not be necessary to communicate via the filesystem. In this case, we can compare models returned by the tooling API if necessary. However, at least initially, we will only be interested in comparing things that are available via the filesystem.
 
 ## Archives
 
-The binary contents of archives will be compared and the individual contents. 
+In the initial version of this functionality, only the binary contents of archives will be compared and the individual contents. 
 
-It may be necessary to understand certain types of contents. For example, it may be necessary to compare .class files in a certain way to accommodate for volatile data (e.g. timestamps).
+Aspects to be compared are:
 
-## Test Execution
+* The “relative” path to the generated archive
+* Any archive metadata
+* The list of entries
+* The checksum of matching entries
+* Size (variant on above, but a good indicative value)
 
-Only the output of the execution will be considered. This includes:
+### Content-wise comparison
 
-* Which tests were executed
-* The results of each test
+Files can contain volatile information, that will always produce a difference when compared with a logically equivalent file. Files may contain things such as:
+
+* Timestamps
+* Environmental properties
+* Relative paths
+
+As such, it will be necessary to employ pluggable comparison strategies for different kinds of files. The strategy to use may be inferred from the file extension, but likely this will be insufficient for the majority of cases. The user must be given control of this, as it will not be possible for Gradle to automatically identify such expected differences automatically in all cases.
+
+There are two possible strategies that can be used to deal with this fact:
+
+1. Parsed comparison
+1. Filtered comparison
+
+A “parsed comparison” would involve effectively deserialising the file into an in memory representation that can be compared in a flexible way. A “filtered comparison” would involve transforming the file before comparison to _remove_ aspects that may be acceptably different.
+
+For text files, a filtered comparison would be reasonably easy to facilitate by allowing the user to provide regular expression based search/replace.
+
+There is a third option which is effectively a combination of the two. In this approach, the file is parsed and then a filtered version written back out. This could be used to deal with the fact that the Groovy compiler embeds timestamps into class files. The class file could be read with something like ASM, the timestamp field removed, and then written back to disk for conversion. The key difference is that in the end filesystem objects are compared instead of in memory objects.
 
 # Integration test coverage
 
@@ -211,20 +216,6 @@ The task accepts as configuration:
 * The filesystem location of the to-be-built Gradle project (defaults to current project)
 * The target Gradle version of the to-be-built Gradle project (default to version in use)
 * The invocation to use to build the outcomes (defaults to `assemble`)
-
---- 
-
-##### Questions
-
-**What snapshots the archives?**
-
-Does this task snapshot the archives to some kind of storage location (because a subsequent execution of the project in the same place could override files that we need for comparison)? Probably not. What to do here is going to be specific to each kind of outcome. 
-
-Another option would be to have the outcome objects do any inspection at this point and transfer the file system objects into in memory representations. This would avoid the overwrite issue, but will result in unnecessary work being performed as information about the outcome may never be required.
-
-**What madness do we unleash by building over the top?**
-
-In the Gradle upgrade case, this task will be re-executing the build that is running this task… twice (once for from version, once for to version). Besides outputs being overwritten by subsequent builds, it's not clear how feasible this is given that the different Gradle versions may write differen data structures to places like the `.gradle` directory.
 
 #### Gradle Comparison *domain object*
 
@@ -332,49 +323,37 @@ not have the necessary Tooling API models.
 
 #### “Manual mode” & Extensibility
 
-The entire comparison process (including build outcomes modelling etc.) is comprised of many types of objects. There are 3 general categories:
+There will be a public set of tools for constructing the “from” side of the comparison, and the assocations manually for complicated cases. The toolkit will consist
+of: 
 
-* Objects used to build a comparison specification
-* Objects used to compare two builds and model the result of the comparison
-* Objects to render the results into human friendly formats
+* A way of describing the *file based* outcomes of another system
+* A a way of associating the outcomes to Gradle outcomes on the “to” side
+* A way to specify content wise comparisons 
 
-The plugins and tasks listed above assemble these lower level pieces into meaningful arrangements. In the initial implementation, providing extensibility is not a design goal. For example, using one of the plugins above effective hard codes the types of outcomes that can be compared and rendered. 
+The plugins and tasks listed above will essentially be a preconfigured arrangement of these lower level pieces. In the initial implementation, providing extensibility is not a design goal. For example, using one of the plugins above effective hard codes the types of outcomes that can be compared and rendered. 
 
 The underlying lower level pieces will facilitate this kind of extensibility. The plugins and language extensions will not provide “hooks” into these extensibility aspects. For example, it will not be possible to “register” a new kind of outcome to be compared when using the plugins. This may change over time.
 
 It will be possible to use the functionality in a kind of manual mode. That is, you get no out of the box wiring from a Gradle plugin but can assemble and extend
 the lower level pieces to suit your needs. Over time we may add sugary builders or something similar as language extensions to make this kind of manual mode easier but this is not an immediate priority.
 
----
+# Examples of use of this functionality
 
-**What will be private?**
+The following section describes how this functionality will be ideally integrated by the user into a migration or upgrade.
 
-This assemble-it-yourself fallback may affect which classes are public. If we want to allow people to build their own comparison toolkit we may need to publicise more than what we would otherwise. Another option is to keep such classes internal and have users use the internal classes if they need the functionality, but that seems a cop out.
+## Gradle upgrade
 
-Yet another option would be to be extremely careful about exposing any *classes* to the public API, but expose many *interfaces*. This would also imply that we may need to expose some kind of service registry for getting at our implementations via interface.
+1. User identifies that there is a new Gradle version available
+1. User goes to to-upgrade Gradle project and executes: `gradle tryUpgrade [newGradleVersion=«latest»] [args=assemble]` (elements in [] are optional) 
+1. If there are no differences (i.e. the outputs are byte-for-byte equivalent) the user is told so, otherwise they are pointed to the created HTML report of the differences
+1. User inspects the differences and determines whether they are benign or not.
+1. If benign, the user updates the wrapper properties to use the new Gradle version*
 
-## Sources Inference
+* - In the future there may be a CLI shortcut for updating the wrapper. This would mean the user could do:
 
-A previously stated goal of this functionality is to require little user configuration. As such, the application of the plugin triggers inference of what the comparison should be of. For example, if a `build.xml` is found at the project root then it can be inferred that we are comparing an ant build to the Gradle build. If no trace of another build system can be found (that we understand), we can infer that we are comparing across Gradle versions.
-
-The user should be able to opt-out of the inference (manual configuration) or modify the result.
-
-## Gradle Model Inference
-
-The outcomes for a Gradle build can be inferred by inspecting the build model. This can be done in a cross version compatibility way by using the Tooling API.
-
-To do this, we must actually execute the build. This is because any task is free to modify the model during execution. Therefore the tooling API will
-have to provide the model of the outputs after the build has executed.
-
-## Maven Model Inference
-
-The model for a maven build can likely be inferred for a reasonably high percentage of real world maven builds by understanding the Maven model.
-
-## Ant Model Inference
-
-It will not be possible to infer what the Ant build will be doing. The strategy will be to assume that it does the same as the Gradle build that it is being compared to.
-
-If this is insufficent the user will have to use the provided DSL/API to build the model.
+1. `gradle tryUpgrade`
+1. inspect report
+1. `gradle upgradeWrapper`
 
 # Open issues
 
