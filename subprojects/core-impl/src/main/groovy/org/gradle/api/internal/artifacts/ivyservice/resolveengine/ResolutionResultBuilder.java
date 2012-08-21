@@ -19,6 +19,9 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
+import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
+import org.gradle.api.internal.artifacts.result.DefaultResolvedDependencyResult;
+import org.gradle.api.internal.artifacts.result.DefaultResolvedModuleVersionResult;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;

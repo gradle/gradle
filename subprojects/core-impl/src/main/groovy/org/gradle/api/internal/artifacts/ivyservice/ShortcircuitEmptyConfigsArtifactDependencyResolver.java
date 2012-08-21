@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.EmptyResolutionResult;
+import org.gradle.api.internal.artifacts.result.EmptyResolutionResult;
 import org.gradle.api.specs.Spec;
 
 import java.io.File;
