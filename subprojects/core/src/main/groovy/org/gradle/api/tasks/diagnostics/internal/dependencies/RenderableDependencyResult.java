@@ -57,7 +57,13 @@ public class RenderableDependencyResult implements RenderableDependency {
         return dependency.getSelected().getId();
     }
 
-    public String getConfiguration() {
+    public String getDescription() {
+        if (dependency.getSelectedConfigurations().isEmpty()) {
+            //TODO SF this needs to be revisited when implementing the 'shows unresolved dependencies' story.
+            //Currently I simply assume that when there are no selected configurations then the dependency is unresolved
+            //This is quite weak but it is simple and feels better than printing empty configurations.
+            return "UNRESOLVED";
+        }
         return Joiner.on(",").join(dependency.getSelectedConfigurations());
     }
 

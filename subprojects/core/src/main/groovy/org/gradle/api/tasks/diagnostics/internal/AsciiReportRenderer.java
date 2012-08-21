@@ -117,7 +117,7 @@ public class AsciiReportRenderer extends TextReportRenderer implements Dependenc
             public void execute(StyledTextOutput styledTextOutput) {
                 getTextOutput().text(resolvedDependency.getName());
                 StyledTextOutput infoStyle = getTextOutput().withStyle(Info);
-                infoStyle.format(" [%s]", resolvedDependency.getConfiguration());
+                infoStyle.format(" [%s]", resolvedDependency.getDescription());
 
                 if (!isFirstVisitOfDependencyInConfiguration) {
                     infoStyle.append(" (*)");

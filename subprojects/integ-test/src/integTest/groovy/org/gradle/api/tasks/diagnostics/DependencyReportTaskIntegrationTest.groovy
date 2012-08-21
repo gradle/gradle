@@ -63,11 +63,20 @@ class DependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         output.contains "(*) - dependencies omitted (listed previously)"
     }
 
-    def "fails if some dependencies are unresolved"() {
+    def "unresolved dependencies are shown and the task fails"() {
         given:
+        repo.module("foo", "bar", 1.0).dependsOn("i dont exist").publish()
+        repo.module("foo", "baz", 1.0).dependsOn("foo:bar:1.0").publish()
+
         file("build.gradle") << """
+            repositories {
+                maven { url "${repo.uri}" }
+            }
             configurations { foo }
-            dependencies { foo 'i:dont:exist' }
+            dependencies {
+              foo 'i:dont:exist'
+              foo 'foo:baz:1.0'
+            }
         """
 
         when:
@@ -75,6 +84,13 @@ class DependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         errorOutput.contains('Could not resolve all dependencies')
+        output.contains(toPlatformLineSeparators("""
+foo
++--- i:dont:exist [UNRESOLVED]
+\\--- foo:baz:1.0 [default]
+     \\--- foo:foo:bar:1.0:1.0 [UNRESOLVED]
+"""
+        ))
     }
 
     def "renders dependencies even if the configuration was already resolved"() {

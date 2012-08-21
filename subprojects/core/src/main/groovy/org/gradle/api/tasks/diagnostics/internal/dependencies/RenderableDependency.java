@@ -26,6 +26,6 @@ import java.util.Set;
 public interface RenderableDependency {
     ModuleVersionIdentifier getId();
     String getName();
-    String getConfiguration();
+    String getDescription();
     Set<RenderableDependency> getChildren();
 }

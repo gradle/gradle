@@ -107,12 +107,12 @@ class AsciiReportRendererTest extends Specification {
     private class SimpleDependency implements RenderableDependency {
         ModuleVersionIdentifier id
         String name
-        String configuration
+        String description
         Set<RenderableDependency> children = new LinkedHashSet<RenderableDependency>()
 
         SimpleDependency(String name, String config) {
             this.name = name
-            this.configuration = config
+            this.description = config
             this.id = new DefaultModuleVersionIdentifier(name, name, '1.0')
         }
     }

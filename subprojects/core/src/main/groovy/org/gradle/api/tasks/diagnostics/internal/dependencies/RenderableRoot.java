@@ -44,7 +44,7 @@ public class RenderableRoot implements RenderableDependency {
         return getId().toString();
     }
 
-    public String getConfiguration() {
+    public String getDescription() {
         return getId().toString();
     }
 
