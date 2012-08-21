@@ -16,16 +16,17 @@
 
 package org.gradle.api.internal.artifacts.result
 
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import spock.lang.Specification
 
+import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
+import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 import static org.gradle.util.Matchers.strictlyEqual
 
 /**
  * Created: 10/08/2012
  * @author Szczepan Faber
  */
-class DefaultResolvedModuleVersionResultTest extends Specification {
+class DefaultResolvedModuleVersionResultSpec extends Specification {
 
     def "equals"() {
         def module = newModule("group", "module", "version")
@@ -64,14 +65,10 @@ class DefaultResolvedModuleVersionResultTest extends Specification {
     }
 
     def newDependency(String group='a', String module='a', String version='1') {
-        new DefaultResolvedDependencyResult(newId(group, module, version), newId(group, module, version), [])
+        new DefaultResolvedDependencyResult(newSelector(group, module, version), newId(group, module, version), [])
     }
 
     def newModule(String group, String module, String version) {
         new DefaultResolvedModuleVersionResult(newId(group, module, version))
-    }
-
-    def newId(String group, String module, String version) {
-        new DefaultModuleVersionIdentifier(group, module, version)
     }
 }

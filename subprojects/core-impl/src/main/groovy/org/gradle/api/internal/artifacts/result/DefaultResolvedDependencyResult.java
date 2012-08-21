@@ -33,6 +33,9 @@ public class DefaultResolvedDependencyResult implements ResolvedDependencyResult
     private final SelectionId selection;
 
     public DefaultResolvedDependencyResult(ModuleVersionSelector requested, ModuleVersionIdentifier selected, Collection<String> configurations) {
+        assert requested != null;
+        assert selected != null;
+        assert configurations != null;
         selection = new SelectionId(requested, new DefaultResolvedModuleVersionResult(selected));
         this.configurations.addAll(configurations);
     }
@@ -54,7 +57,7 @@ public class DefaultResolvedDependencyResult implements ResolvedDependencyResult
     }
 
     //we merge the configurations into dependency results that have the same 'selectionId'
-    //(a combination of 'selected' and 'requested'
+    //(a combination of 'selected' and 'requested' )
     public Object getSelectionId() {
         return selection;
     }
@@ -106,7 +109,6 @@ public class DefaultResolvedDependencyResult implements ResolvedDependencyResult
                 + '}';
     }
 
-    //TODO SF tests
     @Override
     public boolean equals(Object o) {
         if (this == o) {
