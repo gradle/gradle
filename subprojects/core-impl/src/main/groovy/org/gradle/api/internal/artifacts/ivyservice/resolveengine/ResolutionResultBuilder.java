@@ -25,7 +25,6 @@ import org.gradle.api.internal.artifacts.result.DefaultResolvedModuleVersionResu
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 import static com.google.common.collect.Sets.newHashSet;
@@ -44,19 +43,18 @@ public class ResolutionResultBuilder implements ResolvedConfigurationListener {
         this.root = root;
     }
 
-    public void resolvedConfiguration(ResolvedConfigurationIdentifier id, List<DefaultResolvedDependencyResult> dependencies) {
+    public void resolvedConfiguration(ResolvedConfigurationIdentifier id, Iterable<DefaultResolvedDependencyResult> dependencies) {
         if (!deps.containsKey(id.getId())) {
             deps.put(id.getId(), new LinkedHashMap<Object, DefaultResolvedDependencyResult>());
         }
-        if (!dependencies.isEmpty()) {
-            //The configurations are merged into the dependencies that have the same selected+requested
-            Map<Object, DefaultResolvedDependencyResult> accumulatedDependencies = deps.get(id.getId());
-            for (DefaultResolvedDependencyResult d : dependencies) {
-                if (accumulatedDependencies.containsKey(d.toString())) {
-                    accumulatedDependencies.get(d.getSelectionId()).appendConfigurations(d.getSelectedConfigurations());
-                } else {
-                    accumulatedDependencies.put(d.getSelectionId(), d);
-                }
+
+        //The configurations are merged into the dependencies that have the same selected+requested
+        Map<Object, DefaultResolvedDependencyResult> accumulatedDependencies = deps.get(id.getId());
+        for (DefaultResolvedDependencyResult d : dependencies) {
+            if (accumulatedDependencies.containsKey(d.toString())) {
+                accumulatedDependencies.get(d.getSelectionId()).appendConfigurations(d.getSelectedConfigurations());
+            } else {
+                accumulatedDependencies.put(d.getSelectionId(), d);
             }
         }
     }

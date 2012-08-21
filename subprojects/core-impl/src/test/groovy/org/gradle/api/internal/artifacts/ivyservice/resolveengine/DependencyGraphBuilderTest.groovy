@@ -25,6 +25,7 @@ import org.apache.ivy.plugins.matcher.ExactPatternMatcher
 import org.apache.ivy.plugins.matcher.PatternMatcher
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact
+import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.EnhancedDependencyDescriptor
 import org.gradle.api.specs.Spec
@@ -70,6 +71,26 @@ class DependencyGraphBuilderTest extends Specification {
 
         then:
         modules(result) == ids(a, b, c)
+    }
+
+    def "correctly notifies the resolved configuration listener"() {
+        given:
+        def a = revision("a")
+        def b = revision("b")
+        def c = revision("c")
+        traverses root, a
+        traverses root, b
+        traverses a, c
+
+        when:
+        builder.resolve(configuration, resolveData, listener)
+
+        then:
+        1 * listener.start(new ResolvedConfigurationIdentifier("group", "root", "1.0", "root"))
+        then:
+        1 * listener.resolvedConfiguration({ it.moduleName == 'root' }, { it*.requested.name == ['a', 'b'] } )
+        then:
+        1 * listener.resolvedConfiguration({ it.moduleName == 'a' },    { it*.requested.name == ['c'] } )
     }
 
     def "does not resolve a given dynamic module selector more than once"() {
