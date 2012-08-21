@@ -21,9 +21,14 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.plugins.quality.FindBugsReports;
 import org.gradle.api.plugins.quality.internal.FindBugsReportsImpl;
 import org.gradle.api.specs.Spec;
+import org.gradle.util.GUtil;
 
 import java.io.File;
+import java.util.Set;
 import java.util.ArrayList;
+import java.util.Collection;
+
+import com.google.common.collect.Sets;
 
 public class FindBugsSpecBuilder {
     private FileCollection pluginsList;
@@ -34,6 +39,12 @@ public class FindBugsSpecBuilder {
     private FileCollection classes;
     private FindBugsReports reports;
 
+    private String effort;
+    private String reportLevel;
+    private Collection<String> visitors;
+    private Collection<String> omitVisitors;
+    private File excludeFilter;
+    private File includeFilter;
     private boolean debugEnabled;
 
     public FindBugsSpecBuilder(FileCollection classes) {
@@ -60,6 +71,74 @@ public class FindBugsSpecBuilder {
 
     public FindBugsSpecBuilder configureReports(FindBugsReports reports){
         this.reports = reports;
+        return this;
+    }
+
+    /**
+     * Valid values for Effort
+     */
+    private Set<String> validEfforts = Sets.newHashSet("min", "default", "max");
+
+    public FindBugsSpecBuilder withEffort(String effort){
+        // Enum-like values, they need to be validated against a set of possible values.
+        if (effort != null) {
+            if (!validEfforts.contains(effort)) {
+                String validEffortsStr = GUtil.join(validEfforts, "\", \"");
+                String errorStr = String.format("FindBugs encountered an improper value (%s) for effort property , should be one of \"%s\"", effort, validEffortsStr);
+                throw new InvalidUserDataException(errorStr);
+            }
+            this.effort = effort;
+        }
+        return this;
+    }
+
+    /**
+     * Valid values for reportLevel
+     */
+    private Set<String> validReportLevels = Sets.newHashSet("experimental", "low", "medium", "high");
+
+    public FindBugsSpecBuilder withReportLevel(String reportLevel){
+        if (reportLevel != null) {
+            if (!validReportLevels.contains(reportLevel)) {
+                String validReportLevelsStr = GUtil.join(validReportLevels, "\", \"");
+                String errorStr = String.format("FindBugs encountered an improper value (%s) for reportLevel property , should be one of \"%s\"", reportLevel, validReportLevelsStr);
+                throw new InvalidUserDataException(errorStr);
+            }
+            this.reportLevel = reportLevel;
+        }
+        return this;
+    }
+
+    public FindBugsSpecBuilder withVisitors(Collection<String> visitors) {
+        if (visitors != null) {
+            // Remove commas
+            this.visitors = visitors;
+        }
+        return this;
+    }
+
+    public FindBugsSpecBuilder withOmitVisitors(Collection<String> omitVisitors) {
+        this.omitVisitors = omitVisitors;
+        return this;
+    }
+
+    public FindBugsSpecBuilder withExcludeFilter(File excludeFilter) {
+        if (excludeFilter != null && !excludeFilter.canRead()) {
+            String errorStr = String.format("FindBugs encountered an improper value (%s) for excludeFilter property , can not be read", excludeFilter);
+            throw new InvalidUserDataException(errorStr);
+        }
+
+        this.excludeFilter = excludeFilter;
+        return this;
+    }
+
+    public FindBugsSpecBuilder withIncludeFilter(File includeFilter) {
+        if (includeFilter != null && !includeFilter.canRead()) {
+            String errorStr = String.format("FindBugs encountered an improper value (%s) for includeFilter property , can not be read", includeFilter);
+            throw new InvalidUserDataException(errorStr);
+        }
+
+        this.includeFilter = includeFilter;
         return this;
     }
 
@@ -102,11 +181,52 @@ public class FindBugsSpecBuilder {
                 }
             }).getAsPath());
         }
+
+        if (has(effort)) {
+            args.add(String.format("-effort:%s", effort));
+        }
+
+        if (has(reportLevel)) {
+            args.add(String.format("-%s", reportLevel));
+        }
+
+        if (has(visitors)) {
+            args.add("-visitors");
+            args.add(GUtil.join(visitors, ","));
+        }
+
+        if (has(omitVisitors)) {
+            args.add("-omitVisitors");
+            args.add(GUtil.join(omitVisitors, ","));
+        }
+
+        if (has(excludeFilter)) {
+            args.add("-exclude");
+            args.add(excludeFilter.getPath());
+        }
+
+        if (has(includeFilter)) {
+            args.add("-include");
+            args.add(includeFilter.getPath());
+        }
+
         for (File classFile : classes.getFiles()) {
             args.add(classFile.getAbsolutePath());
         }
         FindBugsSpec spec = new FindBugsSpec(args, debugEnabled);
         return spec;
+    }
+
+    private boolean has(String str) {
+        return str != null && !str.isEmpty();
+    }
+
+    private boolean has(File file) {
+        return file != null && file.canRead();
+    }
+
+    private boolean has(Collection<?> collection) {
+        return collection != null && !collection.isEmpty();
     }
 
     private boolean has(FileCollection fileCollection) {
