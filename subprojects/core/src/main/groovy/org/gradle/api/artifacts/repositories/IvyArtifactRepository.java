@@ -20,11 +20,11 @@ import groovy.lang.Closure;
 import java.net.URI;
 
 /**
- * An artifact repository which uses an Ivy format to store artifacts and meta-data.
+ * <p>An artifact repository which uses an Ivy format to store artifacts and meta-data</p>
  * 
- * If used as an upload repository, only a single layout is honored.  If a base URL is specified via {@link #setUrl} then that pattern
+ * <p>If used as an upload repository, only a single layout is honored.  If a base URL is specified via {@link #setUrl} then that pattern
  * is used.  If no base URL exists but additional patterns have been added via {@link #artifactPattern} or {@link #ivyPattern}, then
- * those are used.  If multiple patterns have been specified, only the first will be used. 
+ * those are used.  If multiple patterns have been specified, only the first will be used.</p> 
  */
 public interface IvyArtifactRepository extends ArtifactRepository, AuthenticationSupported {
 
@@ -52,16 +52,16 @@ public interface IvyArtifactRepository extends ArtifactRepository, Authenticatio
     void setUrl(Object url);
 
     /**
-     * Adds an Ivy artifact pattern to use to locate artifacts in this repository. This pattern ignores the baseUrl, and will be in addition
-     * to any layout-based patterns added via {@link #setUrl}.
+     * Adds an independent Ivy artifact pattern to use to locate artifacts in this repository. This pattern ignores the baseUrl, and will be
+     * in addition to any layout-based patterns added via {@link #setUrl}.
      *
      * @param pattern The artifact pattern.
      */
     void artifactPattern(String pattern);
 
     /**
-     * Adds an Ivy pattern to use to locate ivy files in this repository. This pattern ignores the baseUrl, and will be in addition to any
-     * layout-based patterns added via {@link #setUrl}.
+     * Adds an independent Ivy pattern to use to locate ivy files in this repository. This pattern ignores the baseUrl, and will be in addition
+     * to any layout-based patterns added via {@link #setUrl}.
      *
      * @param pattern The ivy pattern.
      */

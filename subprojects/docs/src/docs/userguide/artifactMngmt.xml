@@ -86,7 +86,7 @@
         for the purpose of uploading.</para>
         <para>When specifying a repository for uploading, Gradle only uses a single layout pattern per repository.
           If specifying a custom layout, you must choose between using <literal>url</literal> and <literal>layout</literal>,
-          or <literal>ivyPattern</literal> and <literal>artifactPattern<literal> as described in
+          or <literal>ivyPattern</literal> and <literal>artifactPattern</literal> as described in
           <xref linkend="sec:ivy_repositories"/>.  If both are specified, the pattern associated with <literal>url</literal>
           will be used and the others ignored.  If more than one pattern is specified, only the first will be used.      
         </para>
