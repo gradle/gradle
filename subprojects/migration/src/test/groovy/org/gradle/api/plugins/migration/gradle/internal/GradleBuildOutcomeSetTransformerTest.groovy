@@ -27,7 +27,11 @@ import spock.lang.Specification
 class GradleBuildOutcomeSetTransformerTest extends Specification {
 
     def store = new FileStore<String>() {
-        FileStoreEntry add(String key, File source) {
+        FileStoreEntry move(String key, File source) {
+            new DefaultFileStoreEntry(source)
+        }
+
+        FileStoreEntry copy(String key, File source) {
             new DefaultFileStoreEntry(source)
         }
 

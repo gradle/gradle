@@ -25,9 +25,11 @@ import org.junit.Rule
 class MigrationVerificationPluginIntegrationSpec extends AbstractIntegrationSpec {
     @Rule TestResources testResources
 
-    def compareArchives() {
+    def setup() {
         executer.withForkingExecuter()
+    }
 
+    def compareArchives() {
         when:
         run("compare")
 
@@ -51,7 +53,34 @@ class MigrationVerificationPluginIntegrationSpec extends AbstractIntegrationSpec
         file("build/storage/to/_jar").list().toList() == ["testBuild.jar"]
     }
 
+    def "compare same project"() {
+        given:
+        settingsFile << "" // stop up search
+        buildFile << """
+            apply plugin: "java"
 
+            task compare(type: CompareGradleBuilds) {
+                reports.html.destination = file("\$buildDir/comparison.html")
+                storage = file("\$buildDir/storage")
+                sourceVersion = "current"
+                targetVersion = "current"
+                sourceProjectDir = project.rootDir
+                targetProjectDir = project.rootDir
+            }
+
+            jar.doLast {
+                assert archivePath.exists()
+            }
+        """
+
+        file("src/main/java/Thing.java") << "class Thing {}"
+
+        when:
+        run "compare"
+
+        then:
+        html("build/comparison.html").select("p").text() == "The archives are completely identical."
+    }
 
     Document html(path) {
         Jsoup.parse(file(path), "utf8")

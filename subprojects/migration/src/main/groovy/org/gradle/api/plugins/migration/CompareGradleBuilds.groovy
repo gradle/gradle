@@ -17,7 +17,7 @@
 package org.gradle.api.plugins.migration
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.GradleException
+import org.gradle.api.internal.filestore.PathNormalisingKeyFileStore
 import org.gradle.api.plugins.migration.gradle.internal.GradleBuildOutcomeSetTransformer
 import org.gradle.api.plugins.migration.model.compare.BuildComparisonSpec
 import org.gradle.api.plugins.migration.model.compare.internal.BuildComparisonSpecFactory
@@ -39,7 +39,6 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.model.internal.migration.ProjectOutput
-import org.gradle.api.internal.filestore.PathNormalisingKeyFileStore
 
 class CompareGradleBuilds extends DefaultTask implements Reporting<BuildComparisonReports> {
 
@@ -63,19 +62,15 @@ class CompareGradleBuilds extends DefaultTask implements Reporting<BuildComparis
 
     @TaskAction
     void compare() {
-        if (sourceProjectDir.equals(targetProjectDir)) {
-            throw new GradleException("Same source and target project directory isn't supported yet (would need to make sure that separate build output directories are used)")
-        }
-
         // Build the outcome model and outcomes
 
         def fromOutcomeTransformer = new GradleBuildOutcomeSetTransformer(new PathNormalisingKeyFileStore(new File(storage, "from")))
         def toOutcomeTransformer = new GradleBuildOutcomeSetTransformer(new PathNormalisingKeyFileStore(new File(storage, "to")))
 
         def fromOutput = generateBuildOutput(sourceVersion, sourceProjectDir)
-        def toOutput = generateBuildOutput(targetVersion, targetProjectDir)
-
         def fromOutcomes = fromOutcomeTransformer.transform(fromOutput)
+
+        def toOutput = generateBuildOutput(targetVersion, targetProjectDir)
         def toOutcomes = toOutcomeTransformer.transform(toOutput)
 
         // Associate from each side (create spec)
@@ -102,6 +97,7 @@ class CompareGradleBuilds extends DefaultTask implements Reporting<BuildComparis
         def connector = GradleConnector.newConnector().forProjectDirectory(other)
         connector.useGradleUserHomeDir(getProject().getGradle().startParameter.getGradleUserHomeDir())
         if (gradleVersion == "current") {
+            println "project.gradle.gradleHomeDir: $project.gradle.gradleHomeDir"
             connector.useInstallation(project.gradle.gradleHomeDir)
         } else {
             connector.useGradleVersion(gradleVersion)
