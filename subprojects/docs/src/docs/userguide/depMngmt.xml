@@ -510,6 +510,19 @@
             <para>You can generate dependency reports from the command line (see <xref linkend="para:commandline_dependency_report"/>).
                 With the help of the Project report plugin (see <xref linkend="project_reports_plugin"/>) such a report can be created by your build.
             </para>
+            <para>
+                Since Gradle 1.2 there is also a new programmatic API to access the resolved dependency information.
+                The dependency reports (see the previous paragraph) are using this API behind the hood.
+                The API lets you to walk the resolved dependency graph and provides information about the dependencies.
+                With the coming releases the API will grow to provide more information about the resolution result.
+                For more information about the API please refer to the javadocs on
+                <apilink class="org.gradle.api.artifacts.ResolvedConfiguration" method="getResolutionResult"/>.
+                Potential usages of the <apilink class="org.gradle.api.artifacts.result.ResolutionResult"/> API:
+                <itemizedlist>
+                    <listitem>Creation of advanced dependency reports tailored to your use case.</listitem>
+                    <listitem>Enabling the build logic to make decisions based on the content of the dependency graph.</listitem>
+                </itemizedlist>
+            </para>
         </section>
     </section>
     <section id='sec:working_with_dependencies'>
@@ -779,38 +792,38 @@ someroot/[artifact]-[revision].[ext]
         <title>How dependency resolution works</title>
         <para>Gradle takes your dependency declarations and repository definitions and attempts to download all of your dependencies by a process called <emphasis>dependency resolution</emphasis>.
         Below is a brief outline of how this process works.</para>
-        <itemizedlist>
-            <listitem>
-                <para>
-                    Given a required dependency, Gradle first attempts to resolve the <emphasis>module</emphasis> for that dependency. Each repository is inspected in order, searching
-                    first for a <emphasis>module descriptor</emphasis> file (pom or ivy file) that indicates the presence of that module. If no module descriptor is found,
-                    Gradle will search for the presence of the primary <emphasis>module artifact</emphasis> file indicating that the module exists in the repository.
-                </para>
-                <itemizedlist>
-                    <listitem>
-                        <para>If the dependency is declared as a dynamic version (like <literal>1.+</literal>), Gradle will resolve this to the newest available static version (like <literal>1.2</literal>)
-                            in the repository. For maven repositories, this is done using the <literal>maven-metadata.xml</literal> file, while for ivy repositories this is done by directory listing.</para>
-                    </listitem>
-                    <listitem>
-                        <para>If the module descriptor is a <literal>pom</literal> file that has a parent pom declared, Gradle will recursively attempt to resolve each of the parent modules for the pom.</para>
-                    </listitem>
-                </itemizedlist>
-            </listitem>
-            <listitem>
-                <para>Once each repository has been inspected for the module, Gradle will choose the 'best' one to use. This is done using the following criteria:
+            <itemizedlist>
+                <listitem>
+                    <para>
+                        Given a required dependency, Gradle first attempts to resolve the <emphasis>module</emphasis> for that dependency. Each repository is inspected in order, searching
+                        first for a <emphasis>module descriptor</emphasis> file (pom or ivy file) that indicates the presence of that module. If no module descriptor is found,
+                        Gradle will search for the presence of the primary <emphasis>module artifact</emphasis> file indicating that the module exists in the repository.
+                    </para>
                     <itemizedlist>
-                        <listitem>For a dynamic version, a 'higher' static version is preferred over a 'lower' version.</listitem>
-                        <listitem>Modules declared by a module descriptor file (ivy or pom file) are preferred over modules that have an artifact file only.</listitem>
-                        <listitem>Modules from earlier repositories are preferred over modules in later repositories.</listitem>
+                        <listitem>
+                            <para>If the dependency is declared as a dynamic version (like <literal>1.+</literal>), Gradle will resolve this to the newest available static version (like <literal>1.2</literal>)
+                                in the repository. For maven repositories, this is done using the <literal>maven-metadata.xml</literal> file, while for ivy repositories this is done by directory listing.</para>
+                        </listitem>
+                        <listitem>
+                            <para>If the module descriptor is a <literal>pom</literal> file that has a parent pom declared, Gradle will recursively attempt to resolve each of the parent modules for the pom.</para>
+                        </listitem>
                     </itemizedlist>
-                </para>
-                <para>When the dependency is declared by a static version and a module descriptor file is found in a repository, there is no need to continue searching later
-                repositories and the remainder of the process is short-circuited.</para>
-            </listitem>
-            <listitem>
-                <para>All of the artifacts for the module are then requested from the <emphasis>same repository</emphasis> that was chosen in the process above.</para>
-            </listitem>
-        </itemizedlist>
+                </listitem>
+                <listitem>
+                    <para>Once each repository has been inspected for the module, Gradle will choose the 'best' one to use. This is done using the following criteria:
+                        <itemizedlist>
+                            <listitem>For a dynamic version, a 'higher' static version is preferred over a 'lower' version.</listitem>
+                            <listitem>Modules declared by a module descriptor file (ivy or pom file) are preferred over modules that have an artifact file only.</listitem>
+                            <listitem>Modules from earlier repositories are preferred over modules in later repositories.</listitem>
+                        </itemizedlist>
+                    </para>
+                    <para>When the dependency is declared by a static version and a module descriptor file is found in a repository, there is no need to continue searching later
+                    repositories and the remainder of the process is short-circuited.</para>
+                </listitem>
+                <listitem>
+                    <para>All of the artifacts for the module are then requested from the <emphasis>same repository</emphasis> that was chosen in the process above.</para>
+                </listitem>
+            </itemizedlist>
     </section>
     <section id='sec:dependency_cache'>
         <title>The dependency cache</title>
