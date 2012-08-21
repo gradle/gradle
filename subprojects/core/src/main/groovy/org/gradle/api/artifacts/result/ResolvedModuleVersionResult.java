@@ -16,17 +16,29 @@
 
 package org.gradle.api.artifacts.result;
 
+import org.gradle.api.Experimental;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 
 import java.util.Set;
 
 /**
- * by Szczepan Faber, created at: 8/10/12
+ * Resolved module version result is a node in the resolved dependency graph.
+ * Contains the identifier of the module and the dependencies.
  */
+@Experimental
 public interface ResolvedModuleVersionResult {
 
+    /**
+     * The identifier of the resolved module.
+     *
+     * @return identifier
+     */
     ModuleVersionIdentifier getId();
 
+    /**
+     * The dependencies of the resolved module. See {@link ResolvedDependencyResult}
+     *
+     * @return dependencies
+     */
     Set<? extends ResolvedDependencyResult> getDependencies();
-
 }

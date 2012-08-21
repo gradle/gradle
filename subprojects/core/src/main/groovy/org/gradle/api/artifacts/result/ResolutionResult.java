@@ -16,10 +16,23 @@
 
 package org.gradle.api.artifacts.result;
 
+import org.gradle.api.Experimental;
+
 /**
- * by Szczepan Faber, created at: 8/10/12
+ * Contains the information about the resolution result.
+ * Gives access to the resolved dependency graph.
+ * In future it will contain more convenience methods and
+ * other useful information about the resolution results.
  */
+@Experimental
 public interface ResolutionResult {
 
+    /**
+     * Gives access to the resolved dependency graph.
+     * You can walk the graph recursively from the root to obtain information about resolved dependencies.
+     * For example, Gradle's built-in 'dependencies' uses it to render the dependency tree.
+     *
+     * @return the root of the resolved dependency graph
+     */
     ResolvedModuleVersionResult getRoot();
 }
