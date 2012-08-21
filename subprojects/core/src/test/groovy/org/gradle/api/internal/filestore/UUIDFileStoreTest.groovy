@@ -27,22 +27,20 @@ class UUIDFileStoreTest extends Specification {
 
     def uuid = UUID.randomUUID()
     def factoryImpl = { uuid }
+    def fsBase = tmp.createDir("store")
 
-    UUIDFileStore fileStore = new UUIDFileStore(new PathKeyFileStore(tmp.createDir("store")), new Factory<UUID> () {
+    UUIDFileStore fileStore = new UUIDFileStore(new PathKeyFileStore(fsBase), new Factory<UUID> () {
         UUID create() {
             factoryImpl.call()
         }
     })
 
     def "can move files to filestore"() {
-        given:
-        def f1 = tmp.createFile("f1") << "abc"
-        def f2 = tmp.createFile("f2") << "def"
-
         when:
-        def entry = fileStore.add(f1)
+        def entry = fileStore.add("a/b/c", tmp.createFile("f1") << "abc")
 
         then:
+        fsBase.file("a/b/c/${uuid.toString()}").equals(entry.file)
         entry.file.name == uuid.toString()
         entry.file.text == "abc"
 
@@ -50,9 +48,10 @@ class UUIDFileStoreTest extends Specification {
         uuid = UUID.randomUUID()
 
         and:
-        entry = fileStore.add(f2)
+        entry = fileStore.add("", tmp.createFile("f2") << "def")
 
         then:
+        fsBase.file("${uuid.toString()}").equals(entry.file)
         entry.file.text == "def"
         entry.file.name == uuid.toString()
     }

@@ -16,38 +16,39 @@
 
 package org.gradle.api.internal.filestore;
 
-import org.gradle.internal.Factory;
-
 import java.io.File;
-import java.util.UUID;
+import java.util.Set;
 
-public class UUIDFileStore implements FileStore<String> {
+public class PathNormalisingKeyFileStore implements FileStore<String>, FileStoreSearcher<String> {
 
     private final PathKeyFileStore delegate;
-    private final Factory<UUID> uuidFactory;
 
-    public UUIDFileStore(PathKeyFileStore delegate) {
-        this(delegate, new Factory<UUID>() {
-            public UUID create() {
-                return UUID.randomUUID();
-            }
-        });
+    public PathNormalisingKeyFileStore(File baseDir) {
+        this(new PathKeyFileStore(baseDir));
     }
 
-    UUIDFileStore(PathKeyFileStore delegate, Factory<UUID> uuidFactory) {
+    public PathNormalisingKeyFileStore(PathKeyFileStore delegate) {
         this.delegate = delegate;
-        this.uuidFactory = uuidFactory;
     }
 
-    public FileStoreEntry add(String dir, File source) {
-        return delegate.add(getPath(dir), source);
+    public FileStoreEntry add(String key, File source) {
+        return delegate.add(normalizePath(key), source);
     }
 
-    private String getPath(String dir) {
-        return String.format("%s/%s", dir, uuidFactory.create());
+    protected String normalizePath(String path) {
+        return path.replaceAll("[^\\d\\w\\./]", "_");
+    }
+
+    protected String normalizeSearchPath(String path) {
+        return path.replaceAll("[^\\d\\w\\.\\*/]", "_");
     }
 
     public File getTempFile() {
         return delegate.getTempFile();
     }
+
+    public Set<? extends FileStoreEntry> search(String key) {
+        return delegate.search(normalizeSearchPath(key));
+    }
+
 }

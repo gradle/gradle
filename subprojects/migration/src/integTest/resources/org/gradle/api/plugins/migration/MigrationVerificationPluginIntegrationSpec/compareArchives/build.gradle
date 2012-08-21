@@ -4,4 +4,5 @@ task compare(type: CompareGradleBuilds) {
     targetVersion = "current"
     sourceProjectDir = file("sourceBuild/")
     targetProjectDir = file("targetBuild/")
+    storage = file("$buildDir/storage")
 }

@@ -44,7 +44,14 @@ class MigrationVerificationPluginIntegrationSpec extends AbstractIntegrationSpec
         rows["org/gradle/DifferentCrcClass.class"] == "files are same size but with different content"
         rows["org/gradle/SourceBuildOnlyClass.class"] == "from only"
         rows["org/gradle/TargetBuildOnlyClass.class"] == "to only"
+
+        and:
+        file("build/storage/from").exists()
+        file("build/storage/from/_jar").list().toList() == ["testBuild.jar"]
+        file("build/storage/to/_jar").list().toList() == ["testBuild.jar"]
     }
+
+
 
     Document html(path) {
         Jsoup.parse(file(path), "utf8")

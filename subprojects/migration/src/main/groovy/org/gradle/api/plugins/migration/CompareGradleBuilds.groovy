@@ -39,6 +39,7 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.model.internal.migration.ProjectOutput
+import org.gradle.api.internal.filestore.PathNormalisingKeyFileStore
 
 class CompareGradleBuilds extends DefaultTask implements Reporting<BuildComparisonReports> {
 
@@ -46,6 +47,8 @@ class CompareGradleBuilds extends DefaultTask implements Reporting<BuildComparis
     String targetVersion
     File sourceProjectDir
     File targetProjectDir
+
+    File storage
 
     @Nested
     private BuildComparisonReportsImpl reports
@@ -66,12 +69,13 @@ class CompareGradleBuilds extends DefaultTask implements Reporting<BuildComparis
 
         // Build the outcome model and outcomes
 
-        def toOutcomeTransformer = new GradleBuildOutcomeSetTransformer()
+        def fromOutcomeTransformer = new GradleBuildOutcomeSetTransformer(new PathNormalisingKeyFileStore(new File(storage, "from")))
+        def toOutcomeTransformer = new GradleBuildOutcomeSetTransformer(new PathNormalisingKeyFileStore(new File(storage, "to")))
 
         def fromOutput = generateBuildOutput(sourceVersion, sourceProjectDir)
         def toOutput = generateBuildOutput(targetVersion, targetProjectDir)
 
-        def fromOutcomes = toOutcomeTransformer.transform(fromOutput)
+        def fromOutcomes = fromOutcomeTransformer.transform(fromOutput)
         def toOutcomes = toOutcomeTransformer.transform(toOutput)
 
         // Associate from each side (create spec)

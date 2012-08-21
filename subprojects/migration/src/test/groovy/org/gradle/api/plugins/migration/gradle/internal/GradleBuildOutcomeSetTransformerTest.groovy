@@ -16,14 +16,27 @@
 
 package org.gradle.api.plugins.migration.gradle.internal
 
+import org.gradle.api.internal.filestore.DefaultFileStoreEntry
+import org.gradle.api.internal.filestore.FileStore
+import org.gradle.api.internal.filestore.FileStoreEntry
 import org.gradle.api.plugins.migration.fixtures.gradle.ProjectOutputBuilder
+import org.gradle.api.plugins.migration.model.outcome.internal.archive.GeneratedArchiveBuildOutcome
 import org.gradle.tooling.model.internal.migration.ProjectOutput
 import spock.lang.Specification
-import org.gradle.api.plugins.migration.model.outcome.internal.archive.GeneratedArchiveBuildOutcome
 
 class GradleBuildOutcomeSetTransformerTest extends Specification {
 
-    def transformer = new GradleBuildOutcomeSetTransformer()
+    def store = new FileStore<String>() {
+        FileStoreEntry add(String key, File source) {
+            new DefaultFileStoreEntry(source)
+        }
+
+        File getTempFile() {
+            throw new UnsupportedOperationException()
+        }
+    }
+
+    def transformer = new GradleBuildOutcomeSetTransformer(store)
 
     def "can transform"() {
         given:
