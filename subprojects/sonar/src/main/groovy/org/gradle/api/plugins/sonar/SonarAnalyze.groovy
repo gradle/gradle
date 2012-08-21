@@ -40,7 +40,7 @@ class SonarAnalyze extends ConventionTask {
         def classLoader = bootstrapper.createClassLoader(
                 [findGradleSonarJar()] as URL[], SonarAnalyze.classLoader,
                         "groovy", "org.codehaus.groovy", "org.slf4j", "org.apache.log4j", "org.apache.commons.logging",
-                                "org.gradle.api.plugins.sonar.model")
+                                "org.gradle.api.plugins.sonar.model", "ch.qos.logback")
 
         def analyzerClass = classLoader.loadClass("org.gradle.api.plugins.sonar.internal.SonarCodeAnalyzer")
         def analyzer = analyzerClass.newInstance()
