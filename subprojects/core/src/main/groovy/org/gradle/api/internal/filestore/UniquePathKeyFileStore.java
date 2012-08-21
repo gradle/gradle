@@ -31,9 +31,11 @@ public class UniquePathKeyFileStore extends PathKeyFileStore {
     }
 
     @Override
-    protected void saveIntoFileStore(File source, File destination) {
+    protected FileStoreEntry saveIntoFileStore(File source, File destination, boolean isMove) {
         if (!destination.exists()) {
-            super.saveIntoFileStore(source, destination);
+            return super.saveIntoFileStore(source, destination, isMove);
+        } else {
+            return new DefaultFileStoreEntry<String>(destination);
         }
     }
 }

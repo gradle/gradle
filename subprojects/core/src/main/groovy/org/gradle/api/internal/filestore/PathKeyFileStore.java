@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.filestore;
 
+import org.apache.commons.io.FileUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileVisitDetails;
@@ -24,6 +25,7 @@ import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
@@ -50,10 +52,12 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
         return baseDir;
     }
 
-    public FileStoreEntry add(String path, File source) {
-        File destination = getFile(path);
-        saveIntoFileStore(source, destination);
-        return new DefaultFileStoreEntry<String>(destination);
+    public FileStoreEntry move(String path, File source) {
+        return saveIntoFileStore(source, getFile(path), true);
+    }
+
+    public FileStoreEntry copy(String path, File source) {
+        return saveIntoFileStore(source, getFile(path), false);
     }
 
     private File getFile(String path) {
@@ -66,7 +70,7 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
         return new File(baseDir, "temp/" + tempLong);
     }
 
-    protected void saveIntoFileStore(File source, File destination) {
+    protected FileStoreEntry saveIntoFileStore(File source, File destination, boolean isMove) {
         if (!source.exists()) {
             throw new GradleException(String.format("Cannot copy '%s' into filestore @ '%s' as it does not exist", source, destination));
         }
@@ -74,9 +78,19 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
         if (!parentDir.mkdirs() && !parentDir.exists()) {
             throw new GradleException(String.format("Unable to create filestore directory %s", parentDir));
         }
-        if (!source.renameTo(destination)) {
-            throw new GradleException(String.format("Failed to copy file '%s' into filestore at '%s' ", source, destination));
+
+        String verb = isMove ? "move" : "copy";
+        try {
+            if (isMove) {
+                FileUtils.moveFile(source, destination);
+            } else {
+                FileUtils.copyFile(source, destination);
+            }
+        } catch (IOException e) {
+            throw new GradleException(String.format("Failed to %s file '%s' into filestore at '%s' ", verb, source, destination));
         }
+
+        return new DefaultFileStoreEntry<String>(destination);
     }
 
     public Set<? extends FileStoreEntry> search(String pattern) {

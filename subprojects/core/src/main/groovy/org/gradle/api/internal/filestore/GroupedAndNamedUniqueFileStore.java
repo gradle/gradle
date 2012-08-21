@@ -33,8 +33,12 @@ public class GroupedAndNamedUniqueFileStore<K> implements FileStore<K>, FileStor
         this.namer = namer;
     }
 
-    public FileStoreEntry add(K key, File source) {
-        return delegate.add(toPath(key, getChecksum(source)), source);
+    public FileStoreEntry move(K key, File source) {
+        return delegate.move(toPath(key, getChecksum(source)), source);
+    }
+
+    public FileStoreEntry copy(K key, File source) {
+        return delegate.copy(toPath(key, getChecksum(source)), source);
     }
 
     public Set<? extends FileStoreEntry> search(K key) {

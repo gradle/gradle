@@ -36,8 +36,8 @@ class PathKeyFileStoreTest extends Specification {
 
     def "can add to filestore"() {
         when:
-        store.add("a", file("abc"))
-        store.add("b", file("def"))
+        store.move("a", file("abc"))
+        store.move("b", file("def"))
 
         then:
         fsBase.file("a").text == "abc"
@@ -46,8 +46,8 @@ class PathKeyFileStoreTest extends Specification {
 
     def "can overwrite entry"() {
         when:
-        store.add("a", file("abc"))
-        store.add("a", file("def"))
+        store.move("a", file("abc"))
+        store.move("a", file("def"))
 
         then:
         fsBase.file("a").text == "def"
@@ -55,9 +55,9 @@ class PathKeyFileStoreTest extends Specification {
 
     def "creates intermediary directories"() {
         when:
-        store.add("a/b/c", file("abc"))
-        store.add("a/b/d", file("abd"))
-        store.add("a/c/a", file("aca"))
+        store.move("a/b/c", file("abc"))
+        store.move("a/b/d", file("abd"))
+        store.move("a/c/a", file("aca"))
 
         then:
         fsBase.file("a/b").directory
@@ -67,9 +67,9 @@ class PathKeyFileStoreTest extends Specification {
 
     def "can search via globs"() {
         when:
-        store.add("a/a/a", file("a"))
-        store.add("a/a/b", file("b"))
-        store.add("a/b/a", file("c"))
+        store.move("a/a/a", file("a"))
+        store.move("a/a/b", file("b"))
+        store.move("a/b/a", file("c"))
 
         then:
         store.search("**/a").size() == 2

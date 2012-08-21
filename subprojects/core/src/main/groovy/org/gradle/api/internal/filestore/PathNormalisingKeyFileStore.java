@@ -31,8 +31,12 @@ public class PathNormalisingKeyFileStore implements FileStore<String>, FileStore
         this.delegate = delegate;
     }
 
-    public FileStoreEntry add(String key, File source) {
-        return delegate.add(normalizePath(key), source);
+    public FileStoreEntry move(String key, File source) {
+        return delegate.move(normalizePath(key), source);
+    }
+
+    public FileStoreEntry copy(String key, File source) {
+        return delegate.copy(key, source);
     }
 
     protected String normalizePath(String path) {

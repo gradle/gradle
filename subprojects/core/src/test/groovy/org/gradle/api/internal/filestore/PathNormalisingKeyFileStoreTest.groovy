@@ -36,8 +36,8 @@ class PathNormalisingKeyFileStoreTest extends Specification {
 
     def "can add to filestore"() {
         when:
-        store.add("!.zip", file("abc"))
-        store.add("  ", file("def"))
+        store.move("!.zip", file("abc"))
+        store.move("  ", file("def"))
 
         then:
         fsBase.file("_.zip").text == "abc"
@@ -46,8 +46,8 @@ class PathNormalisingKeyFileStoreTest extends Specification {
 
     def "can overwrite entry"() {
         when:
-        store.add("!", file("abc"))
-        store.add(" ", file("def"))
+        store.move("!", file("abc"))
+        store.move(" ", file("def"))
 
         then:
         fsBase.file("_").text == "def"
@@ -55,9 +55,9 @@ class PathNormalisingKeyFileStoreTest extends Specification {
 
     def "creates intermediary directories"() {
         when:
-        store.add("a/!/c", file("abc"))
-        store.add("a/ /d", file("abd"))
-        store.add("a/c/(", file("aca"))
+        store.move("a/!/c", file("abc"))
+        store.move("a/ /d", file("abd"))
+        store.move("a/c/(", file("aca"))
 
         then:
         fsBase.file("a/_").directory
@@ -67,9 +67,9 @@ class PathNormalisingKeyFileStoreTest extends Specification {
 
     def "can search via globs"() {
         when:
-        store.add("a/!/a", file("a"))
-        store.add("a/ /b", file("b"))
-        store.add("a/b/&", file("c"))
+        store.move("a/!/a", file("a"))
+        store.move("a/ /b", file("b"))
+        store.move("a/b/&", file("c"))
 
         then:
         store.search("**/a").size() == 1

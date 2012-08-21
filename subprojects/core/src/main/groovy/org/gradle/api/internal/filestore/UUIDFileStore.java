@@ -39,8 +39,12 @@ public class UUIDFileStore implements FileStore<String> {
         this.uuidFactory = uuidFactory;
     }
 
-    public FileStoreEntry add(String dir, File source) {
-        return delegate.add(getPath(dir), source);
+    public FileStoreEntry move(String dir, File source) {
+        return delegate.move(getPath(dir), source);
+    }
+
+    public FileStoreEntry copy(String dir, File source) {
+        return delegate.copy(getPath(dir), source);
     }
 
     private String getPath(String dir) {

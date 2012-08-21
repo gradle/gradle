@@ -19,7 +19,9 @@ import java.io.File;
 
 public interface FileStore<K> {
 
-    FileStoreEntry add(K key, File source);
+    FileStoreEntry move(K key, File source);
+
+    FileStoreEntry copy(K key, File source);
 
     File getTempFile();
 

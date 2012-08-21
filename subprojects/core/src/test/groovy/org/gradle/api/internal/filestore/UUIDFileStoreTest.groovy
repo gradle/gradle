@@ -37,7 +37,7 @@ class UUIDFileStoreTest extends Specification {
 
     def "can move files to filestore"() {
         when:
-        def entry = fileStore.add("a/b/c", tmp.createFile("f1") << "abc")
+        def entry = fileStore.move("a/b/c", tmp.createFile("f1") << "abc")
 
         then:
         fsBase.file("a/b/c/${uuid.toString()}").equals(entry.file)
@@ -48,7 +48,7 @@ class UUIDFileStoreTest extends Specification {
         uuid = UUID.randomUUID()
 
         and:
-        entry = fileStore.add("", tmp.createFile("f2") << "def")
+        entry = fileStore.move("", tmp.createFile("f2") << "def")
 
         then:
         fsBase.file("${uuid.toString()}").equals(entry.file)
