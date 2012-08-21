@@ -19,8 +19,8 @@ import org.gradle.api.artifacts.*;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.EmptyDependencyGraph;
-import org.gradle.api.internal.dependencygraph.api.DependencyGraph;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.EmptyResolutionResult;
+import org.gradle.api.internal.dependencygraph.api.ResolutionResult;
 import org.gradle.api.specs.Spec;
 
 import java.io.File;
@@ -43,10 +43,10 @@ public class ShortcircuitEmptyConfigsArtifactDependencyResolver implements Artif
 
     private static class EmptyResolvedConfiguration implements ResolvedConfiguration {
 
-        private DependencyGraph dependencyGraph;
+        private ResolutionResult resolutionResult;
 
         private EmptyResolvedConfiguration(DependencyMetaDataProvider configurationMeta) {
-            this.dependencyGraph = new EmptyDependencyGraph(configurationMeta.getModule());
+            this.resolutionResult = new EmptyResolutionResult(configurationMeta.getModule());
         }
 
         public boolean hasError() {
@@ -92,8 +92,8 @@ public class ShortcircuitEmptyConfigsArtifactDependencyResolver implements Artif
             return Collections.emptySet();
         }
 
-        public DependencyGraph getDependencyGraph() {
-            return dependencyGraph;
+        public ResolutionResult getResolutionResult() {
+            return resolutionResult;
         }
     }
 }

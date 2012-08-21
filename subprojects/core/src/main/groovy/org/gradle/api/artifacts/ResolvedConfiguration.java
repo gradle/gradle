@@ -16,7 +16,7 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.Experimental;
-import org.gradle.api.internal.dependencygraph.api.DependencyGraph;
+import org.gradle.api.internal.dependencygraph.api.ResolutionResult;
 import org.gradle.api.specs.Spec;
 
 import java.io.File;
@@ -85,10 +85,10 @@ public interface ResolvedConfiguration {
     Set<ResolvedArtifact> getResolvedArtifacts() throws ResolveException;
 
     /**
-     * Resolves the configuration (in not resolved already) and returns an instance of {@link DependencyGraph}
+     * Returns an instance of {@link org.gradle.api.internal.dependencygraph.api.ResolutionResult}
      *
-     * @return the dependency graph
+     * @return the resolution result
      */
     @Experimental
-    DependencyGraph getDependencyGraph();
+    ResolutionResult getResolutionResult();
 }

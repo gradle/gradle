@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.api.internal.dependencygraph.api.DependencyGraph;
+import org.gradle.api.internal.dependencygraph.api.ResolutionResult;
 import org.gradle.api.internal.dependencygraph.api.ResolvedDependencyResult;
 import org.gradle.api.internal.dependencygraph.api.ResolvedModuleVersionResult;
 
@@ -29,11 +29,11 @@ import java.util.Set;
 /**
  * by Szczepan Faber, created at: 8/16/12
  */
-public class EmptyDependencyGraph implements DependencyGraph {
+public class EmptyResolutionResult implements ResolutionResult {
 
     private final ResolvedModuleVersionResult root;
 
-    public EmptyDependencyGraph(final Module module) {
+    public EmptyResolutionResult(final Module module) {
         root = new ResolvedModuleVersionResult() {
             public ModuleVersionIdentifier getId() {
                 return DefaultModuleVersionIdentifier.newId(module);

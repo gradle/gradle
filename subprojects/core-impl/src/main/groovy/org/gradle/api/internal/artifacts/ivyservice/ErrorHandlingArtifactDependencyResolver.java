@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
-import org.gradle.api.internal.dependencygraph.api.DependencyGraph;
+import org.gradle.api.internal.dependencygraph.api.ResolutionResult;
 import org.gradle.api.specs.Spec;
 
 import java.io.File;
@@ -106,9 +106,9 @@ public class ErrorHandlingArtifactDependencyResolver implements ArtifactDependen
             }
         }
 
-        public DependencyGraph getDependencyGraph() {
+        public ResolutionResult getResolutionResult() {
             try {
-                return resolvedConfiguration.getDependencyGraph();
+                return resolvedConfiguration.getResolutionResult();
             } catch (Throwable e) {
                 throw wrapException(e, configuration);
             }
@@ -152,7 +152,7 @@ public class ErrorHandlingArtifactDependencyResolver implements ArtifactDependen
             throw wrapException(e, configuration);
         }
 
-        public DependencyGraph getDependencyGraph() {
+        public ResolutionResult getResolutionResult() {
             throw wrapException(e, configuration);
         }
     }

@@ -20,7 +20,7 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedConfiguration;
-import org.gradle.api.internal.dependencygraph.api.DependencyGraph;
+import org.gradle.api.internal.dependencygraph.api.ResolutionResult;
 import org.gradle.api.tasks.diagnostics.internal.dependencies.RenderableDependency;
 import org.gradle.api.tasks.diagnostics.internal.dependencies.RenderableRoot;
 import org.gradle.logging.StyledTextOutput;
@@ -81,8 +81,8 @@ public class AsciiReportRenderer extends TextReportRenderer implements Dependenc
 
     public void render(Configuration configuration) throws IOException {
         ResolvedConfiguration resolvedConfiguration = configuration.getResolvedConfiguration();
-        DependencyGraph graph = resolvedConfiguration.getDependencyGraph();
-        RenderableDependency root = new RenderableRoot(graph.getRoot());
+        ResolutionResult result = resolvedConfiguration.getResolutionResult();
+        RenderableDependency root = new RenderableRoot(result.getRoot());
 
         renderNow(root);
 

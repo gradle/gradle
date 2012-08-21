@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.artifacts.*;
-import org.gradle.api.internal.dependencygraph.api.DependencyGraph;
+import org.gradle.api.internal.dependencygraph.api.ResolutionResult;
 import org.gradle.api.specs.Spec;
 
 import java.io.File;
@@ -24,11 +24,11 @@ import java.util.Set;
 
 public class DefaultResolvedConfiguration implements ResolvedConfiguration {
     private final DefaultLenientConfiguration configuration;
-    private final DependencyGraph dependencyGraph;
+    private final ResolutionResult resolutionResult;
 
-    public DefaultResolvedConfiguration(DefaultLenientConfiguration configuration, DependencyGraph graph) {
+    public DefaultResolvedConfiguration(DefaultLenientConfiguration configuration, ResolutionResult resolutionResult) {
         this.configuration = configuration;
-        this.dependencyGraph = graph;
+        this.resolutionResult = resolutionResult;
     }
 
     public boolean hasError() {
@@ -63,7 +63,7 @@ public class DefaultResolvedConfiguration implements ResolvedConfiguration {
         return configuration.getResolvedArtifacts();
     }
 
-    public DependencyGraph getDependencyGraph() {
-        return dependencyGraph;
+    public ResolutionResult getResolutionResult() {
+        return resolutionResult;
     }
 }

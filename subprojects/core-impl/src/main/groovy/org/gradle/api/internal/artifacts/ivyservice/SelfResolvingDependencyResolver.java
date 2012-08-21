@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.*;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.CachingDependencyResolveContext;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
-import org.gradle.api.internal.dependencygraph.api.DependencyGraph;
+import org.gradle.api.internal.dependencygraph.api.ResolutionResult;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.CollectionUtils;
 
@@ -62,8 +62,8 @@ public class SelfResolvingDependencyResolver implements ArtifactDependencyResolv
                 return resolvedConfiguration.getResolvedArtifacts();
             }
 
-            public DependencyGraph getDependencyGraph() {
-                return resolvedConfiguration.getDependencyGraph();
+            public ResolutionResult getResolutionResult() {
+                return resolvedConfiguration.getResolutionResult();
             }
 
             public Set<ResolvedDependency> getFirstLevelModuleDependencies() {

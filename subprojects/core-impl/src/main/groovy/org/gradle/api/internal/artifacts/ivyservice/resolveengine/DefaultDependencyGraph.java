@@ -16,13 +16,13 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
-import org.gradle.api.internal.dependencygraph.api.DependencyGraph;
+import org.gradle.api.internal.dependencygraph.api.ResolutionResult;
 import org.gradle.api.internal.dependencygraph.api.ResolvedModuleVersionResult;
 
 /**
  * by Szczepan Faber, created at: 8/10/12
  */
-public class DefaultDependencyGraph implements DependencyGraph {
+public class DefaultDependencyGraph implements ResolutionResult {
 
     private final ResolvedModuleVersionResult result;
 

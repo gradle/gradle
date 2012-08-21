@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
-import org.gradle.api.internal.dependencygraph.api.DependencyGraph;
+import org.gradle.api.internal.dependencygraph.api.ResolutionResult;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -31,7 +31,7 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.new
 /**
  * by Szczepan Faber, created at: 7/26/12
  */
-public class DependencyGraphProvider implements ResolvedConfigurationListener {
+public class ResolutionResultBuilder implements ResolvedConfigurationListener {
 
     private ResolvedConfigurationIdentifier root;
     private Map<ModuleVersionIdentifier, Map<Object, DefaultResolvedDependencyResult>> deps
@@ -58,7 +58,7 @@ public class DependencyGraphProvider implements ResolvedConfigurationListener {
         }
     }
 
-    public DependencyGraph getGraph() {
+    public ResolutionResult getResult() {
         return new DefaultDependencyGraph(buildGraph());
     }
 
