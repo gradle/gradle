@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
-import org.gradle.api.internal.dependencygraph.api.ResolutionResult;
-import org.gradle.api.internal.dependencygraph.api.ResolvedModuleVersionResult;
+import org.gradle.api.artifacts.result.ResolutionResult;
+import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
 
 /**
  * by Szczepan Faber, created at: 8/10/12

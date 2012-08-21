@@ -20,7 +20,7 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedConfiguration;
-import org.gradle.api.internal.dependencygraph.api.ResolutionResult;
+import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.tasks.diagnostics.internal.dependencies.RenderableDependency;
 import org.gradle.api.tasks.diagnostics.internal.dependencies.RenderableRoot;
 import org.gradle.logging.StyledTextOutput;

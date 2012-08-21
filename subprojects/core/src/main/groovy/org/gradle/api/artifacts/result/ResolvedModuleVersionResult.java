@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.dependencygraph.api;
+package org.gradle.api.artifacts.result;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 

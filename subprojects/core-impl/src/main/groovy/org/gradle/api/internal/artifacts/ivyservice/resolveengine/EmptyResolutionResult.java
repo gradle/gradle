@@ -18,10 +18,10 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.result.ResolutionResult;
+import org.gradle.api.artifacts.result.ResolvedDependencyResult;
+import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.api.internal.dependencygraph.api.ResolutionResult;
-import org.gradle.api.internal.dependencygraph.api.ResolvedDependencyResult;
-import org.gradle.api.internal.dependencygraph.api.ResolvedModuleVersionResult;
 
 import java.util.Collections;
 import java.util.Set;

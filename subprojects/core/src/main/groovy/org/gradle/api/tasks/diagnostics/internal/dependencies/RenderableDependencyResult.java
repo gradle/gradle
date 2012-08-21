@@ -20,8 +20,8 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Collections2;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.api.internal.dependencygraph.api.ResolvedDependencyResult;
 
 import java.util.LinkedHashSet;
 import java.util.Set;

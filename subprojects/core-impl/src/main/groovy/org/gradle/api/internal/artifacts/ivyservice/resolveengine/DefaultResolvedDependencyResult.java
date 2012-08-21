@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.internal.dependencygraph.api.ResolvedDependencyResult;
+import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;

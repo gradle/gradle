@@ -14,12 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.dependencygraph.api;
+package org.gradle.api.artifacts.result;
+
+import org.gradle.api.artifacts.ModuleVersionSelector;
+
+import java.util.Set;
 
 /**
  * by Szczepan Faber, created at: 8/10/12
  */
-public interface ResolutionResult {
+public interface ResolvedDependencyResult {
 
-    ResolvedModuleVersionResult getRoot();
+    ModuleVersionSelector getRequested();
+    ResolvedModuleVersionResult getSelected();
+    Set<String> getSelectedConfigurations();
 }

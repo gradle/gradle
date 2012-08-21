@@ -17,10 +17,10 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.*;
+import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.CachingDependencyResolveContext;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
-import org.gradle.api.internal.dependencygraph.api.ResolutionResult;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.CollectionUtils;
 
