@@ -6,11 +6,12 @@ from an external model, for example from a maven project.
 1. Given a multi-module maven project I want to generate a Gradle build scripts for it
 so that I migrate to Gradle!
 2. There are other models we can bootstrap from, but currently we are focusing on converting from maven.
+3. I want to bootstrap a simple Gradle project that contains wrapper, java pluging appied, mavenCentral(), junit.
 
 # User visible changes
 
-* A new plugin, 'bootstrap' or 'maven2Gradle'
-* The plugin adds task 'maven2Gradle'
+* A new plugin, 'bootstrap'
+* The plugin adds task 'bootstrapGradleProject'
 * The tasks generates build.gradle / settings.gradle files.
 
 ## Sad day cases
