@@ -23,18 +23,18 @@ import java.util.Set;
 
 public class GroupedAndNamedUniqueFileStore<K> implements FileStore<K>, FileStoreSearcher<K> {
 
-    private UniquePathFileStore delegate;
+    private PathKeyFileStore delegate;
     private final Transformer<String, K> grouper;
     private final Transformer<String, K> namer;
 
-    public GroupedAndNamedUniqueFileStore(UniquePathFileStore delegate, Transformer<String, K> grouper, Transformer<String, K> namer) {
+    public GroupedAndNamedUniqueFileStore(PathKeyFileStore delegate, Transformer<String, K> grouper, Transformer<String, K> namer) {
         this.delegate = delegate;
         this.grouper = grouper;
         this.namer = namer;
     }
 
-    public FileStoreEntry add(K key, File contentFile) {
-        return delegate.add(toPath(key, getChecksum(contentFile)), contentFile);
+    public FileStoreEntry add(K key, File source) {
+        return delegate.add(toPath(key, getChecksum(source)), source);
     }
 
     public Set<? extends FileStoreEntry> search(K key) {

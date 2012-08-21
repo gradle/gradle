@@ -23,10 +23,10 @@ import java.util.UUID;
 
 public class UUIDFileStore implements FileStore<UUID> {
 
-    private final UniquePathFileStore delegate;
+    private final PathKeyFileStore delegate;
     private final Factory<UUID> uuidFactory;
 
-    public UUIDFileStore(UniquePathFileStore delegate) {
+    public UUIDFileStore(PathKeyFileStore delegate) {
         this(delegate, new Factory<UUID>() {
             public UUID create() {
                 return UUID.randomUUID();
@@ -34,7 +34,7 @@ public class UUIDFileStore implements FileStore<UUID> {
         });
     }
 
-    UUIDFileStore(UniquePathFileStore delegate, Factory<UUID> uuidFactory) {
+    UUIDFileStore(PathKeyFileStore delegate, Factory<UUID> uuidFactory) {
         this.delegate = delegate;
         this.uuidFactory = uuidFactory;
     }
@@ -43,8 +43,8 @@ public class UUIDFileStore implements FileStore<UUID> {
         return add(uuidFactory.create(), contentFile);
     }
 
-    public FileStoreEntry add(UUID key, File contentFile) {
-        return delegate.add(key.toString(), contentFile);
+    public FileStoreEntry add(UUID key, File source) {
+        return delegate.add(key.toString(), source);
     }
 
     public File getTempFile() {

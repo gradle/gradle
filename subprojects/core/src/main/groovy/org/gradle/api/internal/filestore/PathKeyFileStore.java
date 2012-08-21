@@ -29,20 +29,20 @@ import java.util.Random;
 import java.util.Set;
 
 /**
- * File store that stores items under a given path within a base directory.
+ * File store that accepts the target path as the key for the entry.
  *
- * Paths are expected to be unique. If a request is given to store a file at a particular path
- * where a file exists already then it will not be copied. That is, it is expected to be equal.
+ * There is always at most one entry for a given key for this file store. If an entry already exists at
+ * the given path, it will be overwritten. Paths can contain directory components, which will be created on demand.
  *
  * This file store also provides searching via relative ant path patterns.
  */
-public class UniquePathFileStore implements FileStore<String>, FileStoreSearcher<String> {
+public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<String> {
 
     private final Random generator = new Random(System.currentTimeMillis());
 
     private final File baseDir;
 
-    public UniquePathFileStore(File baseDir) {
+    public PathKeyFileStore(File baseDir) {
         this.baseDir = baseDir;
     }
 
@@ -50,11 +50,9 @@ public class UniquePathFileStore implements FileStore<String>, FileStoreSearcher
         return baseDir;
     }
 
-    public FileStoreEntry add(String path, File contentFile) {
+    public FileStoreEntry add(String path, File source) {
         File destination = getFile(path);
-        if (!destination.exists()) {
-            saveIntoFileStore(contentFile, destination);
-        }
+        saveIntoFileStore(source, destination);
         return new DefaultFileStoreEntry<String>(destination);
     }
 
@@ -68,13 +66,13 @@ public class UniquePathFileStore implements FileStore<String>, FileStoreSearcher
         return new File(baseDir, "temp/" + tempLong);
     }
 
-    private void saveIntoFileStore(File contentFile, File storageFile) {
-        File parentDir = storageFile.getParentFile();
+    protected void saveIntoFileStore(File source, File destination) {
+        File parentDir = destination.getParentFile();
         if (!parentDir.mkdirs() && !parentDir.exists()) {
             throw new GradleException(String.format("Unable to create filestore directory %s", parentDir));
         }
-        if (!contentFile.renameTo(storageFile)) {
-            throw new GradleException(String.format("Failed to copy file '%s' into filestore at '%s' ", contentFile, storageFile));
+        if (!source.renameTo(destination)) {
+            throw new GradleException(String.format("Failed to copy file '%s' into filestore at '%s' ", source, destination));
         }
     }
 

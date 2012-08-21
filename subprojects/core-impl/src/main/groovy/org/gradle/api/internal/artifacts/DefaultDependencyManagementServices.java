@@ -22,6 +22,8 @@ import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DomainObjectContext;
+import org.gradle.api.internal.filestore.UniquePathKeyFileStore;
+import org.gradle.api.internal.filestore.PathKeyFileStore;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer;
@@ -55,7 +57,6 @@ import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFi
 import org.gradle.api.internal.externalresource.local.ivy.LocallyAvailableResourceFinderFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.IdentityFileResolver;
-import org.gradle.api.internal.filestore.UniquePathFileStore;
 import org.gradle.api.internal.filestore.ivy.ArtifactRevisionIdFileStore;
 import org.gradle.api.internal.notations.*;
 import org.gradle.api.internal.notations.api.NotationParser;
@@ -203,12 +204,12 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         );
     }
 
-    protected UniquePathFileStore createUniquePathFileStore() {
-        return new UniquePathFileStore(new File(get(ArtifactCacheMetaData.class).getCacheDir(), "filestore"));
+    protected PathKeyFileStore createUniquePathFileStore() {
+        return new UniquePathKeyFileStore(new File(get(ArtifactCacheMetaData.class).getCacheDir(), "filestore"));
     }
 
     protected ArtifactRevisionIdFileStore createArtifactRevisionIdFileStore() {
-        return new ArtifactRevisionIdFileStore(get(UniquePathFileStore.class));
+        return new ArtifactRevisionIdFileStore(get(PathKeyFileStore.class));
     }
 
     protected SettingsConverter createSettingsConverter() {

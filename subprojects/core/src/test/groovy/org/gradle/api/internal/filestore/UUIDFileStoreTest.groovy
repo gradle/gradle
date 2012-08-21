@@ -28,7 +28,7 @@ class UUIDFileStoreTest extends Specification {
     def uuid = UUID.randomUUID()
     def factoryImpl = { uuid }
 
-    UUIDFileStore fileStore = new UUIDFileStore(new UniquePathFileStore(tmp.createDir("store")), new Factory<UUID> () {
+    UUIDFileStore fileStore = new UUIDFileStore(new PathKeyFileStore(tmp.createDir("store")), new Factory<UUID> () {
         UUID create() {
             factoryImpl.call()
         }

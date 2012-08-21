@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.filestore;
 
 import java.io.File;
 
-public interface FileStore<K> {
+/**
+ * Assumes that files do not need to be replaced in the filestore.
+ *
+ * Can be used as an optimisation if path contains a checksum of the file, as
+ * there is no point to perform the replace in that circumstance.
+ */
+public class UniquePathKeyFileStore extends PathKeyFileStore {
 
-    FileStoreEntry add(K key, File source);
+    public UniquePathKeyFileStore(File baseDir) {
+        super(baseDir);
+    }
 
-    File getTempFile();
-
+    @Override
+    protected void saveIntoFileStore(File source, File destination) {
+        if (!destination.exists()) {
+            super.saveIntoFileStore(source, destination);
+        }
+    }
 }
