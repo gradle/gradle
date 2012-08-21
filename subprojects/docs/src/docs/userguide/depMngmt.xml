@@ -705,6 +705,11 @@
                 <sample id="ivyRepository" dir="userguide/artifacts/defineRepository" title="Ivy repository with custom patterns">
                     <sourcefile file="build.gradle" snippet="ivy-repo-with-custom-pattern"/>
                 </sample>
+                <para>
+                Note: specifying <literal>ivyPattern</literal> or <literal>artifactPattern</literal> for a repository adds an <emphasis>
+                additional</emphasis> pattern. These patterns are not resolved relative to the <literal>url</literal> parameter:
+                unqualified patterns will be resolved like any other file path in Gradle, relative to the project base directory.
+                </para>
             </section>
             <section>
                 <title>Accessing password protected Ivy repositories</title>

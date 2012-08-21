@@ -84,6 +84,12 @@
         <para>As you can see, you can either use a reference to an existing repository or create a new repository.
         As described in <xref linkend="sub:more_about_ivy_resolvers"/>, you can use all the Ivy resolvers suitable
         for the purpose of uploading.</para>
+        <para>When specifying a repository for uploading, Gradle only uses a single layout pattern per repository.
+          If specifying a custom layout, you must choose between using <literal>url</literal> and <literal>layout</literal>,
+          or <literal>ivyPattern</literal> and <literal>artifactPattern<literal> as described in
+          <xref linkend="sec:ivy_repositories"/>.  If both are specified, the pattern associated with <literal>url</literal>
+          will be used and the others ignored.  If more than one pattern is specified, only the first will be used.      
+        </para>
         <para>Uploading to a Maven repository is described in <xref linkend="uploading_to_maven_repositories"/>.</para>
     </section>
     <section id="project_libraries">
