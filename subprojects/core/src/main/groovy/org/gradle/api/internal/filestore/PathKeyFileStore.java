@@ -67,6 +67,9 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
     }
 
     protected void saveIntoFileStore(File source, File destination) {
+        if (!source.exists()) {
+            throw new GradleException(String.format("Cannot copy '%s' into filestore @ '%s' as it does not exist", source, destination));
+        }
         File parentDir = destination.getParentFile();
         if (!parentDir.mkdirs() && !parentDir.exists()) {
             throw new GradleException(String.format("Unable to create filestore directory %s", parentDir));
