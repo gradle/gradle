@@ -3,6 +3,35 @@
 
 Here are the new features introduced in Gradle 1.2.
 
+### Dependency reports improvements
+
+The dependency report now includes extra information: the requested dependency versions.
+This is invaluable information in many situations:
+
+* Conflict resolution. It is now possible to infer from the dependency report why given dependency version is selected.
+Previously, the dependency report included the dependency versions *after* the conflict resolution.
+The new report makes it much easier to understand what happens during the conflict resolution
+and to figure out why and how certain versions are used.
+* Dynamic versions. Now the dependency report shows what version was requested and what version was selected.
+For example: 1.3.+ -> 1.3.5 (requested -> selected).
+
+We continue to work in the dependency reports area and plan more interesting features shortly.
+For example, we want the report to present the dependency tree even though some dependency is unresolved.
+We want to add other kinds of dependency reports, too. Improved dependency report should be also faster for projects that have very large dependency graphs.
+Our performance tests for this particular kind of project show ~50% speed increase.
+
+The improvements in the dependency report allows us to design the resolution result API.
+For the Gradle user it means better programmatic access and hooks to the resolved dependency graph.
+
+### Experimental resolution result API
+
+We want to expose the API that our dependency reports are using.
+This way Gradle users may develop their own dependency reporting driven by custom requirements.
+Also it allows the users to develop build logic that can make decisions based on the content of the dependency graph.
+
+The best way to start with the new API is to take a look at the javadocs
+for 'ResolvedConfiguration.getResolutionResult()' (TODO link).
+
 ### Experimental support for building projects in parallel
 
 Over the coming releases, we'll be adding support for parallel execution of independent projects in a multi-project build. By building separate projects in parallel, Gradle
