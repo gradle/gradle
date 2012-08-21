@@ -59,7 +59,7 @@ public class ResolutionResultBuilder implements ResolvedConfigurationListener {
     }
 
     public ResolutionResult getResult() {
-        return new DefaultDependencyGraph(buildGraph());
+        return new DefaultResolutionResult(buildGraph());
     }
 
     private DefaultResolvedModuleVersionResult buildGraph() {

@@ -22,11 +22,11 @@ import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
 /**
  * by Szczepan Faber, created at: 8/10/12
  */
-public class DefaultDependencyGraph implements ResolutionResult {
+public class DefaultResolutionResult implements ResolutionResult {
 
     private final ResolvedModuleVersionResult result;
 
-    public DefaultDependencyGraph(ResolvedModuleVersionResult result) {
+    public DefaultResolutionResult(ResolvedModuleVersionResult result) {
         this.result = result;
     }
 
