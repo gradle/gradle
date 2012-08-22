@@ -97,7 +97,6 @@ class CompareGradleBuilds extends DefaultTask implements Reporting<BuildComparis
         def connector = GradleConnector.newConnector().forProjectDirectory(other)
         connector.useGradleUserHomeDir(getProject().getGradle().startParameter.getGradleUserHomeDir())
         if (gradleVersion == "current") {
-            println "project.gradle.gradleHomeDir: $project.gradle.gradleHomeDir"
             connector.useInstallation(project.gradle.gradleHomeDir)
         } else {
             connector.useGradleVersion(gradleVersion)
