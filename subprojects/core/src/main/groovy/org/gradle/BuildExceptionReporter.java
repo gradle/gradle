@@ -18,7 +18,6 @@ package org.gradle;
 import org.codehaus.groovy.runtime.StackTraceUtils;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
-import org.gradle.api.internal.AbstractMultiCauseException;
 import org.gradle.api.internal.LocationAwareException;
 import org.gradle.api.internal.MultiCauseException;
 import org.gradle.api.logging.LogLevel;
