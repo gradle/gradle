@@ -198,7 +198,7 @@ public class FindBugsSpecBuilder {
     }
 
     private boolean has(String str) {
-        return str != null && !str.isEmpty();
+        return str != null && str.length() > 0;
     }
 
     private boolean has(File file) {
