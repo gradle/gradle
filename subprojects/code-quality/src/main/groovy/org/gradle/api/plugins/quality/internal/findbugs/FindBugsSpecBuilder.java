@@ -16,6 +16,8 @@
 
 package org.gradle.api.plugins.quality.internal.findbugs;
 
+import com.google.common.collect.ImmutableSet;
+
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.plugins.quality.FindBugsReports;
@@ -28,11 +30,9 @@ import java.util.Set;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import com.google.common.collect.Sets;
-
 public class FindBugsSpecBuilder {
-    private static final Set<String> VALID_EFFORTS = Sets.newHashSet(null, "min", "default", "max");
-    private static final Set<String> VALID_REPORT_LEVELS = Sets.newHashSet(null, "experimental", "low", "medium", "high");
+    private static final Set<String> VALID_EFFORTS = ImmutableSet.of("min", "default", "max");
+    private static final Set<String> VALID_REPORT_LEVELS = ImmutableSet.of("experimental", "low", "medium", "high");
 
     private FileCollection pluginsList;
     private FileCollection sources;
@@ -77,7 +77,7 @@ public class FindBugsSpecBuilder {
 
 
     public FindBugsSpecBuilder withEffort(String effort) {
-        if (!VALID_EFFORTS.contains(effort)) {
+        if (effort != null && !VALID_EFFORTS.contains(effort)) {
             throw new InvalidUserDataException("Invalid value for FindBugs 'effort' property: " + effort);
         }
         this.effort = effort;
@@ -85,7 +85,7 @@ public class FindBugsSpecBuilder {
     }
 
     public FindBugsSpecBuilder withReportLevel(String reportLevel) {
-        if (!VALID_REPORT_LEVELS.contains(reportLevel)) {
+        if (effort != null && !VALID_REPORT_LEVELS.contains(reportLevel)) {
             throw new InvalidUserDataException("Invalid value for FindBugs 'reportLevel' property: " + reportLevel);
         }
         this.reportLevel = reportLevel;
