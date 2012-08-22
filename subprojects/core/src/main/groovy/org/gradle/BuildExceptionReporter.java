@@ -18,7 +18,9 @@ package org.gradle;
 import org.codehaus.groovy.runtime.StackTraceUtils;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
+import org.gradle.api.internal.AbstractMultiCauseException;
 import org.gradle.api.internal.LocationAwareException;
+import org.gradle.api.internal.MultiCauseException;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.configuration.ImplicitTasksConfigurer;
 import org.gradle.execution.TaskSelectionException;
@@ -63,6 +65,14 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
     }
 
     public void execute(Throwable failure) {
+        if (failure instanceof MultiCauseException) {
+            MultiCauseException multiCauseException = (MultiCauseException) failure;
+            for (Throwable cause : multiCauseException.getCauses()) {
+                execute(cause);
+            }
+            return;
+        }
+
         FailureDetails details = new FailureDetails(failure);
         if (failure instanceof GradleException) {
             reportBuildFailure((GradleException) failure, details);

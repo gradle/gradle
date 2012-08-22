@@ -204,7 +204,7 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     }
 
     protected ExceptionAnalyser createExceptionAnalyser() {
-        return new DefaultExceptionAnalyser(get(ListenerManager.class));
+        return new MultiCauseExceptionAnalyser(new DefaultExceptionAnalyser(get(ListenerManager.class)));
     }
 
     protected ScriptHandlerFactory createScriptHandlerFactory() {

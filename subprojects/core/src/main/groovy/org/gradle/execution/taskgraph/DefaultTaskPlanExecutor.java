@@ -20,11 +20,8 @@ import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 class DefaultTaskPlanExecutor implements TaskPlanExecutor {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTaskPlanExecutor.class);
 
     public void process(TaskExecutionPlan taskExecutionPlan, TaskExecutionListener taskListener) {
         Spec<TaskInfo> anyTask = Specs.satisfyAll();
@@ -46,6 +43,8 @@ class DefaultTaskPlanExecutor implements TaskPlanExecutor {
         }
     }
 
+    // TODO:PARALLEL It would be good to move this logic into a TaskExecuter wrapper, but we'd need a way to give it a TaskExecutionListener that
+    // is wired to the various add/remove listener methods on TaskExecutionGraph
     private void executeTask(TaskInfo taskInfo, TaskExecutionListener taskListener) {
         TaskInternal task = taskInfo.getTask();
         taskListener.beforeExecute(task);

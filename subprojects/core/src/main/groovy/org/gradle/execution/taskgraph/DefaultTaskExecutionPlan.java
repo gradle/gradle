@@ -22,6 +22,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.CachingTaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.execution.CompositeTaskExecutionException;
 import org.gradle.execution.TaskFailureHandler;
 import org.gradle.internal.UncheckedException;
 
@@ -38,8 +39,8 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
     private final LinkedHashMap<Task, TaskInfo> executionPlan = new LinkedHashMap<Task, TaskInfo>();
+    private final List<Throwable> failures = new ArrayList<Throwable>();
     private Spec<? super Task> filter = Specs.satisfyAll();
-    private Throwable failure;
 
     private TaskFailureHandler failureHandler = new RethrowingFailureHandler();
 
@@ -96,6 +97,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         lock.lock();
         try {
             executionPlan.clear();
+            failures.clear();
         } finally {
             lock.unlock();
         }
@@ -174,6 +176,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
     private void handleFailure(TaskInfo taskInfo) {
         if (taskInfo.getExecutionFailure() != null) {
+            // Always abort execution for an execution failure (as opposed to a task failure)
             abortExecution(taskInfo.getExecutionFailure());
             return;
         }
@@ -181,7 +184,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         try {
             failureHandler.onTaskFailure(taskInfo.getTask());
         } catch (Exception e) {
-            // The failure handler rethrows exception: this means that execution of other tasks is aborted
+            // If the failure handler rethrows exception, then execution of other tasks is aborted. (--continue will collect failures)
             abortExecution(e);
         }
     }
@@ -193,7 +196,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 taskInfo.skipExecution();
             }
         }
-        this.failure = e;
+        this.failures.add(e);
     }
 
     public void awaitCompletion() {
@@ -206,12 +209,22 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                     throw new RuntimeException(e);
                 }
             }
-            if (failure != null) {
-                throw UncheckedException.throwAsUncheckedException(failure);
-            }
+            rethrowFailures();
         } finally {
             lock.unlock();
         }
+    }
+
+    private void rethrowFailures() {
+        if (failures.isEmpty()) {
+            return;
+        }
+
+        if (failures.size() > 1) {
+            throw new CompositeTaskExecutionException(failures);
+        }
+
+        throw UncheckedException.throwAsUncheckedException(failures.get(0));
     }
 
     private boolean allTasksComplete() {
