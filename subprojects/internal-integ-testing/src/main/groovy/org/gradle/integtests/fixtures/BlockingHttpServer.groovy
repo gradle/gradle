@@ -60,8 +60,15 @@ public class BlockingHttpServer extends ExternalResource {
     }
 
     void stop() {
-        assert !awaiting
+        collection.handlers.each { handler ->
+            handler.assertComplete()
+        }
         server?.stop()
+    }
+
+    @Override
+    protected void after() {
+        stop()
     }
 
     int getPort() {
@@ -80,24 +87,31 @@ server state: ${server.dump()}
         def expectedCalls = []
         def collectedCalls = []
         def cyclicBarrier
-        def barrierBroken
+        def complete
 
-        CyclicBarrierRequestHandler(String... expectedCalls) {
-            cyclicBarrier = new CyclicBarrier(expectedCalls.length, {
-                assert collectedCalls.toSet() == expectedCalls.toList().toSet()
-                barrierBroken = true
+        CyclicBarrierRequestHandler(String... calls) {
+            this.expectedCalls.addAll(calls)
+            cyclicBarrier = new CyclicBarrier(expectedCalls.size, {
+                assert collectedCalls.toSet() == expectedCalls.toSet()
+                complete = true
             } as Runnable)
         }
 
         void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
             def path = target.replaceFirst('/', '')
-            if (request.handled || barrierBroken) {
+            if (request.handled || complete) {
                 return
             }
             collectedCalls.add path
             cyclicBarrier.await(10, TimeUnit.SECONDS)
             response.addHeader("RESPONSE", "target: done")
             request.handled = true
+        }
+
+        void assertComplete() {
+            if (!complete) {
+                throw new AssertionError("BlockingHttpServer: did not receive simultaneous calls $expectedCalls")
+            }
         }
     }
 }

@@ -21,10 +21,12 @@ package org.gradle.integtests;
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BlockingHttpServer
+import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.junit.Rule
 
 public class ParallelProjectExecutionIntegrationTest extends AbstractIntegrationSpec {
 
-    def blockingServer = new BlockingHttpServer()
+    @Rule public final BlockingHttpServer blockingServer = new BlockingHttpServer()
 
     def setup() {
         blockingServer.start()
@@ -38,23 +40,25 @@ allprojects {
     }
 }
 """
+        executer.withExecuter(GradleDistributionExecuter.Executer.parallel)
         executer.withArgument('--info')
+        // TODO fix our stack trace check so it handles multiple reported exceptions
+        executer.withStackTraceChecksDisabled()
 
     }
 
-    def "executes dependent project targets concurrently"() {
-        projectDependency from: 'c', to: ['a', 'b']
-        projectDependency from: 'd', to: ['c']
+    def "executes dependency project targets concurrently"() {
+
+        projectDependency from: 'a', to: ['b', 'c', 'd']
 
         expect:
-        blockingServer.expectConcurrentExecution(':a', ':b')
-        blockingServer.expectConcurrentExecution(':c')
-        blockingServer.expectConcurrentExecution(':d')
+        blockingServer.expectConcurrentExecution(':b', ':c', ':d')
+        blockingServer.expectConcurrentExecution(':a')
 
-        run ':d:pingServer'
+        run ':a:pingServer'
     }
 
-    def "executes dependency project targets concurrently2"() {
+    def "executes dependency project targets concurrently where possible"() {
 
         projectDependency from: 'a', to: ['b', 'c']
         projectDependency from: 'b', to: ['d']
@@ -79,7 +83,8 @@ allprojects {
         fails ':a:pingServer'
 
         then:
-        failure.assertHasCause 'b failed'
+        failure.error =~ 'b failed'
+        failure.error =~ 'c failed'
     }
 
 

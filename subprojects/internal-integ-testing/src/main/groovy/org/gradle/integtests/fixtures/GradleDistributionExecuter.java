@@ -158,6 +158,11 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
         return this;
     }
 
+    public GradleDistributionExecuter withExecuter(Executer executerType) {
+        this.executerType = executerType;
+        return this;
+    }
+
     protected <T extends ExecutionResult> T checkResult(T result) {
         if (stackTraceChecksOn) {
             // Assert that nothing unexpected was logged
