@@ -49,6 +49,9 @@ import java.io.*;
 import java.nio.charset.Charset;
 import java.util.Set;
 
+/**
+ * Executes two Gradle builds (that can be the same build) with specified versions and compares the outputs.
+ */
 public class CompareGradleBuilds extends DefaultTask {
 
     private String sourceVersion = GradleVersion.current().getVersion();
