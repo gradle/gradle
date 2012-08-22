@@ -33,11 +33,11 @@ class MigrationVerificationPluginIntegrationSpec extends AbstractIntegrationSpec
         given:
         buildFile << """
             task compare(type: CompareGradleBuilds) {
-                reportDir = file("result")
-                sourceVersion = "current"
-                targetVersion = "current"
-                sourceProjectDir = file("sourceBuild/")
-                targetProjectDir = file("targetBuild/")
+                reportDir "result"
+                sourceVersion "current"
+                targetVersion "current"
+                sourceProjectDir file("sourceBuild/")
+                targetProjectDir file("targetBuild/")
             }
         """
 
@@ -71,11 +71,11 @@ class MigrationVerificationPluginIntegrationSpec extends AbstractIntegrationSpec
             apply plugin: "java"
 
             task compare(type: CompareGradleBuilds) {
-                reportDir = file("result")
-                sourceVersion = "current"
-                targetVersion = "current"
-                sourceProjectDir = project.rootDir
-                targetProjectDir = project.rootDir
+                reportDir "result"
+                sourceVersion "current"
+                targetVersion "current"
+                sourceProjectDir project.rootDir
+                targetProjectDir project.rootDir
             }
 
             jar.doLast {

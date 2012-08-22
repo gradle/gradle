@@ -20,6 +20,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.filestore.PathNormalisingKeyFileStore;
 import org.gradle.api.plugins.migration.gradle.internal.GradleBuildOutcomeSetTransformer;
 import org.gradle.api.plugins.migration.model.compare.BuildComparator;
@@ -55,7 +56,13 @@ public class CompareGradleBuilds extends DefaultTask {
     private File sourceProjectDir;
     private File targetProjectDir;
 
-    private File reportDir;
+    private Object reportDir;
+
+    private final FileResolver fileResolver;
+
+    public CompareGradleBuilds(FileResolver fileResolver) {
+        this.fileResolver = fileResolver;
+    }
 
     public String getSourceVersion() {
         return sourceVersion;
@@ -91,19 +98,19 @@ public class CompareGradleBuilds extends DefaultTask {
 
     @OutputDirectory
     public File getReportDir() {
-        return reportDir;
+        return fileResolver.resolve(reportDir);
     }
 
-    public void setReportDir(File reportDir) {
+    public void setReportDir(Object reportDir) {
         this.reportDir = reportDir;
     }
 
     public File getReportFile() {
-        return new File(reportDir, "index.html");
+        return new File(getReportDir(), "index.html");
     }
 
     public File getFileStoreDir() {
-        return new File(reportDir, "files");
+        return new File(getReportDir(), "files");
     }
 
     @TaskAction
