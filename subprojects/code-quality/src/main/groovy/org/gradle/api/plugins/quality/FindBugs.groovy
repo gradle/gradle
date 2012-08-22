@@ -30,8 +30,12 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.logging.ConsoleRenderer
 import org.gradle.process.internal.WorkerProcessBuilder
 
+import groovy.transform.PackageScope
+
 /**
- * Analyzes code with <a href="http://findbugs.sourceforge.net">FindBugs</a>.
+ * Analyzes code with <a href="http://findbugs.sourceforge.net">FindBugs</a>. See the
+ * <a href="http://findbugs.sourceforge.net/manual/">FindBugs Manual</a> for additional information
+ * on configuration options.
  */
 class FindBugs extends SourceTask implements VerificationTask, Reporting<FindBugsReports> {
     /**
@@ -65,6 +69,53 @@ class FindBugs extends SourceTask implements VerificationTask, Reporting<FindBug
      * Whether or not to allow the build to continue if there are warnings.
      */
     boolean ignoreFailures
+
+    /**
+     * The analysis effort level. The value specified should be one of {@code min}, {@code default}, or {@code max}.
+     * Higher levels increase precision and find more bugs at the expense of running time and memory consumption.
+     */
+    @Input
+    @Optional
+    String effort
+
+    /**
+     * The priority threshold for reporting bugs. If set to {@code low}, all bugs are reported. If set to
+     * {@code medium} (the default), medium and high priority bugs are reported. If set to {@code high},
+     * only high priority bugs are reported.
+     */
+    @Input
+    @Optional
+    String reportLevel
+
+    /**
+     * The bug detectors which should be run. The bug detectors are specified by their class names,
+     * without any package qualification. By default, all detectors which are not disabled by default are run.
+     */
+    @Input
+    @Optional
+    Collection<String> visitors = []
+
+    /**
+     * Similar to {@code visitors} except that it specifies bug detectors which should not be run.
+     * By default, no visitors are omitted.
+     */
+    @Input
+    @Optional
+    Collection<String> omitVisitors = []
+
+    /**
+     * The filename of a filter specifying which bugs are reported.
+     */
+    @InputFile
+    @Optional
+    File includeFilter
+
+    /**
+     * The filename of a filter specifying bugs to exclude from being reported.
+     */
+    @InputFile
+    @Optional
+    File excludeFilter
 
     @Nested
     private final FindBugsReportsImpl reports
@@ -109,31 +160,49 @@ class FindBugs extends SourceTask implements VerificationTask, Reporting<FindBug
 
     @TaskAction
     void run() {
-        FindBugsSpecBuilder argumentBuilder = new FindBugsSpecBuilder(getClasses())
-                .withPluginsList(getPluginClasspath())
-                .withSources(getSource())
-                .withClasspath(getClasspath())
-                .withDebugging(logger.isDebugEnabled())
-                .configureReports(reports)
-
-        FindBugsSpec spec = argumentBuilder.build()
-        FindBugsWorkerManager manager = new FindBugsWorkerManager();
+        FindBugsSpec spec = generateSpec()
+        FindBugsWorkerManager manager = new FindBugsWorkerManager()
 
         logging.captureStandardOutput(LogLevel.DEBUG)
         logging.captureStandardError(LogLevel.DEBUG)
 
-        FindBugsResult findbugsResult = manager.runWorker(getProject().getProjectDir(), workerFactory, getFindbugsClasspath(), spec)
-        evaluateResult(findbugsResult);
+        FindBugsResult result = manager.runWorker(getProject().getProjectDir(), workerFactory, getFindbugsClasspath(), spec)
+        evaluateResult(result);
     }
 
-    void evaluateResult(FindBugsResult findbugsResult) {
-        if (findbugsResult.exception) {
-            throw new GradleException("FindBugs encountered an error. Run with --debug to get more information.", findbugsResult.exception)
+    /**
+     * For testing only.
+     */
+    @PackageScope
+    FindBugsSpec generateSpec() {
+        FindBugsSpecBuilder specBuilder = new FindBugsSpecBuilder(getClasses())
+            .withPluginsList(getPluginClasspath())
+            .withSources(getSource())
+            .withClasspath(getClasspath())
+            .withDebugging(logger.isDebugEnabled())
+            .withEffort(effort)
+            .withReportLevel(reportLevel)
+            .withVisitors(visitors)
+            .withOmitVisitors(omitVisitors)
+            .withExcludeFilter(excludeFilter)
+            .withIncludeFilter(includeFilter)
+            .configureReports(reports)
+
+        return specBuilder.build()
+    }
+
+    /**
+     * For testing only.
+     */
+    @PackageScope
+    void evaluateResult(FindBugsResult result) {
+        if (result.exception) {
+            throw new GradleException("FindBugs encountered an error. Run with --debug to get more information.", result.exception)
         }
-        if (findbugsResult.errorCount) {
+        if (result.errorCount) {
             throw new GradleException("FindBugs encountered an error. Run with --debug to get more information.")
         }
-        if (findbugsResult.bugCount) {
+        if (result.bugCount) {
             def message = "FindBugs rule violations were found."
             def report = reports.firstEnabled
             if (report) {
