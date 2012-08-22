@@ -17,7 +17,9 @@
 package org.gradle.initialization;
 
 import org.gradle.api.internal.ExceptionAnalyser;
+import org.gradle.api.internal.LocationAwareException;
 import org.gradle.api.internal.MultiCauseException;
+import org.gradle.execution.CompositeTaskExecutionException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,14 +32,16 @@ public class MultiCauseExceptionAnalyser implements ExceptionAnalyser {
     }
 
     public Throwable transform(Throwable exception) {
-        if (exception instanceof MultiCauseException) {
+        // TODO:PARALLEL Remove the special case: this should apply to all multi cause exceptions
+        if (exception instanceof CompositeTaskExecutionException) {
             MultiCauseException multiCauseException = (MultiCauseException) exception;
             List<Throwable> transformedCauses = new ArrayList<Throwable>(multiCauseException.getCauses().size());
             for (Throwable cause : multiCauseException.getCauses()) {
                 transformedCauses.add(transform(cause));
             }
             multiCauseException.initCauses(transformedCauses);
-            return exception;
+
+            return new LocationAwareException(exception, exception, null, null);
         }
 
         return delegate.transform(exception);
