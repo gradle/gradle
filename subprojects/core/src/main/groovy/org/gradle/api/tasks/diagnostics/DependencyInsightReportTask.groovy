@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.result.ResolvedModuleVersionResult
 import org.gradle.api.internal.artifacts.dependencygraph.ResolvedDependencyResultPrinter
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.diagnostics.internal.GraphRenderer
+import org.gradle.api.tasks.diagnostics.internal.dependencies.DependencyComparator
 import org.gradle.logging.StyledTextOutput
 import org.gradle.logging.StyledTextOutputFactory
 
@@ -54,18 +55,23 @@ public class DependencyInsightReportTask extends DefaultTask {
         renderer = new GraphRenderer(output);
 
         ResolutionResult result = configuration.getResolvedConfiguration().getResolutionResult();
-        Set<? extends ResolvedDependencyResult> allDependencies = result.getAllDependencies();
+        Set<? extends ResolvedDependencyResult> allDependencies = result.getAllDependencies()
 
-        for (final ResolvedDependencyResult dependencyResult : allDependencies) {
-            String requested = ResolvedDependencyResultPrinter.print(dependencyResult);
-            if (requested.contains(dependency)) {
-                renderer.visit(new Action<StyledTextOutput>() {
-                    public void execute(StyledTextOutput styledTextOutput) {
-                        styledTextOutput.withStyle(StyledTextOutput.Style.Identifier).text(dependencyResult);
-                    }
-                }, true);
-                renderDependees(dependencyResult.getSelected().getDependees());
-            }
+        def selectedDependencies = allDependencies.findAll { ResolvedDependencyResult it ->
+            String dep = ResolvedDependencyResultPrinter.print(it);
+            //TODO SF this is quite crude for now but I need to get some feedback before implementing more.
+            dep.contains(dependency)
+        }
+
+        def sortedDeps = selectedDependencies.sort(new DependencyComparator());
+
+        for (ResolvedDependencyResult dependency: sortedDeps) {
+            renderer.visit(new Action<StyledTextOutput>() {
+                public void execute(StyledTextOutput styledTextOutput) {
+                    styledTextOutput.withStyle(StyledTextOutput.Style.Identifier).text(ResolvedDependencyResultPrinter.print(dependency));
+                }
+            }, true);
+            renderDependees(dependency.getSelected().getDependees());
         }
     }
 

@@ -34,6 +34,8 @@ class DependencyInsightReportTaskIntegrationTest extends AbstractIntegrationSpec
         given:
         repo.module("org", "leaf1").publish()
         repo.module("org", "leaf2").publish()
+        repo.module("org", "leaf2", 1.5).publish()
+        repo.module("org", "leaf2", 2.5).publish()
         repo.module("org", "leaf3").publish()
         repo.module("org", "leaf4").publish()
 
@@ -41,6 +43,9 @@ class DependencyInsightReportTaskIntegrationTest extends AbstractIntegrationSpec
         repo.module("org", "middle2").dependsOn('leaf3', 'leaf4').publish()
 
         repo.module("org", "toplevel").dependsOn("middle1", "middle2").publish()
+
+        repo.module("org", "toplevel2").dependsOn("org", "leaf2", "1.5").publish()
+        repo.module("org", "toplevel3").dependsOn("org", "leaf2", "2.5").publish()
 
         file("build.gradle") << """
             repositories {
@@ -51,7 +56,7 @@ class DependencyInsightReportTaskIntegrationTest extends AbstractIntegrationSpec
                 conf
             }
             dependencies {
-                conf 'org:toplevel:1.0'
+                conf 'org:toplevel:1.0', 'org:toplevel2:1.0', 'org:toplevel3:1.0'
             }
 
             task insight(type: DependencyInsightReportTask) {
@@ -66,9 +71,15 @@ class DependencyInsightReportTaskIntegrationTest extends AbstractIntegrationSpec
         then:
         1 == 1
         output.contains(toPlatformLineSeparators("""
-org:leaf2:1.0
+org:leaf2:2.5
+\\--- org:toplevel3:1.0
+
+org:leaf2:1.0 -> 2.5
 \\--- org:middle1:1.0
      \\--- org:toplevel:1.0
+
+org:leaf2:1.5 -> 2.5
+\\--- org:toplevel2:1.0
 """))
     }
 }
