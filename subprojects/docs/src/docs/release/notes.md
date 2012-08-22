@@ -29,8 +29,8 @@ We want to expose the API that our dependency reports are using.
 This way Gradle users may develop their own dependency reporting driven by custom requirements.
 Also it allows the users to develop build logic that can make decisions based on the content of the dependency graph.
 
-The best way to start with the new API is to take a look at the javadocs
-for 'ResolvedConfiguration.getResolutionResult()' (TODO link).
+The best way to start with the new API is to take a look at the Javadoc
+for `ResolvedConfiguration.getResolutionResult()` (TODO link).
 
 ### Experimental support for building projects in parallel
 
@@ -68,7 +68,7 @@ The `User-Agent` header now includes information about
 
 An example for a Gradle generated user-agent string: "**Gradle/1.2 (Mac OS X;10.8;amd64) (Oracle Corporation;1.7.0_04-ea;23.0-b12)**"
 
-### Less usage of heap space
+### Lower memory usage
 
 We've continued to improve our dependency resolution engine, so that it now requires much less heap space. A moderately sized multi-project build can
 expect to see a 20-25% reduction in heap usage thanks to these improvements.
@@ -82,7 +82,7 @@ We will continue working on it and with Gradle 1.3 it will be officially announc
 
 ### Configuration option for FindBugs plugin
 
-Thanks to a contribution from Justin Ryan (https://github.com/quidryan), the FindBugs plugin now supports essential configuration options.
+Thanks to a contribution from [Justin Ryan](https://github.com/quidryan), the FindBugs plugin now supports essential configuration options.
 
 ## Upgrading from Gradle 1.1
 
@@ -97,7 +97,7 @@ search for a `maven-metadata.xml` file when attempting to determine the versions
 which means Gradle will look for a `maven-metadata.xml` file and then fall back to a directory listing if not present. When set to `false` Gradle will
 use a directory listing only.
 
-Thanks to the various improvements we've made to make dependency management must more efficient, there is no longer a performance penalty for searching
+Thanks to the various improvements we've made to make dependency management more efficient, there is no longer a performance penalty for searching
 for the `maven-metadata.xml` file. This means this property is no longer useful and will be removed in Gradle 2.0.
 
 #### Task class renames
