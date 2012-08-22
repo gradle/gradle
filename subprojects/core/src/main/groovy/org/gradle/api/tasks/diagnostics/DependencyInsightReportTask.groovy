@@ -36,7 +36,7 @@ import org.gradle.logging.StyledTextOutputFactory
 public class DependencyInsightReportTask extends DefaultTask {
 
     Configuration configuration;
-    String dependency;
+    Closure includes;
 
     private StyledTextOutput output;
     private GraphRenderer renderer;
@@ -45,8 +45,8 @@ public class DependencyInsightReportTask extends DefaultTask {
         this.configuration = configuration;
     }
 
-    public void setDependency(String dependency) {
-        this.dependency = dependency;
+    public void setIncludes(Closure includes) {
+        this.includes = includes
     }
 
     @TaskAction
@@ -58,9 +58,8 @@ public class DependencyInsightReportTask extends DefaultTask {
         Set<? extends ResolvedDependencyResult> allDependencies = result.getAllDependencies()
 
         def selectedDependencies = allDependencies.findAll { ResolvedDependencyResult it ->
-            String dep = ResolvedDependencyResultPrinter.print(it);
             //TODO SF this is quite crude for now but I need to get some feedback before implementing more.
-            dep.contains(dependency)
+            includes(it)
         }
 
         def sortedDeps = selectedDependencies.sort(new DependencyComparator());

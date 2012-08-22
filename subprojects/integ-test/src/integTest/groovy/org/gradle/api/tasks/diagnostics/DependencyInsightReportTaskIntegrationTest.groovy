@@ -61,7 +61,9 @@ class DependencyInsightReportTaskIntegrationTest extends AbstractIntegrationSpec
 
             task insight(type: DependencyInsightReportTask) {
                 configuration = configurations.conf
-                dependency = 'org:leaf2'
+                includes = { ResolvedDependencyResult dep ->
+                    dep.requested.name == 'leaf2'
+                }
             }
         """
 
@@ -82,4 +84,8 @@ org:leaf2:1.5 -> 2.5
 \\--- org:toplevel2:1.0
 """))
     }
+
+    //TODO SF more coverage
+    // - no matching dependencies
+    // - configuration / dependency not configured
 }
