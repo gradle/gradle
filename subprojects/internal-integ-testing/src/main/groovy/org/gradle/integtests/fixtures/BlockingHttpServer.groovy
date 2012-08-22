@@ -16,16 +16,15 @@
 
 package org.gradle.integtests.fixtures;
 
-
 import org.junit.rules.ExternalResource
 import org.mortbay.jetty.Server
 import org.mortbay.jetty.handler.AbstractHandler
+import org.mortbay.jetty.handler.HandlerCollection
 
 import java.util.concurrent.CyclicBarrier
 import java.util.concurrent.TimeUnit
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
-import org.mortbay.jetty.handler.HandlerCollection
 
 public class BlockingHttpServer extends ExternalResource {
     private final Server server = new Server(0)
@@ -98,14 +97,18 @@ server state: ${server.dump()}
         }
 
         void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
-            def path = target.replaceFirst('/', '')
             if (request.handled || complete) {
                 return
             }
-            collectedCalls.add path
+            recordPath(target)
             cyclicBarrier.await(10, TimeUnit.SECONDS)
             response.addHeader("RESPONSE", "target: done")
             request.handled = true
+        }
+
+        private synchronized void recordPath(def target) {
+            def path = target.replaceFirst('/', '')
+            collectedCalls.add path
         }
 
         void assertComplete() {
