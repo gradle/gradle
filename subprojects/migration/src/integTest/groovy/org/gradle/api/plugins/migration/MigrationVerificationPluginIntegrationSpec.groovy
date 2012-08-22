@@ -34,8 +34,8 @@ class MigrationVerificationPluginIntegrationSpec extends AbstractIntegrationSpec
         buildFile << """
             task compare(type: CompareGradleBuilds) {
                 reportDir "result"
-                sourceProjectDir file("sourceBuild/")
-                targetProjectDir file("targetBuild/")
+                sourceProjectDir "sourceBuild"
+                targetProjectDir "targetBuild"
             }
         """
 

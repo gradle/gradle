@@ -55,8 +55,8 @@ public class CompareGradleBuilds extends DefaultTask {
     private String sourceVersion = GradleVersion.current().getVersion();
     private String targetVersion = sourceVersion;
 
-    private File sourceProjectDir = getProject().getRootDir();
-    private File targetProjectDir = getProject().getRootDir();
+    private Object sourceProjectDir = getProject().getRootDir();
+    private Object targetProjectDir = getProject().getRootDir();
 
     private Object reportDir;
 
@@ -83,18 +83,18 @@ public class CompareGradleBuilds extends DefaultTask {
     }
 
     public File getSourceProjectDir() {
-        return sourceProjectDir;
+        return fileResolver.resolve(sourceProjectDir);
     }
 
-    public void setSourceProjectDir(File sourceProjectDir) {
+    public void setSourceProjectDir(Object sourceProjectDir) {
         this.sourceProjectDir = sourceProjectDir;
     }
 
     public File getTargetProjectDir() {
-        return targetProjectDir;
+        return fileResolver.resolve(targetProjectDir);
     }
 
-    public void setTargetProjectDir(File targetProjectDir) {
+    public void setTargetProjectDir(Object targetProjectDir) {
         this.targetProjectDir = targetProjectDir;
     }
 
