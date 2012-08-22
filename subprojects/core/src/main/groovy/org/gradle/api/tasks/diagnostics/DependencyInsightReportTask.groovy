@@ -24,9 +24,9 @@ import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.artifacts.result.ResolvedDependencyResult
 import org.gradle.api.artifacts.result.ResolvedModuleVersionResult
 import org.gradle.api.internal.artifacts.result.ResolvedDependencyResultPrinter
+import org.gradle.api.internal.artifacts.result.ResolvedDependencyResultSorter
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.diagnostics.internal.GraphRenderer
-import org.gradle.api.tasks.diagnostics.internal.dependencies.DependencyComparator
 import org.gradle.logging.StyledTextOutput
 import org.gradle.logging.StyledTextOutputFactory
 
@@ -62,7 +62,7 @@ public class DependencyInsightReportTask extends DefaultTask {
             includes(it)
         }
 
-        def sortedDeps = selectedDependencies.sort(new DependencyComparator());
+        def sortedDeps = ResolvedDependencyResultSorter.sort(selectedDependencies);
 
         for (ResolvedDependencyResult dependency: sortedDeps) {
             renderer.visit(new Action<StyledTextOutput>() {
