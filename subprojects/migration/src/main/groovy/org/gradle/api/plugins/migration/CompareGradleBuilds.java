@@ -44,6 +44,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.model.internal.migration.ProjectOutput;
+import org.gradle.util.GradleVersion;
 
 import java.io.*;
 import java.nio.charset.Charset;
@@ -51,10 +52,11 @@ import java.util.Set;
 
 public class CompareGradleBuilds extends DefaultTask {
 
-    private String sourceVersion;
-    private String targetVersion;
-    private File sourceProjectDir;
-    private File targetProjectDir;
+    private String sourceVersion = GradleVersion.current().getVersion();
+    private String targetVersion = sourceVersion;
+
+    private File sourceProjectDir = getProject().getRootDir();
+    private File targetProjectDir = getProject().getRootDir();
 
     private Object reportDir;
 
@@ -118,11 +120,11 @@ public class CompareGradleBuilds extends DefaultTask {
         // Build the outcome model and outcomes
 
         GradleBuildOutcomeSetTransformer fromOutcomeTransformer = createOutcomeSetTransformer("from");
-        ProjectOutput fromOutput = generateBuildOutput(sourceVersion, sourceProjectDir);
+        ProjectOutput fromOutput = generateBuildOutput(sourceVersion, getSourceProjectDir());
         Set<BuildOutcome> fromOutcomes = fromOutcomeTransformer.transform(fromOutput);
 
         GradleBuildOutcomeSetTransformer toOutcomeTransformer = createOutcomeSetTransformer("to");
-        ProjectOutput toOutput = generateBuildOutput(targetVersion, targetProjectDir);
+        ProjectOutput toOutput = generateBuildOutput(targetVersion, getTargetProjectDir());
         Set<BuildOutcome> toOutcomes = toOutcomeTransformer.transform(toOutput);
 
         // Associate from each side (create spec)
@@ -146,13 +148,14 @@ public class CompareGradleBuilds extends DefaultTask {
         return new GradleBuildOutcomeSetTransformer(new PathNormalisingKeyFileStore(new File(getFileStoreDir(), filesPath)));
     }
 
-    private ProjectOutput generateBuildOutput(String gradleVersion, File other) {
+    private ProjectOutput generateBuildOutput(String gradleVersionString, File other) {
+        GradleVersion gradleVersion = GradleVersion.version(gradleVersionString);
         GradleConnector connector = GradleConnector.newConnector().forProjectDirectory(other);
         connector.useGradleUserHomeDir(getProject().getGradle().getStartParameter().getGradleUserHomeDir());
-        if (gradleVersion.equals("current")) {
+        if (gradleVersion.equals(GradleVersion.current())) {
             connector.useInstallation(getProject().getGradle().getGradleHomeDir());
         } else {
-            connector.useGradleVersion(gradleVersion);
+            connector.useGradleVersion(gradleVersion.getVersion());
         }
         ProjectConnection connection = connector.connect();
         try {

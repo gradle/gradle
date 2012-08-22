@@ -34,8 +34,6 @@ class MigrationVerificationPluginIntegrationSpec extends AbstractIntegrationSpec
         buildFile << """
             task compare(type: CompareGradleBuilds) {
                 reportDir "result"
-                sourceVersion "current"
-                targetVersion "current"
                 sourceProjectDir file("sourceBuild/")
                 targetProjectDir file("targetBuild/")
             }
@@ -72,10 +70,6 @@ class MigrationVerificationPluginIntegrationSpec extends AbstractIntegrationSpec
 
             task compare(type: CompareGradleBuilds) {
                 reportDir "result"
-                sourceVersion "current"
-                targetVersion "current"
-                sourceProjectDir project.rootDir
-                targetProjectDir project.rootDir
             }
 
             jar.doLast {
