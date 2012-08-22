@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.artifacts.result.ResolvedDependencyResult
 import org.gradle.api.artifacts.result.ResolvedModuleVersionResult
-import org.gradle.api.internal.artifacts.dependencygraph.ResolvedDependencyResultPrinter
+import org.gradle.api.internal.artifacts.result.ResolvedDependencyResultPrinter
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.diagnostics.internal.GraphRenderer
 import org.gradle.api.tasks.diagnostics.internal.dependencies.DependencyComparator
