@@ -16,14 +16,19 @@
 
 package org.gradle.api.plugins.quality.internal
 
-import spock.lang.Specification
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.NamedDomainObjectSet
 import org.gradle.api.file.FileCollection
 import org.gradle.api.reporting.SingleFileReport
 import org.gradle.api.plugins.quality.internal.findbugs.FindBugsSpecBuilder
+import org.gradle.util.TemporaryFolder
+
+import org.junit.Rule
+
+import spock.lang.Specification
 
 class FindBugsSpecBuilderTest extends Specification {
+    @Rule TemporaryFolder tempFolder = new TemporaryFolder()
 
     FileCollection classes = Mock()
     FindBugsSpecBuilder builder = new FindBugsSpecBuilder(classes)
@@ -119,5 +124,79 @@ class FindBugsSpecBuilderTest extends Specification {
 
         where:
         reportType << ["xml", "html"]
+    }
+
+    def "configure effort"() {
+        when:
+        def args = builder.withEffort(effort).build().arguments
+
+        then:
+        args.contains("-effort:$effort" as String)
+
+        where:
+        effort << ["min", "default", "max"]
+    }
+
+    def "detects invalid effort value"() {
+        when:
+        builder.withEffort("unknown")
+
+        then:
+        thrown(InvalidUserDataException)
+    }
+
+    def "configure report level"() {
+        when:
+        def args = builder.withReportLevel(level).build().arguments
+
+        then:
+        args.contains("-$level" as String)
+
+        where:
+        level << ["experimental", "low", "medium", "high"]
+    }
+
+    def "detects invalid report level value"() {
+        when:
+        builder.withReportLevel("unknown")
+
+        then:
+        thrown(InvalidUserDataException)
+    }
+
+    def "configure visitors"() {
+        when:
+        def args = builder.withVisitors(["Foo", "Bar"]).build().arguments.join(" ")
+
+        then:
+        args.contains("-visitors Foo,Bar")
+    }
+
+    def "configure omitVisitors"() {
+        when:
+        def args = builder.withOmitVisitors(["Foo", "Bar"]).build().arguments.join(" ")
+
+        then:
+        args.contains("-omitVisitors Foo,Bar")
+    }
+
+    def "configure includeFilter"() {
+        def file = tempFolder.createFile("include.txt")
+
+        when:
+        def args = builder.withIncludeFilter(file).build().arguments.join(" ")
+
+        then:
+        args.contains("-include $file")
+    }
+
+    def "configure excludeFilter"() {
+        def file = tempFolder.createFile("exclude.txt")
+
+        when:
+        def args = builder.withExcludeFilter(file).build().arguments.join(" ")
+
+        then:
+        args.contains("-exclude $file")
     }
 }
