@@ -121,11 +121,11 @@ public class CompareGradleBuilds extends DefaultTask {
     void compare() {
         // Build the outcome model and outcomes
 
-        GradleBuildOutcomeSetTransformer fromOutcomeTransformer = createOutcomeSetTransformer("from");
+        GradleBuildOutcomeSetTransformer fromOutcomeTransformer = createOutcomeSetTransformer("source");
         ProjectOutput fromOutput = generateBuildOutput(sourceVersion, getSourceProjectDir());
         Set<BuildOutcome> fromOutcomes = fromOutcomeTransformer.transform(fromOutput);
 
-        GradleBuildOutcomeSetTransformer toOutcomeTransformer = createOutcomeSetTransformer("to");
+        GradleBuildOutcomeSetTransformer toOutcomeTransformer = createOutcomeSetTransformer("target");
         ProjectOutput toOutput = generateBuildOutput(targetVersion, getTargetProjectDir());
         Set<BuildOutcome> toOutcomes = toOutcomeTransformer.transform(toOutput);
 
@@ -192,7 +192,7 @@ public class CompareGradleBuilds extends DefaultTask {
 
     private BuildComparisonResultRenderer<Writer> createResultRenderer() {
         DefaultBuildOutcomeComparisonResultRendererFactory<HtmlRenderContext> renderers = new DefaultBuildOutcomeComparisonResultRendererFactory<HtmlRenderContext>(HtmlRenderContext.class);
-        renderers.registerRenderer(new GeneratedArchiveBuildOutcomeComparisonResultHtmlRenderer());
+        renderers.registerRenderer(new GeneratedArchiveBuildOutcomeComparisonResultHtmlRenderer("Source Build", "Target Build"));
 
         PartRenderer headRenderer = new HeadRenderer("Gradle Build Comparison", Charset.defaultCharset().name());
 
