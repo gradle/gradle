@@ -16,48 +16,45 @@
 package org.gradle.api.plugins.quality
 
 /**
- * Configuration options for the FindBugs plugin.
+ * Configuration options for the FindBugs plugin. All options have sensible defaults.
+ * See the <a href="http://findbugs.sourceforge.net/manual/">FindBugs Manual</a> for additional information
+ * on these options.
  *
  * @see FindBugsPlugin
  */
 class FindBugsExtension extends CodeQualityExtension {
-   /**
-    * Set the analysis effort level. The value specified should be one of min, default, or max. See
-    * <a href="http://findbugs.sourceforge.net/manual/running.html#commandLineOptions">Chapter 4, Section 3 "Command-line Options"</a>
-    * for more information about setting the analysis level.
-    */
-   String effort
+    /**
+     * The analysis effort level. The value specified should be one of {@code min}, {@code default}, or {@code max}.
+     * Higher levels increase precision and find more bugs at the expense of running time and memory consumption.
+     */
+    String effort
 
-   /**
-    * An optional attribute. It specifies the priority threshold for reporting bugs. If set to "low", all bugs are reported. If set to
-    * "medium" (the default), medium and high priority bugs are reported. If set to "high", only high priority bugs are reported.
-    */
-   String reportLevel
+    /**
+     * The priority threshold for reporting bugs. If set to {@code low}, all bugs are reported. If set to
+     * {@code medium} (the default), medium and high priority bugs are reported. If set to {@code high},
+     * only high priority bugs are reported.
+     */
+    String reportLevel
 
-   /**
-    * Optional attribute. It specifies a comma-separated list of bug detectors which should be run. The bug detectors are specified by
-    * their class names, without any package qualification. By default, all detectors which are not disabled by default are run.
-    */
-   // TODO Add DSL methods to building up visitors list
-   Collection<String> visitors
+    /**
+     * The bug detectors which should be run. The bug detectors are specified by their class names,
+     * without any package qualification. By default, all detectors which are not disabled by default are run.
+     */
+    Collection<String> visitors
 
-   /**
-    * Optional attribute. It is like the visitors attribute, except it specifies detectors which will not be run.
-    */
-   // TODO Add DSL methods to building up omitVisitors list
-   Collection<String> omitVisitors
+    /**
+     * Similar to {@code visitors} except that it specifies bug detectors which should not be run.
+     * By default, no visitors are omitted.
+     */
+    Collection<String> omitVisitors
 
-   /**
-    * Optional attribute. It specifies the filename of a filter specifying bugs to exclude from being reported. See
-    * <a href="http://findbugs.sourceforge.net/manual/filter.html">Chapter 8, Filter Files</a>. This is not the same as the
-    * exclude parameter, which influences the source parameter.
-    */
-   File excludeFilter
+    /**
+     * The filename of a filter specifying which bugs are reported.
+     */
+    File includeFilter
 
-   /**
-    * Optional attribute. It specifies the filename of a filter specifying which bugs are reported. See
-    * <a href="http://findbugs.sourceforge.net/manual/filter.html">Chapter 8, Filter Files</a>. This is not the same as the
-    * include parameter, which influences the source parameter.
-    */
-   File includeFilter
+    /**
+     * The filename of a filter specifying bugs to exclude from being reported.
+     */
+    File excludeFilter
 }
