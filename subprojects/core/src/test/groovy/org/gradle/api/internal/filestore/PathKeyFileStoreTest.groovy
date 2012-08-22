@@ -34,10 +34,24 @@ class PathKeyFileStoreTest extends Specification {
         store = new PathKeyFileStore(fsBase)
     }
 
+    def "move vs copy"() {
+        given:
+        createFile("a", "a").exists()
+        createFile("b", "b").exists()
+
+        when:
+        store.move("a", dir.file("a"))
+        store.copy("b", dir.file("b"))
+
+        then:
+        !dir.file("a").exists()
+        dir.file("b").exists()
+    }
+
     def "can add to filestore"() {
         when:
-        store.move("a", file("abc"))
-        store.move("b", file("def"))
+        store.move("a", createFile("abc"))
+        store.move("b", createFile("def"))
 
         then:
         fsBase.file("a").text == "abc"
@@ -46,8 +60,8 @@ class PathKeyFileStoreTest extends Specification {
 
     def "can overwrite entry"() {
         when:
-        store.move("a", file("abc"))
-        store.move("a", file("def"))
+        store.move("a", createFile("abc"))
+        store.move("a", createFile("def"))
 
         then:
         fsBase.file("a").text == "def"
@@ -55,9 +69,9 @@ class PathKeyFileStoreTest extends Specification {
 
     def "creates intermediary directories"() {
         when:
-        store.move("a/b/c", file("abc"))
-        store.move("a/b/d", file("abd"))
-        store.move("a/c/a", file("aca"))
+        store.move("a/b/c", createFile("abc"))
+        store.move("a/b/d", createFile("abd"))
+        store.move("a/c/a", createFile("aca"))
 
         then:
         fsBase.file("a/b").directory
@@ -67,9 +81,9 @@ class PathKeyFileStoreTest extends Specification {
 
     def "can search via globs"() {
         when:
-        store.move("a/a/a", file("a"))
-        store.move("a/a/b", file("b"))
-        store.move("a/b/a", file("c"))
+        store.move("a/a/a", createFile("a"))
+        store.move("a/a/b", createFile("b"))
+        store.move("a/b/a", createFile("c"))
 
         then:
         store.search("**/a").size() == 2
@@ -77,7 +91,7 @@ class PathKeyFileStoreTest extends Specification {
         store.search("a/b/a").size() == 1
     }
 
-    def file(String content, String path = "f${pathCounter++}") {
+    def createFile(String content, String path = "f${pathCounter++}") {
         dir.createFile(path) << content
     }
 }

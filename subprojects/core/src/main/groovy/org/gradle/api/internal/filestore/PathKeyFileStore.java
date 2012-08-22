@@ -20,7 +20,9 @@ import org.apache.commons.io.FileUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
+import org.gradle.api.internal.file.copy.DeleteActionImpl;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 
@@ -43,6 +45,7 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
     private final Random generator = new Random(System.currentTimeMillis());
 
     private final File baseDir;
+    private final DeleteActionImpl deleteAction = new DeleteActionImpl(new IdentityFileResolver());
 
     public PathKeyFileStore(File baseDir) {
         this.baseDir = baseDir;
@@ -81,13 +84,14 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
 
         String verb = isMove ? "move" : "copy";
         try {
+            deleteAction.delete(destination);
             if (isMove) {
                 FileUtils.moveFile(source, destination);
             } else {
                 FileUtils.copyFile(source, destination);
             }
         } catch (IOException e) {
-            throw new GradleException(String.format("Failed to %s file '%s' into filestore at '%s' ", verb, source, destination));
+            throw new GradleException(String.format("Failed to %s file '%s' into filestore at '%s' ", verb, source, destination), e);
         }
 
         return new DefaultFileStoreEntry<String>(destination);
