@@ -85,7 +85,7 @@ public class FindBugsSpecBuilder {
     }
 
     public FindBugsSpecBuilder withReportLevel(String reportLevel) {
-        if (effort != null && !VALID_REPORT_LEVELS.contains(reportLevel)) {
+        if (reportLevel != null && !VALID_REPORT_LEVELS.contains(reportLevel)) {
             throw new InvalidUserDataException("Invalid value for FindBugs 'reportLevel' property: " + reportLevel);
         }
         this.reportLevel = reportLevel;
