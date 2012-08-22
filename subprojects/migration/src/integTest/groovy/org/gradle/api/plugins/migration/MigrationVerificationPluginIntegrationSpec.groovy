@@ -71,10 +71,6 @@ class MigrationVerificationPluginIntegrationSpec extends AbstractIntegrationSpec
             task compare(type: CompareGradleBuilds) {
                 reportDir "result"
             }
-
-            jar.doLast {
-                assert archivePath.exists()
-            }
         """
 
         file("src/main/java/Thing.java") << "class Thing {}"
