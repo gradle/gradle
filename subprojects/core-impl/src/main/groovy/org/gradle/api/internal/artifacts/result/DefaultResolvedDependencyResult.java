@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.result;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
+import org.gradle.api.internal.artifacts.dependencygraph.ResolvedDependencyResultPrinter;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;

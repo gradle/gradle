@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.artifacts.dependencygraph;
 
+import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.api.internal.dependencygraph.api.ResolvedDependencyResult;
 
 /**
  * Created: 17/08/2012

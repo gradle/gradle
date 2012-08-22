@@ -16,19 +16,18 @@
 
 package org.gradle.api.tasks.diagnostics;
 
-import org.gradle.api.Action;
-import org.gradle.api.DefaultTask;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.internal.artifacts.dependencygraph.ResolvedDependencyResultPrinter;
-import org.gradle.api.internal.dependencygraph.api.DependencyGraph;
-import org.gradle.api.internal.dependencygraph.api.ResolvedDependencyResult;
-import org.gradle.api.internal.dependencygraph.api.ResolvedModuleVersionResult;
-import org.gradle.api.tasks.TaskAction;
-import org.gradle.api.tasks.diagnostics.internal.GraphRenderer;
-import org.gradle.logging.StyledTextOutput;
-import org.gradle.logging.StyledTextOutputFactory;
 
-import java.util.Set;
+import org.gradle.api.Action
+import org.gradle.api.DefaultTask
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.result.ResolutionResult
+import org.gradle.api.artifacts.result.ResolvedDependencyResult
+import org.gradle.api.artifacts.result.ResolvedModuleVersionResult
+import org.gradle.api.internal.artifacts.dependencygraph.ResolvedDependencyResultPrinter
+import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.diagnostics.internal.GraphRenderer
+import org.gradle.logging.StyledTextOutput
+import org.gradle.logging.StyledTextOutputFactory
 
 /**
  * by Szczepan Faber, created at: 8/17/12
@@ -54,8 +53,8 @@ public class DependencyInsightReportTask extends DefaultTask {
         output = getServices().get(StyledTextOutputFactory.class).create(getClass());
         renderer = new GraphRenderer(output);
 
-        DependencyGraph dependencyGraph = configuration.getResolvedConfiguration().getDependencyGraph();
-        Set<? extends ResolvedDependencyResult> allDependencies = dependencyGraph.getAllDependencies();
+        ResolutionResult result = configuration.getResolvedConfiguration().getResolutionResult();
+        Set<? extends ResolvedDependencyResult> allDependencies = result.getAllDependencies();
 
         for (final ResolvedDependencyResult dependencyResult : allDependencies) {
             String requested = ResolvedDependencyResultPrinter.print(dependencyResult);

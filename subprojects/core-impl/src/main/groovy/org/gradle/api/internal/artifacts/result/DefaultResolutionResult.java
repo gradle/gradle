@@ -17,20 +17,38 @@
 package org.gradle.api.internal.artifacts.result;
 
 import org.gradle.api.artifacts.result.ResolutionResult;
+import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
+
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * by Szczepan Faber, created at: 8/10/12
  */
 public class DefaultResolutionResult implements ResolutionResult {
 
-    private final ResolvedModuleVersionResult result;
+    private final ResolvedModuleVersionResult root;
 
-    public DefaultResolutionResult(ResolvedModuleVersionResult result) {
-        this.result = result;
+    public DefaultResolutionResult(ResolvedModuleVersionResult root) {
+        assert root != null;
+        this.root = root;
     }
 
     public ResolvedModuleVersionResult getRoot() {
-        return result;
+        return root;
+    }
+
+    public Set<? extends ResolvedDependencyResult> getAllDependencies() {
+        Set<ResolvedDependencyResult> out = new LinkedHashSet<ResolvedDependencyResult>();
+        collectDependencies(root, out);
+        return out;
+    }
+
+    private void collectDependencies(ResolvedModuleVersionResult node, Set<ResolvedDependencyResult> out) {
+        for (ResolvedDependencyResult d : node.getDependencies()) {
+            collectDependencies(d.getSelected(), out);
+            out.add(d);
+        }
     }
 }
