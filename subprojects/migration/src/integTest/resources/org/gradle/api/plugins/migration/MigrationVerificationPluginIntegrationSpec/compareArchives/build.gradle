@@ -1,8 +1,8 @@
 task compare(type: CompareGradleBuilds) {
-    reports.html.destination = file("$buildDir/comparison.html")
+    reportDir = file("result")
     sourceVersion = "current"
     targetVersion = "current"
     sourceProjectDir = file("sourceBuild/")
     targetProjectDir = file("targetBuild/")
-    storage = file("$buildDir/storage")
+
 }

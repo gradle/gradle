@@ -34,7 +34,7 @@ class MigrationVerificationPluginIntegrationSpec extends AbstractIntegrationSpec
         run("compare")
 
         then:
-        def html = html("build/comparison.html")
+        def html = html("result/index.html")
 
         // Name of outcome
         html.select("h3").text() == ":jar"
@@ -48,9 +48,9 @@ class MigrationVerificationPluginIntegrationSpec extends AbstractIntegrationSpec
         rows["org/gradle/TargetBuildOnlyClass.class"] == "to only"
 
         and:
-        file("build/storage/from").exists()
-        file("build/storage/from/_jar").list().toList() == ["testBuild.jar"]
-        file("build/storage/to/_jar").list().toList() == ["testBuild.jar"]
+        file("result/files/from").exists()
+        file("result/files/from/_jar").list().toList() == ["testBuild.jar"]
+        file("result/files/to/_jar").list().toList() == ["testBuild.jar"]
     }
 
     def "compare same project"() {
@@ -60,8 +60,7 @@ class MigrationVerificationPluginIntegrationSpec extends AbstractIntegrationSpec
             apply plugin: "java"
 
             task compare(type: CompareGradleBuilds) {
-                reports.html.destination = file("\$buildDir/comparison.html")
-                storage = file("\$buildDir/storage")
+                reportDir = file("result")
                 sourceVersion = "current"
                 targetVersion = "current"
                 sourceProjectDir = project.rootDir
@@ -79,7 +78,7 @@ class MigrationVerificationPluginIntegrationSpec extends AbstractIntegrationSpec
         run "compare"
 
         then:
-        html("build/comparison.html").select("p").text() == "The archives are completely identical."
+        html("result/index.html").select("p").text() == "The archives are completely identical."
     }
 
     Document html(path) {
