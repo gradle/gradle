@@ -102,7 +102,7 @@ class FindBugsPluginIntegrationTest extends WellBehavedPluginTest {
         given:
         buildFile << """
             findbugsMain {
-                effort 'min'
+                effort 'max'
                 reportLevel 'high'
                 includeFilter file('include.xml')
                 excludeFilter file('exclude.xml')
@@ -203,7 +203,6 @@ class FindBugsPluginIntegrationTest extends WellBehavedPluginTest {
         repositories {
             mavenCentral()
         }
-
         """
     }
 
