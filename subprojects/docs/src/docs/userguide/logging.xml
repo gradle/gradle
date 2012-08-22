@@ -74,23 +74,22 @@
             </tr>
             <tr>
                 <td>
-                    <literal>-q</literal>
+                    <literal>-q</literal> or <literal>--quiet</literal>
                 </td>
                 <td>QUIET and higher</td>
             </tr>
             <tr>
                 <td>
-                    <literal>-i</literal>
+                    <literal>-i</literal> or <literal>--info</literal>
                 </td>
                 <td>INFO and higher</td>
             </tr>
             <tr>
                 <td>
-                    <literal>-d</literal>
+                    <literal>-d</literal> or <literal>--debug</literal>
                 </td>
                 <td>DEBUG and higher (that is, all log messages)</td>
             </tr>
-
         </table>
         <table id='stacktraces'>
             <title>Stacktrace command-line options</title>
