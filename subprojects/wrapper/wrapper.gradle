@@ -41,11 +41,3 @@ integTestTasks.all {
 }
 
 useTestFixtures()
-
-eclipse {
-    classpath {
-        file.whenMerged { classpath ->
-            classpath.entries.removeAll {it.path.contains('/wrapper') }
-        }
-    }
-}

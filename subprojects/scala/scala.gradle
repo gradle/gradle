@@ -23,11 +23,3 @@ dependencies {
 }
 
 useTestFixtures(project: ":plugins") // includes core test fixtures
-
-eclipse {
-	classpath {
-    	file.whenMerged { classpath ->
-        	classpath.entries.removeAll { it.path.contains('src/integTest/resources') }
-        }
-    }
-}

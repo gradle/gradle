@@ -38,11 +38,3 @@ parallelIntegTest {
     systemProperty "org.gradle.userguide.samples.exclude", "multiProjectBuildSrc,multiprojectMessagesHack"
     exclude "**/SamplesMultiProjectBuildSrcIntegrationTest.class" // Need thread-safety in compiler daemon
 }
-
-eclipse {
-	classpath {
-		file.whenMerged { classpath ->
-            classpath.entries.removeAll { it.path.contains('src/integTest/resources') }
-		}
-	}
-}

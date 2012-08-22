@@ -25,11 +25,11 @@ integTestTasks.all {
 daemonIntegTest {
     enabled = false //tooling integ tests use daemon anyway, don't rerun
 }
+
 eclipse {
 	classpath {
     	file.whenMerged { classpath ->
-        	classpath.entries.removeAll { it.path.contains('src/integTest/resources') }
-        	//** Investigate me
+        	 //**TODO
         	classpath.entries.removeAll { it.path.contains('src/test/groovy') }
         	classpath.entries.removeAll { it.path.contains('src/integTest/groovy') }
         }
