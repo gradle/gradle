@@ -68,7 +68,7 @@ The `User-Agent` header now includes information about
 
 An example for a Gradle generated user-agent string: "**Gradle/1.2 (Mac OS X;10.8;amd64) (Oracle Corporation;1.7.0_04-ea;23.0-b12)**"
 
-### Uses less heap space
+### Less usage of heap space
 
 We've continued to improve our dependency resolution engine, so that it now requires much less heap space. A moderately sized multi-project build can
 expect to see a 20-25% reduction in heap usage thanks to these improvements.
@@ -79,6 +79,10 @@ We would like to make it as easy as possible to migrate from a different build t
 This release includes an experimental [Bootstrap plugin](http://gradle.org/docs/nightly/userguide/bootstrap_plugin.html).
 However quality-wise it is not yet at the level we expect a Gradle feature to be.
 We will continue working on it and with Gradle 1.3 it will be officially announced.
+
+### Configuration option for FindBugs plugin
+
+Thanks to a contribution from Justin Ryan (https://github.com/quidryan), the FindBugs plugin now supports essential configuration options.
 
 ## Upgrading from Gradle 1.1
 
