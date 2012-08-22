@@ -30,28 +30,25 @@ import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.groovy.scripts.DefaultScriptCompilerFactory
 import org.gradle.groovy.scripts.ScriptCompilerFactory
 import org.gradle.internal.Factory
+import org.gradle.internal.concurrent.DefaultExecutorFactory
+import org.gradle.internal.concurrent.ExecutorFactory
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.listener.DefaultListenerManager
 import org.gradle.listener.ListenerManager
 import org.gradle.logging.LoggingManagerInternal
-import org.gradle.internal.concurrent.DefaultExecutorFactory
-import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.messaging.remote.MessagingServer
 import org.gradle.process.internal.DefaultWorkerProcessFactory
 import org.gradle.process.internal.WorkerProcessBuilder
 import org.gradle.profile.ProfileEventAdapter
 import org.gradle.util.ClassLoaderFactory
-import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.MultiParentClassLoader
 import org.gradle.util.TemporaryFolder
-import org.jmock.integration.junit4.JUnit4Mockery
-import org.gradle.api.internal.*
-import org.gradle.initialization.*
-import org.gradle.internal.reflect.Instantiator
 import org.junit.Rule
-
 import spock.lang.Specification
 import spock.lang.Timeout
+import org.gradle.api.internal.*
+import org.gradle.initialization.*
 
 import static org.hamcrest.Matchers.instanceOf
 import static org.hamcrest.Matchers.sameInstance
@@ -60,7 +57,6 @@ import static org.junit.Assert.assertThat
 public class TopLevelBuildServiceRegistryTest extends Specification {
     @Rule
     TemporaryFolder tmpDir = new TemporaryFolder()
-    JUnit4Mockery context = new JUnit4GroovyMockery()
     StartParameter startParameter = new StartParameter()
     ServiceRegistry parent = Mock()
     Factory<CacheFactory> cacheFactoryFactory = Mock()
@@ -167,7 +163,8 @@ public class TopLevelBuildServiceRegistryTest extends Specification {
         setup:
         expectListenerManagerCreated()
         expect:
-        assertThat(registry.get(ExceptionAnalyser), instanceOf(DefaultExceptionAnalyser))
+        assertThat(registry.get(ExceptionAnalyser), instanceOf(MultiCauseExceptionAnalyser))
+        assertThat(registry.get(ExceptionAnalyser).delegate, instanceOf(DefaultExceptionAnalyser))
         assertThat(registry.get(ExceptionAnalyser), sameInstance(registry.get(ExceptionAnalyser)))
     }
 
