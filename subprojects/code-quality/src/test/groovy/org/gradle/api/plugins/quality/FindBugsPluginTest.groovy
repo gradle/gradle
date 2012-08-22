@@ -21,22 +21,27 @@ import org.gradle.api.plugins.ReportingBasePlugin
 import org.gradle.api.tasks.SourceSet
 import org.gradle.util.HelperUtil
 import org.gradle.api.InvalidUserDataException
+import org.gradle.util.TemporaryFolder
+import org.junit.Rule
+
 import spock.lang.Specification
+
 import static org.gradle.util.Matchers.dependsOn
 import static org.hamcrest.Matchers.*
 import static spock.util.matcher.HamcrestSupport.that
 
 class FindBugsPluginTest extends Specification {
+    @Rule TemporaryFolder tempFolder = new TemporaryFolder()
+
     Project project = HelperUtil.createRootProject()
 
-    // We consistently need files that actually exist
     File includeFile
     File excludeFile
 
     def setup() {
         project.plugins.apply(FindBugsPlugin)
-        includeFile = File.createTempFile("include", "txt")
-        excludeFile = File.createTempFile("exclude", "txt")
+        includeFile = tempFolder.file("include.txt")
+        excludeFile = tempFolder.file("exclude.txt")
     }
 
     def "applies reporting-base plugin"() {
@@ -44,7 +49,7 @@ class FindBugsPluginTest extends Specification {
         project.plugins.hasPlugin(ReportingBasePlugin)
     }
 
-    def "configures findbugs configuration"() {
+    def "configures FindBugs configuration"() {
         def config = project.configurations.findByName("findbugs")
 
         expect:
@@ -54,14 +59,14 @@ class FindBugsPluginTest extends Specification {
         config.description == 'The FindBugs libraries to be used for this project.'
     }
 
-    def "configures findbugs extension"() {
+    def "configures FindBugs extension"() {
         expect:
         FindBugsExtension extension = project.extensions.findbugs
         extension.reportsDir == project.file("build/reports/findbugs")
         !extension.ignoreFailures
     }
 
-    def "configures findbugs task for each source set"() {
+    def "configures FindBugs task for each source set"() {
         project.plugins.apply(JavaBasePlugin)
         project.sourceSets {
             main
@@ -114,7 +119,7 @@ class FindBugsPluginTest extends Specification {
         task.includeFilter == null
     }
 
-    def "adds findbugs tasks to check lifecycle task"() {
+    def "adds FindBugs tasks to check lifecycle task"() {
         project.plugins.apply(JavaBasePlugin)
         project.sourceSets {
             main
@@ -218,20 +223,7 @@ class FindBugsPluginTest extends Specification {
         }
 
         then:
-        notThrown()
-    }
-    
-
-    private FindBugs setupWithMain() {
-        project.plugins.apply(JavaBasePlugin)
-        project.sourceSets {
-            main
-        }
-
-        // Fake classes input
-        project.findbugsMain.classes = project.files(".")
-
-        project.findbugsMain
+        noExceptionThrown()
     }
 
     def "can generate spec"() {
@@ -241,7 +233,7 @@ class FindBugsPluginTest extends Specification {
         task.generateSpec()
 
         then:
-        notThrown()
+        noExceptionThrown()
     }
 
     def "can configure optional arguments"() {
@@ -258,105 +250,152 @@ class FindBugsPluginTest extends Specification {
         hasArgument(task, '-visitors') && hasArgument(task,'Check1,Check2') 
     }
 
-    private boolean hasArgument(task, Closure closure) {
-        return task.generateSpec().getArguments().any(closure)
-    }
-
-    private boolean hasArgument(task, String contains) {
-        return hasArgument(task) { it.contains(contains) }
-    }
-
-    def "can configure effort optional parameter"() {
+    def "can configure effort parameter"() {
         def task = setupWithMain()
 
-        expect: !hasArgument(task,'-effort')
-
-        when: task.effort = 'min'
-        then: hasArgument(task, '-effort:min')
-
-        when: task.effort = 'default'
-        then: hasArgument(task, '-effort:default') 
-
-        when: task.effort = 'max'
-        then: hasArgument(task, '-effort:max')
+        expect:
+        !hasArgument(task,'-effort')
 
         when:
-            task.effort = 'invalid'
-            task.generateSpec()
+        task.effort = 'min'
+
         then:
-            thrown(InvalidUserDataException)
-    }
-
-    def "can configure reportLevel optional parameter"() {
-        def task = setupWithMain()
-
-        //expect: !hasArgument(task.optionalArguments().containsKey('reportLevel')
-
-        when: task.reportLevel = 'experimental'
-        then: hasArgument(task, '-experimental')
-
-        when: task.reportLevel = 'low'
-        then: hasArgument(task, '-low')
-
-        when: task.reportLevel = 'medium'
-        then: hasArgument(task, '-medium')
-
-        when: task.reportLevel = 'high'
-        then: hasArgument(task, '-high')
+        hasArgument(task, '-effort:min')
 
         when:
-            task.reportLevel = 'invalid'
-            task.generateSpec()
+        task.effort = 'default'
+
         then:
-            thrown(InvalidUserDataException)
+        hasArgument(task, '-effort:default')
+
+        when:
+        task.effort = 'max'
+
+        then:
+        hasArgument(task, '-effort:max')
+
+        when:
+        task.effort = 'invalid'
+        task.generateSpec()
+
+        then:
+        thrown(InvalidUserDataException)
     }
 
-    def "can configure visitor optional parameters"(String paramName) {
+    def "can configure reportLevel parameter"() {
         def task = setupWithMain()
 
-        expect: !hasArgument(task, "-${paramName}")
+        when:
+        task.reportLevel = 'experimental'
 
-        when: task[paramName] = []
-        then: !hasArgument(task, "-${paramName}")
+        then:
+        hasArgument(task, '-experimental')
 
-        when: task[paramName] = ['Check1']
+        when:
+        task.reportLevel = 'low'
+
+        then:
+        hasArgument(task, '-low')
+
+        when:
+        task.reportLevel = 'medium'
+
+        then:
+        hasArgument(task, '-medium')
+
+        when:
+        task.reportLevel = 'high'
+
+        then:
+        hasArgument(task, '-high')
+
+        when:
+        task.reportLevel = 'invalid'
+        task.generateSpec()
+
+        then:
+        thrown(InvalidUserDataException)
+    }
+
+    def "can configure visitor parameters"(String paramName) {
+        def task = setupWithMain()
+
+        expect:
+        !hasArgument(task, "-${paramName}")
+
+        when:
+        task[paramName] = []
+
+        then:
+        !hasArgument(task, "-${paramName}")
+
+        when:
+        task[paramName] = ['Check1']
+
         then: 
-            hasArgument(task, "-${paramName}") 
-            hasArgument(task, 'Check1')
-
-        when: task[paramName] = ['Check1','Check2']
-        then:
-            hasArgument(task, "-${paramName}")
-            hasArgument(task, 'Check1,Check2')
-
-        when: task[paramName] = ['Check1,Check2', 'Check3']
-        then:
-            hasArgument(task, "-${paramName}")
-            hasArgument(task, 'Check1,Check2,Check3')
-
-        where: paramName << ['visitors','omitVisitors']
-    }
-
-    def "can configure filters optional parameter"(String paramName) {
-        def task = setupWithMain()
-
-        expect: !hasArgument(task, "-${paramName}")
+        hasArgument(task, "-${paramName}")
+        hasArgument(task, 'Check1')
 
         when:
-            task["${paramName}Filter"] = project.file('shouldNotExist.txt')
-            task.generateSpec()
-        then: thrown(InvalidUserDataException)
+        task[paramName] = ['Check1','Check2']
+
+        then:
+        hasArgument(task, "-${paramName}")
+        hasArgument(task, 'Check1,Check2')
+
+        when:
+        task[paramName] = ['Check1,Check2', 'Check3']
+
+        then:
+        hasArgument(task, "-${paramName}")
+        hasArgument(task, 'Check1,Check2,Check3')
+
+        where:
+        paramName << ['visitors','omitVisitors']
+    }
+
+    def "can configure filter parameters"(String paramName) {
+        def task = setupWithMain()
+
+        expect:
+        !hasArgument(task, "-${paramName}")
+
+        when:
+        task["${paramName}Filter"] = project.file('shouldNotExist.txt')
+        task.generateSpec()
+
+        then:
+        thrown(InvalidUserDataException)
 
         when:
         File validFile = File.createTempFile(paramName, "txt")
         task["${paramName}Filter"] = validFile
 
         then:
-        println task.generateSpec().getArguments()
         hasArgument(task, "-${paramName}")
         hasArgument(task, validFile.getPath())
 
-        where: paramName << ['include', 'exclude']
+        where:
+        paramName << ['include', 'exclude']
+    }
 
+    private FindBugs setupWithMain() {
+        project.plugins.apply(JavaBasePlugin)
+        project.sourceSets {
+            main
+        }
+
+        // Fake classes input
+        project.findbugsMain.classes = project.files(".")
+
+        project.findbugsMain
+    }
+
+    private boolean hasArgument(task, Closure closure) {
+        task.generateSpec().arguments.any(closure)
+    }
+
+    private boolean hasArgument(task, String contains) {
+        hasArgument(task) { it.contains(contains) }
     }
 }

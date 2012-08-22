@@ -30,6 +30,8 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.logging.ConsoleRenderer
 import org.gradle.process.internal.WorkerProcessBuilder
 
+import groovy.transform.PackageScope
+
 /**
  * Analyzes code with <a href="http://findbugs.sourceforge.net">FindBugs</a>. See the
  * <a href="http://findbugs.sourceforge.net/manual/">FindBugs Manual</a> for additional information
@@ -166,12 +168,16 @@ class FindBugs extends SourceTask implements VerificationTask, Reporting<FindBug
         logging.captureStandardOutput(LogLevel.DEBUG)
         logging.captureStandardError(LogLevel.DEBUG)
 
-        FindBugsResult findbugsResult = manager.runWorker(getProject().getProjectDir(), workerFactory, getFindbugsClasspath(), spec)
-        evaluateResult(findbugsResult);
+        FindBugsResult result = manager.runWorker(getProject().getProjectDir(), workerFactory, getFindbugsClasspath(), spec)
+        evaluateResult(result);
     }
 
+    /**
+     * For testing only.
+     */
+    @PackageScope
     FindBugsSpec generateSpec() {
-        FindBugsSpecBuilder argumentBuilder = new FindBugsSpecBuilder(getClasses())
+        FindBugsSpecBuilder specBuilder = new FindBugsSpecBuilder(getClasses())
             .withPluginsList(getPluginClasspath())
             .withSources(getSource())
             .withClasspath(getClasspath())
@@ -184,18 +190,21 @@ class FindBugs extends SourceTask implements VerificationTask, Reporting<FindBug
             .withIncludeFilter(includeFilter)
             .configureReports(reports)
 
-        FindBugsSpec spec = argumentBuilder.build()
-        return spec
+        return specBuilder.build()
     }
 
-    void evaluateResult(FindBugsResult findbugsResult) {
-        if (findbugsResult.exception) {
-            throw new GradleException("FindBugs encountered an error. Run with --debug to get more information.", findbugsResult.exception)
+    /**
+     * For testing only.
+     */
+    @PackageScope
+    void evaluateResult(FindBugsResult result) {
+        if (result.exception) {
+            throw new GradleException("FindBugs encountered an error. Run with --debug to get more information.", result.exception)
         }
-        if (findbugsResult.errorCount) {
+        if (result.errorCount) {
             throw new GradleException("FindBugs encountered an error. Run with --debug to get more information.")
         }
-        if (findbugsResult.bugCount) {
+        if (result.bugCount) {
             def message = "FindBugs rule violations were found."
             def report = reports.firstEnabled
             if (report) {

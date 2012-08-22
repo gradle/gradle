@@ -16,13 +16,14 @@
 
 package org.gradle.api.plugins.quality.internal.findbugs;
 
+import com.google.common.base.Objects;
+
 import java.io.Serializable;
 import java.util.List;
 
 public class FindBugsSpec implements Serializable {
-    private boolean debugEnabled;
-
     private List<String> arguments;
+    private boolean debugEnabled;
 
     public FindBugsSpec(List<String> arguments, boolean debugEnabled) {
         this.debugEnabled = debugEnabled;
@@ -38,17 +39,6 @@ public class FindBugsSpec implements Serializable {
     }
 
     public String toString() {
-        StringBuffer buffer = new StringBuffer("[FindBugsSpec: \n");
-        buffer.append("  debugEnabled: ").append(debugEnabled).append("\n");
-        if (arguments == null) {
-            buffer.append("  args: null \n");
-        } else {
-            buffer.append("  args: \n    [\n");
-            for (String arg : arguments) {
-                buffer.append("    ").append(arg).append(", \n");
-            }
-            buffer.append("    ]");
-        }
-        return buffer.toString();
+        return Objects.toStringHelper(this).add("arguments", arguments).add("debugEnabled", debugEnabled).toString();
     }
 }

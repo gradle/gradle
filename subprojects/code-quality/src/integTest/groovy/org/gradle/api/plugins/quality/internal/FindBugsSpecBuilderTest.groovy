@@ -29,18 +29,21 @@ class FindBugsSpecBuilderTest extends Specification {
     FindBugsSpecBuilder builder = new FindBugsSpecBuilder(classes)
 
     def setup(){
-        _ * classes.getFiles() >> Collections.emptyList()
+        classes.getFiles() >> []
     }
+
     def "fails with empty classes Collection"() {
         when:
         new FindBugsSpecBuilder(null)
+
         then:
         thrown(InvalidUserDataException)
 
         when:
-        classes.empty >> true
         new FindBugsSpecBuilder(classes)
+
         then:
+        classes.empty >> true
         thrown(InvalidUserDataException)
     }
 
@@ -49,11 +52,13 @@ class FindBugsSpecBuilderTest extends Specification {
         NamedDomainObjectSet enabledReportSet = Mock()
         FindBugsReportsImpl report = Mock()
 
-        report.enabled >> enabledReportSet;
+        report.enabled >> enabledReportSet
         enabledReportSet.empty >> true
+
         when:
         builder.configureReports(report)
         def spec = builder.build()
+
         then:
         !spec.arguments.contains("-outputFile")
     }
@@ -62,6 +67,7 @@ class FindBugsSpecBuilderTest extends Specification {
         when:
         builder.withDebugging(debug)
         def spec = builder.build()
+
         then:
         spec.debugEnabled == debug
 
@@ -73,7 +79,7 @@ class FindBugsSpecBuilderTest extends Specification {
         setup:
         NamedDomainObjectSet enabledReportSet = Mock()
         FindBugsReportsImpl report = Mock()
-        report.enabled >> enabledReportSet;
+        report.enabled >> enabledReportSet
         enabledReportSet.empty >> false
         enabledReportSet.size() >> 2
 
@@ -93,7 +99,7 @@ class FindBugsSpecBuilderTest extends Specification {
         NamedDomainObjectSet enabledReportSet = Mock()
         FindBugsReportsImpl report = Mock()
 
-        report.enabled >> enabledReportSet;
+        report.enabled >> enabledReportSet
         report.firstEnabled >> singleReport
         singleReport.name >> reportType
         destination.absolutePath >> "/absolute/report/output"
@@ -112,6 +118,6 @@ class FindBugsSpecBuilderTest extends Specification {
         args.contains(destination.absolutePath)
 
         where:
-        reportType << ["xml", "html"];
+        reportType << ["xml", "html"]
     }
 }
