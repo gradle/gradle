@@ -99,6 +99,9 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
 
     public Set<? extends FileStoreEntry> search(String pattern) {
         final Set<DefaultFileStoreEntry> entries = new HashSet<DefaultFileStoreEntry>();
+        //TODO SF below may emit an awkward INFO-level message that the base dir does not exist
+        //('file or directory xxx not found')
+        //Consider bailing out early if the baseDir does not exist or reducing the log level
         findFiles(pattern).visit(new EmptyFileVisitor() {
             public void visitFile(FileVisitDetails fileDetails) {
                 entries.add(new DefaultFileStoreEntry(fileDetails.getFile()));

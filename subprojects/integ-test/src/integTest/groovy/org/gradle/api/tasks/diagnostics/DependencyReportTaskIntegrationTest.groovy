@@ -80,6 +80,7 @@ class DependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
+        executer.allowExtraLogging = false
         runAndFail "dependencies"
 
         then:
