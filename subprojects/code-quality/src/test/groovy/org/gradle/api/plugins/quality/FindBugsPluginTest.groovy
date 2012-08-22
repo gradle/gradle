@@ -85,7 +85,7 @@ class FindBugsPluginTest extends Specification {
             assert findbugsClasspath == project.configurations.findbugs
             assert classes.empty // no classes to analyze
             assert reports.xml.destination == project.file("build/reports/findbugs/${sourceSet.name}.xml")
-            assert ignoreFailures == false
+            assert !ignoreFailures
             assert effort == null
             assert reportLevel == null
             assert visitors == null
@@ -106,7 +106,7 @@ class FindBugsPluginTest extends Specification {
         task.findbugsClasspath == project.configurations.findbugs
         task.pluginClasspath == project.configurations.findbugsPlugins
         task.reports.xml.destination == project.file("build/reports/findbugs/custom.xml")
-        task.ignoreFailures == false
+        !task.ignoreFailures
         task.effort == null
         task.reportLevel == null
         task.visitors == null
@@ -163,7 +163,7 @@ class FindBugsPluginTest extends Specification {
             assert source as List == sourceSet.allJava as List
             assert findbugsClasspath == project.configurations.findbugs
             assert reports.xml.destination == project.file("findbugs-reports/${sourceSet.name}.xml")
-            assert ignoreFailures == true
+            assert ignoreFailures
             assert effort == 'min'
             assert reportLevel == 'high'
             assert visitors == ['org.gradle.Class']
@@ -194,7 +194,7 @@ class FindBugsPluginTest extends Specification {
         task.findbugsClasspath == project.configurations.findbugs
         task.pluginClasspath == project.configurations.findbugsPlugins
         task.reports.xml.destination == project.file("findbugs-reports/custom.xml")
-        task.ignoreFailures == true
+        task.ignoreFailures
         task.effort == 'min'
         task.reportLevel == 'high'
         task.visitors == ['org.gradle.Class']
@@ -221,177 +221,4 @@ class FindBugsPluginTest extends Specification {
         then:
         noExceptionThrown()
     }
-
-//    def "can generate spec"() {
-//        def task = setupWithMain()
-//
-//        when:
-//        task.generateSpec()
-//
-//        then:
-//        noExceptionThrown()
-//    }
-//
-//    def "can configure optional arguments"() {
-//        def task = setupWithMain()
-//
-//        task.effort = 'min'
-//        task.reportLevel = 'high'
-//        task.visitors = ['Check1','Check2'] as Set
-//        task.omitVisitors = ['Check3','Check4'] as Set
-//
-//        expect:
-//        hasArgument(task, '-effort:min')
-//        hasArgument(task, '-high')
-//        hasArgument(task, '-visitors') && hasArgument(task,'Check1,Check2')
-//    }
-//
-//    def "can configure effort parameter"() {
-//        def task = setupWithMain()
-//
-//        expect:
-//        !hasArgument(task,'-effort')
-//
-//        when:
-//        task.effort = 'min'
-//
-//        then:
-//        hasArgument(task, '-effort:min')
-//
-//        when:
-//        task.effort = 'default'
-//
-//        then:
-//        hasArgument(task, '-effort:default')
-//
-//        when:
-//        task.effort = 'max'
-//
-//        then:
-//        hasArgument(task, '-effort:max')
-//
-//        when:
-//        task.effort = 'invalid'
-//        task.generateSpec()
-//
-//        then:
-//        thrown(InvalidUserDataException)
-//    }
-//
-//    def "can configure reportLevel parameter"() {
-//        def task = setupWithMain()
-//
-//        when:
-//        task.reportLevel = 'experimental'
-//
-//        then:
-//        hasArgument(task, '-experimental')
-//
-//        when:
-//        task.reportLevel = 'low'
-//
-//        then:
-//        hasArgument(task, '-low')
-//
-//        when:
-//        task.reportLevel = 'medium'
-//
-//        then:
-//        hasArgument(task, '-medium')
-//
-//        when:
-//        task.reportLevel = 'high'
-//
-//        then:
-//        hasArgument(task, '-high')
-//
-//        when:
-//        task.reportLevel = 'invalid'
-//        task.generateSpec()
-//
-//        then:
-//        thrown(InvalidUserDataException)
-//    }
-//
-//    def "can configure visitor parameters"(String paramName) {
-//        def task = setupWithMain()
-//
-//        expect:
-//        !hasArgument(task, "-${paramName}")
-//
-//        when:
-//        task[paramName] = []
-//
-//        then:
-//        !hasArgument(task, "-${paramName}")
-//
-//        when:
-//        task[paramName] = ['Check1']
-//
-//        then:
-//        hasArgument(task, "-${paramName}")
-//        hasArgument(task, 'Check1')
-//
-//        when:
-//        task[paramName] = ['Check1','Check2']
-//
-//        then:
-//        hasArgument(task, "-${paramName}")
-//        hasArgument(task, 'Check1,Check2')
-//
-//        when:
-//        task[paramName] = ['Check1,Check2', 'Check3']
-//
-//        then:
-//        hasArgument(task, "-${paramName}")
-//        hasArgument(task, 'Check1,Check2,Check3')
-//
-//        where:
-//        paramName << ['visitors','omitVisitors']
-//    }
-//
-//    def "can configure filter parameters"(String paramName) {
-//        def task = setupWithMain()
-//
-//        expect:
-//        !hasArgument(task, "-${paramName}")
-//
-//        when:
-//        task["${paramName}Filter"] = project.file('shouldNotExist.txt')
-//        task.generateSpec()
-//
-//        then:
-//        thrown(InvalidUserDataException)
-//
-//        when:
-//        File validFile = File.createTempFile(paramName, "txt")
-//        task["${paramName}Filter"] = validFile
-//
-//        then:
-//        hasArgument(task, "-${paramName}")
-//        hasArgument(task, validFile.getPath())
-//
-//        where:
-//        paramName << ['include', 'exclude']
-//    }
-//
-//    private FindBugs setupWithMain() {
-//        project.plugins.apply(JavaBasePlugin)
-//        project.sourceSets {
-//            main
-//        }
-//
-//        // Fake classes input
-//        project.findbugsMain.classes = project.files(".")
-//
-//        project.findbugsMain
-//    }
-//
-//    private boolean hasArgument(task, Closure closure) {
-//        task.generateSpec().arguments.any(closure)
-//    }
-//
-//    private boolean hasArgument(task, String contains) {
-//        hasArgument(task) { it.contains(contains) }
-//    }
 }
