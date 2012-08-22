@@ -37,12 +37,30 @@ class GeneratedArchiveBuildOutcomeComparisonResultHtmlRenderer extends BuildOutc
         GeneratedArchiveBuildOutcome to = result.compared.to
 
         if (from.name == to.name) {
-            context.render { h3 from.name }
+            context.render { h3 "Task: “${from.name}”" } // TODO - assuming this is from a task
         } else {
-            context.render {
-                h3 "From: $from.name<br />To: $to.name"
+            context.render { h3 "Task: (from: “${from.name}”, to: “${to.name}”)" }
+        }
+
+        context.render {
+            h4 "Details"
+            table {
+                tr {
+                    th class: "border-right", ""
+                    th "Location"
+                }
+                tr {
+                    th class: "border-right no-border-bottom", "From"
+                    td from.archiveFile.absolutePath
+                }
+                tr {
+                    th class: "border-right no-border-bottom", "To"
+                    td to.archiveFile.absolutePath
+                }
             }
         }
+
+        context.render { h4 "Comparison Results" }
 
         if (result.comparisonResultType == NON_EXISTENT) {
             context.render { p "Neither side produced the archive." }

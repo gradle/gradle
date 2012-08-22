@@ -37,8 +37,7 @@ import org.gradle.api.plugins.migration.model.outcome.internal.archive.Generated
 import org.gradle.api.plugins.migration.model.outcome.internal.archive.entry.GeneratedArchiveBuildOutcomeComparisonResultHtmlRenderer;
 import org.gradle.api.plugins.migration.model.render.internal.BuildComparisonResultRenderer;
 import org.gradle.api.plugins.migration.model.render.internal.DefaultBuildOutcomeComparisonResultRendererFactory;
-import org.gradle.api.plugins.migration.model.render.internal.html.HtmlBuildComparisonResultRenderer;
-import org.gradle.api.plugins.migration.model.render.internal.html.HtmlRenderContext;
+import org.gradle.api.plugins.migration.model.render.internal.html.*;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.tooling.GradleConnector;
@@ -191,7 +190,14 @@ public class CompareGradleBuilds extends DefaultTask {
     private BuildComparisonResultRenderer<Writer> createResultRenderer() {
         DefaultBuildOutcomeComparisonResultRendererFactory<HtmlRenderContext> renderers = new DefaultBuildOutcomeComparisonResultRendererFactory<HtmlRenderContext>(HtmlRenderContext.class);
         renderers.registerRenderer(new GeneratedArchiveBuildOutcomeComparisonResultHtmlRenderer());
-        return new HtmlBuildComparisonResultRenderer(renderers, null, null, null);
+
+        PartRenderer headRenderer = new HeadRenderer("Gradle Build Comparison", Charset.defaultCharset().name());
+
+        PartRenderer headingRenderer = new GradleComparisonHeadingRenderer(
+                getSourceProjectDir().getAbsolutePath(), getSourceVersion(), getTargetProjectDir().getAbsolutePath(), getTargetVersion()
+        );
+
+        return new HtmlBuildComparisonResultRenderer(renderers, headRenderer, headingRenderer, null);
     }
 
 }

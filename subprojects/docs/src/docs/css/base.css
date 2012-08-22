@@ -124,14 +124,14 @@ a:hover, a:active {
     outline: 0;
 }
 
-.table table {
+table {
     border-collapse: collapse;
     font-size: 100%;
     min-width: 50%;
     border: solid #d0d0d0 1px;
 }
 
-.table table td {
+table td {
     text-align: left;
     vertical-align: text-top;
     padding-left: 0.8em;
@@ -140,10 +140,18 @@ a:hover, a:active {
     padding-bottom: 0.3em;
 }
 
-.table table thead td {
+table thead td, table th {
     font-weight: bold;
     border-bottom: solid #d0d0d0 1px;
     background-color: #f2f2f2;
+}
+
+table th.border-right {
+    border-right: solid #d0d0d0 1px;
+}
+
+table th.no-border-bottom {
+    border-bottom: none;
 }
 
 pre {

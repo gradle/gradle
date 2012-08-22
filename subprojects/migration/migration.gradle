@@ -26,6 +26,13 @@ dependencies {
     testCompile "org.jsoup:jsoup:1.6.3"
 }
 
+processResources {
+    into "org/gradle/api/plugins/migration/model/render/internal/html", {
+        from { project(":docs").css }
+        include "base.css"
+    }
+}
+
 useTestFixtures()
 eclipse {
 	classpath {
