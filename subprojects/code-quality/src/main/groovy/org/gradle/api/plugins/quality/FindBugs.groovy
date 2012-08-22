@@ -91,19 +91,17 @@ class FindBugs extends SourceTask implements VerificationTask, Reporting<FindBug
      * The bug detectors which should be run. The bug detectors are specified by their class names,
      * without any package qualification. By default, all detectors which are not disabled by default are run.
      */
-    // TODO Add DSL methods to building up visitors list
     @Input
     @Optional
-    Collection<String> visitors
+    Collection<String> visitors = []
 
     /**
      * Similar to {@code visitors} except that it specifies bug detectors which should not be run.
      * By default, no visitors are omitted.
      */
-    // TODO Add DSL methods to building up omitVisitors list
     @Input
     @Optional
-    Collection<String> omitVisitors
+    Collection<String> omitVisitors = []
 
     /**
      * The filename of a filter specifying which bugs are reported.
