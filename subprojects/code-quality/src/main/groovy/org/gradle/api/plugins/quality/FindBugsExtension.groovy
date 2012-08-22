@@ -20,6 +20,27 @@ package org.gradle.api.plugins.quality
  * See the <a href="http://findbugs.sourceforge.net/manual/">FindBugs Manual</a> for additional information
  * on these options.
  *
+ * <p>Below is a full configuration example. Since all properties have sensible defaults,
+ * typically only selected properties will be configured.
+ *
+ * <pre autoTested=''>
+ *     apply plugin: "java"
+ *     apply plugin: "findbugs"
+ *
+ *     findbugs {
+ *         toolVersion = "2.0.1"
+ *         sourceSets = [sourceSets.main]
+ *         ignoreFailures = true
+ *         reportsDir = file("$project.buildDir/findbugsReports")
+ *         effort = "max"
+ *         reportLevel = "high"
+ *         visitors = ["FindSqlInjection", "SwitchFallthrough"]
+ *         omitVisitors = ["FindNonShortCircuit"]
+ *         includeFilter = file("$rootProject.projectDir/config/findbugs/includeFilter.xml")
+ *         excludeFilter = file("$rootProject.projectDir/config/findbugs/excludeFilter.xml")
+ *     }
+ * </pre>
+ *
  * @see FindBugsPlugin
  */
 class FindBugsExtension extends CodeQualityExtension {
