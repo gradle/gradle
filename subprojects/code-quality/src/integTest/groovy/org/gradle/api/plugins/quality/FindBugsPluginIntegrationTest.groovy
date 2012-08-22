@@ -95,7 +95,7 @@ class FindBugsPluginIntegrationTest extends WellBehavedPluginTest {
         expect:
         fails "findbugsMain"
 
-        failure.assertHasCause "Findbugs tasks can only have one report enabled"
+        failure.assertHasCause "FindBugs tasks can only have one report enabled"
     }
 
     def "can use optional arguments"() {

@@ -31,11 +31,12 @@ import java.util.Collection;
 import com.google.common.collect.Sets;
 
 public class FindBugsSpecBuilder {
+    private static final Set<String> VALID_EFFORTS = Sets.newHashSet(null, "min", "default", "max");
+    private static final Set<String> VALID_REPORT_LEVELS = Sets.newHashSet(null, "experimental", "low", "medium", "high");
+
     private FileCollection pluginsList;
     private FileCollection sources;
     private FileCollection classpath;
-
-    private ArrayList<String> args;
     private FileCollection classes;
     private FindBugsReports reports;
 
@@ -49,7 +50,7 @@ public class FindBugsSpecBuilder {
 
     public FindBugsSpecBuilder(FileCollection classes) {
         if(classes == null || classes.isEmpty()){
-            throw new InvalidUserDataException("Classes must be configured to be analyzed by the Findbugs.");
+            throw new InvalidUserDataException("No classes configured for FindBugs analysis.");
         }
         this.classes = classes;
     }
@@ -69,51 +70,30 @@ public class FindBugsSpecBuilder {
         return this;
     }
 
-    public FindBugsSpecBuilder configureReports(FindBugsReports reports){
+    public FindBugsSpecBuilder configureReports(FindBugsReports reports) {
         this.reports = reports;
         return this;
     }
 
-    /**
-     * Valid values for Effort
-     */
-    private Set<String> validEfforts = Sets.newHashSet("min", "default", "max");
 
-    public FindBugsSpecBuilder withEffort(String effort){
-        // Enum-like values, they need to be validated against a set of possible values.
-        if (effort != null) {
-            if (!validEfforts.contains(effort)) {
-                String validEffortsStr = GUtil.join(validEfforts, "\", \"");
-                String errorStr = String.format("FindBugs encountered an improper value (%s) for effort property , should be one of \"%s\"", effort, validEffortsStr);
-                throw new InvalidUserDataException(errorStr);
-            }
-            this.effort = effort;
+    public FindBugsSpecBuilder withEffort(String effort) {
+        if (!VALID_EFFORTS.contains(effort)) {
+            throw new InvalidUserDataException("Invalid value for FindBugs 'effort' property: " + effort);
         }
+        this.effort = effort;
         return this;
     }
 
-    /**
-     * Valid values for reportLevel
-     */
-    private Set<String> validReportLevels = Sets.newHashSet("experimental", "low", "medium", "high");
-
-    public FindBugsSpecBuilder withReportLevel(String reportLevel){
-        if (reportLevel != null) {
-            if (!validReportLevels.contains(reportLevel)) {
-                String validReportLevelsStr = GUtil.join(validReportLevels, "\", \"");
-                String errorStr = String.format("FindBugs encountered an improper value (%s) for reportLevel property , should be one of \"%s\"", reportLevel, validReportLevelsStr);
-                throw new InvalidUserDataException(errorStr);
-            }
-            this.reportLevel = reportLevel;
+    public FindBugsSpecBuilder withReportLevel(String reportLevel) {
+        if (!VALID_REPORT_LEVELS.contains(reportLevel)) {
+            throw new InvalidUserDataException("Invalid value for FindBugs 'reportLevel' property: " + reportLevel);
         }
+        this.reportLevel = reportLevel;
         return this;
     }
 
     public FindBugsSpecBuilder withVisitors(Collection<String> visitors) {
-        if (visitors != null) {
-            // Remove commas
-            this.visitors = visitors;
-        }
+        this.visitors = visitors;
         return this;
     }
 
@@ -124,7 +104,7 @@ public class FindBugsSpecBuilder {
 
     public FindBugsSpecBuilder withExcludeFilter(File excludeFilter) {
         if (excludeFilter != null && !excludeFilter.canRead()) {
-            String errorStr = String.format("FindBugs encountered an improper value (%s) for excludeFilter property , can not be read", excludeFilter);
+            String errorStr = String.format("Cannot read file specified for FindBugs 'excludeFilter' property: %s", excludeFilter);
             throw new InvalidUserDataException(errorStr);
         }
 
@@ -134,7 +114,7 @@ public class FindBugsSpecBuilder {
 
     public FindBugsSpecBuilder withIncludeFilter(File includeFilter) {
         if (includeFilter != null && !includeFilter.canRead()) {
-            String errorStr = String.format("FindBugs encountered an improper value (%s) for includeFilter property , can not be read", includeFilter);
+            String errorStr = String.format("Cannot read file specified for FindBugs 'includeFilter' property: %s", includeFilter);
             throw new InvalidUserDataException(errorStr);
         }
 
@@ -148,7 +128,7 @@ public class FindBugsSpecBuilder {
     }
 
     public FindBugsSpec build() {
-        args = new ArrayList<String>();
+        ArrayList<String> args = new ArrayList<String>();
         args.add("-pluginList");
         args.add(pluginsList==null ? "" : pluginsList.getAsPath());
         args.add("-sortByClass");
@@ -162,7 +142,7 @@ public class FindBugsSpecBuilder {
                 args.add("-outputFile");
                 args.add(reportsImpl.getFirstEnabled().getDestination().getAbsolutePath());
             } else {
-                throw new InvalidUserDataException("Findbugs tasks can only have one report enabled, however both the xml and html report are enabled. You need to disable one of them.");
+                throw new InvalidUserDataException("FindBugs tasks can only have one report enabled, however both the XML and HTML report are enabled. You need to disable one of them.");
             }
         }
 
@@ -174,7 +154,7 @@ public class FindBugsSpecBuilder {
         if (has(classpath)) {
             args.add("-auxclasspath");
 
-            // Filter unexisting files as findbugs can't handle them.
+            // Filter unexisting files as FindBugs can't handle them.
             args.add(classpath.filter(new Spec<File>() {
                 public boolean isSatisfiedBy(File element) {
                     return element.exists();
@@ -213,8 +193,8 @@ public class FindBugsSpecBuilder {
         for (File classFile : classes.getFiles()) {
             args.add(classFile.getAbsolutePath());
         }
-        FindBugsSpec spec = new FindBugsSpec(args, debugEnabled);
-        return spec;
+
+        return new FindBugsSpec(args, debugEnabled);
     }
 
     private boolean has(String str) {

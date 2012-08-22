@@ -83,7 +83,7 @@ class FindBugsSpecBuilderTest extends Specification {
 
         then:
         def e = thrown(InvalidUserDataException)
-        e.message == "Findbugs tasks can only have one report enabled, however both the xml and html report are enabled. You need to disable one of them."
+        e.message == "FindBugs tasks can only have one report enabled, however both the XML and HTML report are enabled. You need to disable one of them."
     }
 
     def "with report configured"() {
