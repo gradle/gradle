@@ -1,8 +1,0 @@
-task compare(type: CompareGradleBuilds) {
-    reportDir = file("result")
-    sourceVersion = "current"
-    targetVersion = "current"
-    sourceProjectDir = file("sourceBuild/")
-    targetProjectDir = file("targetBuild/")
-
-}

@@ -30,6 +30,17 @@ class MigrationVerificationPluginIntegrationSpec extends AbstractIntegrationSpec
     }
 
     def compareArchives() {
+        given:
+        buildFile << """
+            task compare(type: CompareGradleBuilds) {
+                reportDir = file("result")
+                sourceVersion = "current"
+                targetVersion = "current"
+                sourceProjectDir = file("sourceBuild/")
+                targetProjectDir = file("targetBuild/")
+            }
+        """
+
         when:
         run("compare")
 
