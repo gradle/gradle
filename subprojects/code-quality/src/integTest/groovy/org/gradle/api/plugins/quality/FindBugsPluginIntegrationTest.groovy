@@ -197,12 +197,12 @@ class FindBugsPluginIntegrationTest extends WellBehavedPluginTest {
 
     private void writeBuildFile() {
         file("build.gradle") << """
-        apply plugin: "java"
-        apply plugin: "findbugs"
-        
-        repositories {
-            mavenCentral()
-        }
+            apply plugin: "java"
+            apply plugin: "findbugs"
+
+            repositories {
+                mavenCentral()
+            }
         """
     }
 
@@ -213,6 +213,6 @@ class FindBugsPluginIntegrationTest extends WellBehavedPluginTest {
                 <Class name="${className}" />
             </Match>
             </FindBugsFilter>
-            """
+        """
     }
 }
