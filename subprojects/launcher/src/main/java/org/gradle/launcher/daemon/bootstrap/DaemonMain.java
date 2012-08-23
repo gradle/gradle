@@ -37,6 +37,7 @@ import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The entry point for a daemon process.
@@ -114,7 +115,7 @@ public class DaemonMain extends EntryPoint {
         daemonStarted(pid, daemonLog);
 
         try {
-            daemon.awaitIdleTimeout(configuration.getIdleTimeout());
+            daemon.stopOnIdleTimeout(configuration.getIdleTimeout(), TimeUnit.MILLISECONDS);
             LOGGER.info("Daemon hit idle timeout (" + configuration.getIdleTimeout() + "ms), stopping...");
         } finally {
             daemon.stop();

@@ -30,6 +30,7 @@ import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.internal.Connection;
 
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -201,12 +202,12 @@ public class Daemon implements Stoppable {
     }
 
     /**
-     * Waits for the daemon to be idle for the specified number of milliseconds.
+     * Waits for the daemon to be idle for the specified number of milliseconds, then stops the daemon.
      * 
      * @throws DaemonStoppedException if the daemon is explicitly stopped instead of idling out.
      */
-    public void awaitIdleTimeout(int idleTimeout) throws DaemonStoppedException {
-        LOGGER.debug("awaitIdleTimeout({}) called on daemon", idleTimeout);
-        stateCoordinator.awaitIdleTimeout(idleTimeout);
+    public void stopOnIdleTimeout(int idleTimeout, TimeUnit idleTimeoutUnits) throws DaemonStoppedException {
+        LOGGER.debug("stopOnIdleTimeout({} {}) called on daemon", idleTimeout, idleTimeoutUnits);
+        stateCoordinator.stopOnIdleTimeout(idleTimeout, idleTimeoutUnits);
     }
 }

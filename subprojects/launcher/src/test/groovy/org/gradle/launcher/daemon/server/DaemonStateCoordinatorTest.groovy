@@ -16,13 +16,16 @@
 package org.gradle.launcher.daemon.server
 
 import org.gradle.launcher.daemon.server.exec.DaemonUnavailableException
+import org.gradle.util.ConcurrentSpecification
 import org.gradle.util.MockExecutor
 import spock.lang.Specification
+
+import java.util.concurrent.TimeUnit
 
 /**
  * by Szczepan Faber, created at: 2/6/12
  */
-class DaemonStateCoordinatorTest extends Specification {
+class DaemonStateCoordinatorTest extends ConcurrentSpecification {
     final Runnable onStart = Mock(Runnable)
     final Runnable onStartCommand = Mock(Runnable)
     final Runnable onFinishCommand = Mock(Runnable)
@@ -51,6 +54,30 @@ class DaemonStateCoordinatorTest extends Specification {
 
         then:
         coordinator.stopped
+        0 * _._
+    }
+
+    def "await idle timeout throws exception when already stopped"() {
+        given:
+        coordinator.start()
+        coordinator.stop()
+
+        when:
+        coordinator.stopOnIdleTimeout(100, TimeUnit.HOURS)
+
+        then:
+        DaemonStoppedException e = thrown()
+    }
+    def "await idle timeout waits for requested time and then stops"() {
+        given:
+        coordinator.start()
+
+        when:
+        coordinator.stopOnIdleTimeout(100, TimeUnit.MILLISECONDS)
+
+        then:
+        1 * onStopRequested.run()
+        1 * onStop.run()
         0 * _._
     }
 
@@ -89,7 +116,7 @@ class DaemonStateCoordinatorTest extends Specification {
         0 * _._
 
         when:
-        coordinator.awaitIdleTimeout(100)
+        coordinator.stopOnIdleTimeout(100, TimeUnit.HOURS)
 
         then:
         IllegalStateException illegalStateException = thrown()
@@ -353,7 +380,7 @@ class DaemonStateCoordinatorTest extends Specification {
         0 * _._
 
         when:
-        coordinator.awaitIdleTimeout(100)
+        coordinator.stopOnIdleTimeout(100, TimeUnit.HOURS)
 
         then:
         IllegalStateException illegalStateException = thrown()
@@ -432,7 +459,7 @@ class DaemonStateCoordinatorTest extends Specification {
         0 * _._
 
         when:
-        coordinator.awaitIdleTimeout(100)
+        coordinator.stopOnIdleTimeout(100, TimeUnit.HOURS)
 
         then:
         IllegalStateException illegalStateException = thrown()

@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 
 import java.util.Date;
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -91,10 +92,10 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
         condition.signalAll();
     }
 
-    private boolean awaitStopOrIdleTimeout(int timeout) {
+    private boolean awaitStop(long timeoutMs) {
         lock.lock();
         try {
-            LOGGER.debug("waiting for daemon to stop or be idle for {}ms", timeout);
+            LOGGER.debug("waiting for daemon to stop or be idle for {}ms", timeoutMs);
             while (true) {
                 try {
                     switch (state) {
@@ -106,11 +107,12 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
                             if (isBusy()) {
                                 LOGGER.debug("Daemon is busy, sleeping until state changes.");
                                 condition.await();
-                            } else if (hasBeenIdleFor(timeout)) {
+                            } else if (hasBeenIdleFor(timeoutMs)) {
                                 LOGGER.debug("Daemon has been idle for requested period.");
+                                stop();
                                 return false;
                             } else {
-                                Date waitUntil = new Date(lastActivityAt + timeout);
+                                Date waitUntil = new Date(lastActivityAt + timeoutMs);
                                 LOGGER.debug("Daemon is idle, sleeping until state change or idle timeout at {}", waitUntil);
                                 condition.awaitUntil(waitUntil);
                             }
@@ -134,8 +136,8 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
         }
     }
 
-    public void awaitIdleTimeout(int timeoutMs) throws DaemonStoppedException {
-        if (awaitStopOrIdleTimeout(timeoutMs)) {
+    public void stopOnIdleTimeout(int timeout, TimeUnit timeoutUnits) throws DaemonStoppedException {
+        if (awaitStop(timeoutUnits.toMillis(timeout))) {
             throw new DaemonStoppedException(currentCommandExecution);
         }
     }
@@ -330,7 +332,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
         }
     }
 
-    private boolean hasBeenIdleFor(int milliseconds) {
+    private boolean hasBeenIdleFor(long milliseconds) {
         return lastActivityAt < (System.currentTimeMillis() - milliseconds);
     }
 
