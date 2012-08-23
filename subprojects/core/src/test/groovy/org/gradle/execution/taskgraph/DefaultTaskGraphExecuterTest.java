@@ -368,45 +368,7 @@ public class DefaultTaskGraphExecuterTest {
 
         assertThat(executedTasks, equalTo(toList(a)));
     }
-    
-    @Test
-    public void testContinuesExecutionOnFailureWhenFailureHandlerIndicatesThatExecutionShouldContinue() {
-        final TaskFailureHandler handler = context.mock(TaskFailureHandler.class);
 
-        final RuntimeException failure = new RuntimeException();
-        final Task a = brokenTask("a", failure);
-        final Task b = task("b");
-
-        taskExecuter.useFailureHandler(handler);
-        taskExecuter.addTasks(toList(a, b));
-
-        context.checking(new Expectations(){{
-            one(handler).onTaskFailure(a);
-        }});
-        taskExecuter.execute();
-
-        assertThat(executedTasks, equalTo(toList(a, b)));
-    }
-    
-    @Test
-    public void testDoesNotAttemptToExecuteTasksWhoseDependenciesFailedToExecute() {
-        final TaskFailureHandler handler = context.mock(TaskFailureHandler.class);
-
-        final RuntimeException failure = new RuntimeException();
-        final Task a = brokenTask("a", failure);
-        final Task b = task("b", a);
-        final Task c = task("c");
-
-        taskExecuter.useFailureHandler(handler);
-        taskExecuter.addTasks(toList(b, c));
-
-        context.checking(new Expectations() {{
-            one(handler).onTaskFailure(a);
-        }});
-        taskExecuter.execute();
-        assertThat(executedTasks, equalTo(toList(a, c)));
-    }
-    
     @Test
     public void testNotifiesBeforeTaskClosureAsTasksAreExecuted() {
         final TestClosure runnable = context.mock(TestClosure.class);
@@ -501,7 +463,12 @@ public class DefaultTaskGraphExecuterTest {
         context.checking(new Expectations() {{
             ignoring(handler);
         }});
-        taskExecuter.execute();
+        try {
+            taskExecuter.execute();
+            fail();
+        } catch (RuntimeException e) {
+            assertThat(e, sameInstance(failure));
+        }
 
         assertThat(executedTasks, equalTo(toList(a, c)));
     }

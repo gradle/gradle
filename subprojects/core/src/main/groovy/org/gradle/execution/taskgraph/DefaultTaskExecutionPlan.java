@@ -175,28 +175,32 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     private void handleFailure(TaskInfo taskInfo) {
-        if (taskInfo.getExecutionFailure() != null) {
+        Throwable executionFailure = taskInfo.getExecutionFailure();
+        if (executionFailure != null) {
             // Always abort execution for an execution failure (as opposed to a task failure)
-            abortExecution(taskInfo.getExecutionFailure());
+            abortExecution();
+            this.failures.add(executionFailure);
             return;
         }
 
+        // Task failure
         try {
             failureHandler.onTaskFailure(taskInfo.getTask());
+            this.failures.add(taskInfo.getTaskFailure());
         } catch (Exception e) {
             // If the failure handler rethrows exception, then execution of other tasks is aborted. (--continue will collect failures)
-            abortExecution(e);
+            abortExecution();
+            this.failures.add(e);
         }
     }
 
-    private void abortExecution(Throwable e) {
+    private void abortExecution() {
         // Allow currently executing tasks to complete, but skip everything else.
         for (TaskInfo taskInfo : executionPlan.values()) {
             if (taskInfo.isReady()) {
                 taskInfo.skipExecution();
             }
         }
-        this.failures.add(e);
     }
 
     public void awaitCompletion() {

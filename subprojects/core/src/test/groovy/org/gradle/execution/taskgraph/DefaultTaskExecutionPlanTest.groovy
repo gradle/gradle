@@ -229,7 +229,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         e == wrappedFailure
     }
 
-    def "continues to return tasks and returns successfully when failure handler indicates that execution should continue"() {
+    def "continues to return tasks and rethrows failure on completion when failure handler indicates that execution should continue"() {
         RuntimeException failure = new RuntimeException();
         Task a = brokenTask("a", failure);
         Task b = task("b");
@@ -249,7 +249,8 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         executionPlan.awaitCompletion()
 
         then:
-        notThrown(RuntimeException)
+        RuntimeException e = thrown()
+        e == failure
     }
 
     def "does not attempt to execute tasks whose dependencies failed to execute"() {
@@ -274,7 +275,8 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         executionPlan.awaitCompletion()
 
         then:
-        notThrown(RuntimeException)
+        RuntimeException e = thrown()
+        e == failure
     }
 
     def "clear removes all tasks"() {
