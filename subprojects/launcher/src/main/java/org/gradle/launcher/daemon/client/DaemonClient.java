@@ -121,6 +121,7 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
                 LOGGER.info(e.getMessage() + " Trying a different daemon...", e.getCause());
             }
         }
+        //TODO SF if we want to keep below sanity it should include the errors that were accumulated above.
         throw new NoUsableDaemonFoundException("Unable to find a usable idle daemon. I have connected to "
                 + saneNumberOfAttempts + " different daemons but I could not use any of them to run build: " + build + ".");
     }
