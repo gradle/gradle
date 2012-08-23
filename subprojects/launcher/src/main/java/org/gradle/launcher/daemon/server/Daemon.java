@@ -22,12 +22,9 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
-import org.gradle.launcher.daemon.protocol.Command;
-import org.gradle.launcher.daemon.protocol.DaemonFailure;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.server.exec.DaemonCommandExecuter;
 import org.gradle.messaging.remote.Address;
-import org.gradle.messaging.remote.internal.Connection;
 
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
@@ -42,7 +39,6 @@ import java.util.concurrent.locks.ReentrantLock;
  * See {@link org.gradle.launcher.daemon.client.DaemonClient} for a description of the daemon communication protocol.
  */
 public class Daemon implements Stoppable {
-
     private static final Logger LOGGER = Logging.getLogger(Daemon.class);
 
     private final DaemonServerConnector connector;
@@ -96,50 +92,10 @@ public class Daemon implements Stoppable {
                 throw new IllegalStateException("cannot start daemon as it is already running");
             }
 
-            // Get ready to accept connections, but we are assuming that no connections will be established
-            // because we have not yet advertised that we are open for business by entering our address into
-            // the registry, which happens a little further down in this method.
-            connectorAddress = connector.start(new IncomingConnectionHandler() {
-                public void handle(final Connection<Object> connection) {
-
-                    //we're spinning a thread to do work to avoid blocking the connection
-                    //This means that the Daemon potentially can do multiple things but we only allows a single build at a time
-                    workers.execute(new Runnable() {
-                        private Command command;
-
-                        public void run() {
-                            try {
-                                command = (Command) connection.receive();
-                                LOGGER.info("Daemon (pid: {}) received command: {}.", daemonContext.getPid(), command);
-                            } catch (Throwable e) {
-                                String message = String.format("Unable to receive command from connection: '%s'", connection);
-                                LOGGER.warn(message + ". Dispatching the failure to the daemon client...", e);
-                                connection.dispatch(new DaemonFailure(new RuntimeException(message, e)));
-                                //TODO SF exception handling / send typed exception / refactor / unit test and apply the same for below
-                                return;
-                            }
-
-                            try {
-                                LOGGER.debug(DaemonMessages.STARTED_EXECUTING_COMMAND + command + " with connection: " + connection + ".");
-                                commandExecuter.executeCommand(connection, command, daemonContext, stateCoordinator);
-                            } catch (Throwable e) {
-                                String message = String.format("Uncaught exception when executing command: '%s' from connection: '%s'.", command, connection);
-                                LOGGER.warn(message + ". Dispatching the failure to the daemon client...", e);
-                                connection.dispatch(new DaemonFailure(new RuntimeException(message, e)));
-                            } finally {
-                                LOGGER.debug(DaemonMessages.FINISHED_EXECUTING_COMMAND + command);
-                            }
-                        }
-                    });
-                }
-            });
-
-            registryUpdater = new DomainRegistryUpdater(daemonRegistry, daemonContext, password, connectorAddress);
+            registryUpdater = new DomainRegistryUpdater(daemonRegistry, daemonContext, password);
             
             Runnable onStart = new Runnable() {
                 public void run() {
-                    LOGGER.debug("Daemon starting at: " + new Date() + ", with address: " + connectorAddress);
-                    registryUpdater.onStart();
                 }
             };
             
@@ -170,9 +126,12 @@ public class Daemon implements Stoppable {
             };
 
             stateCoordinator = new DaemonStateCoordinator(workers, onStart, onStartCommand, onFinishCommand, onStop, onStopRequested);
-
-            // ready, set, go
             stateCoordinator.start();
+
+            // Get ready to accept connections and advertise that we are now available
+            connectorAddress = connector.start(new DefaultIncomingConnectionHandler(commandExecuter, workers, daemonContext, stateCoordinator));
+            LOGGER.debug("Daemon starting at: " + new Date() + ", with address: " + connectorAddress);
+            registryUpdater.onStart(connectorAddress);
         } finally {
             lifecyleLock.unlock();
         }

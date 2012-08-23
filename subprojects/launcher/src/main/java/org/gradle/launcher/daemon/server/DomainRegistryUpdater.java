@@ -32,13 +32,12 @@ class DomainRegistryUpdater {
     private final DaemonRegistry daemonRegistry;
     private final DaemonContext daemonContext;
     private final String password;
-    private final Address connectorAddress;
+    private Address connectorAddress;
 
-    public DomainRegistryUpdater(DaemonRegistry daemonRegistry, DaemonContext daemonContext, String password, Address connectorAddress) {
+    public DomainRegistryUpdater(DaemonRegistry daemonRegistry, DaemonContext daemonContext, String password) {
         this.daemonRegistry = daemonRegistry;
         this.daemonContext = daemonContext;
         this.password = password;
-        this.connectorAddress = connectorAddress;
     }
 
     public void onStartActivity() {
@@ -59,9 +58,10 @@ class DomainRegistryUpdater {
         }
     }
 
-    public void onStart() {
+    public void onStart(Address connectorAddress) {
         LOGGER.info("Advertising the daemon address to the clients: {}", connectorAddress);
         LOGGER.debug("Advertised daemon context: {}", daemonContext);
+        this.connectorAddress = connectorAddress;
         daemonRegistry.store(connectorAddress, daemonContext, password);
         daemonRegistry.markBusy(connectorAddress);
     }
