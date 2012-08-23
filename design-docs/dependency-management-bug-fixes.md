@@ -3,7 +3,40 @@ This feature is really a bucket for key things we want to fix in the short-term 
 
 As this 'feature' is a list of bug fixes, this feature spec will not follow the usual template.
 
-## Inform the user about why a module is considered broken
+## Contents
+* [Honor SSL system properties when accessing HTTP repositories](#ssl-system-properties)
+* [Inform the user about why a module is considered broken](#error-reporting)
+* [Correct handling of packaging and dependency type declared in poms](#pom-packaging)
+* [RedHat finishes porting gradle to fedora](#fedora)
+* [Allow resolution of java-source and javadoc types from maven repositories](#maven-types)
+* [Expiring of changing module artifacts from cache is inadequate in some cases, overly aggressive in others](#changing-module-caching)
+* [Correct naming of resolved native binaries](#native-binaries)
+* [Handle pom-only modules in mavenLocal](#pom-only-modules)
+* [Support for kerberos and custom authentication](#authentication)
+
+<a href="ssl-system-properties">
+# Honor SSL system properties when accessing HTTP repositories
+
+See [GRADLE-2234](http://issues.gradle.org/browse/GRADLE-2234)
+
+### Test coverage
+
+* Can resolve dependencies from an HTTPS Maven repository with both server and client authentication enabled.
+    * Both an SSL trust store containing the server cert and a key store containing the client cert have been specified using the `ssl.*`
+      system properties.
+    * Assert that expected client cert has been received by the server.
+* Can publish dependencies to an HTTPS Maven repository with both server and client authentication enabled, as above.
+* Resolution from an HTTP Maven repository fails with a decent error message when client fails to authenticate the server (eg no trust store specified).
+* Resolution from an HTTP Maven repository fails with a decent error message when server fails to authenticate the client (eg no key store specified).
+* Same happy day tests for an HTTP Ivy repository.
+
+### Implementation
+
+Needs some research. Looks like we need should be using a `DecompressingHttpClient` chained in front of a `SystemDefaultHttpClient` instead of
+using a `ContentEncodingHttpClient`.
+
+<a href="error-reporting">
+# Inform the user about why a module is considered broken
 
 ### Description
 
@@ -47,7 +80,8 @@ TODO - flesh this out
 
 TODO - flesh this out
 
-## Correct handling of packaging and dependency type declared in poms
+<a href="pom-packaging">
+# Correct handling of packaging and dependency type declared in poms
 
 * GRADLE-2188: Artifact not found resolving dependencies with packaging/type "orbit"
 
@@ -100,7 +134,8 @@ artifact model. This will be a small step toward an independent Gradle model of 
     * If not found, use the artifact from the type location
 * In 2.0, we will remove the packaging->extension mapping and the deprecation warning
 
-## RedHat finishes porting gradle to fedora
+<a href="fedora">
+# RedHat finishes porting gradle to fedora
 
 * GRADLE-2210: Migrate to maven 3
 * GRADLE-2238: Use maven 3 classes to locate maven local repository
@@ -154,7 +189,8 @@ And a test that regular resolve succeeds from http repository when settings.xml 
 * Implement m2 repository location with Maven3
 * Use jarjar to repackage the required maven3 classes and include them in the Gradle distro.
 
-## Allow resolution of java-source and javadoc types from maven repositories (and other types: tests, ejb-client)
+<a href="maven-types">
+# Allow resolution of java-source and javadoc types from maven repositories (and other types: tests, ejb-client)
 
 * GRADLE-201: Enable support for retrieving source artifacts of a module
 * GRADLE-1444: Sources are not downloaded when dependency is using a classifier
@@ -233,8 +269,8 @@ Until we map these types into the ivy repository model as well:
 * The IDEDependenciesExtractor will need to continue using type+classifier
 * We cannot deprecate the use of classifier='sources'
 
-
-## Expiring of changing module artifacts from cache is inadequate in some cases, overly aggressive in others
+<a href="changing-module-caching">
+# Expiring of changing module artifacts from cache is inadequate in some cases, overly aggressive in others
 
 * GRADLE-2175: Snapshot dependencies with sources/test classifier are not considered 'changing'
 * GRADLE-2364: Cannot run build with --offline after attempting build with a broken repository
@@ -294,16 +330,19 @@ removes/expires all artifacts linked to that module. One option is to update the
 and will require a new version whenever the binary storage format is changed. The filestore-N directory will store downloaded files in a pattern that encapsulates the artifact identifier and the SHA1 checksum
 of the downloaded artifact (same as current format).
 
-## Correct naming of resolved native binaries
+<a href="native-binaries">
+# Correct naming of resolved native binaries
 
 * GRADLE-2211: Resolved binary executables and libraries do not use the platform specific naming scheme
 
-## Handle pom-only modules in mavenLocal
+<a href="pom-only-modules">
+# Handle pom-only modules in mavenLocal
 
 * GRADLE-2034: Existence of pom file requires that declared artifacts can be found in the same repository
 * GRADLE-2369: Dependency resolution fails for mavenLocal(), mavenCentral() if artifact partially in mavenLocal()
 
-## Support for kerberos and custom authentication
+<a href="authentication">
+# Support for kerberos and custom authentication
 
 * GRADLE-2335: Provide the ability to implement a custom HTTP authentication scheme for repository access
 
