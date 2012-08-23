@@ -15,7 +15,7 @@
  */
 package org.gradle.launcher.daemon.server;
 
-public class DaemonStoppedException extends Exception {
+public class DaemonStoppedException extends RuntimeException {
     public DaemonStoppedException(String operationDisplayName) {
         super(toMessage(operationDisplayName));
     }
