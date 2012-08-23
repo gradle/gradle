@@ -21,6 +21,7 @@ import com.google.common.collect.Collections2;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
+import org.gradle.api.internal.artifacts.result.DefaultResolvedModuleVersionResult;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -28,30 +29,38 @@ import java.util.Set;
 /**
  * by Szczepan Faber, created at: 8/10/12
  */
-public class RenderableRoot implements RenderableDependency {
+public class RenderableModuleResult implements RenderableDependency {
 
-    private final ResolvedModuleVersionResult root;
+    private final ResolvedModuleVersionResult module;
 
-    public RenderableRoot(ResolvedModuleVersionResult root) {
-        this.root = root;
+    public RenderableModuleResult(ResolvedModuleVersionResult module) {
+        this.module = module;
     }
 
     public ModuleVersionIdentifier getId() {
-        return root.getId();
+        return module.getId();
     }
 
     public String getName() {
-        return getId().toString();
+        return module.getId().getGroup() + ":" + module.getId().getName() + ":" + module.getId().getVersion();
     }
 
     public String getDescription() {
-        return getId().toString();
+        return getName();
     }
 
     public Set<RenderableDependency> getChildren() {
-        return new LinkedHashSet(Collections2.transform(root.getDependencies(), new Function<ResolvedDependencyResult, RenderableDependency>() {
+        return new LinkedHashSet(Collections2.transform(module.getDependencies(), new Function<ResolvedDependencyResult, RenderableDependency>() {
             public RenderableDependency apply(ResolvedDependencyResult input) {
                 return new RenderableDependencyResult(input);
+            }
+        }));
+    }
+
+    public Set<RenderableDependency> getParents() {
+        return new LinkedHashSet(Collections2.transform(((DefaultResolvedModuleVersionResult) module).getDependees(), new Function<ResolvedModuleVersionResult, RenderableDependency>() {
+            public RenderableDependency apply(ResolvedModuleVersionResult input) {
+                return new RenderableModuleResult(input);
             }
         }));
     }

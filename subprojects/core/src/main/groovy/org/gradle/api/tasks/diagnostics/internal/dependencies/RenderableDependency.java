@@ -28,4 +28,5 @@ public interface RenderableDependency {
     String getName();
     String getDescription();
     Set<RenderableDependency> getChildren();
+    Set<RenderableDependency> getParents();
 }

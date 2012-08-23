@@ -86,6 +86,8 @@ org:leaf2:1.5 -> 2.5
     }
 
     //TODO SF more coverage
+    // - additional description
     // - no matching dependencies
     // - configuration / dependency not configured
+    // - unresolved dependencies
 }

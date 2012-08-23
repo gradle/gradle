@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.tasks.diagnostics.internal.dependencies.RenderableDependency;
-import org.gradle.api.tasks.diagnostics.internal.dependencies.RenderableRoot;
+import org.gradle.api.tasks.diagnostics.internal.dependencies.RenderableModuleResult;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.util.GUtil;
 
@@ -82,7 +82,7 @@ public class AsciiReportRenderer extends TextReportRenderer implements Dependenc
     public void render(Configuration configuration) throws IOException {
         ResolvedConfiguration resolvedConfiguration = configuration.getResolvedConfiguration();
         ResolutionResult result = resolvedConfiguration.getResolutionResult();
-        RenderableDependency root = new RenderableRoot(result.getRoot());
+        RenderableDependency root = new RenderableModuleResult(result.getRoot());
 
         renderNow(root);
 

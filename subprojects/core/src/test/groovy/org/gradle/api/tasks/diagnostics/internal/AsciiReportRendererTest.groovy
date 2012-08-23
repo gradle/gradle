@@ -17,10 +17,8 @@ package org.gradle.api.tasks.diagnostics.internal
 
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.ModuleVersionIdentifier
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
-import org.gradle.api.tasks.diagnostics.internal.dependencies.RenderableDependency
+import org.gradle.api.tasks.diagnostics.internal.dependencies.SimpleDependency
 import org.gradle.logging.TestStyledTextOutput
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
@@ -102,18 +100,5 @@ class AsciiReportRendererTest extends Specification {
 
         then:
         textOutput.value.readLines() == ['No dependencies']
-    }
-
-    private class SimpleDependency implements RenderableDependency {
-        ModuleVersionIdentifier id
-        String name
-        String description
-        Set<RenderableDependency> children = new LinkedHashSet<RenderableDependency>()
-
-        SimpleDependency(String name, String config) {
-            this.name = name
-            this.description = config
-            this.id = new DefaultModuleVersionIdentifier(name, name, '1.0')
-        }
     }
 }

@@ -22,11 +22,10 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.artifacts.result.ResolvedDependencyResult
-import org.gradle.api.artifacts.result.ResolvedModuleVersionResult
-import org.gradle.api.internal.artifacts.result.ResolvedDependencyResultPrinter
-import org.gradle.api.internal.artifacts.result.ResolvedDependencyResultSorter
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.diagnostics.internal.GraphRenderer
+import org.gradle.api.tasks.diagnostics.internal.dependencies.RenderableDependency
+import org.gradle.api.tasks.diagnostics.internal.insight.DependencyInsightReporter
 import org.gradle.logging.StyledTextOutput
 import org.gradle.logging.StyledTextOutputFactory
 
@@ -62,40 +61,43 @@ public class DependencyInsightReportTask extends DefaultTask {
             includes(it)
         }
 
-        def sortedDeps = ResolvedDependencyResultSorter.sort(selectedDependencies);
+        def sortedDeps = new DependencyInsightReporter().prepare(selectedDependencies)
 
-        for (ResolvedDependencyResult dependency: sortedDeps) {
+        for (RenderableDependency dependency: sortedDeps) {
             renderer.visit(new Action<StyledTextOutput>() {
-                public void execute(StyledTextOutput styledTextOutput) {
-                    styledTextOutput.withStyle(StyledTextOutput.Style.Identifier).text(ResolvedDependencyResultPrinter.print(dependency));
+                public void execute(StyledTextOutput out) {
+                    out.withStyle(StyledTextOutput.Style.Identifier).text(dependency.name);
+                    if (dependency.description) {
+                        out.withStyle(StyledTextOutput.Style.Description).text(dependency.description)
+                    }
                 }
             }, true);
-            renderDependees(dependency.getSelected().getDependees());
+            renderParents(dependency.getParents());
         }
     }
 
-    private void renderDependees(Set<? extends ResolvedModuleVersionResult> dependees) {
+    private void renderParents(Set<? extends RenderableDependency> parents) {
         renderer.startChildren();
         int i = 0;
-        for (ResolvedModuleVersionResult dependee : dependees) {
-            boolean last = i++ == dependees.size() - 1;
-            render(dependee, last);
+        for (RenderableDependency parent : parents) {
+            boolean last = i++ == parents.size() - 1;
+            render(parent, last);
         }
         renderer.completeChildren();
     }
 
-    private void render(final ResolvedModuleVersionResult dependee, boolean last) {
-        Set<? extends ResolvedModuleVersionResult> dependees = dependee.getDependees();
-        if (dependees.size() == 0) {
+    private void render(final RenderableDependency parent, boolean last) {
+        def parents = parent.getParents();
+        if (parents.size() == 0) {
             //root, don't print it.
             output.println();
             return;
         }
         renderer.visit(new Action<StyledTextOutput>() {
             public void execute(StyledTextOutput styledTextOutput) {
-                styledTextOutput.text(dependee);
+                styledTextOutput.text(parent.name);
             }
         }, last);
-        renderDependees(dependees);
+        renderParents(parents);
     }
 }

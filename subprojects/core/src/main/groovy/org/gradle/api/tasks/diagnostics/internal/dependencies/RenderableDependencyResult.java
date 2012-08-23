@@ -21,7 +21,9 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Collections2;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
+import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.result.DefaultResolvedModuleVersionResult;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -32,9 +34,23 @@ import java.util.Set;
 public class RenderableDependencyResult implements RenderableDependency {
 
     private final ResolvedDependencyResult dependency;
+    private final String description;
 
     public RenderableDependencyResult(ResolvedDependencyResult dependency) {
         this.dependency = dependency;
+        if (dependency.getSelectedConfigurations().isEmpty()) {
+            //TODO SF this needs to be revisited when implementing the 'shows unresolved dependencies' story.
+            //Currently I simply assume that when there are no selected configurations then the dependency is unresolved
+            //This is quite weak but it is simple and feels better than printing empty configurations.
+            this.description = "UNRESOLVED";
+        } else {
+            this.description = Joiner.on(",").join(dependency.getSelectedConfigurations());
+        }
+    }
+
+    public RenderableDependencyResult(ResolvedDependencyResult dependency, String description) {
+        this.dependency = dependency;
+        this.description = description;
     }
 
     public String getName() {
@@ -58,19 +74,21 @@ public class RenderableDependencyResult implements RenderableDependency {
     }
 
     public String getDescription() {
-        if (dependency.getSelectedConfigurations().isEmpty()) {
-            //TODO SF this needs to be revisited when implementing the 'shows unresolved dependencies' story.
-            //Currently I simply assume that when there are no selected configurations then the dependency is unresolved
-            //This is quite weak but it is simple and feels better than printing empty configurations.
-            return "UNRESOLVED";
-        }
-        return Joiner.on(",").join(dependency.getSelectedConfigurations());
+        return description;
     }
 
     public Set<RenderableDependency> getChildren() {
         return new LinkedHashSet(Collections2.transform(dependency.getSelected().getDependencies(), new Function<ResolvedDependencyResult, RenderableDependency>() {
             public RenderableDependency apply(ResolvedDependencyResult input) {
                 return new RenderableDependencyResult(input);
+            }
+        }));
+    }
+
+    public Set<RenderableDependency> getParents() {
+        return new LinkedHashSet(Collections2.transform(((DefaultResolvedModuleVersionResult) dependency.getSelected()).getDependees(), new Function<ResolvedModuleVersionResult, RenderableDependency>() {
+            public RenderableDependency apply(ResolvedModuleVersionResult input) {
+                return new RenderableModuleResult(input);
             }
         }));
     }
