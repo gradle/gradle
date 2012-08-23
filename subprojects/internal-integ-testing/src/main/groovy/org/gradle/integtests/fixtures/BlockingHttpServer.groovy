@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+
+
 package org.gradle.integtests.fixtures;
 
 import org.junit.rules.ExternalResource
@@ -90,7 +92,7 @@ server state: ${server.dump()}
 
         CyclicBarrierRequestHandler(String... calls) {
             this.expectedCalls.addAll(calls)
-            cyclicBarrier = new CyclicBarrier(expectedCalls.size, {
+            cyclicBarrier = new CyclicBarrier(expectedCalls.size(), {
                 assert collectedCalls.toSet() == expectedCalls.toSet()
                 complete = true
             } as Runnable)
