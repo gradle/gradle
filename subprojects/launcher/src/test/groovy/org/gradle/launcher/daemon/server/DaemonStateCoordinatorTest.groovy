@@ -71,8 +71,8 @@ class DaemonStateCoordinatorTest extends Specification {
         coordinator.runCommand(Mock(Runnable), "operation")
 
         then:
-        IllegalStateException illegalStateException = thrown()
-        illegalStateException.message == 'This daemon is in a broken state.'
+        DaemonUnavailableException unavailableException = thrown()
+        unavailableException.message == 'This daemon is in a broken state and will stop.'
     }
 
     def "await idle timeout returns immediately when start has failed"() {
@@ -281,6 +281,36 @@ class DaemonStateCoordinatorTest extends Specification {
         e.message == 'This daemon is currently executing: command'
     }
 
+    def "cannot run command after stop requested"() {
+        Runnable command = Mock()
+
+        given:
+        coordinator.start()
+        coordinator.requestStop()
+
+        when:
+        coordinator.runCommand(command, "command 2")
+
+        then:
+        DaemonUnavailableException e = thrown()
+        e.message == 'This daemon is currently stopping.'
+    }
+
+    def "cannot run command after stopped"() {
+        Runnable command = Mock()
+
+        given:
+        coordinator.start()
+        coordinator.stopAsSoonAsIdle()
+
+        when:
+        coordinator.runCommand(command, "command")
+
+        then:
+        DaemonUnavailableException e = thrown()
+        e.message == 'This daemon has stopped.'
+    }
+
     def "cannot run command when start command action fails"() {
         Runnable command = Mock()
         RuntimeException failure = new RuntimeException()
@@ -302,8 +332,8 @@ class DaemonStateCoordinatorTest extends Specification {
         coordinator.runCommand(command, "command")
 
         then:
-        IllegalStateException illegalStateException = thrown()
-        illegalStateException.message == 'This daemon is in a broken state.'
+        DaemonUnavailableException unavailableException = thrown()
+        unavailableException.message == 'This daemon is in a broken state and will stop.'
     }
 
     def "await idle time returns immediately when start command action has failed"() {
@@ -379,8 +409,8 @@ class DaemonStateCoordinatorTest extends Specification {
         coordinator.runCommand(command, "command")
 
         then:
-        IllegalStateException illegalStateException = thrown()
-        illegalStateException.message == 'This daemon is in a broken state.'
+        DaemonUnavailableException unavailableException = thrown()
+        unavailableException.message == 'This daemon is in a broken state and will stop.'
     }
 
     def "await idle time returns immediately when finish command action has failed"() {

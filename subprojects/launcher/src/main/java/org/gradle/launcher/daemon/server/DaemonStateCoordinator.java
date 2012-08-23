@@ -248,13 +248,13 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
         try {
             switch (state) {
                 case NotStarted:
-                    throw new IllegalStateException("This daemon has not been started.");
+                    throw new DaemonUnavailableException("This daemon has not been started.");
                 case Broken:
-                    throw new IllegalStateException("This daemon is in a broken state.");
+                    throw new DaemonUnavailableException("This daemon is in a broken state and will stop.");
                 case StopRequested:
-                    throw new IllegalStateException("This daemon is stopping.");
+                    throw new DaemonUnavailableException("This daemon is currently stopping.");
                 case Stopped:
-                    throw new IllegalStateException("This daemon has stopped.");
+                    throw new DaemonUnavailableException("This daemon has stopped.");
             }
             if (currentCommandExecution != null) {
                 throw new DaemonUnavailableException(String.format("This daemon is currently executing: %s", currentCommandExecution));
