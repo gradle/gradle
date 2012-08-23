@@ -13,7 +13,7 @@ Improved dependency resolution reporting
 
 # User visible changes
 
-1. At minimum the dependencies report should include information of the 'asked' dependency version
+1. The dependencies report should include information of the 'asked' dependency version
 Instead of raw version we can print something like: 1.0->3.0. Mock up:
 
 <pre>
@@ -24,12 +24,30 @@ testCompile - Classpath for compiling the test sources.
      \--- foo:bar:3.0 [default] (*)
 </pre>
 
-2. Consider a new console report that traverses the graph the opposite way.
+2. A brand new report that traverses the graph the opposite way.
 
-Not sure how to call this report.
-The idea is to traverse the graph the other way and print information who depends on a given dependency.
+Mock up:
+<pre>
+com.linkedin.util:util-core - selected version does not exist in the dependency graph.
+
+com.linkedin.util:util-core:4.0.7
+\--- com.linkedin.sharedlibs:configuration-repository-impl:1.3.30
+     \--- com.linkedin.sharedlibs:lispring-lispring-core:1.3.30
+          \--- com.linkedin.container:container-http-impl:3.0.24
+               \--- com.linkedin.container:container-rpc-impl:3.0.24
+
+com.linkedin.util:util-core:2.4.6 -> 4.0.7
+\--- com.linkedin.cfg2:cfg:2.8.0
+     \--- com.linkedin.sharedlibs:lispring-lispring-core:1.3.30
+          \--- com.linkedin.container:container-http-impl:3.0.24
+               \--- com.linkedin.container:container-rpc-impl:3.0.24
+</pre>
+
+The idea is to traverse the graph the other way and print the dependee path for a given dependency.
 This report is useful to track where the given version of some dependency was picked up from in case of conflict resolution.
-This report could drive some conveniences to our DependencyGraph API.
+This drives some conveniences to our DependencyGraph API.
+There should be some simple way to run the report from the command line.
+While doing that consider adding support for selecting configuration for the regular 'dependencies' report from command line.
 
 # Integration test coverage
 
