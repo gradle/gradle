@@ -27,12 +27,14 @@ import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.server.Daemon;
 import org.gradle.launcher.daemon.server.DaemonServices;
-import org.gradle.launcher.daemon.server.DaemonStoppedException;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.internal.OutputEventRenderer;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -114,10 +116,8 @@ public class DaemonMain extends EntryPoint {
         try {
             daemon.awaitIdleTimeout(configuration.getIdleTimeout());
             LOGGER.info("Daemon hit idle timeout (" + configuration.getIdleTimeout() + "ms), stopping...");
+        } finally {
             daemon.stop();
-        } catch (DaemonStoppedException e) {
-            LOGGER.debug("Daemon stopping due to the stop request");
-            listener.onFailure(e);
         }
     }
 
