@@ -601,7 +601,8 @@ public class StartParameter extends LoggingConfiguration implements Serializable
 
     /**
      * Specifies the number of parallel threads to use for build execution.
-     * {@see #getParallelExecutorCount}
+     * 
+     * @see #getParallelThreadCount()
      */
     public void setParallelThreadCount(int parallelThreadCount) {
         this.parallelThreadCount = parallelThreadCount;
