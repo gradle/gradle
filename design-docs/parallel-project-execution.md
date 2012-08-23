@@ -81,6 +81,7 @@ Parallel execution implies that multiple failures may occur for a single build e
 
     Exception 1
     -----------
+    * Where:
     Build file '/Users/daz/dev/gradlex/parallel/build.gradle' line: 31
 
     * What went wrong:
@@ -93,6 +94,7 @@ Parallel execution implies that multiple failures may occur for a single build e
 
     Exception 2
     -----------
+    * Where:
     Build file '/Users/daz/dev/gradlex/parallel/build.gradle' line: 31
 
     * What went wrong:

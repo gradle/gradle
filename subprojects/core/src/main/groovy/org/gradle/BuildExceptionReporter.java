@@ -34,6 +34,8 @@ import org.gradle.logging.internal.LoggingCommandLineConverter;
 import org.gradle.util.GUtil;
 import org.gradle.util.TreeVisitor;
 
+import java.util.List;
+
 import static org.gradle.logging.StyledTextOutput.Style.*;
 
 /**
@@ -69,24 +71,52 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
             return;
         }
 
-        renderBuildException(failure);
+        renderSingleBuildException(failure);
     }
 
     private void renderMultipleBuildExceptions(MultipleBuildFailures multipleFailures) {
-        for (Throwable cause : multipleFailures.getCauses()) {
-            execute(cause);
+        List<? extends Throwable> causes = multipleFailures.getCauses();
+
+        StyledTextOutput output = textOutputFactory.create(BuildExceptionReporter.class, LogLevel.ERROR);
+        output.println();
+        output.withStyle(Failure).format("FAILURE: Build failed with %s exceptions.", causes.size());
+        output.println();
+
+        for (int i = 0; i < causes.size(); i++) {
+            Throwable cause = causes.get(i);
+            FailureDetails details = constructFailureDetails(cause);
+
+            output.println();
+            output.withStyle(Failure).format("Exception %s", i + 1);
+            output.println();
+            output.text("-----------");
+
+            writeFailureDetails(output, details);
+
+            output.println("==============================================================================");
         }
     }
 
-    private void renderBuildException(Throwable failure) {
+    private void renderSingleBuildException(Throwable failure) {
+        StyledTextOutput output = textOutputFactory.create(BuildExceptionReporter.class, LogLevel.ERROR);
+        FailureDetails details = constructFailureDetails(failure);
+
+        output.println();
+        output.withStyle(Failure).text("FAILURE: ");
+        details.summary.writeTo(output.withStyle(Failure));
+        output.println();
+
+        writeFailureDetails(output, details);
+    }
+
+    private FailureDetails constructFailureDetails(Throwable failure) {
         FailureDetails details = new FailureDetails(failure);
         if (failure instanceof GradleException) {
             reportBuildFailure((GradleException) failure, details);
         } else {
             reportInternalError(details);
         }
-
-        write(details);
+        return details;
     }
 
     private void reportBuildFailure(GradleException failure, FailureDetails details) {
@@ -199,29 +229,26 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
         }
     }
 
-    protected void write(FailureDetails details) {
-        StyledTextOutput output = textOutputFactory.create(BuildExceptionReporter.class, LogLevel.ERROR);
-
-        output.println();
-        output.withStyle(Failure).text("FAILURE: ");
-        details.summary.writeTo(output.withStyle(Failure));
-
+    private void writeFailureDetails(StyledTextOutput output, FailureDetails details) {
         if (details.location.getHasContent()) {
-            output.println().println();
+            output.println();
             output.println("* Where:");
             details.location.writeTo(output);
+            output.println();
         }
 
         if (details.details.getHasContent()) {
-            output.println().println();
+            output.println();
             output.println("* What went wrong:");
             details.details.writeTo(output);
+            output.println();
         }
 
         if (details.resolution.getHasContent()) {
-            output.println().println();
+            output.println();
             output.println("* Try:");
             details.resolution.writeTo(output);
+            output.println();
         }
 
         Throwable exception = null;
@@ -237,12 +264,11 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
         }
 
         if (exception != null) {
-            output.println().println();
+            output.println();
             output.println("* Exception is:");
             output.exception(exception);
+            output.println();
         }
-
-        output.println();
     }
 
     private static class FailureDetails {
