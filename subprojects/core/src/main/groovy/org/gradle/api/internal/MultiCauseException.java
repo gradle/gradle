@@ -19,6 +19,4 @@ import java.util.List;
 
 public interface MultiCauseException {
     List<? extends Throwable> getCauses();
-
-    void initCauses(Iterable<? extends Throwable> causes);
 }

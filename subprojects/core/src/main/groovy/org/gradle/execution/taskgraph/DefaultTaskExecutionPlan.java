@@ -22,7 +22,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.CachingTaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
-import org.gradle.execution.CompositeTaskExecutionException;
+import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.execution.TaskFailureHandler;
 import org.gradle.internal.UncheckedException;
 
@@ -221,7 +221,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         }
 
         if (failures.size() > 1) {
-            throw new CompositeTaskExecutionException(failures);
+            throw new MultipleBuildFailures(failures);
         }
 
         throw UncheckedException.throwAsUncheckedException(failures.get(0));

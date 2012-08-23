@@ -19,18 +19,18 @@ import org.codehaus.groovy.runtime.StackTraceUtils;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.LocationAwareException;
-import org.gradle.api.internal.MultiCauseException;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.configuration.ImplicitTasksConfigurer;
+import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.execution.TaskSelectionException;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.logging.LoggingConfiguration;
 import org.gradle.logging.ShowStacktrace;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.logging.StyledTextOutputFactory;
+import org.gradle.logging.internal.BufferingStyledTextOutput;
 import org.gradle.logging.internal.LinePrefixingStyledTextOutput;
 import org.gradle.logging.internal.LoggingCommandLineConverter;
-import org.gradle.logging.internal.BufferingStyledTextOutput;
 import org.gradle.util.GUtil;
 import org.gradle.util.TreeVisitor;
 
@@ -64,14 +64,21 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
     }
 
     public void execute(Throwable failure) {
-        if (failure instanceof MultiCauseException) {
-            MultiCauseException multiCauseException = (MultiCauseException) failure;
-            for (Throwable cause : multiCauseException.getCauses()) {
-                execute(cause);
-            }
+        if (failure instanceof MultipleBuildFailures) {
+            renderMultipleBuildExceptions((MultipleBuildFailures) failure);
             return;
         }
 
+        renderBuildException(failure);
+    }
+
+    private void renderMultipleBuildExceptions(MultipleBuildFailures multipleFailures) {
+        for (Throwable cause : multipleFailures.getCauses()) {
+            execute(cause);
+        }
+    }
+
+    private void renderBuildException(Throwable failure) {
         FailureDetails details = new FailureDetails(failure);
         if (failure instanceof GradleException) {
             reportBuildFailure((GradleException) failure, details);
@@ -80,64 +87,6 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
         }
 
         write(details);
-    }
-
-    protected void write(FailureDetails details) {
-        StyledTextOutput output = textOutputFactory.create(BuildExceptionReporter.class, LogLevel.ERROR);
-
-        output.println();
-        output.withStyle(Failure).text("FAILURE: ");
-        details.summary.writeTo(output.withStyle(Failure));
-
-        if (details.location.getHasContent()) {
-            output.println().println();
-            output.println("* Where:");
-            details.location.writeTo(output);
-        }
-
-        if (details.details.getHasContent()) {
-            output.println().println();
-            output.println("* What went wrong:");
-            details.details.writeTo(output);
-        }
-
-        if (details.resolution.getHasContent()) {
-            output.println().println();
-            output.println("* Try:");
-            details.resolution.writeTo(output);
-        }
-
-        Throwable exception = null;
-        switch (details.exceptionStyle) {
-            case NONE:
-                break;
-            case SANITIZED:
-                exception = StackTraceUtils.deepSanitize(details.failure);
-                break;
-            case FULL:
-                exception = details.failure;
-                break;
-        }
-
-        if (exception != null) {
-            output.println().println();
-            output.println("* Exception is:");
-            output.exception(exception);
-        }
-
-        output.println();
-    }
-
-    public void reportInternalError(FailureDetails details) {
-        details.summary.text("Build aborted because of an internal error.");
-        details.details.text("Build aborted because of an unexpected internal error. Please file an issue at: http://forums.gradle.org.");
-
-        if (loggingConfiguration.getLogLevel() != LogLevel.DEBUG) {
-            details.resolution.text("Run with ");
-            details.resolution.withStyle(UserInput).format("--%s", LoggingCommandLineConverter.DEBUG_LONG);
-            details.resolution.text(" option to get additional debug info.");
-            details.exceptionStyle = ExceptionStyle.FULL;
-        }
     }
 
     private void reportBuildFailure(GradleException failure, FailureDetails details) {
@@ -191,7 +140,7 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
                         details.details.text(prefix);
                         prefix.append("  ");
                         details.details.style(Info).text("> ").style(Normal);
-                        
+
                         final LinePrefixingStyledTextOutput output = new LinePrefixingStyledTextOutput(details.details, prefix);
                         output.text(getMessage(node));
                     }
@@ -236,6 +185,64 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
             return message;
         }
         return String.format("%s (no error message)", throwable.getClass().getName());
+    }
+
+    public void reportInternalError(FailureDetails details) {
+        details.summary.text("Build aborted because of an internal error.");
+        details.details.text("Build aborted because of an unexpected internal error. Please file an issue at: http://forums.gradle.org.");
+
+        if (loggingConfiguration.getLogLevel() != LogLevel.DEBUG) {
+            details.resolution.text("Run with ");
+            details.resolution.withStyle(UserInput).format("--%s", LoggingCommandLineConverter.DEBUG_LONG);
+            details.resolution.text(" option to get additional debug info.");
+            details.exceptionStyle = ExceptionStyle.FULL;
+        }
+    }
+
+    protected void write(FailureDetails details) {
+        StyledTextOutput output = textOutputFactory.create(BuildExceptionReporter.class, LogLevel.ERROR);
+
+        output.println();
+        output.withStyle(Failure).text("FAILURE: ");
+        details.summary.writeTo(output.withStyle(Failure));
+
+        if (details.location.getHasContent()) {
+            output.println().println();
+            output.println("* Where:");
+            details.location.writeTo(output);
+        }
+
+        if (details.details.getHasContent()) {
+            output.println().println();
+            output.println("* What went wrong:");
+            details.details.writeTo(output);
+        }
+
+        if (details.resolution.getHasContent()) {
+            output.println().println();
+            output.println("* Try:");
+            details.resolution.writeTo(output);
+        }
+
+        Throwable exception = null;
+        switch (details.exceptionStyle) {
+            case NONE:
+                break;
+            case SANITIZED:
+                exception = StackTraceUtils.deepSanitize(details.failure);
+                break;
+            case FULL:
+                exception = details.failure;
+                break;
+        }
+
+        if (exception != null) {
+            output.println().println();
+            output.println("* Exception is:");
+            output.exception(exception);
+        }
+
+        output.println();
     }
 
     private static class FailureDetails {

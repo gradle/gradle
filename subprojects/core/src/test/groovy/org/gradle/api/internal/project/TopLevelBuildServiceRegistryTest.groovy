@@ -163,7 +163,7 @@ public class TopLevelBuildServiceRegistryTest extends Specification {
         setup:
         expectListenerManagerCreated()
         expect:
-        assertThat(registry.get(ExceptionAnalyser), instanceOf(MultiCauseExceptionAnalyser))
+        assertThat(registry.get(ExceptionAnalyser), instanceOf(MultipleBuildFailuresExceptionAnalyser))
         assertThat(registry.get(ExceptionAnalyser).delegate, instanceOf(DefaultExceptionAnalyser))
         assertThat(registry.get(ExceptionAnalyser), sameInstance(registry.get(ExceptionAnalyser)))
     }

@@ -17,31 +17,31 @@
 package org.gradle.initialization;
 
 import org.gradle.api.internal.ExceptionAnalyser;
-import org.gradle.api.internal.LocationAwareException;
-import org.gradle.api.internal.MultiCauseException;
-import org.gradle.execution.CompositeTaskExecutionException;
+import org.gradle.execution.MultipleBuildFailures;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class MultiCauseExceptionAnalyser implements ExceptionAnalyser {
+/**
+ * An exception analyser that deals specifically with MultipleBuildFailures and transforms each component failure.
+ */
+public class MultipleBuildFailuresExceptionAnalyser implements ExceptionAnalyser {
     private final ExceptionAnalyser delegate;
 
-    public MultiCauseExceptionAnalyser(ExceptionAnalyser delegate) {
+    public MultipleBuildFailuresExceptionAnalyser(ExceptionAnalyser delegate) {
         this.delegate = delegate;
     }
 
     public Throwable transform(Throwable exception) {
-        // TODO:PARALLEL Remove the special case: this should apply to all multi cause exceptions
-        if (exception instanceof CompositeTaskExecutionException) {
-            MultiCauseException multiCauseException = (MultiCauseException) exception;
-            List<Throwable> transformedCauses = new ArrayList<Throwable>(multiCauseException.getCauses().size());
-            for (Throwable cause : multiCauseException.getCauses()) {
+        // TODO:PARALLEL Make MultipleBuildFailures a generic concept (annotation? marker interface?)
+        if (exception instanceof MultipleBuildFailures) {
+            MultipleBuildFailures multipleBuildFailures = (MultipleBuildFailures) exception;
+            List<Throwable> transformedCauses = new ArrayList<Throwable>(multipleBuildFailures.getCauses().size());
+            for (Throwable cause : multipleBuildFailures.getCauses()) {
                 transformedCauses.add(transform(cause));
             }
-            multiCauseException.initCauses(transformedCauses);
-
-            return new LocationAwareException(exception, exception, null, null);
+            multipleBuildFailures.replaceCauses(transformedCauses);
+            return exception;
         }
 
         return delegate.transform(exception);

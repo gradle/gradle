@@ -18,8 +18,14 @@ package org.gradle.execution;
 
 import org.gradle.api.internal.AbstractMultiCauseException;
 
-public class CompositeTaskExecutionException extends AbstractMultiCauseException {
-    public CompositeTaskExecutionException(Iterable<? extends Throwable> causes) {
+import java.util.List;
+
+public class MultipleBuildFailures extends AbstractMultiCauseException {
+    public MultipleBuildFailures(Iterable<? extends Throwable> causes) {
         super("Multiple build failures", causes);
+    }
+
+    public void replaceCauses(List<? extends Throwable> causes) {
+        super.initCauses(causes);
     }
 }
