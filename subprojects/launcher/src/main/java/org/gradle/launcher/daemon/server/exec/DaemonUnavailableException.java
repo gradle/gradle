@@ -16,16 +16,12 @@
 
 package org.gradle.launcher.daemon.server.exec;
 
-public class DaemonBusyException extends RuntimeException {
-    private final String operationDisplayName;
-
-    public DaemonBusyException(String operationDisplayName) {
-        super("This daemon is currently executing: " + operationDisplayName);
-        this.operationDisplayName = operationDisplayName;
-    }
-
-    public String getOperationDisplayName() {
-        return operationDisplayName;
+/**
+ * Thrown when the daemon is unavailable to run any commands.
+ */
+public class DaemonUnavailableException extends RuntimeException {
+    public DaemonUnavailableException(String message) {
+        super(message);
     }
 }
 

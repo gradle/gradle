@@ -21,5 +21,14 @@ import java.io.Serializable;
 /**
  * Returned when the daemon is busy running a different command.
  */
-public class DaemonBusy implements Serializable {
+public class DaemonUnavailable implements Serializable {
+    private final String reason;
+
+    public DaemonUnavailable(String reason) {
+        this.reason = reason;
+    }
+
+    public String getReason() {
+        return reason;
+    }
 }

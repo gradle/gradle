@@ -42,7 +42,7 @@ import java.io.InputStream;
  * for as long as the connection is open.
  * <p>
  * The client is expected to send exactly one {@link Build} message as the first message it sends to the daemon. The daemon 
- * may either return {@link DaemonBusy} or {@link BuildStarted}. If the former is received, the client should not send any more
+ * may either return {@link org.gradle.launcher.daemon.protocol.DaemonUnavailable} or {@link BuildStarted}. If the former is received, the client should not send any more
  * messages to this daemon. If the latter is received, the client can assume the daemon is performing the build. The client may then
  * send zero to many {@link ForwardInput} messages. If the client's stdin stream is closed before the connection to the
  * daemon is terminated, the client must send a {@link CloseInput} command to instruct the daemon that no more input is to be
@@ -142,8 +142,8 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
         } else if (firstResult instanceof Failure) {
             // Could potentially distinguish between CommandFailure and DaemonFailure here.
             throw UncheckedException.throwAsUncheckedException(((Failure) firstResult).getValue());
-        } else if (firstResult instanceof DaemonBusy) {
-            throw new DaemonInitialConnectException("The daemon we connected to was busy.");
+        } else if (firstResult instanceof DaemonUnavailable) {
+            throw new DaemonInitialConnectException("The daemon we connected to was unavailable: " + ((DaemonUnavailable) firstResult).getReason());
         } else if (firstResult == null) {
             throw new DaemonInitialConnectException("The first result from the daemon was empty. Most likely the process died immediately after connection.");
         } else {

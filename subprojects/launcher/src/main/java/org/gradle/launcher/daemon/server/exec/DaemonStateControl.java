@@ -36,7 +36,7 @@ public interface DaemonStateControl {
     /**
      * Runs the given command. At the completion of the command, if {@link #stopAsSoonAsIdle()} was previously called, this method will block while the daemon stops.
      *
-     * @throws DaemonBusyException If this daemon is currently executing another command.
+     * @throws DaemonUnavailableException If this daemon is currently executing another command.
      */
-    void runCommand(Runnable command, String commandDisplayName) throws DaemonBusyException;
+    void runCommand(Runnable command, String commandDisplayName) throws DaemonUnavailableException;
 }

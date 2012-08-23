@@ -20,10 +20,10 @@ import org.gradle.api.logging.Logging;
 import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
 import org.gradle.launcher.daemon.protocol.Build;
 import org.gradle.launcher.daemon.protocol.BuildStarted;
-import org.gradle.launcher.daemon.protocol.DaemonBusy;
+import org.gradle.launcher.daemon.protocol.DaemonUnavailable;
 
 /**
- * Updates the daemon idle/busy status, sending a DaemonBusy result back to the client if the daemon is busy.
+ * Updates the daemon idle/busy status, sending a DaemonUnavailable result back to the client if the daemon is busy.
  */
 public class StartBuildOrRespondWithBusy extends BuildCommandOnly {
     
@@ -45,9 +45,9 @@ public class StartBuildOrRespondWithBusy extends BuildCommandOnly {
                     execution.proceed();
                 }
             }, execution.toString());
-        } catch (DaemonBusyException e) {
-            LOGGER.info("Daemon will not handle the request: {} because is busy executing: {}. Dispatching 'Busy' response...", build, e.getOperationDisplayName());
-            execution.getConnection().dispatch(new DaemonBusy());
+        } catch (DaemonUnavailableException e) {
+            LOGGER.info("Daemon will not handle the request: {} because is unavailable: {}", build, e.getMessage());
+            execution.getConnection().dispatch(new DaemonUnavailable(e.getMessage()));
         }
     }
 }

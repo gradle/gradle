@@ -114,7 +114,7 @@ class DaemonClientTest extends ConcurrentSpecification {
 
         then:
         2 * connector.connect(compatibilitySpec) >> daemonConnection
-        connection.receive() >>> [Mock(DaemonBusy), Mock(BuildStarted), new Success('')]
+        connection.receive() >>> [Mock(DaemonUnavailable), Mock(BuildStarted), new Success('')]
     }
 
     def "tries to find a different daemon if the first result is null"() {
@@ -124,13 +124,13 @@ class DaemonClientTest extends ConcurrentSpecification {
         then:
         3 * connector.connect(compatibilitySpec) >> daemonConnection
         //first busy, then null, then build started...
-        connection.receive() >>> [Mock(DaemonBusy), null, Mock(BuildStarted), new Success('')]
+        connection.receive() >>> [Mock(DaemonUnavailable), null, Mock(BuildStarted), new Success('')]
     }
 
     def "does not loop forever finding usable daemons"() {
         given:
         connector.connect(compatibilitySpec) >> daemonConnection
-        connection.receive() >> Mock(DaemonBusy)
+        connection.receive() >> Mock(DaemonUnavailable)
         
         when:
         client.execute(Mock(GradleLauncherAction), Mock(BuildActionParameters))

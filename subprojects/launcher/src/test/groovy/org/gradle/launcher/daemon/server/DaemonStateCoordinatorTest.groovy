@@ -15,7 +15,7 @@
  */
 package org.gradle.launcher.daemon.server
 
-import org.gradle.launcher.daemon.server.exec.DaemonBusyException
+import org.gradle.launcher.daemon.server.exec.DaemonUnavailableException
 import org.gradle.util.MockExecutor
 import spock.lang.Specification
 
@@ -277,7 +277,7 @@ class DaemonStateCoordinatorTest extends Specification {
         coordinator.runCommand(command, "command")
 
         then:
-        DaemonBusyException e = thrown()
+        DaemonUnavailableException e = thrown()
         e.message == 'This daemon is currently executing: command'
     }
 

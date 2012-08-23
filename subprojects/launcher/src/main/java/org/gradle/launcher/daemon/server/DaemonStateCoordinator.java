@@ -19,7 +19,7 @@ package org.gradle.launcher.daemon.server;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Stoppable;
 import org.gradle.internal.UncheckedException;
-import org.gradle.launcher.daemon.server.exec.DaemonBusyException;
+import org.gradle.launcher.daemon.server.exec.DaemonUnavailableException;
 import org.gradle.launcher.daemon.server.exec.DaemonStateControl;
 import org.slf4j.Logger;
 
@@ -234,7 +234,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
         }
     }
 
-    public void runCommand(Runnable command, String commandDisplayName) throws DaemonBusyException {
+    public void runCommand(Runnable command, String commandDisplayName) throws DaemonUnavailableException {
         onStartCommand(commandDisplayName);
         try {
             command.run();
@@ -257,7 +257,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
                     throw new IllegalStateException("This daemon has stopped.");
             }
             if (currentCommandExecution != null) {
-                throw new DaemonBusyException(currentCommandExecution);
+                throw new DaemonUnavailableException(String.format("This daemon is currently executing: %s", currentCommandExecution));
             } else {
                 LOGGER.debug("onStartCommand({}) called after {} minutes of idle", commandDisplayName, getIdleMinutes());
                 currentCommandExecution = commandDisplayName;
