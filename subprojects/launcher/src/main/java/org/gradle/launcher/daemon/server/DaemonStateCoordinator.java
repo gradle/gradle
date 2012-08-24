@@ -52,15 +52,11 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
     private final Executor executor;
     private final Runnable onStartCommand;
     private final Runnable onFinishCommand;
-    private final Runnable onStop;
-    private final Runnable onStopRequested;
 
-    public DaemonStateCoordinator(Executor executor, Runnable onStartCommand, Runnable onFinishCommand, Runnable onStop, Runnable onStopRequested) {
+    public DaemonStateCoordinator(Executor executor, Runnable onStartCommand, Runnable onFinishCommand) {
         this.executor = executor;
         this.onStartCommand = onStartCommand;
         this.onFinishCommand = onFinishCommand;
-        this.onStop = onStop;
-        this.onStopRequested = onStopRequested;
         updateActivityTimestamp();
     }
 
@@ -154,11 +150,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
         switch (state) {
             case Running:
             case Broken:
-                try {
-                    onStopRequested.run();
-                } finally {
-                    setState(State.StopRequested);
-                }
+                setState(State.StopRequested);
                 break;
             case StopRequested:
             case Stopped:
@@ -174,11 +166,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
             case Broken:
                 throw new IllegalStateException("This daemon has not been stopped.");
             case StopRequested:
-                try {
-                    onStop.run();
-                } finally {
-                    setState(State.Stopped);
-                }
+                setState(State.Stopped);
                 break;
             case Stopped:
                 break;

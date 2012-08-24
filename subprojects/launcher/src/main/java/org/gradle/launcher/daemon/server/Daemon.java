@@ -107,17 +107,7 @@ public class Daemon implements Stoppable {
                 }
             };
             
-            Runnable onStop = new Runnable() {
-                public void run() {
-                }
-            };
-
-            Runnable onStopRequested = new Runnable() {
-                public void run() {
-                }
-            };
-
-            stateCoordinator = new DaemonStateCoordinator(workers, onStartCommand, onFinishCommand, onStop, onStopRequested);
+            stateCoordinator = new DaemonStateCoordinator(workers, onStartCommand, onFinishCommand);
 
             // Start accepting connections and advertise that we are now available
             connectorAddress = connector.start(new DefaultIncomingConnectionHandler(commandExecuter, workers, daemonContext, stateCoordinator));

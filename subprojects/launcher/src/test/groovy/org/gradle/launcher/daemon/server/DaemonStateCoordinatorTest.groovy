@@ -27,12 +27,10 @@ import java.util.concurrent.TimeUnit
 class DaemonStateCoordinatorTest extends Specification {
     final Runnable onStartCommand = Mock(Runnable)
     final Runnable onFinishCommand = Mock(Runnable)
-    final Runnable onStopRequested = Mock(Runnable)
-    final Runnable onStop = Mock(Runnable)
     final MockExecutor executor = new MockExecutor()
-    def coordinator = new DaemonStateCoordinator(executor, onStartCommand, onFinishCommand, onStop, onStopRequested)
+    def coordinator = new DaemonStateCoordinator(executor, onStartCommand, onFinishCommand)
 
-    def "runs actions on stop"() {
+    def "can stop multiple times"() {
         expect:
         !coordinator.stopped
 
@@ -41,8 +39,6 @@ class DaemonStateCoordinatorTest extends Specification {
 
         then: "stops"
         coordinator.stopped
-        1 * onStop.run()
-        1 * onStopRequested.run()
 
         when: "requested again"
         coordinator.stop()
@@ -68,8 +64,7 @@ class DaemonStateCoordinatorTest extends Specification {
         coordinator.stopOnIdleTimeout(100, TimeUnit.MILLISECONDS)
 
         then:
-        1 * onStopRequested.run()
-        1 * onStop.run()
+        coordinator.stopped
         0 * _._
     }
 
@@ -83,7 +78,6 @@ class DaemonStateCoordinatorTest extends Specification {
         then:
         coordinator.stoppingOrStopped
         !coordinator.stopped
-        1 * onStopRequested.run()
         0 * _._
 
         when:
@@ -92,7 +86,6 @@ class DaemonStateCoordinatorTest extends Specification {
         then:
         coordinator.stoppingOrStopped
         coordinator.stopped
-        1 * onStop.run()
         0 * _._
 
         when:
@@ -101,50 +94,6 @@ class DaemonStateCoordinatorTest extends Specification {
         then:
         coordinator.stoppingOrStopped
         coordinator.stopped
-        0 * _._
-    }
-
-    def "can stop when stop requested action has failed"() {
-        def failure = new RuntimeException()
-
-        when:
-        coordinator.stop()
-
-        then:
-        RuntimeException e = thrown()
-        failure == e
-
-        and:
-        coordinator.stopped
-
-        and:
-        1 * onStopRequested.run() >> { throw failure }
-        1 * onStop.run()
-        0 * _._
-
-        when:
-        coordinator.stop()
-
-        then:
-        0 * _._
-    }
-
-    def "can stop when stop action has failed"() {
-        def failure = new RuntimeException()
-
-        when:
-        coordinator.stop()
-
-        then:
-        RuntimeException e = thrown()
-        failure == e
-
-        and:
-        coordinator.stopped
-
-        and:
-        1 * onStopRequested.run()
-        1 * onStop.run() >> { throw failure }
         0 * _._
     }
 
@@ -279,8 +228,6 @@ class DaemonStateCoordinatorTest extends Specification {
         coordinator.stop()
 
         then:
-        1 * onStopRequested.run()
-        1 * onStop.run()
         0 * _._
     }
 
@@ -351,8 +298,6 @@ class DaemonStateCoordinatorTest extends Specification {
         coordinator.stop()
 
         then:
-        1 * onStopRequested.run()
-        1 * onStop.run()
         0 * _._
     }
 
@@ -366,10 +311,6 @@ class DaemonStateCoordinatorTest extends Specification {
         then:
         coordinator.stopped
         coordinator.stoppingOrStopped
-
-        and:
-        1 * onStopRequested.run()
-        1 * onStop.run()
     }
 
     def "stopAsSoonAsIdle stops once current command has completed"() {
@@ -391,10 +332,6 @@ class DaemonStateCoordinatorTest extends Specification {
 
         and:
         1 * onStartCommand.run()
-        1 * onStopRequested.run()
-
-        and:
-        1 * onStop.run()
         0 * _._
     }
 
@@ -423,10 +360,6 @@ class DaemonStateCoordinatorTest extends Specification {
 
         and:
         1 * onStartCommand.run()
-        1 * onStopRequested.run()
-
-        and:
-        1 * onStop.run()
         0 * _._
     }
 }
