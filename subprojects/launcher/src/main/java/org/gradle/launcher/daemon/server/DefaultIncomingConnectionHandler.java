@@ -18,6 +18,8 @@ package org.gradle.launcher.daemon.server;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.Stoppable;
+import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
@@ -27,18 +29,18 @@ import org.gradle.launcher.daemon.server.exec.DaemonCommandExecuter;
 import org.gradle.launcher.daemon.server.exec.DaemonStateControl;
 import org.gradle.messaging.remote.internal.Connection;
 
-public class DefaultIncomingConnectionHandler implements IncomingConnectionHandler {
+public class DefaultIncomingConnectionHandler implements IncomingConnectionHandler, Stoppable {
     private static final Logger LOGGER = Logging.getLogger(DefaultIncomingConnectionHandler.class);
     private final StoppableExecutor workers;
     private final DaemonContext daemonContext;
     private final DaemonCommandExecuter commandExecuter;
-    private final DaemonStateControl stateControl;
+    private final DaemonStateControl daemonStateControl;
 
-    public DefaultIncomingConnectionHandler(DaemonCommandExecuter commandExecuter, StoppableExecutor workers, DaemonContext daemonContext, DaemonStateControl stateControl) {
+    public DefaultIncomingConnectionHandler(DaemonCommandExecuter commandExecuter, DaemonContext daemonContext, DaemonStateControl daemonStateControl, ExecutorFactory executorFactory) {
         this.commandExecuter = commandExecuter;
-        this.workers = workers;
         this.daemonContext = daemonContext;
-        this.stateControl = stateControl;
+        this.daemonStateControl = daemonStateControl;
+        workers = executorFactory.create("Daemon");
     }
 
     public void handle(final Connection<Object> connection) {
@@ -50,7 +52,7 @@ public class DefaultIncomingConnectionHandler implements IncomingConnectionHandl
             public void run() {
                 try {
                     command = (Command) connection.receive();
-                    LOGGER.info("Daemon (pid: {}) received command: {}.", daemonContext.getPid(), command);
+                    LOGGER.info("Received command: {}.", command);
                 } catch (Throwable e) {
                     String message = String.format("Unable to receive command from connection: '%s'", connection);
                     LOGGER.warn(message + ". Dispatching the failure to the daemon client...", e);
@@ -61,7 +63,7 @@ public class DefaultIncomingConnectionHandler implements IncomingConnectionHandl
 
                 try {
                     LOGGER.debug(DaemonMessages.STARTED_EXECUTING_COMMAND + command + " with connection: " + connection + ".");
-                    commandExecuter.executeCommand(connection, command, daemonContext, stateControl, new Runnable() {
+                    commandExecuter.executeCommand(connection, command, daemonContext, daemonStateControl, new Runnable() {
                         public void run() {
                             // Don't care yet.
                         }
@@ -75,5 +77,8 @@ public class DefaultIncomingConnectionHandler implements IncomingConnectionHandl
                 }
             }
         });
+    }
+
+    public void stop() {
     }
 }

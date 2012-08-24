@@ -20,7 +20,6 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.CompositeStoppable;
 import org.gradle.internal.Stoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
@@ -46,16 +45,16 @@ public class Daemon implements Stoppable {
     private final DaemonRegistry daemonRegistry;
     private final DaemonContext daemonContext;
     private final DaemonCommandExecuter commandExecuter;
+    private final ExecutorFactory executorFactory;
     private final String password;
 
     private DaemonStateCoordinator stateCoordinator;
-
-    private final StoppableExecutor workers;
 
     private final Lock lifecyleLock = new ReentrantLock();
 
     private Address connectorAddress;
     private DomainRegistryUpdater registryUpdater;
+    private DefaultIncomingConnectionHandler connectionHandler;
 
     /**
      * Creates a new daemon instance.
@@ -69,7 +68,7 @@ public class Daemon implements Stoppable {
         this.daemonContext = daemonContext;
         this.password = password;
         this.commandExecuter = commandExecuter;
-        workers = executorFactory.create("Daemon");
+        this.executorFactory = executorFactory;
     }
 
     public String getUid() {
@@ -106,11 +105,16 @@ public class Daemon implements Stoppable {
                     registryUpdater.onCompleteActivity();
                 }
             };
-            
-            stateCoordinator = new DaemonStateCoordinator(onStartCommand, onFinishCommand);
 
-            // Start accepting connections and advertise that we are now available
-            connectorAddress = connector.start(new DefaultIncomingConnectionHandler(commandExecuter, workers, daemonContext, stateCoordinator));
+            // Start the pipeline in reverse order:
+            // 1. mark daemon as running
+            // 2. start handling incoming commands
+            // 3. start accepting incoming connections
+            // 4. advertise presence in registry
+
+            stateCoordinator = new DaemonStateCoordinator(onStartCommand, onFinishCommand);
+            connectionHandler = new DefaultIncomingConnectionHandler(commandExecuter, daemonContext, stateCoordinator, executorFactory);
+            connectorAddress = connector.start(connectionHandler);
             LOGGER.debug("Daemon starting at: " + new Date() + ", with address: " + connectorAddress);
             registryUpdater.onStart(connectorAddress);
         } finally {
@@ -140,7 +144,14 @@ public class Daemon implements Stoppable {
             }
 
             LOGGER.info(DaemonMessages.REMOVING_PRESENCE_DUE_TO_STOP);
-            CompositeStoppable.stoppable(stateCoordinator, registryUpdater, connector).stop();
+
+            // Stop the pipeline:
+            // 1. mark daemon as stopped, so that any incoming requests will be rejected with 'daemon unavailable'
+            // 2. remove presence from registry
+            // 3. stop accepting new connections
+            // 4. wait for commands in progress to finish (except for abandoned long running commands, like running a build)
+
+            CompositeStoppable.stoppable(stateCoordinator, registryUpdater, connector, connectionHandler).stop();
         } finally {
             lifecyleLock.unlock();
         }
