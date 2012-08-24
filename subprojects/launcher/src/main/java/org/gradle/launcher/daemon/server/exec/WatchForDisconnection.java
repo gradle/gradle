@@ -37,7 +37,7 @@ public class WatchForDisconnection implements DaemonCommandAction {
                     DaemonMain#doAction will throw a DaemonStoppedException. Note that at this point we will also 
                     immediately remove the daemon from the registry.
                 */
-                execution.getDaemonStateControl().requestStop();
+                execution.getDaemonStateControl().requestForcefulStop();
             }
         });
 

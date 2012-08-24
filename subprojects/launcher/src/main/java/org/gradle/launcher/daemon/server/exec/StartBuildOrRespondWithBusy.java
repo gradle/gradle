@@ -38,13 +38,21 @@ public class StartBuildOrRespondWithBusy extends BuildCommandOnly {
         DaemonStateControl stateCoordinator = execution.getDaemonStateControl();
 
         try {
-            stateCoordinator.runCommand(new Runnable() {
+            Runnable command = new Runnable() {
                 public void run() {
                     LOGGER.info("Daemon is about to start building: " + build + ". Dispatching build started information...");
                     execution.getConnection().dispatch(new BuildStarted(diagnostics));
                     execution.proceed();
                 }
-            }, execution.toString());
+            };
+
+            Runnable disconnect = new Runnable() {
+                public void run() {
+                    // Don't care yet
+                }
+            };
+
+            stateCoordinator.runCommand(command, execution.toString(), disconnect);
         } catch (DaemonUnavailableException e) {
             LOGGER.info("Daemon will not handle the request: {} because is unavailable: {}", build, e.getMessage());
             execution.getConnection().dispatch(new DaemonUnavailable(e.getMessage()));

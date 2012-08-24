@@ -16,19 +16,17 @@
 package org.gradle.launcher.daemon.server
 
 import org.gradle.launcher.daemon.server.exec.DaemonUnavailableException
-import org.gradle.util.MockExecutor
 import spock.lang.Specification
 
 import java.util.concurrent.TimeUnit
-
 /**
  * by Szczepan Faber, created at: 2/6/12
  */
 class DaemonStateCoordinatorTest extends Specification {
     final Runnable onStartCommand = Mock(Runnable)
     final Runnable onFinishCommand = Mock(Runnable)
-    final MockExecutor executor = new MockExecutor()
-    def coordinator = new DaemonStateCoordinator(executor, onStartCommand, onFinishCommand)
+    final Runnable onDisconnect = Mock(Runnable)
+    final coordinator = new DaemonStateCoordinator(onStartCommand, onFinishCommand)
 
     def "can stop multiple times"() {
         expect:
@@ -59,7 +57,7 @@ class DaemonStateCoordinatorTest extends Specification {
         DaemonStoppedException e = thrown()
     }
 
-    def "await idle timeout waits for requested time and then stops"() {
+    def "await idle timeout waits for specified time and then stops"() {
         when:
         coordinator.stopOnIdleTimeout(100, TimeUnit.MILLISECONDS)
 
@@ -68,40 +66,11 @@ class DaemonStateCoordinatorTest extends Specification {
         0 * _._
     }
 
-    def "requesting stop stops asynchronously"() {
-        expect:
-        !coordinator.stopped
-
-        when:
-        coordinator.requestStop()
-
-        then:
-        coordinator.stoppingOrStopped
-        !coordinator.stopped
-        0 * _._
-
-        when:
-        executor.runNow()
-
-        then:
-        coordinator.stoppingOrStopped
-        coordinator.stopped
-        0 * _._
-
-        when:
-        coordinator.requestStop()
-
-        then:
-        coordinator.stoppingOrStopped
-        coordinator.stopped
-        0 * _._
-    }
-
     def "runs actions when command is run"() {
         Runnable command = Mock()
 
         when:
-        coordinator.runCommand(command, "command")
+        coordinator.runCommand(command, "command", onDisconnect)
 
         then:
         1 * onStartCommand.run()
@@ -115,7 +84,7 @@ class DaemonStateCoordinatorTest extends Specification {
         def failure = new RuntimeException()
 
         when:
-        coordinator.runCommand(command, "command")
+        coordinator.runCommand(command, "command", onDisconnect)
 
         then:
         RuntimeException e = thrown()
@@ -130,10 +99,10 @@ class DaemonStateCoordinatorTest extends Specification {
         Runnable command = Mock()
 
         given:
-        command.run() >> { coordinator.runCommand(Mock(Runnable), "other") }
+        command.run() >> { coordinator.runCommand(Mock(Runnable), "other", Mock(Runnable)) }
 
         when:
-        coordinator.runCommand(command, "command")
+        coordinator.runCommand(command, "command", onDisconnect)
 
         then:
         DaemonUnavailableException e = thrown()
@@ -147,33 +116,47 @@ class DaemonStateCoordinatorTest extends Specification {
         coordinator.requestStop()
 
         when:
-        coordinator.runCommand(command, "command 2")
-
-        then:
-        DaemonUnavailableException e = thrown()
-        e.message == 'This daemon is currently stopping.'
-    }
-
-    def "cannot run command after stopped"() {
-        Runnable command = Mock()
-
-        given:
-        coordinator.stopAsSoonAsIdle()
-
-        when:
-        coordinator.runCommand(command, "command")
+        coordinator.runCommand(command, "command", onDisconnect)
 
         then:
         DaemonUnavailableException e = thrown()
         e.message == 'This daemon has stopped.'
     }
 
-    def "cannot run command when start command action fails"() {
+    def "cannot run command after forceful stop requested"() {
+        Runnable command = Mock()
+
+        given:
+        coordinator.requestForcefulStop()
+
+        when:
+        coordinator.runCommand(command, "command", onDisconnect)
+
+        then:
+        DaemonUnavailableException e = thrown()
+        e.message == 'This daemon has stopped.'
+    }
+
+    def "cannot run command after stopped"() {
+        Runnable command = Mock()
+
+        given:
+        coordinator.requestStop()
+
+        when:
+        coordinator.runCommand(command, "command", onDisconnect)
+
+        then:
+        DaemonUnavailableException e = thrown()
+        e.message == 'This daemon has stopped.'
+    }
+
+    def "cannot run command after start command action fails"() {
         Runnable command = Mock()
         RuntimeException failure = new RuntimeException()
 
         when:
-        coordinator.runCommand(command, "command")
+        coordinator.runCommand(command, "command", onDisconnect)
 
         then:
         RuntimeException e = thrown()
@@ -183,19 +166,44 @@ class DaemonStateCoordinatorTest extends Specification {
         0 * _._
 
         when:
-        coordinator.runCommand(command, "command")
+        coordinator.runCommand(command, "command", onDisconnect)
 
         then:
         DaemonUnavailableException unavailableException = thrown()
         unavailableException.message == 'This daemon is in a broken state and will stop.'
     }
 
-    def "await idle time returns immediately when start command action has failed"() {
+    def "cannot run command after finish command action has failed"() {
         Runnable command = Mock()
         RuntimeException failure = new RuntimeException()
 
         when:
-        coordinator.runCommand(command, "command")
+        coordinator.runCommand(command, "command", onDisconnect)
+
+        then:
+        RuntimeException e = thrown()
+        e == failure
+
+        and:
+        1 * onStartCommand.run()
+        1 * command.run()
+        1 * onFinishCommand.run() >> { throw failure }
+        0 * _._
+
+        when:
+        coordinator.runCommand(command, "command", onDisconnect)
+
+        then:
+        DaemonUnavailableException unavailableException = thrown()
+        unavailableException.message == 'This daemon is in a broken state and will stop.'
+    }
+
+    def "await idle time returns immediately after start command action has failed"() {
+        Runnable command = Mock()
+        RuntimeException failure = new RuntimeException()
+
+        when:
+        coordinator.runCommand(command, "command", onDisconnect)
 
         then:
         RuntimeException e = thrown()
@@ -216,7 +224,7 @@ class DaemonStateCoordinatorTest extends Specification {
         RuntimeException failure = new RuntimeException()
 
         when:
-        coordinator.runCommand(command, "command")
+        coordinator.runCommand(command, "command", onDisconnect)
 
         then:
         RuntimeException e = thrown()
@@ -231,37 +239,34 @@ class DaemonStateCoordinatorTest extends Specification {
         0 * _._
     }
 
-    def "cannot run command when finish command action has failed"() {
+    def "can stop when finish command action has failed"() {
         Runnable command = Mock()
         RuntimeException failure = new RuntimeException()
 
         when:
-        coordinator.runCommand(command, "command")
+        coordinator.runCommand(command, "command", onDisconnect)
 
         then:
         RuntimeException e = thrown()
         e == failure
-
-        and:
         1 * onStartCommand.run()
         1 * command.run()
         1 * onFinishCommand.run() >> { throw failure }
         0 * _._
 
         when:
-        coordinator.runCommand(command, "command")
+        coordinator.stop()
 
         then:
-        DaemonUnavailableException unavailableException = thrown()
-        unavailableException.message == 'This daemon is in a broken state and will stop.'
+        0 * _._
     }
 
-    def "await idle time returns immediately when finish command action has failed"() {
+    def "await idle time returns immediately after finish command action has failed"() {
         Runnable command = Mock()
         RuntimeException failure = new RuntimeException()
 
         when:
-        coordinator.runCommand(command, "command")
+        coordinator.runCommand(command, "command", onDisconnect)
 
         then:
         RuntimeException e = thrown()
@@ -279,50 +284,28 @@ class DaemonStateCoordinatorTest extends Specification {
         illegalStateException.message == 'This daemon is in a broken state.'
     }
 
-    def "can stop when finish command action has failed"() {
-        Runnable command = Mock()
-        RuntimeException failure = new RuntimeException()
-
-        when:
-        coordinator.runCommand(command, "command")
-
-        then:
-        RuntimeException e = thrown()
-        e == failure
-        1 * onStartCommand.run()
-        1 * command.run()
-        1 * onFinishCommand.run() >> { throw failure }
-        0 * _._
-
-        when:
-        coordinator.stop()
-
-        then:
-        0 * _._
-    }
-
-    def "stopAsSoonAsIdle stops immediately when idle"() {
+    def "requestStop stops immediately when idle"() {
         expect:
         coordinator.idle
 
         when:
-        coordinator.stopAsSoonAsIdle()
+        coordinator.requestStop()
 
         then:
         coordinator.stopped
         coordinator.stoppingOrStopped
     }
 
-    def "stopAsSoonAsIdle stops once current command has completed"() {
+    def "requestStop stops once current command has completed"() {
         Runnable command = Mock()
 
         when:
-        coordinator.runCommand(command, "some command")
+        coordinator.runCommand(command, "some command", onDisconnect)
 
         then:
         1 * command.run() >> {
             assert coordinator.busy
-            coordinator.stopAsSoonAsIdle()
+            coordinator.requestStop()
             assert !coordinator.stopped
             assert coordinator.stoppingOrStopped
         }
@@ -335,17 +318,17 @@ class DaemonStateCoordinatorTest extends Specification {
         0 * _._
     }
 
-    def "stopAsSoonAsIdle stops when command fails"() {
+    def "requestStop stops when command fails"() {
         Runnable command = Mock()
         RuntimeException failure = new RuntimeException()
 
         when:
-        coordinator.runCommand(command, "some command")
+        coordinator.runCommand(command, "some command", onDisconnect)
 
         then:
         1 * command.run() >> {
             assert coordinator.busy
-            coordinator.stopAsSoonAsIdle()
+            coordinator.requestStop()
             assert !coordinator.stopped
             assert coordinator.stoppingOrStopped
             throw failure
@@ -362,4 +345,102 @@ class DaemonStateCoordinatorTest extends Specification {
         1 * onStartCommand.run()
         0 * _._
     }
+
+    def "await idle time returns after command has finished and stop requested"() {
+        Runnable command = Mock()
+
+        when:
+        coordinator.runCommand(command, "command", onDisconnect)
+        coordinator.stopOnIdleTimeout(100, TimeUnit.HOURS)
+
+        then:
+        DaemonStoppedException e = thrown()
+
+        and:
+        1 * onStartCommand.run()
+        1 * command.run() >> {
+            coordinator.requestStop()
+        }
+        0 * _._
+    }
+
+    def "requestForcefulStop stops immediately when idle"() {
+        expect:
+        !coordinator.stopped
+
+        when:
+        coordinator.requestForcefulStop()
+
+        then:
+        coordinator.stoppingOrStopped
+        coordinator.stopped
+        0 * _._
+    }
+
+    def "requestForcefulStop notifies disconnect handler and stops immediately when command running"() {
+        Runnable command = Mock()
+
+        expect:
+        !coordinator.stopped
+
+        when:
+        coordinator.runCommand(command, "command", onDisconnect)
+
+        then:
+        coordinator.stoppingOrStopped
+        coordinator.stopped
+        1 * onStartCommand.run()
+        1 * command.run() >> {
+            assert !coordinator.stopped
+            coordinator.requestForcefulStop()
+            assert coordinator.stopped
+        }
+        1 * onDisconnect.run()
+        0 * _._
+    }
+
+    def "requestForcefulStop stops after disconnect action fails"() {
+        Runnable command = Mock()
+        RuntimeException failure = new RuntimeException()
+
+        when:
+        coordinator.runCommand(command, "command", onDisconnect)
+
+        then:
+        RuntimeException e = thrown()
+        e == failure
+
+        and:
+        coordinator.stopped
+
+        and:
+        1 * onStartCommand.run()
+        1 * command.run() >> {
+            coordinator.requestForcefulStop()
+        }
+        1 * onDisconnect.run() >> {
+            throw failure
+        }
+        0 * _._
+    }
+
+    def "await idle time returns immediately when forceful stop requested and command running"() {
+        Runnable command = Mock()
+
+        when:
+        coordinator.runCommand(command, "command", onDisconnect)
+        coordinator.stopOnIdleTimeout(100, TimeUnit.HOURS)
+
+        then:
+        DaemonStoppedException e = thrown()
+
+        and:
+        1 * onStartCommand.run()
+        1 * command.run() >> {
+            coordinator.requestForcefulStop()
+        }
+        1 * onDisconnect.run()
+        0 * _._
+    }
+
 }

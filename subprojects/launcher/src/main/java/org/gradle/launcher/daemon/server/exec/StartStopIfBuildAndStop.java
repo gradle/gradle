@@ -32,7 +32,7 @@ public class StartStopIfBuildAndStop implements DaemonCommandAction {
             
             // This will cause the daemon to be removed from the registry, but no close the connection
             // to the client until we've sent back the result.
-            execution.getDaemonStateControl().stopAsSoonAsIdle();
+            execution.getDaemonStateControl().requestStop();
         }
     }
 }

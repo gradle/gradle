@@ -18,25 +18,29 @@ package org.gradle.launcher.daemon.server.exec;
 
 public interface DaemonStateControl {
     /**
-     * Perform a stop, but wait until the daemon is idle to cut any open connections.
+     * <p>Requests that the daemon stop, but wait until the daemon is idle. The stop will happen asynchronously, and this method does not block.
      *
-     * The daemon will be removed from the registry upon calling this regardless of whether it is busy or not.
-     * If it is idle, this method will block until the daemon fully stops.
-     *
-     * If the daemon is busy, this method will return after removing the daemon from the registry but before the
-     * daemon is fully stopped. In this case, the daemon will stop as soon as {@link #runCommand(Runnable, String)} has completed.
-     */
-    void stopAsSoonAsIdle();
-
-    /**
-     * Forcefully stops the daemon. Does not wait until the daemon is idle. Does not block until the stop has completed.
+     * <p>The daemon will stop accepting new work, so that subsequent calls to {@link #runCommand} will failing with {@link DaemonUnavailableException}.
      */
     void requestStop();
 
     /**
-     * Runs the given command. At the completion of the command, if {@link #stopAsSoonAsIdle()} was previously called, this method will block while the daemon stops.
+     * Requests a forceful stops of the daemon. Does not wait until the daemon is idle to begin stopping. The stop will happen asynchronously, and this method does not block.
      *
-     * @throws DaemonUnavailableException If this daemon is currently executing another command.
+     * <p>If any long running command is currently running, the operation's disconnect handler will be executed.</p>
+     *
+     * <p>The daemon will stop accepting new work, so that subsequent calls to {@link #runCommand} will failing with {@link DaemonUnavailableException}.
      */
-    void runCommand(Runnable command, String commandDisplayName) throws DaemonUnavailableException;
+    void requestForcefulStop();
+
+    /**
+     * Runs the given long running command. No more than 1 command may be running at any given time.
+     *
+     * @param command The command to run
+     * @param commandDisplayName The command's display name, used for logging and error messages.
+     * @param onDisconnect An action to run with a forceful stop is requested using {@link #requestForcefulStop()}, to notify the caller that the operation is being abandoned.
+     *
+     * @throws DaemonUnavailableException If this daemon is currently executing another command or a stop has been requested.
+     */
+    void runCommand(Runnable command, String commandDisplayName, Runnable onDisconnect) throws DaemonUnavailableException;
 }
