@@ -18,11 +18,13 @@ Instead of raw version we can print something like: 1.0->3.0. Mock up:
 
 <pre>
 testCompile - Classpath for compiling the test sources.
-+--- root:a:1.0 [default]
-|    \--- foo:bar:1.0->3.0 [default]
-\--- root:b:1.0 [default]
-     \--- foo:bar:3.0 [default] (*)
++--- root:a:1.0
+|    \--- foo:bar:1.0 - >3.0
+\--- root:b:1.0
+     \--- foo:bar:3.0(*)
 </pre>
+
+We should also remove the confusing configurations from the view.
 
 2. A brand new report that traverses the graph the opposite way.
 
@@ -61,8 +63,8 @@ While doing that consider adding support for selecting configuration for the reg
 * conflicts with dynamic versions
 * conflicts resolved in multiple phases, e.g:
 
-    root->foo:1.0->bar:3.0
-    root->foo:2.0->bar:2.5
+    root->foo:1.0 -> 3.0
+    root->foo:2.0 -> 2.5
     root->bar:1.5
 
 * include maven snapshots
