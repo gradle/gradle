@@ -23,8 +23,12 @@ import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedDependencyResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedModuleVersionResult;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
+import static com.google.common.collect.Sets.newHashSet;
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector;
 
 /**
@@ -33,19 +37,26 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.new
 public class ResolutionResultBuilder implements ResolvedConfigurationListener {
 
     private ResolvedConfigurationIdentifier root;
-    private Map<ModuleVersionIdentifier, Set<DefaultResolvedDependencyResult>> deps
-            = new LinkedHashMap<ModuleVersionIdentifier, Set<DefaultResolvedDependencyResult>>();
+    private Map<ModuleVersionIdentifier, Map<Object, DefaultResolvedDependencyResult>> deps
+            = new LinkedHashMap<ModuleVersionIdentifier, Map<Object, DefaultResolvedDependencyResult>>();
 
     public void start(ResolvedConfigurationIdentifier root) {
         this.root = root;
     }
 
     public void resolvedConfiguration(ResolvedConfigurationIdentifier id, Collection<DefaultResolvedDependencyResult> dependencies) {
-        //TODO SF add some unit test coverage
         if (!deps.containsKey(id.getId())) {
-            deps.put(id.getId(), new LinkedHashSet<DefaultResolvedDependencyResult>(dependencies));
-        } else {
-            deps.get(id.getId()).addAll(dependencies);
+            deps.put(id.getId(), new LinkedHashMap<Object, DefaultResolvedDependencyResult>());
+        }
+
+        //The configurations are merged into the dependencies that have the same selected+requested
+        Map<Object, DefaultResolvedDependencyResult> accumulatedDependencies = deps.get(id.getId());
+        for (DefaultResolvedDependencyResult d : dependencies) {
+            if (accumulatedDependencies.containsKey(d.getSelectionId())) {
+                accumulatedDependencies.get(d.getSelectionId()).appendConfigurations(d.getSelectedConfigurations());
+            } else {
+                accumulatedDependencies.put(d.getSelectionId(), d);
+            }
         }
     }
 
@@ -55,7 +66,7 @@ public class ResolutionResultBuilder implements ResolvedConfigurationListener {
 
     private DefaultResolvedModuleVersionResult buildGraph() {
         Map<DefaultResolvedDependencyResult, DefaultResolvedModuleVersionResult> visited = new HashMap<DefaultResolvedDependencyResult, DefaultResolvedModuleVersionResult>();
-        DefaultResolvedDependencyResult id = new DefaultResolvedDependencyResult(newSelector(root.getId()), root.getId());
+        DefaultResolvedDependencyResult id = new DefaultResolvedDependencyResult(newSelector(root.getId()), root.getId(), newHashSet(root.getConfiguration()));
         return buildNode(id, visited);
     }
 
@@ -66,16 +77,16 @@ public class ResolutionResultBuilder implements ResolvedConfigurationListener {
         DefaultResolvedModuleVersionResult node = id.getSelected();
         visited.put(id, node);
 
-        Set<DefaultResolvedDependencyResult> theDeps = this.deps.get(id.getSelected().getId());
+        Map<Object, DefaultResolvedDependencyResult> theDeps = this.deps.get(id.getSelected().getId());
         if (theDeps == null) {
             //does not have any dependencies, return.
             return node;
         }
-        for (DefaultResolvedDependencyResult d : theDeps) {
+        for (DefaultResolvedDependencyResult sel : theDeps.values()) {
             //recursively feed with the dependencies
-            buildNode(d, visited);
+            buildNode(sel, visited);
             //add dependency and the dependee
-            node.linkDependency(d);
+            node.linkDependency(sel);
         }
 
         return node;

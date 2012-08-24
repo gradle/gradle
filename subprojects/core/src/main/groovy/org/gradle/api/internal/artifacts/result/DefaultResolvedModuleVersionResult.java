@@ -18,6 +18,8 @@ package org.gradle.api.internal.artifacts.result;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
+import org.gradle.api.specs.Spec;
+import org.gradle.util.CollectionUtils;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -40,7 +42,11 @@ public class DefaultResolvedModuleVersionResult implements ResolvedModuleVersion
     }
 
     public Set<DefaultResolvedDependencyResult> getDependencies() {
-        return dependencies;
+        return CollectionUtils.filter(dependencies, new LinkedHashSet<DefaultResolvedDependencyResult>(), new Spec<DefaultResolvedDependencyResult>() {
+            public boolean isSatisfiedBy(DefaultResolvedDependencyResult element) {
+                return !element.getSelectedConfigurations().isEmpty();
+            }
+        });
     }
 
     public Set<DefaultResolvedModuleVersionResult> getDependees() {
