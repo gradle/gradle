@@ -18,6 +18,7 @@ package org.gradle.launcher.daemon.server;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.Stoppable;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.messaging.remote.Address;
@@ -25,7 +26,7 @@ import org.gradle.messaging.remote.Address;
 /**
 * @author: Szczepan Faber, created at: 9/12/11
 */
-class DomainRegistryUpdater {
+class DomainRegistryUpdater implements Stoppable {
 
     private static final Logger LOGGER = Logging.getLogger(DomainRegistryUpdater.class);
 
@@ -66,7 +67,7 @@ class DomainRegistryUpdater {
         daemonRegistry.markBusy(connectorAddress);
     }
 
-    public void onStop() {
+    public void stop() {
         LOGGER.debug("Removing our presence to clients, eg. removing this address from the registry: " + connectorAddress);
         try {
             daemonRegistry.remove(connectorAddress);

@@ -17,6 +17,7 @@ package org.gradle.launcher.daemon.server;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.CompositeStoppable;
 import org.gradle.internal.Stoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.StoppableExecutor;
@@ -108,15 +109,11 @@ public class Daemon implements Stoppable {
             
             Runnable onStop = new Runnable() {
                 public void run() {
-                    LOGGER.info("Daemon is stopping accepting new connections...");
-                    connector.stop(); // will block until any running commands are finished
                 }
             };
 
             Runnable onStopRequested = new Runnable() {
                 public void run() {
-                    LOGGER.info(DaemonMessages.REMOVING_PRESENCE_DUE_TO_STOP);
-                    registryUpdater.onStop();
                 }
             };
 
@@ -148,19 +145,35 @@ public class Daemon implements Stoppable {
         LOGGER.debug("stop() called on daemon");
         lifecyleLock.lock();
         try {
-            stateCoordinator.stop();
+            if (stateCoordinator == null) {
+                throw new IllegalStateException("cannot stop daemon as it has not been started.");
+            }
+
+            LOGGER.info(DaemonMessages.REMOVING_PRESENCE_DUE_TO_STOP);
+            CompositeStoppable.stoppable(stateCoordinator, registryUpdater, connector).stop();
         } finally {
             lifecyleLock.unlock();
         }
     }
 
     /**
-     * Waits for the daemon to be idle for the specified number of milliseconds, then stops the daemon.
+     * Waits for the daemon to be idle for the specified number of milliseconds, then requests that the daemon stop.
      * 
      * @throws DaemonStoppedException if the daemon is explicitly stopped instead of idling out.
      */
-    public void stopOnIdleTimeout(int idleTimeout, TimeUnit idleTimeoutUnits) throws DaemonStoppedException {
-        LOGGER.debug("stopOnIdleTimeout({} {}) called on daemon", idleTimeout, idleTimeoutUnits);
+    public void requestStopOnIdleTimeout(int idleTimeout, TimeUnit idleTimeoutUnits) throws DaemonStoppedException {
+        LOGGER.debug("requestStopOnIdleTimeout({} {}) called on daemon", idleTimeout, idleTimeoutUnits);
+        DaemonStateCoordinator stateCoordinator;
+        lifecyleLock.lock();
+        try {
+            if (this.stateCoordinator == null) {
+                throw new IllegalStateException("cannot stop daemon as it has not been started.");
+            }
+            stateCoordinator = this.stateCoordinator;
+        } finally {
+            lifecyleLock.unlock();
+        }
+
         stateCoordinator.stopOnIdleTimeout(idleTimeout, idleTimeoutUnits);
     }
 }

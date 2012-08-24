@@ -115,7 +115,7 @@ public class DaemonMain extends EntryPoint {
         daemonStarted(pid, daemonLog);
 
         try {
-            daemon.stopOnIdleTimeout(configuration.getIdleTimeout(), TimeUnit.MILLISECONDS);
+            daemon.requestStopOnIdleTimeout(configuration.getIdleTimeout(), TimeUnit.MILLISECONDS);
             LOGGER.info("Daemon hit idle timeout (" + configuration.getIdleTimeout() + "ms), stopping...");
         } finally {
             daemon.stop();

@@ -84,7 +84,7 @@ public class DomainRegistryUpdaterTest extends Specification {
         registry.remove(address) >> { throw new EmptyRegistryException("") }
 
         when:
-        updater.onStop()
+        updater.stop()
 
         then:
         noExceptionThrown()
