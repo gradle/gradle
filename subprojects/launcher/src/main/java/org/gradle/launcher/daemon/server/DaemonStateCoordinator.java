@@ -19,8 +19,8 @@ package org.gradle.launcher.daemon.server;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Stoppable;
 import org.gradle.internal.UncheckedException;
-import org.gradle.launcher.daemon.server.exec.DaemonUnavailableException;
 import org.gradle.launcher.daemon.server.exec.DaemonStateControl;
+import org.gradle.launcher.daemon.server.exec.DaemonUnavailableException;
 import org.slf4j.Logger;
 
 import java.util.Date;
@@ -33,58 +33,35 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * A tool for synchronising the state amongst different threads.
  *
- * This class has no knowledge of the Daemon's internals and is designed to be used internally by the
- * daemon to coordinate itself and allow worker threads to control the daemon's busy/idle status.
+ * This class has no knowledge of the Daemon's internals and is designed to be used internally by the daemon to coordinate itself and allow worker threads to control the daemon's busy/idle status.
  *
  * This is not exposed to clients of the daemon.
  */
 public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
     private static final Logger LOGGER = Logging.getLogger(DaemonStateCoordinator.class);
-    private enum State { NotStarted, Running, StopRequested, Stopped, Broken }
+
+    private enum State {Running, StopRequested, Stopped, Broken}
 
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
 
-    private State state = State.NotStarted;
+    private State state = State.Running;
     private long lastActivityAt = -1;
     private String currentCommandExecution;
 
     private final Executor executor;
-    private final Runnable onStart;
     private final Runnable onStartCommand;
     private final Runnable onFinishCommand;
     private final Runnable onStop;
     private final Runnable onStopRequested;
 
-    public DaemonStateCoordinator(Executor executor, Runnable onStart, Runnable onStartCommand, Runnable onFinishCommand, Runnable onStop, Runnable onStopRequested) {
+    public DaemonStateCoordinator(Executor executor, Runnable onStartCommand, Runnable onFinishCommand, Runnable onStop, Runnable onStopRequested) {
         this.executor = executor;
-        this.onStart = onStart;
         this.onStartCommand = onStartCommand;
         this.onFinishCommand = onFinishCommand;
         this.onStop = onStop;
         this.onStopRequested = onStopRequested;
-    }
-
-    /**
-     * Called once when the daemon is up and ready for connections.
-     */
-    public void start() {
-        lock.lock();
-        try {
-            if (state != State.NotStarted) {
-                throw new IllegalStateException("Cannot start daemon as it has already been started.");
-            }
-            updateActivityTimestamp();
-            try {
-                onStart.run();
-            } catch (Throwable throwable) {
-                setState(State.Broken);
-                throw UncheckedException.throwAsUncheckedException(throwable);
-            }
-            setState(State.Running);
-        } finally {
-            lock.unlock();
-        }
+        updateActivityTimestamp();
     }
 
     private void setState(State state) {
@@ -99,10 +76,6 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
             while (true) {
                 try {
                     switch (state) {
-                        case NotStarted:
-                            LOGGER.debug("Daemon has not yet started, sleeping until state changes.");
-                            condition.await();
-                            break;
                         case Running:
                             if (isBusy()) {
                                 LOGGER.debug("Daemon is busy, sleeping until state changes.");
@@ -149,7 +122,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
             if (isBusy()) {
                 beginStopping();
             } else {
-               stop();
+                stop();
             }
         } finally {
             lock.unlock();
@@ -159,8 +132,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
     /**
      * Forcibly stops the daemon, even if it is busy.
      *
-     * If the daemon is busy and the client is waiting for a response, it may receive “null” from the daemon
-     * as the connection may be closed by this method before the result is sent back.
+     * If the daemon is busy and the client is waiting for a response, it may receive “null” from the daemon as the connection may be closed by this method before the result is sent back.
      *
      * @see #stopAsSoonAsIdle()
      */
@@ -180,8 +152,6 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
 
     private void beginStopping() {
         switch (state) {
-            case NotStarted:
-                throw new IllegalStateException("This daemon has not been started.");
             case Running:
             case Broken:
                 try {
@@ -200,7 +170,6 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
 
     private void finishStopping() {
         switch (state) {
-            case NotStarted:
             case Running:
             case Broken:
                 throw new IllegalStateException("This daemon has not been stopped.");
@@ -226,10 +195,10 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
             } finally {
                 // not blocking
                 executor.execute(new Runnable() {
-                public void run() {
-                    stop();
-                }
-            });
+                    public void run() {
+                        stop();
+                    }
+                });
             }
         } finally {
             lock.unlock();
@@ -249,8 +218,6 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
         lock.lock();
         try {
             switch (state) {
-                case NotStarted:
-                    throw new DaemonUnavailableException("This daemon has not been started.");
                 case Broken:
                     throw new DaemonUnavailableException("This daemon is in a broken state and will stop.");
                 case StopRequested:
@@ -284,7 +251,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
             LOGGER.debug("onFinishCommand() called while execution = {}", execution);
             currentCommandExecution = null;
             updateActivityTimestamp();
-            switch(state) {
+            switch (state) {
                 case Running:
                     try {
                         onFinishCommand.run();
@@ -312,21 +279,10 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
         lastActivityAt = now;
     }
 
-    /**
-     * Has the daemon started accepting connections.
-     */
-    public boolean isStarted() {
-        return state != State.NotStarted;
-    }
-
     private double getIdleMinutes() {
         lock.lock();
         try {
-            if (isStarted()) {
-                return (System.currentTimeMillis() - lastActivityAt) / 1000 / 60;
-            } else {
-                return -1;
-            }
+            return (System.currentTimeMillis() - lastActivityAt) / 1000 / 60;
         } finally {
             lock.unlock();
         }

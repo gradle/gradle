@@ -93,12 +93,7 @@ public class Daemon implements Stoppable {
             }
 
             registryUpdater = new DomainRegistryUpdater(daemonRegistry, daemonContext, password);
-            
-            Runnable onStart = new Runnable() {
-                public void run() {
-                }
-            };
-            
+
             Runnable onStartCommand = new Runnable() {
                 public void run() {
                     registryUpdater.onStartActivity();
@@ -125,10 +120,9 @@ public class Daemon implements Stoppable {
                 }
             };
 
-            stateCoordinator = new DaemonStateCoordinator(workers, onStart, onStartCommand, onFinishCommand, onStop, onStopRequested);
-            stateCoordinator.start();
+            stateCoordinator = new DaemonStateCoordinator(workers, onStartCommand, onFinishCommand, onStop, onStopRequested);
 
-            // Get ready to accept connections and advertise that we are now available
+            // Start accepting connections and advertise that we are now available
             connectorAddress = connector.start(new DefaultIncomingConnectionHandler(commandExecuter, workers, daemonContext, stateCoordinator));
             LOGGER.debug("Daemon starting at: " + new Date() + ", with address: " + connectorAddress);
             registryUpdater.onStart(connectorAddress);

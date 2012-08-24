@@ -25,18 +25,14 @@ import java.util.concurrent.TimeUnit
  * by Szczepan Faber, created at: 2/6/12
  */
 class DaemonStateCoordinatorTest extends Specification {
-    final Runnable onStart = Mock(Runnable)
     final Runnable onStartCommand = Mock(Runnable)
     final Runnable onFinishCommand = Mock(Runnable)
     final Runnable onStopRequested = Mock(Runnable)
     final Runnable onStop = Mock(Runnable)
     final MockExecutor executor = new MockExecutor()
-    def coordinator = new DaemonStateCoordinator(executor, onStart, onStartCommand, onFinishCommand, onStop, onStopRequested)
+    def coordinator = new DaemonStateCoordinator(executor, onStartCommand, onFinishCommand, onStop, onStopRequested)
 
     def "runs actions on stop"() {
-        given:
-        coordinator.start()
-
         expect:
         !coordinator.stopped
 
@@ -58,7 +54,6 @@ class DaemonStateCoordinatorTest extends Specification {
 
     def "await idle timeout throws exception when already stopped"() {
         given:
-        coordinator.start()
         coordinator.stop()
 
         when:
@@ -67,10 +62,8 @@ class DaemonStateCoordinatorTest extends Specification {
         then:
         DaemonStoppedException e = thrown()
     }
-    def "await idle timeout waits for requested time and then stops"() {
-        given:
-        coordinator.start()
 
+    def "await idle timeout waits for requested time and then stops"() {
         when:
         coordinator.stopOnIdleTimeout(100, TimeUnit.MILLISECONDS)
 
@@ -80,95 +73,7 @@ class DaemonStateCoordinatorTest extends Specification {
         0 * _._
     }
 
-    def "cannot use coordinator when start has failed"() {
-        def failure = new RuntimeException()
-
-        when:
-        coordinator.start()
-
-        then:
-        RuntimeException e = thrown()
-        failure == e
-
-        1 * onStart.run() >> { throw failure }
-        0 * _._
-
-        when:
-        coordinator.runCommand(Mock(Runnable), "operation")
-
-        then:
-        DaemonUnavailableException unavailableException = thrown()
-        unavailableException.message == 'This daemon is in a broken state and will stop.'
-    }
-
-    def "await idle timeout returns immediately when start has failed"() {
-        def failure = new RuntimeException()
-
-        when:
-        coordinator.start()
-
-        then:
-        RuntimeException e = thrown()
-        failure == e
-
-        1 * onStart.run() >> { throw failure }
-        0 * _._
-
-        when:
-        coordinator.stopOnIdleTimeout(100, TimeUnit.HOURS)
-
-        then:
-        IllegalStateException illegalStateException = thrown()
-        illegalStateException.message == 'This daemon is in a broken state.'
-    }
-
-    def "can stop when start has failed"() {
-        def failure = new RuntimeException()
-
-        when:
-        coordinator.start()
-
-        then:
-        RuntimeException e = thrown()
-        failure == e
-
-        1 * onStart.run() >> { throw failure }
-        0 * _._
-
-        when:
-        coordinator.stop()
-
-        then:
-        1 * onStopRequested.run()
-        1 * onStop.run()
-        0 * _._
-    }
-
-    def "can request stop when start has failed"() {
-        def failure = new RuntimeException()
-
-        when:
-        coordinator.start()
-
-        then:
-        RuntimeException e = thrown()
-        failure == e
-
-        1 * onStart.run() >> { throw failure }
-        0 * _._
-
-        when:
-        coordinator.requestStop()
-
-        then:
-        1 * onStopRequested.run()
-        0 * _._
-    }
-
     def "requesting stop stops asynchronously"() {
-        given:
-        coordinator.start()
-
         expect:
         !coordinator.stopped
 
@@ -203,13 +108,6 @@ class DaemonStateCoordinatorTest extends Specification {
         def failure = new RuntimeException()
 
         when:
-        coordinator.start()
-
-        then:
-        1 * onStart.run()
-        0 * _._
-
-        when:
         coordinator.stop()
 
         then:
@@ -235,13 +133,6 @@ class DaemonStateCoordinatorTest extends Specification {
         def failure = new RuntimeException()
 
         when:
-        coordinator.start()
-
-        then:
-        1 * onStart.run()
-        0 * _._
-
-        when:
         coordinator.stop()
 
         then:
@@ -260,9 +151,6 @@ class DaemonStateCoordinatorTest extends Specification {
     def "runs actions when command is run"() {
         Runnable command = Mock()
 
-        given:
-        coordinator.start()
-
         when:
         coordinator.runCommand(command, "command")
 
@@ -276,9 +164,6 @@ class DaemonStateCoordinatorTest extends Specification {
     def "runs actions when command fails"() {
         Runnable command = Mock()
         def failure = new RuntimeException()
-
-        given:
-        coordinator.start()
 
         when:
         coordinator.runCommand(command, "command")
@@ -296,7 +181,6 @@ class DaemonStateCoordinatorTest extends Specification {
         Runnable command = Mock()
 
         given:
-        coordinator.start()
         command.run() >> { coordinator.runCommand(Mock(Runnable), "other") }
 
         when:
@@ -311,7 +195,6 @@ class DaemonStateCoordinatorTest extends Specification {
         Runnable command = Mock()
 
         given:
-        coordinator.start()
         coordinator.requestStop()
 
         when:
@@ -326,7 +209,6 @@ class DaemonStateCoordinatorTest extends Specification {
         Runnable command = Mock()
 
         given:
-        coordinator.start()
         coordinator.stopAsSoonAsIdle()
 
         when:
@@ -340,9 +222,6 @@ class DaemonStateCoordinatorTest extends Specification {
     def "cannot run command when start command action fails"() {
         Runnable command = Mock()
         RuntimeException failure = new RuntimeException()
-
-        given:
-        coordinator.start()
 
         when:
         coordinator.runCommand(command, "command")
@@ -366,9 +245,6 @@ class DaemonStateCoordinatorTest extends Specification {
         Runnable command = Mock()
         RuntimeException failure = new RuntimeException()
 
-        given:
-        coordinator.start()
-
         when:
         coordinator.runCommand(command, "command")
 
@@ -389,9 +265,6 @@ class DaemonStateCoordinatorTest extends Specification {
     def "can stop when start command action has failed"() {
         Runnable command = Mock()
         RuntimeException failure = new RuntimeException()
-
-        given:
-        coordinator.start()
 
         when:
         coordinator.runCommand(command, "command")
@@ -414,9 +287,6 @@ class DaemonStateCoordinatorTest extends Specification {
     def "cannot run command when finish command action has failed"() {
         Runnable command = Mock()
         RuntimeException failure = new RuntimeException()
-
-        given:
-        coordinator.start()
 
         when:
         coordinator.runCommand(command, "command")
@@ -443,9 +313,6 @@ class DaemonStateCoordinatorTest extends Specification {
         Runnable command = Mock()
         RuntimeException failure = new RuntimeException()
 
-        given:
-        coordinator.start()
-
         when:
         coordinator.runCommand(command, "command")
 
@@ -469,9 +336,6 @@ class DaemonStateCoordinatorTest extends Specification {
         Runnable command = Mock()
         RuntimeException failure = new RuntimeException()
 
-        given:
-        coordinator.start()
-
         when:
         coordinator.runCommand(command, "command")
 
@@ -493,9 +357,6 @@ class DaemonStateCoordinatorTest extends Specification {
     }
 
     def "stopAsSoonAsIdle stops immediately when idle"() {
-        given:
-        coordinator.start()
-
         expect:
         coordinator.idle
 
@@ -513,9 +374,6 @@ class DaemonStateCoordinatorTest extends Specification {
 
     def "stopAsSoonAsIdle stops once current command has completed"() {
         Runnable command = Mock()
-
-        given:
-        coordinator.start()
 
         when:
         coordinator.runCommand(command, "some command")
@@ -543,9 +401,6 @@ class DaemonStateCoordinatorTest extends Specification {
     def "stopAsSoonAsIdle stops when command fails"() {
         Runnable command = Mock()
         RuntimeException failure = new RuntimeException()
-
-        given:
-        coordinator.start()
 
         when:
         coordinator.runCommand(command, "some command")
