@@ -18,11 +18,10 @@ package org.gradle.tooling.internal.provider;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.tooling.internal.migration.DefaultFileBuildOutcome;
 import org.gradle.tooling.internal.migration.DefaultProjectOutcomes;
 import org.gradle.tooling.internal.protocol.InternalProjectOutput;
 import org.gradle.tooling.internal.protocol.ProjectVersion3;
@@ -32,16 +31,17 @@ import org.gradle.tooling.model.internal.migration.FileBuildOutcome;
 import org.gradle.tooling.model.internal.migration.ProjectOutcomes;
 
 import java.util.List;
-import java.util.Set;
 
 public class MigrationModelBuilder implements BuildsModel {
+
+    private final Transformer<FileBuildOutcome, PublishArtifact> artifactTransformer = new PublishArtifactToFileBuildOutcomeTransformer();
+
     public boolean canBuild(Class<?> type) {
         return type == InternalProjectOutput.class;
     }
 
     public ProjectVersion3 buildAll(GradleInternal gradle) {
         return buildProjectOutput(gradle.getRootProject(), null);
-
     }
 
     private DefaultProjectOutcomes buildProjectOutput(Project project, ProjectOutcomes parent) {
@@ -55,28 +55,18 @@ public class MigrationModelBuilder implements BuildsModel {
 
     private DomainObjectSet<FileBuildOutcome> getFileOutcomes(Project project) {
         List<FileBuildOutcome> fileBuildOutcomes = Lists.newArrayList();
-        addArchives(project, fileBuildOutcomes);
+        addArtifacts(project, fileBuildOutcomes);
         return new ImmutableDomainObjectSet<FileBuildOutcome>(fileBuildOutcomes);
     }
 
-    private void addArchives(Project project, List<FileBuildOutcome> outcomes) {
+    private void addArtifacts(Project project, List<FileBuildOutcome> outcomes) {
         Configuration configuration = project.getConfigurations().findByName("archives");
         if (configuration != null) {
             for (PublishArtifact artifact : configuration.getArtifacts()) {
-                String taskPath = getTaskPath(artifact);
-                // TODO - everything is not a zip
-                outcomes.add(new DefaultFileBuildOutcome(artifact.getFile(), "zip", taskPath));
+                FileBuildOutcome outcome = artifactTransformer.transform(artifact);
+                outcomes.add(outcome);
             }
         }
-    }
-
-    private String  getTaskPath(PublishArtifact artifact) {
-        String taskPath = null;
-        Set<? extends Task> tasks = artifact.getBuildDependencies().getDependencies(null);
-        if (!tasks.isEmpty()) {
-            taskPath = tasks.iterator().next().getPath();
-        }
-        return taskPath;
     }
 
 }
