@@ -19,6 +19,7 @@ package org.gradle.launcher.daemon.server;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Stoppable;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.launcher.daemon.context.DaemonContext;
@@ -29,12 +30,21 @@ import org.gradle.launcher.daemon.server.exec.DaemonCommandExecuter;
 import org.gradle.launcher.daemon.server.exec.DaemonStateControl;
 import org.gradle.messaging.remote.internal.Connection;
 
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 public class DefaultIncomingConnectionHandler implements IncomingConnectionHandler, Stoppable {
     private static final Logger LOGGER = Logging.getLogger(DefaultIncomingConnectionHandler.class);
     private final StoppableExecutor workers;
     private final DaemonContext daemonContext;
     private final DaemonCommandExecuter commandExecuter;
     private final DaemonStateControl daemonStateControl;
+    private final Lock lock = new ReentrantLock();
+    private final Condition condition = lock.newCondition();
+    private final Set<Connection<?>> inProgress = new HashSet<Connection<?>>();
 
     public DefaultIncomingConnectionHandler(DaemonCommandExecuter commandExecuter, DaemonContext daemonContext, DaemonStateControl daemonStateControl, ExecutorFactory executorFactory) {
         this.commandExecuter = commandExecuter;
@@ -44,41 +54,99 @@ public class DefaultIncomingConnectionHandler implements IncomingConnectionHandl
     }
 
     public void handle(final Connection<Object> connection) {
+        // Mark the connection has being handled
+        onStartHandling(connection);
+
         //we're spinning a thread to do work to avoid blocking the connection
         //This means that the Daemon potentially can do multiple things but we only allows a single build at a time
-        workers.execute(new Runnable() {
-            private Command command;
 
-            public void run() {
-                try {
-                    command = (Command) connection.receive();
-                    LOGGER.info("Received command: {}.", command);
-                } catch (Throwable e) {
-                    String message = String.format("Unable to receive command from connection: '%s'", connection);
-                    LOGGER.warn(message + ". Dispatching the failure to the daemon client...", e);
-                    connection.dispatch(new DaemonFailure(new RuntimeException(message, e)));
-                    //TODO SF exception handling / send typed exception / refactor / unit test and apply the same for below
-                    return;
-                }
-
-                try {
-                    LOGGER.debug(DaemonMessages.STARTED_EXECUTING_COMMAND + command + " with connection: " + connection + ".");
-                    commandExecuter.executeCommand(connection, command, daemonContext, daemonStateControl, new Runnable() {
-                        public void run() {
-                            // Don't care yet.
-                        }
-                    });
-                } catch (Throwable e) {
-                    String message = String.format("Uncaught exception when executing command: '%s' from connection: '%s'.", command, connection);
-                    LOGGER.warn(message + ". Dispatching the failure to the daemon client...", e);
-                    connection.dispatch(new DaemonFailure(new RuntimeException(message, e)));
-                } finally {
-                    LOGGER.debug(DaemonMessages.FINISHED_EXECUTING_COMMAND + command);
-                }
-            }
-        });
+        workers.execute(new ConnectionWorker(connection));
     }
 
+    private void onStartHandling(Connection<Object> connection) {
+        lock.lock();
+        try {
+            inProgress.add(connection);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private void onFinishHandling(Connection<Object> connection) {
+        lock.lock();
+        try {
+            inProgress.remove(connection);
+            condition.signalAll();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    /**
+     * Blocks until all connections have been handled or abandoned.
+     */
     public void stop() {
+        lock.lock();
+        try {
+            while (!inProgress.isEmpty()) {
+                try {
+                    condition.await();
+                } catch (InterruptedException e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
+            }
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private class ConnectionWorker implements Runnable {
+        private final Connection<Object> connection;
+
+        public ConnectionWorker(Connection<Object> connection) {
+            this.connection = connection;
+        }
+
+        public void run() {
+            try {
+                Command command = receiveCommand();
+                if (command != null) {
+                    handleCommand(command);
+                }
+            } finally {
+                onFinishHandling(connection);
+            }
+        }
+
+        private Command receiveCommand() {
+            try {
+                Command command = (Command) connection.receive();
+                LOGGER.info("Received command: {}.", command);
+                return command;
+            } catch (Throwable e) {
+                String message = String.format("Unable to receive command from connection: '%s'", connection);
+                LOGGER.warn(message + ". Dispatching the failure to the daemon client...", e);
+                connection.dispatch(new DaemonFailure(new RuntimeException(message, e)));
+                //TODO SF exception handling / send typed exception / refactor / unit test and apply the same for below
+                return null;
+            }
+        }
+
+        private void handleCommand(Command command) {
+            try {
+                LOGGER.debug(DaemonMessages.STARTED_EXECUTING_COMMAND + command + " with connection: " + connection + ".");
+                commandExecuter.executeCommand(connection, command, daemonContext, daemonStateControl, new Runnable() {
+                    public void run() {
+                        onFinishHandling(connection);
+                    }
+                });
+            } catch (Throwable e) {
+                String message = String.format("Uncaught exception when executing command: '%s' from connection: '%s'.", command, connection);
+                LOGGER.warn(message + ". Dispatching the failure to the daemon client...", e);
+                connection.dispatch(new DaemonFailure(new RuntimeException(message, e)));
+            } finally {
+                LOGGER.debug(DaemonMessages.FINISHED_EXECUTING_COMMAND + command);
+            }
+        }
     }
 }
