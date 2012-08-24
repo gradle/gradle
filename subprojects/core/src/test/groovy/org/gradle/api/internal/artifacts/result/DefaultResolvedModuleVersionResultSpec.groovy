@@ -64,8 +64,52 @@ class DefaultResolvedModuleVersionResultSpec extends Specification {
         selectedModule.equals(module)
     }
 
-    def newDependency(String group='a', String module='a', String version='1') {
-        new DefaultResolvedDependencyResult(newSelector(group, module, version), newId(group, module, version))
+    def "links dependency"() {
+        def module = newModule("a", "c", "1")
+        def dependency = newDependency("a", "x", "1", ['config'] as Set)
+
+        when:
+        module.linkDependency(dependency)
+
+        then:
+        module.dependencies == [dependency] as Set
+        dependency.selected.getDependees() == [module] as Set
+    }
+
+    def "mutating dependencies is harmless"() {
+        given:
+        def module = newModule("a", "c", "1")
+        def dependency = newDependency("a", "x", "1", ['config'] as Set)
+
+        when:
+        module.linkDependency(dependency)
+
+        then:
+        module.dependencies == [dependency] as Set
+
+        when:
+        module.dependencies << newDependency("a", "y", "1")
+
+        then:
+        module.dependencies == [dependency] as Set
+    }
+
+    def "excludes unresolved dependencies"() {
+        given:
+        def module = newModule("a", "c", "1")
+        def dependency = newDependency("a", "x", "1", ['config'] as Set)
+        def unresolved = newDependency("a", "x", "1", [] as Set)
+
+        when:
+        module.linkDependency(dependency)
+        module.linkDependency(unresolved)
+
+        then:
+        module.dependencies == [dependency] as Set
+    }
+
+    def newDependency(String group='a', String module='a', String version='1', Set confs = []) {
+        new DefaultResolvedDependencyResult(newSelector(group, module, version), newId(group, module, version), confs)
     }
 
     def newModule(String group, String module, String version) {
