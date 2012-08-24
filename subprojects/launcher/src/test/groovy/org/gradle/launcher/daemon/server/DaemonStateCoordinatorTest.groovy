@@ -51,7 +51,7 @@ class DaemonStateCoordinatorTest extends Specification {
         coordinator.stop()
 
         when:
-        coordinator.stopOnIdleTimeout(100, TimeUnit.HOURS)
+        coordinator.stopOnIdleTimeout(10000, TimeUnit.SECONDS)
 
         then:
         DaemonStoppedException e = thrown()
@@ -212,7 +212,7 @@ class DaemonStateCoordinatorTest extends Specification {
         0 * _._
 
         when:
-        coordinator.stopOnIdleTimeout(100, TimeUnit.HOURS)
+        coordinator.stopOnIdleTimeout(10000, TimeUnit.SECONDS)
 
         then:
         IllegalStateException illegalStateException = thrown()
@@ -277,7 +277,7 @@ class DaemonStateCoordinatorTest extends Specification {
         0 * _._
 
         when:
-        coordinator.stopOnIdleTimeout(100, TimeUnit.HOURS)
+        coordinator.stopOnIdleTimeout(10000, TimeUnit.SECONDS)
 
         then:
         IllegalStateException illegalStateException = thrown()
@@ -351,7 +351,7 @@ class DaemonStateCoordinatorTest extends Specification {
 
         when:
         coordinator.runCommand(command, "command", onDisconnect)
-        coordinator.stopOnIdleTimeout(100, TimeUnit.HOURS)
+        coordinator.stopOnIdleTimeout(10000, TimeUnit.SECONDS)
 
         then:
         DaemonStoppedException e = thrown()
@@ -429,7 +429,7 @@ class DaemonStateCoordinatorTest extends Specification {
 
         when:
         coordinator.runCommand(command, "command", onDisconnect)
-        coordinator.stopOnIdleTimeout(100, TimeUnit.HOURS)
+        coordinator.stopOnIdleTimeout(10000, TimeUnit.SECONDS)
 
         then:
         DaemonStoppedException e = thrown()
