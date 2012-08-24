@@ -196,7 +196,7 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
         String error = result.getError();
         if (result instanceof ExecutionFailure) {
             // Axe everything after the expected exception
-            int pos = error.lastIndexOf("* Exception is:" + TextUtil.getPlatformLineSeparator());
+            int pos = error.indexOf("* Exception is:" + TextUtil.getPlatformLineSeparator());
             if (pos >= 0) {
                 error = error.substring(0, pos);
             }
