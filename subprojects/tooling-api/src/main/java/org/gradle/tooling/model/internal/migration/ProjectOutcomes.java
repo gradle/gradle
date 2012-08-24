@@ -24,12 +24,10 @@ import java.io.File;
 /**
  * The outputs produced by a Gradle project.
  */
-public interface ProjectOutput extends HierarchicalElement {
-    ProjectOutput getParent();
-    DomainObjectSet<ProjectOutput> getChildren();
+public interface ProjectOutcomes extends HierarchicalElement {
+    ProjectOutcomes getParent();
+    DomainObjectSet<ProjectOutcomes> getChildren();
     String getPath();
     File getProjectDirectory();
-    String getGradleVersion();
-    DomainObjectSet<Archive> getArchives();
-    DomainObjectSet<TestRun> getTestRuns();
+    DomainObjectSet<FileBuildOutcome> getFileOutcomes();
 }

@@ -20,7 +20,7 @@ import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.tooling.model.internal.migration.ProjectOutput
+import org.gradle.tooling.model.internal.migration.ProjectOutcomes
 
 import org.junit.Rule
 
@@ -31,34 +31,22 @@ class MigrationModelCrossVersionSpec extends ToolingApiSpecification {
 
     def "modelContainsAllArchivesOnTheArchivesConfiguration"() {
         when:
-        def output = withConnection { it.getModel(ProjectOutput.class) }
+        def output = withConnection { it.getModel(ProjectOutcomes.class) }
 
         then:
-        output instanceof ProjectOutput
-        def archives = output.archives
-        archives.size() == 2
-        archives.any { it.file.name.endsWith(".jar") }
-        archives.any { it.file.name.endsWith(".zip") }
-    }
-
-    def "modelContainsAllTestResults"() {
-        when:
-        def output = withConnection { it.getModel(ProjectOutput.class) }
-
-        then:
-        output instanceof ProjectOutput
-        def testRuns = output.testRuns
-        testRuns.size() == 2
-        testRuns.any { it.xmlReportDir == resources.dir.file("build", "test-results") }
-        testRuns.any { it.xmlReportDir == resources.dir.file("build", "other-results") }
+        output instanceof ProjectOutcomes
+        def outcomes = output.fileOutcomes
+        outcomes.size() == 2
+        outcomes.any { it.file.name.endsWith(".jar") }
+        outcomes.any { it.file.name.endsWith(".zip") }
     }
 
     def "modelContainsAllProjects"() {
         when:
-        def output = withConnection { it.getModel(ProjectOutput.class) }
+        def output = withConnection { it.getModel(ProjectOutcomes.class) }
 
         then:
-        output instanceof ProjectOutput
+        output instanceof ProjectOutcomes
         output.children.size() == 2
         output.children.name as Set == ["project1", "project2"] as Set
         output.children[0].children.empty

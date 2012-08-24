@@ -42,7 +42,7 @@ import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
-import org.gradle.tooling.model.internal.migration.ProjectOutput;
+import org.gradle.tooling.model.internal.migration.ProjectOutcomes;
 import org.gradle.util.GradleVersion;
 
 import java.io.*;
@@ -122,11 +122,11 @@ public class CompareGradleBuilds extends DefaultTask {
         // Build the outcome model and outcomes
 
         GradleBuildOutcomeSetTransformer fromOutcomeTransformer = createOutcomeSetTransformer("source");
-        ProjectOutput fromOutput = generateBuildOutput(sourceVersion, getSourceProjectDir());
+        ProjectOutcomes fromOutput = generateBuildOutput(sourceVersion, getSourceProjectDir());
         Set<BuildOutcome> fromOutcomes = fromOutcomeTransformer.transform(fromOutput);
 
         GradleBuildOutcomeSetTransformer toOutcomeTransformer = createOutcomeSetTransformer("target");
-        ProjectOutput toOutput = generateBuildOutput(targetVersion, getTargetProjectDir());
+        ProjectOutcomes toOutput = generateBuildOutput(targetVersion, getTargetProjectDir());
         Set<BuildOutcome> toOutcomes = toOutcomeTransformer.transform(toOutput);
 
         // Associate from each side (create spec)
@@ -150,7 +150,7 @@ public class CompareGradleBuilds extends DefaultTask {
         return new GradleBuildOutcomeSetTransformer(new PathNormalisingKeyFileStore(new File(getFileStoreDir(), filesPath)));
     }
 
-    private ProjectOutput generateBuildOutput(String gradleVersionString, File other) {
+    private ProjectOutcomes generateBuildOutput(String gradleVersionString, File other) {
         GradleVersion gradleVersion = GradleVersion.version(gradleVersionString);
         GradleConnector connector = GradleConnector.newConnector().forProjectDirectory(other);
         connector.useGradleUserHomeDir(getProject().getGradle().getStartParameter().getGradleUserHomeDir());
@@ -161,9 +161,9 @@ public class CompareGradleBuilds extends DefaultTask {
         }
         ProjectConnection connection = connector.connect();
         try {
-            ProjectOutput buildOutput = connection.getModel(ProjectOutput.class);
+            ProjectOutcomes buildOutcomes = connection.getModel(ProjectOutcomes.class);
             connection.newBuild().forTasks("assemble").run();
-            return buildOutput;
+            return buildOutcomes;
         } finally {
             connection.close();
         }

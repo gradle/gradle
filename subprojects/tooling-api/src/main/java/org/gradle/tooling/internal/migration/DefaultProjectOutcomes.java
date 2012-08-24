@@ -17,38 +17,32 @@
 package org.gradle.tooling.internal.migration;
 
 import com.google.common.collect.Lists;
-
 import org.gradle.tooling.internal.protocol.InternalProjectOutput;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
-import org.gradle.tooling.model.internal.migration.Archive;
-import org.gradle.tooling.model.internal.migration.ProjectOutput;
-import org.gradle.tooling.model.internal.migration.TestRun;
+import org.gradle.tooling.model.internal.migration.FileBuildOutcome;
+import org.gradle.tooling.model.internal.migration.ProjectOutcomes;
 
 import java.io.File;
 import java.io.Serializable;
 import java.util.List;
 
-public class DefaultProjectOutput implements InternalProjectOutput, ProjectOutput, Serializable {
+public class DefaultProjectOutcomes implements InternalProjectOutput, ProjectOutcomes, Serializable {
     private final String name;
-    private final String path;
+    private final String projectPath;
     private final String description;
     private final File projectDirectory;
-    private final String gradleVersion;
-    private final DomainObjectSet<Archive> archives;
-    private final DomainObjectSet<TestRun> testRuns;
-    private final ProjectOutput parent;
-    private final List<ProjectOutput> children = Lists.newArrayList();
+    private final DomainObjectSet<FileBuildOutcome> fileOutcomes;
+    private final ProjectOutcomes parent;
+    private final List<ProjectOutcomes> children = Lists.newArrayList();
 
-    public DefaultProjectOutput(String name, String path, String description, File projectDirectory, String gradleVersion,
-                                DomainObjectSet<Archive> archives, DomainObjectSet<TestRun> testRuns, ProjectOutput parent) {
+    public DefaultProjectOutcomes(String name, String projectPath, String description, File projectDirectory,
+                                  DomainObjectSet<FileBuildOutcome> fileOutcomes, ProjectOutcomes parent) {
         this.name = name;
-        this.path = path;
+        this.projectPath = projectPath;
         this.description = description;
         this.projectDirectory = projectDirectory;
-        this.gradleVersion = gradleVersion;
-        this.archives = archives;
-        this.testRuns = testRuns;
+        this.fileOutcomes = fileOutcomes;
         this.parent = parent;
     }
 
@@ -57,7 +51,7 @@ public class DefaultProjectOutput implements InternalProjectOutput, ProjectOutpu
     }
 
     public String getPath() {
-        return path;
+        return projectPath;
     }
 
     public String getDescription() {
@@ -68,27 +62,19 @@ public class DefaultProjectOutput implements InternalProjectOutput, ProjectOutpu
         return projectDirectory;
     }
 
-    public String getGradleVersion() {
-        return gradleVersion;
+    public DomainObjectSet<FileBuildOutcome> getFileOutcomes() {
+        return fileOutcomes;
     }
 
-    public DomainObjectSet<Archive> getArchives() {
-        return archives;
-    }
-
-    public DomainObjectSet<TestRun> getTestRuns() {
-        return testRuns;
-    }
-
-    public ProjectOutput getParent() {
+    public ProjectOutcomes getParent() {
         return parent;
     }
 
-    public DomainObjectSet<ProjectOutput> getChildren() {
-        return new ImmutableDomainObjectSet<ProjectOutput>(children);
+    public DomainObjectSet<ProjectOutcomes> getChildren() {
+        return new ImmutableDomainObjectSet<ProjectOutcomes>(children);
     }
 
-    public void addChild(ProjectOutput child) {
+    public void addChild(ProjectOutcomes child) {
         children.add(child);
     }
 }

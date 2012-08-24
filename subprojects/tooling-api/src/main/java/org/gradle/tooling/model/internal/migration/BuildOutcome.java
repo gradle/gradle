@@ -14,27 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.migration;
+package org.gradle.tooling.model.internal.migration;
 
-import org.gradle.tooling.model.internal.migration.Archive;
+import org.gradle.api.Nullable;
+import org.gradle.tooling.model.Model;
 
-import java.io.File;
-import java.io.Serializable;
+/**
+ * Represents something that happens as part of a build.
+ *
+ * @since 1.2
+ */
+public interface BuildOutcome extends Model {
 
-public class DefaultArchive implements Archive, Serializable {
-    private final String taskPath;
-    private final File file;
+    /**
+     * The path to the task that created the outcome, if it was known to be created by a task.
+     *
+     * @return The path to the task the “created” the outcome, or {@code null} if it was not produced by a task.
+     */
+    @Nullable
+    String getTaskPath();
 
-    public DefaultArchive(String taskPath, File file) {
-        this.taskPath = taskPath;
-        this.file = file;
-    }
-
-    public String getTaskPath() {
-        return taskPath;
-    }
-
-    public File getFile() {
-        return file;
-    }
 }

@@ -16,25 +16,32 @@
 
 package org.gradle.tooling.internal.migration;
 
-import org.gradle.tooling.model.internal.migration.TestRun;
+import org.gradle.tooling.model.internal.migration.FileBuildOutcome;
 
 import java.io.File;
 import java.io.Serializable;
 
-public class DefaultTestRun implements TestRun, Serializable {
-    private final String taskPath;
-    private final File xmlReportDir;
+public class DefaultFileBuildOutcome implements FileBuildOutcome, Serializable {
 
-    public DefaultTestRun(String taskPath, File xmlReportDir) {
+    private final File file;
+    private final String typeIdentifier;
+    private final String taskPath;
+
+    public DefaultFileBuildOutcome(File file, String typeIdentifier, String taskPath) {
+        this.file = file;
+        this.typeIdentifier = typeIdentifier;
         this.taskPath = taskPath;
-        this.xmlReportDir = xmlReportDir;
+    }
+
+    public File getFile() {
+        return file;
+    }
+
+    public String getTypeIdentifier() {
+        return typeIdentifier;
     }
 
     public String getTaskPath() {
         return taskPath;
-    }
-
-    public File getXmlReportDir() {
-        return xmlReportDir;
     }
 }
