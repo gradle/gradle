@@ -50,12 +50,13 @@ public class DefaultDaemonCommandExecuter implements DaemonCommandExecuter {
         this.launcherFactory = launcherFactory;
     }
 
-    public void executeCommand(Connection<Object> connection, Command command, DaemonContext daemonContext, DaemonStateControl daemonStateControl) {
+    public void executeCommand(Connection<Object> connection, Command command, DaemonContext daemonContext, DaemonStateControl daemonStateControl, Runnable commandAbandoned) {
         new DaemonCommandExecution(
             new DisconnectAwareConnectionDecorator<Object>(connection, executorFactory.create("DefaultDaemonCommandExecuter > DisconnectAwareConnectionDecorator")),
             command,
             daemonContext,
             daemonStateControl,
+            commandAbandoned,
             createActions(daemonContext)
         ).proceed();
     }

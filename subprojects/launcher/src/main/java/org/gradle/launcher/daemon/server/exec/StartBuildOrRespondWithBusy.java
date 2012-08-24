@@ -46,13 +46,7 @@ public class StartBuildOrRespondWithBusy extends BuildCommandOnly {
                 }
             };
 
-            Runnable disconnect = new Runnable() {
-                public void run() {
-                    // Don't care yet
-                }
-            };
-
-            stateCoordinator.runCommand(command, execution.toString(), disconnect);
+            stateCoordinator.runCommand(command, execution.toString(), execution.getCommandAbandonedHandler());
         } catch (DaemonUnavailableException e) {
             LOGGER.info("Daemon will not handle the request: {} because is unavailable: {}", build, e.getMessage());
             execution.getConnection().dispatch(new DaemonUnavailable(e.getMessage()));

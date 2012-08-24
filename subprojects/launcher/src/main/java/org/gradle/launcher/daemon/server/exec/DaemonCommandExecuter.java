@@ -36,5 +36,5 @@ public interface DaemonCommandExecuter {
      * <p>
      * The {@code command} param may be {@code null}, which means the client disconnected before sending a command.
      */
-    void executeCommand(Connection<Object> connection, Command command, DaemonContext daemonContext, DaemonStateControl daemonStateControl);
+    void executeCommand(Connection<Object> connection, Command command, DaemonContext daemonContext, DaemonStateControl daemonStateControl, Runnable commandAbandoned);
 }

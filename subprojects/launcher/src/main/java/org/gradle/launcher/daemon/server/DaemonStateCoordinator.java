@@ -179,8 +179,8 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
         }
     }
 
-    public void runCommand(Runnable command, String commandDisplayName, Runnable onDisconnect) throws DaemonUnavailableException {
-        onStartCommand(commandDisplayName, onDisconnect);
+    public void runCommand(Runnable command, String commandDisplayName, Runnable onCommandAbandoned) throws DaemonUnavailableException {
+        onStartCommand(commandDisplayName, onCommandAbandoned);
         try {
             command.run();
         } finally {
