@@ -33,17 +33,17 @@ This way Gradle users may develop their own dependency reporting driven by custo
 Also it allows the users to develop build logic that can make decisions based on the content of the dependency graph.
 
 The best way to start with the new API is to take a look at the Javadoc
-for <a href="http://gradle.org/docs/nightly/javadoc/org/gradle/api/artifacts/ResolvedConfiguration.html#getResolutionResult()">`ResolvedConfiguration.getResolutionResult()`</a>.
+for <a href="javadoc/org/gradle/api/artifacts/ResolvedConfiguration.html#getResolutionResult()">`ResolvedConfiguration.getResolutionResult()`</a>.
 
 ### Experimental support for building projects in parallel
 
 Over the coming releases, we'll be adding support for parallel execution of independent projects in a multi-project build. By building separate projects in parallel, Gradle
 will enable better hardware utilisation and faster build times.
 
-Gradle 1.2 introduces the first experimental support for this feature, via the `--parallel` and `--parallel-threads` [command-line options](http://gradle.org/docs/nightly/userguide/gradle_command_line.html).
+Gradle 1.2 introduces the first experimental support for this feature, via the `--parallel` and `--parallel-threads` [command-line options](userguide/gradle_command_line.html).
 By using these options Gradle will attempt to _execute_ multiple projects in parallel build threads, after first configuring all projects sequentially.
 
-Note that to guarantee successful parallel execution of projects, your multi-project build must contain only [decoupled projects](http://gradle.org/docs/nightly/userguide/multi_project_builds.html#sec:decoupled_projects).
+Note that to guarantee successful parallel execution of projects, your multi-project build must contain only [decoupled projects](userguide/multi_project_builds.html#sec:decoupled_projects).
 While configuration-time decoupling is not strictly required for parallel project execution, we do not intend on supporting a separate model of decoupling that permits configuration-time
 coupling with execution-time decoupling. At this time there are no checks implemented to ensure that projects are decoupled, and unexpected behaviour may result from executing a build with coupled
 projects using the new parallel executor.
@@ -79,7 +79,7 @@ expect to see a 20-25% reduction in heap usage thanks to these improvements.
 ### Experimental bootstrap plugin
 
 We would like to make it as easy as possible to migrate from a different build tool to Gradle.
-This release includes an experimental [Bootstrap plugin](http://gradle.org/docs/nightly/userguide/bootstrap_plugin.html).
+This release includes an experimental [Bootstrap plugin](userguide/bootstrap_plugin.html).
 However quality-wise it is not yet at the level we expect a Gradle feature to be.
 We will continue working on it and with Gradle 1.3 it will be officially announced.
 
