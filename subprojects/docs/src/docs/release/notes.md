@@ -14,6 +14,10 @@ and to figure out why and how certain versions are used.
 * Dynamic versions. Now the dependency report shows what version was requested and what version was selected.
 For example: 1.3.+ -> 1.3.5 (requested -> selected).
 
+In order to keep the report clean and tidy we decided to remove the 'resolved target configurations' from the report.
+They used to appear on the right hand of every listed dependency and it was often a source of confusion.
+Now the report should be much more readable.
+
 We continue to work in the dependency reports area and plan more interesting features shortly.
 For example, we want the report to present the dependency tree even though some dependency is unresolved.
 We want to add other kinds of dependency reports, too. Improved dependency report should be also faster for projects that have very large dependency graphs.
@@ -29,7 +33,7 @@ This way Gradle users may develop their own dependency reporting driven by custo
 Also it allows the users to develop build logic that can make decisions based on the content of the dependency graph.
 
 The best way to start with the new API is to take a look at the Javadoc
-for `ResolvedConfiguration.getResolutionResult()` (TODO link).
+for <a href="http://gradle.org/docs/nightly/javadoc/org/gradle/api/artifacts/ResolvedConfiguration.html#getResolutionResult()">`ResolvedConfiguration.getResolutionResult()`</a>.
 
 ### Experimental support for building projects in parallel
 
