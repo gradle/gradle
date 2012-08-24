@@ -110,11 +110,11 @@ public class SocketConnection<T> implements Connection<T> {
     }
 
     public void requestStop() {
-        new CompositeStoppable(instr).stop();
+        CompositeStoppable.stoppable(instr).stop();
     }
 
     public void stop() {
-        new CompositeStoppable(instr, outstr, socket).stop();
+        CompositeStoppable.stoppable(instr, outstr, socket).stop();
     }
 
     private static class SocketInputStream extends InputStream {

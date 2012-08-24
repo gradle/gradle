@@ -80,10 +80,10 @@ public class DefaultOutgoingBroadcast implements OutgoingBroadcast, Stoppable {
     }
 
     public void stop() {
-        CompositeStoppable stoppable = new CompositeStoppable();
+        CompositeStoppable stoppable;
         lock.lock();
         try {
-            stoppable.add(hub, discoveryBroadcast, executor);
+            stoppable = CompositeStoppable.stoppable(hub, discoveryBroadcast, executor);
         } finally {
             connections.clear();
             lock.unlock();

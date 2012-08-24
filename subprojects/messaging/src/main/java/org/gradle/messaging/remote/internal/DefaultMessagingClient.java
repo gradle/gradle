@@ -44,6 +44,6 @@ public class DefaultMessagingClient implements MessagingClient, Stoppable {
     }
 
     public void stop() {
-        new CompositeStoppable(connections).stop();
+        CompositeStoppable.stoppable(connections).stop();
     }
 }

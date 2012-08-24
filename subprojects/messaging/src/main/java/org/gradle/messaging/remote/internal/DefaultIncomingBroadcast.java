@@ -78,7 +78,7 @@ public class DefaultIncomingBroadcast implements IncomingBroadcast, Stoppable {
     }
 
     public void stop() {
-        new CompositeStoppable().add(protocolStack, hub, executor).stop();
+        CompositeStoppable.stoppable(protocolStack, hub, executor).stop();
     }
 
     private class IncomingConnectionAction implements Action<ConnectEvent<Connection<Message>>> {

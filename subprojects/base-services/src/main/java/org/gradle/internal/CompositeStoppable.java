@@ -30,12 +30,15 @@ public class CompositeStoppable implements Stoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(CompositeStoppable.class);
     private final List<Stoppable> elements = new CopyOnWriteArrayList<Stoppable>();
 
-    public CompositeStoppable(Object... elements) {
-        add(elements);
+    public CompositeStoppable() {
     }
 
-    public CompositeStoppable(Iterable<?> elements) {
-        add(elements);
+    public static CompositeStoppable stoppable(Object... elements) {
+        return new CompositeStoppable().add(elements);
+    }
+
+    public static CompositeStoppable stoppable(Iterable<?> elements) {
+        return new CompositeStoppable().add(elements);
     }
 
     public CompositeStoppable add(Iterable<?> elements) {

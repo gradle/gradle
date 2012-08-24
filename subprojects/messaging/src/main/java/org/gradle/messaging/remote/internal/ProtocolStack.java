@@ -110,7 +110,7 @@ public class ProtocolStack<T> implements AsyncStoppable {
             throw UncheckedException.throwAsUncheckedException(e);
         }
         callbackQueue.clear();
-        new CompositeStoppable(callbackQueue, receiver, workQueue, incomingQueue, outgoingQueue).stop();
+        CompositeStoppable.stoppable(callbackQueue, receiver, workQueue, incomingQueue, outgoingQueue).stop();
     }
 
     private class ExecuteRunnable implements Dispatch<Runnable> {

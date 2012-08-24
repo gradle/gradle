@@ -66,7 +66,7 @@ public class DefaultMessagingServer implements MessagingServer, Stoppable {
             connection.requestStop();
         }
         try {
-            new CompositeStoppable(connections).stop();
+            CompositeStoppable.stoppable(connections).stop();
         } finally {
             connections.clear();
         }

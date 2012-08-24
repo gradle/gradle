@@ -128,7 +128,7 @@ public class DefaultServiceRegistry extends AbstractServiceRegistry {
      */
     public void close() {
         try {
-            new CompositeStoppable(providers).stop();
+            CompositeStoppable.stoppable(providers).stop();
         } finally {
             closed = true;
             providers.clear();
@@ -224,7 +224,7 @@ public class DefaultServiceRegistry extends AbstractServiceRegistry {
         }
 
         public void stop() {
-            new CompositeStoppable(providers).stop();
+            CompositeStoppable.stoppable(providers).stop();
         }
 
         public void add(Provider provider) {
@@ -247,7 +247,7 @@ public class DefaultServiceRegistry extends AbstractServiceRegistry {
 
         public void stop() {
             try {
-                new CompositeStoppable().add(instance).stop();
+                CompositeStoppable.stoppable(instance).stop();
             } finally {
                 instance = null;
             }

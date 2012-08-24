@@ -76,7 +76,7 @@ public class TcpIncomingConnector<T> implements IncomingConnector<T>, AsyncStopp
     }
 
     public void requestStop() {
-        new CompositeStoppable().add(serverSockets).stop();
+        CompositeStoppable.stoppable(serverSockets).stop();
     }
 
     public void stop() {
@@ -121,7 +121,7 @@ public class TcpIncomingConnector<T> implements IncomingConnector<T>, AsyncStopp
                     LOGGER.error("Could not accept remote connection.", e);
                 }
             } finally {
-                new CompositeStoppable(serverSocket).stop();
+                CompositeStoppable.stoppable(serverSocket).stop();
                 serverSockets.remove(serverSocket);
             }
         }
