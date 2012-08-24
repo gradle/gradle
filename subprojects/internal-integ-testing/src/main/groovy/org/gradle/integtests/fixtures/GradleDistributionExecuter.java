@@ -27,6 +27,8 @@ import java.io.File;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.gradle.util.Matchers.containsLine;
 import static org.gradle.util.Matchers.matchesRegexp;
@@ -194,13 +196,13 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
 
     public void assertErrorHasNoStackTraces(ExecutionResult result) {
         String error = result.getError();
-        if (result instanceof ExecutionFailure) {
-            // Axe everything after the expected exception
-            int pos = error.indexOf("* Exception is:" + TextUtil.getPlatformLineSeparator());
-            if (pos >= 0) {
-                error = error.substring(0, pos);
-            }
-        }
+
+        // Replace any exception stack traces in the failure output
+        String twoNewlines = TextUtil.getPlatformLineSeparator() + TextUtil.getPlatformLineSeparator();
+        Pattern p = Pattern.compile("^\\* Exception is:.*?" + twoNewlines, Pattern.MULTILINE | Pattern.DOTALL);
+        Matcher m = p.matcher(error);
+        error = m.replaceAll("* Exception is:\n<snip>\n\n");
+
         assertNoStackTraces(error, "Standard error");
     }
 
