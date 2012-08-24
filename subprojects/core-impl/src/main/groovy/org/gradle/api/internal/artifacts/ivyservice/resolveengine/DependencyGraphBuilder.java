@@ -160,8 +160,7 @@ public class DependencyGraphBuilder {
         for (DependencyEdge edge : resolvedConfiguration.outgoingEdges) {
             dependencies.add(new DefaultResolvedDependencyResult(
                     edge.toSelector(),
-                    edge.toId(),
-                    edge.getTargetConfigurationNames()));
+                    edge.toId()));
         }
 
         listener.resolvedConfiguration(id, dependencies);
@@ -399,14 +398,6 @@ public class DependencyGraphBuilder {
             if (selector != null && selector.failure != null) {
                 failureState.addUnresolvedDependency(this, selector.descriptor.getDependencyRevisionId(), selector.failure);
             }
-        }
-
-        public Set<String> getTargetConfigurationNames() {
-            Set<String> selectedConfigurations = new LinkedHashSet<String>();
-            for (ConfigurationNode targetConfiguration : this.targetConfigurations) {
-                selectedConfigurations.add(targetConfiguration.configurationName);
-            }
-            return selectedConfigurations;
         }
 
         public ModuleVersionSelector toSelector() {

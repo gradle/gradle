@@ -87,9 +87,9 @@ class DependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         errorOutput.contains('Could not resolve all dependencies')
         output.contains(toPlatformLineSeparators("""
 foo
-+--- i:dont:exist [UNRESOLVED]
-\\--- foo:baz:1.0 [default]
-     \\--- foo:foo:bar:1.0:1.0 [UNRESOLVED]
++--- i:dont:exist
+\\--- foo:baz:1.0
+     \\--- foo:foo:bar:1.0:1.0
 """
         ))
     }
@@ -185,17 +185,17 @@ rootProject.name = 'root'
         output.contains 'compile - Classpath for compiling the main sources.'
 
         output.contains(toPlatformLineSeparators("""
-+--- root:a:1.0 [default]
-|    \\--- foo:bar:1.0 -> 3.0 [default]
-|         \\--- foo:baz:5.0 [compile,master,runtime]
-+--- root:b:1.0 [default]
-|    \\--- foo:bar:0.5.dont.exist -> 3.0 [default] (*)
-+--- root:c:1.0 [default]
-|    \\--- foo:bar:3.0 [default] (*)
-+--- root:d:1.0 [default]
-|    \\--- foo:bar:2.0 -> 3.0 [default] (*)
-\\--- root:e:1.0 [default]
-     \\--- foo:bar:3.0 [default] (*)
++--- root:a:1.0
+|    \\--- foo:bar:1.0 -> 3.0
+|         \\--- foo:baz:5.0
++--- root:b:1.0
+|    \\--- foo:bar:0.5.dont.exist -> 3.0 (*)
++--- root:c:1.0
+|    \\--- foo:bar:3.0 (*)
++--- root:d:1.0
+|    \\--- foo:bar:2.0 -> 3.0 (*)
+\\--- root:e:1.0
+     \\--- foo:bar:3.0 (*)
 """))
     }
 
@@ -229,13 +229,13 @@ rootProject.name = 'root'
 
         then:
         output.contains(toPlatformLineSeparators("""
-\\--- org:toplevel:1.0 [default]
-     +--- org:middle1:1.0 [compile,master,runtime]
-     |    +--- org:leaf1:1.0 [compile,master,runtime]
-     |    \\--- org:leaf2:1.0 [compile,master,runtime]
-     \\--- org:middle2:1.0 [compile,master,runtime]
-          +--- org:leaf3:1.0 [compile,master,runtime]
-          \\--- org:leaf4:1.0 [compile,master,runtime]
+\\--- org:toplevel:1.0
+     +--- org:middle1:1.0
+     |    +--- org:leaf1:1.0
+     |    \\--- org:leaf2:1.0
+     \\--- org:middle2:1.0
+          +--- org:leaf3:1.0
+          \\--- org:leaf4:1.0
 """))
     }
 
@@ -270,11 +270,11 @@ rootProject.name = 'root'
 
         then:
         output.contains(toPlatformLineSeparators("""
-+--- bar:bar:5.0 -> 6.0 [default]
-|    \\--- foo:foo:3.0 [compile,master,runtime]
-+--- bar:bar:6.0 [default] (*)
-+--- foo:foo:1.0 -> 3.0 [default] (*)
-\\--- foo:foo:2.0 -> 3.0 [default] (*)
++--- bar:bar:5.0 -> 6.0
+|    \\--- foo:foo:3.0
++--- bar:bar:6.0 (*)
++--- foo:foo:1.0 -> 3.0 (*)
+\\--- foo:foo:2.0 -> 3.0 (*)
 """))
     }
 
@@ -306,13 +306,13 @@ rootProject.name = 'root'
 
         then:
         output.contains(toPlatformLineSeparators("""
-+--- foo:foo:1+ -> 2.5 [default]
-|    \\--- foo:bar:2.0 [compile,master,runtime]
-\\--- foo:foo:2+ -> 2.5 [default] (*)
++--- foo:foo:1+ -> 2.5
+|    \\--- foo:bar:2.0
+\\--- foo:foo:2+ -> 2.5 (*)
 """))
     }
 
-    def "renders the configurations in predictable order"() {
+    def "renders ivy tree with custom configurations"() {
         given:
         def repo = new IvyRepository(file("repo"))
 
@@ -342,7 +342,7 @@ rootProject.name = 'root'
         run ":dependencies"
 
         then:
-        output.contains "org:child:1.0 [runtime,default,first,second]"
+        output.contains "org:child:1.0"
     }
 
     def "renders the ivy tree with conflicts"() {
@@ -379,14 +379,14 @@ rootProject.name = 'root'
 
         then:
         output.contains(toPlatformLineSeparators("""
-+--- org:toplevel:1.0 [default]
-|    +--- org:middle1:1.0 [runtime,default]
-|    |    +--- org:leaf1:1.0 [runtime,default]
-|    |    \\--- org:leaf2:1.0 [runtime,default]
-|    \\--- org:middle2:1.0 [runtime,default]
-|         +--- org:leaf3:1.0 [runtime,default]
-|         \\--- org:leaf4:1.0 -> 2.0 [runtime,default]
-\\--- org:leaf4:2.0 [default] (*)
++--- org:toplevel:1.0
+|    +--- org:middle1:1.0
+|    |    +--- org:leaf1:1.0
+|    |    \\--- org:leaf2:1.0
+|    \\--- org:middle2:1.0
+|         +--- org:leaf3:1.0
+|         \\--- org:leaf4:1.0 -> 2.0
+\\--- org:leaf4:2.0 (*)
 """))
     }
 }

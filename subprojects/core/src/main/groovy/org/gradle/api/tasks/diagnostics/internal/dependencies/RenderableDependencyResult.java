@@ -17,7 +17,6 @@
 package org.gradle.api.tasks.diagnostics.internal.dependencies;
 
 import com.google.common.base.Function;
-import com.google.common.base.Joiner;
 import com.google.common.collect.Collections2;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
@@ -37,15 +36,7 @@ public class RenderableDependencyResult implements RenderableDependency {
     private final String description;
 
     public RenderableDependencyResult(ResolvedDependencyResult dependency) {
-        this.dependency = dependency;
-        if (dependency.getSelectedConfigurations().isEmpty()) {
-            //TODO SF this needs to be revisited when implementing the 'shows unresolved dependencies' story.
-            //Currently I simply assume that when there are no selected configurations then the dependency is unresolved
-            //This is quite weak but it is simple and feels better than printing empty configurations.
-            this.description = "UNRESOLVED";
-        } else {
-            this.description = Joiner.on(",").join(dependency.getSelectedConfigurations());
-        }
+        this(dependency, null);
     }
 
     public RenderableDependencyResult(ResolvedDependencyResult dependency, String description) {

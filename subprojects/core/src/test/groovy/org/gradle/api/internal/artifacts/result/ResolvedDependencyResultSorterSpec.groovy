@@ -45,7 +45,7 @@ class ResolvedDependencyResultSorterSpec extends Specification {
         sorted == [d1, d2, d3, d4, d5, d6]
     }
 
-    private newDependency(ModuleVersionSelector requested, ModuleVersionIdentifier selected, Collection<String> configurations = []) {
-        new DefaultResolvedDependencyResult(requested, selected, configurations)
+    private newDependency(ModuleVersionSelector requested, ModuleVersionIdentifier selected) {
+        new DefaultResolvedDependencyResult(requested, selected)
     }
 }

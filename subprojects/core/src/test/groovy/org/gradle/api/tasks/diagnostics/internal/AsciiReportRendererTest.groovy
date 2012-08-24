@@ -66,12 +66,12 @@ class AsciiReportRendererTest extends Specification {
         ConfigurationInternal configuration = Mock()
         configuration.name >> 'config'
 
-        def root = new SimpleDependency("root", "config")
-        def dep1 = new SimpleDependency("dep1", "config1")
-        def dep11 = new SimpleDependency("dep1.1", "config1.1")
-        def dep2 = new SimpleDependency("dep2", "config2")
-        def dep21 = new SimpleDependency("dep2.1", "config2.1")
-        def dep22 = new SimpleDependency("dep2.2", "config2.2")
+        def root = new SimpleDependency("root")
+        def dep1 = new SimpleDependency("dep1")
+        def dep11 = new SimpleDependency("dep1.1")
+        def dep2 = new SimpleDependency("dep2")
+        def dep21 = new SimpleDependency("dep2.1")
+        def dep22 = new SimpleDependency("dep2.2")
 
         root.children.addAll(dep1, dep2)
         dep1.children.addAll(dep11)
@@ -84,11 +84,11 @@ class AsciiReportRendererTest extends Specification {
         then:
         textOutput.value.readLines() == [
                 'config',
-                '+--- dep1 [config1]',
-                '|    \\--- dep1.1 [config1.1]',
-                '\\--- dep2 [config2]',
-                '     +--- dep2.1 [config2.1]',
-                '     \\--- dep2.2 [config2.2]'
+                '+--- dep1',
+                '|    \\--- dep1.1',
+                '\\--- dep2',
+                '     +--- dep2.1',
+                '     \\--- dep2.2'
         ]
     }
 

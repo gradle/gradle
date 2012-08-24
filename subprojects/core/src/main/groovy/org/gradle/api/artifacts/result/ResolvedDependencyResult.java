@@ -19,8 +19,6 @@ package org.gradle.api.artifacts.result;
 import org.gradle.api.Experimental;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 
-import java.util.Set;
-
 /**
  * Resolved dependency result is an edge in the resolved dependency graph.
  * Provides information about the requested module version and the selected module version.
@@ -44,12 +42,4 @@ public interface ResolvedDependencyResult {
      * @return selected module version
      */
     ResolvedModuleVersionResult getSelected();
-
-    /**
-     * Returns the selected configurations.
-     * Useful for advanced users.
-     *
-     * @return selected configurations
-     */
-    Set<String> getSelectedConfigurations();
 }

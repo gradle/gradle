@@ -19,6 +19,8 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedDependencyResult;
 
+import java.util.Collection;
+
 /**
  * by Szczepan Faber, created at: 7/26/12
  */
@@ -26,6 +28,6 @@ public interface ResolvedConfigurationListener {
 
     void start(ResolvedConfigurationIdentifier root);
 
-    void resolvedConfiguration(ResolvedConfigurationIdentifier id, Iterable<DefaultResolvedDependencyResult> dependencies);
+    void resolvedConfiguration(ResolvedConfigurationIdentifier id, Collection<DefaultResolvedDependencyResult> dependencies);
 
 }

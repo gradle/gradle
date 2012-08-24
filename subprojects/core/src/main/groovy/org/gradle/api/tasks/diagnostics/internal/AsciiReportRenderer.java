@@ -39,7 +39,7 @@ import static org.gradle.logging.StyledTextOutput.Style.*;
  *
  * @author Phil Messenger
  */
-public class AsciiReportRenderer extends TextReportRenderer implements DependencyReportRenderer {
+public class    AsciiReportRenderer extends TextReportRenderer implements DependencyReportRenderer {
     private boolean hasConfigs;
     private boolean hasCyclicDependencies;
     private GraphRenderer renderer;
@@ -117,7 +117,6 @@ public class AsciiReportRenderer extends TextReportRenderer implements Dependenc
             public void execute(StyledTextOutput styledTextOutput) {
                 getTextOutput().text(resolvedDependency.getName());
                 StyledTextOutput infoStyle = getTextOutput().withStyle(Info);
-                infoStyle.format(" [%s]", resolvedDependency.getDescription());
 
                 if (!isFirstVisitOfDependencyInConfiguration) {
                     infoStyle.append(" (*)");

@@ -31,6 +31,10 @@ public class SimpleDependency implements RenderableDependency {
     private final Set<RenderableDependency> children = new LinkedHashSet<RenderableDependency>();
     private final Set<RenderableDependency> parents = new LinkedHashSet<RenderableDependency>();
 
+    public SimpleDependency(String name) {
+        this(name, null);
+    }
+
     public SimpleDependency(String name, String description) {
         this.name = name;
         this.description = description;
