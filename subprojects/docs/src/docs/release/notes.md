@@ -1,4 +1,3 @@
-
 ## New and noteworthy
 
 Here are the new features introduced in Gradle 1.2.
@@ -82,7 +81,11 @@ We will continue working on it and with Gradle 1.3 it will be officially announc
 
 ### Configuration option for FindBugs plugin
 
-Thanks to a contribution from [Justin Ryan](https://github.com/quidryan), the FindBugs plugin now supports essential configuration options.
+Thanks to a contribution from [Justin Ryan](https://github.com/quidryan), the FindBugs plugin now supports more configuration options.
+
+## Fixed Issues
+
+The list of issues fixed between 1.1 and 1.2 can be found [here](http://issues.gradle.org/sr/jira.issueviews:searchrequest-printable/temp/SearchRequest.html?jqlQuery=fixVersion+in+%28%221.2-rc-1%22%29+ORDER+BY+priority&tempMax=1000).
 
 ## Upgrading from Gradle 1.1
 
@@ -124,7 +127,3 @@ constructor with an `@Inject` annotation.
 
 See [constructor handling](#constructors) above. The changes should be backwards compatible. Please let us know if you come across a situation where
 a plugin or task implementation that worked with previous versions of Gradle does not work with Gradle 1.2.
-
-## Fixed Issues
-
-The list of issues fixed between 1.1 and 1.2 can be found [here](http://issues.gradle.org/sr/jira.issueviews:searchrequest-printable/temp/SearchRequest.html?jqlQuery=fixVersion+in+%28%221.2-rc-1%22%29+ORDER+BY+priority&tempMax=1000).
