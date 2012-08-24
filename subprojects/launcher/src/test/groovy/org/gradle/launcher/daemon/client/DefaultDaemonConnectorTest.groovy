@@ -66,7 +66,7 @@ class DefaultDaemonConnectorTest extends Specification {
         def daemonNum = daemonCounter++
         DaemonContext context = new DefaultDaemonContext(daemonNum.toString(), javaHome, javaHome, daemonNum, 1000, [])
         def address = createAddress(daemonNum)
-        registry.store(address, context, "password")
+        registry.store(address, context, "password", false)
         registry.markBusy(address)
         return new DaemonStartupInfo(daemonNum.toString(), null);
     }
@@ -75,7 +75,7 @@ class DefaultDaemonConnectorTest extends Specification {
         def daemonNum = daemonCounter++
         DaemonContext context = new DefaultDaemonContext(daemonNum.toString(), javaHome, javaHome, daemonNum, 1000, [])
         def address = createAddress(daemonNum)
-        registry.store(address, context, "password")
+        registry.store(address, context, "password", true)
     }
 
     def theConnector

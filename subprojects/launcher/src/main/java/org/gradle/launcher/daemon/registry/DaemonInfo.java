@@ -29,12 +29,13 @@ public class DaemonInfo implements Serializable {
     private final Address address;
     private final DaemonContext context;
     private final String password;
-    private boolean idle = true;
+    private boolean idle;
 
-    public DaemonInfo(Address address, DaemonContext context, String password) {
+    public DaemonInfo(Address address, DaemonContext context, String password, boolean idle) {
         this.address = address;
         this.context = context;
         this.password = password;
+        this.idle = idle;
     }
 
     public DaemonInfo setIdle(boolean idle) {

@@ -153,7 +153,7 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
         }
     }
 
-    public synchronized void store(final Address address, final DaemonContext daemonContext, final String password) {
+    public synchronized void store(final Address address, final DaemonContext daemonContext, final String password, final boolean idle) {
         lock.lock();
         LOGGER.debug("Storing daemon address: {}, context: {}", address, daemonContext);
         try {
@@ -163,7 +163,7 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
                         //it means the registry didn't exist yet
                         oldValue = new DaemonRegistryContent();
                     }
-                    DaemonInfo daemonInfo = new DaemonInfo(address, daemonContext, password).setIdle(true);
+                    DaemonInfo daemonInfo = new DaemonInfo(address, daemonContext, password, idle);
                     oldValue.setStatus(address, daemonInfo);
                     return oldValue;
                 }

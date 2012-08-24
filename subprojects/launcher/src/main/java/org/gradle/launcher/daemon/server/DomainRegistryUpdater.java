@@ -63,8 +63,7 @@ class DomainRegistryUpdater implements Stoppable {
         LOGGER.info("Advertising the daemon address to the clients: {}", connectorAddress);
         LOGGER.debug("Advertised daemon context: {}", daemonContext);
         this.connectorAddress = connectorAddress;
-        daemonRegistry.store(connectorAddress, daemonContext, password);
-        daemonRegistry.markBusy(connectorAddress);
+        daemonRegistry.store(connectorAddress, daemonContext, password, false);
     }
 
     public void stop() {

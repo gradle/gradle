@@ -40,7 +40,7 @@ class PersistentDaemonRegistryTest extends Specification {
         def registry = new PersistentDaemonRegistry(file, lockManager)
         
         and:
-        registry.store(address(), daemonContext(), "password")
+        registry.store(address(), daemonContext(), "password", true)
 
         expect:
         registry.all.size() == 1
