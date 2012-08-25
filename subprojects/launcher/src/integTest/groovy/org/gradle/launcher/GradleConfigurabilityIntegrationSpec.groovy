@@ -16,7 +16,6 @@
 
 package org.gradle.launcher
 
-import ch.qos.logback.classic.Level
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
@@ -25,7 +24,6 @@ import org.gradle.internal.nativeplatform.filesystem.FileSystems
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.util.TextUtil
-import org.slf4j.LoggerFactory
 import spock.lang.IgnoreIf
 
 /**
@@ -36,16 +34,11 @@ class GradleConfigurabilityIntegrationSpec extends AbstractIntegrationSpec {
 
     def setup() {
         distribution.requireIsolatedDaemons()
-        LoggerFactory.getLogger("org.gradle.cache.internal.DefaultFileLockManager").level = Level.INFO
     }
 
     def buildSucceeds(String script) {
         distribution.file('build.gradle') << script
         executer.withArguments("--info").withNoDefaultJvmArgs().run()
-    }
-
-    def cleanup() {
-        executer.withArguments("--stop", "--info").run()
     }
 
     def "honours jvm args specified in gradle.properties"() {

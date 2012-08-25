@@ -18,44 +18,19 @@ package org.gradle.integtests.fixtures;
 import org.apache.commons.collections.CollectionUtils;
 import org.gradle.api.JavaVersion;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 import static java.util.Arrays.asList;
 
 public class DaemonGradleExecuter extends ForkingGradleExecuter {
-
-    private final GradleDistribution distribution;
     private final boolean allowExtraLogging;
     private final boolean noDefaultJvmArgs;
 
     public DaemonGradleExecuter(GradleDistribution distribution, boolean allowExtraLogging, boolean noDefaultJvmArgs) {
         super(distribution.getGradleHomeDir());
-        this.distribution = distribution;
         this.allowExtraLogging = allowExtraLogging;
         this.noDefaultJvmArgs = noDefaultJvmArgs;
-    }
-
-    @Override
-    protected int getDaemonIdleTimeoutSecs() {
-        int superValue =  super.getDaemonIdleTimeoutSecs();
-        boolean preferShortTimeout = distribution.isUsingIsolatedDaemons() || getDaemonBaseDir() != null;
-        if (preferShortTimeout) {
-            return Math.min(superValue, 20);
-        } else {
-            return superValue;
-        }
-    }
-
-    @Override
-    protected File getDaemonBaseDir() {
-        File daemonBaseDir = super.getDaemonBaseDir();
-        if (distribution.isUsingIsolatedDaemons() && daemonBaseDir == null) {
-            return new File(distribution.getUserHomeDir(), "daemon");
-        } else {
-            return daemonBaseDir;
-        }
     }
 
     @Override

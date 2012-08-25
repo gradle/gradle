@@ -41,6 +41,7 @@ import static org.gradle.util.Matchers.matchesRegexp;
  */
 public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter implements MethodRule {
     private static final String EXECUTER_SYS_PROP = "org.gradle.integtest.executer";
+    private static final int DEFAULT_DAEMON_IDLE_TIMEOUT_SECS = 2 * 60;
 
     private GradleDistribution dist;
     private boolean workingDirSet;
@@ -238,6 +239,16 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
         }
         if (!userHomeSet) {
             withUserHomeDir(dist.getUserHomeDir());
+        }
+        if (getDaemonIdleTimeoutSecs() == null) {
+            if (dist.isUsingIsolatedDaemons() || getDaemonBaseDir() != null) {
+                withDaemonIdleTimeoutSecs(20);
+            } else {
+                withDaemonIdleTimeoutSecs(DEFAULT_DAEMON_IDLE_TIMEOUT_SECS);
+            }
+        }
+        if (getDaemonBaseDir() == null) {
+            withDaemonBaseDir(dist.getDaemonBaseDir());
         }
 
         if (!getClass().desiredAssertionStatus()) {

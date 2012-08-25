@@ -39,10 +39,10 @@ public class GradleDistribution implements MethodRule, TestFileContext, BasicGra
     private static final TestFile USER_GUIDE_INFO_DIR;
     private static final TestFile DISTS_DIR;
     private static final TestFile LIBS_REPO;
+    private static final TestFile DAEMON_BASE_DIR;
 
     private final TemporaryFolder temporaryFolder = new TemporaryFolder();
     private TestFile userHome;
-    private boolean usingOwnUserHomeDir;
     private boolean usingIsolatedDaemons;
     private boolean avoidsConfiguringTmpDir;
 
@@ -55,6 +55,7 @@ public class GradleDistribution implements MethodRule, TestFileContext, BasicGra
         USER_GUIDE_INFO_DIR = file("integTest.userGuideInfoDir", "subprojects/docs/build/src");
         DISTS_DIR = file("integTest.distsDir", "build/distributions");
         LIBS_REPO = file("integTest.libsRepo", "build/repo");
+        DAEMON_BASE_DIR = file("org.gradle.integtest.daemon.registry", "build/daemon");
     }
 
     public GradleDistribution() {
@@ -96,12 +97,15 @@ public class GradleDistribution implements MethodRule, TestFileContext, BasicGra
         return GradleVersion.version(version).compareTo(GradleVersion.version("0.8")) > 0;
     }
 
-    public boolean isUsingOwnUserHomeDir() {
-        return usingOwnUserHomeDir;
+    public TestFile getDaemonBaseDir() {
+        if (usingIsolatedDaemons) {
+            return getTestDir().file("daemon");
+        } else {
+            return DAEMON_BASE_DIR;
+        }
     }
 
     public void requireOwnUserHomeDir() {
-        usingOwnUserHomeDir = true;
         userHome = getTestDir().file("user-home");
     }
 
@@ -110,7 +114,6 @@ public class GradleDistribution implements MethodRule, TestFileContext, BasicGra
     }
 
     public void requireIsolatedDaemons() {
-        requireOwnUserHomeDir();
         this.usingIsolatedDaemons = true;
     }
 
