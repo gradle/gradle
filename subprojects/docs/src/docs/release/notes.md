@@ -41,7 +41,8 @@ Over the coming releases, we'll be adding support for parallel execution of inde
 will enable better hardware utilisation and faster build times.
 
 Gradle 1.2 introduces the first experimental support for this feature, via the `--parallel` and `--parallel-threads` [command-line options](userguide/gradle_command_line.html).
-By using these options Gradle will attempt to _execute_ multiple projects in parallel build threads, after first configuring all projects sequentially.
+By using these options Gradle will attempt to _execute_ multiple projects in parallel build threads, after first configuring all projects sequentially. We are seeing significant
+performance benefits with this approach, in particular when the build is not already CPU bound.
 
 Note that to guarantee successful parallel execution of projects, your multi-project build must contain only [decoupled projects](userguide/multi_project_builds.html#sec:decoupled_projects).
 While configuration-time decoupling is not strictly required for parallel project execution, we do not intend on supporting a separate model of decoupling that permits configuration-time
@@ -49,6 +50,17 @@ coupling with execution-time decoupling. At this time there are no checks implem
 projects using the new parallel executor.
 
 **This feature is pre-alpha and highly experimental. Many multi-project builds will behave unexpectedly when run using parallel project execution.**
+One known issue is that the Gradle compiler daemon is not current thread-safe. So if multiple projects attempt to compile java code simultaneously with `fork=true`,
+exceptions will result. Workaround: don't use `options.fork=true` to compile when running with `--parallel`.
+
+### Reporting of multiple build failures
+
+When running the build with `--parallel` or `--continue` it is possible to have multiple failures in your build. While executing Gradle will now report on tasks that fail,
+as well as producing output detailing _all_ build failures on build completion.
+
+The new output clearly indicates the cause and possible analysis of each failure, making it easier to track down the underlying issue.
+Detailing _all_ failures makes the `--continue` command line option much more useful: it is now possible to use this option to
+discover as many failures as possible with a single build execution.
 
 ### Documentation facelift
 
