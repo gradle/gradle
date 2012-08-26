@@ -69,14 +69,20 @@ abstract public class AvailableJavaHomes {
         } else if (OperatingSystem.current().isWindows()) {
             //very simple algorithm trying to find java on windows
             File installedJavas = new File("c:/Program Files/Java");
-            File[] files = installedJavas.listFiles();
-            for (File file : files) {
-                if (file.getName().startsWith("jdk")) {
-                    if (jvm.getJavaVersion().isJava6() && !file.getName().contains("1.6")) {
-                        return file;
-                    }
-                    if (jvm.getJavaVersion().isJava7() && !file.getName().contains("1.7")) {
-                        return file;
+            if (!installedJavas.isDirectory()) {
+                // Attempt to look for 32-bit version under 64-bit OS
+                installedJavas = new File("c:/Program Files (x86)/Java");
+            }
+            if (installedJavas.isDirectory())
+            {
+                for (File file : installedJavas.listFiles()) {
+                    if (file.getName().startsWith("jdk")) {
+                        if (jvm.getJavaVersion().isJava6() && !file.getName().contains("1.6")) {
+                            return file;
+                        }
+                        if (jvm.getJavaVersion().isJava7() && !file.getName().contains("1.7")) {
+                            return file;
+                        }
                     }
                 }
             }
@@ -123,14 +129,20 @@ abstract public class AvailableJavaHomes {
         } else if (OperatingSystem.current().isWindows()) {
             //very simple algorithm trying to find java on windows
             File installedJavas = new File("c:/Program Files/Java");
-            File[] files = installedJavas.listFiles();
-            for (File file : files) {
-                if (file.getName().startsWith("jre")) {
-                    if (jvm.getJavaVersion().isJava6() && !file.getName().contains("1.6")) {
-                        return file;
-                    }
-                    if (jvm.getJavaVersion().isJava7() && !file.getName().contains("1.7")) {
-                        return file;
+            if (!installedJavas.isDirectory()) {
+                // Attempt to look for 32-bit version under 64-bit OS
+                installedJavas = new File("c:/Program Files (x86)/Java");
+            }
+            if (installedJavas.isDirectory())
+            {
+                for (File file : installedJavas.listFiles()) {
+                    if (file.getName().startsWith("jre")) {
+                        if (jvm.getJavaVersion().isJava6() && !file.getName().contains("1.6")) {
+                            return file;
+                        }
+                        if (jvm.getJavaVersion().isJava7() && !file.getName().contains("1.7")) {
+                            return file;
+                        }
                     }
                 }
             }
