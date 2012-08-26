@@ -65,7 +65,6 @@ public class DefaultDaemonCommandExecuter implements DaemonCommandExecuter {
         DaemonDiagnostics daemonDiagnostics = new DaemonDiagnostics(daemonLog, daemonContext.getPid());
         return new LinkedList<DaemonCommandAction>(Arrays.asList(
             new StopConnectionAfterExecution(),
-            new HandleClientDisconnectBeforeSendingCommand(),
             new CatchAndForwardDaemonFailure(),
             new HandleStop(),
             new StartBuildOrRespondWithBusy(daemonDiagnostics),
