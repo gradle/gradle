@@ -22,8 +22,6 @@ import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
 import org.gradle.launcher.daemon.protocol.Command;
 import org.gradle.logging.LoggingManagerInternal;
-import org.gradle.messaging.remote.internal.Connection;
-import org.gradle.messaging.remote.internal.DisconnectAwareConnectionDecorator;
 
 import java.io.File;
 import java.util.Arrays;
@@ -50,9 +48,9 @@ public class DefaultDaemonCommandExecuter implements DaemonCommandExecuter {
         this.launcherFactory = launcherFactory;
     }
 
-    public void executeCommand(Connection<Object> connection, Command command, DaemonContext daemonContext, DaemonStateControl daemonStateControl, Runnable commandAbandoned) {
+    public void executeCommand(DaemonConnection connection, Command command, DaemonContext daemonContext, DaemonStateControl daemonStateControl, Runnable commandAbandoned) {
         new DaemonCommandExecution(
-            new DisconnectAwareConnectionDecorator<Object>(connection, executorFactory.create("DefaultDaemonCommandExecuter > DisconnectAwareConnectionDecorator")),
+            connection,
             command,
             daemonContext,
             daemonStateControl,
@@ -64,13 +62,12 @@ public class DefaultDaemonCommandExecuter implements DaemonCommandExecuter {
     protected List<DaemonCommandAction> createActions(DaemonContext daemonContext) {
         DaemonDiagnostics daemonDiagnostics = new DaemonDiagnostics(daemonLog, daemonContext.getPid());
         return new LinkedList<DaemonCommandAction>(Arrays.asList(
-            new StopConnectionAfterExecution(),
             new CatchAndForwardDaemonFailure(),
             new HandleStop(),
             new StartBuildOrRespondWithBusy(daemonDiagnostics),
             new EstablishBuildEnvironment(processEnvironment),
             new LogToClient(loggingManager, daemonDiagnostics), // from this point down, logging is sent back to the client
-            new ForwardClientInput(executorFactory),
+            new ForwardClientInput(),
             new ReturnResult(),
             new StartStopIfBuildAndStop(),
             new ResetDeprecationLogger(),

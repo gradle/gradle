@@ -31,7 +31,7 @@ public class HandleStop implements DaemonCommandAction {
                 immediately tear down the client connection and remove the daemon from the registry.
             */
             execution.getDaemonStateControl().requestForcefulStop();
-            execution.getConnection().dispatch(new Success(null));
+            execution.getConnection().completed(new Success(null));
         } else {
             execution.proceed();
         }
