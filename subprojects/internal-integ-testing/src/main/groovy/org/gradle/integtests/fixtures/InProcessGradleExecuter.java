@@ -22,7 +22,6 @@ import org.gradle.GradleLauncher;
 import org.gradle.StartParameter;
 import org.gradle.api.GradleException;
 import org.gradle.api.Task;
-import org.gradle.api.Transformer;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
@@ -45,7 +44,6 @@ import org.gradle.internal.nativeplatform.services.NativeServices;
 import org.gradle.launcher.Main;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.process.internal.JavaExecHandleBuilder;
-import org.gradle.util.CollectionUtils;
 import org.gradle.util.DeprecationLogger;
 import org.hamcrest.Matcher;
 
