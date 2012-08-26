@@ -62,6 +62,16 @@ The new output clearly indicates the cause and possible analysis of each failure
 Detailing _all_ failures makes the `--continue` command line option much more useful: it is now possible to use this option to
 discover as many failures as possible with a single build execution.
 
+### Continue on failure (--continue) no longer experimental
+
+Often a high-level task is dependent on multiple smaller tasks. By default, Gradle will stop executing any task and fail the build
+as soon as one of these sub-tasks fails. This means that the build will finish sooner, but it does not reveal failures in other, independent sub-tasks.
+There are many times when you would like to find out as many failures as possible in a single build execution. Examples may include when you kick off a build
+before heading out to lunch, or running a nightly CI job. The `--continue` command-line option allows you to do just that.
+
+With the addition of nicer reporting of multiple build failures, we now consider `--continue` a fully-fledged capability of Gradle, and have remove the `experimental`
+flag from this option. Please see the [User Guide section](userguide/tutorial_gradle_command_line.html#sec:continue_build_on_failure) for more details.
+
 ### Documentation facelift
 
 Our documentation has received a facelift to match our new style. Check out the new look [DSL Reference](dsl/index.html) and [User Guide](userguide/userguide.html).
