@@ -42,7 +42,7 @@ import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
-import org.gradle.tooling.model.internal.migration.ProjectOutput;
+import org.gradle.tooling.model.internal.migration.ProjectOutcomes;
 import org.gradle.util.GradleVersion;
 
 import java.io.*;
@@ -121,12 +121,12 @@ public class CompareGradleBuilds extends DefaultTask {
     void compare() {
         // Build the outcome model and outcomes
 
-        GradleBuildOutcomeSetTransformer fromOutcomeTransformer = createOutcomeSetTransformer("from");
-        ProjectOutput fromOutput = generateBuildOutput(sourceVersion, getSourceProjectDir());
+        GradleBuildOutcomeSetTransformer fromOutcomeTransformer = createOutcomeSetTransformer("source");
+        ProjectOutcomes fromOutput = generateBuildOutput(sourceVersion, getSourceProjectDir());
         Set<BuildOutcome> fromOutcomes = fromOutcomeTransformer.transform(fromOutput);
 
-        GradleBuildOutcomeSetTransformer toOutcomeTransformer = createOutcomeSetTransformer("to");
-        ProjectOutput toOutput = generateBuildOutput(targetVersion, getTargetProjectDir());
+        GradleBuildOutcomeSetTransformer toOutcomeTransformer = createOutcomeSetTransformer("target");
+        ProjectOutcomes toOutput = generateBuildOutput(targetVersion, getTargetProjectDir());
         Set<BuildOutcome> toOutcomes = toOutcomeTransformer.transform(toOutput);
 
         // Associate from each side (create spec)
@@ -150,7 +150,7 @@ public class CompareGradleBuilds extends DefaultTask {
         return new GradleBuildOutcomeSetTransformer(new PathNormalisingKeyFileStore(new File(getFileStoreDir(), filesPath)));
     }
 
-    private ProjectOutput generateBuildOutput(String gradleVersionString, File other) {
+    private ProjectOutcomes generateBuildOutput(String gradleVersionString, File other) {
         GradleVersion gradleVersion = GradleVersion.version(gradleVersionString);
         GradleConnector connector = GradleConnector.newConnector().forProjectDirectory(other);
         connector.useGradleUserHomeDir(getProject().getGradle().getStartParameter().getGradleUserHomeDir());
@@ -161,9 +161,9 @@ public class CompareGradleBuilds extends DefaultTask {
         }
         ProjectConnection connection = connector.connect();
         try {
-            ProjectOutput buildOutput = connection.getModel(ProjectOutput.class);
+            ProjectOutcomes buildOutcomes = connection.getModel(ProjectOutcomes.class);
             connection.newBuild().forTasks("assemble").run();
-            return buildOutput;
+            return buildOutcomes;
         } finally {
             connection.close();
         }
@@ -192,7 +192,7 @@ public class CompareGradleBuilds extends DefaultTask {
 
     private BuildComparisonResultRenderer<Writer> createResultRenderer() {
         DefaultBuildOutcomeComparisonResultRendererFactory<HtmlRenderContext> renderers = new DefaultBuildOutcomeComparisonResultRendererFactory<HtmlRenderContext>(HtmlRenderContext.class);
-        renderers.registerRenderer(new GeneratedArchiveBuildOutcomeComparisonResultHtmlRenderer());
+        renderers.registerRenderer(new GeneratedArchiveBuildOutcomeComparisonResultHtmlRenderer("Source Build", "Target Build"));
 
         PartRenderer headRenderer = new HeadRenderer("Gradle Build Comparison", Charset.defaultCharset().name());
 

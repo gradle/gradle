@@ -118,7 +118,7 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
             try {
                 return (T) executeBuild(build, connection);
             } catch (DaemonInitialConnectException e) {
-                LOGGER.info(e.getMessage() + " Trying a different daemon...", e.getCause());
+                LOGGER.info(e.getMessage() + " Trying a different daemon...");
             }
         }
         //TODO SF if we want to keep below sanity it should include the errors that were accumulated above.

@@ -238,9 +238,9 @@ Run {userinput}[gradle tasks]{normal} to get a list of available tasks.
         expect:
         reporter.buildFinished(result(exception))
         output.value == '''
-{failure}FAILURE: Build failed with 3 exceptions.{normal}
+{failure}FAILURE: Build completed with 3 failures.{normal}
 
-{failure}Exception 1{normal}
+{failure}1: {normal}{failure}Task failed with an exception.{normal}
 -----------
 * Where:
 <location>
@@ -253,7 +253,7 @@ Run {userinput}[gradle tasks]{normal} to get a list of available tasks.
 Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output.
 ==============================================================================
 
-{failure}Exception 2{normal}
+{failure}2: {normal}{failure}Task failed with an exception.{normal}
 -----------
 * What went wrong:
 <failure>
@@ -262,7 +262,7 @@ Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with
 Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output.
 ==============================================================================
 
-{failure}Exception 3{normal}
+{failure}3: {normal}{failure}Build aborted because of an internal error.{normal}
 -----------
 * What went wrong:
 Build aborted because of an unexpected internal error. Please file an issue at: http://forums.gradle.org.

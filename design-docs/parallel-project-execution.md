@@ -77,9 +77,9 @@ Parallel execution implies that multiple failures may occur for a single build e
 
 #### Display composite output with all failures reported:
 
-    FAILURE: Build failed with 2 exceptions.
+    FAILURE: Build completed with 2 failures.
 
-    Exception 1
+    1: Task failed with exception
     -----------
     * Where:
     Build file '/Users/daz/dev/gradlex/parallel/build.gradle' line: 31
@@ -92,7 +92,7 @@ Parallel execution implies that multiple failures may occur for a single build e
     Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output.
     ==============================================================================
 
-    Exception 2
+    2: Task failed with exception
     -----------
     * Where:
     Build file '/Users/daz/dev/gradlex/parallel/build.gradle' line: 31
@@ -110,9 +110,9 @@ Parallel execution implies that multiple failures may occur for a single build e
 
 #### When run with --stacktrace, include the stack trace output for each exception:
 
-    FAILURE: Build failed with 2 exceptions.
+    FAILURE: Build completed with 2 failures.
 
-    Exception 1
+    1: Task failed with exception
     -----------
     Build file '/Users/daz/dev/gradlex/parallel/build.gradle' line: 31
 
@@ -137,7 +137,7 @@ Parallel execution implies that multiple failures may occur for a single build e
     Run with --info or --debug option to get more log output.
     ==============================================================================
 
-    Exception 2
+    2: Task failed with exception
     -----------
     Build file '/Users/daz/dev/gradlex/parallel/build.gradle' line: 31
 

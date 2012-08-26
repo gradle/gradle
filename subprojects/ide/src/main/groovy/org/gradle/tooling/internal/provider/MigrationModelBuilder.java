@@ -17,74 +17,56 @@
 package org.gradle.tooling.internal.provider;
 
 import com.google.common.collect.Lists;
-
 import org.gradle.api.Project;
-import org.gradle.api.Task;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.tasks.testing.Test;
-import org.gradle.tooling.internal.migration.DefaultArchive;
-import org.gradle.tooling.internal.migration.DefaultProjectOutput;
-import org.gradle.tooling.internal.migration.DefaultTestRun;
+import org.gradle.tooling.internal.migration.DefaultProjectOutcomes;
 import org.gradle.tooling.internal.protocol.InternalProjectOutput;
 import org.gradle.tooling.internal.protocol.ProjectVersion3;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
-import org.gradle.tooling.model.internal.migration.Archive;
-import org.gradle.tooling.model.internal.migration.ProjectOutput;
-import org.gradle.tooling.model.internal.migration.TestRun;
+import org.gradle.tooling.model.internal.migration.FileBuildOutcome;
+import org.gradle.tooling.model.internal.migration.ProjectOutcomes;
 
 import java.util.List;
-import java.util.Set;
 
 public class MigrationModelBuilder implements BuildsModel {
+
+    private final Transformer<FileBuildOutcome, PublishArtifact> artifactTransformer = new PublishArtifactToFileBuildOutcomeTransformer();
+
     public boolean canBuild(Class<?> type) {
         return type == InternalProjectOutput.class;
     }
 
     public ProjectVersion3 buildAll(GradleInternal gradle) {
         return buildProjectOutput(gradle.getRootProject(), null);
-
     }
 
-    private DefaultProjectOutput buildProjectOutput(Project project, ProjectOutput parent) {
-        DefaultProjectOutput projectOutput = new DefaultProjectOutput(project.getName(), project.getPath(),
-                project.getDescription(), project.getProjectDir(), project.getGradle().getGradleVersion(),
-                getArchives(project), getTestRuns(project), parent);
+    private DefaultProjectOutcomes buildProjectOutput(Project project, ProjectOutcomes parent) {
+        DefaultProjectOutcomes projectOutput = new DefaultProjectOutcomes(project.getName(), project.getPath(),
+                project.getDescription(), project.getProjectDir(), getFileOutcomes(project), parent);
         for (Project child : project.getChildProjects().values()) {
             projectOutput.addChild(buildProjectOutput(child, projectOutput));
         }
         return projectOutput;
     }
 
-    private DomainObjectSet<Archive> getArchives(Project project) {
-        List<Archive> archives = Lists.newArrayList();
+    private DomainObjectSet<FileBuildOutcome> getFileOutcomes(Project project) {
+        List<FileBuildOutcome> fileBuildOutcomes = Lists.newArrayList();
+        addArtifacts(project, fileBuildOutcomes);
+        return new ImmutableDomainObjectSet<FileBuildOutcome>(fileBuildOutcomes);
+    }
+
+    private void addArtifacts(Project project, List<FileBuildOutcome> outcomes) {
         Configuration configuration = project.getConfigurations().findByName("archives");
         if (configuration != null) {
             for (PublishArtifact artifact : configuration.getArtifacts()) {
-                String taskPath = getTaskPath(artifact);
-                archives.add(new DefaultArchive(taskPath, artifact.getFile()));
+                FileBuildOutcome outcome = artifactTransformer.transform(artifact);
+                outcomes.add(outcome);
             }
         }
-        return new ImmutableDomainObjectSet<Archive>(archives);
     }
 
-    private String getTaskPath(PublishArtifact artifact) {
-        String taskPath = null;
-        Set<? extends Task> tasks = artifact.getBuildDependencies().getDependencies(null);
-        if (!tasks.isEmpty()) {
-            taskPath = tasks.iterator().next().getPath();
-        }
-        return taskPath;
-    }
-
-    private DomainObjectSet<TestRun> getTestRuns(Project project) {
-        List<TestRun> testRuns = Lists.newArrayList();
-        Set<Test> testTasks = project.getTasks().withType(Test.class);
-        for (Test task : testTasks) {
-            testRuns.add(new DefaultTestRun(task.getPath(), task.getTestResultsDir()));
-        }
-        return new ImmutableDomainObjectSet<TestRun>(testRuns);
-    }
 }

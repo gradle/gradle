@@ -16,6 +16,7 @@
 package org.gradle.launcher.daemon.server.exec;
 
 import org.gradle.launcher.daemon.protocol.Stop;
+import org.gradle.launcher.daemon.protocol.Success;
 
 /**
  * If the command is a Stop, asks the daemon to stop asynchronously and does not proceed with execution.
@@ -30,6 +31,7 @@ public class HandleStop implements DaemonCommandAction {
                 immediately tear down the client connection and remove the daemon from the registry.
             */
             execution.getDaemonStateControl().requestForcefulStop();
+            execution.getConnection().dispatch(new Success(null));
         } else {
             execution.proceed();
         }

@@ -19,10 +19,11 @@ package org.gradle.api.plugins.migration.gradle.internal
 import org.gradle.api.internal.filestore.DefaultFileStoreEntry
 import org.gradle.api.internal.filestore.FileStore
 import org.gradle.api.internal.filestore.FileStoreEntry
-import org.gradle.api.plugins.migration.fixtures.gradle.ProjectOutputBuilder
+
 import org.gradle.api.plugins.migration.model.outcome.internal.archive.GeneratedArchiveBuildOutcome
-import org.gradle.tooling.model.internal.migration.ProjectOutput
+import org.gradle.tooling.model.internal.migration.ProjectOutcomes
 import spock.lang.Specification
+import org.gradle.api.plugins.migration.fixtures.gradle.ProjectOutcomesBuilder
 
 class GradleBuildOutcomeSetTransformerTest extends Specification {
 
@@ -44,19 +45,19 @@ class GradleBuildOutcomeSetTransformerTest extends Specification {
 
     def "can transform"() {
         given:
-        ProjectOutputBuilder builder = new ProjectOutputBuilder()
-        ProjectOutput projectOutput = builder.build {
+        ProjectOutcomesBuilder builder = new ProjectOutcomesBuilder()
+        ProjectOutcomes projectOutput = builder.build {
             createChild("a") {
-                addArchive "a1"
+                addFile "a1"
             }
             createChild("b") {
-                addArchive "b1"
-                addArchive "b2"
+                addFile "b1"
+                addFile "b2"
             }
             createChild("c") {
                 createChild("a") {
-                    addArchive "ca1"
-                    addArchive "ca2"
+                    addFile "ca1"
+                    addFile "ca2"
                 }
             }
             createChild("d")

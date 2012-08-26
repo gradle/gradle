@@ -57,11 +57,7 @@ public class EagerReceiveBuffer<T> implements Receive<T>, AsyncStoppable {
     private final Condition notFullOrStop  = lock.newCondition();
     private final Condition notEmptyOrNoReceivers = lock.newCondition();
 
-
-    private final StoppableExecutor executor;
-    private final int bufferSize;
     private final Collection<Receive<T>> receivers;
-    private final Runnable onReceiversExhausted;
     private final CountDownLatch onReceiversExhaustedFinishedLatch = new CountDownLatch(1);
 
     private final AsyncReceive<T> asyncReceive;
@@ -76,24 +72,8 @@ public class EagerReceiveBuffer<T> implements Receive<T>, AsyncStoppable {
         return list;
     }
 
-    public EagerReceiveBuffer(StoppableExecutor executor, Receive<T> receiver) {
-        this(executor, DEFAULT_BUFFER_SIZE, toReceiveCollection(receiver), null);
-    }
-
-    public EagerReceiveBuffer(StoppableExecutor executor, Receive<T> receiver, Runnable onReceiversExhausted) {
-        this(executor, DEFAULT_BUFFER_SIZE, toReceiveCollection(receiver), onReceiversExhausted);
-    }
-
     public EagerReceiveBuffer(StoppableExecutor executor, Collection<Receive<T>> receivers) {
         this(executor, DEFAULT_BUFFER_SIZE, receivers, null);
-    }
-
-    public EagerReceiveBuffer(StoppableExecutor executor, Collection<Receive<T>> receivers, Runnable onReceiversExhausted) {
-        this(executor, DEFAULT_BUFFER_SIZE, receivers, onReceiversExhausted);
-    }
-
-    public EagerReceiveBuffer(StoppableExecutor executor, int bufferSize, Receive<T> receiver) {
-        this(executor, bufferSize, toReceiveCollection(receiver), null);
     }
 
     public EagerReceiveBuffer(StoppableExecutor executor, int bufferSize, Receive<T> receiver, Runnable onReceiversExhausted) {
@@ -113,10 +93,7 @@ public class EagerReceiveBuffer<T> implements Receive<T>, AsyncStoppable {
             throw new IllegalArgumentException("eager receive buffer size must be positive (value given: " + bufferSize + ")");
         }
 
-        this.executor = executor;
-        this.bufferSize = bufferSize;
         this.receivers = receivers;
-        this.onReceiversExhausted = onReceiversExhausted;
 
         Dispatch<T> dispatch = new Dispatch<T>() {
             public void dispatch(T message) {
@@ -138,7 +115,7 @@ public class EagerReceiveBuffer<T> implements Receive<T>, AsyncStoppable {
             }
         };
 
-        this.asyncReceive = new AsyncReceive(executor, dispatch, new Runnable() {
+        this.asyncReceive = new AsyncReceive<T>(executor, dispatch, new Runnable() {
             public void run() {
                 lock.lock();
                 try {

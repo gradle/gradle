@@ -172,44 +172,61 @@ project(':c') {
         fails ':a:build'
 
         then:
-        failure.assertHasCause 'failure'
+        failure.assertHasCause 'failure in c'
 
         and:
         jarsBuilt 'd'
         jarsNotBuilt 'a', 'b', 'c'
     }
 
-    @IgnoreIf({GradleDistributionExecuter.systemPropertyExecuter.executeParallel})
-    def "project dependency a->[b,c] and b->d and c fails"() {
+    @IgnoreIf({GradleDistributionExecuter.systemPropertyExecuter.executeParallel})  // 'c' + 'd' _may_ be built with parallel executer
+    def "project dependency a->[b,c] and c->d and b fails"() {
         projectDependency from: 'a', to: ['b', 'c']
-        projectDependency from: 'b', to: ['d']
-        failingBuild 'c'
+        projectDependency from: 'c', to: ['d']
+        failingBuild 'b'
 
         when:
         fails ':a:build'
 
         then:
-        failure.assertHasCause 'failure'
+        failure.assertHasCause 'failure in b'
 
         and:
-        jarsBuilt 'b', 'd' // These _may_ be built in parallel execution
-        jarsNotBuilt 'a', 'c'
+        jarsNotBuilt 'a', 'b', 'c', 'd'
     }
 
-    def "project dependency a->[b,c] and both b & c fail"() {
+    def "project dependency a->[b,c] and c->d and b fails with run with --continue"() {
+        projectDependency from: 'a', to: ['b', 'c']
+        projectDependency from: 'c', to: ['d']
+        failingBuild 'b'
+
+        when:
+        executer.withArgument('--continue')
+        fails ':a:build'
+
+        then:
+        failure.assertHasCause 'failure in b'
+
+        and:
+        jarsBuilt 'c', 'd'
+        jarsNotBuilt 'a', 'b'
+    }
+
+    def "project dependency a->[b,c] and both b & c fail with --continue"() {
         projectDependency from: 'a', to: ['b', 'c']
         failingBuild 'b'
         failingBuild 'c'
 
         when:
+        executer.withArgument('--continue')
         fails ':a:build'
 
         then:
-        failure.assertHasCause 'failure'
+        failure.assertHasCause 'failure in b'
+        failure.assertHasCause 'failure in c'
 
         and:
         jarsNotBuilt 'a', 'b', 'c'
-
     }
 
     def projectDependency(def link) {
@@ -233,7 +250,7 @@ project(':$from') {
         buildFile << """
 project(':$project') {
     task fail << {
-        throw new RuntimeException('failure')
+        throw new RuntimeException('failure in $project')
     }
     jar.dependsOn fail
 }

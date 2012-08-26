@@ -14,13 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.model.internal.migration;
+package org.gradle.api.plugins.migration.fixtures.gradle
 
-import java.io.File;
+import org.gradle.util.ConfigureUtil
 
-/**
- * The results from a test run.
- */
-public interface TestRun extends TaskOutput {
-    File getXmlReportDir();
+class ProjectOutcomesBuilder {
+
+    MutableProjectOutcomes build(String name = "root", File dir = new File("."), Closure c) {
+        def root = new MutableProjectOutcomes()
+        root.name = name
+        root.description = "root project"
+        root.projectDirectory = dir
+        root.path = ":"
+
+        ConfigureUtil.configure(c, root)
+    }
 }

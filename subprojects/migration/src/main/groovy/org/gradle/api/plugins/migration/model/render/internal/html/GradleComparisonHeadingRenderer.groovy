@@ -43,12 +43,12 @@ class GradleComparisonHeadingRenderer implements PartRenderer {
                     th "Gradle Version"
                 }
                 tr {
-                    th class: "border-right no-border-bottom", "Source"
+                    th class: "border-right no-border-bottom", "Source Build"
                     td sourceBuildPath
                     td sourceBuildVersion
                 }
                 tr {
-                    th class: "border-right no-border-bottom", "Target"
+                    th class: "border-right no-border-bottom", "Target Build"
                     td targetBuildPath
                     td targetBuildVersion
                 }

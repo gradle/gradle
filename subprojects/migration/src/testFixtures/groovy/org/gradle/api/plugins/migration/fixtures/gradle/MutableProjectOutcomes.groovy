@@ -17,26 +17,22 @@
 package org.gradle.api.plugins.migration.fixtures.gradle
 
 import org.gradle.tooling.model.DomainObjectSet
-import org.gradle.tooling.model.internal.migration.Archive
-import org.gradle.tooling.model.internal.migration.ProjectOutput
+import org.gradle.tooling.model.internal.migration.FileBuildOutcome
+import org.gradle.tooling.model.internal.migration.ProjectOutcomes
 import org.gradle.util.ConfigureUtil
-import org.gradle.tooling.model.internal.migration.TestRun
 
-class MutableProjectOutput implements ProjectOutput {
+class MutableProjectOutcomes implements ProjectOutcomes {
     String name
     String description
     String path
-    MutableProjectOutput parent
-    DomainObjectSet<MutableProjectOutput> children = new MutableDomainObjectSet()
+    MutableProjectOutcomes parent
+    DomainObjectSet<MutableProjectOutcomes> children = new MutableDomainObjectSet()
     File projectDirectory
-    String gradleVersion
-    DomainObjectSet<Archive> archives = new MutableDomainObjectSet()
-    DomainObjectSet<TestRun> testRuns = new MutableDomainObjectSet()
+    DomainObjectSet<FileBuildOutcome> fileOutcomes = new MutableDomainObjectSet()
 
-    MutableProjectOutput createChild(String childName, Closure c = {}) {
-        def mpo = new MutableProjectOutput()
+    MutableProjectOutcomes createChild(String childName, Closure c = {}) {
+        def mpo = new MutableProjectOutcomes()
         mpo.parent = this
-        mpo.gradleVersion = gradleVersion
         mpo.name = childName
         mpo.path = parent ? "$path:$childName" : ":$childName"
         mpo.projectDirectory = new File(projectDirectory, childName)
@@ -46,17 +42,21 @@ class MutableProjectOutput implements ProjectOutput {
         ConfigureUtil.configure(c, mpo)
     }
 
-    Archive addArchive(String taskName, String archivePath = taskName) {
-        def archive = new Archive() {
+    FileBuildOutcome addFile(String archivePath, String taskName = archivePath, String typeIdentifier = null) {
+        def outcome = new FileBuildOutcome() {
             File getFile() {
                 new File(projectDirectory, archivePath)
             }
 
             String getTaskPath() {
-                "$path:$archivePath"
+                "$path:$taskName"
+            }
+
+            String getTypeIdentifier() {
+                typeIdentifier
             }
         }
-        archives << archive
-        archive
+        fileOutcomes << outcome
+        outcome
     }
 }

@@ -79,15 +79,16 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
 
         StyledTextOutput output = textOutputFactory.create(BuildExceptionReporter.class, LogLevel.ERROR);
         output.println();
-        output.withStyle(Failure).format("FAILURE: Build failed with %s exceptions.", causes.size());
+        output.withStyle(Failure).format("FAILURE: Build completed with %s failures.", causes.size());
         output.println();
 
         for (int i = 0; i < causes.size(); i++) {
             Throwable cause = causes.get(i);
-            FailureDetails details = constructFailureDetails(cause);
+            FailureDetails details = constructFailureDetails("Task", cause);
 
             output.println();
-            output.withStyle(Failure).format("Exception %s", i + 1);
+            output.withStyle(Failure).format("%s: ", i + 1);
+            details.summary.writeTo(output.withStyle(Failure));
             output.println();
             output.text("-----------");
 
@@ -99,7 +100,7 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
 
     private void renderSingleBuildException(Throwable failure) {
         StyledTextOutput output = textOutputFactory.create(BuildExceptionReporter.class, LogLevel.ERROR);
-        FailureDetails details = constructFailureDetails(failure);
+        FailureDetails details = constructFailureDetails("Build", failure);
 
         output.println();
         output.withStyle(Failure).text("FAILURE: ");
@@ -109,17 +110,17 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
         writeFailureDetails(output, details);
     }
 
-    private FailureDetails constructFailureDetails(Throwable failure) {
+    private FailureDetails constructFailureDetails(String granularity, Throwable failure) {
         FailureDetails details = new FailureDetails(failure);
         if (failure instanceof GradleException) {
-            reportBuildFailure((GradleException) failure, details);
+            reportBuildFailure(granularity, (GradleException) failure, details);
         } else {
             reportInternalError(details);
         }
         return details;
     }
 
-    private void reportBuildFailure(GradleException failure, FailureDetails details) {
+    private void reportBuildFailure(String granularity, GradleException failure, FailureDetails details) {
         if (loggingConfiguration.getShowStacktrace() == ShowStacktrace.ALWAYS || loggingConfiguration.getLogLevel() == LogLevel.DEBUG) {
             details.exceptionStyle = ExceptionStyle.SANITIZED;
         }
@@ -130,7 +131,7 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
         if (failure instanceof TaskSelectionException) {
             formatTaskSelectionFailure((TaskSelectionException) failure, details);
         } else {
-            formatGenericFailure(failure, details);
+            formatGenericFailure(granularity, failure, details);
         }
     }
 
@@ -143,8 +144,8 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
         details.resolution.text(" to get a list of available tasks.");
     }
 
-    private void formatGenericFailure(GradleException failure, final FailureDetails details) {
-        details.summary.text("Build failed with an exception.");
+    private void formatGenericFailure(String granularity, GradleException failure, final FailureDetails details) {
+        details.summary.format("%s failed with an exception.", granularity);
 
         fillInFailureResolution(details);
 

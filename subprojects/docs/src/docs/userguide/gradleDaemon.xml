@@ -93,7 +93,7 @@
                 <listitem>At the moment daemon is coupled with particular version of Gradle.
                     This means that even if some daemon is idle but you are running the build
                     with a different version of Gradle, a new daemon will be started.
-                    This also have a consequence for the <literal>--stop</literal> command line instruction:
+                    This also has a consequence for the <literal>--stop</literal> command line instruction:
                     You can only stop daemons that were started with the Gradle version you use when running <literal>--stop</literal>.
                 </listitem>
             </itemizedlist>
