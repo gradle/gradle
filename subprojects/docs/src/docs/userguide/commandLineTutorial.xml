@@ -59,6 +59,21 @@
             <literal>compile</literal>, are still executed.</para>
     </section>
 
+    <section id="sec:continue_build_on_failure">
+        <title>Continuing the build when a failure occurs</title>
+        <para>By default, Gradle will abort execution and fail the build as soon as any task fails. This allows the build will complete sooner, but does not reveal failures in other, independent
+            tasks. In order to discover as many failures as possible in a single build execution, you can use the `--continue` option.
+        </para>
+        <para>When executed with `--continue`, Gradle will execute _every_ independent task where all of the dependencies for that task have been successfully executed.
+            For example if your build uses the 'java' and 'checkstyle' plugins, Gradle can then run checkstlye,
+            execute your unit tests and build your javadoc in a single execution, even if your code fails the checkstyle checks and one of your unit tests fail.
+            All failures are reported at the end of the build making it easy to fix each of the issue at hand.
+        </para>
+        <para>Note that a task will only be executed when all of it's dependencies have been successfully executed. So in the example above, your unit-tests will not
+            run if there is a failure in compiling your java code. This is because the `test` task depends indirectly on the `compileJava` task.
+        </para>
+    </section>
+
     <section>
         <title>Task name abbreviation</title>
         <para>When you specify tasks on the command-line, you don't have to provide the full name of the task. You only need to provide enough of the
