@@ -29,7 +29,7 @@
             <itemizedlist>
                 <listitem>When using test driven development, where the unit tests are executed many times.</listitem>
                 <listitem>When developing a web application, where the application is assembled many times.</listitem>
-                <listitem>When discovering what a build can do, where gradle -t is executed a number of times.</listitem>
+                <listitem>When discovering what a build can do, where <userinput>gradle tasks</userinput> is executed a number of times.</listitem>
             </itemizedlist>
             For above sorts of workflows, it is important that the startup cost of invoking Gradle is as small as possible.
         </para>
