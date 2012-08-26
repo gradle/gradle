@@ -15,7 +15,6 @@
  */
 package org.gradle.launcher.daemon.server.exec;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
@@ -51,7 +50,7 @@ public class ForwardClientInput implements DaemonCommandAction {
         try {
             replacementStdin = new PipedInputStream(inputSource);
         } catch (IOException e) {
-            throw new GradleException("unable to wire client stdin to daemon stdin", e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
 
         final CountDownLatch inputOrConnectionClosedLatch = new CountDownLatch(1);

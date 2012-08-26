@@ -21,7 +21,7 @@ package org.gradle.messaging.remote.internal;
  * <p>
  * Implementations must guarantee that the disconnect action completes before {@code null} is returned from
  * the {@link #receive()} method. Furthermore, if a disconnect action has not yet been set the {@code receive()} method
- * MUST NOT return {@code null} until a disconnection action is set and executed. This means that if {@link #labelonDisconnect(Runnable)} is
+ * MUST NOT return {@code null} until a disconnection action is set and executed. This means that if {@link #onDisconnect(Runnable)} is
  * never called on a {@code DisconnectAwareConnection}, it's {@code receive()} method will never return null as it will block indefinitely.
  */
 public interface DisconnectAwareConnection<T> extends Connection<T> {
