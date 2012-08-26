@@ -22,6 +22,7 @@ import org.gradle.GradleLauncher;
 import org.gradle.StartParameter;
 import org.gradle.api.GradleException;
 import org.gradle.api.Task;
+import org.gradle.api.Transformer;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
@@ -34,6 +35,7 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.cli.CommandLineParser;
+import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.initialization.DefaultGradleLauncherFactory;
 import org.gradle.internal.Factory;
@@ -43,6 +45,7 @@ import org.gradle.internal.nativeplatform.services.NativeServices;
 import org.gradle.launcher.Main;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.process.internal.JavaExecHandleBuilder;
+import org.gradle.util.CollectionUtils;
 import org.gradle.util.DeprecationLogger;
 import org.hamcrest.Matcher;
 
@@ -347,14 +350,23 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         }
 
         public ExecutionFailure assertThatCause(final Matcher<String> matcher) {
-            if (failure instanceof LocationAwareException) {
-                LocationAwareException exception = (LocationAwareException) failure;
-                assertThat(exception.getReportableCauses(), hasItem(hasMessage(matcher)));
-            } else {
-                assertThat(failure.getCause(), notNullValue());
-                assertThat(failure.getCause().getMessage(), matcher);
-            }
+            List<Throwable> causes = new ArrayList<Throwable>();
+            extractCauses(failure, causes);
+            assertThat(causes, hasItem(hasMessage(matcher)));
             return this;
+        }
+
+        private void extractCauses(Throwable failure, List<Throwable> causes) {
+            if (failure instanceof MultipleBuildFailures) {
+                MultipleBuildFailures exception = (MultipleBuildFailures) failure;
+                for (Throwable componentFailure : exception.getCauses()) {
+                    extractCauses(componentFailure, causes);
+                }
+            } else if (failure instanceof LocationAwareException) {
+                causes.addAll(((LocationAwareException) failure).getReportableCauses());
+            } else {
+                causes.add(failure.getCause());
+            }
         }
 
         public ExecutionFailure assertHasNoCause() {
