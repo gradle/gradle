@@ -73,8 +73,7 @@ abstract public class AvailableJavaHomes {
                 // Attempt to look for 32-bit version under 64-bit OS
                 installedJavas = new File("c:/Program Files (x86)/Java");
             }
-            if (installedJavas.isDirectory())
-            {
+            if (installedJavas.isDirectory()) {
                 for (File file : installedJavas.listFiles()) {
                     if (file.getName().startsWith("jdk")) {
                         if (jvm.getJavaVersion().isJava6() && !file.getName().contains("1.6")) {
@@ -133,8 +132,7 @@ abstract public class AvailableJavaHomes {
                 // Attempt to look for 32-bit version under 64-bit OS
                 installedJavas = new File("c:/Program Files (x86)/Java");
             }
-            if (installedJavas.isDirectory())
-            {
+            if (installedJavas.isDirectory()) {
                 for (File file : installedJavas.listFiles()) {
                     if (file.getName().startsWith("jre")) {
                         if (jvm.getJavaVersion().isJava6() && !file.getName().contains("1.6")) {
