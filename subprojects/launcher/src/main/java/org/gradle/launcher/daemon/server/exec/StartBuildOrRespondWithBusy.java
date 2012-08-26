@@ -41,7 +41,7 @@ public class StartBuildOrRespondWithBusy extends BuildCommandOnly {
             Runnable command = new Runnable() {
                 public void run() {
                     LOGGER.info("Daemon is about to start building: " + build + ". Dispatching build started information...");
-                    execution.getConnection().dispatch(new BuildStarted(diagnostics));
+                    execution.getConnection().buildStarted(new BuildStarted(diagnostics));
                     execution.proceed();
                 }
             };
@@ -49,7 +49,7 @@ public class StartBuildOrRespondWithBusy extends BuildCommandOnly {
             stateCoordinator.runCommand(command, execution.toString(), execution.getCommandAbandonedHandler());
         } catch (DaemonUnavailableException e) {
             LOGGER.info("Daemon will not handle the request: {} because is unavailable: {}", build, e.getMessage());
-            execution.getConnection().dispatch(new DaemonUnavailable(e.getMessage()));
+            execution.getConnection().daemonUnavailable(new DaemonUnavailable(e.getMessage()));
         }
     }
 }

@@ -17,17 +17,14 @@ package org.gradle.launcher.daemon.server.exec;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.messaging.remote.internal.DisconnectAwareConnection;
 
 public class WatchForDisconnection implements DaemonCommandAction {
 
     private static final Logger LOGGER = Logging.getLogger(WatchForDisconnection.class);
 
     public void execute(final DaemonCommandExecution execution) {
-        DisconnectAwareConnection connection = execution.getConnection();
-
         // Watch for the client disconnecting before we call stop()
-        connection.onDisconnect(new Runnable() {
+        execution.getConnection().onDisconnect(new Runnable() {
             public void run() {
                 LOGGER.warn("client disconnection detected, stopping the daemon");
                 
@@ -44,9 +41,8 @@ public class WatchForDisconnection implements DaemonCommandAction {
         try {
             execution.proceed();
         } finally {
-            // TODO - Do we need to remove the disconnect handler here?
-            // I think we should because if the client disconnects after we run the build we may as well stay up
-            connection.onDisconnect(null);
+            // Remove the handler
+            execution.getConnection().onDisconnect(null);
         }
     }
 

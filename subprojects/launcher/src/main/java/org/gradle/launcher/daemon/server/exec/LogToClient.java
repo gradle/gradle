@@ -43,7 +43,7 @@ class LogToClient extends BuildCommandOnly {
             public void onOutput(OutputEvent event) {
                 try {
                     if (event.getLogLevel().compareTo(buildLogLevel) >= 0) {
-                        execution.getConnection().dispatch(event);
+                        execution.getConnection().logEvent(event);
                     }
                 } catch (Exception e) {
                     //Ignore. It means the client has disconnected so no point sending him any log output.

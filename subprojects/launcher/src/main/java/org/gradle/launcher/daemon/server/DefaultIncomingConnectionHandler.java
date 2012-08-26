@@ -42,6 +42,7 @@ public class DefaultIncomingConnectionHandler implements IncomingConnectionHandl
     private final DaemonContext daemonContext;
     private final DaemonCommandExecuter commandExecuter;
     private final DaemonStateControl daemonStateControl;
+    private final ExecutorFactory executorFactory;
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
     private final Set<Connection<?>> inProgress = new HashSet<Connection<?>>();
@@ -50,6 +51,7 @@ public class DefaultIncomingConnectionHandler implements IncomingConnectionHandl
         this.commandExecuter = commandExecuter;
         this.daemonContext = daemonContext;
         this.daemonStateControl = daemonStateControl;
+        this.executorFactory = executorFactory;
         workers = executorFactory.create("Daemon");
     }
 
@@ -133,19 +135,24 @@ public class DefaultIncomingConnectionHandler implements IncomingConnectionHandl
         }
 
         private void handleCommand(Command command) {
+            LOGGER.debug(DaemonMessages.STARTED_EXECUTING_COMMAND + command + " with connection: " + connection + ".");
+            DefaultDaemonConnection daemonConnection = new DefaultDaemonConnection(connection, executorFactory);
             try {
-                LOGGER.debug(DaemonMessages.STARTED_EXECUTING_COMMAND + command + " with connection: " + connection + ".");
-                commandExecuter.executeCommand(connection, command, daemonContext, daemonStateControl, new Runnable() {
-                    public void run() {
-                        onFinishHandling(connection);
-                    }
-                });
-            } catch (Throwable e) {
-                String message = String.format("Uncaught exception when executing command: '%s' from connection: '%s'.", command, connection);
-                LOGGER.warn(message + ". Dispatching the failure to the daemon client...", e);
-                connection.dispatch(new DaemonFailure(new RuntimeException(message, e)));
+                try {
+                    commandExecuter.executeCommand(daemonConnection, command, daemonContext, daemonStateControl, new Runnable() {
+                        public void run() {
+                            onFinishHandling(connection);
+                        }
+                    });
+                } catch (Throwable e) {
+                    String message = String.format("Uncaught exception when executing command: '%s' from connection: '%s'.", command, connection);
+                    LOGGER.warn(message + ". Dispatching the failure to the daemon client...", e);
+                    daemonConnection.completed(new DaemonFailure(new RuntimeException(message, e)));
+                } finally {
+                    LOGGER.debug(DaemonMessages.FINISHED_EXECUTING_COMMAND + command);
+                }
             } finally {
-                LOGGER.debug(DaemonMessages.FINISHED_EXECUTING_COMMAND + command);
+                daemonConnection.stop();
             }
         }
     }
