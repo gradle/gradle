@@ -39,9 +39,6 @@ allprojects {
 """
         executer.withExecuter(GradleDistributionExecuter.Executer.parallel)
         executer.withArgument('--info')
-        // TODO fix our stack trace check so it handles multiple reported exceptions
-        executer.withStackTraceChecksDisabled()
-
     }
 
     def "executes dependency project targets concurrently"() {
