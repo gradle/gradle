@@ -30,11 +30,11 @@ import static org.gradle.util.Matchers.strictlyEqual
 class DefaultResolvedDependencyResultSpec extends Specification {
 
     def "object methods"() {
-        def dependency = newDependency(newSelector("a", "b", "1"), newId("a", "b", "1"), ['conf'])
-        def same =   newDependency(newSelector("a", "b", "1"), newId("a", "b", "1"), ['conf'])
+        def dependency = newDependency(newSelector("a", "b", "1"), newId("a", "b", "1"))
+        def same =   newDependency(newSelector("a", "b", "1"), newId("a", "b", "1"))
 
-        def differentRequested =      newDependency(newSelector("X", "b", "1"), newId("a", "b", "1"), ['conf'])
-        def differentSelected =       newDependency(newSelector("a", "b", "1"), newId("a", "X", "1"), ['conf'])
+        def differentRequested =      newDependency(newSelector("X", "b", "1"), newId("a", "b", "1"))
+        def differentSelected =       newDependency(newSelector("a", "b", "1"), newId("a", "X", "1"))
 
         expect:
         dependency strictlyEqual(same)
@@ -45,7 +45,7 @@ class DefaultResolvedDependencyResultSpec extends Specification {
         dependency.hashCode() != differentSelected.hashCode()
     }
 
-    private newDependency(ModuleVersionSelector requested, ModuleVersionIdentifier selected, Collection<String> configurations) {
-        new DefaultResolvedDependencyResult(requested, selected, configurations)
+    private newDependency(ModuleVersionSelector requested, ModuleVersionIdentifier selected) {
+        new DefaultResolvedDependencyResult(requested, selected)
     }
 }

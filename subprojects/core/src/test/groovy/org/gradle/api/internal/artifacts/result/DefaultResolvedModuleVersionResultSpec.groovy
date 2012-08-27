@@ -75,7 +75,7 @@ class DefaultResolvedModuleVersionResultSpec extends Specification {
     def "mutating dependencies is harmless"() {
         given:
         def module = newModule("a", "c", "1")
-        def dependency = newDependency("a", "x", "1", ['config'] as Set)
+        def dependency = newDependency("a", "x", "1")
 
         when:
         module.addDependency(dependency)
@@ -92,9 +92,9 @@ class DefaultResolvedModuleVersionResultSpec extends Specification {
 
     def "excludes unresolved dependencies"() {
         given:
-        def module = newModule("a", "c", "1")
-        def dependency = newDependency("a", "x", "1", ['config'] as Set)
-        def unresolved = newDependency("a", "x", "1", [] as Set)
+        def module = newModule()
+        def dependency = newDependency()
+        def unresolved = newUnresolved()
 
         when:
         module.addDependency(dependency)
@@ -104,8 +104,12 @@ class DefaultResolvedModuleVersionResultSpec extends Specification {
         module.dependencies == [dependency] as Set
     }
 
-    def newDependency(String group='a', String module='a', String version='1', Set confs = []) {
-        new DefaultResolvedDependencyResult(newSelector(group, module, version), newId(group, module, version), confs)
+    def newDependency(String group='a', String module='a', String version='1') {
+        new DefaultResolvedDependencyResult(newSelector(group, module, version), newId(group, module, version))
+    }
+
+    def newUnresolved(String group='x', String module='x', String version='1') {
+        new DefaultUnresolvedDependencyResult(newSelector(group, module, version), new RuntimeException("boo!"))
     }
 
     def newModule(String group='a', String module='a', String version='1') {

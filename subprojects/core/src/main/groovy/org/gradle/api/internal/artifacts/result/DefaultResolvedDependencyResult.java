@@ -20,8 +20,6 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 
-import java.util.Collection;
-
 /**
  * by Szczepan Faber, created at: 7/26/12
  */
@@ -30,7 +28,7 @@ public class DefaultResolvedDependencyResult implements ResolvedDependencyResult
     private final ModuleVersionSelector requested;
     private final DefaultResolvedModuleVersionResult selected;
 
-    public DefaultResolvedDependencyResult(ModuleVersionSelector requested, ModuleVersionIdentifier selected, Collection<String> configurations) {
+    public DefaultResolvedDependencyResult(ModuleVersionSelector requested, ModuleVersionIdentifier selected) {
         assert requested != null;
         assert selected != null;
 
