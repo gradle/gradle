@@ -113,6 +113,6 @@ class GeneratedArchiveBuildOutcomeComparatorTest extends Specification {
     }
 
     GeneratedArchiveBuildOutcome outcome(String name, File file = dir.createFile(name)) {
-        new GeneratedArchiveBuildOutcome(name, name, file)
+        new GeneratedArchiveBuildOutcome(name, name, file, name)
     }
 }
