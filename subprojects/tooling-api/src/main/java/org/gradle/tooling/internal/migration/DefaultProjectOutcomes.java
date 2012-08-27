@@ -17,32 +17,32 @@
 package org.gradle.tooling.internal.migration;
 
 import com.google.common.collect.Lists;
-import org.gradle.tooling.internal.protocol.InternalProjectOutput;
+import org.gradle.tooling.internal.protocol.InternalProjectOutcomes;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
-import org.gradle.tooling.model.internal.migration.FileBuildOutcome;
+import org.gradle.tooling.model.internal.migration.BuildOutcome;
 import org.gradle.tooling.model.internal.migration.ProjectOutcomes;
 
 import java.io.File;
 import java.io.Serializable;
 import java.util.List;
 
-public class DefaultProjectOutcomes implements InternalProjectOutput, ProjectOutcomes, Serializable {
+public class DefaultProjectOutcomes implements InternalProjectOutcomes, ProjectOutcomes, Serializable {
     private final String name;
     private final String projectPath;
     private final String description;
     private final File projectDirectory;
-    private final DomainObjectSet<FileBuildOutcome> fileOutcomes;
+    private final DomainObjectSet<? extends BuildOutcome> outcomes;
     private final ProjectOutcomes parent;
     private final List<ProjectOutcomes> children = Lists.newArrayList();
 
     public DefaultProjectOutcomes(String name, String projectPath, String description, File projectDirectory,
-                                  DomainObjectSet<FileBuildOutcome> fileOutcomes, ProjectOutcomes parent) {
+                                  DomainObjectSet<? extends BuildOutcome> outcomes, ProjectOutcomes parent) {
         this.name = name;
         this.projectPath = projectPath;
         this.description = description;
         this.projectDirectory = projectDirectory;
-        this.fileOutcomes = fileOutcomes;
+        this.outcomes = outcomes;
         this.parent = parent;
     }
 
@@ -62,8 +62,8 @@ public class DefaultProjectOutcomes implements InternalProjectOutput, ProjectOut
         return projectDirectory;
     }
 
-    public DomainObjectSet<FileBuildOutcome> getFileOutcomes() {
-        return fileOutcomes;
+    public DomainObjectSet<? extends BuildOutcome> getOutcomes() {
+        return outcomes;
     }
 
     public ProjectOutcomes getParent() {

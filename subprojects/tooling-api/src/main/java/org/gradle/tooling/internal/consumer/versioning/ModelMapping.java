@@ -57,7 +57,7 @@ public class ModelMapping {
         Map<Class<? extends Model>, Class> map = new HashMap<Class<? extends Model>, Class>();
         map.put(BuildEnvironment.class, InternalBuildEnvironment.class);
         map.put(TestModel.class, InternalTestModel.class);
-        map.put(ProjectOutcomes.class, InternalProjectOutput.class);
+        map.put(ProjectOutcomes.class, InternalProjectOutcomes.class);
         return map;
     }
 

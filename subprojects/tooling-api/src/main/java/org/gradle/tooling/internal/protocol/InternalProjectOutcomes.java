@@ -16,5 +16,5 @@
 
 package org.gradle.tooling.internal.protocol;
 
-public interface InternalProjectOutput extends ProjectVersion3, InternalProtocolInterface {
+public interface InternalProjectOutcomes extends ProjectVersion3, InternalProtocolInterface {
 }

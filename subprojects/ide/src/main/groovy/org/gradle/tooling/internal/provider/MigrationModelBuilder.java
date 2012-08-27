@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.tooling.internal.migration.DefaultProjectOutcomes;
-import org.gradle.tooling.internal.protocol.InternalProjectOutput;
+import org.gradle.tooling.internal.protocol.InternalProjectOutcomes;
 import org.gradle.tooling.internal.protocol.ProjectVersion3;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
@@ -37,7 +37,7 @@ public class MigrationModelBuilder implements BuildsModel {
     private final Transformer<FileBuildOutcome, PublishArtifact> artifactTransformer = new PublishArtifactToFileBuildOutcomeTransformer();
 
     public boolean canBuild(Class<?> type) {
-        return type == InternalProjectOutput.class;
+        return type == InternalProjectOutcomes.class;
     }
 
     public ProjectVersion3 buildAll(GradleInternal gradle) {

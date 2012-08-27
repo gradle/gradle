@@ -29,5 +29,5 @@ public interface ProjectOutcomes extends HierarchicalElement {
     DomainObjectSet<ProjectOutcomes> getChildren();
     String getPath();
     File getProjectDirectory();
-    DomainObjectSet<FileBuildOutcome> getFileOutcomes();
+    DomainObjectSet<? extends BuildOutcome> getOutcomes();
 }

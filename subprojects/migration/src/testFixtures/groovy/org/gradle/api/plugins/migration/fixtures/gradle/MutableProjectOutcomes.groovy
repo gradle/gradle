@@ -20,6 +20,7 @@ import org.gradle.tooling.model.DomainObjectSet
 import org.gradle.tooling.model.internal.migration.FileBuildOutcome
 import org.gradle.tooling.model.internal.migration.ProjectOutcomes
 import org.gradle.util.ConfigureUtil
+import org.gradle.tooling.model.internal.migration.BuildOutcome
 
 class MutableProjectOutcomes implements ProjectOutcomes {
     String name
@@ -28,7 +29,7 @@ class MutableProjectOutcomes implements ProjectOutcomes {
     MutableProjectOutcomes parent
     DomainObjectSet<MutableProjectOutcomes> children = new MutableDomainObjectSet()
     File projectDirectory
-    DomainObjectSet<FileBuildOutcome> fileOutcomes = new MutableDomainObjectSet()
+    DomainObjectSet<? extends BuildOutcome> outcomes = new MutableDomainObjectSet()
 
     MutableProjectOutcomes createChild(String childName, Closure c = {}) {
         def mpo = new MutableProjectOutcomes()
@@ -56,7 +57,7 @@ class MutableProjectOutcomes implements ProjectOutcomes {
                 typeIdentifier
             }
         }
-        fileOutcomes << outcome
+        outcomes << outcome
         outcome
     }
 }

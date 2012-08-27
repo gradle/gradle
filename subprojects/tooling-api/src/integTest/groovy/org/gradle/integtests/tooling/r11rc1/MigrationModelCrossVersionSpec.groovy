@@ -31,11 +31,11 @@ class MigrationModelCrossVersionSpec extends ToolingApiSpecification {
 
     def "modelContainsAllArchivesOnTheArchivesConfiguration"() {
         when:
-        def output = withConnection { it.getModel(ProjectOutcomes.class) }
+        def projectOutcomes = withConnection { it.getModel(ProjectOutcomes.class) }
 
         then:
-        output instanceof ProjectOutcomes
-        def outcomes = output.fileOutcomes
+        projectOutcomes instanceof ProjectOutcomes
+        def outcomes = projectOutcomes.outcomes
         outcomes.size() == 2
         outcomes.any { it.file.name.endsWith(".jar") }
         outcomes.any { it.file.name.endsWith(".zip") }
@@ -43,13 +43,13 @@ class MigrationModelCrossVersionSpec extends ToolingApiSpecification {
 
     def "modelContainsAllProjects"() {
         when:
-        def output = withConnection { it.getModel(ProjectOutcomes.class) }
+        def projectOutcomes = withConnection { it.getModel(ProjectOutcomes.class) }
 
         then:
-        output instanceof ProjectOutcomes
-        output.children.size() == 2
-        output.children.name as Set == ["project1", "project2"] as Set
-        output.children[0].children.empty
-        output.children[1].children.empty
+        projectOutcomes instanceof ProjectOutcomes
+        projectOutcomes.children.size() == 2
+        projectOutcomes.children.name as Set == ["project1", "project2"] as Set
+        projectOutcomes.children[0].children.empty
+        projectOutcomes.children[1].children.empty
     }
 }
