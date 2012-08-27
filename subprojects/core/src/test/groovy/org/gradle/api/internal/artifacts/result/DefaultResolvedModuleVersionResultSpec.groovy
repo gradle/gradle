@@ -43,37 +43,33 @@ class DefaultResolvedModuleVersionResultSpec extends Specification {
         module != differentVersion
     }
 
-    def "equals does not consider dependencies"() {
+    def "equals does not consider dependencies and dependees"() {
         def result = newModule("group", "module", "version")
         def differentDeps = newModule("group", "module", "version")
-                .linkDependency(newDependency())
+                .addDependency(newDependency())
+        def differentDependees = newModule("group", "module", "version")
+                .addDependee(newModule())
 
         expect:
         result == differentDeps
+        result == differentDependees
     }
 
     def "equals and hashcode do not recurse forever"() {
-        def module = newModule("a", "c", "2")
+        given: "simple dependency A->B"
+        def depA = newDependency("a", "A", "1")
+        def moduleA = depA.selected
 
-        def dependency = newDependency("a", "c", "2")
-        def selectedModule = dependency.selected
-        selectedModule.linkDependency(dependency)
-
-        expect:
-        selectedModule.hashCode()
-        selectedModule.equals(module)
-    }
-
-    def "links dependency"() {
-        def module = newModule("a", "c", "1")
-        def dependency = newDependency("a", "x", "1", ['config'] as Set)
+        def depB = newDependency("a", "B", "1")
+        def moduleB = depB.selected
 
         when:
-        module.linkDependency(dependency)
+        moduleA.addDependency(depB)
+        moduleB.addDependee(moduleA)
 
         then:
-        module.dependencies == [dependency] as Set
-        dependency.selected.getDependees() == [module] as Set
+        moduleA.hashCode()
+        !moduleA.equals(moduleB)
     }
 
     def "mutating dependencies is harmless"() {
@@ -82,7 +78,7 @@ class DefaultResolvedModuleVersionResultSpec extends Specification {
         def dependency = newDependency("a", "x", "1", ['config'] as Set)
 
         when:
-        module.linkDependency(dependency)
+        module.addDependency(dependency)
 
         then:
         module.dependencies == [dependency] as Set
@@ -101,8 +97,8 @@ class DefaultResolvedModuleVersionResultSpec extends Specification {
         def unresolved = newDependency("a", "x", "1", [] as Set)
 
         when:
-        module.linkDependency(dependency)
-        module.linkDependency(unresolved)
+        module.addDependency(dependency)
+        module.addDependency(unresolved)
 
         then:
         module.dependencies == [dependency] as Set
@@ -112,7 +108,7 @@ class DefaultResolvedModuleVersionResultSpec extends Specification {
         new DefaultResolvedDependencyResult(newSelector(group, module, version), newId(group, module, version), confs)
     }
 
-    def newModule(String group, String module, String version) {
+    def newModule(String group='a', String module='a', String version='1') {
         new DefaultResolvedModuleVersionResult(newId(group, module, version))
     }
 }

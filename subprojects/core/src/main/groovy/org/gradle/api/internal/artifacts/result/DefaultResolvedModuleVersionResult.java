@@ -55,12 +55,14 @@ public class DefaultResolvedModuleVersionResult implements ResolvedModuleVersion
         return dependees;
     }
 
-    public void addDependency(DependencyResult dependency) {
+    public DefaultResolvedModuleVersionResult addDependency(DependencyResult dependency) {
         this.dependencies.add(dependency);
+        return this;
     }
 
-    public void addDependee(DefaultResolvedModuleVersionResult node) {
+    public DefaultResolvedModuleVersionResult addDependee(DefaultResolvedModuleVersionResult node) {
         this.dependees.add(node);
+        return this;
     }
 
     @Override
@@ -75,7 +77,7 @@ public class DefaultResolvedModuleVersionResult implements ResolvedModuleVersion
         ResolvedModuleVersionResult that = (ResolvedModuleVersionResult) o;
 
         return id.equals(that.getId());
-    }
+        }
 
     @Override
     public int hashCode() {
