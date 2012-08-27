@@ -119,7 +119,6 @@ public class CompareGradleBuilds extends DefaultTask {
     @TaskAction
     void compare() {
         // Build the outcome model and outcomes
-
         GradleBuildOutcomeSetTransformer fromOutcomeTransformer = createOutcomeSetTransformer("source");
         ProjectOutcomes fromOutput = generateBuildOutput(sourceVersion, getSourceProjectDir());
         Set<BuildOutcome> fromOutcomes = fromOutcomeTransformer.transform(fromOutput);
@@ -128,24 +127,31 @@ public class CompareGradleBuilds extends DefaultTask {
         ProjectOutcomes toOutput = generateBuildOutput(targetVersion, getTargetProjectDir());
         Set<BuildOutcome> toOutcomes = toOutcomeTransformer.transform(toOutput);
 
-        // Associate from each side (create spec)
+        // Infrastructure that we have to register handlers with
+        DefaultBuildOutcomeComparatorFactory comparatorFactory = new DefaultBuildOutcomeComparatorFactory();
+        BuildOutcomeAssociator[] associators = new BuildOutcomeAssociator[2];
+        DefaultBuildOutcomeComparisonResultRendererFactory<HtmlRenderContext> renderers = new DefaultBuildOutcomeComparisonResultRendererFactory<HtmlRenderContext>(HtmlRenderContext.class);
 
-        BuildOutcomeAssociator archivesAssociator = new ByTypeAndNameBuildOutcomeAssociator<BuildOutcome>(GeneratedArchiveBuildOutcome.class);
-        BuildOutcomeAssociator unknownAssociator = new ByTypeAndNameBuildOutcomeAssociator<BuildOutcome>(UnknownBuildOutcome.class);
-        BuildOutcomeAssociator compositeAssociator = new CompositeBuildOutcomeAssociator(archivesAssociator, unknownAssociator);
+        // Register archives
+        associators[0] = new ByTypeAndNameBuildOutcomeAssociator<BuildOutcome>(GeneratedArchiveBuildOutcome.class);
+        comparatorFactory.registerComparator(new GeneratedArchiveBuildOutcomeComparator());
+        renderers.registerRenderer(new GeneratedArchiveBuildOutcomeComparisonResultHtmlRenderer("Source Build", "Target Build"));
+
+        // Register unknown handling
+        associators[1] = new ByTypeAndNameBuildOutcomeAssociator<BuildOutcome>(UnknownBuildOutcome.class);
+        comparatorFactory.registerComparator(new UnknownBuildOutcomeComparator());
+        renderers.registerRenderer(new UnknownBuildOutcomeComparisonResultHtmlRenderer("Source Build", "Target Build"));
+
+        // Associate from each side (create spec)
+        BuildOutcomeAssociator compositeAssociator = new CompositeBuildOutcomeAssociator(associators);
         BuildComparisonSpecFactory specFactory = new BuildComparisonSpecFactory(compositeAssociator);
         BuildComparisonSpec comparisonSpec = specFactory.createSpec(fromOutcomes, toOutcomes);
 
-        DefaultBuildOutcomeComparatorFactory comparatorFactory = new DefaultBuildOutcomeComparatorFactory();
-        comparatorFactory.registerComparator(new GeneratedArchiveBuildOutcomeComparator());
-        comparatorFactory.registerComparator(new UnknownBuildOutcomeComparator());
-
         // Compare
-
         BuildComparator buildComparator = new DefaultBuildComparator(comparatorFactory);
         BuildComparisonResult result = buildComparator.compareBuilds(comparisonSpec);
 
-        writeReport(result);
+        writeReport(result, renderers);
     }
 
     private GradleBuildOutcomeSetTransformer createOutcomeSetTransformer(String filesPath) {
@@ -171,7 +177,7 @@ public class CompareGradleBuilds extends DefaultTask {
         }
     }
 
-    private void writeReport(BuildComparisonResult result) {
+    private void writeReport(BuildComparisonResult result, DefaultBuildOutcomeComparisonResultRendererFactory<HtmlRenderContext> renderers) {
         File destination = getReportFile();
 
         OutputStream outputStream;
@@ -185,18 +191,14 @@ public class CompareGradleBuilds extends DefaultTask {
         }
 
         try {
-            createResultRenderer().render(result, writer);
+            createResultRenderer(renderers).render(result, writer);
         } finally {
             IOUtils.closeQuietly(writer);
             IOUtils.closeQuietly(outputStream);
         }
     }
 
-    private BuildComparisonResultRenderer<Writer> createResultRenderer() {
-        DefaultBuildOutcomeComparisonResultRendererFactory<HtmlRenderContext> renderers = new DefaultBuildOutcomeComparisonResultRendererFactory<HtmlRenderContext>(HtmlRenderContext.class);
-        renderers.registerRenderer(new GeneratedArchiveBuildOutcomeComparisonResultHtmlRenderer("Source Build", "Target Build"));
-        renderers.registerRenderer(new UnknownBuildOutcomeComparisonResultHtmlRenderer("Source Build", "Target Build"));
-
+    private BuildComparisonResultRenderer<Writer> createResultRenderer(DefaultBuildOutcomeComparisonResultRendererFactory<HtmlRenderContext> renderers) {
         PartRenderer headRenderer = new HeadRenderer("Gradle Build Comparison", Charset.defaultCharset().name());
 
         PartRenderer headingRenderer = new GradleComparisonHeadingRenderer(
