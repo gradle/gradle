@@ -30,6 +30,7 @@ public class InternalDependencyResult {
     private final Exception failure;
 
     public InternalDependencyResult(ModuleVersionSelector requested, ModuleVersionIdentifier selected, Exception failure) {
+        assert requested != null;
         this.requested = requested;
         this.selected = selected;
         this.failure = failure;

@@ -79,9 +79,11 @@ class DependencyGraphBuilderTest extends Specification {
         def a = revision("a")
         def b = revision("b")
         def c = revision("c")
+        def d = revision("d")
         traverses root, a
         traverses root, b
         traverses a, c
+        traversesMissing a, d
 
         when:
         builder.resolve(configuration, resolveData, listener)
@@ -91,7 +93,7 @@ class DependencyGraphBuilderTest extends Specification {
         then:
         1 * listener.resolvedConfiguration({ it.moduleName == 'root' }, { it*.requested.name == ['a', 'b'] } )
         then:
-        1 * listener.resolvedConfiguration({ it.moduleName == 'a' },    { it*.requested.name == ['c'] } )
+        1 * listener.resolvedConfiguration({ it.moduleName == 'a' },    { it*.requested.name == ['c', 'd'] && it*.failure.count { it != null } == 1 } )
     }
 
     def "does not resolve a given dynamic module selector more than once"() {

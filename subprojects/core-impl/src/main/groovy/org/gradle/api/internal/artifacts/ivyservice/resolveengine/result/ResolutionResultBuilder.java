@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.result.DependencyResult;
-import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
@@ -57,7 +56,7 @@ public class ResolutionResultBuilder implements ResolvedConfigurationListener {
         }
     }
 
-    public ResolutionResult getResult() {
+    public DefaultResolutionResult getResult() {
         return new DefaultResolutionResult(buildGraph());
     }
 
