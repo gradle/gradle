@@ -24,6 +24,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedDependencyResult;
+import org.gradle.api.internal.artifacts.result.DefaultUnresolvedDependencyResult;
 
 import java.util.*;
 
@@ -41,11 +42,19 @@ public class ResolutionResultBuilder implements ResolvedConfigurationListener {
         this.root = root;
     }
 
-    public void resolvedConfiguration(ResolvedConfigurationIdentifier id, Collection<DependencyResult> dependencies) {
+    public void resolvedConfiguration(ResolvedConfigurationIdentifier id, Collection<InternalDependencyResult> dependencies) {
         if (!deps.containsKey(id.getId())) {
             deps.put(id.getId(), new LinkedHashSet<DependencyResult>());
         }
-        deps.get(id.getId()).addAll(dependencies);
+
+        Set<DependencyResult> accumulated = deps.get(id.getId());
+        for (InternalDependencyResult d : dependencies) {
+            if (d.getFailure() != null) {
+                accumulated.add(new DefaultUnresolvedDependencyResult(d.getRequested(), d.getFailure()));
+            } else {
+                accumulated.add(new DefaultResolvedDependencyResult(d.getRequested(), d.getSelected()));
+            }
+        }
     }
 
     public ResolutionResult getResult() {
@@ -70,7 +79,6 @@ public class ResolutionResultBuilder implements ResolvedConfigurationListener {
 
         Set<DependencyResult> theDeps = deps.get(dependency.getSelected().getId());
         for (DependencyResult d: theDeps) {
-            //TODO SF this casting stuff can be avoided if we pass some intermediate type from GraphBuilder
             if (d instanceof DefaultResolvedDependencyResult) {
                 DefaultResolvedDependencyResult resolved = (DefaultResolvedDependencyResult) d;
                 linkDependencies(resolved, visited);

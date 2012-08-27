@@ -24,7 +24,6 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedArtifact;
-import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
@@ -32,8 +31,6 @@ import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.EnhancedDependencyDescriptor;
-import org.gradle.api.internal.artifacts.result.DefaultResolvedDependencyResult;
-import org.gradle.api.internal.artifacts.result.DefaultUnresolvedDependencyResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -157,17 +154,11 @@ public class DependencyGraphBuilder {
 
     private void notifyListener(ResolvedConfigurationListener listener, ConfigurationNode resolvedConfiguration) {
         ResolvedConfigurationIdentifier id = resolvedConfiguration.toId();
-        Set<DependencyResult> dependencies = new LinkedHashSet<DependencyResult>();
+        Set<InternalDependencyResult> dependencies = new LinkedHashSet<InternalDependencyResult>();
 
         for (DependencyEdge edge : resolvedConfiguration.outgoingEdges) {
-            DependencyResult dependencyResult;
-            //TODO SF push out the complexity to the listener implementation
-            if (edge.isFailed()) {
-                dependencyResult = new DefaultUnresolvedDependencyResult(edge.toSelector(), edge.getFailure());
-            } else {
-                dependencyResult = new DefaultResolvedDependencyResult(edge.toSelector(), edge.toId());
-            }
-            dependencies.add(dependencyResult);
+            InternalDependencyResult d = new InternalDependencyResult(edge.toSelector(), edge.maybeTargetId(), edge.getFailure());
+            dependencies.add(d);
         }
 
         listener.resolvedConfiguration(id, dependencies);
@@ -422,16 +413,11 @@ public class DependencyGraphBuilder {
                     dependencyDescriptor.getDependencyRevisionId().getRevision());
         }
 
-        public ModuleVersionIdentifier toId() {
+        public ModuleVersionIdentifier maybeTargetId() {
             if (targetModuleRevision == null) {
                 //this situation is detected by DependencyGraphBuilderTest which uses mocks
                 //it suppose to mean that the dependency is unresolved.
-                //I've tried but I was not able to reproduce this with an integ test
-                //it might be that it is not necessary code and the unit test/code needs to be tweaked.
-                //For now I'm using the dependency descriptor get the necessary information
-                //TODO SF revisit when implementing the 'unresolved' dependency story
-                ModuleRevisionId revId = dependencyDescriptor.getDependencyRevisionId();
-                return new DefaultModuleVersionIdentifier(revId.getName(), revId.getOrganisation(), revId.getRevision());
+                return null;
             }
             return new DefaultModuleVersionIdentifier(
                     targetModuleRevision.id.getOrganisation(),
