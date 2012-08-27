@@ -45,7 +45,7 @@ class TestProxyServer extends ExternalResource {
     }
 
     void start() {
-        port = new AvailablePortFinder().nextAvailable
+        port = AvailablePortFinder.createPrivate().nextAvailable
         String remote = "localhost:${httpServer.port}"
         proxyServer = new DefaultHttpProxyServer(port, [:], remote, null, new HttpRequestFilter() {
             void filter(HttpRequest httpRequest) {

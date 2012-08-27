@@ -102,7 +102,7 @@ public class DefaultDaemonConnection implements DaemonConnection {
     public void stop() {
         // 1. Stop handling disconnects. Blocks until the handler has finished.
         // 2. Stop the connection. This means that the thread receiving from the connection will receive a null and finish up.
-        // 3. Stop receiving incoming messages. Blocks until the receive thread has finished.
+        // 3. Stop receiving incoming messages. Blocks until the receive thread has finished. This will notify the stdin queue to signal end of input.
         // 4. Stop handling stdin. Blocks until the handler has finished. Discards any queued input.
         CompositeStoppable.stoppable(disconnectQueue, connection, executor, stdinQueue).stop();
     }
@@ -120,7 +120,16 @@ public class DefaultDaemonConnection implements DaemonConnection {
         }
 
         public void stop() {
-            useHandler(null);
+            StoppableExecutor executor;
+            lock.lock();
+            try {
+                executor = this.executor;
+            } finally {
+                lock.unlock();
+            }
+            if (executor != null) {
+                executor.stop();
+            }
         }
 
         public void add(IoCommand command) {

@@ -62,10 +62,9 @@ public class DaemonGradleExecuter extends ForkingGradleExecuter {
         if(!noDefaultJvmArgs) {
             String jvmArgs  = "-Dorg.gradle.jvmargs=-ea -XX:MaxPermSize=256m -XX:+HeapDumpOnOutOfMemoryError";
             if (JavaVersion.current().isJava5()) {
-                jvmArgs = String.format("%s %s", jvmArgs, "-XX:+CMSPermGenSweepingEnabled");
+                jvmArgs = String.format("%s -XX:+CMSPermGenSweepingEnabled -Dcom.sun.management.jmxremote", jvmArgs);
             }
             args.add(0, jvmArgs);
         }
     }
-
 }
