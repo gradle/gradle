@@ -28,6 +28,7 @@ import org.gradle.api.internal.artifacts.DefaultResolvedArtifact
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.EnhancedDependencyDescriptor
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedConfigurationListener
 import org.gradle.api.specs.Spec
 import spock.lang.Specification
 import org.apache.ivy.core.module.descriptor.*
