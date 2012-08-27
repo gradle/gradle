@@ -17,10 +17,10 @@
 package org.gradle.api.plugins.migration.model.compare.internal
 
 import spock.lang.Specification
-import org.gradle.api.plugins.migration.model.compare.BuildOutcomeComparator
-import org.gradle.api.plugins.migration.model.outcome.BuildOutcome
-import org.gradle.api.plugins.migration.model.compare.BuildOutcomeComparisonResult
-import org.gradle.api.plugins.migration.model.outcome.BuildOutcomeAssociation
+
+import org.gradle.api.plugins.migration.model.outcome.internal.BuildOutcome
+
+import org.gradle.api.plugins.migration.model.outcome.internal.BuildOutcomeAssociation
 
 class DefaultBuildOutcomeComparatorFactoryTest extends Specification {
 

@@ -16,9 +16,6 @@
 
 package org.gradle.api.plugins.migration.model.outcome.internal;
 
-import org.gradle.api.plugins.migration.model.outcome.BuildOutcomeAssociation;
-import org.gradle.api.plugins.migration.model.outcome.BuildOutcome;
-
 public class DefaultBuildOutcomeAssociation<A extends BuildOutcome> implements BuildOutcomeAssociation<A> {
 
     private final A from;

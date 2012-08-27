@@ -18,8 +18,7 @@ package org.gradle.api.plugins.migration.model.compare.internal
 
 import org.gradle.api.plugins.migration.fixtures.outcome.StringBuildOutcome
 import org.gradle.api.plugins.migration.fixtures.outcome.StringBuildOutcomeComparator
-import org.gradle.api.plugins.migration.model.compare.BuildComparisonResult
-import org.gradle.api.plugins.migration.model.compare.BuildComparisonSpecBuilder
+
 import spock.lang.Specification
 
 import static org.apache.commons.lang.StringUtils.getLevenshteinDistance

@@ -17,6 +17,6 @@
 /**
  * Types that model build outcomes.
  *
- * @see BuildOutcome
+ * @see org.gradle.api.plugins.migration.model.outcome.internal.BuildOutcome
  */
 package org.gradle.api.plugins.migration.model.outcome;

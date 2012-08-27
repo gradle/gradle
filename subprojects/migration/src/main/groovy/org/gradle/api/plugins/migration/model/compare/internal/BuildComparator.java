@@ -14,20 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.migration.model.outcome;
-
-import org.gradle.api.Named;
+package org.gradle.api.plugins.migration.model.compare.internal;
 
 /**
- * Something that happens as a result of a build.
+ * An object that can compare builds, according to a specification.
  */
-public interface BuildOutcome extends Named {
+public interface BuildComparator {
 
     /**
-     * A free form description of this outcome.
+     * Performs the comparison, according to the given specification.
      *
-     * @return A free form description of this outcome. Never null.
+     * @param spec The specification of the comparison.
+     * @return The result of the comparison. Never null.
      */
-    String getDescription();
+    BuildComparisonResult compareBuilds(BuildComparisonSpec spec);
 
 }

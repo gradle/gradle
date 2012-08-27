@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.migration.model.outcome;
+package org.gradle.api.plugins.migration.model.outcome.internal;
 
 /**
  * Associates to related build outcomes that can be compared.

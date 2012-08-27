@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.migration.model.compare;
+package org.gradle.api.plugins.migration.model.compare.internal;
 
-import org.gradle.api.plugins.migration.model.outcome.BuildOutcome;
+import org.gradle.api.plugins.migration.model.outcome.internal.BuildOutcome;
 
 import java.util.List;
 import java.util.Set;

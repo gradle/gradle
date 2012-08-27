@@ -16,7 +16,7 @@
 
 package org.gradle.api.plugins.migration.model.render.internal.html;
 
-import org.gradle.api.plugins.migration.model.compare.BuildOutcomeComparisonResult;
+import org.gradle.api.plugins.migration.model.compare.internal.BuildOutcomeComparisonResult;
 import org.gradle.api.plugins.migration.model.render.internal.BuildOutcomeComparisonResultRenderer;
 
 public abstract class BuildOutcomeComparisonResultHtmlRenderer<T extends BuildOutcomeComparisonResult> implements BuildOutcomeComparisonResultRenderer<T, HtmlRenderContext> {

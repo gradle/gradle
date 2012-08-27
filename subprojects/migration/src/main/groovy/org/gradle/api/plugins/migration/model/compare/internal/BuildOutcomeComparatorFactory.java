@@ -15,8 +15,7 @@
  */
 package org.gradle.api.plugins.migration.model.compare.internal;
 
-import org.gradle.api.plugins.migration.model.compare.BuildOutcomeComparator;
-import org.gradle.api.plugins.migration.model.outcome.BuildOutcome;
+import org.gradle.api.plugins.migration.model.outcome.internal.BuildOutcome;
 
 public interface BuildOutcomeComparatorFactory {
 

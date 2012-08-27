@@ -19,18 +19,16 @@ package org.gradle.api.plugins.migration.model.render.internal.html
 import org.gradle.api.plugins.migration.fixtures.outcome.StringBuildOutcome
 import org.gradle.api.plugins.migration.fixtures.outcome.StringBuildOutcomeComparisonResult
 import org.gradle.api.plugins.migration.fixtures.outcome.StringBuildOutcomeComparisonResultHtmlRenderer
-import org.gradle.api.plugins.migration.model.compare.BuildComparisonResult
-import org.gradle.api.plugins.migration.model.compare.BuildOutcomeComparisonResult
+import org.gradle.api.plugins.migration.model.compare.internal.BuildComparisonResult
+import org.gradle.api.plugins.migration.model.compare.internal.BuildOutcomeComparisonResult
 import org.gradle.api.plugins.migration.model.compare.internal.DefaultBuildComparisonSpecBuilder
-import org.gradle.api.plugins.migration.model.outcome.BuildOutcome
+import org.gradle.api.plugins.migration.model.outcome.internal.BuildOutcome
 import org.gradle.api.plugins.migration.model.outcome.internal.DefaultBuildOutcomeAssociation
 import org.gradle.api.plugins.migration.model.render.internal.BuildComparisonResultRenderer
 import org.gradle.api.plugins.migration.model.render.internal.DefaultBuildOutcomeComparisonResultRendererFactory
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import spock.lang.Specification
-
-import static org.gradle.api.plugins.migration.model.render.internal.html.HtmlBuildComparisonResultRenderer.*
 
 class HtmlBuildComparisonResultRendererTest extends Specification {
 

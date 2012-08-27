@@ -19,7 +19,7 @@ package org.gradle.api.plugins.migration.gradle.internal;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.filestore.FileStore;
 import org.gradle.api.internal.filestore.FileStoreEntry;
-import org.gradle.api.plugins.migration.model.outcome.BuildOutcome;
+import org.gradle.api.plugins.migration.model.outcome.internal.BuildOutcome;
 import org.gradle.api.plugins.migration.model.outcome.internal.archive.GeneratedArchiveBuildOutcome;
 import org.gradle.tooling.model.internal.migration.FileBuildOutcome;
 import org.gradle.tooling.model.internal.migration.ProjectOutcomes;

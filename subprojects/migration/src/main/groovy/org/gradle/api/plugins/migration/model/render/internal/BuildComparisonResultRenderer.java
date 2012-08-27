@@ -16,7 +16,7 @@
 
 package org.gradle.api.plugins.migration.model.render.internal;
 
-import org.gradle.api.plugins.migration.model.compare.BuildComparisonResult;
+import org.gradle.api.plugins.migration.model.compare.internal.BuildComparisonResult;
 
 /**
  * Renders a build comparison result to a context.

@@ -14,22 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.migration.model.compare;
+package org.gradle.api.plugins.migration.model.outcome.internal;
 
-import org.gradle.api.plugins.migration.model.outcome.BuildOutcomeAssociation;
-import org.gradle.api.plugins.migration.model.outcome.BuildOutcome;
+import org.gradle.api.Named;
 
 /**
- * Builder for build comparison specifications.
+ * Something that happens as a result of a build.
  */
-public interface BuildComparisonSpecBuilder {
+public interface BuildOutcome extends Named {
 
-    <A extends BuildOutcome, F extends A, T extends A> BuildOutcomeAssociation<A> associate(F from, T to, Class<A> type);
-
-    <F extends BuildOutcome> void addUnassociatedFrom(F from);
-
-    <T extends BuildOutcome> void addUnassociatedTo(T to);
-
-    BuildComparisonSpec build();
+    /**
+     * A free form description of this outcome.
+     *
+     * @return A free form description of this outcome. Never null.
+     */
+    String getDescription();
 
 }

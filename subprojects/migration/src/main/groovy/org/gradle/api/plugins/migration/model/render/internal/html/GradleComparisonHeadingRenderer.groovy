@@ -16,7 +16,7 @@
 
 package org.gradle.api.plugins.migration.model.render.internal.html
 
-import org.gradle.api.plugins.migration.model.compare.BuildComparisonResult
+import org.gradle.api.plugins.migration.model.compare.internal.BuildComparisonResult
 
 class GradleComparisonHeadingRenderer implements PartRenderer {
 

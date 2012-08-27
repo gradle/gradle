@@ -14,19 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.migration.model.compare;
+package org.gradle.api.plugins.migration.model.compare.internal;
+
+import org.gradle.api.plugins.migration.model.outcome.internal.BuildOutcomeAssociation;
+import org.gradle.api.plugins.migration.model.outcome.internal.BuildOutcome;
 
 /**
- * An object that can compare builds, according to a specification.
+ * Builder for build comparison specifications.
  */
-public interface BuildComparator {
+public interface BuildComparisonSpecBuilder {
 
-    /**
-     * Performs the comparison, according to the given specification.
-     *
-     * @param spec The specification of the comparison.
-     * @return The result of the comparison. Never null.
-     */
-    BuildComparisonResult compareBuilds(BuildComparisonSpec spec);
+    <A extends BuildOutcome, F extends A, T extends A> BuildOutcomeAssociation<A> associate(F from, T to, Class<A> type);
+
+    <F extends BuildOutcome> void addUnassociatedFrom(F from);
+
+    <T extends BuildOutcome> void addUnassociatedTo(T to);
+
+    BuildComparisonSpec build();
 
 }
