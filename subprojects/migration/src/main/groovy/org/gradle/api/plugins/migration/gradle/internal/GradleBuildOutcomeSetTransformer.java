@@ -32,6 +32,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Transforms from the Tooling API model classes to the more “native” classes in this space.
+ */
 public class GradleBuildOutcomeSetTransformer implements Transformer<Set<BuildOutcome>, ProjectOutcomes> {
 
     private final FileStore<String> fileStore;
