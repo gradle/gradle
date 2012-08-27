@@ -27,8 +27,4 @@ dependencies {
     runtime libraries.jaxen
 }
 
-test {
-    jvmArgs '-Xms128m', '-Xmx256m', '-XX:MaxPermSize=128m', '-XX:+HeapDumpOnOutOfMemoryError'
-}
-
 useTestFixtures()
