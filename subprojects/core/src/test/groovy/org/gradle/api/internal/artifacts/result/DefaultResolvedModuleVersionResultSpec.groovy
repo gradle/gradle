@@ -48,7 +48,7 @@ class DefaultResolvedModuleVersionResultSpec extends Specification {
         def differentDeps = newModule("group", "module", "version")
                 .addDependency(newDependency())
         def differentDependees = newModule("group", "module", "version")
-                .addDependee(newModule())
+                .addDependee(newDependency())
 
         expect:
         result == differentDeps
@@ -65,7 +65,7 @@ class DefaultResolvedModuleVersionResultSpec extends Specification {
 
         when:
         moduleA.addDependency(depB)
-        moduleB.addDependee(moduleA)
+        moduleB.addDependee(depA)
 
         then:
         moduleA.hashCode()

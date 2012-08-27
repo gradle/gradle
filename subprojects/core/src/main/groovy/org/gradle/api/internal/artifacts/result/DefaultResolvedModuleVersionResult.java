@@ -32,7 +32,7 @@ import java.util.Set;
 public class DefaultResolvedModuleVersionResult implements ResolvedModuleVersionResult {
     private final ModuleVersionIdentifier id;
     private final Set<DependencyResult> dependencies = new LinkedHashSet<DependencyResult>();
-    private final Set<DefaultResolvedModuleVersionResult> dependees = new LinkedHashSet<DefaultResolvedModuleVersionResult>();
+    private final Set<DefaultResolvedDependencyResult> dependees = new LinkedHashSet<DefaultResolvedDependencyResult>();
 
     public DefaultResolvedModuleVersionResult(ModuleVersionIdentifier id) {
         assert id != null;
@@ -51,7 +51,7 @@ public class DefaultResolvedModuleVersionResult implements ResolvedModuleVersion
         });
     }
 
-    public Set<DefaultResolvedModuleVersionResult> getDependees() {
+    public Set<DefaultResolvedDependencyResult> getDependees() {
         return dependees;
     }
 
@@ -60,8 +60,8 @@ public class DefaultResolvedModuleVersionResult implements ResolvedModuleVersion
         return this;
     }
 
-    public DefaultResolvedModuleVersionResult addDependee(DefaultResolvedModuleVersionResult node) {
-        this.dependees.add(node);
+    public DefaultResolvedModuleVersionResult addDependee(DefaultResolvedDependencyResult dependee) {
+        this.dependees.add(dependee);
         return this;
     }
 

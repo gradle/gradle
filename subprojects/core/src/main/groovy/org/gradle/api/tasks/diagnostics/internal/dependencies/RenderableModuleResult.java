@@ -58,9 +58,9 @@ public class RenderableModuleResult implements RenderableDependency {
     }
 
     public Set<RenderableDependency> getParents() {
-        return new LinkedHashSet(Collections2.transform(((DefaultResolvedModuleVersionResult) module).getDependees(), new Function<ResolvedModuleVersionResult, RenderableDependency>() {
-            public RenderableDependency apply(ResolvedModuleVersionResult input) {
-                return new RenderableModuleResult(input);
+        return new LinkedHashSet(Collections2.transform(((DefaultResolvedModuleVersionResult) module).getDependees(), new Function<ResolvedDependencyResult, RenderableDependency>() {
+            public RenderableDependency apply(ResolvedDependencyResult input) {
+                return new RenderableDependencyResult(input);
             }
         }));
     }

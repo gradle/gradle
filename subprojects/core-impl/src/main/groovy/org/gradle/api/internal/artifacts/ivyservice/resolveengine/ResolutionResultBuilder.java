@@ -20,10 +20,10 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedDependencyResult;
-import org.gradle.api.internal.artifacts.result.DefaultResolvedModuleVersionResult;
 
 import java.util.*;
 
@@ -53,30 +53,30 @@ public class ResolutionResultBuilder implements ResolvedConfigurationListener {
     }
 
     private ResolvedModuleVersionResult buildGraph() {
-        DefaultResolvedModuleVersionResult rootResult = new DefaultResolvedModuleVersionResult(root.getId());
+        DefaultResolvedDependencyResult rootDependency = new DefaultResolvedDependencyResult(
+                DefaultModuleVersionSelector.newSelector(root.getId()), root.getId());
 
         Set<ResolvedModuleVersionResult> visited = new HashSet<ResolvedModuleVersionResult>();
 
-        return buildNode(rootResult, visited);
+        linkDependencies(rootDependency, visited);
+
+        return rootDependency.getSelected();
     }
 
-    private ResolvedModuleVersionResult buildNode(DefaultResolvedModuleVersionResult node, Set<ResolvedModuleVersionResult> visited) {
-        if (!visited.add(node)) {
-            return node;
+    private void linkDependencies(DefaultResolvedDependencyResult dependency, Set<ResolvedModuleVersionResult> visited) {
+        if (!visited.add(dependency.getSelected())) {
+            return;
         }
 
-        Set<DependencyResult> theDeps = deps.get(node.getId());
+        Set<DependencyResult> theDeps = deps.get(dependency.getSelected().getId());
         for (DependencyResult d: theDeps) {
             //TODO SF this casting stuff can be avoided if we pass some intermediate type from GraphBuilder
             if (d instanceof DefaultResolvedDependencyResult) {
-                DefaultResolvedModuleVersionResult selected = ((DefaultResolvedDependencyResult) d).getSelected();
-                buildNode(selected, visited);
-                //TODO SF dependee should be edge, not node
-                selected.addDependee(node);
+                DefaultResolvedDependencyResult resolved = (DefaultResolvedDependencyResult) d;
+                linkDependencies(resolved, visited);
+                resolved.getSelected().addDependee(dependency);
             }
-            node.addDependency(d);
+            dependency.getSelected().addDependency(d);
         }
-
-        return node;
     }
 }
