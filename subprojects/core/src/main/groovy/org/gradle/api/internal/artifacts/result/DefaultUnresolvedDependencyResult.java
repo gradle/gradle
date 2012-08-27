@@ -16,39 +16,31 @@
 
 package org.gradle.api.internal.artifacts.result;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.artifacts.result.ResolvedDependencyResult;
-
-import java.util.Collection;
+import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 
 /**
  * by Szczepan Faber, created at: 7/26/12
  */
-public class DefaultResolvedDependencyResult implements ResolvedDependencyResult {
+public class DefaultUnresolvedDependencyResult implements UnresolvedDependencyResult {
 
     private final ModuleVersionSelector requested;
-    private final DefaultResolvedModuleVersionResult selected;
+    private final Exception failure;
 
-    public DefaultResolvedDependencyResult(ModuleVersionSelector requested, ModuleVersionIdentifier selected, Collection<String> configurations) {
+    public DefaultUnresolvedDependencyResult(ModuleVersionSelector requested, Exception failure) {
         assert requested != null;
-        assert selected != null;
-
+        assert failure != null;
+        this.failure = failure;
         this.requested = requested;
-        this.selected = new DefaultResolvedModuleVersionResult(selected);
     }
 
     public ModuleVersionSelector getRequested() {
         return requested;
     }
 
-    public DefaultResolvedModuleVersionResult getSelected() {
-        return selected;
-    }
-
     @Override
     public String toString() {
-        return ResolvedDependencyResultPrinter.print(this);
+        return requested.getGroup() + ":" + requested.getName() + ":" + requested.getVersion() + " - " + failure.getMessage();
     }
 
     @Override
@@ -56,16 +48,13 @@ public class DefaultResolvedDependencyResult implements ResolvedDependencyResult
         if (this == o) {
             return true;
         }
-        if (!(o instanceof DefaultResolvedDependencyResult)) {
+        if (!(o instanceof DefaultUnresolvedDependencyResult)) {
             return false;
         }
 
-        DefaultResolvedDependencyResult that = (DefaultResolvedDependencyResult) o;
+        DefaultUnresolvedDependencyResult that = (DefaultUnresolvedDependencyResult) o;
 
         if (!requested.equals(that.requested)) {
-            return false;
-        }
-        if (!selected.equals(that.selected)) {
             return false;
         }
 
@@ -74,8 +63,6 @@ public class DefaultResolvedDependencyResult implements ResolvedDependencyResult
 
     @Override
     public int hashCode() {
-        int result = requested.hashCode();
-        result = 31 * result + selected.hashCode();
-        return result;
+        return requested.hashCode();
     }
 }

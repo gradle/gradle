@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
@@ -32,6 +33,7 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.EnhancedDependencyDescriptor;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedDependencyResult;
+import org.gradle.api.internal.artifacts.result.DefaultUnresolvedDependencyResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -155,13 +157,17 @@ public class DependencyGraphBuilder {
 
     private void notifyListener(ResolvedConfigurationListener listener, ConfigurationNode resolvedConfiguration) {
         ResolvedConfigurationIdentifier id = resolvedConfiguration.toId();
-        Set<DefaultResolvedDependencyResult> dependencies = new LinkedHashSet<DefaultResolvedDependencyResult>();
+        Set<DependencyResult> dependencies = new LinkedHashSet<DependencyResult>();
 
         for (DependencyEdge edge : resolvedConfiguration.outgoingEdges) {
-            dependencies.add(new DefaultResolvedDependencyResult(
-                    edge.toSelector(),
-                    edge.toId(),
-                    edge.getTargetConfigurationNames()));
+            DependencyResult dependencyResult;
+            //TODO SF push out the complexity to the listener implementation
+            if (edge.isFailed()) {
+                dependencyResult = new DefaultUnresolvedDependencyResult(edge.toSelector(), edge.getFailure());
+            } else {
+                dependencyResult = new DefaultResolvedDependencyResult(edge.toSelector(), edge.toId(), edge.getTargetConfigurationNames());
+            }
+            dependencies.add(dependencyResult);
         }
 
         listener.resolvedConfiguration(id, dependencies);
@@ -395,9 +401,17 @@ public class DependencyGraphBuilder {
             return selector.intersect(selectorSpec);
         }
 
+        public boolean isFailed() {
+            return selector != null && selector.failure != null;
+        }
+
+        public ModuleVersionResolveException getFailure() {
+            return selector.failure;
+        }
+
         public void collectFailures(FailureState failureState) {
-            if (selector != null && selector.failure != null) {
-                failureState.addUnresolvedDependency(this, selector.descriptor.getDependencyRevisionId(), selector.failure);
+            if (isFailed()) {
+                failureState.addUnresolvedDependency(this, selector.descriptor.getDependencyRevisionId(), getFailure());
             }
         }
 

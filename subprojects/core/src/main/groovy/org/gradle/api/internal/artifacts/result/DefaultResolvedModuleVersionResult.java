@@ -17,6 +17,8 @@
 package org.gradle.api.internal.artifacts.result;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.result.DependencyResult;
+import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.CollectionUtils;
@@ -29,7 +31,7 @@ import java.util.Set;
 */
 public class DefaultResolvedModuleVersionResult implements ResolvedModuleVersionResult {
     private final ModuleVersionIdentifier id;
-    private final Set<DefaultResolvedDependencyResult> dependencies = new LinkedHashSet<DefaultResolvedDependencyResult>();
+    private final Set<DependencyResult> dependencies = new LinkedHashSet<DependencyResult>();
     private final Set<DefaultResolvedModuleVersionResult> dependees = new LinkedHashSet<DefaultResolvedModuleVersionResult>();
 
     public DefaultResolvedModuleVersionResult(ModuleVersionIdentifier id) {
@@ -41,10 +43,10 @@ public class DefaultResolvedModuleVersionResult implements ResolvedModuleVersion
         return id;
     }
 
-    public Set<DefaultResolvedDependencyResult> getDependencies() {
-        return CollectionUtils.filter(dependencies, new LinkedHashSet<DefaultResolvedDependencyResult>(), new Spec<DefaultResolvedDependencyResult>() {
-            public boolean isSatisfiedBy(DefaultResolvedDependencyResult element) {
-                return !element.getSelectedConfigurations().isEmpty();
+    public Set<ResolvedDependencyResult> getDependencies() {
+        return CollectionUtils.filter((Set) dependencies, new LinkedHashSet<ResolvedDependencyResult>(), new Spec<DependencyResult>() {
+            public boolean isSatisfiedBy(DependencyResult element) {
+                return element instanceof ResolvedDependencyResult;
             }
         });
     }
@@ -53,10 +55,12 @@ public class DefaultResolvedModuleVersionResult implements ResolvedModuleVersion
         return dependees;
     }
 
-    public DefaultResolvedModuleVersionResult linkDependency(DefaultResolvedDependencyResult dependencyResult) {
-        this.dependencies.add(dependencyResult);
-        dependencyResult.getSelected().dependees.add(this);
-        return this;
+    public void addDependency(DependencyResult dependency) {
+        this.dependencies.add(dependency);
+    }
+
+    public void addDependee(DefaultResolvedModuleVersionResult node) {
+        this.dependees.add(node);
     }
 
     @Override

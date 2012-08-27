@@ -14,20 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
+package org.gradle.api.artifacts.result;
 
-import org.gradle.api.artifacts.result.DependencyResult;
-import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
-
-import java.util.Collection;
+import org.gradle.api.Experimental;
+import org.gradle.api.artifacts.ModuleVersionSelector;
 
 /**
- * by Szczepan Faber, created at: 7/26/12
+ * by Szczepan Faber, created at: 8/24/12
  */
-public interface ResolvedConfigurationListener {
+@Experimental
+public interface DependencyResult {
 
-    void start(ResolvedConfigurationIdentifier root);
-
-    void resolvedConfiguration(ResolvedConfigurationIdentifier id, Collection<DependencyResult> dependencies);
-
+    /**
+     * Returns the requested module version.
+     *
+     * @return requested module version
+     */
+    ModuleVersionSelector getRequested();
 }

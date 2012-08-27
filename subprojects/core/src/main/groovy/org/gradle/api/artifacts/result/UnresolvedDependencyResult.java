@@ -14,20 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
+package org.gradle.api.artifacts.result;
 
-import org.gradle.api.artifacts.result.DependencyResult;
-import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
-
-import java.util.Collection;
+import org.gradle.api.Experimental;
 
 /**
- * by Szczepan Faber, created at: 7/26/12
+ * Unresolved dependency result
  */
-public interface ResolvedConfigurationListener {
-
-    void start(ResolvedConfigurationIdentifier root);
-
-    void resolvedConfiguration(ResolvedConfigurationIdentifier id, Collection<DependencyResult> dependencies);
-
-}
+@Experimental
+public interface UnresolvedDependencyResult extends DependencyResult {}

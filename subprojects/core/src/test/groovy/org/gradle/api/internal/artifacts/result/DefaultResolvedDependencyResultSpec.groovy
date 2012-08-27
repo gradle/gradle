@@ -35,17 +35,14 @@ class DefaultResolvedDependencyResultSpec extends Specification {
 
         def differentRequested =      newDependency(newSelector("X", "b", "1"), newId("a", "b", "1"), ['conf'])
         def differentSelected =       newDependency(newSelector("a", "b", "1"), newId("a", "X", "1"), ['conf'])
-        def differentConfigurations = newDependency(newSelector("a", "b", "1"), newId("a", "b", "1"), ['XXXX'])
 
         expect:
         dependency strictlyEqual(same)
         dependency != differentRequested
         dependency != differentSelected
-        dependency != differentConfigurations
 
         dependency.hashCode() != differentRequested.hashCode()
         dependency.hashCode() != differentSelected.hashCode()
-        dependency.hashCode() != differentConfigurations.hashCode()
     }
 
     private newDependency(ModuleVersionSelector requested, ModuleVersionIdentifier selected, Collection<String> configurations) {

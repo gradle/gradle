@@ -17,19 +17,15 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
+import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedDependencyResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedModuleVersionResult;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-
-import static com.google.common.collect.Sets.newHashSet;
-import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector;
+import java.util.*;
 
 /**
  * by Szczepan Faber, created at: 7/26/12
@@ -37,56 +33,48 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.new
 public class ResolutionResultBuilder implements ResolvedConfigurationListener {
 
     private ResolvedConfigurationIdentifier root;
-    private Map<ModuleVersionIdentifier, Map<Object, DefaultResolvedDependencyResult>> deps
-            = new LinkedHashMap<ModuleVersionIdentifier, Map<Object, DefaultResolvedDependencyResult>>();
+
+    private Map<ModuleVersionIdentifier, Set<DependencyResult>> deps
+            = new LinkedHashMap<ModuleVersionIdentifier, Set<DependencyResult>>();
 
     public void start(ResolvedConfigurationIdentifier root) {
         this.root = root;
     }
 
-    public void resolvedConfiguration(ResolvedConfigurationIdentifier id, Collection<DefaultResolvedDependencyResult> dependencies) {
+    public void resolvedConfiguration(ResolvedConfigurationIdentifier id, Collection<DependencyResult> dependencies) {
         if (!deps.containsKey(id.getId())) {
-            deps.put(id.getId(), new LinkedHashMap<Object, DefaultResolvedDependencyResult>());
+            deps.put(id.getId(), new LinkedHashSet<DependencyResult>());
         }
-
-        //The configurations are merged into the dependencies that have the same selected+requested
-        Map<Object, DefaultResolvedDependencyResult> accumulatedDependencies = deps.get(id.getId());
-        for (DefaultResolvedDependencyResult d : dependencies) {
-            if (accumulatedDependencies.containsKey(d.getSelectionId())) {
-                accumulatedDependencies.get(d.getSelectionId()).appendConfigurations(d.getSelectedConfigurations());
-            } else {
-                accumulatedDependencies.put(d.getSelectionId(), d);
-            }
-        }
+        deps.get(id.getId()).addAll(dependencies);
     }
 
     public ResolutionResult getResult() {
         return new DefaultResolutionResult(buildGraph());
     }
 
-    private DefaultResolvedModuleVersionResult buildGraph() {
-        Map<DefaultResolvedDependencyResult, DefaultResolvedModuleVersionResult> visited = new HashMap<DefaultResolvedDependencyResult, DefaultResolvedModuleVersionResult>();
-        DefaultResolvedDependencyResult id = new DefaultResolvedDependencyResult(newSelector(root.getId()), root.getId(), newHashSet(root.getConfiguration()));
-        return buildNode(id, visited);
+    private ResolvedModuleVersionResult buildGraph() {
+        DefaultResolvedModuleVersionResult rootResult = new DefaultResolvedModuleVersionResult(root.getId());
+
+        Set<ResolvedModuleVersionResult> visited = new HashSet<ResolvedModuleVersionResult>();
+
+        return buildNode(rootResult, visited);
     }
 
-    private DefaultResolvedModuleVersionResult buildNode(DefaultResolvedDependencyResult id, Map<DefaultResolvedDependencyResult, DefaultResolvedModuleVersionResult> visited) {
-        if (visited.containsKey(id)) {
-            return visited.get(id);
-        }
-        DefaultResolvedModuleVersionResult node = id.getSelected();
-        visited.put(id, node);
-
-        Map<Object, DefaultResolvedDependencyResult> theDeps = this.deps.get(id.getSelected().getId());
-        if (theDeps == null) {
-            //does not have any dependencies, return.
+    private ResolvedModuleVersionResult buildNode(DefaultResolvedModuleVersionResult node, Set<ResolvedModuleVersionResult> visited) {
+        if (!visited.add(node)) {
             return node;
         }
-        for (DefaultResolvedDependencyResult sel : theDeps.values()) {
-            //recursively feed with the dependencies
-            buildNode(sel, visited);
-            //add dependency and the dependee
-            node.linkDependency(sel);
+
+        Set<DependencyResult> theDeps = deps.get(node.getId());
+        for (DependencyResult d: theDeps) {
+            //TODO SF this casting stuff can be avoided if we pass some intermediate type from GraphBuilder
+            if (d instanceof DefaultResolvedDependencyResult) {
+                DefaultResolvedModuleVersionResult selected = ((DefaultResolvedDependencyResult) d).getSelected();
+                buildNode(selected, visited);
+                //TODO SF dependee should be edge, not node
+                selected.addDependee(node);
+            }
+            node.addDependency(d);
         }
 
         return node;
