@@ -53,7 +53,7 @@ class MigrationVerificationPluginIntegrationSpec extends AbstractIntegrationSpec
         rows.size() == 4
         rows["org/gradle/ChangedClass.class"] == "entry in the Source Build is 409 bytes - in the Target Build it is 486 bytes (+77)"
         rows["org/gradle/DifferentCrcClass.class"] == "entries are of identical size but have different content"
-        rows["org/gradle/SourceBuildOnlyClass.class"] == "Only exists in Source Build"
+        rows["org/gradle/SourceBuildOnlyClass.class"] == "Only exists in Surce Build"
         rows["org/gradle/TargetBuildOnlyClass.class"] == "Only exists in Target Build"
 
         and:

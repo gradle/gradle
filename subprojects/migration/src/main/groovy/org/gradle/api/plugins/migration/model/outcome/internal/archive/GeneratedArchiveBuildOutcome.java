@@ -23,10 +23,12 @@ import java.io.File;
 public class GeneratedArchiveBuildOutcome extends BuildOutcomeSupport {
 
     private final File archiveFile;
+    private final String rootRelativePath;
 
-    public GeneratedArchiveBuildOutcome(String name, String description, File archiveFile) {
+    public GeneratedArchiveBuildOutcome(String name, String description, File archiveFile, String rootRelativePath) {
         super(name, description);
         this.archiveFile = archiveFile;
+        this.rootRelativePath = rootRelativePath;
     }
 
     /**
@@ -38,5 +40,14 @@ public class GeneratedArchiveBuildOutcome extends BuildOutcomeSupport {
      */
     public File getArchiveFile() {
         return archiveFile;
+    }
+
+    /**
+     * The relative path to where this archive was generated, relative to some meaningful root.
+     *
+     * @return The relative path.
+     */
+    public String getRootRelativePath() {
+        return rootRelativePath;
     }
 }

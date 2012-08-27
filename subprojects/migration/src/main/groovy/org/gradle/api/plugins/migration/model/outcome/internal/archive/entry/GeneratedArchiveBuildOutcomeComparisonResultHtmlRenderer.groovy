@@ -47,14 +47,17 @@ class GeneratedArchiveBuildOutcomeComparisonResultHtmlRenderer extends BuildOutc
             table {
                 tr {
                     th class: "border-right", ""
-                    th "Location"
+                    th "Generated Location (relative)"
+                    th "Copied Location"
                 }
                 tr {
                     th class: "border-right no-border-bottom", fromSideName
+                    td from.rootRelativePath
                     td from.archiveFile.absolutePath
                 }
                 tr {
                     th class: "border-right no-border-bottom", toSideName
+                    td to.rootRelativePath
                     td to.archiveFile.absolutePath
                 }
             }
