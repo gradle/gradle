@@ -17,10 +17,10 @@
 package org.gradle.api.plugins.migration.fixtures.gradle
 
 import org.gradle.tooling.model.DomainObjectSet
-import org.gradle.tooling.model.internal.migration.FileBuildOutcome
-import org.gradle.tooling.model.internal.migration.ProjectOutcomes
+import org.gradle.tooling.model.internal.outcomes.FileBuildOutcome
+import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes
 import org.gradle.util.ConfigureUtil
-import org.gradle.tooling.model.internal.migration.BuildOutcome
+import org.gradle.tooling.model.internal.outcomes.BuildOutcome
 
 class MutableProjectOutcomes implements ProjectOutcomes {
     String name

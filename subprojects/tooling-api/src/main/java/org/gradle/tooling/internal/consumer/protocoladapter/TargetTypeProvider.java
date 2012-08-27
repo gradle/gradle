@@ -18,7 +18,7 @@ package org.gradle.tooling.internal.consumer.protocoladapter;
 
 import org.gradle.tooling.model.idea.IdeaModuleDependency;
 import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency;
-import org.gradle.tooling.model.internal.migration.FileBuildOutcome;
+import org.gradle.tooling.model.internal.outcomes.FileBuildOutcome;
 
 import java.util.HashMap;
 import java.util.Map;

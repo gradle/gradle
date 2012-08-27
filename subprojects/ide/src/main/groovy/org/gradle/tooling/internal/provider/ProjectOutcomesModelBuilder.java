@@ -22,17 +22,17 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.tooling.internal.migration.DefaultProjectOutcomes;
+import org.gradle.tooling.internal.outcomes.DefaultProjectOutcomes;
 import org.gradle.tooling.internal.protocol.InternalProjectOutcomes;
 import org.gradle.tooling.internal.protocol.ProjectVersion3;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
-import org.gradle.tooling.model.internal.migration.FileBuildOutcome;
-import org.gradle.tooling.model.internal.migration.ProjectOutcomes;
+import org.gradle.tooling.model.internal.outcomes.FileBuildOutcome;
+import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes;
 
 import java.util.List;
 
-public class MigrationModelBuilder implements BuildsModel {
+public class ProjectOutcomesModelBuilder implements BuildsModel {
 
     private final Transformer<FileBuildOutcome, PublishArtifact> artifactTransformer = new PublishArtifactToFileBuildOutcomeTransformer();
 

@@ -41,7 +41,7 @@ import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
-import org.gradle.tooling.model.internal.migration.ProjectOutcomes;
+import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes;
 import org.gradle.util.GradleVersion;
 
 import java.io.*;

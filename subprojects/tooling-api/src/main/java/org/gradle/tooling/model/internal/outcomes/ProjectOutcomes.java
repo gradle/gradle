@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.model.internal.migration;
+package org.gradle.tooling.model.internal.outcomes;
 
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.HierarchicalElement;

@@ -23,8 +23,8 @@ import org.gradle.api.plugins.migration.model.outcome.internal.BuildOutcome;
 import org.gradle.api.plugins.migration.model.outcome.internal.archive.GeneratedArchiveBuildOutcome;
 import org.gradle.api.plugins.migration.model.outcome.internal.unknown.UnknownBuildOutcome;
 import org.gradle.tooling.internal.provider.FileOutcomeIdentifier;
-import org.gradle.tooling.model.internal.migration.FileBuildOutcome;
-import org.gradle.tooling.model.internal.migration.ProjectOutcomes;
+import org.gradle.tooling.model.internal.outcomes.FileBuildOutcome;
+import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes;
 
 import java.io.File;
 import java.util.Arrays;
@@ -49,16 +49,22 @@ public class GradleBuildOutcomeSetTransformer implements Transformer<Set<BuildOu
 
     public Set<BuildOutcome> transform(ProjectOutcomes projectOutcomes) {
         Set<BuildOutcome> keyedOutcomes = new HashSet<BuildOutcome>();
+        addBuildOutcomes(projectOutcomes, keyedOutcomes);
+        return keyedOutcomes;
+    }
 
-        for (org.gradle.tooling.model.internal.migration.BuildOutcome outcome : projectOutcomes.getOutcomes()) {
+    private void addBuildOutcomes(ProjectOutcomes projectOutcomes, Set<BuildOutcome> buildOutcomes) {
+        for (org.gradle.tooling.model.internal.outcomes.BuildOutcome outcome : projectOutcomes.getOutcomes()) {
             if (outcome instanceof FileBuildOutcome) {
-                addFileBuildOutcome((FileBuildOutcome) outcome, keyedOutcomes);
+                addFileBuildOutcome((FileBuildOutcome) outcome, buildOutcomes);
             } else {
                 new UnknownBuildOutcome(outcome.getTaskPath(), "Unknown Build Outcome");
             }
         }
 
-        return keyedOutcomes;
+        for (ProjectOutcomes child : projectOutcomes.getChildren()) {
+            addBuildOutcomes(child, buildOutcomes);
+        }
     }
 
     private void addFileBuildOutcome(FileBuildOutcome outcome, Set<BuildOutcome> translatedOutcomes) {

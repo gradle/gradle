@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.model.internal.migration;
+package org.gradle.tooling.model.internal.outcomes;
 
 import org.gradle.api.Nullable;
 import org.gradle.tooling.model.Model;

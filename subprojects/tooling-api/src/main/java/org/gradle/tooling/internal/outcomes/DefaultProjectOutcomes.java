@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.migration;
+package org.gradle.tooling.internal.outcomes;
 
 import com.google.common.collect.Lists;
 import org.gradle.tooling.internal.protocol.InternalProjectOutcomes;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
-import org.gradle.tooling.model.internal.migration.BuildOutcome;
-import org.gradle.tooling.model.internal.migration.ProjectOutcomes;
+import org.gradle.tooling.model.internal.outcomes.BuildOutcome;
+import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes;
 
 import java.io.File;
 import java.io.Serializable;

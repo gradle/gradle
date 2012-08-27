@@ -22,7 +22,7 @@ import org.gradle.api.internal.filestore.FileStoreEntry
 import org.gradle.api.plugins.migration.fixtures.gradle.ProjectOutcomesBuilder
 import org.gradle.api.plugins.migration.model.outcome.internal.archive.GeneratedArchiveBuildOutcome
 import org.gradle.api.plugins.migration.model.outcome.internal.unknown.UnknownBuildOutcome
-import org.gradle.tooling.model.internal.migration.ProjectOutcomes
+import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes
 import spock.lang.Specification
 
 import static org.gradle.tooling.internal.provider.FileOutcomeIdentifier.*

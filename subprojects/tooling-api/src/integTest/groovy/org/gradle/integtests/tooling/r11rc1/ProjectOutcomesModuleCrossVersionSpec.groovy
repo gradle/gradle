@@ -20,13 +20,13 @@ import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.tooling.model.internal.migration.ProjectOutcomes
+import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes
 
 import org.junit.Rule
 
 @MinToolingApiVersion("current")
 @MinTargetGradleVersion("current")
-class MigrationModelCrossVersionSpec extends ToolingApiSpecification {
+class ProjectOutcomesModuleCrossVersionSpec extends ToolingApiSpecification {
     @Rule TestResources resources = new TestResources()
 
     def "modelContainsAllArchivesOnTheArchivesConfiguration"() {
