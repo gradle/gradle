@@ -82,6 +82,37 @@ class MigrationVerificationPluginIntegrationSpec extends AbstractIntegrationSpec
         html("result/index.html").select("p").text() == "The archives are completely identical."
     }
 
+    def "compare project with unknown outcomes"() {
+        given:
+        settingsFile << "" // stop up search
+        file("file.txt") << "text"
+        buildFile << """
+            apply plugin: "java-base"
+
+            configurations {
+                archives
+            }
+
+            task compare(type: CompareGradleBuilds) {
+                reportDir "result"
+            }
+
+            task tarArchive(type: Tar) {
+                from "file.txt"
+            }
+
+            artifacts {
+                archives tarArchive
+            }
+        """
+
+        when:
+        run "compare"
+
+        then:
+        html("result/index.html").select("p").text() == "This version of Gradle does not understand this kind of build outcome. Running the comparison process from a newer version of Gradle may yield better results."
+    }
+
     Document html(path) {
         Jsoup.parse(file(path), "utf8")
     }

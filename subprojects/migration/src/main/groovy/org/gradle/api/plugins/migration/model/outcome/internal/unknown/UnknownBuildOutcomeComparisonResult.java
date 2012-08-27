@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.migration.model.render.internal.html;
+package org.gradle.api.plugins.migration.model.outcome.internal.unknown;
 
-import org.gradle.api.plugins.migration.model.compare.internal.BuildOutcomeComparisonResult;
-import org.gradle.api.plugins.migration.model.render.internal.BuildOutcomeComparisonResultRenderer;
+import org.gradle.api.plugins.migration.model.compare.internal.BuildOutcomeComparisonResultSupport;
+import org.gradle.api.plugins.migration.model.outcome.internal.BuildOutcomeAssociation;
 
-public abstract class BuildOutcomeComparisonResultHtmlRenderer<T extends BuildOutcomeComparisonResult> implements BuildOutcomeComparisonResultRenderer<T, HtmlRenderContext> {
+public class UnknownBuildOutcomeComparisonResult extends BuildOutcomeComparisonResultSupport<UnknownBuildOutcome> {
 
-    public Class<HtmlRenderContext> getContextType() {
-        return HtmlRenderContext.class;
+    public UnknownBuildOutcomeComparisonResult(BuildOutcomeAssociation<UnknownBuildOutcome> compared) {
+        super(compared);
     }
 
 }

@@ -19,11 +19,13 @@ package org.gradle.api.plugins.migration.gradle.internal
 import org.gradle.api.internal.filestore.DefaultFileStoreEntry
 import org.gradle.api.internal.filestore.FileStore
 import org.gradle.api.internal.filestore.FileStoreEntry
-
+import org.gradle.api.plugins.migration.fixtures.gradle.ProjectOutcomesBuilder
 import org.gradle.api.plugins.migration.model.outcome.internal.archive.GeneratedArchiveBuildOutcome
+import org.gradle.api.plugins.migration.model.outcome.internal.unknown.UnknownBuildOutcome
 import org.gradle.tooling.model.internal.migration.ProjectOutcomes
 import spock.lang.Specification
-import org.gradle.api.plugins.migration.fixtures.gradle.ProjectOutcomesBuilder
+
+import static org.gradle.tooling.internal.provider.FileOutcomeIdentifier.*
 
 class GradleBuildOutcomeSetTransformerTest extends Specification {
 
@@ -48,28 +50,34 @@ class GradleBuildOutcomeSetTransformerTest extends Specification {
         ProjectOutcomesBuilder builder = new ProjectOutcomesBuilder()
         ProjectOutcomes projectOutput = builder.build {
             createChild("a") {
-                addFile "a1"
+                addFile "a1", JAR_ARTIFACT.typeIdentifier
             }
             createChild("b") {
-                addFile "b1"
-                addFile "b2"
+                addFile "b1", ZIP_ARTIFACT.typeIdentifier
+                addFile "b2", EAR_ARTIFACT.typeIdentifier
             }
             createChild("c") {
                 createChild("a") {
-                    addFile "ca1"
-                    addFile "ca2"
+                    addFile "ca1", WAR_ARTIFACT.typeIdentifier
+                    addFile "ca2", TAR_ARTIFACT.typeIdentifier
                 }
             }
             createChild("d")
         }
 
         when:
-        def outcomes = transformer.transform(projectOutput)
+        def outcomes = transformer.transform(projectOutput).collectEntries { [it.name, it] }
 
         then:
         outcomes.size() == 5
-        outcomes*.name.toList().sort() == [":a:a1", ":b:b1", ":b:b2", ":c:a:ca1", ":c:a:ca2"]
-        outcomes.every { it instanceof GeneratedArchiveBuildOutcome }
+        outcomes.keySet().toList().sort() == [":a:a1", ":b:b1", ":b:b2", ":c:a:ca1", ":c:a:ca2"]
+        outcomes[":a:a1"] instanceof GeneratedArchiveBuildOutcome
+        outcomes[":a:a1"].archiveFile.name == "a1"
+        outcomes[":b:b1"] instanceof GeneratedArchiveBuildOutcome
+        outcomes[":b:b1"].archiveFile.name == "b1"
+        outcomes[":b:b2"] instanceof GeneratedArchiveBuildOutcome
+        outcomes[":c:a:ca1"] instanceof GeneratedArchiveBuildOutcome
+        outcomes[":c:a:ca2"] instanceof UnknownBuildOutcome
     }
 
 }

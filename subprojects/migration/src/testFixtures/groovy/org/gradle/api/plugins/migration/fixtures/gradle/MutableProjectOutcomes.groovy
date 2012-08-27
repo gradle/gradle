@@ -42,7 +42,7 @@ class MutableProjectOutcomes implements ProjectOutcomes {
         ConfigureUtil.configure(c, mpo)
     }
 
-    FileBuildOutcome addFile(String archivePath, String taskName = archivePath, String typeIdentifier = null) {
+    FileBuildOutcome addFile(String archivePath, String typeIdentifier = null, String taskName = archivePath) {
         def outcome = new FileBuildOutcome() {
             File getFile() {
                 new File(projectDirectory, archivePath)

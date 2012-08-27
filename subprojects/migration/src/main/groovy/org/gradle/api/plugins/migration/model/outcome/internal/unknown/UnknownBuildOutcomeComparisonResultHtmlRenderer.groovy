@@ -14,35 +14,28 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.migration.fixtures.outcome
+package org.gradle.api.plugins.migration.model.outcome.internal.unknown
 
 import org.gradle.api.plugins.migration.model.render.internal.html.BuildOutcomeComparisonResultHtmlRenderer
 import org.gradle.api.plugins.migration.model.render.internal.html.HtmlRenderContext
 
-class StringBuildOutcomeComparisonResultHtmlRenderer extends BuildOutcomeComparisonResultHtmlRenderer<StringBuildOutcomeComparisonResult> {
+class UnknownBuildOutcomeComparisonResultHtmlRenderer extends BuildOutcomeComparisonResultHtmlRenderer<UnknownBuildOutcomeComparisonResult> {
 
-    StringBuildOutcomeComparisonResultHtmlRenderer(String fromSideName = "From", String toSideName = "To") {
+    UnknownBuildOutcomeComparisonResultHtmlRenderer(String fromSideName, String toSideName) {
         super(fromSideName, toSideName)
     }
 
-    Class<StringBuildOutcomeComparisonResult> getResultType() {
-        StringBuildOutcomeComparisonResult
+    Class<UnknownBuildOutcomeComparisonResult> getResultType() {
+        UnknownBuildOutcomeComparisonResult
     }
 
-    void render(StringBuildOutcomeComparisonResult result, HtmlRenderContext context) {
+    void render(UnknownBuildOutcomeComparisonResult result, HtmlRenderContext context) {
+        renderTitle(result, context)
+
         context.render {
-            table {
-                tr {
-                    th fromSideName
-                    th toSideName
-                    th "Distance"
-                }
-                tr {
-                    td result.compared.from.value
-                    td result.compared.to.value
-                    td result.distance
-                }
-            }
+            p "This version of Gradle does not understand this kind of build outcome."
+            p "Running the comparison process from a newer version of Gradle may yield better results."
         }
     }
+
 }

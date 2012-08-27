@@ -28,12 +28,8 @@ import static org.gradle.api.plugins.migration.model.compare.internal.Comparison
  */
 class GeneratedArchiveBuildOutcomeComparisonResultHtmlRenderer extends BuildOutcomeComparisonResultHtmlRenderer<GeneratedArchiveBuildOutcomeComparisonResult> {
 
-    final String fromSideName
-    final String toSideName
-
     GeneratedArchiveBuildOutcomeComparisonResultHtmlRenderer(String fromSideName, String toSideName) {
-        this.fromSideName = fromSideName
-        this.toSideName = toSideName
+        super(fromSideName, toSideName)
     }
 
     Class<GeneratedArchiveBuildOutcomeComparisonResult> getResultType() {
@@ -41,14 +37,10 @@ class GeneratedArchiveBuildOutcomeComparisonResultHtmlRenderer extends BuildOutc
     }
 
     void render(GeneratedArchiveBuildOutcomeComparisonResult result, HtmlRenderContext context) {
-        GeneratedArchiveBuildOutcome from = result.compared.from
-        GeneratedArchiveBuildOutcome to = result.compared.to
+        renderTitle(result, context)
 
-        if (from.name == to.name) {
-            context.render { h3 "Task: “${from.name}”" } // TODO - assuming this is from a task
-        } else {
-            context.render { h3 "Task: ($fromSideName: “${from.name}”, $toSideName: “${to.name}”)" }
-        }
+        def from = result.compared.from
+        def to = result.compared.to
 
         context.render {
             h4 "Details"

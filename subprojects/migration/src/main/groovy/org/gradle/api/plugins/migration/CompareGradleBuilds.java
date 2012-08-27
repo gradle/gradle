@@ -23,18 +23,17 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.filestore.PathNormalisingKeyFileStore;
 import org.gradle.api.plugins.migration.gradle.internal.GradleBuildOutcomeSetTransformer;
-import org.gradle.api.plugins.migration.model.compare.internal.BuildComparator;
-import org.gradle.api.plugins.migration.model.compare.internal.BuildComparisonResult;
-import org.gradle.api.plugins.migration.model.compare.internal.BuildComparisonSpec;
-import org.gradle.api.plugins.migration.model.compare.internal.BuildComparisonSpecFactory;
-import org.gradle.api.plugins.migration.model.compare.internal.DefaultBuildComparator;
-import org.gradle.api.plugins.migration.model.compare.internal.DefaultBuildOutcomeComparatorFactory;
+import org.gradle.api.plugins.migration.model.compare.internal.*;
 import org.gradle.api.plugins.migration.model.outcome.internal.BuildOutcome;
 import org.gradle.api.plugins.migration.model.outcome.internal.BuildOutcomeAssociator;
 import org.gradle.api.plugins.migration.model.outcome.internal.ByTypeAndNameBuildOutcomeAssociator;
+import org.gradle.api.plugins.migration.model.outcome.internal.CompositeBuildOutcomeAssociator;
 import org.gradle.api.plugins.migration.model.outcome.internal.archive.GeneratedArchiveBuildOutcome;
 import org.gradle.api.plugins.migration.model.outcome.internal.archive.GeneratedArchiveBuildOutcomeComparator;
 import org.gradle.api.plugins.migration.model.outcome.internal.archive.entry.GeneratedArchiveBuildOutcomeComparisonResultHtmlRenderer;
+import org.gradle.api.plugins.migration.model.outcome.internal.unknown.UnknownBuildOutcome;
+import org.gradle.api.plugins.migration.model.outcome.internal.unknown.UnknownBuildOutcomeComparator;
+import org.gradle.api.plugins.migration.model.outcome.internal.unknown.UnknownBuildOutcomeComparisonResultHtmlRenderer;
 import org.gradle.api.plugins.migration.model.render.internal.BuildComparisonResultRenderer;
 import org.gradle.api.plugins.migration.model.render.internal.DefaultBuildOutcomeComparisonResultRendererFactory;
 import org.gradle.api.plugins.migration.model.render.internal.html.*;
@@ -131,12 +130,15 @@ public class CompareGradleBuilds extends DefaultTask {
 
         // Associate from each side (create spec)
 
-        BuildOutcomeAssociator outcomeAssociator = new ByTypeAndNameBuildOutcomeAssociator<BuildOutcome>(GeneratedArchiveBuildOutcome.class);
-        BuildComparisonSpecFactory specFactory = new BuildComparisonSpecFactory(outcomeAssociator);
+        BuildOutcomeAssociator archivesAssociator = new ByTypeAndNameBuildOutcomeAssociator<BuildOutcome>(GeneratedArchiveBuildOutcome.class);
+        BuildOutcomeAssociator unknownAssociator = new ByTypeAndNameBuildOutcomeAssociator<BuildOutcome>(UnknownBuildOutcome.class);
+        BuildOutcomeAssociator compositeAssociator = new CompositeBuildOutcomeAssociator(archivesAssociator, unknownAssociator);
+        BuildComparisonSpecFactory specFactory = new BuildComparisonSpecFactory(compositeAssociator);
         BuildComparisonSpec comparisonSpec = specFactory.createSpec(fromOutcomes, toOutcomes);
 
         DefaultBuildOutcomeComparatorFactory comparatorFactory = new DefaultBuildOutcomeComparatorFactory();
         comparatorFactory.registerComparator(new GeneratedArchiveBuildOutcomeComparator());
+        comparatorFactory.registerComparator(new UnknownBuildOutcomeComparator());
 
         // Compare
 
@@ -193,6 +195,7 @@ public class CompareGradleBuilds extends DefaultTask {
     private BuildComparisonResultRenderer<Writer> createResultRenderer() {
         DefaultBuildOutcomeComparisonResultRendererFactory<HtmlRenderContext> renderers = new DefaultBuildOutcomeComparisonResultRendererFactory<HtmlRenderContext>(HtmlRenderContext.class);
         renderers.registerRenderer(new GeneratedArchiveBuildOutcomeComparisonResultHtmlRenderer("Source Build", "Target Build"));
+        renderers.registerRenderer(new UnknownBuildOutcomeComparisonResultHtmlRenderer("Source Build", "Target Build"));
 
         PartRenderer headRenderer = new HeadRenderer("Gradle Build Comparison", Charset.defaultCharset().name());
 
