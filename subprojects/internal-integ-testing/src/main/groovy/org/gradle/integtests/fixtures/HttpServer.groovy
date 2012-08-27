@@ -15,21 +15,22 @@
  */
 package org.gradle.integtests.fixtures
 
+import org.gradle.util.AvailablePortFinder
 import org.gradle.util.hash.HashUtil
 import org.hamcrest.Matcher
 import org.junit.rules.ExternalResource
+import org.mortbay.jetty.*
+import org.mortbay.jetty.bio.SocketConnector
 import org.mortbay.jetty.handler.AbstractHandler
 import org.mortbay.jetty.handler.HandlerCollection
+import org.mortbay.jetty.security.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-import java.security.Principal
-import java.util.zip.GZIPOutputStream
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
-
-import org.mortbay.jetty.*
-import org.mortbay.jetty.security.*
+import java.security.Principal
+import java.util.zip.GZIPOutputStream
 
 class HttpServer extends ExternalResource {
 
@@ -98,6 +99,10 @@ class HttpServer extends ExternalResource {
     }
 
     void start() {
+        int port = AvailablePortFinder.createPrivate().nextAvailable
+        Connector connector = new SocketConnector()
+        connector.port = port
+        server.setConnectors(connector)
         server.start()
     }
 
@@ -518,15 +523,7 @@ class HttpServer extends ExternalResource {
     }
 
     int getPort() {
-        def port = server.connectors[0].localPort
-        if (port < 0) {
-            throw new RuntimeException("""No port available for HTTP server. Still starting perhaps?
-connector: ${server.connectors[0]}
-connector state: ${server.connectors[0].dump()}
-server state: ${server.dump()}
-""")
-        }
-        return port
+        return server.connectors[0].localPort
     }
 
     interface Expection {
