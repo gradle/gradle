@@ -40,7 +40,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.util.List;
 
-public class DefaultConnection implements InternalConnection {
+public class DefaultConnection implements InternalConnection, BuildActionRunner {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConnection.class);
     private final EmbeddedExecuterSupport embeddedExecuterSupport;
     private final SimpleLogbackLoggingConfigurer loggingConfigurer = new SimpleLogbackLoggingConfigurer();
@@ -74,6 +74,7 @@ public class DefaultConnection implements InternalConnection {
     public void stop() {
     }
 
+    @Deprecated
     public void executeBuild(final BuildParametersVersion1 buildParameters,
                              BuildOperationParametersVersion1 operationParameters) {
         logTargetVersion();
@@ -85,11 +86,21 @@ public class DefaultConnection implements InternalConnection {
         LOGGER.info("Tooling API uses target gradle version:" + " {}.", GradleVersion.current().getVersion());
     }
 
-    @Deprecated //getTheModel method has much convenient interface, e.g. avoids locking to building only models of a specific type
+    public <T> T run(Class<T> type, BuildParametersVersion1 buildParameters, BuildOperationParametersVersion1 operationParameters) throws UnsupportedOperationException, IllegalStateException {
+        if (buildParameters == null) {
+            return getTheModel(type, operationParameters);
+        } else {
+            executeBuild(buildParameters, operationParameters);
+            return null;
+        }
+    }
+
+    @Deprecated
     public ProjectVersion3 getModel(Class<? extends ProjectVersion3> type, BuildOperationParametersVersion1 parameters) {
         return getTheModel(type, parameters);
     }
 
+    @Deprecated
     public <T> T getTheModel(Class<T> type, BuildOperationParametersVersion1 parameters) {
         logTargetVersion();
         ProviderOperationParameters adaptedParameters = new AdaptedOperationParameters(parameters);

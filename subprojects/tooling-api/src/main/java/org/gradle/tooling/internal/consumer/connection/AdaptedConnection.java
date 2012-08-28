@@ -20,7 +20,6 @@ import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParamete
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.BuildParametersVersion1;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
-import org.gradle.tooling.internal.protocol.InternalConnection;
 import org.gradle.tooling.internal.reflect.CompatibleIntrospector;
 
 /**
@@ -49,11 +48,7 @@ public class AdaptedConnection implements ConsumerConnection {
 
     @SuppressWarnings({"deprecation"})
     public <T> T getModel(Class<T> type, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
-        if (delegate instanceof InternalConnection) {
-            return ((InternalConnection) delegate).getTheModel(type, operationParameters);
-        } else {
-            return (T) delegate.getModel((Class) type, operationParameters);
-        }
+        return (T) delegate.getModel((Class) type, operationParameters);
     }
 
     public void executeBuild(BuildParametersVersion1 buildParameters, ConsumerOperationParameters operationParameters) throws IllegalStateException {
