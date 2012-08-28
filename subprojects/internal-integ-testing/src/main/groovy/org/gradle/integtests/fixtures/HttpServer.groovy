@@ -40,10 +40,12 @@ class HttpServer extends ExternalResource {
     private final HandlerCollection collection = new HandlerCollection()
     private TestUserRealm realm
     private SecurityHandler securityHandler
+    private Connector connector
+    private SslSocketConnector sslConnector
     AuthScheme authenticationScheme = AuthScheme.BASIC
+
     private Throwable failure
     private final List<Expection> expections = []
-
     private Matcher expectedUserAgent = null
 
     enum AuthScheme {
@@ -100,9 +102,9 @@ class HttpServer extends ExternalResource {
 
     void start() {
         int port = AvailablePortFinder.createPrivate().nextAvailable
-        Connector connector = new SocketConnector()
+        connector = new SocketConnector()
         connector.port = port
-        server.setConnectors(connector)
+        server.addConnector(connector)
         server.start()
     }
 
@@ -116,6 +118,22 @@ class HttpServer extends ExternalResource {
         if (this.failure == null) {
             this.failure = failure
         }
+    }
+
+    void enableSsl(String keyStore, String keyPassword, String trustStore = null, String trustPassword = null) {
+        sslConnector = new SslSocketConnector()
+        sslConnector.keystore = keyStore
+        sslConnector.keyPassword = keyPassword
+        if (trustStore) {
+            sslConnector.needClientAuth = true
+            sslConnector.truststore = trustStore
+            sslConnector.trustPassword = trustPassword
+        }
+        server.addConnector(sslConnector)
+    }
+
+    int getSslPort() {
+        sslConnector.localPort
     }
 
     void expectUserAgent(UserAgentMatcher userAgent) {

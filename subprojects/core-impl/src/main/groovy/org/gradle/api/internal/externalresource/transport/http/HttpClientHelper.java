@@ -17,12 +17,11 @@
 package org.gradle.api.internal.externalresource.transport.http;
 
 import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.impl.client.ContentEncodingHttpClient;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.client.DefaultRedirectStrategy;
+import org.apache.http.impl.client.*;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.util.EntityUtils;
 import org.gradle.api.UncheckedIOException;
@@ -37,14 +36,13 @@ import java.io.IOException;
 public class HttpClientHelper {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpClientHelper.class);
-    private final DefaultHttpClient client = new ContentEncodingHttpClient();
+    private final HttpClient client;
     private final BasicHttpContext httpContext = new BasicHttpContext();
 
-    private final HttpClientConfigurer configurer;
-
     public HttpClientHelper(HttpSettings settings) {
-        configurer = new HttpClientConfigurer(settings);
-        configurer.configure(client);
+        DefaultHttpClient client = new SystemDefaultHttpClient();
+        new HttpClientConfigurer(settings).configure(client);
+        this.client = new DecompressingHttpClient(client);
     }
 
     public HttpResponse performRawHead(String source) {
