@@ -315,7 +315,7 @@ public class DefaultOsgiManifest extends DefaultManifest implements OsgiManifest
     }
 
     private List<String> createListFromPropertyString(String propertyString) {
-        return propertyString == null || propertyString.isEmpty() ? null : new LinkedList<String>(Arrays.asList(propertyString.split(",")));
+        return propertyString == null || propertyString.length() == 0 ? null : new LinkedList<String>(Arrays.asList(propertyString.split(",")));
     }
 
     private Map<String, List<String>> getModelledInstructions() {
