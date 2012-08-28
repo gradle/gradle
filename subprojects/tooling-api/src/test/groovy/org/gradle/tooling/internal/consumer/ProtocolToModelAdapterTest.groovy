@@ -22,6 +22,10 @@ interface TestModel {
 
     TestProject getProject()
 
+    boolean isProjectSupported()
+
+    TestProject getProject(TestProject defaultValue)
+
     DomainObjectSet<? extends TestProject> getChildren()
 }
 
