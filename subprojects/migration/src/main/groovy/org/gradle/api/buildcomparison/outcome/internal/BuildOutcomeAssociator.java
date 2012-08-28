@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,17 @@
  * limitations under the License.
  */
 
-dependencies {
-    groovy libraries.groovy
+package org.gradle.api.buildcomparison.outcome.internal;
 
-    compile project(":core")
-    compile project(":toolingApi")
-    compile project(":plugins") // reporting infrastructure
-    compile project(":ide") // for FileOutcomeIdentifier enum
-    compile libraries.guava
-    compile libraries.slf4j_api
+public interface BuildOutcomeAssociator {
 
-    testCompile "org.jsoup:jsoup:1.6.3"
+    /**
+     * Attempts to associate the from outcome with the to outcome, by a type.
+     *
+     * @param from The outcome on the from side.
+     * @param to The outcome on the to side.
+     * @return The type of the association if they are associated, otherwise null.
+     */
+    Class<? extends BuildOutcome> findAssociationType(BuildOutcome from, BuildOutcome to);
+
 }
-
-processResources {
-    into "org/gradle/api/buildcomparison/render/internal/html", {
-        from { project(":docs").css }
-        include "base.css"
-    }
-}
-
-useTestFixtures()

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,23 @@
  * limitations under the License.
  */
 
-dependencies {
-    groovy libraries.groovy
+package org.gradle.api.buildcomparison.outcome.internal;
 
-    compile project(":core")
-    compile project(":toolingApi")
-    compile project(":plugins") // reporting infrastructure
-    compile project(":ide") // for FileOutcomeIdentifier enum
-    compile libraries.guava
-    compile libraries.slf4j_api
+public abstract class BuildOutcomeSupport implements BuildOutcome {
 
-    testCompile "org.jsoup:jsoup:1.6.3"
-}
+    private final String name;
+    private final String description;
 
-processResources {
-    into "org/gradle/api/buildcomparison/render/internal/html", {
-        from { project(":docs").css }
-        include "base.css"
+    protected BuildOutcomeSupport(String name, String description) {
+        this.name = name;
+        this.description = description;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getDescription() {
+        return description;
     }
 }
-
-useTestFixtures()

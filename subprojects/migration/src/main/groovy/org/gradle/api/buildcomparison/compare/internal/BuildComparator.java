@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,19 @@
  * limitations under the License.
  */
 
-dependencies {
-    groovy libraries.groovy
+package org.gradle.api.buildcomparison.compare.internal;
 
-    compile project(":core")
-    compile project(":toolingApi")
-    compile project(":plugins") // reporting infrastructure
-    compile project(":ide") // for FileOutcomeIdentifier enum
-    compile libraries.guava
-    compile libraries.slf4j_api
+/**
+ * An object that can compare builds, according to a specification.
+ */
+public interface BuildComparator {
 
-    testCompile "org.jsoup:jsoup:1.6.3"
+    /**
+     * Performs the comparison, according to the given specification.
+     *
+     * @param spec The specification of the comparison.
+     * @return The result of the comparison. Never null.
+     */
+    BuildComparisonResult compareBuilds(BuildComparisonSpec spec);
+
 }
-
-processResources {
-    into "org/gradle/api/buildcomparison/render/internal/html", {
-        from { project(":docs").css }
-        include "base.css"
-    }
-}
-
-useTestFixtures()

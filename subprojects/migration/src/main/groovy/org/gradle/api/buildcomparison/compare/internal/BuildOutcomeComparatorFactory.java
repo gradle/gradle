@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,25 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.api.buildcomparison.compare.internal;
 
-dependencies {
-    groovy libraries.groovy
+import org.gradle.api.buildcomparison.outcome.internal.BuildOutcome;
 
-    compile project(":core")
-    compile project(":toolingApi")
-    compile project(":plugins") // reporting infrastructure
-    compile project(":ide") // for FileOutcomeIdentifier enum
-    compile libraries.guava
-    compile libraries.slf4j_api
+public interface BuildOutcomeComparatorFactory {
 
-    testCompile "org.jsoup:jsoup:1.6.3"
+    <T extends BuildOutcome> BuildOutcomeComparator<T, ?> getComparator(Class<T> outcomeType);
+
 }
-
-processResources {
-    into "org/gradle/api/buildcomparison/render/internal/html", {
-        from { project(":docs").css }
-        include "base.css"
-    }
-}
-
-useTestFixtures()

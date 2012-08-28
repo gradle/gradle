@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,19 @@
  * limitations under the License.
  */
 
-dependencies {
-    groovy libraries.groovy
+package org.gradle.api.buildcomparison.fixtures
 
-    compile project(":core")
-    compile project(":toolingApi")
-    compile project(":plugins") // reporting infrastructure
-    compile project(":ide") // for FileOutcomeIdentifier enum
-    compile libraries.guava
-    compile libraries.slf4j_api
+import org.gradle.util.ConfigureUtil
 
-    testCompile "org.jsoup:jsoup:1.6.3"
-}
+class ProjectOutcomesBuilder {
 
-processResources {
-    into "org/gradle/api/buildcomparison/render/internal/html", {
-        from { project(":docs").css }
-        include "base.css"
+    org.gradle.api.buildcomparison.fixtures.MutableProjectOutcomes build(String name = "root", File dir = new File("."), Closure c) {
+        def root = new org.gradle.api.buildcomparison.fixtures.MutableProjectOutcomes()
+        root.name = name
+        root.description = "root project"
+        root.projectDirectory = dir
+        root.path = ":"
+
+        ConfigureUtil.configure(c, root)
     }
 }
-
-useTestFixtures()
