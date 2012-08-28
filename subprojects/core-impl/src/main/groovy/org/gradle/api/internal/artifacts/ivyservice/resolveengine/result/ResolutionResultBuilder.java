@@ -17,15 +17,15 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.result.DependencyResult;
-import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedDependencyResult;
+import org.gradle.api.internal.artifacts.result.DefaultResolvedModuleVersionResult;
 import org.gradle.api.internal.artifacts.result.DefaultUnresolvedDependencyResult;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * by Szczepan Faber, created at: 7/26/12
@@ -34,56 +34,36 @@ public class ResolutionResultBuilder implements ResolvedConfigurationListener {
 
     private ResolvedConfigurationIdentifier root;
 
-    private Map<ModuleVersionIdentifier, Set<DependencyResult>> deps
-            = new LinkedHashMap<ModuleVersionIdentifier, Set<DependencyResult>>();
+    private Map<ModuleVersionIdentifier, DefaultResolvedModuleVersionResult> modules
+            = new LinkedHashMap<ModuleVersionIdentifier, DefaultResolvedModuleVersionResult>();
 
     public void start(ResolvedConfigurationIdentifier root) {
         this.root = root;
     }
 
     public void resolvedConfiguration(ResolvedConfigurationIdentifier id, Collection<InternalDependencyResult> dependencies) {
-        if (!deps.containsKey(id.getId())) {
-            deps.put(id.getId(), new LinkedHashSet<DependencyResult>());
-        }
+        DefaultResolvedModuleVersionResult module = getModule(id.getId());
 
-        Set<DependencyResult> accumulated = deps.get(id.getId());
         for (InternalDependencyResult d : dependencies) {
             if (d.getFailure() != null) {
-                accumulated.add(new DefaultUnresolvedDependencyResult(d.getRequested(), d.getFailure()));
+                module.addDependency(new DefaultUnresolvedDependencyResult(d.getRequested(), d.getFailure()));
             } else {
-                accumulated.add(new DefaultResolvedDependencyResult(d.getRequested(), d.getSelected()));
+                DefaultResolvedModuleVersionResult submodule = getModule(d.getSelected());
+                DefaultResolvedDependencyResult dependency = new DefaultResolvedDependencyResult(d.getRequested(), submodule);
+                module.addDependency(dependency);
+                submodule.addDependee(dependency);
             }
         }
+    }
+
+    private DefaultResolvedModuleVersionResult getModule(ModuleVersionIdentifier id) {
+        if (!modules.containsKey(id)) {
+            modules.put(id, new DefaultResolvedModuleVersionResult(id));
+        }
+        return modules.get(id);
     }
 
     public DefaultResolutionResult getResult() {
-        return new DefaultResolutionResult(buildGraph());
-    }
-
-    private ResolvedModuleVersionResult buildGraph() {
-        DefaultResolvedDependencyResult rootDependency = new DefaultResolvedDependencyResult(
-                DefaultModuleVersionSelector.newSelector(root.getId()), root.getId());
-
-        Set<ResolvedModuleVersionResult> visited = new HashSet<ResolvedModuleVersionResult>();
-
-        linkDependencies(rootDependency, visited);
-
-        return rootDependency.getSelected();
-    }
-
-    private void linkDependencies(DefaultResolvedDependencyResult dependency, Set<ResolvedModuleVersionResult> visited) {
-        if (!visited.add(dependency.getSelected())) {
-            return;
-        }
-
-        Set<DependencyResult> theDeps = deps.get(dependency.getSelected().getId());
-        for (DependencyResult d: theDeps) {
-            if (d instanceof DefaultResolvedDependencyResult) {
-                DefaultResolvedDependencyResult resolved = (DefaultResolvedDependencyResult) d;
-                linkDependencies(resolved, visited);
-                resolved.getSelected().addDependee(dependency);
-            }
-            dependency.getSelected().addDependency(d);
-        }
+        return new DefaultResolutionResult(modules.get(root.getId()));
     }
 }

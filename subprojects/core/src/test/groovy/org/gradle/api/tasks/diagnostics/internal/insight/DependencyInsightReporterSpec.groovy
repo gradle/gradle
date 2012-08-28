@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.diagnostics.internal.insight
 
 import org.gradle.api.internal.artifacts.result.DefaultResolvedDependencyResult
+import org.gradle.api.internal.artifacts.result.DefaultResolvedModuleVersionResult
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
@@ -95,6 +96,6 @@ class DependencyInsightReporterSpec extends Specification {
     }
 
     private dep(String group, String name, String requested, String selected = requested) {
-        new DefaultResolvedDependencyResult(newSelector(group, name, requested), newId(group, name, selected))
+        new DefaultResolvedDependencyResult(newSelector(group, name, requested), new DefaultResolvedModuleVersionResult(newId(group, name, selected)))
     }
 }

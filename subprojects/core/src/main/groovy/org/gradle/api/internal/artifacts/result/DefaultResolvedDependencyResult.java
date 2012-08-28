@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.result;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 
@@ -28,12 +27,12 @@ public class DefaultResolvedDependencyResult implements ResolvedDependencyResult
     private final ModuleVersionSelector requested;
     private final DefaultResolvedModuleVersionResult selected;
 
-    public DefaultResolvedDependencyResult(ModuleVersionSelector requested, ModuleVersionIdentifier selected) {
+    public DefaultResolvedDependencyResult(ModuleVersionSelector requested, DefaultResolvedModuleVersionResult selected) {
         assert requested != null;
         assert selected != null;
 
         this.requested = requested;
-        this.selected = new DefaultResolvedModuleVersionResult(selected);
+        this.selected = selected;
     }
 
     public ModuleVersionSelector getRequested() {

@@ -46,6 +46,6 @@ class DefaultResolvedDependencyResultSpec extends Specification {
     }
 
     private newDependency(ModuleVersionSelector requested, ModuleVersionIdentifier selected) {
-        new DefaultResolvedDependencyResult(requested, selected)
+        new DefaultResolvedDependencyResult(requested, new DefaultResolvedModuleVersionResult(selected))
     }
 }
