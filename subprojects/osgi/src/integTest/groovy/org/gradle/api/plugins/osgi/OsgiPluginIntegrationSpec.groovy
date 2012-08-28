@@ -37,6 +37,8 @@ class OsgiPluginIntegrationSpec extends AbstractIntegrationSpec {
                     instructionReplace("Bundle-SymbolicName", "bar")
                 }
             }
+
+            assert jar.manifest.symbolicName.startsWith("bar") // GRADLE-2446
         """
         
         and:
