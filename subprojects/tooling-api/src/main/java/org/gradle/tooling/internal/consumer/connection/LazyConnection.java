@@ -23,7 +23,6 @@ import org.gradle.tooling.internal.consumer.loader.ToolingImplementationLoader;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.FeatureValidator;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
-import org.gradle.tooling.internal.protocol.BuildParametersVersion1;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -94,11 +93,11 @@ public class LazyConnection implements ConsumerConnection {
         return connection.getVersionDetails();
     }
 
-    public void executeBuild(final BuildParametersVersion1 buildParameters, final ConsumerOperationParameters operationParameters) {
+    public void executeBuild(final ConsumerOperationParameters operationParameters) {
         withConnection(new ConnectionAction<Object>() {
             public Object run(ConsumerConnection connection) {
                 featureValidator.validate(connection, operationParameters);
-                connection.executeBuild(buildParameters, operationParameters);
+                connection.executeBuild(operationParameters);
                 return null;
             }
         });

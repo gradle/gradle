@@ -18,7 +18,6 @@ package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
-import org.gradle.tooling.internal.protocol.BuildParametersVersion1;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 import org.gradle.tooling.internal.reflect.CompatibleIntrospector;
 
@@ -51,8 +50,8 @@ public class AdaptedConnection implements ConsumerConnection {
         return (T) delegate.getModel((Class) type, operationParameters);
     }
 
-    public void executeBuild(BuildParametersVersion1 buildParameters, ConsumerOperationParameters operationParameters) throws IllegalStateException {
-        delegate.executeBuild(buildParameters, operationParameters);
+    public void executeBuild(ConsumerOperationParameters operationParameters) throws IllegalStateException {
+        delegate.executeBuild(operationParameters, operationParameters);
     }
 
     public ConnectionVersion4 getDelegate() {

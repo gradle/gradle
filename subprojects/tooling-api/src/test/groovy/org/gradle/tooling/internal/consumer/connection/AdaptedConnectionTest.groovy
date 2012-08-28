@@ -16,7 +16,6 @@
 package org.gradle.tooling.internal.consumer.connection
 
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
-import org.gradle.tooling.internal.protocol.BuildParametersVersion1
 import org.gradle.tooling.internal.protocol.ConnectionVersion4
 import org.gradle.tooling.internal.protocol.ProjectVersion3
 import spock.lang.Specification
@@ -24,7 +23,6 @@ import spock.lang.Specification
 class AdaptedConnectionTest extends Specification {
     final ConnectionVersion4 target = Mock()
     final ConsumerOperationParameters parameters = Mock()
-    final BuildParametersVersion1 buildParameters = Mock()
     final AdaptedConnection connection = new AdaptedConnection(target)
 
     def "builds model using getModel() method"() {
@@ -43,10 +41,10 @@ class AdaptedConnectionTest extends Specification {
 
     def "runs build using run() method"() {
         when:
-        connection.executeBuild(buildParameters, parameters)
+        connection.executeBuild(parameters)
 
         then:
-        1 * target.executeBuild(buildParameters, parameters)
+        1 * target.executeBuild(parameters, parameters)
         0 * target._
     }
 }

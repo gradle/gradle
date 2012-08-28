@@ -20,7 +20,6 @@ import org.gradle.logging.ProgressLogger
 import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.tooling.internal.consumer.LoggingProvider
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
-import org.gradle.tooling.internal.protocol.BuildParametersVersion1
 import org.gradle.tooling.internal.protocol.ProgressListenerVersion1
 import spock.lang.Specification
 
@@ -55,10 +54,8 @@ class ProgressLoggingConnectionTest extends Specification {
     }
 
     def notifiesProgressListenerOfStartAndEndOfExecutingBuild() {
-        BuildParametersVersion1 buildParams = Mock()
-
         when:
-        connection.executeBuild(buildParams, params)
+        connection.executeBuild(params)
 
         then:
         1 * loggingProvider.getListenerManager() >> listenerManager
@@ -67,7 +64,7 @@ class ProgressLoggingConnectionTest extends Specification {
         1 * progressLoggerFactory.newOperation(ProgressLoggingConnection.class) >> progressLogger
         1 * progressLogger.setDescription('Execute build')
         1 * progressLogger.started()
-        1 * target.executeBuild(buildParams, params)
+        1 * target.executeBuild(params)
         1 * progressLogger.completed()
         1 * listenerManager.removeListener(!null)
         _ * params.progressListener >> listener

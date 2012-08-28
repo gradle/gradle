@@ -18,7 +18,6 @@ package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.protocol.BuildActionRunner;
-import org.gradle.tooling.internal.protocol.BuildParametersVersion1;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 
 public class BuildActionRunnerBackedConsumerConnection extends AdaptedConnection {
@@ -35,7 +34,7 @@ public class BuildActionRunnerBackedConsumerConnection extends AdaptedConnection
     }
 
     @Override
-    public void executeBuild(BuildParametersVersion1 buildParameters, ConsumerOperationParameters operationParameters) throws IllegalStateException {
-        buildActionRunner.run(null, buildParameters, operationParameters);
+    public void executeBuild(ConsumerOperationParameters operationParameters) throws IllegalStateException {
+        buildActionRunner.run(null, operationParameters, operationParameters);
     }
 }

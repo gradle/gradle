@@ -16,14 +16,12 @@
 package org.gradle.tooling.internal.consumer.connection
 
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
-import org.gradle.tooling.internal.protocol.BuildParametersVersion1
 import org.gradle.tooling.internal.protocol.InternalConnection
 import spock.lang.Specification
 
 class InternalConnectionBackedConsumerConnectionTest extends Specification {
     final InternalConnection target = Mock()
     final ConsumerOperationParameters parameters = Mock()
-    final BuildParametersVersion1 buildParameters = Mock()
     final InternalConnectionBackedConsumerConnection connection = new InternalConnectionBackedConsumerConnection(target)
 
     def "builds model using getTheModel() method"() {
@@ -40,10 +38,10 @@ class InternalConnectionBackedConsumerConnectionTest extends Specification {
 
     def "runs build using run() method"() {
         when:
-        connection.executeBuild(buildParameters, parameters)
+        connection.executeBuild(parameters)
 
         then:
-        1 * target.executeBuild(buildParameters, parameters)
+        1 * target.executeBuild(parameters, parameters)
         0 * target._
     }
 }

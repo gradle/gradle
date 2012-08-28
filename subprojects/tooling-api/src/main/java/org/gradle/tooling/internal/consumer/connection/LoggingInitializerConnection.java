@@ -19,7 +19,6 @@ package org.gradle.tooling.internal.consumer.connection;
 import org.gradle.tooling.internal.consumer.SynchronizedLogging;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
-import org.gradle.tooling.internal.protocol.BuildParametersVersion1;
 
 /**
  * The idea is to initialize the logging infrastructure before we actually build the model or run a build.
@@ -53,8 +52,8 @@ public class LoggingInitializerConnection implements ConsumerConnection {
         return connection.getModel(type, operationParameters);
     }
 
-    public void executeBuild(BuildParametersVersion1 buildParameters, ConsumerOperationParameters operationParameters) throws IllegalStateException {
+    public void executeBuild(ConsumerOperationParameters operationParameters) throws IllegalStateException {
         synchronizedLogging.init();
-        connection.executeBuild(buildParameters, operationParameters);
+        connection.executeBuild(operationParameters);
     }
 }
