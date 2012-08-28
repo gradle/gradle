@@ -22,7 +22,7 @@ import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.junit.Rule
 
-class MigrationVerificationPluginIntegrationSpec extends AbstractIntegrationSpec {
+class GradleBuildComparisonIntegrationSpec extends AbstractIntegrationSpec {
     @Rule TestResources testResources
 
     def setup() {
