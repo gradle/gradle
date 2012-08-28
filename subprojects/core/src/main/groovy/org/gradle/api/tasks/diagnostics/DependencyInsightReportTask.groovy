@@ -73,6 +73,7 @@ public class DependencyInsightReportTask extends DefaultTask {
                 }
             }, true);
             renderParents(dependency.getParents());
+            output.println()
         }
     }
 
@@ -88,16 +89,14 @@ public class DependencyInsightReportTask extends DefaultTask {
 
     private void render(final RenderableDependency parent, boolean last) {
         def parents = parent.getParents();
-        if (parents.size() == 0) {
-            //root, don't print it.
-            output.println();
-            return;
-        }
+        String printable = parents.size() == 0? configuration.name : parent.name
+
         renderer.visit(new Action<StyledTextOutput>() {
             public void execute(StyledTextOutput styledTextOutput) {
-                styledTextOutput.text(parent.name);
+                styledTextOutput.text(printable);
             }
         }, last);
+
         renderParents(parents);
     }
 }

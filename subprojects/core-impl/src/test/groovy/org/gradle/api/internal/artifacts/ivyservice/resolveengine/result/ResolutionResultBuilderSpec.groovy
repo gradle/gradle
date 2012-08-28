@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
+import org.gradle.api.artifacts.result.ResolvedDependencyResult
+import org.gradle.api.artifacts.result.ResolvedModuleVersionResult
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier
 import spock.lang.Specification
 
@@ -46,13 +48,36 @@ class ResolutionResultBuilderSpec extends Specification {
         def result = builder.getResult()
 
         then:
-        result.print() == """a:root:1
-  a:mid1:1
-    a:leaf1:1
-    a:leaf2:1
-  a:mid2:1
-    a:leaf3:1
-    a:leaf4:1
+        print(result.root) == """x:root:1
+  x:mid1:1 [root]
+    x:leaf1:1 [mid1]
+    x:leaf2:1 [mid1]
+  x:mid2:1 [root]
+    x:leaf3:1 [mid2]
+    x:leaf4:1 [mid2]
+"""
+    }
+
+    def "graph with multiple dependents"() {
+        given:
+        builder.start(confId("a"))
+        resolvedConf("a", [dep("b1"), dep("b2"), dep("b3")])
+
+        resolvedConf("b1", [dep("b2"), dep("b3")])
+        resolvedConf("b2", [dep("b3")])
+        resolvedConf("b3", [])
+
+        when:
+        def result = builder.getResult()
+
+        then:
+        print(result.root) == """x:a:1
+  x:b1:1 [a]
+    x:b2:1 [a,b1]
+      x:b3:1 [a,b1,b2]
+  x:b2:1 [a,b1]
+    x:b3:1 [a,b1,b2]
+  x:b3:1 [a,b1,b2]
 """
     }
 
@@ -67,11 +92,41 @@ class ResolutionResultBuilderSpec extends Specification {
         def result = builder.getResult()
 
         then:
-        result.print() == """a:a:1
-  a:b:1
-    a:c:1
-      a:a:1
+        print(result.root) == """x:a:1
+  x:b:1 [a]
+    x:c:1 [b]
+      x:a:1 [c]
 """
+    }
+
+    def "links dependents correctly"() {
+        given:
+        builder.start(confId("a"))
+        resolvedConf("a", [dep("b")])
+        resolvedConf("b", [dep("c")])
+        resolvedConf("c", [dep("a")])
+
+        when:
+        def a = builder.getResult().root
+
+        then:
+        def b  = first(a.dependencies).selected
+        def c  = first(b.dependencies).selected
+        def a2 = first(c.dependencies).selected
+
+        a2.is(a)
+
+        first(b.dependees).is(first(a.dependencies))
+        first(c.dependees).is(first(b.dependencies))
+        first(a.dependees).is(first(c.dependencies))
+
+        first(b.dependees).from.is(a)
+        first(c.dependees).from.is(b)
+        first(a.dependees).from.is(c)
+    }
+
+    ResolvedDependencyResult first(Set<? extends ResolvedDependencyResult> dependencies) {
+        dependencies.iterator().next()
     }
 
     def "accumulates dependencies"() {
@@ -89,10 +144,10 @@ class ResolutionResultBuilderSpec extends Specification {
         def result = builder.getResult()
 
         then:
-        result.print() == """a:root:1
-  a:mid1:1
-    a:leaf1:1
-    a:leaf2:1
+        print(result.root) == """x:root:1
+  x:mid1:1 [root]
+    x:leaf1:1 [mid1]
+    x:leaf2:1 [mid1]
 """
     }
 
@@ -107,22 +162,41 @@ class ResolutionResultBuilderSpec extends Specification {
         def result = builder.getResult()
 
         then:
-        result.print() == """a:a:1
-  a:b:1
-  a:c:1
+        print(result.root) == """x:a:1
+  x:b:1 [a]
+  x:c:1 [a]
 """
     }
-
 
     private void resolvedConf(String module, List<InternalDependencyResult> deps) {
         builder.resolvedConfiguration(confId(module), deps)
     }
 
     private InternalDependencyResult dep(String requested, Exception failure = null, String selected = requested) {
-        new InternalDependencyResult(newSelector("a", requested, "1"), newId("a", selected, "1"), failure)
+        new InternalDependencyResult(newSelector("x", requested, "1"), newId("x", selected, "1"), failure)
     }
 
     private ResolvedConfigurationIdentifier confId(String module, String configuration='conf') {
-        new ResolvedConfigurationIdentifier("a", module, "1", configuration)
+        new ResolvedConfigurationIdentifier("x", module, "1", configuration)
+    }
+
+    String print(ResolvedModuleVersionResult root) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(root).append("\n");
+        for (ResolvedDependencyResult d : root.getDependencies()) {
+            print(d, sb, new HashSet(), "  ");
+        }
+
+        sb.toString();
+    }
+
+    void print(ResolvedDependencyResult dep, StringBuilder sb, Set visited, String indent) {
+        if (!visited.add(dep.getSelected())) {
+            return;
+        }
+        sb.append(indent + dep + " [" + dep.selected.dependees*.from.id.name.join(",") + "]\n");
+        for (ResolvedDependencyResult d : dep.getSelected().getDependencies()) {
+            print(d, sb, visited, "  " + indent);
+        }
     }
 }

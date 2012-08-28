@@ -33,19 +33,23 @@ class DefaultResolvedDependencyResultSpec extends Specification {
         def dependency = newDependency(newSelector("a", "b", "1"), newId("a", "b", "1"))
         def same =   newDependency(newSelector("a", "b", "1"), newId("a", "b", "1"))
 
-        def differentRequested =      newDependency(newSelector("X", "b", "1"), newId("a", "b", "1"))
-        def differentSelected =       newDependency(newSelector("a", "b", "1"), newId("a", "X", "1"))
+        def differentRequested =  newDependency(newSelector("X", "b", "1"), newId("a", "b", "1"))
+        def differentSelected =   newDependency(newSelector("a", "b", "1"), newId("a", "X", "1"))
+        def differentFrom =       newDependency(newSelector("a", "b", "1"), newId("a", "b", "1"), "xxx")
 
         expect:
         dependency strictlyEqual(same)
         dependency != differentRequested
         dependency != differentSelected
+        dependency != differentFrom
 
         dependency.hashCode() != differentRequested.hashCode()
         dependency.hashCode() != differentSelected.hashCode()
+        dependency.hashCode() != differentFrom.hashCode()
     }
 
-    private newDependency(ModuleVersionSelector requested, ModuleVersionIdentifier selected) {
+    private newDependency(ModuleVersionSelector requested, ModuleVersionIdentifier selected, String from = 'whatever') {
         new DefaultResolvedDependencyResult(requested, new DefaultResolvedModuleVersionResult(selected))
+            .setFrom(new DefaultResolvedModuleVersionResult(newId("org", from, "1.0")))
     }
 }

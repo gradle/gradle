@@ -60,8 +60,13 @@ public class RenderableModuleResult implements RenderableDependency {
     public Set<RenderableDependency> getParents() {
         return new LinkedHashSet(Collections2.transform(((DefaultResolvedModuleVersionResult) module).getDependees(), new Function<ResolvedDependencyResult, RenderableDependency>() {
             public RenderableDependency apply(ResolvedDependencyResult input) {
-                return new RenderableDependencyResult(input);
+                return new RenderableModuleResult(input.getFrom());
             }
         }));
+    }
+
+    @Override
+    public String toString() {
+        return module.toString();
     }
 }

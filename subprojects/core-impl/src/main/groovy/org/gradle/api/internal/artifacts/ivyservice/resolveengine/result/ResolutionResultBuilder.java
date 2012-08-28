@@ -32,13 +32,13 @@ import java.util.Map;
  */
 public class ResolutionResultBuilder implements ResolvedConfigurationListener {
 
-    private ResolvedConfigurationIdentifier root;
+    private DefaultResolvedModuleVersionResult rootModule;
 
     private Map<ModuleVersionIdentifier, DefaultResolvedModuleVersionResult> modules
             = new LinkedHashMap<ModuleVersionIdentifier, DefaultResolvedModuleVersionResult>();
 
     public void start(ResolvedConfigurationIdentifier root) {
-        this.root = root;
+        rootModule = getModule(root.getId());
     }
 
     public void resolvedConfiguration(ResolvedConfigurationIdentifier id, Collection<InternalDependencyResult> dependencies) {
@@ -46,10 +46,10 @@ public class ResolutionResultBuilder implements ResolvedConfigurationListener {
 
         for (InternalDependencyResult d : dependencies) {
             if (d.getFailure() != null) {
-                module.addDependency(new DefaultUnresolvedDependencyResult(d.getRequested(), d.getFailure()));
+                module.addDependency(new DefaultUnresolvedDependencyResult(d.getRequested(), d.getFailure()).setFrom(module));
             } else {
                 DefaultResolvedModuleVersionResult submodule = getModule(d.getSelected());
-                DefaultResolvedDependencyResult dependency = new DefaultResolvedDependencyResult(d.getRequested(), submodule);
+                DefaultResolvedDependencyResult dependency = new DefaultResolvedDependencyResult(d.getRequested(), submodule).setFrom(module);
                 module.addDependency(dependency);
                 submodule.addDependee(dependency);
             }
@@ -64,6 +64,6 @@ public class ResolutionResultBuilder implements ResolvedConfigurationListener {
     }
 
     public DefaultResolutionResult getResult() {
-        return new DefaultResolutionResult(modules.get(root.getId()));
+        return new DefaultResolutionResult(rootModule);
     }
 }

@@ -26,6 +26,8 @@ public class DefaultUnresolvedDependencyResult implements UnresolvedDependencyRe
 
     private final ModuleVersionSelector requested;
     private final Exception failure;
+    //TODO SF pass in constructor
+    private DefaultResolvedModuleVersionResult from;
 
     public DefaultUnresolvedDependencyResult(ModuleVersionSelector requested, Exception failure) {
         assert requested != null;
@@ -64,5 +66,14 @@ public class DefaultUnresolvedDependencyResult implements UnresolvedDependencyRe
     @Override
     public int hashCode() {
         return requested.hashCode();
+    }
+
+    public DefaultUnresolvedDependencyResult setFrom(DefaultResolvedModuleVersionResult from) {
+        this.from = from;
+        return this;
+    }
+
+    public DefaultResolvedModuleVersionResult getFrom() {
+        return from;
     }
 }

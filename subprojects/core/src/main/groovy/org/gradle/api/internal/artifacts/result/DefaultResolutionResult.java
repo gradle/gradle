@@ -20,7 +20,6 @@ import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
 
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -50,27 +49,6 @@ public class DefaultResolutionResult implements ResolutionResult {
         for (ResolvedDependencyResult d : node.getDependencies()) {
             collectDependencies(d.getSelected(), out);
             out.add(d);
-        }
-    }
-
-    //useful for debugging / testing. Prints out the graph.
-    public String print() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(root).append("\n");
-        for (ResolvedDependencyResult d : root.getDependencies()) {
-            print(d, sb, new HashSet(), "  ");
-        }
-
-        return sb.toString();
-    }
-
-    private void print(ResolvedDependencyResult dep, StringBuilder sb, Set visited, String indent) {
-        if (!visited.add(dep.getSelected())) {
-            return;
-        }
-        sb.append(indent).append(dep).append("\n");
-        for (ResolvedDependencyResult d : dep.getSelected().getDependencies()) {
-            print(d, sb, visited, "  " + indent);
         }
     }
 }

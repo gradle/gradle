@@ -41,11 +41,14 @@ class DependencyInsightReportTaskIntegrationTest extends AbstractIntegrationSpec
 
         repo.module("org", "middle1").dependsOn('leaf1', 'leaf2').publish()
         repo.module("org", "middle2").dependsOn('leaf3', 'leaf4').publish()
+        repo.module("org", "middle3").dependsOn('leaf2').publish()
 
         repo.module("org", "toplevel").dependsOn("middle1", "middle2").publish()
 
         repo.module("org", "toplevel2").dependsOn("org", "leaf2", "1.5").publish()
         repo.module("org", "toplevel3").dependsOn("org", "leaf2", "2.5").publish()
+
+        repo.module("org", "toplevel4").dependsOn("middle3").publish()
 
         file("build.gradle") << """
             repositories {
@@ -56,7 +59,7 @@ class DependencyInsightReportTaskIntegrationTest extends AbstractIntegrationSpec
                 conf
             }
             dependencies {
-                conf 'org:toplevel:1.0', 'org:toplevel2:1.0', 'org:toplevel3:1.0'
+                conf 'org:toplevel:1.0', 'org:toplevel2:1.0', 'org:toplevel3:1.0', 'org:toplevel4:1.0'
             }
 
             task insight(type: DependencyInsightReportTask) {
@@ -75,13 +78,19 @@ class DependencyInsightReportTaskIntegrationTest extends AbstractIntegrationSpec
         output.contains(toPlatformLineSeparators("""
 org:leaf2:2.5
 \\--- org:toplevel3:1.0
+     \\--- conf
 
 org:leaf2:1.0 -> 2.5
-\\--- org:middle1:1.0
-     \\--- org:toplevel:1.0
++--- org:middle1:1.0
+|    \\--- org:toplevel:1.0
+|         \\--- conf
+\\--- org:middle3:1.0
+     \\--- org:toplevel4:1.0
+          \\--- conf
 
 org:leaf2:1.5 -> 2.5
 \\--- org:toplevel2:1.0
+     \\--- conf
 """))
     }
 
@@ -90,4 +99,5 @@ org:leaf2:1.5 -> 2.5
     // - no matching dependencies
     // - configuration / dependency not configured
     // - unresolved dependencies
+    // - forced versions into something that does not exist in the graph
 }

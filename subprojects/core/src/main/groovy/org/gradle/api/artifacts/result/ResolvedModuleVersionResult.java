@@ -41,4 +41,11 @@ public interface ResolvedModuleVersionResult {
      * @return dependencies
      */
     Set<? extends ResolvedDependencyResult> getDependencies();
+
+    /**
+     * The dependents of the resolved module. See {@link ResolvedDependencyResult}.
+     *
+     * @return dependents
+     */
+    Set<? extends ResolvedDependencyResult> getDependees(); //TODO SF rename to dependents
 }

@@ -31,4 +31,12 @@ public interface DependencyResult {
      * @return requested module version
      */
     ModuleVersionSelector getRequested();
+
+    /**
+     * Returns the resolved dependent module version result that
+     * lists this dependency result as a dependency.
+     *
+     * @return dependent resolved module version result
+     */
+    ResolvedModuleVersionResult getFrom();
 }

@@ -16,7 +16,10 @@
 
 package org.gradle.api.internal.artifacts.result;
 
+import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
+import org.gradle.api.specs.Spec;
+import org.gradle.util.CollectionUtils;
 
 import java.util.*;
 
@@ -35,7 +38,13 @@ public class ResolvedDependencyResultSorter {
      * so that the dependency that was selected is more prominent.
      */
     public static Collection<ResolvedDependencyResult> sort(Collection<ResolvedDependencyResult> input) {
-        List<ResolvedDependencyResult> out = new LinkedList<ResolvedDependencyResult>(input);
+        //dependencies with the same 'requested' should be presented in a single tree
+        final Set<ModuleVersionSelector> uniqueRequested = new HashSet<ModuleVersionSelector>();
+        List<ResolvedDependencyResult> out = CollectionUtils.filter(input, new LinkedList<ResolvedDependencyResult>(), new Spec<ResolvedDependencyResult>() {
+            public boolean isSatisfiedBy(ResolvedDependencyResult element) {
+                return uniqueRequested.add(element.getRequested());
+            }
+        });
         Collections.sort(out, new DependencyComparator());
         return out;
     }

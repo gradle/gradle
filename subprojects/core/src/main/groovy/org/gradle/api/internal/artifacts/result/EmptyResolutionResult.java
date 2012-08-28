@@ -43,7 +43,7 @@ public class EmptyResolutionResult implements ResolutionResult {
                 return Collections.emptySet();
             }
 
-            public Set<? extends ResolvedModuleVersionResult> getDependees() {
+            public Set<? extends ResolvedDependencyResult> getDependees() {
                 return Collections.emptySet();
             }
         };

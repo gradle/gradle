@@ -21,7 +21,7 @@ import com.google.common.collect.Collections2;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.result.DefaultResolvedModuleVersionResult;
+import org.gradle.api.internal.artifacts.result.DefaultResolvedDependencyResult;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -76,10 +76,20 @@ public class RenderableDependencyResult implements RenderableDependency {
     }
 
     public Set<RenderableDependency> getParents() {
-        return new LinkedHashSet(Collections2.transform(((DefaultResolvedModuleVersionResult) dependency.getSelected()).getDependees(), new Function<ResolvedDependencyResult, RenderableDependency>() {
-            public RenderableDependency apply(ResolvedDependencyResult input) {
-                return new RenderableDependencyResult(input);
+        //TODO SF unit test for this and other Renderables
+        Set<RenderableDependency> out = new LinkedHashSet<RenderableDependency>();
+        for (ResolvedDependencyResult r : dependency.getSelected().getDependees()) {
+            //we want only the dependents that match the requested
+            if (r.getRequested().equals(this.dependency.getRequested())) {
+                out.add(new RenderableModuleResult(((DefaultResolvedDependencyResult) r).getFrom()));
             }
-        }));
+        }
+
+        return out;
+    }
+
+    @Override
+    public String toString() {
+        return dependency.toString();
     }
 }

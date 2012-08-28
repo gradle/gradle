@@ -26,6 +26,7 @@ public class DefaultResolvedDependencyResult implements ResolvedDependencyResult
 
     private final ModuleVersionSelector requested;
     private final DefaultResolvedModuleVersionResult selected;
+    private DefaultResolvedModuleVersionResult from;
 
     public DefaultResolvedDependencyResult(ModuleVersionSelector requested, DefaultResolvedModuleVersionResult selected) {
         assert requested != null;
@@ -59,6 +60,9 @@ public class DefaultResolvedDependencyResult implements ResolvedDependencyResult
 
         DefaultResolvedDependencyResult that = (DefaultResolvedDependencyResult) o;
 
+        if (!from.equals(that.from)) {
+            return false;
+        }
         if (!requested.equals(that.requested)) {
             return false;
         }
@@ -73,6 +77,16 @@ public class DefaultResolvedDependencyResult implements ResolvedDependencyResult
     public int hashCode() {
         int result = requested.hashCode();
         result = 31 * result + selected.hashCode();
+        result = 31 * result + from.hashCode();
         return result;
+    }
+
+    public DefaultResolvedDependencyResult setFrom(DefaultResolvedModuleVersionResult from) {
+        this.from = from;
+        return this;
+    }
+
+    public DefaultResolvedModuleVersionResult getFrom() {
+        return from;
     }
 }
