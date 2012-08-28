@@ -50,6 +50,20 @@ public abstract class CollectionUtils {
          return destination;
     }
 
+    public static <K, V> Map<K, V> filter(Map<K, V> map, Spec<Map.Entry<K, V>> filter) {
+        return filter(map, new HashMap<K, V>(), filter);
+    }
+
+    public static <K, V> Map<K, V> filter(Map<K, V> map, Map<K, V> destination, Spec<Map.Entry<K, V>> filter) {
+        for (Map.Entry<K, V> entry : map.entrySet()) {
+            if (filter.isSatisfiedBy(entry)) {
+                destination.put(entry.getKey(), entry.getValue());
+            }
+        }
+
+        return destination;
+    }
+
     public static <R, I> List<R> collect(List<? extends I> list, Transformer<R, I> transformer) {
         return collect(list, new ArrayList<R>(list.size()), transformer);
     }
