@@ -18,9 +18,12 @@ package org.gradle.api.plugins.migration;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.buildcomparison.compare.internal.*;
+import org.gradle.api.buildcomparison.gradle.GradleBuildInvocationSpec;
+import org.gradle.api.buildcomparison.gradle.internal.DefaultGradleBuildInvocationSpec;
 import org.gradle.api.buildcomparison.gradle.internal.GradleBuildOutcomeSetTransformer;
 import org.gradle.api.buildcomparison.outcome.internal.BuildOutcome;
 import org.gradle.api.buildcomparison.outcome.internal.BuildOutcomeAssociator;
@@ -39,6 +42,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.filestore.PathNormalisingKeyFileStore;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes;
@@ -46,6 +50,8 @@ import org.gradle.util.GradleVersion;
 
 import java.io.*;
 import java.nio.charset.Charset;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -53,50 +59,37 @@ import java.util.Set;
  */
 public class CompareGradleBuilds extends DefaultTask {
 
-    private String sourceVersion = GradleVersion.current().getVersion();
-    private String targetVersion = sourceVersion;
+    private static final List<String> DEFAULT_TASKS = Arrays.asList("clean", "assemble");
 
-    private Object sourceProjectDir = getProject().getRootDir();
-    private Object targetProjectDir = getProject().getRootDir();
+    private final GradleBuildInvocationSpec sourceBuild;
+    private final GradleBuildInvocationSpec targetBuild;
 
     private Object reportDir;
 
     private final FileResolver fileResolver;
 
-    public CompareGradleBuilds(FileResolver fileResolver) {
+    public CompareGradleBuilds(FileResolver fileResolver, Instantiator instantiator) {
         this.fileResolver = fileResolver;
+        sourceBuild = instantiator.newInstance(DefaultGradleBuildInvocationSpec.class, fileResolver, getProject().getRootDir());
+        sourceBuild.setTasks(DEFAULT_TASKS);
+        targetBuild = instantiator.newInstance(DefaultGradleBuildInvocationSpec.class, fileResolver, getProject().getRootDir());
+        targetBuild.setTasks(DEFAULT_TASKS);
     }
 
-    public String getSourceVersion() {
-        return sourceVersion;
+    public GradleBuildInvocationSpec getSourceBuild() {
+        return sourceBuild;
     }
 
-    public void setSourceVersion(String sourceVersion) {
-        this.sourceVersion = sourceVersion;
+    public void sourceBuild(Action<GradleBuildInvocationSpec> config) {
+        config.execute(sourceBuild);
     }
 
-    public String getTargetVersion() {
-        return targetVersion;
+    public GradleBuildInvocationSpec getTargetBuild() {
+        return targetBuild;
     }
 
-    public void setTargetVersion(String targetVersion) {
-        this.targetVersion = targetVersion;
-    }
-
-    public File getSourceProjectDir() {
-        return fileResolver.resolve(sourceProjectDir);
-    }
-
-    public void setSourceProjectDir(Object sourceProjectDir) {
-        this.sourceProjectDir = sourceProjectDir;
-    }
-
-    public File getTargetProjectDir() {
-        return fileResolver.resolve(targetProjectDir);
-    }
-
-    public void setTargetProjectDir(Object targetProjectDir) {
-        this.targetProjectDir = targetProjectDir;
+    public void targetBuild(Action<GradleBuildInvocationSpec> config) {
+        config.execute(targetBuild);
     }
 
     @OutputDirectory
@@ -120,11 +113,11 @@ public class CompareGradleBuilds extends DefaultTask {
     void compare() {
         // Build the outcome model and outcomes
         GradleBuildOutcomeSetTransformer fromOutcomeTransformer = createOutcomeSetTransformer("source");
-        ProjectOutcomes fromOutput = generateBuildOutput(sourceVersion, getSourceProjectDir());
+        ProjectOutcomes fromOutput = generateBuildOutput(getSourceBuild());
         Set<BuildOutcome> fromOutcomes = fromOutcomeTransformer.transform(fromOutput);
 
         GradleBuildOutcomeSetTransformer toOutcomeTransformer = createOutcomeSetTransformer("target");
-        ProjectOutcomes toOutput = generateBuildOutput(targetVersion, getTargetProjectDir());
+        ProjectOutcomes toOutput = generateBuildOutput(getTargetBuild());
         Set<BuildOutcome> toOutcomes = toOutcomeTransformer.transform(toOutput);
 
         // Infrastructure that we have to register handlers with
@@ -158,9 +151,9 @@ public class CompareGradleBuilds extends DefaultTask {
         return new GradleBuildOutcomeSetTransformer(new PathNormalisingKeyFileStore(new File(getFileStoreDir(), filesPath)));
     }
 
-    private ProjectOutcomes generateBuildOutput(String gradleVersionString, File other) {
-        GradleVersion gradleVersion = GradleVersion.version(gradleVersionString);
-        GradleConnector connector = GradleConnector.newConnector().forProjectDirectory(other);
+    private ProjectOutcomes generateBuildOutput(GradleBuildInvocationSpec spec) {
+        GradleVersion gradleVersion = GradleVersion.version(spec.getGradleVersion());
+        GradleConnector connector = GradleConnector.newConnector().forProjectDirectory(spec.getProjectDir());
         connector.useGradleUserHomeDir(getProject().getGradle().getStartParameter().getGradleUserHomeDir());
         if (gradleVersion.equals(GradleVersion.current())) {
             connector.useInstallation(getProject().getGradle().getGradleHomeDir());
@@ -170,7 +163,11 @@ public class CompareGradleBuilds extends DefaultTask {
         ProjectConnection connection = connector.connect();
         try {
             ProjectOutcomes buildOutcomes = connection.getModel(ProjectOutcomes.class);
-            connection.newBuild().forTasks("assemble").run();
+            List<String> tasksList = spec.getTasks();
+            String[] tasks = tasksList.toArray(new String[tasksList.size()]);
+            List<String> argumentsList = spec.getArguments();
+            String[] arguments = argumentsList.toArray(new String[argumentsList.size()]);
+            connection.newBuild().withArguments(arguments).forTasks(tasks).run();
             return buildOutcomes;
         } finally {
             connection.close();
@@ -201,9 +198,7 @@ public class CompareGradleBuilds extends DefaultTask {
     private BuildComparisonResultRenderer<Writer> createResultRenderer(DefaultBuildOutcomeComparisonResultRendererFactory<HtmlRenderContext> renderers) {
         PartRenderer headRenderer = new HeadRenderer("Gradle Build Comparison", Charset.defaultCharset().name());
 
-        PartRenderer headingRenderer = new GradleComparisonHeadingRenderer(
-                getSourceProjectDir().getAbsolutePath(), getSourceVersion(), getTargetProjectDir().getAbsolutePath(), getTargetVersion()
-        );
+        PartRenderer headingRenderer = new GradleComparisonHeadingRenderer(getSourceBuild(), getTargetBuild());
 
         return new HtmlBuildComparisonResultRenderer(renderers, headRenderer, headingRenderer, null);
     }

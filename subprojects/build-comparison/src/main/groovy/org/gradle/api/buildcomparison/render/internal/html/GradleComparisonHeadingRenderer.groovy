@@ -17,19 +17,16 @@
 package org.gradle.api.buildcomparison.render.internal.html
 
 import org.gradle.api.buildcomparison.compare.internal.BuildComparisonResult
+import org.gradle.api.buildcomparison.gradle.GradleBuildInvocationSpec
 
 class GradleComparisonHeadingRenderer implements PartRenderer {
 
-    final String sourceBuildPath
-    final String targetBuildPath
-    final String sourceBuildVersion
-    final String targetBuildVersion
+    final GradleBuildInvocationSpec sourceBuild
+    final GradleBuildInvocationSpec targetBuild
 
-    GradleComparisonHeadingRenderer(String sourceBuildPath, String sourceBuildVersion, String targetBuildPath, String targetBuildVersion) {
-        this.sourceBuildPath = sourceBuildPath
-        this.targetBuildPath = targetBuildPath
-        this.sourceBuildVersion = sourceBuildVersion
-        this.targetBuildVersion = targetBuildVersion
+    GradleComparisonHeadingRenderer(GradleBuildInvocationSpec sourceBuild, GradleBuildInvocationSpec targetBuild) {
+        this.sourceBuild = sourceBuild
+        this.targetBuild = targetBuild
     }
 
     void render(BuildComparisonResult result, HtmlRenderContext context) {
@@ -44,13 +41,13 @@ class GradleComparisonHeadingRenderer implements PartRenderer {
                 }
                 tr {
                     th class: "border-right no-border-bottom", "Source Build"
-                    td sourceBuildPath
-                    td sourceBuildVersion
+                    td sourceBuild.projectDir.absolutePath
+                    td sourceBuild.gradleVersion
                 }
                 tr {
                     th class: "border-right no-border-bottom", "Target Build"
-                    td targetBuildPath
-                    td targetBuildVersion
+                    td targetBuild.projectDir.absolutePath
+                    td targetBuild.gradleVersion
                 }
             }
         }

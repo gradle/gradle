@@ -34,8 +34,8 @@ class GradleBuildComparisonIntegrationSpec extends AbstractIntegrationSpec {
         buildFile << """
             task compare(type: CompareGradleBuilds) {
                 reportDir "result"
-                sourceProjectDir "sourceBuild"
-                targetProjectDir "targetBuild"
+                sourceBuild.projectDir "sourceBuild"
+                targetBuild { projectDir "targetBuild" }
             }
         """
 
