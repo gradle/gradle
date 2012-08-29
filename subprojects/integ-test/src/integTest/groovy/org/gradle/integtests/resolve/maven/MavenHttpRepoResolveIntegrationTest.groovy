@@ -19,13 +19,10 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
 import org.gradle.util.TestFile
 import org.junit.Rule
-import spock.lang.Ignore
 
 class MavenHttpRepoResolveIntegrationTest extends AbstractDependencyResolutionTest {
     @Rule public final TestResources resources = new TestResources();
 
-    @Ignore
-    //TODO SF fails with: Could not GET 'http://gradle.sourceforge.net/repository/repotest/classifier-dep/1.0/classifier-dep-1.0.pom'
     def canResolveDependenciesFromMultipleMavenRepositories() {
         given:
         List expectedFiles = ['sillyexceptions-1.0.1.jar', 'repotest-1.0.jar', 'testdep-1.0.jar', 'testdep2-1.0.jar',
