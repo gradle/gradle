@@ -45,6 +45,11 @@ public class DefaultClassPath implements ClassPath, Serializable {
         this(Arrays.asList(files));
     }
 
+    @Override
+    public String toString() {
+        return files.toString();
+    }
+
     public boolean isEmpty() {
         return files.isEmpty();
     }
