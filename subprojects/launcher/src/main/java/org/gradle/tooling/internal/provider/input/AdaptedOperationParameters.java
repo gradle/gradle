@@ -22,7 +22,6 @@ import org.gradle.cli.ParsedCommandLine;
 import org.gradle.logging.LoggingConfiguration;
 import org.gradle.logging.internal.LoggingCommandLineConverter;
 import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1;
-import org.gradle.tooling.internal.protocol.BuildParametersVersion1;
 import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;
 import org.gradle.tooling.internal.reflect.CompatibleIntrospector;
 
