@@ -16,23 +16,34 @@
 
 package org.gradle.api.plugins.buildcomparison.gradle
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.junit.Rule
 
-class GradleBuildComparisonIntegrationSpec extends AbstractIntegrationSpec {
+class GradleBuildComparisonIntegrationSpec extends WellBehavedPluginTest {
     @Rule TestResources testResources
+
+    @Override
+    String getPluginId() {
+        "compare-gradle-builds"
+    }
+
+    @Override
+    String getMainTask() {
+        "help"
+    }
 
     def setup() {
         executer.withForkingExecuter()
+        applyPlugin()
     }
 
     def compareArchives() {
         given:
         buildFile << """
-            task compare(type: CompareGradleBuilds) {
+            compareGradleBuilds {
                 reportDir "result"
                 sourceBuild.projectDir "sourceBuild"
                 targetBuild { projectDir "targetBuild" }
@@ -40,7 +51,7 @@ class GradleBuildComparisonIntegrationSpec extends AbstractIntegrationSpec {
         """
 
         when:
-        run("compare")
+        run("compareGradleBuilds")
 
         then:
         def html = html("result/index.html")
@@ -68,7 +79,7 @@ class GradleBuildComparisonIntegrationSpec extends AbstractIntegrationSpec {
         buildFile << """
             apply plugin: "java"
 
-            task compare(type: CompareGradleBuilds) {
+            compareGradleBuilds {
                 reportDir "result"
             }
         """
@@ -76,7 +87,7 @@ class GradleBuildComparisonIntegrationSpec extends AbstractIntegrationSpec {
         file("src/main/java/Thing.java") << "class Thing {}"
 
         when:
-        run "compare"
+        run "compareGradleBuilds"
 
         then:
         html("result/index.html").select("p").text() == "The archives are completely identical."
@@ -93,7 +104,7 @@ class GradleBuildComparisonIntegrationSpec extends AbstractIntegrationSpec {
                 archives
             }
 
-            task compare(type: CompareGradleBuilds) {
+            compareGradleBuilds {
                 reportDir "result"
             }
 
@@ -107,7 +118,7 @@ class GradleBuildComparisonIntegrationSpec extends AbstractIntegrationSpec {
         """
 
         when:
-        run "compare"
+        run "compareGradleBuilds"
 
         then:
         html("result/index.html").select("p").text() == "This version of Gradle does not understand this kind of build outcome. Running the comparison process from a newer version of Gradle may yield better results."
