@@ -43,16 +43,16 @@ class DefaultResolvedModuleVersionResultSpec extends Specification {
         module != differentVersion
     }
 
-    def "equals does not consider dependencies and dependees"() {
+    def "equals does not consider dependencies and dependents"() {
         def result = newModule("group", "module", "version")
         def differentDeps = newModule("group", "module", "version")
                 .addDependency(newDependency())
-        def differentDependees = newModule("group", "module", "version")
-                .addDependee(newDependency())
+        def differentDependents = newModule("group", "module", "version")
+                .addDependent(newDependency())
 
         expect:
         result == differentDeps
-        result == differentDependees
+        result == differentDependents
     }
 
     def "equals and hashcode do not recurse forever"() {
@@ -65,7 +65,7 @@ class DefaultResolvedModuleVersionResultSpec extends Specification {
 
         when:
         moduleA.addDependency(depB)
-        moduleB.addDependee(depA)
+        moduleB.addDependent(depA)
 
         then:
         moduleA.hashCode()

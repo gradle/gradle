@@ -116,13 +116,13 @@ class ResolutionResultBuilderSpec extends Specification {
 
         a2.is(a)
 
-        first(b.dependees).is(first(a.dependencies))
-        first(c.dependees).is(first(b.dependencies))
-        first(a.dependees).is(first(c.dependencies))
+        first(b.dependents).is(first(a.dependencies))
+        first(c.dependents).is(first(b.dependencies))
+        first(a.dependents).is(first(c.dependencies))
 
-        first(b.dependees).from.is(a)
-        first(c.dependees).from.is(b)
-        first(a.dependees).from.is(c)
+        first(b.dependents).from.is(a)
+        first(c.dependents).from.is(b)
+        first(a.dependents).from.is(c)
     }
 
     ResolvedDependencyResult first(Set<? extends ResolvedDependencyResult> dependencies) {
@@ -154,7 +154,7 @@ class ResolutionResultBuilderSpec extends Specification {
     def "builds graph without unresolved deps"() {
         given:
         builder.start(confId("a"))
-        resolvedConf("a", [dep("b"), dep("c"), dep("x", new RuntimeException("unresolved!"))])
+        resolvedConf("a", [dep("b"), dep("c"), dep("U", new RuntimeException("unresolved!"))])
         resolvedConf("b", [])
         resolvedConf("c", [])
 
@@ -194,7 +194,7 @@ class ResolutionResultBuilderSpec extends Specification {
         if (!visited.add(dep.getSelected())) {
             return;
         }
-        sb.append(indent + dep + " [" + dep.selected.dependees*.from.id.name.join(",") + "]\n");
+        sb.append(indent + dep + " [" + dep.selected.dependents*.from.id.name.join(",") + "]\n");
         for (ResolvedDependencyResult d : dep.getSelected().getDependencies()) {
             print(d, sb, visited, "  " + indent);
         }

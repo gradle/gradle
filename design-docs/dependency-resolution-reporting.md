@@ -45,7 +45,7 @@ com.linkedin.util:util-core:2.4.6 -> 4.0.7
                \--- com.linkedin.container:container-rpc-impl:3.0.24
 </pre>
 
-The idea is to traverse the graph the other way and print the dependee path for a given dependency.
+The idea is to traverse the graph the other way and print the dependent path for a given dependency.
 This report is useful to track where the given version of some dependency was picked up from in case of conflict resolution.
 This drives some conveniences to our DependencyGraph API.
 There should be some simple way to run the report from the command line.

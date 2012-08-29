@@ -47,5 +47,5 @@ public interface ResolvedModuleVersionResult {
      *
      * @return dependents
      */
-    Set<? extends ResolvedDependencyResult> getDependees(); //TODO SF rename to dependents
+    Set<? extends ResolvedDependencyResult> getDependents();
 }
