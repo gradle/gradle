@@ -49,6 +49,7 @@ import org.gradle.util.GradleVersion;
 
 import java.io.*;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -165,15 +166,34 @@ public class CompareGradleBuilds extends DefaultTask {
         }
         ProjectConnection connection = connector.connect();
         try {
-            ProjectOutcomes buildOutcomes = connection.getModel(ProjectOutcomes.class);
             List<String> tasksList = spec.getTasks();
             String[] tasks = tasksList.toArray(new String[tasksList.size()]);
-            List<String> argumentsList = spec.getArguments();
+            List<String> argumentsList = getImpliedArguments(spec);
             String[] arguments = argumentsList.toArray(new String[argumentsList.size()]);
+
+            // Get the build outcomes model
+            ProjectOutcomes buildOutcomes = connection.model(ProjectOutcomes.class).withArguments(arguments).get();
+            // Run the build
             connection.newBuild().withArguments(arguments).forTasks(tasks).run();
+
             return buildOutcomes;
         } finally {
             connection.close();
+        }
+    }
+
+    private List<String> getImpliedArguments(GradleBuildInvocationSpec spec) {
+        List<String> rawArgs = spec.getArguments();
+
+        // Note: we don't know for certain that this is how to invoke this functionality for this Gradle version.
+        //       unsure of any other alternative.
+        if (rawArgs.contains("-u") || rawArgs.contains("--no-search-upward")) {
+            return rawArgs;
+        } else {
+            List<String> ammendedArgs = new ArrayList<String>(rawArgs.size() + 1);
+            ammendedArgs.add("--no-search-upward");
+            ammendedArgs.addAll(rawArgs);
+            return ammendedArgs;
         }
     }
 

@@ -75,7 +75,6 @@ class GradleBuildComparisonIntegrationSpec extends WellBehavedPluginTest {
 
     def "compare same project"() {
         given:
-        settingsFile << "" // stop up search
         buildFile << """
             apply plugin: "java"
 
@@ -95,7 +94,6 @@ class GradleBuildComparisonIntegrationSpec extends WellBehavedPluginTest {
 
     def "compare project with unknown outcomes"() {
         given:
-        settingsFile << "" // stop up search
         file("file.txt") << "text"
         buildFile << """
             apply plugin: "java-base"
