@@ -23,7 +23,8 @@ import org.gradle.api.buildcomparison.outcome.internal.BuildOutcome;
 import org.gradle.api.buildcomparison.outcome.internal.archive.GeneratedArchiveBuildOutcome;
 import org.gradle.api.buildcomparison.outcome.internal.unknown.UnknownBuildOutcome;
 import org.gradle.tooling.internal.provider.FileOutcomeIdentifier;
-import org.gradle.tooling.model.internal.outcomes.FileBuildOutcome;
+import org.gradle.tooling.model.internal.outcomes.GradleFileBuildOutcome;
+import org.gradle.tooling.model.internal.outcomes.GradleBuildOutcome;
 import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes;
 
 import java.io.File;
@@ -57,9 +58,9 @@ public class GradleBuildOutcomeSetTransformer implements Transformer<Set<BuildOu
     }
 
     private void addBuildOutcomes(ProjectOutcomes projectOutcomes, ProjectOutcomes rootProject, Set<BuildOutcome> buildOutcomes) {
-        for (org.gradle.tooling.model.internal.outcomes.BuildOutcome outcome : projectOutcomes.getOutcomes()) {
-            if (outcome instanceof FileBuildOutcome) {
-                addFileBuildOutcome((FileBuildOutcome) outcome, rootProject, buildOutcomes);
+        for (GradleBuildOutcome outcome : projectOutcomes.getOutcomes()) {
+            if (outcome instanceof GradleFileBuildOutcome) {
+                addFileBuildOutcome((GradleFileBuildOutcome) outcome, rootProject, buildOutcomes);
             } else {
                 new UnknownBuildOutcome(outcome.getTaskPath(), "Unknown Build Outcome");
             }
@@ -70,7 +71,7 @@ public class GradleBuildOutcomeSetTransformer implements Transformer<Set<BuildOu
         }
     }
 
-    private void addFileBuildOutcome(FileBuildOutcome outcome, ProjectOutcomes rootProject, Set<BuildOutcome> translatedOutcomes) {
+    private void addFileBuildOutcome(GradleFileBuildOutcome outcome, ProjectOutcomes rootProject, Set<BuildOutcome> translatedOutcomes) {
         if (zipArchiveTypes.contains(outcome.getTypeIdentifier())) {
             File originalFile = outcome.getFile();
             String filestoreDestination = String.format("%s/%s", outcome.getTaskPath(), originalFile.getName());

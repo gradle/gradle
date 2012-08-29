@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.plugins.ear.Ear
-import org.gradle.tooling.model.internal.outcomes.FileBuildOutcome
+import org.gradle.tooling.model.internal.outcomes.GradleFileBuildOutcome
 import spock.lang.Specification
 import spock.lang.Unroll
 import org.gradle.api.tasks.bundling.*
@@ -46,7 +46,7 @@ class PublishArtifactToFileBuildOutcomeTransformerTest extends Specification {
         _ * task.getArchivePath() >> project.file("file")
 
         when:
-        FileBuildOutcome outcome = transformer.transform(artifact, project)
+        GradleFileBuildOutcome outcome = transformer.transform(artifact, project)
 
         then:
         outcome.typeIdentifier == typeIdentifier.typeIdentifier

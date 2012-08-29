@@ -25,7 +25,7 @@ import java.io.File;
  *
  * @since 1.2
  */
-public interface FileBuildOutcome extends BuildOutcome {
+public interface GradleFileBuildOutcome extends GradleBuildOutcome {
 
     /**
      * The file, were it was produced by the build.

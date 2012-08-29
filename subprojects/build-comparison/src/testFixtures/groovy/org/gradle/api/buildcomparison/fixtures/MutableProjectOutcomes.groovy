@@ -17,10 +17,10 @@
 package org.gradle.api.buildcomparison.fixtures
 
 import org.gradle.tooling.model.DomainObjectSet
-import org.gradle.tooling.model.internal.outcomes.FileBuildOutcome
+import org.gradle.tooling.model.internal.outcomes.GradleFileBuildOutcome
 import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes
 import org.gradle.util.ConfigureUtil
-import org.gradle.tooling.model.internal.outcomes.BuildOutcome
+import org.gradle.tooling.model.internal.outcomes.GradleBuildOutcome
 
 class MutableProjectOutcomes implements ProjectOutcomes {
     String name
@@ -29,7 +29,7 @@ class MutableProjectOutcomes implements ProjectOutcomes {
     MutableProjectOutcomes parent
     DomainObjectSet<MutableProjectOutcomes> children = new org.gradle.api.buildcomparison.fixtures.MutableDomainObjectSet()
     File projectDirectory
-    DomainObjectSet<? extends BuildOutcome> outcomes = new org.gradle.api.buildcomparison.fixtures.MutableDomainObjectSet()
+    DomainObjectSet<? extends GradleBuildOutcome> outcomes = new org.gradle.api.buildcomparison.fixtures.MutableDomainObjectSet()
 
     MutableProjectOutcomes createChild(String childName, Closure c = {}) {
         def mpo = new MutableProjectOutcomes()
@@ -43,8 +43,8 @@ class MutableProjectOutcomes implements ProjectOutcomes {
         ConfigureUtil.configure(c, mpo)
     }
 
-    FileBuildOutcome addFile(String archivePath, String typeIdentifier = null, String taskName = archivePath) {
-        def outcome = new FileBuildOutcome() {
+    GradleFileBuildOutcome addFile(String archivePath, String typeIdentifier = null, String taskName = archivePath) {
+        def outcome = new GradleFileBuildOutcome() {
 
             String getId() {
                 archivePath

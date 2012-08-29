@@ -22,8 +22,8 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.tasks.bundling.*;
 import org.gradle.plugins.ear.Ear;
-import org.gradle.tooling.internal.outcomes.DefaultFileBuildOutcome;
-import org.gradle.tooling.model.internal.outcomes.FileBuildOutcome;
+import org.gradle.tooling.internal.outcomes.DefaultGradleFileBuildOutcome;
+import org.gradle.tooling.model.internal.outcomes.GradleFileBuildOutcome;
 
 import java.net.URI;
 import java.util.Set;
@@ -32,13 +32,13 @@ import static org.gradle.tooling.internal.provider.FileOutcomeIdentifier.*;
 
 public class PublishArtifactToFileBuildOutcomeTransformer {
 
-    public FileBuildOutcome transform(PublishArtifact artifact, Project project) {
+    public GradleFileBuildOutcome transform(PublishArtifact artifact, Project project) {
         String id = getId(artifact, project);
         String taskPath = getTaskPath(artifact);
         String description = getDescription(artifact);
         String typeIdentifier = getTypeIdentifier(artifact);
 
-        return new DefaultFileBuildOutcome(id, description, taskPath, artifact.getFile(), typeIdentifier);
+        return new DefaultGradleFileBuildOutcome(id, description, taskPath, artifact.getFile(), typeIdentifier);
     }
 
     private String getId(PublishArtifact artifact, Project project) {

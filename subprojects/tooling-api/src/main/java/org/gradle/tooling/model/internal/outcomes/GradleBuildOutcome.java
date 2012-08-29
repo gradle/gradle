@@ -23,7 +23,7 @@ import org.gradle.api.Nullable;
  *
  * @since 1.2
  */
-public interface BuildOutcome {
+public interface GradleBuildOutcome {
 
     /**
      * An internal unique identifier for this outcome.

@@ -16,17 +16,17 @@
 
 package org.gradle.tooling.internal.outcomes;
 
-import org.gradle.tooling.model.internal.outcomes.BuildOutcome;
+import org.gradle.tooling.model.internal.outcomes.GradleBuildOutcome;
 
 import java.io.Serializable;
 
-public class DefaultBuildOutcome implements BuildOutcome, Serializable {
+public class DefaultGradleBuildOutcome implements GradleBuildOutcome, Serializable {
 
     private final String id;
     private final String description;
     private final String taskPath;
 
-    public DefaultBuildOutcome(String id, String description, String taskPath) {
+    public DefaultGradleBuildOutcome(String id, String description, String taskPath) {
         this.id = id;
         this.description = description;
         this.taskPath = taskPath;

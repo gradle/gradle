@@ -16,16 +16,16 @@
 
 package org.gradle.tooling.internal.outcomes;
 
-import org.gradle.tooling.model.internal.outcomes.FileBuildOutcome;
+import org.gradle.tooling.model.internal.outcomes.GradleFileBuildOutcome;
 
 import java.io.File;
 
-public class DefaultFileBuildOutcome extends DefaultBuildOutcome implements FileBuildOutcome {
+public class DefaultGradleFileBuildOutcome extends DefaultGradleBuildOutcome implements GradleFileBuildOutcome {
 
     private final File file;
     private final String typeIdentifier;
 
-    public DefaultFileBuildOutcome(String id, String description, String taskPath, File file, String typeIdentifier) {
+    public DefaultGradleFileBuildOutcome(String id, String description, String taskPath, File file, String typeIdentifier) {
         super(id, description, taskPath);
         this.file = file;
         this.typeIdentifier = typeIdentifier;
