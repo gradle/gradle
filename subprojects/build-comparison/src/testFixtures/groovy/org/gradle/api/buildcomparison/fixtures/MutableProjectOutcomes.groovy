@@ -45,6 +45,15 @@ class MutableProjectOutcomes implements ProjectOutcomes {
 
     FileBuildOutcome addFile(String archivePath, String typeIdentifier = null, String taskName = archivePath) {
         def outcome = new FileBuildOutcome() {
+
+            String getId() {
+                archivePath
+            }
+
+            String getDescription() {
+                "fake outcome $archivePath"
+            }
+
             File getFile() {
                 new File(projectDirectory, archivePath)
             }

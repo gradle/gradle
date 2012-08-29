@@ -16,27 +16,31 @@
 
 package org.gradle.tooling.internal.outcomes;
 
-import org.gradle.tooling.model.internal.outcomes.FileBuildOutcome;
+import org.gradle.tooling.model.internal.outcomes.BuildOutcome;
 
-import java.io.File;
+import java.io.Serializable;
 
-public class DefaultFileBuildOutcome extends DefaultBuildOutcome implements FileBuildOutcome {
+public class DefaultBuildOutcome implements BuildOutcome, Serializable {
 
-    private final File file;
-    private final String typeIdentifier;
+    private final String id;
+    private final String description;
+    private final String taskPath;
 
-    public DefaultFileBuildOutcome(String id, String description, String taskPath, File file, String typeIdentifier) {
-        super(id, description, taskPath);
-        this.file = file;
-        this.typeIdentifier = typeIdentifier;
+    public DefaultBuildOutcome(String id, String description, String taskPath) {
+        this.id = id;
+        this.description = description;
+        this.taskPath = taskPath;
     }
 
-    public File getFile() {
-        return file;
+    public String getId() {
+        return id;
     }
 
-    public String getTypeIdentifier() {
-        return typeIdentifier;
+    public String getDescription() {
+        return description;
     }
 
+    public String getTaskPath() {
+        return taskPath;
+    }
 }

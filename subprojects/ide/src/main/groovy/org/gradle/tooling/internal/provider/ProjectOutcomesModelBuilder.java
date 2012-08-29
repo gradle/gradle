@@ -18,7 +18,6 @@ package org.gradle.tooling.internal.provider;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.Project;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.GradleInternal;
@@ -34,7 +33,7 @@ import java.util.List;
 
 public class ProjectOutcomesModelBuilder implements BuildsModel {
 
-    private final Transformer<FileBuildOutcome, PublishArtifact> artifactTransformer = new PublishArtifactToFileBuildOutcomeTransformer();
+    private final PublishArtifactToFileBuildOutcomeTransformer artifactTransformer = new PublishArtifactToFileBuildOutcomeTransformer();
 
     public boolean canBuild(Class<?> type) {
         return type == InternalProjectOutcomes.class;
@@ -63,7 +62,7 @@ public class ProjectOutcomesModelBuilder implements BuildsModel {
         Configuration configuration = project.getConfigurations().findByName("archives");
         if (configuration != null) {
             for (PublishArtifact artifact : configuration.getArtifacts()) {
-                FileBuildOutcome outcome = artifactTransformer.transform(artifact);
+                FileBuildOutcome outcome = artifactTransformer.transform(artifact, project);
                 outcomes.add(outcome);
             }
         }
