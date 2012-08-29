@@ -46,11 +46,13 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes;
+import org.gradle.util.BuildCommencedTimeProvider;
 import org.gradle.util.GradleVersion;
 
 import java.io.*;
 import java.nio.charset.Charset;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -74,6 +76,7 @@ public class CompareGradleBuilds extends DefaultTask {
         sourceBuild.setTasks(DEFAULT_TASKS);
         targetBuild = instantiator.newInstance(DefaultGradleBuildInvocationSpec.class, fileResolver, getProject().getRootDir());
         targetBuild.setTasks(DEFAULT_TASKS);
+        reportDir = getProject().file(String.format("build-comparisons/%s", getName()));
     }
 
     public GradleBuildInvocationSpec getSourceBuild() {
@@ -81,7 +84,7 @@ public class CompareGradleBuilds extends DefaultTask {
     }
 
     public void sourceBuild(Action<GradleBuildInvocationSpec> config) {
-        config.execute(sourceBuild);
+        config.execute(getSourceBuild());
     }
 
     public GradleBuildInvocationSpec getTargetBuild() {
@@ -89,7 +92,7 @@ public class CompareGradleBuilds extends DefaultTask {
     }
 
     public void targetBuild(Action<GradleBuildInvocationSpec> config) {
-        config.execute(targetBuild);
+        config.execute(getTargetBuild());
     }
 
     @OutputDirectory
@@ -98,6 +101,9 @@ public class CompareGradleBuilds extends DefaultTask {
     }
 
     public void setReportDir(Object reportDir) {
+        if (reportDir == null) {
+            throw new IllegalArgumentException("reportDir cannot be null");
+        }
         this.reportDir = reportDir;
     }
 
