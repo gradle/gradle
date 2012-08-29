@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider.input
+package org.gradle.tooling.internal.provider.connection
 
 import org.gradle.api.logging.LogLevel
 import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1

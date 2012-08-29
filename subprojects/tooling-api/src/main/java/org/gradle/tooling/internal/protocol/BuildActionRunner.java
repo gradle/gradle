@@ -23,8 +23,9 @@ public interface BuildActionRunner extends InternalProtocolInterface {
     /**
      * Performs some action against a build and returns some result of the given type.
      *
+     * @param type The desired result type. Use {@link InternalProtocolInterface} to indicate that no result is desired.
      * @throws UnsupportedOperationException When the given model type is not supported.
      * @throws IllegalStateException When this connection has been stopped.
      */
-    <T> T run(Class<T> type, BuildParameters operationParameters) throws UnsupportedOperationException, IllegalStateException;
+    <T> BuildResult<T> run(Class<T> type, BuildParameters operationParameters) throws UnsupportedOperationException, IllegalStateException;
 }

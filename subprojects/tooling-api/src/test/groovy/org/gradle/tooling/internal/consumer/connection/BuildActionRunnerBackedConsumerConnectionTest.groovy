@@ -18,7 +18,9 @@ package org.gradle.tooling.internal.consumer.connection
 
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
 import org.gradle.tooling.internal.protocol.BuildActionRunner
+import org.gradle.tooling.internal.protocol.BuildResult
 import org.gradle.tooling.internal.protocol.ConnectionVersion4
+import org.gradle.tooling.internal.protocol.InternalProtocolInterface
 import spock.lang.Specification
 
 class BuildActionRunnerBackedConsumerConnectionTest extends Specification {
@@ -27,14 +29,19 @@ class BuildActionRunnerBackedConsumerConnectionTest extends Specification {
     final BuildActionRunnerBackedConsumerConnection connection = new BuildActionRunnerBackedConsumerConnection(target)
 
     def "builds model using run() method"() {
+        BuildResult<String> result = Mock()
+
+        given:
+        result.model >> 'ok'
+
         when:
-        def result = connection.getModel(String.class, parameters)
+        def model = connection.getModel(String.class, parameters)
 
         then:
-        result == 'ok'
+        model == 'ok'
 
         and:
-        1 * target.run(String.class, parameters) >> 'ok'
+        1 * target.run(String.class, parameters) >> result
         0 * target._
     }
 
@@ -43,7 +50,7 @@ class BuildActionRunnerBackedConsumerConnectionTest extends Specification {
         connection.executeBuild(parameters)
 
         then:
-        1 * target.run(null, parameters) >> null
+        1 * target.run(InternalProtocolInterface, parameters) >> Mock(BuildResult)
         0 * target._
     }
 

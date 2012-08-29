@@ -21,7 +21,7 @@ import org.gradle.launcher.exec.GradleLauncherActionExecuter;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.internal.*;
 import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;
-import org.gradle.tooling.internal.provider.input.ProviderOperationParameters;
+import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 
 /**
  * A {@link org.gradle.launcher.exec.GradleLauncherActionExecuter} which routes Gradle logging to those listeners specified in the {@link ProviderOperationParameters} provided with a tooling api build

@@ -32,9 +32,10 @@ import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.tooling.internal.build.DefaultBuildEnvironment;
 import org.gradle.tooling.internal.consumer.protocoladapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.protocol.*;
-import org.gradle.tooling.internal.provider.input.AdaptedOperationParameters;
-import org.gradle.tooling.internal.provider.input.BuildLogLevelMixIn;
-import org.gradle.tooling.internal.provider.input.ProviderOperationParameters;
+import org.gradle.tooling.internal.provider.connection.AdaptedOperationParameters;
+import org.gradle.tooling.internal.provider.connection.BuildLogLevelMixIn;
+import org.gradle.tooling.internal.provider.connection.ProviderBuildResult;
+import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
@@ -96,22 +97,25 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner 
         return getModel(type, new AdaptedOperationParameters(parameters));
     }
 
-    public <T> T run(Class<T> type, BuildParameters buildParameters) throws UnsupportedOperationException, IllegalStateException {
+    public <T> BuildResult<T> run(Class<T> type, BuildParameters buildParameters) throws UnsupportedOperationException, IllegalStateException {
         ProviderOperationParameters providerParameters = adapter.adapt(ProviderOperationParameters.class, buildParameters, BuildLogLevelMixIn.class);
         List<String> tasks = providerParameters.getTasks();
-        if (type == null && tasks == null) {
+        if (type.equals(InternalProtocolInterface.class) && tasks == null) {
             throw new IllegalArgumentException("No model type or tasks specified.");
         }
 
+        final T result;
         if (tasks == null) {
-            return getModel(type, providerParameters);
+            result = getModel(type, providerParameters);
         } else {
-            if (type != null) {
+            if (!type.equals(InternalProtocolInterface.class)) {
                 throw new UnsupportedOperationException(String.format("Don't know how to build model of type %s from the build result.", type.getSimpleName()));
             }
             run(new ExecuteBuildAction(), providerParameters);
-            return null;
+            result = null;
         }
+
+        return new ProviderBuildResult<T>(result);
     }
 
     private <T> T getModel(Class<T> type, ProviderOperationParameters parameters) {
@@ -178,4 +182,5 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner 
         }
         return daemonParams;
     }
+
 }

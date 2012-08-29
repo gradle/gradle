@@ -20,7 +20,7 @@ import org.gradle.initialization.GradleLauncherAction
 import org.gradle.internal.Factory
 import org.gradle.launcher.exec.GradleLauncherActionExecuter
 import org.gradle.logging.LoggingManagerInternal
-import org.gradle.tooling.internal.provider.input.ProviderOperationParameters
+import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters
 import spock.lang.Specification
 
 class LoggingBridgingGradleLauncherActionExecuterTest extends Specification {
