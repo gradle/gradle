@@ -6,14 +6,14 @@ Here are the new features introduced in Gradle 1.2.
 
 The dependency report now includes the the requested dependency versions as extra information. This is invaluable information in many situations:
 
-* For conflict resolution it is now possible to infer from the dependency report why a given dependency version is selected. Previously, the dependency report included the dependency versions *after* the conflict resolution. Now you can see the version before the conflict resolution and the version it was replaced with. The new report makes it much easier to understand what happens during the conflict resolution and to figure out why and how certain versions are used.
-* For dynamic versions the dependency report shows what version was requested and what version was selected. For example: 1.3.+ -> 1.3.5 (requested -> selected).
+* For conflict resolution it is now possible to infer from the dependency report why a given dependency version is selected. Previously, the dependency report included the dependency versions *after* conflict resolution has been applied. Now you can see the version before the conflict resolution and the version it was replaced with. The new report makes it much easier to understand what happens during conflict resolution and to figure out why certain versions are used.
+* For dynamic versions the dependency report shows what version was requested and what version was selected. For example: `1.3.+ -> 1.3.5` (requested -> selected).
 
 In order to keep the report clean and tidy we decided to remove the 'resolved target configurations' from the report. They used to appear on the right hand of every listed dependency and it was often a source of confusion.
 
-We continue to work in the dependency reports area and plan more interesting features shortly. For example, we want the report to present the dependency tree even though some dependency is unresolved. We also want to add other kinds of dependency reports. 
+We will continue to work in the dependency reports area and plan more interesting features shortly. For example, we want the report to present the dependency tree even though some dependency is unresolved. We also want to add other kinds of dependency reports.
 
-The new dependency report should also be faster for projects that have very large dependency graphs. Our performance tests for a particular larger project we are working on  showed a 50% speed increase.
+The new dependency report should also be faster for projects that have very large dependency graphs. Our performance tests for a particular larger project we are working on showed a 50% speed increase.
 
 The improvements in the dependency report drove our design of the new resolution result API. For Gradle users it means better programmatic access and hooks to the resolved dependency graph.
 
@@ -26,14 +26,14 @@ expect to see a 20-25% reduction in heap usage thanks to these improvements.
 
 Often a high-level task is dependent on multiple smaller tasks. By default, Gradle will stop executing any task and fail the build
 as soon as one of these sub-tasks fails. This means that the build will finish sooner, but it does not reveal failures in other, independent sub-tasks.
-There are many times when you would like to find out as many failures as possible in a single build execution. Examples may include when you kick off a build
+There are many times when you would like to find out as many failures as possible in a single build execution. For example, when you kick off a build
 before heading out to lunch, or running a nightly CI job. The `--continue` command-line option allows you to do just that.
 
-With the addition of [nicer reporting of multiple build failures]((#multile_build_failures)), we now consider `--continue` a fully-fledged capability of Gradle, and have removed the `experimental` flag from this option. Please see the [User Guide section](userguide/tutorial_gradle_command_line.html#sec:continue_build_on_failure) for more details.
+With the addition of [nicer reporting of multiple build failures](#multile_build_failures), we now consider `--continue` a fully-fledged capability of Gradle, and have removed the `experimental` flag from this option. Please see the [User Guide section](userguide/tutorial_gradle_command_line.html#sec:continue_build_on_failure) for more details.
 
 ### <a id="multile_build_failures"></a>Reporting of multiple build failures
 
-When running the build with `--parallel` or `--continue` it is possible to have multiple failures in your build. While executing Gradle will now report on tasks that fail,
+When running the build with `--continue` or the new `--parallel` option (see [below](#parallel)) it is possible to have multiple failures in your build. While executing Gradle will now report on tasks that fail,
 as well as producing output detailing _all_ build failures on build completion.
 
 The new output clearly indicates the cause and possible analysis of each failure, making it easier to track down the underlying issue.
@@ -44,7 +44,7 @@ discover as many failures as possible with a single build execution.
 
 Thanks to a contribution from [Justin Ryan](https://github.com/quidryan), the FindBugs plugin now supports more configuration options.
 
-### Documentation facelift
+### Documentation improvements
 
 Our documentation has received a facelift to match our new style. Check out the new look [DSL Reference](dsl/index.html) and [User Guide](userguide/userguide.html).
 
@@ -52,16 +52,16 @@ The [DSL Reference](dsl/index.html) now indicates which features are deprecated 
 
 ### HTTP requests now provide Gradle related version information
 
-Gradle, the Gradle Wrapper and the Gradle Tooling API now provide version information in the `User-Agent` header when HTTP resources are accessed.
+Gradle, the Gradle Wrapper and the Gradle Tooling API now provide version information in the `User-Agent` header whenever HTTP resources are accessed.
 Especially for larger organisations, this can be very helpful to gather information about which versions of Gradle are used in which environment.
 
 #### What information is provided?
 
 The `User-Agent` header now includes information about
 
-* The used Gradle application (Gradle, Gradle Wrapper or Gradle Tooling API) + Version
-* The Operating System (name, version, architecture)
-* The Java version (vendor, version)
+* The Gradle application (Gradle, Gradle Wrapper or Gradle Tooling API) + Version making the request.
+* The Operating System (name, version, architecture).
+* The Java version (vendor, version).
 
 An example for a Gradle generated user-agent string: "**Gradle/1.2 (Mac OS X;10.8;amd64) (Oracle Corporation;1.7.0_04-ea;23.0-b12)**"
 
@@ -71,9 +71,9 @@ The list of issues fixed between 1.1 and 1.2 can be found [here](http://issues.g
 
 ## New experimental and unstable features
 
-We will typically introduce big new features as experimental or unstable at first, giving you a chance to test them out as you have opportunity. Experimental means that the quality of the behaviour might not match the quality your are used to with Gradle. Unstable means that the quality is good but the API might still change with the next release. We will iterate on the new feature based on your feedback, eventually releasing it as stable and production-ready. Those of you who use new features before that point gain the competitive advantage of early access to new functionality in exchange for helping refine it over time. To learn more read our [forum posting on our release approach](http://forums.gradle.org/gradle/topics/the_gradle_release_approach).
+We will typically introduce big new features as experimental or unstable at first, giving you a chance to test them out. Experimental means that the quality of the behaviour might not match the quality you are used to with Gradle. Unstable means that the quality is good but the API might still change with the next release. We will iterate on the new feature based on your feedback, eventually releasing it as stable and production-ready. Those of you who use new features before that point gain the competitive advantage of early access to new functionality in exchange for helping refine it over time. To learn more read our [forum posting on our release approach](http://forums.gradle.org/gradle/topics/the_gradle_release_approach).
 
-### Support for building projects in parallel (highly experimental with known open issues)
+###<a id="parallel"></a> Support for building projects in parallel (highly experimental with known open issues)
 
 Over the coming releases, we'll be adding production-quality support for parallel execution of independent projects in a multi-project build. By building separate projects in parallel, Gradle will enable better hardware utilisation and faster build times.
 
@@ -82,11 +82,12 @@ We are excited Gradle 1.2 introduces the first experimental support for this fea
 Note that to guarantee successful parallel execution of projects, your multi-project build must contain only [decoupled projects](userguide/multi_project_builds.html#sec:decoupled_projects).
 While configuration-time decoupling is not strictly required for parallel project execution, we do not intend on supporting a separate model of decoupling that permits configuration-time coupling with execution-time decoupling. At this time there are no checks implemented to ensure that projects are decoupled, and unexpected behaviour may result from executing a build with coupled projects using the new parallel executor.
 
-**This feature is pre-alpha and highly experimental. Many multi-project builds will behave unexpectedly when run using parallel project execution. You will get a warning when you are using it.****
+**This feature is pre-alpha and highly experimental. Many multi-project builds will behave unexpectedly when run using parallel project execution. You will get a warning when you are using it.***
+
 One known issue is that the Gradle compiler daemon is currently not thread-safe. So if multiple projects attempt to compile java code simultaneously with `fork=true`,
 exceptions will result. Workaround: don't use `options.fork=true` to compile when running with `--parallel`.
 
-### New resolution result API (unstable)
+### New dependency resolution result API (unstable)
 
 We are exposing the new API that our improved dependency reports are using. It provides a powerful for developing your own custom dependency reports. It also allows to develop smart build logic that can make decisions based on the content of the dependency graph.
 
