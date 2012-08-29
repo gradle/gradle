@@ -19,13 +19,14 @@ package org.gradle.api.buildcomparison.gradle.internal
 import org.gradle.api.internal.filestore.DefaultFileStoreEntry
 import org.gradle.api.internal.filestore.FileStore
 import org.gradle.api.internal.filestore.FileStoreEntry
-import org.gradle.api.buildcomparison.fixtures.ProjectOutcomesBuilder
-import org.gradle.api.buildcomparison.outcome.internal.archive.GeneratedArchiveBuildOutcome
-import org.gradle.api.buildcomparison.outcome.internal.unknown.UnknownBuildOutcome
+import org.gradle.plugins.buildcomparison.fixtures.ProjectOutcomesBuilder
+import org.gradle.plugins.buildcomparison.outcome.internal.archive.GeneratedArchiveBuildOutcome
+import org.gradle.plugins.buildcomparison.outcome.internal.unknown.UnknownBuildOutcome
 import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes
 import spock.lang.Specification
 
 import static org.gradle.tooling.internal.provider.FileOutcomeIdentifier.*
+import org.gradle.plugins.buildcomparison.gradle.internal.GradleBuildOutcomeSetTransformer
 
 class GradleBuildOutcomeSetTransformerTest extends Specification {
 

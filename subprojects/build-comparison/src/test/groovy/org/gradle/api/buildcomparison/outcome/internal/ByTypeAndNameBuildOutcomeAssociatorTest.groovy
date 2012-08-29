@@ -16,9 +16,11 @@
 
 package org.gradle.api.buildcomparison.outcome.internal
 
-import org.gradle.api.buildcomparison.outcome.string.StringBuildOutcome
+import org.gradle.plugins.buildcomparison.outcome.string.StringBuildOutcome
 
 import spock.lang.Specification
+import org.gradle.plugins.buildcomparison.outcome.internal.ByTypeAndNameBuildOutcomeAssociator
+import org.gradle.plugins.buildcomparison.outcome.internal.BuildOutcome
 
 class ByTypeAndNameBuildOutcomeAssociatorTest extends Specification {
 

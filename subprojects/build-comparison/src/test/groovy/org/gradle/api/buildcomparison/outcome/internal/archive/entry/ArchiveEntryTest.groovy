@@ -17,6 +17,7 @@
 package org.gradle.api.buildcomparison.outcome.internal.archive.entry
 
 import spock.lang.Specification
+import org.gradle.plugins.buildcomparison.outcome.internal.archive.entry.ArchiveEntry
 
 class ArchiveEntryTest extends Specification {
 

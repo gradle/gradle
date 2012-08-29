@@ -16,9 +16,12 @@
 
 package org.gradle.api.buildcomparison.compare.internal
 
-import org.gradle.api.buildcomparison.outcome.internal.BuildOutcome
-import org.gradle.api.buildcomparison.outcome.internal.BuildOutcomeAssociation
+import org.gradle.plugins.buildcomparison.outcome.internal.BuildOutcome
+import org.gradle.plugins.buildcomparison.outcome.internal.BuildOutcomeAssociation
 import spock.lang.Specification
+import org.gradle.plugins.buildcomparison.compare.internal.BuildOutcomeComparator
+import org.gradle.plugins.buildcomparison.compare.internal.DefaultBuildOutcomeComparatorFactory
+import org.gradle.plugins.buildcomparison.compare.internal.BuildOutcomeComparisonResult
 
 class DefaultBuildOutcomeComparatorFactoryTest extends Specification {
 

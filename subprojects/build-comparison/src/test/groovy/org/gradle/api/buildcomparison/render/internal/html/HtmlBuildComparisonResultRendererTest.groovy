@@ -16,19 +16,22 @@
 
 package org.gradle.api.buildcomparison.render.internal.html
 
-import org.gradle.api.buildcomparison.outcome.string.StringBuildOutcome
-import org.gradle.api.buildcomparison.outcome.string.StringBuildOutcomeComparisonResult
-import org.gradle.api.buildcomparison.outcome.string.StringBuildOutcomeComparisonResultHtmlRenderer
-import org.gradle.api.buildcomparison.compare.internal.BuildComparisonResult
-import org.gradle.api.buildcomparison.compare.internal.BuildOutcomeComparisonResult
-import org.gradle.api.buildcomparison.compare.internal.DefaultBuildComparisonSpecBuilder
-import org.gradle.api.buildcomparison.outcome.internal.BuildOutcome
-import org.gradle.api.buildcomparison.outcome.internal.DefaultBuildOutcomeAssociation
-import org.gradle.api.buildcomparison.render.internal.BuildComparisonResultRenderer
-import org.gradle.api.buildcomparison.render.internal.DefaultBuildOutcomeComparisonResultRendererFactory
+import org.gradle.plugins.buildcomparison.outcome.string.StringBuildOutcome
+import org.gradle.plugins.buildcomparison.outcome.string.StringBuildOutcomeComparisonResult
+import org.gradle.plugins.buildcomparison.outcome.string.StringBuildOutcomeComparisonResultHtmlRenderer
+import org.gradle.plugins.buildcomparison.compare.internal.BuildComparisonResult
+import org.gradle.plugins.buildcomparison.compare.internal.BuildOutcomeComparisonResult
+import org.gradle.plugins.buildcomparison.compare.internal.DefaultBuildComparisonSpecBuilder
+import org.gradle.plugins.buildcomparison.outcome.internal.BuildOutcome
+import org.gradle.plugins.buildcomparison.outcome.internal.DefaultBuildOutcomeAssociation
+import org.gradle.plugins.buildcomparison.render.internal.BuildComparisonResultRenderer
+import org.gradle.plugins.buildcomparison.render.internal.DefaultBuildOutcomeComparisonResultRendererFactory
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import spock.lang.Specification
+import org.gradle.plugins.buildcomparison.render.internal.html.HtmlRenderContext
+import org.gradle.plugins.buildcomparison.render.internal.html.HtmlBuildComparisonResultRenderer
+import org.gradle.plugins.buildcomparison.render.internal.html.PartRenderer
 
 class HtmlBuildComparisonResultRendererTest extends Specification {
 

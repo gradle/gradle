@@ -16,8 +16,10 @@
 
 package org.gradle.api.buildcomparison.outcome.internal.archive.entry
 
-import org.gradle.api.buildcomparison.compare.internal.ComparisonResultType
+import org.gradle.plugins.buildcomparison.compare.internal.ComparisonResultType
 import spock.lang.Specification
+import org.gradle.plugins.buildcomparison.outcome.internal.archive.entry.ArchiveEntryComparison
+import org.gradle.plugins.buildcomparison.outcome.internal.archive.entry.ArchiveEntry
 
 class ArchiveEntryComparisonTest extends Specification {
 

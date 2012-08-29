@@ -17,14 +17,17 @@
 package org.gradle.api.buildcomparison.outcome.internal.archive
 
 import org.gradle.api.Transformer
-import org.gradle.api.buildcomparison.outcome.internal.DefaultBuildOutcomeAssociation
-import org.gradle.api.buildcomparison.outcome.internal.archive.entry.ArchiveEntry
-import org.gradle.api.buildcomparison.outcome.internal.archive.entry.ArchiveEntryComparison
+import org.gradle.plugins.buildcomparison.outcome.internal.DefaultBuildOutcomeAssociation
+import org.gradle.plugins.buildcomparison.outcome.internal.archive.entry.ArchiveEntry
+import org.gradle.plugins.buildcomparison.outcome.internal.archive.entry.ArchiveEntryComparison
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
 
-import static org.gradle.api.buildcomparison.compare.internal.ComparisonResultType.*
+import static org.gradle.plugins.buildcomparison.compare.internal.ComparisonResultType.*
+import org.gradle.plugins.buildcomparison.outcome.internal.archive.GeneratedArchiveBuildOutcomeComparator
+import org.gradle.plugins.buildcomparison.outcome.internal.archive.GeneratedArchiveBuildOutcomeComparisonResult
+import org.gradle.plugins.buildcomparison.outcome.internal.archive.GeneratedArchiveBuildOutcome
 
 class GeneratedArchiveBuildOutcomeComparatorTest extends Specification {
 

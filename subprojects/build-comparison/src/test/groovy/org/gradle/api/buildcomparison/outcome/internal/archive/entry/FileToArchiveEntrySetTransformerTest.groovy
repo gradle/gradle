@@ -20,6 +20,9 @@ import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestFile
 import org.junit.Rule
 import spock.lang.Specification
+import org.gradle.plugins.buildcomparison.outcome.internal.archive.entry.FileToArchiveEntrySetTransformer
+import org.gradle.plugins.buildcomparison.outcome.internal.archive.entry.ZipEntryToArchiveEntryTransformer
+import org.gradle.plugins.buildcomparison.outcome.internal.archive.entry.ArchiveEntry
 
 class FileToArchiveEntrySetTransformerTest extends Specification {
 

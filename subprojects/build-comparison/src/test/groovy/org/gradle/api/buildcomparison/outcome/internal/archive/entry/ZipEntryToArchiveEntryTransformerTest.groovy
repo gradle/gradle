@@ -19,6 +19,7 @@ package org.gradle.api.buildcomparison.outcome.internal.archive.entry
 import spock.lang.Specification
 
 import java.util.zip.ZipEntry
+import org.gradle.plugins.buildcomparison.outcome.internal.archive.entry.ZipEntryToArchiveEntryTransformer
 
 class ZipEntryToArchiveEntryTransformerTest extends Specification {
 

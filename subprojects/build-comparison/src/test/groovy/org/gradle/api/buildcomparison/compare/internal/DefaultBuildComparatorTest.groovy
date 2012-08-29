@@ -16,12 +16,17 @@
 
 package org.gradle.api.buildcomparison.compare.internal
 
-import org.gradle.api.buildcomparison.outcome.string.StringBuildOutcome
-import org.gradle.api.buildcomparison.outcome.string.StringBuildOutcomeComparator
+import org.gradle.plugins.buildcomparison.outcome.string.StringBuildOutcome
+import org.gradle.plugins.buildcomparison.outcome.string.StringBuildOutcomeComparator
 
 import spock.lang.Specification
 
 import static org.apache.commons.lang.StringUtils.getLevenshteinDistance
+import org.gradle.plugins.buildcomparison.compare.internal.BuildComparisonResult
+import org.gradle.plugins.buildcomparison.compare.internal.DefaultBuildComparisonSpecBuilder
+import org.gradle.plugins.buildcomparison.compare.internal.DefaultBuildComparator
+import org.gradle.plugins.buildcomparison.compare.internal.DefaultBuildOutcomeComparatorFactory
+import org.gradle.plugins.buildcomparison.compare.internal.BuildComparisonSpecBuilder
 
 class DefaultBuildComparatorTest extends Specification {
 

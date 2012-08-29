@@ -17,10 +17,12 @@
 package org.gradle.api.buildcomparison.render.internal
 
 import spock.lang.Specification
-import org.gradle.api.buildcomparison.outcome.string.StringBuildOutcomeComparisonResultMapRenderer
-import org.gradle.api.buildcomparison.outcome.string.StringBuildOutcomeComparisonResult
-import org.gradle.api.buildcomparison.outcome.internal.archive.GeneratedArchiveBuildOutcomeComparisonResult
-import org.gradle.api.buildcomparison.compare.internal.BuildOutcomeComparisonResult
+import org.gradle.plugins.buildcomparison.outcome.string.StringBuildOutcomeComparisonResultMapRenderer
+import org.gradle.plugins.buildcomparison.outcome.string.StringBuildOutcomeComparisonResult
+import org.gradle.plugins.buildcomparison.outcome.internal.archive.GeneratedArchiveBuildOutcomeComparisonResult
+import org.gradle.plugins.buildcomparison.compare.internal.BuildOutcomeComparisonResult
+import org.gradle.plugins.buildcomparison.render.internal.DefaultBuildOutcomeComparisonResultRendererFactory
+import org.gradle.plugins.buildcomparison.render.internal.BuildOutcomeComparisonResultRenderer
 
 class DefaultBuildOutcomeComparisonResultRendererFactoryTest extends Specification {
 
