@@ -26,12 +26,14 @@ public class DefaultResolvedDependencyResult implements ResolvedDependencyResult
 
     private final ModuleVersionSelector requested;
     private final DefaultResolvedModuleVersionResult selected;
-    private DefaultResolvedModuleVersionResult from;
+    private final DefaultResolvedModuleVersionResult from;
 
-    public DefaultResolvedDependencyResult(ModuleVersionSelector requested, DefaultResolvedModuleVersionResult selected) {
+    public DefaultResolvedDependencyResult(ModuleVersionSelector requested, DefaultResolvedModuleVersionResult selected, DefaultResolvedModuleVersionResult from) {
         assert requested != null;
         assert selected != null;
+        assert from != null;
 
+        this.from = from;
         this.requested = requested;
         this.selected = selected;
     }
@@ -79,11 +81,6 @@ public class DefaultResolvedDependencyResult implements ResolvedDependencyResult
         result = 31 * result + selected.hashCode();
         result = 31 * result + from.hashCode();
         return result;
-    }
-
-    public DefaultResolvedDependencyResult setFrom(DefaultResolvedModuleVersionResult from) {
-        this.from = from;
-        return this;
     }
 
     public DefaultResolvedModuleVersionResult getFrom() {

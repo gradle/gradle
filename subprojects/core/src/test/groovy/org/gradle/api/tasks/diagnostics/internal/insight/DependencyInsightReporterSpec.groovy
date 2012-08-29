@@ -96,6 +96,8 @@ class DependencyInsightReporterSpec extends Specification {
     }
 
     private dep(String group, String name, String requested, String selected = requested) {
-        new DefaultResolvedDependencyResult(newSelector(group, name, requested), new DefaultResolvedModuleVersionResult(newId(group, name, selected)))
+        new DefaultResolvedDependencyResult(newSelector(group, name, requested),
+                new DefaultResolvedModuleVersionResult(newId(group, name, selected)),
+                new DefaultResolvedModuleVersionResult(newId("a", "root", "1")))
     }
 }

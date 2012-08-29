@@ -49,7 +49,7 @@ class DefaultResolvedDependencyResultSpec extends Specification {
     }
 
     private newDependency(ModuleVersionSelector requested, ModuleVersionIdentifier selected, String from = 'whatever') {
-        new DefaultResolvedDependencyResult(requested, new DefaultResolvedModuleVersionResult(selected))
-            .setFrom(new DefaultResolvedModuleVersionResult(newId("org", from, "1.0")))
+        new DefaultResolvedDependencyResult(requested, new DefaultResolvedModuleVersionResult(selected),
+                new DefaultResolvedModuleVersionResult(newId("org", from, "1.0")))
     }
 }

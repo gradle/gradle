@@ -49,7 +49,7 @@ public class ResolutionResultBuilder implements ResolvedConfigurationListener {
                 module.addDependency(new DefaultUnresolvedDependencyResult(d.getRequested(), d.getFailure(), module));
             } else {
                 DefaultResolvedModuleVersionResult submodule = getModule(d.getSelected());
-                DefaultResolvedDependencyResult dependency = new DefaultResolvedDependencyResult(d.getRequested(), submodule).setFrom(module);
+                DefaultResolvedDependencyResult dependency = new DefaultResolvedDependencyResult(d.getRequested(), submodule, module);
                 module.addDependency(dependency);
                 submodule.addDependent(dependency);
             }
