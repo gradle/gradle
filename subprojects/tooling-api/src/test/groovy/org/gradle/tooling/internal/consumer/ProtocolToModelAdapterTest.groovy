@@ -22,9 +22,9 @@ interface TestModel {
 
     TestProject getProject()
 
-    boolean isProjectSupported()
+    boolean isConfigSupported()
 
-    TestProject getProject(TestProject defaultValue)
+    String getConfig(String defaultValue)
 
     DomainObjectSet<? extends TestProject> getChildren()
 }
@@ -39,6 +39,8 @@ interface TestProtocolModel {
     TestProtocolProject getProject()
 
     Iterable<? extends TestProtocolProject> getChildren()
+
+    String getConfig();
 }
 
 interface PartialTestProtocolModel {

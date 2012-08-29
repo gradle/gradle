@@ -29,44 +29,43 @@ import java.util.regex.Pattern;
  * Adapts some source object to
  */
 public class ProtocolToModelAdapter {
-    private static final ModelPropertyHandler NO_OP_HANDLER = new ModelPropertyHandler() {
-        public boolean shouldHandle(Method method, Object delegate) {
-            return false;
-        }
-
-        public Object getPropertyValue(Method method, Object delegate) {
-            throw new UnsupportedOperationException();
+    private static final MethodInvoker NO_OP_HANDLER = new MethodInvoker() {
+        public void invoke(MethodInvocation invocation) throws Throwable {
         }
     };
     private static final Object[] EMPTY = new Object[0];
+    private static final Pattern IS_SUPPORT_METHOD = Pattern.compile("is(\\w+)Supported");
+    private static final Pattern GETTER_METHOD = Pattern.compile("get(\\w+)");
+    private static final Pattern IS_METHOD = Pattern.compile("is(\\w+)");
     private final TargetTypeProvider targetTypeProvider = new TargetTypeProvider();
 
     public <T, S> T adapt(Class<T> targetType, S protocolObject) {
         return adapt(targetType, protocolObject, NO_OP_HANDLER);
     }
 
-    public <T, S> T adapt(Class<T> targetType, S protocolObject, ModelPropertyHandler modelPropertyHandler) {
+    public <T, S> T adapt(Class<T> targetType, S protocolObject, MethodInvoker overrideMethodInvoker) {
         Class<T> target = targetTypeProvider.getTargetType(targetType, protocolObject);
         if (target.isInstance(protocolObject)) {
             return target.cast(protocolObject);
         }
-        Object proxy = Proxy.newProxyInstance(target.getClassLoader(), new Class<?>[]{target}, new InvocationHandlerImpl(target, protocolObject, modelPropertyHandler));
+        Object proxy = Proxy.newProxyInstance(target.getClassLoader(), new Class<?>[]{target}, new InvocationHandlerImpl(protocolObject, overrideMethodInvoker));
         return target.cast(proxy);
     }
 
     private class InvocationHandlerImpl implements InvocationHandler {
-        private final Class<?> wrapperType;
         private final Object delegate;
-        private final ModelPropertyHandler modelPropertyHandler;
-        private final Map<Method, Method> methods = new HashMap<Method, Method>();
-        private final Map<String, Object> properties = new HashMap<String, Object>();
         private final Method equalsMethod;
         private final Method hashCodeMethod;
+        private final MethodInvoker invoker;
 
-        public InvocationHandlerImpl(Class<?> wrapperType, Object delegate, ModelPropertyHandler modelPropertyHandler) {
-            this.wrapperType = wrapperType;
+        public InvocationHandlerImpl(Object delegate, MethodInvoker overrideMethodInvoker) {
             this.delegate = delegate;
-            this.modelPropertyHandler = modelPropertyHandler;
+            invoker = new SupportedPropertyInvoker(
+                    new SafeMethodInvoker(
+                            new PropertyCachingMethodInvoker(
+                                    new ChainedMethodInvoker(
+                                            overrideMethodInvoker,
+                                            new ReflectionMethodInvoker(overrideMethodInvoker)))));
             try {
                 equalsMethod = Object.class.getMethod("equals", Object.class);
                 hashCodeMethod = Object.class.getMethod("hashCode");
@@ -105,134 +104,195 @@ public class ProtocolToModelAdapter {
                 return hashCode();
             }
 
-            if ((method.getName().matches("get\\w+") || method.getName().matches("is\\w+")) && method.getParameterTypes().length == 0) {
-                if (properties.containsKey(method.getName())) {
-                    return properties.get(method.getName());
-                }
-
-                Object value;
-                if (modelPropertyHandler.shouldHandle(method, delegate)) {
-                    value = modelPropertyHandler.getPropertyValue(method, delegate);
-                } else {
-                    value = getPropertyValue(method);
-                }
-                properties.put(method.getName(), value);
-                return value;
-            }
-            if (method.getName().matches("get\\w+") && method.getParameterTypes().length == 1) {
-                Method getter = wrapperType.getMethod(method.getName());
-                if (findMethod(getter) == null) {
-                    return params[0];
-                }
-                return invoke(target, getter, EMPTY);
-            }
-
-            return doInvokeMethod(method, params);
-        }
-
-        private Object getPropertyValue(Method method) throws Throwable {
-            Matcher matcher = Pattern.compile("is(\\w+)Supported").matcher(method.getName());
-            if (!matcher.matches()) {
-                return doInvokeMethod(method, EMPTY);
-            }
-            String getterName = String.format("get%s", matcher.group(1));
-            return locateMethod(wrapperType.getMethod(getterName)) != null;
-        }
-
-        private Object doInvokeMethod(Method method, Object[] params) throws Throwable {
-            Method targetMethod = getMethod(method);
-
-            Object returnValue;
-            try {
-                returnValue = targetMethod.invoke(delegate, params);
-            } catch (InvocationTargetException e) {
-                throw e.getCause();
-            }
-
-            if (returnValue == null || method.getReturnType().isInstance(returnValue)) {
-                return returnValue;
-            }
-
-            return convert(returnValue, method.getGenericReturnType());
-        }
-
-        private Method getMethod(Method method) {
-            Method targetMethod = findMethod(method);
-            if (targetMethod == null) {
+            MethodInvocation invocation = new MethodInvocation(method.getName(), method.getReturnType(), method.getGenericReturnType(), method.getParameterTypes(), delegate, params);
+            invoker.invoke(invocation);
+            if (!invocation.found()) {
                 String methodName = method.getDeclaringClass().getSimpleName() + "." + method.getName() + "()";
                 throw Exceptions.unsupportedMethod(methodName);
             }
-            return targetMethod;
+            return invocation.getResult();
         }
 
-        private Method findMethod(Method method) {
-            Method targetMethod = methods.get(method);
-            if (targetMethod == null) {
-                targetMethod = locateMethod(method);
+        private class ReflectionMethodInvoker implements MethodInvoker {
+            private final MethodInvoker override;
+
+            private ReflectionMethodInvoker(MethodInvoker override) {
+                this.override = override;
+            }
+
+            public void invoke(MethodInvocation invocation) throws Throwable {
+                // TODO - cache method lookup
+                Method targetMethod = locateMethod(invocation);
                 if (targetMethod == null) {
+                    return;
+                }
+
+                Object returnValue;
+                try {
+                    returnValue = targetMethod.invoke(delegate, invocation.getParameters());
+                } catch (InvocationTargetException e) {
+                    throw e.getCause();
+                }
+
+                if (returnValue == null || invocation.getReturnType().isInstance(returnValue)) {
+                    invocation.setResult(returnValue);
+                    return;
+                }
+
+                invocation.setResult(convert(returnValue, invocation.getGenericReturnType()));
+            }
+
+            private Method locateMethod(MethodInvocation invocation) {
+                Method match;
+                try {
+                    match = delegate.getClass().getMethod(invocation.getName(), invocation.getParameterTypes());
+                } catch (NoSuchMethodException e) {
                     return null;
                 }
-                methods.put(method, targetMethod);
-            }
-            return targetMethod;
-        }
 
-        private Method locateMethod(Method method) {
-            Method match;
-            try {
-                match = delegate.getClass().getMethod(method.getName(), method.getParameterTypes());
-            } catch (NoSuchMethodException e) {
-                return null;
-            }
-
-            LinkedList<Class<?>> queue = new LinkedList<Class<?>>();
-            queue.add(delegate.getClass());
-            while (!queue.isEmpty()) {
-                Class<?> c = queue.removeFirst();
-                try {
-                    match = c.getMethod(method.getName(), method.getParameterTypes());
-                } catch (NoSuchMethodException e) {
-                    // ignore
-                }
-                for (Class<?> interfaceType : c.getInterfaces()) {
-                    queue.addFirst(interfaceType);
-                }
-                if (c.getSuperclass() != null) {
-                    queue.addFirst(c.getSuperclass());
-                }
-            }
-            match.setAccessible(true);
-            return match;
-        }
-
-        private Object convert(Object value, Type targetType) {
-            if (targetType instanceof ParameterizedType) {
-                ParameterizedType parameterizedTargetType = (ParameterizedType) targetType;
-                if (parameterizedTargetType.getRawType().equals(DomainObjectSet.class)) {
-                    Type targetElementType = getElementType(parameterizedTargetType);
-                    List<Object> convertedElements = new ArrayList<Object>();
-                    for (Object element : (Iterable) value) {
-                        convertedElements.add(convert(element, targetElementType));
+                LinkedList<Class<?>> queue = new LinkedList<Class<?>>();
+                queue.add(delegate.getClass());
+                while (!queue.isEmpty()) {
+                    Class<?> c = queue.removeFirst();
+                    try {
+                        match = c.getMethod(invocation.getName(), invocation.getParameterTypes());
+                    } catch (NoSuchMethodException e) {
+                        // ignore
                     }
-                    return new ImmutableDomainObjectSet(convertedElements);
+                    for (Class<?> interfaceType : c.getInterfaces()) {
+                        queue.addFirst(interfaceType);
+                    }
+                    if (c.getSuperclass() != null) {
+                        queue.addFirst(c.getSuperclass());
+                    }
                 }
+                match.setAccessible(true);
+                return match;
             }
-            if (targetType instanceof Class) {
-                if (((Class) targetType).isPrimitive()) {
-                    return value;
+
+            private Object convert(Object value, Type targetType) {
+                if (targetType instanceof ParameterizedType) {
+                    ParameterizedType parameterizedTargetType = (ParameterizedType) targetType;
+                    if (parameterizedTargetType.getRawType().equals(DomainObjectSet.class)) {
+                        Type targetElementType = getElementType(parameterizedTargetType);
+                        List<Object> convertedElements = new ArrayList<Object>();
+                        for (Object element : (Iterable) value) {
+                            convertedElements.add(convert(element, targetElementType));
+                        }
+                        return new ImmutableDomainObjectSet(convertedElements);
+                    }
                 }
-                return adapt((Class) targetType, value, modelPropertyHandler);
+                if (targetType instanceof Class) {
+                    if (((Class) targetType).isPrimitive()) {
+                        return value;
+                    }
+                    return adapt((Class) targetType, value, override);
+                }
+                throw new UnsupportedOperationException(String.format("Cannot convert object of %s to %s.", value.getClass(), targetType));
             }
-            throw new UnsupportedOperationException(String.format("Cannot convert object of %s to %s.", value.getClass(), targetType));
+
+            private Type getElementType(ParameterizedType type) {
+                Type elementType = type.getActualTypeArguments()[0];
+                if (elementType instanceof WildcardType) {
+                    WildcardType wildcardType = (WildcardType) elementType;
+                    return wildcardType.getUpperBounds()[0];
+                }
+                return elementType;
+            }
+        }
+    }
+
+    private static class ChainedMethodInvoker implements MethodInvoker {
+        private final MethodInvoker[] invokers;
+
+        private ChainedMethodInvoker(MethodInvoker... invokers) {
+            this.invokers = invokers;
         }
 
-        private Type getElementType(ParameterizedType type) {
-            Type elementType = type.getActualTypeArguments()[0];
-            if (elementType instanceof WildcardType) {
-                WildcardType wildcardType = (WildcardType) elementType;
-                return wildcardType.getUpperBounds()[0];
+        public void invoke(MethodInvocation method) throws Throwable {
+            for (int i = 0; !method.found() && i < invokers.length; i++) {
+                MethodInvoker invoker = invokers[i];
+                invoker.invoke(method);
             }
-            return elementType;
+        }
+    }
+
+    private static class PropertyCachingMethodInvoker implements MethodInvoker {
+        private final Map<String, Object> properties = new HashMap<String, Object>();
+        private final Set<String> unknown = new HashSet<String>();
+        private final MethodInvoker next;
+
+        private PropertyCachingMethodInvoker(MethodInvoker next) {
+            this.next = next;
+        }
+
+        public void invoke(MethodInvocation method) throws Throwable {
+            if ((GETTER_METHOD.matcher(method.getName()).matches() || IS_METHOD.matcher(method.getName()).matches()) && method.getParameterTypes().length == 0) {
+                if (properties.containsKey(method.getName())) {
+                    method.setResult(properties.get(method.getName()));
+                    return;
+                }
+                if (unknown.contains(method.getName())) {
+                    return;
+                }
+
+                Object value;
+                next.invoke(method);
+                if (!method.found()) {
+                    unknown.add(method.getName());
+                    return;
+                }
+                value = method.getResult();
+                properties.put(method.getName(), value);
+                return;
+            }
+
+            next.invoke(method);
+        }
+    }
+
+    private static class SafeMethodInvoker implements MethodInvoker {
+        private final MethodInvoker next;
+
+        private SafeMethodInvoker(MethodInvoker next) {
+            this.next = next;
+        }
+
+        public void invoke(MethodInvocation invocation) throws Throwable {
+            boolean getter = GETTER_METHOD.matcher(invocation.getName()).matches();
+            if (!getter || invocation.getParameterTypes().length != 1) {
+                next.invoke(invocation);
+                return;
+            }
+
+            MethodInvocation getterInvocation = new MethodInvocation(invocation.getName(), invocation.getReturnType(), invocation.getGenericReturnType(), new Class[0], invocation.getDelegate(), EMPTY);
+            next.invoke(getterInvocation);
+            if (getterInvocation.found() && getterInvocation.getResult() != null) {
+                invocation.setResult(getterInvocation.getResult());
+            } else {
+                invocation.setResult(invocation.getParameters()[0]);
+            }
+        }
+    }
+
+    private static class SupportedPropertyInvoker implements MethodInvoker {
+        private final MethodInvoker next;
+
+        private SupportedPropertyInvoker(MethodInvoker next) {
+            this.next = next;
+        }
+
+        public void invoke(MethodInvocation invocation) throws Throwable {
+            Matcher matcher = IS_SUPPORT_METHOD.matcher(invocation.getName());
+            if (!matcher.matches()) {
+                next.invoke(invocation);
+                return;
+            }
+
+            String getterName = String.format("get%s", matcher.group(1));
+            MethodInvocation getterInvocation = new MethodInvocation(getterName, invocation.getReturnType(), invocation.getGenericReturnType(), new Class[0], invocation.getDelegate(), EMPTY);
+            next.invoke(getterInvocation);
+            invocation.setResult(getterInvocation.found());
         }
     }
 }

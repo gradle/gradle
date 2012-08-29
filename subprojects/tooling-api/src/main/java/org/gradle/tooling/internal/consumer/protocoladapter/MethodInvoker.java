@@ -13,17 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.tooling.internal.consumer.protocoladapter;
 
-import java.lang.reflect.Method;
-
-public interface ModelPropertyHandler {
-    /**
-     * @param method getter for the property
-     * @param delegate object that contain the property
-     * @return whether this handler should provide the return value for given property.
-     */
-    boolean shouldHandle(Method method, Object delegate);
-
-    Object getPropertyValue(Method method, Object delegate);
+public interface MethodInvoker {
+    void invoke(MethodInvocation invocation) throws Throwable;
 }

@@ -18,15 +18,12 @@ package org.gradle.tooling.internal.consumer.protocoladapter;
 
 import org.gradle.tooling.internal.consumer.converters.GradleProjectConverter;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
-import org.gradle.tooling.internal.gradle.DefaultGradleProject;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
-
-import java.lang.reflect.Method;
 
 /**
  * by Szczepan Faber, created at: 4/2/12
  */
-public class ConsumerPropertyHandler implements ModelPropertyHandler {
+public class ConsumerPropertyHandler implements MethodInvoker {
 
     private final VersionDetails versionDetails;
 
@@ -34,18 +31,11 @@ public class ConsumerPropertyHandler implements ModelPropertyHandler {
         this.versionDetails = versionDetails;
     }
 
-    /**
-     * @param method getter for the property
-     * @param delegate object that contain the property
-     * @return whether this handler should provide the return value for given property.
-     */
-    public boolean shouldHandle(Method method, Object delegate) {
-        return method.getName().equals("getGradleProject")
-                && delegate instanceof EclipseProjectVersion3
-                && !versionDetails.supportsGradleProjectModel();
-    }
-
-    public DefaultGradleProject getPropertyValue(Method method, Object delegate) {
-        return new GradleProjectConverter().convert((EclipseProjectVersion3) delegate);
+    public void invoke(MethodInvocation invocation) throws Throwable {
+        if (invocation.getName().equals("getGradleProject")
+                && invocation.getDelegate() instanceof EclipseProjectVersion3
+                && !versionDetails.supportsGradleProjectModel()) {
+            invocation.setResult(new GradleProjectConverter().convert((EclipseProjectVersion3) invocation.getDelegate()));
+        }
     }
 }
