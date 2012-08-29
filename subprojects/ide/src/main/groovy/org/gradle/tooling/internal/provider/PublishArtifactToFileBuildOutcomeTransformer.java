@@ -67,12 +67,16 @@ public class PublishArtifactToFileBuildOutcomeTransformer implements Transformer
     }
 
     private String getTaskPath(PublishArtifact artifact) {
-        String taskPath = null;
-        Set<? extends Task> tasks = artifact.getBuildDependencies().getDependencies(null);
-        if (!tasks.isEmpty()) {
-            taskPath = tasks.iterator().next().getPath();
+        if (artifact instanceof ArchivePublishArtifact) {
+            return ((ArchivePublishArtifact) artifact).getArchiveTask().getPath();
+        } else {
+            String taskPath = null;
+            Set<? extends Task> tasks = artifact.getBuildDependencies().getDependencies(null);
+            if (!tasks.isEmpty()) {
+                taskPath = tasks.iterator().next().getPath();
+            }
+            return taskPath;
         }
-        return taskPath;
     }
 
 }
