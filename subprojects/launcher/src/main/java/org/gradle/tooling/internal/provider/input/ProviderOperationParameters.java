@@ -31,10 +31,11 @@ import java.util.concurrent.TimeUnit;
  * by Szczepan Faber, created at: 12/20/11
  */
 public interface ProviderOperationParameters {
+    boolean getVerboseLogging(boolean defaultValue);
 
     LogLevel getBuildLogLevel();
 
-    InputStream getStandardInput();
+    InputStream getStandardInput(InputStream defaultInput);
 
     File getJavaHome(File defaultJavaHome);
 
@@ -56,11 +57,11 @@ public interface ProviderOperationParameters {
 
     Integer getDaemonMaxIdleTimeValue();
 
-    ProgressListenerVersion1 getProgressListener();
-
     TimeUnit getDaemonMaxIdleTimeUnits();
 
-    List<String> getArguments();
+    ProgressListenerVersion1 getProgressListener();
+
+    List<String> getArguments(List<String> defaultArguments);
 
     List<String> getTasks();
 }

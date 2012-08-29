@@ -17,15 +17,10 @@
 package org.gradle.tooling.internal.provider.input;
 
 import org.gradle.api.logging.LogLevel;
-import org.gradle.cli.CommandLineParser;
-import org.gradle.cli.ParsedCommandLine;
-import org.gradle.logging.LoggingConfiguration;
-import org.gradle.logging.internal.LoggingCommandLineConverter;
 import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1;
 import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;
 import org.gradle.tooling.internal.reflect.CompatibleIntrospector;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -54,29 +49,16 @@ public class AdaptedOperationParameters implements ProviderOperationParameters {
         this.tasks = new LinkedList<String>(tasks);
     }
 
-    public InputStream getStandardInput() {
-        //Tooling api means embedded use. We don't want to consume standard input if we don't own the process.
-        //Hence we use a dummy input stream by default
-        ByteArrayInputStream safeDummy = new ByteArrayInputStream(new byte[0]);
-        return maybeGet(safeDummy, "getStandardInput");
+    public InputStream getStandardInput(InputStream defaultInput) {
+        return maybeGet(defaultInput, "getStandardInput");
     }
 
     public LogLevel getBuildLogLevel() {
-        LoggingCommandLineConverter converter = new LoggingCommandLineConverter();
-        CommandLineParser parser = new CommandLineParser().allowUnknownOptions();
-        converter.configure(parser);
-        ParsedCommandLine parsedCommandLine = parser.parse(getArguments());
-        //configure verbosely only if arguments do not specify any log level.
-        if (getVerboseLogging() && !parsedCommandLine.hasAnyOption(converter.getLogLevelOptions())) {
-            return LogLevel.DEBUG;
-        }
-
-        LoggingConfiguration loggingConfiguration = converter.convert(parsedCommandLine);
-        return loggingConfiguration.getLogLevel();
+        return new BuildLogLevelMixIn(this).getBuildLogLevel();
     }
 
-    public boolean getVerboseLogging() {
-        return introspector.getSafely(false, "getVerboseLogging");
+    public boolean getVerboseLogging(boolean defaultValue) {
+        return introspector.getSafely(defaultValue, "getVerboseLogging");
     }
 
     public File getJavaHome(File defaultJavaHome) {
@@ -135,8 +117,8 @@ public class AdaptedOperationParameters implements ProviderOperationParameters {
         return delegate.getProgressListener();
     }
 
-    public List<String> getArguments() {
-        return maybeGet(Arrays.<String>asList(), "getArguments");
+    public List<String> getArguments(List<String> defaultArguments) {
+        return maybeGet(defaultArguments, "getArguments");
     }
     
     public List<String> getTasks() {

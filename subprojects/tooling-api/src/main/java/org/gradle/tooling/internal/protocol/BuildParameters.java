@@ -17,14 +17,8 @@
 package org.gradle.tooling.internal.protocol;
 
 /**
- * Mixed into a provider connection, to run actions against a build.
+ * An empty interface. Instances are queried dynamically to see which parameters they support. See {@code ProviderOperationParameters} for details of the methods that provider expects,
+ * and {@code ConsumerOperationParameters} for details of what the consumer currently provides.
  */
-public interface BuildActionRunner extends InternalProtocolInterface {
-    /**
-     * Performs some action against a build and returns some result of the given type.
-     *
-     * @throws UnsupportedOperationException When the given model type is not supported.
-     * @throws IllegalStateException When this connection has been stopped.
-     */
-    <T> T run(Class<T> type, BuildParameters operationParameters) throws UnsupportedOperationException, IllegalStateException;
+public interface BuildParameters extends InternalProtocolInterface {
 }
