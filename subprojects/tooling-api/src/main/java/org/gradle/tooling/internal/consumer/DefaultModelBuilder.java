@@ -54,7 +54,7 @@ public class DefaultModelBuilder<T extends Model, P> implements ModelBuilder<T> 
 
     public void get(final ResultHandler<? super T> handler) throws IllegalStateException {
         ResultHandler<P> adaptingHandler = new ProtocolToModelAdaptingHandler(handler);
-        connection.getModel(protocolType, operationParameters, new ResultHandlerAdapter<P>(adaptingHandler) {
+        connection.run(protocolType, operationParameters, new ResultHandlerAdapter<P>(adaptingHandler) {
             @Override
             protected String connectionFailureMessage(Throwable failure) {
                 String message = String.format("Could not fetch model of type '%s' using %s.", modelType.getSimpleName(), connection.getDisplayName());

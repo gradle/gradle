@@ -18,7 +18,6 @@ package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
-import org.gradle.tooling.internal.protocol.InternalProtocolInterface;
 
 /**
  * An implementation that wraps a protocol instance that has rigid compatibility policy.
@@ -32,7 +31,7 @@ public class AdaptedConnection extends AbstractConsumerConnection {
     }
 
     public <T> T run(Class<T> type, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
-        if (type.equals(InternalProtocolInterface.class)) {
+        if (type.equals(Void.class)) {
             doRunBuild(operationParameters);
             return null;
         } else {

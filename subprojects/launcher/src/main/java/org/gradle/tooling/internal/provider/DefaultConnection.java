@@ -100,7 +100,7 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner 
     public <T> BuildResult<T> run(Class<T> type, BuildParameters buildParameters) throws UnsupportedOperationException, IllegalStateException {
         ProviderOperationParameters providerParameters = adapter.adapt(ProviderOperationParameters.class, buildParameters, BuildLogLevelMixIn.class);
         List<String> tasks = providerParameters.getTasks();
-        if (type.equals(InternalProtocolInterface.class) && tasks == null) {
+        if (type.equals(Void.class) && tasks == null) {
             throw new IllegalArgumentException("No model type or tasks specified.");
         }
 
@@ -108,7 +108,7 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner 
         if (tasks == null) {
             result = getModel(type, providerParameters);
         } else {
-            if (!type.equals(InternalProtocolInterface.class)) {
+            if (!type.equals(Void.class)) {
                 throw new UnsupportedOperationException(String.format("Don't know how to build model of type %s from the build result.", type.getSimpleName()));
             }
             run(new ExecuteBuildAction(), providerParameters);

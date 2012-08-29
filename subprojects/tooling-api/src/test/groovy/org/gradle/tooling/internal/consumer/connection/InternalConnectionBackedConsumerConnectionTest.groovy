@@ -17,7 +17,6 @@ package org.gradle.tooling.internal.consumer.connection
 
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
 import org.gradle.tooling.internal.protocol.InternalConnection
-import org.gradle.tooling.internal.protocol.InternalProtocolInterface
 import spock.lang.Specification
 
 class InternalConnectionBackedConsumerConnectionTest extends Specification {
@@ -39,7 +38,7 @@ class InternalConnectionBackedConsumerConnectionTest extends Specification {
 
     def "runs build using executeBuild() method"() {
         when:
-        connection.run(InternalProtocolInterface.class, parameters)
+        connection.run(Void.class, parameters)
 
         then:
         1 * target.executeBuild(parameters, parameters)

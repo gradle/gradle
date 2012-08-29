@@ -101,7 +101,7 @@ class DefaultBuildLauncher implements BuildLauncher {
     }
 
     public void run(final ResultHandler<? super Void> handler) {
-        connection.executeBuild(operationParameters, new ResultHandlerAdapter<Void>(handler){
+        connection.run(Void.class, operationParameters, new ResultHandlerAdapter<Void>(handler) {
             @Override
             protected String connectionFailureMessage(Throwable failure) {
                 return String.format("Could not execute build using %s.", connection.getDisplayName());

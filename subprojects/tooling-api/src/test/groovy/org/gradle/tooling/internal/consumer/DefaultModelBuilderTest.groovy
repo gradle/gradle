@@ -43,7 +43,7 @@ class DefaultModelBuilderTest extends ConcurrentSpecification {
         builder.get(handler)
 
         then:
-        1 * protocolConnection.getModel(ProjectVersion3, !null, !null) >> {args ->
+        1 * protocolConnection.run(ProjectVersion3, !null, !null) >> {args ->
             def params = args[1]
             assert params.standardOutput == null
             assert params.standardError == null
@@ -71,7 +71,7 @@ class DefaultModelBuilderTest extends ConcurrentSpecification {
         builder.get(handler)
 
         then:
-        1 * protocolConnection.getModel(!null, !null, !null) >> {args -> adaptedHandler = args[2]}
+        1 * protocolConnection.run(!null, !null, !null) >> {args -> adaptedHandler = args[2]}
 
         when:
         adaptedHandler.onFailure(failure)
@@ -94,7 +94,7 @@ class DefaultModelBuilderTest extends ConcurrentSpecification {
         builder.get(handler)
 
         then:
-        1 * protocolConnection.getModel(!null, !null, !null) >> {args -> adaptedHandler = args[2]}
+        1 * protocolConnection.run(!null, !null, !null) >> {args -> adaptedHandler = args[2]}
 
         when:
         adaptedHandler.onFailure(failure)
@@ -119,7 +119,7 @@ class DefaultModelBuilderTest extends ConcurrentSpecification {
 
         then:
         model == adaptedResult
-        1 * protocolConnection.getModel(!null, !null, !null) >> { args ->
+        1 * protocolConnection.run(!null, !null, !null) >> { args ->
             def handler = args[2]
             supplyResult.callbackLater {
                 handler.onComplete(result)
@@ -140,7 +140,7 @@ class DefaultModelBuilderTest extends ConcurrentSpecification {
         then:
         GradleConnectionException e = thrown()
         e.cause.is(failure)
-        1 * protocolConnection.getModel(!null, !null, !null) >> { args ->
+        1 * protocolConnection.run(!null, !null, !null) >> { args ->
             def handler = args[2]
             supplyResult.callbackLater {
                 handler.onFailure(failure)
