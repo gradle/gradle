@@ -17,9 +17,10 @@
 package org.gradle.api.plugins.migration.fixtures.gradle
 
 import org.gradle.tooling.model.DomainObjectSet
-import org.gradle.tooling.model.internal.migration.FileBuildOutcome
-import org.gradle.tooling.model.internal.migration.ProjectOutcomes
+import org.gradle.tooling.model.internal.outcomes.FileBuildOutcome
+import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes
 import org.gradle.util.ConfigureUtil
+import org.gradle.tooling.model.internal.outcomes.BuildOutcome
 
 class MutableProjectOutcomes implements ProjectOutcomes {
     String name
@@ -28,7 +29,7 @@ class MutableProjectOutcomes implements ProjectOutcomes {
     MutableProjectOutcomes parent
     DomainObjectSet<MutableProjectOutcomes> children = new MutableDomainObjectSet()
     File projectDirectory
-    DomainObjectSet<FileBuildOutcome> fileOutcomes = new MutableDomainObjectSet()
+    DomainObjectSet<? extends BuildOutcome> outcomes = new MutableDomainObjectSet()
 
     MutableProjectOutcomes createChild(String childName, Closure c = {}) {
         def mpo = new MutableProjectOutcomes()
@@ -42,7 +43,7 @@ class MutableProjectOutcomes implements ProjectOutcomes {
         ConfigureUtil.configure(c, mpo)
     }
 
-    FileBuildOutcome addFile(String archivePath, String taskName = archivePath, String typeIdentifier = null) {
+    FileBuildOutcome addFile(String archivePath, String typeIdentifier = null, String taskName = archivePath) {
         def outcome = new FileBuildOutcome() {
             File getFile() {
                 new File(projectDirectory, archivePath)
@@ -56,7 +57,7 @@ class MutableProjectOutcomes implements ProjectOutcomes {
                 typeIdentifier
             }
         }
-        fileOutcomes << outcome
+        outcomes << outcome
         outcome
     }
 }

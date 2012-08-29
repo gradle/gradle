@@ -13,39 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.tooling.internal.consumer.protocoladapter;
-
-import org.gradle.tooling.internal.consumer.converters.GradleProjectConverter;
-import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
-import org.gradle.tooling.internal.gradle.DefaultGradleProject;
-import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
 
 import java.lang.reflect.Method;
 
-/**
- * by Szczepan Faber, created at: 4/2/12
- */
-public class ModelPropertyHandler {
-
-    private final VersionDetails versionDetails;
-
-    public ModelPropertyHandler(VersionDetails versionDetails) {
-        this.versionDetails = versionDetails;
-    }
-
+public interface ModelPropertyHandler {
     /**
      * @param method getter for the property
      * @param delegate object that contain the property
      * @return whether this handler should provide the return value for given property.
      */
-    public boolean shouldHandle(Method method, Object delegate) {
-        return method.getName().equals("getGradleProject")
-                && delegate instanceof EclipseProjectVersion3
-                && !versionDetails.supportsGradleProjectModel();
-    }
+    boolean shouldHandle(Method method, Object delegate);
 
-    public DefaultGradleProject getPropertyValue(Method method, Object delegate) {
-        return new GradleProjectConverter().convert((EclipseProjectVersion3) delegate);
-    }
+    Object getPropertyValue(Method method, Object delegate);
 }

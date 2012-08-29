@@ -21,6 +21,10 @@ import org.gradle.api.plugins.migration.model.render.internal.html.HtmlRenderCon
 
 class StringBuildOutcomeComparisonResultHtmlRenderer extends BuildOutcomeComparisonResultHtmlRenderer<StringBuildOutcomeComparisonResult> {
 
+    StringBuildOutcomeComparisonResultHtmlRenderer(String fromSideName = "From", String toSideName = "To") {
+        super(fromSideName, toSideName)
+    }
+
     Class<StringBuildOutcomeComparisonResult> getResultType() {
         StringBuildOutcomeComparisonResult
     }
@@ -29,8 +33,8 @@ class StringBuildOutcomeComparisonResultHtmlRenderer extends BuildOutcomeCompari
         context.render {
             table {
                 tr {
-                    th "From"
-                    th "To"
+                    th fromSideName
+                    th toSideName
                     th "Distance"
                 }
                 tr {

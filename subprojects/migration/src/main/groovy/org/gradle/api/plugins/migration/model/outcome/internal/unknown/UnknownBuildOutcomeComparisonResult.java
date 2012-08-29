@@ -14,24 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.model.internal.migration;
+package org.gradle.api.plugins.migration.model.outcome.internal.unknown;
 
-import org.gradle.api.Nullable;
-import org.gradle.tooling.model.Model;
+import org.gradle.api.plugins.migration.model.compare.internal.BuildOutcomeComparisonResultSupport;
+import org.gradle.api.plugins.migration.model.outcome.internal.BuildOutcomeAssociation;
 
-/**
- * Represents something that happens as part of a build.
- *
- * @since 1.2
- */
-public interface BuildOutcome extends Model {
+public class UnknownBuildOutcomeComparisonResult extends BuildOutcomeComparisonResultSupport<UnknownBuildOutcome> {
 
-    /**
-     * The path to the task that created the outcome, if it was known to be created by a task.
-     *
-     * @return The path to the task the “created” the outcome, or {@code null} if it was not produced by a task.
-     */
-    @Nullable
-    String getTaskPath();
+    public UnknownBuildOutcomeComparisonResult(BuildOutcomeAssociation<UnknownBuildOutcome> compared) {
+        super(compared);
+    }
 
 }

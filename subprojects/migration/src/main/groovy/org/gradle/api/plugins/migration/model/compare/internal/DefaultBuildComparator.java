@@ -16,9 +16,8 @@
 
 package org.gradle.api.plugins.migration.model.compare.internal;
 
-import org.gradle.api.plugins.migration.model.outcome.BuildOutcomeAssociation;
-import org.gradle.api.plugins.migration.model.compare.*;
-import org.gradle.api.plugins.migration.model.outcome.BuildOutcome;
+import org.gradle.api.plugins.migration.model.outcome.internal.BuildOutcomeAssociation;
+import org.gradle.api.plugins.migration.model.outcome.internal.BuildOutcome;
 
 import java.util.HashSet;
 import java.util.LinkedList;

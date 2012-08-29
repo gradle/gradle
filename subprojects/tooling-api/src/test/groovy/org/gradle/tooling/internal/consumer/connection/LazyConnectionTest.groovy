@@ -22,13 +22,11 @@ import org.gradle.tooling.internal.consumer.ModelProvider
 import org.gradle.tooling.internal.consumer.loader.ToolingImplementationLoader
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
 import org.gradle.tooling.internal.consumer.versioning.FeatureValidator
-import org.gradle.tooling.internal.protocol.BuildParametersVersion1
 import spock.lang.Specification
 
 class LazyConnectionTest extends Specification {
     final Distribution distribution = Mock()
     final ToolingImplementationLoader implementationLoader = Mock()
-    final BuildParametersVersion1 buildParams = Mock()
     final ConsumerOperationParameters params = Mock()
     final ConsumerConnection consumerConnection = Mock()
     final LoggingProvider loggingProvider = Mock()
@@ -44,12 +42,12 @@ class LazyConnectionTest extends Specification {
 
     def createsConnectionOnDemandToExecuteBuild() {
         when:
-        connection.executeBuild(buildParams, params)
+        connection.executeBuild(params)
 
         then:
         1 * loggingProvider.getProgressLoggerFactory() >> progressLoggerFactory
         1 * implementationLoader.create(distribution, progressLoggerFactory, false) >> consumerConnection
-        1 * consumerConnection.executeBuild(buildParams, params)
+        1 * consumerConnection.executeBuild(params)
         1 * connection.featureValidator.validate(consumerConnection, params)
         0 * _._
     }
@@ -81,13 +79,13 @@ class LazyConnectionTest extends Specification {
     def reusesConnection() {
         when:
         connection.getModel(SomeModel, params)
-        connection.executeBuild(buildParams, params)
+        connection.executeBuild(params)
 
         then:
         1 * loggingProvider.getProgressLoggerFactory() >> progressLoggerFactory
         1 * implementationLoader.create(distribution, progressLoggerFactory, false) >> consumerConnection
         1 * connection.modelProvider.provide(consumerConnection, SomeModel, params)
-        1 * consumerConnection.executeBuild(buildParams, params)
+        1 * consumerConnection.executeBuild(params)
         2 * connection.featureValidator.validate(consumerConnection, params)
         0 * _._
     }

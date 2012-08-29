@@ -17,8 +17,8 @@
 package org.gradle.api.plugins.migration.model.outcome.internal.archive;
 
 import org.gradle.api.Transformer;
-import org.gradle.api.plugins.migration.model.outcome.BuildOutcomeAssociation;
-import org.gradle.api.plugins.migration.model.compare.BuildOutcomeComparator;
+import org.gradle.api.plugins.migration.model.outcome.internal.BuildOutcomeAssociation;
+import org.gradle.api.plugins.migration.model.compare.internal.BuildOutcomeComparator;
 import org.gradle.api.plugins.migration.model.outcome.internal.archive.entry.ArchiveEntry;
 import org.gradle.api.plugins.migration.model.outcome.internal.archive.entry.ArchiveEntryComparison;
 import org.gradle.api.plugins.migration.model.outcome.internal.archive.entry.FileToArchiveEntrySetTransformer;

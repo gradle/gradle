@@ -22,21 +22,40 @@ import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
 
 import java.lang.reflect.*;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+/**
+ * Adapts some source object to
+ */
 public class ProtocolToModelAdapter {
+    private static final ModelPropertyHandler NO_OP_HANDLER = new ModelPropertyHandler() {
+        public boolean shouldHandle(Method method, Object delegate) {
+            return false;
+        }
 
+        public Object getPropertyValue(Method method, Object delegate) {
+            throw new UnsupportedOperationException();
+        }
+    };
+    private static final Object[] EMPTY = new Object[0];
     private final TargetTypeProvider targetTypeProvider = new TargetTypeProvider();
+
+    public <T, S> T adapt(Class<T> targetType, S protocolObject) {
+        return adapt(targetType, protocolObject, NO_OP_HANDLER);
+    }
 
     public <T, S> T adapt(Class<T> targetType, S protocolObject, ModelPropertyHandler modelPropertyHandler) {
         Class<T> target = targetTypeProvider.getTargetType(targetType, protocolObject);
         if (target.isInstance(protocolObject)) {
             return target.cast(protocolObject);
         }
-        Object proxy = Proxy.newProxyInstance(target.getClassLoader(), new Class<?>[]{target}, new InvocationHandlerImpl(protocolObject, modelPropertyHandler));
+        Object proxy = Proxy.newProxyInstance(target.getClassLoader(), new Class<?>[]{target}, new InvocationHandlerImpl(target, protocolObject, modelPropertyHandler));
         return target.cast(proxy);
     }
 
     private class InvocationHandlerImpl implements InvocationHandler {
+        private final Class<?> wrapperType;
         private final Object delegate;
         private final ModelPropertyHandler modelPropertyHandler;
         private final Map<Method, Method> methods = new HashMap<Method, Method>();
@@ -44,7 +63,8 @@ public class ProtocolToModelAdapter {
         private final Method equalsMethod;
         private final Method hashCodeMethod;
 
-        public InvocationHandlerImpl(Object delegate, ModelPropertyHandler modelPropertyHandler) {
+        public InvocationHandlerImpl(Class<?> wrapperType, Object delegate, ModelPropertyHandler modelPropertyHandler) {
+            this.wrapperType = wrapperType;
             this.delegate = delegate;
             this.modelPropertyHandler = modelPropertyHandler;
             try {
@@ -85,7 +105,7 @@ public class ProtocolToModelAdapter {
                 return hashCode();
             }
 
-            if (method.getName().matches("get\\w+")) {
+            if ((method.getName().matches("get\\w+") || method.getName().matches("is\\w+")) && method.getParameterTypes().length == 0) {
                 if (properties.containsKey(method.getName())) {
                     return properties.get(method.getName());
                 }
@@ -94,21 +114,33 @@ public class ProtocolToModelAdapter {
                 if (modelPropertyHandler.shouldHandle(method, delegate)) {
                     value = modelPropertyHandler.getPropertyValue(method, delegate);
                 } else {
-                    value = doInvokeMethod(method, params);
+                    value = getPropertyValue(method);
                 }
                 properties.put(method.getName(), value);
                 return value;
+            }
+            if (method.getName().matches("get\\w+") && method.getParameterTypes().length == 1) {
+                Method getter = wrapperType.getMethod(method.getName());
+                if (findMethod(getter) == null) {
+                    return params[0];
+                }
+                return invoke(target, getter, EMPTY);
             }
 
             return doInvokeMethod(method, params);
         }
 
-        private Object doInvokeMethod(Method method, Object[] params) throws Throwable {
-            Method targetMethod = methods.get(method);
-            if (targetMethod == null) {
-                targetMethod = findMethod(method);
-                methods.put(method, targetMethod);
+        private Object getPropertyValue(Method method) throws Throwable {
+            Matcher matcher = Pattern.compile("is(\\w+)Supported").matcher(method.getName());
+            if (!matcher.matches()) {
+                return doInvokeMethod(method, EMPTY);
             }
+            String getterName = String.format("get%s", matcher.group(1));
+            return locateMethod(wrapperType.getMethod(getterName)) != null;
+        }
+
+        private Object doInvokeMethod(Method method, Object[] params) throws Throwable {
+            Method targetMethod = getMethod(method);
 
             Object returnValue;
             try {
@@ -124,13 +156,33 @@ public class ProtocolToModelAdapter {
             return convert(returnValue, method.getGenericReturnType());
         }
 
+        private Method getMethod(Method method) {
+            Method targetMethod = findMethod(method);
+            if (targetMethod == null) {
+                String methodName = method.getDeclaringClass().getSimpleName() + "." + method.getName() + "()";
+                throw Exceptions.unsupportedMethod(methodName);
+            }
+            return targetMethod;
+        }
+
         private Method findMethod(Method method) {
+            Method targetMethod = methods.get(method);
+            if (targetMethod == null) {
+                targetMethod = locateMethod(method);
+                if (targetMethod == null) {
+                    return null;
+                }
+                methods.put(method, targetMethod);
+            }
+            return targetMethod;
+        }
+
+        private Method locateMethod(Method method) {
             Method match;
             try {
                 match = delegate.getClass().getMethod(method.getName(), method.getParameterTypes());
             } catch (NoSuchMethodException e) {
-                String methodName = method.getDeclaringClass().getSimpleName() + "." + method.getName() + "()";
-                throw Exceptions.unsupportedMethod(methodName, e);
+                return null;
             }
 
             LinkedList<Class<?>> queue = new LinkedList<Class<?>>();
@@ -145,7 +197,7 @@ public class ProtocolToModelAdapter {
                 for (Class<?> interfaceType : c.getInterfaces()) {
                     queue.addFirst(interfaceType);
                 }
-                if (c.getSuperclass() !=null) {
+                if (c.getSuperclass() != null) {
                     queue.addFirst(c.getSuperclass());
                 }
             }

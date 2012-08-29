@@ -16,7 +16,7 @@
 
 package org.gradle.api.plugins.migration.model.render.internal;
 
-import org.gradle.api.plugins.migration.model.compare.BuildOutcomeComparisonResult;
+import org.gradle.api.plugins.migration.model.compare.internal.BuildOutcomeComparisonResult;
 
 /**
  * An object that can render a comparison result to some context.

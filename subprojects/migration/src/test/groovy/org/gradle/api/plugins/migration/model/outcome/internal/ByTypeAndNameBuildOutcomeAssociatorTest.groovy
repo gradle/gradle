@@ -17,7 +17,7 @@
 package org.gradle.api.plugins.migration.model.outcome.internal
 
 import org.gradle.api.plugins.migration.fixtures.outcome.StringBuildOutcome
-import org.gradle.api.plugins.migration.model.outcome.BuildOutcome
+
 import spock.lang.Specification
 
 class ByTypeAndNameBuildOutcomeAssociatorTest extends Specification {

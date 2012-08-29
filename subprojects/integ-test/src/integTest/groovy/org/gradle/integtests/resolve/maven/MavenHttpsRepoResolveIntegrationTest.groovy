@@ -14,20 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.model.internal.migration;
+package org.gradle.integtests.resolve.maven
 
-import org.gradle.tooling.model.DomainObjectSet;
-import org.gradle.tooling.model.HierarchicalElement;
+import org.gradle.integtests.resolve.http.AbstractHttpsRepoResolveIntegrationTest
 
-import java.io.File;
-
-/**
- * The outputs produced by a Gradle project.
- */
-public interface ProjectOutcomes extends HierarchicalElement {
-    ProjectOutcomes getParent();
-    DomainObjectSet<ProjectOutcomes> getChildren();
-    String getPath();
-    File getProjectDirectory();
-    DomainObjectSet<FileBuildOutcome> getFileOutcomes();
+class MavenHttpsRepoResolveIntegrationTest extends AbstractHttpsRepoResolveIntegrationTest {
+    protected String setupRepo() {
+        def module = mavenRepo().module('my-group', 'my-module').publish()
+        server.expectGet('/repo1/my-group/my-module/1.0/my-module-1.0.pom', module.pomFile)
+        server.expectGet('/repo1/my-group/my-module/1.0/my-module-1.0.jar', module.artifactFile)
+        "maven"
+    }
 }

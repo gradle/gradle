@@ -16,9 +16,9 @@
 
 package org.gradle.api.plugins.migration.model.outcome.internal.archive;
 
-import org.gradle.api.plugins.migration.model.compare.BuildOutcomeComparisonResultSupport;
+import org.gradle.api.plugins.migration.model.compare.internal.BuildOutcomeComparisonResultSupport;
 import org.gradle.api.plugins.migration.model.compare.internal.ComparisonResultType;
-import org.gradle.api.plugins.migration.model.outcome.BuildOutcomeAssociation;
+import org.gradle.api.plugins.migration.model.outcome.internal.BuildOutcomeAssociation;
 import org.gradle.api.plugins.migration.model.outcome.internal.archive.entry.ArchiveEntryComparison;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.CollectionUtils;

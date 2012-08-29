@@ -16,7 +16,7 @@
 
 package org.gradle.api.plugins.migration.model.render.internal;
 
-import org.gradle.api.plugins.migration.model.compare.BuildOutcomeComparisonResult;
+import org.gradle.api.plugins.migration.model.compare.internal.BuildOutcomeComparisonResult;
 
 import java.util.HashMap;
 import java.util.Map;

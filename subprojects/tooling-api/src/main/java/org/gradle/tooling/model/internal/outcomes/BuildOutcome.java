@@ -14,19 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.migration.model.compare;
+package org.gradle.tooling.model.internal.outcomes;
+
+import org.gradle.api.Nullable;
+import org.gradle.tooling.model.Model;
 
 /**
- * An object that can compare builds, according to a specification.
+ * Represents something that happens as part of a build.
+ *
+ * @since 1.2
  */
-public interface BuildComparator {
+public interface BuildOutcome extends Model {
 
     /**
-     * Performs the comparison, according to the given specification.
+     * The path to the task that created the outcome, if it was known to be created by a task.
      *
-     * @param spec The specification of the comparison.
-     * @return The result of the comparison. Never null.
+     * @return The path to the task the “created” the outcome, or {@code null} if it was not produced by a task.
      */
-    BuildComparisonResult compareBuilds(BuildComparisonSpec spec);
+    @Nullable
+    String getTaskPath();
 
 }

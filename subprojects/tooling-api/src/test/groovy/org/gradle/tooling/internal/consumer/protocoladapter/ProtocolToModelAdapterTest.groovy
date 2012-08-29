@@ -31,22 +31,21 @@ import org.gradle.tooling.internal.consumer.*
  */
 class ProtocolToModelAdapterTest extends Specification {
     final ProtocolToModelAdapter adapter = new ProtocolToModelAdapter()
-    final ModelPropertyHandler propertyHandler = Mock()
 
     def createsProxyAdapterForProtocolModel() {
         TestProtocolModel protocolModel = Mock()
 
         expect:
-        adapter.adapt(TestModel.class, protocolModel, propertyHandler) instanceof TestModel
+        adapter.adapt(TestModel.class, protocolModel) instanceof TestModel
     }
 
     def proxiesAreEqualWhenTargetProtocolObjectsAreEqual() {
         TestProtocolModel protocolModel1 = Mock()
         TestProtocolModel protocolModel2 = Mock()
 
-        def model = adapter.adapt(TestModel.class, protocolModel1, propertyHandler)
-        def equal = adapter.adapt(TestModel.class, protocolModel1, propertyHandler)
-        def different = adapter.adapt(TestModel.class, protocolModel2, propertyHandler)
+        def model = adapter.adapt(TestModel.class, protocolModel1)
+        def equal = adapter.adapt(TestModel.class, protocolModel1)
+        def different = adapter.adapt(TestModel.class, protocolModel2)
 
         expect:
         Matchers.strictlyEquals(model, equal)
@@ -58,7 +57,7 @@ class ProtocolToModelAdapterTest extends Specification {
         _ * protocolModel.getName() >> 'name'
 
         expect:
-        def model = adapter.adapt(TestModel.class, protocolModel, propertyHandler)
+        def model = adapter.adapt(TestModel.class, protocolModel)
         model.name == 'name'
     }
 
@@ -69,7 +68,7 @@ class ProtocolToModelAdapterTest extends Specification {
         _ * protocolProject.getName() >> 'name'
 
         expect:
-        def model = adapter.adapt(TestModel.class, protocolModel, propertyHandler)
+        def model = adapter.adapt(TestModel.class, protocolModel)
         model.project instanceof TestProject
         model.project.name == 'name'
     }
@@ -79,7 +78,7 @@ class ProtocolToModelAdapterTest extends Specification {
         _ * protocolModel.getProject() >> null
 
         expect:
-        def model = adapter.adapt(TestModel.class, protocolModel, propertyHandler)
+        def model = adapter.adapt(TestModel.class, protocolModel)
         model.project == null
     }
 
@@ -90,7 +89,7 @@ class ProtocolToModelAdapterTest extends Specification {
         _ * protocolProject.getName() >> 'name'
 
         expect:
-        def model = adapter.adapt(TestModel.class, protocolModel, propertyHandler)
+        def model = adapter.adapt(TestModel.class, protocolModel)
         model.children.size() == 1
         model.children[0] instanceof TestProject
         model.children[0].name == 'name'
@@ -104,7 +103,7 @@ class ProtocolToModelAdapterTest extends Specification {
         _ * protocolProject.getName() >> 'name'
 
         expect:
-        def model = adapter.adapt(TestModel.class, protocolModel, propertyHandler)
+        def model = adapter.adapt(TestModel.class, protocolModel)
         model.project.is(model.project)
         model.children.is(model.children)
     }
@@ -113,7 +112,7 @@ class ProtocolToModelAdapterTest extends Specification {
         PartialTestProtocolModel protocolModel = Mock()
 
         when:
-        def model = adapter.adapt(TestModel.class, protocolModel, propertyHandler)
+        def model = adapter.adapt(TestModel.class, protocolModel)
         model.project
 
         then:
@@ -126,7 +125,7 @@ class ProtocolToModelAdapterTest extends Specification {
         RuntimeException failure = new RuntimeException()
 
         when:
-        def model = adapter.adapt(TestModel.class, protocolModel, propertyHandler)
+        def model = adapter.adapt(TestModel.class, protocolModel)
         model.name
 
         then:
@@ -135,13 +134,97 @@ class ProtocolToModelAdapterTest extends Specification {
         e == failure
     }
 
+    def isPropertySupportedMethodReturnsTrueWhenProtocolObjectHasAssociatedProperty() {
+        TestProtocolModel protocolModel = Mock()
+
+        when:
+        def model = adapter.adapt(TestModel.class, protocolModel)
+
+        then:
+        model.projectSupported
+    }
+
+    def isPropertySupportedMethodReturnsFalseWhenProtocolObjectDoesNotHaveAssociatedProperty() {
+        PartialTestProtocolModel protocolModel = Mock()
+
+        when:
+        def model = adapter.adapt(TestModel.class, protocolModel)
+
+        then:
+        !model.projectSupported
+    }
+
+    def overloadedGetterDelegatesToProtocolObject() {
+        TestProtocolModel protocolModel = Mock()
+        TestProtocolProject project = Mock()
+        TestProject defaultProject = Mock()
+
+        given:
+        protocolModel.project >> project
+
+        when:
+        def model = adapter.adapt(TestModel.class, protocolModel)
+
+        then:
+        model.getProject(defaultProject) != defaultProject
+    }
+
+    def overloadedGetterDelegatesReturnsDefaultValueWhenProtocolObjectDoesNotHaveAssociatedProperty() {
+        PartialTestProtocolModel protocolModel = Mock()
+        TestProject project = Mock()
+
+        when:
+        def model = adapter.adapt(TestModel.class, protocolModel)
+
+        then:
+        model.getProject(project) == project
+    }
+
+    def propertyHandlerCanOverrideGetterMethod() {
+        ModelPropertyHandler propertyHandler = Mock()
+        TestProtocolModel protocolModel = Mock()
+        TestProject project = Mock()
+
+        given:
+        propertyHandler.shouldHandle({it.name == 'getProject'}, protocolModel) >> true
+        propertyHandler.getPropertyValue({it.name == 'getProject'}, protocolModel) >> project
+
+        when:
+        def model = adapter.adapt(TestModel.class, protocolModel, propertyHandler)
+
+        then:
+        model.project == project
+
+        and:
+        0 * protocolModel._
+    }
+
+    def propertyHandlerCanProvideGetterMethodImplementation() {
+        ModelPropertyHandler propertyHandler = Mock()
+        PartialTestProtocolModel protocolModel = Mock()
+        TestProject project = Mock()
+
+        given:
+        propertyHandler.shouldHandle({it.name == 'getProject'}, protocolModel) >> true
+        propertyHandler.getPropertyValue({it.name == 'getProject'}, protocolModel) >> project
+
+        when:
+        def model = adapter.adapt(TestModel.class, protocolModel, propertyHandler)
+
+        then:
+        model.project == project
+
+        and:
+        0 * protocolModel._
+    }
+
     def "adapts idea dependencies"() {
         def libraryDep = new GroovyClassLoader().loadClass(DefaultIdeaSingleEntryLibraryDependency.class.getCanonicalName()).newInstance()
         def moduleDep = new GroovyClassLoader().loadClass(DefaultIdeaModuleDependency.class.getCanonicalName()).newInstance()
 
         when:
-        def library = adapter.adapt(IdeaDependency.class, libraryDep, propertyHandler)
-        def module  = adapter.adapt(IdeaDependency.class, moduleDep, propertyHandler)
+        def library = adapter.adapt(IdeaDependency.class, libraryDep)
+        def module  = adapter.adapt(IdeaDependency.class, moduleDep)
 
         then:
         library instanceof IdeaSingleEntryLibraryDependency

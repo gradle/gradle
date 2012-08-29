@@ -17,7 +17,6 @@ package org.gradle.api.internal.externalresource.transport.http
 
 import org.apache.http.auth.AuthScope
 import org.apache.http.impl.client.DefaultHttpClient
-import org.apache.http.impl.conn.ProxySelectorRoutePlanner
 import org.apache.http.params.HttpProtocolParams
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.api.internal.resource.UriResource
@@ -38,8 +37,7 @@ public class HttpClientConfigurerTest extends Specification {
         configurer.configure(httpClient)
 
         then:
-        httpClient.getRoutePlanner() instanceof ProxySelectorRoutePlanner
-        httpClient.getHttpRequestRetryHandler().retryRequest(new IOException(), 1, null) == false
+        !httpClient.getHttpRequestRetryHandler().retryRequest(new IOException(), 1, null)
     }
 
     def "configures http client with proxy credentials"() {

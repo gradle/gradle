@@ -16,7 +16,7 @@
 
 package org.gradle.api.plugins.migration.fixtures.outcome
 
-import org.gradle.api.plugins.migration.model.outcome.BuildOutcome
+import org.gradle.api.plugins.migration.model.outcome.internal.BuildOutcome
 
 class StringBuildOutcome implements BuildOutcome {
 

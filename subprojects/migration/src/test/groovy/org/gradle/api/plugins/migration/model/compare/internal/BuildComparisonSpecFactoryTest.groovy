@@ -17,7 +17,7 @@
 package org.gradle.api.plugins.migration.model.compare.internal
 
 import org.gradle.api.plugins.migration.fixtures.outcome.StringBuildOutcome
-import org.gradle.api.plugins.migration.model.outcome.BuildOutcome
+import org.gradle.api.plugins.migration.model.outcome.internal.BuildOutcome
 import org.gradle.api.plugins.migration.model.outcome.internal.ByTypeAndNameBuildOutcomeAssociator
 import spock.lang.Specification
 

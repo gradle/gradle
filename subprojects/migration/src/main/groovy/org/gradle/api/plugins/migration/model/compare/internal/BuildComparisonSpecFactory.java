@@ -16,9 +16,7 @@
 
 package org.gradle.api.plugins.migration.model.compare.internal;
 
-import org.gradle.api.plugins.migration.model.compare.BuildComparisonSpec;
-import org.gradle.api.plugins.migration.model.compare.BuildComparisonSpecBuilder;
-import org.gradle.api.plugins.migration.model.outcome.BuildOutcome;
+import org.gradle.api.plugins.migration.model.outcome.internal.BuildOutcome;
 import org.gradle.api.plugins.migration.model.outcome.internal.BuildOutcomeAssociator;
 
 import java.util.HashSet;

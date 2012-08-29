@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.plugins.ear.Ear
-import org.gradle.tooling.model.internal.migration.FileBuildOutcome
+import org.gradle.tooling.model.internal.outcomes.FileBuildOutcome
 import spock.lang.Specification
 import spock.lang.Unroll
 import org.gradle.api.tasks.bundling.*

@@ -60,6 +60,13 @@ class CollectionUtilsTest extends Specification {
         filter(4, 5, 6) == [4] as Set
     }
 
+    def "map filtering"() {
+        expect:
+        def filtered = filter(a: 1, b: 2, c: 3, spec { it.value < 2 })
+        filtered.size() == 1
+        filtered.a == 1
+    }
+
     def toStringList() {
         def list = [42, "string"]
 

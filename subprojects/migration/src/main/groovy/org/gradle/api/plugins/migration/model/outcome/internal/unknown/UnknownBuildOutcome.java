@@ -14,20 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.migration.model.outcome;
+package org.gradle.api.plugins.migration.model.outcome.internal.unknown;
 
-import org.gradle.api.Named;
+import org.gradle.api.plugins.migration.model.outcome.internal.BuildOutcomeSupport;
 
 /**
- * Something that happens as a result of a build.
+ * A build outcome that is not known or understood by this version of Gradle.
  */
-public interface BuildOutcome extends Named {
+public class UnknownBuildOutcome extends BuildOutcomeSupport {
 
-    /**
-     * A free form description of this outcome.
-     *
-     * @return A free form description of this outcome. Never null.
-     */
-    String getDescription();
+    public UnknownBuildOutcome(String name, String description) {
+        super(name, description);
+    }
 
 }

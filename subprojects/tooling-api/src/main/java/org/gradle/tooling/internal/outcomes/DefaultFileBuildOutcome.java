@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.migration;
+package org.gradle.tooling.internal.outcomes;
 
-import org.gradle.tooling.model.internal.migration.FileBuildOutcome;
+import org.gradle.tooling.model.internal.outcomes.FileBuildOutcome;
 
 import java.io.File;
 import java.io.Serializable;

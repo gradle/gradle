@@ -17,8 +17,8 @@
 package org.gradle.api.plugins.migration.model.render.internal.html
 
 import groovy.xml.MarkupBuilder
-import org.gradle.api.plugins.migration.model.compare.BuildComparisonResult
-import org.gradle.api.plugins.migration.model.compare.BuildOutcomeComparisonResult
+import org.gradle.api.plugins.migration.model.compare.internal.BuildComparisonResult
+import org.gradle.api.plugins.migration.model.compare.internal.BuildOutcomeComparisonResult
 import org.gradle.api.plugins.migration.model.render.internal.BuildComparisonResultRenderer
 import org.gradle.api.plugins.migration.model.render.internal.BuildOutcomeComparisonResultRenderer
 import org.gradle.api.plugins.migration.model.render.internal.BuildOutcomeComparisonResultRendererFactory

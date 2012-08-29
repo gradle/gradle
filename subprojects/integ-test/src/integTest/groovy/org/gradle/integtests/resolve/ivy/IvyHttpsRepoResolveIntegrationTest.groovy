@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.migration.model.render.internal.html;
+package org.gradle.integtests.resolve.ivy
 
-import org.gradle.api.plugins.migration.model.compare.BuildOutcomeComparisonResult;
-import org.gradle.api.plugins.migration.model.render.internal.BuildOutcomeComparisonResultRenderer;
+import org.gradle.integtests.resolve.http.AbstractHttpsRepoResolveIntegrationTest
 
-public abstract class BuildOutcomeComparisonResultHtmlRenderer<T extends BuildOutcomeComparisonResult> implements BuildOutcomeComparisonResultRenderer<T, HtmlRenderContext> {
-
-    public Class<HtmlRenderContext> getContextType() {
-        return HtmlRenderContext.class;
+class IvyHttpsRepoResolveIntegrationTest extends AbstractHttpsRepoResolveIntegrationTest {
+    protected String setupRepo() {
+        def module = ivyRepo().module('my-group', 'my-module').publish()
+        server.expectGet('/repo1/my-group/my-module/1.0/ivy-1.0.xml', module.ivyFile)
+        server.expectGet('/repo1/my-group/my-module/1.0/my-module-1.0.jar', module.jarFile)
+        "ivy"
     }
-
 }

@@ -17,7 +17,6 @@
 package org.gradle.api.plugins.migration.model.outcome.internal;
 
 import org.gradle.api.Transformer;
-import org.gradle.api.plugins.migration.model.outcome.BuildOutcome;
 
 public class ByTypeAndNameBuildOutcomeAssociator<T extends BuildOutcome> extends ByTypeAndCharacteristicBuildOutcomeAssociator<T> {
     public ByTypeAndNameBuildOutcomeAssociator(Class<? extends T> type) {
