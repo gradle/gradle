@@ -242,6 +242,20 @@ class ProtocolToModelAdapterTest extends Specification {
         0 * protocolModel._
     }
 
+    def canMixInMethodsFromAnotherBean() {
+        PartialTestProtocolModel protocolModel = Mock()
+
+        given:
+        protocolModel.name >> 'name'
+
+        when:
+        def model = adapter.adapt(TestModel.class, protocolModel, ConfigMixin)
+
+        then:
+        model.name == "[name]"
+        model.getConfig('default') == "[default]"
+    }
+
     def "adapts idea dependencies"() {
         def libraryDep = new GroovyClassLoader().loadClass(DefaultIdeaSingleEntryLibraryDependency.class.getCanonicalName()).newInstance()
         def moduleDep = new GroovyClassLoader().loadClass(DefaultIdeaModuleDependency.class.getCanonicalName()).newInstance()

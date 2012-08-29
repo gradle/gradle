@@ -16,6 +16,7 @@
 package org.gradle.tooling.internal.consumer.protocoladapter;
 
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.internal.Exceptions;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
@@ -26,7 +27,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Adapts some source object to
+ * Adapts some source object to some target type.
  */
 public class ProtocolToModelAdapter {
     private static final MethodInvoker NO_OP_HANDLER = new MethodInvoker() {
@@ -50,6 +51,18 @@ public class ProtocolToModelAdapter {
         }
         Object proxy = Proxy.newProxyInstance(target.getClassLoader(), new Class<?>[]{target}, new InvocationHandlerImpl(protocolObject, overrideMethodInvoker));
         return target.cast(proxy);
+    }
+
+    /**
+     * Adapts the source object.
+     *
+     * @param mixInClass A bean that provides implementations for methods of the target type. If this bean implements the given method, it is preferred over the source object's implementation.
+     */
+    public <T, S> T adapt(Class<T> targetType, S protocolObject, Class<?> mixInClass) {
+        MixInMethodInvoker mixInMethodInvoker = new MixInMethodInvoker(mixInClass, new ReflectionMethodInvoker(NO_OP_HANDLER));
+        T proxy = adapt(targetType, protocolObject, mixInMethodInvoker);
+        mixInMethodInvoker.setProxy(proxy);
+        return proxy;
     }
 
     private class InvocationHandlerImpl implements InvocationHandler {
@@ -112,94 +125,6 @@ public class ProtocolToModelAdapter {
             }
             return invocation.getResult();
         }
-
-        private class ReflectionMethodInvoker implements MethodInvoker {
-            private final MethodInvoker override;
-
-            private ReflectionMethodInvoker(MethodInvoker override) {
-                this.override = override;
-            }
-
-            public void invoke(MethodInvocation invocation) throws Throwable {
-                // TODO - cache method lookup
-                Method targetMethod = locateMethod(invocation);
-                if (targetMethod == null) {
-                    return;
-                }
-
-                Object returnValue;
-                try {
-                    returnValue = targetMethod.invoke(delegate, invocation.getParameters());
-                } catch (InvocationTargetException e) {
-                    throw e.getCause();
-                }
-
-                if (returnValue == null || invocation.getReturnType().isInstance(returnValue)) {
-                    invocation.setResult(returnValue);
-                    return;
-                }
-
-                invocation.setResult(convert(returnValue, invocation.getGenericReturnType()));
-            }
-
-            private Method locateMethod(MethodInvocation invocation) {
-                Method match;
-                try {
-                    match = delegate.getClass().getMethod(invocation.getName(), invocation.getParameterTypes());
-                } catch (NoSuchMethodException e) {
-                    return null;
-                }
-
-                LinkedList<Class<?>> queue = new LinkedList<Class<?>>();
-                queue.add(delegate.getClass());
-                while (!queue.isEmpty()) {
-                    Class<?> c = queue.removeFirst();
-                    try {
-                        match = c.getMethod(invocation.getName(), invocation.getParameterTypes());
-                    } catch (NoSuchMethodException e) {
-                        // ignore
-                    }
-                    for (Class<?> interfaceType : c.getInterfaces()) {
-                        queue.addFirst(interfaceType);
-                    }
-                    if (c.getSuperclass() != null) {
-                        queue.addFirst(c.getSuperclass());
-                    }
-                }
-                match.setAccessible(true);
-                return match;
-            }
-
-            private Object convert(Object value, Type targetType) {
-                if (targetType instanceof ParameterizedType) {
-                    ParameterizedType parameterizedTargetType = (ParameterizedType) targetType;
-                    if (parameterizedTargetType.getRawType().equals(DomainObjectSet.class)) {
-                        Type targetElementType = getElementType(parameterizedTargetType);
-                        List<Object> convertedElements = new ArrayList<Object>();
-                        for (Object element : (Iterable) value) {
-                            convertedElements.add(convert(element, targetElementType));
-                        }
-                        return new ImmutableDomainObjectSet(convertedElements);
-                    }
-                }
-                if (targetType instanceof Class) {
-                    if (((Class) targetType).isPrimitive()) {
-                        return value;
-                    }
-                    return adapt((Class) targetType, value, override);
-                }
-                throw new UnsupportedOperationException(String.format("Cannot convert object of %s to %s.", value.getClass(), targetType));
-            }
-
-            private Type getElementType(ParameterizedType type) {
-                Type elementType = type.getActualTypeArguments()[0];
-                if (elementType instanceof WildcardType) {
-                    WildcardType wildcardType = (WildcardType) elementType;
-                    return wildcardType.getUpperBounds()[0];
-                }
-                return elementType;
-            }
-        }
     }
 
     private static class ChainedMethodInvoker implements MethodInvoker {
@@ -214,6 +139,95 @@ public class ProtocolToModelAdapter {
                 MethodInvoker invoker = invokers[i];
                 invoker.invoke(method);
             }
+        }
+    }
+
+    private class ReflectionMethodInvoker implements MethodInvoker {
+        private final MethodInvoker override;
+
+        private ReflectionMethodInvoker(MethodInvoker override) {
+            this.override = override;
+        }
+
+        public void invoke(MethodInvocation invocation) throws Throwable {
+            // TODO - cache method lookup
+            Method targetMethod = locateMethod(invocation);
+            if (targetMethod == null) {
+                return;
+            }
+
+            Object returnValue;
+            try {
+                returnValue = targetMethod.invoke(invocation.getDelegate(), invocation.getParameters());
+            } catch (InvocationTargetException e) {
+                throw e.getCause();
+            }
+
+            if (returnValue == null || invocation.getReturnType().isInstance(returnValue)) {
+                invocation.setResult(returnValue);
+                return;
+            }
+
+            invocation.setResult(convert(returnValue, invocation.getGenericReturnType()));
+        }
+
+        private Method locateMethod(MethodInvocation invocation) {
+            Class<?> sourceClass = invocation.getDelegate().getClass();
+            Method match;
+            try {
+                match = sourceClass.getMethod(invocation.getName(), invocation.getParameterTypes());
+            } catch (NoSuchMethodException e) {
+                return null;
+            }
+
+            LinkedList<Class<?>> queue = new LinkedList<Class<?>>();
+            queue.add(sourceClass);
+            while (!queue.isEmpty()) {
+                Class<?> c = queue.removeFirst();
+                try {
+                    match = c.getMethod(invocation.getName(), invocation.getParameterTypes());
+                } catch (NoSuchMethodException e) {
+                    // ignore
+                }
+                for (Class<?> interfaceType : c.getInterfaces()) {
+                    queue.addFirst(interfaceType);
+                }
+                if (c.getSuperclass() != null) {
+                    queue.addFirst(c.getSuperclass());
+                }
+            }
+            match.setAccessible(true);
+            return match;
+        }
+
+        private Object convert(Object value, Type targetType) {
+            if (targetType instanceof ParameterizedType) {
+                ParameterizedType parameterizedTargetType = (ParameterizedType) targetType;
+                if (parameterizedTargetType.getRawType().equals(DomainObjectSet.class)) {
+                    Type targetElementType = getElementType(parameterizedTargetType);
+                    List<Object> convertedElements = new ArrayList<Object>();
+                    for (Object element : (Iterable) value) {
+                        convertedElements.add(convert(element, targetElementType));
+                    }
+                    return new ImmutableDomainObjectSet(convertedElements);
+                }
+            }
+            if (targetType instanceof Class) {
+                if (((Class) targetType).isPrimitive()) {
+                    return value;
+                }
+                return adapt((Class) targetType, value, override);
+            }
+            throw new UnsupportedOperationException(String.format("Cannot convert object of %s to %s.", value.getClass(), targetType));
+        }
+
+        private Type getElementType(ParameterizedType type) {
+            Type elementType = type.getActualTypeArguments()[0];
+            if (elementType instanceof WildcardType) {
+                WildcardType wildcardType = (WildcardType) elementType;
+                return wildcardType.getUpperBounds()[0];
+            }
+            return elementType;
         }
     }
 
@@ -259,9 +273,13 @@ public class ProtocolToModelAdapter {
         }
 
         public void invoke(MethodInvocation invocation) throws Throwable {
+            next.invoke(invocation);
+            if (invocation.found()) {
+                return;
+            }
+
             boolean getter = GETTER_METHOD.matcher(invocation.getName()).matches();
             if (!getter || invocation.getParameterTypes().length != 1) {
-                next.invoke(invocation);
                 return;
             }
 
@@ -293,6 +311,48 @@ public class ProtocolToModelAdapter {
             MethodInvocation getterInvocation = new MethodInvocation(getterName, invocation.getReturnType(), invocation.getGenericReturnType(), new Class[0], invocation.getDelegate(), EMPTY);
             next.invoke(getterInvocation);
             invocation.setResult(getterInvocation.found());
+        }
+    }
+
+    private static class MixInMethodInvoker implements MethodInvoker {
+        private Object proxy;
+        private Object instance;
+        private final Class<?> mixInClass;
+        private final MethodInvoker next;
+        private final ThreadLocal<MethodInvocation> current = new ThreadLocal<MethodInvocation>();
+
+        public MixInMethodInvoker(Class<?> mixInClass, MethodInvoker next) {
+            this.mixInClass = mixInClass;
+            this.next = next;
+        }
+
+        public void invoke(MethodInvocation invocation) throws Throwable {
+            if (current.get() != null) {
+                // Already invoking a method on the mix-in
+                return;
+            }
+
+            if (instance == null) {
+                instance = new DirectInstantiator().newInstance(mixInClass, proxy);
+            }
+            MethodInvocation beanInvocation = new MethodInvocation(invocation.getName(), invocation.getReturnType(), invocation.getGenericReturnType(), invocation.getParameterTypes(), instance, invocation.getParameters());
+            current.set(beanInvocation);
+            try {
+                next.invoke(beanInvocation);
+            } finally {
+                current.set(null);
+            }
+            if (beanInvocation.found()) {
+                invocation.setResult(beanInvocation.getResult());
+            }
+        }
+
+        public void setProxy(Object proxy) {
+            this.proxy = proxy;
+        }
+
+        public Object getProxy() {
+            return proxy;
         }
     }
 }

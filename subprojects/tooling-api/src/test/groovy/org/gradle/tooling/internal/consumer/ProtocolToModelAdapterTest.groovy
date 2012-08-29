@@ -50,3 +50,19 @@ interface PartialTestProtocolModel {
 interface TestProtocolProject {
     String getName()
 }
+
+class ConfigMixin {
+    TestModel model
+
+    ConfigMixin(TestModel model) {
+        this.model = model
+    }
+
+    String getConfig(String value) {
+        return "[${model.getConfig(value)}]"
+    }
+
+    String getName() {
+        return "[${model.name}]"
+    }
+}
