@@ -110,8 +110,7 @@ class DefaultResolvedModuleVersionResultSpec extends Specification {
     }
 
     def newUnresolved(String group='x', String module='x', String version='1') {
-        new DefaultUnresolvedDependencyResult(newSelector(group, module, version), new RuntimeException("boo!"))
-            .setFrom(newModule())
+        new DefaultUnresolvedDependencyResult(newSelector(group, module, version), new RuntimeException("boo!"), newModule())
     }
 
     def newModule(String group='a', String module='a', String version='1') {

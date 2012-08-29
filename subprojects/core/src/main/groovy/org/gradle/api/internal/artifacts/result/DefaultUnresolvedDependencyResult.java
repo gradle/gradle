@@ -26,18 +26,24 @@ public class DefaultUnresolvedDependencyResult implements UnresolvedDependencyRe
 
     private final ModuleVersionSelector requested;
     private final Exception failure;
-    //TODO SF pass in constructor
-    private DefaultResolvedModuleVersionResult from;
+    private final DefaultResolvedModuleVersionResult from;
 
-    public DefaultUnresolvedDependencyResult(ModuleVersionSelector requested, Exception failure) {
+    public DefaultUnresolvedDependencyResult(ModuleVersionSelector requested, Exception failure, DefaultResolvedModuleVersionResult from) {
         assert requested != null;
         assert failure != null;
+        assert from != null;
+
+        this.from = from;
         this.failure = failure;
         this.requested = requested;
     }
 
     public ModuleVersionSelector getRequested() {
         return requested;
+    }
+
+    public DefaultResolvedModuleVersionResult getFrom() {
+        return from;
     }
 
     @Override
@@ -56,6 +62,9 @@ public class DefaultUnresolvedDependencyResult implements UnresolvedDependencyRe
 
         DefaultUnresolvedDependencyResult that = (DefaultUnresolvedDependencyResult) o;
 
+        if (!from.equals(that.from)) {
+            return false;
+        }
         if (!requested.equals(that.requested)) {
             return false;
         }
@@ -65,15 +74,8 @@ public class DefaultUnresolvedDependencyResult implements UnresolvedDependencyRe
 
     @Override
     public int hashCode() {
-        return requested.hashCode();
-    }
-
-    public DefaultUnresolvedDependencyResult setFrom(DefaultResolvedModuleVersionResult from) {
-        this.from = from;
-        return this;
-    }
-
-    public DefaultResolvedModuleVersionResult getFrom() {
-        return from;
+        int result = requested.hashCode();
+        result = 31 * result + from.hashCode();
+        return result;
     }
 }
