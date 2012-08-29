@@ -17,14 +17,13 @@
 package org.gradle.tooling.model.internal.outcomes;
 
 import org.gradle.api.Nullable;
-import org.gradle.tooling.model.Model;
 
 /**
  * Represents something that happens as part of a build.
  *
  * @since 1.2
  */
-public interface BuildOutcome extends Model {
+public interface BuildOutcome {
 
     /**
      * The path to the task that created the outcome, if it was known to be created by a task.
