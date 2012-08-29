@@ -30,11 +30,11 @@ public class BuildActionRunnerBackedConsumerConnection extends AdaptedConnection
 
     @Override
     public <T> T getModel(Class<T> type, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
-        return buildActionRunner.run(type, null, operationParameters);
+        return buildActionRunner.run(type, operationParameters);
     }
 
     @Override
     public void executeBuild(ConsumerOperationParameters operationParameters) throws IllegalStateException {
-        buildActionRunner.run(null, operationParameters, operationParameters);
+        buildActionRunner.run(null, operationParameters);
     }
 }

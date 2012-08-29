@@ -29,6 +29,7 @@ import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.internal.OutputEventRenderer;
 import org.gradle.logging.internal.logback.SimpleLogbackLoggingConfigurer;
 import org.gradle.tooling.internal.build.DefaultBuildEnvironment;
+import org.gradle.tooling.internal.consumer.protocoladapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.protocol.*;
 import org.gradle.tooling.internal.provider.input.AdaptedOperationParameters;
 import org.gradle.tooling.internal.provider.input.ProviderOperationParameters;
@@ -44,6 +45,7 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConnection.class);
     private final EmbeddedExecuterSupport embeddedExecuterSupport;
     private final SimpleLogbackLoggingConfigurer loggingConfigurer = new SimpleLogbackLoggingConfigurer();
+    private final ProtocolToModelAdapter adapter = new ProtocolToModelAdapter();
 
     public DefaultConnection() {
         LOGGER.debug("Provider implementation created.");
@@ -78,21 +80,7 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner 
     public void executeBuild(final BuildParametersVersion1 buildParameters,
                              BuildOperationParametersVersion1 operationParameters) {
         logTargetVersion();
-        AdaptedOperationParameters adaptedParams = new AdaptedOperationParameters(operationParameters, buildParameters);
-        run(new ExecuteBuildAction(), adaptedParams);
-    }
-
-    private void logTargetVersion() {
-        LOGGER.info("Tooling API uses target gradle version:" + " {}.", GradleVersion.current().getVersion());
-    }
-
-    public <T> T run(Class<T> type, BuildParametersVersion1 buildParameters, BuildOperationParametersVersion1 operationParameters) throws UnsupportedOperationException, IllegalStateException {
-        if (buildParameters == null) {
-            return getTheModel(type, operationParameters);
-        } else {
-            executeBuild(buildParameters, operationParameters);
-            return null;
-        }
+        run(new ExecuteBuildAction(), new AdaptedOperationParameters(operationParameters, buildParameters.getTasks()));
     }
 
     @Deprecated
@@ -103,11 +91,32 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner 
     @Deprecated
     public <T> T getTheModel(Class<T> type, BuildOperationParametersVersion1 parameters) {
         logTargetVersion();
-        ProviderOperationParameters adaptedParameters = new AdaptedOperationParameters(parameters);
+        return getModel(type, new AdaptedOperationParameters(parameters));
+    }
+
+    public <T> T run(Class<T> type, BuildOperationParametersVersion1 operationParameters) throws UnsupportedOperationException, IllegalStateException {
+        ProviderOperationParameters providerOperationParameters = adapter.adapt(ProviderOperationParameters.class, operationParameters);
+        List<String> tasks = providerOperationParameters.getTasks();
+        if (type == null && tasks == null) {
+            throw new IllegalArgumentException("No model type or tasks specified.");
+        }
+
+        if (tasks == null) {
+            return getModel(type, new AdaptedOperationParameters(operationParameters));
+        } else {
+            if (type != null) {
+                throw new UnsupportedOperationException(String.format("Don't know how to build model of type %s from the build result.", type.getSimpleName()));
+            }
+            run(new ExecuteBuildAction(), new AdaptedOperationParameters(operationParameters, tasks));
+            return null;
+        }
+    }
+
+    private <T> T getModel(Class<T> type, ProviderOperationParameters parameters) {
         if (type == InternalBuildEnvironment.class) {
 
             //we don't really need to launch gradle to acquire information needed for BuildEnvironment
-            DaemonParameters daemonParameters = init(adaptedParameters);
+            DaemonParameters daemonParameters = init(parameters);
             DefaultBuildEnvironment out = new DefaultBuildEnvironment(
                 GradleVersion.current().getVersion(),
                 daemonParameters.getEffectiveJavaHome(),
@@ -116,7 +125,11 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner 
             return type.cast(out);
         }
         DelegatingBuildModelAction<T> action = new DelegatingBuildModelAction<T>(type);
-        return run(action, adaptedParameters);
+        return run(action, parameters);
+    }
+
+    private void logTargetVersion() {
+        LOGGER.info("Tooling API uses target gradle version:" + " {}.", GradleVersion.current().getVersion());
     }
 
     private <T> T run(GradleLauncherAction<T> action, ProviderOperationParameters operationParameters) {

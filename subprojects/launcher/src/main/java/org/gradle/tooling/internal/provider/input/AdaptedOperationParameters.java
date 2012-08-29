@@ -49,11 +49,7 @@ public class AdaptedOperationParameters implements ProviderOperationParameters {
         this(operationParameters, Arrays.<String>asList());
     }
 
-    public AdaptedOperationParameters(BuildOperationParametersVersion1 operationParameters, BuildParametersVersion1 buildParameters) {
-        this(operationParameters, buildParameters.getTasks());
-    }
-
-    private AdaptedOperationParameters(BuildOperationParametersVersion1 delegate, List<String> tasks) {
+    public AdaptedOperationParameters(BuildOperationParametersVersion1 delegate, List<String> tasks) {
         this.delegate = delegate;
         this.introspector = new CompatibleIntrospector(delegate);
         this.tasks = new LinkedList<String>(tasks);

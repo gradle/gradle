@@ -90,7 +90,7 @@ class DefaultToolingImplementationLoaderTest extends Specification {
 }
 
 class TestConnection implements ConnectionVersion4, BuildActionRunner {
-    def <T> T run(Class<T> type, BuildParametersVersion1 buildParameters, BuildOperationParametersVersion1 operationParameters) {
+    def <T> T run(Class<T> type, BuildOperationParametersVersion1 operationParameters) {
         throw new UnsupportedOperationException()
     }
 

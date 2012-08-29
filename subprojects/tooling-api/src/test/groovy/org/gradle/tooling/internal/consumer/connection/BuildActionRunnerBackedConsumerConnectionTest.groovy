@@ -34,7 +34,7 @@ class BuildActionRunnerBackedConsumerConnectionTest extends Specification {
         result == 'ok'
 
         and:
-        1 * target.run(String.class, null, parameters) >> 'ok'
+        1 * target.run(String.class, parameters) >> 'ok'
         0 * target._
     }
 
@@ -43,7 +43,7 @@ class BuildActionRunnerBackedConsumerConnectionTest extends Specification {
         connection.executeBuild(parameters)
 
         then:
-        1 * target.run(null, parameters, parameters) >> null
+        1 * target.run(null, parameters) >> null
         0 * target._
     }
 

@@ -21,10 +21,10 @@ package org.gradle.tooling.internal.protocol;
  */
 public interface BuildActionRunner extends InternalProtocolInterface {
     /**
-     * Performs some action and returns some result.
+     * Performs some action against a build and returns some result of the given type.
      *
      * @throws UnsupportedOperationException When the given model type is not supported.
      * @throws IllegalStateException When this connection has been stopped.
      */
-    <T> T run(Class<T> type, BuildParametersVersion1 buildParameters, BuildOperationParametersVersion1 operationParameters) throws UnsupportedOperationException, IllegalStateException;
+    <T> T run(Class<T> type, BuildOperationParametersVersion1 operationParameters) throws UnsupportedOperationException, IllegalStateException;
 }
