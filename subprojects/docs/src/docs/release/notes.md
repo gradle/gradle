@@ -4,63 +4,23 @@ Here are the new features introduced in Gradle 1.2.
 
 ### Dependency reports improvements
 
-The dependency report now includes extra information: the requested dependency versions.
-This is invaluable information in many situations:
+The dependency report now includes the the requested dependency versions as extra information. This is invaluable information in many situations:
 
-* Conflict resolution. It is now possible to infer from the dependency report why given dependency version is selected.
-Previously, the dependency report included the dependency versions *after* the conflict resolution.
-The new report makes it much easier to understand what happens during the conflict resolution
-and to figure out why and how certain versions are used.
-* Dynamic versions. Now the dependency report shows what version was requested and what version was selected.
-For example: 1.3.+ -> 1.3.5 (requested -> selected).
+* For conflict resolution it is now possible to infer from the dependency report why a given dependency version is selected. Previously, the dependency report included the dependency versions *after* the conflict resolution. Now you can see the version before the conflict resolution and the version it was replaced with. The new report makes it much easier to understand what happens during the conflict resolution and to figure out why and how certain versions are used.
+* For dynamic versions the dependency report shows what version was requested and what version was selected. For example: 1.3.+ -> 1.3.5 (requested -> selected).
 
-In order to keep the report clean and tidy we decided to remove the 'resolved target configurations' from the report.
-They used to appear on the right hand of every listed dependency and it was often a source of confusion.
-Now the report should be much more readable.
+In order to keep the report clean and tidy we decided to remove the 'resolved target configurations' from the report. They used to appear on the right hand of every listed dependency and it was often a source of confusion.
 
-We continue to work in the dependency reports area and plan more interesting features shortly.
-For example, we want the report to present the dependency tree even though some dependency is unresolved.
-We want to add other kinds of dependency reports, too. Improved dependency report should be also faster for projects that have very large dependency graphs.
-Our performance tests for this particular kind of project show ~50% speed increase.
+We continue to work in the dependency reports area and plan more interesting features shortly. For example, we want the report to present the dependency tree even though some dependency is unresolved. We also want to add other kinds of dependency reports. 
 
-The improvements in the dependency report allows us to design the resolution result API.
-For the Gradle user it means better programmatic access and hooks to the resolved dependency graph.
+The new dependency report should also be faster for projects that have very large dependency graphs. Our performance tests for a particular larger project we are working on  showed a 50% speed increase.
 
-### Experimental resolution result API
+The improvements in the dependency report drove our design of the new resolution result API. For Gradle users it means better programmatic access and hooks to the resolved dependency graph.
 
-We want to expose the API that our dependency reports are using.
-This way Gradle users may develop their own dependency reporting driven by custom requirements.
-Also it allows the users to develop build logic that can make decisions based on the content of the dependency graph.
+### Lower memory usage
 
-The best way to start with the new API is to take a look at the Javadoc
-for <a href="javadoc/org/gradle/api/artifacts/ResolvedConfiguration.html#getResolutionResult()">`ResolvedConfiguration.getResolutionResult()`</a>.
-
-### Experimental support for building projects in parallel
-
-Over the coming releases, we'll be adding support for parallel execution of independent projects in a multi-project build. By building separate projects in parallel, Gradle
-will enable better hardware utilisation and faster build times.
-
-Gradle 1.2 introduces the first experimental support for this feature, via the `--parallel` and `--parallel-threads` [command-line options](userguide/gradle_command_line.html).
-By using these options Gradle will attempt to _execute_ multiple projects in parallel build threads, after first configuring all projects sequentially. We are seeing significant
-performance benefits with this approach, in particular when the build is not already CPU bound.
-
-Note that to guarantee successful parallel execution of projects, your multi-project build must contain only [decoupled projects](userguide/multi_project_builds.html#sec:decoupled_projects).
-While configuration-time decoupling is not strictly required for parallel project execution, we do not intend on supporting a separate model of decoupling that permits configuration-time
-coupling with execution-time decoupling. At this time there are no checks implemented to ensure that projects are decoupled, and unexpected behaviour may result from executing a build with coupled
-projects using the new parallel executor.
-
-**This feature is pre-alpha and highly experimental. Many multi-project builds will behave unexpectedly when run using parallel project execution.**
-One known issue is that the Gradle compiler daemon is not current thread-safe. So if multiple projects attempt to compile java code simultaneously with `fork=true`,
-exceptions will result. Workaround: don't use `options.fork=true` to compile when running with `--parallel`.
-
-### Reporting of multiple build failures
-
-When running the build with `--parallel` or `--continue` it is possible to have multiple failures in your build. While executing Gradle will now report on tasks that fail,
-as well as producing output detailing _all_ build failures on build completion.
-
-The new output clearly indicates the cause and possible analysis of each failure, making it easier to track down the underlying issue.
-Detailing _all_ failures makes the `--continue` command line option much more useful: it is now possible to use this option to
-discover as many failures as possible with a single build execution.
+We've continued to improve our dependency resolution engine, so that it now requires much less heap space. A moderately sized multi-project build can
+expect to see a 20-25% reduction in heap usage thanks to these improvements.
 
 ### Continue on failure (--continue) no longer experimental
 
@@ -69,8 +29,20 @@ as soon as one of these sub-tasks fails. This means that the build will finish s
 There are many times when you would like to find out as many failures as possible in a single build execution. Examples may include when you kick off a build
 before heading out to lunch, or running a nightly CI job. The `--continue` command-line option allows you to do just that.
 
-With the addition of nicer reporting of multiple build failures, we now consider `--continue` a fully-fledged capability of Gradle, and have remove the `experimental`
-flag from this option. Please see the [User Guide section](userguide/tutorial_gradle_command_line.html#sec:continue_build_on_failure) for more details.
+With the addition of [nicer reporting of multiple build failures]((#multile_build_failures)), we now consider `--continue` a fully-fledged capability of Gradle, and have removed the `experimental` flag from this option. Please see the [User Guide section](userguide/tutorial_gradle_command_line.html#sec:continue_build_on_failure) for more details.
+
+### <a id="multile_build_failures"></a>Reporting of multiple build failures
+
+When running the build with `--parallel` or `--continue` it is possible to have multiple failures in your build. While executing Gradle will now report on tasks that fail,
+as well as producing output detailing _all_ build failures on build completion.
+
+The new output clearly indicates the cause and possible analysis of each failure, making it easier to track down the underlying issue.
+Detailing _all_ failures makes the `--continue` command line option much more useful: it is now possible to use this option to
+discover as many failures as possible with a single build execution.
+
+### Configuration option for FindBugs plugin
+
+Thanks to a contribution from [Justin Ryan](https://github.com/quidryan), the FindBugs plugin now supports more configuration options.
 
 ### Documentation facelift
 
@@ -93,25 +65,41 @@ The `User-Agent` header now includes information about
 
 An example for a Gradle generated user-agent string: "**Gradle/1.2 (Mac OS X;10.8;amd64) (Oracle Corporation;1.7.0_04-ea;23.0-b12)**"
 
-### Lower memory usage
-
-We've continued to improve our dependency resolution engine, so that it now requires much less heap space. A moderately sized multi-project build can
-expect to see a 20-25% reduction in heap usage thanks to these improvements.
-
-### Experimental bootstrap plugin
-
-We would like to make it as easy as possible to migrate from a different build tool to Gradle.
-This release includes an experimental [Bootstrap plugin](userguide/bootstrap_plugin.html).
-However quality-wise it is not yet at the level we expect a Gradle feature to be.
-We will continue working on it and with Gradle 1.3 it will be officially announced.
-
-### Configuration option for FindBugs plugin
-
-Thanks to a contribution from [Justin Ryan](https://github.com/quidryan), the FindBugs plugin now supports more configuration options.
-
 ## Fixed Issues
 
 The list of issues fixed between 1.1 and 1.2 can be found [here](http://issues.gradle.org/sr/jira.issueviews:searchrequest-printable/temp/SearchRequest.html?jqlQuery=fixVersion+in+%28%221.2-rc-1%22%29+ORDER+BY+priority&tempMax=1000).
+
+## New experimental and unstable features
+
+We will typically introduce big new features as experimental or unstable at first, giving you a chance to test them out as you have opportunity. Experimental means that the quality of the behaviour might not match the quality your are used to with Gradle. Unstable means that the quality is good but the API might still change with the next release. We will iterate on the new feature based on your feedback, eventually releasing it as stable and production-ready. Those of you who use new features before that point gain the competitive advantage of early access to new functionality in exchange for helping refine it over time. To learn more read our [forum posting on our release approach](http://forums.gradle.org/gradle/topics/the_gradle_release_approach).
+
+### Support for building projects in parallel (highly experimental with known open issues)
+
+Over the coming releases, we'll be adding production-quality support for parallel execution of independent projects in a multi-project build. By building separate projects in parallel, Gradle will enable better hardware utilisation and faster build times.
+
+We are excited Gradle 1.2 introduces the first experimental support for this feature, via the `--parallel` and `--parallel-threads` [command-line options](userguide/gradle_command_line.html). By using these options Gradle will attempt to _execute_ multiple projects in parallel build threads, after first configuring all projects sequentially. We are seeing significant performance benefits with this approach, in particular when the build is not already CPU bound.
+
+Note that to guarantee successful parallel execution of projects, your multi-project build must contain only [decoupled projects](userguide/multi_project_builds.html#sec:decoupled_projects).
+While configuration-time decoupling is not strictly required for parallel project execution, we do not intend on supporting a separate model of decoupling that permits configuration-time coupling with execution-time decoupling. At this time there are no checks implemented to ensure that projects are decoupled, and unexpected behaviour may result from executing a build with coupled projects using the new parallel executor.
+
+**This feature is pre-alpha and highly experimental. Many multi-project builds will behave unexpectedly when run using parallel project execution. You will get a warning when you are using it.****
+One known issue is that the Gradle compiler daemon is currently not thread-safe. So if multiple projects attempt to compile java code simultaneously with `fork=true`,
+exceptions will result. Workaround: don't use `options.fork=true` to compile when running with `--parallel`.
+
+### New resolution result API (unstable)
+
+We are exposing the new API that our improved dependency reports are using. It provides a powerful for developing your own custom dependency reports. It also allows to develop smart build logic that can make decisions based on the content of the dependency graph.
+
+The best way to start with the new API is to take a look at the Javadocew 
+for <a href="javadoc/org/gradle/api/artifacts/ResolvedConfiguration.html#getResolutionResult()">`ResolvedConfiguration.getResolutionResult()`</a>.
+
+**The new resolution API is not stable yet and may change with the next releases. Therefore you will get a warning when you are using it.**
+
+### Bootstrap plugin (experimental)
+
+We would like to make it as easy as possible to migrate from a different build tool to Gradle.
+This release includes an experimental [Bootstrap plugin](userguide/bootstrap_plugin.html).
+For Gradle 1.3 we plan to have it stable and of production quality.
 
 ## Upgrading from Gradle 1.1
 
@@ -119,12 +107,14 @@ Please let us know if you encounter any issues during the upgrade to Gradle 1.2,
 
 ### Deprecations
 
+If you make use of the deprecated features below you will get a warning from now on. But you can rest assured that those features will be supported at least until the release of Gradle 2.0, our next major release. To learn more read our [forum posting on our release and backwards compatibility approach](http://forums.gradle.org/gradle/topics/the_gradle_release_approach).
+
 #### The `useMavenMetadata` property for Maven repositories
 
 The `useMavenMetadata` property has been deprecated for resolvers returned by `repositories.mavenRepo()`. This property controls whether Gradle should
 search for a `maven-metadata.xml` file when attempting to determine the versions that are available for a particular module. The default value is `true`,
 which means Gradle will look for a `maven-metadata.xml` file and then fall back to a directory listing if not present. When set to `false` Gradle will
-use a directory listing only.
+use a directory listing only. It is part of our former internal usage of Ivy for dependency resolution.
 
 Thanks to the various improvements we've made to make dependency management more efficient, there is no longer a performance penalty for searching
 for the `maven-metadata.xml` file. This means this property is no longer useful and will be removed in Gradle 2.0.
