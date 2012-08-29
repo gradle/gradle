@@ -20,7 +20,7 @@
         <title>Configuring the build environment via gradle.properties</title>
         <para>Gradle provides several options that make it easy to configure the Java process that will be used to execute your build.
             While it's possible to configure these in your local environment via GRADLE_OPTS or JAVA_OPTS,
-            certain settings like jvm memory settings, java home, daemon on/off
+            certain settings like JVM memory settings, Java home, daemon on/off
             can be more useful if they can versioned with the project in your VCS so that
             the entire team can work with consistent environment.
             Setting up a consistent environment for your build is as simple as placing those settings into a <filename>gradle.properties</filename> file.
