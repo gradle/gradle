@@ -20,6 +20,7 @@ import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
+import org.gradle.tooling.internal.protocol.InternalProtocolInterface;
 import org.gradle.tooling.internal.protocol.ResultHandlerVersion1;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -48,7 +49,7 @@ public class DefaultAsyncConnection implements AsyncConnection {
     public void executeBuild(final ConsumerOperationParameters operationParameters, ResultHandlerVersion1<? super Void> handler) throws IllegalStateException {
         runLater(handler, new ConnectionAction<Void>() {
             public Void run() {
-                connection.executeBuild(operationParameters);
+                connection.run(InternalProtocolInterface.class, operationParameters);
                 return null;
             }
         });
@@ -57,7 +58,7 @@ public class DefaultAsyncConnection implements AsyncConnection {
     public <T> void getModel(final Class<T> type, final ConsumerOperationParameters operationParameters, ResultHandlerVersion1<T> handler) throws UnsupportedOperationException, IllegalStateException {
         runLater(handler, new ConnectionAction<T>() {
             public T run() {
-                return connection.getModel(type, operationParameters);
+                return connection.run(type, operationParameters);
             }
         });
     }

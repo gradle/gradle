@@ -29,7 +29,7 @@ public class InternalConnectionBackedConsumerConnection extends AdaptedConnectio
     }
 
     @Override
-    public <T> T getModel(Class<T> type, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
+    protected <T> T doGetModel(Class<T> type, ConsumerOperationParameters operationParameters) {
         return connection.getTheModel(type, operationParameters);
     }
 }

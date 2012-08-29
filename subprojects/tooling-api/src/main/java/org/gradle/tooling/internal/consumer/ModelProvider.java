@@ -50,10 +50,10 @@ public class ModelProvider {
         if (type == InternalGradleProject.class && !version.supportsGradleProjectModel()) {
             //we broke compatibility around M9 wrt getting the tasks of a project (issue GRADLE-1875)
             //this patch enables getting gradle tasks for target gradle version pre M5
-            EclipseProjectVersion3 project = connection.getModel(EclipseProjectVersion3.class, operationParameters);
+            EclipseProjectVersion3 project = connection.run(EclipseProjectVersion3.class, operationParameters);
             GradleProject gradleProject = new GradleProjectConverter().convert(project);
             return (T) gradleProject;
         }
-        return connection.getModel(type, operationParameters);
+        return connection.run(type, operationParameters);
     }
 }

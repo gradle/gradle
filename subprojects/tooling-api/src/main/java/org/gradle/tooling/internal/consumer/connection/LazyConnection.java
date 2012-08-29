@@ -93,17 +93,7 @@ public class LazyConnection implements ConsumerConnection {
         return connection.getVersionDetails();
     }
 
-    public void executeBuild(final ConsumerOperationParameters operationParameters) {
-        withConnection(new ConnectionAction<Object>() {
-            public Object run(ConsumerConnection connection) {
-                featureValidator.validate(connection, operationParameters);
-                connection.executeBuild(operationParameters);
-                return null;
-            }
-        });
-    }
-
-    public <T> T getModel(final Class<T> type, final ConsumerOperationParameters operationParameters) {
+    public <T> T run(final Class<T> type, final ConsumerOperationParameters operationParameters) {
         return withConnection(new ConnectionAction<T>() {
             public T run(ConsumerConnection connection) {
                 featureValidator.validate(connection, operationParameters);

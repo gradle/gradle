@@ -40,21 +40,9 @@ class LazyConnectionTest extends Specification {
         connection.featureValidator = Mock(FeatureValidator)
     }
 
-    def createsConnectionOnDemandToExecuteBuild() {
-        when:
-        connection.executeBuild(params)
-
-        then:
-        1 * loggingProvider.getProgressLoggerFactory() >> progressLoggerFactory
-        1 * implementationLoader.create(distribution, progressLoggerFactory, false) >> consumerConnection
-        1 * consumerConnection.executeBuild(params)
-        1 * connection.featureValidator.validate(consumerConnection, params)
-        0 * _._
-    }
-
     def createsConnectionOnDemandToBuildModel() {
         when:
-        connection.getModel(SomeModel, params)
+        connection.run(SomeModel, params)
 
         then:
         1 * loggingProvider.getProgressLoggerFactory() >> progressLoggerFactory
@@ -69,7 +57,7 @@ class LazyConnectionTest extends Specification {
         connection.verboseLogging = true
 
         when:
-        connection.getModel(SomeModel, params)
+        connection.run(SomeModel, params)
 
         then:
         1 * loggingProvider.getProgressLoggerFactory() >> progressLoggerFactory
@@ -78,21 +66,21 @@ class LazyConnectionTest extends Specification {
 
     def reusesConnection() {
         when:
-        connection.getModel(SomeModel, params)
-        connection.executeBuild(params)
+        connection.run(SomeModel, params)
+        connection.run(String, params)
 
         then:
         1 * loggingProvider.getProgressLoggerFactory() >> progressLoggerFactory
         1 * implementationLoader.create(distribution, progressLoggerFactory, false) >> consumerConnection
         1 * connection.modelProvider.provide(consumerConnection, SomeModel, params)
-        1 * consumerConnection.executeBuild(params)
+        1 * connection.modelProvider.provide(consumerConnection, String, params)
         2 * connection.featureValidator.validate(consumerConnection, params)
         0 * _._
     }
 
     def stopsConnectionOnStop() {
         when:
-        connection.getModel(SomeModel, params)
+        connection.run(SomeModel, params)
         connection.stop()
 
         then:
@@ -116,7 +104,7 @@ class LazyConnectionTest extends Specification {
         def failure = new RuntimeException()
 
         when:
-        connection.getModel(SomeModel, params)
+        connection.run(SomeModel, params)
 
         then:
         RuntimeException e = thrown()

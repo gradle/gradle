@@ -22,13 +22,13 @@ import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.internal.consumer.Distribution;
-import org.gradle.tooling.internal.consumer.connection.AdaptedConnection;
-import org.gradle.tooling.internal.consumer.connection.BuildActionRunnerBackedConsumerConnection;
-import org.gradle.tooling.internal.consumer.connection.InternalConnectionBackedConsumerConnection;
+import org.gradle.tooling.internal.consumer.connection.*;
 import org.gradle.tooling.internal.protocol.BuildActionRunner;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 import org.gradle.tooling.internal.protocol.InternalConnection;
-import org.gradle.util.*;
+import org.gradle.util.FilteringClassLoader;
+import org.gradle.util.GradleVersion;
+import org.gradle.util.MutableURLClassLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +47,7 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
         this.classLoader = classLoader;
     }
 
-    public AdaptedConnection create(Distribution distribution, ProgressLoggerFactory progressLoggerFactory, boolean verboseLogging) {
+    public ConsumerConnection create(Distribution distribution, ProgressLoggerFactory progressLoggerFactory, boolean verboseLogging) {
         LOGGER.debug("Using tooling provider from {}", distribution.getDisplayName());
         ClassLoader classLoader = createImplementationClassLoader(distribution, progressLoggerFactory);
         ServiceLocator serviceLocator = new ServiceLocator(classLoader);
@@ -63,7 +63,7 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
             ConnectionVersion4 connection = factory.create();
 
             // Adopting the connection to a refactoring friendly type that the consumer owns
-            AdaptedConnection adaptedConnection;
+            AbstractConsumerConnection adaptedConnection;
             if (connection instanceof BuildActionRunner) {
                 adaptedConnection = new BuildActionRunnerBackedConsumerConnection(connection);
             } else if (connection instanceof InternalConnection) {

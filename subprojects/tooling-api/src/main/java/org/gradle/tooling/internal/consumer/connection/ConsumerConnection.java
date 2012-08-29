@@ -30,7 +30,5 @@ public interface ConsumerConnection {
     
     VersionDetails getVersionDetails();
 
-    <T> T getModel(Class<T> type, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException;
-
-    void executeBuild(ConsumerOperationParameters operationParameters) throws IllegalStateException;
+    <T> T run(Class<T> type, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException;
 }
