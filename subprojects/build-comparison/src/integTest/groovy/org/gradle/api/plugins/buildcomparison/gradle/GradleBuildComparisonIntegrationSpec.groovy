@@ -131,7 +131,7 @@ class GradleBuildComparisonIntegrationSpec extends WellBehavedPluginTest {
         fails "compareGradleBuilds"
 
         and:
-        failure.assertHasCause("Cannot run comparison because both the source and target build are to be executed with a Gradle version older than Gradle 1.2.")
+        failure.assertHasCause("Cannot run comparison because both the source and target build are to be executed with a Gradle version older than Gradle 1.2 (source: 1.1, target: 1.1).")
     }
 
     Document html(path = "build/reports/compareGradleBuilds/index.html") {
