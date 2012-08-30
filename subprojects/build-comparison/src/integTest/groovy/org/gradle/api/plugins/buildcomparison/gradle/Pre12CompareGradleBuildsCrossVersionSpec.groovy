@@ -18,13 +18,16 @@ package org.gradle.api.plugins.buildcomparison.gradle
 
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.gradle.integtests.fixtures.ExecutionResult
+import org.gradle.integtests.fixtures.GradleExecuter
 import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.util.TestFile
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
-import org.gradle.integtests.fixtures.GradleExecuter
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 @TargetVersions("1.0+")
+@Requires(TestPrecondition.NOT_WINDOWS)
 class Pre12CompareGradleBuildsCrossVersionSpec extends CrossVersionIntegrationSpec {
 
     void applyPlugin(TestFile file = buildFile) {

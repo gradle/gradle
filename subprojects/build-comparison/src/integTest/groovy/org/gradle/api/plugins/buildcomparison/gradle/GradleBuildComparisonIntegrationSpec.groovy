@@ -22,7 +22,10 @@ import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.junit.Rule
 import org.gradle.util.TestFile
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
+@Requires(TestPrecondition.NOT_WINDOWS)
 class GradleBuildComparisonIntegrationSpec extends WellBehavedPluginTest {
     @Rule TestResources testResources
 
