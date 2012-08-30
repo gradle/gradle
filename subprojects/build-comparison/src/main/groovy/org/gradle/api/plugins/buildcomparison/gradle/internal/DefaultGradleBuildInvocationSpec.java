@@ -80,4 +80,40 @@ public class DefaultGradleBuildInvocationSpec implements GradleBuildInvocationSp
     public void setArguments(Iterable<String> arguments) {
         this.arguments = Lists.newLinkedList(arguments);
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        DefaultGradleBuildInvocationSpec that = (DefaultGradleBuildInvocationSpec) o;
+
+        if (!getArguments().equals(that.getArguments())) {
+            return false;
+        }
+        if (!getGradleVersion().equals(that.getGradleVersion())) {
+            return false;
+        }
+        if (!getProjectDir().equals(that.getProjectDir())) {
+            return false;
+        }
+        if (!getTasks().equals(that.getTasks())) {
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = getProjectDir().hashCode();
+        result = 31 * result + getGradleVersion().hashCode();
+        result = 31 * result + getTasks().hashCode();
+        result = 31 * result + getArguments().hashCode();
+        return result;
+    }
 }
