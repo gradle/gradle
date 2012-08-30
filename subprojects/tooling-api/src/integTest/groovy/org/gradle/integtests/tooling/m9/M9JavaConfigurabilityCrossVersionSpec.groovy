@@ -59,12 +59,12 @@ class M9JavaConfigurabilityCrossVersionSpec extends ToolingApiSpecification {
         def dummyJdk = dist.file("wrong jdk location").createDir()
 
         when:
-        def ex = maybeFailWithConnection {
+        maybeFailWithConnection {
             it.newBuild().setJavaHome(dummyJdk).run()
         }
 
         then:
-        ex instanceof GradleConnectionException
+        GradleConnectionException ex = thrown()
         ex.cause.message.contains "wrong jdk location"
     }
 
