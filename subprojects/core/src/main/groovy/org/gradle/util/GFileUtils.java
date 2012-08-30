@@ -121,6 +121,14 @@ public class GFileUtils {
         }
     }
 
+    public static void cleanDirectory(File directory) {
+        try {
+            FileUtils.cleanDirectory(directory);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
     public static boolean deleteQuietly(File file) {
         return FileUtils.deleteQuietly(file);
     }
