@@ -111,31 +111,22 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
         if (type.equals(Void.class) && tasks == null) {
             throw new IllegalArgumentException("No model type or tasks specified.");
         }
-
-        if (tasks != null) {
-            run(new ExecuteBuildAction(), providerParameters);
-        }
-
-        if (type.equals(Void.class)) {
-            return null;
-        }
-        return getModel(type, providerParameters);
-    }
-
-    private <T> T getModel(Class<T> type, ProviderOperationParameters parameters) {
         if (type == InternalBuildEnvironment.class) {
-
-            //we don't really need to launch gradle to acquire information needed for BuildEnvironment
-            DaemonParameters daemonParameters = init(parameters);
+            //we don't really need to launch the daemon to acquire information needed for BuildEnvironment
+            if (tasks != null) {
+                throw new IllegalArgumentException("Cannot run tasks and fetch the build environment model.");
+            }
+            DaemonParameters daemonParameters = init(providerParameters);
             DefaultBuildEnvironment out = new DefaultBuildEnvironment(
-                GradleVersion.current().getVersion(),
-                daemonParameters.getEffectiveJavaHome(),
-                daemonParameters.getEffectiveJvmArgs());
+                    GradleVersion.current().getVersion(),
+                    daemonParameters.getEffectiveJavaHome(),
+                    daemonParameters.getEffectiveJvmArgs());
 
             return type.cast(out);
         }
-        DelegatingBuildModelAction<T> action = new DelegatingBuildModelAction<T>(type);
-        return run(action, parameters);
+
+        DelegatingBuildModelAction<T> action = new DelegatingBuildModelAction<T>(type, tasks != null);
+        return run(action, providerParameters);
     }
 
     private void logTargetVersion() {

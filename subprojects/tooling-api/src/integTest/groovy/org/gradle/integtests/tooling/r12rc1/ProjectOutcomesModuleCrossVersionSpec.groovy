@@ -40,8 +40,18 @@ class ProjectOutcomesModuleCrossVersionSpec extends ToolingApiSpecification {
         projectOutcomes instanceof ProjectOutcomes
         def outcomes = projectOutcomes.outcomes
         outcomes.size() == 2
-        outcomes.any { it.file.name.endsWith(".jar") }
-        outcomes.any { it.file.name.endsWith(".zip") }
+
+        def jar = outcomes.find { it.file.name.endsWith(".jar") }
+        jar
+        jar.taskPath == ':jar'
+        jar.file.file
+        jar.typeIdentifier == 'artifact.jar'
+
+        def zip = outcomes.find { it.file.name.endsWith(".zip") }
+        zip
+        zip.taskPath == ':zip'
+        zip.file.file
+        zip.typeIdentifier == 'artifact.zip'
     }
 
     def "modelContainsAllProjects"() {

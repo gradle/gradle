@@ -26,11 +26,16 @@ import static java.util.Arrays.asList;
 
 public class BuildModelAction implements GradleLauncherAction<ProjectVersion3> {
     private ModelBuildingAdapter modelBuildingAdapter;
+    private final boolean runTasks;
 
-    public BuildModelAction(Class<? extends ProjectVersion3> type) {
+    public BuildModelAction(Class<?> type, boolean runTasks) {
+        this.runTasks = runTasks;
         List<? extends BuildsModel> modelBuilders = asList(
-                new EclipseModelBuilder(), new IdeaModelBuilder(),
-                new GradleProjectBuilder(), new BasicIdeaModelBuilder(),
+                new NullResultBuilder(),
+                new EclipseModelBuilder(),
+                new IdeaModelBuilder(),
+                new GradleProjectBuilder(),
+                new BasicIdeaModelBuilder(),
                 new ProjectOutcomesModelBuilder());
 
         for (BuildsModel builder : modelBuilders) {
@@ -45,7 +50,7 @@ public class BuildModelAction implements GradleLauncherAction<ProjectVersion3> {
 
     public BuildResult run(GradleLauncher launcher) {
         launcher.addListener(modelBuildingAdapter);
-        return launcher.getBuildAnalysis();
+        return runTasks ? launcher.run() : launcher.getBuildAnalysis();
     }
 
     public ProjectVersion3 getResult() {
