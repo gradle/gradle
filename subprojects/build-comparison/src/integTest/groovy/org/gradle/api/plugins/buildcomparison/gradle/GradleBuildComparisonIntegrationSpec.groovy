@@ -89,6 +89,7 @@ class GradleBuildComparisonIntegrationSpec extends WellBehavedPluginTest {
 
         then:
         html().select("p").text() == "The archives are completely identical."
+        output.contains("The source build and target build are identical")
     }
 
     def "compare project with unknown outcomes"() {

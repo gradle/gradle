@@ -69,8 +69,8 @@ public class CompareGradleBuilds extends DefaultTask {
     private static final List<String> DEFAULT_TASKS = Arrays.asList("clean", "assemble");
     private static final String TMP_FILESTORAGE_PREFIX = "tmp-filestorage";
 
-    private final GradleBuildInvocationSpec sourceBuild;
-    private final GradleBuildInvocationSpec targetBuild;
+    private final DefaultGradleBuildInvocationSpec sourceBuild;
+    private final DefaultGradleBuildInvocationSpec targetBuild;
 
     private Object reportDir;
 
@@ -137,6 +137,10 @@ public class CompareGradleBuilds extends DefaultTask {
 
     @TaskAction
     void compare() {
+        if (sourceBuild.equals(targetBuild)) {
+            getLogger().warn("The source build and target build are identical. Set '{}.targetBuild.gradleVersion' if you want to compare with a different Gradle version.", getName());
+        }
+
         ProgressLogger progressLogger = progressLoggerFactory.newOperation(getClass());
 
         progressLogger.setDescription("Gradle Build Comparison");
