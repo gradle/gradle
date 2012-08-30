@@ -21,6 +21,8 @@ package org.gradle.tooling.internal.protocol;
  *
  * <p>This is a mostly-empty interface. Instances are queried dynamically to see which properties they support.
  * See {@code ProviderBuildResult} for details on properties supported by the provider.
+ *
+ * @since 1.2-rc-1
  */
 public interface BuildResult<T> extends InternalProtocolInterface {
     T getModel();

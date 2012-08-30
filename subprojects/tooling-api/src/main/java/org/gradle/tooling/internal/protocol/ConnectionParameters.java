@@ -21,6 +21,8 @@ package org.gradle.tooling.internal.protocol;
  *
  * <p>This is a mostly-empty interface. Instances are queried dynamically to see which properties they support. See {@code ProviderConnectionParameters} to see the configuration expected by the provider,
  * and {@link org.gradle.tooling.internal.consumer.parameters.ConsumerConnectionParameters} to see the configuration provided by the consumer.
+ *
+ * @since 1.2-rc-1
  */
 public interface ConnectionParameters extends InternalProtocolInterface {
     String getConsumerVersion();

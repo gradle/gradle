@@ -18,6 +18,8 @@ package org.gradle.tooling.internal.protocol;
 
 /**
  * Mixed into a provider connection, to allow the connection to be configured.
+ *
+ * @since 1.2-rc-1
  */
 public interface ConfigurableConnection extends InternalProtocolInterface {
     void configure(ConnectionParameters parameters);

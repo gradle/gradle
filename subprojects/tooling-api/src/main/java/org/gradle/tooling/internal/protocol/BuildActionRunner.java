@@ -18,6 +18,8 @@ package org.gradle.tooling.internal.protocol;
 
 /**
  * Mixed into a provider connection, to run actions against a build.
+ *
+ * @since 1.2-rc-1
  */
 public interface BuildActionRunner extends InternalProtocolInterface {
     /**
