@@ -103,6 +103,14 @@ public interface ModelBuilder<T extends Model> extends LongRunningOperation {
     ModelBuilder<T> addProgressListener(ProgressListener listener);
 
     /**
+     * Specifies the tasks to execute before building the model. By default, no tasks are executed.
+     *
+     * @param tasks The paths of the tasks to be executed. Relative paths are evaluated relative to the project for which this launcher was created.
+     * @return this
+     */
+    ModelBuilder<T> forTasks(String... tasks);
+
+    /**
      * Fetch the model, blocking until it is available.
      *
      * @return The model.

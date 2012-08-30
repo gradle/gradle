@@ -19,6 +19,7 @@ package org.gradle.tooling.internal.consumer.parameters;
 import org.gradle.tooling.ProgressListener;
 import org.gradle.tooling.internal.consumer.ConnectionParameters;
 import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1;
+import org.gradle.tooling.internal.protocol.BuildParameters;
 import org.gradle.tooling.internal.protocol.BuildParametersVersion1;
 import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;
 
@@ -32,7 +33,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * by Szczepan Faber, created at: 1/9/12
  */
-public class ConsumerOperationParameters implements BuildOperationParametersVersion1, BuildParametersVersion1 {
+public class ConsumerOperationParameters implements BuildOperationParametersVersion1, BuildParametersVersion1, BuildParameters {
 
     private final ProgressListenerAdapter progressListener = new ProgressListenerAdapter();
     private final ConnectionParameters parameters;

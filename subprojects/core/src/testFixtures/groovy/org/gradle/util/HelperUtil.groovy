@@ -84,12 +84,6 @@ class HelperUtil {
                  .build();
      }
 
-     static pureStringTransform(def collection) {
-         collection.collect {
-             it.toString()
-         }
-     }
-
      static DefaultExcludeRule getTestExcludeRule(def module = 'module') {
          new DefaultExcludeRule(new ArtifactId(
                  new ModuleId('org', module), PatternMatcher.ANY_EXPRESSION,

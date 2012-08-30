@@ -18,7 +18,6 @@ package org.gradle.tooling.internal.provider;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.Project;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.GradleInternal;
@@ -27,14 +26,14 @@ import org.gradle.tooling.internal.protocol.InternalProjectOutcomes;
 import org.gradle.tooling.internal.protocol.ProjectVersion3;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
-import org.gradle.tooling.model.internal.outcomes.FileBuildOutcome;
+import org.gradle.tooling.model.internal.outcomes.GradleFileBuildOutcome;
 import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes;
 
 import java.util.List;
 
 public class ProjectOutcomesModelBuilder implements BuildsModel {
 
-    private final Transformer<FileBuildOutcome, PublishArtifact> artifactTransformer = new PublishArtifactToFileBuildOutcomeTransformer();
+    private final PublishArtifactToFileBuildOutcomeTransformer artifactTransformer = new PublishArtifactToFileBuildOutcomeTransformer();
 
     public boolean canBuild(Class<?> type) {
         return type == InternalProjectOutcomes.class;
@@ -53,17 +52,17 @@ public class ProjectOutcomesModelBuilder implements BuildsModel {
         return projectOutput;
     }
 
-    private DomainObjectSet<FileBuildOutcome> getFileOutcomes(Project project) {
-        List<FileBuildOutcome> fileBuildOutcomes = Lists.newArrayList();
+    private DomainObjectSet<GradleFileBuildOutcome> getFileOutcomes(Project project) {
+        List<GradleFileBuildOutcome> fileBuildOutcomes = Lists.newArrayList();
         addArtifacts(project, fileBuildOutcomes);
-        return new ImmutableDomainObjectSet<FileBuildOutcome>(fileBuildOutcomes);
+        return new ImmutableDomainObjectSet<GradleFileBuildOutcome>(fileBuildOutcomes);
     }
 
-    private void addArtifacts(Project project, List<FileBuildOutcome> outcomes) {
+    private void addArtifacts(Project project, List<GradleFileBuildOutcome> outcomes) {
         Configuration configuration = project.getConfigurations().findByName("archives");
         if (configuration != null) {
             for (PublishArtifact artifact : configuration.getArtifacts()) {
-                FileBuildOutcome outcome = artifactTransformer.transform(artifact);
+                GradleFileBuildOutcome outcome = artifactTransformer.transform(artifact, project);
                 outcomes.add(outcome);
             }
         }

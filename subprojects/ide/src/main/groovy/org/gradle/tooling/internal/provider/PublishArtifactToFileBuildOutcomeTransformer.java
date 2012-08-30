@@ -16,25 +16,41 @@
 
 package org.gradle.tooling.internal.provider;
 
+import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.tasks.bundling.*;
 import org.gradle.plugins.ear.Ear;
-import org.gradle.tooling.internal.outcomes.DefaultFileBuildOutcome;
-import org.gradle.tooling.model.internal.outcomes.FileBuildOutcome;
+import org.gradle.tooling.internal.outcomes.DefaultGradleFileBuildOutcome;
+import org.gradle.tooling.model.internal.outcomes.GradleFileBuildOutcome;
 
+import java.net.URI;
 import java.util.Set;
 
 import static org.gradle.tooling.internal.provider.FileOutcomeIdentifier.*;
 
-public class PublishArtifactToFileBuildOutcomeTransformer implements Transformer<FileBuildOutcome, PublishArtifact> {
+public class PublishArtifactToFileBuildOutcomeTransformer {
 
-    public FileBuildOutcome transform(PublishArtifact artifact) {
+    public GradleFileBuildOutcome transform(PublishArtifact artifact, Project project) {
+        String id = getId(artifact, project);
         String taskPath = getTaskPath(artifact);
+        String description = getDescription(artifact);
         String typeIdentifier = getTypeIdentifier(artifact);
-        return new DefaultFileBuildOutcome(artifact.getFile(), typeIdentifier, taskPath);
+
+        return new DefaultGradleFileBuildOutcome(id, description, taskPath, artifact.getFile(), typeIdentifier);
+    }
+
+    private String getId(PublishArtifact artifact, Project project) {
+        // Assume that each artifact points to a unique file, and use the relative path from the project as the id
+        URI artifactUri = artifact.getFile().toURI();
+        URI projectDirUri = project.getProjectDir().toURI();
+        URI relativeUri = projectDirUri.relativize(artifactUri);
+        return relativeUri.getPath();
+    }
+
+    private String getDescription(PublishArtifact artifact) {
+        return String.format("Publish artifact '%s'", artifact.toString());
     }
 
     private String getTypeIdentifier(PublishArtifact artifact) {
@@ -67,12 +83,16 @@ public class PublishArtifactToFileBuildOutcomeTransformer implements Transformer
     }
 
     private String getTaskPath(PublishArtifact artifact) {
-        String taskPath = null;
-        Set<? extends Task> tasks = artifact.getBuildDependencies().getDependencies(null);
-        if (!tasks.isEmpty()) {
-            taskPath = tasks.iterator().next().getPath();
+        if (artifact instanceof ArchivePublishArtifact) {
+            return ((ArchivePublishArtifact) artifact).getArchiveTask().getPath();
+        } else {
+            String taskPath = null;
+            Set<? extends Task> tasks = artifact.getBuildDependencies().getDependencies(null);
+            if (!tasks.isEmpty()) {
+                taskPath = tasks.iterator().next().getPath();
+            }
+            return taskPath;
         }
-        return taskPath;
     }
 
 }

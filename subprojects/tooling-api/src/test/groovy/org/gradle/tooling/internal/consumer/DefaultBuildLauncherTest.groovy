@@ -27,6 +27,27 @@ class DefaultBuildLauncherTest extends ConcurrentSpecification {
     final DefaultBuildLauncher launcher = new DefaultBuildLauncher(protocolConnection, parameters)
 
     def buildDelegatesToProtocolConnection() {
+        ResultHandler<Void> handler = Mock()
+
+        when:
+        launcher.run(handler)
+
+        then:
+        1 * protocolConnection.run(Void.class, !null, !null) >> { args ->
+            def params = args[1]
+            assert params.tasks == []
+            assert params.standardOutput == null
+            assert params.standardError == null
+            assert params.progressListener != null
+            def wrappedHandler = args[2]
+            wrappedHandler.onComplete(null)
+        }
+        1 * handler.onComplete(null)
+        0 * protocolConnection._
+        0 * handler._
+    }
+
+    def canConfigureTheOperation() {
         Task task1 = task(':task1')
         Task task2 = task(':task2')
         ResultHandler<Void> handler = Mock()
@@ -35,13 +56,13 @@ class DefaultBuildLauncherTest extends ConcurrentSpecification {
         launcher.forTasks(task1, task2).run(handler)
 
         then:
-        1 * protocolConnection.executeBuild(!null, !null) >> { args ->
-            def params = args[0]
+        1 * protocolConnection.run(Void.class, !null, !null) >> { args ->
+            def params = args[1]
             assert params.tasks == [':task1', ':task2']
             assert params.standardOutput == null
             assert params.standardError == null
             assert params.progressListener != null
-            def wrappedHandler = args[1]
+            def wrappedHandler = args[2]
             wrappedHandler.onComplete(null)
         }
         1 * handler.onComplete(null)
@@ -60,11 +81,11 @@ class DefaultBuildLauncherTest extends ConcurrentSpecification {
         launcher.run(handler)
 
         then:
-        1 * protocolConnection.executeBuild(!null, !null) >> { args ->
-            def params = args[0]
+        1 * protocolConnection.run(Void.class, !null, !null) >> { args ->
+            def params = args[1]
             assert params.standardOutput == stdout
             assert params.standardError == stderr
-            def wrappedHandler = args[1]
+            def wrappedHandler = args[2]
             wrappedHandler.onComplete(null)
         }
     }
@@ -77,8 +98,8 @@ class DefaultBuildLauncherTest extends ConcurrentSpecification {
         launcher.run(handler)
 
         then:
-        1 * protocolConnection.executeBuild(!null, !null) >> { args ->
-            def wrappedHandler = args[1]
+        1 * protocolConnection.run(Void.class, !null, !null) >> { args ->
+            def wrappedHandler = args[2]
             wrappedHandler.onFailure(failure)
         }
         1 * handler.onFailure(!null) >> { args ->
@@ -101,8 +122,8 @@ class DefaultBuildLauncherTest extends ConcurrentSpecification {
         }
 
         then:
-        1 * protocolConnection.executeBuild(!null, !null) >> { args ->
-            def handler = args[1]
+        1 * protocolConnection.run(Void.class, !null, !null) >> { args ->
+            def handler = args[2]
             supplyResult.callbackLater {
                 handler.onComplete(null)
             }
@@ -122,8 +143,8 @@ class DefaultBuildLauncherTest extends ConcurrentSpecification {
         then:
         GradleConnectionException e = thrown()
         e.cause == failure
-        1 * protocolConnection.executeBuild(!null, !null) >> { args ->
-            def handler = args[1]
+        1 * protocolConnection.run(Void.class, !null, !null) >> { args ->
+            def handler = args[2]
             supplyResult.callbackLater {
                 handler.onFailure(failure)
             }

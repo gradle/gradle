@@ -29,7 +29,7 @@ class AdaptedConnectionTest extends Specification {
         ProjectVersion3 model = Mock()
 
         when:
-        def result = connection.getModel(ProjectVersion3.class, parameters)
+        def result = connection.run(ProjectVersion3.class, parameters)
 
         then:
         result == model
@@ -39,9 +39,9 @@ class AdaptedConnectionTest extends Specification {
         0 * target._
     }
 
-    def "runs build using run() method"() {
+    def "runs build using executeBuild() method"() {
         when:
-        connection.executeBuild(parameters)
+        connection.run(Void.class, parameters)
 
         then:
         1 * target.executeBuild(parameters, parameters)

@@ -20,7 +20,7 @@ import com.google.common.collect.Lists;
 import org.gradle.tooling.internal.protocol.InternalProjectOutcomes;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
-import org.gradle.tooling.model.internal.outcomes.BuildOutcome;
+import org.gradle.tooling.model.internal.outcomes.GradleBuildOutcome;
 import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes;
 
 import java.io.File;
@@ -32,12 +32,12 @@ public class DefaultProjectOutcomes implements InternalProjectOutcomes, ProjectO
     private final String projectPath;
     private final String description;
     private final File projectDirectory;
-    private final DomainObjectSet<? extends BuildOutcome> outcomes;
+    private final DomainObjectSet<? extends GradleBuildOutcome> outcomes;
     private final ProjectOutcomes parent;
     private final List<ProjectOutcomes> children = Lists.newArrayList();
 
     public DefaultProjectOutcomes(String name, String projectPath, String description, File projectDirectory,
-                                  DomainObjectSet<? extends BuildOutcome> outcomes, ProjectOutcomes parent) {
+                                  DomainObjectSet<? extends GradleBuildOutcome> outcomes, ProjectOutcomes parent) {
         this.name = name;
         this.projectPath = projectPath;
         this.description = description;
@@ -62,7 +62,7 @@ public class DefaultProjectOutcomes implements InternalProjectOutcomes, ProjectO
         return projectDirectory;
     }
 
-    public DomainObjectSet<? extends BuildOutcome> getOutcomes() {
+    public DomainObjectSet<? extends GradleBuildOutcome> getOutcomes() {
         return outcomes;
     }
 

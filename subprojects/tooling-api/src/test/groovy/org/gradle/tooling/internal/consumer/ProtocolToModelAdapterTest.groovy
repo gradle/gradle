@@ -22,9 +22,9 @@ interface TestModel {
 
     TestProject getProject()
 
-    boolean isProjectSupported()
+    boolean isConfigSupported()
 
-    TestProject getProject(TestProject defaultValue)
+    String getConfig(String defaultValue)
 
     DomainObjectSet<? extends TestProject> getChildren()
 }
@@ -39,6 +39,8 @@ interface TestProtocolModel {
     TestProtocolProject getProject()
 
     Iterable<? extends TestProtocolProject> getChildren()
+
+    String getConfig();
 }
 
 interface PartialTestProtocolModel {
@@ -47,4 +49,20 @@ interface PartialTestProtocolModel {
 
 interface TestProtocolProject {
     String getName()
+}
+
+class ConfigMixin {
+    TestModel model
+
+    ConfigMixin(TestModel model) {
+        this.model = model
+    }
+
+    String getConfig(String value) {
+        return "[${model.getConfig(value)}]"
+    }
+
+    String getName() {
+        return "[${model.name}]"
+    }
 }

@@ -42,7 +42,7 @@ public interface ConnectionVersion4 {
      *
      * @throws UnsupportedOperationException When the given model type is not supported.
      * @throws IllegalStateException When this connection has been stopped.
-     * @deprecated Use {@link BuildActionRunner#run(Class, BuildParametersVersion1, BuildOperationParametersVersion1)} instead.
+     * @deprecated Use {@link BuildActionRunner#run(Class, BuildOperationParametersVersion1)} instead.
      */
     @Deprecated
     ProjectVersion3 getModel(Class<? extends ProjectVersion3> type, BuildOperationParametersVersion1 operationParameters) throws UnsupportedOperationException, IllegalStateException;
@@ -52,7 +52,7 @@ public interface ConnectionVersion4 {
      *
      * @param buildParameters The parameters for the build.
      * @throws IllegalStateException When this connection has been stopped.
-     * @deprecated Use {@link BuildActionRunner#run(Class, BuildParametersVersion1, BuildOperationParametersVersion1)} instead.
+     * @deprecated Use {@link BuildActionRunner#run(Class, BuildOperationParametersVersion1)} instead.
      */
     @Deprecated
     void executeBuild(BuildParametersVersion1 buildParameters, BuildOperationParametersVersion1 operationParameters) throws IllegalStateException;

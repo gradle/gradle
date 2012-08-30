@@ -28,10 +28,14 @@ import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.internal.OutputEventRenderer;
 import org.gradle.logging.internal.logback.SimpleLogbackLoggingConfigurer;
+import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.tooling.internal.build.DefaultBuildEnvironment;
+import org.gradle.tooling.internal.consumer.protocoladapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.protocol.*;
-import org.gradle.tooling.internal.provider.input.AdaptedOperationParameters;
-import org.gradle.tooling.internal.provider.input.ProviderOperationParameters;
+import org.gradle.tooling.internal.provider.connection.AdaptedOperationParameters;
+import org.gradle.tooling.internal.provider.connection.BuildLogLevelMixIn;
+import org.gradle.tooling.internal.provider.connection.ProviderBuildResult;
+import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
@@ -44,6 +48,7 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConnection.class);
     private final EmbeddedExecuterSupport embeddedExecuterSupport;
     private final SimpleLogbackLoggingConfigurer loggingConfigurer = new SimpleLogbackLoggingConfigurer();
+    private final ProtocolToModelAdapter adapter = new ProtocolToModelAdapter();
 
     public DefaultConnection() {
         LOGGER.debug("Provider implementation created.");
@@ -78,21 +83,7 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner 
     public void executeBuild(final BuildParametersVersion1 buildParameters,
                              BuildOperationParametersVersion1 operationParameters) {
         logTargetVersion();
-        AdaptedOperationParameters adaptedParams = new AdaptedOperationParameters(operationParameters, buildParameters);
-        run(new ExecuteBuildAction(), adaptedParams);
-    }
-
-    private void logTargetVersion() {
-        LOGGER.info("Tooling API uses target gradle version:" + " {}.", GradleVersion.current().getVersion());
-    }
-
-    public <T> T run(Class<T> type, BuildParametersVersion1 buildParameters, BuildOperationParametersVersion1 operationParameters) throws UnsupportedOperationException, IllegalStateException {
-        if (buildParameters == null) {
-            return getTheModel(type, operationParameters);
-        } else {
-            executeBuild(buildParameters, operationParameters);
-            return null;
-        }
+        run(new ExecuteBuildAction(), new AdaptedOperationParameters(operationParameters, buildParameters.getTasks()));
     }
 
     @Deprecated
@@ -103,11 +94,35 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner 
     @Deprecated
     public <T> T getTheModel(Class<T> type, BuildOperationParametersVersion1 parameters) {
         logTargetVersion();
-        ProviderOperationParameters adaptedParameters = new AdaptedOperationParameters(parameters);
+        return getModel(type, new AdaptedOperationParameters(parameters));
+    }
+
+    public <T> BuildResult<T> run(Class<T> type, BuildParameters buildParameters) throws UnsupportedOperationException, IllegalStateException {
+        ProviderOperationParameters providerParameters = adapter.adapt(ProviderOperationParameters.class, buildParameters, BuildLogLevelMixIn.class);
+        List<String> tasks = providerParameters.getTasks();
+        if (type.equals(Void.class) && tasks == null) {
+            throw new IllegalArgumentException("No model type or tasks specified.");
+        }
+
+        final T result;
+        if (tasks == null) {
+            result = getModel(type, providerParameters);
+        } else {
+            if (!type.equals(Void.class)) {
+                throw new UnsupportedOperationException(String.format("Don't know how to build model of type %s from the build result.", type.getSimpleName()));
+            }
+            run(new ExecuteBuildAction(), providerParameters);
+            result = null;
+        }
+
+        return new ProviderBuildResult<T>(result);
+    }
+
+    private <T> T getModel(Class<T> type, ProviderOperationParameters parameters) {
         if (type == InternalBuildEnvironment.class) {
 
             //we don't really need to launch gradle to acquire information needed for BuildEnvironment
-            DaemonParameters daemonParameters = init(adaptedParameters);
+            DaemonParameters daemonParameters = init(parameters);
             DefaultBuildEnvironment out = new DefaultBuildEnvironment(
                 GradleVersion.current().getVersion(),
                 daemonParameters.getEffectiveJavaHome(),
@@ -116,7 +131,11 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner 
             return type.cast(out);
         }
         DelegatingBuildModelAction<T> action = new DelegatingBuildModelAction<T>(type);
-        return run(action, adaptedParameters);
+        return run(action, parameters);
+    }
+
+    private void logTargetVersion() {
+        LOGGER.info("Tooling API uses target gradle version:" + " {}.", GradleVersion.current().getVersion());
     }
 
     private <T> T run(GradleLauncherAction<T> action, ProviderOperationParameters operationParameters) {
@@ -135,7 +154,7 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner 
         } else {
             loggingServices = LoggingServiceRegistry.newEmbeddableLogging();
             loggingServices.get(OutputEventRenderer.class).configure(operationParameters.getBuildLogLevel());
-            DaemonClientServices clientServices = new DaemonClientServices(loggingServices, daemonParams, operationParameters.getStandardInput());
+            DaemonClientServices clientServices = new DaemonClientServices(loggingServices, daemonParams, operationParameters.getStandardInput(SafeStreams.emptyInput()));
             executer = clientServices.get(DaemonClient.class);
         }
         Factory<LoggingManagerInternal> loggingManagerFactory = loggingServices.getFactory(LoggingManagerInternal.class);
@@ -163,4 +182,5 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner 
         }
         return daemonParams;
     }
+
 }

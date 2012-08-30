@@ -51,19 +51,10 @@ public class ProgressLoggingConnection implements ConsumerConnection {
         return connection.getVersionDetails();
     }
 
-    public void executeBuild(final ConsumerOperationParameters operationParameters) {
-        run("Execute build", operationParameters, new BuildAction<Void>() {
-            public Void run(ConsumerConnection connection) {
-                connection.executeBuild(operationParameters);
-                return null;
-            }
-        });
-    }
-
-    public <T> T getModel(final Class<T> type, final ConsumerOperationParameters operationParameters) {
-        return run("Load projects", operationParameters, new BuildAction<T>() {
+    public <T> T run(final Class<T> type, final ConsumerOperationParameters operationParameters) {
+        return run("Build", operationParameters, new BuildAction<T>() {
             public T run(ConsumerConnection connection) {
-                return connection.getModel(type, operationParameters);
+                return connection.run(type, operationParameters);
             }
         });
     }

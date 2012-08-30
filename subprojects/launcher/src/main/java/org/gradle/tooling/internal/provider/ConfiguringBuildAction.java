@@ -25,10 +25,11 @@ import org.gradle.initialization.GradleLauncherAction;
 import org.gradle.launcher.exec.InitializationAware;
 import org.gradle.logging.ShowStacktrace;
 import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException;
-import org.gradle.tooling.internal.provider.input.ProviderOperationParameters;
+import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.List;
 
 class ConfiguringBuildAction<T> implements GradleLauncherAction<T>, InitializationAware, Serializable {
@@ -47,7 +48,7 @@ class ConfiguringBuildAction<T> implements GradleLauncherAction<T>, Initializati
         this.projectDirectory = parameters.getProjectDir();
         this.searchUpwards = parameters.isSearchUpwards();
         this.buildLogLevel = parameters.getBuildLogLevel();
-        this.arguments = parameters.getArguments();
+        this.arguments = parameters.getArguments(Collections.<String>emptyList());
         this.tasks = parameters.getTasks();
         this.action = action;
     }

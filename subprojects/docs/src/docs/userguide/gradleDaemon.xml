@@ -128,10 +128,9 @@
     </section>
 
     <section id="sec:daemon_properties">
-        <title>Daemon properties</title>
-        <para>Some daemon settings can be configured in <filename>gradle.properties</filename>.
-            For example, jvm args - memory settings or the java home.
-            Please find more information in <xref linkend="sec:gradle_properties_and_system_properties"/>
+        <title>Configuring the daemon</title>
+        <para>Some daemon settings, such as JVM arguments, memory settings or the Java home, can be configured.
+            Please find more information in <xref linkend="sec:gradle_configuration_properties"/>
         </para>
     </section>
 

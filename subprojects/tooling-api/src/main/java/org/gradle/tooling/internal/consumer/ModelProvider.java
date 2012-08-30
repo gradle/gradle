@@ -39,21 +39,19 @@ public class ModelProvider {
             VersionOnlyBuildEnvironment out = new VersionOnlyBuildEnvironment(version.getVersion());
             return type.cast(out);
         }
-        if (version.clientHangsOnEarlyDaemonFailure()) {
+        if (version.clientHangsOnEarlyDaemonFailure() && version.isPostM6Model(type)) {
             //those version require special handling because of the client hanging bug
             //it is due to the exception handing on the daemon side in M5 and M6
-            if (version.isPostM6Model(type)) {
-                String message = String.format("I don't know how to build a model of type '%s'.", type.getSimpleName());
-                throw new UnsupportedOperationException(message);
-            }
+            String message = String.format("I don't know how to build a model of type '%s'.", type.getSimpleName());
+            throw new UnsupportedOperationException(message);
         }
         if (type == InternalGradleProject.class && !version.supportsGradleProjectModel()) {
             //we broke compatibility around M9 wrt getting the tasks of a project (issue GRADLE-1875)
             //this patch enables getting gradle tasks for target gradle version pre M5
-            EclipseProjectVersion3 project = connection.getModel(EclipseProjectVersion3.class, operationParameters);
+            EclipseProjectVersion3 project = connection.run(EclipseProjectVersion3.class, operationParameters);
             GradleProject gradleProject = new GradleProjectConverter().convert(project);
             return (T) gradleProject;
         }
-        return connection.getModel(type, operationParameters);
+        return connection.run(type, operationParameters);
     }
 }

@@ -45,19 +45,10 @@ public class DefaultAsyncConnection implements AsyncConnection {
         return connection.getVersionDetails();
     }
 
-    public void executeBuild(final ConsumerOperationParameters operationParameters, ResultHandlerVersion1<? super Void> handler) throws IllegalStateException {
-        runLater(handler, new ConnectionAction<Void>() {
-            public Void run() {
-                connection.executeBuild(operationParameters);
-                return null;
-            }
-        });
-    }
-
-    public <T> void getModel(final Class<T> type, final ConsumerOperationParameters operationParameters, ResultHandlerVersion1<T> handler) throws UnsupportedOperationException, IllegalStateException {
+    public <T> void run(final Class<T> type, final ConsumerOperationParameters operationParameters, ResultHandlerVersion1<? super T> handler) throws UnsupportedOperationException, IllegalStateException {
         runLater(handler, new ConnectionAction<T>() {
             public T run() {
-                return connection.getModel(type, operationParameters);
+                return connection.run(type, operationParameters);
             }
         });
     }

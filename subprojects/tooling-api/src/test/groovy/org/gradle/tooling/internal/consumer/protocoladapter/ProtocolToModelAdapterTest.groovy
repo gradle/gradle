@@ -141,7 +141,7 @@ class ProtocolToModelAdapterTest extends Specification {
         def model = adapter.adapt(TestModel.class, protocolModel)
 
         then:
-        model.projectSupported
+        model.configSupported
     }
 
     def isPropertySupportedMethodReturnsFalseWhenProtocolObjectDoesNotHaveAssociatedProperty() {
@@ -151,43 +151,52 @@ class ProtocolToModelAdapterTest extends Specification {
         def model = adapter.adapt(TestModel.class, protocolModel)
 
         then:
-        !model.projectSupported
+        !model.configSupported
     }
 
-    def overloadedGetterDelegatesToProtocolObject() {
+    def safeGetterDelegatesToProtocolObject() {
         TestProtocolModel protocolModel = Mock()
-        TestProtocolProject project = Mock()
-        TestProject defaultProject = Mock()
 
         given:
-        protocolModel.project >> project
+        protocolModel.config >> "value"
 
         when:
         def model = adapter.adapt(TestModel.class, protocolModel)
 
         then:
-        model.getProject(defaultProject) != defaultProject
+        model.getConfig("default") == "value"
     }
 
-    def overloadedGetterDelegatesReturnsDefaultValueWhenProtocolObjectDoesNotHaveAssociatedProperty() {
+    def safeGetterDelegatesReturnsDefaultValueWhenProtocolObjectDoesNotHaveAssociatedProperty() {
         PartialTestProtocolModel protocolModel = Mock()
-        TestProject project = Mock()
 
         when:
         def model = adapter.adapt(TestModel.class, protocolModel)
 
         then:
-        model.getProject(project) == project
+        model.getConfig("default") == "default"
     }
 
-    def propertyHandlerCanOverrideGetterMethod() {
-        ModelPropertyHandler propertyHandler = Mock()
+    def safeGetterDelegatesReturnsDefaultValueWhenPropertyValueIsNull() {
+        TestProtocolModel protocolModel = Mock()
+
+        given:
+        protocolModel.config >> null
+
+        when:
+        def model = adapter.adapt(TestModel.class, protocolModel)
+
+        then:
+        model.getConfig("default") == "default"
+    }
+
+    def methodInvokerCanOverrideGetterMethod() {
+        MethodInvoker propertyHandler = Mock()
         TestProtocolModel protocolModel = Mock()
         TestProject project = Mock()
 
         given:
-        propertyHandler.shouldHandle({it.name == 'getProject'}, protocolModel) >> true
-        propertyHandler.getPropertyValue({it.name == 'getProject'}, protocolModel) >> project
+        propertyHandler.invoke({it.name == 'getProject'}) >> { MethodInvocation method -> method.result = project }
 
         when:
         def model = adapter.adapt(TestModel.class, protocolModel, propertyHandler)
@@ -199,14 +208,13 @@ class ProtocolToModelAdapterTest extends Specification {
         0 * protocolModel._
     }
 
-    def propertyHandlerCanProvideGetterMethodImplementation() {
-        ModelPropertyHandler propertyHandler = Mock()
+    def methodInvokerCanProvideGetterMethodImplementation() {
+        MethodInvoker propertyHandler = Mock()
         PartialTestProtocolModel protocolModel = Mock()
         TestProject project = Mock()
 
         given:
-        propertyHandler.shouldHandle({it.name == 'getProject'}, protocolModel) >> true
-        propertyHandler.getPropertyValue({it.name == 'getProject'}, protocolModel) >> project
+        propertyHandler.invoke({it.name == 'getProject'}) >> { MethodInvocation method -> method.result = project }
 
         when:
         def model = adapter.adapt(TestModel.class, protocolModel, propertyHandler)
@@ -216,6 +224,36 @@ class ProtocolToModelAdapterTest extends Specification {
 
         and:
         0 * protocolModel._
+    }
+
+    def methodInvokerPropertiesAreCached() {
+        MethodInvoker propertyHandler = Mock()
+        PartialTestProtocolModel protocolModel = Mock()
+        TestProject project = Mock()
+
+        when:
+        def model = adapter.adapt(TestModel.class, protocolModel, propertyHandler)
+        model.project
+        model.project
+
+        then:
+        1 * propertyHandler.invoke(!null) >> { MethodInvocation method -> method.result = project }
+        0 * propertyHandler._
+        0 * protocolModel._
+    }
+
+    def canMixInMethodsFromAnotherBean() {
+        PartialTestProtocolModel protocolModel = Mock()
+
+        given:
+        protocolModel.name >> 'name'
+
+        when:
+        def model = adapter.adapt(TestModel.class, protocolModel, ConfigMixin)
+
+        then:
+        model.name == "[name]"
+        model.getConfig('default') == "[default]"
     }
 
     def "adapts idea dependencies"() {

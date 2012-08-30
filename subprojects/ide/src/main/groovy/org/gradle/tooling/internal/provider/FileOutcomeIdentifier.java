@@ -18,7 +18,7 @@ package org.gradle.tooling.internal.provider;
 
 /**
  * This should not be used as a type in the model. It's just a container for known
- * {@link org.gradle.tooling.model.internal.outcomes.FileBuildOutcome#getTypeIdentifier()} values.
+ * {@link org.gradle.tooling.model.internal.outcomes.GradleFileBuildOutcome#getTypeIdentifier()} values.
  */
 public enum FileOutcomeIdentifier {
     ZIP_ARTIFACT("artifact.zip"),

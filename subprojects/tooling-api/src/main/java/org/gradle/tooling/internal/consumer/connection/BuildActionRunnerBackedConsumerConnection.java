@@ -20,7 +20,7 @@ import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParamete
 import org.gradle.tooling.internal.protocol.BuildActionRunner;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 
-public class BuildActionRunnerBackedConsumerConnection extends AdaptedConnection {
+public class BuildActionRunnerBackedConsumerConnection extends AbstractConsumerConnection {
     private final BuildActionRunner buildActionRunner;
 
     public BuildActionRunnerBackedConsumerConnection(ConnectionVersion4 delegate) {
@@ -28,13 +28,7 @@ public class BuildActionRunnerBackedConsumerConnection extends AdaptedConnection
         buildActionRunner = (BuildActionRunner) delegate;
     }
 
-    @Override
-    public <T> T getModel(Class<T> type, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
-        return buildActionRunner.run(type, null, operationParameters);
-    }
-
-    @Override
-    public void executeBuild(ConsumerOperationParameters operationParameters) throws IllegalStateException {
-        buildActionRunner.run(null, operationParameters, operationParameters);
+    public <T> T run(Class<T> type, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
+        return buildActionRunner.run(type, operationParameters).getModel();
     }
 }

@@ -21,16 +21,20 @@ import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.plugins.ear.Ear
-import org.gradle.tooling.model.internal.outcomes.FileBuildOutcome
+import org.gradle.tooling.model.internal.outcomes.GradleFileBuildOutcome
 import spock.lang.Specification
 import spock.lang.Unroll
 import org.gradle.api.tasks.bundling.*
 
 import static org.gradle.tooling.internal.provider.FileOutcomeIdentifier.*
+import org.gradle.util.HelperUtil
+import org.gradle.api.Project
 
 class PublishArtifactToFileBuildOutcomeTransformerTest extends Specification {
 
     def transformer = new PublishArtifactToFileBuildOutcomeTransformer()
+
+    Project project = HelperUtil.createRootProject()
 
     @Unroll
     "can create outcome for #taskClass archive artifact"(Class<? extends AbstractArchiveTask> taskClass, FileOutcomeIdentifier typeIdentifier) {
@@ -38,11 +42,15 @@ class PublishArtifactToFileBuildOutcomeTransformerTest extends Specification {
         AbstractArchiveTask task = Mock(taskClass)
         PublishArtifact artifact = new ArchivePublishArtifact(task)
 
+        and:
+        _ * task.getArchivePath() >> project.file("file")
+
         when:
-        FileBuildOutcome outcome = transformer.transform(artifact)
+        GradleFileBuildOutcome outcome = transformer.transform(artifact, project)
 
         then:
         outcome.typeIdentifier == typeIdentifier.typeIdentifier
+        outcome.id == "file"
 
         where:
         taskClass           | typeIdentifier
@@ -62,14 +70,16 @@ class PublishArtifactToFileBuildOutcomeTransformerTest extends Specification {
 
         1 * taskDependency.getDependencies(null) >>> [[task] as Set]
         1 * task.getPath() >> "path"
+        _ * artifact.getFile() >> project.file("file")
         1 * artifact.getBuildDependencies() >> taskDependency
 
         when:
-        def outcome = transformer.transform(artifact)
+        def outcome = transformer.transform(artifact, project)
 
         then:
         outcome.typeIdentifier == UNKNOWN_ARTIFACT.typeIdentifier
         outcome.taskPath == "path"
+        outcome.id == "file"
     }
 
 

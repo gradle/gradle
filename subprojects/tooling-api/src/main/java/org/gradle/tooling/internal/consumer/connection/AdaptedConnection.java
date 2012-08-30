@@ -17,48 +17,33 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
-import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
-import org.gradle.tooling.internal.reflect.CompatibleIntrospector;
 
 /**
  * An implementation that wraps a protocol instance that has rigid compatibility policy.
  * <p>
  * by Szczepan Faber, created at: 12/22/11
  */
-public class AdaptedConnection implements ConsumerConnection {
-    private final ConnectionVersion4 delegate;
+public class AdaptedConnection extends AbstractConsumerConnection {
 
     public AdaptedConnection(ConnectionVersion4 delegate) {
-        this.delegate = delegate;
+        super(delegate);
     }
 
-    public void stop() {
-        delegate.stop();
+    public <T> T run(Class<T> type, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
+        if (type.equals(Void.class)) {
+            doRunBuild(operationParameters);
+            return null;
+        } else {
+            return doGetModel(type, operationParameters);
+        }
     }
 
-    public String getDisplayName() {
-        return delegate.getMetaData().getDisplayName();
+    protected  <T> T doGetModel(Class<T> type, ConsumerOperationParameters operationParameters) {
+        return (T) getDelegate().getModel((Class) type, operationParameters);
     }
 
-    public VersionDetails getVersionDetails() {
-        return new VersionDetails(delegate.getMetaData().getVersion());
-    }
-
-    @SuppressWarnings({"deprecation"})
-    public <T> T getModel(Class<T> type, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
-        return (T) delegate.getModel((Class) type, operationParameters);
-    }
-
-    public void executeBuild(ConsumerOperationParameters operationParameters) throws IllegalStateException {
-        delegate.executeBuild(operationParameters, operationParameters);
-    }
-
-    public ConnectionVersion4 getDelegate() {
-        return delegate;
-    }
-
-    public void configureLogging(boolean verboseLogging) {
-        new CompatibleIntrospector(delegate).callSafely("configureLogging", verboseLogging);
+    protected void doRunBuild(ConsumerOperationParameters operationParameters) {
+        getDelegate().executeBuild(operationParameters, operationParameters);
     }
 }

@@ -47,13 +47,8 @@ public class LoggingInitializerConnection implements ConsumerConnection {
         return connection.getVersionDetails();
     }
 
-    public <T> T getModel(Class<T> type, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
+    public <T> T run(Class<T> type, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
         synchronizedLogging.init();
-        return connection.getModel(type, operationParameters);
-    }
-
-    public void executeBuild(ConsumerOperationParameters operationParameters) throws IllegalStateException {
-        synchronizedLogging.init();
-        connection.executeBuild(operationParameters);
+        return connection.run(type, operationParameters);
     }
 }
