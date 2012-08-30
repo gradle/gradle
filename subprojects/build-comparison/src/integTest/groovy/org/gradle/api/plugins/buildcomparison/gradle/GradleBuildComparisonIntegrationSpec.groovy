@@ -142,6 +142,38 @@ class GradleBuildComparisonIntegrationSpec extends WellBehavedPluginTest {
         failure.assertHasCause("Cannot run comparison because both the source and target build are to be executed with a Gradle version older than Gradle 1.2 (source: 1.1, target: 1.1).")
     }
 
+    def "cannot compare when source is older than 1.0"() {
+        when:
+        buildFile << """
+            apply plugin: "java"
+            compareGradleBuilds {
+                sourceBuild.gradleVersion "1.0-rc-1"
+            }
+        """
+
+        then:
+        fails "compareGradleBuilds"
+
+        and:
+        failure.assertHasCause("Builds must be executed with Gradle 1.0 or newer (source: 1.0-rc-1, target: ${distribution.version})")
+    }
+
+    def "cannot compare when target is older than 1.0"() {
+        when:
+        buildFile << """
+            apply plugin: "java"
+            compareGradleBuilds {
+                targetBuild.gradleVersion "1.0-rc-1"
+            }
+        """
+
+        then:
+        fails "compareGradleBuilds"
+
+        and:
+        failure.assertHasCause("Builds must be executed with Gradle 1.0 or newer (source: ${distribution.version}, target: 1.0-rc-1)")
+    }
+
     Document html(path = "build/reports/compareGradleBuilds/index.html") {
         Jsoup.parse(file(path), "utf8")
     }

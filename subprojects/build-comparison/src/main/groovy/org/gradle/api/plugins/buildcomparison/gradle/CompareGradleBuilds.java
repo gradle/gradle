@@ -70,6 +70,8 @@ public class CompareGradleBuilds extends DefaultTask {
     private static final String TMP_FILESTORAGE_PREFIX = "tmp-filestorage";
 
     private static final GradleVersion PROJECT_OUTCOMES_MINIMUM_VERSION = GradleVersion.version("1.2");
+    private static final GradleVersion EXEC_MINIMUM_VERSION = GradleVersion.version("1.0");
+
     private static final String SOURCE_FILESTORE_PREFIX = "source";
     private static final String TARGET_FILESTORE_PREFIX = "target";
 
@@ -143,6 +145,13 @@ public class CompareGradleBuilds extends DefaultTask {
     void compare() {
         if (sourceBuild.equals(targetBuild)) {
             getLogger().warn("The source build and target build are identical. Set '{}.targetBuild.gradleVersion' if you want to compare with a different Gradle version.", getName());
+        }
+
+        if (!canExec(sourceBuild) || !canExec(targetBuild)) {
+             throw new GradleException(String.format(
+                     "Builds must be executed with %s or newer (source: %s, target: %s)",
+                     EXEC_MINIMUM_VERSION, sourceBuild.getGradleVersion(), targetBuild.getGradleVersion()
+             ));
         }
 
         boolean sourceBuildHasOutcomesModel = canObtainProjectOutcomesModel(sourceBuild);
@@ -348,5 +357,10 @@ public class CompareGradleBuilds extends DefaultTask {
             // Special handling for snapshots/RCs of the minimum version
             return versionObject.getVersionBase().equals(PROJECT_OUTCOMES_MINIMUM_VERSION.getVersionBase());
         }
+    }
+
+    private boolean canExec(GradleBuildInvocationSpec spec) {
+        GradleVersion versionObject = GradleVersion.version(spec.getGradleVersion());
+        return versionObject.compareTo(EXEC_MINIMUM_VERSION) >= 0;
     }
 }
