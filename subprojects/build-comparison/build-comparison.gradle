@@ -28,7 +28,7 @@ dependencies {
 }
 
 processResources {
-    into "org/gradle/api/buildcomparison/render/internal/html", {
+    into "org/gradle/api/plugins/buildcomparison/render/internal/html", {
         from { project(":docs").css }
         include "base.css"
     }
