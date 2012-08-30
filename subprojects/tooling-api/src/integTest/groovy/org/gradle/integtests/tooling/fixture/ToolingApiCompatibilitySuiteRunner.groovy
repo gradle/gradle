@@ -125,12 +125,14 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
         }
 
         private ClassLoader getTestClassLoader() {
-            def classLoader = TEST_CLASS_LOADERS.get(toolingApi.version)
-            if (!classLoader) {
-                classLoader = createTestClassLoader()
-                TEST_CLASS_LOADERS.put(toolingApi.version, classLoader)
+            synchronized(ToolingApiCompatibilitySuiteRunner) {
+                def classLoader = TEST_CLASS_LOADERS.get(toolingApi.version)
+                if (!classLoader) {
+                    classLoader = createTestClassLoader()
+                    TEST_CLASS_LOADERS.put(toolingApi.version, classLoader)
+                }
+                return classLoader
             }
-            return classLoader
         }
 
         private ClassLoader createTestClassLoader() {
