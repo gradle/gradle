@@ -49,19 +49,14 @@ public class DefaultGradleBuildInvocationSpec implements GradleBuildInvocationSp
         this.projectDir = projectDir;
     }
 
-    public FileResolver getFileResolver() {
-        return fileResolver;
-    }
-
-    public void setFileResolver(FileResolver fileResolver) {
-        this.fileResolver = fileResolver;
-    }
-
     public String getGradleVersion() {
         return gradleVersion;
     }
 
     public void setGradleVersion(String gradleVersion) {
+        if (gradleVersion == null) {
+            throw new IllegalArgumentException("gradleVersion cannot be null");
+        }
         this.gradleVersion = gradleVersion;
     }
 
@@ -70,7 +65,7 @@ public class DefaultGradleBuildInvocationSpec implements GradleBuildInvocationSp
     }
 
     public void setTasks(Iterable<String> tasks) {
-        this.tasks = Lists.newLinkedList(tasks);
+        this.tasks = tasks == null ? Collections.<String>emptyList() : Lists.newLinkedList(tasks);
     }
 
     public List<String> getArguments() {
@@ -78,7 +73,7 @@ public class DefaultGradleBuildInvocationSpec implements GradleBuildInvocationSp
     }
 
     public void setArguments(Iterable<String> arguments) {
-        this.arguments = Lists.newLinkedList(arguments);
+        this.arguments = arguments == null ? Collections.<String>emptyList() : Lists.newLinkedList(arguments);
     }
 
     @Override
