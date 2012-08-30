@@ -40,8 +40,8 @@ public class VersionDetails {
         return gradleVersion.equals(M5) || gradleVersion.equals(M6);
     }
 
-    public <T> boolean isPostM6Model(Class<T> internalModelType) {
-        return !ModelMapping.getModelsUpToM6().containsValue(internalModelType);
+    public boolean isPostM6Model(Class<?> internalModelType) {
+        return !ModelMapping.getModelsUpToM6().containsValue(internalModelType) && internalModelType != Void.class;
     }
 
     public boolean supportsConfiguringJavaHome() {
