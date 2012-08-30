@@ -46,6 +46,7 @@ import org.gradle.tooling.model.Model;
  * <p>All implementations of {@code ProjectConnection} are thread-safe, and may be shared by any number of threads.</p>
  *
  * <p>All notifications from a given {@code ProjectConnection} instance are delivered by a single thread at a time. Note, however, that the delivery thread may change over time.</p>
+ * @since 1.0-milestone-3
  */
 public interface ProjectConnection {
     /**
@@ -62,6 +63,7 @@ public interface ProjectConnection {
      * @throws BuildException On some failure executing the Gradle build, in order to build the model.
      * @throws GradleConnectionException On some other failure using the connection.
      * @throws IllegalStateException When this connection has been closed or is closing.
+     * @since 1.0-milestone-3
      */
     <T extends Model> T getModel(Class<T> viewType) throws UnsupportedVersionException,
             UnknownModelException, BuildException, GradleConnectionException, IllegalStateException;
@@ -75,6 +77,7 @@ public interface ProjectConnection {
      * @throws IllegalStateException When this connection has been closed or is closing.
      * @throws UnknownModelException When you are building a model unknown to the Tooling API,
      *  for example you attempt to build a model of a type does not come from the Tooling API.
+     * @since 1.0-milestone-3
      */
     <T extends Model> void getModel(Class<T> viewType, ResultHandler<? super T> handler) throws IllegalStateException, UnknownModelException;
 
@@ -82,6 +85,7 @@ public interface ProjectConnection {
      * Creates a launcher which can be used to execute a build.
      *
      * @return The launcher.
+     * @since 1.0-milestone-3
      */
     BuildLauncher newBuild();
 
@@ -93,11 +97,13 @@ public interface ProjectConnection {
      * @return The builder.
      * @throws UnknownModelException When you are building a model unknown to the Tooling API,
      *  for example you attempt to build a model of a type does not come from the Tooling API.
+     * @since 1.0-milestone-3
      */
     <T extends Model> ModelBuilder<T> model(Class<T> modelType) throws UnknownModelException;
 
     /**
      * Closes this connection. Blocks until any pending operations are complete. Once this method has returned, no more notifications will be delivered by any threads.
+     * @since 1.0-milestone-3
      */
     void close();
 }
