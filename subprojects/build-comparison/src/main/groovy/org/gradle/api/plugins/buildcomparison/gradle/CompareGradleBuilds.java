@@ -42,6 +42,8 @@ import org.gradle.api.plugins.buildcomparison.render.internal.html.*;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.logging.ProgressLogger;
+import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes;
@@ -67,9 +69,12 @@ public class CompareGradleBuilds extends DefaultTask {
     private Object reportDir;
 
     private final FileResolver fileResolver;
+    private final ProgressLoggerFactory progressLoggerFactory;
 
-    public CompareGradleBuilds(FileResolver fileResolver, Instantiator instantiator) {
+    public CompareGradleBuilds(FileResolver fileResolver, ProgressLoggerFactory progressLoggerFactory, Instantiator instantiator) {
         this.fileResolver = fileResolver;
+        this.progressLoggerFactory = progressLoggerFactory;
+
         sourceBuild = instantiator.newInstance(DefaultGradleBuildInvocationSpec.class, fileResolver, getProject().getRootDir());
         sourceBuild.setTasks(DEFAULT_TASKS);
         targetBuild = instantiator.newInstance(DefaultGradleBuildInvocationSpec.class, fileResolver, getProject().getRootDir());
@@ -115,14 +120,22 @@ public class CompareGradleBuilds extends DefaultTask {
 
     @TaskAction
     void compare() {
+        ProgressLogger logger = progressLoggerFactory.newOperation(getClass());
+
         // Build the outcome model and outcomes
+        logger.started("executing source build");
         GradleBuildOutcomeSetTransformer fromOutcomeTransformer = createOutcomeSetTransformer("source");
         ProjectOutcomes fromOutput = generateBuildOutput(getSourceBuild());
+        logger.progress("inspecting source build outcomes");
         Set<BuildOutcome> fromOutcomes = fromOutcomeTransformer.transform(fromOutput);
 
+        logger.progress("executing target build");
         GradleBuildOutcomeSetTransformer toOutcomeTransformer = createOutcomeSetTransformer("target");
         ProjectOutcomes toOutput = generateBuildOutput(getTargetBuild());
+        logger.progress("inspecting target build outcomes");
         Set<BuildOutcome> toOutcomes = toOutcomeTransformer.transform(toOutput);
+
+        logger.progress("preparing for outcomes comparison");
 
         // Infrastructure that we have to register handlers with
         DefaultBuildOutcomeComparatorFactory comparatorFactory = new DefaultBuildOutcomeComparatorFactory();
@@ -144,11 +157,17 @@ public class CompareGradleBuilds extends DefaultTask {
         BuildComparisonSpecFactory specFactory = new BuildComparisonSpecFactory(compositeAssociator);
         BuildComparisonSpec comparisonSpec = specFactory.createSpec(fromOutcomes, toOutcomes);
 
+        logger.progress("comparing build outcomes");
+
         // Compare
         BuildComparator buildComparator = new DefaultBuildComparator(comparatorFactory);
         BuildComparisonResult result = buildComparator.compareBuilds(comparisonSpec);
 
+        logger.progress("writing comparison report");
+
         writeReport(result, renderers);
+
+        logger.completed();
     }
 
     private GradleBuildOutcomeSetTransformer createOutcomeSetTransformer(String filesPath) {
@@ -157,6 +176,7 @@ public class CompareGradleBuilds extends DefaultTask {
 
     private ProjectOutcomes generateBuildOutput(GradleBuildInvocationSpec spec) {
         GradleVersion gradleVersion = GradleVersion.version(spec.getGradleVersion());
+
         GradleConnector connector = GradleConnector.newConnector().forProjectDirectory(spec.getProjectDir());
         connector.useGradleUserHomeDir(getProject().getGradle().getStartParameter().getGradleUserHomeDir());
         if (gradleVersion.equals(GradleVersion.current())) {
@@ -164,6 +184,7 @@ public class CompareGradleBuilds extends DefaultTask {
         } else {
             connector.useGradleVersion(gradleVersion.getVersion());
         }
+
         ProjectConnection connection = connector.connect();
         try {
             List<String> tasksList = spec.getTasks();
