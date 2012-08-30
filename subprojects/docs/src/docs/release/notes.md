@@ -98,9 +98,37 @@ for <a href="javadoc/org/gradle/api/artifacts/ResolvedConfiguration.html#getReso
 
 **The new resolution API is not stable yet and may change with the next releases. Therefore you will get a warning when you are using it.**
 
-### Build comparison plugin (unstable)
+### Build Comparison (Gradle upgrade assistance)
 
-To find out more about our plans for this plugin, have a read of the [build-migration-verification](https://github.com/gradle/gradle/blob/master/design-docs/build-migration-verification.md) specification.
+Gradle 1.2 delivers the first iteration of our support for comparing the _outcomes_ (e.g. the produced binary archives) of two builds. There are several reasons why you may want to compare the outcomes of two builds. You may want to compare: 
+
+* A build with a newer version of Gradle than it's currently using.
+* A Gradle build with a build executed by another tool (e.g. Apache Ant, Apache Maven).
+* The same Gradle build, with the same version, before and after a change to the build.
+
+The build comparison support manages the execution of the “source” build and the “target” build, the association of outcomes between the two, the comparison of the outcomes and generation of a report that identifies any encountered differences. You can then use this report to go ahead with the Gradle upgrade, build system migration or build configuration change with confidence that the outcomes are identical, or that the differences are acceptable.
+
+For Gradle 1.2, we have focussed on supporting the case of comparing the current build with a newer Gradle version and zip file binary archive outcomes (e.g. zip, jar, war, ear etc.). This feature will continue to evolve to encompass comparing more kinds of outcomes and smart integration with other build systems (such as Apache Maven) for convenient comparisons. 
+
+See the new [User Guide chapter](userguide/comparing_builds.html) for more detail on this new capability.
+
+#### How can I use it to try new Gradle versions?
+
+You simply add a plugin and configure the comparison task. 
+
+    apply plugin: 'compare-gradle-builds'
+    
+    compareGradleBuilds {
+      targetBuild.gradleVersion "1.3"
+    }
+
+(note: Gradle 1.3 is unreleased at this time, so the above will not work. You can use 1.2 as the value in the meantime to play with this feature though)
+
+Then simply…
+
+<pre><tt>./gradlew compareGradleBuilds</tt></pre>
+
+If there are _any_ differences found, a link to the HTML report identifying the differences will be given in the output.
 
 ### Bootstrap plugin (experimental)
 
