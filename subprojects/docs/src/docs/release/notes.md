@@ -44,12 +44,6 @@ discover as many failures as possible with a single build execution.
 
 Thanks to a contribution from [Justin Ryan](https://github.com/quidryan), the FindBugs plugin now supports more configuration options.
 
-### Documentation improvements
-
-Our documentation has received a facelift to match our new style. Check out the new look [DSL Reference](dsl/index.html) and [User Guide](userguide/userguide.html).
-
-The [DSL Reference](dsl/index.html) now indicates which features are deprecated or experimental.
-
 ### HTTP requests now provide Gradle related version information
 
 Gradle, the Gradle Wrapper and the Gradle Tooling API now provide version information in the `User-Agent` header whenever HTTP resources are accessed.
@@ -64,6 +58,12 @@ The `User-Agent` header now includes information about
 * The Java version (vendor, version).
 
 An example for a Gradle generated user-agent string: "**Gradle/1.2 (Mac OS X;10.8;amd64) (Oracle Corporation;1.7.0_04-ea;23.0-b12)**"
+
+### Documentation style improvements
+
+Our documentation has received a facelift to match our new style. Check out the new look [DSL Reference](dsl/index.html) and [User Guide](userguide/userguide.html).
+
+The [DSL Reference](dsl/index.html) now indicates which features are deprecated or experimental.
 
 ## Fixed Issues
 
