@@ -51,6 +51,10 @@ public class PathNormalisingKeyFileStore implements FileStore<String>, FileStore
         return delegate.getTempFile();
     }
 
+    public void moveFilestore(File destination) {
+        delegate.moveFilestore(destination);
+    }
+
     public Set<? extends FileStoreEntry> search(String key) {
         return delegate.search(normalizeSearchPath(key));
     }

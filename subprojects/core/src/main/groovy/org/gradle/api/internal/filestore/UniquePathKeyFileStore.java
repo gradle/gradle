@@ -35,7 +35,7 @@ public class UniquePathKeyFileStore extends PathKeyFileStore {
         if (!destination.exists()) {
             return super.saveIntoFileStore(source, destination, isMove);
         } else {
-            return new DefaultFileStoreEntry<String>(destination);
+            return entryAt(destination);
         }
     }
 }

@@ -91,6 +91,28 @@ class PathKeyFileStoreTest extends Specification {
         store.search("a/b/a").size() == 1
     }
 
+    def "move filestore"() {
+        given:
+        def a = store.move("a", createFile("abc"))
+        def b = store.move("b", createFile("def"))
+
+        expect:
+        a.file == dir.file("fs/a")
+        b.file == dir.file("fs/b")
+
+        when:
+        store.moveFilestore(dir.file("new-store"))
+
+        then:
+        store.baseDir == dir.file("new-store")
+
+        and:
+        a.file == dir.file("new-store/a")
+        b.file == dir.file("new-store/b")
+
+        !dir.file("fs").exists()
+    }
+
     def createFile(String content, String path = "f${pathCounter++}") {
         dir.createFile(path) << content
     }
