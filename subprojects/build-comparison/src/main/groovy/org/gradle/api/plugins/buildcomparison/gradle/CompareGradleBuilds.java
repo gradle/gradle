@@ -171,12 +171,8 @@ public class CompareGradleBuilds extends DefaultTask {
             List<String> argumentsList = getImpliedArguments(spec);
             String[] arguments = argumentsList.toArray(new String[argumentsList.size()]);
 
-            // Get the build outcomes model
-            ProjectOutcomes buildOutcomes = connection.model(ProjectOutcomes.class).withArguments(arguments).get();
-            // Run the build
-            connection.newBuild().withArguments(arguments).forTasks(tasks).run();
-
-            return buildOutcomes;
+            // Run the build and get the build outcomes model
+            return connection.model(ProjectOutcomes.class).withArguments(arguments).forTasks(tasks).get();
         } finally {
             connection.close();
         }
