@@ -15,6 +15,7 @@
  */
 package org.gradle.tooling;
 
+import org.gradle.api.Experimental;
 import org.gradle.tooling.model.Model;
 
 import java.io.File;
@@ -108,6 +109,7 @@ public interface ModelBuilder<T extends Model> extends LongRunningOperation {
      * @param tasks The paths of the tasks to be executed. Relative paths are evaluated relative to the project for which this launcher was created.
      * @return this
      */
+    @Experimental
     ModelBuilder<T> forTasks(String... tasks);
 
     /**

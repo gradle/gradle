@@ -17,10 +17,8 @@
 package org.gradle.tooling.internal.protocol;
 
 /**
- * The parameters for running a build.
- *
- * <p>This is a marker interface. Instances are queried dynamically to see which parameters they support. See {@code ProviderOperationParameters} for details of the methods that provider expects,
- * and {@code ConsumerOperationParameters} for details of what the consumer currently provides.
+ * Mixed into a provider connection, to allow the connection to be configured.
  */
-public interface BuildParameters extends InternalProtocolInterface {
+public interface ConfigurableConnection extends InternalProtocolInterface {
+    void configure(ConnectionParameters parameters);
 }

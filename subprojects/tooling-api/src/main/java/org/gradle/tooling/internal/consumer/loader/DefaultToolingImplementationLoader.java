@@ -23,6 +23,7 @@ import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.connection.*;
+import org.gradle.tooling.internal.consumer.parameters.ConsumerConnectionParameters;
 import org.gradle.tooling.internal.protocol.BuildActionRunner;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 import org.gradle.tooling.internal.protocol.InternalConnection;
@@ -63,6 +64,7 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
             ConnectionVersion4 connection = factory.create();
 
             // Adopting the connection to a refactoring friendly type that the consumer owns
+            ConsumerConnectionParameters connectionParameters = new ConsumerConnectionParameters(verboseLogging);
             AbstractConsumerConnection adaptedConnection;
             if (connection instanceof BuildActionRunner) {
                 adaptedConnection = new BuildActionRunnerBackedConsumerConnection(connection);
@@ -71,7 +73,7 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
             } else {
                 adaptedConnection = new AdaptedConnection(connection);
             }
-            adaptedConnection.configureLogging(verboseLogging);
+            adaptedConnection.configure(connectionParameters);
             return adaptedConnection;
         } catch (UnsupportedVersionException e) {
             throw e;

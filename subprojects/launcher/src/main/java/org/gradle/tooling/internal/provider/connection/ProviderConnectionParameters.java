@@ -14,13 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol;
+package org.gradle.tooling.internal.provider.connection;
 
-/**
- * The parameters for running a build.
- *
- * <p>This is a marker interface. Instances are queried dynamically to see which parameters they support. See {@code ProviderOperationParameters} for details of the methods that provider expects,
- * and {@code ConsumerOperationParameters} for details of what the consumer currently provides.
- */
-public interface BuildParameters extends InternalProtocolInterface {
+public interface ProviderConnectionParameters {
+    boolean getVerboseLogging();
+
+    String getConsumerVersion();
 }

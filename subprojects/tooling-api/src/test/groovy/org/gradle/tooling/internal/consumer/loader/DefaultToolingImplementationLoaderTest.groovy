@@ -36,7 +36,7 @@ class DefaultToolingImplementationLoaderTest extends Specification {
     Distribution distribution = Mock()
     ProgressLoggerFactory loggerFactory = Mock()
 
-    def usesMetaInfServiceToDetermineFactoryImplementation() {
+    def "locates connection implementation using meta-inf service then instantiates and configures the connection"() {
         given:
         def loader = new DefaultToolingImplementationLoader()
         distribution.getToolingImplementationClasspath(loggerFactory) >> new DefaultClassPath(
@@ -54,6 +54,7 @@ class DefaultToolingImplementationLoaderTest extends Specification {
         then:
         adaptedConnection.delegate.class != connectionImplementation //different classloaders
         adaptedConnection.delegate.class.name == connectionImplementation.name
+        adaptedConnection.delegate.configured
 
         and:
         adaptedConnection.class == adapter
@@ -89,7 +90,13 @@ class DefaultToolingImplementationLoaderTest extends Specification {
     }
 }
 
-class TestConnection implements ConnectionVersion4, BuildActionRunner {
+class TestConnection implements ConnectionVersion4, BuildActionRunner, ConfigurableConnection {
+    boolean configured
+
+    void configure(ConnectionParameters parameters) {
+        configured = true
+    }
+
     def <T> BuildResult<T> run(Class<T> type, BuildParameters parameters) {
         throw new UnsupportedOperationException()
     }
@@ -112,6 +119,12 @@ class TestConnection implements ConnectionVersion4, BuildActionRunner {
 }
 
 class TestOldConnection implements InternalConnection {
+    boolean configured
+
+    void configureLogging(boolean verboseLogging) {
+        configured = true
+    }
+
     def <T> T getTheModel(Class<T> type, BuildOperationParametersVersion1 operationParameters) {
         throw new UnsupportedOperationException()
     }
@@ -134,6 +147,12 @@ class TestOldConnection implements InternalConnection {
 }
 
 class TestEvenOlderConnection implements ConnectionVersion4 {
+    boolean configured
+
+    void configureLogging(boolean verboseLogging) {
+        configured = true
+    }
+
     void stop() {
         throw new UnsupportedOperationException()
     }

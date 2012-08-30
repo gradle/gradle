@@ -14,13 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol;
+package org.gradle.tooling.internal.consumer.parameters;
 
-/**
- * The parameters for running a build.
- *
- * <p>This is a marker interface. Instances are queried dynamically to see which parameters they support. See {@code ProviderOperationParameters} for details of the methods that provider expects,
- * and {@code ConsumerOperationParameters} for details of what the consumer currently provides.
- */
-public interface BuildParameters extends InternalProtocolInterface {
+import org.gradle.tooling.internal.protocol.ConnectionParameters;
+import org.gradle.util.GradleVersion;
+
+public class ConsumerConnectionParameters implements ConnectionParameters {
+    private final boolean verboseLogging;
+
+    public ConsumerConnectionParameters(boolean verboseLogging) {
+        this.verboseLogging = verboseLogging;
+    }
+
+    public boolean getVerboseLogging() {
+        return verboseLogging;
+    }
+
+    public String getConsumerVersion() {
+        return GradleVersion.current().getVersion();
+    }
 }

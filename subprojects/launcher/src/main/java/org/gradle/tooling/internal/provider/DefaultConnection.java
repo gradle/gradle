@@ -32,10 +32,7 @@ import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.tooling.internal.build.DefaultBuildEnvironment;
 import org.gradle.tooling.internal.consumer.protocoladapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.protocol.*;
-import org.gradle.tooling.internal.provider.connection.AdaptedOperationParameters;
-import org.gradle.tooling.internal.provider.connection.BuildLogLevelMixIn;
-import org.gradle.tooling.internal.provider.connection.ProviderBuildResult;
-import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
+import org.gradle.tooling.internal.provider.connection.*;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
@@ -44,7 +41,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.util.List;
 
-public class DefaultConnection implements InternalConnection, BuildActionRunner {
+public class DefaultConnection implements InternalConnection, BuildActionRunner, ConfigurableConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConnection.class);
     private final EmbeddedExecuterSupport embeddedExecuterSupport;
     private final SimpleLogbackLoggingConfigurer loggingConfigurer = new SimpleLogbackLoggingConfigurer();
@@ -56,6 +53,11 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner 
         //we can still keep this state:
         embeddedExecuterSupport = new EmbeddedExecuterSupport();
         LOGGER.debug("Embedded executer support created.");
+    }
+
+    public void configure(ConnectionParameters parameters) {
+        ProviderConnectionParameters providerConnectionParameters = new ProtocolToModelAdapter().adapt(ProviderConnectionParameters.class, parameters);
+        configureLogging(providerConnectionParameters.getVerboseLogging());
     }
 
     public void configureLogging(boolean verboseLogging) {

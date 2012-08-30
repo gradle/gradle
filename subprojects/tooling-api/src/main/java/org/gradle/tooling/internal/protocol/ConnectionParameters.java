@@ -17,10 +17,11 @@
 package org.gradle.tooling.internal.protocol;
 
 /**
- * The parameters for running a build.
+ * Initial configuration for a provider connection.
  *
- * <p>This is a marker interface. Instances are queried dynamically to see which parameters they support. See {@code ProviderOperationParameters} for details of the methods that provider expects,
- * and {@code ConsumerOperationParameters} for details of what the consumer currently provides.
+ * <p>This is a mostly-empty interface. Instances are queried dynamically to see which properties they support. See {@code ProviderConnectionParameters} to see the configuration expected by the provider,
+ * and {@link org.gradle.tooling.internal.consumer.parameters.ConsumerConnectionParameters} to see the configuration provided by the consumer.
  */
-public interface BuildParameters extends InternalProtocolInterface {
+public interface ConnectionParameters extends InternalProtocolInterface {
+    String getConsumerVersion();
 }
