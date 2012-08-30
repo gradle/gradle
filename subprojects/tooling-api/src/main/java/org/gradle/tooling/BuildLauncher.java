@@ -72,7 +72,7 @@ import java.io.OutputStream;
  */
 public interface BuildLauncher extends LongRunningOperation {
     /**
-     * Sets the tasks to be executed.
+     * Sets the tasks to be executed. If no tasks are specified, the project's default tasks are executed.
      *
      * @param tasks The paths of the tasks to be executed. Relative paths are evaluated relative to the project for which this launcher was created.
      * @return this
@@ -80,7 +80,9 @@ public interface BuildLauncher extends LongRunningOperation {
     BuildLauncher forTasks(String... tasks);
 
     /**
-     * Sets the tasks to be executed. Note that the supplied tasks do not necessarily belong to the project which this launcher was created for.
+     * Sets the tasks to be executed. If no tasks are specified, the project's default tasks are executed.
+     *
+     * <p>Note that the supplied tasks do not necessarily need to belong to the project which this launcher was created for.
      *
      * @param tasks The tasks to be executed.
      * @return this
@@ -88,7 +90,9 @@ public interface BuildLauncher extends LongRunningOperation {
     BuildLauncher forTasks(Task... tasks);
 
     /**
-     * Sets the tasks to be executed. Note that the supplied tasks do not necessarily belong to the project which this launcher was created for.
+     * Sets the tasks to be executed. If no tasks are specified, the project's default tasks are executed.
+     *
+     * <p>Note that the supplied tasks do not necessarily need to belong to the project which this launcher was created for.
      *
      * @param tasks The tasks to be executed.
      * @return this

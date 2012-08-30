@@ -31,11 +31,10 @@ class DefaultModelBuilderTest extends ConcurrentSpecification {
     final ProtocolToModelAdapter adapter = Mock()
     final ConnectionParameters parameters = Mock()
     final DefaultModelBuilder<GradleProject, ProjectVersion3> builder = new DefaultModelBuilder<GradleProject, ProjectVersion3>(GradleProject, ProjectVersion3, protocolConnection, adapter, parameters)
-    final ConsumerPropertyHandler modelPropertyHandler = Mock()
 
     def getModelDelegatesToProtocolConnectionToFetchModel() {
-        ResultHandler<GradleProject> handler = Mock()
         ResultHandlerVersion1<ProjectVersion3> adaptedHandler
+        ResultHandler<GradleProject> handler = Mock()
         ProjectVersion3 result = Mock()
         GradleProject adaptedResult = Mock()
 
@@ -48,6 +47,36 @@ class DefaultModelBuilderTest extends ConcurrentSpecification {
             assert params.standardOutput == null
             assert params.standardError == null
             assert params.progressListener != null
+            assert params.tasks == null
+            adaptedHandler = args[2]
+        }
+
+        when:
+        adaptedHandler.onComplete(result)
+
+        then:
+        1 * protocolConnection.versionDetails
+        1 * adapter.adapt(GradleProject.class, result, _ as ConsumerPropertyHandler) >> adaptedResult
+        1 * handler.onComplete(adaptedResult)
+        0 * _._
+    }
+
+    def canConfigureTheOperation() {
+        ResultHandler<GradleProject> handler = Mock()
+        ResultHandlerVersion1<ProjectVersion3> adaptedHandler
+        ProjectVersion3 result = Mock()
+        GradleProject adaptedResult = Mock()
+
+        when:
+        builder.forTasks('a', 'b').get(handler)
+
+        then:
+        1 * protocolConnection.run(ProjectVersion3, !null, !null) >> {args ->
+            def params = args[1]
+            assert params.standardOutput == null
+            assert params.standardError == null
+            assert params.progressListener != null
+            assert params.tasks == ['a', 'b']
             adaptedHandler = args[2]
         }
 

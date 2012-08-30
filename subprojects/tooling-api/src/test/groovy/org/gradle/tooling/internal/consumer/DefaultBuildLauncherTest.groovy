@@ -27,6 +27,27 @@ class DefaultBuildLauncherTest extends ConcurrentSpecification {
     final DefaultBuildLauncher launcher = new DefaultBuildLauncher(protocolConnection, parameters)
 
     def buildDelegatesToProtocolConnection() {
+        ResultHandler<Void> handler = Mock()
+
+        when:
+        launcher.run(handler)
+
+        then:
+        1 * protocolConnection.run(Void.class, !null, !null) >> { args ->
+            def params = args[1]
+            assert params.tasks == []
+            assert params.standardOutput == null
+            assert params.standardError == null
+            assert params.progressListener != null
+            def wrappedHandler = args[2]
+            wrappedHandler.onComplete(null)
+        }
+        1 * handler.onComplete(null)
+        0 * protocolConnection._
+        0 * handler._
+    }
+
+    def canConfigureTheOperation() {
         Task task1 = task(':task1')
         Task task2 = task(':task2')
         ResultHandler<Void> handler = Mock()

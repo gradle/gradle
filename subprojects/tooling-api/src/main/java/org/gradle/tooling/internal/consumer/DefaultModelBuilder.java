@@ -15,10 +15,7 @@
  */
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.tooling.GradleConnectionException;
-import org.gradle.tooling.ModelBuilder;
-import org.gradle.tooling.ProgressListener;
-import org.gradle.tooling.ResultHandler;
+import org.gradle.tooling.*;
 import org.gradle.tooling.internal.consumer.async.AsyncConnection;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.protocoladapter.ConsumerPropertyHandler;
@@ -30,6 +27,7 @@ import org.gradle.tooling.model.internal.Exceptions;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
 
 public class DefaultModelBuilder<T extends Model, P> implements ModelBuilder<T> {
     private final Class<T> modelType;
@@ -99,6 +97,11 @@ public class DefaultModelBuilder<T extends Model, P> implements ModelBuilder<T> 
 
     public DefaultModelBuilder<T, P> addProgressListener(ProgressListener listener) {
         operationParameters.addProgressListener(listener);
+        return this;
+    }
+
+    public DefaultModelBuilder<T, P> forTasks(String... tasks) {
+        operationParameters.setTasks(Arrays.asList(tasks));
         return this;
     }
 
