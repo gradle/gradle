@@ -14,24 +14,27 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r11rc1
+package org.gradle.integtests.tooling.r12rc1
 
 import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes
 
 import org.junit.Rule
 
-@MinToolingApiVersion("current")
-@MinTargetGradleVersion("current")
+@MinToolingApiVersion("1.2-rc-1")
+@MinTargetGradleVersion("1.2-rc-1")
 class ProjectOutcomesModuleCrossVersionSpec extends ToolingApiSpecification {
     @Rule TestResources resources = new TestResources()
 
     def "modelContainsAllArchivesOnTheArchivesConfiguration"() {
         when:
-        def projectOutcomes = withConnection { it.getModel(ProjectOutcomes.class) }
+        def projectOutcomes = withConnection { ProjectConnection connection ->
+            connection.model(ProjectOutcomes.class).forTasks('assemble').get()
+        }
 
         then:
         projectOutcomes instanceof ProjectOutcomes
@@ -43,7 +46,9 @@ class ProjectOutcomesModuleCrossVersionSpec extends ToolingApiSpecification {
 
     def "modelContainsAllProjects"() {
         when:
-        def projectOutcomes = withConnection { it.getModel(ProjectOutcomes.class) }
+        def projectOutcomes = withConnection { ProjectConnection connection ->
+            connection.model(ProjectOutcomes.class).forTasks('assemble').get()
+        }
 
         then:
         projectOutcomes instanceof ProjectOutcomes
