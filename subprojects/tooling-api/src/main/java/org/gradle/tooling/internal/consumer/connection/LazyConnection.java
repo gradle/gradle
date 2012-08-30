@@ -21,7 +21,6 @@ import org.gradle.tooling.internal.consumer.LoggingProvider;
 import org.gradle.tooling.internal.consumer.ModelProvider;
 import org.gradle.tooling.internal.consumer.loader.ToolingImplementationLoader;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
-import org.gradle.tooling.internal.consumer.versioning.FeatureValidator;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 
 import java.util.HashSet;
@@ -47,7 +46,6 @@ public class LazyConnection implements ConsumerConnection {
     boolean verboseLogging;
 
     ModelProvider modelProvider = new ModelProvider();
-    FeatureValidator featureValidator = new FeatureValidator();
 
     public LazyConnection(Distribution distribution, ToolingImplementationLoader implementationLoader, LoggingProvider loggingProvider, boolean verboseLogging) {
         this.distribution = distribution;
@@ -96,7 +94,6 @@ public class LazyConnection implements ConsumerConnection {
     public <T> T run(final Class<T> type, final ConsumerOperationParameters operationParameters) {
         return withConnection(new ConnectionAction<T>() {
             public T run(ConsumerConnection connection) {
-                featureValidator.validate(connection, operationParameters);
                 return modelProvider.provide(connection, type, operationParameters);
             }
         });

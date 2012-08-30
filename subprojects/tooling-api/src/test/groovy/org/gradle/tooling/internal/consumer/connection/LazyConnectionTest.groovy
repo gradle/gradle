@@ -21,7 +21,6 @@ import org.gradle.tooling.internal.consumer.LoggingProvider
 import org.gradle.tooling.internal.consumer.ModelProvider
 import org.gradle.tooling.internal.consumer.loader.ToolingImplementationLoader
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
-import org.gradle.tooling.internal.consumer.versioning.FeatureValidator
 import spock.lang.Specification
 
 class LazyConnectionTest extends Specification {
@@ -37,7 +36,6 @@ class LazyConnectionTest extends Specification {
 
     def setup() {
         connection.modelProvider = Mock(ModelProvider)
-        connection.featureValidator = Mock(FeatureValidator)
     }
 
     def createsConnectionOnDemandToBuildModel() {
@@ -48,7 +46,6 @@ class LazyConnectionTest extends Specification {
         1 * loggingProvider.getProgressLoggerFactory() >> progressLoggerFactory
         1 * implementationLoader.create(distribution, progressLoggerFactory, false) >> consumerConnection
         1 * connection.modelProvider.provide(!null, SomeModel, params)
-        1 * connection.featureValidator.validate(consumerConnection, params)
         0 * _._
     }
 
@@ -74,7 +71,6 @@ class LazyConnectionTest extends Specification {
         1 * implementationLoader.create(distribution, progressLoggerFactory, false) >> consumerConnection
         1 * connection.modelProvider.provide(consumerConnection, SomeModel, params)
         1 * connection.modelProvider.provide(consumerConnection, String, params)
-        2 * connection.featureValidator.validate(consumerConnection, params)
         0 * _._
     }
 
@@ -87,7 +83,6 @@ class LazyConnectionTest extends Specification {
         1 * loggingProvider.getProgressLoggerFactory() >> progressLoggerFactory
         1 * implementationLoader.create(distribution, progressLoggerFactory, false) >> consumerConnection
         1 * connection.modelProvider.provide(consumerConnection, SomeModel, params)
-        1 * connection.featureValidator.validate(consumerConnection, params)
         1 * consumerConnection.stop()
         0 * _._
     }

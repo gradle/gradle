@@ -27,9 +27,14 @@ public class VersionDetails {
     private static final GradleVersion M5 = GradleVersion.version("1.0-milestone-5");
     private static final GradleVersion M6 = GradleVersion.version("1.0-milestone-6");
     private static final GradleVersion M7 = GradleVersion.version("1.0-milestone-7");
+    private static final GradleVersion V1_1 = GradleVersion.version("1.1");
 
     public VersionDetails(String version) {
         gradleVersion = GradleVersion.version(version);
+    }
+
+    public String getVersion() {
+        return gradleVersion.getVersion();
     }
 
     public boolean supportsCompleteBuildEnvironment() {
@@ -56,8 +61,8 @@ public class VersionDetails {
         return gradleVersion.compareTo(M7) > 0;
     }
 
-    public String getVersion() {
-        return gradleVersion.getVersion();
+    public boolean supportsRunningTasksWhenBuildingModel() {
+        return gradleVersion.compareTo(V1_1) > 0;
     }
 
     public boolean supportsGradleProjectModel() {
