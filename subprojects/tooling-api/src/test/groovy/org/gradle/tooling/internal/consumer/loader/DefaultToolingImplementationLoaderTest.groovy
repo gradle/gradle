@@ -23,6 +23,7 @@ import org.gradle.tooling.internal.consumer.Distribution
 import org.gradle.tooling.internal.consumer.connection.AdaptedConnection
 import org.gradle.tooling.internal.consumer.connection.BuildActionRunnerBackedConsumerConnection
 import org.gradle.tooling.internal.consumer.connection.InternalConnectionBackedConsumerConnection
+import org.gradle.tooling.internal.consumer.parameters.ConsumerConnectionParameters
 import org.gradle.tooling.internal.protocol.*
 import org.gradle.util.ClasspathUtil
 import org.gradle.util.GradleVersion
@@ -49,7 +50,7 @@ class DefaultToolingImplementationLoaderTest extends Specification {
                 ClasspathUtil.getClasspathForClass(GradleVersion.class))
 
         when:
-        def adaptedConnection = loader.create(distribution, loggerFactory, true)
+        def adaptedConnection = loader.create(distribution, loggerFactory, new ConsumerConnectionParameters(true))
 
         then:
         adaptedConnection.delegate.class != connectionImplementation //different classloaders
@@ -80,7 +81,7 @@ class DefaultToolingImplementationLoaderTest extends Specification {
         def loader = new DefaultToolingImplementationLoader(cl)
 
         when:
-        loader.create(distribution, loggerFactory, true)
+        loader.create(distribution, loggerFactory, new ConsumerConnectionParameters(true))
 
         then:
         UnsupportedVersionException e = thrown()
@@ -94,7 +95,7 @@ class TestConnection implements ConnectionVersion4, BuildActionRunner, Configura
     boolean configured
 
     void configure(ConnectionParameters parameters) {
-        configured = true
+        configured = parameters.verboseLogging
     }
 
     def <T> BuildResult<T> run(Class<T> type, BuildParameters parameters) {
@@ -122,7 +123,7 @@ class TestOldConnection implements InternalConnection {
     boolean configured
 
     void configureLogging(boolean verboseLogging) {
-        configured = true
+        configured = verboseLogging
     }
 
     def <T> T getTheModel(Class<T> type, BuildOperationParametersVersion1 operationParameters) {
@@ -150,7 +151,7 @@ class TestEvenOlderConnection implements ConnectionVersion4 {
     boolean configured
 
     void configureLogging(boolean verboseLogging) {
-        configured = true
+        configured = verboseLogging
     }
 
     void stop() {

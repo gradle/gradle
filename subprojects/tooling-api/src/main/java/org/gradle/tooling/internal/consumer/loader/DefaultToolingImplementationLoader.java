@@ -48,7 +48,7 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
         this.classLoader = classLoader;
     }
 
-    public ConsumerConnection create(Distribution distribution, ProgressLoggerFactory progressLoggerFactory, boolean verboseLogging) {
+    public ConsumerConnection create(Distribution distribution, ProgressLoggerFactory progressLoggerFactory, ConsumerConnectionParameters connectionParameters) {
         LOGGER.debug("Using tooling provider from {}", distribution.getDisplayName());
         ClassLoader classLoader = createImplementationClassLoader(distribution, progressLoggerFactory);
         ServiceLocator serviceLocator = new ServiceLocator(classLoader);
@@ -64,7 +64,6 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
             ConnectionVersion4 connection = factory.create();
 
             // Adopting the connection to a refactoring friendly type that the consumer owns
-            ConsumerConnectionParameters connectionParameters = new ConsumerConnectionParameters(verboseLogging);
             AbstractConsumerConnection adaptedConnection;
             if (connection instanceof BuildActionRunner) {
                 adaptedConnection = new BuildActionRunnerBackedConsumerConnection(connection);

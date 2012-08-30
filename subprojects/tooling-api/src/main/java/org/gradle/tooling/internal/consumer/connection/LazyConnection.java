@@ -20,6 +20,7 @@ import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.LoggingProvider;
 import org.gradle.tooling.internal.consumer.ModelProvider;
 import org.gradle.tooling.internal.consumer.loader.ToolingImplementationLoader;
+import org.gradle.tooling.internal.consumer.parameters.ConsumerConnectionParameters;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 
@@ -43,7 +44,7 @@ public class LazyConnection implements ConsumerConnection {
     private boolean stopped;
     private ConsumerConnection connection;
 
-    boolean verboseLogging;
+    ConsumerConnectionParameters connectionParameters;
 
     ModelProvider modelProvider = new ModelProvider();
 
@@ -51,7 +52,7 @@ public class LazyConnection implements ConsumerConnection {
         this.distribution = distribution;
         this.implementationLoader = implementationLoader;
         this.loggingProvider = loggingProvider;
-        this.verboseLogging = verboseLogging;
+        this.connectionParameters = new ConsumerConnectionParameters(verboseLogging);
     }
 
     public void stop() {
@@ -118,7 +119,7 @@ public class LazyConnection implements ConsumerConnection {
             if (connection == null) {
                 // Hold the lock while creating the connection. Not generally good form.
                 // In this instance, blocks other threads from creating the connection at the same time
-                connection = implementationLoader.create(distribution, loggingProvider.getProgressLoggerFactory(), verboseLogging);
+                connection = implementationLoader.create(distribution, loggingProvider.getProgressLoggerFactory(), connectionParameters);
             }
             return connection;
         } finally {
