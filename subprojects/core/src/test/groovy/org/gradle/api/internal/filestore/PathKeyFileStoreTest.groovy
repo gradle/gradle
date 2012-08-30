@@ -30,7 +30,7 @@ class PathKeyFileStoreTest extends Specification {
     def pathCounter = 0
 
     def setup() {
-        fsBase = dir.createDir("fs")
+        fsBase = dir.file("fs")
         store = new PathKeyFileStore(fsBase)
     }
 
@@ -111,6 +111,17 @@ class PathKeyFileStoreTest extends Specification {
         b.file == dir.file("new-store/b")
 
         !dir.file("fs").exists()
+    }
+
+    def "can move filestore that doesn't exist yet"() {
+        expect:
+        !store.baseDir.exists()
+
+        when:
+        store.moveFilestore(dir.file("new-filestore"))
+
+        then:
+        notThrown Exception
     }
 
     def createFile(String content, String path = "f${pathCounter++}") {

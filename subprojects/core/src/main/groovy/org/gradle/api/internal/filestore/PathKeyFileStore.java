@@ -76,10 +76,12 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
     }
 
     public void moveFilestore(File destination) {
-        try {
-            FileUtils.moveDirectory(baseDir, destination);
-        } catch (IOException e) {
-            throw new UncheckedException(e);
+        if (baseDir.exists()) {
+            try {
+                FileUtils.moveDirectory(baseDir, destination);
+            } catch (IOException e) {
+                throw new UncheckedException(e);
+            }
         }
 
         baseDir = destination;
