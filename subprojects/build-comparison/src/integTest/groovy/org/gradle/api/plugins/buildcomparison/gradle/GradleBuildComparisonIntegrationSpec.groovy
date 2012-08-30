@@ -51,9 +51,11 @@ class GradleBuildComparisonIntegrationSpec extends WellBehavedPluginTest {
         """
 
         when:
-        run("compareGradleBuilds")
+        fails "compareGradleBuilds"
 
         then:
+        failedBecauseNotIdentical()
+
         def html = html()
 
         // Name of outcome
@@ -74,6 +76,10 @@ class GradleBuildComparisonIntegrationSpec extends WellBehavedPluginTest {
 
         and: // old filestore not around
         !testDir.list().any { it.startsWith(CompareGradleBuilds.TMP_FILESTORAGE_PREFIX) }
+    }
+
+    void failedBecauseNotIdentical() {
+        failure.assertHasCause("The builds were not found to be identical. See the report at: file:///")
     }
 
     def "compare same project"() {
@@ -112,9 +118,11 @@ class GradleBuildComparisonIntegrationSpec extends WellBehavedPluginTest {
         """
 
         when:
-        run "compareGradleBuilds"
+        fails "compareGradleBuilds"
 
         then:
+        failedBecauseNotIdentical()
+
         html().select("p").text() == "This version of Gradle does not understand this kind of build outcome. Running the comparison process from a newer version of Gradle may yield better results."
     }
 

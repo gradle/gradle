@@ -107,6 +107,13 @@ class GeneratedArchiveBuildOutcomeComparatorTest extends Specification {
         compare(existingFrom, notExistingTo).comparisonResultType == FROM_ONLY
         compare(existingFrom, unequal).comparisonResultType == UNEQUAL
         compare(notExistingFrom, notExistingTo).comparisonResultType == NON_EXISTENT
+
+        and:
+        compare(existingFrom, existingTo).outcomesAreIdentical
+        !compare(notExistingFrom, existingTo).outcomesAreIdentical
+        !compare(existingFrom, notExistingTo).outcomesAreIdentical
+        !compare(existingFrom, unequal).outcomesAreIdentical
+        !compare(notExistingFrom, notExistingTo).outcomesAreIdentical
     }
 
     protected GeneratedArchiveBuildOutcomeComparisonResult compare(from, to) {

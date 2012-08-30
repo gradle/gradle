@@ -35,4 +35,10 @@ public interface BuildOutcomeComparisonResult<T extends BuildOutcome> {
      */
     BuildOutcomeAssociation<T> getCompared();
 
+    /**
+     * True if the outcomes are considered to be strictly identical, otherwise false.
+     *
+     * @return True if the outcomes are considered to be strictly identical, otherwise false.
+     */
+    boolean isOutcomesAreIdentical();
 }

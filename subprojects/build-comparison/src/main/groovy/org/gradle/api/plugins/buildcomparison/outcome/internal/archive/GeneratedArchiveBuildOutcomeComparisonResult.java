@@ -61,4 +61,8 @@ public class GeneratedArchiveBuildOutcomeComparisonResult extends BuildOutcomeCo
             return ComparisonResultType.TO_ONLY;
         }
     }
+
+    public boolean isOutcomesAreIdentical() {
+        return getComparisonResultType().equals(ComparisonResultType.EQUAL);
+    }
 }

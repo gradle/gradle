@@ -42,6 +42,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.logging.ConsoleRenderer;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.tooling.GradleConnector;
@@ -199,6 +200,17 @@ public class CompareGradleBuilds extends DefaultTask {
         writeReport(result, renderers);
 
         progressLogger.completed();
+
+        communicateResult(result);
+    }
+
+    private void communicateResult(BuildComparisonResult result) {
+        String reportUrl = new ConsoleRenderer().asClickableFileUrl(getReportFile());
+        if (result.isBuildsAreIdentical()) {
+            getLogger().info("build are identical. report is located at {}", reportUrl);
+        } else {
+            throw new GradleException(String.format("The builds were not found to be identical. See the report at: %s", reportUrl));
+        }
     }
 
     private GradleBuildOutcomeSetTransformer createOutcomeSetTransformer(String filesPath) {

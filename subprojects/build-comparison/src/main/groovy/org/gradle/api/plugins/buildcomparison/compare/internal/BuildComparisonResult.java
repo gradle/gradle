@@ -17,6 +17,8 @@
 package org.gradle.api.plugins.buildcomparison.compare.internal;
 
 import org.gradle.api.plugins.buildcomparison.outcome.internal.BuildOutcome;
+import org.gradle.api.specs.Spec;
+import org.gradle.util.CollectionUtils;
 
 import java.util.List;
 import java.util.Set;
@@ -47,5 +49,18 @@ public class BuildComparisonResult {
 
     public Set<BuildOutcome> getUncomparedTo() {
         return uncomparedTo;
+    }
+
+    public boolean isBuildsAreIdentical() {
+        //noinspection SimplifiableIfStatement
+        if (!getUncomparedFrom().isEmpty() || !getUncomparedTo().isEmpty()) {
+            return false;
+        } else {
+            return CollectionUtils.every(comparisons, new Spec<BuildOutcomeComparisonResult<?>>() {
+                public boolean isSatisfiedBy(BuildOutcomeComparisonResult<?> comparisonResult) {
+                    return comparisonResult.isOutcomesAreIdentical();
+                }
+            });
+        }
     }
 }
