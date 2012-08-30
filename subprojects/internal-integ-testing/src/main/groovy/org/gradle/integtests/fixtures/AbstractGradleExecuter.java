@@ -27,6 +27,10 @@ import java.util.*;
 import static java.util.Arrays.asList;
 
 public abstract class AbstractGradleExecuter implements GradleExecuter {
+
+    // If no explicit timeout is specified, this will be used.
+    private static final int DEFAULT_DAEMON_IDLE_TIMEOUT_SECS = 10;
+
     private final List<String> args = new ArrayList<String>();
     private final List<String> tasks = new ArrayList<String>();
     private File workingDir;
@@ -326,9 +330,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             allArgs.add("--gradle-user-home");
             allArgs.add(userHomeDir.getAbsolutePath());
         }
-        if (daemonIdleTimeoutSecs != null) {
-            allArgs.add("-Dorg.gradle.daemon.idletimeout=" + daemonIdleTimeoutSecs * 1000);
-        }
+        int effectiveDaemonIdleTimeoutSecs = daemonIdleTimeoutSecs == null ? DEFAULT_DAEMON_IDLE_TIMEOUT_SECS : daemonIdleTimeoutSecs;
+        allArgs.add("-Dorg.gradle.daemon.idletimeout=" + effectiveDaemonIdleTimeoutSecs * 1000);
 
         if (daemonBaseDir != null) {
             args.add("-Dorg.gradle.daemon.registry.base=" + daemonBaseDir.getAbsolutePath());
