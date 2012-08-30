@@ -105,13 +105,12 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner 
         }
 
         final T result;
-        if (tasks == null) {
+        if (tasks != null) {
+            run(new ExecuteBuildAction(), providerParameters);
+        }
+        if (!type.equals(Void.class)) {
             result = getModel(type, providerParameters);
         } else {
-            if (!type.equals(Void.class)) {
-                throw new UnsupportedOperationException(String.format("Don't know how to build model of type %s from the build result.", type.getSimpleName()));
-            }
-            run(new ExecuteBuildAction(), providerParameters);
             result = null;
         }
 
