@@ -20,6 +20,7 @@ import groovy.lang.GroovySystem;
 import org.apache.ivy.Ivy;
 import org.apache.tools.ant.Main;
 import org.gradle.api.GradleException;
+import org.gradle.api.Nullable;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.jvm.Jvm;
@@ -159,6 +160,18 @@ public class GradleVersion implements Comparable<GradleVersion> {
 
     public boolean isSnapshot() {
         return versionPart == null || snapshot != null;
+    }
+
+    /**
+     * The base version number of the overall version.
+     *
+     * For example, the version base of '1.2-rc-1' is '1.2'.
+     *
+     * @return The version base, or null if the version is unrecognised.
+     */
+    @Nullable
+    public String getVersionBase() {
+        return versionPart;
     }
 
     private boolean isNonSymbolicNumber() {

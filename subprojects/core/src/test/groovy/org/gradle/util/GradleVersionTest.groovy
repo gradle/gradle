@@ -219,6 +219,19 @@ class GradleVersionTest extends Specification {
         '0.0'                     | '0.9.2'
     }
 
+    def "can get version base"() {
+        expect:
+        GradleVersion.version(v).versionBase == base
+
+        where:
+        v                         | base
+        "1.0"                     | "1.0"
+        "1.0-rc-1"                | "1.0"
+        '0.9-20101220100000+1000' | "0.9"
+        '0.9-20101220100000'      | "0.9"
+        "asdfasd"                 | null
+    }
+
     def prettyPrint() {
         String expectedText = """
 ------------------------------------------------------------
