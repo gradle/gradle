@@ -82,41 +82,44 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
     }
 
     @Deprecated
-    public void executeBuild(final BuildParametersVersion1 buildParameters,
-                             BuildOperationParametersVersion1 operationParameters) {
+    public void executeBuild(BuildParametersVersion1 buildParameters, BuildOperationParametersVersion1 operationParameters) {
         logTargetVersion();
-        run(new ExecuteBuildAction(), new AdaptedOperationParameters(operationParameters, buildParameters.getTasks()));
+        run(Void.class, new AdaptedOperationParameters(operationParameters, buildParameters.getTasks()));
     }
 
     @Deprecated
     public ProjectVersion3 getModel(Class<? extends ProjectVersion3> type, BuildOperationParametersVersion1 parameters) {
-        return getTheModel(type, parameters);
+        logTargetVersion();
+        return run(type, new AdaptedOperationParameters(parameters));
     }
 
     @Deprecated
     public <T> T getTheModel(Class<T> type, BuildOperationParametersVersion1 parameters) {
         logTargetVersion();
-        return getModel(type, new AdaptedOperationParameters(parameters));
+        return run(type, new AdaptedOperationParameters(parameters));
     }
 
     public <T> BuildResult<T> run(Class<T> type, BuildParameters buildParameters) throws UnsupportedOperationException, IllegalStateException {
+        logTargetVersion();
         ProviderOperationParameters providerParameters = adapter.adapt(ProviderOperationParameters.class, buildParameters, BuildLogLevelMixIn.class);
+        T result = run(type, providerParameters);
+        return new ProviderBuildResult<T>(result);
+    }
+
+    private <T> T run(Class<T> type, ProviderOperationParameters providerParameters) {
         List<String> tasks = providerParameters.getTasks();
         if (type.equals(Void.class) && tasks == null) {
             throw new IllegalArgumentException("No model type or tasks specified.");
         }
 
-        final T result;
         if (tasks != null) {
             run(new ExecuteBuildAction(), providerParameters);
         }
-        if (!type.equals(Void.class)) {
-            result = getModel(type, providerParameters);
-        } else {
-            result = null;
-        }
 
-        return new ProviderBuildResult<T>(result);
+        if (type.equals(Void.class)) {
+            return null;
+        }
+        return getModel(type, providerParameters);
     }
 
     private <T> T getModel(Class<T> type, ProviderOperationParameters parameters) {
