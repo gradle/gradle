@@ -17,8 +17,8 @@
 package org.gradle.api.plugins.buildcomparison.gradle.internal;
 
 import com.google.common.collect.Lists;
-import org.gradle.api.plugins.buildcomparison.gradle.GradleBuildInvocationSpec;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.plugins.buildcomparison.gradle.GradleBuildInvocationSpec;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;

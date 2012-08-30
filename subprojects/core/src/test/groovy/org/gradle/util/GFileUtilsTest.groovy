@@ -23,7 +23,7 @@ import spock.lang.Specification
  * by Szczepan Faber, created at: 2/28/12
  */
 class GFileUtilsTest extends Specification {
-    
+
     @Rule TemporaryFolder temp
 
     def "can read the file's tail"() {
@@ -52,4 +52,22 @@ three
         noExceptionThrown()
         dir.exists()
     }
+
+    def "relative path"() {
+        when:
+        def from = new File(fromPath)
+        def to = new File(toPath)
+
+        then:
+        GFileUtils.relativePath(from, to) == path
+
+        where:
+        fromPath | toPath  | path
+        "a"      | "a/b"   | "b"
+        "a"      | "a/b/a" | "b/a"
+        "a"      | "b"     | "../b"
+        "a/b"    | "b"     | "../../b"
+        "a"      | "a"     | ""
+    }
+
 }

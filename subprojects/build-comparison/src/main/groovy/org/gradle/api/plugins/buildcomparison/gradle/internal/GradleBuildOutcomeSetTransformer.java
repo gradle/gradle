@@ -26,6 +26,7 @@ import org.gradle.tooling.internal.provider.FileOutcomeIdentifier;
 import org.gradle.tooling.model.internal.outcomes.GradleFileBuildOutcome;
 import org.gradle.tooling.model.internal.outcomes.GradleBuildOutcome;
 import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes;
+import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.util.Arrays;
@@ -77,7 +78,7 @@ public class GradleBuildOutcomeSetTransformer implements Transformer<Set<BuildOu
             String filestoreDestination = String.format("%s/%s", outcome.getTaskPath(), originalFile.getName());
             FileStoreEntry fileStoreEntry = fileStore.move(filestoreDestination, originalFile);
             File storedFile = fileStoreEntry.getFile();
-            String relativePath = rootProject.getProjectDirectory().toURI().relativize(originalFile.toURI()).getPath();
+            String relativePath = GFileUtils.relativePath(rootProject.getProjectDirectory(), originalFile);
             BuildOutcome buildOutcome = new GeneratedArchiveBuildOutcome(outcome.getTaskPath(), outcome.getDescription(), storedFile, relativePath);
             translatedOutcomes.add(buildOutcome);
         } else {
