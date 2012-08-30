@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.junit.Rule
+import org.gradle.util.TestFile
 
 class GradleBuildComparisonIntegrationSpec extends WellBehavedPluginTest {
     @Rule TestResources testResources
@@ -44,7 +45,6 @@ class GradleBuildComparisonIntegrationSpec extends WellBehavedPluginTest {
         given:
         buildFile << """
             compareGradleBuilds {
-                reportDir "result"
                 sourceBuild.projectDir "sourceBuild"
                 targetBuild { projectDir "targetBuild" }
             }
@@ -54,7 +54,7 @@ class GradleBuildComparisonIntegrationSpec extends WellBehavedPluginTest {
         run("compareGradleBuilds")
 
         then:
-        def html = html("result/index.html")
+        def html = html()
 
         // Name of outcome
         html.select("h3").text() == "Task: “:jar”"
@@ -68,19 +68,18 @@ class GradleBuildComparisonIntegrationSpec extends WellBehavedPluginTest {
         rows["org/gradle/TargetBuildOnlyClass.class"] == "Only exists in Target Build"
 
         and:
-        file("result/files/source").exists()
-        file("result/files/source/_jar").list().toList() == ["testBuild.jar"]
-        file("result/files/target/_jar").list().toList() == ["testBuild.jar"]
+        storedFile("source").exists()
+        storedFile("source/_jar").list().toList() == ["testBuild.jar"]
+        storedFile("target/_jar").list().toList() == ["testBuild.jar"]
+
+        and: // old filestore not around
+        !testDir.list().any { it.startsWith(CompareGradleBuilds.TMP_FILESTORAGE_PREFIX) }
     }
 
     def "compare same project"() {
         given:
         buildFile << """
             apply plugin: "java"
-
-            compareGradleBuilds {
-                reportDir "result"
-            }
         """
 
         file("src/main/java/Thing.java") << "class Thing {}"
@@ -89,7 +88,7 @@ class GradleBuildComparisonIntegrationSpec extends WellBehavedPluginTest {
         run "compareGradleBuilds"
 
         then:
-        html("result/index.html").select("p").text() == "The archives are completely identical."
+        html().select("p").text() == "The archives are completely identical."
     }
 
     def "compare project with unknown outcomes"() {
@@ -100,10 +99,6 @@ class GradleBuildComparisonIntegrationSpec extends WellBehavedPluginTest {
 
             configurations {
                 archives
-            }
-
-            compareGradleBuilds {
-                reportDir "result"
             }
 
             task tarArchive(type: Tar) {
@@ -119,10 +114,14 @@ class GradleBuildComparisonIntegrationSpec extends WellBehavedPluginTest {
         run "compareGradleBuilds"
 
         then:
-        html("result/index.html").select("p").text() == "This version of Gradle does not understand this kind of build outcome. Running the comparison process from a newer version of Gradle may yield better results."
+        html().select("p").text() == "This version of Gradle does not understand this kind of build outcome. Running the comparison process from a newer version of Gradle may yield better results."
     }
 
-    Document html(path) {
+    Document html(path = "build/reports/compareGradleBuilds/index.html") {
         Jsoup.parse(file(path), "utf8")
+    }
+
+    TestFile storedFile(String path, String base = "build/reports/compareGradleBuilds/files") {
+        file("$base/$path")
     }
 }

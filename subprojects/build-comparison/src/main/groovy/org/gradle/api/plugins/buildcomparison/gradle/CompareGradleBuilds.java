@@ -23,6 +23,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.Task;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.filestore.FileStore;
 import org.gradle.api.internal.filestore.PathNormalisingKeyFileStore;
 import org.gradle.api.plugins.buildcomparison.compare.internal.*;
 import org.gradle.api.plugins.buildcomparison.gradle.internal.DefaultGradleBuildInvocationSpec;
@@ -50,6 +51,7 @@ import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes;
+import org.gradle.util.GFileUtils;
 import org.gradle.util.GradleVersion;
 
 import java.io.*;
@@ -65,11 +67,14 @@ import java.util.Set;
 public class CompareGradleBuilds extends DefaultTask {
 
     private static final List<String> DEFAULT_TASKS = Arrays.asList("clean", "assemble");
+    private static final String TMP_FILESTORAGE_PREFIX = "tmp-filestorage";
 
     private final GradleBuildInvocationSpec sourceBuild;
     private final GradleBuildInvocationSpec targetBuild;
 
     private Object reportDir;
+
+    private final FileStore<String> fileStore;
 
     private final FileResolver fileResolver;
     private final ProgressLoggerFactory progressLoggerFactory;
@@ -82,7 +87,9 @@ public class CompareGradleBuilds extends DefaultTask {
         sourceBuild.setTasks(DEFAULT_TASKS);
         targetBuild = instantiator.newInstance(DefaultGradleBuildInvocationSpec.class, fileResolver, getProject().getRootDir());
         targetBuild.setTasks(DEFAULT_TASKS);
-        reportDir = getProject().file(String.format("build-comparisons/%s", getName()));
+
+        File fileStoreTmpBase = fileResolver.resolve(String.format(TMP_FILESTORAGE_PREFIX + "-%s-%s", getName(), System.currentTimeMillis()));
+        fileStore = new PathNormalisingKeyFileStore(fileStoreTmpBase);
 
         // Never up to date
         getOutputs().upToDateWhen(new Spec<Task>() {
@@ -110,7 +117,7 @@ public class CompareGradleBuilds extends DefaultTask {
 
     @OutputDirectory
     public File getReportDir() {
-        return fileResolver.resolve(reportDir);
+        return reportDir == null ? null : fileResolver.resolve(reportDir);
     }
 
     public void setReportDir(Object reportDir) {
@@ -182,7 +189,7 @@ public class CompareGradleBuilds extends DefaultTask {
     }
 
     private GradleBuildOutcomeSetTransformer createOutcomeSetTransformer(String filesPath) {
-        return new GradleBuildOutcomeSetTransformer(new PathNormalisingKeyFileStore(new File(getFileStoreDir(), filesPath)));
+        return new GradleBuildOutcomeSetTransformer(fileStore, filesPath);
     }
 
     private ProjectOutcomes buildProjectOutcomes(GradleBuildInvocationSpec spec) {
@@ -230,13 +237,18 @@ public class CompareGradleBuilds extends DefaultTask {
     }
 
     private void writeReport(BuildComparisonResult result, DefaultBuildOutcomeComparisonResultRendererFactory<HtmlRenderContext> renderers) {
-        File destination = getReportFile();
+        File reportDir = getReportDir();
+        if (reportDir.exists() && reportDir.list().length > 0) {
+            GFileUtils.cleanDirectory(reportDir);
+        }
+
+        fileStore.moveFilestore(getFileStoreDir());
 
         OutputStream outputStream;
         Writer writer;
 
         try {
-            outputStream = FileUtils.openOutputStream(destination);
+            outputStream = FileUtils.openOutputStream(getReportFile());
             writer = new OutputStreamWriter(outputStream, Charset.defaultCharset());
         } catch (IOException e) {
             throw new UncheckedIOException(e);

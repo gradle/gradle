@@ -18,6 +18,8 @@ package org.gradle.api.plugins.buildcomparison.gradle
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.plugins.ReportingBasePlugin
+import org.gradle.api.reporting.ReportingExtension
 
 /**
  * Preconfigures the project to run a gradle build comparison.
@@ -25,6 +27,13 @@ import org.gradle.api.Project
 class CompareGradleBuildsPlugin implements Plugin<Project> {
 
     void apply(Project project) {
+        project.apply(plugin: ReportingBasePlugin)
+        ReportingExtension reportingExtension = project.extensions.findByType(ReportingExtension)
+
+        project.tasks.withType(CompareGradleBuilds) { CompareGradleBuilds task ->
+            task.conventionMapping.map("reportDir") { reportingExtension.file(task.name) }
+        }
+
         project.task("compareGradleBuilds", type: CompareGradleBuilds) {}
     }
 

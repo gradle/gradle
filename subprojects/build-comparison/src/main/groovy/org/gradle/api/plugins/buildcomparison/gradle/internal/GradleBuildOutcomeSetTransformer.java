@@ -40,6 +40,7 @@ import java.util.Set;
 public class GradleBuildOutcomeSetTransformer implements Transformer<Set<BuildOutcome>, ProjectOutcomes> {
 
     private final FileStore<String> fileStore;
+    private final String fileStorePrefix;
 
     private final List<String> zipArchiveTypes = Arrays.asList(
             FileOutcomeIdentifier.JAR_ARTIFACT.getTypeIdentifier(),
@@ -48,8 +49,9 @@ public class GradleBuildOutcomeSetTransformer implements Transformer<Set<BuildOu
             FileOutcomeIdentifier.ZIP_ARTIFACT.getTypeIdentifier()
     );
 
-    public GradleBuildOutcomeSetTransformer(FileStore<String> fileStore) {
+    public GradleBuildOutcomeSetTransformer(FileStore<String> fileStore, String fileStorePrefix) {
         this.fileStore = fileStore;
+        this.fileStorePrefix = fileStorePrefix;
     }
 
     public Set<BuildOutcome> transform(ProjectOutcomes rootProject) {
@@ -75,11 +77,11 @@ public class GradleBuildOutcomeSetTransformer implements Transformer<Set<BuildOu
     private void addFileBuildOutcome(GradleFileBuildOutcome outcome, ProjectOutcomes rootProject, Set<BuildOutcome> translatedOutcomes) {
         if (zipArchiveTypes.contains(outcome.getTypeIdentifier())) {
             File originalFile = outcome.getFile();
-            String filestoreDestination = String.format("%s/%s", outcome.getTaskPath(), originalFile.getName());
+            String filestoreDestination = String.format("%s/%s/%s", fileStorePrefix, outcome.getTaskPath(), originalFile.getName());
             FileStoreEntry fileStoreEntry = fileStore.move(filestoreDestination, originalFile);
             File storedFile = fileStoreEntry.getFile();
             String relativePath = GFileUtils.relativePath(rootProject.getProjectDirectory(), originalFile);
-            BuildOutcome buildOutcome = new GeneratedArchiveBuildOutcome(outcome.getTaskPath(), outcome.getDescription(), storedFile, relativePath);
+            BuildOutcome buildOutcome = new GeneratedArchiveBuildOutcome(outcome.getTaskPath(), outcome.getDescription(), fileStoreEntry, relativePath);
             translatedOutcomes.add(buildOutcome);
         } else {
             translatedOutcomes.add(new UnknownBuildOutcome(outcome.getTaskPath(), outcome.getDescription()));
