@@ -68,8 +68,8 @@
 .segmentedlist table, .table table {
     border: solid #d0d0d0 1px;
     border-collapse: collapse;
-    margin-left: -0.8em;
-    margin-right: -0.8em;
+    margin-left: -10px;
+    margin-right: -10px;
 }
 
 .segmentedlist th {

@@ -84,6 +84,7 @@
 
 .note .title {
     color: #5283a1;
+    margin-left: 0px;
 }
 
 .tip {
@@ -100,6 +101,7 @@
 
 .tip .title {
     color: #80614D;
+    margin-left: 0px;
 }
 
 .tip h1, .note h1

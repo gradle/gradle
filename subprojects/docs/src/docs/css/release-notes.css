@@ -3,7 +3,7 @@ img.logo {
 }
 
 section.major-detail {
-  margin: 0 1em 2em;
+  margin: 0 10px 2em;
   padding: 1em 1em 0;
   border-left: 2px solid #999;
   font-size: 15px;
@@ -12,9 +12,12 @@ section.major-detail {
   border-radius: 5px;
 }
 
+h4 {
+  padding-left: 10px;
+}
+
 section.minor-detail {
-  margin: 0 0.5em;
-  padding: 0 1em;
+  padding: 0 10px;
 }
 
 ul.toc {
@@ -39,20 +42,20 @@ section.footer {
 }
 
 .java_keyword {
-  color: #708;
+  color: #C7B390;
 }
 .java_comment {
-  color: #A70;
+  color: #929292;
 }
 .java_plain, .java_type {
-  color: black;
+
 }
 .java_separator {
-  color: #666;
+
 }
 .java_operator {
-  color: #A22;
+  color: #C7B390;
 }
 .java_literal {
-  color: #281;
+  color: #83C283;
 }
