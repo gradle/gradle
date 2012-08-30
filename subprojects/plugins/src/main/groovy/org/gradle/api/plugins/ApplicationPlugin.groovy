@@ -29,16 +29,14 @@ import org.gradle.api.GradleException
  *
  * @author Rene Groeschke
  */
-class ApplicationPlugin implements Plugin<Project> {
+class ApplicationPlugin extends DistPlugin {
     static final String APPLICATION_PLUGIN_NAME = "application"
     static final String APPLICATION_GROUP = APPLICATION_PLUGIN_NAME
 
     static final String TASK_RUN_NAME = "run"
     static final String TASK_START_SCRIPTS_NAME = "startScripts"
     static final String TASK_INSTALL_NAME = "installApp"
-    static final String TASK_DIST_ZIP_NAME = "distZip"
 
-    private Project project
     private ApplicationPluginConvention pluginConvention
 
     void apply(final Project project) {
@@ -49,15 +47,16 @@ class ApplicationPlugin implements Plugin<Project> {
         addRunTask()
         addCreateScriptsTask()
 
-        configureDistSpec(pluginConvention.applicationDistribution)
+        configureDistSpec(pluginConvention.getDistribution())
 
         addInstallTask()
         addDistZipTask()
+		addDistTarTask()
     }
 
-    private void addPluginConvention() {
+    protected void addPluginConvention() {
         pluginConvention = new ApplicationPluginConvention(project)
-        pluginConvention.applicationName = project.name
+        pluginConvention.distributionName = project.name
         project.convention.plugins.application = pluginConvention
     }
 
@@ -75,7 +74,7 @@ class ApplicationPlugin implements Plugin<Project> {
         startScripts.description = "Creates OS specific scripts to run the project as a JVM application."
         startScripts.classpath = project.tasks[JavaPlugin.JAR_TASK_NAME].outputs.files + project.configurations.runtime
         startScripts.conventionMapping.mainClassName = { pluginConvention.mainClassName }
-        startScripts.conventionMapping.applicationName = { pluginConvention.applicationName }
+        startScripts.conventionMapping.applicationName = { pluginConvention.getArtefactName() }
         startScripts.conventionMapping.outputDir = { new File(project.buildDir, 'scripts') }
     }
 
@@ -83,12 +82,12 @@ class ApplicationPlugin implements Plugin<Project> {
         def installTask = project.tasks.add(TASK_INSTALL_NAME, Sync)
         installTask.description = "Installs the project as a JVM application along with libs and OS specific scripts."
         installTask.group = APPLICATION_GROUP
-        installTask.with pluginConvention.applicationDistribution
-        installTask.into { project.file("${project.buildDir}/install/${pluginConvention.applicationName}") }
+        installTask.with pluginConvention.getDistribution()
+        installTask.into { project.file("${project.buildDir}/install/${pluginConvention.getArtefactName()}") }
         installTask.doFirst {
             if (destinationDir.directory) {
                 if (!new File(destinationDir, 'lib').directory || !new File(destinationDir, 'bin').directory) {
-                    throw new GradleException("The specified installation directory '${destinationDir}' is neither empty nor does it contain an installation for '${pluginConvention.applicationName}'.\n" +
+                    throw new GradleException("The specified installation directory '${destinationDir}' is neither empty nor does it contain an installation for '${pluginConvention.getArtefactName()}'.\n" +
                             "If you really want to install to this directory, delete it and run the install task again.\n" +
                             "Alternatively, choose a different installation directory."
                     )
@@ -96,22 +95,11 @@ class ApplicationPlugin implements Plugin<Project> {
             }
         }
         installTask.doLast {
-            project.ant.chmod(file: "${destinationDir.absolutePath}/bin/${pluginConvention.applicationName}", perm: 'ugo+x')
+            project.ant.chmod(file: "${destinationDir.absolutePath}/bin/${pluginConvention.getArtefactName()}", perm: 'ugo+x')
         }
     }
 
-    private void addDistZipTask() {
-        def distZipTask = project.tasks.add(TASK_DIST_ZIP_NAME, Zip)
-        distZipTask.description = "Bundles the project as a JVM application with libs and OS specific scripts."
-        distZipTask.group = APPLICATION_GROUP
-        distZipTask.conventionMapping.baseName = { pluginConvention.applicationName }
-        def baseDir = { distZipTask.archiveName - ".zip" }
-        distZipTask.into(baseDir) {
-            with(pluginConvention.applicationDistribution)
-        }
-    }
-
-    private CopySpec configureDistSpec(CopySpec distSpec) {
+    protected CopySpec configureDistSpec(CopySpec distSpec) {
         def jar = project.tasks[JavaPlugin.JAR_TASK_NAME]
         def startScripts = project.tasks[TASK_START_SCRIPTS_NAME]
 
@@ -130,4 +118,18 @@ class ApplicationPlugin implements Plugin<Project> {
 
         distSpec
     }
+	
+	protected String getGroup(){
+		return APPLICATION_GROUP
+	}
+
+	@Override
+	protected CopySpec getDistribution() {
+		return pluginConvention.getDistribution();
+	}
+
+	@Override
+	protected String getArtefactName() {
+		return pluginConvention.getArtefactName();
+	}
 }

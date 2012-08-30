@@ -21,6 +21,7 @@ import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.bundling.Zip
+import org.gradle.api.tasks.bundling.Tar
 import org.gradle.util.HelperUtil
 import org.gradle.util.Matchers
 import spock.lang.Specification
@@ -38,9 +39,9 @@ class ApplicationPluginTest extends Specification {
         then:
         project.plugins.hasPlugin(JavaPlugin.class)
         project.convention.getPlugin(ApplicationPluginConvention.class) != null
-        project.applicationName == project.name
+        project.distributionName == project.name
         project.mainClassName == null
-        project.applicationDistribution instanceof CopySpec
+        project.distribution instanceof CopySpec
     }
 
     def "adds run task to project"() {
@@ -61,7 +62,7 @@ class ApplicationPluginTest extends Specification {
         then:
         def task = project.tasks[ApplicationPlugin.TASK_START_SCRIPTS_NAME]
         task instanceof CreateStartScripts
-        task.applicationName == project.applicationName
+        task.applicationName == project.distributionName
         task.outputDir == project.file('build/scripts')
     }
 
@@ -72,7 +73,7 @@ class ApplicationPluginTest extends Specification {
         then:
         def task = project.tasks[ApplicationPlugin.TASK_INSTALL_NAME]
         task instanceof Sync
-        task.destinationDir == project.file("build/install/${project.applicationName}")
+        task.destinationDir == project.file("build/install/${project.distributionName}")
     }
 
     def "adds distZip task to project"() {
@@ -80,10 +81,20 @@ class ApplicationPluginTest extends Specification {
         plugin.apply(project)
 
         then:
-        def task = project.tasks[ApplicationPlugin.TASK_DIST_ZIP_NAME]
+        def task = project.tasks[DistPlugin.TASK_DIST_ZIP_NAME]
         task instanceof Zip
-        task.archiveName == "${project.applicationName}.zip"
+        task.archiveName == "${project.distributionName}.zip"
     }
+	
+	def "adds distTar task to project"() {
+		when:
+		plugin.apply(project)
+
+		then:
+		def task = project.tasks[DistPlugin.TASK_DIST_TAR_NAME]
+		task instanceof Tar
+		task.archiveName == "${project.distributionName}.tar"
+	}
 
     public void "applicationName is configurable"() {
         when:
@@ -99,7 +110,29 @@ class ApplicationPluginTest extends Specification {
 
         def distZipTask = project.tasks[ApplicationPlugin.TASK_DIST_ZIP_NAME]
         distZipTask.archiveName == "SuperApp.zip"
+		
+		def distTarTask = project.tasks[DistPlugin.TASK_DIST_TAR_NAME]
+		distTarTask.archiveName == "SuperApp.tar"
     }
+	
+	public void "distributionName is configurable"() {
+		when:
+		plugin.apply(project)
+		project.distributionName = "SuperApp";
+
+		then:
+		def startScriptsTask = project.tasks[ApplicationPlugin.TASK_START_SCRIPTS_NAME]
+		startScriptsTask.applicationName == 'SuperApp'
+
+		def installTest = project.tasks[ApplicationPlugin.TASK_INSTALL_NAME]
+		installTest.destinationDir == project.file("build/install/SuperApp")
+
+		def distZipTask = project.tasks[ApplicationPlugin.TASK_DIST_ZIP_NAME]
+		distZipTask.archiveName == "SuperApp.zip"
+		
+		def distTarTask = project.tasks[DistPlugin.TASK_DIST_TAR_NAME]
+		distTarTask.archiveName == "SuperApp.tar"
+	}
     
     public void "mainClassName in project delegates to main in run task"() {
         when:

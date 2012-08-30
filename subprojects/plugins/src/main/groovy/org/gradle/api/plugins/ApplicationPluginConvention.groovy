@@ -17,16 +17,18 @@ package org.gradle.api.plugins
 
 import org.gradle.api.Project
 import org.gradle.api.file.CopySpec
+import org.gradle.util.DeprecationLogger
 
 /**
  * <p>A {@link Convention} used for the ApplicationPlugin.</p>
  *
  * @author Rene Groeschke
  */
-class ApplicationPluginConvention {
+class ApplicationPluginConvention extends DistPluginConvention{
     /**
      * The name of the application.
      */
+	@Deprecated
     String applicationName
 
     /**
@@ -50,13 +52,31 @@ class ApplicationPluginConvention {
      * copy the application start scripts into the "{@code bin}" directory, and copy the built jar and its dependencies
      * into the "{@code lib}" directory.
      */
+	@Deprecated
     CopySpec applicationDistribution
 
-    final Project project
 
     ApplicationPluginConvention(Project project) {
-        this.project = project
+        super(project)
         applicationDistribution = project.copySpec {}
+
     }
+	
+	String getArtefactName() {
+		if(applicationName!=null && !applicationName.isEmpty()){
+			DeprecationLogger.nagUserOfReplacedProperty("applicationName","distributionName");
+			return applicationName
+		}
+		
+			return distributionName;
+	}
+	
+	CopySpec getDistribution(){
+		if(applicationDistribution!=null){
+			DeprecationLogger.nagUserOfReplacedProperty("applicationDistribution","distribution");
+			return applicationDistribution;
+		}
+		return distribution
+	}
 
 }
