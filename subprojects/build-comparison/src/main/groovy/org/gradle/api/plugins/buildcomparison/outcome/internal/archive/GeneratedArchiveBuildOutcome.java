@@ -40,7 +40,7 @@ public class GeneratedArchiveBuildOutcome extends BuildOutcomeSupport {
      * @return The generated archive, or null if no archive was generated.
      */
     public File getArchiveFile() {
-        return fileStoreEntry.getFile();
+        return fileStoreEntry == null ? null : fileStoreEntry.getFile();
     }
 
     /**

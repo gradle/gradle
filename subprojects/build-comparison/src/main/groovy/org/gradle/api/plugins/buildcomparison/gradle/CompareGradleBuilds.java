@@ -24,6 +24,7 @@ import org.gradle.api.internal.filestore.FileStore;
 import org.gradle.api.internal.filestore.PathNormalisingKeyFileStore;
 import org.gradle.api.plugins.buildcomparison.compare.internal.*;
 import org.gradle.api.plugins.buildcomparison.gradle.internal.DefaultGradleBuildInvocationSpec;
+import org.gradle.api.plugins.buildcomparison.gradle.internal.GradleBuildOutcomeSetInferrer;
 import org.gradle.api.plugins.buildcomparison.gradle.internal.GradleBuildOutcomeSetTransformer;
 import org.gradle.api.plugins.buildcomparison.outcome.internal.BuildOutcome;
 import org.gradle.api.plugins.buildcomparison.outcome.internal.BuildOutcomeAssociator;
@@ -45,6 +46,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.logging.ConsoleRenderer;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
+import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ProjectConnection;
@@ -68,6 +70,8 @@ public class CompareGradleBuilds extends DefaultTask {
     private static final String TMP_FILESTORAGE_PREFIX = "tmp-filestorage";
 
     private static final GradleVersion PROJECT_OUTCOMES_MINIMUM_VERSION = GradleVersion.version("1.2");
+    private static final String SOURCE_FILESTORE_PREFIX = "source";
+    private static final String TARGET_FILESTORE_PREFIX = "target";
 
     private final DefaultGradleBuildInvocationSpec sourceBuild;
     private final DefaultGradleBuildInvocationSpec targetBuild;
@@ -157,17 +161,39 @@ public class CompareGradleBuilds extends DefaultTask {
         progressLogger.setShortDescription(getName());
 
         // Build the outcome model and outcomes
-        progressLogger.started("executing source build");
-        GradleBuildOutcomeSetTransformer fromOutcomeTransformer = createOutcomeSetTransformer("source");
-        ProjectOutcomes fromOutput = buildProjectOutcomes(getSourceBuild());
-        progressLogger.progress("inspecting source build outcomes");
-        Set<BuildOutcome> fromOutcomes = fromOutcomeTransformer.transform(fromOutput);
 
-        progressLogger.progress("executing target build");
-        GradleBuildOutcomeSetTransformer toOutcomeTransformer = createOutcomeSetTransformer("target");
-        ProjectOutcomes toOutput = buildProjectOutcomes(getTargetBuild());
-        progressLogger.progress("inspecting target build outcomes");
-        Set<BuildOutcome> toOutcomes = toOutcomeTransformer.transform(toOutput);
+        Set<BuildOutcome> fromOutcomes = null;
+        if (sourceBuildHasOutcomesModel) {
+            progressLogger.started("executing source build");
+            ProjectOutcomes fromOutput = buildProjectOutcomesOrJustExec(getSourceBuild(), false);
+            progressLogger.progress("inspecting source build outcomes");
+            GradleBuildOutcomeSetTransformer fromOutcomeTransformer = createOutcomeSetTransformer(SOURCE_FILESTORE_PREFIX);
+            fromOutcomes = fromOutcomeTransformer.transform(fromOutput);
+        }
+
+        if (sourceBuildHasOutcomesModel) {
+            progressLogger.progress("executing target build");
+        } else {
+            progressLogger.started("executing target build");
+        }
+
+        ProjectOutcomes toOutput = buildProjectOutcomesOrJustExec(getTargetBuild(), !targetBuildHasOutcomesModel);
+
+        Set<BuildOutcome> toOutcomes = null;
+        if (targetBuildHasOutcomesModel) {
+            progressLogger.progress("inspecting target build outcomes");
+            GradleBuildOutcomeSetTransformer toOutcomeTransformer = createOutcomeSetTransformer(TARGET_FILESTORE_PREFIX);
+            toOutcomes = toOutcomeTransformer.transform(toOutput);
+        } else {
+            toOutcomes = createOutcomeSetInferrer(TARGET_FILESTORE_PREFIX, getTargetBuild().getProjectDir()).transform(fromOutcomes);
+        }
+
+        if (!sourceBuildHasOutcomesModel) {
+            progressLogger.progress("executing source build");
+            buildProjectOutcomesOrJustExec(getSourceBuild(), true);
+            progressLogger.progress("inspecting source build outcomes");
+            fromOutcomes = createOutcomeSetInferrer(SOURCE_FILESTORE_PREFIX, getSourceBuild().getProjectDir()).transform(toOutcomes);
+        }
 
         progressLogger.progress("preparing for comparison");
 
@@ -217,11 +243,18 @@ public class CompareGradleBuilds extends DefaultTask {
         return new GradleBuildOutcomeSetTransformer(fileStore, filesPath);
     }
 
-    private ProjectOutcomes buildProjectOutcomes(GradleBuildInvocationSpec spec) {
+    private GradleBuildOutcomeSetInferrer createOutcomeSetInferrer(String filesPath, File baseDir) {
+        return new GradleBuildOutcomeSetInferrer(fileStore, filesPath, baseDir);
+    }
+
+    private ProjectOutcomes buildProjectOutcomesOrJustExec(GradleBuildInvocationSpec spec, boolean justExec) {
         GradleVersion gradleVersion = GradleVersion.version(spec.getGradleVersion());
 
         GradleConnector connector = GradleConnector.newConnector().forProjectDirectory(spec.getProjectDir());
-        connector.useGradleUserHomeDir(getProject().getGradle().getStartParameter().getGradleUserHomeDir());
+        File gradleUserHomeDir = getProject().getGradle().getStartParameter().getGradleUserHomeDir();
+        if (gradleUserHomeDir != null) {
+            connector.useGradleUserHomeDir(gradleUserHomeDir);
+        }
         if (gradleVersion.equals(GradleVersion.current())) {
             connector.useInstallation(getProject().getGradle().getGradleHomeDir());
         } else {
@@ -235,12 +268,22 @@ public class CompareGradleBuilds extends DefaultTask {
             List<String> argumentsList = getImpliedArguments(spec);
             String[] arguments = argumentsList.toArray(new String[argumentsList.size()]);
 
-            // Run the build and get the build outcomes model
-            ModelBuilder<ProjectOutcomes> modelBuilder = connection.model(ProjectOutcomes.class);
-            return modelBuilder.
-                    withArguments(arguments).
-                    forTasks(tasks).
-                    get();
+            if (justExec) {
+                BuildLauncher buildLauncher = connection.newBuild();
+                buildLauncher.
+                        withArguments(arguments).
+                        forTasks(tasks).
+                        run();
+
+                return null;
+            } else {
+                // Run the build and get the build outcomes model
+                ModelBuilder<ProjectOutcomes> modelBuilder = connection.model(ProjectOutcomes.class);
+                return modelBuilder.
+                        withArguments(arguments).
+                        forTasks(tasks).
+                        get();
+            }
         } finally {
             connection.close();
         }
