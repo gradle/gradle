@@ -63,7 +63,12 @@ Gradle resolves a second time, it uses the cached value, instead of checking for
 
 ### Implementation strategy
 
-Should be possible to fix this with changes to UserResolverChain.
+When resolving a dependency descriptor in `UserResolverChain` for a particular repository:
+
+1. If there is a cached 'found' entry for this repository and the entry has not expired, use the cached value.
+2. If there is a cached 'not-found' entry for this repository and the entry has not expired, and there is some other repository for which there is an
+   unexpired 'found' entry, use the cached value.
+3. Otherwise, resolve the dependency using this repository.
 
 <a href="http-resource-caching">
 # Correctness issues in HTTP resource caching
