@@ -5,6 +5,8 @@ As this 'feature' is a list of bug fixes, this feature spec will not follow the 
 
 ## Contents
 * [Honor SSL system properties when accessing HTTP repositories](#ssl-system-properties)
+* [Ignore cached missing module entry when module is missing for all repositories](#cached-missing-modules)
+* [Correctness issues in HTTP resource caching](#http-resource-caching)
 * [Inform the user about why a module is considered broken](#error-reporting)
 * [Correct handling of packaging and dependency type declared in poms](#pom-packaging)
 * [RedHat finishes porting gradle to fedora](#fedora)
@@ -30,10 +32,53 @@ See [GRADLE-2234](http://issues.gradle.org/browse/GRADLE-2234)
 * Resolution from an HTTP Maven repository fails with a decent error message when server fails to authenticate the client (eg no key store specified).
 * Same happy day tests for an HTTP Ivy repository.
 
-### Implementation
+### Implementation strategy
 
 Needs some research. Looks like we need should be using a `DecompressingHttpClient` chained in front of a `SystemDefaultHttpClient` instead of
 using a `ContentEncodingHttpClient`.
+
+<a href="cached-missing-modules">
+# Ignore cached missing module entry when module is missing for all repositories
+
+Currently, we cache the fact that a module is missing from a given repository. This is to avoid a remote lookup when a resolution uses multiple repositories,
+and a given module is not hosted in every repository.
+
+This causes problems when the module is initially missing from every repository and subsequently becomes available. For example, when setting up a new
+repository, you may misconfigure the repository server so that a certain module is not visible. Gradle resolves against the repository and caches the fact that
+the module is missing from that repository, and reports the problem to you. You then fix the server configuration so that the module is now visible. When
+Gradle resolves a second time, it uses the cached value, instead of checking for the module.
+
+### Integration test coverage
+
+* Multiple repositories:
+    1. Resolve with multiple repositories and missing module.
+    2. Assert build fails due to missing module.
+    3. Publish the module to the second repository.
+    4. Resolve again.
+    5. Assert Gradle performs HTTP requests to look for the module.
+    6. Assert build succeeeds.
+    7. Resolve again.
+    8. Assert Gradle does not make any HTTP requests
+    9. Assert build succeeeds.
+
+### Implementation strategy
+
+Should be possible to fix this with changes to UserResolverChain.
+
+<a href="http-resource-caching">
+# Correctness issues in HTTP resource caching
+
+* GRADLE-2328 - invalidate cached HTTP/HTTPS resource when user credentials change.
+* Invalidate cached HTTP/HTTPS resource when proxy settings change.
+* Invalidate cached HTTPS resource when SSL settings change.
+
+### Integration test coverage
+
+TBD
+
+### Implementation strategy
+
+TBD
 
 <a href="error-reporting">
 # Inform the user about why a module is considered broken
