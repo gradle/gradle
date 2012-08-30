@@ -18,10 +18,7 @@ package org.gradle.api.plugins.buildcomparison.gradle;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.gradle.api.Action;
-import org.gradle.api.DefaultTask;
-import org.gradle.api.Task;
-import org.gradle.api.UncheckedIOException;
+import org.gradle.api.*;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.filestore.FileStore;
 import org.gradle.api.internal.filestore.PathNormalisingKeyFileStore;
@@ -68,6 +65,8 @@ public class CompareGradleBuilds extends DefaultTask {
 
     private static final List<String> DEFAULT_TASKS = Arrays.asList("clean", "assemble");
     private static final String TMP_FILESTORAGE_PREFIX = "tmp-filestorage";
+
+    private static final GradleVersion PROJECT_OUTCOMES_MINIMUM_VERSION = GradleVersion.version("1.2");
 
     private final DefaultGradleBuildInvocationSpec sourceBuild;
     private final DefaultGradleBuildInvocationSpec targetBuild;
@@ -139,6 +138,16 @@ public class CompareGradleBuilds extends DefaultTask {
     void compare() {
         if (sourceBuild.equals(targetBuild)) {
             getLogger().warn("The source build and target build are identical. Set '{}.targetBuild.gradleVersion' if you want to compare with a different Gradle version.", getName());
+        }
+
+        boolean sourceBuildHasOutcomesModel = canObtainProjectOutcomesModel(sourceBuild);
+        boolean targetBuildHasOutcomesModel = canObtainProjectOutcomesModel(targetBuild);
+
+        if (!sourceBuildHasOutcomesModel && !targetBuildHasOutcomesModel) {
+            throw new GradleException(String.format(
+                    "Cannot run comparison because both the source and target build are to be executed with a Gradle version older than %s.",
+                    PROJECT_OUTCOMES_MINIMUM_VERSION
+            ));
         }
 
         ProgressLogger progressLogger = progressLoggerFactory.newOperation(getClass());
@@ -274,4 +283,15 @@ public class CompareGradleBuilds extends DefaultTask {
         return new HtmlBuildComparisonResultRenderer(renderers, headRenderer, headingRenderer, null);
     }
 
+    private boolean canObtainProjectOutcomesModel(GradleBuildInvocationSpec spec) {
+        GradleVersion versionObject = GradleVersion.version(spec.getGradleVersion());
+        boolean isMinimumVersionOrHigher = versionObject.compareTo(PROJECT_OUTCOMES_MINIMUM_VERSION) >= 0;
+        //noinspection SimplifiableIfStatement
+        if (isMinimumVersionOrHigher) {
+            return true;
+        } else {
+            // Special handling for snapshots/RCs of the minimum version
+            return versionObject.getVersion().equals(PROJECT_OUTCOMES_MINIMUM_VERSION.getVersion());
+        }
+    }
 }
