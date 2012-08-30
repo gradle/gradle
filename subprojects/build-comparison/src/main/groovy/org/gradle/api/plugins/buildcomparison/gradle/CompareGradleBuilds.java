@@ -20,6 +20,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.Task;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.filestore.PathNormalisingKeyFileStore;
@@ -39,12 +40,14 @@ import org.gradle.api.plugins.buildcomparison.outcome.internal.unknown.UnknownBu
 import org.gradle.api.plugins.buildcomparison.render.internal.BuildComparisonResultRenderer;
 import org.gradle.api.plugins.buildcomparison.render.internal.DefaultBuildOutcomeComparisonResultRendererFactory;
 import org.gradle.api.plugins.buildcomparison.render.internal.html.*;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.tooling.GradleConnector;
+import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes;
 import org.gradle.util.GradleVersion;
@@ -80,6 +83,13 @@ public class CompareGradleBuilds extends DefaultTask {
         targetBuild = instantiator.newInstance(DefaultGradleBuildInvocationSpec.class, fileResolver, getProject().getRootDir());
         targetBuild.setTasks(DEFAULT_TASKS);
         reportDir = getProject().file(String.format("build-comparisons/%s", getName()));
+
+        // Never up to date
+        getOutputs().upToDateWhen(new Spec<Task>() {
+            public boolean isSatisfiedBy(Task element) {
+                return false;
+            }
+        });
     }
 
     public GradleBuildInvocationSpec getSourceBuild() {
@@ -120,22 +130,25 @@ public class CompareGradleBuilds extends DefaultTask {
 
     @TaskAction
     void compare() {
-        ProgressLogger logger = progressLoggerFactory.newOperation(getClass());
+        ProgressLogger progressLogger = progressLoggerFactory.newOperation(getClass());
+
+        progressLogger.setDescription("Gradle Build Comparison");
+        progressLogger.setShortDescription(getName());
 
         // Build the outcome model and outcomes
-        logger.started("executing source build");
+        progressLogger.started("executing source build");
         GradleBuildOutcomeSetTransformer fromOutcomeTransformer = createOutcomeSetTransformer("source");
-        ProjectOutcomes fromOutput = generateBuildOutput(getSourceBuild());
-        logger.progress("inspecting source build outcomes");
+        ProjectOutcomes fromOutput = buildProjectOutcomes(getSourceBuild());
+        progressLogger.progress("inspecting source build outcomes");
         Set<BuildOutcome> fromOutcomes = fromOutcomeTransformer.transform(fromOutput);
 
-        logger.progress("executing target build");
+        progressLogger.progress("executing target build");
         GradleBuildOutcomeSetTransformer toOutcomeTransformer = createOutcomeSetTransformer("target");
-        ProjectOutcomes toOutput = generateBuildOutput(getTargetBuild());
-        logger.progress("inspecting target build outcomes");
+        ProjectOutcomes toOutput = buildProjectOutcomes(getTargetBuild());
+        progressLogger.progress("inspecting target build outcomes");
         Set<BuildOutcome> toOutcomes = toOutcomeTransformer.transform(toOutput);
 
-        logger.progress("preparing for outcomes comparison");
+        progressLogger.progress("preparing for comparison");
 
         // Infrastructure that we have to register handlers with
         DefaultBuildOutcomeComparatorFactory comparatorFactory = new DefaultBuildOutcomeComparatorFactory();
@@ -157,24 +170,22 @@ public class CompareGradleBuilds extends DefaultTask {
         BuildComparisonSpecFactory specFactory = new BuildComparisonSpecFactory(compositeAssociator);
         BuildComparisonSpec comparisonSpec = specFactory.createSpec(fromOutcomes, toOutcomes);
 
-        logger.progress("comparing build outcomes");
+        progressLogger.progress("comparing build outcomes");
 
         // Compare
         BuildComparator buildComparator = new DefaultBuildComparator(comparatorFactory);
         BuildComparisonResult result = buildComparator.compareBuilds(comparisonSpec);
 
-        logger.progress("writing comparison report");
-
         writeReport(result, renderers);
 
-        logger.completed();
+        progressLogger.completed();
     }
 
     private GradleBuildOutcomeSetTransformer createOutcomeSetTransformer(String filesPath) {
         return new GradleBuildOutcomeSetTransformer(new PathNormalisingKeyFileStore(new File(getFileStoreDir(), filesPath)));
     }
 
-    private ProjectOutcomes generateBuildOutput(GradleBuildInvocationSpec spec) {
+    private ProjectOutcomes buildProjectOutcomes(GradleBuildInvocationSpec spec) {
         GradleVersion gradleVersion = GradleVersion.version(spec.getGradleVersion());
 
         GradleConnector connector = GradleConnector.newConnector().forProjectDirectory(spec.getProjectDir());
@@ -193,7 +204,11 @@ public class CompareGradleBuilds extends DefaultTask {
             String[] arguments = argumentsList.toArray(new String[argumentsList.size()]);
 
             // Run the build and get the build outcomes model
-            return connection.model(ProjectOutcomes.class).withArguments(arguments).forTasks(tasks).get();
+            ModelBuilder<ProjectOutcomes> modelBuilder = connection.model(ProjectOutcomes.class);
+            return modelBuilder.
+                    withArguments(arguments).
+                    forTasks(tasks).
+                    get();
         } finally {
             connection.close();
         }
