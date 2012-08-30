@@ -56,10 +56,10 @@ Gradle resolves a second time, it uses the cached value, instead of checking for
     3. Publish the module to the second repository.
     4. Resolve again.
     5. Assert Gradle performs HTTP requests to look for the module.
-    6. Assert build succeeeds.
+    6. Assert build succeeds.
     7. Resolve again.
     8. Assert Gradle does not make any HTTP requests
-    9. Assert build succeeeds.
+    9. Assert build succeeds.
 
 ### Implementation strategy
 
