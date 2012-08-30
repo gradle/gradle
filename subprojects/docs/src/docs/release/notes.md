@@ -77,10 +77,12 @@ We will typically introduce big new features as experimental or unstable at firs
 
 Over the coming releases, we'll be adding production-quality support for parallel execution of independent projects in a multi-project build. By building separate projects in parallel, Gradle will enable better hardware utilisation and faster build times.
 
-We are excited Gradle 1.2 introduces the first experimental support for this feature, via the `--parallel` and `--parallel-threads` [command-line options](userguide/gradle_command_line.html). By using these options Gradle will attempt to _execute_ multiple projects in parallel build threads, after first configuring all projects sequentially. We are seeing significant performance benefits with this approach, in particular when the build is not already CPU bound.
+We are excited that Gradle 1.2 introduces the first experimental support for this feature, via the `--parallel` and `--parallel-threads` [command-line options](userguide/gradle_command_line.html). By using these options Gradle will attempt to _execute_ multiple projects in parallel build threads, after first configuring all projects sequentially. We are seeing significant performance benefits with this approach, in particular when the build is not already CPU bound.
 
 Note that to guarantee successful parallel execution of projects, your multi-project build must contain only [decoupled projects](userguide/multi_project_builds.html#sec:decoupled_projects).
 While configuration-time decoupling is not strictly required for parallel project execution, we do not intend on supporting a separate model of decoupling that permits configuration-time coupling with execution-time decoupling. At this time there are no checks implemented to ensure that projects are decoupled, and unexpected behaviour may result from executing a build with coupled projects using the new parallel executor.
+
+To find out more about our plans for parallel execution, have a read of the [parallel-project-execution](https://github.com/gradle/gradle/blob/master/design-docs/parallel-project-execution.md) specification.
 
 **This feature is pre-alpha and highly experimental. Many multi-project builds will behave unexpectedly when run using parallel project execution. You will get a warning when you are using it.***
 
@@ -91,16 +93,26 @@ exceptions will result. Workaround: don't use `options.fork=true` to compile whe
 
 We are exposing the new API that our improved dependency reports are using. It provides a powerful for developing your own custom dependency reports. It also allows to develop smart build logic that can make decisions based on the content of the dependency graph.
 
-The best way to start with the new API is to take a look at the Javadocew 
+The best way to start with the new API is to take a look at the Javadocs
 for <a href="javadoc/org/gradle/api/artifacts/ResolvedConfiguration.html#getResolutionResult()">`ResolvedConfiguration.getResolutionResult()`</a>.
 
 **The new resolution API is not stable yet and may change with the next releases. Therefore you will get a warning when you are using it.**
+
+### Build comparison plugin (unstable)
+
+To find out more about our plans for this plugin, have a read of the [build-migration-verification](https://github.com/gradle/gradle/blob/master/design-docs/build-migration-verification.md) specification.
 
 ### Bootstrap plugin (experimental)
 
 We would like to make it as easy as possible to migrate from a different build tool to Gradle.
 This release includes an experimental [Bootstrap plugin](userguide/bootstrap_plugin.html).
 For Gradle 1.3 we plan to have it stable and of production quality.
+
+### JSR-330 dependency injection for plugins and tasks (unstable)
+
+We've taken some steps towards allowing JSR-330 style dependency injection for plugins and tasks. At this stage, the changes are mostly internal. To find out why we want to use dependency injection, and our plans for this, have a read of the [dependency-injection-for-plugins](https://github.com/gradle/gradle/blob/master/design-docs/dependency-injection-for-plugins.md) specification.
+
+At this stage, only internal Gradle services are available for injection. Over time we will add public services that can be injected into plugin and task implementations.
 
 ## Upgrading from Gradle 1.1
 
