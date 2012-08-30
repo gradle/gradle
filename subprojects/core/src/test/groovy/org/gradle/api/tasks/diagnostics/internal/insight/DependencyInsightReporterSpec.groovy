@@ -39,23 +39,23 @@ class DependencyInsightReporterSpec extends Specification {
         sorted.size() == 5
 
         sorted[0].name == 'a:x:2.0'
-        sorted[0].description == ''
+        !sorted[0].description
 
         sorted[1].name == 'a:x:1.0 -> 2.0'
-        sorted[1].description == ''
+        !sorted[1].description
 
         sorted[2].name == 'a:x:1.5 -> 2.0'
-        sorted[2].description == ''
+        !sorted[2].description
 
         sorted[3].name == 'a:z:1.0'
-        sorted[3].description == ''
+        !sorted[3].description
 
         sorted[4].name == 'b:a:5.0'
-        sorted[4].description == ''
+        !sorted[4].description
     }
 
-    def "informs if not requested"() {
-        def dependencies = [dep("a", "x", "1.0", "2.0"), dep("a", "x", "1.5", "2.0"), dep("b", "a", "5.0")]
+    def "adds header dependency if the selected version does not exist in the graph"() {
+        def dependencies = [dep("a", "x", "1.0", "2.0", "forced"), dep("a", "x", "1.5", "2.0", "forced"), dep("b", "a", "5.0")]
 
         when:
         def sorted = new DependencyInsightReporter().prepare(dependencies);
@@ -64,20 +64,20 @@ class DependencyInsightReporterSpec extends Specification {
         sorted.size() == 4
 
         sorted[0].name == 'a:x:2.0'
-        sorted[0].description == ' (not requested)'
+        sorted[0].description == 'forced'
 
         sorted[1].name == 'a:x:1.0 -> 2.0'
-        sorted[1].description == ''
+        !sorted[1].description
 
         sorted[2].name == 'a:x:1.5 -> 2.0'
-        sorted[2].description == ''
+        !sorted[2].description
 
         sorted[3].name == 'b:a:5.0'
-        sorted[3].description == ''
+        !sorted[3].description
     }
 
-    def "informs if version not newest"() {
-        def dependencies = [dep("a", "x", "1.0", "1.5"), dep("a", "x", "1.5", "1.5"), dep("a", "x", "2.0", "1.5")]
+    def "annotates only first dependency in the group"() {
+        def dependencies = [dep("a", "x", "1.0", "2.0", "conflict resolution"), dep("a", "x", "2.0", "2.0", "conflict resolution"), dep("b", "a", "5.0", "5.0", "forced")]
 
         when:
         def sorted = new DependencyInsightReporter().prepare(dependencies);
@@ -85,19 +85,21 @@ class DependencyInsightReporterSpec extends Specification {
         then:
         sorted.size() == 3
 
-        sorted[0].name == 'a:x:1.5'
-        sorted[0].description == ' (not newest)'
+        sorted[0].name == 'a:x:2.0'
+        sorted[0].description == 'conflict resolution'
 
-        sorted[1].name == 'a:x:1.0 -> 1.5'
-        sorted[1].description == ''
+        sorted[1].name == 'a:x:1.0 -> 2.0'
+        !sorted[1].description
 
-        sorted[2].name == 'a:x:2.0 -> 1.5'
-        sorted[2].description == ''
+        sorted[2].name == 'b:a:5.0'
+        sorted[2].description == 'forced'
     }
 
-    private dep(String group, String name, String requested, String selected = requested) {
+    private dep(String group, String name, String requested, String selected = requested, String whySelected = null) {
+        def selectedModule = new DefaultResolvedModuleVersionResult(newId(group, name, selected))
+        selectedModule.whySelected = whySelected
         new DefaultResolvedDependencyResult(newSelector(group, name, requested),
-                new DefaultResolvedModuleVersionResult(newId(group, name, selected)),
+                selectedModule,
                 new DefaultResolvedModuleVersionResult(newId("a", "root", "1")))
     }
 }

@@ -68,7 +68,7 @@ public class DependencyInsightReportTask extends DefaultTask {
                 public void execute(StyledTextOutput out) {
                     out.withStyle(StyledTextOutput.Style.Identifier).text(dependency.name);
                     if (dependency.description) {
-                        out.withStyle(StyledTextOutput.Style.Description).text(dependency.description)
+                        out.withStyle(StyledTextOutput.Style.Description).text(" (" + dependency.description + ")")
                     }
                 }
             }, true);

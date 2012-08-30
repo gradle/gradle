@@ -160,6 +160,10 @@ public class DependencyGraphBuilder {
 
         for (DependencyEdge edge : resolvedConfiguration.outgoingEdges) {
             InternalDependencyResult d = new InternalDependencyResult(edge.toSelector(), edge.maybeTargetId(), edge.getFailure());
+            if (edge.maybeTargetId() != null) {
+                //TODO SF using some hackery and Strings as a POC - clean up!
+                d.reason = edge.targetModuleRevision.reason;
+            }
             dependencies.add(d);
         }
 
@@ -600,6 +604,7 @@ public class DependencyGraphBuilder {
         ModuleDescriptor descriptor;
         ModuleState state = ModuleState.New;
         ModuleVersionSelectorResolveState resolver;
+        String reason;
 
         private DefaultModuleRevisionResolveState(ModuleResolveState module, ModuleRevisionId id, ResolveState resolveState) {
             this.module = module;
@@ -912,6 +917,11 @@ public class DependencyGraphBuilder {
 
             targetModuleRevision = resolveState.getRevision(idResolveResult.getId());
             targetModuleRevision.addResolver(this);
+
+            if (idResolveResult instanceof ForcedModuleVersionIdResolveResult) {
+                targetModuleRevision.reason = "forced";
+            }
+
             return targetModuleRevision;
         }
 
@@ -948,11 +958,15 @@ public class DependencyGraphBuilder {
             for (ConfigurationNode configuration : root.configurations) {
                 for (DependencyEdge outgoingEdge : configuration.outgoingEdges) {
                     if (outgoingEdge.dependencyDescriptor.isForce() && candidates.contains(outgoingEdge.targetModuleRevision)) {
+                        outgoingEdge.targetModuleRevision.reason = "forced";
                         return outgoingEdge.targetModuleRevision;
                     }
                 }
             }
-            return (DefaultModuleRevisionResolveState) resolver.select(candidates, root);
+            //TODO SF unit test
+            DefaultModuleRevisionResolveState out = (DefaultModuleRevisionResolveState) resolver.select(candidates, root);
+            out.reason = "conflict resolution";
+            return out;
         }
     }
 }

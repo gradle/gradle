@@ -19,7 +19,6 @@ package org.gradle.api.tasks.diagnostics.internal.insight;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.result.ResolvedDependencyResult
-import org.gradle.api.internal.artifacts.dependencies.LatestRevisionSelector
 import org.gradle.api.internal.artifacts.result.ResolvedDependencyResultSorter
 import org.gradle.api.tasks.diagnostics.internal.dependencies.RenderableDependency
 import org.gradle.api.tasks.diagnostics.internal.dependencies.RenderableDependencyResult
@@ -38,31 +37,19 @@ public class DependencyInsightReporter {
         def out = new LinkedList<RenderableDependency>()
         def sorted = ResolvedDependencyResultSorter.sort(input)
 
-        //accumulate all candidate versions for given module id
-        def versions = new HashMap<ModuleVersionIdentifier, List<String>>()
-        for (ResolvedDependencyResult dependency: sorted) {
-            if (versions[dependency.selected.id]) {
-                versions[dependency.selected.id] += dependency.requested.version
-            } else {
-                versions[dependency.selected.id] = [dependency.requested.version]
-            }
-        }
-
         //remember if module id was annotated
         def annotated = new HashSet<ModuleVersionIdentifier>()
 
         for (ResolvedDependencyResult dependency: sorted) {
-            def description = ""
+            def description = null
             //add description only to the first module
             if (annotated.add(dependency.selected.id)) {
-                //inform the module version not requested in the graph
-                if (newId(dependency.requested) != dependency.selected.id) {
+                //add a heading dependency with the annotation if the dependency does not exist in the graph
+                if (!newId(dependency.requested).equals(dependency.selected.id)) {
                     def name = dependency.selected.id.group + ":" + dependency.selected.id.name + ":" + dependency.selected.id.version
-                    out << new SimpleDependency(name, " (not requested)")
-                //inform the module version is not the latest
-                } else if (new LatestRevisionSelector().latest(versions[dependency.selected.id]) != dependency.selected.id.version) {
-                    //TODO SF I'm not quite sure about this feature
-                    description = " (not newest)"
+                    out << new SimpleDependency(name, dependency.selected.whySelected)
+                } else {
+                    description = dependency.selected.whySelected
                 }
             }
 

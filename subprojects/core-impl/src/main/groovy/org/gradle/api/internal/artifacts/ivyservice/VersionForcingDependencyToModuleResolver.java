@@ -38,7 +38,8 @@ public class VersionForcingDependencyToModuleResolver implements DependencyToMod
     public ModuleVersionIdResolveResult resolve(DependencyDescriptor dependencyDescriptor) {
         ModuleRevisionId newRevisionId = forcedModules.get(dependencyDescriptor.getDependencyId());
         if (newRevisionId != null) {
-            return resolver.resolve(dependencyDescriptor.clone(newRevisionId));
+            ModuleVersionIdResolveResult result = resolver.resolve(dependencyDescriptor.clone(newRevisionId));
+            return new ForcedModuleVersionIdResolveResult(result);
         }
         return resolver.resolve(dependencyDescriptor);
     }

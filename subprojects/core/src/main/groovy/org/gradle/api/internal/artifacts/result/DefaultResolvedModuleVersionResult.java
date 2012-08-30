@@ -33,6 +33,7 @@ public class DefaultResolvedModuleVersionResult implements ResolvedModuleVersion
     private final ModuleVersionIdentifier id;
     private final Set<DependencyResult> dependencies = new LinkedHashSet<DependencyResult>();
     private final Set<DefaultResolvedDependencyResult> dependents = new LinkedHashSet<DefaultResolvedDependencyResult>();
+    public String whySelected;
 
     public DefaultResolvedModuleVersionResult(ModuleVersionIdentifier id) {
         assert id != null;
@@ -87,5 +88,9 @@ public class DefaultResolvedModuleVersionResult implements ResolvedModuleVersion
     @Override
     public String toString() {
         return id.getGroup() + ":" + id.getName() + ":" + id.getVersion();
+    }
+
+    public String getWhySelected() {
+        return whySelected;
     }
 }

@@ -28,6 +28,7 @@ public class InternalDependencyResult {
     private final ModuleVersionSelector requested;
     private final ModuleVersionIdentifier selected;
     private final Exception failure;
+    public String reason;
 
     public InternalDependencyResult(ModuleVersionSelector requested, ModuleVersionIdentifier selected, Exception failure) {
         assert requested != null;
@@ -48,5 +49,9 @@ public class InternalDependencyResult {
     @Nullable
     public Exception getFailure() {
         return failure;
+    }
+
+    public String getReason() {
+        return reason;
     }
 }

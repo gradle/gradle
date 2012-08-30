@@ -42,16 +42,17 @@ public class ResolutionResultBuilder implements ResolvedConfigurationListener {
     }
 
     public void resolvedConfiguration(ResolvedConfigurationIdentifier id, Collection<InternalDependencyResult> dependencies) {
-        DefaultResolvedModuleVersionResult module = getModule(id.getId());
+        DefaultResolvedModuleVersionResult from = getModule(id.getId());
 
         for (InternalDependencyResult d : dependencies) {
             if (d.getFailure() != null) {
-                module.addDependency(new DefaultUnresolvedDependencyResult(d.getRequested(), d.getFailure(), module));
+                from.addDependency(new DefaultUnresolvedDependencyResult(d.getRequested(), d.getFailure(), from));
             } else {
-                DefaultResolvedModuleVersionResult submodule = getModule(d.getSelected());
-                DefaultResolvedDependencyResult dependency = new DefaultResolvedDependencyResult(d.getRequested(), submodule, module);
-                module.addDependency(dependency);
-                submodule.addDependent(dependency);
+                DefaultResolvedModuleVersionResult selected = getModule(d.getSelected());
+                selected.whySelected = d.getReason();
+                DefaultResolvedDependencyResult dependency = new DefaultResolvedDependencyResult(d.getRequested(), selected, from);
+                from.addDependency(dependency);
+                selected.addDependent(dependency);
             }
         }
     }

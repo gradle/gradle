@@ -30,7 +30,7 @@ class DependencyInsightReportTaskIntegrationTest extends AbstractIntegrationSpec
         distribution.requireOwnUserHomeDir()
     }
 
-    def "renders the dependency insight"() {
+    def "basic dependency graph with conflicting versions"() {
         given:
         repo.module("org", "leaf1").publish()
         repo.module("org", "leaf2").publish()
@@ -76,7 +76,7 @@ class DependencyInsightReportTaskIntegrationTest extends AbstractIntegrationSpec
         then:
         1 == 1
         output.contains(toPlatformLineSeparators("""
-org:leaf2:2.5
+org:leaf2:2.5 (conflict resolution)
 \\--- org:toplevel3:1.0
      \\--- conf
 
@@ -94,10 +94,175 @@ org:leaf2:1.5 -> 2.5
 """))
     }
 
+    def "with forced version"() {
+        given:
+        repo.module("org", "leaf", 1.0).publish()
+        repo.module("org", "leaf", 2.0).publish()
+
+        repo.module("org", "foo", 1.0).dependsOn('org', 'leaf', '1.0').publish()
+        repo.module("org", "bar", 1.0).dependsOn('org', 'leaf', '2.0').publish()
+
+        file("build.gradle") << """
+            repositories {
+                maven { url "${repo.uri}" }
+            }
+            configurations {
+                conf
+            }
+            configurations.conf.resolutionStrategy.force 'org:leaf:1.0'
+            dependencies {
+                conf 'org:foo:1.0', 'org:bar:1.0'
+            }
+            task insight(type: DependencyInsightReportTask) {
+                configuration = configurations.conf
+                includes = { it.requested.name == 'leaf' }
+            }
+        """
+
+        when:
+        run "insight"
+
+        then:
+        output.contains(toPlatformLineSeparators("""
+org:leaf:1.0 (forced)
+\\--- org:foo:1.0
+     \\--- conf
+
+org:leaf:2.0 -> 1.0
+\\--- org:bar:1.0
+     \\--- conf
+"""))
+    }
+
+    def "forced version matches the conflict resolution"() {
+        given:
+        repo.module("org", "leaf", 1.0).publish()
+        repo.module("org", "leaf", 2.0).publish()
+
+        repo.module("org", "foo", 1.0).dependsOn('org', 'leaf', '1.0').publish()
+        repo.module("org", "bar", 1.0).dependsOn('org', 'leaf', '2.0').publish()
+
+        file("build.gradle") << """
+            repositories {
+                maven { url "${repo.uri}" }
+            }
+            configurations {
+                conf
+            }
+            configurations.conf.resolutionStrategy.force 'org:leaf:2.0'
+            dependencies {
+                conf 'org:foo:1.0', 'org:bar:1.0'
+            }
+            task insight(type: DependencyInsightReportTask) {
+                configuration = configurations.conf
+                includes = { it.requested.name == 'leaf' }
+            }
+        """
+
+        when:
+        run "insight"
+
+        then:
+        output.contains(toPlatformLineSeparators("""
+org:leaf:2.0 (forced)
+\\--- org:bar:1.0
+     \\--- conf
+
+org:leaf:1.0 -> 2.0
+\\--- org:foo:1.0
+     \\--- conf
+"""))
+    }
+
+    def "forced version does not match anything in the graph"() {
+        given:
+        repo.module("org", "leaf", 1.0).publish()
+        repo.module("org", "leaf", 2.0).publish()
+        repo.module("org", "leaf", 1.5).publish()
+
+        repo.module("org", "foo", 1.0).dependsOn('org', 'leaf', '1.0').publish()
+        repo.module("org", "bar", 1.0).dependsOn('org', 'leaf', '2.0').publish()
+
+        file("build.gradle") << """
+            repositories {
+                maven { url "${repo.uri}" }
+            }
+            configurations {
+                conf
+            }
+            configurations.conf.resolutionStrategy.force 'org:leaf:1.5'
+            dependencies {
+                conf 'org:foo:1.0', 'org:bar:1.0'
+            }
+            task insight(type: DependencyInsightReportTask) {
+                configuration = configurations.conf
+                includes = { it.requested.name == 'leaf' }
+            }
+        """
+
+        when:
+        run "insight"
+
+        then:
+        output.contains(toPlatformLineSeparators("""
+org:leaf:1.5 (forced)
+
+org:leaf:1.0 -> 1.5
+\\--- org:foo:1.0
+     \\--- conf
+
+org:leaf:2.0 -> 1.5
+\\--- org:bar:1.0
+     \\--- conf
+"""))
+    }
+
+    def "forced version at dependency level"() {
+        given:
+        repo.module("org", "leaf", 1.0).publish()
+        repo.module("org", "leaf", 2.0).publish()
+
+        repo.module("org", "foo", 1.0).dependsOn('org', 'leaf', '1.0').publish()
+        repo.module("org", "bar", 1.0).dependsOn('org', 'leaf', '2.0').publish()
+
+        file("build.gradle") << """
+            repositories {
+                maven { url "${repo.uri}" }
+            }
+            configurations {
+                conf
+            }
+            dependencies {
+                conf 'org:foo:1.0', 'org:bar:1.0'
+                conf('org:leaf:1.0') {
+                  force = true
+                }
+            }
+            task insight(type: DependencyInsightReportTask) {
+                configuration = configurations.conf
+                includes = { it.requested.name == 'leaf' }
+            }
+        """
+
+        when:
+        run "insight"
+
+        then:
+        output.contains(toPlatformLineSeparators("""
+org:leaf:1.0 (forced)
++--- conf
+\\--- org:foo:1.0
+     \\--- conf
+
+org:leaf:2.0 -> 1.0
+\\--- org:bar:1.0
+     \\--- conf
+"""))
+    }
+
     //TODO SF more coverage
-    // - additional description
+    // some of those tests should be units
     // - no matching dependencies
     // - configuration / dependency not configured
     // - unresolved dependencies
-    // - forced versions into something that does not exist in the graph
 }

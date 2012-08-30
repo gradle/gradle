@@ -48,4 +48,6 @@ public interface ResolvedModuleVersionResult {
      * @return dependents
      */
     Set<? extends ResolvedDependencyResult> getDependents();
+
+    String getWhySelected();
 }

@@ -46,6 +46,10 @@ public class EmptyResolutionResult implements ResolutionResult {
             public Set<? extends ResolvedDependencyResult> getDependents() {
                 return Collections.emptySet();
             }
+
+            public String getWhySelected() {
+                return null;
+            }
         };
     }
 
