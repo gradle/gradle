@@ -59,12 +59,12 @@ public class DefaultDaemonConnector implements DaemonConnector {
         return daemonRegistry;
     }
 
-    public DaemonConnection maybeConnect(ExplainingSpec<DaemonContext> constraint) {
+    public DaemonClientConnection maybeConnect(ExplainingSpec<DaemonContext> constraint) {
         return findConnection(daemonRegistry.getAll(), constraint);
     }
 
-    public DaemonConnection connect(ExplainingSpec<DaemonContext> constraint) {
-        DaemonConnection connection = findConnection(daemonRegistry.getIdle(), constraint);
+    public DaemonClientConnection connect(ExplainingSpec<DaemonContext> constraint) {
+        DaemonClientConnection connection = findConnection(daemonRegistry.getIdle(), constraint);
         if (connection != null) {
             return connection;
         }
@@ -72,7 +72,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
         return createConnection(constraint);
     }
 
-    private DaemonConnection findConnection(List<DaemonInfo> daemonInfos, ExplainingSpec<DaemonContext> constraint) {
+    private DaemonClientConnection findConnection(List<DaemonInfo> daemonInfos, ExplainingSpec<DaemonContext> constraint) {
         for (DaemonInfo daemonInfo : daemonInfos) {
             if (!constraint.isSatisfiedBy(daemonInfo.getContext())) {
                 LOGGER.debug("Found daemon (address: {}, idle: {}) however it's context does not match the desired criteria.\n"
@@ -96,7 +96,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
         return null;
     }
 
-    public DaemonConnection createConnection(ExplainingSpec<DaemonContext> constraint) {
+    public DaemonClientConnection createConnection(ExplainingSpec<DaemonContext> constraint) {
         LOGGER.info("Starting Gradle daemon");
         final DaemonStartupInfo startupInfo = daemonStarter.startDaemon();
         LOGGER.debug("Started Gradle Daemon: {}", startupInfo);
@@ -107,7 +107,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
             } catch (InterruptedException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
-            DaemonConnection daemonConnection = connectToDaemonWithId(startupInfo, constraint);
+            DaemonClientConnection daemonConnection = connectToDaemonWithId(startupInfo, constraint);
             if (daemonConnection != null) {
                 return daemonConnection;
             }
@@ -116,7 +116,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
         throw new GradleException("Timeout waiting to connect to Gradle daemon.\n" + startupInfo.describe());
     }
 
-    private DaemonConnection connectToDaemonWithId(DaemonStartupInfo startupInfo, ExplainingSpec<DaemonContext> constraint) throws ConnectException {
+    private DaemonClientConnection connectToDaemonWithId(DaemonStartupInfo startupInfo, ExplainingSpec<DaemonContext> constraint) throws ConnectException {
         // Look for 'our' daemon among the busy daemons - a daemon will start in busy state so that nobody else will grab it.
         for (DaemonInfo daemonInfo : daemonRegistry.getBusy()) {
             if (daemonInfo.getContext().getUid().equals(startupInfo.getUid())) {
@@ -139,13 +139,13 @@ public class DefaultDaemonConnector implements DaemonConnector {
         return null;
     }
 
-    private DaemonConnection connectToDaemon(final DaemonInfo daemonInfo, DaemonDiagnostics diagnostics) {
+    private DaemonClientConnection connectToDaemon(final DaemonInfo daemonInfo, DaemonDiagnostics diagnostics) {
         Runnable onFailure = new Runnable() {
             public void run() {
                 LOGGER.info("Removing daemon from the registry due to communication failure. Daemon information: {}", daemonInfo);
                 daemonRegistry.remove(daemonInfo.getAddress());
             }
         };
-        return new DaemonConnection(connector.connect(daemonInfo.getAddress()), daemonInfo.getContext().getUid(), diagnostics, onFailure);
+        return new DaemonClientConnection(connector.connect(daemonInfo.getAddress()), daemonInfo.getContext().getUid(), diagnostics, onFailure);
     }
 }

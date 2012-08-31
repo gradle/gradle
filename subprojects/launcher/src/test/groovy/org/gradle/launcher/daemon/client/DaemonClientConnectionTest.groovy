@@ -23,11 +23,11 @@ import spock.lang.Specification
 /**
  * by Szczepan Faber, created at: 8/31/12
  */
-class DaemonConnectionTest extends Specification {
+class DaemonClientConnectionTest extends Specification {
 
     final delegate = Mock(Connection)
     final onFailure = Mock(Runnable)
-    final connection = new DaemonConnection(delegate, 'id', null, onFailure)
+    final connection = new DaemonClientConnection(delegate, 'id', null, onFailure)
 
     def "stops"() {
         when:

@@ -25,16 +25,15 @@ import org.gradle.messaging.remote.internal.Connection;
 /**
  * A simple wrapper for the connection to a daemon plus its password.
  */
-public class DaemonConnection implements Connection<Object> {
-    //TODO SF rename - clashes with a different name
+public class DaemonClientConnection implements Connection<Object> {
 
     final Connection<Object> connection;
     private final String uid;
     private DaemonDiagnostics diagnostics;
     final Runnable onFailure;
-    private final static Logger LOG = Logging.getLogger(DaemonConnection.class);
+    private final static Logger LOG = Logging.getLogger(DaemonClientConnection.class);
 
-    public DaemonConnection(Connection<Object> connection, String uid, DaemonDiagnostics diagnostics, Runnable onFailure) {
+    public DaemonClientConnection(Connection<Object> connection, String uid, DaemonDiagnostics diagnostics, Runnable onFailure) {
         this.connection = connection;
         this.uid = uid;
         this.diagnostics = diagnostics;

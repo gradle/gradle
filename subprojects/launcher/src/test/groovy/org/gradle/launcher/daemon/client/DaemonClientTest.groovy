@@ -25,7 +25,7 @@ import org.gradle.launcher.daemon.protocol.*
 
 class DaemonClientTest extends ConcurrentSpecification {
     final DaemonConnector connector = Mock()
-    final DaemonConnection connection = Mock()
+    final DaemonClientConnection connection = Mock()
     final OutputEventListener outputEventListener = Mock()
     final DaemonCompatibilitySpec compatibilitySpec = Mock()
     final IdGenerator<?> idGenerator = {12} as IdGenerator
