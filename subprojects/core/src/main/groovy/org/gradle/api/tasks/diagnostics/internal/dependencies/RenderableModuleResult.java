@@ -46,7 +46,7 @@ public class RenderableModuleResult implements RenderableDependency {
     }
 
     public String getDescription() {
-        return module.getWhySelected();
+        return null;
     }
 
     public Set<RenderableDependency> getChildren() {

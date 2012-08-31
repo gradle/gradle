@@ -18,6 +18,7 @@ package org.gradle.api.tasks.diagnostics.internal.insight;
 
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier
+import org.gradle.api.artifacts.result.ModuleSelectionReason
 import org.gradle.api.artifacts.result.ResolvedDependencyResult
 import org.gradle.api.internal.artifacts.result.ResolvedDependencyResultSorter
 import org.gradle.api.tasks.diagnostics.internal.dependencies.RenderableDependency
@@ -47,9 +48,9 @@ public class DependencyInsightReporter {
                 //add a heading dependency with the annotation if the dependency does not exist in the graph
                 if (!newId(dependency.requested).equals(dependency.selected.id)) {
                     def name = dependency.selected.id.group + ":" + dependency.selected.id.name + ":" + dependency.selected.id.version
-                    out << new SimpleDependency(name, dependency.selected.whySelected)
+                    out << new SimpleDependency(name, describeReason(dependency.selected.selectionReason))
                 } else {
-                    description = dependency.selected.whySelected
+                    description = describeReason(dependency.selected.selectionReason)
                 }
             }
 
@@ -57,5 +58,15 @@ public class DependencyInsightReporter {
         }
 
         out
+    }
+
+    private String describeReason(ModuleSelectionReason reason) {
+        if (reason == ModuleSelectionReason.conflictResolution) {
+            return "conflict resolution"
+        } else if (reason == ModuleSelectionReason.forced) {
+            return "forced"
+        } else {
+            return null
+        }
     }
 }

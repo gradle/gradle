@@ -49,5 +49,14 @@ public interface ResolvedModuleVersionResult {
      */
     Set<? extends ResolvedDependencyResult> getDependents();
 
-    String getWhySelected();
+    /**
+     * Informs why this module version was selected.
+     * Useful information if during the dependency resolution multiple candidate versions were found
+     * and one of them was selected as a part of conflict resolution.
+     * Informs if a version was forced during the resolution process.
+     * See {@link ModuleSelectionReason}
+     *
+     * @return information why this module version was selected.
+     */
+    ModuleSelectionReason getSelectionReason();
 }

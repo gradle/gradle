@@ -16,10 +16,13 @@
 
 package org.gradle.api.tasks.diagnostics.internal.insight
 
+import org.gradle.api.artifacts.result.ModuleSelectionReason
 import org.gradle.api.internal.artifacts.result.DefaultResolvedDependencyResult
 import org.gradle.api.internal.artifacts.result.DefaultResolvedModuleVersionResult
 import spock.lang.Specification
 
+import static org.gradle.api.artifacts.result.ModuleSelectionReason.conflictResolution
+import static org.gradle.api.artifacts.result.ModuleSelectionReason.forced
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 
@@ -55,7 +58,7 @@ class DependencyInsightReporterSpec extends Specification {
     }
 
     def "adds header dependency if the selected version does not exist in the graph"() {
-        def dependencies = [dep("a", "x", "1.0", "2.0", "forced"), dep("a", "x", "1.5", "2.0", "forced"), dep("b", "a", "5.0")]
+        def dependencies = [dep("a", "x", "1.0", "2.0", forced), dep("a", "x", "1.5", "2.0", forced), dep("b", "a", "5.0")]
 
         when:
         def sorted = new DependencyInsightReporter().prepare(dependencies);
@@ -77,7 +80,7 @@ class DependencyInsightReporterSpec extends Specification {
     }
 
     def "annotates only first dependency in the group"() {
-        def dependencies = [dep("a", "x", "1.0", "2.0", "conflict resolution"), dep("a", "x", "2.0", "2.0", "conflict resolution"), dep("b", "a", "5.0", "5.0", "forced")]
+        def dependencies = [dep("a", "x", "1.0", "2.0", conflictResolution), dep("a", "x", "2.0", "2.0", conflictResolution), dep("b", "a", "5.0", "5.0", forced)]
 
         when:
         def sorted = new DependencyInsightReporter().prepare(dependencies);
@@ -95,9 +98,8 @@ class DependencyInsightReporterSpec extends Specification {
         sorted[2].description == 'forced'
     }
 
-    private dep(String group, String name, String requested, String selected = requested, String whySelected = null) {
-        def selectedModule = new DefaultResolvedModuleVersionResult(newId(group, name, selected))
-        selectedModule.whySelected = whySelected
+    private dep(String group, String name, String requested, String selected = requested, ModuleSelectionReason selectionReason = ModuleSelectionReason.regular) {
+        def selectedModule = new DefaultResolvedModuleVersionResult(newId(group, name, selected), selectionReason)
         new DefaultResolvedDependencyResult(newSelector(group, name, requested),
                 selectedModule,
                 new DefaultResolvedModuleVersionResult(newId("a", "root", "1")))

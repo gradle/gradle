@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.artifacts.result.ModuleSelectionReason;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
@@ -161,8 +162,8 @@ public class DependencyGraphBuilder {
         for (DependencyEdge edge : resolvedConfiguration.outgoingEdges) {
             InternalDependencyResult d = new InternalDependencyResult(edge.toSelector(), edge.maybeTargetId(), edge.getFailure());
             if (edge.maybeTargetId() != null) {
-                //TODO SF using some hackery and Strings as a POC - clean up!
-                d.reason = edge.targetModuleRevision.reason;
+                //TODO SF clean up!
+                d.selectionReason = edge.targetModuleRevision.selectionReason;
             }
             dependencies.add(d);
         }
@@ -604,7 +605,7 @@ public class DependencyGraphBuilder {
         ModuleDescriptor descriptor;
         ModuleState state = ModuleState.New;
         ModuleVersionSelectorResolveState resolver;
-        String reason;
+        ModuleSelectionReason selectionReason = ModuleSelectionReason.regular;
 
         private DefaultModuleRevisionResolveState(ModuleResolveState module, ModuleRevisionId id, ResolveState resolveState) {
             this.module = module;
@@ -919,7 +920,7 @@ public class DependencyGraphBuilder {
             targetModuleRevision.addResolver(this);
 
             if (idResolveResult instanceof ForcedModuleVersionIdResolveResult) {
-                targetModuleRevision.reason = "forced";
+                targetModuleRevision.selectionReason = ModuleSelectionReason.forced;
             }
 
             return targetModuleRevision;
@@ -958,14 +959,14 @@ public class DependencyGraphBuilder {
             for (ConfigurationNode configuration : root.configurations) {
                 for (DependencyEdge outgoingEdge : configuration.outgoingEdges) {
                     if (outgoingEdge.dependencyDescriptor.isForce() && candidates.contains(outgoingEdge.targetModuleRevision)) {
-                        outgoingEdge.targetModuleRevision.reason = "forced";
+                        outgoingEdge.targetModuleRevision.selectionReason = ModuleSelectionReason.forced;
                         return outgoingEdge.targetModuleRevision;
                     }
                 }
             }
             //TODO SF unit test
             DefaultModuleRevisionResolveState out = (DefaultModuleRevisionResolveState) resolver.select(candidates, root);
-            out.reason = "conflict resolution";
+            out.selectionReason = ModuleSelectionReason.conflictResolution;
             return out;
         }
     }
