@@ -116,6 +116,7 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
             try {
                 return (T) executeBuild(build, connection);
             } catch (DaemonInitialConnectException e) {
+                //this exception means that we want to try again.
                 LOGGER.info(e.getMessage() + " Trying a different daemon...");
             }
         }
@@ -131,7 +132,10 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
             connection.dispatch(build);
             firstResult = connection.receive();
         } catch (Exception e) {
-            throw new DaemonInitialConnectException("Exception when attempted to send and receive first result from the daemon.", e);
+            LOGGER.debug("Unable to perform initial dispatch/receive with the daemon.", e);
+            //We might fail hard here on the assumption that something weird happened to the daemon.
+            //However, since we haven't yet started running the build, we can recover by just trying again...
+            throw new DaemonInitialConnectException("Problem when attempted to send and receive first result from the daemon.");
         }
 
         if (firstResult instanceof BuildStarted) {
@@ -192,6 +196,7 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
     }
 
     private IllegalStateException invalidResponse(Object response, Build command) {
+        //TODO SF we could include diagnostics here (they might be available).
         return new IllegalStateException(String.format(
                 "Received invalid response from the daemon: '%s' is a result of a type we don't have a strategy to handle."
                         + "Earlier, '%s' request was sent to the daemon.", response, command));
