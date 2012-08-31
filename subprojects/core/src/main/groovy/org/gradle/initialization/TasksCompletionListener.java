@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.initialization;
 
 import org.gradle.api.internal.GradleInternal;
 
-public interface ModelConfigurationListener {
+public interface TasksCompletionListener {
     /**
-     * Invoked when the model has been configured successfully. This listener should not do any further configuration.
+     * Notified when all task execution has completed successfully.
      */
-    void onConfigure(GradleInternal model);
+    void onTasksFinished(GradleInternal gradle);
 }

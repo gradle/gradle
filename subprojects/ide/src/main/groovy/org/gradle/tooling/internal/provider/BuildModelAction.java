@@ -17,7 +17,10 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.BuildResult;
 import org.gradle.GradleLauncher;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.initialization.GradleLauncherAction;
+import org.gradle.initialization.ModelConfigurationListener;
+import org.gradle.initialization.TasksCompletionListener;
 import org.gradle.tooling.internal.protocol.ProjectVersion3;
 
 import java.util.List;
@@ -25,8 +28,9 @@ import java.util.List;
 import static java.util.Arrays.asList;
 
 public class BuildModelAction implements GradleLauncherAction<ProjectVersion3> {
-    private ModelBuildingAdapter modelBuildingAdapter;
+    private final BuildsModel builder;
     private final boolean runTasks;
+    private ProjectVersion3 model;
 
     public BuildModelAction(Class<?> type, boolean runTasks) {
         this.runTasks = runTasks;
@@ -40,7 +44,7 @@ public class BuildModelAction implements GradleLauncherAction<ProjectVersion3> {
 
         for (BuildsModel builder : modelBuilders) {
             if (builder.canBuild(type)) {
-                modelBuildingAdapter = new ModelBuildingAdapter(builder);
+                this.builder = builder;
                 return;
             }
         }
@@ -49,11 +53,25 @@ public class BuildModelAction implements GradleLauncherAction<ProjectVersion3> {
     }
 
     public BuildResult run(GradleLauncher launcher) {
-        launcher.addListener(modelBuildingAdapter);
-        return runTasks ? launcher.run() : launcher.getBuildAnalysis();
+
+        if (runTasks) {
+            launcher.addListener(new TasksCompletionListener() {
+                public void onTasksFinished(GradleInternal gradle) {
+                    model = builder.buildAll(gradle);
+                }
+            });
+            return launcher.run();
+        } else {
+            launcher.addListener(new ModelConfigurationListener() {
+                public void onConfigure(GradleInternal gradle) {
+                    model = builder.buildAll(gradle);
+                }
+            });
+            return launcher.getBuildAnalysis();
+        }
     }
 
     public ProjectVersion3 getResult() {
-        return modelBuildingAdapter.getProject();
+        return model;
     }
 }
