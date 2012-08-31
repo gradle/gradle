@@ -15,6 +15,7 @@
  */
 package org.gradle.launcher.daemon.client;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.internal.specs.ExplainingSpec;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -34,6 +35,8 @@ import org.gradle.messaging.remote.internal.Connection;
 import org.gradle.util.GFileUtils;
 
 import java.io.InputStream;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * The client piece of the build daemon.
@@ -56,6 +59,7 @@ import java.io.InputStream;
  */
 public class DaemonClient implements GradleLauncherActionExecuter<BuildActionParameters> {
     private static final Logger LOGGER = Logging.getLogger(DaemonClient.class);
+    private static final int STOP_TIMEOUT_SECONDS = 30;
     private final DaemonConnector connector;
     private final OutputEventListener outputEventListener;
     private final ExplainingSpec<DaemonContext> compatibilitySpec;
@@ -87,6 +91,10 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
      * Stops all daemons, if any is running.
      */
     public void stop() {
+        long start = System.currentTimeMillis();
+        long expiry = start + STOP_TIMEOUT_SECONDS * 1000;
+        Set<String> stopped = new HashSet<String>();
+
         DaemonConnection connection = connector.maybeConnect(compatibilitySpec);
         if (connection == null) {
             LOGGER.lifecycle(DaemonMessages.NO_DAEMONS_RUNNING);
@@ -94,11 +102,18 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
         }
 
         LOGGER.lifecycle("Stopping daemon(s).");
+
         //iterate and stop all daemons
-        while (connection != null) {
-            new StopDispatcher(idGenerator).dispatch(connection.getConnection());
-            LOGGER.lifecycle("Gradle daemon stopped.");
+        while (connection != null && System.currentTimeMillis() < expiry) {
+            if (stopped.add(connection.getUid())) {
+                new StopDispatcher(idGenerator).dispatch(connection.getConnection());
+                LOGGER.lifecycle("Gradle daemon stopped.");
+            }
             connection = connector.maybeConnect(compatibilitySpec);
+        }
+
+        if (connection != null) {
+            throw new GradleException(String.format("Timeout waiting for all daemons to stop. Waited %s seconds.", (System.currentTimeMillis() - start) / 1000));
         }
     }
 

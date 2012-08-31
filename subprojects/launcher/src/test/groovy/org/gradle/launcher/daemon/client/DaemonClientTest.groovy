@@ -26,16 +26,12 @@ import org.gradle.launcher.daemon.protocol.*
 
 class DaemonClientTest extends ConcurrentSpecification {
     final DaemonConnector connector = Mock()
-    final DaemonConnection daemonConnection = Mock()
     final Connection<Object> connection = Mock()
+    final DaemonConnection daemonConnection = connection(connection, '1')
     final OutputEventListener outputEventListener = Mock()
     final DaemonCompatibilitySpec compatibilitySpec = Mock()
     final IdGenerator<?> idGenerator = {12} as IdGenerator
     final DaemonClient client = new DaemonClient(connector, outputEventListener, compatibilitySpec, new ByteArrayInputStream(new byte[0]), executorFactory, idGenerator)
-
-    def setup() {
-        daemonConnection.getConnection() >> connection
-    }
 
     def stopsTheDaemonWhenRunning() {
         when:
@@ -46,7 +42,6 @@ class DaemonClientTest extends ConcurrentSpecification {
         1 * connection.dispatch({it instanceof Stop})
         1 * connection.receive() >> new Success(null)
         1 * connection.stop()
-        daemonConnection.getConnection() >> connection // why do I need this? Why doesn't the interaction specified in setup cover me?
         0 * _
     }
 
@@ -60,13 +55,33 @@ class DaemonClientTest extends ConcurrentSpecification {
     }
 
     def "stops all compatible daemons"() {
+        Connection connection2 = Mock()
+        def daemonConnection2 = connection(connection2, '2')
+
+        when:
+        client.stop()
+
+        then:
+        3 * connector.maybeConnect(compatibilitySpec) >>> [daemonConnection, daemonConnection2, null]
+        1 * connection.dispatch({it instanceof Stop})
+        1 * connection.receive() >> new Success(null)
+        1 * connection.stop()
+        1 * connection2.dispatch({it instanceof Stop})
+        1 * connection2.receive() >> new Success(null)
+        1 * connection2.stop()
+        0 * _
+    }
+
+    def "stops each connection at most once"() {
         when:
         client.stop()
 
         then:
         3 * connector.maybeConnect(compatibilitySpec) >>> [daemonConnection, daemonConnection, null]
-        2 * connection.dispatch({it instanceof Stop})
-        2 * connection.receive() >> new Success(null)
+        1 * connection.dispatch({it instanceof Stop})
+        1 * connection.receive() >> new Success(null)
+        1 * connection.stop()
+        0 * _
     }
 
     def executesAction() {
@@ -82,8 +97,6 @@ class DaemonClientTest extends ConcurrentSpecification {
     }
 
     def rethrowsFailureToExecuteAction() {
-        GradleLauncherAction<String> action = Mock()
-        BuildActionParameters parameters = Mock()
         RuntimeException failure = new RuntimeException()
 
         when:
@@ -137,5 +150,9 @@ class DaemonClientTest extends ConcurrentSpecification {
 
         then:
         thrown(NoUsableDaemonFoundException)
+    }
+
+    def connection(Connection connection, String uid) {
+        return new DaemonConnection(uid, connection, "password", null)
     }
 }
