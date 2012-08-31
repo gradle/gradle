@@ -377,7 +377,7 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
     private BuildComparisonResultRenderer<Writer> createResultRenderer(DefaultBuildOutcomeComparisonResultRendererFactory<HtmlRenderContext> renderers) {
         PartRenderer headRenderer = new HeadRenderer("Gradle Build Comparison", Charset.defaultCharset().name());
 
-        PartRenderer headingRenderer = new GradleComparisonHeadingRenderer(getSourceBuild(), getTargetBuild());
+        PartRenderer headingRenderer = new GradleComparisonHeadingRenderer(this);
 
         return new HtmlBuildComparisonResultRenderer(renderers, headRenderer, headingRenderer, null);
     }
