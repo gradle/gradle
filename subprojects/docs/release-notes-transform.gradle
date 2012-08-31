@@ -42,7 +42,7 @@ decorateReleaseNotes {
     // Add the extra doc links
     transform {
         body().append("""
-            <h2>Documentation</h2>
+            <h2>Gradle @version@ Documentation Links</h2>
             <ul>
                 <li><a href='dsl/index.html'>DSL Reference</a></li>
                 <li><a href='userguide/userguide.html'>User Guide</a></li>
