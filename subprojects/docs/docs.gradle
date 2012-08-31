@@ -29,12 +29,22 @@ apply plugin: 'javascript-base'
 
 repositories {
     add javaScript.googleApisRepository
+
+    ivy {
+        name "Google Fonts"
+        url "http://themes.googleusercontent.com/static/fonts/"
+        layout 'pattern', {
+            artifact '[organisation]/v[revision]/[classifier](.[ext])'
+            ivy '[organisation]/v[revision]/ivy(.[ext])'
+        }
+    }
 }
 
 configurations {
     userGuideStyleSheets
     userGuideTask
     jquery
+    fonts
 }
 
 dependencies {
@@ -46,6 +56,12 @@ dependencies {
 
     userGuideStyleSheets 'docbook:docbook-xsl:1.75.2@zip'
     jquery "jquery:jquery.min:1.8.0@js"
+
+    fonts \
+        "lato:regular:6:qIIYRU-oROkIk8vfvxw6QvesZW2xOQ-xsNqO47m55DA@woff",
+        "lato:regular-italic:6:RYyZNoeFgb0l7W3Vu1aSWOvvDin1pK8aKteLpeZ5c0A@woff",
+        "lato:bold:6:HkF_qI1x_noxlxhrhMQYELO3LdcAZYWl9Si6vvxL-qU@woff",
+        "lato:bold-italic:6:qIIYRU-oROkIk8vfvxw6QvesZW2xOQ-xsNqO47m55DA@woff"
 }
 
 ext {
@@ -98,13 +114,17 @@ tasks.withType(AssembleDslDocTask) {
 }
 
 task configureCss << {
-    ext {
-        files = []
-        files.addAll(fileTree(dir: "src/docs/css/fonts", include: "*.*").files)
-        files.addAll(fileTree(dir: "src/docs/css/images", include: "*.*").files)
-        tokens = files.collectEntries { [it.name, it.bytes.encodeBase64().toString()] }
+    def images = fileTree(dir: "src/docs/css/images", include: "*.*").files.collectEntries {
+        [it.name, it.bytes.encodeBase64().toString()]
     }
 
+    def fonts = configurations.fonts.resolvedConfiguration.resolvedArtifacts.collectEntries {
+        def id = it.moduleVersion.id
+        ["${id.group}-${id.name}".toString(), it.file.bytes.encodeBase64().toString()]
+    }
+
+    ext.tokens = images + fonts
+    println tokens.keySet().collect { "'$it'" }
     css.inputs.property 'tokens', tokens
     css.filter org.apache.tools.ant.filters.ReplaceTokens, tokens: tokens
 }

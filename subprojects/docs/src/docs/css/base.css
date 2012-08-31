@@ -71,28 +71,28 @@ caption {background:#eee;}
   font-family: 'Lato';
   font-style: normal;
   font-weight: 400;
-  src: local('Lato Regular'), local('Lato-Regular'), url('data:font/opentype;base64,@lato-regular.woff@') format('woff');
+  src: local('Lato Regular'), local('Lato-Regular'), url('data:font/opentype;base64,@lato-regular@') format('woff');
 }
 
 @font-face {
   font-family: 'Lato';
   font-style: italic;
   font-weight: 400;
-  src: local('Lato Italic'), local('Lato-Italic'), url('data:font/opentype;base64,@lato-regular-italic.woff@') format('woff');
+  src: local('Lato Italic'), local('Lato-Italic'), url('data:font/opentype;base64,@lato-regular-italic@') format('woff');
 }
 
 @font-face {
   font-family: 'Lato';
   font-style: normal;
   font-weight: 700;
-  src: local('Lato Bold'), local('Lato-Bold'), url('data:font/opentype;base64,@lato-bold.woff@') format('woff');
+  src: local('Lato Bold'), local('Lato-Bold'), url('data:font/opentype;base64,@lato-bold@') format('woff');
 }
 
 @font-face {
   font-family: 'Lato';
   font-style: italic;
   font-weight: 700;
-  src: local('Lato Bold Italic'), local('Lato-BoldItalic'), url('data:font/opentype;base64,@lato-bold-italic-base64@') format('woff');
+  src: local('Lato Bold Italic'), local('Lato-BoldItalic'), url('data:font/opentype;base64,@lato-bold-italic@') format('woff');
 }
 
 body {
