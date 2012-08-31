@@ -18,14 +18,11 @@ package org.gradle.api.plugins.buildcomparison.gradle
 
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
+import org.gradle.util.TestFile
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.junit.Rule
-import org.gradle.util.TestFile
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
-@Requires(TestPrecondition.NOT_WINDOWS)
 class GradleBuildComparisonIntegrationSpec extends WellBehavedPluginTest {
     @Rule TestResources testResources
 

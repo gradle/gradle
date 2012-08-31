@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins.buildcomparison.outcome.internal.archive.entry;
 
+import org.apache.commons.io.IOUtils;
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
 
@@ -52,10 +53,13 @@ public class FileToArchiveEntrySetTransformer implements Transformer<Set<Archive
             ZipEntry entry = zipStream.getNextEntry();
             while (entry != null) {
                 entries.add(entryTransformer.transform(entry));
+                zipStream.closeEntry();
                 entry = zipStream.getNextEntry();
             }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
+        } finally {
+            IOUtils.closeQuietly(zipStream);
         }
 
         return entries;
