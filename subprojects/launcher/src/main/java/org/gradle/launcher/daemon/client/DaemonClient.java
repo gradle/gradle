@@ -95,7 +95,7 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
         LOGGER.lifecycle("Stopping daemon(s).");
         //iterate and stop all daemons
         while (connection != null) {
-            new StopDispatcher(idGenerator).dispatch(connection.getConnection());
+            new StopDispatcher(idGenerator).dispatch(connection);
             LOGGER.lifecycle("Gradle daemon stopped.");
             connection = connector.maybeConnect(compatibilitySpec);
         }
@@ -111,8 +111,7 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
         Build build = new Build(idGenerator.generateId(), action, parameters);
         int saneNumberOfAttempts = 100; //is it sane enough?
         for (int i = 1; i < saneNumberOfAttempts; i++) {
-            DaemonConnection daemonConnection = connector.connect(compatibilitySpec);
-            Connection<Object> connection = daemonConnection.getConnection();
+            DaemonConnection connection = connector.connect(compatibilitySpec);
 
             try {
                 return (T) executeBuild(build, connection);
@@ -125,7 +124,7 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
                 + saneNumberOfAttempts + " different daemons but I could not use any of them to run build: " + build + ".");
     }
 
-    protected Object executeBuild(Build build, Connection<Object> connection) throws DaemonInitialConnectException {
+    protected Object executeBuild(Build build, DaemonConnection connection) throws DaemonInitialConnectException {
         Object firstResult;
         try {
             LOGGER.info("Connected to the daemon. Dispatching {} request.", build);

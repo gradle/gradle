@@ -22,7 +22,7 @@ import org.gradle.messaging.remote.internal.Connection;
 /**
  * A simple wrapper for the connection to a daemon plus its password.
  */
-public class DaemonConnection {
+public class DaemonConnection implements Connection<Object> {
 
     private final Connection<Object> connection;
     private DaemonDiagnostics diagnostics;
@@ -42,5 +42,21 @@ public class DaemonConnection {
     @Nullable
     public DaemonDiagnostics getDaemonDiagnostics() {
         return diagnostics;
+    }
+
+    public void requestStop() {
+        connection.requestStop();
+    }
+
+    public void dispatch(Object message) {
+        connection.dispatch(message);
+    }
+
+    public Object receive() {
+        return connection.receive();
+    }
+
+    public void stop() {
+        connection.stop();
     }
 }

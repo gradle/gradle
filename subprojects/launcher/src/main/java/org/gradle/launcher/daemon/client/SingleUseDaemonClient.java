@@ -27,7 +27,6 @@ import org.gradle.launcher.daemon.protocol.Build;
 import org.gradle.launcher.daemon.protocol.BuildAndStop;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.logging.internal.OutputEventListener;
-import org.gradle.messaging.remote.internal.Connection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,8 +50,7 @@ public class SingleUseDaemonClient extends DaemonClient {
         Build build = new BuildAndStop(getIdGenerator().generateId(), action, parameters);
 
         DaemonConnection daemonConnection = getConnector().createConnection(ExplainingSpecs.<DaemonContext>satisfyAll());
-        Connection<Object> connection = daemonConnection.getConnection();
 
-        return (T) executeBuild(build, connection);
+        return (T) executeBuild(build, daemonConnection);
     }
 }
