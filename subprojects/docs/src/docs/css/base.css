@@ -132,6 +132,7 @@ body {
 div.book,
 div.chapter {
   margin-left: 10px;
+  margin-right: 10px;
 }
 
 .text-container h1, .text-container h2, .text-container h3, .text-container h4, .text-container h5,
