@@ -39,6 +39,19 @@ decorateReleaseNotes {
         head().append("<script type='text/javascript'>1;</script>").children().last().childNode(0).attr("data", scriptFile.text)
     }
 
+    // Add the extra doc links
+    transform {
+        body().append("""
+            <h2>Documentation</h2>
+            <ul>
+                <li><a href='dsl/index.html'>DSL Reference</a></li>
+                <li><a href='userguide/userguide.html'>User Guide</a></li>
+                <li><a href='javadoc/index.html'>Javadoc</a></li>
+                <li><a href='groovydoc/index.html'>Groovdoc</a></li>
+            </ul>
+        """)
+    }
+
     // wrap each h2 section in section.topic
     transform {
         def heading = body().select("h2").first()
@@ -147,8 +160,6 @@ decorateReleaseNotes {
             }
             
         }
-
-        tocSection.append("<p class='other-doc-links'>[<a href='dsl/index.html'>DSL Reference</a>] [<a href='userguide/userguide.html'>User Guide</a>]</p>")
     }
     
     // Add the heading
@@ -195,6 +206,7 @@ decorateReleaseNotes {
         }
     }
 
+    // Wrap the page in a text container to get the margins
     transform {
         def bodyContent = body().children().remove()
         body().prepend("<div class='text-container'/>")
