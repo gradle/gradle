@@ -20,24 +20,82 @@ import java.io.File;
 import java.util.List;
 
 /**
- * A specification for launching a Gradle build with any Gradle version.
+ * A specification for launching a Gradle build with a specified Gradle version.
   */
 public interface GradleBuildInvocationSpec {
 
+    /**
+     * The “root” directory of the build.
+     *
+     * Defaults to the current build's root directory.
+     *
+     * @return The “root” project directory of the build. Never null.
+     */
     File getProjectDir();
 
+    /**
+     * Sets the “root” directory of the build.
+     *
+     * This should not be the project directory of child project in a multi project build.
+     * It should always be the root of the multiproject build.
+     *
+     * The value is interpreted as a file as per {@link org.gradle.api.Project#file(Object)}.
+     *
+     * @param projectDir
+     */
     void setProjectDir(Object projectDir);
 
+    /**
+     * The Gradle version to run the build with.
+     *
+     * Defaults to the current Gradle version of the running build.
+     *
+     * @return The Gradle version to run the build with. Never null.
+     */
     String getGradleVersion();
 
+    /**
+     * Sets the Gradle version to run the build with.
+     *
+     * The value must be a valid, published, Gradle version number.
+     *
+     * Examples are:
+     * <ul>
+     * <li>{@code "1.1"}</li>
+     * <li>{@code "1.0-rc-1"}</li>
+     * </ul>
+     *
+     * @param gradleVersion The Gradle version to run the build with.
+     */
     void setGradleVersion(String gradleVersion);
 
+    /**
+     * The tasks to execute.
+     *
+     * Defaults to an empty list.
+     *
+     * @return The tasks to execute.
+     */
     List<String> getTasks();
 
+    /**
+     * Sets the tasks to execute.
+     *
+     * @param tasks The tasks to execute.
+     */
     void setTasks(Iterable<String> tasks);
 
+    /**
+     * The command line arguments (excluding tasks) to invoke the build with.
+     *
+     * @return The command line arguments (excluding tasks) to invoke the build with.
+     */
     List<String> getArguments();
 
+    /**
+     * Sets the command line arguments (excluding tasks) to invoke the build with.
+     * @param arguments The command line arguments (excluding tasks) to invoke the build with.
+     */
     void setArguments(Iterable<String> arguments);
 
 }
