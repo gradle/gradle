@@ -139,7 +139,13 @@ public class DefaultDaemonConnector implements DaemonConnector {
         return null;
     }
 
-    private DaemonConnection connectToDaemon(DaemonInfo daemonInfo, DaemonDiagnostics diagnostics) {
-        return new DaemonConnection(connector.connect(daemonInfo.getAddress()), diagnostics);
+    private DaemonConnection connectToDaemon(final DaemonInfo daemonInfo, DaemonDiagnostics diagnostics) {
+        Runnable onFailure = new Runnable() {
+            public void run() {
+                LOGGER.info("Removing daemon from the registry due to communication failure. Daemon information: {}", daemonInfo);
+                daemonRegistry.remove(daemonInfo.getAddress());
+            }
+        };
+        return new DaemonConnection(connector.connect(daemonInfo.getAddress()), diagnostics, onFailure);
     }
 }

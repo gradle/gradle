@@ -15,7 +15,10 @@
  */
 package org.gradle.launcher.daemon.client;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.Nullable;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
 import org.gradle.messaging.remote.internal.Connection;
 
@@ -23,17 +26,17 @@ import org.gradle.messaging.remote.internal.Connection;
  * A simple wrapper for the connection to a daemon plus its password.
  */
 public class DaemonConnection implements Connection<Object> {
+    //TODO SF rename - clashes with a different name
 
-    private final Connection<Object> connection;
+    final Connection<Object> connection;
     private DaemonDiagnostics diagnostics;
+    final Runnable onFailure;
+    private final static Logger LOG = Logging.getLogger(DaemonConnection.class);
 
-    public DaemonConnection(Connection<Object> connection, DaemonDiagnostics diagnostics) {
+    public DaemonConnection(Connection<Object> connection, DaemonDiagnostics diagnostics, Runnable onFailure) {
         this.connection = connection;
         this.diagnostics = diagnostics;
-    }
-
-    public Connection<Object> getConnection() {
-        return this.connection;
+        this.onFailure = onFailure;
     }
 
     /**
@@ -49,11 +52,23 @@ public class DaemonConnection implements Connection<Object> {
     }
 
     public void dispatch(Object message) {
-        connection.dispatch(message);
+        try {
+            connection.dispatch(message);
+        } catch (Exception e) {
+            LOG.debug("Problem dispatching message to the daemon. Performing 'on failure' operation...");
+            onFailure.run();
+            throw new GradleException("Unable to dispatch the message to the daemon.", e);
+        }
     }
 
     public Object receive() {
-        return connection.receive();
+        try {
+            return connection.receive();
+        } catch (Exception e) {
+            LOG.debug("Problem receiving message to the daemon. Performing 'on failure' operation...");
+            onFailure.run();
+            throw new GradleException("Unable to receive a message from the daemon.", e);
+        }
     }
 
     public void stop() {
