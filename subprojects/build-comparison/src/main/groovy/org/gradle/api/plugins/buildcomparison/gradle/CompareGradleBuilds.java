@@ -22,6 +22,7 @@ import org.gradle.api.*;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.filestore.FileStore;
 import org.gradle.api.internal.filestore.PathNormalisingKeyFileStore;
+import org.gradle.api.logging.Logger;
 import org.gradle.api.plugins.buildcomparison.compare.internal.*;
 import org.gradle.api.plugins.buildcomparison.gradle.internal.DefaultGradleBuildInvocationSpec;
 import org.gradle.api.plugins.buildcomparison.gradle.internal.GradleBuildOutcomeSetInferrer;
@@ -159,7 +160,7 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
         }
 
         if (!canExec(sourceBuild) || !canExec(targetBuild)) {
-             throw new GradleException(String.format(
+            throw new GradleException(String.format(
                      "Builds must be executed with %s or newer (source: %s, target: %s)",
                      EXEC_MINIMUM_VERSION, sourceBuild.getGradleVersion(), targetBuild.getGradleVersion()
              ));
@@ -175,26 +176,36 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
             ));
         }
 
+        Logger logger = getLogger();
         ProgressLogger progressLogger = progressLoggerFactory.newOperation(getClass());
+
+        String executingSourceBuildMessage = executingMessage("source", getSourceBuild());
+        String executingTargetBuildMessage = executingMessage("target", getTargetBuild());
 
         progressLogger.setDescription("Gradle Build Comparison");
         progressLogger.setShortDescription(getName());
 
         // Build the outcome model and outcomes
 
+        // - Execute source build, unless it's < PROJECT_OUTCOMES_MINIMUM_VERSION
+
         Set<BuildOutcome> fromOutcomes = null;
         if (sourceBuildHasOutcomesModel) {
-            progressLogger.started("executing source build");
+            logger.info(executingSourceBuildMessage);
+            progressLogger.started(executingSourceBuildMessage);
             ProjectOutcomes fromOutput = buildProjectOutcomesOrJustExec(getSourceBuild(), false);
             progressLogger.progress("inspecting source build outcomes");
             GradleBuildOutcomeSetTransformer fromOutcomeTransformer = createOutcomeSetTransformer(SOURCE_FILESTORE_PREFIX);
             fromOutcomes = fromOutcomeTransformer.transform(fromOutput);
         }
 
+        // - Execute target build
+
+        logger.info(executingTargetBuildMessage);
         if (sourceBuildHasOutcomesModel) {
-            progressLogger.progress("executing target build");
+            progressLogger.progress(executingTargetBuildMessage);
         } else {
-            progressLogger.started("executing target build");
+            progressLogger.started(executingTargetBuildMessage);
         }
 
         ProjectOutcomes toOutput = buildProjectOutcomesOrJustExec(getTargetBuild(), !targetBuildHasOutcomesModel);
@@ -208,8 +219,11 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
             toOutcomes = createOutcomeSetInferrer(TARGET_FILESTORE_PREFIX, getTargetBuild().getProjectDir()).transform(fromOutcomes);
         }
 
+        // - If source build is < PROJECT_OUTCOMES_MINIMUM_VERSION, execute it now
+
         if (!sourceBuildHasOutcomesModel) {
-            progressLogger.progress("executing source build");
+            logger.info(executingSourceBuildMessage);
+            progressLogger.progress(executingSourceBuildMessage);
             buildProjectOutcomesOrJustExec(getSourceBuild(), true);
             progressLogger.progress("inspecting source build outcomes");
             fromOutcomes = createOutcomeSetInferrer(SOURCE_FILESTORE_PREFIX, getSourceBuild().getProjectDir()).transform(toOutcomes);
@@ -248,6 +262,11 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
         progressLogger.completed();
 
         communicateResult(result);
+    }
+
+    private String executingMessage(String name, GradleBuildInvocationSpec spec) {
+        DefaultGradleBuildInvocationSpec cast = (DefaultGradleBuildInvocationSpec) spec;
+        return String.format("executing %s build {%s}", name, cast.describeRelativeTo(getProject().getProjectDir()));
     }
 
     private void communicateResult(BuildComparisonResult result) {
