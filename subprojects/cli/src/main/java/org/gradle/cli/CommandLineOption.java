@@ -25,7 +25,7 @@ public class CommandLineOption {
     private String description;
     private String subcommand;
     private String deprecationWarning;
-    private boolean experimental;
+    private boolean incubating;
 
     public CommandLineOption(Iterable<String> options) {
         for (String option : options) {
@@ -69,11 +69,11 @@ public class CommandLineOption {
             result.append(deprecationWarning);
             result.append("]");
         }
-        if (experimental) {
+        if (incubating) {
             if (result.length() > 0) {
                 result.append(' ');
             }
-            result.append("[experimental]");
+            result.append("[incubating]");
         }
         return result.toString();
     }
@@ -96,8 +96,8 @@ public class CommandLineOption {
         return this;
     }
 
-    public CommandLineOption experimental() {
-        experimental = true;
+    public CommandLineOption incubating() {
+        incubating = true;
         return this;
     }
     

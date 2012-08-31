@@ -354,11 +354,11 @@ class CommandLineParserTest extends Specification {
         ]
     }
     
-    def formatsUsageMessageForDeprecatedAndExperimentalOptions() {
+    def formatsUsageMessageForDeprecatedAndIncubatingOptions() {
         parser.option('a', 'long-option').hasDescription('this is option a').deprecated("don't use this")
         parser.option('b').deprecated('will be removed')
-        parser.option('c').hasDescription('option c').experimental()
-        parser.option('d').experimental()
+        parser.option('c').hasDescription('option c').incubating()
+        parser.option('d').incubating()
         def outstr = new StringWriter()
 
         expect:
@@ -366,8 +366,8 @@ class CommandLineParserTest extends Specification {
         outstr.toString().readLines() == [
                 '-a, --long-option  this is option a [deprecated - don\'t use this]',
                 '-b                 [deprecated - will be removed]',
-                '-c                 option c [experimental]',
-                '-d                 [experimental]'
+                '-c                 option c [incubating]',
+                '-d                 [incubating]'
         ]
     }
 
