@@ -45,7 +45,7 @@ public class ElementWarningsRenderer {
             Element link = document.createElement("link");
             para.appendChild(link);
             link.setAttribute("linkend", "dsl-element-types");
-            link.appendChild(document.createTextNode("experimental"));
+            link.appendChild(document.createTextNode("incubating"));
             para.appendChild(document.createTextNode(" and may change in a future version of Gradle."));
         }
     }

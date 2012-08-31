@@ -68,7 +68,7 @@ public class BlockTableRenderer {
             if (blockDoc.isIncubating()) {
                 Element caution = document.createElement("caution");
                 td.appendChild(caution);
-                caution.appendChild(document.createTextNode("Experimental"));
+                caution.appendChild(document.createTextNode("Incubating"));
             }
             td.appendChild(document.importNode(blockDoc.getDescription(), true));
         }

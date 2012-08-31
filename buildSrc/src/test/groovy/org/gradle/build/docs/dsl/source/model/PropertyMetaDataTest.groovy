@@ -109,14 +109,14 @@ class PropertyMetaDataTest extends Specification {
         deprecated.deprecated
     }
 
-    def "is experimental when @Incubating is attached to property"() {
-        def notExperimental = new PropertyMetaData('param', classMetaData)
-        def experimental = new PropertyMetaData('param', classMetaData)
-        experimental.addAnnotationTypeName("org.gradle.api.Incubating")
+    def "is incubating when @Incubating is attached to property"() {
+        def notIncubating = new PropertyMetaData('param', classMetaData)
+        def incubating = new PropertyMetaData('param', classMetaData)
+        incubating.addAnnotationTypeName("org.gradle.api.Incubating")
 
         expect:
-        !notExperimental.incubating
-        experimental.incubating
+        !notIncubating.incubating
+        incubating.incubating
     }
 }
 
