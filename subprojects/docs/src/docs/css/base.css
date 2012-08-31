@@ -95,6 +95,31 @@ caption {background:#eee;}
   src: local('Lato Bold Italic'), local('Lato-BoldItalic'), url('data:font/opentype;base64,@lato-bold-italic@') format('woff');
 }
 
+@font-face {
+  font-family: 'Ubuntu Mono';
+  font-style: normal;
+  font-weight: 700;
+  src: local('Ubuntu Mono Bold'), local('UbuntuMono-Bold'), url('data:font/opentype;base64,@ubuntumono-bold@') format('woff');
+}
+@font-face {
+  font-family: 'Ubuntu Mono';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Ubuntu Mono'), local('UbuntuMono-Regular'), url('data:font/opentype;base64,@ubuntumono-regular@') format('woff');
+}
+@font-face {
+  font-family: 'Ubuntu Mono';
+  font-style: italic;
+  font-weight: 700;
+  src: local('Ubuntu Mono Bold Italic'), local('UbuntuMono-BoldItalic'), url('data:font/opentype;base64,@ubuntumono-bold-italic@') format('woff');
+}
+@font-face {
+  font-family: 'Ubuntu Mono';
+  font-style: italic;
+  font-weight: 400;
+  src: local('Ubuntu Mono Italic'), local('UbuntuMono-Italic'), url('data:font/opentype;base64,@ubuntumono-regular-italic@') format('woff');
+}
+
 body {
   font-size: 14px;
   font-family: 'Lato', Arial, serif;
@@ -116,7 +141,7 @@ div.chapter h1, div.chapter h2, div.chapter h3, div.chapter h4, div.chapter h5 {
 }
 
 code, tt, pre {
-  font-family: courier, monospace;
+  font-family: "Ubuntu Mono", courier, monospace;
 }
 
 h1,h2,h3,h4 {
