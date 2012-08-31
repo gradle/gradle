@@ -120,7 +120,7 @@ While configuration-time decoupling is not strictly required for parallel projec
 
 To find out more about our plans for parallel execution, have a read of the [parallel-project-execution](https://github.com/gradle/gradle/blob/master/design-docs/parallel-project-execution.md) specification.
 
-**This feature is pre-alpha and highly experimental. Many multi-project builds will behave unexpectedly when run using parallel project execution. You will get a warning when you are using it.***
+_**This feature is pre-alpha and highly experimental. Many multi-project builds will behave unexpectedly when run using parallel project execution. You will get a warning when you are using it.**_
 
 One known issue is that the Gradle compiler daemon is currently not thread-safe. So if multiple projects attempt to compile java code simultaneously with `fork=true`,
 exceptions will result. Workaround: don't use `options.fork=true` to compile when running with `--parallel`.
@@ -132,7 +132,7 @@ We are exposing the new API that our improved dependency reports are using. It p
 The best way to start with the new API is to take a look at the Javadocs
 for <a href="javadoc/org/gradle/api/artifacts/ResolvedConfiguration.html#getResolutionResult()">`ResolvedConfiguration.getResolutionResult()`</a>.
 
-**The new resolution API is not stable yet and may change with the next releases. Therefore you will get a warning when you are using it.**
+_**The new resolution API is not stable yet and may change with the next releases. Therefore you will get a warning when you are using it.**_
 
 ### Build Comparison (Gradle upgrade assistance)
 
