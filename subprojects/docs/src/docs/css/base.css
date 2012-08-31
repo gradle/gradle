@@ -21,7 +21,7 @@ h4 {font-size:1.3em;line-height:1.25;}
 h5 {font-size:1.1em;font-weight:bold;}
 h6 {font-size:1em;font-weight:bold;}
 h1 img, h2 img, h3 img, h4 img, h5 img, h6 img {margin:0;}
-p {margin:0 0 1.5em;}
+p {margin:0 0 1.4em;}
 .left {float:left !important;}
 p .left {margin:1.5em 1.5em 1.5em 0;padding:0;}
 .right {float:right !important;}
@@ -180,10 +180,14 @@ pre.code, pre.programlisting {
 }
 
 pre.screen, pre.tt {
-    color: #7A7A7A;
+    color: black;
     background-color: white;
 }
 
 tbody tr:nth-child(even) td, tbody tr.even td {
     background: #F7F7F7;
+}
+
+li em, p em {
+  padding: 0 2px 0 1px;
 }

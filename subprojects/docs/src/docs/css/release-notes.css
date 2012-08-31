@@ -31,10 +31,6 @@ button.display-toggle {
   cursor: pointer;
 }
 
-.other-doc-links {
-    font-weight: bold;
-}
-
 section.footer {
   font-size: 75%;
   margin-top: 3em;
