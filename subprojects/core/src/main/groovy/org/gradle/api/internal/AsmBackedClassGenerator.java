@@ -25,6 +25,10 @@ import org.gradle.util.JavaMethod;
 import org.objectweb.asm.*;
 import org.objectweb.asm.Type;
 
+import java.lang.annotation.Annotation;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -90,6 +94,16 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
             MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, "<init>", methodDescriptor, signature,
                     new String[0]);
+
+            for (Annotation annotation : constructor.getDeclaredAnnotations()) {
+                if (annotation.annotationType().getAnnotation(Inherited.class) != null) {
+                    continue;
+                }
+                Retention retention = annotation.annotationType().getAnnotation(Retention.class);
+                AnnotationVisitor annotationVisitor = methodVisitor.visitAnnotation(Type.getType(annotation.annotationType()).getDescriptor(), retention != null && retention.value() == RetentionPolicy.RUNTIME);
+                annotationVisitor.visitEnd();
+            }
+
             methodVisitor.visitCode();
 
             // this.super(p0 .. pn)
