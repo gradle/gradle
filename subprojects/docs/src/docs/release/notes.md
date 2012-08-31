@@ -2,47 +2,56 @@
 
 Here are the new features introduced in Gradle 1.2.
 
-### Dependency reports improvements
+### Improved dependency report
 
-The dependency report now includes extra information: requested dependency versions. This is invaluable information in many situations:
+The dependency report (obtained by running “`gradle dependencies`”) has been improved to provide better insight into the dependency resolution process. The report now specifies the _requested_ version of a dependency and the _selected_ version. The requested version may be different to the selected for the following reasons:
 
-* For conflict resolution it is now possible to infer from the dependency report why a given dependency version is selected. Previously, the dependency report included the dependency versions *after* conflict resolution has been applied. Now you can see the version before the conflict resolution and the version it was replaced with. The new report makes it much easier to understand what happens during conflict resolution and to figure out why certain versions are used.
-* For dynamic versions the dependency report shows what version was requested and what version was selected. For example: `1.3.+ -> 1.3.5` (requested -> selected).
+* The requested version was a _dynamic version_ (e.g. a range such as “`1.3.+`”)
+* The requested version was evicted due to a conflict (e.g. another dependency depended on a newer version)
 
-#### Improved readability
+In the case of a conflict, the output provides all the information you need to infer which dependency depended on the version that was eventually selected. The improved output gives much better insight into how version conflicts that were encountered were resolved and why.
 
-In order to keep the report clean and tidy we decided to remove the 'resolved target configurations' from the report.
-They used to appear on the right hand of every listed dependency and it was often a source of confusion.
-Example report that includes versions selected by conflict resolution and some dependency with a dynamic version:
+In the case of a dynamic dependency version, both the original dynamic version and selected real version are shown.
 
-<pre><tt>+--- org.gradle:some-lib:1.0
-|    \--- org.gradle:some-util:1.5 -> 2.0
-+--- org.gradle:some-other:1.0
-|    \--- org.gradle:some-util:1.0 -> 2.0
-+--- org.gradle:some-util:2.0
-\--- org.something:dynamic-version:1.+ -> 1.8
-</tt>
+The new dependency report is also much faster to render. Our tests have shown that for large to very large dependency graphs the time taken to display the report has been reduced by up to 50%. Further improvements are planned for the dependency report in future versions of Gradle.
+
+#### Example report
+
+Given the following build script:
+
+    apply plugin: 'java'
+
+    repositories {
+        maven { url "http://repo.gradle.org/gradle/repo" }
+    }
+
+    dependencies {
+        compile 'commons-lang:commons-lang:2.+'
+        compile 'org.gradle:gradle-base-services:1.1' // depends on org.slf4j:slf4j-api:1.6.6
+        compile 'org.slf4j:slf4j-api:1.6.5'
+    }
+
+The new report will look like:
+
+<pre><tt>$ gradle dependencies
+:dependencies
+
+------------------------------------------------------------
+Root project
+------------------------------------------------------------
+
+compile - Classpath for compiling the main sources.
++--- commons-lang:commons-lang:2.+ -> 2.6
++--- org.gradle:gradle-base-services:1.1
+|    \--- org.slf4j:slf4j-api:1.6.6
+\--- org.slf4j:slf4j-api:1.6.5 -> 1.6.6 (*)
+
+(*) - dependencies omitted (listed previously)</tt>
 </pre>
 
-We will continue to work in the dependency reports area and plan more interesting features shortly. For example, we want the report to present the dependency tree even though some dependency is unresolved. We also want to add other kinds of dependency reports.
-We currently work on a report that focuses on a single dependency and shows all paths where it is referenced.
-We would also like to include the reason a version was selected (is it conflict resolution or perhaps the version was forced?).
-The report for 'org.gradle:some-util' dependency might look like:
+(note: output for other configurations has been omitted for clarity)
 
-<pre><tt>org.gradle:some-util:2.0
-\--- *
-
-org.gradle:some-util:1.5 -> 2.0
-\--- org.gradle:some-lib:1.0
-     \--- *
-
-org.gradle:some-util:1.0 -> 2.0
-\--- org.gradle:some-other:1.0
-     \--- *
-</tt>
-</pre>
-
-The new dependency report should also be faster for projects that have very large dependency graphs. Our performance tests for a particular larger project we are working on showed a 50% speed increase. The improvements in the dependency report drove our design of the new resolution result API. For Gradle users it means better programmatic access and hooks to the resolved dependency graph.
+The version that was selected for the _dynamic_ dependency is shown (i.e. “`commons-lang:commons-lang:2.+ -> 2.6`”) and the fact that version “`1.6.5`” of “`org.slf4j:slf4j-api`” was requested but version “`1.6.6`” was selected is also shown.
 
 ### Lower memory usage
 
