@@ -75,8 +75,8 @@
         </table>
     </section>
     <section>
-        <title>Experimental language plugins</title>
-        <para>These experimental plugins add support for various languages:</para>
+        <title>Incubating language plugins</title>
+        <para>These plugins add support for various languages:</para>
         <table>
             <title>Language plugins</title>
             <thead>

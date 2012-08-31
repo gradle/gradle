@@ -58,16 +58,16 @@ The version that was selected for the _dynamic_ dependency is shown (i.e. “`co
 We've continued to improve our dependency resolution engine, so that it now requires much less heap space. A moderately sized multi-project build can
 expect to see a 20-25% reduction in heap usage thanks to these improvements.
 
-### Continue on failure (--continue) no longer experimental
+### Continue on failure (`--continue`) no longer experimental
 
 Often a high-level task is dependent on multiple smaller tasks. By default, Gradle will stop executing any task and fail the build
 as soon as one of these sub-tasks fails. This means that the build will finish sooner, but it does not reveal failures in other, independent sub-tasks.
 There are many times when you would like to find out as many failures as possible in a single build execution. For example, when you kick off a build
 before heading out to lunch, or running a nightly CI job. The `--continue` command-line option allows you to do just that.
 
-With the addition of [nicer reporting of multiple build failures](#multile_build_failures), we now consider `--continue` a fully-fledged capability of Gradle, and have removed the `experimental` flag from this option. Please see the [User Guide section](userguide/tutorial_gradle_command_line.html#sec:continue_build_on_failure) for more details.
+With the addition of [nicer reporting of multiple build failures](#multiple_build_failures), we now consider `--continue` a fully-fledged capability of Gradle, and have removed the `experimental` flag from this option. Please see the [User Guide section](userguide/tutorial_gradle_command_line.html#sec:continue_build_on_failure) for more details.
 
-### <a id="multile_build_failures"></a>Reporting of multiple build failures
+### <a id="multiple_build_failures"></a>Reporting of multiple build failures
 
 When running the build with `--continue` or the new `--parallel` option (see [below](#parallel)) it is possible to have multiple failures in your build. While executing Gradle will now report on tasks that fail,
 as well as producing output detailing _all_ build failures on build completion.
@@ -99,15 +99,15 @@ An example for a Gradle generated user-agent string: "**Gradle/1.2 (Mac OS X;10.
 
 Our documentation has received a facelift to match our new style. Check out the new look [DSL Reference](dsl/index.html) and [User Guide](userguide/userguide.html).
 
-The [DSL Reference](dsl/index.html) now indicates which features are deprecated or experimental.
+The [DSL Reference](dsl/index.html) now indicates which features are deprecated or incubating.
 
 ## Fixed Issues
 
 The list of issues fixed between 1.1 and 1.2 can be found [here](http://issues.gradle.org/sr/jira.issueviews:searchrequest-printable/temp/SearchRequest.html?jqlQuery=fixVersion+in+%28%221.2-rc-1%22%29+ORDER+BY+priority&tempMax=1000).
 
-## New experimental and unstable features
+## New incubating features
 
-We will typically introduce big new features as experimental or unstable at first, giving you a chance to test them out. Experimental means that the quality of the behaviour might not match the quality you are used to with Gradle. Unstable means that the quality is good but the API might still change with the next release. We will iterate on the new feature based on your feedback, eventually releasing it as stable and production-ready. Those of you who use new features before that point gain the competitive advantage of early access to new functionality in exchange for helping refine it over time. To learn more read our [forum posting on our release approach](http://forums.gradle.org/gradle/topics/the_gradle_release_approach).
+We will typically introduce new features as _incubating_ at first, giving you a chance to test them out. For some incubating features this means that the quality of the behaviour might not match the quality you are used to with Gradle. But for most features this means that the quality is good but the API might still change with the next release. We will iterate on the new feature based on your feedback, eventually releasing it as stable and production-ready. Those of you who use new features before that point gain the competitive advantage of early access to new functionality in exchange for helping refine it over time. To learn more read our [forum posting on our release approach](http://forums.gradle.org/gradle/topics/the_gradle_release_approach).
 
 ###<a id="parallel"></a> Support for building projects in parallel (highly experimental with known open issues)
 
@@ -125,7 +125,7 @@ _**This feature is pre-alpha and highly experimental. Many multi-project builds 
 One known issue is that the Gradle compiler daemon is currently not thread-safe. So if multiple projects attempt to compile java code simultaneously with `fork=true`,
 exceptions will result. Workaround: don't use `options.fork=true` to compile when running with `--parallel`.
 
-### New dependency resolution result API (unstable)
+### New dependency resolution result API
 
 We are exposing the new API that our improved dependency reports are using. It provides a powerful for developing your own custom dependency reports. It also allows to develop smart build logic that can make decisions based on the content of the dependency graph.
 
@@ -144,7 +144,7 @@ Gradle 1.2 delivers the first iteration of our support for comparing the _outcom
 
 The build comparison support manages the execution of the “source” build and the “target” build, the association of outcomes between the two, the comparison of the outcomes and generation of a report that identifies any encountered differences. You can then use this report to go ahead with the Gradle upgrade, build system migration or build configuration change with confidence that the outcomes are identical, or that the differences are acceptable.
 
-For Gradle 1.2, we have focussed on supporting the case of comparing the current build with a newer Gradle version and zip file binary archive outcomes (e.g. zip, jar, war, ear etc.). This feature will continue to evolve to encompass comparing more kinds of outcomes and smart integration with other build systems (such as Apache Maven) for convenient comparisons. 
+For Gradle 1.2, we have focused on supporting the case of comparing the current build with a newer Gradle version and zip file binary archive outcomes (e.g. zip, jar, war, ear etc.). This feature will continue to evolve to encompass comparing more kinds of outcomes and smart integration with other build systems (such as Apache Maven) for convenient comparisons.
 
 See the new [User Guide chapter](userguide/comparing_builds.html) for more detail on this new capability.
 
@@ -166,7 +166,7 @@ Then simply…
 
 If there are _any_ differences found, a link to the HTML report identifying the differences will be given in the output.
 
-### JSR-330 dependency injection for plugins and tasks (unstable)
+### JSR-330 dependency injection for plugins and tasks
 
 We've taken some steps towards allowing JSR-330 style dependency injection for plugins and tasks. At this stage, the changes are mostly internal. To find out why we want to use dependency injection, and our plans for this, have a read of the [dependency-injection-for-plugins](https://github.com/gradle/gradle/blob/master/design-docs/dependency-injection-for-plugins.md) specification.
 
@@ -193,10 +193,10 @@ for the `maven-metadata.xml` file. This means this property is no longer useful 
 #### Task class renames
 
 To avoid ambiguity, the Java and C++ `Compile` task classes have been renamed. The Java `org.gradle.api.tasks.compile.Compile` task class has been renamed to `org.gradle.api.tasks.compile.JavaCompile`, and
-the experimental C++ `org.gradle.plugins.binaries.tasks.Compile` task class has been renamed to `org.gradle.plugins.cpp.CppCompile`.
+the incubating C++ `org.gradle.plugins.binaries.tasks.Compile` task class has been renamed to `org.gradle.plugins.cpp.CppCompile`.
 
 For backwards compatibility, the old classes are still available, but are now deprecated. The old Java `Compile` class will be removed in Gradle 2.0.
-The old experimental C++ `Compile` class will be removed in Gradle 1.3.
+The old incubating C++ `Compile` class will be removed in Gradle 1.3.
 
 <a name="constructors"> </a>
 #### Changes to plugin and task constructor handling

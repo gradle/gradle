@@ -399,9 +399,9 @@
             element is to be removed.
             We recommend that you change your code so that it no longer uses the deprecated element and uses the appropriate replacement instead.
         </para>
-        <para>Some elements of the DSL are marked as <firstterm>experimental</firstterm>. This means that the element is a work-in-progress,
+        <para>Some elements of the DSL are marked as <firstterm>incubating</firstterm>. This means that the element is a work-in-progress,
             and may require some changes before it is ready to become public. These changes are based on feedback as these features are used in
-            real builds. Please feel free to try an experimental element and give us your feedback, but please be aware that it may change in
+            real builds. Please feel free to try an incubating element and give us your feedback, but please be aware that it may change in
             future versions of Gradle, including minor versions.
         </para>
         <para>Finally, there are also some <firstterm>internal</firstterm> undocumented features present in Gradle.

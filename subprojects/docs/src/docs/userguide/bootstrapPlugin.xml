@@ -14,12 +14,12 @@
   ~ limitations under the License.
   -->
 <chapter id='bootstrap_plugin'>
-    <title>Experimental Bootstrap Plugin</title>
+    <title>Bootstrap Plugin</title>
     <para>The Gradle bootstrap plugin prepares the current project for Gradle.
         Typically it will create the relevant build.gradle, settings.gradle files.
         At the moment only conversion from maven3 is supported.</para>
     <para>
-        The plugin is currently *experimental* which means it is already useful
+        The plugin is currently *incubating* which means it is already useful
         but not everything might work perfectly.
         The api, plugin and task names may change before the final release.
         Please let us know your feedback or report any issues.</para>
