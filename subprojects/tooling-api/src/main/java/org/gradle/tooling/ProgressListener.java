@@ -17,12 +17,14 @@ package org.gradle.tooling;
 
 /**
  * A listener which is notified as some long running operation makes progress.
+ * @since 1.0-milestone-3
  */
 public interface ProgressListener {
     /**
      * Called when the progress status changes.
      *
      * @param event An event describing the status change.
+     * @since 1.0-milestone-3
      */
     void statusChanged(ProgressEvent event);
 }

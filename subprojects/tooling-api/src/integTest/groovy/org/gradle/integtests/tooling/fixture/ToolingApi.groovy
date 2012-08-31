@@ -66,13 +66,12 @@ class ToolingApi {
         }
     }
 
-    public Throwable maybeFailWithConnection(Closure cl) {
+    public void maybeFailWithConnection(Closure cl) {
         GradleConnector connector = connector()
         try {
             withConnectionRaw(connector, cl)
-            return null
         } catch (Throwable e) {
-            return e
+            throw e
         }
     }
 

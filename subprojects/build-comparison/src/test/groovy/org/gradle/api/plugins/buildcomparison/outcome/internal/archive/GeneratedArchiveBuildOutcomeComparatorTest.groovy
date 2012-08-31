@@ -17,6 +17,7 @@
 package org.gradle.api.plugins.buildcomparison.outcome.internal.archive
 
 import org.gradle.api.Transformer
+import org.gradle.api.internal.filestore.AbstractFileStoreEntry
 import org.gradle.api.plugins.buildcomparison.outcome.internal.DefaultBuildOutcomeAssociation
 import org.gradle.api.plugins.buildcomparison.outcome.internal.archive.entry.ArchiveEntry
 import org.gradle.api.plugins.buildcomparison.outcome.internal.archive.entry.ArchiveEntryComparison
@@ -106,6 +107,13 @@ class GeneratedArchiveBuildOutcomeComparatorTest extends Specification {
         compare(existingFrom, notExistingTo).comparisonResultType == FROM_ONLY
         compare(existingFrom, unequal).comparisonResultType == UNEQUAL
         compare(notExistingFrom, notExistingTo).comparisonResultType == NON_EXISTENT
+
+        and:
+        compare(existingFrom, existingTo).outcomesAreIdentical
+        !compare(notExistingFrom, existingTo).outcomesAreIdentical
+        !compare(existingFrom, notExistingTo).outcomesAreIdentical
+        !compare(existingFrom, unequal).outcomesAreIdentical
+        !compare(notExistingFrom, notExistingTo).outcomesAreIdentical
     }
 
     protected GeneratedArchiveBuildOutcomeComparisonResult compare(from, to) {
@@ -113,6 +121,9 @@ class GeneratedArchiveBuildOutcomeComparatorTest extends Specification {
     }
 
     GeneratedArchiveBuildOutcome outcome(String name, File file = dir.createFile(name)) {
-        new GeneratedArchiveBuildOutcome(name, name, file, name)
+        def fileStoreEntry = new AbstractFileStoreEntry() {
+            File getFile() { file }
+        }
+        new GeneratedArchiveBuildOutcome(name, name, fileStoreEntry, name)
     }
 }

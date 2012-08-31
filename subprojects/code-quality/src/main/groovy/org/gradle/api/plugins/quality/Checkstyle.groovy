@@ -25,6 +25,8 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.logging.ConsoleRenderer
 import org.gradle.util.DeprecationLogger
 
+import javax.inject.Inject
+
 /**
  * Runs Checkstyle against some source files.
  */
@@ -84,6 +86,7 @@ class Checkstyle extends SourceTask implements VerificationTask, Reporting<Check
 
     private final IsolatedAntBuilder antBuilder
 
+    @Inject
     Checkstyle(Instantiator instantiator, IsolatedAntBuilder antBuilder) {
         this.antBuilder = antBuilder
         reports = instantiator.newInstance(CheckstyleReportsImpl, this)

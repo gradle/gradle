@@ -80,7 +80,7 @@ abstract class ToolingApiSpecification extends Specification {
         toolingApi.connector()
     }
 
-    Throwable maybeFailWithConnection(Closure cl) {
+    void maybeFailWithConnection(Closure cl) {
         toolingApi.maybeFailWithConnection(cl)
     }
 }

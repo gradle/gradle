@@ -134,10 +134,10 @@ allprojects {
 
         when:
         toolingApi.withConnector { connector -> connector.useDistribution(dist.toURI()) }
-        def e = toolingApi.maybeFailWithConnection { connection -> connection.getModel(GradleProject.class) }
+        toolingApi.maybeFailWithConnection { connection -> connection.getModel(GradleProject.class) }
 
         then:
-        e.class == UnsupportedVersionException
+        UnsupportedVersionException e = thrown()
         e.message == "The specified Gradle distribution '${dist.toURI()}' is not supported by this tooling API version (${GradleVersion.current().version}, protocol version 4)"
     }
 

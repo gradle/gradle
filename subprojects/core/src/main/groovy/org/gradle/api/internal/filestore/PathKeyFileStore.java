@@ -25,6 +25,8 @@ import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.copy.DeleteActionImpl;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.UncheckedException;
+import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -44,7 +46,7 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
 
     private final Random generator = new Random(System.currentTimeMillis());
 
-    private final File baseDir;
+    private File baseDir;
     private final DeleteActionImpl deleteAction = new DeleteActionImpl(new IdentityFileResolver());
 
     public PathKeyFileStore(File baseDir) {
@@ -73,6 +75,18 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
         return new File(baseDir, "temp/" + tempLong);
     }
 
+    public void moveFilestore(File destination) {
+        if (baseDir.exists()) {
+            try {
+                FileUtils.moveDirectory(baseDir, destination);
+            } catch (IOException e) {
+                throw new UncheckedException(e);
+            }
+        }
+
+        baseDir = destination;
+    }
+
     protected FileStoreEntry saveIntoFileStore(File source, File destination, boolean isMove) {
         if (!source.exists()) {
             throw new GradleException(String.format("Cannot copy '%s' into filestore @ '%s' as it does not exist", source, destination));
@@ -94,17 +108,17 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
             throw new GradleException(String.format("Failed to %s file '%s' into filestore at '%s' ", verb, source, destination), e);
         }
 
-        return new DefaultFileStoreEntry<String>(destination);
+        return entryAt(destination);
     }
 
     public Set<? extends FileStoreEntry> search(String pattern) {
-        final Set<DefaultFileStoreEntry> entries = new HashSet<DefaultFileStoreEntry>();
+        final Set<FileStoreEntry> entries = new HashSet<FileStoreEntry>();
         //TODO SF below may emit an awkward INFO-level message that the base dir does not exist
         //('file or directory xxx not found')
         //Consider bailing out early if the baseDir does not exist or reducing the log level
         findFiles(pattern).visit(new EmptyFileVisitor() {
             public void visitFile(FileVisitDetails fileDetails) {
-                entries.add(new DefaultFileStoreEntry(fileDetails.getFile()));
+                entries.add(entryAt(fileDetails.getFile()));
             }
         });
 
@@ -116,5 +130,17 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
         PatternFilterable patternSet = new PatternSet();
         patternSet.include(pattern);
         return fileTree.filter(patternSet);
-    } 
+    }
+
+    protected FileStoreEntry entryAt(File file) {
+        return entryAt(GFileUtils.relativePath(baseDir, file));
+    }
+
+    protected FileStoreEntry entryAt(final String path) {
+        return new AbstractFileStoreEntry() {
+            public File getFile() {
+                return new File(baseDir, path);
+            }
+        };
+    }
 }

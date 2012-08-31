@@ -31,6 +31,7 @@ import org.gradle.plugins.javascript.rhino.worker.RhinoWorkerHandleFactory;
 import org.gradle.plugins.javascript.rhino.worker.internal.DefaultRhinoWorkerHandleFactory;
 import org.gradle.process.internal.WorkerProcessBuilder;
 
+import javax.inject.Inject;
 import java.io.File;
 
 public class CoffeeScriptCompile extends SourceTask {
@@ -41,6 +42,7 @@ public class CoffeeScriptCompile extends SourceTask {
     private CoffeeScriptCompileOptions options = new CoffeeScriptCompileOptions();
     private final Factory<WorkerProcessBuilder> workerProcessBuilderFactory;
 
+    @Inject
     public CoffeeScriptCompile(Factory<WorkerProcessBuilder> workerProcessBuilderFactory) {
         this.workerProcessBuilderFactory = workerProcessBuilderFactory;
     }

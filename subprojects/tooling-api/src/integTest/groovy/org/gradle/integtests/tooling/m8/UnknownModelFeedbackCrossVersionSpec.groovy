@@ -20,7 +20,6 @@ import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.UnknownModelException
-import org.gradle.tooling.UnsupportedVersionException
 
 @MinToolingApiVersion('1.0-milestone-8')
 @MinTargetGradleVersion('1.0-milestone-3')
@@ -34,10 +33,10 @@ class UnknownModelFeedbackCrossVersionSpec extends ToolingApiSpecification {
         //the daemon breaks and does not return anything to the client making the client waiting forever.
 
         when:
-        def e = maybeFailWithConnection { it.getModel(UnknownModel.class) }
+        maybeFailWithConnection { it.getModel(UnknownModel.class) }
 
         then:
-        e instanceof UnsupportedVersionException
-        e instanceof UnknownModelException
+        UnknownModelException e = thrown()
+        e.message.contains('Unknown model: \'UnknownModel\'.')
     }
 }

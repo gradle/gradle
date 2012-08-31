@@ -32,6 +32,8 @@ import org.gradle.process.internal.WorkerProcessBuilder
 
 import groovy.transform.PackageScope
 
+import javax.inject.Inject
+
 /**
  * Analyzes code with <a href="http://findbugs.sourceforge.net">FindBugs</a>. See the
  * <a href="http://findbugs.sourceforge.net/manual/">FindBugs Manual</a> for additional information
@@ -122,6 +124,7 @@ class FindBugs extends SourceTask implements VerificationTask, Reporting<FindBug
 
     private final Factory<WorkerProcessBuilder> workerFactory
 
+    @Inject
     FindBugs(Instantiator instantiator, Factory<WorkerProcessBuilder> workerFactory) {
         reports = instantiator.newInstance(FindBugsReportsImpl, this)
         this.workerFactory = workerFactory

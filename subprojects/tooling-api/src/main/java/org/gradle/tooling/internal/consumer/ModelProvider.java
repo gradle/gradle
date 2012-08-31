@@ -25,6 +25,7 @@ import org.gradle.tooling.internal.protocol.InternalBuildEnvironment;
 import org.gradle.tooling.internal.protocol.InternalGradleProject;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
 import org.gradle.tooling.model.GradleProject;
+import org.gradle.tooling.model.internal.Exceptions;
 
 /**
  * by Szczepan Faber, created at: 12/21/11
@@ -33,6 +34,28 @@ public class ModelProvider {
 
     public <T> T provide(ConsumerConnection connection, Class<T> type, ConsumerOperationParameters operationParameters) {
         VersionDetails version = connection.getVersionDetails();
+
+        if (operationParameters.getJavaHome() != null) {
+            if(!version.supportsConfiguringJavaHome()) {
+                throw Exceptions.unsupportedOperationConfiguration("modelBuilder.setJavaHome() and buildLauncher.setJavaHome()");
+            }
+        }
+        if (operationParameters.getJvmArguments() != null) {
+            if (!version.supportsConfiguringJvmArguments()) {
+                throw Exceptions.unsupportedOperationConfiguration("modelBuilder.setJvmArguments() and buildLauncher.setJvmArguments()");
+            }
+        }
+        if (operationParameters.getStandardInput() != null) {
+            if (!version.supportsConfiguringStandardInput()) {
+                throw Exceptions.unsupportedOperationConfiguration("modelBuilder.setStandardInput() and buildLauncher.setStandardInput()");
+            }
+        }
+        if (type != Void.class && operationParameters.getTasks() != null) {
+            if (!version.supportsRunningTasksWhenBuildingModel()) {
+                throw Exceptions.unsupportedOperationConfiguration("modelBuilder.forTasks()");
+            }
+        }
+
         if (type == InternalBuildEnvironment.class && !version.supportsCompleteBuildEnvironment()) {
             //early versions of provider do not support BuildEnvironment model
             //since we know the gradle version at least we can give back some result

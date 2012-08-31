@@ -16,8 +16,10 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
+import org.gradle.tooling.internal.consumer.parameters.ConsumerConnectionParameters;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
+import org.gradle.tooling.internal.reflect.CompatibleIntrospector;
 
 /**
  * An implementation that wraps a protocol instance that has rigid compatibility policy.
@@ -28,6 +30,10 @@ public class AdaptedConnection extends AbstractConsumerConnection {
 
     public AdaptedConnection(ConnectionVersion4 delegate) {
         super(delegate);
+    }
+
+    public void configure(ConsumerConnectionParameters connectionParameters) {
+        new CompatibleIntrospector(getDelegate()).callSafely("configureLogging", connectionParameters.getVerboseLogging());
     }
 
     public <T> T run(Class<T> type, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {

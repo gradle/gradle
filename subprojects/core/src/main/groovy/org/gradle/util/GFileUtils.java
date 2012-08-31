@@ -19,6 +19,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.UncheckedException;
 import org.gradle.util.internal.LimitedDescription;
 
 import java.io.*;
@@ -120,6 +121,14 @@ public class GFileUtils {
         }
     }
 
+    public static void cleanDirectory(File directory) {
+        try {
+            FileUtils.cleanDirectory(directory);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
     public static boolean deleteQuietly(File file) {
         return FileUtils.deleteQuietly(file);
     }
@@ -196,6 +205,21 @@ public class GFileUtils {
     public static void createDirectory(File directory) {
         if (!directory.exists() && !directory.mkdirs()) {
             throw new UncheckedIOException("Failed to create directory " + directory);
+        }
+    }
+
+    /**
+     * Returns a relative path from 'from' to 'to'
+     *
+     * @param from where to calculate from
+     * @param to where to calculate to
+     * @return The relative path
+     */
+    public static String relativePath(File from, File to) {
+        try {
+            return org.apache.tools.ant.util.FileUtils.getRelativePath(from, to);
+        } catch (Exception e) {
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 }

@@ -17,8 +17,8 @@
 package org.gradle.api.plugins.buildcomparison.gradle.internal;
 
 import com.google.common.collect.Lists;
-import org.gradle.api.plugins.buildcomparison.gradle.GradleBuildInvocationSpec;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.plugins.buildcomparison.gradle.GradleBuildInvocationSpec;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
@@ -49,19 +49,14 @@ public class DefaultGradleBuildInvocationSpec implements GradleBuildInvocationSp
         this.projectDir = projectDir;
     }
 
-    public FileResolver getFileResolver() {
-        return fileResolver;
-    }
-
-    public void setFileResolver(FileResolver fileResolver) {
-        this.fileResolver = fileResolver;
-    }
-
     public String getGradleVersion() {
         return gradleVersion;
     }
 
     public void setGradleVersion(String gradleVersion) {
+        if (gradleVersion == null) {
+            throw new IllegalArgumentException("gradleVersion cannot be null");
+        }
         this.gradleVersion = gradleVersion;
     }
 
@@ -70,7 +65,7 @@ public class DefaultGradleBuildInvocationSpec implements GradleBuildInvocationSp
     }
 
     public void setTasks(Iterable<String> tasks) {
-        this.tasks = Lists.newLinkedList(tasks);
+        this.tasks = tasks == null ? Collections.<String>emptyList() : Lists.newLinkedList(tasks);
     }
 
     public List<String> getArguments() {
@@ -78,6 +73,42 @@ public class DefaultGradleBuildInvocationSpec implements GradleBuildInvocationSp
     }
 
     public void setArguments(Iterable<String> arguments) {
-        this.arguments = Lists.newLinkedList(arguments);
+        this.arguments = arguments == null ? Collections.<String>emptyList() : Lists.newLinkedList(arguments);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        DefaultGradleBuildInvocationSpec that = (DefaultGradleBuildInvocationSpec) o;
+
+        if (!getArguments().equals(that.getArguments())) {
+            return false;
+        }
+        if (!getGradleVersion().equals(that.getGradleVersion())) {
+            return false;
+        }
+        if (!getProjectDir().equals(that.getProjectDir())) {
+            return false;
+        }
+        if (!getTasks().equals(that.getTasks())) {
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = getProjectDir().hashCode();
+        result = 31 * result + getGradleVersion().hashCode();
+        result = 31 * result + getTasks().hashCode();
+        result = 31 * result + getArguments().hashCode();
+        return result;
     }
 }

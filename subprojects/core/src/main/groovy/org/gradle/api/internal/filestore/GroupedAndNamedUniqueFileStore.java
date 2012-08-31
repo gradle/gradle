@@ -59,4 +59,8 @@ public class GroupedAndNamedUniqueFileStore<K> implements FileStore<K>, FileStor
     public File getTempFile() {
         return delegate.getTempFile();
     }
+
+    public void moveFilestore(File destination) {
+        delegate.moveFilestore(destination);
+    }
 }

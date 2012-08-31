@@ -19,7 +19,7 @@ import org.gradle.api.internal.GradleInternal;
 
 public interface ModelConfigurationListener {
     /**
-     * Invoked when the model has been configured. This listener should not do any further configuration.
+     * Invoked when the model has been configured successfully. This listener should not do any further configuration.
      */
     void onConfigure(GradleInternal model);
 }

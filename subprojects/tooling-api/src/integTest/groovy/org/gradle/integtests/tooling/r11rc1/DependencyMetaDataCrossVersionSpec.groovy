@@ -23,8 +23,8 @@ import org.gradle.tooling.model.ExternalDependency
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.idea.IdeaProject
 
-@MinToolingApiVersion('1.1')
-@MinTargetGradleVersion('1.1')
+@MinToolingApiVersion('1.1-rc-2')
+@MinTargetGradleVersion('1.1-rc-2')
 class DependencyMetaDataCrossVersionSpec extends ToolingApiSpecification {
 
     def "idea libraries contain gradle module information"() {

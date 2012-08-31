@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,26 +17,14 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.initialization.ModelConfigurationListener;
 import org.gradle.tooling.internal.protocol.ProjectVersion3;
 
-/**
- * @author Szczepan Faber, @date: 25.03.11
- */
-public class ModelBuildingAdapter implements ModelConfigurationListener {
-
-    private final BuildsModel builder;
-    private ProjectVersion3 eclipseProject;
-
-    public ModelBuildingAdapter(BuildsModel builder) {
-        this.builder = builder;
+public class NullResultBuilder implements BuildsModel {
+    public boolean canBuild(Class<?> type) {
+        return type.equals(Void.class);
     }
 
-    public void onConfigure(GradleInternal model) {
-        eclipseProject = builder.buildAll(model);
-    }
-
-    public ProjectVersion3 getProject() {
-        return eclipseProject;
+    public ProjectVersion3 buildAll(GradleInternal gradle) {
+        return null;
     }
 }

@@ -17,8 +17,12 @@
 package org.gradle.tooling.internal.protocol;
 
 /**
- * An empty interface. Instances are queried dynamically to see which parameters they support. See {@code ProviderOperationParameters} for details of the methods that provider expects,
+ * The parameters for running a build.
+ *
+ * <p>This is a marker interface. Instances are queried dynamically to see which parameters they support. See {@code ProviderOperationParameters} for details of the methods that provider expects,
  * and {@code ConsumerOperationParameters} for details of what the consumer currently provides.
+ *
+ * @since 1.2-rc-1
  */
 public interface BuildParameters extends InternalProtocolInterface {
 }

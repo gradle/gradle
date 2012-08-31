@@ -15,6 +15,7 @@
  */
 package org.gradle.tooling;
 
+import org.gradle.api.Experimental;
 import org.gradle.tooling.model.Model;
 
 import java.io.File;
@@ -64,41 +65,49 @@ import java.io.OutputStream;
  * </pre>
  *
  * @param <T> The type of model to build
+ * @since 1.0-milestone-3
  */
 public interface ModelBuilder<T extends Model> extends LongRunningOperation {
 
     /**
      * {@inheritDoc}
+     * @since 1.0-rc-1
      */
     ModelBuilder<T> withArguments(String ... arguments);
 
     /**
      * {@inheritDoc}
+     * @since 1.0-milestone-3
      */
     ModelBuilder<T> setStandardOutput(OutputStream outputStream);
 
     /**
      * {@inheritDoc}
+     * @since 1.0-milestone-3
      */
     ModelBuilder<T> setStandardError(OutputStream outputStream);
 
     /**
      * {@inheritDoc}
+     * @since 1.0-milestone-7
      */
     ModelBuilder<T> setStandardInput(InputStream inputStream);
 
     /**
      * {@inheritDoc}
+     * @since 1.0-milestone-8
      */
     ModelBuilder<T> setJavaHome(File javaHome);
 
     /**
      * {@inheritDoc}
+     * @since 1.0-milestone-9
      */
     ModelBuilder<T> setJvmArguments(String... jvmArguments);
 
     /**
      * {@inheritDoc}
+     * @since 1.0-milestone-3
      */
     ModelBuilder<T> addProgressListener(ProgressListener listener);
 
@@ -107,7 +116,10 @@ public interface ModelBuilder<T extends Model> extends LongRunningOperation {
      *
      * @param tasks The paths of the tasks to be executed. Relative paths are evaluated relative to the project for which this launcher was created.
      * @return this
+     *
+     * @since 1.2
      */
+    @Experimental
     ModelBuilder<T> forTasks(String... tasks);
 
     /**
@@ -122,6 +134,7 @@ public interface ModelBuilder<T extends Model> extends LongRunningOperation {
      * @throws BuildException On some failure executing the Gradle build.
      * @throws GradleConnectionException On some other failure using the connection.
      * @throws IllegalStateException When the connection has been closed or is closing.
+     * @since 1.0-milestone-3
      */
     T get() throws GradleConnectionException;
 
@@ -130,6 +143,7 @@ public interface ModelBuilder<T extends Model> extends LongRunningOperation {
      *
      * @param handler The handler to supply the result to.
      * @throws IllegalStateException When the connection has been closed or is closing.
+     * @since 1.0-milestone-3
      */
     void get(ResultHandler<? super T> handler) throws IllegalStateException;
 }

@@ -23,6 +23,7 @@ import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.connection.*;
+import org.gradle.tooling.internal.consumer.parameters.ConsumerConnectionParameters;
 import org.gradle.tooling.internal.protocol.BuildActionRunner;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 import org.gradle.tooling.internal.protocol.InternalConnection;
@@ -47,7 +48,7 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
         this.classLoader = classLoader;
     }
 
-    public ConsumerConnection create(Distribution distribution, ProgressLoggerFactory progressLoggerFactory, boolean verboseLogging) {
+    public ConsumerConnection create(Distribution distribution, ProgressLoggerFactory progressLoggerFactory, ConsumerConnectionParameters connectionParameters) {
         LOGGER.debug("Using tooling provider from {}", distribution.getDisplayName());
         ClassLoader classLoader = createImplementationClassLoader(distribution, progressLoggerFactory);
         ServiceLocator serviceLocator = new ServiceLocator(classLoader);
@@ -71,7 +72,7 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
             } else {
                 adaptedConnection = new AdaptedConnection(connection);
             }
-            adaptedConnection.configureLogging(verboseLogging);
+            adaptedConnection.configure(connectionParameters);
             return adaptedConnection;
         } catch (UnsupportedVersionException e) {
             throw e;

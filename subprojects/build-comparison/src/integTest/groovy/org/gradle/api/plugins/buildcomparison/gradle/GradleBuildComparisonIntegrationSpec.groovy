@@ -18,6 +18,7 @@ package org.gradle.api.plugins.buildcomparison.gradle
 
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
+import org.gradle.util.TestFile
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.junit.Rule
@@ -44,17 +45,18 @@ class GradleBuildComparisonIntegrationSpec extends WellBehavedPluginTest {
         given:
         buildFile << """
             compareGradleBuilds {
-                reportDir "result"
                 sourceBuild.projectDir "sourceBuild"
                 targetBuild { projectDir "targetBuild" }
             }
         """
 
         when:
-        run("compareGradleBuilds")
+        fails "compareGradleBuilds"
 
         then:
-        def html = html("result/index.html")
+        failedBecauseNotIdentical()
+
+        def html = html()
 
         // Name of outcome
         html.select("h3").text() == "Task: “:jar”"
@@ -68,19 +70,22 @@ class GradleBuildComparisonIntegrationSpec extends WellBehavedPluginTest {
         rows["org/gradle/TargetBuildOnlyClass.class"] == "Only exists in Target Build"
 
         and:
-        file("result/files/source").exists()
-        file("result/files/source/_jar").list().toList() == ["testBuild.jar"]
-        file("result/files/target/_jar").list().toList() == ["testBuild.jar"]
+        storedFile("source").exists()
+        storedFile("source/_jar").list().toList() == ["testBuild.jar"]
+        storedFile("target/_jar").list().toList() == ["testBuild.jar"]
+
+        and: // old filestore not around
+        !testDir.list().any { it.startsWith(CompareGradleBuilds.TMP_FILESTORAGE_PREFIX) }
+    }
+
+    void failedBecauseNotIdentical() {
+        failure.assertHasCause("The builds were not found to be identical. See the report at: file:///")
     }
 
     def "compare same project"() {
         given:
         buildFile << """
             apply plugin: "java"
-
-            compareGradleBuilds {
-                reportDir "result"
-            }
         """
 
         file("src/main/java/Thing.java") << "class Thing {}"
@@ -89,7 +94,8 @@ class GradleBuildComparisonIntegrationSpec extends WellBehavedPluginTest {
         run "compareGradleBuilds"
 
         then:
-        html("result/index.html").select("p").text() == "The archives are completely identical."
+        html().select("p").text() == "The archives are completely identical."
+        output.contains("The source build and target build are identical")
     }
 
     def "compare project with unknown outcomes"() {
@@ -102,10 +108,6 @@ class GradleBuildComparisonIntegrationSpec extends WellBehavedPluginTest {
                 archives
             }
 
-            compareGradleBuilds {
-                reportDir "result"
-            }
-
             task tarArchive(type: Tar) {
                 from "file.txt"
             }
@@ -116,13 +118,67 @@ class GradleBuildComparisonIntegrationSpec extends WellBehavedPluginTest {
         """
 
         when:
-        run "compareGradleBuilds"
+        fails "compareGradleBuilds"
 
         then:
-        html("result/index.html").select("p").text() == "This version of Gradle does not understand this kind of build outcome. Running the comparison process from a newer version of Gradle may yield better results."
+        failedBecauseNotIdentical()
+
+        html().select("p").text() == "This version of Gradle does not understand this kind of build outcome. Running the comparison process from a newer version of Gradle may yield better results."
     }
 
-    Document html(path) {
+    def "cannot compare when both sides are old"() {
+        when:
+        buildFile << """
+            compareGradleBuilds {
+                sourceBuild.gradleVersion "1.1"
+                targetBuild.gradleVersion "1.1"
+            }
+        """
+
+        then:
+        fails "compareGradleBuilds"
+
+        and:
+        failure.assertHasCause("Cannot run comparison because both the source and target build are to be executed with a Gradle version older than Gradle 1.2 (source: 1.1, target: 1.1).")
+    }
+
+    def "cannot compare when source is older than 1.0"() {
+        when:
+        buildFile << """
+            apply plugin: "java"
+            compareGradleBuilds {
+                sourceBuild.gradleVersion "1.0-rc-1"
+            }
+        """
+
+        then:
+        fails "compareGradleBuilds"
+
+        and:
+        failure.assertHasCause("Builds must be executed with Gradle 1.0 or newer (source: 1.0-rc-1, target: ${distribution.version})")
+    }
+
+    def "cannot compare when target is older than 1.0"() {
+        when:
+        buildFile << """
+            apply plugin: "java"
+            compareGradleBuilds {
+                targetBuild.gradleVersion "1.0-rc-1"
+            }
+        """
+
+        then:
+        fails "compareGradleBuilds"
+
+        and:
+        failure.assertHasCause("Builds must be executed with Gradle 1.0 or newer (source: ${distribution.version}, target: 1.0-rc-1)")
+    }
+
+    Document html(path = "build/reports/compareGradleBuilds/index.html") {
         Jsoup.parse(file(path), "utf8")
+    }
+
+    TestFile storedFile(String path, String base = "build/reports/compareGradleBuilds/files") {
+        file("$base/$path")
     }
 }

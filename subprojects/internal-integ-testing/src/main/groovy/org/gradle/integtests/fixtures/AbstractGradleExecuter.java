@@ -27,6 +27,15 @@ import java.util.*;
 import static java.util.Arrays.asList;
 
 public abstract class AbstractGradleExecuter implements GradleExecuter {
+
+    // If no explicit timeout is specified, this will be used.
+    // This is to avoid daemons “accidentally” launched hanging around for a long time.
+    private static final int DEFAULT_DAEMON_IDLE_TIMEOUT_SECS = 10;
+
+    // Specified in the build config to point under /build
+    // This is primarily to avoid filling ~/.gradle on CI builds
+    private static final String DEFAULT_DAEMON_REGISTRY_DIR_PROPERTY = "org.gradle.integtest.daemon.registry";
+
     private final List<String> args = new ArrayList<String>();
     private final List<String> tasks = new ArrayList<String>();
     private File workingDir;
@@ -326,12 +335,20 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             allArgs.add("--gradle-user-home");
             allArgs.add(userHomeDir.getAbsolutePath());
         }
-        if (daemonIdleTimeoutSecs != null) {
-            allArgs.add("-Dorg.gradle.daemon.idletimeout=" + daemonIdleTimeoutSecs * 1000);
-        }
 
-        if (daemonBaseDir != null) {
-            args.add("-Dorg.gradle.daemon.registry.base=" + daemonBaseDir.getAbsolutePath());
+        // Prevent from running with the default idle timeout as it causes CI chaos
+        int effectiveDaemonIdleTimeoutSecs = daemonIdleTimeoutSecs == null ? DEFAULT_DAEMON_IDLE_TIMEOUT_SECS : daemonIdleTimeoutSecs;
+        allArgs.add("-Dorg.gradle.daemon.idletimeout=" + effectiveDaemonIdleTimeoutSecs * 1000);
+
+        // Prevent from running with the default daemon dir (~/.gradle/daemon) as it fills up on the CI server
+        String effectiveDaemonBaseDir = null;
+        if (daemonBaseDir == null) {
+            effectiveDaemonBaseDir = System.getProperty(DEFAULT_DAEMON_REGISTRY_DIR_PROPERTY);
+        } else {
+            effectiveDaemonBaseDir = daemonBaseDir.getAbsolutePath();
+        }
+        if (effectiveDaemonBaseDir != null) {
+            args.add("-Dorg.gradle.daemon.registry.base=" + effectiveDaemonBaseDir);
         }
 
         allArgs.addAll(args);

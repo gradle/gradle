@@ -35,14 +35,14 @@ class DaemonErrorFeedbackCrossVersionSpec extends ToolingApiSpecification {
         toolingApi.isEmbedded = false
 
         when:
-        def ex = maybeFailWithConnection {
+        maybeFailWithConnection {
             it.newBuild()
                     .setJvmArguments("-Xasdf")
                     .run()
         }
 
         then:
-        ex instanceof GradleConnectionException
+        GradleConnectionException ex = thrown()
         ex.cause.message.contains "-Xasdf"
         ex.cause.message.contains "Unable to start the daemon"
     }

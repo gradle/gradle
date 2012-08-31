@@ -16,8 +16,10 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
+import org.gradle.tooling.internal.consumer.parameters.ConsumerConnectionParameters;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.protocol.BuildActionRunner;
+import org.gradle.tooling.internal.protocol.ConfigurableConnection;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 
 public class BuildActionRunnerBackedConsumerConnection extends AbstractConsumerConnection {
@@ -26,6 +28,10 @@ public class BuildActionRunnerBackedConsumerConnection extends AbstractConsumerC
     public BuildActionRunnerBackedConsumerConnection(ConnectionVersion4 delegate) {
         super(delegate);
         buildActionRunner = (BuildActionRunner) delegate;
+    }
+
+    public void configure(ConsumerConnectionParameters connectionParameters) {
+        ((ConfigurableConnection) buildActionRunner).configure(connectionParameters);
     }
 
     public <T> T run(Class<T> type, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {

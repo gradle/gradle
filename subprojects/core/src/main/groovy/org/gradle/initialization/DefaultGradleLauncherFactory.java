@@ -142,6 +142,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
                 serviceRegistry.get(ExceptionAnalyser.class),
                 loggingManager,
                 listenerManager.getBroadcaster(ModelConfigurationListener.class),
+                listenerManager.getBroadcaster(TasksCompletionListener.class),
                 gradle.getServices().get(BuildExecuter.class));
     }
 

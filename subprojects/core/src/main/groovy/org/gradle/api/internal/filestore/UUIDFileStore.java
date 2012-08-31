@@ -54,4 +54,8 @@ public class UUIDFileStore implements FileStore<String> {
     public File getTempFile() {
         return delegate.getTempFile();
     }
+
+    public void moveFilestore(File destination) {
+        delegate.moveFilestore(destination);
+    }
 }

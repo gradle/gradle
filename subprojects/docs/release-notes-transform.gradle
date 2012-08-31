@@ -38,7 +38,7 @@ decorateReleaseNotes {
         head().append("<script type='text/javascript'>1;</script>").children().last().childNode(0).attr("data", jqueryFile.text)
         head().append("<script type='text/javascript'>1;</script>").children().last().childNode(0).attr("data", scriptFile.text)
     }
-    
+
     // wrap each h2 section in section.topic
     transform {
         def heading = body().select("h2").first()
@@ -68,7 +68,7 @@ decorateReleaseNotes {
     // wrap all content after the first element after a h3 (up to the next same level heading)
     // in a section.major-detail block
     transform {
-        for (heading in body().select(".topic").first().select("h3")) {
+        for (heading in body().select(".topic").select("h3")) {
             def detail = []
             
             Element next = heading.nextElementSibling()
@@ -147,6 +147,8 @@ decorateReleaseNotes {
             }
             
         }
+
+        tocSection.append("<p class='other-doc-links'>[<a href='dsl/index.html'>DSL Reference</a>] [<a href='userguide/userguide.html'>User Guide</a>]</p>")
     }
     
     // Add the heading
@@ -192,6 +194,10 @@ decorateReleaseNotes {
             }
         }
     }
-    
-    
+
+    transform {
+        def bodyContent = body().children().remove()
+        body().prepend("<div class='text-container'/>")
+        body().children()[0].html(bodyContent.outerHtml())
+    }
 }

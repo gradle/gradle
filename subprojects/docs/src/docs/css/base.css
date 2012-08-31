@@ -13,12 +13,12 @@ a img {border:none;}
 
 /* typography.css */
 html {font-size:100.01%;}
-h1, h2, h3, h4, h5, h6 {font-weight:normal;color:#111;margin-bottom: 0.5em;}
+h1, h2, h3, h4, h5, h6 {font-weight:normal;color:#111;margin-bottom: 12px;}
 h1 {font-size:4em;line-height:1;}
-h2 {font-size:2em;}
+h2 {font-size:2.2em;}
 h3 {font-size:1.5em;line-height:1;}
-h4 {font-size:1.2em;line-height:1.25;}
-h5 {font-size:1em;font-weight:bold;}
+h4 {font-size:1.3em;line-height:1.25;}
+h5 {font-size:1.1em;font-weight:bold;}
 h6 {font-size:1em;font-weight:bold;}
 h1 img, h2 img, h3 img, h4 img, h5 img, h6 img {margin:0;}
 p {margin:0 0 1.5em;}
@@ -84,9 +84,21 @@ caption {background:#eee;}
 body {
   font-size: 14px;
   font-family: 'Lato', Arial, serif;
-  margin: 2em 2em 1em;
+  margin: 28px 28px 14px;
   color: #333;
   background: url('data:image/gif;base64,@logo-base64@') no-repeat right top;
+}
+
+.text-container,
+div.book,
+div.chapter {
+  margin-left: 10px;
+}
+
+.text-container h1, .text-container h2, .text-container h3, .text-container h4, .text-container h5,
+div.book h1, div.book h2, div.book h3, div.book h4, div.book h5,
+div.chapter h1, div.chapter h2, div.chapter h3, div.chapter h4, div.chapter h5 {
+  margin-left: -10px;
 }
 
 code, tt, pre {
@@ -104,6 +116,7 @@ h1 {
 
 h3.releaseinfo {
    color: #666666;
+   padding-top: 0;
 }
 
 a {
@@ -167,7 +180,8 @@ pre.code, pre.programlisting {
 }
 
 pre.screen, pre.tt {
-    color: #126412;
+    color: #7A7A7A;
+    background-color: white;
 }
 
 tbody tr:nth-child(even) td, tbody tr.even td {

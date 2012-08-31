@@ -29,6 +29,7 @@ import org.gradle.internal.reflect.ObjectInstantiationException;
 import org.junit.Test;
 import spock.lang.Issue;
 
+import javax.inject.Inject;
 import java.io.IOException;
 import java.lang.reflect.*;
 import java.util.*;
@@ -262,6 +263,14 @@ public class AsmBackedClassGeneratorTest {
         assertThat(exceptionType, instanceOf(TypeVariable.class));
         typeVariable = (TypeVariable) exceptionType;
         assertThat(typeVariable.getName(), equalTo("T"));
+    }
+
+    @Test
+    public void includesAnnotationInformationForOverriddenConstructor() throws Exception {
+        Class<?> generatedClass = generator.generate(BeanWithAnnotatedConstructor.class);
+        Constructor<?> constructor = generatedClass.getDeclaredConstructors()[0];
+
+        assertThat(constructor.getAnnotation(Inject.class), notNullValue());
     }
 
     @Test
@@ -722,6 +731,12 @@ public class AsmBackedClassGeneratorTest {
                 List<? extends String>[] genericArray,
                 boolean primitive
         ) throws Exception, T {
+        }
+    }
+
+    public static class BeanWithAnnotatedConstructor {
+        @Inject
+        public BeanWithAnnotatedConstructor() {
         }
     }
 

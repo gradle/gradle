@@ -24,7 +24,6 @@ import org.gradle.tooling.internal.reflect.CompatibleIntrospector;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -40,13 +39,13 @@ public class AdaptedOperationParameters implements ProviderOperationParameters {
     CompatibleIntrospector introspector;
 
     public AdaptedOperationParameters(BuildOperationParametersVersion1 operationParameters) {
-        this(operationParameters, Arrays.<String>asList());
+        this(operationParameters, null);
     }
 
     public AdaptedOperationParameters(BuildOperationParametersVersion1 delegate, List<String> tasks) {
         this.delegate = delegate;
         this.introspector = new CompatibleIntrospector(delegate);
-        this.tasks = new LinkedList<String>(tasks);
+        this.tasks = tasks == null ? null : new LinkedList<String>(tasks);
     }
 
     public InputStream getStandardInput(InputStream defaultInput) {

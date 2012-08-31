@@ -118,12 +118,12 @@ class PassingCommandLineArgumentsCrossVersionSpec extends ToolingApiSpecificatio
 
     def "gives decent feedback for invalid option"() {
         when:
-        def ex = maybeFailWithConnection { ProjectConnection it ->
+        maybeFailWithConnection { ProjectConnection it ->
             it.newBuild().withArguments('--foreground').run()
         }
 
         then:
-        ex instanceof UnsupportedBuildArgumentException
+        UnsupportedBuildArgumentException ex = thrown()
         ex.message.contains('--foreground')
     }
 

@@ -25,4 +25,6 @@ public interface FileStore<K> {
 
     File getTempFile();
 
+    void moveFilestore(File destination);
+
 }

@@ -23,6 +23,7 @@ import org.gradle.tooling.internal.consumer.Distribution
 import org.gradle.tooling.internal.consumer.connection.AdaptedConnection
 import org.gradle.tooling.internal.consumer.connection.BuildActionRunnerBackedConsumerConnection
 import org.gradle.tooling.internal.consumer.connection.InternalConnectionBackedConsumerConnection
+import org.gradle.tooling.internal.consumer.parameters.ConsumerConnectionParameters
 import org.gradle.tooling.internal.protocol.*
 import org.gradle.util.ClasspathUtil
 import org.gradle.util.GradleVersion
@@ -36,7 +37,7 @@ class DefaultToolingImplementationLoaderTest extends Specification {
     Distribution distribution = Mock()
     ProgressLoggerFactory loggerFactory = Mock()
 
-    def usesMetaInfServiceToDetermineFactoryImplementation() {
+    def "locates connection implementation using meta-inf service then instantiates and configures the connection"() {
         given:
         def loader = new DefaultToolingImplementationLoader()
         distribution.getToolingImplementationClasspath(loggerFactory) >> new DefaultClassPath(
@@ -49,11 +50,12 @@ class DefaultToolingImplementationLoaderTest extends Specification {
                 ClasspathUtil.getClasspathForClass(GradleVersion.class))
 
         when:
-        def adaptedConnection = loader.create(distribution, loggerFactory, true)
+        def adaptedConnection = loader.create(distribution, loggerFactory, new ConsumerConnectionParameters(true))
 
         then:
         adaptedConnection.delegate.class != connectionImplementation //different classloaders
         adaptedConnection.delegate.class.name == connectionImplementation.name
+        adaptedConnection.delegate.configured
 
         and:
         adaptedConnection.class == adapter
@@ -79,7 +81,7 @@ class DefaultToolingImplementationLoaderTest extends Specification {
         def loader = new DefaultToolingImplementationLoader(cl)
 
         when:
-        loader.create(distribution, loggerFactory, true)
+        loader.create(distribution, loggerFactory, new ConsumerConnectionParameters(true))
 
         then:
         UnsupportedVersionException e = thrown()
@@ -89,7 +91,13 @@ class DefaultToolingImplementationLoaderTest extends Specification {
     }
 }
 
-class TestConnection implements ConnectionVersion4, BuildActionRunner {
+class TestConnection implements ConnectionVersion4, BuildActionRunner, ConfigurableConnection {
+    boolean configured
+
+    void configure(ConnectionParameters parameters) {
+        configured = parameters.verboseLogging
+    }
+
     def <T> BuildResult<T> run(Class<T> type, BuildParameters parameters) {
         throw new UnsupportedOperationException()
     }
@@ -112,6 +120,12 @@ class TestConnection implements ConnectionVersion4, BuildActionRunner {
 }
 
 class TestOldConnection implements InternalConnection {
+    boolean configured
+
+    void configureLogging(boolean verboseLogging) {
+        configured = verboseLogging
+    }
+
     def <T> T getTheModel(Class<T> type, BuildOperationParametersVersion1 operationParameters) {
         throw new UnsupportedOperationException()
     }
@@ -134,6 +148,12 @@ class TestOldConnection implements InternalConnection {
 }
 
 class TestEvenOlderConnection implements ConnectionVersion4 {
+    boolean configured
+
+    void configureLogging(boolean verboseLogging) {
+        configured = verboseLogging
+    }
+
     void stop() {
         throw new UnsupportedOperationException()
     }

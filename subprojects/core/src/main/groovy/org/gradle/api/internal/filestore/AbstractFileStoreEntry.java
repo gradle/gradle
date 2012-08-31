@@ -19,22 +19,10 @@ package org.gradle.api.internal.filestore;
 import org.gradle.util.hash.HashUtil;
 import org.gradle.util.hash.HashValue;
 
-import java.io.File;
-
-public class DefaultFileStoreEntry<K> implements FileStoreEntry {
-
-    private final File file;
-
-    public DefaultFileStoreEntry(File file) {
-        this.file = file;
-    }
-
-    public File getFile() {
-        return file;
-    }
+public abstract class AbstractFileStoreEntry implements FileStoreEntry {
 
     public HashValue getSha1() {
-        return HashUtil.createHash(file, "SHA1");
+        return HashUtil.createHash(getFile(), "SHA1");
     }
 
 }

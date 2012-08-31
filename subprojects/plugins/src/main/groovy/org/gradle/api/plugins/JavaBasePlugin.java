@@ -36,6 +36,7 @@ import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.WrapUtil;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.concurrent.Callable;
 
@@ -54,6 +55,7 @@ public class JavaBasePlugin implements Plugin<Project> {
 
     private final Instantiator instantiator;
 
+    @Inject
     public JavaBasePlugin(Instantiator instantiator) {
         this.instantiator = instantiator;
     }

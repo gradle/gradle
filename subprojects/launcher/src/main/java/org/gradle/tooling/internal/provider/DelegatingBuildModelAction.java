@@ -28,9 +28,11 @@ import java.lang.reflect.InvocationTargetException;
 class DelegatingBuildModelAction<T> implements GradleLauncherAction<T>, Serializable {
     private transient GradleLauncherAction<T> action;
     private final Class<? extends T> type;
+    private final boolean runTasks;
 
-    public DelegatingBuildModelAction(Class<T> type) {
+    public DelegatingBuildModelAction(Class<T> type, boolean runTasks) {
         this.type = type;
+        this.runTasks = runTasks;
     }
 
     public T getResult() {
@@ -46,7 +48,7 @@ class DelegatingBuildModelAction<T> implements GradleLauncherAction<T>, Serializ
     private void loadAction(DefaultGradleLauncher launcher) {
         ClassLoaderRegistry classLoaderRegistry = launcher.getGradle().getServices().get(ClassLoaderRegistry.class);
         try {
-            action = (GradleLauncherAction<T>) classLoaderRegistry.getRootClassLoader().loadClass("org.gradle.tooling.internal.provider.BuildModelAction").getConstructor(Class.class).newInstance(type);
+            action = (GradleLauncherAction<T>) classLoaderRegistry.getRootClassLoader().loadClass("org.gradle.tooling.internal.provider.BuildModelAction").getConstructor(Class.class, Boolean.TYPE).newInstance(type, runTasks);
         } catch (InvocationTargetException e) {
             throw UncheckedException.unwrapAndRethrow(e);
         } catch (Exception e) {

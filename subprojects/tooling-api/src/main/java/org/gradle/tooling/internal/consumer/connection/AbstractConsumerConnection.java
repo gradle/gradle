@@ -16,9 +16,9 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
+import org.gradle.tooling.internal.consumer.parameters.ConsumerConnectionParameters;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
-import org.gradle.tooling.internal.reflect.CompatibleIntrospector;
 
 public abstract class AbstractConsumerConnection implements ConsumerConnection {
     private final ConnectionVersion4 delegate;
@@ -43,7 +43,5 @@ public abstract class AbstractConsumerConnection implements ConsumerConnection {
         return delegate;
     }
 
-    public void configureLogging(boolean verboseLogging) {
-        new CompatibleIntrospector(delegate).callSafely("configureLogging", verboseLogging);
-    }
+    public abstract void configure(ConsumerConnectionParameters connectionParameters);
 }

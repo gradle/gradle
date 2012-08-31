@@ -14,36 +14,51 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r11rc1
+package org.gradle.integtests.tooling.r12rc1
 
 import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes
 
 import org.junit.Rule
 
-@MinToolingApiVersion("current")
-@MinTargetGradleVersion("current")
+@MinToolingApiVersion("1.2-rc-1")
+@MinTargetGradleVersion("1.2-rc-1")
 class ProjectOutcomesModuleCrossVersionSpec extends ToolingApiSpecification {
     @Rule TestResources resources = new TestResources()
 
     def "modelContainsAllArchivesOnTheArchivesConfiguration"() {
         when:
-        def projectOutcomes = withConnection { it.getModel(ProjectOutcomes.class) }
+        def projectOutcomes = withConnection { ProjectConnection connection ->
+            connection.model(ProjectOutcomes.class).forTasks('assemble').get()
+        }
 
         then:
         projectOutcomes instanceof ProjectOutcomes
         def outcomes = projectOutcomes.outcomes
         outcomes.size() == 2
-        outcomes.any { it.file.name.endsWith(".jar") }
-        outcomes.any { it.file.name.endsWith(".zip") }
+
+        def jar = outcomes.find { it.file.name.endsWith(".jar") }
+        jar
+        jar.taskPath == ':jar'
+        jar.file.file
+        jar.typeIdentifier == 'artifact.jar'
+
+        def zip = outcomes.find { it.file.name.endsWith(".zip") }
+        zip
+        zip.taskPath == ':zip'
+        zip.file.file
+        zip.typeIdentifier == 'artifact.zip'
     }
 
     def "modelContainsAllProjects"() {
         when:
-        def projectOutcomes = withConnection { it.getModel(ProjectOutcomes.class) }
+        def projectOutcomes = withConnection { ProjectConnection connection ->
+            connection.model(ProjectOutcomes.class).forTasks('assemble').get()
+        }
 
         then:
         projectOutcomes instanceof ProjectOutcomes

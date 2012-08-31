@@ -27,6 +27,8 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.logging.ConsoleRenderer
 import org.gradle.util.DeprecationLogger
 
+import javax.inject.Inject
+
 /**
  * Runs CodeNarc against some source files.
  */
@@ -95,6 +97,7 @@ class CodeNarc extends SourceTask implements VerificationTask, Reporting<CodeNar
      */
     boolean ignoreFailures
 
+    @Inject
     CodeNarc(Instantiator instantiator, IsolatedAntBuilder antBuilder) {
         reports = instantiator.newInstance(CodeNarcReportsImpl, this)
         this.antBuilder = antBuilder

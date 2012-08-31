@@ -78,6 +78,19 @@ description = 'this is a project'
         fullProject.projectDependencies.empty
     }
 
+    def "does not run any tasks when fetching model"() {
+        when:
+        def projectDir = dist.testDir
+        projectDir.file('build.gradle').text = '''
+apply plugin: 'java'
+gradle.taskGraph.beforeTask { throw new RuntimeException() }
+'''
+        HierarchicalEclipseProject project = withConnection { connection -> connection.getModel(HierarchicalEclipseProject.class) }
+
+        then:
+        project != null
+    }
+
     def "can build the eclipse source directories for a java project"() {
         def projectDir = dist.testDir
         projectDir.file('build.gradle').text = "apply plugin: 'java'"
