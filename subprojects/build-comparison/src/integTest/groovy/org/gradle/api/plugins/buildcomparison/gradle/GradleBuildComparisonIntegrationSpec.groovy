@@ -95,7 +95,7 @@ class GradleBuildComparisonIntegrationSpec extends WellBehavedPluginTest {
         run "compareGradleBuilds"
 
         then:
-        html().select("p").text() == "The archives are completely identical."
+        html().select("p").last().text() == "The archives are completely identical."
         output.contains("The source build and target build are identical")
     }
 
@@ -124,7 +124,7 @@ class GradleBuildComparisonIntegrationSpec extends WellBehavedPluginTest {
         then:
         failedBecauseNotIdentical()
 
-        html().select("p").text() == "This version of Gradle does not understand this kind of build outcome. Running the comparison process from a newer version of Gradle may yield better results."
+        html().select("h3")[0].nextSibling().nextSibling().text() == "This version of Gradle does not understand this kind of build outcome."
     }
 
     def "cannot compare when both sides are old"() {
