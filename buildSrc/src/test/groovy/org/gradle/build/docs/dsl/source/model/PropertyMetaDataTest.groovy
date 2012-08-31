@@ -115,8 +115,8 @@ class PropertyMetaDataTest extends Specification {
         experimental.addAnnotationTypeName("org.gradle.api.Incubating")
 
         expect:
-        !notExperimental.experimental
-        experimental.experimental
+        !notExperimental.incubating
+        experimental.incubating
     }
 }
 

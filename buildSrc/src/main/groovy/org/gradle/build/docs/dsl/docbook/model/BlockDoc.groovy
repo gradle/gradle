@@ -63,8 +63,8 @@ class BlockDoc implements DslElementDoc {
         return blockProperty.deprecated || blockMethod.deprecated
     }
 
-    boolean isExperimental() {
-        return blockProperty.experimental || blockMethod.experimental
+    boolean isIncubating() {
+        return blockProperty.incubating || blockMethod.incubating
     }
 
     PropertyDoc getBlockProperty() {

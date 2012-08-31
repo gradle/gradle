@@ -75,7 +75,7 @@ public class MethodTableRenderer {
                 td.appendChild(caution);
                 caution.appendChild(document.createTextNode("Deprecated"));
             }
-            if (methodDoc.isExperimental()) {
+            if (methodDoc.isIncubating()) {
                 Element caution = document.createElement("caution");
                 td.appendChild(caution);
                 caution.appendChild(document.createTextNode("Experimental"));

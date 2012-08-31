@@ -35,7 +35,7 @@ public class ElementWarningsRenderer {
             link.appendChild(document.createTextNode("deprecated"));
             para.appendChild(document.createTextNode(" and will be removed in the next major version of Gradle."));
         }
-        if (elementDoc.isExperimental()) {
+        if (elementDoc.isIncubating()) {
             Document document = parent.getOwnerDocument();
             Element caution = document.createElement("caution");
             parent.appendChild(caution);

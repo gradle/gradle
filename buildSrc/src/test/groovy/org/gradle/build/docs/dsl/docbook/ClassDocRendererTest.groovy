@@ -26,7 +26,6 @@ import org.gradle.build.docs.dsl.docbook.model.MethodDoc
 import org.gradle.build.docs.dsl.docbook.model.PropertyDoc
 import org.gradle.build.docs.dsl.docbook.model.ClassDoc
 import org.gradle.build.docs.dsl.docbook.model.ClassExtensionDoc
-import org.w3c.dom.Document
 
 class ClassDocRendererTest extends XmlSpecification {
     final LinkRenderer linkRenderer = linkRenderer()
@@ -739,7 +738,7 @@ class ClassDocRendererTest extends XmlSpecification {
         _ * propDoc.comment >> [parse("<para>${args.comment ?: 'comment'}</para>")]
         _ * propDoc.metaData >> propMetaData
         _ * propDoc.deprecated >> (args.deprecated ?: false)
-        _ * propDoc.experimental >> (args.experimental ?: false)
+        _ * propDoc.incubating >> (args.experimental ?: false)
         _ * propDoc.additionalValues >> (args.attributes ?: [])
         _ * propMetaData.type >> new TypeMetaData(args.type ?: 'SomeType')
         return propDoc
@@ -754,7 +753,7 @@ class ClassDocRendererTest extends XmlSpecification {
         _ * methodDoc.comment >> [parse("<para>${args.comment ?: 'comment'}</para>")]
         _ * methodDoc.metaData >> metaData
         _ * methodDoc.deprecated >> (args.deprecated ?: false)
-        _ * methodDoc.experimental >> (args.experimental ?: false)
+        _ * methodDoc.incubating >> (args.experimental ?: false)
         _ * metaData.returnType >> new TypeMetaData(args.returnType ?: 'ReturnType')
         def paramTypes = args.paramTypes ?: []
         _ * metaData.parameters >> paramTypes.collect {

@@ -60,8 +60,8 @@ class MethodDoc implements DslElementDoc {
         return metaData.deprecated && !referringClass.deprecated
     }
 
-    boolean isExperimental() {
-        return metaData.experimental || metaData.ownerClass.experimental
+    boolean isIncubating() {
+        return metaData.incubating || metaData.ownerClass.incubating
     }
 
     Element getDescription() {
