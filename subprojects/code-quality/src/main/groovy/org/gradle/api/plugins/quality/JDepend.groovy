@@ -24,6 +24,8 @@ import org.gradle.api.plugins.quality.internal.JDependReportsImpl
 import org.gradle.api.reporting.Reporting
 import org.gradle.api.tasks.*
 
+import javax.inject.Inject
+
 /**
  * Analyzes code with <a href="http://clarkware.com/software/JDepend.html">JDepend</a>.
  */
@@ -54,6 +56,7 @@ class JDepend extends DefaultTask implements Reporting<JDependReports> {
 
     private final IsolatedAntBuilder antBuilder
 
+    @Inject
     JDepend(Instantiator instantiator, IsolatedAntBuilder antBuilder) {
         this.antBuilder = antBuilder
         reports = instantiator.newInstance(JDependReportsImpl, this)

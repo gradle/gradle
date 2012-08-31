@@ -54,6 +54,7 @@ import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GradleVersion;
 
+import javax.inject.Inject;
 import java.io.*;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -85,6 +86,7 @@ public class CompareGradleBuilds extends DefaultTask {
     private final FileResolver fileResolver;
     private final ProgressLoggerFactory progressLoggerFactory;
 
+    @Inject
     public CompareGradleBuilds(FileResolver fileResolver, ProgressLoggerFactory progressLoggerFactory, Instantiator instantiator) {
         this.fileResolver = fileResolver;
         this.progressLoggerFactory = progressLoggerFactory;

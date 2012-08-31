@@ -35,6 +35,7 @@ import org.gradle.plugins.javascript.rhino.worker.internal.DefaultRhinoWorkerHan
 import org.gradle.process.JavaExecSpec;
 import org.gradle.process.internal.WorkerProcessBuilder;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -50,6 +51,7 @@ public class JsHint extends SourceTask {
     private Object jsonReport;
     private final Factory<WorkerProcessBuilder> workerProcessBuilderFactory;
 
+    @Inject
     public JsHint(Factory<WorkerProcessBuilder> workerProcessBuilderFactory) {
         this.workerProcessBuilderFactory = workerProcessBuilderFactory;
     }
