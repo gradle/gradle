@@ -71,14 +71,28 @@ caption {background:#eee;}
   font-family: 'Lato';
   font-style: normal;
   font-weight: 400;
-  src: local('Lato Regular'), local('Lato-Regular'), url('data:font/opentype;base64,@regular-font-base64@') format('woff');
+  src: local('Lato Regular'), local('Lato-Regular'), url('data:font/opentype;base64,@lato-regular.woff@') format('woff');
+}
+
+@font-face {
+  font-family: 'Lato';
+  font-style: italic;
+  font-weight: 400;
+  src: local('Lato Italic'), local('Lato-Italic'), url('data:font/opentype;base64,@lato-regular-italic.woff@') format('woff');
 }
 
 @font-face {
   font-family: 'Lato';
   font-style: normal;
   font-weight: 700;
-  src: local('Lato Bold'), local('Lato-Bold'), url('data:font/opentype;base64,@bold-font-base64@') format('woff');
+  src: local('Lato Bold'), local('Lato-Bold'), url('data:font/opentype;base64,@lato-bold.woff@') format('woff');
+}
+
+@font-face {
+  font-family: 'Lato';
+  font-style: italic;
+  font-weight: 700;
+  src: local('Lato Bold Italic'), local('Lato-BoldItalic'), url('data:font/opentype;base64,@lato-bold-italic-base64@') format('woff');
 }
 
 body {
@@ -86,7 +100,7 @@ body {
   font-family: 'Lato', Arial, serif;
   margin: 28px 28px 14px;
   color: #333;
-  background: url('data:image/gif;base64,@logo-base64@') no-repeat right top;
+  background: url('data:image/gif;base64,@gradle-logo_25o.gif@') no-repeat right top;
 }
 
 .text-container,
@@ -189,5 +203,10 @@ tbody tr:nth-child(even) td, tbody tr.even td {
 }
 
 li em, p em {
-  padding: 0 2px 0 1px;
+  padding: 0 1px 0 1px;
+  text-decoration: underline;
+}
+
+code em, tt em {
+  text-decoration: none;
 }

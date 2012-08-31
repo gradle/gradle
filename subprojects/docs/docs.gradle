@@ -97,23 +97,22 @@ tasks.withType(AssembleDslDocTask) {
     classDocbookDir = dslSrcDir
 }
 
-task css(type: Sync) {
+task configureCss << {
     ext {
-        fontRegularFile = file("src/docs/css/Lato-regular.woff")
-        fontBoldFile = file("src/docs/css/Lato-bold.woff")
-        logoFile = file("src/docs/css/gradle-logo_25o.gif")
-        tokens = [
-                'regular-font-base64': fontRegularFile.bytes.encodeBase64().toString(),
-                'bold-font-base64': fontBoldFile.bytes.encodeBase64().toString(),
-                'logo-base64': logoFile.bytes.encodeBase64().toString()
-        ]
+        files = []
+        files.addAll(fileTree(dir: "src/docs/css/fonts", include: "*.*").files)
+        files.addAll(fileTree(dir: "src/docs/css/images", include: "*.*").files)
+        tokens = files.collectEntries { [it.name, it.bytes.encodeBase64().toString()] }
     }
-    inputs.property 'tokens', tokens
 
+    css.inputs.property 'tokens', tokens
+    css.filter org.apache.tools.ant.filters.ReplaceTokens, tokens: tokens
+}
+
+task css(type: Sync, dependsOn: configureCss) {
     into "$buildDir/css"
     from "src/docs/css"
     include "*.css"
-    filter org.apache.tools.ant.filters.ReplaceTokens, tokens: tokens
 }
 
 ext.cssFiles = fileTree(css.destinationDir) {
