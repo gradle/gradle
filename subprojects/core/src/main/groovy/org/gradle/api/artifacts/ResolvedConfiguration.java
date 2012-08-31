@@ -15,7 +15,7 @@
  */
 package org.gradle.api.artifacts;
 
-import org.gradle.api.Experimental;
+import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.specs.Spec;
 
@@ -89,6 +89,6 @@ public interface ResolvedConfiguration {
      *
      * @return the resolution result
      */
-    @Experimental
+    @Incubating
     ResolutionResult getResolutionResult();
 }

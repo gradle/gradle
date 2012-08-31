@@ -29,10 +29,10 @@ class ClassMetaDataTest extends Specification {
         deprecated.deprecated
     }
 
-    def "is experimental when @Experimental annotation is attached to class"() {
+    def "is experimental when @Incubating annotation is attached to class"() {
         def notExperimental = new ClassMetaData("SomeClass")
         def experimental = new ClassMetaData("SomeClass")
-        experimental.addAnnotationTypeName("org.gradle.api.Experimental")
+        experimental.addAnnotationTypeName("org.gradle.api.Incubating")
 
         expect:
         !notExperimental.experimental

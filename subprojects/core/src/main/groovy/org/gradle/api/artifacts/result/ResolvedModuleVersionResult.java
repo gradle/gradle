@@ -16,7 +16,7 @@
 
 package org.gradle.api.artifacts.result;
 
-import org.gradle.api.Experimental;
+import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 
 import java.util.Set;
@@ -25,7 +25,7 @@ import java.util.Set;
  * Resolved module version result is a node in the resolved dependency graph.
  * Contains the identifier of the module and the dependencies.
  */
-@Experimental
+@Incubating
 public interface ResolvedModuleVersionResult {
 
     /**

@@ -18,14 +18,14 @@
 
 package org.gradle.api.plugins.maven
 
-import org.gradle.api.Experimental
+import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
 /**
  * by Szczepan Faber, created at: 8/1/12
  */
-@Experimental
+@Incubating
 class Maven2GradlePlugin implements Plugin<Project>{
     void apply(Project project) {
         project.task("maven2Gradle", type: ConvertMaven2Gradle) {

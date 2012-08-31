@@ -16,7 +16,7 @@
 
 package org.gradle.api.artifacts.result;
 
-import org.gradle.api.Experimental;
+import org.gradle.api.Incubating;
 
 /**
  * Contains the information about the resolution result.
@@ -24,7 +24,7 @@ import org.gradle.api.Experimental;
  * In future it will contain more convenience methods and
  * other useful information about the resolution results.
  */
-@Experimental
+@Incubating
 public interface ResolutionResult {
 
     /**

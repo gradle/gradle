@@ -26,5 +26,5 @@ import java.lang.annotation.RetentionPolicy;
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Experimental {
+public @interface Incubating {
 }

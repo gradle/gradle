@@ -16,7 +16,7 @@
 
 package org.gradle.api.artifacts.result;
 
-import org.gradle.api.Experimental;
+import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 
 /**
@@ -26,7 +26,7 @@ import org.gradle.api.artifacts.ModuleVersionSelector;
  * for example conflict resolution, forcing particular version or when dynamic versions are used.
  * For information about those terms please refer to the user guide.
  */
-@Experimental
+@Incubating
 public interface ResolvedDependencyResult {
 
     /**

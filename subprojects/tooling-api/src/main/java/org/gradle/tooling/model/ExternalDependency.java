@@ -15,7 +15,7 @@
  */
 package org.gradle.tooling.model;
 
-import org.gradle.api.Experimental;
+import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
 
 import java.io.File;
@@ -56,6 +56,6 @@ public interface ExternalDependency extends Dependency {
      * @since 1.1-rc-1
      */
     @Nullable
-    @Experimental
+    @Incubating
     GradleModuleVersion getGradleModuleVersion();
 }

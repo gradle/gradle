@@ -16,7 +16,7 @@
 
 package org.gradle.api.tasks.testing.logging;
 
-import org.gradle.api.Experimental;
+import org.gradle.api.Incubating;
 
 import java.util.Set;
 
@@ -29,7 +29,7 @@ public interface TestLogging extends org.gradle.api.tasks.testing.TestLogging {
      *
      * @return the events to be logged
      */
-    @Experimental
+    @Incubating
     Set<TestLogEvent> getEvents();
 
     /**
@@ -37,7 +37,7 @@ public interface TestLogging extends org.gradle.api.tasks.testing.TestLogging {
      *
      * @param events the events to be logged
      */
-    @Experimental
+    @Incubating
     void setEvents(Iterable<?> events);
 
     /**
@@ -46,7 +46,7 @@ public interface TestLogging extends org.gradle.api.tasks.testing.TestLogging {
      *
      * @param events the events to be logged
      */
-    @Experimental
+    @Incubating
     void events(Object... events);
 
     /**
@@ -59,7 +59,7 @@ public interface TestLogging extends org.gradle.api.tasks.testing.TestLogging {
      *
      * @return the minimum granularity of the events to be logged
      */
-    @Experimental
+    @Incubating
     int getMinGranularity();
 
     /**
@@ -72,7 +72,7 @@ public interface TestLogging extends org.gradle.api.tasks.testing.TestLogging {
      *
      * @param granularity the minimum granularity of the events to be logged
      */
-    @Experimental
+    @Incubating
     void setMinGranularity(int granularity);
 
     /**
@@ -85,7 +85,7 @@ public interface TestLogging extends org.gradle.api.tasks.testing.TestLogging {
      *
      * @return the maximum granularity of the events to be logged
      */
-    @Experimental
+    @Incubating
     int getMaxGranularity();
 
     /**
@@ -98,7 +98,7 @@ public interface TestLogging extends org.gradle.api.tasks.testing.TestLogging {
      *
      * @param granularity the maximum granularity of the events to be logged
      */
-    @Experimental
+    @Incubating
     void setMaxGranularity(int granularity);
 
     /**
@@ -109,7 +109,7 @@ public interface TestLogging extends org.gradle.api.tasks.testing.TestLogging {
      *
      * @return the display granularity of the events to be logged
      */
-    @Experimental
+    @Incubating
     int getDisplayGranularity();
 
     /**
@@ -120,7 +120,7 @@ public interface TestLogging extends org.gradle.api.tasks.testing.TestLogging {
      *
      * @param granularity the display granularity of the events to be logged
      */
-    @Experimental
+    @Incubating
     void setDisplayGranularity(int granularity);
 
     /**
@@ -129,7 +129,7 @@ public interface TestLogging extends org.gradle.api.tasks.testing.TestLogging {
      *
      * @return whether exceptions that occur during test execution will be logged
      */
-    @Experimental
+    @Incubating
     boolean getShowExceptions();
 
     /**
@@ -137,7 +137,7 @@ public interface TestLogging extends org.gradle.api.tasks.testing.TestLogging {
      *
      * @param flag whether exceptions that occur during test execution will be logged
      */
-    @Experimental
+    @Incubating
     void setShowExceptions(boolean flag);
 
     /**
@@ -146,7 +146,7 @@ public interface TestLogging extends org.gradle.api.tasks.testing.TestLogging {
      *
      * @return whether causes of exceptions that occur during test execution will be logged
      */
-    @Experimental
+    @Incubating
     boolean getShowCauses();
 
     /**
@@ -155,7 +155,7 @@ public interface TestLogging extends org.gradle.api.tasks.testing.TestLogging {
      *
      * @param flag whether causes of exceptions that occur during test execution will be logged
      */
-    @Experimental
+    @Incubating
     void setShowCauses(boolean flag);
 
     /**
@@ -163,7 +163,7 @@ public interface TestLogging extends org.gradle.api.tasks.testing.TestLogging {
      *
      * @return whether stack traces of exceptions that occur during test execution will be logged
      */
-    @Experimental
+    @Incubating
     boolean getShowStackTraces();
 
     /**
@@ -171,7 +171,7 @@ public interface TestLogging extends org.gradle.api.tasks.testing.TestLogging {
      *
      * @param flag whether stack traces of exceptions that occur during test execution will be logged
      */
-    @Experimental
+    @Incubating
     void setShowStackTraces(boolean flag);
 
     /**
@@ -179,7 +179,7 @@ public interface TestLogging extends org.gradle.api.tasks.testing.TestLogging {
      *
      * @return the format to be used for logging test exceptions
      */
-    @Experimental
+    @Incubating
     TestExceptionFormat getExceptionFormat();
 
     /**
@@ -187,7 +187,7 @@ public interface TestLogging extends org.gradle.api.tasks.testing.TestLogging {
      *
      * @param exceptionFormat the format to be used for logging test exceptions
      */
-    @Experimental
+    @Incubating
     void setExceptionFormat(Object exceptionFormat);
 
     /**
@@ -195,7 +195,7 @@ public interface TestLogging extends org.gradle.api.tasks.testing.TestLogging {
      *
      * @return the set of filters to be used for sanitizing test stack traces
      */
-    @Experimental
+    @Incubating
     Set<TestStackTraceFilter> getStackTraceFilters();
 
     /**
@@ -203,13 +203,13 @@ public interface TestLogging extends org.gradle.api.tasks.testing.TestLogging {
      *
      * @param stackTraces the set of filters to be used for sanitizing test stack traces
      */
-    @Experimental
+    @Incubating
     void setStackTraceFilters(Iterable<?> stackTraces);
 
     /**
      * Convenience method for {@link #setStackTraceFilters(java.lang.Iterable)}. Accepts both enum values and Strings.
      */
-    @Experimental
+    @Incubating
     void stackTraceFilters(Object... stackTraces);
 
     /**

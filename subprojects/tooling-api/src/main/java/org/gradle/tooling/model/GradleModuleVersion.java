@@ -16,14 +16,14 @@
 
 package org.gradle.tooling.model;
 
-import org.gradle.api.Experimental;
+import org.gradle.api.Incubating;
 
 /**
  * Informs about a module version, i.e. group, name, version.
  *
  * @since 1.1-rc-1
  */
-@Experimental
+@Incubating
 public interface GradleModuleVersion {
 
     /**
