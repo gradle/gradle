@@ -33,7 +33,7 @@ Given the following build script:
 
 The new report will look like:
 
-<pre><tt>$ gradle dependencies
+<pre><tt>&gt; gradle dependencies
 :dependencies
 
 ------------------------------------------------------------
@@ -162,7 +162,7 @@ You simply add a plugin and configure the comparison task.
 
 Then simply…
 
-<pre><tt>./gradlew compareGradleBuilds</tt></pre>
+<pre><tt>&gt; gradle compareGradleBuilds</tt></pre>
 
 If there are _any_ differences found, a link to the HTML report identifying the differences will be given in the output.
 
