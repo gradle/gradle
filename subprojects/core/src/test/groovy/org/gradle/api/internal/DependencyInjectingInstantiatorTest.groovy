@@ -70,15 +70,6 @@ class DependencyInjectingInstantiatorTest extends Specification {
         0 * warning._
     }
 
-    def "constructor does not require @Inject when class has only one constructor"() {
-        when:
-        def result = instantiator.newInstance(HasNonAnnotatedConstructor, "param")
-
-        then:
-        result != null
-        0 * warning._
-    }
-
     def "constructors do not need to be public"() {
         expect:
         instantiator.newInstance(HasPrivateConstructor, "param") != null
@@ -90,7 +81,7 @@ class DependencyInjectingInstantiatorTest extends Specification {
 
         then:
         result != null
-        1 * warning.execute("Class $HasNoInjectConstructor.name has multiple constructors and none of them are annotated with @Inject.")
+        1 * warning.execute("Class $HasNoInjectConstructor.name has multiple constructors and no constructor is annotated with @Inject. In Gradle 2.0 this will be treated as an error.")
         0 * warning._
     }
 
@@ -100,7 +91,35 @@ class DependencyInjectingInstantiatorTest extends Specification {
 
         then:
         result != null
-        1 * warning.execute("Class $HasOneInjectConstructor.name has @Inject annotation on the incorrect constructor.")
+        1 * warning.execute("Class $HasOneInjectConstructor.name has @Inject annotation on an unexpected constructor. In Gradle 2.0 the constructor annotated with @Inject will be used instead of the current default constructor.")
+        0 * warning._
+    }
+
+    def "prefers exact match constructor when class has multiple annotated constructors"() {
+        when:
+        def result = instantiator.newInstance(HasMultipleInjectConstructors, "param")
+
+        then:
+        result != null
+        1 * warning.execute("Class $HasMultipleInjectConstructors.name has multiple constructors with @Inject annotation. In Gradle 2.0 this will be treated as an error.")
+        0 * warning._
+    }
+
+    def "warns when class has exactly one constructor that takes parameters parameters and is not annotated"() {
+        when:
+        def result = instantiator.newInstance(HasNonAnnotatedConstructor, "param")
+
+        then:
+        result != null
+        1 * warning.execute("Constructor for class $HasNonAnnotatedConstructor.name is not annotated with @Inject. In Gradle 2.0 this will be treated as an error.")
+        0 * warning._
+
+        when:
+        result = instantiator.newInstance(HasNonAnnotatedConstructor)
+
+        then:
+        result != null
+        1 * warning.execute("Constructor for class $HasNonAnnotatedConstructor.name is not annotated with @Inject. In Gradle 2.0 this will be treated as an error.")
         0 * warning._
     }
 
@@ -136,23 +155,23 @@ class DependencyInjectingInstantiatorTest extends Specification {
 
     def "fails when too many constructor parameters provided"() {
         when:
-        instantiator.newInstance(HasNonAnnotatedConstructor, "param1", "param2")
+        instantiator.newInstance(HasOneInjectConstructor, 12, "param2")
 
         then:
         ObjectInstantiationException e = thrown()
-        e.cause.message == "Too many parameters provided for constructor for class $HasNonAnnotatedConstructor.name. Expected 1, received 2."
+        e.cause.message == "Too many parameters provided for constructor for class $HasOneInjectConstructor.name. Expected 1, received 2."
     }
 
     def "fails when supplied parameters cannot be used to call constructor"() {
         given:
-        _ * services.get(String) >> "string"
+        _ * services.get(Number) >> 12
 
         when:
-        instantiator.newInstance(HasNonAnnotatedConstructor, 12)
+        instantiator.newInstance(HasOneInjectConstructor, new StringBuilder("string"))
 
         then:
         ObjectInstantiationException e = thrown()
-        e.cause.message == "Unexpected parameter provided for constructor for class $HasNonAnnotatedConstructor.name."
+        e.cause.message == "Unexpected parameter provided for constructor for class $HasOneInjectConstructor.name."
     }
 
     def "handles missing service"() {
@@ -168,15 +187,6 @@ class DependencyInjectingInstantiatorTest extends Specification {
         e.cause == failure
     }
 
-    def "fails when more than one constructor is annotated"() {
-        when:
-        instantiator.newInstance(HasMultipleInjectConstructors, "param")
-
-        then:
-        ObjectInstantiationException e = thrown()
-        e.cause.message == "Class $HasMultipleInjectConstructors.name has multiple constructors with @Inject annotation."
-    }
-
     def "fails when class has multiple matching constructors"() {
         when:
         instantiator.newInstance(HasMultipleCompatibleConstructor, "param")
@@ -186,13 +196,22 @@ class DependencyInjectingInstantiatorTest extends Specification {
         e.cause.message == "Class $HasMultipleCompatibleConstructor.name has multiple constructors that accept parameters [param]."
     }
 
-    def "fails when class has no matching constructors"() {
+    def "fails when class has no matching constructors and none are annotated"() {
         when:
         instantiator.newInstance(HasNoInjectConstructor, new StringBuilder("param"))
 
         then:
         ObjectInstantiationException e = thrown()
         e.cause.message == "Class $HasNoInjectConstructor.name has no constructor that accepts parameters [param] or that is annotated with @Inject."
+    }
+
+    def "fails when class has no matching constructor and multiple are annotated"() {
+        when:
+        instantiator.newInstance(HasMultipleInjectConstructors, new StringBuilder("param"))
+
+        then:
+        ObjectInstantiationException e = thrown()
+        e.cause.message == "Class $HasMultipleInjectConstructors.name has multiple constructors with @Inject annotation."
     }
 
     public static class HasDefaultConstructor {
@@ -273,7 +292,7 @@ class DependencyInjectingInstantiatorTest extends Specification {
         @Inject HasMultipleInjectConstructors(String param1) {
         }
 
-        @Inject HasMultipleInjectConstructors(Object param1) {
+        @Inject HasMultipleInjectConstructors(Number param1) {
             throw new AssertionError()
         }
 
