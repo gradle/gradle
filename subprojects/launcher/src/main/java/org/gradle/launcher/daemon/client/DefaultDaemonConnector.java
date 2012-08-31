@@ -140,6 +140,6 @@ public class DefaultDaemonConnector implements DaemonConnector {
     }
 
     private DaemonConnection connectToDaemon(DaemonInfo daemonInfo, DaemonDiagnostics diagnostics) {
-        return new DaemonConnection(daemonInfo.getContext().getUid(), connector.connect(daemonInfo.getAddress()), daemonInfo.getPassword(), diagnostics);
+        return new DaemonConnection(connector.connect(daemonInfo.getAddress()), diagnostics);
     }
 }

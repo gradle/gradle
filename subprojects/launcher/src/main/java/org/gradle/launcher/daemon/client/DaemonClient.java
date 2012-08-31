@@ -31,7 +31,6 @@ import org.gradle.launcher.exec.GradleLauncherActionExecuter;
 import org.gradle.logging.internal.OutputEvent;
 import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.messaging.remote.internal.Connection;
-import org.gradle.util.GFileUtils;
 
 import java.io.InputStream;
 
@@ -188,12 +187,7 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
                 + "\nBuild request sent: " + build
                 + "\nAttempting to read last messages from the daemon log...");
 
-        try {
-            LOGGER.error(diagnostics.describe());
-        } catch (GFileUtils.TailReadingException e) {
-            LOGGER.error("Unable to read from the daemon log file because of: " + e);
-            LOGGER.debug("Problem reading the daemon log file.", e);
-        }
+        LOGGER.error(diagnostics.describe());
 
         throw new DaemonDisappearedException();
     }
