@@ -15,7 +15,6 @@
  */
 package org.gradle.integtests.tooling.fixture
 
-import java.util.concurrent.TimeUnit
 import org.gradle.integtests.fixtures.BasicGradleDistribution
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
@@ -26,10 +25,11 @@ import org.gradle.tooling.UnsupportedVersionException
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+import java.util.concurrent.TimeUnit
+
 class ToolingApi {
     private static final Logger LOGGER = LoggerFactory.getLogger(ToolingApi)
 
-    private File projectDir
     private BasicGradleDistribution dist
     private Closure getProjectDir
     private File userHomeDir

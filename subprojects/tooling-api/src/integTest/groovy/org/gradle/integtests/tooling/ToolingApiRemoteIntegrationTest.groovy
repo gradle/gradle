@@ -18,8 +18,8 @@ package org.gradle.integtests.tooling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.HttpServer
+import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.tooling.BuildLauncher
-import org.gradle.tooling.GradleConnector
 import org.gradle.util.GradleVersion
 import org.junit.Rule
 
@@ -29,7 +29,7 @@ import static org.junit.Assert.assertThat
 
 class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
     @Rule HttpServer server = new HttpServer()
-    GradleConnector connector = GradleConnector.newConnector();
+    final ToolingApi toolingApi = new ToolingApi(distribution, distribution.userHomeDir, { getTestDir() }, false)
 
     void setup() {
         server.start()
@@ -46,14 +46,19 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
         URI gradleDistributionURI = URI.create("http://localhost:${server.port}/dist")
 
         and:
-        def connect = connector.useDistribution(gradleDistributionURI).forProjectDirectory(getTestDir()).connect();
-        BuildLauncher launcher = connect.newBuild().forTasks("hello")
+        toolingApi.withConnector {
+            it.useDistribution(gradleDistributionURI)
+        }
+
         ByteArrayOutputStream buildOutput = new ByteArrayOutputStream()
-        launcher.standardOutput = buildOutput;
-        launcher.run()
+
+        toolingApi.withConnection { connection ->
+            BuildLauncher launcher = connection.newBuild().forTasks("hello")
+            launcher.standardOutput = buildOutput;
+            launcher.run()
+        }
 
         then:
         assertThat(new String(buildOutput.toByteArray()), containsString('hello'))
     }
-
 }
