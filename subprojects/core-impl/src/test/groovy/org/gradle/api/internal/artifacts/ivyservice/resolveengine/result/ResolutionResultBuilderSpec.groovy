@@ -16,11 +16,14 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
+import org.gradle.api.artifacts.result.ModuleSelectionReason
 import org.gradle.api.artifacts.result.ResolvedDependencyResult
 import org.gradle.api.artifacts.result.ResolvedModuleVersionResult
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier
 import spock.lang.Specification
 
+import static org.gradle.api.artifacts.result.ModuleSelectionReason.conflictResolution
+import static org.gradle.api.artifacts.result.ModuleSelectionReason.forced
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 
@@ -99,6 +102,25 @@ class ResolutionResultBuilderSpec extends Specification {
 """
     }
 
+    def "includes selection reason"() {
+        given:
+        builder.start(confId("a"))
+        resolvedConf("a", [dep("b", null, "b", forced), dep("c", null, "c", conflictResolution), dep("d", new RuntimeException("Boo!"))])
+        resolvedConf("b", [])
+        resolvedConf("c", [])
+        resolvedConf("d", [])
+
+        when:
+        def deps = builder.result.root.dependencies
+
+        then:
+        def b = deps.find { it.selected.id.name == 'b' }
+        def c = deps.find { it.selected.id.name == 'c' }
+
+        b.selected.selectionReason == forced
+        c.selected.selectionReason == conflictResolution
+    }
+
     def "links dependents correctly"() {
         given:
         builder.start(confId("a"))
@@ -172,8 +194,9 @@ class ResolutionResultBuilderSpec extends Specification {
         builder.resolvedConfiguration(confId(module), deps)
     }
 
-    private InternalDependencyResult dep(String requested, Exception failure = null, String selected = requested) {
-        new InternalDependencyResult(newSelector("x", requested, "1"), newId("x", selected, "1"), failure)
+    private InternalDependencyResult dep(String requested, Exception failure = null, String selected = requested, ModuleSelectionReason selectionReason = ModuleSelectionReason.regular) {
+        def selection = failure != null ? null : new ModuleVersionSelection(newId("x", selected, "1"), selectionReason)
+        new InternalDependencyResult(newSelector("x", requested, "1"), selection, failure)
     }
 
     private ResolvedConfigurationIdentifier confId(String module, String configuration='conf') {

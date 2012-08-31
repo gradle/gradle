@@ -20,7 +20,6 @@ import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.resolve.IvyNode;
 import org.apache.ivy.core.resolve.ResolveData;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedArtifact;
@@ -33,6 +32,7 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.EnhancedDependencyDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.InternalDependencyResult;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ModuleVersionSelection;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedConfigurationListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -160,11 +160,7 @@ public class DependencyGraphBuilder {
         Set<InternalDependencyResult> dependencies = new LinkedHashSet<InternalDependencyResult>();
 
         for (DependencyEdge edge : resolvedConfiguration.outgoingEdges) {
-            InternalDependencyResult d = new InternalDependencyResult(edge.toSelector(), edge.maybeTargetId(), edge.getFailure());
-            if (edge.maybeTargetId() != null) {
-                //TODO SF clean up!
-                d.selectionReason = edge.targetModuleRevision.selectionReason;
-            }
+            InternalDependencyResult d = new InternalDependencyResult(edge.toSelector(), edge.getSelectedModule(), edge.getFailure());
             dependencies.add(d);
         }
 
@@ -420,16 +416,16 @@ public class DependencyGraphBuilder {
                     dependencyDescriptor.getDependencyRevisionId().getRevision());
         }
 
-        public ModuleVersionIdentifier maybeTargetId() {
+        public ModuleVersionSelection getSelectedModule() {
             if (targetModuleRevision == null) {
                 //this situation is detected by DependencyGraphBuilderTest which uses mocks
                 //it suppose to mean that the dependency is unresolved.
                 return null;
             }
-            return new DefaultModuleVersionIdentifier(
+            return new ModuleVersionSelection(new DefaultModuleVersionIdentifier(
                     targetModuleRevision.id.getOrganisation(),
                     targetModuleRevision.id.getName(),
-                    targetModuleRevision.getRevision());
+                    targetModuleRevision.getRevision()), targetModuleRevision.selectionReason);
         }
     }
 

@@ -17,9 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import org.gradle.api.Nullable;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.artifacts.result.ModuleSelectionReason;
 
 /**
  * by Szczepan Faber, created at: 8/24/12
@@ -27,11 +25,10 @@ import org.gradle.api.artifacts.result.ModuleSelectionReason;
 public class InternalDependencyResult {
 
     private final ModuleVersionSelector requested;
-    private final ModuleVersionIdentifier selected;
     private final Exception failure;
-    public ModuleSelectionReason selectionReason;
+    private final ModuleVersionSelection selected;
 
-    public InternalDependencyResult(ModuleVersionSelector requested, ModuleVersionIdentifier selected, Exception failure) {
+    public InternalDependencyResult(ModuleVersionSelector requested, ModuleVersionSelection selected, Exception failure) {
         assert requested != null;
         this.requested = requested;
         this.selected = selected;
@@ -43,16 +40,12 @@ public class InternalDependencyResult {
     }
 
     @Nullable
-    public ModuleVersionIdentifier getSelected() {
-        return selected;
-    }
-
-    @Nullable
     public Exception getFailure() {
         return failure;
     }
 
-    public ModuleSelectionReason getSelectionReason() {
-        return selectionReason;
+    @Nullable
+    public ModuleVersionSelection getSelected() {
+        return selected;
     }
 }
