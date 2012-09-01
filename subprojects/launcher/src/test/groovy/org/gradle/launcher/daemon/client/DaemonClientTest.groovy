@@ -81,7 +81,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         3 * connector.maybeConnect(compatibilitySpec) >>> [connection, connection, null]
         1 * connection.dispatch({it instanceof Stop})
         1 * connection.receive() >> new Success(null)
-        1 * connection.stop()
+        2 * connection.stop()
         0 * _
     }
 
