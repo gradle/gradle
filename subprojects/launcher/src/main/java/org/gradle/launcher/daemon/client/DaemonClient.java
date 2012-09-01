@@ -105,9 +105,13 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
 
         //iterate and stop all daemons
         while (connection != null && System.currentTimeMillis() < expiry) {
-            if (stopped.add(connection.getUid())) {
-                new StopDispatcher(idGenerator).dispatch(connection.getConnection());
-                LOGGER.lifecycle("Gradle daemon stopped.");
+            try {
+                if (stopped.add(connection.getUid())) {
+                    new StopDispatcher(idGenerator).dispatch(connection.getConnection());
+                    LOGGER.lifecycle("Gradle daemon stopped.");
+                }
+            } finally {
+                connection.getConnection().stop();
             }
             connection = connector.maybeConnect(compatibilitySpec);
         }

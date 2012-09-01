@@ -18,9 +18,9 @@ package org.gradle.launcher.daemon.client;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.id.IdGenerator;
 import org.gradle.launcher.daemon.protocol.Stop;
 import org.gradle.messaging.remote.internal.Connection;
-import org.gradle.internal.id.IdGenerator;
 
 /**
  * @author: Szczepan Faber, created at: 9/13/11
@@ -36,22 +36,17 @@ public class StopDispatcher {
     public void dispatch(Connection<Object> connection) {
         //At the moment if we cannot communicate with the daemon we assume it is stopped and print a message to the user
         try {
-            try {
-                connection.dispatch(new Stop(idGenerator.generateId()));
-            } catch (Exception e) {
-                LOGGER.lifecycle("Unable to send the Stop command to one of the daemons. The daemon has already stopped or crashed.");
-                LOGGER.debug("Unable to send Stop.", e);
-                return;
-            }
-            try {
-                connection.receive();
-            } catch (Exception e) {
-                LOGGER.lifecycle("The daemon didn't reply to Stop command. It is already stopped or crashed.");
-                LOGGER.debug("Unable to receive reply.", e);
-            }
-        } finally {
-            connection.stop();
+            connection.dispatch(new Stop(idGenerator.generateId()));
+        } catch (Exception e) {
+            LOGGER.lifecycle("Unable to send the Stop command to one of the daemons. The daemon has already stopped or crashed.");
+            LOGGER.debug("Unable to send Stop.", e);
+            return;
+        }
+        try {
+            connection.receive();
+        } catch (Exception e) {
+            LOGGER.lifecycle("The daemon didn't reply to Stop command. It is already stopped or crashed.");
+            LOGGER.debug("Unable to receive reply.", e);
         }
     }
-
 }
