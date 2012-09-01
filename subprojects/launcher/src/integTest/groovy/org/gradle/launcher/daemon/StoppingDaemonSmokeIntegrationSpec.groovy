@@ -18,6 +18,7 @@ package org.gradle.launcher.daemon
 
 import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.tests.fixtures.ConcurrentTestUtil
+import org.gradle.util.TextUtil
 /**
  * by Szczepan Faber, created at: 1/20/12
  */
@@ -55,15 +56,15 @@ Thread.sleep(60000)
         def out = executer.withArguments("--stop").run().output
 
         then:
-        out == '''Stopping daemon(s).
+        out == TextUtil.toPlatformLineSeparators('''Stopping daemon(s).
 Gradle daemon stopped.
-'''
+''')
 
         when:
         out = executer.withArguments("--stop").run().output
 
         then:
-        out == '''No Gradle daemons are running.
-'''
+        out == TextUtil.toPlatformLineSeparators('''No Gradle daemons are running.
+''')
     }
 }
