@@ -86,3 +86,7 @@ div.toc p b {
 .book .chapter {
     margin-top: 4em;
 }
+
+code.filename {
+  font-weight: bold;
+}

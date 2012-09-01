@@ -13,15 +13,14 @@ a img {border:none;}
 
 /* typography.css */
 html {font-size:100.01%;}
-h1, h2, h3, h4, h5, h6 {font-weight:normal;color:#111;margin-bottom: 12px;}
-h1 {font-size:4em;line-height:1;}
+h1, h2, h3, h4, h5, h6 {font-weight:normal; line-height: 1;color: #007042;}
+h1 {font-size:4em;}
 h2 {font-size:2.2em;}
-h3 {font-size:1.5em;line-height:1;}
-h4 {font-size:1.3em;line-height:1.25;}
-h5 {font-size:1.1em;font-weight:bold;}
+h3 {font-size:1.5em;}
+h4 {font-size:1.3em;}
+h5 {font-size:1.1em;}
 h6 {font-size:1em;font-weight:bold;}
 h1 img, h2 img, h3 img, h4 img, h5 img, h6 img {margin:0;}
-p {margin:0 0 1.4em;}
 .left {float:left !important;}
 p .left {margin:1.5em 1.5em 1.5em 0;padding:0;}
 .right {float:right !important;}
@@ -38,7 +37,7 @@ del {color:#666;}
 pre {margin:1.5em 0;white-space:pre;}
 /*pre, code, tt {font:1em 'andale mono', 'lucida console', monospace;line-height:1.5;}*/
 li ul, li ol {margin:0;}
-ul, ol {margin:0 1.5em 1.5em 0;padding-left:1.5em;}
+ul, ol {padding-left:1.5em;}
 ul {list-style-type:disc;}
 ol {list-style-type:decimal;}
 dl {margin:0 0 1.5em 0;}
@@ -128,6 +127,18 @@ body {
   background: url('data:image/gif;base64,@gradle-logo_25o.gif@') no-repeat right top;
 }
 
+p, ol, ul {
+  margin: 0 0 18px;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  margin-bottom: 14px
+}
+
+h2, h3, h4, h5, h6 {
+  margin-top: 22px;
+}
+
 .text-container,
 div.book,
 div.chapter {
@@ -145,11 +156,11 @@ code, tt, pre {
   font-family: "Ubuntu Mono", courier, monospace;
 }
 
-h1,h2,h3,h4 {
-  color: #007042;
+h1, h2 {
+  text-shadow: 0px 0px 3px rgba(0, 0, 0, 0.4);
 }
 
-h5,h6 {
+h5, h6 {
  color: #666;
 }
 

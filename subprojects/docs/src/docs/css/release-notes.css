@@ -3,12 +3,24 @@ img.logo {
 }
 
 section.major-detail {
-  margin: 0 10px 2em;
-  padding: 1em 1em 0;
+  margin: 0 10px 18px;
+  padding: 18px;
   border-left: 2px solid #999;
   border: 1px dotted #999;
   background-color: #FCFCFC;
   border-radius: 5px;
+}
+
+section.major-detail > :first-child {
+  margin-top: 0px;
+}
+
+section.major-detail > :last-child {
+  margin-bottom: 0px;
+}
+
+section.minor-detail > :last-child {
+  margin-bottom: 0px;
 }
 
 h4 {
