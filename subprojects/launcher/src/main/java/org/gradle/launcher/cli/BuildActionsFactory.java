@@ -63,7 +63,7 @@ class BuildActionsFactory implements CommandLineAction {
     public void configureCommandLineParser(CommandLineParser parser) {
         startParameterConverter.configure(parser);
 
-        parser.option(FOREGROUND).hasDescription("Starts the Gradle daemon in the foreground.").experimental();
+        parser.option(FOREGROUND).hasDescription("Starts the Gradle daemon in the foreground.").incubating();
         parser.option(DAEMON).hasDescription("Uses the Gradle daemon to run the build. Starts the daemon if not running.");
         parser.option(NO_DAEMON).hasDescription("Do not use the Gradle daemon to run the build.");
         parser.option(STOP).hasDescription("Stops the Gradle daemon if it is running.");

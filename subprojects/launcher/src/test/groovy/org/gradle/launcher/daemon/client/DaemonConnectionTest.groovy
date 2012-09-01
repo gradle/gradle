@@ -27,7 +27,7 @@ class DaemonConnectionTest extends Specification {
 
     final delegate = Mock(Connection)
     final onFailure = Mock(Runnable)
-    final connection = new DaemonConnection(delegate, null, onFailure)
+    final connection = new DaemonConnection(delegate, 'id', null, onFailure)
 
     def "stops"() {
         when:

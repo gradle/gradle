@@ -16,7 +16,7 @@
 
 package org.gradle.api.artifacts.result;
 
-import org.gradle.api.Experimental;
+import org.gradle.api.Incubating;
 
 /**
  * Resolved dependency result is an edge in the resolved dependency graph.
@@ -25,7 +25,7 @@ import org.gradle.api.Experimental;
  * for example conflict resolution, forcing particular version or when dynamic versions are used.
  * For information about those terms please refer to the user guide.
  */
-@Experimental
+@Incubating
 public interface ResolvedDependencyResult extends DependencyResult {
 
     /**

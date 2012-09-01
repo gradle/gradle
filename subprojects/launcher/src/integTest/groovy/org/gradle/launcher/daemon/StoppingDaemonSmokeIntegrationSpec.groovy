@@ -16,74 +16,54 @@
 
 package org.gradle.launcher.daemon
 
-import org.gradle.integtests.fixtures.ExecutionResult
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.tests.fixtures.ConcurrentTestUtil
-import org.gradle.util.TemporaryFolder
-import org.junit.Rule
-import spock.lang.Ignore
-import spock.lang.Timeout
-
-import static org.gradle.integtests.fixtures.GradleDistributionExecuter.Executer.daemon
-
 /**
  * by Szczepan Faber, created at: 1/20/12
  */
 class StoppingDaemonSmokeIntegrationSpec extends DaemonIntegrationSpec {
-    def concurrent = new ConcurrentTestUtil(120000)
-    @Rule TemporaryFolder temp = new TemporaryFolder()
+    def "can handle multiple concurrent stop requests"() {
+        given:
+        def projectDir = distribution.testDir
+        projectDir.file('build.gradle') << '''
+file('marker.txt') << 'waiting'
+Thread.sleep(60000)
+'''
 
-    @Timeout(300)
-    @Ignore
-    //TODO SF - un-ignore when the problem with daemon not shown in the registry file is fixed.
-    def "does not deadlock when multiple stop requests are sent"() {
-        given: "multiple daemons started"
-        3.times { idx ->
-            concurrent.start {
-                runBuild("build$idx")
-            }
-        }
-        concurrent.finished()
-        
-        when: "multiple stop requests are issued"
+        when:
+        def build = executer.start()
+        ConcurrentTestUtil.poll { assert projectDir.file('marker.txt').file }
+
+        def stopExecutions = []
         5.times { idx ->
-            concurrent.start {
-                stopDaemon("stop$idx")
-            }
+            stopExecutions << executer.withArguments("--stop").start()
         }
-        concurrent.finished()
+        stopExecutions.each { it.waitForFinish() }
+        build.waitForFailure()
+        def out = executer.withArguments("--stop").run().output
 
         then:
-        def out = stopDaemon("stop").output
         out.contains(DaemonMessages.NO_DAEMONS_RUNNING)
-
-        cleanup: "just in case"
-        stopDaemon("cleanup")
-        printDaemonLogs()
     }
 
-    void printDaemonLogs() {
-        temp.testDir.listFiles()[0].listFiles().findAll { it.name.endsWith("log") }.each {
-            println "-------- $it.name ----------"
-            println it.text
-            println "----------------------------"
-        }
-    }
+    def "reports exact number of daemons stopped"() {
+        given:
+        executer.allowExtraLogging = false
+        executer.run()
 
-    //using separate dist/executer so that we can run them concurrently
-    ExecutionResult stopDaemon(dirName) {
-        def dist = new GradleDistribution()
-        def dir = dist.file(dirName).createDir()
-        return new GradleDistributionExecuter(daemon, dist).withDaemonBaseDir(temp.testDir).inDirectory(dir)
-                .withArguments("-Dorg.gradle.jvmargs=", "--stop", "--info").run()
-    }
+        when:
+        def out = executer.withArguments("--stop").run().output
 
-    ExecutionResult runBuild(idx) {
-        def dist = new GradleDistribution()
-        def dir = dist.file("dir$idx").createDir()
-        return new GradleDistributionExecuter(daemon, dist).withDaemonBaseDir(temp.testDir).inDirectory(dir)
-                .withArguments("-Dorg.gradle.jvmargs=", "help", "--info").run()
+        then:
+        out == '''Stopping daemon(s).
+Gradle daemon stopped.
+'''
+
+        when:
+        out = executer.withArguments("--stop").run().output
+
+        then:
+        out == '''No Gradle daemons are running.
+'''
     }
 }

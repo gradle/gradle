@@ -34,7 +34,13 @@ class HeadRenderer implements PartRenderer {
             meta("http-equiv": "Content-Type", content: "text/html; charset=$encoding")
             style {
                 mkp.yieldUnescaped loadBaseCss()
+
+                mkp.yieldUnescaped """
+                    .diff { color: red; }
+                    .no-diff { color: green; }
+                """
             }
+
         }
     }
 

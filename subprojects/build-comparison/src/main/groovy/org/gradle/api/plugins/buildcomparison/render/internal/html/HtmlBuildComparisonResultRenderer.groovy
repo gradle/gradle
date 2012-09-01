@@ -54,19 +54,21 @@ class HtmlBuildComparisonResultRenderer implements BuildComparisonResultRenderer
                 headPart?.render(result, outcomeContext)
             }
             body {
-                headerPart?.render(result, outcomeContext)
+                div("class": "text-container") {
+                    headerPart?.render(result, outcomeContext)
 
-                for (BuildOutcomeComparisonResult comparison in result.comparisons) {
-                    BuildOutcomeComparisonResultRenderer renderer = renderers.getRenderer(comparison.getClass())
+                    for (BuildOutcomeComparisonResult comparison in result.comparisons) {
+                        BuildOutcomeComparisonResultRenderer renderer = renderers.getRenderer(comparison.getClass())
 
-                    if (renderer == null) {
-                        throw new IllegalArgumentException(String.format("Cannot find renderer for build output comparison result type: %s", result))
+                        if (renderer == null) {
+                            throw new IllegalArgumentException(String.format("Cannot find renderer for build output comparison result type: %s", result))
+                        }
+
+                        renderer.render(comparison, outcomeContext)
                     }
 
-                    renderer.render(comparison, outcomeContext)
+                    footerPart?.render(result, outcomeContext)
                 }
-
-                footerPart?.render(result, outcomeContext)
             }
         }
     }

@@ -19,6 +19,8 @@ package org.gradle.api.plugins.buildcomparison.gradle.internal;
 import com.google.common.collect.Lists;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.plugins.buildcomparison.gradle.GradleBuildInvocationSpec;
+import org.gradle.util.GFileUtils;
+import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
@@ -110,5 +112,12 @@ public class DefaultGradleBuildInvocationSpec implements GradleBuildInvocationSp
         result = 31 * result + getTasks().hashCode();
         result = 31 * result + getArguments().hashCode();
         return result;
+    }
+
+    public String describeRelativeTo(File relativeTo) {
+        return "dir: '" + GFileUtils.relativePath(relativeTo, getProjectDir()) + "'"
+                + ", tasks: '" + GUtil.join(getTasks(), " ") + "'"
+                + ", arguments: '" + GUtil.join(getArguments(), " ") + "'"
+                + ", gradleVersion: " + getGradleVersion();
     }
 }

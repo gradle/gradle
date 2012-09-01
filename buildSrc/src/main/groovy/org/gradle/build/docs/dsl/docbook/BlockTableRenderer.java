@@ -65,10 +65,10 @@ public class BlockTableRenderer {
                 td.appendChild(caution);
                 caution.appendChild(document.createTextNode("Deprecated"));
             }
-            if (blockDoc.isExperimental()) {
+            if (blockDoc.isIncubating()) {
                 Element caution = document.createElement("caution");
                 td.appendChild(caution);
-                caution.appendChild(document.createTextNode("Experimental"));
+                caution.appendChild(document.createTextNode("Incubating"));
             }
             td.appendChild(document.importNode(blockDoc.getDescription(), true));
         }

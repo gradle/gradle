@@ -26,7 +26,6 @@ import org.gradle.build.docs.dsl.docbook.model.MethodDoc
 import org.gradle.build.docs.dsl.docbook.model.PropertyDoc
 import org.gradle.build.docs.dsl.docbook.model.ClassDoc
 import org.gradle.build.docs.dsl.docbook.model.ClassExtensionDoc
-import org.w3c.dom.Document
 
 class ClassDocRendererTest extends XmlSpecification {
     final LinkRenderer linkRenderer = linkRenderer()
@@ -193,14 +192,14 @@ class ClassDocRendererTest extends XmlSpecification {
 </chapter>'''
     }
 
-    def rendersDeprecatedAndExperimentalProperties() {
+    def rendersDeprecatedAndIncubatingProperties() {
         def content = parse('''
             <chapter>
                 <section><title>Properties</title>
                     <table>
                         <thead><tr><td>Name</td></tr></thead>
                         <tr><td>deprecatedProperty</td></tr>
-                        <tr><td>experimentalProperty</td></tr>
+                        <tr><td>incubatingProperty</td></tr>
                     </table>
                 </section>
             </chapter>
@@ -208,8 +207,8 @@ class ClassDocRendererTest extends XmlSpecification {
 
         ClassDoc classDoc = classDoc('Class', content: content)
         PropertyDoc deprecatedProp = propertyDoc('deprecatedProperty', id: 'prop1', description: 'prop1 description', comment: 'prop1 comment', type: 'org.gradle.Type', deprecated: true)
-        PropertyDoc experimentalProp = propertyDoc('experimentalProperty', id: 'prop2', description: 'prop2 description', comment: 'prop2 comment', type: 'org.gradle.Type', experimental: true)
-        _ * classDoc.classProperties >> [deprecatedProp, experimentalProp]
+        PropertyDoc incubatingProp = propertyDoc('incubatingProperty', id: 'prop2', description: 'prop2 description', comment: 'prop2 comment', type: 'org.gradle.Type', incubating: true)
+        _ * classDoc.classProperties >> [deprecatedProp, incubatingProp]
         _ * classDoc.classExtensions >> []
 
         when:
@@ -244,11 +243,11 @@ class ClassDocRendererTest extends XmlSpecification {
             <tr>
                 <td>
                     <link linkend="prop2">
-                        <literal>experimentalProperty</literal>
+                        <literal>incubatingProperty</literal>
                     </link>
                 </td>
                 <td>
-                    <caution>Experimental</caution>
+                    <caution>Incubating</caution>
                     <para>prop2 description</para>
                 </td>
             </tr>
@@ -264,9 +263,9 @@ class ClassDocRendererTest extends XmlSpecification {
             <para>prop1 comment</para>
         </section>
         <section id="prop2" role="detail">
-            <title><classname>org.gradle.Type</classname> <literal>experimentalProperty</literal> (read-only)</title>
+            <title><classname>org.gradle.Type</classname> <literal>incubatingProperty</literal> (read-only)</title>
             <caution>
-                <para>Note: This property is <link linkend="dsl-element-types">experimental</link> and may change in a future version of Gradle.</para>
+                <para>Note: This property is <link linkend="dsl-element-types">incubating</link> and may change in a future version of Gradle.</para>
             </caution>
             <para>prop2 comment</para>
         </section>
@@ -404,14 +403,14 @@ class ClassDocRendererTest extends XmlSpecification {
 </chapter>'''
     }
 
-    def rendersDeprecatedAndExperimentalMethods() {
+    def rendersDeprecatedAndIncubatingMethods() {
         def content = parse('''
             <chapter>
                 <section><title>Methods</title>
                     <table>
                         <thead><tr><td>Name</td></tr></thead>
                         <tr><td>deprecated</td></tr>
-                        <tr><td>experimental</td></tr>
+                        <tr><td>incubating</td></tr>
                     </table>
                 </section>
             </chapter>
@@ -419,7 +418,7 @@ class ClassDocRendererTest extends XmlSpecification {
 
         ClassDoc classDoc = classDoc('Class', content: content)
         MethodDoc method1 = methodDoc('deprecated', id: 'method1Id', returnType: 'ReturnType1', description: 'method description', comment: 'method comment', deprecated: true)
-        MethodDoc method2 = methodDoc('experimental', id: 'method2Id', returnType: 'ReturnType2', description: 'overloaded description', comment: 'overloaded comment', paramTypes: ['ParamType'], experimental: true)
+        MethodDoc method2 = methodDoc('incubating', id: 'method2Id', returnType: 'ReturnType2', description: 'overloaded description', comment: 'overloaded comment', paramTypes: ['ParamType'], incubating: true)
         _ * classDoc.classMethods >> [method1, method2]
         _ * classDoc.classExtensions >> []
 
@@ -452,10 +451,10 @@ class ClassDocRendererTest extends XmlSpecification {
             </tr>
             <tr>
                 <td>
-                    <literal><link linkend="method2Id">experimental</link>(p)</literal>
+                    <literal><link linkend="method2Id">incubating</link>(p)</literal>
                 </td>
                 <td>
-                    <caution>Experimental</caution>
+                    <caution>Incubating</caution>
                     <para>overloaded description</para>
                 </td>
             </tr>
@@ -471,9 +470,9 @@ class ClassDocRendererTest extends XmlSpecification {
             <para>method comment</para>
         </section>
         <section id="method2Id" role="detail">
-            <title><classname>ReturnType2</classname> <literal>experimental</literal>(<classname>ParamType</classname> p)</title>
+            <title><classname>ReturnType2</classname> <literal>incubating</literal>(<classname>ParamType</classname> p)</title>
             <caution>
-                <para>Note: This method is <link linkend="dsl-element-types">experimental</link> and may change in a future version of Gradle.</para>
+                <para>Note: This method is <link linkend="dsl-element-types">incubating</link> and may change in a future version of Gradle.</para>
             </caution>
             <para>overloaded comment</para>
         </section>
@@ -739,7 +738,7 @@ class ClassDocRendererTest extends XmlSpecification {
         _ * propDoc.comment >> [parse("<para>${args.comment ?: 'comment'}</para>")]
         _ * propDoc.metaData >> propMetaData
         _ * propDoc.deprecated >> (args.deprecated ?: false)
-        _ * propDoc.experimental >> (args.experimental ?: false)
+        _ * propDoc.incubating >> (args.incubating ?: false)
         _ * propDoc.additionalValues >> (args.attributes ?: [])
         _ * propMetaData.type >> new TypeMetaData(args.type ?: 'SomeType')
         return propDoc
@@ -754,7 +753,7 @@ class ClassDocRendererTest extends XmlSpecification {
         _ * methodDoc.comment >> [parse("<para>${args.comment ?: 'comment'}</para>")]
         _ * methodDoc.metaData >> metaData
         _ * methodDoc.deprecated >> (args.deprecated ?: false)
-        _ * methodDoc.experimental >> (args.experimental ?: false)
+        _ * methodDoc.incubating >> (args.incubating ?: false)
         _ * metaData.returnType >> new TypeMetaData(args.returnType ?: 'ReturnType')
         def paramTypes = args.paramTypes ?: []
         _ * metaData.parameters >> paramTypes.collect {

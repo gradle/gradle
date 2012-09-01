@@ -21,10 +21,10 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 /**
- * Indicates that a feature is experimental. This means that the feature is currently a work-in-progress and may
+ * Indicates that a feature is incubating. This means that the feature is currently a work-in-progress and may
  * change at any time.
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Experimental {
+public @interface Incubating {
 }

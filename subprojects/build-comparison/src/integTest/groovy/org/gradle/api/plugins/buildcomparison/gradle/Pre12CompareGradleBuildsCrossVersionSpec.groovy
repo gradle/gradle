@@ -138,15 +138,15 @@ class Pre12CompareGradleBuildsCrossVersionSpec extends CrossVersionIntegrationSp
     }
 
     String getSourceBuildVersion(Document html = this.html()) {
-        html.body().select("table").select("tr")[1].select("td")[1].text()
+        html.body().select("table")[0].select("tr")[2].select("td")[0].text()
     }
 
     String getTargetBuildVersion(Document html = this.html()) {
-        html.body().select("table").select("tr")[2].select("td")[1].text()
+        html.body().select("table")[0].select("tr")[2].select("td")[1].text()
     }
 
     void failBecauseNotIdentical() {
-        currentExecuter().runWithFailure().assertHasCause("The builds were not found to be identical. See the report at: file:///")
+        currentExecuter().runWithFailure().assertHasCause("The build outcomes were not found to be identical. See the report at: file:///")
     }
 
 }

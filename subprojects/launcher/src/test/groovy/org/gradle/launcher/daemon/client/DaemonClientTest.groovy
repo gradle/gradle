@@ -36,6 +36,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         client.stop()
 
         then:
+        _ * connection.uid >> '1'
         2 * connector.maybeConnect(compatibilitySpec) >>> [connection, null]
         1 * connection.dispatch({it instanceof Stop})
         1 * connection.receive() >> new Success(null)
@@ -53,13 +54,35 @@ class DaemonClientTest extends ConcurrentSpecification {
     }
 
     def "stops all compatible daemons"() {
+        DaemonConnection connection2 = Mock()
+
         when:
         client.stop()
 
         then:
+        _ * connection.uid >> '1'
+        _ * connection2.uid >> '2'
+        3 * connector.maybeConnect(compatibilitySpec) >>> [connection, connection2, null]
+        1 * connection.dispatch({it instanceof Stop})
+        1 * connection.receive() >> new Success(null)
+        1 * connection.stop()
+        1 * connection2.dispatch({it instanceof Stop})
+        1 * connection2.receive() >> new Success(null)
+        1 * connection2.stop()
+        0 * _
+    }
+
+    def "stops each connection at most once"() {
+        when:
+        client.stop()
+
+        then:
+        _ * connection.uid >> '1'
         3 * connector.maybeConnect(compatibilitySpec) >>> [connection, connection, null]
-        2 * connection.dispatch({it instanceof Stop})
-        2 * connection.receive() >> new Success(null)
+        1 * connection.dispatch({it instanceof Stop})
+        1 * connection.receive() >> new Success(null)
+        1 * connection.stop()
+        0 * _
     }
 
     def executesAction() {
@@ -75,6 +98,8 @@ class DaemonClientTest extends ConcurrentSpecification {
     }
 
     def rethrowsFailureToExecuteAction() {
+        GradleLauncherAction<String> action = Mock()
+        BuildActionParameters parameters = Mock()
         RuntimeException failure = new RuntimeException()
 
         when:

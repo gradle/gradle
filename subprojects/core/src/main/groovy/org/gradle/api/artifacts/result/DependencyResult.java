@@ -16,13 +16,13 @@
 
 package org.gradle.api.artifacts.result;
 
-import org.gradle.api.Experimental;
+import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 
 /**
  * by Szczepan Faber, created at: 8/24/12
  */
-@Experimental
+@Incubating
 public interface DependencyResult {
 
     /**

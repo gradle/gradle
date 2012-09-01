@@ -29,12 +29,22 @@ apply plugin: 'javascript-base'
 
 repositories {
     add javaScript.googleApisRepository
+
+    ivy {
+        name "Google Fonts"
+        url "http://themes.googleusercontent.com/static/fonts/"
+        layout 'pattern', {
+            artifact '[organisation]/v[revision]/[classifier](.[ext])'
+            ivy '[organisation]/v[revision]/ivy(.[ext])'
+        }
+    }
 }
 
 configurations {
     userGuideStyleSheets
     userGuideTask
     jquery
+    fonts
 }
 
 dependencies {
@@ -46,6 +56,16 @@ dependencies {
 
     userGuideStyleSheets 'docbook:docbook-xsl:1.75.2@zip'
     jquery "jquery:jquery.min:1.8.0@js"
+
+    fonts \
+        "lato:regular:6:qIIYRU-oROkIk8vfvxw6QvesZW2xOQ-xsNqO47m55DA@woff",
+        "lato:regular-italic:6:RYyZNoeFgb0l7W3Vu1aSWOvvDin1pK8aKteLpeZ5c0A@woff",
+        "lato:bold:6:qdgUG4U09HnJwhYI-uK18wLUuEpTyoUstqEm5AMlJo4@woff",
+        "lato:bold-italic:6:HkF_qI1x_noxlxhrhMQYELO3LdcAZYWl9Si6vvxL-qU@woff",
+        "ubuntumono:regular:3:ViZhet7Ak-LRXZMXzuAfkbrIa-7acMAeDBVuclsi6Gc@woff",
+        "ubuntumono:regular-italic:3:KAKuHXAHZOeECOWAHsRKA4o3ZslTYfJv0R05CazkwN8@woff",
+        "ubuntumono:bold:3:ceqTZGKHipo8pJj4molythbnBKKEOwRKgsHDreGcocg@woff",
+        "ubuntumono:bold-italic:3:n_d8tv_JOIiYyMXR4eaV9SHgNb6vKVPdRA9LSAKGxzw@woff"
 }
 
 ext {
@@ -97,23 +117,25 @@ tasks.withType(AssembleDslDocTask) {
     classDocbookDir = dslSrcDir
 }
 
-task css(type: Sync) {
-    ext {
-        fontRegularFile = file("src/docs/css/Lato-regular.woff")
-        fontBoldFile = file("src/docs/css/Lato-bold.woff")
-        logoFile = file("src/docs/css/gradle-logo_25o.gif")
-        tokens = [
-                'regular-font-base64': fontRegularFile.bytes.encodeBase64().toString(),
-                'bold-font-base64': fontBoldFile.bytes.encodeBase64().toString(),
-                'logo-base64': logoFile.bytes.encodeBase64().toString()
-        ]
+task configureCss << {
+    def images = fileTree(dir: "src/docs/css/images", include: "*.*").files.collectEntries {
+        [it.name, it.bytes.encodeBase64().toString()]
     }
-    inputs.property 'tokens', tokens
 
+    def fonts = configurations.fonts.resolvedConfiguration.resolvedArtifacts.collectEntries {
+        def id = it.moduleVersion.id
+        ["${id.group}-${id.name}".toString(), it.file.bytes.encodeBase64().toString()]
+    }
+
+    ext.tokens = images + fonts
+    css.inputs.property 'tokens', tokens
+    css.filter org.apache.tools.ant.filters.ReplaceTokens, tokens: tokens
+}
+
+task css(type: Sync, dependsOn: configureCss) {
     into "$buildDir/css"
     from "src/docs/css"
     include "*.css"
-    filter org.apache.tools.ant.filters.ReplaceTokens, tokens: tokens
 }
 
 ext.cssFiles = fileTree(css.destinationDir) {

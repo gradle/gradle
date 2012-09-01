@@ -16,13 +16,13 @@
 package org.gradle.api.artifacts.cache;
 
 import org.gradle.api.Action;
-import org.gradle.api.Experimental;
+import org.gradle.api.Incubating;
 
 /**
  * Represents a set of rules/actions that can be applied during dependency resolution.
  * Currently these are restricted to controlling caching, but these could possibly be extended in the future to include other manipulations.
  */
-@Experimental
+@Incubating
 public interface ResolutionRules {
     /**
      * Apply a rule to control resolution of dependencies.

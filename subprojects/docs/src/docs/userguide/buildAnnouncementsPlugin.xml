@@ -2,7 +2,7 @@
     <title>The Build Announcements Plugin</title>
     <note>
         <para>
-            The build announcements is experimental and should not be considered stable.
+            The build announcements is incubating and should not be considered stable.
         </para>
     </note>
     <para>The build announcements plugin uses the <link linkend="announce_plugin">announce</link> plugin to send local announcements on important events in the build.</para>

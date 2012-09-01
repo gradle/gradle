@@ -24,6 +24,7 @@ import org.jsoup.nodes.Document
 import org.junit.Rule
 
 class GradleBuildComparisonIntegrationSpec extends WellBehavedPluginTest {
+    private static final String NOT_IDENTICAL_MESSAGE_PREFIX = "The build outcomes were not found to be identical. See the report at: file:///"
     @Rule TestResources testResources
 
     @Override
@@ -79,7 +80,7 @@ class GradleBuildComparisonIntegrationSpec extends WellBehavedPluginTest {
     }
 
     void failedBecauseNotIdentical() {
-        failure.assertHasCause("The builds were not found to be identical. See the report at: file:///")
+        failure.assertHasCause(NOT_IDENTICAL_MESSAGE_PREFIX)
     }
 
     def "compare same project"() {
@@ -94,7 +95,7 @@ class GradleBuildComparisonIntegrationSpec extends WellBehavedPluginTest {
         run "compareGradleBuilds"
 
         then:
-        html().select("p").text() == "The archives are completely identical."
+        html().select("p").last().text() == "The archives are completely identical."
         output.contains("The source build and target build are identical")
     }
 
@@ -123,7 +124,7 @@ class GradleBuildComparisonIntegrationSpec extends WellBehavedPluginTest {
         then:
         failedBecauseNotIdentical()
 
-        html().select("p").text() == "This version of Gradle does not understand this kind of build outcome. Running the comparison process from a newer version of Gradle may yield better results."
+        html().select("h3")[0].nextSibling().nextSibling().text() == "This version of Gradle does not understand this kind of build outcome."
     }
 
     def "cannot compare when both sides are old"() {
@@ -156,6 +157,34 @@ class GradleBuildComparisonIntegrationSpec extends WellBehavedPluginTest {
 
         and:
         failure.assertHasCause("Builds must be executed with Gradle 1.0 or newer (source: 1.0-rc-1, target: ${distribution.version})")
+    }
+
+    def "can ignore errors"() {
+        given:
+        file("file.txt") << "text"
+        buildFile << """
+            apply plugin: "java-base"
+
+            configurations {
+                archives
+            }
+
+            task tarArchive(type: Tar) {
+                from "file.txt"
+            }
+
+            artifacts {
+                archives tarArchive
+            }
+
+            compareGradleBuilds.ignoreFailures true
+        """
+
+        when:
+        succeeds "compareGradleBuilds"
+
+        then:
+        output.contains(NOT_IDENTICAL_MESSAGE_PREFIX)
     }
 
     def "cannot compare when target is older than 1.0"() {

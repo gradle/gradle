@@ -56,7 +56,7 @@
 }
 
 .cmdsynopsis {
-    font-family: Courier, monospace;
+    font-family: "Ubuntu Mono", courier, monospace;
     margin-left: 2em;
 }
 
@@ -69,11 +69,12 @@
     font-size: 100%;
 }
 
+.note :last-child, .tip :last-child {
+    margin-bottom: 0px
+}
+
 .note, .tip {
-    padding-top: 1em;
-    padding-bottom: 0;
-    padding-left: 1.2em;
-    padding-right: 1.2em;
+    padding: 1em 1.2em;
     margin-bottom: 1em;
 }
 

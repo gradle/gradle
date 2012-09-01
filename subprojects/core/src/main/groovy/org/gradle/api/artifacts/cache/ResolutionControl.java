@@ -15,7 +15,7 @@
  */
 package org.gradle.api.artifacts.cache;
 
-import org.gradle.api.Experimental;
+import org.gradle.api.Incubating;
 
 import java.util.concurrent.TimeUnit;
 
@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
  * @param <A> The type of the request object for this resolution
  * @param <B> The type of the result of this resolution
  */
-@Experimental
+@Incubating
 public interface ResolutionControl<A, B> {
     /**
      * Returns the query object that was requested in this resolution.

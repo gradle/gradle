@@ -110,9 +110,6 @@
             (including turning on the daemon by default) in a more 'persistent' way.
         </para>
         <para>
-            As mentioned earlier we are actively improving the daemon. At the moment the daemon
-            is marked as 'experimental' in the user interface. We encourage everyone to try the
-            daemon out and get back to us with feedback (or even better: the pull requests).
             Some ways of troubleshooting the Gradle daemon:
             <itemizedlist>
                 <listitem>If you have a problem with your build, try temporarily disabling the daemon

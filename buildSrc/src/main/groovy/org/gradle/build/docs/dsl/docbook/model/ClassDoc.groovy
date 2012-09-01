@@ -67,8 +67,8 @@ class ClassDoc implements DslElementDoc {
         return classMetaData.deprecated
     }
 
-    boolean isExperimental() {
-        return classMetaData.experimental
+    boolean isIncubating() {
+        return classMetaData.incubating
     }
 
     Collection<PropertyDoc> getClassProperties() { return classProperties }

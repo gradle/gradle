@@ -19,7 +19,7 @@
 package org.gradle.api.plugins.maven
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.Experimental
+import org.gradle.api.Incubating
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.plugins.maven.internal.Maven2Gradle
@@ -28,7 +28,7 @@ import org.gradle.api.tasks.TaskAction
 /**
  * by Szczepan Faber, created at: 8/1/12
  */
-@Experimental
+@Incubating
 class ConvertMaven2Gradle extends DefaultTask {
 
     private final static Logger LOG = Logging.getLogger(ConvertMaven2Gradle.class)

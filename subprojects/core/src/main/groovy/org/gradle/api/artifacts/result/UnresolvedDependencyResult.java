@@ -16,10 +16,10 @@
 
 package org.gradle.api.artifacts.result;
 
-import org.gradle.api.Experimental;
+import org.gradle.api.Incubating;
 
 /**
  * Unresolved dependency result
  */
-@Experimental
+@Incubating
 public interface UnresolvedDependencyResult extends DependencyResult {}

@@ -146,6 +146,6 @@ public class DefaultDaemonConnector implements DaemonConnector {
                 daemonRegistry.remove(daemonInfo.getAddress());
             }
         };
-        return new DaemonConnection(connector.connect(daemonInfo.getAddress()), diagnostics, onFailure);
+        return new DaemonConnection(connector.connect(daemonInfo.getAddress()), daemonInfo.getContext().getUid(), diagnostics, onFailure);
     }
 }

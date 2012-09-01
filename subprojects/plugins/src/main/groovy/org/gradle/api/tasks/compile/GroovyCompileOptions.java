@@ -19,7 +19,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 
-import org.gradle.api.Experimental;
+import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Input;
 
 import java.io.File;
@@ -245,7 +245,7 @@ public class GroovyCompileOptions extends AbstractOptions {
      * Groovy 1.7 or higher. Defaults to {@code ImmutableList.of("java", "groovy")}.
      */
     @Input
-    @Experimental
+    @Incubating
     public List<String> getFileExtensions() {
         return fileExtensions;
     }
@@ -254,7 +254,7 @@ public class GroovyCompileOptions extends AbstractOptions {
      * Sets the list of acceptable source file extensions. Only takes effect when compiling against
      * Groovy 1.7 or higher. Defaults to {@code ImmutableList.of("java", "groovy")}.
      */
-    @Experimental
+    @Incubating
     public void setFileExtensions(List<String> fileExtensions) {
         this.fileExtensions = fileExtensions;
     }

@@ -19,38 +19,91 @@ package org.gradle.api.plugins.buildcomparison.render.internal.html
 import org.gradle.api.plugins.buildcomparison.compare.internal.BuildComparisonResult
 
 import org.gradle.api.plugins.buildcomparison.gradle.GradleBuildInvocationSpec
+import org.gradle.api.plugins.buildcomparison.gradle.CompareGradleBuilds
+import org.gradle.util.GradleVersion
+import org.apache.commons.lang.StringEscapeUtils
 
 class GradleComparisonHeadingRenderer implements PartRenderer {
 
-    final GradleBuildInvocationSpec sourceBuild
+    final CompareGradleBuilds task
     final GradleBuildInvocationSpec targetBuild
 
-    GradleComparisonHeadingRenderer(GradleBuildInvocationSpec sourceBuild, GradleBuildInvocationSpec targetBuild) {
-        this.sourceBuild = sourceBuild
-        this.targetBuild = targetBuild
+    GradleComparisonHeadingRenderer(CompareGradleBuilds task) {
+        this.task = task
     }
 
     void render(BuildComparisonResult result, HtmlRenderContext context) {
         context.render {
             h1 "Gradle Build Comparison"
-            h4 "Builds Compared"
+            h2 "Comparison host details"
+
+            def bits = [
+                "Project": task.project.rootDir.absolutePath,
+                "Task": task.path,
+                "Gradle version": GradleVersion.current().version,
+                "Run at": new Date().toLocaleString()
+            ]
+
+            p {
+               mkp.yieldUnescaped bits.collect { "<strong>${it.key}</strong>: ${StringEscapeUtils.escapeHtml(it.value) }" }.join("<br />")
+            }
+
+            p("class": noDiffOrDiffClass(result.buildsAreIdentical)) {
+                b result.buildsAreIdentical ?
+                    "The build outcomes were found to be identical." :
+                    "The build outcomes were not found to be identical."
+            }
+            def sourceBuild = task.sourceBuild
+            def targetBuild = task.targetBuild
+
+            h2 "Compared builds"
             table {
                 tr {
                     th class: "border-right", ""
-                    th "Location"
-                    th "Gradle Version"
+                    th "Source Build"
+                    th "Target Build"
                 }
-                tr {
-                    th class: "border-right no-border-bottom", "Source Build"
-                    td sourceBuild.projectDir.absolutePath
-                    td sourceBuild.gradleVersion
+
+                def sourceBuildPath = sourceBuild.projectDir.absolutePath
+                def targetBuildPath = targetBuild.projectDir.absolutePath
+                tr("class": diffClass(sourceBuildPath == targetBuildPath)) {
+                    th class: "border-right no-border-bottom", "Project"
+                    td sourceBuildPath
+                    td targetBuildPath
                 }
-                tr {
-                    th class: "border-right no-border-bottom", "Target Build"
-                    td targetBuild.projectDir.absolutePath
-                    td targetBuild.gradleVersion
+
+                def sourceGradleVersion = sourceBuild.gradleVersion
+                def targetGradleVersion = targetBuild.gradleVersion
+                tr("class": diffClass(sourceGradleVersion == targetGradleVersion)) {
+                    th class: "border-right no-border-bottom", "Gradle version"
+                    td sourceGradleVersion
+                    td targetGradleVersion
+                }
+
+                def sourceBuildTasks = sourceBuild.tasks
+                def targetBuildTasks = targetBuild.tasks
+                tr("class": diffClass(sourceBuildTasks == targetBuildTasks)) {
+                    th class: "border-right no-border-bottom", "Tasks"
+                    td sourceBuildTasks.join(" ")
+                    td targetBuildTasks.join(" ")
+                }
+
+                def sourceBuildArguments = sourceBuild.arguments
+                def targetBuildArguments = targetBuild.arguments
+                tr("class": diffClass(sourceBuildArguments == targetBuildArguments)) {
+                    th class: "border-right no-border-bottom", "Arguments"
+                    td sourceBuildArguments.join(" ")
+                    td targetBuildArguments.join(" ")
                 }
             }
         }
+    }
+
+    String diffClass(equal) {
+        equal ? "" : "diff"
+    }
+
+    String noDiffOrDiffClass(equal) {
+        equal ? "no-diff" : "diff"
     }
 }

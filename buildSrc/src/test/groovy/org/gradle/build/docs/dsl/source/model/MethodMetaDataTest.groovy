@@ -138,14 +138,14 @@ class MethodMetaDataTest extends Specification {
         deprecated.deprecated
     }
 
-    def "is experimental when @Experimental is attached to method"() {
-        def notExperimental = new MethodMetaData('param', owner)
-        def experimental = new MethodMetaData('param', owner)
-        experimental.addAnnotationTypeName("org.gradle.api.Experimental")
+    def "is incubating when @Incubating is attached to method"() {
+        def notIncubating = new MethodMetaData('param', owner)
+        def incubating = new MethodMetaData('param', owner)
+        incubating.addAnnotationTypeName("org.gradle.api.Incubating")
 
         expect:
-        !notExperimental.experimental
-        experimental.experimental
+        !notIncubating.incubating
+        incubating.incubating
     }
 
 }

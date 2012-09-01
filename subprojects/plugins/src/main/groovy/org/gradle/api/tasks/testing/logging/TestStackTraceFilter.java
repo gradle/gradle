@@ -16,12 +16,12 @@
 
 package org.gradle.api.tasks.testing.logging;
 
-import org.gradle.api.Experimental;
+import org.gradle.api.Incubating;
 
 /**
  * Stack trace filters for test logging. Multiple filters can be combined.
  */
-@Experimental
+@Incubating
 public enum TestStackTraceFilter {
     // ordered by how much they filter
     ENTRY_POINT, TRUNCATE, GROOVY

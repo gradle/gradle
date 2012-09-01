@@ -17,23 +17,23 @@ evolve certain features while keeping other features stable:
 
 * Each feature is either 'public' or 'internal'.
 * A feature may additionally be marked as 'deprecated'.
-* A feature may additionally be marked as 'experimental'.
+* A feature may additionally be marked as 'incubating'.
 * An internal feature may be added, changed or removed at any time, including between release candidates and the final release.
 * A public feature may be added in the first release candidate of a release.
 * A deprecated public feature may be removed in the first release candidate of a major release.
-* An experimental public feature may be changed or removed in the first release candidate of a release.
+* An incubating public feature may be changed or removed in the first release candidate of a release.
 * The deprecated tag can be added in the first release candidate of a release.
-* The experimental or deprecated tags can be removed in the first release candidate of a release.
+* The incubating or deprecated tags can be removed in the first release candidate of a release.
 * A public feature may not be added, changed or removed at any other time, other than the above.
 
 Some notes:
 
-* Generally, we would not deprecate a feature until a non-experimental replacement is available, and we would not remove an
-  experimental feature without a replacement of some kind. There may be some exceptions to this rule.
-* New features will generally be marked as 'experimental' when they are added.
+* Generally, we would not deprecate a feature until a non-incubating replacement is available, and we would not remove an
+  incubating feature without a replacement of some kind. There may be some exceptions to this rule.
+* New features will generally be marked as 'incubating' when they are added.
 * We don't make changes to any public feature during the release candidate phase.
 * Internal features are not intended to be used outside the Gradle project. You should avoid using them.
-* Experimental features are intended to become public features. However, they are experimental in nature and may need to change
+* Incubating features are intended to become public features. However, they are experimental in nature and may need to change
   based on feedback before they become public. If you use them, you need to be prepared for them to change between releases.
 * Deprecated features are intended to be removed at some point. You can continue to use them until the next major Gradle
   version. You should start to migrate your build to the replacement features.
@@ -41,8 +41,8 @@ Some notes:
 
 To replace a feature, we will:
 
-* add an experimental replacement
-* remove the experimental tag
+* add an incubating replacement
+* remove the incubating tag
 * deprecate the old feature
 * remove the old feature.
 
@@ -50,8 +50,8 @@ There will usually be some soak time between these steps. Between deprecation an
 
 To change a default behaviour, we will:
 
-* add an experimental way to choose between the new and old behaviour
-* remove the experimental tag
+* add an incubating mechanism to choose between the new and old behaviour
+* remove the incubating tag
 * add a warning when the old default behaviour is used
 * change the default and remove the warning
 * optionally remove the flag and the old behaviour, via deprecation

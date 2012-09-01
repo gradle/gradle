@@ -29,12 +29,14 @@ public class DaemonConnection implements Connection<Object> {
     //TODO SF rename - clashes with a different name
 
     final Connection<Object> connection;
+    private final String uid;
     private DaemonDiagnostics diagnostics;
     final Runnable onFailure;
     private final static Logger LOG = Logging.getLogger(DaemonConnection.class);
 
-    public DaemonConnection(Connection<Object> connection, DaemonDiagnostics diagnostics, Runnable onFailure) {
+    public DaemonConnection(Connection<Object> connection, String uid, DaemonDiagnostics diagnostics, Runnable onFailure) {
         this.connection = connection;
+        this.uid = uid;
         this.diagnostics = diagnostics;
         this.onFailure = onFailure;
     }
@@ -49,6 +51,10 @@ public class DaemonConnection implements Connection<Object> {
 
     public void requestStop() {
         connection.requestStop();
+    }
+
+    public String getUid() {
+        return uid;
     }
 
     public void dispatch(Object message) {

@@ -77,17 +77,6 @@ class HtmlBuildComparisonResultRendererTest extends Specification {
         Jsoup.parse(writer.toString())
     }
 
-    def "empty render"() {
-        given:
-        def html = render()
-
-        expect:
-        writer.toString().startsWith("<html>")
-        !html.children().empty
-        html.head().children().empty
-        html.body().children().empty
-    }
-
     def "render some results"() {
         given:
         renderers.registerRenderer(new StringBuildOutcomeComparisonResultHtmlRenderer())

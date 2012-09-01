@@ -29,5 +29,5 @@ public interface DslElementDoc {
 
     boolean isDeprecated();
 
-    boolean isExperimental();
+    boolean isIncubating();
 }

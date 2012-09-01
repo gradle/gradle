@@ -15,7 +15,7 @@
  */
 package org.gradle.tooling;
 
-import org.gradle.api.Experimental;
+import org.gradle.api.Incubating;
 import org.gradle.tooling.model.Model;
 
 import java.io.File;
@@ -119,7 +119,7 @@ public interface ModelBuilder<T extends Model> extends LongRunningOperation {
      *
      * @since 1.2
      */
-    @Experimental
+    @Incubating
     ModelBuilder<T> forTasks(String... tasks);
 
     /**

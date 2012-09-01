@@ -24,5 +24,5 @@ public interface LanguageElement {
 
     boolean isDeprecated();
 
-    boolean isExperimental();
+    boolean isIncubating();
 }
