@@ -235,7 +235,7 @@ pre.code, pre.programlisting {
 }
 
 pre.screen, pre.tt {
-    color: black;
+    color: #666;
     background-color: white;
 }
 
