@@ -43,8 +43,6 @@ class HtmlBuildComparisonResultRendererTest extends Specification {
     def unassociatedTo = new HashSet<BuildOutcome>()
     def comparisons = new LinkedList<BuildOutcomeComparisonResult>()
 
-    def comparisonSpecBuilder = new DefaultBuildComparisonSpecBuilder()
-
     def writer = new StringWriter()
 
     BuildComparisonResultRenderer makeRenderer(renderers = this.renderers, headPart = this.headPart, headerPart = this.headerPart, footerPart = this.footerPart) {
