@@ -27,19 +27,24 @@ import spock.lang.AutoCleanup
 import org.gradle.util.Resources
 import org.gradle.util.TemporaryFolder
 import org.gradle.util.ClasspathUtil
+import org.gradle.util.AvailablePortFinder
 
 class SonarSmokeIntegrationTest extends AbstractIntegrationSpec {
+    @Shared
+    AvailablePortFinder portFinder = AvailablePortFinder.createPrivate()
+
     @AutoCleanup("stop")
     Server webServer = new Server(0)
-//    @Shared
-//    @AutoCleanup("stop")
-//    org.h2.tools.Server tcpServer = org.h2.tools.Server.createTcpServer("-tcpAllowOthers")
+
     @Rule
-    TemporaryFolder tempDir
+    TemporaryFolder tempDir = new TemporaryFolder()
+
     @Rule
     TestResources testResources
 
-    def startServer() {
+    int databasePort
+
+    def setup() {
         def classpath = ClasspathUtil.getClasspath(getClass().classLoader).collect() { new File(it.toURI()) }
         def warFile = classpath.find { it.name == "sonar-test-server-3.2.war" }
         assert warFile
@@ -50,29 +55,31 @@ class SonarSmokeIntegrationTest extends AbstractIntegrationSpec {
         System.setProperty("SONAR_HOME", sonarHome.path)
         new AntBuilder().unzip(src: zipFile, dest: sonarHome, overwrite: true)
 
+        databasePort = portFinder.nextAvailable
         sonarHome.file("conf/sonar.properties") << """
 sonar.jdbc.username=sonar
 sonar.jdbc.password=sonar
 sonar.jdbc.url=jdbc:h2:mem:sonartest
+sonar.embeddedDatabase.port=$databasePort
         """.trim()
 
         def context = new WebAppContext()
         context.war = warFile
         webServer.addHandler(context)
         webServer.start()
-        //tcpServer.start()
     }
 
     def "can run Sonar analysis"() {
-        startServer()
-
         // Without forking, we run into problems with Sonar's BootStrapClassLoader, at least when running from IDEA.
         // Problem is that BootStrapClassLoader, although generally isolated from its parent(s), always
         // delegates to the system class loader. That class loader holds the test class path and therefore
         // also the Sonar dependencies with "provided" scope. Hence, the Sonar dependencies get loaded by
         // the wrong class loader.
         when:
-        executer.withForkingExecuter().withArguments("-PserverUrl=http://localhost:${webServer.connectors[0].localPort}").withTasks("sonarAnalyze").run()
+        executer.withForkingExecuter()
+                .withArgument("-PserverUrl=http://localhost:${webServer.connectors[0].localPort}")
+                .withArgument("-PdatabaseUrl=jdbc:h2:tcp://localhost:$databasePort/mem:sonartest")
+                .withTasks("sonarAnalyze").run()
 
         then:
         noExceptionThrown()

@@ -7,7 +7,7 @@ sonar {
     }
     database {
         //url = "jdbc:h2:tcp://localhost:9092/sonar"
-        url = "jdbc:h2:tcp://localhost/mem:sonartest"
+        url databaseUrl
         driverClassName = "org.h2.Driver"
     }
 }
