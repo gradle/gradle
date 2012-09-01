@@ -45,6 +45,17 @@ class HeadRenderer implements PartRenderer {
                         border-radius: 10px;
                         border: 1px solid #E0E0E0;
                     }
+
+                    .build-outcome-comparison {
+                        padding: 10px 10px 14px 20px;
+                        border: 1px solid #D0D0D0;
+                        border-radius: 6px;
+                        margin-bottom: 1.2em;
+                    }
+
+                    .build-outcome-comparison :last-child {
+                        margin-bottom: 0;
+                    }
                 """
             }
 

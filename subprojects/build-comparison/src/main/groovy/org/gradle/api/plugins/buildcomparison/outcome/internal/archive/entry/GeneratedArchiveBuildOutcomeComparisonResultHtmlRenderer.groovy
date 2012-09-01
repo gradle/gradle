@@ -51,32 +51,44 @@ class GeneratedArchiveBuildOutcomeComparisonResultHtmlRenderer extends BuildOutc
                 tr {
                     th class: "border-right no-border-bottom", fromSideName
                     td from.rootRelativePath
-                    def sourceCopyPath = context.relativePath(from.archiveFile)
-                    td { a(href: sourceCopyPath, sourceCopyPath) }
+                    if (from.archiveFile) {
+                        def sourceCopyPath = context.relativePath(from.archiveFile)
+                        td { a(href: sourceCopyPath, sourceCopyPath) }
+                    } else {
+                        td "(no file)"
+                    }
                 }
                 tr {
                     th class: "border-right no-border-bottom", toSideName
                     td to.rootRelativePath
-                    def targetCopyPath = context.relativePath(to.archiveFile)
-                    td { a(href: targetCopyPath, targetCopyPath) }
+                    if (to.archiveFile) {
+                        def targetCopyPath = context.relativePath(to.archiveFile)
+                        td { a(href: targetCopyPath, targetCopyPath) }
+                    } else {
+                        td "(no file)"
+                    }
                 }
             }
         }
 
         if (result.comparisonResultType == NON_EXISTENT) {
-            context.render { p class: context.diffClass, "Neither side produced the archive." }
+            resultMsg "Neither side produced the archive.", false, context
         } else if (result.comparisonResultType == FROM_ONLY) {
-            context.render { p class: context.diffClass, "The archive was only produced by the $fromSideName." }
+            resultMsg "The archive was only produced by the $fromSideName.", false, context
         } else if (result.comparisonResultType == TO_ONLY) {
-            context.render { p class: context.diffClass, "The archive was only produced on the $toSideName." }
+            resultMsg "The archive was only produced by the $toSideName.", false, context
         } else if (result.comparisonResultType == EQUAL) {
-            context.render { p class: context.equalClass, "The archives are completely identical." }
+            resultMsg "The archives are completely identical.", true, context
         } else if (result.comparisonResultType == UNEQUAL) {
-            context.render { p class: context.diffClass, "There are differences within the archive." }
+            resultMsg "There are differences within the archive.", false, context
             renderUnequal(context, result.entryComparisons)
         } else {
             result.comparisonResultType.throwUnsupported()
         }
+    }
+
+    private resultMsg(String msg, boolean equal, HtmlRenderContext context) {
+        context.render { p(class: "${context.equalOrDiffClass(equal)} ${context.comparisonResultMsgClass}", msg) }
     }
 
     private void renderUnequal(HtmlRenderContext context, Iterable<ArchiveEntryComparison> entryComparisons) {

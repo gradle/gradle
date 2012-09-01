@@ -16,20 +16,19 @@
 
 package org.gradle.api.plugins.buildcomparison.render.internal.html
 
+import org.gradle.api.Transformer
+import org.gradle.api.plugins.buildcomparison.compare.internal.BuildComparisonResult
+import org.gradle.api.plugins.buildcomparison.compare.internal.BuildOutcomeComparisonResult
+import org.gradle.api.plugins.buildcomparison.outcome.internal.BuildOutcome
+import org.gradle.api.plugins.buildcomparison.outcome.internal.DefaultBuildOutcomeAssociation
 import org.gradle.api.plugins.buildcomparison.outcome.string.StringBuildOutcome
 import org.gradle.api.plugins.buildcomparison.outcome.string.StringBuildOutcomeComparisonResult
 import org.gradle.api.plugins.buildcomparison.outcome.string.StringBuildOutcomeComparisonResultHtmlRenderer
-import org.gradle.api.plugins.buildcomparison.compare.internal.BuildComparisonResult
-import org.gradle.api.plugins.buildcomparison.compare.internal.BuildOutcomeComparisonResult
-import org.gradle.api.plugins.buildcomparison.compare.internal.DefaultBuildComparisonSpecBuilder
-import org.gradle.api.plugins.buildcomparison.outcome.internal.BuildOutcome
-import org.gradle.api.plugins.buildcomparison.outcome.internal.DefaultBuildOutcomeAssociation
 import org.gradle.api.plugins.buildcomparison.render.internal.BuildComparisonResultRenderer
 import org.gradle.api.plugins.buildcomparison.render.internal.DefaultBuildOutcomeComparisonResultRendererFactory
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import spock.lang.Specification
-import org.gradle.api.Transformer
 
 class HtmlBuildComparisonResultRendererTest extends Specification {
 

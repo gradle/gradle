@@ -42,12 +42,16 @@ public class HtmlRenderContext {
         return relativizer.transform(file);
     }
 
-    String getDiffClass() {
+    public String getDiffClass() {
         return "diff";
     }
 
-    String getEqualClass() {
+    public String getEqualClass() {
         return "equal";
+    }
+
+    public String getComparisonResultMsgClass() {
+        return "comparison-result-msg";
     }
 
     public String diffClass(Object isEqual) {
