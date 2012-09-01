@@ -379,7 +379,11 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
 
         PartRenderer headingRenderer = new GradleComparisonHeadingRenderer(this);
 
-        return new HtmlBuildComparisonResultRenderer(renderers, headRenderer, headingRenderer, null);
+        return new HtmlBuildComparisonResultRenderer(renderers, headRenderer, headingRenderer, null, new Transformer<String, File>() {
+            public String transform(File original) {
+                return GFileUtils.relativePath(getReportDir(), original);
+            }
+        });
     }
 
     private boolean canObtainProjectOutcomesModel(GradleBuildInvocationSpec spec) {

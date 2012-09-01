@@ -60,7 +60,7 @@ class GradleBuildComparisonIntegrationSpec extends WellBehavedPluginTest {
         def html = html()
 
         // Name of outcome
-        html.select("h3").text() == "Task: “:jar”"
+        html.select("h3").text() == ":jar"
 
         // Entry comparisons
         def rows = html.select("table")[2].select("tr").tail().collectEntries { [it.select("td")[0].text(), it.select("td")[1].text()] }

@@ -18,17 +18,52 @@ package org.gradle.api.plugins.buildcomparison.render.internal.html;
 
 import groovy.lang.Closure;
 import groovy.xml.MarkupBuilder;
+import org.codehaus.groovy.runtime.InvokerHelper;
+import org.gradle.api.Transformer;
 import org.gradle.util.ConfigureUtil;
+
+import java.io.File;
 
 public class HtmlRenderContext {
 
     private final MarkupBuilder markupBuilder;
+    private final Transformer<String, File> relativizer;
 
-    public HtmlRenderContext(MarkupBuilder markupBuilder) {
+    public HtmlRenderContext(MarkupBuilder markupBuilder, Transformer<String, File> relativizer) {
+        this.relativizer = relativizer;
         this.markupBuilder = markupBuilder;
     }
 
     public void render(Closure<?> renderAction) {
         ConfigureUtil.configure(renderAction, markupBuilder);
     }
+
+    public String relativePath(File file) {
+        return relativizer.transform(file);
+    }
+
+    String getDiffClass() {
+        return "diff";
+    }
+
+    String getEqualClass() {
+        return "equal";
+    }
+
+    public String diffClass(Object isEqual) {
+        return groovyTrue(isEqual) ? "" : getDiffClass();
+    }
+
+    public String equalClass(Object isEqual) {
+        return groovyTrue(isEqual) ? getEqualClass() : "";
+    }
+
+    public String equalOrDiffClass(Object isEqual) {
+        return groovyTrue(isEqual) ? getEqualClass() : getDiffClass();
+    }
+
+    private boolean groovyTrue(Object equal) {
+        return (Boolean) InvokerHelper.invokeMethod(equal, "asBoolean", null);
+    }
+
 }

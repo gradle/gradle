@@ -37,11 +37,8 @@ abstract class BuildOutcomeComparisonResultHtmlRenderer<T extends BuildOutcomeCo
         def from = result.compared.from
         def to = result.compared.to
 
-        if (from.name == to.name) {
-            context.render { h3 "Task: “${from.name}”" } // TODO - assuming this is from a task
-        } else {
-            context.render { h3 "Task: ($fromSideName: “${from.name}”, $toSideName: “${to.name}”)" }
-        }
+        // TODO - assuming that both sides have the same name, which they always do in 1.2
+        context.render { h3 "${from.name}" }
     }
 
 

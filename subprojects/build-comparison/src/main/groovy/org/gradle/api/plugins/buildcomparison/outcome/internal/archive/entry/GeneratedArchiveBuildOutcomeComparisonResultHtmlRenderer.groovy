@@ -42,37 +42,37 @@ class GeneratedArchiveBuildOutcomeComparisonResultHtmlRenderer extends BuildOutc
         def to = result.compared.to
 
         context.render {
-            h4 "Details"
             table {
                 tr {
                     th class: "border-right", ""
-                    th "Generated Location (relative)"
-                    th "Copied Location"
+                    th "Original Location (relative to project root)"
+                    th "Archive Copy (relative to this report)"
                 }
                 tr {
                     th class: "border-right no-border-bottom", fromSideName
                     td from.rootRelativePath
-                    td from.archiveFile.absolutePath
+                    def sourceCopyPath = context.relativePath(from.archiveFile)
+                    td { a(href: sourceCopyPath, sourceCopyPath) }
                 }
                 tr {
                     th class: "border-right no-border-bottom", toSideName
                     td to.rootRelativePath
-                    td to.archiveFile.absolutePath
+                    def targetCopyPath = context.relativePath(to.archiveFile)
+                    td { a(href: targetCopyPath, targetCopyPath) }
                 }
             }
         }
 
-        context.render { h4 "Comparison Results" }
-
         if (result.comparisonResultType == NON_EXISTENT) {
-            context.render { p "Neither side produced the archive." }
+            context.render { p class: context.diffClass, "Neither side produced the archive." }
         } else if (result.comparisonResultType == FROM_ONLY) {
-            context.render { p "The archive was only produced by the $fromSideName." }
+            context.render { p class: context.diffClass, "The archive was only produced by the $fromSideName." }
         } else if (result.comparisonResultType == TO_ONLY) {
-            context.render { p "The archive was only produced on the $toSideName." }
+            context.render { p class: context.diffClass, "The archive was only produced on the $toSideName." }
         } else if (result.comparisonResultType == EQUAL) {
-            context.render { p "The archives are completely identical." }
+            context.render { p class: context.equalClass, "The archives are completely identical." }
         } else if (result.comparisonResultType == UNEQUAL) {
+            context.render { p class: context.diffClass, "There are differences within the archive." }
             renderUnequal(context, result.entryComparisons)
         } else {
             result.comparisonResultType.throwUnsupported()
@@ -81,17 +81,20 @@ class GeneratedArchiveBuildOutcomeComparisonResultHtmlRenderer extends BuildOutc
 
     private void renderUnequal(HtmlRenderContext context, Iterable<ArchiveEntryComparison> entryComparisons) {
         context.render {
-            table {
-                tr {
-                    th "Path"
-                    th "Difference"
-                }
+            div(class: "archive-entry-differences") {
+                h5 "Entry Differences"
+                table {
+                    tr {
+                        th "Path"
+                        th "Difference"
+                    }
 
-                entryComparisons.each { entryComparison ->
-                    if (entryComparison.comparisonResultType != EQUAL) {
-                        tr {
-                            td entryComparison.path
-                            td toDifferenceDescription(entryComparison)
+                    entryComparisons.each { entryComparison ->
+                        if (entryComparison.comparisonResultType != EQUAL) {
+                            tr {
+                                td entryComparison.path
+                                td toDifferenceDescription(entryComparison)
+                            }
                         }
                     }
                 }

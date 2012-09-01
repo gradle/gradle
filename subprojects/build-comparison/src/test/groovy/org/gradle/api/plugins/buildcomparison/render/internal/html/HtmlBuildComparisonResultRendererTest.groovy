@@ -29,6 +29,7 @@ import org.gradle.api.plugins.buildcomparison.render.internal.DefaultBuildOutcom
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import spock.lang.Specification
+import org.gradle.api.Transformer
 
 class HtmlBuildComparisonResultRendererTest extends Specification {
 
@@ -47,7 +48,11 @@ class HtmlBuildComparisonResultRendererTest extends Specification {
     def writer = new StringWriter()
 
     BuildComparisonResultRenderer makeRenderer(renderers = this.renderers, headPart = this.headPart, headerPart = this.headerPart, footerPart = this.footerPart) {
-        new HtmlBuildComparisonResultRenderer(renderers, headPart, headerPart, footerPart)
+        new HtmlBuildComparisonResultRenderer(renderers, headPart, headerPart, footerPart, new Transformer() {
+            Object transform(Object original) {
+                original.path
+            }
+        })
     }
 
     BuildComparisonResult makeResult(
