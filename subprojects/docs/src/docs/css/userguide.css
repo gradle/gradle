@@ -87,6 +87,6 @@ div.toc p b {
     margin-top: 4em;
 }
 
-code.filename {
+div.example code.filename {
   font-weight: bold;
 }
