@@ -107,6 +107,7 @@
     -moz-border-radius: 4px;
     border-radius: 4px;
     font-family: "Ubuntu Mono", courier, monospace;
+    text-shadow: none;
 }
 
 .signature .literal {
