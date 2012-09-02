@@ -26,6 +26,9 @@ import spock.lang.Specification
 
 import static org.gradle.tooling.internal.provider.FileOutcomeIdentifier.*
 import org.gradle.api.internal.filestore.AbstractFileStoreEntry
+import org.gradle.util.TestFile
+import org.gradle.tooling.model.internal.outcomes.GradleFileBuildOutcome
+import org.gradle.tooling.model.internal.outcomes.GradleBuildOutcome
 
 class GradleBuildOutcomeSetTransformerTest extends Specification {
 
@@ -78,6 +81,9 @@ class GradleBuildOutcomeSetTransformerTest extends Specification {
         }
 
         when:
+        allBuildOutcomes(projectOutput).findAll { it instanceof GradleFileBuildOutcome }.each {
+            new TestFile(it.file) << it.name
+        }
         def outcomes = transformer.transform(projectOutput).collectEntries { [it.name, it] }
 
         then:
@@ -90,6 +96,14 @@ class GradleBuildOutcomeSetTransformerTest extends Specification {
         outcomes[":b:b2"] instanceof GeneratedArchiveBuildOutcome
         outcomes[":c:a:ca1"] instanceof GeneratedArchiveBuildOutcome
         outcomes[":c:a:ca2"] instanceof UnknownBuildOutcome
+    }
+
+    List<GradleBuildOutcome> allBuildOutcomes(ProjectOutcomes outcomes, List<GradleBuildOutcome> collector = []) {
+        collector.addAll(outcomes.outcomes)
+        for (child in outcomes.children) {
+            allBuildOutcomes(child, collector)
+        }
+        collector
     }
 
 }

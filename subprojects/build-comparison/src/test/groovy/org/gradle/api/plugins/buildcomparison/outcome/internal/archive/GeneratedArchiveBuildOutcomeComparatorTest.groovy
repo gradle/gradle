@@ -94,8 +94,8 @@ class GeneratedArchiveBuildOutcomeComparatorTest extends Specification {
     def "comparison result types"() {
         given:
         def unequal = outcome("unequal")
-        def notExistingFrom = outcome("no-from", dir.file("no-from"))
-        def notExistingTo = outcome("no-to", dir.file("no-to"))
+        def notExistingFrom = outcome("no-from", null)
+        def notExistingTo = outcome("no-to", null)
 
         mockEntries(existingFrom.archiveFile, entry(path: "f1"))
         mockEntries(existingTo.archiveFile, entry(path: "f1"))

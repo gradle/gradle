@@ -42,56 +42,71 @@ class GeneratedArchiveBuildOutcomeComparisonResultHtmlRenderer extends BuildOutc
         def to = result.compared.to
 
         context.render {
-            h4 "Details"
             table {
                 tr {
                     th class: "border-right", ""
-                    th "Generated Location (relative)"
-                    th "Copied Location"
+                    th "Original Location (relative to project root)"
+                    th "Archive Copy (relative to this report)"
                 }
                 tr {
                     th class: "border-right no-border-bottom", fromSideName
                     td from.rootRelativePath
-                    td from.archiveFile.absolutePath
+                    if (from.archiveFile) {
+                        def sourceCopyPath = context.relativePath(from.archiveFile)
+                        td { a(href: sourceCopyPath, sourceCopyPath) }
+                    } else {
+                        td "(no file)"
+                    }
                 }
                 tr {
                     th class: "border-right no-border-bottom", toSideName
                     td to.rootRelativePath
-                    td to.archiveFile.absolutePath
+                    if (to.archiveFile) {
+                        def targetCopyPath = context.relativePath(to.archiveFile)
+                        td { a(href: targetCopyPath, targetCopyPath) }
+                    } else {
+                        td "(no file)"
+                    }
                 }
             }
         }
 
-        context.render { h4 "Comparison Results" }
-
         if (result.comparisonResultType == NON_EXISTENT) {
-            context.render { p "Neither side produced the archive." }
+            resultMsg "Neither side produced the archive.", false, context
         } else if (result.comparisonResultType == FROM_ONLY) {
-            context.render { p "The archive was only produced by the $fromSideName." }
+            resultMsg "The archive was only produced by the $fromSideName.", false, context
         } else if (result.comparisonResultType == TO_ONLY) {
-            context.render { p "The archive was only produced on the $toSideName." }
+            resultMsg "The archive was only produced by the $toSideName.", false, context
         } else if (result.comparisonResultType == EQUAL) {
-            context.render { p "The archives are completely identical." }
+            resultMsg "The archives are completely identical.", true, context
         } else if (result.comparisonResultType == UNEQUAL) {
+            resultMsg "There are differences within the archive.", false, context
             renderUnequal(context, result.entryComparisons)
         } else {
             result.comparisonResultType.throwUnsupported()
         }
     }
 
+    private resultMsg(String msg, boolean equal, HtmlRenderContext context) {
+        context.render { p(class: "${context.equalOrDiffClass(equal)} ${context.comparisonResultMsgClass}", msg) }
+    }
+
     private void renderUnequal(HtmlRenderContext context, Iterable<ArchiveEntryComparison> entryComparisons) {
         context.render {
-            table {
-                tr {
-                    th "Path"
-                    th "Difference"
-                }
+            div(class: "archive-entry-differences") {
+                h5 "Entry Differences"
+                table {
+                    tr {
+                        th "Path"
+                        th "Difference"
+                    }
 
-                entryComparisons.each { entryComparison ->
-                    if (entryComparison.comparisonResultType != EQUAL) {
-                        tr {
-                            td entryComparison.path
-                            td toDifferenceDescription(entryComparison)
+                    entryComparisons.each { entryComparison ->
+                        if (entryComparison.comparisonResultType != EQUAL) {
+                            tr {
+                                td entryComparison.path
+                                td toDifferenceDescription(entryComparison)
+                            }
                         }
                     }
                 }

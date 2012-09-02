@@ -77,10 +77,14 @@ public class GradleBuildOutcomeSetTransformer implements Transformer<Set<BuildOu
     private void addFileBuildOutcome(GradleFileBuildOutcome outcome, ProjectOutcomes rootProject, Set<BuildOutcome> translatedOutcomes) {
         if (zipArchiveTypes.contains(outcome.getTypeIdentifier())) {
             File originalFile = outcome.getFile();
-            String filestoreDestination = String.format("%s/%s/%s", fileStorePrefix, outcome.getTaskPath(), originalFile.getName());
-            FileStoreEntry fileStoreEntry = fileStore.move(filestoreDestination, originalFile);
-            File storedFile = fileStoreEntry.getFile();
             String relativePath = GFileUtils.relativePath(rootProject.getProjectDirectory(), originalFile);
+
+            FileStoreEntry fileStoreEntry = null;
+            if (originalFile.exists()) {
+                String filestoreDestination = String.format("%s/%s/%s", fileStorePrefix, outcome.getTaskPath(), originalFile.getName());
+                fileStoreEntry = fileStore.move(filestoreDestination, originalFile);
+            }
+
             BuildOutcome buildOutcome = new GeneratedArchiveBuildOutcome(outcome.getTaskPath(), outcome.getDescription(), fileStoreEntry, relativePath);
             translatedOutcomes.add(buildOutcome);
         } else {

@@ -24,38 +24,55 @@ import org.gradle.api.plugins.buildcomparison.render.internal.BuildComparisonRes
 import org.gradle.api.plugins.buildcomparison.render.internal.BuildOutcomeComparisonResultRendererFactory
 import org.gradle.api.plugins.buildcomparison.compare.internal.BuildComparisonResult
 import org.gradle.api.plugins.buildcomparison.render.internal.BuildOutcomeComparisonResultRenderer
+import org.gradle.api.Transformer
 
 class HtmlBuildComparisonResultRenderer implements BuildComparisonResultRenderer<Writer> {
+
+    private final BuildOutcomeComparisonResultRendererFactory<HtmlRenderContext> renderers
 
     private final PartRenderer headPart
     private final PartRenderer headerPart
     private final PartRenderer footerPart
 
-    private final BuildOutcomeComparisonResultRendererFactory<HtmlRenderContext> renderers
+    Transformer<String, File> relativizer
 
     HtmlBuildComparisonResultRenderer(
             BuildOutcomeComparisonResultRendererFactory<HtmlRenderContext> renderers,
             PartRenderer headPart,
             PartRenderer headerPart,
-            PartRenderer footerPart
+            PartRenderer footerPart,
+            Transformer<String, File> relativizer
     ) {
         this.renderers = renderers
         this.headPart = headPart
         this.headerPart = headerPart
         this.footerPart = footerPart
+        this.relativizer = relativizer
     }
 
-    void render(BuildComparisonResult result, Writer context) {
-        MarkupBuilder markupBuilder = new MarkupBuilder(new IndentPrinter(context))
-        HtmlRenderContext outcomeContext = new HtmlRenderContext(markupBuilder)
+    void render(BuildComparisonResult result, Writer writer) {
+        MarkupBuilder markupBuilder = new MarkupBuilder(new IndentPrinter(writer))
+        HtmlRenderContext context = new HtmlRenderContext(markupBuilder, relativizer)
 
         markupBuilder.html {
             head {
-                headPart?.render(result, outcomeContext)
+                headPart?.render(result, context)
             }
             body {
                 div("class": "text-container") {
-                    headerPart?.render(result, outcomeContext)
+                    headerPart?.render(result, context)
+
+                    h2 "Associated build outcomes"
+                    p "Associated build outcomes are outcomes that have been identified as being intended to be the same between the target and source build."
+
+                    ol {
+                        for (comparison in result.comparisons) {
+                            li {
+                                // TODO: assuming that the names are unique and that they are always the same on both sides which they are in 1.2
+                                a("class": context.diffClass(comparison.outcomesAreIdentical), href: "#${name(comparison)}", name(comparison))
+                            }
+                        }
+                    }
 
                     for (BuildOutcomeComparisonResult comparison in result.comparisons) {
                         BuildOutcomeComparisonResultRenderer renderer = renderers.getRenderer(comparison.getClass())
@@ -64,12 +81,18 @@ class HtmlBuildComparisonResultRenderer implements BuildComparisonResultRenderer
                             throw new IllegalArgumentException(String.format("Cannot find renderer for build output comparison result type: %s", result))
                         }
 
-                        renderer.render(comparison, outcomeContext)
+                        div("class": "build-outcome-comparison text-container", id: name(comparison)) {
+                            renderer.render(comparison, context)
+                        }
                     }
 
-                    footerPart?.render(result, outcomeContext)
+                    footerPart?.render(result, context)
                 }
             }
         }
+    }
+
+    String name(BuildOutcomeComparisonResult<?> comparisonResult) {
+        comparisonResult.compared.from.name
     }
 }

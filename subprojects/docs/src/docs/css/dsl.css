@@ -110,12 +110,14 @@
 }
 
 .signature .literal {
-    font-weight: bold;
-    color: #5283a1;
-    padding-left: 0.4em;
-    padding-right: 0.2em;
+    color: #04598D;
+    padding-left: 0.1em;
 }
 
 .content tbody p {
     margin: 0;
+}
+
+div.chapter h5 {
+    margin-left: 0px;
 }

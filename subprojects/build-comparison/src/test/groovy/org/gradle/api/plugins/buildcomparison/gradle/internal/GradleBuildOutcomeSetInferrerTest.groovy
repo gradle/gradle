@@ -60,7 +60,6 @@ class GradleBuildOutcomeSetInferrerTest extends Specification {
         }
 
         when:
-
         allBuildOutcomes(projectOutput).findAll { it instanceof GradleFileBuildOutcome }.each {
             new TestFile(it.file) << it.name
         }

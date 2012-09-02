@@ -16,14 +16,14 @@
 
 package org.gradle.api.plugins.buildcomparison.render.internal.html
 
+import org.gradle.api.Transformer
+import org.gradle.api.plugins.buildcomparison.compare.internal.BuildComparisonResult
+import org.gradle.api.plugins.buildcomparison.compare.internal.BuildOutcomeComparisonResult
+import org.gradle.api.plugins.buildcomparison.outcome.internal.BuildOutcome
+import org.gradle.api.plugins.buildcomparison.outcome.internal.DefaultBuildOutcomeAssociation
 import org.gradle.api.plugins.buildcomparison.outcome.string.StringBuildOutcome
 import org.gradle.api.plugins.buildcomparison.outcome.string.StringBuildOutcomeComparisonResult
 import org.gradle.api.plugins.buildcomparison.outcome.string.StringBuildOutcomeComparisonResultHtmlRenderer
-import org.gradle.api.plugins.buildcomparison.compare.internal.BuildComparisonResult
-import org.gradle.api.plugins.buildcomparison.compare.internal.BuildOutcomeComparisonResult
-import org.gradle.api.plugins.buildcomparison.compare.internal.DefaultBuildComparisonSpecBuilder
-import org.gradle.api.plugins.buildcomparison.outcome.internal.BuildOutcome
-import org.gradle.api.plugins.buildcomparison.outcome.internal.DefaultBuildOutcomeAssociation
 import org.gradle.api.plugins.buildcomparison.render.internal.BuildComparisonResultRenderer
 import org.gradle.api.plugins.buildcomparison.render.internal.DefaultBuildOutcomeComparisonResultRendererFactory
 import org.jsoup.Jsoup
@@ -42,12 +42,14 @@ class HtmlBuildComparisonResultRendererTest extends Specification {
     def unassociatedTo = new HashSet<BuildOutcome>()
     def comparisons = new LinkedList<BuildOutcomeComparisonResult>()
 
-    def comparisonSpecBuilder = new DefaultBuildComparisonSpecBuilder()
-
     def writer = new StringWriter()
 
     BuildComparisonResultRenderer makeRenderer(renderers = this.renderers, headPart = this.headPart, headerPart = this.headerPart, footerPart = this.footerPart) {
-        new HtmlBuildComparisonResultRenderer(renderers, headPart, headerPart, footerPart)
+        new HtmlBuildComparisonResultRenderer(renderers, headPart, headerPart, footerPart, new Transformer() {
+            Object transform(Object original) {
+                original.path
+            }
+        })
     }
 
     BuildComparisonResult makeResult(

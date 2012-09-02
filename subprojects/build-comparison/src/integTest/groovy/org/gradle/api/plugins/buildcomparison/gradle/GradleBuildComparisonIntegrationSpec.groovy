@@ -22,6 +22,7 @@ import org.gradle.util.TestFile
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.junit.Rule
+import org.jsoup.nodes.Element
 
 class GradleBuildComparisonIntegrationSpec extends WellBehavedPluginTest {
     private static final String NOT_IDENTICAL_MESSAGE_PREFIX = "The build outcomes were not found to be identical. See the report at: file:///"
@@ -60,7 +61,7 @@ class GradleBuildComparisonIntegrationSpec extends WellBehavedPluginTest {
         def html = html()
 
         // Name of outcome
-        html.select("h3").text() == "Task: “:jar”"
+        html.select("h3").text() == ":jar"
 
         // Entry comparisons
         def rows = html.select("table")[2].select("tr").tail().collectEntries { [it.select("td")[0].text(), it.select("td")[1].text()] }
@@ -203,11 +204,59 @@ class GradleBuildComparisonIntegrationSpec extends WellBehavedPluginTest {
         failure.assertHasCause("Builds must be executed with Gradle 1.0 or newer (source: ${distribution.version}, target: 1.0-rc-1)")
     }
 
+    def "can handle artifact not existing on source side"() {
+        when:
+        buildFile << """
+            apply plugin: "java"
+            compareGradleBuilds {
+                sourceBuild.arguments = ["-PnoJar"]
+            }
+
+            if (project.hasProperty("noJar")) {
+                jar.enabled = false
+            }
+        """
+
+        then:
+        fails "compareGradleBuilds"
+
+        and:
+        comparisonResultMsg(html(), ":jar") == "The archive was only produced by the Target Build."
+    }
+
+    def "can handle artifact not existing on target side"() {
+        when:
+        buildFile << """
+            apply plugin: "java"
+            compareGradleBuilds {
+                targetBuild.arguments = ["-PnoJar"]
+            }
+
+            if (project.hasProperty("noJar")) {
+                jar.enabled = false
+            }
+        """
+
+        then:
+        fails "compareGradleBuilds"
+
+        and:
+        comparisonResultMsg(html(), ":jar") == "The archive was only produced by the Source Build."
+    }
+
     Document html(path = "build/reports/compareGradleBuilds/index.html") {
         Jsoup.parse(file(path), "utf8")
     }
 
     TestFile storedFile(String path, String base = "build/reports/compareGradleBuilds/files") {
         file("$base/$path")
+    }
+
+    String comparisonResultMsg(Document html, String id) {
+        outcomeComparison(html, id).select(".comparison-result-msg").text()
+    }
+
+    Element outcomeComparison(Document html, String id) {
+        html.select("div.build-outcome-comparison").find { it.id() == id }
     }
 }

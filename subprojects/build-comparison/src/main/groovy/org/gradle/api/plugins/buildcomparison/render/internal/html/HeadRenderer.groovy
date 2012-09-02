@@ -36,8 +36,26 @@ class HeadRenderer implements PartRenderer {
                 mkp.yieldUnescaped loadBaseCss()
 
                 mkp.yieldUnescaped """
-                    .diff { color: red; }
-                    .no-diff { color: green; }
+                    .${context.diffClass} { color: red; }
+                    .${context.equalClass} { color: green; }
+
+                    .container {
+                        padding: 30px;
+                        background-color: #FFF7F7;
+                        border-radius: 10px;
+                        border: 1px solid #E0E0E0;
+                    }
+
+                    .build-outcome-comparison {
+                        padding: 10px 10px 14px 20px;
+                        border: 1px solid #D0D0D0;
+                        border-radius: 6px;
+                        margin-bottom: 1.2em;
+                    }
+
+                    .build-outcome-comparison :last-child {
+                        margin-bottom: 0;
+                    }
                 """
             }
 
