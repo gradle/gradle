@@ -109,11 +109,11 @@ With the addition of [nicer reporting of multiple build failures](#multiple_buil
 
 The list of issues fixed between 1.1 and 1.2 can be found [here](http://issues.gradle.org/sr/jira.issueviews:searchrequest-printable/temp/SearchRequest.html?jqlQuery=fixVersion+in+%28%221.2-rc-1%22%29+ORDER+BY+priority&tempMax=1000).
 
-## New incubating features
+## Incubating features
 
 We will typically introduce new features as _incubating_ at first, giving you a chance to test them out. Typically the implementation quality of the new features is already good but the API might still change with the next release based on the feedback we receive. For some very challenging engineering problems like the Gradle Daemon or parallel builds, it is impossible to get the implementation quality right from the beginning. So we need you here also as beta testers. We will iterate on the new feature based on your feedback, eventually releasing it as stable and production-ready. Those of you who use new features before that point gain the competitive advantage of early access to new functionality in exchange for helping refine it over time. To learn more read our [forum posting on our release approach](http://forums.gradle.org/gradle/topics/the_gradle_release_approach).
 
-### Build Comparison (Gradle upgrade assistance)
+### Comparing builds (upgrade assistance)
 
 Gradle 1.2 delivers the first iteration of our support for comparing the _outcomes_ (e.g. the produced binary archives) of two builds. There are several reasons why you may want to compare the outcomes of two builds. You may want to compare: 
 
@@ -145,31 +145,27 @@ Then simply…
 
 If there are _any_ differences found, a link to the HTML report identifying the differences will be given in the output.
 
+###<a id="parallel"></a>Building projects in parallel
 
-###<a id="parallel"></a> Support for building projects in parallel (highly experimental with known open issues)
+We are excited that Gradle 1.2 introduces support for building projects in parallel. By specifying the `--parallel` or `--parallel-threads` [command-line options](userguide/gradle_command_line.html), Gradle will _execute_ multiple projects in parallel build threads, after first configuring all projects sequentially. By building separate projects in parallel Gradle will better utilise the build machine's hardware, resulting in faster build times. We are seeing significant performance benefits with this approach.
 
-Over the coming releases, we'll be adding production-quality support for parallel execution of independent projects in a multi-project build. By building separate projects in parallel, Gradle will enable better hardware utilisation and faster build times.
+This feature is _incubating_ and has known issues and limitations; it is not yet at production quality. Over the coming releases, it will be improved and stabilised. To find out more about our plans for parallel execution, have a read of the [parallel-project-execution](https://github.com/gradle/gradle/blob/master/design-docs/parallel-project-execution.md) specification.
 
-We are excited that Gradle 1.2 introduces the first experimental support for this feature, via the `--parallel` and `--parallel-threads` [command-line options](userguide/gradle_command_line.html). By using these options Gradle will attempt to _execute_ multiple projects in parallel build threads, after first configuring all projects sequentially. We are seeing significant performance benefits with this approach, in particular when the build is not already CPU bound.
+#### Project requirements
 
-Note that to guarantee successful parallel execution of projects, your multi-project build must contain only [decoupled projects](userguide/multi_project_builds.html#sec:decoupled_projects).
-While configuration-time decoupling is not strictly required for parallel project execution, we do not intend on supporting a separate model of decoupling that permits configuration-time coupling with execution-time decoupling. At this time there are no checks implemented to ensure that projects are decoupled, and unexpected behaviour may result from executing a build with coupled projects using the new parallel executor.
+To guarantee successful parallel execution of projects, your multi-project build must be [decoupled](userguide/multi_project_builds.html#sec:decoupled_projects). At this time there are no checks implemented to ensure that projects are decoupled, and unexpected behaviour may result from executing a build with coupled projects using the new parallel executor.
 
-To find out more about our plans for parallel execution, have a read of the [parallel-project-execution](https://github.com/gradle/gradle/blob/master/design-docs/parallel-project-execution.md) specification.
-
-_**This feature is pre-alpha and highly experimental. Many multi-project builds will behave unexpectedly when run using parallel project execution. You will get a warning when you are using it.**_
+#### Known issues
 
 One known issue is that the Gradle compiler daemon is currently not thread-safe. So if multiple projects attempt to compile java code simultaneously with `fork=true`,
 exceptions will result. Workaround: don't use `options.fork=true` to compile when running with `--parallel`.
 
-### New dependency resolution result API
+### Dependency resolution result API
 
 We are exposing the new API that our improved dependency reports are using. It provides a powerful toolkit for developing your own custom dependency reports. It also allows to develop smart build logic that can make decisions based on the content of the dependency graph.
 
 The best way to start with the new API is to take a look at the Javadocs
 for <a href="javadoc/org/gradle/api/artifacts/ResolvedConfiguration.html#getResolutionResult()">`ResolvedConfiguration.getResolutionResult()`</a>.
-
-_**The new resolution API is not stable yet and may change with the next releases. Therefore you will get a warning when you are using it.**_
 
 ### JSR-330 dependency injection for plugins and tasks
 
