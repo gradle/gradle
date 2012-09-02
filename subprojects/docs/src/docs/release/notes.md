@@ -58,19 +58,10 @@ The version that was selected for the _dynamic_ dependency is shown (i.e. “`co
 We've continued to improve our dependency resolution engine, so that it now requires much less heap space. A moderately sized multi-project build can
 expect to see a 20-25% reduction in heap usage thanks to these improvements.
 
-### Continue on failure (`--continue`) no longer experimental
-
-Often a high-level task is dependent on multiple smaller tasks. By default, Gradle will stop executing any task and fail the build
-as soon as one of these sub-tasks fails. This means that the build will finish sooner, but it does not reveal failures in other, independent sub-tasks.
-There are many times when you would like to find out as many failures as possible in a single build execution. For example, when you kick off a build
-before heading out to lunch, or running a nightly CI job. The `--continue` command-line option allows you to do just that.
-
-With the addition of [nicer reporting of multiple build failures](#multiple_build_failures), we now consider `--continue` a fully-fledged capability of Gradle, and have removed the `experimental` flag from this option. Please see the [User Guide section](userguide/tutorial_gradle_command_line.html#sec:continue_build_on_failure) for more details.
-
 ### <a id="multiple_build_failures"></a>Reporting of multiple build failures
 
-When running the build with `--continue` or the new `--parallel` option (see [below](#parallel)) it is possible to have multiple failures in your build. While executing Gradle will now report on tasks that fail,
-as well as producing output detailing _all_ build failures on build completion.
+When running the build with `--continue` or the [new `--parallel` option](#parallel) it is possible to have multiple failures in your build. 
+While executing Gradle will now report on tasks that fail, as well as producing output detailing _all_ build failures on build completion.
 
 The new output clearly indicates the cause and possible analysis of each failure, making it easier to track down the underlying issue.
 Detailing _all_ failures makes the `--continue` command line option much more useful: it is now possible to use this option to
@@ -100,6 +91,19 @@ An example for a Gradle generated user-agent string: "**Gradle/1.2 (Mac OS X;10.
 Our documentation has received a facelift to match our new style. Check out the new look [DSL Reference](dsl/index.html) and [User Guide](userguide/userguide.html).
 
 The [DSL Reference](dsl/index.html) now indicates which features are deprecated or incubating.
+
+## Promoted features
+
+Promoted features are features that were *incubating* in previous versions of Gradle but are now supported and subject to our backwards compatibility policy.
+
+### Continue on failure (`--continue`)
+
+Often a high-level task is dependent on multiple smaller tasks. By default, Gradle will stop executing any task and fail the build
+as soon as one of these sub-tasks fails. This means that the build will finish sooner, but it does not reveal failures in other, independent sub-tasks.
+There are many times when you would like to find out as many failures as possible in a single build execution. For example, when you kick off a build
+before heading out to lunch, or running a nightly CI job. The `--continue` command-line option allows you to do just that.
+
+With the addition of [nicer reporting of multiple build failures](#multiple_build_failures), we now consider `--continue` a fully-fledged capability of Gradle, and have removed the `experimental` flag from this option. Please see the [User Guide section](userguide/tutorial_gradle_command_line.html#sec:continue_build_on_failure) for more details.
 
 ## Fixed Issues
 
