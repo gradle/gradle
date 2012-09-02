@@ -67,6 +67,7 @@ import java.util.Set;
 /**
  * Executes two Gradle builds (that can be the same build) with specified versions and compares the outputs.
  */
+@Incubating
 public class CompareGradleBuilds extends DefaultTask implements VerificationTask {
 
     private static final List<String> DEFAULT_TASKS = Arrays.asList("clean", "assemble");
