@@ -103,9 +103,9 @@ as soon as one of these sub-tasks fails. This means that the build will finish s
 There are many times when you would like to find out as many failures as possible in a single build execution. For example, when you kick off a build
 before heading out to lunch, or running a nightly CI job. The `--continue` command-line option allows you to do just that.
 
-With the addition of [nicer reporting of multiple build failures](#multiple_build_failures), we now consider `--continue` a fully-fledged capability of Gradle, and have removed the `experimental` flag from this option. Please see the [User Guide section](userguide/tutorial_gradle_command_line.html#sec:continue_build_on_failure) for more details.
+With the addition of [nicer reporting of multiple build failures](#multiple_build_failures), we now consider `--continue` a production quality feature of Gradlee. Please see the [User Guide section](userguide/tutorial_gradle_command_line.html#sec:continue_build_on_failure) for more details.
 
-## Fixed Issues
+## Fixed issues
 
 The list of issues fixed between 1.1 and 1.2 can be found [here](http://issues.gradle.org/sr/jira.issueviews:searchrequest-printable/temp/SearchRequest.html?jqlQuery=fixVersion+in+%28%221.2-rc-1%22%29+ORDER+BY+priority&tempMax=1000).
 
