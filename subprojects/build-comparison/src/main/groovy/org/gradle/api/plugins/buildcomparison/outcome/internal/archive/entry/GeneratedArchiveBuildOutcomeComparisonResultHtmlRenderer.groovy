@@ -89,20 +89,19 @@ class GeneratedArchiveBuildOutcomeComparisonResultHtmlRenderer extends BuildOutc
 
     private void renderUnequal(HtmlRenderContext context, Iterable<ArchiveEntryComparison> entryComparisons) {
         context.render {
-            div(class: "archive-entry-differences") {
-                h5 "Entry Differences"
-                table {
-                    tr {
-                        th "Path"
-                        th "Difference"
-                    }
 
-                    entryComparisons.each { entryComparison ->
-                        if (entryComparison.comparisonResultType != EQUAL) {
-                            tr {
-                                td entryComparison.path
-                                td toDifferenceDescription(entryComparison)
-                            }
+            h5 "Entry Differences"
+            table(class: "archive-entry-differences") {
+                tr {
+                    th "Path"
+                    th "Difference"
+                }
+
+                entryComparisons.each { entryComparison ->
+                    if (entryComparison.comparisonResultType != EQUAL) {
+                        tr {
+                            td entryComparison.path
+                            td toDifferenceDescription(entryComparison)
                         }
                     }
                 }

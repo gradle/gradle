@@ -17,17 +17,15 @@
 package org.gradle.api.plugins.buildcomparison.render.internal.html
 
 import groovy.xml.MarkupBuilder
-
-import org.gradle.api.plugins.buildcomparison.compare.internal.BuildOutcomeComparisonResult
-
-import org.gradle.api.plugins.buildcomparison.render.internal.BuildComparisonResultRenderer
-import org.gradle.api.plugins.buildcomparison.render.internal.BuildOutcomeComparisonResultRendererFactory
-import org.gradle.api.plugins.buildcomparison.compare.internal.BuildComparisonResult
-import org.gradle.api.plugins.buildcomparison.render.internal.BuildOutcomeComparisonResultRenderer
-import org.gradle.api.Transformer
-import org.gradle.util.GradleVersion
 import org.apache.commons.lang.StringEscapeUtils
+import org.gradle.api.Transformer
+import org.gradle.api.plugins.buildcomparison.compare.internal.BuildComparisonResult
+import org.gradle.api.plugins.buildcomparison.compare.internal.BuildOutcomeComparisonResult
 import org.gradle.api.plugins.buildcomparison.gradle.internal.ComparableGradleBuildExecuter
+import org.gradle.api.plugins.buildcomparison.render.internal.BuildComparisonResultRenderer
+import org.gradle.api.plugins.buildcomparison.render.internal.BuildOutcomeComparisonResultRenderer
+import org.gradle.api.plugins.buildcomparison.render.internal.BuildOutcomeComparisonResultRendererFactory
+
 import java.nio.charset.Charset
 
 class GradleBuildComparisonResultHtmlRenderer implements BuildComparisonResultRenderer<Writer> {
@@ -104,8 +102,8 @@ class GradleBuildComparisonResultHtmlRenderer implements BuildComparisonResultRe
                 mkp.yieldUnescaped loadBaseCss()
 
                 mkp.yieldUnescaped """
-                    .${context.diffClass} { color: red; }
-                    .${context.equalClass} { color: green; }
+                    .${context.diffClass} { color: red !important; }
+                    .${context.equalClass} { color: green !important; }
 
                     .container {
                         padding: 30px;
@@ -121,7 +119,24 @@ class GradleBuildComparisonResultHtmlRenderer implements BuildComparisonResultRe
                         margin-bottom: 1.2em;
                     }
 
-                    .build-outcome-comparison :last-child {
+                    .build-outcome-comparison > :last-child {
+                        margin-bottom: 0;
+                    }
+
+                    .build-outcome-comparison > :first-child {
+                         margin-top: 0;
+                    }
+
+                    .warning {
+                        background-color: #FFEFF2;
+                        color: red;
+                        border: 1px solid #FFCBCB;
+                        padding: 6px;
+                        border-radius: 6px;
+                        display: inline-block;
+                    }
+
+                    .warning > :last-child {
                         margin-bottom: 0;
                     }
                 """
@@ -154,6 +169,16 @@ class GradleBuildComparisonResultHtmlRenderer implements BuildComparisonResultRe
 
             div(id: "compared-builds") {
                 h2 "Compared builds"
+
+                // We are reaching pretty deep into the knowledge of how things were created.
+                // This is not great and should be fixed.
+                if (!sourceExecuter.canObtainProjectOutcomesModel) {
+                    inferredOutcomesWarningMessage(true, sourceExecuter, context)
+                }
+                if (!targetExecuter.canObtainProjectOutcomesModel) {
+                    inferredOutcomesWarningMessage(false, targetExecuter, context)
+                }
+
                 table {
                     tr {
                         th class: "border-right", ""
@@ -193,6 +218,19 @@ class GradleBuildComparisonResultHtmlRenderer implements BuildComparisonResultRe
                         td targetBuildArguments.join(" ")
                     }
                 }
+            }
+        }
+    }
+
+    protected void inferredOutcomesWarningMessage(boolean isSourceBuild, ComparableGradleBuildExecuter executer, HtmlRenderContext context) {
+        def inferredFor = isSourceBuild ? "source" : "target"
+        def inferredFrom = isSourceBuild ? "target" : "source"
+
+        context.render {
+            div(class: "warning inferred-outcomes para") {
+                p "Build outcomes were not able to be determined for the ${inferredFor} build as Gradle ${executer.spec.gradleVersion.version} does not support this feature."
+                p "The outcomes for this build have inferred from the ${inferredFrom} build. That is, it is assumed to produce the same outcomes as the ${inferredFrom} build."
+                p "This may result in a less accurate comparison."
             }
         }
     }

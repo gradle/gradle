@@ -157,16 +157,22 @@ class Pre12CompareGradleBuildsCrossVersionSpec extends CrossVersionIntegrationSp
         result.assertHasCause("The build outcomes were not found to be identical. See the report at: file:///")
     }
 
-    void sourceWasInferred() {
-        hasInferredWarning("source")
+    void sourceWasInferred(Document html = this.html()) {
+        hasInferredLogWarning("source")
+        hasInferredHtmlWarning("source", html)
     }
 
-    void targetWasInferred() {
-        hasInferredWarning("target")
+    void targetWasInferred(Document html = this.html()) {
+        hasInferredLogWarning("target")
+        hasInferredHtmlWarning("target", html)
     }
 
-    void hasInferredWarning(String buildName) {
+    void hasInferredLogWarning(String buildName) {
         assert result.output.contains("The build outcomes for the $buildName build will be inferred from the")
+    }
+
+    void hasInferredHtmlWarning(String buildName, Document html) {
+        assert html.body().select(".warning.inferred-outcomes").text().contains("Build outcomes were not able to be determined for the $buildName build")
     }
 
 }
