@@ -29,9 +29,7 @@ import org.gradle.api.plugins.buildcomparison.outcome.internal.BuildOutcome;
 import org.gradle.api.plugins.buildcomparison.outcome.internal.BuildOutcomeAssociator;
 import org.gradle.api.plugins.buildcomparison.outcome.internal.ByTypeAndNameBuildOutcomeAssociator;
 import org.gradle.api.plugins.buildcomparison.outcome.internal.CompositeBuildOutcomeAssociator;
-import org.gradle.api.plugins.buildcomparison.render.internal.BuildComparisonResultRenderer;
-import org.gradle.api.plugins.buildcomparison.render.internal.BuildOutcomeComparisonResultRenderer;
-import org.gradle.api.plugins.buildcomparison.render.internal.DefaultBuildOutcomeComparisonResultRendererFactory;
+import org.gradle.api.plugins.buildcomparison.render.internal.*;
 import org.gradle.api.plugins.buildcomparison.render.internal.html.GradleBuildComparisonResultHtmlRenderer;
 import org.gradle.api.plugins.buildcomparison.render.internal.html.HtmlRenderContext;
 import org.gradle.logging.ProgressLogger;
@@ -62,6 +60,7 @@ public class GradleBuildComparison {
     private final DefaultBuildOutcomeComparatorFactory outcomeComparatorFactory = new DefaultBuildOutcomeComparatorFactory();
     private final List<BuildOutcomeAssociator> outcomeAssociators = new LinkedList<BuildOutcomeAssociator>();
     private final DefaultBuildOutcomeComparisonResultRendererFactory<HtmlRenderContext> comparisonResultRenderers = new DefaultBuildOutcomeComparisonResultRendererFactory<HtmlRenderContext>(HtmlRenderContext.class);
+    private final DefaultBuildOutcomeRendererFactory<HtmlRenderContext> outcomeRenderers = new DefaultBuildOutcomeRendererFactory<HtmlRenderContext>(HtmlRenderContext.class);
     private final Logger logger;
     private final ProgressLogger progressLogger;
     private final Gradle gradle;
@@ -79,9 +78,15 @@ public class GradleBuildComparison {
         this.gradle = gradle;
     }
 
-    public <T extends BuildOutcome, R extends BuildOutcomeComparisonResult<T>> void registerType(Class<T> outcomeType, BuildOutcomeComparator<T, R> outcomeComparator, BuildOutcomeComparisonResultRenderer<R, HtmlRenderContext> comparisonResultRenderer) {
+    public <T extends BuildOutcome, R extends BuildOutcomeComparisonResult<T>> void registerType(
+            Class<T> outcomeType,
+            BuildOutcomeComparator<T, R> outcomeComparator,
+            BuildOutcomeComparisonResultRenderer<R, HtmlRenderContext> comparisonResultRenderer,
+            BuildOutcomeRenderer<T, HtmlRenderContext> outcomeRenderer
+    ) {
         outcomeComparatorFactory.registerComparator(outcomeComparator);
         comparisonResultRenderers.registerRenderer(comparisonResultRenderer);
+        outcomeRenderers.registerRenderer(outcomeRenderer);
         outcomeAssociators.add(new ByTypeAndNameBuildOutcomeAssociator<T>(outcomeType));
     }
 
@@ -254,6 +259,7 @@ public class GradleBuildComparison {
     private BuildComparisonResultRenderer<Writer> createResultRenderer(Charset encoding, final File reportDir, final Map<String, String> hostAttributes) {
         return new GradleBuildComparisonResultHtmlRenderer(
                 comparisonResultRenderers,
+                outcomeRenderers,
                 encoding,
                 sourceBuildExecuter,
                 targetBuildExecuter,

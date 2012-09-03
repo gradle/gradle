@@ -37,16 +37,15 @@ import org.junit.Rule
 import spock.lang.Specification
 
 import java.nio.charset.Charset
+import org.gradle.api.plugins.buildcomparison.render.internal.DefaultBuildOutcomeRendererFactory
+import org.gradle.api.plugins.buildcomparison.outcome.string.StringBuildOutcomeHtmlRenderer
 
 class GradleBuildComparisonResultHtmlRendererTest extends Specification {
 
     @Rule TemporaryFolder dir = new TemporaryFolder()
 
-    def headPart = null
-    def headerPart = null
-    def footerPart = null
-
-    def renderers = new DefaultBuildOutcomeComparisonResultRendererFactory(HtmlRenderContext)
+    def comparisonRenderers = new DefaultBuildOutcomeComparisonResultRendererFactory(HtmlRenderContext)
+    def outcomeRenderers = new DefaultBuildOutcomeRendererFactory(HtmlRenderContext)
 
     def unassociatedFrom = new HashSet<BuildOutcome>()
     def unassociatedTo = new HashSet<BuildOutcome>()
@@ -64,8 +63,8 @@ class GradleBuildComparisonResultHtmlRendererTest extends Specification {
     def sourceBuildExecuter = new ComparableGradleBuildExecuter(sourceBuildSpec)
     def targetBuildExecuter = new ComparableGradleBuildExecuter(targetBuildSpec)
 
-    BuildComparisonResultRenderer makeRenderer(renderers = this.renderers) {
-        new GradleBuildComparisonResultHtmlRenderer(renderers, Charset.defaultCharset(), sourceBuildExecuter, targetBuildExecuter, hostAttributes, new Transformer() {
+    BuildComparisonResultRenderer makeRenderer() {
+        new GradleBuildComparisonResultHtmlRenderer(comparisonRenderers, outcomeRenderers, Charset.defaultCharset(), sourceBuildExecuter, targetBuildExecuter, hostAttributes, new Transformer() {
             Object transform(Object original) {
                 original.path
             }
@@ -101,10 +100,16 @@ class GradleBuildComparisonResultHtmlRendererTest extends Specification {
 
     def "render some results"() {
         given:
-        renderers.registerRenderer(new StringBuildOutcomeComparisonResultHtmlRenderer())
+        comparisonRenderers.registerRenderer(new StringBuildOutcomeComparisonResultHtmlRenderer())
+        outcomeRenderers.registerRenderer(new StringBuildOutcomeHtmlRenderer())
+
+        and:
         comparisons << strcmp("a", "a")
         comparisons << strcmp("a", "b")
         comparisons << strcmp("a", "c")
+
+        unassociatedFrom << str("foo")
+        unassociatedTo << str("bar")
 
         when:
         def html = render()
@@ -116,6 +121,8 @@ class GradleBuildComparisonResultHtmlRendererTest extends Specification {
         tables[0].select("th").text() == "Source Target Distance"
         tables[0].select("td")[0].text() == "a"
         tables[2].select("td")[2].text() == comparisons.last.distance.toString()
+        html.select(".build-outcome.source").find { it.id() == "foo" }
+        html.select(".build-outcome.target").find { it.id() == "bar" }
     }
 
 }

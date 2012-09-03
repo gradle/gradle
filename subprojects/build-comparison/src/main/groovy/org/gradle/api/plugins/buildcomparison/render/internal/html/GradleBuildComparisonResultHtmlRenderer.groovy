@@ -22,31 +22,34 @@ import org.gradle.api.Transformer
 import org.gradle.api.plugins.buildcomparison.compare.internal.BuildComparisonResult
 import org.gradle.api.plugins.buildcomparison.compare.internal.BuildOutcomeComparisonResult
 import org.gradle.api.plugins.buildcomparison.gradle.internal.ComparableGradleBuildExecuter
-import org.gradle.api.plugins.buildcomparison.render.internal.BuildComparisonResultRenderer
-import org.gradle.api.plugins.buildcomparison.render.internal.BuildOutcomeComparisonResultRenderer
-import org.gradle.api.plugins.buildcomparison.render.internal.BuildOutcomeComparisonResultRendererFactory
+import org.gradle.api.plugins.buildcomparison.outcome.internal.BuildOutcome
 
 import java.nio.charset.Charset
 
+import org.gradle.api.plugins.buildcomparison.render.internal.*
+
 class GradleBuildComparisonResultHtmlRenderer implements BuildComparisonResultRenderer<Writer> {
 
-    private final BuildOutcomeComparisonResultRendererFactory<HtmlRenderContext> renderers
+    private final BuildOutcomeComparisonResultRendererFactory<HtmlRenderContext> comparisonRenderers
+    private final BuildOutcomeRendererFactory outcomeRenderers
 
-    Transformer<String, File> filePathRelativizer
-    ComparableGradleBuildExecuter sourceExecuter
-    ComparableGradleBuildExecuter targetExecuter
-    Map<String, String> hostAttributes
-    Charset encoding
+    private final Transformer<String, File> filePathRelativizer
+    private final ComparableGradleBuildExecuter sourceExecuter
+    private final ComparableGradleBuildExecuter targetExecuter
+    private final Map<String, String> hostAttributes
+    private final Charset encoding
 
     GradleBuildComparisonResultHtmlRenderer(
-            BuildOutcomeComparisonResultRendererFactory<HtmlRenderContext> renderers,
+            BuildOutcomeComparisonResultRendererFactory<HtmlRenderContext> comparisonRenderers,
+            BuildOutcomeRendererFactory outcomeRenderers,
             Charset encoding,
             ComparableGradleBuildExecuter sourceExecuter,
             ComparableGradleBuildExecuter targetExecuter,
             Map<String, String> hostAttributes,
             Transformer<String, File> fileRelativizer
     ) {
-        this.renderers = renderers
+        this.comparisonRenderers = comparisonRenderers
+        this.outcomeRenderers = outcomeRenderers
         this.encoding = encoding
         this.sourceExecuter = sourceExecuter
         this.targetExecuter = targetExecuter
@@ -65,30 +68,73 @@ class GradleBuildComparisonResultHtmlRenderer implements BuildComparisonResultRe
             body {
                 div("class": "text-container") {
                     renderHeading(result, context)
+                    renderOutcomeComparisons(result, context)
+                    renderUncomparedOutcomes(result, context)
+                }
+            }
+        }
+    }
 
-                    h2 "Associated build outcomes"
-                    p "Associated build outcomes are outcomes that have been identified as being intended to be the same between the target and source build."
+    private void renderUncomparedOutcomes(BuildComparisonResult result, HtmlRenderContext context) {
+        renderUncomparedOutcomeSet(true, result.uncomparedFrom, context)
+        renderUncomparedOutcomeSet(false, result.uncomparedTo, context)
+    }
 
-                    ol {
-                        for (comparison in result.comparisons) {
-                            li {
-                                // TODO: assuming that the names are unique and that they are always the same on both sides which they are in 1.2
-                                a("class": context.diffClass(comparison.outcomesAreIdentical), href: "#${name(comparison)}", name(comparison))
-                            }
+    protected void renderUncomparedOutcomeSet(boolean isSource, Set<BuildOutcome> uncompareds, HtmlRenderContext context) {
+        def side = isSource ? "source" : "target"
+        def other = isSource ? "target" : "source"
+
+        if (uncompareds) {
+            context.render {
+                h2 "Uncompared ${side} outcomes"
+                p "Uncompared ${side} build outcomes are outcomes that were not matched with a ${other} build outcome."
+
+                ol {
+                    for (uncompared in uncompareds) {
+                        li {
+                            a(href: "#${uncompared.name}", uncompared.name)
                         }
                     }
+                }
 
-                    for (BuildOutcomeComparisonResult comparison in result.comparisons) {
-                        BuildOutcomeComparisonResultRenderer renderer = renderers.getRenderer(comparison.getClass())
+                for (uncompared in uncompareds) {
+                    BuildOutcomeRenderer renderer = outcomeRenderers.getRenderer(uncompared.getClass())
 
-                        if (renderer == null) {
-                            throw new IllegalArgumentException(String.format("Cannot find renderer for build output comparison result type: %s", result))
-                        }
-
-                        div("class": "build-outcome-comparison text-container", id: name(comparison)) {
-                            renderer.render(comparison, context)
-                        }
+                    if (renderer == null) {
+                        throw new IllegalArgumentException(String.format("Cannot find renderer for build outcome type: %s", uncompared.getClass()))
                     }
+
+                    div("class": "build-outcome text-container ${side}", id: uncompared.name) {
+                        renderer.render(uncompared, context)
+                    }
+                }
+            }
+        }
+    }
+
+    protected void renderOutcomeComparisons(BuildComparisonResult result, HtmlRenderContext context) {
+        context.render {
+            h2 "Compared build outcomes"
+            p "Compared build outcomes are outcomes that have been identified as being intended to be the same between the target and source build."
+
+            ol {
+                for (comparison in result.comparisons) {
+                    li {
+                        // TODO: assuming that the names are unique and that they are always the same on both sides which they are in 1.2
+                        a("class": context.diffClass(comparison.outcomesAreIdentical), href: "#${name(comparison)}", name(comparison))
+                    }
+                }
+            }
+
+            for (BuildOutcomeComparisonResult comparison in result.comparisons) {
+                BuildOutcomeComparisonResultRenderer renderer = comparisonRenderers.getRenderer(comparison.getClass())
+
+                if (renderer == null) {
+                    throw new IllegalArgumentException(String.format("Cannot find renderer for build outcome comparison result type: %s", comparison.getClass()))
+                }
+
+                div("class": "build-outcome-comparison text-container", id: name(comparison)) {
+                    renderer.render(comparison, context)
                 }
             }
         }
@@ -112,18 +158,18 @@ class GradleBuildComparisonResultHtmlRenderer implements BuildComparisonResultRe
                         border: 1px solid #E0E0E0;
                     }
 
-                    .build-outcome-comparison {
+                    .build-outcome-comparison, .build-outcome {
                         padding: 10px 10px 14px 20px;
                         border: 1px solid #D0D0D0;
                         border-radius: 6px;
                         margin-bottom: 1.2em;
                     }
 
-                    .build-outcome-comparison > :last-child {
+                    .build-outcome-comparison > :last-child, .build-outcome > :last-child {
                         margin-bottom: 0;
                     }
 
-                    .build-outcome-comparison > :first-child {
+                    .build-outcome-comparison > :first-child, .build-outcome > :first-child {
                          margin-top: 0;
                     }
 

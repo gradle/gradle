@@ -28,9 +28,11 @@ import org.gradle.api.plugins.buildcomparison.gradle.internal.GradleBuildCompari
 import org.gradle.api.plugins.buildcomparison.outcome.internal.archive.GeneratedArchiveBuildOutcome;
 import org.gradle.api.plugins.buildcomparison.outcome.internal.archive.GeneratedArchiveBuildOutcomeComparator;
 import org.gradle.api.plugins.buildcomparison.outcome.internal.archive.GeneratedArchiveBuildOutcomeComparisonResultHtmlRenderer;
+import org.gradle.api.plugins.buildcomparison.outcome.internal.archive.GeneratedArchiveBuildOutcomeHtmlRenderer;
 import org.gradle.api.plugins.buildcomparison.outcome.internal.unknown.UnknownBuildOutcome;
 import org.gradle.api.plugins.buildcomparison.outcome.internal.unknown.UnknownBuildOutcomeComparator;
 import org.gradle.api.plugins.buildcomparison.outcome.internal.unknown.UnknownBuildOutcomeComparisonResultHtmlRenderer;
+import org.gradle.api.plugins.buildcomparison.outcome.internal.unknown.UnknownBuildOutcomeHtmlRenderer;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
@@ -152,13 +154,15 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
         comparison.registerType(
                 GeneratedArchiveBuildOutcome.class,
                 new GeneratedArchiveBuildOutcomeComparator(),
-                new GeneratedArchiveBuildOutcomeComparisonResultHtmlRenderer()
+                new GeneratedArchiveBuildOutcomeComparisonResultHtmlRenderer(),
+                new GeneratedArchiveBuildOutcomeHtmlRenderer()
         );
 
         comparison.registerType(
                 UnknownBuildOutcome.class,
                 new UnknownBuildOutcomeComparator(),
-                new UnknownBuildOutcomeComparisonResultHtmlRenderer()
+                new UnknownBuildOutcomeComparisonResultHtmlRenderer(),
+                new UnknownBuildOutcomeHtmlRenderer()
         );
 
         File fileStoreTmpBase = fileResolver.resolve(String.format(TMP_FILESTORAGE_PREFIX + "-%s-%s", getName(), System.currentTimeMillis()));

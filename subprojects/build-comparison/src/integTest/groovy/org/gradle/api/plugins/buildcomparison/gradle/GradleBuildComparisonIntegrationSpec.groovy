@@ -21,8 +21,8 @@ import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.util.TestFile
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
-import org.junit.Rule
 import org.jsoup.nodes.Element
+import org.junit.Rule
 
 class GradleBuildComparisonIntegrationSpec extends WellBehavedPluginTest {
     private static final String NOT_IDENTICAL_MESSAGE_PREFIX = "The build outcomes were not found to be identical. See the report at: file:///"
@@ -242,6 +242,51 @@ class GradleBuildComparisonIntegrationSpec extends WellBehavedPluginTest {
 
         and:
         comparisonResultMsg(html(), ":jar") == "The archive was only produced by the source build."
+    }
+
+    def "can handle uncompared outcomes"() {
+        when:
+        buildFile << """
+            apply plugin: "java"
+            compareGradleBuilds {
+                sourceBuild.arguments = ["-PdoJavadoc"]
+                targetBuild.arguments = ["-PdoSource"]
+
+            }
+
+            if (project.hasProperty("doSource")) {
+                task sourceJar(type: Jar) {
+                    from sourceSets.main.allJava
+                    classifier "source"
+                }
+                artifacts {
+                    archives sourceJar
+                }
+            }
+
+            if (project.hasProperty("doJavadoc")) {
+                task javadocJar(type: Jar) {
+                    from tasks.javadoc
+                    classifier "javadoc"
+                }
+                artifacts {
+                    archives javadocJar
+                }
+            }
+        """
+
+        and:
+        file("src/main/java/Thing.java") << "public class Thing {}"
+
+        then:
+        fails "compareGradleBuilds"
+
+        def html = html()
+        html.select("h2").find { it.text() == "Uncompared source outcomes" }
+        html.select("h2").find { it.text() == "Uncompared target outcomes" }
+
+        html.select(".build-outcome.source h3").text() == ":javadocJar"
+        html.select(".build-outcome.target h3").text() == ":sourceJar"
     }
 
     Document html(path = "build/reports/compareGradleBuilds/index.html") {

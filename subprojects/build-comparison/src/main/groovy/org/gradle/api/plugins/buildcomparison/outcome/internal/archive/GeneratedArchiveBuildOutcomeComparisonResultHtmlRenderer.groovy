@@ -52,7 +52,7 @@ class GeneratedArchiveBuildOutcomeComparisonResultHtmlRenderer extends BuildOutc
                         def sourceCopyPath = context.relativePath(source.archiveFile)
                         td { a(href: sourceCopyPath, sourceCopyPath) }
                     } else {
-                        td "(no file)"
+                        td "(no file; not created by build)"
                     }
                 }
                 tr {
@@ -62,7 +62,7 @@ class GeneratedArchiveBuildOutcomeComparisonResultHtmlRenderer extends BuildOutc
                         def targetCopyPath = context.relativePath(target.archiveFile)
                         td { a(href: targetCopyPath, targetCopyPath) }
                     } else {
-                        td "(no file)"
+                        td "(no file; not created by build)"
                     }
                 }
             }
