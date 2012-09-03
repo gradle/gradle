@@ -51,6 +51,42 @@ uploadArchives {
         module.assertChecksumPublishedFor(module.jarFile)
     }
 
+    @Issue("GRADLE-2456")
+    public void generatesSHA1FileWithLeadingZeros() {
+        given:
+        def repo = new IvyRepository(distribution.testFile('ivy-repo'))
+        def module = repo.module("org.gradle", "publish", "2")
+        byte[] jarBytes = [0, 0, 0, 5]
+        def artifactFile = file("testfile.bin")
+        artifactFile << jarBytes
+        def rootDir = TextUtil.escape(repo.rootDir.path)
+        def artifactPath = TextUtil.escape(artifactFile.path)
+        settingsFile << 'rootProject.name = "publish"'
+        buildFile << """
+apply plugin:'java'
+group = "org.gradle"
+version = '2'
+artifacts {
+        archives file: file("${artifactPath}"), name: 'testfile', type: 'bin'
+}
+
+uploadArchives {
+    repositories {
+        ivy {
+            url "${rootDir}"
+        }
+    }
+}
+"""
+        when:
+        succeeds 'uploadArchives'
+
+        then:
+        def shaOneFile = module.moduleDir.file("testfile-2.bin.sha1")
+        shaOneFile.exists()
+        shaOneFile.text == "00e14c6ef59816760e2c9b5a57157e8ac9de4012"
+    }
+
     @Issue("GRADLE-1811")
     public void canGenerateTheIvyXmlWithoutPublishing() {
         //this is more like documenting the current behavior.

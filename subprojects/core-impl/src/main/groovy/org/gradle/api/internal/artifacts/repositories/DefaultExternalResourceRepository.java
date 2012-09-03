@@ -33,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.math.BigInteger;
 import java.util.List;
 
 public class DefaultExternalResourceRepository implements ExternalResourceRepository {
@@ -69,19 +70,20 @@ public class DefaultExternalResourceRepository implements ExternalResourceReposi
 
     public void put(File source, String destination) throws IOException {
         doPut(source, destination);
-        putChecksum("SHA1", source, destination);
+        putChecksum("SHA1", "%040x", source, destination);
     }
 
-    private void putChecksum(String algorithm, File source, String destination) throws IOException {
-        File checksumFile = createChecksumFile(source, algorithm);
+    private void putChecksum(String algorithm, String format, File source, String destination) throws IOException {
+        File checksumFile = createChecksumFile(source, algorithm, format);
         String checksumDestination = destination + "." + algorithm.toLowerCase();
         doPut(checksumFile, checksumDestination);
     }
 
-    private File createChecksumFile(File src, String algorithm) {
+    private File createChecksumFile(File src, String algorithm, String format) {
         File csFile = temporaryFileProvider.createTemporaryFile("ivytemp", algorithm);
         HashValue hash = HashUtil.createHash(src, algorithm);
-        GFileUtils.writeFile(hash.asHexString(), csFile);
+        final String formattedHash = String.format(format, new BigInteger(1, hash.asByteArray()));
+        GFileUtils.writeFile(formattedHash, csFile, "US-ASCII");
         return csFile;
     }
 

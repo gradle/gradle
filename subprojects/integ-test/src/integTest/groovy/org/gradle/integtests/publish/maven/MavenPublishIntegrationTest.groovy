@@ -20,6 +20,8 @@ import org.gradle.integtests.fixtures.HttpServer
 import org.gradle.integtests.fixtures.MavenRepository
 import org.gradle.util.GradleVersion
 import org.junit.Rule
+import org.spockframework.util.TextUtil
+import spock.lang.Issue
 import spock.lang.Unroll
 
 import static org.gradle.integtests.fixtures.UserAgentMatcher.matchesNameAndVersion
@@ -55,6 +57,42 @@ uploadArchives {
         then:
         def module = repo().module('group', 'root', 1.0)
         module.assertArtifactsPublished('root-1.0.jar', 'root-1.0.pom')
+    }
+
+    @Issue("GRADLE-2456")
+    public void generatesSHA1FileWithLeadingZeros() {
+        given:
+        def module = repo().module("org.gradle", "publish", "2")
+        byte[] jarBytes = [0, 0, 0, 5]
+        def artifactFile = file("testfile.bin")
+        artifactFile << jarBytes
+        def rootDir = TextUtil.escape(repo().rootDir.path)
+        def artifactPath = TextUtil.escape(artifactFile.path)
+        settingsFile << 'rootProject.name = "publish"'
+        buildFile << """
+    apply plugin:'java'
+    apply plugin: 'maven'
+    group = "org.gradle"
+    version = '2'
+    artifacts {
+        archives file: file("${artifactPath}")
+    }
+
+    uploadArchives {
+        repositories {
+            mavenDeployer {
+                repository(url: uri("mavenRepo"))
+            }
+        }
+    }
+    """
+        when:
+        succeeds 'uploadArchives'
+
+        then:
+        def shaOneFile = module.moduleDir.file("publish-2.bin.sha1")
+        shaOneFile.exists()
+        shaOneFile.text == "00e14c6ef59816760e2c9b5a57157e8ac9de4012"
     }
 
     def "can publish a project with no main artifact"() {
