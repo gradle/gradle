@@ -36,7 +36,7 @@ public interface BuildComparisonSpec {
      *
      * @return The complete (immutable) list of outcomes from the from side. Never null.
      */
-    Set<BuildOutcome> getFrom();
+    Set<BuildOutcome> getSource();
 
     /**
      * The complete list of outcomes from the to side.
@@ -44,7 +44,7 @@ public interface BuildComparisonSpec {
      *
      * @return The complete (immutable) list of outcomes from the to side. Never null.
      */
-    Set<BuildOutcome> getTo();
+    Set<BuildOutcome> getTarget();
 
     /**
      * The association between build outcomes from both sides.

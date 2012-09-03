@@ -27,13 +27,13 @@ import java.util.Set;
 
 public class DefaultBuildComparisonSpecBuilder implements BuildComparisonSpecBuilder {
 
-    private final Set<BuildOutcome> from = new HashSet<BuildOutcome>();
-    private final Set<BuildOutcome> to = new HashSet<BuildOutcome>();
+    private final Set<BuildOutcome> source = new HashSet<BuildOutcome>();
+    private final Set<BuildOutcome> target = new HashSet<BuildOutcome>();
     private final List<BuildOutcomeAssociation<?>> outcomeAssociations = new LinkedList<BuildOutcomeAssociation<?>>();
 
     public <A extends BuildOutcome, F extends A, T extends A> BuildOutcomeAssociation<A> associate(F from, T to, Class<A> type) {
-        this.from.add(from);
-        this.to.add(to);
+        this.source.add(from);
+        this.target.add(to);
 
         BuildOutcomeAssociation<A> outcomeAssociation = new DefaultBuildOutcomeAssociation<A>(from, to, type);
         outcomeAssociations.add(outcomeAssociation);
@@ -42,14 +42,14 @@ public class DefaultBuildComparisonSpecBuilder implements BuildComparisonSpecBui
     }
 
     public <F extends BuildOutcome> void addUnassociatedFrom(F from) {
-        this.from.add(from);
+        this.source.add(from);
     }
 
     public <T extends BuildOutcome> void addUnassociatedTo(T to) {
-        this.to.add(to);
+        this.target.add(to);
     }
 
     public BuildComparisonSpec build() {
-        return new DefaultBuildComparisonSpec(from, to, outcomeAssociations);
+        return new DefaultBuildComparisonSpec(source, target, outcomeAssociations);
     }
 }

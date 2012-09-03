@@ -56,16 +56,16 @@ class DefaultBuildComparatorTest extends Specification {
         then:
         def results = compareBuilds()
         results.comparisons.first().distance == 0
-        results.uncomparedFrom == [uncomparedFrom] as Set
-        results.uncomparedTo == [uncomparedTo] as Set
+        results.uncomparedSourceOutcomes == [uncomparedFrom] as Set
+        results.uncomparedTargetOutcomes == [uncomparedTo] as Set
     }
 
     def "empty spec is ok"() {
         expect:
         def result = compareBuilds()
         result.comparisons.empty
-        result.uncomparedFrom.empty
-        result.uncomparedTo.empty
+        result.uncomparedSourceOutcomes.empty
+        result.uncomparedTargetOutcomes.empty
     }
 
     protected int distance(String from, String to) {

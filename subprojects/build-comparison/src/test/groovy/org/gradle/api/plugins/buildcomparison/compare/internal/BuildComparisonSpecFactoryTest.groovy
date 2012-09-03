@@ -31,8 +31,8 @@ class BuildComparisonSpecFactoryTest extends Specification {
         def result = factory.createSpec(strs("a", "b", "c"), strs("b", "c", "d"))
 
         then:
-        result.from == strs("a", "b", "c")
-        result.to == strs("b", "c", "d")
+        result.source == strs("a", "b", "c")
+        result.target == strs("b", "c", "d")
         result.outcomeAssociations.size() == 2
         def associations = result.outcomeAssociations.toList().sort { it.source.name }
 

@@ -76,8 +76,8 @@ class GradleBuildComparisonResultHtmlRenderer implements BuildComparisonResultRe
     }
 
     private void renderUncomparedOutcomes(BuildComparisonResult result, HtmlRenderContext context) {
-        renderUncomparedOutcomeSet(true, result.uncomparedFrom, context)
-        renderUncomparedOutcomeSet(false, result.uncomparedTo, context)
+        renderUncomparedOutcomeSet(true, result.uncomparedSourceOutcomes, context)
+        renderUncomparedOutcomeSet(false, result.uncomparedTargetOutcomes, context)
     }
 
     protected void renderUncomparedOutcomeSet(boolean isSource, Set<BuildOutcome> uncompareds, HtmlRenderContext context) {
