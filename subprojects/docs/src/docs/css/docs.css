@@ -42,9 +42,7 @@
     padding-left: 1.7em;
     background: #FEFEDD;
     color: #777744;
-}
-
-.exampleLocation p {
+    border: 1px solid #DBDBA8;
     padding-top: 0.4em;
     padding-bottom: 0.4em;
 }
@@ -68,7 +66,7 @@
     font-size: 100%;
 }
 
-.note :last-child, .tip :last-child {
+.note > :last-child, .tip > :last-child, .examplelocation > :last-child {
     margin-bottom: 0px
 }
 
@@ -123,11 +121,11 @@
  */
 .hl-string, .hl-number, .hl-value { color: #83C283; }
 
-.hl-keyword { color: #C7B390 }
+.hl-keyword { color: #DDC498 }
 
-.hl-comment, .hl-doccomment { color: #929292; }
+.hl-comment, .hl-doccomment { color: #AFAFAF; }
 
-.hl-annotation { color: #777744; }
+.hl-annotation { color: #DDDD97; }
 
 a.link {
     white-space: nowrap;

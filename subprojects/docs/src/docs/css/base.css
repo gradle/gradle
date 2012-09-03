@@ -226,20 +226,20 @@ table th.no-border-bottom {
 }
 
 pre {
-  border: 1px solid #B3B3B3;
-  border-radius: 6px;
+  border-radius: 5px;
   padding: 0.8em;
   line-height: 1.3;
 }
 
 pre.code, pre.programlisting {
   background-color: #3F3F3F;
-  color: white
+  color: white;
 }
 
 pre.screen, pre.tt {
-    color: #666;
-    background-color: white;
+  color: darkGreen;
+  background-color: white;
+  box-shadow: inset 0 0 7px 0px darkGray;
 }
 
 tbody tr:nth-child(even) td, tbody tr.even td {
