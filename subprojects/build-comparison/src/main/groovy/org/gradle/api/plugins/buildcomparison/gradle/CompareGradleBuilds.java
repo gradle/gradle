@@ -50,6 +50,8 @@ import java.util.*;
 
 /**
  * Executes two Gradle builds (that can be the same build) with specified versions and compares the outcomes.
+ *
+ * Please see the “Comparing Builds” chapter of the Gradle User Guide for more information.
  */
 @Incubating
 public class CompareGradleBuilds extends DefaultTask implements VerificationTask {
