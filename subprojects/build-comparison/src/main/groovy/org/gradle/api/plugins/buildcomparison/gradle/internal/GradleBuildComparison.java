@@ -114,6 +114,13 @@ public class GradleBuildComparison {
             ));
         }
 
+        if (!sourceBuildHasOutcomesModel) {
+            warnAboutInferredOutcomes(true, sourceBuildExecuter);
+        }
+        if (!targetBuildHasOutcomesModel) {
+            warnAboutInferredOutcomes(false, targetBuildExecuter);
+        }
+
         Set<BuildOutcome> sourceOutcomes = null;
         if (sourceBuildHasOutcomesModel) {
             logger.info(executingSourceBuildMessage);
@@ -156,6 +163,20 @@ public class GradleBuildComparison {
         progressLogger.completed();
 
         return result;
+    }
+
+    private void warnAboutInferredOutcomes(boolean isSource, ComparableGradleBuildExecuter executer) {
+        String inferred = isSource ? "source" : "target";
+        String inferredFrom = isSource ? "target" : "source";
+
+        String message = String.format(
+                "The build outcomes for the %s build will be inferred from the %s build because the %s build is to be executed with Gradle %s."
+                + " This means that the comparison accuracy will be reduced."
+                + " See the Gradle User Guide for more information.",
+                inferred, inferredFrom, inferred, executer.getSpec().getGradleVersion().getVersion()
+        );
+
+        logger.warn(message);
     }
 
     private BuildComparisonResult compareBuilds(Set<BuildOutcome> sourceOutcomes, Set<BuildOutcome> targetOutcomes) {

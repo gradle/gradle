@@ -27,6 +27,8 @@ import org.jsoup.nodes.Document
 @TargetVersions("1.0+")
 class Pre12CompareGradleBuildsCrossVersionSpec extends CrossVersionIntegrationSpec {
 
+    ExecutionResult result
+
     void applyPlugin(TestFile file = buildFile) {
         versionGuard(file) { "apply plugin: 'compare-gradle-builds'" }
     }
@@ -46,6 +48,7 @@ class Pre12CompareGradleBuildsCrossVersionSpec extends CrossVersionIntegrationSp
 
         when:
         runComparisonWithCurrent()
+        sourceWasInferred()
 
         then:
         sourceBuildVersion == previous.version
@@ -67,6 +70,7 @@ class Pre12CompareGradleBuildsCrossVersionSpec extends CrossVersionIntegrationSp
 
         when:
         runComparisonWithCurrent()
+        targetWasInferred()
 
         then:
         sourceBuildVersion == current.version
@@ -90,6 +94,7 @@ class Pre12CompareGradleBuildsCrossVersionSpec extends CrossVersionIntegrationSp
 
         when:
         failBecauseNotIdentical()
+        sourceWasInferred()
 
         then:
         sourceBuildVersion == previous.version
@@ -113,6 +118,7 @@ class Pre12CompareGradleBuildsCrossVersionSpec extends CrossVersionIntegrationSp
 
         when:
         failBecauseNotIdentical()
+        targetWasInferred()
 
         then:
         sourceBuildVersion == current.version
@@ -126,7 +132,8 @@ class Pre12CompareGradleBuildsCrossVersionSpec extends CrossVersionIntegrationSp
     }
 
     protected ExecutionResult runComparisonWithCurrent() {
-        currentExecuter().run()
+        result = currentExecuter().run()
+        result
     }
 
     protected GradleExecuter currentExecuter() {
@@ -146,7 +153,20 @@ class Pre12CompareGradleBuildsCrossVersionSpec extends CrossVersionIntegrationSp
     }
 
     void failBecauseNotIdentical() {
-        currentExecuter().runWithFailure().assertHasCause("The build outcomes were not found to be identical. See the report at: file:///")
+        result = currentExecuter().runWithFailure()
+        result.assertHasCause("The build outcomes were not found to be identical. See the report at: file:///")
+    }
+
+    void sourceWasInferred() {
+        hasInferredWarning("source")
+    }
+
+    void targetWasInferred() {
+        hasInferredWarning("target")
+    }
+
+    void hasInferredWarning(String buildName) {
+        assert result.output.contains("The build outcomes for the $buildName build will be inferred from the")
     }
 
 }
