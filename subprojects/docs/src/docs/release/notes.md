@@ -117,9 +117,9 @@ We will typically introduce new features as _incubating_ at first, giving you a 
 
 Gradle 1.2 delivers the first iteration of our support for comparing the _outcomes_ (e.g. the produced binary archives) of two builds. There are several reasons why you may want to compare the outcomes of two builds. You may want to compare: 
 
-* A build with a newer version of Gradle than it's currently using.
-* A Gradle build with a build executed by another tool (e.g. Apache Ant, Apache Maven).
-* The same Gradle build, with the same version, before and after a change to the build.
+* A build with a newer version of Gradle than it's currently using (i.e. upgrading the Gradle version).
+* A Gradle build with a build executed by another tool such as Apache Ant, Apache Maven or something else (i.e. migrating to Gradle)
+* The same Gradle build, with the same version, before and after a change to the build (i.e. testing build changes).
 
 The build comparison support manages the execution of the “source” build and the “target” build, the association of outcomes between the two, the comparison of the outcomes and generation of a report that identifies any encountered differences. You can then use this report to go ahead with the Gradle upgrade, build system migration or build configuration change with confidence that the outcomes are identical, or that the differences are acceptable.
 
