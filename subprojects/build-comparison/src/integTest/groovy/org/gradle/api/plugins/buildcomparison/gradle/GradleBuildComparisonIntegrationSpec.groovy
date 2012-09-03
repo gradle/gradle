@@ -68,8 +68,8 @@ class GradleBuildComparisonIntegrationSpec extends WellBehavedPluginTest {
         rows.size() == 4
         rows["org/gradle/ChangedClass.class"] == "entry in the source build is 409 bytes - in the target build it is 486 bytes (+77)"
         rows["org/gradle/DifferentCrcClass.class"] == "entries are of identical size but have different content"
-        rows["org/gradle/SourceBuildOnlyClass.class"] == "Only exists in source build"
-        rows["org/gradle/TargetBuildOnlyClass.class"] == "Only exists in target build"
+        rows["org/gradle/SourceBuildOnlyClass.class"] == "entry does not exist in target build archive"
+        rows["org/gradle/TargetBuildOnlyClass.class"] == "entry does not exist in source build archive"
 
         and:
         storedFile("source").exists()

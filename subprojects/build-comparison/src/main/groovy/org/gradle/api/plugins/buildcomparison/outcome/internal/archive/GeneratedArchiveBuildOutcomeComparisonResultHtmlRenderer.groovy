@@ -114,10 +114,10 @@ class GeneratedArchiveBuildOutcomeComparisonResultHtmlRenderer extends BuildOutc
     protected String toDifferenceDescription(ArchiveEntryComparison entryComparison) {
         switch (entryComparison.comparisonResultType) {
             case SOURCE_ONLY:
-                "Only exists in source build"
+                "entry does not exist in target build archive"
                 break
             case TARGET_ONLY:
-                "Only exists in target build"
+                "entry does not exist in source build archive"
                 break
             case UNEQUAL:
                 toDifferenceDescription(entryComparison.source, entryComparison.target)
