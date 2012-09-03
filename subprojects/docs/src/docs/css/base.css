@@ -127,7 +127,7 @@ body {
   background: url('data:image/gif;base64,@gradle-logo_25o.gif@') no-repeat right top;
 }
 
-p, ol, ul {
+p, ol, ul, .para {
   margin: 0 0 16px;
 }
 
@@ -136,7 +136,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 h2 {
-  margin-top: 36px;
+  margin-top: 32px;
 }
 
 h3, h4, h5, h6 {
