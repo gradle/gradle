@@ -188,7 +188,7 @@ class IvyModule {
     void assertChecksumPublishedFor(TestFile testFile) {
         def sha1File = sha1File(testFile)
         sha1File.assertIsFile()
-        assert sha1File.text == getHash(testFile, "SHA1")
+        new BigInteger(sha1File.text, 16) == new BigInteger(getHash(testFile, "SHA1"), 16)
     }
 
     String getHash(File file, String algorithm) {
