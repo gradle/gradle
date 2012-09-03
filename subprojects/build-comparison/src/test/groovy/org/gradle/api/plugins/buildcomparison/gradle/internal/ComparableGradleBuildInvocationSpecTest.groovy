@@ -20,14 +20,14 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
 
-class DefaultGradleBuildInvocationSpecTest extends Specification {
+class ComparableGradleBuildInvocationSpecTest extends Specification {
 
     FileResolver fileResolver = HelperUtil.createRootProject().fileResolver
 
     def "equals and hashCode"() {
         given:
-        def left = new DefaultGradleBuildInvocationSpec(fileResolver, ".")
-        def right = new DefaultGradleBuildInvocationSpec(fileResolver, ".")
+        def left = new ComparableGradleBuildInvocationSpec(fileResolver, ".")
+        def right = new ComparableGradleBuildInvocationSpec(fileResolver, ".")
 
         expect:
         left == right

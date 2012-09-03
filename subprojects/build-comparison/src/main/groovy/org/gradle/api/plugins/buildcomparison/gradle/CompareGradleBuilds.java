@@ -24,7 +24,7 @@ import org.gradle.api.internal.filestore.FileStore;
 import org.gradle.api.internal.filestore.PathNormalisingKeyFileStore;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.plugins.buildcomparison.compare.internal.*;
-import org.gradle.api.plugins.buildcomparison.gradle.internal.DefaultGradleBuildInvocationSpec;
+import org.gradle.api.plugins.buildcomparison.gradle.internal.ComparableGradleBuildInvocationSpec;
 import org.gradle.api.plugins.buildcomparison.gradle.internal.GradleBuildOutcomeSetInferrer;
 import org.gradle.api.plugins.buildcomparison.gradle.internal.GradleBuildOutcomeSetTransformer;
 import org.gradle.api.plugins.buildcomparison.outcome.internal.BuildOutcome;
@@ -60,7 +60,6 @@ import javax.inject.Inject;
 import java.io.*;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -70,17 +69,13 @@ import java.util.Set;
 @Incubating
 public class CompareGradleBuilds extends DefaultTask implements VerificationTask {
 
-    private static final List<String> DEFAULT_TASKS = Arrays.asList("clean", "assemble");
     private static final String TMP_FILESTORAGE_PREFIX = "tmp-filestorage";
-
-    private static final GradleVersion PROJECT_OUTCOMES_MINIMUM_VERSION = GradleVersion.version("1.2");
-    private static final GradleVersion EXEC_MINIMUM_VERSION = GradleVersion.version("1.0");
 
     private static final String SOURCE_FILESTORE_PREFIX = "source";
     private static final String TARGET_FILESTORE_PREFIX = "target";
 
-    private final DefaultGradleBuildInvocationSpec sourceBuild;
-    private final DefaultGradleBuildInvocationSpec targetBuild;
+    private final ComparableGradleBuildInvocationSpec sourceBuild;
+    private final ComparableGradleBuildInvocationSpec targetBuild;
     private boolean ignoreFailures;
     private Object reportDir;
 
@@ -94,10 +89,10 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
         this.fileResolver = fileResolver;
         this.progressLoggerFactory = progressLoggerFactory;
 
-        sourceBuild = instantiator.newInstance(DefaultGradleBuildInvocationSpec.class, fileResolver, getProject().getRootDir());
-        sourceBuild.setTasks(DEFAULT_TASKS);
-        targetBuild = instantiator.newInstance(DefaultGradleBuildInvocationSpec.class, fileResolver, getProject().getRootDir());
-        targetBuild.setTasks(DEFAULT_TASKS);
+        sourceBuild = instantiator.newInstance(ComparableGradleBuildInvocationSpec.class, fileResolver, getProject().getRootDir());
+        sourceBuild.setTasks(ComparableGradleBuildInvocationSpec.DEFAULT_TASKS);
+        targetBuild = instantiator.newInstance(ComparableGradleBuildInvocationSpec.class, fileResolver, getProject().getRootDir());
+        targetBuild.setTasks(ComparableGradleBuildInvocationSpec.DEFAULT_TASKS);
 
         File fileStoreTmpBase = fileResolver.resolve(String.format(TMP_FILESTORAGE_PREFIX + "-%s-%s", getName(), System.currentTimeMillis()));
         fileStore = new PathNormalisingKeyFileStore(fileStoreTmpBase);
@@ -156,24 +151,31 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
 
     @TaskAction
     void compare() {
+        ComparableGradleBuildInvocationSpec sourceBuild = (ComparableGradleBuildInvocationSpec) getSourceBuild();
+        ComparableGradleBuildInvocationSpec targetBuild = (ComparableGradleBuildInvocationSpec) getTargetBuild();
+
         if (sourceBuild.equals(targetBuild)) {
             getLogger().warn("The source build and target build are identical. Set '{}.targetBuild.gradleVersion' if you want to compare with a different Gradle version.", getName());
         }
 
-        if (!canExec(sourceBuild) || !canExec(targetBuild)) {
+        if (!sourceBuild.isExecutable() || !targetBuild.isExecutable()) {
             throw new GradleException(String.format(
-                     "Builds must be executed with %s or newer (source: %s, target: %s)",
-                     EXEC_MINIMUM_VERSION, sourceBuild.getGradleVersion(), targetBuild.getGradleVersion()
-             ));
+                    "Builds must be executed with %s or newer (source: %s, target: %s)",
+                    ComparableGradleBuildInvocationSpec.EXEC_MINIMUM_VERSION,
+                    sourceBuild.getGradleVersion().getVersion(),
+                    targetBuild.getGradleVersion().getVersion()
+            ));
         }
 
-        boolean sourceBuildHasOutcomesModel = canObtainProjectOutcomesModel(sourceBuild);
-        boolean targetBuildHasOutcomesModel = canObtainProjectOutcomesModel(targetBuild);
+        boolean sourceBuildHasOutcomesModel = sourceBuild.isCanObtainProjectOutcomesModel();
+        boolean targetBuildHasOutcomesModel = targetBuild.isCanObtainProjectOutcomesModel();
 
         if (!sourceBuildHasOutcomesModel && !targetBuildHasOutcomesModel) {
             throw new GradleException(String.format(
                     "Cannot run comparison because both the source and target build are to be executed with a Gradle version older than %s (source: %s, target: %s).",
-                    PROJECT_OUTCOMES_MINIMUM_VERSION, sourceBuild.getGradleVersion(), targetBuild.getGradleVersion()
+                    ComparableGradleBuildInvocationSpec.PROJECT_OUTCOMES_MINIMUM_VERSION,
+                    sourceBuild.getGradleVersion().getVersion(),
+                    targetBuild.getGradleVersion().getVersion()
             ));
         }
 
@@ -266,7 +268,7 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
     }
 
     private String executingMessage(String name, GradleBuildInvocationSpec spec) {
-        DefaultGradleBuildInvocationSpec cast = (DefaultGradleBuildInvocationSpec) spec;
+        ComparableGradleBuildInvocationSpec cast = (ComparableGradleBuildInvocationSpec) spec;
         return String.format("executing %s build {%s}", name, cast.describeRelativeTo(getProject().getProjectDir()));
     }
 
@@ -293,7 +295,7 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
     }
 
     private ProjectOutcomes buildProjectOutcomesOrJustExec(GradleBuildInvocationSpec spec, boolean justExec) {
-        GradleVersion gradleVersion = GradleVersion.version(spec.getGradleVersion());
+        GradleVersion gradleVersion = spec.getGradleVersion();
 
         GradleConnector connector = GradleConnector.newConnector().forProjectDirectory(spec.getProjectDir());
         File gradleUserHomeDir = getProject().getGradle().getStartParameter().getGradleUserHomeDir();
@@ -387,20 +389,5 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
         });
     }
 
-    private boolean canObtainProjectOutcomesModel(GradleBuildInvocationSpec spec) {
-        GradleVersion versionObject = GradleVersion.version(spec.getGradleVersion());
-        boolean isMinimumVersionOrHigher = versionObject.compareTo(PROJECT_OUTCOMES_MINIMUM_VERSION) >= 0;
-        //noinspection SimplifiableIfStatement
-        if (isMinimumVersionOrHigher) {
-            return true;
-        } else {
-            // Special handling for snapshots/RCs of the minimum version
-            return versionObject.getVersionBase().equals(PROJECT_OUTCOMES_MINIMUM_VERSION.getVersionBase());
-        }
-    }
 
-    private boolean canExec(GradleBuildInvocationSpec spec) {
-        GradleVersion versionObject = GradleVersion.version(spec.getGradleVersion());
-        return versionObject.compareTo(EXEC_MINIMUM_VERSION) >= 0;
-    }
 }

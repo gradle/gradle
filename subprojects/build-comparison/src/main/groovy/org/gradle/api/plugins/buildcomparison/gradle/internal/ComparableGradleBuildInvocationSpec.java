@@ -24,18 +24,24 @@ import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
-public class DefaultGradleBuildInvocationSpec implements GradleBuildInvocationSpec {
+public class ComparableGradleBuildInvocationSpec implements GradleBuildInvocationSpec {
+
+    public static final List<String> DEFAULT_TASKS = Arrays.asList("clean", "assemble");
+    public static final GradleVersion PROJECT_OUTCOMES_MINIMUM_VERSION = GradleVersion.version("1.2");
+    public static final GradleVersion EXEC_MINIMUM_VERSION = GradleVersion.version("1.0");
 
     private FileResolver fileResolver;
     private Object projectDir;
-    private String gradleVersion = GradleVersion.current().getVersion();
-    private List<String> tasks = Collections.emptyList();
-    private List<String> arguments = Collections.emptyList();
+    private GradleVersion gradleVersion = GradleVersion.current();
+    private List<String> tasks = new LinkedList<String>(DEFAULT_TASKS);
+    private List<String> arguments = new LinkedList<String>();
 
-    public DefaultGradleBuildInvocationSpec(FileResolver fileResolver, Object projectDir) {
+    public ComparableGradleBuildInvocationSpec(FileResolver fileResolver, Object projectDir) {
         this.fileResolver = fileResolver;
         this.projectDir = projectDir;
     }
@@ -51,7 +57,7 @@ public class DefaultGradleBuildInvocationSpec implements GradleBuildInvocationSp
         this.projectDir = projectDir;
     }
 
-    public String getGradleVersion() {
+    public GradleVersion getGradleVersion() {
         return gradleVersion;
     }
 
@@ -59,7 +65,7 @@ public class DefaultGradleBuildInvocationSpec implements GradleBuildInvocationSp
         if (gradleVersion == null) {
             throw new IllegalArgumentException("gradleVersion cannot be null");
         }
-        this.gradleVersion = gradleVersion;
+        this.gradleVersion = GradleVersion.version(gradleVersion);
     }
 
     public List<String> getTasks() {
@@ -78,6 +84,22 @@ public class DefaultGradleBuildInvocationSpec implements GradleBuildInvocationSp
         this.arguments = arguments == null ? Collections.<String>emptyList() : Lists.newLinkedList(arguments);
     }
 
+    public boolean isExecutable() {
+        return getGradleVersion().compareTo(EXEC_MINIMUM_VERSION) >= 0;
+    }
+
+    public boolean isCanObtainProjectOutcomesModel() {
+        GradleVersion version = getGradleVersion();
+        boolean isMinimumVersionOrHigher = version.compareTo(PROJECT_OUTCOMES_MINIMUM_VERSION) >= 0;
+        //noinspection SimplifiableIfStatement
+        if (isMinimumVersionOrHigher) {
+            return true;
+        } else {
+            // Special handling for snapshots/RCs of the minimum version
+            return version.getVersionBase().equals(PROJECT_OUTCOMES_MINIMUM_VERSION.getVersionBase());
+        }
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -87,7 +109,7 @@ public class DefaultGradleBuildInvocationSpec implements GradleBuildInvocationSp
             return false;
         }
 
-        DefaultGradleBuildInvocationSpec that = (DefaultGradleBuildInvocationSpec) o;
+        ComparableGradleBuildInvocationSpec that = (ComparableGradleBuildInvocationSpec) o;
 
         if (!getArguments().equals(that.getArguments())) {
             return false;

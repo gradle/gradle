@@ -17,6 +17,7 @@
 package org.gradle.api.plugins.buildcomparison.gradle;
 
 import org.gradle.api.Incubating;
+import org.gradle.util.GradleVersion;
 
 import java.io.File;
 import java.util.List;
@@ -55,7 +56,7 @@ public interface GradleBuildInvocationSpec {
      *
      * @return The Gradle version to run the build with. Never null.
      */
-    String getGradleVersion();
+    GradleVersion getGradleVersion();
 
     /**
      * Sets the Gradle version to run the build with.

@@ -77,8 +77,8 @@ class GradleComparisonHeadingRenderer implements PartRenderer {
                         td targetBuildPath
                     }
 
-                    def sourceGradleVersion = sourceBuild.gradleVersion
-                    def targetGradleVersion = targetBuild.gradleVersion
+                    def sourceGradleVersion = sourceBuild.gradleVersion.version
+                    def targetGradleVersion = targetBuild.gradleVersion.version
                     tr("class": context.diffClass(sourceGradleVersion == targetGradleVersion)) {
                         th class: "border-right no-border-bottom", "Gradle version"
                         td sourceGradleVersion
