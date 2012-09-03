@@ -23,6 +23,7 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
 import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
+import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.registry.DaemonInfo;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.messaging.remote.internal.ConnectException;
@@ -142,7 +143,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
     private DaemonClientConnection connectToDaemon(final DaemonInfo daemonInfo, DaemonDiagnostics diagnostics) {
         Runnable onFailure = new Runnable() {
             public void run() {
-                LOGGER.info("Removing daemon from the registry due to communication failure. Daemon information: {}", daemonInfo);
+                LOGGER.info(DaemonMessages.REMOVING_DAEMON_ADDRESS_ON_FAILURE + daemonInfo);
                 daemonRegistry.remove(daemonInfo.getAddress());
             }
         };

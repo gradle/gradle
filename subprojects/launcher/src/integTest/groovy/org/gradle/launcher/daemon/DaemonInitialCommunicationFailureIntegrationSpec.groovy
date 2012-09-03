@@ -19,12 +19,17 @@ package org.gradle.launcher.daemon
 import org.gradle.integtests.fixtures.HttpServer
 import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.launcher.daemon.testing.DaemonLogsAnalyzer
-import org.gradle.launcher.daemon.testing.TheDaemon
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 /**
  * by Szczepan Faber, created at: 1/20/12
  */
-class DaemonStabilityIntegrationSpec extends DaemonIntegrationSpec {
+@Requires(TestPrecondition.UNIX)
+//because we can only forcefully kill daemons on Unix atm.
+//The implementation is not OS specific, only the test is
+// so it's not a big deal it does not run everywhere.
+class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegrationSpec {
 
     def cleanup() {
         stopDaemonsNow()
@@ -36,10 +41,7 @@ class DaemonStabilityIntegrationSpec extends DaemonIntegrationSpec {
 
         then:
         //there should be one idle daemon
-        def daemons = new DaemonLogsAnalyzer(distribution.daemonBaseDir).getDaemons()
-        daemons.size() == 1
-        TheDaemon daemon = daemons[0]
-        daemon.idle
+        def daemon = new DaemonLogsAnalyzer(distribution.daemonBaseDir).idleDaemon
 
         when:
         daemon.kill()
@@ -51,12 +53,14 @@ class DaemonStabilityIntegrationSpec extends DaemonIntegrationSpec {
 
         when:
         //starting some service on the daemon port
-        HttpServer s = new HttpServer()
-        s.start(daemon.port)
+        new HttpServer().start(daemon.port)
 
         then:
+        //most fundamentally, the build works ok:
         buildSucceeds()
-        output.contains DaemonMessages.INITIAL_COMMUNICATION_FAILURE
+
+        and:
+        output.contains DaemonMessages.REMOVING_DAEMON_ADDRESS_ON_FAILURE
 
         when:
         buildSucceeds()
@@ -64,6 +68,32 @@ class DaemonStabilityIntegrationSpec extends DaemonIntegrationSpec {
         then:
         //suspected address was removed from the registry
         // so we should the client does not attempt to connect to it again
-        !output.contains(DaemonMessages.INITIAL_COMMUNICATION_FAILURE)
+        !output.contains(DaemonMessages.REMOVING_DAEMON_ADDRESS_ON_FAILURE)
+    }
+
+    def "stop() behaves if the registry contains connectable port without daemon on the other end"() {
+        when:
+        buildSucceeds()
+
+        then:
+        def daemon = new DaemonLogsAnalyzer(distribution.daemonBaseDir).idleDaemon
+
+        when:
+        daemon.kill()
+        new HttpServer().start(daemon.port)
+
+        then:
+        //most fundamentally, stopping works ok:
+        stopDaemonsNow()
+
+        and:
+        output.contains DaemonMessages.REMOVING_DAEMON_ADDRESS_ON_FAILURE
+
+        when:
+        stopDaemonsNow()
+
+        then:
+        !output.contains(DaemonMessages.REMOVING_DAEMON_ADDRESS_ON_FAILURE)
+        output.contains(DaemonMessages.NO_DAEMONS_RUNNING)
     }
 }

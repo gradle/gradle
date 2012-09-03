@@ -154,7 +154,7 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
             LOGGER.debug("Unable to perform initial dispatch/receive with the daemon.", e);
             //We might fail hard here on the assumption that something weird happened to the daemon.
             //However, since we haven't yet started running the build, we can recover by just trying again...
-            throw new DaemonInitialConnectException(DaemonMessages.INITIAL_COMMUNICATION_FAILURE);
+            throw new DaemonInitialConnectException("Problem when attempted to send and receive first result from the daemon.");
         }
 
         if (firstResult instanceof BuildStarted) {

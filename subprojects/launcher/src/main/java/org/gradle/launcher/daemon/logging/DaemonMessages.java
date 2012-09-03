@@ -31,5 +31,5 @@ public abstract class DaemonMessages {
     public static final String ADVERTISING_DAEMON = "Advertising the daemon address to the clients: ";
     public static final String DAEMON_IDLE = "Daemon is idle, sleeping until state change or idle timeout at ";
     public static final String DAEMON_BUSY = "Daemon is busy, sleeping until state changes.";
-    public static final String INITIAL_COMMUNICATION_FAILURE = "Problem when attempted to send and receive first result from the daemon.";
+    public static final String REMOVING_DAEMON_ADDRESS_ON_FAILURE = "Removing daemon from the registry due to communication failure. Daemon information: ";
 }
