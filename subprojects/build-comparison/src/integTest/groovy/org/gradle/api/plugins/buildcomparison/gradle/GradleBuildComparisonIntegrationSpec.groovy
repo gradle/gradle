@@ -66,10 +66,10 @@ class GradleBuildComparisonIntegrationSpec extends WellBehavedPluginTest {
         // Entry comparisons
         def rows = html.select("table")[2].select("tr").tail().collectEntries { [it.select("td")[0].text(), it.select("td")[1].text()] }
         rows.size() == 4
-        rows["org/gradle/ChangedClass.class"] == "entry in the Source Build is 409 bytes - in the Target Build it is 486 bytes (+77)"
+        rows["org/gradle/ChangedClass.class"] == "entry in the source build is 409 bytes - in the target build it is 486 bytes (+77)"
         rows["org/gradle/DifferentCrcClass.class"] == "entries are of identical size but have different content"
-        rows["org/gradle/SourceBuildOnlyClass.class"] == "Only exists in Source Build"
-        rows["org/gradle/TargetBuildOnlyClass.class"] == "Only exists in Target Build"
+        rows["org/gradle/SourceBuildOnlyClass.class"] == "Only exists in source build"
+        rows["org/gradle/TargetBuildOnlyClass.class"] == "Only exists in target build"
 
         and:
         storedFile("source").exists()
@@ -221,7 +221,7 @@ class GradleBuildComparisonIntegrationSpec extends WellBehavedPluginTest {
         fails "compareGradleBuilds"
 
         and:
-        comparisonResultMsg(html(), ":jar") == "The archive was only produced by the Target Build."
+        comparisonResultMsg(html(), ":jar") == "The archive was only produced by the target build."
     }
 
     def "can handle artifact not existing on target side"() {
@@ -241,7 +241,7 @@ class GradleBuildComparisonIntegrationSpec extends WellBehavedPluginTest {
         fails "compareGradleBuilds"
 
         and:
-        comparisonResultMsg(html(), ":jar") == "The archive was only produced by the Source Build."
+        comparisonResultMsg(html(), ":jar") == "The archive was only produced by the source build."
     }
 
     Document html(path = "build/reports/compareGradleBuilds/index.html") {

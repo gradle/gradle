@@ -27,9 +27,9 @@ public class CompositeBuildOutcomeAssociator implements BuildOutcomeAssociator {
         this.associators = Arrays.asList(associators);
     }
 
-    public Class<? extends BuildOutcome> findAssociationType(BuildOutcome from, BuildOutcome to) {
+    public Class<? extends BuildOutcome> findAssociationType(BuildOutcome source, BuildOutcome target) {
         for (BuildOutcomeAssociator associator : associators) {
-            Class<? extends BuildOutcome> outcomeType = associator.findAssociationType(from, to);
+            Class<? extends BuildOutcome> outcomeType = associator.findAssociationType(source, target);
             if (outcomeType != null) {
                 return outcomeType;
             }

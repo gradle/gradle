@@ -29,8 +29,8 @@ class StringBuildOutcomeComparisonResultMapRenderer implements BuildOutcomeCompa
     }
 
     void render(StringBuildOutcomeComparisonResult result, Map context) {
-        context.from = result.compared.from.value
-        context.to = result.compared.to.value
+        context.from = result.compared.source.value
+        context.to = result.compared.target.value
         context.distance = result.distance
     }
 }

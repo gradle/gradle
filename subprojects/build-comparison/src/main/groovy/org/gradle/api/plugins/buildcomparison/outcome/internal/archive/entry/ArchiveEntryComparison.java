@@ -21,27 +21,27 @@ import org.gradle.api.plugins.buildcomparison.compare.internal.ComparisonResultT
 public class ArchiveEntryComparison {
 
     private final String path;
-    private final ArchiveEntry from;
-    private final ArchiveEntry to;
+    private final ArchiveEntry source;
+    private final ArchiveEntry target;
 
-    public ArchiveEntryComparison(String path, ArchiveEntry from, ArchiveEntry to) {
-        if (from == null && to == null) {
+    public ArchiveEntryComparison(String path, ArchiveEntry source, ArchiveEntry target) {
+        if (source == null && target == null) {
             throw new IllegalArgumentException("Both 'from' and 'to' cannot be null");
         }
 
         this.path = path;
-        this.from = from;
-        this.to = to;
+        this.source = source;
+        this.target = target;
     }
 
     public ComparisonResultType getComparisonResultType() {
-        if (from != null && to == null) {
-            return ComparisonResultType.FROM_ONLY;
-        } else if (from == null && to != null) {
-            return ComparisonResultType.TO_ONLY;
+        if (source != null && target == null) {
+            return ComparisonResultType.SOURCE_ONLY;
+        } else if (source == null && target != null) {
+            return ComparisonResultType.TARGET_ONLY;
         } else {
             //noinspection ConstantConditions
-            return from.equals(to) ? ComparisonResultType.EQUAL : ComparisonResultType.UNEQUAL;
+            return source.equals(target) ? ComparisonResultType.EQUAL : ComparisonResultType.UNEQUAL;
         }
     }
 
@@ -49,11 +49,11 @@ public class ArchiveEntryComparison {
         return path;
     }
 
-    public ArchiveEntry getFrom() {
-        return from;
+    public ArchiveEntry getSource() {
+        return source;
     }
 
-    public ArchiveEntry getTo() {
-        return to;
+    public ArchiveEntry getTarget() {
+        return target;
     }
 }

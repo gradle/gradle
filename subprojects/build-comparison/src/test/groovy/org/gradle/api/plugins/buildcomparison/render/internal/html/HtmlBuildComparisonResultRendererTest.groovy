@@ -93,7 +93,7 @@ class HtmlBuildComparisonResultRendererTest extends Specification {
         // Just need to test that the renderers were called correctly, not the renderers themselves
         def tables = html.select("table")
         tables.size() == 3
-        tables[0].select("th").text() == "From To Distance"
+        tables[0].select("th").text() == "Source Target Distance"
         tables[0].select("td")[0].text() == "a"
         tables[2].select("td")[2].text() == comparisons.last.distance.toString()
     }

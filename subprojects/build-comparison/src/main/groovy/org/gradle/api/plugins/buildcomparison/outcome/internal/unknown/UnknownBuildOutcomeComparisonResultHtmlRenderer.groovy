@@ -22,10 +22,6 @@ import org.gradle.api.plugins.buildcomparison.render.internal.html.BuildOutcomeC
 
 class UnknownBuildOutcomeComparisonResultHtmlRenderer extends BuildOutcomeComparisonResultHtmlRenderer<UnknownBuildOutcomeComparisonResult> {
 
-    UnknownBuildOutcomeComparisonResultHtmlRenderer(String fromSideName, String toSideName) {
-        super(fromSideName, toSideName)
-    }
-
     Class<UnknownBuildOutcomeComparisonResult> getResultType() {
         UnknownBuildOutcomeComparisonResult
     }

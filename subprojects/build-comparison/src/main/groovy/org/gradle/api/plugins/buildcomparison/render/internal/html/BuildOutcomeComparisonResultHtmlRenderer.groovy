@@ -21,21 +21,13 @@ import org.gradle.api.plugins.buildcomparison.compare.internal.BuildOutcomeCompa
 
 abstract class BuildOutcomeComparisonResultHtmlRenderer<T extends BuildOutcomeComparisonResult> implements BuildOutcomeComparisonResultRenderer<T, HtmlRenderContext> {
 
-    BuildOutcomeComparisonResultHtmlRenderer(String fromSideName, String toSideName) {
-        this.fromSideName = fromSideName
-        this.toSideName = toSideName
-    }
-
-    final String fromSideName
-    final String toSideName
-
     Class<HtmlRenderContext> getContextType() {
         HtmlRenderContext
     }
 
     protected void renderTitle(T result, HtmlRenderContext context) {
-        def from = result.compared.from
-        def to = result.compared.to
+        def from = result.compared.source
+        def to = result.compared.target
 
         // TODO - assuming that both sides have the same name, which they always do in 1.2
         context.render { h3 "${from.name}" }

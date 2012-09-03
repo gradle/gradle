@@ -39,10 +39,10 @@ public class GeneratedArchiveBuildOutcomeComparisonResult extends BuildOutcomeCo
     }
 
     public ComparisonResultType getComparisonResultType() {
-        boolean fromFileExists = getCompared().getFrom().getArchiveFile() != null;
-        boolean toFileExists = getCompared().getTo().getArchiveFile() != null;
+        boolean sourceFileExists = getCompared().getSource().getArchiveFile() != null;
+        boolean targetFileExists = getCompared().getTarget().getArchiveFile() != null;
 
-        if (fromFileExists && toFileExists) {
+        if (sourceFileExists && targetFileExists) {
             if (CollectionUtils.every(getEntryComparisons(), new Spec<ArchiveEntryComparison>() {
                 public boolean isSatisfiedBy(ArchiveEntryComparison element) {
                     return element.getComparisonResultType() == ComparisonResultType.EQUAL;
@@ -52,12 +52,12 @@ public class GeneratedArchiveBuildOutcomeComparisonResult extends BuildOutcomeCo
             } else {
                 return ComparisonResultType.UNEQUAL;
             }
-        } else if (!fromFileExists && !toFileExists) {
+        } else if (!sourceFileExists && !targetFileExists) {
             return ComparisonResultType.NON_EXISTENT;
-        } else if (!toFileExists) {
-            return ComparisonResultType.FROM_ONLY;
+        } else if (!targetFileExists) {
+            return ComparisonResultType.SOURCE_ONLY;
         } else {
-            return ComparisonResultType.TO_ONLY;
+            return ComparisonResultType.TARGET_ONLY;
         }
     }
 

@@ -16,20 +16,16 @@
 
 package org.gradle.api.plugins.buildcomparison.outcome.internal.archive.entry
 
-import static org.gradle.api.plugins.buildcomparison.compare.internal.ComparisonResultType.*
-
 import org.gradle.api.plugins.buildcomparison.outcome.internal.archive.GeneratedArchiveBuildOutcomeComparisonResult
 import org.gradle.api.plugins.buildcomparison.render.internal.html.BuildOutcomeComparisonResultHtmlRenderer
 import org.gradle.api.plugins.buildcomparison.render.internal.html.HtmlRenderContext
+
+import static org.gradle.api.plugins.buildcomparison.compare.internal.ComparisonResultType.*
 
 /*
     TODO - missing test coverage
  */
 class GeneratedArchiveBuildOutcomeComparisonResultHtmlRenderer extends BuildOutcomeComparisonResultHtmlRenderer<GeneratedArchiveBuildOutcomeComparisonResult> {
-
-    GeneratedArchiveBuildOutcomeComparisonResultHtmlRenderer(String fromSideName, String toSideName) {
-        super(fromSideName, toSideName)
-    }
 
     Class<GeneratedArchiveBuildOutcomeComparisonResult> getResultType() {
         return GeneratedArchiveBuildOutcomeComparisonResult.class;
@@ -38,8 +34,8 @@ class GeneratedArchiveBuildOutcomeComparisonResultHtmlRenderer extends BuildOutc
     void render(GeneratedArchiveBuildOutcomeComparisonResult result, HtmlRenderContext context) {
         renderTitle(result, context)
 
-        def from = result.compared.from
-        def to = result.compared.to
+        def source = result.compared.source
+        def target = result.compared.target
 
         context.render {
             table {
@@ -49,20 +45,20 @@ class GeneratedArchiveBuildOutcomeComparisonResultHtmlRenderer extends BuildOutc
                     th "Archive Copy (relative to this report)"
                 }
                 tr {
-                    th class: "border-right no-border-bottom", fromSideName
-                    td from.rootRelativePath
-                    if (from.archiveFile) {
-                        def sourceCopyPath = context.relativePath(from.archiveFile)
+                    th class: "border-right no-border-bottom", "Source"
+                    td source.rootRelativePath
+                    if (source.archiveFile) {
+                        def sourceCopyPath = context.relativePath(source.archiveFile)
                         td { a(href: sourceCopyPath, sourceCopyPath) }
                     } else {
                         td "(no file)"
                     }
                 }
                 tr {
-                    th class: "border-right no-border-bottom", toSideName
-                    td to.rootRelativePath
-                    if (to.archiveFile) {
-                        def targetCopyPath = context.relativePath(to.archiveFile)
+                    th class: "border-right no-border-bottom", "Target"
+                    td target.rootRelativePath
+                    if (target.archiveFile) {
+                        def targetCopyPath = context.relativePath(target.archiveFile)
                         td { a(href: targetCopyPath, targetCopyPath) }
                     } else {
                         td "(no file)"
@@ -73,10 +69,10 @@ class GeneratedArchiveBuildOutcomeComparisonResultHtmlRenderer extends BuildOutc
 
         if (result.comparisonResultType == NON_EXISTENT) {
             resultMsg "Neither side produced the archive.", false, context
-        } else if (result.comparisonResultType == FROM_ONLY) {
-            resultMsg "The archive was only produced by the $fromSideName.", false, context
-        } else if (result.comparisonResultType == TO_ONLY) {
-            resultMsg "The archive was only produced by the $toSideName.", false, context
+        } else if (result.comparisonResultType == SOURCE_ONLY) {
+            resultMsg "The archive was only produced by the source build.", false, context
+        } else if (result.comparisonResultType == TARGET_ONLY) {
+            resultMsg "The archive was only produced by the target build.", false, context
         } else if (result.comparisonResultType == EQUAL) {
             resultMsg "The archives are completely identical.", true, context
         } else if (result.comparisonResultType == UNEQUAL) {
@@ -117,30 +113,30 @@ class GeneratedArchiveBuildOutcomeComparisonResultHtmlRenderer extends BuildOutc
     @SuppressWarnings("GroovyMissingReturnStatement")
     protected String toDifferenceDescription(ArchiveEntryComparison entryComparison) {
         switch (entryComparison.comparisonResultType) {
-            case FROM_ONLY:
-                "Only exists in $fromSideName"
+            case SOURCE_ONLY:
+                "Only exists in source build"
                 break
-            case TO_ONLY:
-                "Only exists in $toSideName"
+            case TARGET_ONLY:
+                "Only exists in target build"
                 break
             case UNEQUAL:
-                toDifferenceDescription(entryComparison.from, entryComparison.to)
+                toDifferenceDescription(entryComparison.source, entryComparison.target)
                 break
             default:
                 entryComparison.comparisonResultType.throwUnsupported()
         }
     }
 
-    protected String toDifferenceDescription(ArchiveEntry from, ArchiveEntry to) {
-        if (from.directory != to.directory) {
-            if (from.directory) {
-                "entry is a directory in the $fromSideName and a file in the $toSideName"
+    protected String toDifferenceDescription(ArchiveEntry source, ArchiveEntry target) {
+        if (source.directory != target.directory) {
+            if (source.directory) {
+                "entry is a directory in the source build and a file in the target build"
             } else {
-                "entry is a directory in the $toSideName and a file in the $fromSideName"
+                "entry is a directory in the target build and a file in the source build"
             }
-        } else if (from.size != to.size) {
-            "entry in the $fromSideName is $from.size bytes - in the $toSideName it is $to.size bytes (${formatSizeDiff(to.size - from.size)})"
-        } else if (from.crc != to.crc) {
+        } else if (source.size != target.size) {
+            "entry in the source build is $source.size bytes - in the target build it is $target.size bytes (${formatSizeDiff(target.size - source.size)})"
+        } else if (source.crc != target.crc) {
             "entries are of identical size but have different content"
         } else {
             throw new IllegalStateException("Method was called with equal entries")

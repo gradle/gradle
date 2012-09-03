@@ -246,12 +246,12 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
         // Register archives
         associators[0] = new ByTypeAndNameBuildOutcomeAssociator<BuildOutcome>(GeneratedArchiveBuildOutcome.class);
         comparatorFactory.registerComparator(new GeneratedArchiveBuildOutcomeComparator());
-        renderers.registerRenderer(new GeneratedArchiveBuildOutcomeComparisonResultHtmlRenderer("Source Build", "Target Build"));
+        renderers.registerRenderer(new GeneratedArchiveBuildOutcomeComparisonResultHtmlRenderer());
 
         // Register unknown handling
         associators[1] = new ByTypeAndNameBuildOutcomeAssociator<BuildOutcome>(UnknownBuildOutcome.class);
         comparatorFactory.registerComparator(new UnknownBuildOutcomeComparator());
-        renderers.registerRenderer(new UnknownBuildOutcomeComparisonResultHtmlRenderer("Source Build", "Target Build"));
+        renderers.registerRenderer(new UnknownBuildOutcomeComparisonResultHtmlRenderer());
 
         // Associate from each s
         BuildOutcomeAssociator compositeAssociator = new CompositeBuildOutcomeAssociator(associators);

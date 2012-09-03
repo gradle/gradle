@@ -19,8 +19,8 @@ package org.gradle.api.plugins.buildcomparison.compare.internal;
 public enum ComparisonResultType {
     EQUAL,
     UNEQUAL,
-    FROM_ONLY,
-    TO_ONLY,
+    SOURCE_ONLY,
+    TARGET_ONLY,
     NON_EXISTENT; // doesn't exist on either side, nothing to compare
 
     public void throwUnsupported() throws UnsupportedOperationException {

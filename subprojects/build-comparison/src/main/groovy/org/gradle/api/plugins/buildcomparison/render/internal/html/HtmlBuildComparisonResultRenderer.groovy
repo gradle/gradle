@@ -93,6 +93,6 @@ class HtmlBuildComparisonResultRenderer implements BuildComparisonResultRenderer
     }
 
     String name(BuildOutcomeComparisonResult<?> comparisonResult) {
-        comparisonResult.compared.from.name
+        comparisonResult.compared.source.name
     }
 }

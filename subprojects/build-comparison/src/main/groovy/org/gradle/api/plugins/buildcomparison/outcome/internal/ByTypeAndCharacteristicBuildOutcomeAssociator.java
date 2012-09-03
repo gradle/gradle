@@ -28,10 +28,10 @@ public class ByTypeAndCharacteristicBuildOutcomeAssociator<T extends BuildOutcom
         this.characteristicTransformer = characteristicTransformer;
     }
 
-    public Class<? extends BuildOutcome> findAssociationType(BuildOutcome from, BuildOutcome to) {
-        if (type.isInstance(from) && type.isInstance(to)) {
-            Object fromCharacteristic = characteristicTransformer.transform(type.cast(from));
-            Object toCharacteristic = characteristicTransformer.transform(type.cast(to));
+    public Class<? extends BuildOutcome> findAssociationType(BuildOutcome source, BuildOutcome target) {
+        if (type.isInstance(source) && type.isInstance(target)) {
+            Object fromCharacteristic = characteristicTransformer.transform(type.cast(source));
+            Object toCharacteristic = characteristicTransformer.transform(type.cast(target));
 
             if (fromCharacteristic == null && toCharacteristic == null) {
                 return type;

@@ -28,7 +28,7 @@ class StringBuildOutcomeComparisonResult extends BuildOutcomeComparisonResultSup
     }
 
     int getDistance() {
-        getLevenshteinDistance(compared.from.value, compared.to.value)
+        getLevenshteinDistance(compared.source.value, compared.target.value)
     }
 
     boolean isOutcomesAreIdentical() {

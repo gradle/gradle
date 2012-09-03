@@ -78,16 +78,16 @@ class GeneratedArchiveBuildOutcomeComparatorTest extends Specification {
         Map<String, ArchiveEntryComparison> indexed = result.entryComparisons.collectEntries { [it.path, it] }
 
         indexed["f1"].comparisonResultType == EQUAL
-        indexed["f2"].comparisonResultType == FROM_ONLY
-        indexed["f3"].comparisonResultType == TO_ONLY
+        indexed["f2"].comparisonResultType == SOURCE_ONLY
+        indexed["f3"].comparisonResultType == TARGET_ONLY
 
         indexed["d1/"].comparisonResultType == EQUAL
         indexed["d1/f1"].comparisonResultType == UNEQUAL
-        indexed["d1/f2"].comparisonResultType == FROM_ONLY
-        indexed["d1/f3"].comparisonResultType == TO_ONLY
+        indexed["d1/f2"].comparisonResultType == SOURCE_ONLY
+        indexed["d1/f3"].comparisonResultType == TARGET_ONLY
 
-        indexed["d2/"].comparisonResultType == FROM_ONLY
-        indexed["d3/"].comparisonResultType == TO_ONLY
+        indexed["d2/"].comparisonResultType == SOURCE_ONLY
+        indexed["d3/"].comparisonResultType == TARGET_ONLY
     }
 
 
@@ -103,8 +103,8 @@ class GeneratedArchiveBuildOutcomeComparatorTest extends Specification {
 
         expect:
         compare(existingFrom, existingTo).comparisonResultType == EQUAL
-        compare(notExistingFrom, existingTo).comparisonResultType == TO_ONLY
-        compare(existingFrom, notExistingTo).comparisonResultType == FROM_ONLY
+        compare(notExistingFrom, existingTo).comparisonResultType == TARGET_ONLY
+        compare(existingFrom, notExistingTo).comparisonResultType == SOURCE_ONLY
         compare(existingFrom, unequal).comparisonResultType == UNEQUAL
         compare(notExistingFrom, notExistingTo).comparisonResultType == NON_EXISTENT
 

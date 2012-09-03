@@ -21,10 +21,10 @@ public interface BuildOutcomeAssociator {
     /**
      * Attempts to associate the from outcome with the to outcome, by a type.
      *
-     * @param from The outcome on the from side.
-     * @param to The outcome on the to side.
+     * @param source The outcome on the from side.
+     * @param target The outcome on the to side.
      * @return The type of the association if they are associated, otherwise null.
      */
-    Class<? extends BuildOutcome> findAssociationType(BuildOutcome from, BuildOutcome to);
+    Class<? extends BuildOutcome> findAssociationType(BuildOutcome source, BuildOutcome target);
 
 }

@@ -22,17 +22,17 @@ public class DefaultBuildOutcomeAssociation<A extends BuildOutcome> implements B
     private final A to;
     private final Class<A> type;
 
-    public <F extends A, T extends A> DefaultBuildOutcomeAssociation(F from, T to, Class<A> type) {
-        this.from = from;
-        this.to = to;
+    public <S extends A, T extends A> DefaultBuildOutcomeAssociation(S source, T target, Class<A> type) {
+        this.from = source;
+        this.to = target;
         this.type = type;
     }
 
-    public A getFrom() {
+    public A getSource() {
         return from;
     }
 
-    public A getTo() {
+    public A getTarget() {
         return to;
     }
 
