@@ -49,9 +49,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.logging.ConsoleRenderer;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
-import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.GradleConnector;
-import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes;
 import org.gradle.util.GFileUtils;
@@ -60,7 +58,6 @@ import org.gradle.util.GradleVersion;
 import javax.inject.Inject;
 import java.io.*;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -316,44 +313,9 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
 
         ProjectConnection connection = connector.connect();
         try {
-            List<String> tasksList = spec.getTasks();
-            String[] tasks = tasksList.toArray(new String[tasksList.size()]);
-            List<String> argumentsList = getImpliedArguments(spec);
-            String[] arguments = argumentsList.toArray(new String[argumentsList.size()]);
-
-            if (spec.isCanObtainProjectOutcomesModel()) {
-                // Run the build and get the build outcomes model
-                ModelBuilder<ProjectOutcomes> modelBuilder = connection.model(ProjectOutcomes.class);
-                return modelBuilder.
-                        withArguments(arguments).
-                        forTasks(tasks).
-                        get();
-            } else {
-                BuildLauncher buildLauncher = connection.newBuild();
-                buildLauncher.
-                        withArguments(arguments).
-                        forTasks(tasks).
-                        run();
-
-                return null;
-            }
+            return spec.executeWith(connection);
         } finally {
             connection.close();
-        }
-    }
-
-    private List<String> getImpliedArguments(GradleBuildInvocationSpec spec) {
-        List<String> rawArgs = spec.getArguments();
-
-        // Note: we don't know for certain that this is how to invoke this functionality for this Gradle version.
-        //       unsure of any other alternative.
-        if (rawArgs.contains("-u") || rawArgs.contains("--no-search-upward")) {
-            return rawArgs;
-        } else {
-            List<String> ammendedArgs = new ArrayList<String>(rawArgs.size() + 1);
-            ammendedArgs.add("--no-search-upward");
-            ammendedArgs.addAll(rawArgs);
-            return ammendedArgs;
         }
     }
 

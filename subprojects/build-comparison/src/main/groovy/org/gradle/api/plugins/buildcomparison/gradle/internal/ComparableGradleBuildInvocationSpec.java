@@ -17,11 +17,16 @@
 package org.gradle.api.plugins.buildcomparison.gradle.internal;
 
 import org.gradle.api.plugins.buildcomparison.gradle.GradleBuildInvocationSpec;
+import org.gradle.tooling.BuildLauncher;
+import org.gradle.tooling.ModelBuilder;
+import org.gradle.tooling.ProjectConnection;
+import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -109,5 +114,44 @@ public class ComparableGradleBuildInvocationSpec implements GradleBuildInvocatio
                 + ", tasks: '" + GUtil.join(getTasks(), " ") + "'"
                 + ", arguments: '" + GUtil.join(getArguments(), " ") + "'"
                 + ", gradleVersion: " + getGradleVersion();
+    }
+
+    private List<String> getImpliedArguments() {
+        List<String> rawArgs = getArguments();
+
+        // Note: we don't know for certain that this is how to invoke this functionality for this Gradle version.
+        //       unsure of any other alternative.
+        if (rawArgs.contains("-u") || rawArgs.contains("--no-search-upward")) {
+            return rawArgs;
+        } else {
+            List<String> ammendedArgs = new ArrayList<String>(rawArgs.size() + 1);
+            ammendedArgs.add("--no-search-upward");
+            ammendedArgs.addAll(rawArgs);
+            return ammendedArgs;
+        }
+    }
+
+    public ProjectOutcomes executeWith(ProjectConnection connection) {
+        List<String> tasksList = getTasks();
+        String[] tasks = tasksList.toArray(new String[tasksList.size()]);
+        List<String> argumentsList = getImpliedArguments();
+        String[] arguments = argumentsList.toArray(new String[argumentsList.size()]);
+
+        if (isCanObtainProjectOutcomesModel()) {
+            // Run the build and get the build outcomes model
+            ModelBuilder<ProjectOutcomes> modelBuilder = connection.model(ProjectOutcomes.class);
+            return modelBuilder.
+                    withArguments(arguments).
+                    forTasks(tasks).
+                    get();
+        } else {
+            BuildLauncher buildLauncher = connection.newBuild();
+            buildLauncher.
+                    withArguments(arguments).
+                    forTasks(tasks).
+                    run();
+
+            return null;
+        }
     }
 }
