@@ -240,8 +240,8 @@ class GradleBuildComparisonResultHtmlRenderer implements BuildComparisonResultRe
                         td targetBuildPath
                     }
 
-                    def sourceGradleVersion = sourceBuild.gradleVersion.version
-                    def targetGradleVersion = targetBuild.gradleVersion.version
+                    def sourceGradleVersion = sourceBuild.gradleVersion
+                    def targetGradleVersion = targetBuild.gradleVersion
                     tr("class": context.diffClass(sourceGradleVersion == targetGradleVersion)) {
                         th class: "border-right no-border-bottom", "Gradle version"
                         td sourceGradleVersion
@@ -274,7 +274,7 @@ class GradleBuildComparisonResultHtmlRenderer implements BuildComparisonResultRe
 
         context.render {
             div(class: "warning inferred-outcomes para") {
-                p "Build outcomes were not able to be determined for the ${inferredFor} build as Gradle ${executer.spec.gradleVersion.version} does not support this feature."
+                p "Build outcomes were not able to be determined for the ${inferredFor} build as Gradle ${executer.spec.gradleVersion} does not support this feature."
                 p "The outcomes for this build have inferred from the ${inferredFrom} build. That is, it is assumed to produce the same outcomes as the ${inferredFrom} build."
                 p "This may result in a less accurate comparison."
             }

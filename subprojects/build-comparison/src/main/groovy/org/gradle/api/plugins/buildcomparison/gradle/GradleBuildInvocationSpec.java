@@ -17,7 +17,6 @@
 package org.gradle.api.plugins.buildcomparison.gradle;
 
 import org.gradle.api.Incubating;
-import org.gradle.util.GradleVersion;
 
 import java.io.File;
 import java.util.List;
@@ -45,7 +44,7 @@ public interface GradleBuildInvocationSpec {
      *
      * The value is interpreted as a file as per {@link org.gradle.api.Project#file(Object)}.
      *
-     * @param projectDir
+     * @param projectDir The “root” directory of the build.
      */
     void setProjectDir(Object projectDir);
 
@@ -56,7 +55,7 @@ public interface GradleBuildInvocationSpec {
      *
      * @return The Gradle version to run the build with. Never null.
      */
-    GradleVersion getGradleVersion();
+    String getGradleVersion();
 
     /**
      * Sets the Gradle version to run the build with.

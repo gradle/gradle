@@ -102,8 +102,8 @@ public class GradleBuildComparison {
             throw new GradleException(String.format(
                     "Builds must be executed with %s or newer (source: %s, target: %s)",
                     ComparableGradleBuildExecuter.EXEC_MINIMUM_VERSION,
-                    sourceBuildExecuter.getSpec().getGradleVersion().getVersion(),
-                    targetBuildExecuter.getSpec().getGradleVersion().getVersion()
+                    sourceBuildExecuter.getSpec().getGradleVersion(),
+                    targetBuildExecuter.getSpec().getGradleVersion()
             ));
         }
 
@@ -114,8 +114,8 @@ public class GradleBuildComparison {
             throw new GradleException(String.format(
                     "Cannot run comparison because both the source and target build are to be executed with a Gradle version older than %s (source: %s, target: %s).",
                     ComparableGradleBuildExecuter.PROJECT_OUTCOMES_MINIMUM_VERSION,
-                    sourceBuildExecuter.getSpec().getGradleVersion().getVersion(),
-                    targetBuildExecuter.getSpec().getGradleVersion().getVersion()
+                    sourceBuildExecuter.getSpec().getGradleVersion(),
+                    targetBuildExecuter.getSpec().getGradleVersion()
             ));
         }
 
@@ -178,7 +178,7 @@ public class GradleBuildComparison {
                 "The build outcomes for the %s build will be inferred from the %s build because the %s build is to be executed with Gradle %s."
                 + " This means that the comparison accuracy will be reduced."
                 + " See the Gradle User Guide for more information.",
-                inferred, inferredFrom, inferred, executer.getSpec().getGradleVersion().getVersion()
+                inferred, inferredFrom, inferred, executer.getSpec().getGradleVersion()
         );
 
         logger.warn(message);
@@ -220,7 +220,7 @@ public class GradleBuildComparison {
             connector.useGradleUserHomeDir(gradleUserHomeDir);
         }
 
-        GradleVersion gradleVersion = executer.getSpec().getGradleVersion();
+        GradleVersion gradleVersion = executer.getGradleVersion();
         if (gradleVersion.equals(GradleVersion.current())) {
             connector.useInstallation(gradle.getGradleHomeDir());
         } else {

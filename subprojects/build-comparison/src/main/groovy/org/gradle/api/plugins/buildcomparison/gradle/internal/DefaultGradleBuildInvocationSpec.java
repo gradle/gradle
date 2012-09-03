@@ -30,7 +30,7 @@ public class DefaultGradleBuildInvocationSpec implements GradleBuildInvocationSp
 
     private FileResolver fileResolver;
     private Object projectDir;
-    private GradleVersion gradleVersion = GradleVersion.current();
+    private String gradleVersion = GradleVersion.current().getVersion();
     private List<String> tasks = new LinkedList<String>();
     private List<String> arguments = new LinkedList<String>();
 
@@ -50,7 +50,7 @@ public class DefaultGradleBuildInvocationSpec implements GradleBuildInvocationSp
         this.projectDir = projectDir;
     }
 
-    public GradleVersion getGradleVersion() {
+    public String getGradleVersion() {
         return gradleVersion;
     }
 
@@ -62,7 +62,7 @@ public class DefaultGradleBuildInvocationSpec implements GradleBuildInvocationSp
         if (!version.isValid()) {
             throw new IllegalArgumentException(String.format("%s is not a valid Gradle version string (examples: '1.0', 1.0-rc-1'", gradleVersion));
         }
-        this.gradleVersion = version;
+        this.gradleVersion = version.getVersion();
     }
 
     public List<String> getTasks() {

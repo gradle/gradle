@@ -42,11 +42,15 @@ public class ComparableGradleBuildExecuter {
     }
 
     public boolean isExecutable() {
-        return getSpec().getGradleVersion().compareTo(EXEC_MINIMUM_VERSION) >= 0;
+        return getGradleVersion().compareTo(EXEC_MINIMUM_VERSION) >= 0;
+    }
+
+    public GradleVersion getGradleVersion() {
+        return GradleVersion.version(getSpec().getGradleVersion());
     }
 
     public boolean isCanObtainProjectOutcomesModel() {
-        GradleVersion version = getSpec().getGradleVersion();
+        GradleVersion version = getGradleVersion();
         boolean isMinimumVersionOrHigher = version.compareTo(PROJECT_OUTCOMES_MINIMUM_VERSION) >= 0;
         //noinspection SimplifiableIfStatement
         if (isMinimumVersionOrHigher) {
