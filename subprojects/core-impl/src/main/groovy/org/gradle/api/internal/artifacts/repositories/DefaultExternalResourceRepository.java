@@ -33,7 +33,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.math.BigInteger;
 import java.util.List;
 
 public class DefaultExternalResourceRepository implements ExternalResourceRepository {
@@ -70,21 +69,28 @@ public class DefaultExternalResourceRepository implements ExternalResourceReposi
 
     public void put(File source, String destination) throws IOException {
         doPut(source, destination);
-        putChecksum("SHA1", "%040x", source, destination);
+        putChecksum("SHA1", 40, source, destination);
     }
 
-    private void putChecksum(String algorithm, String format, File source, String destination) throws IOException {
-        File checksumFile = createChecksumFile(source, algorithm, format);
+    private void putChecksum(String algorithm, int checksumlength, File source, String destination) throws IOException {
+        File checksumFile = createChecksumFile(source, algorithm, checksumlength);
         String checksumDestination = destination + "." + algorithm.toLowerCase();
         doPut(checksumFile, checksumDestination);
     }
 
-    private File createChecksumFile(File src, String algorithm, String format) {
+    private File createChecksumFile(File src, String algorithm, int checksumlength) {
         File csFile = temporaryFileProvider.createTemporaryFile("ivytemp", algorithm);
         HashValue hash = HashUtil.createHash(src, algorithm);
-        final String formattedHash = String.format(format, new BigInteger(1, hash.asByteArray()));
-        GFileUtils.writeFile(formattedHash, csFile, "US-ASCII");
+        String formattedHashString = formatHashString(hash.asHexString(), checksumlength);
+        GFileUtils.writeFile(formattedHashString, csFile, "US-ASCII");
         return csFile;
+    }
+
+    private String formatHashString(String hashKey, int length) {
+        while (hashKey.length() < length) {
+            hashKey = "0" + hashKey;
+        }
+        return hashKey;
     }
 
     protected void doPut(final File source, String destination) throws IOException {
