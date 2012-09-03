@@ -72,11 +72,11 @@ class PerformanceTest extends Specification {
                 accuracyMs: accuracyMs
         ).run()
         result.assertCurrentReleaseIsNotSlower()
-        result.assertMemoryUsed(0.05)
+        result.assertMemoryUsed(0.1)
 
         where:
         testProject       | runs | accuracyMs
-        "lotDependencies" | 3    | 3000
+        "lotDependencies" | 5    | 3000
     }
 
     @Unroll("Project '#testProject' eclipse")
