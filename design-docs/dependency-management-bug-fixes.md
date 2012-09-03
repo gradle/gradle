@@ -4,6 +4,9 @@ This feature is really a bucket for key things we want to fix in the short-term 
 As this 'feature' is a list of bug fixes, this feature spec will not follow the usual template.
 
 ## Contents
+* [Invalid checksum files generated on publish](#invalid-checksum-files)
+* [File stores handle process crash when adding file to store](#crash-safe-file-store)
+* [Errors writing cached module descriptor are silently ignored](#errors-on-descriptor-write)
 * [Honor SSL system properties when accessing HTTP repositories](#ssl-system-properties)
 * [Ignore cached missing module entry when module is missing for all repositories](#cached-missing-modules)
 * [Correctness issues in HTTP resource caching](#http-resource-caching)
@@ -15,6 +18,74 @@ As this 'feature' is a list of bug fixes, this feature spec will not follow the 
 * [Correct naming of resolved native binaries](#native-binaries)
 * [Handle pom-only modules in mavenLocal](#pom-only-modules)
 * [Support for kerberos and custom authentication](#authentication)
+
+<a href="invalid-checksum-files">
+# Invalid checksum files generated on publish
+
+SHA-1 checksums should be 40 hex characters long. When publishing, Gradle generates a checksum string that does not include leading zeros, so
+that sometimes the checksum is shorter than 40 characters.
+
+See [GRADLE-2456](http://issues.gradle.org/browse/GRADLE-2456)
+
+### Test coverage
+
+* Publish an artifact containing the following bytes: [0, 0, 0, 5]. This has an SHA-1 that is 38 hex characters long.
+* Assert that the published SHA-1 file contains exactly the following 40 characters: 00e14c6ef59816760e2c9b5a57157e8ac9de4012
+* Test the above for Ivy and Maven publication.
+
+### Implementation strategy
+
+* Change DefaultExternalResourceRepository to include leading '0's.
+* Change DefaultExternalResourceRepository to encode the SHA1 file's content using US-ASCII.
+
+<a href="crash-safe-file-store">
+# File stores handle process crash when adding file to store
+
+When Gradle crashes after writing to a `FileStore` implementation, it can leave a partially written file behind. Subsequent invocations of Gradle
+will use this partial file.
+
+See [GRADLE-2457](http://issues.gradle.org/browse/GRADLE-2457)
+
+### Test coverage
+
+No specific coverage at this point, other than unit testing. At some point we'll set up a stress test.
+
+### Implementation strategy
+
+Something like this:
+
+* Add IndexableFileStore<K> interface with a single FileStoreEntry get(K key) method.
+* Change PathKeyFileStore to implement this method.
+* Add FileStore.add(Action<File> addAction) method. The action is given a file that it should write the contents to. This initial implementation would
+  basically do:
+    1. Allocate a temp file using getTempfile()
+    2. Call Action.execute(tempfile) to create the file
+    3. If the action is successful, call move(key, tempfile) to move the temp file into place.
+* Change ModuleDescriptorStore and/or ModuleDescriptorFileStore to use a PathKeyFileStore to manage access to the actual file store.
+* Change DownloadingRepositoryCacheManager to use FileStore.add() instead of FileStore.getTempfile() and move().
+* Remove FileStore.getTempfile().
+* Change the implementation of PathKeyFileStore.copy(), move() and add() so that it:
+    1. Places a marker file down next to the destination file.
+    2. Calls Action.execute(destfile)
+    3. If successful, removes the marker file.
+    4. If fails, removes the marker file and the destination file.
+    5. Maybe also add some handling to File.move() the original destination file out of the way in step 1, and back in on failure in step 4.
+* Change PathKeyFileStore.get() and search() to ignore and/or remove destination files for which a marker file exists.
+
+<a href="errors-on-descriptor-write">
+# Errors writing cached module descriptor are silently ignored
+
+See [GRADLE-2458](http://issues.gradle.org/browse/GRADLE-2458)
+
+### Test coverage
+
+No specific coverage at this point, other than unit testing.
+
+### Implementation strategy
+
+* Copy XmlModuleDescriptorWriter, add some unit tests.
+* Fix XmlModuleDescriptorWriter so that it does not ignore errors.
+* Change ModuleDescriptorStore and IvyBackedArtifactPublisher to use this to write the descriptors.
 
 <a href="ssl-system-properties">
 # Honor SSL system properties when accessing HTTP repositories
