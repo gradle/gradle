@@ -92,6 +92,8 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
      * Defaults to {@link org.gradle.api.Project#getRootDir() project.rootDir} with the current Gradle version
      * and the tasks “clean assemble”.
      *
+     * The {@code projectDir} must be the project directory of the root project if this is a multi project build.
+     *
      * @return The specification of how to invoke the source build.
      */
     public GradleBuildInvocationSpec getSourceBuild() {
@@ -120,6 +122,8 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
      *
      * Defaults to {@link org.gradle.api.Project#getRootDir() project.rootDir} with the current Gradle version
      * and the tasks “clean assemble”.
+     *
+     * The {@code projectDir} must be the project directory of the root project if this is a multi project build.
      *
      * @return The specification of how to invoke the target build.
      */
