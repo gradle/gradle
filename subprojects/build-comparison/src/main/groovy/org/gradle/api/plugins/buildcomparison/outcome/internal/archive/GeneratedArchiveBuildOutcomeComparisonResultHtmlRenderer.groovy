@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.buildcomparison.outcome.internal.archive.entry
+package org.gradle.api.plugins.buildcomparison.outcome.internal.archive
 
-import org.gradle.api.plugins.buildcomparison.outcome.internal.archive.GeneratedArchiveBuildOutcomeComparisonResult
+import org.gradle.api.plugins.buildcomparison.outcome.internal.archive.entry.ArchiveEntry
+import org.gradle.api.plugins.buildcomparison.outcome.internal.archive.entry.ArchiveEntryComparison
 import org.gradle.api.plugins.buildcomparison.render.internal.html.BuildOutcomeComparisonResultHtmlRenderer
 import org.gradle.api.plugins.buildcomparison.render.internal.html.HtmlRenderContext
 
