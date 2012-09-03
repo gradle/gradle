@@ -64,7 +64,6 @@ Gradle daemon stopped.
         out = executer.withArguments("--stop").run().output
 
         then:
-        out == TextUtil.toPlatformLineSeparators('''No Gradle daemons are running.
-''')
+        out.contains DaemonMessages.NO_DAEMONS_RUNNING
     }
 }

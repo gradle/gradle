@@ -19,18 +19,19 @@ import org.gradle.util.AvailablePortFinder
 import org.gradle.util.hash.HashUtil
 import org.hamcrest.Matcher
 import org.junit.rules.ExternalResource
-import org.mortbay.jetty.*
 import org.mortbay.jetty.bio.SocketConnector
 import org.mortbay.jetty.handler.AbstractHandler
 import org.mortbay.jetty.handler.HandlerCollection
-import org.mortbay.jetty.security.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
 import java.security.Principal
 import java.util.zip.GZIPOutputStream
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
+
+import org.mortbay.jetty.*
+import org.mortbay.jetty.security.*
 
 class HttpServer extends ExternalResource {
 
@@ -102,6 +103,10 @@ class HttpServer extends ExternalResource {
 
     void start() {
         int port = AvailablePortFinder.createPrivate().nextAvailable
+        start(port)
+    }
+
+    void start(int port) {
         connector = new SocketConnector()
         connector.port = port
         server.addConnector(connector)

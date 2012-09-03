@@ -32,6 +32,7 @@ class DaemonIntegrationSpec extends Specification {
 
     @Rule public final GradleDistribution distribution = new GradleDistribution()
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter(daemon)
+    String output
 
     def setup() {
         distribution.requireIsolatedDaemons()
@@ -39,11 +40,13 @@ class DaemonIntegrationSpec extends Specification {
     }
 
     void stopDaemonsNow() {
-        executer.withArguments("--stop", "--info").run()
+        def result = executer.withArguments("--stop", "--info").run()
+        output = result.output
     }
 
-    void buildSucceeds(String script) {
+    void buildSucceeds(String script = '') {
         distribution.file('build.gradle') << script
-        executer.withArguments("--info").withNoDefaultJvmArgs().run()
+        def result = executer.withArguments("--info").withNoDefaultJvmArgs().run()
+        output = result.output
     }
 }
