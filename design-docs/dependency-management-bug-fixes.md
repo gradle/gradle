@@ -35,14 +35,14 @@ See [GRADLE-2456](http://issues.gradle.org/browse/GRADLE-2456)
 
 ### Implementation strategy
 
-* Change DefaultExternalResourceRepository to include leading '0's.
-* Change DefaultExternalResourceRepository to encode the SHA1 file's content using US-ASCII.
+* Change `DefaultExternalResourceRepository` to include leading '0's.
+* Change `DefaultExternalResourceRepository` to encode the SHA1 file's content using US-ASCII.
 
 <a href="crash-safe-file-store">
-# File stores handle process crash when adding file to store
+# File stores recover from process crash while adding file to store
 
 When Gradle crashes after writing to a `FileStore` implementation, it can leave a partially written file behind. Subsequent invocations of Gradle
-will use this partial file.
+will attempt to use this partial file.
 
 See [GRADLE-2457](http://issues.gradle.org/browse/GRADLE-2457)
 
@@ -54,23 +54,23 @@ No specific coverage at this point, other than unit testing. At some point we'll
 
 Something like this:
 
-* Add IndexableFileStore<K> interface with a single FileStoreEntry get(K key) method.
+* Add `IndexableFileStore<K>` interface with a single `FileStoreEntry get(K key)` method.
 * Change PathKeyFileStore to implement this method.
-* Add FileStore.add(Action<File> addAction) method. The action is given a file that it should write the contents to. This initial implementation would
+* Add `FileStore.add(K key, Action<File> addAction)` method. The action is given a file that it should write the contents to. This initial implementation would
   basically do:
-    1. Allocate a temp file using getTempfile()
-    2. Call Action.execute(tempfile) to create the file
-    3. If the action is successful, call move(key, tempfile) to move the temp file into place.
-* Change ModuleDescriptorStore and/or ModuleDescriptorFileStore to use a PathKeyFileStore to manage access to the actual file store.
-* Change DownloadingRepositoryCacheManager to use FileStore.add() instead of FileStore.getTempfile() and move().
-* Remove FileStore.getTempfile().
-* Change the implementation of PathKeyFileStore.copy(), move() and add() so that it:
+    1. Allocate a temp file using `getTempfile()`
+    2. Call `Action.execute(tempfile)` to create the file.
+    3. If the action is successful, call `move(key, tempfile)` to move the temp file into place.
+* Change `ModuleDescriptorStore` and/or `ModuleDescriptorFileStore` to use a `PathKeyFileStore` to manage access to the actual file store.
+* Change `DownloadingRepositoryCacheManager` to use `FileStore.add()` instead of `FileStore.getTempfile()` and `move()`.
+* Remove `FileStore.getTempfile()`.
+* Change the implementation of `PathKeyFileStore.copy()`, `move()` and `add()` so that it:
     1. Places a marker file down next to the destination file.
-    2. Calls Action.execute(destfile)
+    2. Calls `Action.execute(destfile)`
     3. If successful, removes the marker file.
     4. If fails, removes the marker file and the destination file.
-    5. Maybe also add some handling to File.move() the original destination file out of the way in step 1, and back in on failure in step 4.
-* Change PathKeyFileStore.get() and search() to ignore and/or remove destination files for which a marker file exists.
+    5. Maybe also add some handling to `File.move()` the original destination file out of the way in step 1, and back in on failure in step 4.
+* Change `PathKeyFileStore.get()` and `search()` to ignore and/or remove destination files for which a marker file exists.
 
 <a href="errors-on-descriptor-write">
 # Errors writing cached module descriptor are silently ignored
