@@ -21,11 +21,8 @@ import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes;
-import org.gradle.util.GFileUtils;
-import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -58,13 +55,6 @@ public class ComparableGradleBuildExecuter {
             // Special handling for snapshots/RCs of the minimum version
             return version.getVersionBase().equals(PROJECT_OUTCOMES_MINIMUM_VERSION.getVersionBase());
         }
-    }
-
-    public String describeRelativeTo(File relativeTo) {
-        return "dir: '" + GFileUtils.relativePath(relativeTo, getSpec().getProjectDir()) + "'"
-                + ", tasks: '" + GUtil.join(getSpec().getTasks(), " ") + "'"
-                + ", arguments: '" + GUtil.join(getSpec().getArguments(), " ") + "'"
-                + ", gradleVersion: " + getSpec().getGradleVersion();
     }
 
     private List<String> getImpliedArguments() {

@@ -19,6 +19,7 @@ package org.gradle.api.plugins.buildcomparison.gradle.internal;
 import com.google.common.collect.Lists;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.plugins.buildcomparison.gradle.GradleBuildInvocationSpec;
+import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
@@ -112,4 +113,13 @@ public class DefaultGradleBuildInvocationSpec implements GradleBuildInvocationSp
         return result;
     }
 
+    @Override
+    public String toString() {
+        return "{"
+                + "dir: '" + getProjectDir().getAbsolutePath() + "'"
+                + ", tasks: '" + GUtil.join(getTasks(), " ") + "'"
+                + ", arguments: '" + GUtil.join(getArguments(), " ") + "'"
+                + ", gradleVersion: " + getGradleVersion()
+                + "}";
+    }
 }

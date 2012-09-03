@@ -16,31 +16,21 @@
 
 package org.gradle.api.plugins.buildcomparison.gradle;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.gradle.api.*;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.filestore.FileStore;
 import org.gradle.api.internal.filestore.PathNormalisingKeyFileStore;
 import org.gradle.api.logging.Logger;
-import org.gradle.api.plugins.buildcomparison.compare.internal.*;
+import org.gradle.api.plugins.buildcomparison.compare.internal.BuildComparisonResult;
 import org.gradle.api.plugins.buildcomparison.gradle.internal.ComparableGradleBuildExecuter;
 import org.gradle.api.plugins.buildcomparison.gradle.internal.DefaultGradleBuildInvocationSpec;
-import org.gradle.api.plugins.buildcomparison.gradle.internal.GradleBuildOutcomeSetInferrer;
-import org.gradle.api.plugins.buildcomparison.gradle.internal.GradleBuildOutcomeSetTransformer;
-import org.gradle.api.plugins.buildcomparison.outcome.internal.BuildOutcome;
-import org.gradle.api.plugins.buildcomparison.outcome.internal.BuildOutcomeAssociator;
-import org.gradle.api.plugins.buildcomparison.outcome.internal.ByTypeAndNameBuildOutcomeAssociator;
-import org.gradle.api.plugins.buildcomparison.outcome.internal.CompositeBuildOutcomeAssociator;
+import org.gradle.api.plugins.buildcomparison.gradle.internal.GradleBuildComparison;
 import org.gradle.api.plugins.buildcomparison.outcome.internal.archive.GeneratedArchiveBuildOutcome;
 import org.gradle.api.plugins.buildcomparison.outcome.internal.archive.GeneratedArchiveBuildOutcomeComparator;
 import org.gradle.api.plugins.buildcomparison.outcome.internal.archive.entry.GeneratedArchiveBuildOutcomeComparisonResultHtmlRenderer;
 import org.gradle.api.plugins.buildcomparison.outcome.internal.unknown.UnknownBuildOutcome;
 import org.gradle.api.plugins.buildcomparison.outcome.internal.unknown.UnknownBuildOutcomeComparator;
 import org.gradle.api.plugins.buildcomparison.outcome.internal.unknown.UnknownBuildOutcomeComparisonResultHtmlRenderer;
-import org.gradle.api.plugins.buildcomparison.render.internal.BuildComparisonResultRenderer;
-import org.gradle.api.plugins.buildcomparison.render.internal.DefaultBuildOutcomeComparisonResultRendererFactory;
-import org.gradle.api.plugins.buildcomparison.render.internal.html.*;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
@@ -49,18 +39,12 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.logging.ConsoleRenderer;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
-import org.gradle.tooling.GradleConnector;
-import org.gradle.tooling.ProjectConnection;
-import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes;
-import org.gradle.util.GFileUtils;
 import org.gradle.util.GradleVersion;
 
 import javax.inject.Inject;
-import java.io.*;
-import java.nio.charset.Charset;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
+import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
  * Executes two Gradle builds (that can be the same build) with specified versions and compares the outputs.
@@ -71,15 +55,11 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
     public static final List<String> DEFAULT_TASKS = Arrays.asList("clean", "assemble");
 
     private static final String TMP_FILESTORAGE_PREFIX = "tmp-filestorage";
-    private static final String SOURCE_FILESTORE_PREFIX = "source";
-    private static final String TARGET_FILESTORE_PREFIX = "target";
 
     private final GradleBuildInvocationSpec sourceBuild;
     private final GradleBuildInvocationSpec targetBuild;
     private boolean ignoreFailures;
     private Object reportDir;
-
-    private final FileStore<String> fileStore;
 
     private final FileResolver fileResolver;
     private final ProgressLoggerFactory progressLoggerFactory;
@@ -93,9 +73,6 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
         sourceBuild.setTasks(DEFAULT_TASKS);
         targetBuild = instantiator.newInstance(DefaultGradleBuildInvocationSpec.class, fileResolver, getProject().getRootDir());
         targetBuild.setTasks(DEFAULT_TASKS);
-
-        File fileStoreTmpBase = fileResolver.resolve(String.format(TMP_FILESTORAGE_PREFIX + "-%s-%s", getName(), System.currentTimeMillis()));
-        fileStore = new PathNormalisingKeyFileStore(fileStoreTmpBase);
 
         // Never up to date
         getOutputs().upToDateWhen(new Spec<Task>() {
@@ -144,136 +121,59 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
         this.reportDir = reportDir;
     }
 
-    public File getReportFile() {
-        return new File(getReportDir(), "index.html");
-    }
-
-    public File getFileStoreDir() {
-        return new File(getReportDir(), "files");
+    private File getReportFile() {
+        return new File(getReportDir(), GradleBuildComparison.HTML_REPORT_FILE_NAME);
     }
 
     @SuppressWarnings("UnusedDeclaration")
     @TaskAction
     void compare() {
-        ComparableGradleBuildExecuter sourceBuildExecuter = new ComparableGradleBuildExecuter(getSourceBuild());
-        ComparableGradleBuildExecuter targetBuildExecuter = new ComparableGradleBuildExecuter(getTargetBuild());
+        GradleBuildInvocationSpec sourceBuild = getSourceBuild();
+        GradleBuildInvocationSpec targetBuild = getTargetBuild();
 
-        if (sourceBuildExecuter.getSpec().equals(targetBuildExecuter.getSpec())) {
+        if (sourceBuild.equals(targetBuild)) {
             getLogger().warn("The source build and target build are identical. Set '{}.targetBuild.gradleVersion' if you want to compare with a different Gradle version.", getName());
         }
 
-        if (!sourceBuildExecuter.isExecutable() || !targetBuildExecuter.isExecutable()) {
-            throw new GradleException(String.format(
-                    "Builds must be executed with %s or newer (source: %s, target: %s)",
-                    ComparableGradleBuildExecuter.EXEC_MINIMUM_VERSION,
-                    sourceBuildExecuter.getSpec().getGradleVersion().getVersion(),
-                    targetBuildExecuter.getSpec().getGradleVersion().getVersion()
-            ));
-        }
-
-        boolean sourceBuildHasOutcomesModel = sourceBuildExecuter.isCanObtainProjectOutcomesModel();
-        boolean targetBuildHasOutcomesModel = targetBuildExecuter.isCanObtainProjectOutcomesModel();
-
-        if (!sourceBuildHasOutcomesModel && !targetBuildHasOutcomesModel) {
-            throw new GradleException(String.format(
-                    "Cannot run comparison because both the source and target build are to be executed with a Gradle version older than %s (source: %s, target: %s).",
-                    ComparableGradleBuildExecuter.PROJECT_OUTCOMES_MINIMUM_VERSION,
-                    sourceBuildExecuter.getSpec().getGradleVersion().getVersion(),
-                    targetBuildExecuter.getSpec().getGradleVersion().getVersion()
-            ));
-        }
+        ComparableGradleBuildExecuter sourceBuildExecuter = new ComparableGradleBuildExecuter(sourceBuild);
+        ComparableGradleBuildExecuter targetBuildExecuter = new ComparableGradleBuildExecuter(targetBuild);
 
         Logger logger = getLogger();
         ProgressLogger progressLogger = progressLoggerFactory.newOperation(getClass());
-
-        String executingSourceBuildMessage = executingMessage("source", sourceBuildExecuter);
-        String executingTargetBuildMessage = executingMessage("target", targetBuildExecuter);
-
         progressLogger.setDescription("Gradle Build Comparison");
         progressLogger.setShortDescription(getName());
 
-        // Build the outcome model and outcomes
+        GradleBuildComparison comparison = new GradleBuildComparison(
+                sourceBuildExecuter, targetBuildExecuter,
+                logger, progressLogger,
+                getProject().getGradle()
+        );
 
-        // - Execute source build, unless it's < PROJECT_OUTCOMES_MINIMUM_VERSION
+        comparison.registerType(
+                GeneratedArchiveBuildOutcome.class,
+                new GeneratedArchiveBuildOutcomeComparator(),
+                new GeneratedArchiveBuildOutcomeComparisonResultHtmlRenderer()
+        );
 
-        Set<BuildOutcome> sourceOutcomes = null;
-        if (sourceBuildHasOutcomesModel) {
-            logger.info(executingSourceBuildMessage);
-            progressLogger.started(executingSourceBuildMessage);
-            ProjectOutcomes sourceOutput = executeBuild(sourceBuildExecuter);
-            progressLogger.progress("inspecting source build outcomes");
-            GradleBuildOutcomeSetTransformer sourceOutcomeTransformer = createOutcomeSetTransformer(SOURCE_FILESTORE_PREFIX);
-            sourceOutcomes = sourceOutcomeTransformer.transform(sourceOutput);
-        }
+        comparison.registerType(
+                UnknownBuildOutcome.class,
+                new UnknownBuildOutcomeComparator(),
+                new UnknownBuildOutcomeComparisonResultHtmlRenderer()
+        );
 
-        // - Execute target build
+        File fileStoreTmpBase = fileResolver.resolve(String.format(TMP_FILESTORAGE_PREFIX + "-%s-%s", getName(), System.currentTimeMillis()));
+        FileStore<String> fileStore = new PathNormalisingKeyFileStore(fileStoreTmpBase);
 
-        logger.info(executingTargetBuildMessage);
-        if (sourceBuildHasOutcomesModel) {
-            progressLogger.progress(executingTargetBuildMessage);
-        } else {
-            progressLogger.started(executingTargetBuildMessage);
-        }
+        Map<String, String> hostAttributes = new LinkedHashMap<String, String>(4);
+        hostAttributes.put("Project", getProject().getRootDir().getAbsolutePath());
+        hostAttributes.put("Task", getPath());
+        hostAttributes.put("Gradle version", GradleVersion.current().getVersion());
+        hostAttributes.put("Executed at", new SimpleDateFormat().format(new Date()));
 
-        ProjectOutcomes targetOutput = executeBuild(targetBuildExecuter);
-
-        Set<BuildOutcome> targetOutcomes;
-        if (targetBuildHasOutcomesModel) {
-            progressLogger.progress("inspecting target build outcomes");
-            GradleBuildOutcomeSetTransformer targetOutcomeTransformer = createOutcomeSetTransformer(TARGET_FILESTORE_PREFIX);
-            targetOutcomes = targetOutcomeTransformer.transform(targetOutput);
-        } else {
-            targetOutcomes = createOutcomeSetInferrer(TARGET_FILESTORE_PREFIX, targetBuildExecuter.getSpec().getProjectDir()).transform(sourceOutcomes);
-        }
-
-        // - If source build is < PROJECT_OUTCOMES_MINIMUM_VERSION, execute it now
-
-        if (!sourceBuildHasOutcomesModel) {
-            logger.info(executingSourceBuildMessage);
-            progressLogger.progress(executingSourceBuildMessage);
-            executeBuild(sourceBuildExecuter);
-            progressLogger.progress("inspecting source build outcomes");
-            sourceOutcomes = createOutcomeSetInferrer(SOURCE_FILESTORE_PREFIX, sourceBuildExecuter.getSpec().getProjectDir()).transform(targetOutcomes);
-        }
-
-        progressLogger.progress("preparing for comparison");
-
-        // Infrastructure that we have to register handlers with
-        DefaultBuildOutcomeComparatorFactory comparatorFactory = new DefaultBuildOutcomeComparatorFactory();
-        BuildOutcomeAssociator[] associators = new BuildOutcomeAssociator[2];
-        DefaultBuildOutcomeComparisonResultRendererFactory<HtmlRenderContext> renderers = new DefaultBuildOutcomeComparisonResultRendererFactory<HtmlRenderContext>(HtmlRenderContext.class);
-
-        // Register archives
-        associators[0] = new ByTypeAndNameBuildOutcomeAssociator<BuildOutcome>(GeneratedArchiveBuildOutcome.class);
-        comparatorFactory.registerComparator(new GeneratedArchiveBuildOutcomeComparator());
-        renderers.registerRenderer(new GeneratedArchiveBuildOutcomeComparisonResultHtmlRenderer());
-
-        // Register unknown handling
-        associators[1] = new ByTypeAndNameBuildOutcomeAssociator<BuildOutcome>(UnknownBuildOutcome.class);
-        comparatorFactory.registerComparator(new UnknownBuildOutcomeComparator());
-        renderers.registerRenderer(new UnknownBuildOutcomeComparisonResultHtmlRenderer());
-
-        // Associate from each s
-        BuildOutcomeAssociator compositeAssociator = new CompositeBuildOutcomeAssociator(associators);
-        BuildComparisonSpecFactory specFactory = new BuildComparisonSpecFactory(compositeAssociator);
-        BuildComparisonSpec comparisonSpec = specFactory.createSpec(sourceOutcomes, targetOutcomes);
-
-        progressLogger.progress("comparing build outcomes");
-
-        // Compare
-        BuildComparator buildComparator = new DefaultBuildComparator(comparatorFactory);
-        BuildComparisonResult result = buildComparator.compareBuilds(comparisonSpec);
-
-        writeReport(result, renderers);
-
-        progressLogger.completed();
-
+        BuildComparisonResult result = comparison.compare(fileStore, getReportDir(), hostAttributes);
         communicateResult(result);
     }
 
-    private String executingMessage(String name, ComparableGradleBuildExecuter executer) {
-        return String.format("executing %s build {%s}", name, executer.describeRelativeTo(getProject().getProjectDir()));
-    }
 
     private void communicateResult(BuildComparisonResult result) {
         String reportUrl = new ConsoleRenderer().asClickableFileUrl(getReportFile());
@@ -288,74 +188,5 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
             }
         }
     }
-
-    private GradleBuildOutcomeSetTransformer createOutcomeSetTransformer(String filesPath) {
-        return new GradleBuildOutcomeSetTransformer(fileStore, filesPath);
-    }
-
-    private GradleBuildOutcomeSetInferrer createOutcomeSetInferrer(String filesPath, File baseDir) {
-        return new GradleBuildOutcomeSetInferrer(fileStore, filesPath, baseDir);
-    }
-
-    private ProjectOutcomes executeBuild(ComparableGradleBuildExecuter executer) {
-        GradleVersion gradleVersion = executer.getSpec().getGradleVersion();
-
-        GradleConnector connector = GradleConnector.newConnector().forProjectDirectory(executer.getSpec().getProjectDir());
-        File gradleUserHomeDir = getProject().getGradle().getStartParameter().getGradleUserHomeDir();
-        if (gradleUserHomeDir != null) {
-            connector.useGradleUserHomeDir(gradleUserHomeDir);
-        }
-        if (gradleVersion.equals(GradleVersion.current())) {
-            connector.useInstallation(getProject().getGradle().getGradleHomeDir());
-        } else {
-            connector.useGradleVersion(gradleVersion.getVersion());
-        }
-
-        ProjectConnection connection = connector.connect();
-        try {
-            return executer.executeWith(connection);
-        } finally {
-            connection.close();
-        }
-    }
-
-    private void writeReport(BuildComparisonResult result, DefaultBuildOutcomeComparisonResultRendererFactory<HtmlRenderContext> renderers) {
-        File reportDir = getReportDir();
-        if (reportDir.exists() && reportDir.list().length > 0) {
-            GFileUtils.cleanDirectory(reportDir);
-        }
-
-        fileStore.moveFilestore(getFileStoreDir());
-
-        OutputStream outputStream;
-        Writer writer;
-
-        try {
-            outputStream = FileUtils.openOutputStream(getReportFile());
-            writer = new OutputStreamWriter(outputStream, Charset.defaultCharset());
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-
-        try {
-            createResultRenderer(renderers).render(result, writer);
-        } finally {
-            IOUtils.closeQuietly(writer);
-            IOUtils.closeQuietly(outputStream);
-        }
-    }
-
-    private BuildComparisonResultRenderer<Writer> createResultRenderer(DefaultBuildOutcomeComparisonResultRendererFactory<HtmlRenderContext> renderers) {
-        PartRenderer headRenderer = new HeadRenderer("Gradle Build Comparison", Charset.defaultCharset().name());
-
-        PartRenderer headingRenderer = new GradleComparisonHeadingRenderer(this);
-
-        return new HtmlBuildComparisonResultRenderer(renderers, headRenderer, headingRenderer, null, new Transformer<String, File>() {
-            public String transform(File original) {
-                return GFileUtils.relativePath(getReportDir(), original);
-            }
-        });
-    }
-
 
 }

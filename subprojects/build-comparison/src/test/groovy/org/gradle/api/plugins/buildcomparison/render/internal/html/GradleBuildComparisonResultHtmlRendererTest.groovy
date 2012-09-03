@@ -17,8 +17,11 @@
 package org.gradle.api.plugins.buildcomparison.render.internal.html
 
 import org.gradle.api.Transformer
+import org.gradle.api.internal.file.BaseDirFileResolver
 import org.gradle.api.plugins.buildcomparison.compare.internal.BuildComparisonResult
 import org.gradle.api.plugins.buildcomparison.compare.internal.BuildOutcomeComparisonResult
+import org.gradle.api.plugins.buildcomparison.gradle.internal.ComparableGradleBuildExecuter
+import org.gradle.api.plugins.buildcomparison.gradle.internal.DefaultGradleBuildInvocationSpec
 import org.gradle.api.plugins.buildcomparison.outcome.internal.BuildOutcome
 import org.gradle.api.plugins.buildcomparison.outcome.internal.DefaultBuildOutcomeAssociation
 import org.gradle.api.plugins.buildcomparison.outcome.string.StringBuildOutcome
@@ -26,11 +29,18 @@ import org.gradle.api.plugins.buildcomparison.outcome.string.StringBuildOutcomeC
 import org.gradle.api.plugins.buildcomparison.outcome.string.StringBuildOutcomeComparisonResultHtmlRenderer
 import org.gradle.api.plugins.buildcomparison.render.internal.BuildComparisonResultRenderer
 import org.gradle.api.plugins.buildcomparison.render.internal.DefaultBuildOutcomeComparisonResultRendererFactory
+import org.gradle.internal.nativeplatform.filesystem.FileSystems
+import org.gradle.util.TemporaryFolder
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
+import org.junit.Rule
 import spock.lang.Specification
 
-class HtmlBuildComparisonResultRendererTest extends Specification {
+import java.nio.charset.Charset
+
+class GradleBuildComparisonResultHtmlRendererTest extends Specification {
+
+    @Rule TemporaryFolder dir = new TemporaryFolder()
 
     def headPart = null
     def headerPart = null
@@ -44,8 +54,18 @@ class HtmlBuildComparisonResultRendererTest extends Specification {
 
     def writer = new StringWriter()
 
-    BuildComparisonResultRenderer makeRenderer(renderers = this.renderers, headPart = this.headPart, headerPart = this.headerPart, footerPart = this.footerPart) {
-        new HtmlBuildComparisonResultRenderer(renderers, headPart, headerPart, footerPart, new Transformer() {
+    def hostAttributes = [foo: "bar"]
+
+    def sourceBuildDir = dir.createDir("source")
+    def targetBuildDir = dir.createDir("target")
+    def resolver = new BaseDirFileResolver(FileSystems.default, dir.dir)
+    def sourceBuildSpec = new DefaultGradleBuildInvocationSpec(resolver, sourceBuildDir)
+    def targetBuildSpec = new DefaultGradleBuildInvocationSpec(resolver, targetBuildDir)
+    def sourceBuildExecuter = new ComparableGradleBuildExecuter(sourceBuildSpec)
+    def targetBuildExecuter = new ComparableGradleBuildExecuter(targetBuildSpec)
+
+    BuildComparisonResultRenderer makeRenderer(renderers = this.renderers) {
+        new GradleBuildComparisonResultHtmlRenderer(renderers, Charset.defaultCharset(), sourceBuildExecuter, targetBuildExecuter, hostAttributes, new Transformer() {
             Object transform(Object original) {
                 original.path
             }
@@ -91,33 +111,11 @@ class HtmlBuildComparisonResultRendererTest extends Specification {
 
         then:
         // Just need to test that the renderers were called correctly, not the renderers themselves
-        def tables = html.select("table")
+        def tables = html.select(".build-outcome-comparison table")
         tables.size() == 3
         tables[0].select("th").text() == "Source Target Distance"
         tables[0].select("td")[0].text() == "a"
         tables[2].select("td")[2].text() == comparisons.last.distance.toString()
     }
 
-    def "parts"() {
-        given:
-        headPart = partRenderer { title "a" }
-        headerPart = partRenderer { header("b") }
-        footerPart = partRenderer { footer("c") }
-
-        when:
-        def result = render()
-
-        then:
-        result.head().select("title").text() == "a"
-        result.select("header").text() == "b"
-        result.select("footer").text() == "c"
-    }
-
-    PartRenderer partRenderer(Closure c) {
-        new PartRenderer() {
-            void render(BuildComparisonResult result, HtmlRenderContext context) {
-                context.render(c)
-            }
-        }
-    }
 }
