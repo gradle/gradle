@@ -49,7 +49,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
- * Executes two Gradle builds (that can be the same build) with specified versions and compares the outputs.
+ * Executes two Gradle builds (that can be the same build) with specified versions and compares the outcomes.
  */
 @Incubating
 public class CompareGradleBuilds extends DefaultTask implements VerificationTask {
@@ -84,37 +84,99 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
         });
     }
 
+    /**
+     * The specification of how to invoke the source build.
+     *
+     * Defaults to {@link org.gradle.api.Project#getRootDir() project.rootDir} with the current Gradle version
+     * and the tasks “clean assemble”.
+     *
+     * @return The specification of how to invoke the source build.
+     */
     public GradleBuildInvocationSpec getSourceBuild() {
         return sourceBuild;
     }
 
+    /**
+     * Configures the source build.
+     *
+     * A Groovy closure can be used as the action.
+     * <pre>
+     * sourceBuild {
+     *   gradleVersion = "1.1"
+     * }
+     * </pre>
+     *
+     * @param config The configuration action.
+     */
     @SuppressWarnings("UnusedDeclaration")
     public void sourceBuild(Action<GradleBuildInvocationSpec> config) {
         config.execute(getSourceBuild());
     }
 
+    /**
+     * The specification of how to invoke the target build.
+     *
+     * Defaults to {@link org.gradle.api.Project#getRootDir() project.rootDir} with the current Gradle version
+     * and the tasks “clean assemble”.
+     *
+     * @return The specification of how to invoke the target build.
+     */
     public GradleBuildInvocationSpec getTargetBuild() {
         return targetBuild;
     }
 
+    /**
+     * Configures the target build.
+     *
+     * A Groovy closure can be used as the action.
+     * <pre>
+     * targetBuild {
+     *   gradleVersion = "1.1"
+     * }
+     * </pre>
+     *
+     * @param config The configuration action.
+     */
     @SuppressWarnings("UnusedDeclaration")
     public void targetBuild(Action<GradleBuildInvocationSpec> config) {
         config.execute(getTargetBuild());
     }
 
+    /**
+     * Whether a comparison between non identical builds will fail the task execution.
+     *
+     * @return True if a comparison between non identical builds will fail the task execution, otherwise false.
+     */
     public boolean getIgnoreFailures() {
         return ignoreFailures;
     }
 
+    /**
+     * Sets whether a comparison between non identical builds will fail the task execution.
+     *
+     * @param ignoreFailures false to fail the task on non identical builds, true to not fail the task. The default is false.
+     */
     public void setIgnoreFailures(boolean ignoreFailures) {
         this.ignoreFailures = ignoreFailures;
     }
 
+    /**
+     * The directory that will contain the HTML comparison report and any other report files.
+     *
+     * @return The directory that will contain the HTML comparison report and any other report files.
+     */
     @OutputDirectory
     public File getReportDir() {
         return reportDir == null ? null : fileResolver.resolve(reportDir);
     }
 
+    /**
+     * Sets the directory that will contain the HTML comparison report and any other report files.
+     *
+     * The value will be evaluated by {@link Project#file(Object) project.file()}.
+     *
+     * @param reportDir The directory that will contain the HTML comparison report and any other report files.
+     */
     @SuppressWarnings("UnusedDeclaration")
     public void setReportDir(Object reportDir) {
         if (reportDir == null) {
@@ -177,7 +239,6 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
         BuildComparisonResult result = comparison.compare(fileStore, getReportDir(), hostAttributes);
         communicateResult(result);
     }
-
 
     private void communicateResult(BuildComparisonResult result) {
         String reportUrl = new ConsoleRenderer().asClickableFileUrl(getReportFile());
