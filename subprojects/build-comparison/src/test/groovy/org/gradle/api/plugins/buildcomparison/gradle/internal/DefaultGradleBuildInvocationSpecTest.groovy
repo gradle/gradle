@@ -26,8 +26,8 @@ class DefaultGradleBuildInvocationSpecTest extends Specification {
 
     def "equals and hashCode"() {
         given:
-        def left = new DefaultGradleBuildInvocationSpec(fileResolver, ".")
-        def right = new DefaultGradleBuildInvocationSpec(fileResolver, ".")
+        def left = spec()
+        def right = spec()
 
         expect:
         left == right
@@ -38,6 +38,24 @@ class DefaultGradleBuildInvocationSpecTest extends Specification {
 
         then:
         left != right
+    }
+
+    protected DefaultGradleBuildInvocationSpec spec() {
+        new DefaultGradleBuildInvocationSpec(fileResolver, ".")
+    }
+
+    def "gradle version is validated"() {
+        when:
+        spec().gradleVersion = "1.1"
+
+        then:
+        notThrown Exception
+
+        when:
+        spec().gradleVersion = "sadfasd"
+
+        then:
+        thrown IllegalArgumentException
     }
 
 }
