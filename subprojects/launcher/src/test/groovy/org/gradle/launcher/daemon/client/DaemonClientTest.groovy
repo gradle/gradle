@@ -54,7 +54,7 @@ class DaemonClientTest extends ConcurrentSpecification {
     }
 
     def "stops all compatible daemons"() {
-        DaemonConnection connection2 = Mock()
+        DaemonClientConnection connection2 = Mock()
 
         when:
         client.stop()
@@ -98,8 +98,6 @@ class DaemonClientTest extends ConcurrentSpecification {
     }
 
     def rethrowsFailureToExecuteAction() {
-        GradleLauncherAction<String> action = Mock()
-        BuildActionParameters parameters = Mock()
         RuntimeException failure = new RuntimeException()
 
         when:
