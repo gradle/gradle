@@ -299,6 +299,9 @@
             <tr>
                 <td>org.gradle.api.tasks.bundling.Zip</td>
             </tr>
+            <tr>
+                <td>org.gradle.api.plugins.buildcomparison.gradle.CompareGradleBuilds</td>
+            </tr>
         </table>
     </section>
 
