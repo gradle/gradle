@@ -24,7 +24,7 @@ import org.gradle.api.internal.filestore.FileStore;
 import org.gradle.api.internal.filestore.PathNormalisingKeyFileStore;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.plugins.buildcomparison.compare.internal.*;
-import org.gradle.api.plugins.buildcomparison.gradle.internal.ComparableGradleBuildInvocationSpec;
+import org.gradle.api.plugins.buildcomparison.gradle.internal.ComparableGradleBuildExecuter;
 import org.gradle.api.plugins.buildcomparison.gradle.internal.DefaultGradleBuildInvocationSpec;
 import org.gradle.api.plugins.buildcomparison.gradle.internal.GradleBuildOutcomeSetInferrer;
 import org.gradle.api.plugins.buildcomparison.gradle.internal.GradleBuildOutcomeSetTransformer;
@@ -155,39 +155,39 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
     @SuppressWarnings("UnusedDeclaration")
     @TaskAction
     void compare() {
-        ComparableGradleBuildInvocationSpec comparableSourceBuild = new ComparableGradleBuildInvocationSpec(getSourceBuild());
-        ComparableGradleBuildInvocationSpec comparableTargetBuild = new ComparableGradleBuildInvocationSpec(getTargetBuild());
+        ComparableGradleBuildExecuter sourceBuildExecuter = new ComparableGradleBuildExecuter(getSourceBuild());
+        ComparableGradleBuildExecuter targetBuildExecuter = new ComparableGradleBuildExecuter(getTargetBuild());
 
-        if (comparableSourceBuild.equals(comparableTargetBuild)) {
+        if (sourceBuildExecuter.getSpec().equals(targetBuildExecuter.getSpec())) {
             getLogger().warn("The source build and target build are identical. Set '{}.targetBuild.gradleVersion' if you want to compare with a different Gradle version.", getName());
         }
 
-        if (!comparableSourceBuild.isExecutable() || !comparableTargetBuild.isExecutable()) {
+        if (!sourceBuildExecuter.isExecutable() || !targetBuildExecuter.isExecutable()) {
             throw new GradleException(String.format(
                     "Builds must be executed with %s or newer (source: %s, target: %s)",
-                    ComparableGradleBuildInvocationSpec.EXEC_MINIMUM_VERSION,
-                    comparableSourceBuild.getGradleVersion().getVersion(),
-                    comparableTargetBuild.getGradleVersion().getVersion()
+                    ComparableGradleBuildExecuter.EXEC_MINIMUM_VERSION,
+                    sourceBuildExecuter.getSpec().getGradleVersion().getVersion(),
+                    targetBuildExecuter.getSpec().getGradleVersion().getVersion()
             ));
         }
 
-        boolean sourceBuildHasOutcomesModel = comparableSourceBuild.isCanObtainProjectOutcomesModel();
-        boolean targetBuildHasOutcomesModel = comparableTargetBuild.isCanObtainProjectOutcomesModel();
+        boolean sourceBuildHasOutcomesModel = sourceBuildExecuter.isCanObtainProjectOutcomesModel();
+        boolean targetBuildHasOutcomesModel = targetBuildExecuter.isCanObtainProjectOutcomesModel();
 
         if (!sourceBuildHasOutcomesModel && !targetBuildHasOutcomesModel) {
             throw new GradleException(String.format(
                     "Cannot run comparison because both the source and target build are to be executed with a Gradle version older than %s (source: %s, target: %s).",
-                    ComparableGradleBuildInvocationSpec.PROJECT_OUTCOMES_MINIMUM_VERSION,
-                    comparableSourceBuild.getGradleVersion().getVersion(),
-                    comparableTargetBuild.getGradleVersion().getVersion()
+                    ComparableGradleBuildExecuter.PROJECT_OUTCOMES_MINIMUM_VERSION,
+                    sourceBuildExecuter.getSpec().getGradleVersion().getVersion(),
+                    targetBuildExecuter.getSpec().getGradleVersion().getVersion()
             ));
         }
 
         Logger logger = getLogger();
         ProgressLogger progressLogger = progressLoggerFactory.newOperation(getClass());
 
-        String executingSourceBuildMessage = executingMessage("source", comparableSourceBuild);
-        String executingTargetBuildMessage = executingMessage("target", comparableTargetBuild);
+        String executingSourceBuildMessage = executingMessage("source", sourceBuildExecuter);
+        String executingTargetBuildMessage = executingMessage("target", targetBuildExecuter);
 
         progressLogger.setDescription("Gradle Build Comparison");
         progressLogger.setShortDescription(getName());
@@ -200,7 +200,7 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
         if (sourceBuildHasOutcomesModel) {
             logger.info(executingSourceBuildMessage);
             progressLogger.started(executingSourceBuildMessage);
-            ProjectOutcomes fromOutput = executeBuild(comparableSourceBuild);
+            ProjectOutcomes fromOutput = executeBuild(sourceBuildExecuter);
             progressLogger.progress("inspecting source build outcomes");
             GradleBuildOutcomeSetTransformer fromOutcomeTransformer = createOutcomeSetTransformer(SOURCE_FILESTORE_PREFIX);
             fromOutcomes = fromOutcomeTransformer.transform(fromOutput);
@@ -215,7 +215,7 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
             progressLogger.started(executingTargetBuildMessage);
         }
 
-        ProjectOutcomes toOutput = executeBuild(comparableTargetBuild);
+        ProjectOutcomes toOutput = executeBuild(targetBuildExecuter);
 
         Set<BuildOutcome> toOutcomes;
         if (targetBuildHasOutcomesModel) {
@@ -223,7 +223,7 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
             GradleBuildOutcomeSetTransformer toOutcomeTransformer = createOutcomeSetTransformer(TARGET_FILESTORE_PREFIX);
             toOutcomes = toOutcomeTransformer.transform(toOutput);
         } else {
-            toOutcomes = createOutcomeSetInferrer(TARGET_FILESTORE_PREFIX, comparableTargetBuild.getProjectDir()).transform(fromOutcomes);
+            toOutcomes = createOutcomeSetInferrer(TARGET_FILESTORE_PREFIX, targetBuildExecuter.getSpec().getProjectDir()).transform(fromOutcomes);
         }
 
         // - If source build is < PROJECT_OUTCOMES_MINIMUM_VERSION, execute it now
@@ -231,9 +231,9 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
         if (!sourceBuildHasOutcomesModel) {
             logger.info(executingSourceBuildMessage);
             progressLogger.progress(executingSourceBuildMessage);
-            executeBuild(comparableSourceBuild);
+            executeBuild(sourceBuildExecuter);
             progressLogger.progress("inspecting source build outcomes");
-            fromOutcomes = createOutcomeSetInferrer(SOURCE_FILESTORE_PREFIX, comparableSourceBuild.getProjectDir()).transform(toOutcomes);
+            fromOutcomes = createOutcomeSetInferrer(SOURCE_FILESTORE_PREFIX, sourceBuildExecuter.getSpec().getProjectDir()).transform(toOutcomes);
         }
 
         progressLogger.progress("preparing for comparison");
@@ -271,8 +271,8 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
         communicateResult(result);
     }
 
-    private String executingMessage(String name, ComparableGradleBuildInvocationSpec spec) {
-        return String.format("executing %s build {%s}", name, spec.describeRelativeTo(getProject().getProjectDir()));
+    private String executingMessage(String name, ComparableGradleBuildExecuter executer) {
+        return String.format("executing %s build {%s}", name, executer.describeRelativeTo(getProject().getProjectDir()));
     }
 
     private void communicateResult(BuildComparisonResult result) {
@@ -297,10 +297,10 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
         return new GradleBuildOutcomeSetInferrer(fileStore, filesPath, baseDir);
     }
 
-    private ProjectOutcomes executeBuild(ComparableGradleBuildInvocationSpec spec) {
-        GradleVersion gradleVersion = spec.getGradleVersion();
+    private ProjectOutcomes executeBuild(ComparableGradleBuildExecuter executer) {
+        GradleVersion gradleVersion = executer.getSpec().getGradleVersion();
 
-        GradleConnector connector = GradleConnector.newConnector().forProjectDirectory(spec.getProjectDir());
+        GradleConnector connector = GradleConnector.newConnector().forProjectDirectory(executer.getSpec().getProjectDir());
         File gradleUserHomeDir = getProject().getGradle().getStartParameter().getGradleUserHomeDir();
         if (gradleUserHomeDir != null) {
             connector.useGradleUserHomeDir(gradleUserHomeDir);
@@ -313,7 +313,7 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
 
         ProjectConnection connection = connector.connect();
         try {
-            return spec.executeWith(connection);
+            return executer.executeWith(connection);
         } finally {
             connection.close();
         }

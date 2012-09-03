@@ -29,60 +29,27 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Comparing focussed decorator.
- *
- * This object cannot add any state as equals/hashCode delegate.
- */
-public class ComparableGradleBuildInvocationSpec implements GradleBuildInvocationSpec {
+public class ComparableGradleBuildExecuter {
 
     public static final GradleVersion PROJECT_OUTCOMES_MINIMUM_VERSION = GradleVersion.version("1.2");
     public static final GradleVersion EXEC_MINIMUM_VERSION = GradleVersion.version("1.0");
 
     private final GradleBuildInvocationSpec spec;
 
-    public ComparableGradleBuildInvocationSpec(GradleBuildInvocationSpec spec) {
+    public ComparableGradleBuildExecuter(GradleBuildInvocationSpec spec) {
         this.spec = spec;
     }
 
-    public File getProjectDir() {
-        return spec.getProjectDir();
-    }
-
-    public void setProjectDir(Object projectDir) {
-        spec.setProjectDir(projectDir);
-    }
-
-    public GradleVersion getGradleVersion() {
-        return spec.getGradleVersion();
-    }
-
-    public void setGradleVersion(String gradleVersion) {
-        spec.setGradleVersion(gradleVersion);
-    }
-
-    public List<String> getTasks() {
-        return spec.getTasks();
-    }
-
-    public void setTasks(Iterable<String> tasks) {
-        spec.setTasks(tasks);
-    }
-
-    public List<String> getArguments() {
-        return spec.getArguments();
-    }
-
-    public void setArguments(Iterable<String> arguments) {
-        spec.setArguments(arguments);
+    public GradleBuildInvocationSpec getSpec() {
+        return spec;
     }
 
     public boolean isExecutable() {
-        return getGradleVersion().compareTo(EXEC_MINIMUM_VERSION) >= 0;
+        return getSpec().getGradleVersion().compareTo(EXEC_MINIMUM_VERSION) >= 0;
     }
 
     public boolean isCanObtainProjectOutcomesModel() {
-        GradleVersion version = getGradleVersion();
+        GradleVersion version = getSpec().getGradleVersion();
         boolean isMinimumVersionOrHigher = version.compareTo(PROJECT_OUTCOMES_MINIMUM_VERSION) >= 0;
         //noinspection SimplifiableIfStatement
         if (isMinimumVersionOrHigher) {
@@ -93,31 +60,15 @@ public class ComparableGradleBuildInvocationSpec implements GradleBuildInvocatio
         }
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == null) {
-            return false;
-        } else if (obj instanceof ComparableGradleBuildInvocationSpec) {
-            return spec.equals(((ComparableGradleBuildInvocationSpec) obj).spec);
-        } else {
-            return spec.equals(obj);
-        }
-    }
-
-    @Override
-    public int hashCode() {
-        return spec.hashCode();
-    }
-
     public String describeRelativeTo(File relativeTo) {
-        return "dir: '" + GFileUtils.relativePath(relativeTo, getProjectDir()) + "'"
-                + ", tasks: '" + GUtil.join(getTasks(), " ") + "'"
-                + ", arguments: '" + GUtil.join(getArguments(), " ") + "'"
-                + ", gradleVersion: " + getGradleVersion();
+        return "dir: '" + GFileUtils.relativePath(relativeTo, getSpec().getProjectDir()) + "'"
+                + ", tasks: '" + GUtil.join(getSpec().getTasks(), " ") + "'"
+                + ", arguments: '" + GUtil.join(getSpec().getArguments(), " ") + "'"
+                + ", gradleVersion: " + getSpec().getGradleVersion();
     }
 
     private List<String> getImpliedArguments() {
-        List<String> rawArgs = getArguments();
+        List<String> rawArgs = getSpec().getArguments();
 
         // Note: we don't know for certain that this is how to invoke this functionality for this Gradle version.
         //       unsure of any other alternative.
@@ -132,7 +83,7 @@ public class ComparableGradleBuildInvocationSpec implements GradleBuildInvocatio
     }
 
     public ProjectOutcomes executeWith(ProjectConnection connection) {
-        List<String> tasksList = getTasks();
+        List<String> tasksList = getSpec().getTasks();
         String[] tasks = tasksList.toArray(new String[tasksList.size()]);
         List<String> argumentsList = getImpliedArguments();
         String[] arguments = argumentsList.toArray(new String[argumentsList.size()]);
