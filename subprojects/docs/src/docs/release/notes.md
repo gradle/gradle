@@ -90,7 +90,7 @@ An example for a Gradle generated user-agent string: "**Gradle/1.2 (Mac OS X;10.
 
 Our documentation has received a facelift to match our new style. Check out the new look [DSL Reference](dsl/index.html) and [User Guide](userguide/userguide.html).
 
-The [DSL Reference](dsl/index.html) also now indicates which features are deprecated or incubating.
+The [DSL Reference](dsl/index.html) also now indicates which features are deprecated or incubating. See [TestLoggingContainer](dsl/org.gradle.api.tasks.testing.logging.TestLoggingContainer.html) for and example of how an incubating feature is displayed, and [Directory](dsl/org.gradle.api.tasks.Directory.html) for an example of a deprecated feature.
 
 ## Promoted features
 
