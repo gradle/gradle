@@ -16,72 +16,60 @@
 
 package org.gradle.api.plugins.buildcomparison.gradle.internal;
 
-import com.google.common.collect.Lists;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.plugins.buildcomparison.gradle.GradleBuildInvocationSpec;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * Comparing focussed decorator.
+ *
+ * This object cannot add any state as equals/hashCode delegate.
+ */
 public class ComparableGradleBuildInvocationSpec implements GradleBuildInvocationSpec {
 
-    public static final List<String> DEFAULT_TASKS = Arrays.asList("clean", "assemble");
     public static final GradleVersion PROJECT_OUTCOMES_MINIMUM_VERSION = GradleVersion.version("1.2");
     public static final GradleVersion EXEC_MINIMUM_VERSION = GradleVersion.version("1.0");
 
-    private FileResolver fileResolver;
-    private Object projectDir;
-    private GradleVersion gradleVersion = GradleVersion.current();
-    private List<String> tasks = new LinkedList<String>(DEFAULT_TASKS);
-    private List<String> arguments = new LinkedList<String>();
+    private final GradleBuildInvocationSpec spec;
 
-    public ComparableGradleBuildInvocationSpec(FileResolver fileResolver, Object projectDir) {
-        this.fileResolver = fileResolver;
-        this.projectDir = projectDir;
+    public ComparableGradleBuildInvocationSpec(GradleBuildInvocationSpec spec) {
+        this.spec = spec;
     }
 
     public File getProjectDir() {
-        return fileResolver.resolve(projectDir);
+        return spec.getProjectDir();
     }
 
     public void setProjectDir(Object projectDir) {
-        if (projectDir == null) {
-            throw new IllegalArgumentException("projectDir cannot be null");
-        }
-        this.projectDir = projectDir;
+        spec.setProjectDir(projectDir);
     }
 
     public GradleVersion getGradleVersion() {
-        return gradleVersion;
+        return spec.getGradleVersion();
     }
 
     public void setGradleVersion(String gradleVersion) {
-        if (gradleVersion == null) {
-            throw new IllegalArgumentException("gradleVersion cannot be null");
-        }
-        this.gradleVersion = GradleVersion.version(gradleVersion);
+        spec.setGradleVersion(gradleVersion);
     }
 
     public List<String> getTasks() {
-        return tasks;
+        return spec.getTasks();
     }
 
     public void setTasks(Iterable<String> tasks) {
-        this.tasks = tasks == null ? Collections.<String>emptyList() : Lists.newLinkedList(tasks);
+        spec.setTasks(tasks);
     }
 
     public List<String> getArguments() {
-        return arguments;
+        return spec.getArguments();
     }
 
     public void setArguments(Iterable<String> arguments) {
-        this.arguments = arguments == null ? Collections.<String>emptyList() : Lists.newLinkedList(arguments);
+        spec.setArguments(arguments);
     }
 
     public boolean isExecutable() {
@@ -101,39 +89,19 @@ public class ComparableGradleBuildInvocationSpec implements GradleBuildInvocatio
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
+    public boolean equals(Object obj) {
+        if (obj == null) {
             return false;
+        } else if (obj instanceof ComparableGradleBuildInvocationSpec) {
+            return spec.equals(((ComparableGradleBuildInvocationSpec) obj).spec);
+        } else {
+            return spec.equals(obj);
         }
-
-        ComparableGradleBuildInvocationSpec that = (ComparableGradleBuildInvocationSpec) o;
-
-        if (!getArguments().equals(that.getArguments())) {
-            return false;
-        }
-        if (!getGradleVersion().equals(that.getGradleVersion())) {
-            return false;
-        }
-        if (!getProjectDir().equals(that.getProjectDir())) {
-            return false;
-        }
-        if (!getTasks().equals(that.getTasks())) {
-            return false;
-        }
-
-        return true;
     }
 
     @Override
     public int hashCode() {
-        int result = getProjectDir().hashCode();
-        result = 31 * result + getGradleVersion().hashCode();
-        result = 31 * result + getTasks().hashCode();
-        result = 31 * result + getArguments().hashCode();
-        return result;
+        return spec.hashCode();
     }
 
     public String describeRelativeTo(File relativeTo) {

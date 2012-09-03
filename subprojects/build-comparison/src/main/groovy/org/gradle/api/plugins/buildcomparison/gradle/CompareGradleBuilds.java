@@ -25,6 +25,7 @@ import org.gradle.api.internal.filestore.PathNormalisingKeyFileStore;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.plugins.buildcomparison.compare.internal.*;
 import org.gradle.api.plugins.buildcomparison.gradle.internal.ComparableGradleBuildInvocationSpec;
+import org.gradle.api.plugins.buildcomparison.gradle.internal.DefaultGradleBuildInvocationSpec;
 import org.gradle.api.plugins.buildcomparison.gradle.internal.GradleBuildOutcomeSetInferrer;
 import org.gradle.api.plugins.buildcomparison.gradle.internal.GradleBuildOutcomeSetTransformer;
 import org.gradle.api.plugins.buildcomparison.outcome.internal.BuildOutcome;
@@ -60,6 +61,7 @@ import javax.inject.Inject;
 import java.io.*;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -69,13 +71,14 @@ import java.util.Set;
 @Incubating
 public class CompareGradleBuilds extends DefaultTask implements VerificationTask {
 
-    private static final String TMP_FILESTORAGE_PREFIX = "tmp-filestorage";
+    public static final List<String> DEFAULT_TASKS = Arrays.asList("clean", "assemble");
 
+    private static final String TMP_FILESTORAGE_PREFIX = "tmp-filestorage";
     private static final String SOURCE_FILESTORE_PREFIX = "source";
     private static final String TARGET_FILESTORE_PREFIX = "target";
 
-    private final ComparableGradleBuildInvocationSpec sourceBuild;
-    private final ComparableGradleBuildInvocationSpec targetBuild;
+    private final GradleBuildInvocationSpec sourceBuild;
+    private final GradleBuildInvocationSpec targetBuild;
     private boolean ignoreFailures;
     private Object reportDir;
 
@@ -89,10 +92,10 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
         this.fileResolver = fileResolver;
         this.progressLoggerFactory = progressLoggerFactory;
 
-        sourceBuild = instantiator.newInstance(ComparableGradleBuildInvocationSpec.class, fileResolver, getProject().getRootDir());
-        sourceBuild.setTasks(ComparableGradleBuildInvocationSpec.DEFAULT_TASKS);
-        targetBuild = instantiator.newInstance(ComparableGradleBuildInvocationSpec.class, fileResolver, getProject().getRootDir());
-        targetBuild.setTasks(ComparableGradleBuildInvocationSpec.DEFAULT_TASKS);
+        sourceBuild = instantiator.newInstance(DefaultGradleBuildInvocationSpec.class, fileResolver, getProject().getRootDir());
+        sourceBuild.setTasks(DEFAULT_TASKS);
+        targetBuild = instantiator.newInstance(DefaultGradleBuildInvocationSpec.class, fileResolver, getProject().getRootDir());
+        targetBuild.setTasks(DEFAULT_TASKS);
 
         File fileStoreTmpBase = fileResolver.resolve(String.format(TMP_FILESTORAGE_PREFIX + "-%s-%s", getName(), System.currentTimeMillis()));
         fileStore = new PathNormalisingKeyFileStore(fileStoreTmpBase);
@@ -151,39 +154,39 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
 
     @TaskAction
     void compare() {
-        ComparableGradleBuildInvocationSpec sourceBuild = (ComparableGradleBuildInvocationSpec) getSourceBuild();
-        ComparableGradleBuildInvocationSpec targetBuild = (ComparableGradleBuildInvocationSpec) getTargetBuild();
+        ComparableGradleBuildInvocationSpec comparableSourceBuild = new ComparableGradleBuildInvocationSpec(getSourceBuild());
+        ComparableGradleBuildInvocationSpec comparableTargetBuild = new ComparableGradleBuildInvocationSpec(getTargetBuild());
 
-        if (sourceBuild.equals(targetBuild)) {
+        if (comparableSourceBuild.equals(comparableTargetBuild)) {
             getLogger().warn("The source build and target build are identical. Set '{}.targetBuild.gradleVersion' if you want to compare with a different Gradle version.", getName());
         }
 
-        if (!sourceBuild.isExecutable() || !targetBuild.isExecutable()) {
+        if (!comparableSourceBuild.isExecutable() || !comparableTargetBuild.isExecutable()) {
             throw new GradleException(String.format(
                     "Builds must be executed with %s or newer (source: %s, target: %s)",
                     ComparableGradleBuildInvocationSpec.EXEC_MINIMUM_VERSION,
-                    sourceBuild.getGradleVersion().getVersion(),
-                    targetBuild.getGradleVersion().getVersion()
+                    comparableSourceBuild.getGradleVersion().getVersion(),
+                    comparableTargetBuild.getGradleVersion().getVersion()
             ));
         }
 
-        boolean sourceBuildHasOutcomesModel = sourceBuild.isCanObtainProjectOutcomesModel();
-        boolean targetBuildHasOutcomesModel = targetBuild.isCanObtainProjectOutcomesModel();
+        boolean sourceBuildHasOutcomesModel = comparableSourceBuild.isCanObtainProjectOutcomesModel();
+        boolean targetBuildHasOutcomesModel = comparableTargetBuild.isCanObtainProjectOutcomesModel();
 
         if (!sourceBuildHasOutcomesModel && !targetBuildHasOutcomesModel) {
             throw new GradleException(String.format(
                     "Cannot run comparison because both the source and target build are to be executed with a Gradle version older than %s (source: %s, target: %s).",
                     ComparableGradleBuildInvocationSpec.PROJECT_OUTCOMES_MINIMUM_VERSION,
-                    sourceBuild.getGradleVersion().getVersion(),
-                    targetBuild.getGradleVersion().getVersion()
+                    comparableSourceBuild.getGradleVersion().getVersion(),
+                    comparableTargetBuild.getGradleVersion().getVersion()
             ));
         }
 
         Logger logger = getLogger();
         ProgressLogger progressLogger = progressLoggerFactory.newOperation(getClass());
 
-        String executingSourceBuildMessage = executingMessage("source", getSourceBuild());
-        String executingTargetBuildMessage = executingMessage("target", getTargetBuild());
+        String executingSourceBuildMessage = executingMessage("source", comparableSourceBuild);
+        String executingTargetBuildMessage = executingMessage("target", comparableTargetBuild);
 
         progressLogger.setDescription("Gradle Build Comparison");
         progressLogger.setShortDescription(getName());
@@ -196,7 +199,7 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
         if (sourceBuildHasOutcomesModel) {
             logger.info(executingSourceBuildMessage);
             progressLogger.started(executingSourceBuildMessage);
-            ProjectOutcomes fromOutput = buildProjectOutcomesOrJustExec(getSourceBuild(), false);
+            ProjectOutcomes fromOutput = buildProjectOutcomesOrJustExec(comparableSourceBuild, false);
             progressLogger.progress("inspecting source build outcomes");
             GradleBuildOutcomeSetTransformer fromOutcomeTransformer = createOutcomeSetTransformer(SOURCE_FILESTORE_PREFIX);
             fromOutcomes = fromOutcomeTransformer.transform(fromOutput);
@@ -211,7 +214,7 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
             progressLogger.started(executingTargetBuildMessage);
         }
 
-        ProjectOutcomes toOutput = buildProjectOutcomesOrJustExec(getTargetBuild(), !targetBuildHasOutcomesModel);
+        ProjectOutcomes toOutput = buildProjectOutcomesOrJustExec(comparableTargetBuild, !targetBuildHasOutcomesModel);
 
         Set<BuildOutcome> toOutcomes = null;
         if (targetBuildHasOutcomesModel) {
@@ -219,7 +222,7 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
             GradleBuildOutcomeSetTransformer toOutcomeTransformer = createOutcomeSetTransformer(TARGET_FILESTORE_PREFIX);
             toOutcomes = toOutcomeTransformer.transform(toOutput);
         } else {
-            toOutcomes = createOutcomeSetInferrer(TARGET_FILESTORE_PREFIX, getTargetBuild().getProjectDir()).transform(fromOutcomes);
+            toOutcomes = createOutcomeSetInferrer(TARGET_FILESTORE_PREFIX, comparableTargetBuild.getProjectDir()).transform(fromOutcomes);
         }
 
         // - If source build is < PROJECT_OUTCOMES_MINIMUM_VERSION, execute it now
@@ -227,9 +230,9 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
         if (!sourceBuildHasOutcomesModel) {
             logger.info(executingSourceBuildMessage);
             progressLogger.progress(executingSourceBuildMessage);
-            buildProjectOutcomesOrJustExec(getSourceBuild(), true);
+            buildProjectOutcomesOrJustExec(comparableSourceBuild, true);
             progressLogger.progress("inspecting source build outcomes");
-            fromOutcomes = createOutcomeSetInferrer(SOURCE_FILESTORE_PREFIX, getSourceBuild().getProjectDir()).transform(toOutcomes);
+            fromOutcomes = createOutcomeSetInferrer(SOURCE_FILESTORE_PREFIX, comparableSourceBuild.getProjectDir()).transform(toOutcomes);
         }
 
         progressLogger.progress("preparing for comparison");
@@ -267,9 +270,8 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
         communicateResult(result);
     }
 
-    private String executingMessage(String name, GradleBuildInvocationSpec spec) {
-        ComparableGradleBuildInvocationSpec cast = (ComparableGradleBuildInvocationSpec) spec;
-        return String.format("executing %s build {%s}", name, cast.describeRelativeTo(getProject().getProjectDir()));
+    private String executingMessage(String name, ComparableGradleBuildInvocationSpec spec) {
+        return String.format("executing %s build {%s}", name, spec.describeRelativeTo(getProject().getProjectDir()));
     }
 
     private void communicateResult(BuildComparisonResult result) {
