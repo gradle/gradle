@@ -196,14 +196,14 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
 
         // - Execute source build, unless it's < PROJECT_OUTCOMES_MINIMUM_VERSION
 
-        Set<BuildOutcome> fromOutcomes = null;
+        Set<BuildOutcome> sourceOutcomes = null;
         if (sourceBuildHasOutcomesModel) {
             logger.info(executingSourceBuildMessage);
             progressLogger.started(executingSourceBuildMessage);
-            ProjectOutcomes fromOutput = executeBuild(sourceBuildExecuter);
+            ProjectOutcomes sourceOutput = executeBuild(sourceBuildExecuter);
             progressLogger.progress("inspecting source build outcomes");
-            GradleBuildOutcomeSetTransformer fromOutcomeTransformer = createOutcomeSetTransformer(SOURCE_FILESTORE_PREFIX);
-            fromOutcomes = fromOutcomeTransformer.transform(fromOutput);
+            GradleBuildOutcomeSetTransformer sourceOutcomeTransformer = createOutcomeSetTransformer(SOURCE_FILESTORE_PREFIX);
+            sourceOutcomes = sourceOutcomeTransformer.transform(sourceOutput);
         }
 
         // - Execute target build
@@ -215,15 +215,15 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
             progressLogger.started(executingTargetBuildMessage);
         }
 
-        ProjectOutcomes toOutput = executeBuild(targetBuildExecuter);
+        ProjectOutcomes targetOutput = executeBuild(targetBuildExecuter);
 
-        Set<BuildOutcome> toOutcomes;
+        Set<BuildOutcome> targetOutcomes;
         if (targetBuildHasOutcomesModel) {
             progressLogger.progress("inspecting target build outcomes");
-            GradleBuildOutcomeSetTransformer toOutcomeTransformer = createOutcomeSetTransformer(TARGET_FILESTORE_PREFIX);
-            toOutcomes = toOutcomeTransformer.transform(toOutput);
+            GradleBuildOutcomeSetTransformer targetOutcomeTransformer = createOutcomeSetTransformer(TARGET_FILESTORE_PREFIX);
+            targetOutcomes = targetOutcomeTransformer.transform(targetOutput);
         } else {
-            toOutcomes = createOutcomeSetInferrer(TARGET_FILESTORE_PREFIX, targetBuildExecuter.getSpec().getProjectDir()).transform(fromOutcomes);
+            targetOutcomes = createOutcomeSetInferrer(TARGET_FILESTORE_PREFIX, targetBuildExecuter.getSpec().getProjectDir()).transform(sourceOutcomes);
         }
 
         // - If source build is < PROJECT_OUTCOMES_MINIMUM_VERSION, execute it now
@@ -233,7 +233,7 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
             progressLogger.progress(executingSourceBuildMessage);
             executeBuild(sourceBuildExecuter);
             progressLogger.progress("inspecting source build outcomes");
-            fromOutcomes = createOutcomeSetInferrer(SOURCE_FILESTORE_PREFIX, sourceBuildExecuter.getSpec().getProjectDir()).transform(toOutcomes);
+            sourceOutcomes = createOutcomeSetInferrer(SOURCE_FILESTORE_PREFIX, sourceBuildExecuter.getSpec().getProjectDir()).transform(targetOutcomes);
         }
 
         progressLogger.progress("preparing for comparison");
@@ -253,10 +253,10 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
         comparatorFactory.registerComparator(new UnknownBuildOutcomeComparator());
         renderers.registerRenderer(new UnknownBuildOutcomeComparisonResultHtmlRenderer("Source Build", "Target Build"));
 
-        // Associate from each side (create spec)
+        // Associate from each s
         BuildOutcomeAssociator compositeAssociator = new CompositeBuildOutcomeAssociator(associators);
         BuildComparisonSpecFactory specFactory = new BuildComparisonSpecFactory(compositeAssociator);
-        BuildComparisonSpec comparisonSpec = specFactory.createSpec(fromOutcomes, toOutcomes);
+        BuildComparisonSpec comparisonSpec = specFactory.createSpec(sourceOutcomes, targetOutcomes);
 
         progressLogger.progress("comparing build outcomes");
 
