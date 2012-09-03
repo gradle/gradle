@@ -112,6 +112,7 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
         return sourceBuild;
     }
 
+    @SuppressWarnings("UnusedDeclaration")
     public void sourceBuild(Action<GradleBuildInvocationSpec> config) {
         config.execute(getSourceBuild());
     }
@@ -120,6 +121,7 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
         return targetBuild;
     }
 
+    @SuppressWarnings("UnusedDeclaration")
     public void targetBuild(Action<GradleBuildInvocationSpec> config) {
         config.execute(getTargetBuild());
     }
@@ -137,6 +139,7 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
         return reportDir == null ? null : fileResolver.resolve(reportDir);
     }
 
+    @SuppressWarnings("UnusedDeclaration")
     public void setReportDir(Object reportDir) {
         if (reportDir == null) {
             throw new IllegalArgumentException("reportDir cannot be null");
@@ -152,6 +155,7 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
         return new File(getReportDir(), "files");
     }
 
+    @SuppressWarnings("UnusedDeclaration")
     @TaskAction
     void compare() {
         ComparableGradleBuildInvocationSpec comparableSourceBuild = new ComparableGradleBuildInvocationSpec(getSourceBuild());
@@ -199,7 +203,7 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
         if (sourceBuildHasOutcomesModel) {
             logger.info(executingSourceBuildMessage);
             progressLogger.started(executingSourceBuildMessage);
-            ProjectOutcomes fromOutput = buildProjectOutcomesOrJustExec(comparableSourceBuild, false);
+            ProjectOutcomes fromOutput = executeBuild(comparableSourceBuild);
             progressLogger.progress("inspecting source build outcomes");
             GradleBuildOutcomeSetTransformer fromOutcomeTransformer = createOutcomeSetTransformer(SOURCE_FILESTORE_PREFIX);
             fromOutcomes = fromOutcomeTransformer.transform(fromOutput);
@@ -214,9 +218,9 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
             progressLogger.started(executingTargetBuildMessage);
         }
 
-        ProjectOutcomes toOutput = buildProjectOutcomesOrJustExec(comparableTargetBuild, !targetBuildHasOutcomesModel);
+        ProjectOutcomes toOutput = executeBuild(comparableTargetBuild);
 
-        Set<BuildOutcome> toOutcomes = null;
+        Set<BuildOutcome> toOutcomes;
         if (targetBuildHasOutcomesModel) {
             progressLogger.progress("inspecting target build outcomes");
             GradleBuildOutcomeSetTransformer toOutcomeTransformer = createOutcomeSetTransformer(TARGET_FILESTORE_PREFIX);
@@ -230,7 +234,7 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
         if (!sourceBuildHasOutcomesModel) {
             logger.info(executingSourceBuildMessage);
             progressLogger.progress(executingSourceBuildMessage);
-            buildProjectOutcomesOrJustExec(comparableSourceBuild, true);
+            executeBuild(comparableSourceBuild);
             progressLogger.progress("inspecting source build outcomes");
             fromOutcomes = createOutcomeSetInferrer(SOURCE_FILESTORE_PREFIX, comparableSourceBuild.getProjectDir()).transform(toOutcomes);
         }
@@ -296,7 +300,7 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
         return new GradleBuildOutcomeSetInferrer(fileStore, filesPath, baseDir);
     }
 
-    private ProjectOutcomes buildProjectOutcomesOrJustExec(GradleBuildInvocationSpec spec, boolean justExec) {
+    private ProjectOutcomes executeBuild(ComparableGradleBuildInvocationSpec spec) {
         GradleVersion gradleVersion = spec.getGradleVersion();
 
         GradleConnector connector = GradleConnector.newConnector().forProjectDirectory(spec.getProjectDir());
@@ -317,7 +321,14 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
             List<String> argumentsList = getImpliedArguments(spec);
             String[] arguments = argumentsList.toArray(new String[argumentsList.size()]);
 
-            if (justExec) {
+            if (spec.isCanObtainProjectOutcomesModel()) {
+                // Run the build and get the build outcomes model
+                ModelBuilder<ProjectOutcomes> modelBuilder = connection.model(ProjectOutcomes.class);
+                return modelBuilder.
+                        withArguments(arguments).
+                        forTasks(tasks).
+                        get();
+            } else {
                 BuildLauncher buildLauncher = connection.newBuild();
                 buildLauncher.
                         withArguments(arguments).
@@ -325,13 +336,6 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
                         run();
 
                 return null;
-            } else {
-                // Run the build and get the build outcomes model
-                ModelBuilder<ProjectOutcomes> modelBuilder = connection.model(ProjectOutcomes.class);
-                return modelBuilder.
-                        withArguments(arguments).
-                        forTasks(tasks).
-                        get();
             }
         } finally {
             connection.close();
