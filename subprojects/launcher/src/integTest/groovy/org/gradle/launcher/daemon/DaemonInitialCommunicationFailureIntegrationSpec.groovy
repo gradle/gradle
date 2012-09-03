@@ -19,6 +19,7 @@ package org.gradle.launcher.daemon
 import org.gradle.integtests.fixtures.HttpServer
 import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.launcher.daemon.testing.DaemonLogsAnalyzer
+import org.gradle.tests.fixtures.ConcurrentTestUtil
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -53,7 +54,9 @@ class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegration
 
         when:
         //starting some service on the daemon port
-        new HttpServer().start(daemon.port)
+        ConcurrentTestUtil.poll {
+            new HttpServer().start(daemon.port)
+        }
 
         then:
         //most fundamentally, the build works ok:
@@ -80,7 +83,9 @@ class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegration
 
         when:
         daemon.kill()
-        new HttpServer().start(daemon.port)
+        ConcurrentTestUtil.poll {
+            new HttpServer().start(daemon.port)
+        }
 
         then:
         //most fundamentally, stopping works ok:
