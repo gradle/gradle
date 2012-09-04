@@ -61,27 +61,28 @@ expect to see a 20-25% reduction in heap usage thanks to these improvements.
 ### <a id="multiple_build_failures"></a>Reporting of multiple build failures
 
 When running the build with `--continue` or the [new `--parallel` option](#parallel) it is possible to have multiple failures in your build. 
-While executing Gradle will now report on tasks that fail, as well as producing output detailing _all_ build failures on build completion.
+Previously, these failures were only reported at the time they occurred. Now, additionally a complete list
+of build failures is shown on build completion.
 
 The new output clearly indicates the cause and possible analysis of each failure, making it easier to track down the underlying issue.
 Detailing _all_ failures makes the `--continue` command line option much more useful: it is now possible to use this option to
 discover as many failures as possible with a single build execution.
 
-### Configuration option for FindBugs plugin
+### Configuration options for FindBugs plugin
 
 Thanks to a contribution from [Justin Ryan](https://github.com/quidryan), the FindBugs plugin now supports more configuration options.
 
-### HTTP requests now provide Gradle related version information
+### Gradle related version information in HTTP requests
 
 Gradle, the Gradle Wrapper and the Gradle Tooling API now provide version information in the `User-Agent` header whenever HTTP resources are accessed.
-Especially for larger organisations, this can be very helpful to gather information about which versions of Gradle are used in which environment.
+Especially for larger organizations, this can be very helpful to gather information about which versions of Gradle are used in which environment.
 
 #### What information is provided?
 
 The `User-Agent` header now includes information about
 
-* The Gradle application (Gradle, Gradle Wrapper or Gradle Tooling API) + Version making the request.
-* The Operating System (name, version, architecture).
+* The Gradle application (Gradle, Gradle Wrapper or Gradle Tooling API) and version making the request.
+* The Operating system (name, version, architecture).
 * The Java version (vendor, version).
 
 An example for a Gradle generated user-agent string: "**Gradle/1.2 (Mac OS X;10.8;amd64) (Oracle Corporation;1.7.0_04-ea;23.0-b12)**"
@@ -103,7 +104,7 @@ as soon as one of these sub-tasks fails. This means that the build will finish s
 There are many times when you would like to find out as many failures as possible in a single build execution. For example, when you kick off a build
 before heading out to lunch, or running a nightly CI job. The `--continue` command-line option allows you to do just that.
 
-With the addition of [nicer reporting of multiple build failures](#multiple_build_failures), we now consider `--continue` a production quality feature of Gradlee. Please see the [User Guide section](userguide/tutorial_gradle_command_line.html#sec:continue_build_on_failure) for more details.
+With the addition of [nicer reporting of multiple build failures](#multiple_build_failures), we now consider `--continue` a production quality feature of Gradle. Please see the [User Guide section](userguide/tutorial_gradle_command_line.html#sec:continue_build_on_failure) for more details.
 
 ## Fixed issues
 
@@ -111,7 +112,7 @@ The list of issues fixed between 1.1 and 1.2 can be found [here](http://issues.g
 
 ## Incubating features
 
-We will typically introduce new features as _incubating_ at first, giving you a chance to test them out. Typically the implementation quality of the new features is already good but the API might still change with the next release based on the feedback we receive. For some very challenging engineering problems like the Gradle Daemon or parallel builds, it is impossible to get the implementation quality right from the beginning. So we need you here also as beta testers. We will iterate on the new feature based on your feedback, eventually releasing it as stable and production-ready. Those of you who use new features before that point gain the competitive advantage of early access to new functionality in exchange for helping refine it over time. To learn more read our [forum posting on our release approach](http://forums.gradle.org/gradle/topics/the_gradle_release_approach).
+We will typically introduce new features as _incubating_ at first, giving you a chance to test them out. Typically the implementation quality of the new features is already good but the API might still change with the next release based on the feedback we receive. For some very challenging engineering problems like the Gradle Daemon or parallel builds, it is impossible to get the implementation quality right from the beginning. So we need you here also as beta testers. We will iterate on the new feature based on your feedback, eventually releasing it as stable and production-ready. Those of you who use new features before that point gain the competitive advantage of early access to new functionality in exchange for helping refine it over time. To learn more, read our [forum posting on our release approach](http://forums.gradle.org/gradle/topics/the_gradle_release_approach).
 
 ### Comparing builds (upgrade assistance)
 
@@ -123,7 +124,7 @@ Gradle 1.2 delivers the first iteration of our support for comparing the _outcom
 
 The build comparison support manages the execution of the “source” build and the “target” build, the association of outcomes between the two, the comparison of the outcomes and generation of a report that identifies any encountered differences. You can then use this report to go ahead with the Gradle upgrade, build system migration or build configuration change with confidence that the outcomes are identical, or that the differences are acceptable.
 
-For Gradle 1.2, we have focused on supporting the case of comparing the current build with a newer Gradle version and zip file binary archive outcomes (e.g. zip, jar, war, ear etc.). This feature will continue to evolve to encompass comparing more kinds of outcomes and smart integration with other build systems (such as Apache Maven) for convenient comparisons.
+For Gradle 1.2, we have focused on supporting the case of comparing the current build with a newer Gradle version and zip archive outcomes (e.g. zip, jar, war, ear etc.). This feature will continue to evolve to encompass comparing more kinds of outcomes and smart integration with other build systems (such as Apache Maven) for convenient comparisons.
 
 See the new [User Guide chapter](userguide/comparing_builds.html) for more detail on this new capability.
 
@@ -147,9 +148,9 @@ If there are _any_ differences found, a link to the HTML report identifying the 
 
 ###<a id="parallel"></a>Building projects in parallel
 
-We are excited that Gradle 1.2 introduces support for building projects in parallel. By specifying the `--parallel` or `--parallel-threads` [command-line options](userguide/gradle_command_line.html), Gradle will _execute_ multiple projects in parallel build threads, after first configuring all projects sequentially. By building separate projects in parallel Gradle will better utilise the build machine's hardware, resulting in faster build times. We are seeing significant performance benefits with this approach.
+We are excited that Gradle 1.2 introduces support for building projects in parallel. By specifying the `--parallel` or `--parallel-threads` [command-line options](userguide/gradle_command_line.html), Gradle will execute multiple projects in parallel build threads, after first configuring all projects sequentially. By building separate projects in parallel, Gradle will better utilize the build machine's hardware, resulting in faster build times. We are seeing significant performance benefits with this approach.
 
-This feature is _incubating_ and has known issues and limitations; it is not yet at production quality. Over the coming releases, it will be improved and stabilised. To find out more about our plans for parallel execution, have a read of the [parallel-project-execution](https://github.com/gradle/gradle/blob/master/design-docs/parallel-project-execution.md) specification.
+This feature is _incubating_ and has known issues and limitations; it is not yet at production quality. Over the coming releases, it will be improved and stabilized. To find out more about our plans for parallel execution, have a read of the [parallel-project-execution](https://github.com/gradle/gradle/blob/master/design-docs/parallel-project-execution.md) specification.
 
 #### Project requirements
 
@@ -185,7 +186,7 @@ If you make use of the deprecated features below you will get a warning from now
 
 The `useMavenMetadata` property has been deprecated for resolvers returned by `repositories.mavenRepo()`. This property controls whether Gradle should
 search for a `maven-metadata.xml` file when attempting to determine the versions that are available for a particular module. The default value is `true`,
-which means Gradle will look for a `maven-metadata.xml` file and then fall back to a directory listing if not present. When set to `false` Gradle will
+which means Gradle will look for a `maven-metadata.xml` file and then fall back to a directory listing if not present. When set to `false`, Gradle will
 use a directory listing only. It is part of our former internal usage of Ivy for dependency resolution.
 
 Thanks to the various improvements we've made to make dependency management more efficient, there is no longer a performance penalty for searching
