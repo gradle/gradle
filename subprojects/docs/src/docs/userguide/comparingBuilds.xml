@@ -133,7 +133,8 @@
             <title>Supported builds</title>
             <para>
                 Only support for executing Gradle builds is available at this time.
-                Executing with a Gradle version newer than <literal>1.0</literal> is also unsuppported.
+                Source and target build must execute with Gradle newer or equal to <literal>1.0</literal>.
+                Host build must be at least <literal>1.2</literal>.
             </para>
             <para>
                 Future versions will provide support for executing builds from other build systems such as Apache Ant
