@@ -15,12 +15,6 @@ hooks. The hook will execute registryUpdater.stop()
 
 # Stories
 
-# Client removes suspect entries from registry (GRADLE-2444).
-
-    1. This is implemented - when exception occurs on dispatch/receive we treat the daemon as suspected and remove this entry from the registry.
-    1. Remaining task: integ test.
-    Start a daemon, kill/stop it, start listening on the old port with some test service (e.g. our test http server), try to run a build and/or run --stop.
-
 # All client and daemon reads on the connection should have a timeout.
 
 Extend our Connection infrastructure so that it allows receiving with timeout.
