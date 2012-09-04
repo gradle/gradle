@@ -1,13 +1,14 @@
 # What is this?
 
-The build migration verification feature aims to compare two builds functionally, with a focus on providing confidence that
-they are substitutable. That is, this feature can be used to provide information on whether a migration from one build to another introduces unwanted change.
+The build comparison functionality allow users to compare two builds functionally, identifying differences in the observable outcomes. There are three primary use cases that this functionality will serve as that basis for:
 
-The two builds in question may potentially be anything. Some examples are:
+1. Changing the version of Gradle used to build a project (typically a new version, i.e. **upgrading**)
+2. **Migrating** a project that is built with another tool (e.g. Ant, Maven or anything else) to be built with Gradle
+3. **Testing a change** to a Gradle project's configuration by comparing before and after the change
 
-* A Gradle build, executed with two different Gradle versions
-* A Maven build compared with a Gradle build
-* An Ant build compared with a Gradle build
+The above list is in order of importance.
+
+By identifying the differences, or hopefully confirming that there are no differences, between two builds the user can upgrade/migrate/change with more confidence and reduced risk.
 
 # Components
 
@@ -15,93 +16,47 @@ The idea can be conceptualised into two separate components; the build outcomes,
 
 ## Build Outcomes
 
-A build outcome is an intentionally general concept. The most obvious build outcome will often be the creation of some kind of artifact,
+A build outcome is an intentionally general concept. The most obvious build outcome will often be the creation of some kind of artifact (e.g. creation of a zip file),
 but there are other interesting outcomes that users may want information about. Some examples are:
 
 * Executing tests (where the same classes tested? where the same tests executed? where the results the same?)
 * Analysing code (where the same classes analysed? was the configuration the same? where the results the same?)
 * A “build run” - e.g. a clean build that compiles, analyses, tests (does this take an equivalent amount of time?)
 
+These are not necessarily outcomes we will support. They are provided as examples of less obvious outcomes that we may support at some time.
+
 ## Comparison
 
-Given two sets of outcomes, both individual outcomes and the set as an entity will need to be compared. Outcomes that are logically equivalent shall be compared to each other. For example, given that both builds produce the same logical artifact, this artifact as produced by each build can be compared. The sets of outcomes will be compared to identify outcomes that only exist in (or are missing from, depending on your perspective) one of the sets.
+The comparison of two builds is really a comparison of their comparable outcomes. 
 
-However, the goal may not be absolute equivalence but explainable difference. Some examples of explainable difference are:
+The goal may not be absolute equivalence but, explainable difference. Some examples of explainable difference are:
 
 * Embedded timestamps in outputs (e.g. Groovy classfiles, test result files)
 * Environmental context (e.g. system properties in test result files)
 * Acceptable path differences
 
-This may influence the information display to be less focussed on a binary yes/no and more focussed on illuminating what the differences are
-and providing some insight on the risk of the differences. It will be possible to compensate for expected difference by transforming the outcomes before comparison, usually to remove content that is expected to be different.
+The information display will not be focussed on a binary yes/no, but on illuminating what the differences are.
 
 # Modelling Build Outcomes
 
-The concept of a model of build outcomes should not be coupled to how that model was “constructed”. A build outcome model may be
-constructed by manual specification, or generated in an intelligent and dynamic way.
+To support comparing outcomes from two different build systems the concept of a build outcome is that it is agnostic to the build system that produced it. For example, an Ant build and a Gradle build can produce a zip file that is logically equivalent (i.e. is intended to represent the same “project”) and it must be possible to compare these outcomes without regard of the build system used.
 
-For Gradle projects, we can likely generate a complete build outcome model without user intervention. For other types of build tools we may
-do less automatically. That is, the user may need to specify some or all of the build function model.
+## Identifying the outcomes of a build
 
-Even for the scenario where we can completely generate the build outcomes model automatically, we _may_ still require a level of user intervention.
-For example, the user may not wish to compare test execution between two models because they are irreconcilably different and this has been accepted.
-This should be a function of the comparison and not of the input models.
+For Gradle projects, we can identify build outcomes without user intervention by using the Tooling API to inspect the model (specifics on this later in the document). For other types of build tools we may do less automatically. That is, the user may need to specify what the outcomes are.
 
-## Modelling the relationship between two models
+Even for the scenario where we can identify the outcomes, we _may_ still require a level of user intervention. For example, the user may not wish to compare test execution between two builds because they are irreconcilably different and this has been accepted. This should be a function of the comparison and not of the input models.
 
-Having two models of build outcomes may not be sufficient. It is also necessary to link the outcomes from both builds. That is, we need to know
-which functions are logically equivalent so they can be compared.
+## Idenitifying comparable outcomes
 
-As with the specification of the build function models themselves, we may be able to determine the associations automatically. For
-a comparison between two instances of the same logical Gradle project, the association can be inferred. For other types of
-comparison, the association may not be inferrable or may only be weakly inferrable (i.e. low chance of being correct).
+Given two sets of outcomes, which outcomes are meaningfully comparable to each other needs to be identified. As there will always be a Gradle build involved, the strategy for _linking_ outcomes from each bold can center around task paths.
 
-# Use cases
+When comparing two Gradle builds, it is reasonable to expect that comparable outcomes can be identified. When comparing a Gradle build with something else it becomes much more difficult. There are two strategies, that can be used together:
 
-## Upgrading to a new Gradle version
+1. Infer from file system locations
+2. Have the user map the other outcomes to the Gradle outcomes based on task paths
 
-This functionality can be used by users to gain confidence in a Gradle upgrade. This should lower the cost/risk for users to “stay current”, which is something we want to encourage.
-
-Users should be able to use this functionality to gain confidence that an upgrade to a newer Gradle version will not “break their build”. We also want to require as
-little user intervention/configuration as possible to perform this.
-
-### Upgrades that require changes
-
-The potential upgrade may include changes to the configuration of the build. New Gradle versions introduce deprecations and changes, and as such
-users will want to be able to verify that the build functions the same after making any accommodations for changes in the new version.
-
-This is effectively a variant of the case below, where the build executions are executed with different versions.
-
-## Making speculative changes to a Gradle build
-
-In this case, a single Gradle project is being compared before/after some change is made to the build configuration. This is likely to be undertaken by someone wanting to “test” a change to the build.
-
-This is largely the same as the “Upgrading Gradle” case, except there may be intentional differences. That is, there may be expected difference
-and the difference is what is being verified. There will also be the case of wanting to make changes that have no functional impact (e.g. removing
-redundant configuration).
-
-## Migrating from another tool to Gradle
-
-In this case, a project is looking to move from some tool to Gradle. This feature could be used to verify that the migration is “complete” (i.e. performed when
-the replacement Gradle build is considerered to be “done”) or can be used regularly during the development of the replacement build to track/verify the progress.
-
-Ideally, the comparison phase will be agnostic to the “source” of the build outcome model. That is, the comparison phase compares like outcomes
- and functions can be modelled in a general way that is source agnostic. For example, the creation of a JAR archive can be modelled in a way that is
- not unique to the build system that created it. Therefore, working with a different system is largely about constructing a build outcome model for
- that system/build.
-
-In this case, there is likely to be a reasonable amount of configuration required by the user. Where the outcomes cannot be inferred, the user will have to
-specify what they are and will have to associate them to the equivalent Gradle outcomes.
-
-### Maven
-
-Given Maven's predictable operation and well defined model, it may be possible infer the relevant build outcomes and associate them with the Gradle equivalent. We could just expect Maven's default output and allow the user to tune from there.
-
-If the Maven build is heavily customised, the user may need to back out of any of our inference.
-
-### Ant
-
-Given Ant's lack of a model, generating a build outcome model for an Ant build automatically will not be possible.
+Note that not all Gradle outcomes have a 1 to 1 relationship with tasks. For example, published artifacts do not necessarily have this relationship.
 
 # The “result”
 
@@ -109,7 +64,7 @@ It may not be desirable to “fail the comparison” if there is _any_ differenc
 
 1. The goal *has* to be complete parity
 2. The expected differences are specifiable
-3. We don't aim for a yes/no answer
+3. We don't aim for a strong yes/no answer
 
 The third option seems the most preferable.
 
@@ -160,11 +115,11 @@ There is a third option which is effectively a combination of the two. In this a
 
 ## General
 
-The feature can be tested by verifying migrations whose outcome is known.
+The feature can be tested by verifying migrations whose outcome is known. The comparison can be run, and the HTML report inspected to understand the result.
 
 ## Upgrading Gradle Versions
 
-It may be difficult to test “failed” comparisons for the “upgrade Gradle” case. However, given that this is just a special configuration where both from/to builds are the same, the “failed” comparison path can be tested by comparing two non equivalent builds. Another alternative would be to somehow inject a difference between the two.
+It may be difficult to test “failed” comparisons for the “upgrade Gradle” case. However, given that this is just a special configuration where both source and target builds are the same, the “failed” comparison path can be tested by comparing two non equivalent builds.
 
 ## Other comparisons
 
@@ -371,11 +326,3 @@ sets of outputs (together with a mapping between them), or is additional informa
 Does it need to be able to compare different representations of the same information, like a Gradle JUnit report and
 an Ant JUnit report (assuming the report formats are different), or a Gradle JUnit report produced by Gradle version X
 and one produced by Gradle version Y?
-
-## Upgrading to new Gradle version
-
-* How are the builds executed? Using the tooling API? Using the Gradle wrapper?
-
-* Are the two builds executed in separate processes, or do they (potentially) share a daemon?
-
-* Does the plugin have to make sure that the two builds use separate Gradle metadata (.gradle directory)?
