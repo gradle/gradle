@@ -26,6 +26,7 @@ import org.junit.runner.RunWith
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import spock.lang.Specification
+import org.gradle.util.TestFile
 
 @RunWith(ToolingApiCompatibilitySuiteRunner)
 abstract class ToolingApiSpecification extends Specification {
@@ -83,4 +84,17 @@ abstract class ToolingApiSpecification extends Specification {
     void maybeFailWithConnection(Closure cl) {
         toolingApi.maybeFailWithConnection(cl)
     }
+
+    TestFile getProjectDir() {
+        dist.testDir
+    }
+
+    TestFile getBuildFile() {
+        file("build.gradle")
+    }
+
+    TestFile file(Object... path) {
+        projectDir.file(path)
+    }
+
 }
