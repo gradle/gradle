@@ -29,31 +29,31 @@ import java.util.Set;
 public class BuildComparisonResult {
 
     private List<BuildOutcomeComparisonResult<?>> comparisons;
-    private Set<BuildOutcome> uncomparedFrom;
-    private Set<BuildOutcome> uncomparedTo;
+    private Set<BuildOutcome> uncomparedSourceOutcomes;
+    private Set<BuildOutcome> uncomparedTargetOutcomes;
 
 
-    public BuildComparisonResult(Set<BuildOutcome> uncomparedFrom, Set<BuildOutcome> uncomparedTo, List<BuildOutcomeComparisonResult<?>> comparisons) {
+    public BuildComparisonResult(Set<BuildOutcome> uncomparedSourceOutcomes, Set<BuildOutcome> uncomparedTargetOutcomes, List<BuildOutcomeComparisonResult<?>> comparisons) {
         this.comparisons = comparisons;
-        this.uncomparedFrom = uncomparedFrom;
-        this.uncomparedTo = uncomparedTo;
+        this.uncomparedSourceOutcomes = uncomparedSourceOutcomes;
+        this.uncomparedTargetOutcomes = uncomparedTargetOutcomes;
     }
 
     public List<BuildOutcomeComparisonResult<?>> getComparisons() {
         return comparisons;
     }
 
-    public Set<BuildOutcome> getUncomparedFrom() {
-        return uncomparedFrom;
+    public Set<BuildOutcome> getUncomparedSourceOutcomes() {
+        return uncomparedSourceOutcomes;
     }
 
-    public Set<BuildOutcome> getUncomparedTo() {
-        return uncomparedTo;
+    public Set<BuildOutcome> getUncomparedTargetOutcomes() {
+        return uncomparedTargetOutcomes;
     }
 
     public boolean isBuildsAreIdentical() {
         //noinspection SimplifiableIfStatement
-        if (!getUncomparedFrom().isEmpty() || !getUncomparedTo().isEmpty()) {
+        if (!getUncomparedSourceOutcomes().isEmpty() || !getUncomparedTargetOutcomes().isEmpty()) {
             return false;
         } else {
             return CollectionUtils.every(comparisons, new Spec<BuildOutcomeComparisonResult<?>>() {

@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.buildcomparison.outcome.internal;
+package org.gradle.api.plugins.buildcomparison.outcome.string
 
-public interface BuildOutcomeAssociator {
+import org.gradle.api.plugins.buildcomparison.render.internal.html.BuildOutcomeHtmlRenderer
+import org.gradle.api.plugins.buildcomparison.render.internal.html.HtmlRenderContext
 
-    /**
-     * Attempts to associate the from outcome with the to outcome, by a type.
-     *
-     * @param source The outcome on the from side.
-     * @param target The outcome on the to side.
-     * @return The type of the association if they are associated, otherwise null.
-     */
-    Class<? extends BuildOutcome> findAssociationType(BuildOutcome source, BuildOutcome target);
+class StringBuildOutcomeHtmlRenderer extends BuildOutcomeHtmlRenderer<StringBuildOutcome> {
+
+    final Class<StringBuildOutcome> outcomeType = StringBuildOutcome
+
+    void render(StringBuildOutcome outcome, HtmlRenderContext context) {
+        renderTitle(outcome, context)
+        context.render { p outcome.value }
+    }
 
 }

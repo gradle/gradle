@@ -31,17 +31,17 @@ class BuildComparisonSpecFactoryTest extends Specification {
         def result = factory.createSpec(strs("a", "b", "c"), strs("b", "c", "d"))
 
         then:
-        result.from == strs("a", "b", "c")
-        result.to == strs("b", "c", "d")
+        result.source == strs("a", "b", "c")
+        result.target == strs("b", "c", "d")
         result.outcomeAssociations.size() == 2
-        def associations = result.outcomeAssociations.toList().sort { it.from.name }
+        def associations = result.outcomeAssociations.toList().sort { it.source.name }
 
-        associations[0].from == str("b")
-        associations[0].to == str("b")
+        associations[0].source == str("b")
+        associations[0].target == str("b")
         associations[0].type == StringBuildOutcome
 
-        associations[1].from == str("c")
-        associations[1].to == str("c")
+        associations[1].source == str("c")
+        associations[1].target == str("c")
         associations[1].type == StringBuildOutcome
     }
 

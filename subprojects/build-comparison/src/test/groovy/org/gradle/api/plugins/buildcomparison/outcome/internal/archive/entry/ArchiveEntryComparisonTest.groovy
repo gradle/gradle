@@ -48,14 +48,14 @@ class ArchiveEntryComparisonTest extends Specification {
         from = null
 
         then:
-        comparison().comparisonResultType == ComparisonResultType.TO_ONLY
+        comparison().comparisonResultType == ComparisonResultType.TARGET_ONLY
 
         when:
         from = to
         to = null
 
         then:
-        comparison().comparisonResultType == ComparisonResultType.FROM_ONLY
+        comparison().comparisonResultType == ComparisonResultType.SOURCE_ONLY
     }
 
     def "from or to must be null"() {

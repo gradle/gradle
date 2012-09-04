@@ -19,12 +19,11 @@ package org.gradle.api.plugins.buildcomparison.gradle.internal;
 import com.google.common.collect.Lists;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.plugins.buildcomparison.gradle.GradleBuildInvocationSpec;
-import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
-import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
 public class DefaultGradleBuildInvocationSpec implements GradleBuildInvocationSpec {
@@ -32,8 +31,8 @@ public class DefaultGradleBuildInvocationSpec implements GradleBuildInvocationSp
     private FileResolver fileResolver;
     private Object projectDir;
     private String gradleVersion = GradleVersion.current().getVersion();
-    private List<String> tasks = Collections.emptyList();
-    private List<String> arguments = Collections.emptyList();
+    private List<String> tasks = new LinkedList<String>();
+    private List<String> arguments = new LinkedList<String>();
 
     public DefaultGradleBuildInvocationSpec(FileResolver fileResolver, Object projectDir) {
         this.fileResolver = fileResolver;
@@ -59,7 +58,11 @@ public class DefaultGradleBuildInvocationSpec implements GradleBuildInvocationSp
         if (gradleVersion == null) {
             throw new IllegalArgumentException("gradleVersion cannot be null");
         }
-        this.gradleVersion = gradleVersion;
+        GradleVersion version = GradleVersion.version(gradleVersion);
+        if (!version.isValid()) {
+            throw new IllegalArgumentException(String.format("%s is not a valid Gradle version string (examples: '1.0', 1.0-rc-1'", gradleVersion));
+        }
+        this.gradleVersion = version.getVersion();
     }
 
     public List<String> getTasks() {
@@ -67,7 +70,7 @@ public class DefaultGradleBuildInvocationSpec implements GradleBuildInvocationSp
     }
 
     public void setTasks(Iterable<String> tasks) {
-        this.tasks = tasks == null ? Collections.<String>emptyList() : Lists.newLinkedList(tasks);
+        this.tasks = tasks == null ? new LinkedList<String>() : Lists.newLinkedList(tasks);
     }
 
     public List<String> getArguments() {
@@ -75,7 +78,7 @@ public class DefaultGradleBuildInvocationSpec implements GradleBuildInvocationSp
     }
 
     public void setArguments(Iterable<String> arguments) {
-        this.arguments = arguments == null ? Collections.<String>emptyList() : Lists.newLinkedList(arguments);
+        this.arguments = arguments == null ? new LinkedList<String>() : Lists.newLinkedList(arguments);
     }
 
     @Override
@@ -114,10 +117,13 @@ public class DefaultGradleBuildInvocationSpec implements GradleBuildInvocationSp
         return result;
     }
 
-    public String describeRelativeTo(File relativeTo) {
-        return "dir: '" + GFileUtils.relativePath(relativeTo, getProjectDir()) + "'"
+    @Override
+    public String toString() {
+        return "{"
+                + "dir: '" + getProjectDir().getAbsolutePath() + "'"
                 + ", tasks: '" + GUtil.join(getTasks(), " ") + "'"
                 + ", arguments: '" + GUtil.join(getArguments(), " ") + "'"
-                + ", gradleVersion: " + getGradleVersion();
+                + ", gradleVersion: " + getGradleVersion()
+                + "}";
     }
 }

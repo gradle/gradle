@@ -279,6 +279,10 @@ public class GradleVersion implements Comparable<GradleVersion> {
         return sb.toString();
     }
 
+    public boolean isValid() {
+        return versionPart != null;
+    }
+
     static final class Stage implements Comparable<Stage> {
         final int stage;
         final int number;

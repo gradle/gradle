@@ -16,19 +16,15 @@
 
 package org.gradle.api.plugins.buildcomparison.render.internal.html
 
-import org.gradle.api.plugins.buildcomparison.render.internal.BuildOutcomeComparisonResultRenderer
-import org.gradle.api.plugins.buildcomparison.compare.internal.BuildOutcomeComparisonResult
+import org.gradle.api.plugins.buildcomparison.outcome.internal.BuildOutcome
+import org.gradle.api.plugins.buildcomparison.render.internal.BuildOutcomeRenderer
 
-abstract class BuildOutcomeComparisonResultHtmlRenderer<T extends BuildOutcomeComparisonResult> implements BuildOutcomeComparisonResultRenderer<T, HtmlRenderContext> {
+abstract class BuildOutcomeHtmlRenderer<T extends BuildOutcome> implements BuildOutcomeRenderer<T, HtmlRenderContext> {
 
-    Class<HtmlRenderContext> getContextType() {
-        HtmlRenderContext
-    }
+    final Class<HtmlRenderContext> contextType = HtmlRenderContext
 
     protected void renderTitle(T result, HtmlRenderContext context) {
-        // TODO - assuming that both sides have the same name, which they always do in 1.2
-        context.render { h3 result.compared.source.name }
+        context.render { h3 result.name }
     }
-
 
 }

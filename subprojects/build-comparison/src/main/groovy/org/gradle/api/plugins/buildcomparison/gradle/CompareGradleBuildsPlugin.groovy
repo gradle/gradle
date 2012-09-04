@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins.buildcomparison.gradle
 
+import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.ReportingBasePlugin
@@ -24,6 +25,7 @@ import org.gradle.api.reporting.ReportingExtension
 /**
  * Preconfigures the project to run a gradle build comparison.
  */
+@Incubating
 class CompareGradleBuildsPlugin implements Plugin<Project> {
 
     void apply(Project project) {

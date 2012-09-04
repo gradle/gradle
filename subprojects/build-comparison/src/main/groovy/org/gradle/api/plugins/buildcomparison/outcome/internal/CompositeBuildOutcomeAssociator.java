@@ -16,20 +16,21 @@
 
 package org.gradle.api.plugins.buildcomparison.outcome.internal;
 
-import java.util.Arrays;
+import com.google.common.collect.Lists;
+
 import java.util.List;
 
 public class CompositeBuildOutcomeAssociator implements BuildOutcomeAssociator {
 
     private final List<BuildOutcomeAssociator> associators;
 
-    public CompositeBuildOutcomeAssociator(BuildOutcomeAssociator... associators) {
-        this.associators = Arrays.asList(associators);
+    public CompositeBuildOutcomeAssociator(Iterable<BuildOutcomeAssociator> associators) {
+        this.associators = Lists.newLinkedList(associators);
     }
 
-    public Class<? extends BuildOutcome> findAssociationType(BuildOutcome from, BuildOutcome to) {
+    public Class<? extends BuildOutcome> findAssociationType(BuildOutcome source, BuildOutcome target) {
         for (BuildOutcomeAssociator associator : associators) {
-            Class<? extends BuildOutcome> outcomeType = associator.findAssociationType(from, to);
+            Class<? extends BuildOutcome> outcomeType = associator.findAssociationType(source, target);
             if (outcomeType != null) {
                 return outcomeType;
             }

@@ -14,17 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.buildcomparison.outcome.internal;
+package org.gradle.api.plugins.buildcomparison.render.internal;
 
-public interface BuildOutcomeAssociator {
+import org.gradle.api.plugins.buildcomparison.outcome.internal.BuildOutcome;
 
-    /**
-     * Attempts to associate the from outcome with the to outcome, by a type.
-     *
-     * @param source The outcome on the from side.
-     * @param target The outcome on the to side.
-     * @return The type of the association if they are associated, otherwise null.
-     */
-    Class<? extends BuildOutcome> findAssociationType(BuildOutcome source, BuildOutcome target);
+/**
+ * An object that can render a build outcome.
+ *
+ * @param <T> The type of outcome that this renderer handles
+ * @param <C> The type of the context object for the render
+ */
+public interface BuildOutcomeRenderer<T extends BuildOutcome, C> {
+
+    Class<T> getOutcomeType();
+
+    Class<C> getContextType();
+
+    void render(T outcome, C context);
 
 }

@@ -45,24 +45,24 @@ public class GeneratedArchiveBuildOutcomeComparator implements BuildOutcomeCompa
     }
 
     public GeneratedArchiveBuildOutcomeComparisonResult compare(BuildOutcomeAssociation<GeneratedArchiveBuildOutcome> association) {
-        GeneratedArchiveBuildOutcome from = association.getFrom();
-        GeneratedArchiveBuildOutcome to = association.getTo();
+        GeneratedArchiveBuildOutcome source = association.getSource();
+        GeneratedArchiveBuildOutcome target = association.getTarget();
 
-        Set<ArchiveEntry> fromEntries;
-        if (from.getArchiveFile() != null && from.getArchiveFile().exists()) {
-            fromEntries = archiveToEntriesTransformer.transform(from.getArchiveFile());
+        Set<ArchiveEntry> sourceEntries;
+        if (source.getArchiveFile() != null && source.getArchiveFile().exists()) {
+            sourceEntries = archiveToEntriesTransformer.transform(source.getArchiveFile());
         } else {
-            fromEntries = Collections.emptySet();
+            sourceEntries = Collections.emptySet();
         }
 
-        Set<ArchiveEntry> toEntries;
-        if (to.getArchiveFile() != null && to.getArchiveFile().exists()) {
-            toEntries = archiveToEntriesTransformer.transform(to.getArchiveFile());
+        Set<ArchiveEntry> targetEntries;
+        if (target.getArchiveFile() != null && target.getArchiveFile().exists()) {
+            targetEntries = archiveToEntriesTransformer.transform(target.getArchiveFile());
         } else {
-            toEntries = Collections.emptySet();
+            targetEntries = Collections.emptySet();
         }
 
-        CollectionUtils.SetDiff<ArchiveEntry> diff = CollectionUtils.diffSetsBy(fromEntries, toEntries, new Transformer<String, ArchiveEntry>() {
+        CollectionUtils.SetDiff<ArchiveEntry> diff = CollectionUtils.diffSetsBy(sourceEntries, targetEntries, new Transformer<String, ArchiveEntry>() {
             public String transform(ArchiveEntry entry) {
                 return entry.getPath();
             }
@@ -74,16 +74,16 @@ public class GeneratedArchiveBuildOutcomeComparator implements BuildOutcomeCompa
             }
         });
 
-        for (ArchiveEntry fromOnly : diff.leftOnly) {
-            entryComparisons.add(new ArchiveEntryComparison(fromOnly.getPath(), fromOnly, null));
+        for (ArchiveEntry sourceOnly : diff.leftOnly) {
+            entryComparisons.add(new ArchiveEntryComparison(sourceOnly.getPath(), sourceOnly, null));
         }
 
         for (CollectionUtils.SetDiff.Pair<ArchiveEntry> pair : diff.common) {
             entryComparisons.add(new ArchiveEntryComparison(pair.left.getPath(), pair.left, pair.right));
         }
 
-        for (ArchiveEntry toOnly : diff.rightOnly) {
-            entryComparisons.add(new ArchiveEntryComparison(toOnly.getPath(), null, toOnly));
+        for (ArchiveEntry targetOnly : diff.rightOnly) {
+            entryComparisons.add(new ArchiveEntryComparison(targetOnly.getPath(), null, targetOnly));
         }
 
         return new GeneratedArchiveBuildOutcomeComparisonResult(association, entryComparisons);

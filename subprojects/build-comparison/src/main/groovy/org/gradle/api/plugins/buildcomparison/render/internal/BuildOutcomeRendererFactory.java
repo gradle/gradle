@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.buildcomparison.render.internal.html;
+package org.gradle.api.plugins.buildcomparison.render.internal;
 
-import org.gradle.api.plugins.buildcomparison.compare.internal.BuildComparisonResult;
+import org.gradle.api.plugins.buildcomparison.outcome.internal.BuildOutcome;
 
-public interface PartRenderer {
-    void render(BuildComparisonResult result, HtmlRenderContext context);
+public interface BuildOutcomeRendererFactory<C> {
+
+    <T extends BuildOutcome> BuildOutcomeRenderer<T, C> getRenderer(Class<? extends T> outcomeType);
+
 }

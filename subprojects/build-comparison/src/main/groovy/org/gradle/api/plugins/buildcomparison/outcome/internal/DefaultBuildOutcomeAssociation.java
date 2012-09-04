@@ -18,22 +18,22 @@ package org.gradle.api.plugins.buildcomparison.outcome.internal;
 
 public class DefaultBuildOutcomeAssociation<A extends BuildOutcome> implements BuildOutcomeAssociation<A> {
 
-    private final A from;
-    private final A to;
+    private final A source;
+    private final A target;
     private final Class<A> type;
 
-    public <F extends A, T extends A> DefaultBuildOutcomeAssociation(F from, T to, Class<A> type) {
-        this.from = from;
-        this.to = to;
+    public <S extends A, T extends A> DefaultBuildOutcomeAssociation(S source, T target, Class<A> type) {
+        this.source = source;
+        this.target = target;
         this.type = type;
     }
 
-    public A getFrom() {
-        return from;
+    public A getSource() {
+        return source;
     }
 
-    public A getTo() {
-        return to;
+    public A getTarget() {
+        return target;
     }
 
     public Class<A> getType() {

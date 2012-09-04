@@ -23,22 +23,22 @@ import java.util.*;
 
 public class DefaultBuildComparisonSpec implements BuildComparisonSpec {
 
-    private final Set<BuildOutcome> from;
-    private final Set<BuildOutcome> to;
+    private final Set<BuildOutcome> source;
+    private final Set<BuildOutcome> target;
     private final List<BuildOutcomeAssociation<?>> outcomeAssociations;
 
-    public DefaultBuildComparisonSpec(Set<BuildOutcome> from, Set<BuildOutcome> to, List<BuildOutcomeAssociation<?>> outcomeAssociations) {
-        this.from = Collections.unmodifiableSet(new HashSet<BuildOutcome>(from));
-        this.to = Collections.unmodifiableSet(new HashSet<BuildOutcome>(to));
+    public DefaultBuildComparisonSpec(Set<BuildOutcome> source, Set<BuildOutcome> target, List<BuildOutcomeAssociation<?>> outcomeAssociations) {
+        this.source = Collections.unmodifiableSet(new HashSet<BuildOutcome>(source));
+        this.target = Collections.unmodifiableSet(new HashSet<BuildOutcome>(target));
         this.outcomeAssociations = Collections.unmodifiableList(new ArrayList<BuildOutcomeAssociation<?>>(outcomeAssociations));
     }
 
-    public Set<BuildOutcome> getFrom() {
-        return from;
+    public Set<BuildOutcome> getSource() {
+        return source;
     }
 
-    public Set<BuildOutcome> getTo() {
-        return to;
+    public Set<BuildOutcome> getTarget() {
+        return target;
     }
 
     public List<BuildOutcomeAssociation<?>> getOutcomeAssociations() {

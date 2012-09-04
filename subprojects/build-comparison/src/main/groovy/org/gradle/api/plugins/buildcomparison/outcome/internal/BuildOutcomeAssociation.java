@@ -28,14 +28,14 @@ public interface BuildOutcomeAssociation<T extends BuildOutcome> {
      *
      * @return The outcome on the from side. Never null.
      */
-    T getFrom();
+    T getSource();
 
     /**
      * The outcome on the to side.
      *
      * @return The outcome on the from side. Never null.
      */
-    T getTo();
+    T getTarget();
 
     /**
      * The common type of the from and to outcomes.

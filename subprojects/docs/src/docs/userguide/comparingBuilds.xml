@@ -16,4 +16,218 @@
 
 <chapter id="comparing_builds">
     <title>Comparing Builds</title>
+    <note>
+        <para>
+            Build comparison support is an <firstterm>incubating</firstterm> feature. This means that it is incomplete and not yet at regular Gradle production quality.
+            This also means that this Gradle User Guide chapter is a work in progress.
+        </para>
+    </note>
+    <para>
+        Gradle provides support for comparing the <firstterm>outcomes</firstterm> (e.g. the produced binary archives) of two builds.
+        There are several reasons why you may want to compare the outcomes of two builds. You may want to compare:
+    </para>
+    <itemizedlist>
+        <listitem>
+            <para>A build with a newer version of Gradle than it's currently using (i.e. upgrading the Gradle version).</para>
+        </listitem>
+        <listitem>
+            <para>A Gradle build with a build executed by another tool such as Apache Ant, Apache Maven or something else (i.e. migrating to Gradle).</para>
+        </listitem>
+        <listitem>
+            <para>The same Gradle build, with the same version, before and after a change to the build (i.e. testing build changes).</para>
+        </listitem>
+    </itemizedlist>
+    <para>
+        By comparing builds in these scenarios you can make an informed decision about the Gradle upgrade, migration to Gradle or build change by understanding the differences in the outcomes.
+        The comparison process produces a HTML report outlining which outcomes were found to be identical and identifying the differences between non-identical outcomes.
+    </para>
+    <section>
+        <title>Definition of terms</title>
+        <para>The following are the terms used for build comparison and their definitions.</para>
+        <variablelist>
+            <varlistentry>
+                <term>“Build”</term>
+                <listitem>
+                    <para>
+                        In the context of build comparison, a build is not necessarily a Gradle build.
+                        It can be any invokable “process” that produces observable “outcomes”.
+                        At least one of the builds in a comparison will be a Gradle build.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>“Build Outcome”</term>
+                <listitem>
+                    <para>
+                        Something that happens in an observable manner during a build, such as the creation of a zip file or test execution.
+                        These are the things that are compared.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>“Source Build”</term>
+                <listitem>
+                    <para>
+                        The build that comparisons are being made against, typically the build in its “current” state.
+                        In other words, the left hand side of the comparison.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>“Target Build”</term>
+                <listitem>
+                    <para>
+                        The build that is being compared to the source build, typically the “proposed” build.
+                        In other words, the right hand side of the comparison.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>“Host Build”</term>
+                <listitem>
+                    <para>
+                        The Gradle build that executes the comparison process. It may be the same project as either the “target” or “source” build
+                        or may be a completely separate project. It does not need to be the same Gradle version as the “source” or “target” builds.
+                        The host build must be run with Gradle 1.2 or newer.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>“Compared Build Outcome”</term>
+                <listitem>
+                    <para>
+                        Build outcomes that are intended to be logically equivalent in the “source” and “target” builds,
+                        and are therefore meaningfully comparable.</para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>“Uncompared Build Outcome”</term>
+                <listitem>
+                    <para>
+                        A build outcome is uncompared if a logical equivalent from the other build cannot be found
+                        (e.g. a build produces a zip file that the other build does not).
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>“Unknown Build Outcome”</term>
+                <listitem>
+                    <para>
+                        A build outcome that cannot be understood by the host build. This can occur when the source or target build
+                        is a newer Gradle version than the host build and that Gradle version exposes new outcome types. Unknown build outcomes
+                        can be compared in so far as they can be identified to be logically equivalent to an unknown build outcome in the other build,
+                        but no meaningful comparison of what the build outcome actually is can be performed. Using the latest Gradle version
+                        for the host build will avoid encountering unknown build outcomes.
+                    </para>
+                </listitem>
+            </varlistentry>
+
+        </variablelist>
+    </section>
+    <section>
+        <title>Current Capabilities</title>
+        <para>
+            As this is an <firstterm>incubating</firstterm> feature, a limited set of the eventual functionality has been implemented at this time.
+        </para>
+        <section>
+            <title>Supported builds</title>
+            <para>
+                Only support for executing Gradle builds is available at this time.
+                Source and target build must execute with Gradle newer or equal to <literal>1.0</literal>.
+                Host build must be at least <literal>1.2</literal>.
+            </para>
+            <para>
+                Future versions will provide support for executing builds from other build systems such as Apache Ant
+                or Apache Maven, as well as support for executing arbitrary processes (e.g. shell script based builds)
+            </para>
+        </section>
+        <section>
+            <title>Supported build outcomes</title>
+            <para>
+                Only support for comparing build outcomes that are <literal>zip</literal> archives is supported at this time.
+                This includes <literal>jar</literal>, <literal>war</literal> and <literal>ear</literal> archives.
+            </para>
+            <para>
+                Future versions will provide support for comparing outcomes such as test execution (i.e. which tests were executed, which tests failed etc.)
+            </para>
+        </section>
+    </section>
+    <section>
+        <title>Comparing Gradle Builds</title>
+        <para>
+            The <literal>compare-gradle-builds</literal> plugin can be used to facilitate a comparison between two Gradle builds. The plugin
+            adds a <apilink class="org.gradle.api.plugins.buildcomparison.gradle.CompareGradleBuilds"/> task named “<literal>compareGradleBuilds</literal>”
+            to the project. The configuration of this task specifies what is to be compared. By default, it is configured to compare the current build with itself
+            using the current Gradle version by executing the tasks: “<literal>clean assemble</literal>”.
+        </para>
+        <programlisting>
+            apply plugin: 'compare-gradle-builds'
+        </programlisting>
+        <para>
+            This task can be configured to change what is compared.
+        </para>
+        <programlisting>
+            compareGradleBuilds {
+    sourceBuild {
+        projectDir "/projects/project-a"
+        gradleVersion "1.1"
+    }
+    targetBuild {
+        projectDir "/projects/project-b"
+        gradleVersion "1.2"
+    }
+}
+        </programlisting>
+        <para>
+            The above example configures a comparison between two different projects using two different Gradle versions.
+        </para>
+        <section>
+            <title>Trying Gradle upgrades</title>
+            <para>
+                You can use the build comparison functionality to very quickly try a new Gradle version with your build.
+            </para>
+            <para>
+                To try your current build with a different Gradle version, simply add the following to the <filename>build.gradle</filename> of the <firstterm>root project</firstterm>.
+            </para>
+            <programlisting>
+apply plugin: 'compare-gradle-builds'
+
+compareGradleBuilds {
+    targetBuild.gradleVersion = "«gradle version»"
+}
+            </programlisting>
+            <para>
+                Then simply execute the <command>compareGradleBuilds</command> task. You will see the console output of the “source” and “target” builds as they are executing.
+            </para>
+        </section>
+        <section>
+            <title>The comparison “result”</title>
+            <para>
+                If there are any differences between the <firstterm>compared outcomes</firstterm>, the task will fail. The location of the HTML report
+                providing insight into the comparison will be given. If all compared outcomes are found to be identical, and there are no uncompared outcomes,
+                and there are no unknown build outcomes the task will succeed.
+            </para>
+            <para>
+                You can configure the task to not fail on compared outcome differences by setting the <literal>ignoreFailures</literal> property to true.
+            </para>
+            <programlisting>
+compareGradleBuilds {
+    ignoreFailures = true
+}
+            </programlisting>
+        </section>
+        <section>
+            <title>Which archives are compared?</title>
+            <para>
+                For an archive to be a candidate for comparison, it must be added as an artifact of the archives configuration.
+                Take a look at <xref linkend="artifact_management"/> for more information on how to configure and add artifacts.
+            </para>
+            <para>
+                The archive must also have been produced by a <apilink class="org.gradle.api.tasks.bundling.Zip" />, <apilink class="org.gradle.api.tasks.bundling.Jar" />,
+                <apilink class="org.gradle.api.tasks.bundling.War" />, <apilink class="org.gradle.plugins.ear.Ear" /> task. Future versions of Gradle
+                will support increased flexibility in this area.
+            </para>
+        </section>
+
+    </section>
 </chapter>

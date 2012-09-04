@@ -16,12 +16,15 @@
 
 package org.gradle.api.plugins.buildcomparison.gradle;
 
+import org.gradle.api.Incubating;
+
 import java.io.File;
 import java.util.List;
 
 /**
  * A specification for launching a Gradle build with a specified Gradle version.
   */
+@Incubating
 public interface GradleBuildInvocationSpec {
 
     /**
@@ -41,7 +44,7 @@ public interface GradleBuildInvocationSpec {
      *
      * The value is interpreted as a file as per {@link org.gradle.api.Project#file(Object)}.
      *
-     * @param projectDir
+     * @param projectDir The “root” directory of the build.
      */
     void setProjectDir(Object projectDir);
 

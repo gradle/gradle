@@ -16,23 +16,19 @@
 
 package org.gradle.api.plugins.buildcomparison.outcome.internal.unknown
 
+import org.gradle.api.plugins.buildcomparison.render.internal.html.BuildOutcomeHtmlRenderer
 import org.gradle.api.plugins.buildcomparison.render.internal.html.HtmlRenderContext
 
-import org.gradle.api.plugins.buildcomparison.render.internal.html.BuildOutcomeComparisonResultHtmlRenderer
+class UnknownBuildOutcomeHtmlRenderer extends BuildOutcomeHtmlRenderer<UnknownBuildOutcome> {
 
-class UnknownBuildOutcomeComparisonResultHtmlRenderer extends BuildOutcomeComparisonResultHtmlRenderer<UnknownBuildOutcomeComparisonResult> {
+    final Class<UnknownBuildOutcome> outcomeType = UnknownBuildOutcome
 
-    Class<UnknownBuildOutcomeComparisonResult> getResultType() {
-        UnknownBuildOutcomeComparisonResult
-    }
-
-    void render(UnknownBuildOutcomeComparisonResult result, HtmlRenderContext context) {
-        renderTitle(result, context)
+    void render(UnknownBuildOutcome outcome, HtmlRenderContext context) {
+        renderTitle(outcome, context)
 
         context.render {
             p "This version of Gradle does not understand this kind of build outcome."
             p "Running the comparison process from a newer version of Gradle may yield better results."
         }
     }
-
 }

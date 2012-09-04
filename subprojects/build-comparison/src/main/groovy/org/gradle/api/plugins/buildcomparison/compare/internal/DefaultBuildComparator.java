@@ -33,8 +33,8 @@ public class DefaultBuildComparator implements BuildComparator {
     }
 
     public BuildComparisonResult compareBuilds(BuildComparisonSpec spec) {
-        Set<BuildOutcome> uncomparedFrom = new HashSet<BuildOutcome>(spec.getFrom());
-        Set<BuildOutcome> uncomparedTo = new HashSet<BuildOutcome>(spec.getTo());
+        Set<BuildOutcome> uncomparedFrom = new HashSet<BuildOutcome>(spec.getSource());
+        Set<BuildOutcome> uncomparedTo = new HashSet<BuildOutcome>(spec.getTarget());
 
         Set<BuildOutcome> unknownFrom = new HashSet<BuildOutcome>();
         Set<BuildOutcome> unknownTo = new HashSet<BuildOutcome>();
@@ -42,7 +42,7 @@ public class DefaultBuildComparator implements BuildComparator {
         List<BuildOutcomeComparisonResult<?>> results = new LinkedList<BuildOutcomeComparisonResult<?>>();
 
         for (BuildOutcomeAssociation<? extends BuildOutcome> outcomeAssociation : spec.getOutcomeAssociations()) {
-            BuildOutcome from = outcomeAssociation.getFrom();
+            BuildOutcome from = outcomeAssociation.getSource();
             boolean unknown = false;
 
             if (!uncomparedFrom.remove(from)) {
@@ -50,7 +50,7 @@ public class DefaultBuildComparator implements BuildComparator {
                 unknownFrom.add(from);
             }
 
-            BuildOutcome to = outcomeAssociation.getTo();
+            BuildOutcome to = outcomeAssociation.getTarget();
             if (!uncomparedTo.remove(to)) {
                 unknown = true;
                 unknownTo.add(to);

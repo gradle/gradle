@@ -30,6 +30,13 @@ import spock.lang.Specification
 class GradleVersionTest extends Specification {
     final GradleVersion version = GradleVersion.current()
 
+    def "valid versions"() {
+        expect:
+        version.valid
+        !GradleVersion.version("asdfasdfas").valid
+        GradleVersion.version("1.0").valid
+    }
+
     def currentVersionHasNonNullVersion() {
         expect:
         version.version
