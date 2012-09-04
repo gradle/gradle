@@ -87,6 +87,7 @@
     <!-- this is generated -->
     <xi:include href='../../../build/src/samplesList.xml'/>
     <xi:include href='potentialTraps.xml'/>
+    <xi:include href='featureLifecycle.xml'/>
     <xi:include href='commandLine.xml'/>
     <xi:include href='ideSupport.xml'/>
     <xi:include href='glossary.xml'/>
