@@ -40,4 +40,18 @@ class MavenConversionSpec extends AbstractIntegrationSpec {
         and: //can run gradle build
         run 'clean', 'build'
     }
+
+    def "singleModule"() {
+        given:
+        file("build.gradle") << "apply plugin: 'maven2Gradle'"
+
+        when:
+        run 'maven2Gradle'
+
+        then:
+        //TODO SF this build should fail because the TestNG test is failing
+        //however the plugin does not generate testNG for single module project atm (bug)
+        //def failure = runAndFail('clean', 'build')  //assert if fails for the right reason
+        run 'clean', 'build'
+    }
 }
