@@ -1,5 +1,6 @@
 package webinar;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 public class WebinarTest {
@@ -9,6 +10,6 @@ public class WebinarTest {
     Demoable demoable = new Webinar("nice   day");
     
     //then
-    assertEquals("nice day", demoable.getDescription());
+    Assert.assertEquals("nice day", demoable.getDescription());
   }
 }
