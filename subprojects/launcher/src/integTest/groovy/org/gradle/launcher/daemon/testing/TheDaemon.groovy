@@ -16,7 +16,6 @@
 
 package org.gradle.launcher.daemon.testing
 
-import org.gradle.internal.SystemProperties
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.daemon.logging.DaemonMessages
@@ -46,7 +45,7 @@ class TheDaemon {
                 .commandLine("kill", "-9", context.pid)
                 .redirectErrorStream()
                 .setStandardOutput(output)
-                .workingDir(SystemProperties.getJavaIoTmpDir()) //does not matter
+                .workingDir(new File(".").absoluteFile) //does not matter
                 .build()
         e.start()
         def result = e.waitForFinish()

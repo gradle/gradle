@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.fixtures
 
-import org.gradle.internal.SystemProperties
 import org.gradle.process.internal.ExecHandleBuilder
 
 /**
@@ -32,7 +31,7 @@ class Maven3Availability {
                 //this only works on linux but that's enough for me at this time.
                 //this class goes when we can use maven3 classes for building pom models.
                 .commandLine("mvn", "-v")
-                .workingDir(SystemProperties.getJavaIoTmpDir())
+                .workingDir(new File(".").absoluteFile)
                 .setStandardOutput(out)
                 .redirectErrorStream()
                 .build()
