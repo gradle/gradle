@@ -915,6 +915,7 @@ public class DependencyGraphBuilder {
             targetModuleRevision = resolveState.getRevision(idResolveResult.getId());
             targetModuleRevision.addResolver(this);
 
+            //TODO SF put this info on th idResolveResult
             if (idResolveResult instanceof ForcedModuleVersionIdResolveResult) {
                 targetModuleRevision.selectionReason = ModuleSelectionReason.forced;
             }
