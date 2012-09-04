@@ -36,7 +36,12 @@ class Maven3Availability {
                 .redirectErrorStream()
                 .build()
 
-        def result = exec.start().waitForFinish()
+        try {
+            exec.start()
+        } catch (Exception e) { //not available
+            return false
+        }
+        def result = exec.waitForFinish()
         return result.exitValue == 0 && out.toString().startsWith("Apache Maven 3")
     }
 }
