@@ -33,7 +33,7 @@ Thread.sleep(60000)
 
         when:
         def build = executer.start()
-        ConcurrentTestUtil.poll { assert projectDir.file('marker.txt').file }
+        ConcurrentTestUtil.poll(20) { assert projectDir.file('marker.txt').file }
 
         def stopExecutions = []
         5.times { idx ->
