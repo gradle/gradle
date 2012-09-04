@@ -631,4 +631,47 @@ dependencies {
         libraries[1].assertHasJar(file('unresolved dependency - i.dont Exist 1.0'))
         libraries[2].assertHasJar(localJar)
     }
+
+    @Test
+    void classpathIsConfiguredForScalaIDE() {
+        //given
+        def scalaCompilerJar = mavenRepo.module('org.scala-lang', 'scala-compiler', '2.9.2').publish().artifactFile
+        def scalaLibraryJar = mavenRepo.module('org.scala-lang', 'scala-library', '2.9.2').publish().artifactFile
+        def scalaSwingJar = mavenRepo.module('org.scala-lang', 'scala-swing', '2.9.2').publish().artifactFile
+        def scalaDbcJar = mavenRepo.module('org.scala-lang', 'scala-dbc', '2.9.2').publish().artifactFile
+        def scalaJlineJar = mavenRepo.module('org.scala-lang', 'jline', '2.9.2').publish().artifactFile
+
+        //when
+        runEclipseTask """
+apply plugin: 'scala'
+apply plugin: 'eclipse'
+
+repositories {
+    maven { url "${mavenRepo.uri}" }
+    mavenCentral()
+}
+
+dependencies {
+    def libraries = [
+        scala_compiler: "org.scala-lang:scala-compiler:2.9.2",
+        scala_library: "org.scala-lang:scala-library:2.9.2",
+        scala_swing: "org.scala-lang:scala-swing:2.9.2",
+        scala_dbc: "org.scala-lang:scala-dbc:2.9.2",
+        scala_jline: "org.scala-lang:jline:2.9.2",
+    ]
+
+    scalaTools libraries.scala_compiler
+    scalaTools libraries.scala_library
+    scalaTools libraries.scala_jline
+
+    compile libraries.scala_library
+    compile libraries.scala_swing
+    compile libraries.scala_dbc
+}
+"""
+
+        //then
+        assert classpath.libs.isEmpty()
+        assert classpath.containers == ['org.eclipse.jdt.launching.JRE_CONTAINER', 'org.scala-ide.sdt.launching.SCALA_CONTAINER']
+    }
 }
