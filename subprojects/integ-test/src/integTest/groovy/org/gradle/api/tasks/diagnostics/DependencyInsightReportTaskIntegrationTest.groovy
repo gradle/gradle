@@ -51,6 +51,8 @@ class DependencyInsightReportTaskIntegrationTest extends AbstractIntegrationSpec
         repo.module("org", "toplevel4").dependsOn("middle3").publish()
 
         file("build.gradle") << """
+            apply plugin: 'dependency-reporting'
+
             repositories {
                 maven { url "${repo.uri}" }
             }
@@ -61,17 +63,10 @@ class DependencyInsightReportTaskIntegrationTest extends AbstractIntegrationSpec
             dependencies {
                 conf 'org:toplevel:1.0', 'org:toplevel2:1.0', 'org:toplevel3:1.0', 'org:toplevel4:1.0'
             }
-
-            task insight(type: DependencyInsightReportTask) {
-                configuration = configurations.conf
-                includes = { ResolvedDependencyResult dep ->
-                    dep.requested.name == 'leaf2'
-                }
-            }
         """
 
         when:
-        run "insight"
+        run "dependencyInsight", "--includes", "leaf2", "--configuration", "conf"
 
         then:
         1 == 1

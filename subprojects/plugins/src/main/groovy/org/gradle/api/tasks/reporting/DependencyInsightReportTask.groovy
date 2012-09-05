@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.diagnostics;
+package org.gradle.api.tasks.reporting;
 
 
 import org.gradle.api.Action
@@ -22,6 +22,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.artifacts.result.ResolvedDependencyResult
+import org.gradle.api.internal.tasks.CommandLineOption
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.diagnostics.internal.GraphRenderer
 import org.gradle.api.tasks.diagnostics.internal.dependencies.RenderableDependency
@@ -46,6 +47,19 @@ public class DependencyInsightReportTask extends DefaultTask {
 
     public void setIncludes(Closure includes) {
         this.includes = includes
+    }
+
+    @CommandLineOption(options = "includes", description = "Shows the details of given dependency.")
+    public void setIncludes(String dependencyNotation) {
+        this.includes = { ResolvedDependencyResult candidate ->
+            String candidateName = candidate.requested.group + ":" + candidate.requested.name + ":" + candidate.requested.version
+            return candidateName.contains(dependencyNotation)
+        }
+    }
+
+    @CommandLineOption(options = "configuration", description = "Looks for the depedency in given configuration.")
+    public void setConfiguration(String configurationName) {
+        this.configuration = project.configurations.getByName(configurationName)
     }
 
     @TaskAction

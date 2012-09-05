@@ -20,18 +20,13 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.SetMultimap;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.tasks.CommandLineOption;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.util.GUtil;
-import org.gradle.util.JavaMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.Method;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -41,6 +36,7 @@ import java.util.Set;
 public class TaskNameResolvingBuildConfigurationAction implements BuildConfigurationAction {
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskNameResolvingBuildConfigurationAction.class);
     private final TaskNameResolver taskNameResolver;
+    private CommandLineTaskConfigurer commandLineTaskConfigurer = new CommandLineTaskConfigurer();
 
     public TaskNameResolvingBuildConfigurationAction() {
         this(new TaskNameResolver());
@@ -79,27 +75,13 @@ public class TaskNameResolvingBuildConfigurationAction implements BuildConfigura
 
             CommandLineParser commandLineParser = new CommandLineParser();
             Set<Task> tasks = selector.getTasks();
-            Map<String, JavaMethod<Task, ?>> options = new HashMap<String, JavaMethod<Task, ?>>();
-            if (tasks.size() == 1) {
-                for (Class<?> type = tasks.iterator().next().getClass(); type != Object.class; type = type.getSuperclass()) {
-                    for (Method method : type.getDeclaredMethods()) {
-                        CommandLineOption commandLineOption = method.getAnnotation(CommandLineOption.class);
-                        if (commandLineOption != null) {
-                            commandLineParser.option(commandLineOption.options()).hasDescription(commandLineOption.description());
-                            options.put(commandLineOption.options()[0], JavaMethod.create(Task.class, Object.class, method));
-                        }
-                    }
-                }
-            }
+
+            CommandLineTaskConfigurer.Options options = commandLineTaskConfigurer.getConfigurationEntries(commandLineParser, tasks);
 
             ParsedCommandLine commandLine = commandLineParser.parse(remainingPaths.subList(1, remainingPaths.size()));
-            for (Map.Entry<String, JavaMethod<Task, ?>> entry : options.entrySet()) {
-                if (commandLine.hasOption(entry.getKey())) {
-                    for (Task task : tasks) {
-                        entry.getValue().invoke(task, true);
-                    }
-                }
-            }
+
+            options.maybeConfigure(commandLine, tasks);
+
             remainingPaths = commandLine.getExtraArguments();
 
             matches.putAll(selector.getTaskName(), tasks);
