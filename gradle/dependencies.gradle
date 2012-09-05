@@ -101,10 +101,10 @@ libraries.maven3_settings_builder = dependencies.module("org.apache.maven:maven-
 }
 
 libraries.spock = [
-    'org.spockframework:spock-core:0.6-groovy-1.8@jar',
+    'org.spockframework:spock-core:0.7-groovy-1.8-SNAPSHOT@jar',
     libraries.groovy,
     'org.objenesis:objenesis:1.2',
-    'cglib:cglib-nodep:2.2'
+    'cglib:cglib-nodep:2.2.2'
 ]
 libraries.jmock = [
     'org.jmock:jmock:2.5.1',
