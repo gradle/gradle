@@ -100,6 +100,7 @@ allprojects {
 
     repositories {
         maven { url 'http://repo.gradle.org/gradle/libs' }
+        maven { url 'http://oss.sonatype.org/content/repositories/snapshots/'} // temporary repo for spock snapshots
     }
 }
 
