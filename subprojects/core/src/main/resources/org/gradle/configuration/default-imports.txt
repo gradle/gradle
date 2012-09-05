@@ -22,6 +22,7 @@ import org.gradle.api.plugins.announce.*
 import org.gradle.api.plugins.buildcomparison.gradle.*
 import org.gradle.api.specs.*
 import org.gradle.api.tasks.*
+import org.gradle.api.tasks.reporting.*
 import org.gradle.api.tasks.bundling.*
 import org.gradle.api.tasks.diagnostics.*
 import org.gradle.api.tasks.compile.*
