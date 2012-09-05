@@ -30,6 +30,7 @@ integTestTasks.all { Test task ->
     systemProperties['org.gradle.integtest.versions'] = project.hasProperty("testAllVersions") ? 'all' : 'latest'
     if (project.hasProperty('crossVersionTestsOnly')) {
         include '**/*CrossVersion*'
+        forkEvery = 1
     }
 
     dependsOn project.task("configure${task.name.capitalize()}") << {
