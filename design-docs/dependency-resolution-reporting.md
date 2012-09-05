@@ -26,23 +26,23 @@ testCompile - Classpath for compiling the test sources.
 
 We should also remove the confusing configurations from the view.
 
-2. A brand new report that traverses the graph the opposite way.
+2. A brand new report that traverses the graph the opposite way (Dependency Insight Report).
 
 Mock up:
 <pre>
-com.linkedin.util:util-core - selected version does not exist in the dependency graph.
+com.coolcorp.util:util-core:4.0.7 (conflict resolution)
+\--- com.coolcorp.sharedlibs:configuration-repository-impl:1.3.30
+     \--- com.coolcorp.sharedlibs:lispring-lispring-core:1.3.30
+          \--- com.coolcorp.container:container-http-impl:3.0.24
+               \--- com.coolcorp.container:container-rpc-impl:3.0.24
+                    \--- compile
 
-com.linkedin.util:util-core:4.0.7
-\--- com.linkedin.sharedlibs:configuration-repository-impl:1.3.30
-     \--- com.linkedin.sharedlibs:lispring-lispring-core:1.3.30
-          \--- com.linkedin.container:container-http-impl:3.0.24
-               \--- com.linkedin.container:container-rpc-impl:3.0.24
-
-com.linkedin.util:util-core:2.4.6 -> 4.0.7
-\--- com.linkedin.cfg2:cfg:2.8.0
-     \--- com.linkedin.sharedlibs:lispring-lispring-core:1.3.30
-          \--- com.linkedin.container:container-http-impl:3.0.24
-               \--- com.linkedin.container:container-rpc-impl:3.0.24
+com.coolcorp.util:util-core:2.4.6 -> 4.0.7
+\--- com.coolcorp.cfg2:cfg:2.8.0
+     \--- com.coolcorp.sharedlibs:lispring-lispring-core:1.3.30
+          \--- com.coolcorp.container:container-http-impl:3.0.24
+               \--- com.coolcorp.container:container-rpc-impl:3.0.24
+                    \--- compile
 </pre>
 
 The idea is to traverse the graph the other way and print the dependent path for a given dependency.
@@ -50,6 +50,21 @@ This report is useful to track where the given version of some dependency was pi
 This drives some conveniences to our DependencyGraph API.
 There should be some simple way to run the report from the command line.
 While doing that consider adding support for selecting configuration for the regular 'dependencies' report from command line.
+
+## dependency insight report implementation/design plan
+
+- 'dependency-reporting' plugin
+    - 'dependencyInsight' task, pre-configured with:
+        - searches for dependency in 'compile' configuration if java applied, otherwise it needs to be configured
+        - requires the dependency name configured (by default does not list all)
+
+- 'dependencyInsight' task configuration:
+    - can provide ResolvedDependencyResult predicate
+    - can have one configuration selected
+
+- the configuration name and dependency name can be provided via command line
+- the report prints a warning if the configuration resolves with failures because this can affect the dependency tree
+- the plugin implementation potentially should go to 'reporting' subproject
 
 # Integration test coverage
 
