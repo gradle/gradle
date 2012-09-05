@@ -63,7 +63,7 @@
             </para>
             <para>
                 Features in incubation are clearly indicated to be so. In the source code, all methods/properties/classes that are incubating are
-                annotated with<apilink class="org.gradle.api.Incubating"/>, which is reflected in the DSL and API references. If an incubating
+                annotated with <apilink class="org.gradle.api.Incubating"/>, which is reflected in the DSL and API references. If an incubating
                 feature is discussed in this User Guide, it will be explicitly said to be in the incubating state.
             </para>
         </section>
@@ -85,7 +85,7 @@
             <title>Deprecated</title>
             <para>
                 Some features will become superseded or irrelevant due to the natural evolution of Gradle. Such features will eventually be removed
-                from Gradle after being<firstterm>deprecated</firstterm>. A deprecated feature will <emphasis>never</emphasis>
+                from Gradle after being <firstterm>deprecated</firstterm>. A deprecated feature will <emphasis>never</emphasis>
                 be changed, until it is finally removed according to the backwards compatibility policy.
             </para>
             <para>
