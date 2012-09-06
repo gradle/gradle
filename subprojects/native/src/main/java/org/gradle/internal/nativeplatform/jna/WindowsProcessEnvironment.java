@@ -29,7 +29,7 @@ public class WindowsProcessEnvironment extends AbstractProcessEnvironment {
 
     public void setNativeEnvironmentVariable(String name, String value) {
         boolean retval = kernel32.SetEnvironmentVariable(name, value == null ? null : value);
-        if (!retval) {
+        if (!retval && (kernel32.GetLastError() != 203/*ERROR_ENVVAR_NOT_FOUND*/)) {
             throw new NativeIntegrationException(String.format("Could not set environment variable '%s'. errno: %d", name, kernel32.GetLastError()));
         }
     }
