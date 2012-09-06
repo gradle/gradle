@@ -42,7 +42,7 @@ buildTypes {
     daemonTest "daemonIntegTest", noDistTests: true, useIncomingDistributions: true
 
     // Run the integration tests using the parallel executer
-    parallelTest "parallelIntegTest", noDistTests: true
+    parallelTest "parallelIntegTest", noDistTests: true, useIncomingDistributions: true
 
     // Run the performance tests
     performanceTest "performance:integTest"
