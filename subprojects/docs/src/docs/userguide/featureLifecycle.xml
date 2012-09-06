@@ -32,7 +32,7 @@
         to clearly communicate to users of Gradle what the state of a feature is. The term
         <firstterm>feature</firstterm>
         typically means
-        an API or DSL method or property in this contexct, but it is not restricted to this definition.
+        an API or DSL method or property in this context, but it is not restricted to this definition.
         Command line arguments and modes of execution (e.g. the Build Daemon) are two examples of other kinds of features.
     </para>
     <section>
