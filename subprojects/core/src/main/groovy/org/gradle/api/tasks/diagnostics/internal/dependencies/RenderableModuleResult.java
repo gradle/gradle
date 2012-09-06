@@ -21,7 +21,6 @@ import com.google.common.collect.Collections2;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
-import org.gradle.api.internal.artifacts.result.DefaultResolvedModuleVersionResult;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -58,7 +57,7 @@ public class RenderableModuleResult implements RenderableDependency {
     }
 
     public Set<RenderableDependency> getParents() {
-        return new LinkedHashSet(Collections2.transform(((DefaultResolvedModuleVersionResult) module).getDependents(), new Function<ResolvedDependencyResult, RenderableDependency>() {
+        return new LinkedHashSet(Collections2.transform(module.getDependents(), new Function<ResolvedDependencyResult, RenderableDependency>() {
             public RenderableDependency apply(ResolvedDependencyResult input) {
                 return new RenderableModuleResult(input.getFrom());
             }

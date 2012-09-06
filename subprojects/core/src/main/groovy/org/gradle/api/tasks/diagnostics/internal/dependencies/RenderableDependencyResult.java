@@ -21,7 +21,6 @@ import com.google.common.collect.Collections2;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.result.DefaultResolvedDependencyResult;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -81,7 +80,7 @@ public class RenderableDependencyResult implements RenderableDependency {
         for (ResolvedDependencyResult r : dependency.getSelected().getDependents()) {
             //we want only the dependents that match the requested
             if (r.getRequested().equals(this.dependency.getRequested())) {
-                out.add(new RenderableModuleResult(((DefaultResolvedDependencyResult) r).getFrom()));
+                out.add(new RenderableModuleResult(r.getFrom()));
             }
         }
 
