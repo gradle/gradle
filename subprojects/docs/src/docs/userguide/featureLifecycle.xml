@@ -57,7 +57,7 @@
         <section>
             <title>Internal</title>
             <para>
-                Internal feature are not designed for public use and are only intended to be used by Gradle itself. They can change in any way at any
+                Internal features are not designed for public use and are only intended to be used by Gradle itself. They can change in any way at any
                 point in time without any notice. Therefore, we recommend avoiding the use of such features.
                 Internal features are not documented. If it appears in this User Guide, the DSL Reference or the API Reference documentation then
                 the feature is not internal.
