@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.result
+package org.gradle.api.tasks.reporting.internal
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ModuleVersionSelector
+import org.gradle.api.internal.artifacts.result.DefaultResolvedDependencyResult
+import org.gradle.api.internal.artifacts.result.DefaultResolvedModuleVersionResult
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
