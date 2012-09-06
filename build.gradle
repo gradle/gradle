@@ -150,13 +150,15 @@ task verifyIsProductionBuildEnvironment << {
 }
 
 task waitForDaemonsToDie {
-    if (isWindows && isCiServer) {
-        gradle.startParameter.taskNames.add(0, it.path)
-    }
-    doLast {
-        def mins = 2
-        println "I'm waiting for $mins mins so that existing daemons can die with honour. It's a workaround until we fix it properly."
-        sleep mins * 60 * 1000
+    if (!project.hasProperty("noWaitForDaemonsToDie")) {
+        if (isWindows && isCiServer) {
+            gradle.startParameter.taskNames.add(0, it.path)
+        }
+        doLast {
+            def mins = 2
+            println "I'm waiting for $mins mins so that existing daemons can die with honour. It's a workaround until we fix it properly."
+            sleep mins * 60 * 1000
+        }
     }
 }
 
