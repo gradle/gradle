@@ -86,7 +86,9 @@ public class DefaultResolvedModuleVersionResult implements ResolvedModuleVersion
         ResolvedModuleVersionResult that = (ResolvedModuleVersionResult) o;
 
         return id.equals(that.getId());
-        }
+    }
+
+    //TODO SF find out if we can get rid of equals/hashcode on this and the dependency type.
 
     @Override
     public int hashCode() {
