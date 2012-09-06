@@ -72,9 +72,12 @@
                 When new features are introduced to Gradle, they are usually introduced in an <firstterm>incubating</firstterm> state.
                 A feature in this state is intended to be used by Gradle users, but may change in future Gradle versions until it is no longer incubating.
                 Changes to incubating features for a Gradle release will be highlighted in the release notes for that release.
+                The incubation period for new features varies depending on the scope, complexity and nature of the feature.
             </para>
             <para>
-                The incubation period for new features varies depending on the scope, complexity and nature of the feature.
+                Features are introduced in the incubating state to allow real world feedback to be incorporated into the feature before it is made public and
+                locked down to provide backwards compatibility.
+                It also gives users who are willing to accept potential future changes early access to the feature so they can put it into use immediately.
             </para>
             <para>
                 Features in incubation are clearly indicated to be so. In the source code, all methods/properties/classes that are incubating are
