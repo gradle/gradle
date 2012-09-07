@@ -32,7 +32,7 @@ public interface ResolutionResult {
      * You can walk the graph recursively from the root to obtain information about resolved dependencies.
      * For example, Gradle's built-in 'dependencies' uses it to render the dependency tree.
      *
-     * @return the root of the resolved dependency graph
+     * @return the root node of the resolved dependency graph
      */
     ResolvedModuleVersionResult getRoot();
 }

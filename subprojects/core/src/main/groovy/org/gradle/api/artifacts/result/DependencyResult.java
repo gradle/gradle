@@ -20,7 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 
 /**
- * by Szczepan Faber, created at: 8/24/12
+ * Represents the dependency result. An edge in the dependency graph. See also {@link ResolutionResult}.
  */
 @Incubating
 public interface DependencyResult {
