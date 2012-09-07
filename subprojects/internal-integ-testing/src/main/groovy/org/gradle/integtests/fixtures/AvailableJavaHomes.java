@@ -90,42 +90,18 @@ abstract public class AvailableJavaHomes {
         return null;
     }
 
-    public static File getBestJreAlternative() {
+    /**
+     * Locates a JRE for the current JVM. Prefers a stand-alone JRE installation over one that is part of a JDK install.
+     *
+     * @return The JRE home directory, or null if not found
+     */
+    public static File getBestJre() {
         Jvm jvm = Jvm.current();
 
         // Use environment variables
         File jreHome = null;
-        if (jvm.getJavaVersion().isJava6Compatible()) {
-            jreHome = firstAvailableJRE("15", "17");
-        } else if (jvm.getJavaVersion().isJava5Compatible()) {
-            jreHome = firstAvailableJRE();
-        }
-        if (jreHome != null) {
-            return jreHome;
-        }
 
-        if (OperatingSystem.current().isMacOsX()) {
-            File registeredJvms = new File("/Library/Java/JavaVirtualMachines");
-            if (registeredJvms.isDirectory()) {
-                for (File candidate : registeredJvms.listFiles()) {
-                    jreHome = GFileUtils.canonicalise(new File(candidate, "Contents/Home/jre"));
-                    if (!jreHome.equals(jvm.getJavaHome()) && jreHome.isDirectory() && new File(jreHome, "bin/java").isFile()) {
-                        return jreHome;
-                    }
-                }
-            }
-        } else if (OperatingSystem.current().isLinux()) {
-            // Ubuntu specific
-            File installedJvms = new File("/usr/lib/jvm");
-            if (installedJvms.isDirectory()) {
-                for (File candidate : installedJvms.listFiles()) {
-                    jreHome = new File(GFileUtils.canonicalise(candidate), "jre");
-                    if (!jreHome.equals(jvm.getJavaHome()) && jreHome.isDirectory() && new File(jreHome, "bin/java").isFile()) {
-                        return jreHome;
-                    }
-                }
-            }
-        } else if (OperatingSystem.current().isWindows()) {
+        if (OperatingSystem.current().isWindows()) {
             //very simple algorithm trying to find java on windows
             File installedJavas = new File("c:/Program Files/Java");
             if (!installedJavas.isDirectory()) {
@@ -145,20 +121,12 @@ abstract public class AvailableJavaHomes {
                 }
             }
         }
-        return null;
-    }
-
-    private static File firstAvailableJRE(String... labels) {
-        File javaHome = firstAvailable(labels);
-        if (javaHome != null) {
-            final File jre = new File(javaHome, "jre");
-            if (jre.isDirectory()) {
-                return jre;
-            }
+        jreHome = new File(jvm.getJavaHome(), "jre");
+        if (jreHome.isDirectory()) {
+            return jreHome;
         }
         return null;
     }
-
 
     public static File firstAvailable(String... labels) {
         for (String label : labels) {

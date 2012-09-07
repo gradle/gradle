@@ -25,11 +25,11 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class JreJavaHomeGroovyIntegrationTest extends AbstractIntegrationSpec {
 
-    @IgnoreIf({ AvailableJavaHomes.bestJreAlternative == null})
+    @IgnoreIf({ AvailableJavaHomes.bestJre == null})
     @Unroll
     def "groovy java cross compilation works in forking mode = #forkMode and useAnt = #useAnt when JAVA_HOME is set to JRE"() {
         given:
-        def jreJavaHome = AvailableJavaHomes.bestJreAlternative
+        def jreJavaHome = AvailableJavaHomes.bestJre
         writeJavaTestSource("src/main/groovy")
         writeGroovyTestSource("src/main/groovy")
         file('build.gradle') << """

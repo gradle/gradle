@@ -25,11 +25,11 @@ import spock.lang.Unroll
 
 class JreJavaHomeJavaIntegrationTest extends AbstractIntegrationSpec {
 
-    @IgnoreIf({ AvailableJavaHomes.bestJreAlternative == null})
+    @IgnoreIf({ AvailableJavaHomes.bestJre == null})
     @Unroll
     def "java compilation works in forking mode = #forkMode and useAnt = #useAnt when JAVA_HOME is set to JRE"() {
         given:
-        def jreJavaHome = AvailableJavaHomes.bestJreAlternative
+        def jreJavaHome = AvailableJavaHomes.bestJre
         writeJavaTestSource("src/main/java");
         file('build.gradle') << """
         println "Used JRE: ${jreJavaHome.absolutePath.replace(File.separator, '/')}"
