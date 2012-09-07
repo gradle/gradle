@@ -27,6 +27,7 @@ import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.registry.DaemonInfo;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.messaging.remote.internal.ConnectException;
+import org.gradle.messaging.remote.internal.Connection;
 import org.gradle.messaging.remote.internal.OutgoingConnector;
 
 import java.util.List;
@@ -85,13 +86,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
             try {
                 return connectToDaemon(daemonInfo, null);
             } catch (ConnectException e) {
-                //this means the daemon died without removing its address from the registry
-                //we can safely remove this address now
-                LOGGER.debug("We cannot connect to the daemon at " + daemonInfo.getAddress() + " due to " + e + ". "
-                        + "We will not remove this daemon from the registry because the connection issue may have been temporary.");
-                //TODO it might be good to store in the registry the number of failed attempts to connect to the deamon
-                //if the number is high we may decide to remove the daemon from the registry
-                //daemonRegistry.remove(address);
+                LOGGER.debug("Cannot connect to the daemon at " + daemonInfo.getAddress() + " due to " + e + ". Trying a different daemon...");
             }
         }
         return null;
@@ -129,24 +124,27 @@ public class DefaultDaemonConnector implements DaemonConnector {
                     }
                     return connectToDaemon(daemonInfo, startupInfo.getDiagnostics());
                 } catch (ConnectException e) {
-                    // this means the daemon died without removing its address from the registry
-                    // since we have never successfully connected we assume the daemon is dead and remove this address now
-                    daemonRegistry.remove(daemonInfo.getAddress());
-                    throw new GradleException("The forked daemon process died before we could connect.\n" + startupInfo.describe());
-                    //TODO SF after the refactorings add some coverage for visibility of the daemon tail.
+                    throw new GradleException("The forked daemon process died before we could connect.\n" + startupInfo.describe(), e);
                 }
             }
         }
         return null;
     }
 
-    private DaemonClientConnection connectToDaemon(final DaemonInfo daemonInfo, DaemonDiagnostics diagnostics) {
+    private DaemonClientConnection connectToDaemon(final DaemonInfo daemonInfo, DaemonDiagnostics diagnostics) throws ConnectException {
         Runnable onFailure = new Runnable() {
             public void run() {
                 LOGGER.info(DaemonMessages.REMOVING_DAEMON_ADDRESS_ON_FAILURE + daemonInfo);
                 daemonRegistry.remove(daemonInfo.getAddress());
             }
         };
-        return new DaemonClientConnection(connector.connect(daemonInfo.getAddress()), daemonInfo.getContext().getUid(), diagnostics, onFailure);
+        Connection<Object> connection;
+        try {
+            connection = connector.connect(daemonInfo.getAddress());
+        } catch (ConnectException e) {
+            onFailure.run();
+            throw e;
+        }
+        return new DaemonClientConnection(connection, daemonInfo.getContext().getUid(), diagnostics, onFailure);
     }
 }

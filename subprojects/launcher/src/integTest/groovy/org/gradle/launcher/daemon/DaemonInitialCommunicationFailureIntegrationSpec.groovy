@@ -22,6 +22,7 @@ import org.gradle.launcher.daemon.testing.DaemonLogsAnalyzer
 import org.gradle.tests.fixtures.ConcurrentTestUtil
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Issue
 
 /**
  * by Szczepan Faber, created at: 1/20/12
@@ -36,6 +37,7 @@ class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegration
         stopDaemonsNow()
     }
 
+    @Issue("GRADLE-2444")
     def "behaves if the registry contains connectable port without daemon on the other end"() {
         when:
         buildSucceeds()
@@ -47,12 +49,7 @@ class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegration
         when:
         daemon.kill()
 
-        then:
-        stopDaemonsNow()
-        output.contains DaemonMessages.NO_DAEMONS_RUNNING
-        //because we killed it earlier
-
-        when:
+        and:
         //starting some service on the daemon port
         ConcurrentTestUtil.poll {
             new HttpServer().start(daemon.port)
@@ -74,6 +71,7 @@ class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegration
         !output.contains(DaemonMessages.REMOVING_DAEMON_ADDRESS_ON_FAILURE)
     }
 
+    @Issue("GRADLE-2444")
     def "stop() behaves if the registry contains connectable port without daemon on the other end"() {
         when:
         buildSucceeds()
@@ -100,5 +98,23 @@ class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegration
         then:
         !output.contains(DaemonMessages.REMOVING_DAEMON_ADDRESS_ON_FAILURE)
         output.contains(DaemonMessages.NO_DAEMONS_RUNNING)
+    }
+
+    @Issue("GRADLE-2464")
+    def "when nothing responds to the address found in the registry we remove the address"() {
+        when:
+        buildSucceeds()
+
+        then:
+        def daemon = new DaemonLogsAnalyzer(distribution.daemonBaseDir).idleDaemon
+
+        when:
+        daemon.kill()
+
+        then:
+        buildSucceeds()
+
+        and:
+        output.contains DaemonMessages.REMOVING_DAEMON_ADDRESS_ON_FAILURE
     }
 }
