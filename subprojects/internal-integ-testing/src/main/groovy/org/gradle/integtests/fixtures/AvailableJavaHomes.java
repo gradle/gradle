@@ -20,6 +20,8 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Allows the tests to get hold of an alternative Java installation when needed.
@@ -31,6 +33,9 @@ abstract public class AvailableJavaHomes {
         return value == null ? null : GFileUtils.canonicalise(new File(value));
     }
 
+    /**
+     * Locates a JVM installation that is different to the current JVM.
+     */
     public static File getBestAlternative() {
         Jvm jvm = Jvm.current();
 
@@ -68,19 +73,22 @@ abstract public class AvailableJavaHomes {
             }
         } else if (OperatingSystem.current().isWindows()) {
             //very simple algorithm trying to find java on windows
-            File installedJavas = new File("c:/Program Files/Java");
-            if (!installedJavas.isDirectory()) {
-                // Attempt to look for 32-bit version under 64-bit OS
-                installedJavas = new File("c:/Program Files (x86)/Java");
+            List<File> installDirs = new ArrayList<File>();
+            File candidate = new File("c:/Program Files/Java");
+            if (candidate.isDirectory()) {
+                installDirs.add(candidate);
             }
-            if (installedJavas.isDirectory()) {
-                for (File file : installedJavas.listFiles()) {
+            // Attempt to look for 32-bit version under 64-bit OS
+            candidate = new File("c:/Program Files (x86)/Java");
+            if (candidate.isDirectory()) {
+                installDirs.add(candidate);
+            }
+            for (File installDir : installDirs) {
+                for (File file : installDir.listFiles()) {
                     if (file.getName().startsWith("jdk")) {
-                        if (jvm.getJavaVersion().isJava6() && !file.getName().contains("1.6")) {
-                            return file;
-                        }
-                        if (jvm.getJavaVersion().isJava7() && !file.getName().contains("1.7")) {
-                            return file;
+                        javaHome = GFileUtils.canonicalise(file);
+                        if (!javaHome.equals(jvm.getJavaHome()) && javaHome.isDirectory() && new File(javaHome, "bin/java.exe").isFile()) {
+                            return javaHome;
                         }
                     }
                 }
@@ -91,33 +99,25 @@ abstract public class AvailableJavaHomes {
     }
 
     /**
-     * Locates a JRE for the current JVM. Prefers a stand-alone JRE installation over one that is part of a JDK install.
+     * Locates a JRE installation for the current JVM. Prefers a stand-alone JRE installation over one that is part of a JDK install.
      *
      * @return The JRE home directory, or null if not found
      */
     public static File getBestJre() {
         Jvm jvm = Jvm.current();
-
-        // Use environment variables
-        File jreHome = null;
+        File jreHome;
 
         if (OperatingSystem.current().isWindows()) {
-            //very simple algorithm trying to find java on windows
-            File installedJavas = new File("c:/Program Files/Java");
-            if (!installedJavas.isDirectory()) {
-                // Attempt to look for 32-bit version under 64-bit OS
-                installedJavas = new File("c:/Program Files (x86)/Java");
+            if (jvm.getJavaVersion().isJava6()) {
+                jreHome = new File(jvm.getJavaHome().getParentFile(), "jre6");
+                if (jreHome.isDirectory() && new File(jreHome, "bin/java.exe").isFile()) {
+                    return jreHome;
+                }
             }
-            if (installedJavas.isDirectory()) {
-                for (File file : installedJavas.listFiles()) {
-                    if (file.getName().startsWith("jre")) {
-                        if (jvm.getJavaVersion().isJava6() && !file.getName().contains("1.6")) {
-                            return file;
-                        }
-                        if (jvm.getJavaVersion().isJava7() && !file.getName().contains("1.7")) {
-                            return file;
-                        }
-                    }
+            if (jvm.getJavaVersion().isJava7()) {
+                jreHome = new File(jvm.getJavaHome().getParentFile(), "jre7");
+                if (jreHome.isDirectory() && new File(jreHome, "bin/java.exe").isFile()) {
+                    return jreHome;
                 }
             }
         }
