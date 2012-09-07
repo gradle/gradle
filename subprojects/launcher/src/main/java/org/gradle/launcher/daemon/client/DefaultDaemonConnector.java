@@ -135,7 +135,13 @@ public class DefaultDaemonConnector implements DaemonConnector {
         Runnable onFailure = new Runnable() {
             public void run() {
                 LOGGER.info(DaemonMessages.REMOVING_DAEMON_ADDRESS_ON_FAILURE + daemonInfo);
-                daemonRegistry.remove(daemonInfo.getAddress());
+                try {
+                    daemonRegistry.remove(daemonInfo.getAddress());
+                } catch (Exception e) {
+                    //If we cannot remove then the file is corrupt or the registry is empty. We can ignore it here.
+                    LOGGER.info("Problem removing the address from the registry due to: " + e + ". It will be cleaned up later.");
+                    //TODO SF, actually we probably want always safely remove so it would be good to reduce the duplication.
+                }
             }
         };
         Connection<Object> connection;
