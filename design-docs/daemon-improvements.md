@@ -4,15 +4,6 @@ To make daemon more and more stable; better working on windows environments; bet
 
 This spec is always work in progress. It is aimed to help us design the implementation of the daemon fixes.
 
-# Tasks
-
-## Daemon should attempt to remove its entry from the registry on JVM exit.
-
-I'm planning to add another shutdown hook close to the where we create
-the registryUpdater object. I might add a new type DaemonShutdown so
-that it's easier to see what we're doing and that there are 2 shutdown
-hooks. The hook will execute registryUpdater.stop()
-
 # Stories
 
 # All client and daemon reads on the connection should have a timeout.
