@@ -91,4 +91,6 @@ public interface ResolvedConfiguration {
      */
     @Incubating
     ResolutionResult getResolutionResult();
+
+    //TODO SF/AM resolution result should live in ResolvableDependencies so that we can get rid of configurations at some point.
 }

@@ -24,6 +24,8 @@ import org.gradle.api.artifacts.ModuleVersionSelector;
  */
 public class InternalDependencyResult {
 
+    //TODO SF/AM change to an interface and make the DependencyEdge implement it.
+
     private final ModuleVersionSelector requested;
     private final Exception failure;
     private final ModuleVersionSelection selected;
