@@ -94,6 +94,17 @@ public class Daemon implements Stoppable {
 
             registryUpdater = new DomainRegistryUpdater(daemonRegistry, daemonContext, password);
 
+            Runtime.getRuntime().addShutdownHook(new Thread() {
+                public void run() {
+                    LOGGER.debug("VM shutdown hook is making sure the daemon address is removed from the registry...");
+                    try {
+                        daemonRegistry.remove(connectorAddress);
+                    } catch (Exception e) {
+                        LOGGER.debug("VM shutdown hook was unable to remove the daemon address from the registry. It will be cleaned up later.");
+                    }
+                }
+            });
+
             Runnable onStartCommand = new Runnable() {
                 public void run() {
                     registryUpdater.onStartActivity();

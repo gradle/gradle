@@ -24,6 +24,7 @@ import org.gradle.messaging.remote.Address
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
+
 import static org.gradle.cache.internal.DefaultFileLockManagerTestHelper.createDefaultFileLockManager
 import static org.gradle.cache.internal.DefaultFileLockManagerTestHelper.unlockUncleanly
 
@@ -32,11 +33,11 @@ class PersistentDaemonRegistryTest extends Specification {
     @Rule TemporaryFolder tmp
     
     int addressCounter = 0
+    def lockManager = createDefaultFileLockManager()
 
     def "corrupt registry file is ignored"() {
         given:
         def file = tmp.file("registry")
-        def lockManager = createDefaultFileLockManager()
         def registry = new PersistentDaemonRegistry(file, lockManager)
         
         and:
@@ -50,6 +51,24 @@ class PersistentDaemonRegistryTest extends Specification {
 
         then:
         registry.all.empty
+    }
+
+    def "safely removes from registry file"() {
+        given:
+        def registry = new PersistentDaemonRegistry(tmp.file("registry"), lockManager)
+        def address = address()
+
+        and:
+        registry.store(address, daemonContext(), "password", true)
+
+        when:
+        registry.remove(address)
+
+        then:
+        registry.all.empty
+
+        and: //it is safe to remove it again
+        registry.remove(address)
     }
     
     DaemonContext daemonContext() {
@@ -71,6 +90,13 @@ class PersistentDaemonRegistryTest extends Specification {
             this.displayName = displayName
         }
 
+        boolean equals(o) {
+            displayName == o.displayName
+        }
+
+        int hashCode() {
+            displayName.hashCode()
+        }
     }
 
 }
