@@ -20,7 +20,7 @@ import spock.lang.Issue
 
 @Issue("GRADLE-2460")
 class DaemonSystemPropertiesIntegrationTest extends DaemonIntegrationSpec {
-    def "standard and sun.* client JVM system properties are not carried over to daemon JVM"() {
+    def "standard and sun. client JVM system properties are not carried over to daemon JVM"() {
         given:
         distribution.file("build.gradle") << """
 task verify << {
