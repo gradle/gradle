@@ -17,6 +17,8 @@ package org.gradle.api.artifacts;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.file.FileCollection;
 
 /**
@@ -79,4 +81,13 @@ public interface ResolvableDependencies {
      * @param action The action to execute.
      */
     void afterResolve(Closure action);
+
+    /**
+     * Returns an instance of {@link org.gradle.api.artifacts.result.ResolutionResult}
+     * that gives access to the graph of the resolved dependencies.
+     *
+     * @return the resolution result
+     */
+    @Incubating
+    ResolutionResult getResolutionResult();
 }

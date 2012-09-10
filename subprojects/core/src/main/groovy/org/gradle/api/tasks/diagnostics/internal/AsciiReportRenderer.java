@@ -81,7 +81,7 @@ public class    AsciiReportRenderer extends TextReportRenderer implements Depend
 
     public void render(Configuration configuration) throws IOException {
         ResolvedConfiguration resolvedConfiguration = configuration.getResolvedConfiguration();
-        ResolutionResult result = resolvedConfiguration.getResolutionResult();
+        ResolutionResult result = configuration.getIncoming().getResolutionResult();
         RenderableDependency root = new RenderableModuleResult(result.getRoot());
 
         renderNow(root);

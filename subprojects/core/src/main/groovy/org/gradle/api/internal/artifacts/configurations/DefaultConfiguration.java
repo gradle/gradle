@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.configurations;
 import groovy.lang.Closure;
 import org.gradle.api.*;
 import org.gradle.api.artifacts.*;
+import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
@@ -70,6 +71,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private State state = State.UNRESOLVED;
     private ResolvedConfiguration cachedResolvedConfiguration;
     private final DefaultResolutionStrategy resolutionStrategy;
+    private ResolutionResult resolutionResult;
 
     public DefaultConfiguration(String path, String name, ConfigurationsProvider configurationsProvider,
                                 ArtifactDependencyResolver dependencyResolver, ListenerManager listenerManager,
@@ -121,6 +123,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         throwExceptionIfNotInUnresolvedState();
         this.visibility = visible ? Visibility.PUBLIC : Visibility.PRIVATE;
         return this;
+    }
+
+    public void setResolutionResult(ResolutionResult resolutionResult) {
+        this.resolutionResult = resolutionResult;
     }
 
     public Set<Configuration> getExtendsFrom() {
@@ -555,6 +561,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         public void afterResolve(Closure action) {
             resolutionListenerBroadcast.add("afterResolve", action);
+        }
+
+        public ResolutionResult getResolutionResult() {
+            DefaultConfiguration.this.getResolvedConfiguration();
+            assert resolutionResult != null;
+            return resolutionResult;
         }
     }
 }

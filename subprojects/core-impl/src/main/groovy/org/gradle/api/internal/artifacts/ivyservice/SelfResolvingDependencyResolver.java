@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.*;
-import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.CachingDependencyResolveContext;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
@@ -60,10 +59,6 @@ public class SelfResolvingDependencyResolver implements ArtifactDependencyResolv
 
             public Set<ResolvedArtifact> getResolvedArtifacts() {
                 return resolvedConfiguration.getResolvedArtifacts();
-            }
-
-            public ResolutionResult getResolutionResult() {
-                return resolvedConfiguration.getResolutionResult();
             }
 
             public Set<ResolvedDependency> getFirstLevelModuleDependencies() {

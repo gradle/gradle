@@ -16,10 +16,8 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.artifacts.*;
-import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
-import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.result.EmptyResolutionResult;
 import org.gradle.api.specs.Spec;
 
@@ -36,18 +34,13 @@ public class ShortcircuitEmptyConfigsArtifactDependencyResolver implements Artif
 
     public ResolvedConfiguration resolve(ConfigurationInternal configuration) {
         if (configuration.getAllDependencies().isEmpty()) {
-            return new EmptyResolvedConfiguration(configuration);
+            configuration.setResolutionResult(new EmptyResolutionResult(configuration.getModule()));
+            return new EmptyResolvedConfiguration();
         }
         return dependencyResolver.resolve(configuration);
     }
 
     private static class EmptyResolvedConfiguration implements ResolvedConfiguration {
-
-        private ResolutionResult resolutionResult;
-
-        private EmptyResolvedConfiguration(DependencyMetaDataProvider configurationMeta) {
-            this.resolutionResult = new EmptyResolutionResult(configurationMeta.getModule());
-        }
 
         public boolean hasError() {
             return false;
@@ -90,10 +83,6 @@ public class ShortcircuitEmptyConfigsArtifactDependencyResolver implements Artif
 
         public Set<ResolvedArtifact> getResolvedArtifacts() {
             return Collections.emptySet();
-        }
-
-        public ResolutionResult getResolutionResult() {
-            return resolutionResult;
         }
     }
 }

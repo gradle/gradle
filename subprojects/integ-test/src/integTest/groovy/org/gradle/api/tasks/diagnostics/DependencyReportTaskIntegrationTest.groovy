@@ -436,4 +436,23 @@ rootProject.name = 'root'
 \\--- org:a:2.0 (*)
 """))
     }
+
+    def "tells if there are no dependencies"() {
+        given:
+        buildFile << "configurations { foo }"
+
+        when:
+        run "dependencies"
+
+        then:
+        output.contains "No dependencies"
+    }
+
+    def "tells if there are no configurations"() {
+        when:
+        run "dependencies"
+
+        then:
+        output.contains "No configurations"
+    }
 }
