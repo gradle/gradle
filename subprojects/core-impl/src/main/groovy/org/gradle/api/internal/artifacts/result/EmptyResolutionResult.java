@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.result;
 
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.result.ModuleSelectionReason;
+import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
@@ -48,8 +48,8 @@ public class EmptyResolutionResult implements ResolutionResult {
                 return Collections.emptySet();
             }
 
-            public ModuleSelectionReason getSelectionReason() {
-                return ModuleSelectionReason.regular;
+            public ModuleVersionSelectionReason getSelectionReason() {
+                return ModuleVersionSelectionReason.requested;
             }
         };
     }

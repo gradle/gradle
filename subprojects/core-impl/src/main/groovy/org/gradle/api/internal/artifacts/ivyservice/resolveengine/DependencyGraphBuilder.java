@@ -23,7 +23,7 @@ import org.apache.ivy.core.resolve.ResolveData;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedArtifact;
-import org.gradle.api.artifacts.result.ModuleSelectionReason;
+import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
@@ -602,7 +602,7 @@ public class DependencyGraphBuilder {
         ModuleDescriptor descriptor;
         ModuleState state = ModuleState.New;
         ModuleVersionSelectorResolveState resolver;
-        ModuleSelectionReason selectionReason = ModuleSelectionReason.regular;
+        ModuleVersionSelectionReason selectionReason = ModuleVersionSelectionReason.requested;
 
         private DefaultModuleRevisionResolveState(ModuleResolveState module, ModuleRevisionId id, ResolveState resolveState) {
             this.module = module;
@@ -922,7 +922,7 @@ public class DependencyGraphBuilder {
 
             //TODO SF put this info on th idResolveResult
             if (idResolveResult instanceof ForcedModuleVersionIdResolveResult) {
-                targetModuleRevision.selectionReason = ModuleSelectionReason.forced;
+                targetModuleRevision.selectionReason = ModuleVersionSelectionReason.forced;
             }
 
             return targetModuleRevision;
@@ -961,14 +961,14 @@ public class DependencyGraphBuilder {
             for (ConfigurationNode configuration : root.configurations) {
                 for (DependencyEdge outgoingEdge : configuration.outgoingEdges) {
                     if (outgoingEdge.dependencyDescriptor.isForce() && candidates.contains(outgoingEdge.targetModuleRevision)) {
-                        outgoingEdge.targetModuleRevision.selectionReason = ModuleSelectionReason.forced;
+                        outgoingEdge.targetModuleRevision.selectionReason = ModuleVersionSelectionReason.forced;
                         return outgoingEdge.targetModuleRevision;
                     }
                 }
             }
             //TODO SF unit test
             DefaultModuleRevisionResolveState out = (DefaultModuleRevisionResolveState) resolver.select(candidates, root);
-            out.selectionReason = ModuleSelectionReason.conflictResolution;
+            out.selectionReason = ModuleVersionSelectionReason.conflictResolution;
             return out;
         }
     }

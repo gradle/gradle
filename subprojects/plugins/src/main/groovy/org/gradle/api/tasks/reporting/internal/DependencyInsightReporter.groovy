@@ -18,7 +18,7 @@ package org.gradle.api.tasks.reporting.internal;
 
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier
-import org.gradle.api.artifacts.result.ModuleSelectionReason
+import org.gradle.api.artifacts.result.ModuleVersionSelectionReason
 import org.gradle.api.artifacts.result.ResolvedDependencyResult
 import org.gradle.api.tasks.diagnostics.internal.dependencies.RenderableDependency
 import org.gradle.api.tasks.diagnostics.internal.dependencies.RenderableDependencyResult
@@ -59,10 +59,10 @@ public class DependencyInsightReporter {
         out
     }
 
-    private String describeReason(ModuleSelectionReason reason) {
-        if (reason == ModuleSelectionReason.conflictResolution) {
+    private String describeReason(ModuleVersionSelectionReason reason) {
+        if (reason == ModuleVersionSelectionReason.conflictResolution) {
             return "conflict resolution"
-        } else if (reason == ModuleSelectionReason.forced) {
+        } else if (reason == ModuleVersionSelectionReason.forced) {
             return "forced"
         } else {
             return null

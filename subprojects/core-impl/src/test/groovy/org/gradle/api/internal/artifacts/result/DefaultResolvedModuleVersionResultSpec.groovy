@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.result
 
-import org.gradle.api.artifacts.result.ModuleSelectionReason
+import org.gradle.api.artifacts.result.ModuleVersionSelectionReason
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
@@ -36,7 +36,7 @@ class DefaultResolvedModuleVersionResultSpec extends Specification {
         def differentGroup = newModule("other", "module", "version")
         def differentModule = newModule("group", "other", "version")
         def differentVersion = newModule("group", "module", "other")
-        def differentReason = newModule("group", "module", "version", ModuleSelectionReason.conflictResolution)
+        def differentReason = newModule("group", "module", "version", ModuleVersionSelectionReason.conflictResolution)
 
         expect:
         module strictlyEqual(same)
@@ -116,7 +116,7 @@ class DefaultResolvedModuleVersionResultSpec extends Specification {
         new DefaultUnresolvedDependencyResult(newSelector(group, module, version), new RuntimeException("boo!"), newModule())
     }
 
-    def newModule(String group='a', String module='a', String version='1', ModuleSelectionReason selectionReason = ModuleSelectionReason.regular) {
+    def newModule(String group='a', String module='a', String version='1', ModuleVersionSelectionReason selectionReason = ModuleVersionSelectionReason.requested) {
         new DefaultResolvedModuleVersionResult(newId(group, module, version), selectionReason)
     }
 }

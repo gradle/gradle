@@ -16,9 +16,12 @@
 
 package org.gradle.api.artifacts.result;
 
+import org.gradle.api.Incubating;
+
 /**
  * Answers the question why given module version was selected during the dependency resolution
  */
-public enum ModuleSelectionReason {
-    forced, conflictResolution, regular
+@Incubating
+public enum ModuleVersionSelectionReason {
+    forced, conflictResolution, requested
 }

@@ -51,6 +51,7 @@ public class RenderableDependencyResult implements RenderableDependency {
     }
 
     private static boolean requestedEqualsSelected(ResolvedDependencyResult dependency) {
+        //TODO SF/AM ModuleVersionSelector should implement Spec<ModuleVersionIdentifier>
         return DefaultModuleVersionIdentifier.newId(dependency.getRequested()).equals(dependency.getSelected().getId());
     }
 

@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.result;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.result.DependencyResult;
-import org.gradle.api.artifacts.result.ModuleSelectionReason;
+import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
 import org.gradle.api.specs.Spec;
@@ -34,13 +34,13 @@ public class DefaultResolvedModuleVersionResult implements ResolvedModuleVersion
     private final ModuleVersionIdentifier id;
     private final Set<DependencyResult> dependencies = new LinkedHashSet<DependencyResult>();
     private final Set<DefaultResolvedDependencyResult> dependents = new LinkedHashSet<DefaultResolvedDependencyResult>();
-    private final ModuleSelectionReason selectionReason;
+    private final ModuleVersionSelectionReason selectionReason;
 
     public DefaultResolvedModuleVersionResult(ModuleVersionIdentifier id) {
-        this(id, ModuleSelectionReason.regular);
+        this(id, ModuleVersionSelectionReason.requested);
     }
 
-    public DefaultResolvedModuleVersionResult(ModuleVersionIdentifier id, ModuleSelectionReason selectionReason) {
+    public DefaultResolvedModuleVersionResult(ModuleVersionIdentifier id, ModuleVersionSelectionReason selectionReason) {
         assert id != null;
         assert selectionReason != null;
 
@@ -100,7 +100,7 @@ public class DefaultResolvedModuleVersionResult implements ResolvedModuleVersion
         return id.getGroup() + ":" + id.getName() + ":" + id.getVersion();
     }
 
-    public ModuleSelectionReason getSelectionReason() {
+    public ModuleVersionSelectionReason getSelectionReason() {
         return selectionReason;
     }
 }

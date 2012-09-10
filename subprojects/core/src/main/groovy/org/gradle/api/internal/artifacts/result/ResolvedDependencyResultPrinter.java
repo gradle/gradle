@@ -35,6 +35,7 @@ public class ResolvedDependencyResultPrinter {
     }
 
     private static boolean requestedEqualsSelected(ResolvedDependencyResult dependency) {
+        //TODO SF/AM introduce ModuleVersionSelector.matches()
         return DefaultModuleVersionIdentifier.newId(dependency.getRequested()).equals(dependency.getSelected().getId());
     }
 

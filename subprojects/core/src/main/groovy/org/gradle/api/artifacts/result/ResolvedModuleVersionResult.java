@@ -54,9 +54,9 @@ public interface ResolvedModuleVersionResult {
      * Useful information if during the dependency resolution multiple candidate versions were found
      * and one of them was selected as a part of conflict resolution.
      * Informs if a version was forced during the resolution process.
-     * See {@link ModuleSelectionReason}
+     * See {@link ModuleVersionSelectionReason}
      *
      * @return information why this module version was selected.
      */
-    ModuleSelectionReason getSelectionReason();
+    ModuleVersionSelectionReason getSelectionReason();
 }

@@ -40,6 +40,8 @@ public class DefaultResolutionResult implements ResolutionResult {
     }
 
     public Set<? extends ResolvedDependencyResult> getAllDependencies() {
+        //TODO SF/AM make sure this works if there are cycles / coverage
+        //void allDependencies(Action<ResolvedDependencyResult> action) / void allDependencies(Closure cl)
         Set<ResolvedDependencyResult> out = new LinkedHashSet<ResolvedDependencyResult>();
         collectDependencies(root, out);
         return out;

@@ -16,14 +16,14 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
-import org.gradle.api.artifacts.result.ModuleSelectionReason
+import org.gradle.api.artifacts.result.ModuleVersionSelectionReason
 import org.gradle.api.artifacts.result.ResolvedDependencyResult
 import org.gradle.api.artifacts.result.ResolvedModuleVersionResult
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier
 import spock.lang.Specification
 
-import static org.gradle.api.artifacts.result.ModuleSelectionReason.conflictResolution
-import static org.gradle.api.artifacts.result.ModuleSelectionReason.forced
+import static ModuleVersionSelectionReason.conflictResolution
+import static ModuleVersionSelectionReason.forced
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 
@@ -194,7 +194,7 @@ class ResolutionResultBuilderSpec extends Specification {
         builder.resolvedConfiguration(confId(module), deps)
     }
 
-    private InternalDependencyResult dep(String requested, Exception failure = null, String selected = requested, ModuleSelectionReason selectionReason = ModuleSelectionReason.regular) {
+    private InternalDependencyResult dep(String requested, Exception failure = null, String selected = requested, ModuleVersionSelectionReason selectionReason = ModuleVersionSelectionReason.requested) {
         def selection = failure != null ? null : new ModuleVersionSelection(newId("x", selected, "1"), selectionReason)
         new InternalDependencyResult(newSelector("x", requested, "1"), selection, failure)
     }

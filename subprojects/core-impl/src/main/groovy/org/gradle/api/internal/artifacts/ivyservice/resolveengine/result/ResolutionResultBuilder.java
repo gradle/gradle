@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.result.ModuleSelectionReason;
+import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedDependencyResult;
@@ -41,11 +41,11 @@ public class ResolutionResultBuilder implements ResolvedConfigurationListener {
     //TODO SF/AM Use ModuleVersionIdentifier instead of ResolvedConfigurationIdentifier, then we can get rid of the EmptyDependencyGraph
     //and create an empty using: new ResolutionResultBuilder().start(DefaultModuleVersionIdentifier.newId(module)).getResult()
     public void start(ResolvedConfigurationIdentifier root) {
-        rootModule = getModule(root.getId(), ModuleSelectionReason.regular);
+        rootModule = getModule(root.getId(), ModuleVersionSelectionReason.requested);
     }
 
     public void resolvedConfiguration(ResolvedConfigurationIdentifier id, Collection<InternalDependencyResult> dependencies) {
-        DefaultResolvedModuleVersionResult from = getModule(id.getId(), ModuleSelectionReason.regular);
+        DefaultResolvedModuleVersionResult from = getModule(id.getId(), ModuleVersionSelectionReason.requested);
 
         for (InternalDependencyResult d : dependencies) {
             if (d.getFailure() != null) {
@@ -59,7 +59,7 @@ public class ResolutionResultBuilder implements ResolvedConfigurationListener {
         }
     }
 
-    private DefaultResolvedModuleVersionResult getModule(ModuleVersionIdentifier id, ModuleSelectionReason selectionReason) {
+    private DefaultResolvedModuleVersionResult getModule(ModuleVersionIdentifier id, ModuleVersionSelectionReason selectionReason) {
         if (!modules.containsKey(id)) {
             modules.put(id, new DefaultResolvedModuleVersionResult(id, selectionReason));
         }

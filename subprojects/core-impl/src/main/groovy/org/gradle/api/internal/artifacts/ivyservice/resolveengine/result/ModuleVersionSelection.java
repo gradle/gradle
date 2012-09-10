@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.result.ModuleSelectionReason;
+import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
 
 /**
 * by Szczepan Faber, created at: 8/31/12
@@ -25,9 +25,9 @@ import org.gradle.api.artifacts.result.ModuleSelectionReason;
 public class ModuleVersionSelection {
 
     private ModuleVersionIdentifier id;
-    private ModuleSelectionReason selectionReason;
+    private ModuleVersionSelectionReason selectionReason;
 
-    public ModuleVersionSelection(ModuleVersionIdentifier id, ModuleSelectionReason selectionReason) {
+    public ModuleVersionSelection(ModuleVersionIdentifier id, ModuleVersionSelectionReason selectionReason) {
         assert id != null;
         assert selectionReason != null;
 
@@ -39,7 +39,7 @@ public class ModuleVersionSelection {
         return id;
     }
 
-    public ModuleSelectionReason getSelectionReason() {
+    public ModuleVersionSelectionReason getSelectionReason() {
         return selectionReason;
     }
 }
