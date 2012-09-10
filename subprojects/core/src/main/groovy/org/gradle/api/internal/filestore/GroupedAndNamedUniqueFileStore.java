@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.filestore;
 
+import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.util.hash.HashUtil;
 
@@ -62,5 +63,15 @@ public class GroupedAndNamedUniqueFileStore<K> implements FileStore<K>, FileStor
 
     public void moveFilestore(File destination) {
         delegate.moveFilestore(destination);
+    }
+
+    public FileStoreEntry add(K key, Action<File> addAction) {
+        //We cannot just delegate to the add method as we need the file content for checksum calculation here
+        //and reexecuting the action isn't acceptable
+        final File tempFile = getTempFile();
+        addAction.execute(tempFile);
+        final String groupedAndNamedKey = toPath(key, getChecksum(tempFile));
+        final FileStoreEntry fileStoreEntry = delegate.move(groupedAndNamedKey, tempFile);
+        return fileStoreEntry;
     }
 }

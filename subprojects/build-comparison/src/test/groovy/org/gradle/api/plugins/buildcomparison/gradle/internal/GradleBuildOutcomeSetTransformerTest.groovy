@@ -29,6 +29,7 @@ import org.gradle.api.internal.filestore.AbstractFileStoreEntry
 import org.gradle.util.TestFile
 import org.gradle.tooling.model.internal.outcomes.GradleFileBuildOutcome
 import org.gradle.tooling.model.internal.outcomes.GradleBuildOutcome
+import org.gradle.api.Action
 
 class GradleBuildOutcomeSetTransformerTest extends Specification {
 
@@ -49,11 +50,11 @@ class GradleBuildOutcomeSetTransformerTest extends Specification {
             }
         }
 
-        File getTempFile() {
+        void moveFilestore(File destination) {
             throw new UnsupportedOperationException()
         }
 
-        void moveFilestore(File destination) {
+        FileStoreEntry add(String key, Action<File> addAction) {
             throw new UnsupportedOperationException()
         }
     }

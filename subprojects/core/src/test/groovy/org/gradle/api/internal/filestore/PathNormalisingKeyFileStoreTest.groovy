@@ -20,6 +20,7 @@ import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestFile
 import org.junit.Rule
 import spock.lang.Specification
+import org.gradle.api.Action
 
 class PathNormalisingKeyFileStoreTest extends Specification {
 
@@ -34,11 +35,20 @@ class PathNormalisingKeyFileStoreTest extends Specification {
         store = new PathNormalisingKeyFileStore(new PathKeyFileStore(fsBase))
     }
 
-    def "can add to filestore"() {
+    def "can move to filestore"() {
         when:
         store.move("!.zip", file("abc"))
         store.move("  ", file("def"))
 
+        then:
+        fsBase.file("_.zip").text == "abc"
+        fsBase.file("__").text == "def"
+    }
+
+    def "can add to filestore"() {
+        when:
+        store.add("!.zip", {File file -> file.text = "abc"} as Action<File>)
+        store.add("  ", {File file -> file.text = "def"} as Action<File>)
         then:
         fsBase.file("_.zip").text == "abc"
         fsBase.file("__").text == "def"

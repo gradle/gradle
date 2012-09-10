@@ -20,6 +20,7 @@ import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestFile
 import org.junit.Rule
 import spock.lang.Specification
+import org.gradle.api.Action
 
 class PathKeyFileStoreTest extends Specification {
 
@@ -48,7 +49,7 @@ class PathKeyFileStoreTest extends Specification {
         dir.file("b").exists()
     }
 
-    def "can add to filestore"() {
+    def "can move to filestore"() {
         when:
         store.move("a", createFile("abc"))
         store.move("b", createFile("def"))
@@ -56,6 +57,34 @@ class PathKeyFileStoreTest extends Specification {
         then:
         fsBase.file("a").text == "abc"
         fsBase.file("b").text == "def"
+    }
+
+    def "can add to filestore"() {
+        when:
+        store.add("a", { File f -> f.text = "abc"} as Action<File>)
+        store.add("b", { File f -> f.text = "def"} as Action<File>)
+        then:
+        fsBase.file("a").text == "abc"
+        fsBase.file("b").text == "def"
+    }
+
+    def "can get from filestore"() {
+        when:
+        createFile("abc", "fs/a").exists()
+        createFile("lock", "fs/a.fslck").exists()
+        then:
+        store.get("a").file.exists() == false
+        store.get("a.fslock").file.exists() == false
+
+    }
+
+    def "get on file with marker removes file from filestore"() {
+        when:
+        createFile("abc", "fs/a")
+        createFile("def", "fs/b")
+        then:
+        store.get("a").file.text == "abc"
+        store.get("b").file.text == "def"
     }
 
     def "can overwrite entry"() {
@@ -89,6 +118,17 @@ class PathKeyFileStoreTest extends Specification {
         store.search("**/a").size() == 2
         store.search("*/b/*").size() == 1
         store.search("a/b/a").size() == 1
+    }
+
+    def "search ignores entries with marker file"() {
+        when:
+        store.move("a/a/a", createFile("a"))
+        store.move("a/a/b", createFile("b"))
+        store.move("a/b/a", createFile("c"))
+        createFile("lock", "fs/a/a/b.fslck")
+        def search = store.search("**/*")
+        then:
+        search.size() == 2
     }
 
     def "move filestore"() {
