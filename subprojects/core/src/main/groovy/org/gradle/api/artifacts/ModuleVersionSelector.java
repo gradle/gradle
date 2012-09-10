@@ -16,6 +16,8 @@
 
 package org.gradle.api.artifacts;
 
+import org.gradle.api.specs.Spec;
+
 /**
  * Selects a module version
  */
@@ -41,4 +43,11 @@ public interface ModuleVersionSelector {
      * @return module version
      */
     String getVersion();
+
+    /**
+     * Returns a spec that knows whether this selector matches given module version identifier
+     *
+     * @return the spec.
+     */
+    Spec<ModuleVersionIdentifier> getAsSpec();
 }

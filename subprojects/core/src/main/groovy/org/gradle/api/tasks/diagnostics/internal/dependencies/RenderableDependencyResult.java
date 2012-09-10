@@ -20,7 +20,6 @@ import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -51,8 +50,7 @@ public class RenderableDependencyResult implements RenderableDependency {
     }
 
     private static boolean requestedEqualsSelected(ResolvedDependencyResult dependency) {
-        //TODO SF/AM ModuleVersionSelector should implement Spec<ModuleVersionIdentifier>
-        return DefaultModuleVersionIdentifier.newId(dependency.getRequested()).equals(dependency.getSelected().getId());
+        return dependency.getRequested().getAsSpec().isSatisfiedBy(dependency.getSelected().getId());
     }
 
     private String requested() {

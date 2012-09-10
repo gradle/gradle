@@ -16,16 +16,18 @@
 package org.gradle.api.internal.artifacts.configurations.dynamicversion;
 
 
-import java.util.concurrent.TimeUnit
 import org.gradle.api.Action
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ResolvedModuleVersion
 import org.gradle.api.artifacts.cache.ArtifactResolutionControl
 import org.gradle.api.artifacts.cache.DependencyResolutionControl
 import org.gradle.api.artifacts.cache.ModuleResolutionControl
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
-import spock.lang.Specification
 import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
+import spock.lang.Specification
+
+import java.util.concurrent.TimeUnit
 
 public class DefaultCachePolicySpec extends Specification {
     private static final int SECOND = 1000;
@@ -230,7 +232,7 @@ public class DefaultCachePolicySpec extends Specification {
     }
     
     private def moduleSelector(String group, String name, String version) {
-        new DefaultModuleVersionIdentifier(group, name, version)
+        new DefaultModuleVersionSelector(group, name, version)
     }
 
     private def moduleIdentifier(String group, String name, String version) {

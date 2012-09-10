@@ -19,7 +19,7 @@ import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 
-public class DefaultModuleVersionIdentifier implements ModuleVersionIdentifier, ModuleVersionSelector {
+public class DefaultModuleVersionIdentifier implements ModuleVersionIdentifier {
     private final String group;
     private final String name;
     private final String version;
