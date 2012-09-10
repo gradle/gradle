@@ -16,7 +16,6 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
-import org.junit.Ignore
 import org.junit.Test
 
 import static org.hamcrest.Matchers.containsString
@@ -25,8 +24,8 @@ import static org.hamcrest.Matchers.containsString
  * @author Szczepan Faber, @date 03.03.11
  */
 class VersionConflictResolutionIntegTest extends AbstractIntegrationTest {
+
     @Test
-    @Ignore
     void "strict conflict resolution should fail due to conflict"() {
         repo.module("org", "foo", '1.3.3').publish()
         repo.module("org", "foo", '1.4.4').publish()

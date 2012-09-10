@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
-import org.gradle.api.internal.artifacts.result.EmptyResolutionResult;
 import org.gradle.api.specs.Spec;
 
 import java.io.File;
@@ -34,7 +33,6 @@ public class ShortcircuitEmptyConfigsArtifactDependencyResolver implements Artif
 
     public ResolvedConfiguration resolve(ConfigurationInternal configuration) {
         if (configuration.getAllDependencies().isEmpty()) {
-            configuration.setResolutionResult(new EmptyResolutionResult(configuration.getModule()));
             return new EmptyResolvedConfiguration();
         }
         return dependencyResolver.resolve(configuration);
