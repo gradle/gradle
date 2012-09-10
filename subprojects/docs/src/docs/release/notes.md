@@ -20,6 +20,11 @@ We will iterate on the new feature based on your feedback, eventually releasing 
 Those of you who use new features before that point gain the competitive advantage of early access to new functionality in exchange for helping refine it over time.
 To learn more read our [forum posting on our release approach](http://forums.gradle.org/gradle/topics/the_gradle_release_approach).
 
+### Resolution result API
+
+* (in progress)
+* The entry point to the ResolutionResult API has changed, you can get access to the instance of the ResolutionResult from the ResolvableDependencies.
+
 ## Upgrading from Gradle 1.2
 
 Please let us know if you encounter any issues during the upgrade to Gradle 1.3, that are not listed below.

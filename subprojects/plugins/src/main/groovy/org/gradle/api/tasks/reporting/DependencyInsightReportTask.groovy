@@ -67,7 +67,7 @@ public class DependencyInsightReportTask extends DefaultTask {
         output = getServices().get(StyledTextOutputFactory.class).create(getClass());
         renderer = new GraphRenderer(output);
 
-        ResolutionResult result = configuration.getResolvedConfiguration().getResolutionResult();
+        ResolutionResult result = configuration.getIncoming().getResolutionResult();
         Set<? extends ResolvedDependencyResult> allDependencies = result.getAllDependencies()
 
         def selectedDependencies = allDependencies.findAll { ResolvedDependencyResult it ->
