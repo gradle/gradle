@@ -44,4 +44,10 @@ class DaemonLogsAnalyzer {
         assert daemon.idle : "Expected the daemon to be idle."
         daemon
     }
+
+    TheDaemon getDaemon() {
+        def daemons = getDaemons()
+        assert daemons.size() == 1: "Expected only a single daemon."
+        daemons[0]
+    }
 }

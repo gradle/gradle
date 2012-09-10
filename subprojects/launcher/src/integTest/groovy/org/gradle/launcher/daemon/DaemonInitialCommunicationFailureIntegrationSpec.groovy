@@ -19,10 +19,11 @@ package org.gradle.launcher.daemon
 import org.gradle.integtests.fixtures.HttpServer
 import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.launcher.daemon.testing.DaemonLogsAnalyzer
-import org.gradle.tests.fixtures.ConcurrentTestUtil
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
+
+import static org.gradle.tests.fixtures.ConcurrentTestUtil.poll
 
 /**
  * by Szczepan Faber, created at: 1/20/12
@@ -44,14 +45,14 @@ class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegration
 
         then:
         //there should be one idle daemon
-        def daemon = new DaemonLogsAnalyzer(distribution.daemonBaseDir).idleDaemon
+        def daemon = new DaemonLogsAnalyzer(distribution.daemonBaseDir).daemon
 
         when:
         daemon.kill()
 
         and:
         //starting some service on the daemon port
-        ConcurrentTestUtil.poll {
+        poll {
             new HttpServer().start(daemon.port)
         }
 
@@ -77,11 +78,11 @@ class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegration
         buildSucceeds()
 
         then:
-        def daemon = new DaemonLogsAnalyzer(distribution.daemonBaseDir).idleDaemon
+        def daemon = new DaemonLogsAnalyzer(distribution.daemonBaseDir).daemon
 
         when:
         daemon.kill()
-        ConcurrentTestUtil.poll {
+        poll {
             new HttpServer().start(daemon.port)
         }
 
@@ -106,7 +107,7 @@ class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegration
         buildSucceeds()
 
         then:
-        def daemon = new DaemonLogsAnalyzer(distribution.daemonBaseDir).idleDaemon
+        def daemon = new DaemonLogsAnalyzer(distribution.daemonBaseDir).daemon
 
         when:
         daemon.kill()
