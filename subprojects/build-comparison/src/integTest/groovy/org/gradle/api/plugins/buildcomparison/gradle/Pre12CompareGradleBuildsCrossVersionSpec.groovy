@@ -24,7 +24,7 @@ import org.gradle.util.TestFile
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 
-@TargetVersions("1.0+")
+@TargetVersions(["1.0", "1.1"])
 class Pre12CompareGradleBuildsCrossVersionSpec extends CrossVersionIntegrationSpec {
 
     ExecutionResult result
