@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.repositories;
 
 import org.apache.ivy.core.IvyPatternHelper;
 import org.apache.ivy.core.cache.ArtifactOrigin;
+import org.apache.ivy.core.cache.RepositoryCacheManager;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
@@ -25,12 +26,15 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.report.ArtifactDownloadReport;
+import org.apache.ivy.core.report.DownloadReport;
 import org.apache.ivy.core.resolve.DownloadOptions;
 import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.search.ModuleEntry;
 import org.apache.ivy.core.search.OrganisationEntry;
 import org.apache.ivy.core.search.RevisionEntry;
+import org.apache.ivy.plugins.repository.ArtifactResourceResolver;
 import org.apache.ivy.plugins.repository.Resource;
+import org.apache.ivy.plugins.repository.ResourceDownloader;
 import org.apache.ivy.plugins.resolver.BasicResolver;
 import org.apache.ivy.plugins.resolver.util.MDResolvedResource;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
@@ -70,6 +74,16 @@ public class ExternalResourceResolver extends BasicResolver {
     private final LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder;
     private final CachedExternalResourceIndex<String> cachedExternalResourceIndex;
     protected VersionLister versionLister;
+    private ArtifactResourceResolver artifactResourceResolver = new ArtifactResourceResolver() {
+        public ResolvedResource resolve(Artifact artifact) {
+            return getArtifactRef(toSystem(artifact), null);
+        }
+    };
+    private final ResourceDownloader resourceDownloader = new ResourceDownloader() {
+        public void download(Artifact artifact, Resource resource, File dest) throws IOException {
+            getAndCheck(resource, dest);
+        }
+    };
 
     public ExternalResourceResolver(String name,
                                     ExternalResourceRepository repository,
@@ -273,6 +287,20 @@ public class ExternalResourceResolver extends BasicResolver {
     }
 
     @Override
+    public DownloadReport download(Artifact[] artifacts, DownloadOptions options) {
+        RepositoryCacheManager cacheManager = getRepositoryCacheManager();
+
+        clearArtifactAttempts();
+        DownloadReport dr = new DownloadReport();
+        for (Artifact artifact : artifacts) {
+            ArtifactDownloadReport adr = cacheManager.download(artifact, artifactResourceResolver, resourceDownloader, getCacheDownloadOptions(options));
+            dr.addArtifactReport(adr);
+        }
+
+        return dr;
+    }
+
+    @Override
     public ArtifactDownloadReport download(ArtifactOrigin origin, DownloadOptions options) {
         // This is never used
         throw new UnsupportedOperationException();
@@ -316,7 +344,7 @@ public class ExternalResourceResolver extends BasicResolver {
 
     @Override
     public RevisionEntry[] listRevisions(ModuleEntry mod) {
-                // This is never used
+        // This is never used
         throw new UnsupportedOperationException();
     }
 
