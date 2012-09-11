@@ -19,7 +19,6 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.parser.ParserSettings;
 import org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorParser;
-import org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorWriter;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.IvyContextualiser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository;
 import org.gradle.internal.UncheckedException;
@@ -44,7 +43,7 @@ public class ModuleDescriptorStore {
         return null;
     }
 
-    private ModuleDescriptor parseModuleDescriptorFile(File moduleDescriptorFile)  {
+    private ModuleDescriptor parseModuleDescriptorFile(File moduleDescriptorFile) {
         ParserSettings settings = IvyContextualiser.getIvyContext().getSettings();
         try {
             URL result = moduleDescriptorFile.toURI().toURL();
@@ -54,12 +53,7 @@ public class ModuleDescriptorStore {
         }
     }
 
-    public void putModuleDescriptor(ModuleVersionRepository repository, ModuleDescriptor moduleDescriptor) {
-        File moduleDescriptorFile = moduleDescriptorFileStore.getModuleDescriptorFile(repository, moduleDescriptor.getModuleRevisionId());
-        try {
-            XmlModuleDescriptorWriter.write(moduleDescriptor, moduleDescriptorFile);
-        } catch (Exception e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
+    public void putModuleDescriptor(ModuleVersionRepository repository, final ModuleDescriptor moduleDescriptor) {
+        moduleDescriptorFileStore.writeModuleDescriptorFile(repository, moduleDescriptor);
     }
 }

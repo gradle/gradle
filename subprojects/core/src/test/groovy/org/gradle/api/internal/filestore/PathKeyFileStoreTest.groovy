@@ -75,10 +75,19 @@ class PathKeyFileStoreTest extends Specification {
         then:
         store.get("a").file.exists() == false
         store.get("a.fslock").file.exists() == false
-
     }
 
-    def "get on file with marker removes file from filestore"() {
+    def "can overwrite stale files "() {
+        given:
+        createFile("abc", "fs/a").exists()
+        createFile("lock", "fs/a.fslck").exists()
+        when:
+        store.add("a", { File f -> f.text = "def"} as Action<File>)
+        then:
+        store.get("a").file.text == "def"
+    }
+
+    def "get on stale file with marker removes file from filestore"() {
         when:
         createFile("abc", "fs/a")
         createFile("def", "fs/b")
@@ -120,15 +129,16 @@ class PathKeyFileStoreTest extends Specification {
         store.search("a/b/a").size() == 1
     }
 
-    def "search ignores entries with marker file"() {
+    def "search ignores stale entries with marker file"() {
         when:
         store.move("a/a/a", createFile("a"))
-        store.move("a/a/b", createFile("b"))
-        store.move("a/b/a", createFile("c"))
-        createFile("lock", "fs/a/a/b.fslck")
+        store.move("a/b/b", createFile("b"))
+        store.move("a/c/c", createFile("c"))
+        createFile("lock", "fs/a/b/b.fslck")
         def search = store.search("**/*")
         then:
         search.size() == 2
+        search.collect{entry -> entry.file.name}.sort() == ["a", "c"]
     }
 
     def "move filestore"() {

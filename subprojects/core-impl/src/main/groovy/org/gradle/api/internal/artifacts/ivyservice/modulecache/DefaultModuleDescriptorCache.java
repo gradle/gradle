@@ -20,6 +20,7 @@ import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository;
+import org.gradle.api.internal.filestore.PathKeyFileStore;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.TimeProvider;
 import org.slf4j.Logger;
@@ -44,7 +45,7 @@ public class DefaultModuleDescriptorCache implements ModuleDescriptorCache {
         this.cacheMetadata = cacheMetadata;
 
         // TODO:DAZ inject this
-        moduleDescriptorStore = new ModuleDescriptorStore(new ModuleDescriptorFileStore(cacheMetadata));
+        moduleDescriptorStore = new ModuleDescriptorStore(new ModuleDescriptorFileStore(new PathKeyFileStore(cacheMetadata.getCacheDir())));
     }
 
     private PersistentIndexedCache<RevisionKey, ModuleDescriptorCacheEntry> getCache() {
