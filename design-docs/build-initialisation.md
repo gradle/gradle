@@ -43,10 +43,18 @@ For all builds:
 
 ## User interaction
 
+From the command-line:
+
 1. User downloads and installs a Gradle distribution.
 2. User runs `gradle initGradleBuild` from the root directory of the Maven build.
 3. User runs the appropriate build comparison task from the root directory.
 4. User modifies Gradle build, if required, directed by the build comparison report.
+
+From the IDE:
+
+1. User runs `initialize Gradle build` action from UI and selects the Maven build to initialize from.
+2. User runs the appropriate build comparison task from the root directory.
+3. User modifies Gradle build, if required, directed by the build comparison report.
 
 ## Sad day cases
 
@@ -84,10 +92,18 @@ For all builds:
 
 ## User interaction
 
+From the command-line:
+
 1. User downloads and installs a Gradle distribution.
 2. User runs `gradle initGradleBuild` from the root directory of the Ant build.
 3. User runs the appropriate build comparison task from the root directory.
 4. User modifies Gradle build, directed by the build comparison report.
+
+From the IDE:
+
+1. User runs `initialize Gradle build` action from UI and selects the Ant build to initialize from.
+2. User runs the appropriate build comparison task from the root directory.
+3. User modifies Gradle build, directed by the build comparison report.
 
 # Migrating from Ant+Ivy to Gradle
 
@@ -126,9 +142,16 @@ As for the Eclipse to Gradle case.
 
 ## User interaction
 
+From the command-line:
+
 1. User downloads and installs a Gradle distribution.
 2. User runs `gradle initGradleBuild` from an empty directory.
 3. User modifies generated build scripts and source, as appropriate.
+
+From the IDE:
+
+1. User runs `initialize Gradle build` action from the UI.
+2. User modifies generated build scripts and source, as appropriate.
 
 # Create a library project from scratch
 
