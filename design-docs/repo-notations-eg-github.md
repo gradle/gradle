@@ -27,13 +27,13 @@ That is, an extension named `githubDownloads` is added to the `repositories {}` 
 The above is equivalent to:
 
     repositories {
-      mavenRepo (name: "«github username's GitHub Downloads", url: "http://cloud.github.com/downloads/«github username»") {
+      mavenRepo (name: "«github username's GitHub Downloads", url: "https://github.com/downloads/«github username»") {
         pattern = "[organisation]/[module]-[revision].[ext]"
       }
 
       ivy {
         name "«github username's GitHub Downloads"
-        url "http://cloud.github.com/downloads/«github username»"
+        url "https://github.com/downloads/«github username»"
         layout 'pattern', {
           artifact "[organisation]/[module]-[revision].[ext]"
           ivy "[organisation]/[module]-[revision]-ivy(.[ext])"
