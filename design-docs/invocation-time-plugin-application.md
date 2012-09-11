@@ -12,7 +12,7 @@ This spec will assume this capability exists in so far as it is possible to infl
 
 ## Use cases
 
-## “Global” tasks
+### “Global” tasks
 
 There are certain tasks that are generally applicable to all builds. At the moment, such tasks are part of the implicit task container. Examples of are tasks such as `dependencies`, `projects`, `tasks` etc. The defining characteristic of a global task is that it is useful on all (or most) builds with little or no configuration.
 
@@ -24,7 +24,7 @@ The identified problems with the implicit tasks approach are:
 
 With this feature, the implicit task container would be removed. Tasks such as `dependencies`, `projects` etc. would be moved to a plugin that can be applied at invocation time.
 
-## Initialisation tasks
+### Initialisation tasks
 
 These are tasks that you would want to use to create a Gradle project. This could be used for something similar to Maven archetype support.
 
@@ -36,11 +36,11 @@ Where the `initJavaProject` task is supplied by a plugin that is somehow applied
 
 There may be many different kinds of init type tasks; for different types of templates.
 
-## Temporary tasks
+### Temporary tasks
 
 Tasks such as `wrapper` and the “build comparison for Gradle upgrades” task are only needed for a short amount of time. It would be more convenient for the user if they could use this functionality without needing to modify the build script. 
 
-## Environmental/personal tasks
+### Environmental/personal tasks
 
 Tasks such as the `idea` and `eclipse` tasks could be invoked without having to add the associated plugins to the build script. This would allow you to checkout a project, and generate the IDEA metadata for it without touching it. For example, they may have checked the project out just to browse the source in their IDE of choice and shouldn't be forced to edit the build script to achieve this.
 
