@@ -15,8 +15,13 @@
  */
 package org.gradle.api.internal.artifacts.mvnsettings;
 
+import jarjar.org.apache.maven.settings.Settings;
+import jarjar.org.apache.maven.settings.building.SettingsBuildingException;
+
 import java.io.File;
 
 public interface LocalMavenRepositoryLocator {
     File getLocalMavenRepository();
+    //TODO SF clean this up
+    Settings buildSettings() throws SettingsBuildingException;
 }

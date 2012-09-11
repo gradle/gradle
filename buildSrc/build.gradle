@@ -35,9 +35,9 @@ dependencies {
 
     compile "org.pegdown:pegdown:1.1.0"
     compile "org.jsoup:jsoup:1.6.3"
-    compile "com.googlecode.jarjar:jarjar:1.3"
+    //compile "com.googlecode.jarjar:jarjar:1.3"
+    compile fileTree("/Users/szczepan/gradle/jarjar/jarjar/dist")
 }
-
 apply from: '../gradle/compile.gradle'
 apply from: '../gradle/codeQuality.gradle'
 apply from: '../gradle/classycle.gradle'

@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.mvnsettings;
 
 import jarjar.org.apache.maven.settings.Settings;
 import jarjar.org.apache.maven.settings.building.*;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,7 +73,7 @@ public class DefaultLocalMavenRepositoryLocator implements LocalMavenRepositoryL
     }
 
 
-    private Settings buildSettings() throws SettingsBuildingException {
+    public Settings buildSettings() throws SettingsBuildingException {
         DefaultSettingsBuilderFactory factory = new DefaultSettingsBuilderFactory();
         DefaultSettingsBuilder defaultSettingsBuilder = factory.newInstance();
         DefaultSettingsBuildingRequest settingsBuildingRequest = new DefaultSettingsBuildingRequest();

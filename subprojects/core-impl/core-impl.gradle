@@ -21,13 +21,7 @@ dependencies {
 
     testCompile libraries.junit
 
-    compile files(["$buildDir/libs/jarjar/jarjar-maven-settings-3.0.4.jar",
-            "$buildDir/libs/jarjar/jarjar-maven-settings-builder-3.0.4.jar",
-            "$buildDir/libs/jarjar/jarjar-plexus-cipher-1.4.jar",
-            "$buildDir/libs/jarjar/jarjar-plexus-component-annotations-1.5.5.jar",
-            "$buildDir/libs/jarjar/jarjar-plexus-interpolation-1.14.jar",
-            "$buildDir/libs/jarjar/jarjar-plexus-sec-dispatcher-1.3.jar",
-            "$buildDir/libs/jarjar/jarjar-plexus-utils-2.0.6.jar"]) {
+    compile fileTree("$buildDir/libs/jarjar") {
         builtBy tasks.withType(JarJar)
     }
 
@@ -38,7 +32,7 @@ configurations.mvn3Input.files.each{libFile->
         inputFile = libFile
         outputFile = file("$buildDir/libs/jarjar/jarjar-${libFile.name}")
         rule('org.**', 'jarjar.org.@1')
-    }
+   }
 }
 
 def allJarJars = tasks.withType(JarJar)

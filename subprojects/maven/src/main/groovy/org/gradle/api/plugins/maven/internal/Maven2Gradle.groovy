@@ -18,6 +18,9 @@
 
 package org.gradle.api.plugins.maven.internal
 
+import jarjar.org.apache.maven.model.io.xpp3.MavenXpp3Writer
+import jarjar.org.apache.maven.project.MavenProject
+
 /**
  * This script obtains  the effective pom of the current project, reads its dependencies
  * and generates build.gradle scripts. It also generates settings.gradle for multimodule builds. <br/>
@@ -32,20 +35,21 @@ class Maven2Gradle {
   def dependentWars = []
   def qualifiedNames
   def workingDir
-  def effectiveSettings
   def effectivePom
 
-  public static void main(String[] args) {
-    new Maven2Gradle().convert(args)
+  private MavenProject mavenProject
+
+  Maven2Gradle(MavenProject mavenProject) {
+      this.mavenProject = mavenProject
   }
 
   def convert(String[] args) {
     workingDir = new File('.').canonicalFile
     println "Working path:" + workingDir.absolutePath + "\n"
 
-    // use the Groovy XmlSlurper library to parse the text string
-    effectivePom = new XmlSlurper().parseText(geEffectiveContents('pom', args))
-    effectiveSettings = new XmlSlurper().parseText(geEffectiveContents('settings', args))
+//    use the Groovy XmlSlurper library to parse the text string
+    effectivePom = new XmlSlurper().parseText(geEffectiveContents())
+
     String build
     def multimodule = effectivePom.name() == "projects"
 
@@ -249,16 +253,7 @@ ${globalExclusions(effectivePom)}
 
 
   def localRepoUri = {
-    //we have local maven repo full with good stuff. Let's reuse it!
-    String userHome = System.properties['user.home']
-    userHome = userHome.replaceAll('\\\\', '/')
-    def localRepoUri = new File(effectiveSettings.localRepository.text()).toURI().toString()
-    if (localRepoUri.contains(userHome)) {
-      localRepoUri = localRepoUri.replace(userHome, '${System.properties[\'user.home\']}')
-    }
-    //in URI format there is one slash after file, while  Gradle needs two
-    localRepoUri = localRepoUri.replace('file:/', 'file://')
-    """mavenRepo url: \"${localRepoUri}\"
+    """mavenLocal()
     """
   }
 
@@ -497,29 +492,32 @@ project('$entry.key').projectDir = """ + '"$rootDir/' + "${entry.value}" + '" as
     return qualifiedNames
   }
 
-  String geEffectiveContents(String file, String[] args) {
+  String geEffectiveContents2() {
+      File file = new File("effective-pom.xml")
+      Writer writer = new FileWriter(file)
+      new MavenXpp3Writer().write(writer, mavenProject.getModel())
+      writer.close()
+      return file.text
+  }
+
+  String geEffectiveContents() {
 //TODO work on output stream, without writing to file
-    def fileName = "effective-${file}.xml"
-    print "Wait, obtaining effective $file... "
+    def fileName = "effective-pom.xml"
+    print "Wait, obtaining effective pom... "
 
     def ant = new AntBuilder()   // create an antbuilder
     ant.exec(outputproperty: "cmdOut",
             errorproperty: "cmdErr",
             failonerror: "true",
             executable: ((String) System.properties['os.name']).toLowerCase().contains("win") ? "mvn.bat" : "mvn") {
-      arg(line: """-Doutput=${fileName} help:effective-$file""")
+      arg(line: """-Doutput=${fileName} help:effective-pom""")
       env(key: "JAVA_HOME", value: System.getProperty("java.home"))
     }
 
-//print the output if verbose flag is on
-    println((args.any {it.equals("-verbose")}) ? "\n ${ant.project.properties.cmdOut}" : "Done.")
-
 // read in the effective pom file
     File tmpFile = new File(fileName);
-    if (!args.any {it.equals("-keepFile")}) {
-      tmpFile.deleteOnExit()
-    }
     // get it's text into a string
+
     return tmpFile.text
   }
 

@@ -19,16 +19,17 @@
 package org.gradle.api.plugins.maven
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.Incubating
+import org.gradle.api.internal.artifacts.DependencyManagementServices
+import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.plugins.maven.internal.Maven2Gradle
+import org.gradle.api.plugins.maven.internal.MavenProjectCreator
 import org.gradle.api.tasks.TaskAction
 
 /**
  * by Szczepan Faber, created at: 8/1/12
  */
-@Incubating
 class ConvertMaven2Gradle extends DefaultTask {
 
     private final static Logger LOG = Logging.getLogger(ConvertMaven2Gradle.class)
@@ -54,6 +55,12 @@ Not everything may work perfectly at the moment.
         if (keepFile) {
             args << '-keepFile'
         }
-        new Maven2Gradle().convert(args)
+
+        def locator = services.get(DependencyManagementServices).get(LocalMavenRepositoryLocator);
+        def settings = locator.buildSettings()
+
+        def mavenProject = new MavenProjectCreator(settings, project.file("pom.xml")).create()
+
+        new Maven2Gradle(mavenProject).convert(args)
     }
 }

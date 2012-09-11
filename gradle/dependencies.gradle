@@ -91,13 +91,56 @@ libraries += [
         nekohtml: 'net.sourceforge.nekohtml:nekohtml:1.9.14'
 ]
 
+//configuring maven3 dependencies is work in progress
 libraries.maven3_settings_builder = dependencies.module("org.apache.maven:maven-settings-builder:3.0.4") {
     dependency "org.apache.maven:maven-settings:3.0.4@jar"
+
+    //plexus:
+    //most likely everything is needed.
     dependency "org.codehaus.plexus:plexus-utils:2.0.6@jar"
     dependency "org.codehaus.plexus:plexus-interpolation:1.14@jar"
     dependency "org.codehaus.plexus:plexus-component-annotations:1.5.5@jar"
-    dependency "org.sonatype.plexus:plexus-cipher:1.4@jar"
-    dependency "org.sonatype.plexus:plexus-sec-dispatcher:1.3@jar"
+    dependency "org.sonatype.plexus:plexus-cipher:1.7@jar"           //1.7
+    dependency "org.sonatype.plexus:plexus-sec-dispatcher:1.3@jar"   //needed?
+    dependency "org.codehaus.plexus:plexus-classworlds:2.4@jar"
+
+    //core:
+    //needed:
+    dependency "org.apache.maven:maven-core:3.0.4@jar"
+    dependency "org.apache.maven:maven-model-builder:3.0.4@jar"
+    dependency "org.apache.maven:maven-model:3.0.4@jar"
+
+    //possibly not needed:
+//    compile "org.apache.maven:maven-artifact:3.0.4@jar"
+//    compile "org.apache.maven:plugin-api:3.0.4@jar"
+//    compile "org.apache.maven:repository-metadata:3.0.4@jar"
+//    compile "org.apache.maven:aether-provider:3.0.4@jar"
+
+    //most likely not needed:
+//    compile "org.apache.maven:maven-compat:3.0.4@jar"
+
+    //eather (some stuff definitely needed):
+    compile "jarjar.org.sonatype.aether:aether-api:1.13.1@jar"
+    compile "jarjar.org.sonatype.aether:aether-impl:1.13.1@jar"
+    compile "jarjar.org.sonatype.aether:aether-spi:1.13.1@jar"
+    compile "jarjar.org.sonatype.aether:aether-util:1.13.1@jar"
+
+    //sisu, hopefully not needed (group might be wrong)
+//    dependency "org.sonatype.sisu:sisu-inject-plexus:2.3.0"
+//    dependency "org.sonatype.sisu:sisu-inject-bean:2.3.0"
+//    dependency "org.sonatype.sisu:sisu-guice:3.1.0-no_aop"
+//    dependency "org.sonatype.sisu:sisu-guava:0.9.9"
+
+    //Maven wagons (hopefully not needed)
+//    dependency "org.apache.maven.wagon:wagon-http:1.0-beta-6"
+//    dependency "org.apache.maven.wagon:wagon-ssh:1.0-beta-6"
+//    dependency "org.apache.maven.wagon:wagon-ssh-external:1.0-beta-6"
+//    dependency "org.apache.maven.wagon:wagon-file:1.0-beta-6"
+//    dependency "org.apache.maven.wagon:wagon-webdav-jackrabbit:1.0-beta-6"
+//    dependency "org.apache.maven.wagon:wagon-http-lightweight:1.0-beta-6"
+
+    //Maven plugins
+//    dependency "org.apache.maven.plugins:maven-clean-plugin:2.4.1"
 }
 
 libraries.spock = [
