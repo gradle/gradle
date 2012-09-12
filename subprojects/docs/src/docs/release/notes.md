@@ -194,15 +194,11 @@ We've taken some steps towards allowing JSR-330 style dependency injection for p
 
 At this stage, only internal Gradle services are available for injection. Over time we will add public services that can be injected into plugin and task implementations.
 
-## Upgrading from Gradle 1.1
-
-Please let us know if you encounter any issues during the upgrade to Gradle 1.2, that are not listed below.
-
-### Deprecations
+## Deprecations
 
 If you make use of the deprecated features below you will get a warning from now on. But you can rest assured that those features will be supported at least until the release of Gradle 2.0, our next major release. To learn more read our [forum posting on our release and backwards compatibility approach](http://forums.gradle.org/gradle/topics/the_gradle_release_approach).
 
-#### The `useMavenMetadata` property for Maven repositories
+### The `useMavenMetadata` property for Maven repositories
 
 The `useMavenMetadata` property has been deprecated for resolvers returned by `repositories.mavenRepo()`. This property controls whether Gradle should
 search for a `maven-metadata.xml` file when attempting to determine the versions that are available for a particular module. The default value is `true`,
@@ -212,7 +208,7 @@ use a directory listing only. It is part of our former internal usage of Ivy for
 Thanks to the various improvements we've made to make dependency management more efficient, there is no longer a performance penalty for searching
 for the `maven-metadata.xml` file. This means this property is no longer useful and will be removed in Gradle 2.0.
 
-#### Task class renames
+### Task class renames
 
 To avoid ambiguity, the Java and C++ `Compile` task classes have been renamed. The Java `org.gradle.api.tasks.compile.Compile` task class has been renamed to `org.gradle.api.tasks.compile.JavaCompile`, and
 the incubating C++ `org.gradle.plugins.binaries.tasks.Compile` task class has been renamed to `org.gradle.plugins.cpp.CppCompile`.
@@ -221,7 +217,7 @@ For backwards compatibility, the old classes are still available, but are now de
 The old incubating C++ `Compile` class will be removed in Gradle 1.3.
 
 <a name="constructors"> </a>
-#### Changes to plugin and task constructor handling
+### Changes to plugin and task constructor handling
 
 As a first step towards handling JSR-330 style dependency injection for plugin and task instances, we have made some changes to how constructors for these types
 are handled by Gradle. These changes are fully backwards compatible, but some combinations of constructors are now deprecated.
@@ -232,8 +228,9 @@ If your implementation class has multiple constructors, you will need to add an 
 without this, but you will receive a deprecation warning. In Gradle 2.0, a plugin or task implementation with multiple constructors will be required to annotate exactly one
 constructor with an `@Inject` annotation.
 
-### Potential breaking changes
+## Potential breaking changes
+
+### Plugin and task constructors
 
 See [constructor handling](#constructors) above. The changes should be backwards compatible. Please let us know if you come across a situation where
 a plugin or task implementation that worked with previous versions of Gradle does not work with Gradle 1.2.
-
