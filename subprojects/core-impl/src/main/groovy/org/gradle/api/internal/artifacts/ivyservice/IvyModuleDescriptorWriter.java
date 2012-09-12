@@ -47,7 +47,7 @@ public class IvyModuleDescriptorWriter {
             out.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
             StringBuffer xmlNamespace = new StringBuffer();
             Map namespaces = md.getExtraAttributesNamespaces();
-            for (Iterator iter = namespaces.entrySet().iterator(); iter.hasNext(); ) {
+            for (Iterator iter = namespaces.entrySet().iterator(); iter.hasNext();) {
                 Map.Entry ns = (Map.Entry) iter.next();
                 xmlNamespace.append(" xmlns:").append(ns.getKey()).append("=\"")
                         .append(ns.getValue()).append("\"");
@@ -162,7 +162,7 @@ public class IvyModuleDescriptorWriter {
         Map/*<MapMatcher, DependencyDescriptorMediator>*/ mediators
                 = md.getAllDependencyDescriptorMediators().getAllRules();
 
-        for (Iterator iterator = mediators.entrySet().iterator(); iterator.hasNext(); ) {
+        for (Iterator iterator = mediators.entrySet().iterator(); iterator.hasNext();) {
             Map.Entry mediatorRule = (Map.Entry) iterator.next();
             MapMatcher matcher = (MapMatcher) mediatorRule.getKey();
             DependencyDescriptorMediator mediator =
@@ -339,7 +339,7 @@ public class IvyModuleDescriptorWriter {
         }
 
         String delim = prefix;
-        for (Iterator iter = extra.entrySet().iterator(); iter.hasNext(); ) {
+        for (Iterator iter = extra.entrySet().iterator(); iter.hasNext();) {
             Map.Entry entry = (Map.Entry) iter.next();
             out.print(delim + entry.getKey() + "=\""
                     + XMLHelper.escape(entry.getValue().toString()) + "\"");
@@ -477,7 +477,7 @@ public class IvyModuleDescriptorWriter {
                     out.println(" />");
                 }
             }
-            for (Iterator it = md.getExtraInfo().entrySet().iterator(); it.hasNext(); ) {
+            for (Iterator it = md.getExtraInfo().entrySet().iterator(); it.hasNext();) {
                 Map.Entry extraDescr = (Map.Entry) it.next();
                 if (extraDescr.getValue() == null
                         || ((String) extraDescr.getValue()).length() == 0) {
