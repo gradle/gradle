@@ -70,7 +70,27 @@ discover as many failures as possible with a single build execution.
 
 ### Configuration options for FindBugs plugin
 
-Thanks to a contribution from [Justin Ryan](https://github.com/quidryan), the FindBugs plugin now supports more configuration options.
+Thanks to a contribution from [Justin Ryan](https://github.com/quidryan), the FindBugs plugin now supports [more configuration options](dsl/org.gradle.api.plugins.quality.FindBugsExtension.html).
+
+**Important:** In Gradle 1.2, there is an [identified issue](http://issues.gradle.org//browse/GRADLE-2473) that requires any FindBugs specific configuration to be performed on the task; configuration via the DSL extension is ineffectual. Please click the “More” button below for instructions on how to workaround this issue.
+
+#### FindBugs DSL extension issue
+
+Instead of configuring `FindBugs` properties for all tasks globally via the DSL extension:
+
+    findbugs {
+      excludeFilter = file("$rootProject.projectDir/config/findbugs/excludeFilter.xml")
+    }
+
+You need to configure the task(s) directly, which can be done via:
+
+    tasks.withType(FindBugs) {
+      excludeFilter = file("$rootProject.projectDir/config/findbugs/excludeFilter.xml")
+    }
+
+This applies to all FindBugs specific task properties. 
+
+This issue will be resolved in Gradle 1.3, allowing you to globally configure all `FindBugs` tasks via the DSL extension.
 
 ### Gradle related version information in HTTP requests
 
@@ -217,10 +237,3 @@ constructor with an `@Inject` annotation.
 See [constructor handling](#constructors) above. The changes should be backwards compatible. Please let us know if you come across a situation where
 a plugin or task implementation that worked with previous versions of Gradle does not work with Gradle 1.2.
 
-### Known Issues
-
-The Findbugs task does not honor the newly introduced findbugs properties defined in the FindBugsExtension. This [issue](http://issues.gradle.org//browse/GRADLE-2473) is already fixed on master. As a workaround you have to configure the FindBugs tasks explicitly:
-
-    tasks.withType(FindBugs) {
-      excludeFilter = file("$rootProject.projectDir/config/findbugs/excludeFilter.xml")
-    }
