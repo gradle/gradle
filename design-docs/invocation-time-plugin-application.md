@@ -44,6 +44,14 @@ Tasks such as `wrapper` and the “build comparison for Gradle upgrades” task 
 
 Tasks such as the `idea` and `eclipse` tasks could be invoked without having to add the associated plugins to the build script. This would allow you to checkout a project, and generate the IDEA metadata for it without touching it. For example, they may have checked the project out just to browse the source in their IDE of choice and shouldn't be forced to edit the build script to achieve this.
 
+Some more use cases:
+
+* tasks that manage the build environment (eg enable/disable the daemon)
+* tasks that manage and verify credentials
+* tasks that set up a developer environment for a given project (eg find and check it out, install the appropriate tools and services)
+* tasks that manage build aggregation
+* tasks that manage the daemon (eg show status, stop all, etc).
+
 ## Implementation ideas
 
 ### 1. Inference from task name
