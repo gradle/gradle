@@ -53,11 +53,15 @@ class AbstractIntegrationSpec extends Specification {
     }
 
     protected GradleExecuter inDirectory(String path) {
-        inDirectory(testDir.file(path))
+        inDirectory(file(path))
     }
 
     protected GradleExecuter inDirectory(File directory) {
         executer.inDirectory(directory);
+    }
+
+    protected GradleExecuter projectDir(path) {
+        executer.usingProjectDirectory(file(path))
     }
 
     protected GradleDistribution requireOwnUserHomeDir() {
@@ -72,14 +76,15 @@ class AbstractIntegrationSpec extends Specification {
         succeeds(*tasks)
     }
 
+    protected GradleExecuter args(String... args) {
+        executer.withArguments(args)
+    }
+
     protected GradleExecuter withDebugLogging() {
         executer.withArguments("-d")
     }
 
     protected ExecutionResult succeeds(String... tasks) {
-        if (settingsFile.exists()) {
-            executer.usingSettingsFile(settingsFile)
-        }
         result = executer.withTasks(*tasks).run()
     }
 
