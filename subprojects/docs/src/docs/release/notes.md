@@ -234,3 +234,15 @@ constructor with an `@Inject` annotation.
 
 See [constructor handling](#constructors) above. The changes should be backwards compatible. Please let us know if you come across a situation where
 a plugin or task implementation that worked with previous versions of Gradle does not work with Gradle 1.2.
+
+### Upgrade to ASM 4.0
+
+Gradle uses the [ASM bytecode manipulation library](http://asm.ow2.org/) internally. The version of ASM used has been upgraded from `3.3.1` to `4.0` in the Gradle 1.2 release. 
+
+When building and testing custom plugins and build logic (or anything with the Gradle libraries and dependencies on the classpath), you may encounter issues if there is also an earlier version of ASM than `4.0` on the classpath. This error will manifest as an exception with a message such as:
+
+<pre><tt>Caused by: java.lang.IncompatibleClassChangeError: Found interface org.objectweb.asm.MethodVisitor, but class was expected </tt></pre>
+
+There have been some reports of this issue occurring in the Groovy Eclipse development environment. 
+
+If you experience this issue, please let us know via the [Gradle Forums](http://forums.gradle.org/). 
