@@ -161,6 +161,12 @@ To guarantee successful parallel execution of projects, your multi-project build
 One known issue is that the Gradle compiler daemon is currently not thread-safe. So if multiple projects attempt to compile java code simultaneously with `fork=true`,
 exceptions will result. Workaround: don't use `options.fork=true` to compile when running with `--parallel`.
 
+The Findbugs task does not honor the newly introduced findbugs properties defined in the FindBugsExtension. This [issue](http://issues.gradle.org//browse/GRADLE-2473) is already fixed on master. As a workaround you have to configure the FindBugs tasks explicitly:
+     
+    tasks.withType(FindBugs) {
+		excludeFilter = file("$rootProject.projectDir/config/findbugs/excludeFilter.xml")
+	}
+	
 ### Dependency resolution result API
 
 We are exposing the new API that our improved dependency reports are using. It provides a powerful toolkit for developing your own custom dependency reports. It also allows to develop smart build logic that can make decisions based on the content of the dependency graph.
