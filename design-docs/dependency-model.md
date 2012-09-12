@@ -164,10 +164,12 @@ modules/bundles that are required. A native binary includes information about wh
 
 ## Publication
 
-A publication is the binary representation of a component in a repository.
+A publication is the binary representation of a component, ready to be used by some consuming project.
 
-* A publication is a set of artefacts.
+* A publication is a set of artefacts, including meta-data artifacts.
 * A publication may include auxiliary artefacts.
+
+The consumer of a publication might use the artifacts directly from the location where they were built, or via a binary artifact repository of some kind.
 
 ## Project
 
@@ -411,23 +413,12 @@ other repository.
 
 ## Ivy
 
-A few options:
-
-1. Map a project to an ivy module, encode each (component, usage, variant) as an Ivy configuration.
-2. Map each (component, variant) to an ivy module, encode each usage as an Ivy configuration.
-3. Map each component to an ivy module, encode each (usage, variant) as an Ivy configuration.
-4. Map each component to an ivy module, encode each usage as an Ivy configuration. Fail if > 1 variant.
-5. Map each component to an ivy module, encode each usage as an Ivy configuration. Attach variant to each artefact. Fail if any usage does not have
-   the same set of dependencies for every variant.
-6. Map each component to an ivy module. Map each variant to an ivy module as well.
-
-The mapping for each component type will be versioned, with the mapping version included in the `ivy.xml` as an extra attribute.
+Map to a module for each variant, that contain variant-specific artifacts and meta-data, plus a module for component meta-data and variant-independent
+artifacts.
 
 ## Maven
 
-Similar to above, except encoding using hardcoded scopes + artefact classifiers. Can only really map JVM components.
-
-The mapping for each component type will be versioned, with the mapping version included in the pom.xml somehow (perhaps in the `<properties>` section).
+Similar to the above.
 
 # DSL
 
