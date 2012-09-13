@@ -15,16 +15,13 @@
  */
 package org.gradle.api.internal.artifacts.configurations.dynamicversion;
 
+import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
-import org.gradle.api.artifacts.cache.ArtifactResolutionControl;
-import org.gradle.api.artifacts.cache.DependencyResolutionControl;
-import org.gradle.api.artifacts.cache.ModuleResolutionControl;
-import org.gradle.api.artifacts.cache.ResolutionControl;
-import org.gradle.api.artifacts.cache.ResolutionRules;
+import org.gradle.api.artifacts.cache.*;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -73,7 +70,7 @@ public class DefaultCachePolicy implements CachePolicy, ResolutionRules {
             }
         });
     }
-    
+
     private void cacheMissingModulesAndArtifactsFor(final int value, final TimeUnit units) {
         eachModule(new Action<ModuleResolutionControl>() {
             public void execute(ModuleResolutionControl moduleResolutionControl) {
@@ -100,11 +97,11 @@ public class DefaultCachePolicy implements CachePolicy, ResolutionRules {
                 return dependencyResolutionControl.mustCheck();
             }
         }
-        
+
         return false;
     }
 
-    public boolean mustRefreshModule(ModuleVersionIdentifier moduleVersionId, ResolvedModuleVersion resolvedModuleVersion, final long ageMillis) {
+    public boolean mustRefreshModule(ModuleVersionIdentifier moduleVersionId, ResolvedModuleVersion resolvedModuleVersion, ModuleRevisionId moduleRevisionId, final long ageMillis) {
         return mustRefreshModule(moduleVersionId, resolvedModuleVersion, ageMillis, false);
     }
 
@@ -175,27 +172,27 @@ public class DefaultCachePolicy implements CachePolicy, ResolutionRules {
         public void refresh() {
             setMustCheck(true);
         }
-        
+
         private void setMustCheck(boolean val) {
             ruleMatch = true;
             mustCheck = val;
         }
-        
+
         public boolean ruleMatch() {
             return ruleMatch;
         }
-        
+
         public boolean mustCheck() {
             return mustCheck;
         }
     }
-    
+
     private class CachedDependencyResolutionControl extends AbstractResolutionControl<ModuleVersionSelector, ModuleVersionIdentifier> implements DependencyResolutionControl {
         private CachedDependencyResolutionControl(ModuleVersionSelector request, ModuleVersionIdentifier cachedVersion, long ageMillis) {
             super(request, cachedVersion, ageMillis);
         }
     }
-    
+
     private class CachedModuleResolutionControl extends AbstractResolutionControl<ModuleVersionIdentifier, ResolvedModuleVersion> implements ModuleResolutionControl {
         private final boolean changing;
 
