@@ -130,7 +130,7 @@ public class DefaultCachePolicySpec extends Specification {
                 t.refresh()
             }
         })
-        cachePolicy.mustRefreshModule(moduleIdentifier('g', 'n', 'v'), moduleVersion('group', 'name', 'version'), null, 0)
+        cachePolicy.mustRefreshModule(moduleIdentifier('g', 'n', 'v'), moduleVersion('group', 'name', 'version'), 0)
     }
     
     def "provides details of cached changing module"() {
@@ -205,8 +205,8 @@ public class DefaultCachePolicySpec extends Specification {
 
     private def hasModuleTimeout(int timeout) {
         def module = moduleVersion('group', 'name', 'version')
-        assert !cachePolicy.mustRefreshModule(null, module, null, timeout);
-        assert !cachePolicy.mustRefreshModule(null, module, null, timeout - 1)
+        assert !cachePolicy.mustRefreshModule(null, module, timeout);
+        assert !cachePolicy.mustRefreshModule(null, module, timeout - 1)
         if (timeout == FOREVER) {
             return true
         }
@@ -214,9 +214,9 @@ public class DefaultCachePolicySpec extends Specification {
     }
 
     private def hasMissingModuleTimeout(int timeout) {
-        assert !cachePolicy.mustRefreshModule(null, null, null, timeout);
-        assert !cachePolicy.mustRefreshModule(null, null, null, timeout - 1)
-        cachePolicy.mustRefreshModule(null, null, null, timeout + 1)
+        assert !cachePolicy.mustRefreshModule(null, null, timeout);
+        assert !cachePolicy.mustRefreshModule(null, null, timeout - 1)
+        cachePolicy.mustRefreshModule(null, null, timeout + 1)
     }
 
     private def hasMissingArtifactTimeout(int timeout) {
