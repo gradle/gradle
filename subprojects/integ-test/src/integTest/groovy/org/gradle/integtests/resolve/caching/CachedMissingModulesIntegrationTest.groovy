@@ -17,9 +17,11 @@
 package org.gradle.integtests.resolve.caching
 
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
+import spock.lang.Ignore
 
 class CachedMissingModulesIntegrationTest extends AbstractDependencyResolutionTest {
 
+    @Ignore
     def "cached not-found information is ignored if module is not available in any repo"() {
         given:
         server.start()
@@ -68,12 +70,6 @@ class CachedMissingModulesIntegrationTest extends AbstractDependencyResolutionTe
         server.expectGet("/repo2/group/projectA/1.0/projectA-1.0.jar", projectA.artifactFile)
 
         then:
-        run 'retrieve'//
-
-        when:
-        server.resetExpectations()
-        then:
-        executer.withArgument("--rerun-tasks")
-        run 'retrieve'
+        run'retrieve'//
     }
 }
