@@ -24,7 +24,7 @@ public class PerformanceTestRunner {
     private final static LOGGER = Logging.getLogger(PerformanceTestRunner.class)
 
     def current = new GradleDistribution()
-    def previous = new ReleasedVersions(current).last
+    def previous = current.previousVersion("1.1")
 
     String testProject
     int runs
