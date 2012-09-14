@@ -58,14 +58,14 @@ dependencies {
     jquery "jquery:jquery.min:1.8.0@js"
 
     fonts \
-        "lato:regular:6:qIIYRU-oROkIk8vfvxw6QvesZW2xOQ-xsNqO47m55DA@woff",
-        "lato:regular-italic:6:RYyZNoeFgb0l7W3Vu1aSWOvvDin1pK8aKteLpeZ5c0A@woff",
-        "lato:bold:6:qdgUG4U09HnJwhYI-uK18wLUuEpTyoUstqEm5AMlJo4@woff",
-        "lato:bold-italic:6:HkF_qI1x_noxlxhrhMQYELO3LdcAZYWl9Si6vvxL-qU@woff",
-        "ubuntumono:regular:3:ViZhet7Ak-LRXZMXzuAfkbrIa-7acMAeDBVuclsi6Gc@woff",
-        "ubuntumono:regular-italic:3:KAKuHXAHZOeECOWAHsRKA4o3ZslTYfJv0R05CazkwN8@woff",
-        "ubuntumono:bold:3:ceqTZGKHipo8pJj4molythbnBKKEOwRKgsHDreGcocg@woff",
-        "ubuntumono:bold-italic:3:n_d8tv_JOIiYyMXR4eaV9SHgNb6vKVPdRA9LSAKGxzw@woff"
+        "lato:regular:6:v0SdcGFAl2aezM9Vq_aFTQ@ttf",
+        "lato:regular-italic:6:LqowQDslGv4DmUBAfWa2Vw@ttf",
+        "lato:bold:6:DvlFBScY1r-FMtZSYIYoYw@ttf",
+        "lato:bold-italic:6:HkF_qI1x_noxlxhrhMQYEKCWcynf_cDxXwCLxiixG1c@ttf",
+        "ubuntumono:regular:3:ViZhet7Ak-LRXZMXzuAfkZ0EAVxt0G0biEntp43Qt6E@ttf",
+        "ubuntumono:regular-italic:3:KAKuHXAHZOeECOWAHsRKA-LrC4Du4e_yfTJ8Ol60xk0@ttf",
+        "ubuntumono:bold:3:ceqTZGKHipo8pJj4molytp_TkvowlIOtbR7ePgFOpF4@ttf",
+        "ubuntumono:bold-italic:3:n_d8tv_JOIiYyMXR4eaV9WsGzsqhEorxQDpu60nfWEc@ttf"
 }
 
 ext {
