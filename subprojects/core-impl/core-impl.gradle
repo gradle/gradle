@@ -27,11 +27,15 @@ dependencies {
 
     mvn3Input libraries.maven3_settings_builder
 }
+//TODO SF we should not resolve at config time
 configurations.mvn3Input.files.each{libFile->
    task "jarjar-${libFile.name}"(type: JarJar) {
         inputFile = libFile
         outputFile = file("$buildDir/libs/jarjar/jarjar-${libFile.name}")
         rule('org.**', 'jarjar.org.@1')
+
+       //TODO SF
+       //org.apache.maven -> org.gradle.mvn3.org.apache.maven
    }
 }
 

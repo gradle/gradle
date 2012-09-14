@@ -17,15 +17,14 @@
 package org.gradle.api.plugins.maven
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.Maven3Availability
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
-import spock.lang.IgnoreIf
+
+import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 /**
  * by Szczepan Faber, created at: 9/4/12
  */
-@IgnoreIf({ !Maven3Availability.AVAILABLE })
 class MavenConversionSpec extends AbstractIntegrationSpec {
 
     @Rule public final TestResources resources = new TestResources()
@@ -41,7 +40,18 @@ class MavenConversionSpec extends AbstractIntegrationSpec {
         file("settings.gradle").exists()
 
         and: //can run gradle build
-        run 'clean', 'build'
+        run 'clean', 'build', 'install'
+
+        when:
+        run 'projects'
+
+        then:
+        output.contains(toPlatformLineSeparators("""
+Root project 'webinar-parent'
++--- Project ':webinar-api' - Webinar APIs
++--- Project ':webinar-impl' - Webinar implementation
+\\--- Project ':webinar-war' - Webinar web application
+"""))
     }
 
     def "singleModule"() {
@@ -55,6 +65,6 @@ class MavenConversionSpec extends AbstractIntegrationSpec {
         //TODO SF this build should fail because the TestNG test is failing
         //however the plugin does not generate testNG for single module project atm (bug)
         //def failure = runAndFail('clean', 'build')  //assert if fails for the right reason
-        run 'clean', 'build'
+        run 'clean', 'build', 'install'
     }
 }

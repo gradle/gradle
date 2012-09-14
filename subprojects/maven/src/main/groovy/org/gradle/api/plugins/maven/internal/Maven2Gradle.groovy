@@ -18,7 +18,6 @@
 
 package org.gradle.api.plugins.maven.internal
 
-import jarjar.org.apache.maven.model.io.xpp3.MavenXpp3Writer
 import jarjar.org.apache.maven.project.MavenProject
 
 /**
@@ -37,25 +36,31 @@ class Maven2Gradle {
   def workingDir
   def effectivePom
 
-  private MavenProject mavenProject
+  private Set<MavenProject> mavenProjects
 
-  Maven2Gradle(MavenProject mavenProject) {
-      this.mavenProject = mavenProject
+  Maven2Gradle(Set<MavenProject> mavenProjects) {
+      assert !mavenProjects.empty : "No maven projects provided."
+      this.mavenProjects = mavenProjects
   }
 
   def convert(String[] args) {
     workingDir = new File('.').canonicalFile
     println "Working path:" + workingDir.absolutePath + "\n"
 
-//    use the Groovy XmlSlurper library to parse the text string
-    effectivePom = new XmlSlurper().parseText(geEffectiveContents())
+      //For now we're building the effective pom xml from the model
+      //and then we parse the xml using slurper.
+      //This way we don't have to rewrite the Maven2Gradle just yet.
+      //Maven2Gradle should be rewritten (with coverage) so that feeds of the maven object model, not xml.
+      def effectivePom = new MavenProjectXmlWriter().toXml(mavenProjects)
+      //use the Groovy XmlSlurper library to parse the text string
+      this.effectivePom = new XmlSlurper().parseText(effectivePom)
 
     String build
-    def multimodule = effectivePom.name() == "projects"
+    def multimodule = this.effectivePom.name() == "projects"
 
     if (multimodule) {
       println "This is multi-module project.\n"
-      def allProjects = effectivePom.project
+      def allProjects = this.effectivePom.project
       print "Generating settings.gradle... "
       qualifiedNames = generateSettings(workingDir.getName(), allProjects[0].artifactId, allProjects);
       println "Done."
@@ -155,18 +160,18 @@ uploadArchives {
       build = """apply plugin: 'java'
 apply plugin: 'maven'
 
-${getArtifactData(effectivePom)}
+${getArtifactData(this.effectivePom)}
 
-description = \"""${effectivePom.name}\"""
+description = \"""${this.effectivePom.name}\"""
 
-${compilerSettings(effectivePom, "")}
-${globalExclusions(effectivePom)}
+${compilerSettings(this.effectivePom, "")}
+${globalExclusions(this.effectivePom)}
 
 """
 
       print "Configuring Maven repositories... "
       Set<String> repoSet = new LinkedHashSet<String>();
-      getRepositoriesForModule(effectivePom, repoSet)
+      getRepositoriesForModule(this.effectivePom, repoSet)
       String repos = """repositories {
         $localRepoUri
 """
@@ -176,17 +181,17 @@ ${globalExclusions(effectivePom)}
       build += "${repos}}\n"
       println "Done."
       print "Configuring Dependencies... "
-      String dependencies = getDependencies(effectivePom, null)
+      String dependencies = getDependencies(this.effectivePom, null)
       build += dependencies
       println "Done."
 
-      String packageTests = packageTests(effectivePom);
+      String packageTests = packageTests(this.effectivePom);
       if (packageTests) {
         build += '//packaging tests'
         build += packageTests;
       }
       print "Generating settings.gradle if needed... "
-      generateSettings(workingDir.getName(), effectivePom.artifactId, null);
+      generateSettings(workingDir.getName(), this.effectivePom.artifactId, null);
       println "Done."
 
     }
@@ -490,35 +495,6 @@ project('$entry.key').projectDir = """ + '"$rootDir/' + "${entry.value}" + '" as
     }
     settingsFile.text = settingsText
     return qualifiedNames
-  }
-
-  String geEffectiveContents2() {
-      File file = new File("effective-pom.xml")
-      Writer writer = new FileWriter(file)
-      new MavenXpp3Writer().write(writer, mavenProject.getModel())
-      writer.close()
-      return file.text
-  }
-
-  String geEffectiveContents() {
-//TODO work on output stream, without writing to file
-    def fileName = "effective-pom.xml"
-    print "Wait, obtaining effective pom... "
-
-    def ant = new AntBuilder()   // create an antbuilder
-    ant.exec(outputproperty: "cmdOut",
-            errorproperty: "cmdErr",
-            failonerror: "true",
-            executable: ((String) System.properties['os.name']).toLowerCase().contains("win") ? "mvn.bat" : "mvn") {
-      arg(line: """-Doutput=${fileName} help:effective-pom""")
-      env(key: "JAVA_HOME", value: System.getProperty("java.home"))
-    }
-
-// read in the effective pom file
-    File tmpFile = new File(fileName);
-    // get it's text into a string
-
-    return tmpFile.text
   }
 
 /**

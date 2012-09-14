@@ -35,8 +35,11 @@ dependencies {
 
     compile "org.pegdown:pegdown:1.1.0"
     compile "org.jsoup:jsoup:1.6.3"
-    //compile "com.googlecode.jarjar:jarjar:1.3"
-    compile fileTree("/Users/szczepan/gradle/jarjar/jarjar/dist")
+
+    //below dependency was deployed to the repo.gradle.org
+    //it's built from sources at: https://github.com/szczepiq/jarjar
+    //if code changes are needed in this library we need to figure out a better way of distributing them.
+    compile "org.gradle.jarjar:jarjar:1.2.1"
 }
 apply from: '../gradle/compile.gradle'
 apply from: '../gradle/codeQuality.gradle'

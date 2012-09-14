@@ -16,7 +16,6 @@
 
 package org.gradle.api.plugins.maven.internal;
 
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import jarjar.org.apache.maven.execution.*;
 import jarjar.org.apache.maven.model.building.ModelBuildingRequest;
@@ -32,25 +31,28 @@ import jarjar.org.codehaus.plexus.configuration.PlexusConfigurationException;
 import jarjar.org.sonatype.aether.RepositorySystemSession;
 import jarjar.org.sonatype.aether.util.DefaultRepositorySystemSession;
 import org.gradle.api.GradleException;
+import org.gradle.api.Transformer;
+import org.gradle.util.CollectionUtils;
 
 import java.io.File;
-
-import static com.google.common.collect.Iterables.transform;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * by Szczepan Faber, created at: 9/11/12
  */
-public class MavenProjectCreator {
+public class MavenProjectsCreator {
 
     private final Settings mavenSettings;
     private final File pomFile;
 
-    public MavenProjectCreator(Settings mavenSettings, File pomFile) {
+    public MavenProjectsCreator(Settings mavenSettings, File pomFile) {
         this.mavenSettings = mavenSettings;
         this.pomFile = pomFile;
     }
 
-    public MavenProject create() {
+    public Set<MavenProject> create() {
         try {
             return createNow(mavenSettings);
         } catch (Exception e) {
@@ -58,7 +60,10 @@ public class MavenProjectCreator {
         }
     }
 
-    private MavenProject createNow(Settings settings) throws PlexusContainerException, PlexusConfigurationException, ComponentLookupException, MavenExecutionRequestPopulationException, ProjectBuildingException {
+    private Set<MavenProject> createNow(Settings settings) throws PlexusContainerException, PlexusConfigurationException, ComponentLookupException, MavenExecutionRequestPopulationException, ProjectBuildingException {
+        //using jarjar for maven3 classes affects the contents of the effective pom
+        //references to certain maven standard plugins contain jarjar in the fqn
+        //not sure if this is a problem.
         ContainerConfiguration containerConfiguration = new DefaultContainerConfiguration()
                 .setClassWorld(new ClassWorld("plexus.core", ClassWorld.class.getClassLoader()))
                 .setName("mavenCore");
@@ -72,17 +77,27 @@ public class MavenProjectCreator {
         ProjectBuildingRequest buildingRequest = executionRequest.getProjectBuildingRequest();
         buildingRequest.setValidationLevel(ModelBuildingRequest.VALIDATION_LEVEL_MINIMAL);
         MavenProject mavenProject = builder.build(pomFile, buildingRequest).getProject();
-        Iterable<MavenProject>reactorProjects = transform(builder.build(ImmutableList.of(pomFile), true, buildingRequest), new Function<ProjectBuildingResult, MavenProject>() {
-            public MavenProject apply(ProjectBuildingResult from) {
-                return from.getProject();
+
+        Set<MavenProject> reactorProjects = new LinkedHashSet<MavenProject>();
+
+        //TODO adding the parent project first because the converter needs it this way ATM. This is oversimplified.
+        //the converter should not depend on the order of reactor projects.
+        //we should add coverage for nested multi-project builds with multiple parents.
+        reactorProjects.add(mavenProject);
+
+        List<ProjectBuildingResult> allProjects = builder.build(ImmutableList.of(pomFile), true, buildingRequest);
+        CollectionUtils.collect(allProjects, reactorProjects, new Transformer<MavenProject, ProjectBuildingResult>() {
+            public MavenProject transform(ProjectBuildingResult original) {
+                return original.getProject();
             }
         });
+
         MavenExecutionResult result = new DefaultMavenExecutionResult();
         result.setProject(mavenProject);
         RepositorySystemSession repoSession = new DefaultRepositorySystemSession();
         MavenSession session = new MavenSession(container, repoSession, executionRequest, result);
         session.setCurrentProject(mavenProject);
 
-        return mavenProject;
+        return reactorProjects;
     }
 }
