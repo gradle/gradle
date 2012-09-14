@@ -99,7 +99,7 @@ public class Daemon implements Stoppable {
                     try {
                         daemonRegistry.remove(connectorAddress);
                     } catch (Exception e) {
-                        LOGGER.debug("VM shutdown hook was unable to remove the daemon address from the registry due to: " + e + ". It will be cleaned up later.");
+                        LOGGER.debug("VM shutdown hook was unable to remove the daemon address from the registry. It will be cleaned up later.", e);
                     }
                 }
             });
