@@ -72,11 +72,11 @@ class PerformanceTest extends Specification {
                 accuracyMs: accuracyMs
         ).run()
         result.assertCurrentReleaseIsNotSlower()
-        result.assertMemoryUsed(0.1)
+        result.assertMemoryUsed(0.01)
 
         where:
         testProject       | runs | accuracyMs
-        "lotDependencies" | 5    | 3000
+        "lotDependencies" | 5    | 1000
     }
 
     @Unroll("Project '#testProject' eclipse")
@@ -95,7 +95,7 @@ class PerformanceTest extends Specification {
         testProject       | runs | accuracyMs
         "small"           | 5    | 500
         "multi"           | 5    | 1000
-//        "lotDependencies" | 5    | 1000
+        "lotDependencies" | 5    | 1000
     }
 
     @Unroll("Project '#testProject' idea")
@@ -114,6 +114,6 @@ class PerformanceTest extends Specification {
         testProject       | runs | accuracyMs
         "small"           | 5    | 500
         "multi"           | 5    | 1000
-//        "lotDependencies" | 5    | 1000
+        "lotDependencies" | 5    | 1000
     }
 }
