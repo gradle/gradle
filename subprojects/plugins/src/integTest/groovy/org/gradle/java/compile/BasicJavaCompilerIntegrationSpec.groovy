@@ -19,6 +19,8 @@ package org.gradle.java.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
+import spock.lang.Ignore;
+
 abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec {
     def setup() {
         executer.withArguments("-i")
@@ -62,10 +64,11 @@ abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec 
         file("build/classes/main").assertHasDescendants()
     }
 
+	@Ignore
     def compileWithSpecifiedEncoding() {
         given:
         goodCodeEncodedWith('ISO8859_7')
-
+		
         and:
         buildFile << '''
             apply plugin: 'application'
