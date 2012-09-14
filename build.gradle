@@ -45,7 +45,7 @@ buildTypes {
     parallelTest "parallelIntegTest", noDistTests: true, useIncomingDistributions: true
 
     // Run the performance tests
-    performanceTest "performance:integTest"
+    performanceTest "performance:integTest", useIncomingDistributions: true
 
     // Used for cross version tests on CI
     crossVersionTest "forkingIntegTest", crossVersionTestsOnly: "", testAllVersions: "", noDistTests: true, useIncomingDistributions: true
