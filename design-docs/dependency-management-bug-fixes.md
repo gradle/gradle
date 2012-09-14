@@ -111,6 +111,8 @@ using a `ContentEncodingHttpClient`.
 <a href="cached-missing-modules">
 # Ignore cached missing module entry when module is missing for all repositories
 
+See [GRADLE-2455](http://issues.gradle.org/browse/GRADLE-2455)
+
 Currently, we cache the fact that a module is missing from a given repository. This is to avoid a remote lookup when a resolution uses multiple repositories,
 and a given module is not hosted in every repository.
 

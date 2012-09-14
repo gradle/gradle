@@ -17,6 +17,7 @@
 package org.gradle.api.internal.filestore;
 
 import org.apache.commons.io.FileUtils;
+import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileVisitDetails;
@@ -37,13 +38,14 @@ import java.util.Set;
 /**
  * File store that accepts the target path as the key for the entry.
  *
- * There is always at most one entry for a given key for this file store. If an entry already exists at
- * the given path, it will be overwritten. Paths can contain directory components, which will be created on demand.
+ * There is always at most one entry for a given key for this file store. If an entry already exists at the given path, it will be overwritten. Paths can contain directory components, which will be
+ * created on demand.
  *
  * This file store also provides searching via relative ant path patterns.
  */
 public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<String> {
 
+    public static final String MARKER_FILE_SUFFIX = ".fslck";
     private final Random generator = new Random(System.currentTimeMillis());
 
     private File baseDir;
@@ -83,8 +85,15 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
                 throw new UncheckedException(e);
             }
         }
-
         baseDir = destination;
+    }
+
+    public FileStoreEntry add(String key, Action<File> addAction) {
+        final File tempFile = getTempFile();
+        tempFile.getParentFile().mkdirs(); //revisit this. found issue when running PathKeyFileStoreTest#can add to filestore
+        addAction.execute(tempFile);
+        final FileStoreEntry fileStoreEntry = move(key, tempFile);
+        return fileStoreEntry;
     }
 
     protected FileStoreEntry saveIntoFileStore(File source, File destination, boolean isMove) {
@@ -96,19 +105,30 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
             throw new GradleException(String.format("Unable to create filestore directory %s", parentDir));
         }
 
-        String verb = isMove ? "move" : "copy";
+        File markerFile = getMarkerFile(destination);
         try {
+            markerFile.createNewFile();
             deleteAction.delete(destination);
             if (isMove) {
                 FileUtils.moveFile(source, destination);
             } else {
                 FileUtils.copyFile(source, destination);
             }
+            deleteAction.delete(markerFile);
         } catch (IOException e) {
+            deleteAction.delete(destination);
+            deleteAction.delete(markerFile);
+            String verb = isMove ? "move" : "copy";
             throw new GradleException(String.format("Failed to %s file '%s' into filestore at '%s' ", verb, source, destination), e);
         }
 
         return entryAt(destination);
+    }
+
+    private File getMarkerFile(File destination) {
+        final File destinationParentFile = destination.getParentFile();
+        final String markerFileName = destination.getName() + MARKER_FILE_SUFFIX;
+        return new File(destinationParentFile, markerFileName);
     }
 
     public Set<? extends FileStoreEntry> search(String pattern) {
@@ -118,13 +138,20 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
         //Consider bailing out early if the baseDir does not exist or reducing the log level
         findFiles(pattern).visit(new EmptyFileVisitor() {
             public void visitFile(FileVisitDetails fileDetails) {
-                entries.add(entryAt(fileDetails.getFile()));
+                final File fileStoreFile = fileDetails.getFile();
+                if (!fileStoreFile.getName().endsWith(PathKeyFileStore.MARKER_FILE_SUFFIX)) {
+                    final File markerFile = getMarkerFile(fileStoreFile);
+                    if (!markerFile.exists()) {
+                        entries.add(entryAt(fileStoreFile));
+                    }
+                }
+
             }
         });
 
         return entries;
     }
-    
+
     private DirectoryFileTree findFiles(String pattern) {
         DirectoryFileTree fileTree = new DirectoryFileTree(baseDir);
         PatternFilterable patternSet = new PatternSet();
@@ -142,5 +169,15 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
                 return new File(baseDir, path);
             }
         };
+    }
+
+    public FileStoreEntry get(String key) {
+        final File file = getFile(key);
+        final File markerFile = getMarkerFile(file);
+        if (markerFile.exists()) {
+            deleteAction.delete(file);
+            deleteAction.delete(markerFile);
+        }
+        return entryAt(file);
     }
 }

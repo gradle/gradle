@@ -25,28 +25,19 @@ import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes
 @MinToolingApiVersion("1.2-rc-1")
 @MinTargetGradleVersion("1.2-rc-1")
 class ProjectOutcomesModuleCrossVersionSpec extends ToolingApiSpecification {
-
     def "modelContainsAllArchivesOnTheArchivesConfiguration"() {
         given:
-        buildFile << """
-            apply plugin: "java"
+        dist.file('build.gradle') << '''
+			apply plugin: "java"
 
-            task zip(type: Zip) {
-                from "file.txt"
-            }
+			task zip(type: Zip) {
+    			from jar
+			}
 
-            artifacts {
-                archives zip
-            }
-        """
-
-        file("src/main/java/Person.java") << """
-            public class Person {
-               String name;
-            }
-        """
-
-        file("file.txt") << "content"
+			artifacts {
+    			archives zip
+			}
+		'''
 
         when:
         def projectOutcomes = withConnection { ProjectConnection connection ->
@@ -72,6 +63,14 @@ class ProjectOutcomesModuleCrossVersionSpec extends ToolingApiSpecification {
     }
 
     def "modelContainsAllProjects"() {
+        given:
+        dist.file('settings.gradle') << '''
+include 'project1', 'project2'
+'''
+        dist.file('build.gradle') << '''
+apply plugin: 'java'
+'''
+
         when:
         buildFile << "apply plugin: 'java'"
         file("settings.gradle") << "include 'project1', 'project2'"

@@ -32,12 +32,15 @@ import org.apache.ivy.plugins.repository.ResourceDownloader;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.apache.ivy.util.Message;
+import org.gradle.api.Action;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactOriginWithMetaData;
 import org.gradle.api.internal.artifacts.repositories.EnhancedArtifactDownloadReport;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 import org.gradle.api.internal.filestore.FileStore;
+import org.gradle.api.internal.filestore.FileStoreEntry;
 
 import java.io.File;
 import java.io.IOException;
@@ -96,12 +99,17 @@ public class DownloadingRepositoryCacheManager extends AbstractRepositoryCacheMa
         return adr;
     }
 
-    private File downloadArtifactFile(Artifact artifact, ResourceDownloader resourceDownloader, ResolvedResource artifactRef) throws IOException {
-        File tempFile = fileStore.getTempFile();
-        resourceDownloader.download(artifact, artifactRef.getResource(), tempFile);
-
-        File fileInFileStore = fileStore.move(artifact.getId(), tempFile).getFile();
-
+    private File downloadArtifactFile(final Artifact artifact, final ResourceDownloader resourceDownloader, final ResolvedResource artifactRef) throws IOException {
+        FileStoreEntry fileStoreEntry = fileStore.add(artifact.getId(), new Action<File>() {
+            public void execute(File file) {
+                try {
+                    resourceDownloader.download(artifact, artifactRef.getResource(), file);
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+            }
+        });
+        final File fileInFileStore = fileStoreEntry.getFile();
         if (artifactRef.getResource() instanceof ExternalResource) {
             ExternalResource resource = (ExternalResource) artifactRef.getResource();
             ExternalResourceMetaData metaData = resource.getMetaData();

@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.filestore;
 
+import org.gradle.api.Action;
+
 import java.io.File;
 
 public interface FileStore<K> {
@@ -23,8 +25,7 @@ public interface FileStore<K> {
 
     FileStoreEntry copy(K key, File source);
 
-    File getTempFile();
-
     void moveFilestore(File destination);
 
+    FileStoreEntry add(K key, Action<File> addAction);
 }

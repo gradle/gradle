@@ -18,9 +18,14 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 import org.apache.ivy.core.IvyPatternHelper;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
+import org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorWriter;
+import org.gradle.api.Action;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository;
+import org.gradle.api.internal.filestore.FileStoreEntry;
+import org.gradle.api.internal.filestore.PathKeyFileStore;
+import org.gradle.internal.UncheckedException;
 
 import java.io.File;
 import java.util.Collections;
@@ -29,20 +34,34 @@ public class ModuleDescriptorFileStore {
     private static final String DESCRIPTOR_ARTIFACT_PATTERN =
             "module-metadata/[organisation]/[module](/[branch])/[revision]/[resolverId].ivy.xml";
 
-    private final ArtifactCacheMetaData cacheMetaData;
+    private final PathKeyFileStore pathKeyFileStore;
 
-    public ModuleDescriptorFileStore(ArtifactCacheMetaData cacheMetaData) {
-        this.cacheMetaData = cacheMetaData;
+    public ModuleDescriptorFileStore(PathKeyFileStore pathKeyFileStore) {
+        this.pathKeyFileStore = pathKeyFileStore;
     }
-    
+
     public File getModuleDescriptorFile(ModuleVersionRepository repository, ModuleRevisionId moduleRevisionId) {
         String filePath = getFilePath(repository, moduleRevisionId);
-        return new File(cacheMetaData.getCacheDir(), filePath);
+        final FileStoreEntry fileStoreEntry = pathKeyFileStore.get(filePath);
+        return fileStoreEntry.getFile();
     }
 
     private String getFilePath(ModuleVersionRepository repository, ModuleRevisionId moduleRevisionId) {
         String resolverId = repository.getId();
         Artifact artifact = new DefaultArtifact(moduleRevisionId, null, "ivy", "ivy", "xml", Collections.singletonMap("resolverId", resolverId));
         return IvyPatternHelper.substitute(DESCRIPTOR_ARTIFACT_PATTERN, artifact);
+    }
+
+    public void writeModuleDescriptorFile(ModuleVersionRepository repository, final ModuleDescriptor moduleDescriptor) {
+        String filePath = getFilePath(repository, moduleDescriptor.getModuleRevisionId());
+        pathKeyFileStore.add(filePath, new Action<File>() {
+            public void execute(File moduleDescriptorFile) {
+                try {
+                    XmlModuleDescriptorWriter.write(moduleDescriptor, moduleDescriptorFile);
+                } catch (Exception e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
+            }
+        });
     }
 }

@@ -18,42 +18,70 @@ The ideal API will look very similar to:
     apply plugin: 'github-dependencies'
     
     repositories {
-      githubDownloads.maven("«github username»")
-      githubDownloads.ivy("«github username»")
+      github.downloads { user "«github username»" }
     }
 
-That is, an extension named `githubDownloads` is added to the `repositories {}` script block to extend that DSL. It is _not_ a project extension.
+That is, an extension named `github` is added to the `repositories {}` script block to extend that DSL. It is _not_ a project extension.
 
-The above is equivalent to:
+It looks like:
 
-    repositories {
-      mavenRepo (name: "«github username's GitHub Downloads", url: "http://cloud.github.com/downloads/«github username»") {
-        pattern = "[organisation]/[module]-[revision].[ext]"
-      }
-
-      ivy {
-        name "«github username's GitHub Downloads"
-        url "http://cloud.github.com/downloads/«github username»"
-        layout 'pattern', {
-          artifact "[organisation]/[module]-[revision].[ext]"
-          ivy "[organisation]/[module]-[revision]-ivy(.[ext])"
+    public class GitHubRepositoryHandlerExtension {
+        RepositoryHandler repositories
+        
+        public GitHubDownloadsRepository downloads(Action<GitHubDownloadsRepository> configure) {
+          GitHubDownloadsRepository repo = createGitHubDownloadsRepository()
+          configure.execute(repo)
+          repositories.add(repo)
+          return repo
         }
-      }
+    }
+    
+The `GitHubDownloadsRepository` looks like:
+
+    public interface GitHubDownloadsRepository extends ArtifactRepository, AuthenticationSupported {
+        // For overriding the default base: https://github.com/downloads
+        void setBaseUrl(Object baseUrl);
+        URI getBaseUrl();
+        
+        void setUser(String user);
+        String getUser();
+        
+        // Control the artifact pattern, defaults to: "[organisation]/[artifact](-[classifier])(-[revision]).[ext]";
+        void setArtifactPattern(String pattern);
+        String getArtifactPattern();
+        
+        // Look for a pom file instead of ivy.xml? defaults true
+        void setUsePom(boolean flag);
+        boolean isUsePom();
+        
+        // Control the ivy pattern (ignored if !isUsePom()), defaults to: "[organisation]/[artifact](-[revision])-ivy.xml";
+        void setIvyPattern(String pattern);
+        String getIvyPattern();
     }
 
-Note: the GitHub downloads name space is flat for a project. For the project `https://github.com/someuser/someproject`, all download URLs will be a direct child of `https://github.com/downloads/someuser/someproject/`. This is why the ivy files needs the strange pattern.
-
-The obtain the dependency at: `https://github.com/downloads/someuser/someproject/something-1.0.jar` the user will need:
-
-    apply plugin: 'github-dependencies'
+Given:
     
     repositories {
-      githubDownloads.maven("someuser")
+      github.downloads { user "githubUser" }
     }
 
-    dependencies {
-      compile "someproject:something:1.0"
+this is how different notations will resolve:
+
+* `myProject:myThing` - `https://github.com/downloads/githubUser/myProject/myThing.jar` (`githubUser/myProject/myThing.pom`)
+* `myProject:myThing:1.0` - `https://github.com/downloads/githubUser/myProject/myThing-1.0.jar` (`githubUser/myProject/myThing-1.0.pom`)
+* `myProject:myThing:1.0@zip` - `https://github.com/downloads/githubUser/myProject/myThing-1.0.zip` (`githubUser/myProject/myThing-1.0.pom`)
+
+Given:
+    
+    repositories {
+      github.downloads { user "githubUser"; usePoms false }
     }
+
+this is how different notations will resolve:
+
+* `myProject:myThing` - `https://github.com/downloads/githubUser/myProject/myThing.jar` (`githubUser/myProject/myThing-ivy.xml`)
+* `myProject:myThing:1.0` - `https://github.com/downloads/githubUser/myProject/myThing-1.0.jar` (`githubUser/myProject/myThing-1.0-ivy.xml`)
+* `myProject:myThing:1.0@zip` - `https://github.com/downloads/githubUser/myProject/myThing-1.0.zip` (`githubUser/myProject/myThing-1.0-ivy.xml`)
 
 ## Sad day cases
 
@@ -84,32 +112,18 @@ We should take a capture of real GitHub wire traffic that we base our implementa
  
 # Implementation approach
 
-Effectively:
+The implementation of `GitHubDownloadsRepository`, implements `ArtifactRepositoryInternal`…
 
-    class GitHubDependenciesPlugin implements Plugin<Project> {
-      void apply(Project project) {
-        project.repositories.create("githubDownloads", GitHubDownloadsRepositoryHandlerExtension, project.repositories)
+    public class DefaultGitHubDownloadsRepository implements GitHubDownloadsRepository, ArtifactRepositoryInternal {
+      public DependencyResolver createResolver() {
+        // create a resolver based on the user's config
       }
     }
     
-    class GitHubDownloadsRepositoryHandlerExtension {
-      RepositoryHandler repositories
-      GitHubDownloadsRepositoryHandlerExtension(RepositoryHandler repositories) {
-        this.repositories = repositories
-      }
-      
-      DependencyResolver maven(String username, Action<DependencyResolver> configure) {
-        …
-      }
-      
-      // etc.
-    }
+If `isUsePoms() == true` a `MavenResolver` will be returned, otherwise an `IvyResolver`.
 
 # Open issues
 
-* Where does this code live? Do we create a '`github`' subproject?
+* Private GitHub repos require preemptive auth for download request, and 404s are returned for any kind of authn/authz failure. Not sure how our credential support will hanlde this.
 
-* How well does it display in the DSL reference?
-
-* Do we want to add support to the class decorator to overload methods like `maven(String username, Action<DependencyResolver> configure)` with `maven(String username, Closure<?> configure)`?
-  
+* If the user wants to use a POM file they can't use a group with `.`'s in it, because the maven resolver converts `.` to `/` when resolving the pattern. The GitHub downloads space is flat so this won't work. Ideally, we'd have a resolver that can deal with POMs that doesn't require `m2Compatible = true`.
