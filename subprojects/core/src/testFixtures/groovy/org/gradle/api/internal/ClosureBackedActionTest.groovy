@@ -18,9 +18,9 @@ package org.gradle.api.internal
 
 import spock.lang.Specification
 import org.gradle.api.Action
+import org.gradle.api.InvalidActionClosureException
 
 class ClosureBackedActionTest extends Specification {
-
 
     def "one arg closure is called"() {
         given:
@@ -53,6 +53,36 @@ class ClosureBackedActionTest extends Specification {
 
         then:
         called
+    }
+
+    def "closure with wrong param type is given"() {
+        given:
+        def closure = { Map m -> }
+        def arg = "1"
+
+        when:
+        action(closure).execute(arg)
+
+        then:
+        def e = thrown InvalidActionClosureException
+        e.closure.is(closure)
+        e.argument.is(arg)
+        e.message == "The closure '${closure.toString()}' is not valid as an action for argument '1'. It should accept no parameters, or one compatible with type 'java.lang.String'. It accepts (java.util.Map)."
+    }
+
+    def "closure with more than one param type is given"() {
+        given:
+        def closure = { Map m, List l -> }
+        def arg = "1"
+
+        when:
+        action(closure).execute(arg)
+
+        then:
+        def e = thrown InvalidActionClosureException
+        e.closure.is(closure)
+        e.argument.is(arg)
+        e.message == "The closure '${closure.toString()}' is not valid as an action for argument '1'. It should accept no parameters, or one compatible with type 'java.lang.String'. It accepts (java.util.Map, java.util.List)."
     }
 
     Action<?> action(Closure<?> c) {

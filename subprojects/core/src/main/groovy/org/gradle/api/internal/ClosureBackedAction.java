@@ -18,16 +18,24 @@ package org.gradle.api.internal;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.InvalidActionClosureException;
 import org.gradle.util.ConfigureUtil;
 
 public class ClosureBackedAction implements Action<Object> {
-    private final Closure cl;
+    private final Closure closure;
 
-    public ClosureBackedAction(Closure cl) {
-        this.cl = cl;
+    public ClosureBackedAction(Closure closure) {
+        this.closure = closure;
     }
 
     public void execute(Object o) {
-        ConfigureUtil.configure(cl, o);
+        try {
+            ConfigureUtil.configure(closure, o);
+        } catch (groovy.lang.MissingMethodException e) {
+            if (e.getType().equals(closure.getClass()) && e.getMethod().equals("doCall")) {
+                throw new InvalidActionClosureException(closure, o);
+            }
+        }
     }
+
 }
