@@ -13,6 +13,10 @@
                 <td><literal>project.configurations.scalaTools</literal></td>
             </tr>
             <tr>
+                <td>options</td>
+                <td/>
+            </tr>
+            <tr>
                 <td>scalaCompileOptions</td>
                 <td/>
             </tr>
