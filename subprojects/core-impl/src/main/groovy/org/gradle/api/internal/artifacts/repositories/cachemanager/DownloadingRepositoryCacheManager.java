@@ -28,6 +28,7 @@ import org.apache.ivy.core.report.DownloadStatus;
 import org.apache.ivy.core.report.MetadataArtifactDownloadReport;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.plugins.repository.ArtifactResourceResolver;
+import org.apache.ivy.plugins.repository.Resource;
 import org.apache.ivy.plugins.repository.ResourceDownloader;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
@@ -100,19 +101,20 @@ public class DownloadingRepositoryCacheManager extends AbstractRepositoryCacheMa
     }
 
     private File downloadArtifactFile(final Artifact artifact, final ResourceDownloader resourceDownloader, final ResolvedResource artifactRef) throws IOException {
+        final Resource resource = artifactRef.getResource();
         FileStoreEntry fileStoreEntry = fileStore.add(artifact.getId(), new Action<File>() {
             public void execute(File file) {
                 try {
-                    resourceDownloader.download(artifact, artifactRef.getResource(), file);
+                    resourceDownloader.download(artifact, resource, file);
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);
                 }
             }
         });
         final File fileInFileStore = fileStoreEntry.getFile();
-        if (artifactRef.getResource() instanceof ExternalResource) {
-            ExternalResource resource = (ExternalResource) artifactRef.getResource();
-            ExternalResourceMetaData metaData = resource.getMetaData();
+        if (resource instanceof ExternalResource) {
+            ExternalResource externalResource = (ExternalResource) resource;
+            ExternalResourceMetaData metaData = externalResource.getMetaData();
             artifactUrlCachedResolutionIndex.store(metaData.getLocation(), fileInFileStore, metaData);
         }
 
