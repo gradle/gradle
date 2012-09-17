@@ -10,45 +10,15 @@ This spec will assume this capability exists (or will exist) in so far as it is 
 
 ## Use cases
 
-### “Global” tasks
-
-There are certain tasks that are generally applicable to all builds. At the moment, such tasks are part of the implicit task container. Examples of are tasks such as `dependencies`, `projects`, `tasks` etc. The defining characteristic of a global task is that it is useful on all (or most) builds with little or no configuration.
-
-The identified problems with the implicit tasks approach are:
-
-1. It's a separate space/concept (i.e. adds complexity)
-2. It's not extensible (users cannot contribute to this space)
-3. Implicit tasks are not user configurable (because they live in a different task container)
-
-With this feature, the implicit task container would be removed. Tasks such as `dependencies`, `projects` etc. would be moved to a plugin that can be applied at invocation time.
-
-### Initialisation tasks
-
-These are tasks that you would want to use to create a Gradle project. This could be used for something similar to Maven archetype support.
-
-In an empty directory, something like…
-
-    ./gradlew initJavaProject
-
-Where the `initJavaProject` task is supplied by a plugin that is somehow applied at invocation time.
-
-There may be many different kinds of init type tasks; for different types of templates.
-
-### Temporary tasks
-
-Tasks such as `wrapper` and the “build comparison for Gradle upgrades” task are only needed for a short amount of time. It would be more convenient for the user if they could use this functionality without needing to modify the build script. 
-
-### Environmental/personal tasks
-
-Tasks such as the `idea` and `eclipse` tasks could be invoked without having to add the associated plugins to the build script. This would allow you to checkout a project, and generate the IDEA metadata for it without touching it. For example, they may have checked the project out just to browse the source in their IDE of choice and shouldn't be forced to edit the build script to achieve this.
-
-Some more use cases:
-
+* tasks that provide insight on any & all projects (e.g. `dependencies`, `projects`, `tasks`)
+* tasks that create a skeletal project (something like Maven archetypes)
 * tasks that manage the build environment (eg enable/disable the daemon)
+* tasks for managing the wrapper
 * tasks that manage and verify credentials
 * tasks that set up a developer environment for a given project (eg find and check it out, install the appropriate tools and services)
 * tasks that manage build aggregation
 * tasks that manage the daemon (eg show status, stop all, etc).
+* tasks that make IDE integration possible for other people's projects (i.e. generated IDE metadata without needing to add IDE plugin to project explicitly)
 
 ## Implementation ideas
 
@@ -63,6 +33,9 @@ We already have a metadata file for binary plugins that maps the common name to 
 **Pros:**
 
 1. Simple for implementors, does not introduce new files or constructs.
+2. Provides meta-data that can be used to include in the DSL reference the list of tasks provided by a task, and an index of all known tasks.
+3. Provides meta-data that can be used to provide informative error messages, for example: Task 'cleanIdea' not found. Did you mean to apply the 'idea' plugin?
+4. Provides meta-data that can be used to implement content assistance in the IDE. So, given apply plugin: 'idea', we know that 'cleanIdea' and 'tasks.cleanIdea' is available.
 
 **Cons:**
 
