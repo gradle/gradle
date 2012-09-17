@@ -24,8 +24,8 @@ import org.gradle.api.internal.filestore.FileStoreEntry
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.gradle.api.Action
 
-class ModuleDescriptorFileStoreTest extends Specification {
-    ModuleDescriptorFileStore store
+class ModuleDescriptorStoreTest extends Specification {
+    ModuleDescriptorStore store
     PathKeyFileStore pathKeyFileStore = Mock()
     ModuleRevisionId moduleRevisionId = Mock()
     ModuleVersionRepository repository = Mock()
@@ -33,7 +33,7 @@ class ModuleDescriptorFileStoreTest extends Specification {
     ModuleDescriptor moduleDescriptor = Mock()
 
     def setup() {
-        store = new ModuleDescriptorFileStore(pathKeyFileStore);
+        store = new ModuleDescriptorStore(pathKeyFileStore);
         _ * repository.getId() >> "repositoryId"
         _ * moduleRevisionId.getOrganisation() >> "org.test"
         _ * moduleRevisionId.getName() >> "testArtifact"
@@ -43,15 +43,14 @@ class ModuleDescriptorFileStoreTest extends Specification {
 
     def "getModuleDescriptorFile uses PathKeyFileStore to get file"() {
         when:
-        store.getModuleDescriptorFile(repository, moduleRevisionId);
-
+        store.getModuleDescriptor(repository, moduleRevisionId);
         then:
-        1 * pathKeyFileStore.get("module-metadata/org.test/testArtifact/1.0/repositoryId.ivy.xml") >> fileStoreEntry
+        1 * pathKeyFileStore.get("module-metadata/org.test/testArtifact/1.0/repositoryId.ivy.xml") >> null
     }
 
-    def "writeModuleDescriptorFile uses PathKeyFileStore to write file"() {
+    def "putModuleDescriptor uses PathKeyFileStore to write file"() {
         when:
-        store.writeModuleDescriptorFile(repository, moduleDescriptor);
+        store.putModuleDescriptor(repository, moduleDescriptor);
 
         then:
         1 * pathKeyFileStore.add("module-metadata/org.test/testArtifact/1.0/repositoryId.ivy.xml", {f -> _} as Action<File>) >> fileStoreEntry
