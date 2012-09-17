@@ -45,7 +45,7 @@ public class DefaultModuleDescriptorCache implements ModuleDescriptorCache {
         this.cacheMetadata = cacheMetadata;
 
         // TODO:DAZ inject this
-        moduleDescriptorStore = new ModuleDescriptorStore(new ModuleDescriptorFileStore(new PathKeyFileStore(cacheMetadata.getCacheDir())));
+        moduleDescriptorStore = new ModuleDescriptorStore(new PathKeyFileStore(cacheMetadata.getCacheDir()));
     }
 
     private PersistentIndexedCache<RevisionKey, ModuleDescriptorCacheEntry> getCache() {
