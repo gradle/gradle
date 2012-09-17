@@ -18,8 +18,10 @@ package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.Nullable;
+import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.JavaReflectionUtil;
+import org.gradle.util.DeprecationLogger;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
@@ -45,12 +47,19 @@ public abstract class AbstractOptions implements Serializable {
     }
 
     public Map<String, Object> optionMap() {
-        Map<String, Object> map = Maps.newHashMap();
-        for (Field field: getClass().getDeclaredFields()) {
-            if (!isOptionField(field)) { continue; }
-            addValueToMapIfNotNull(map, field);
-        }
-        return map;
+        final Class<? extends AbstractOptions> thisClass = getClass();
+        return DeprecationLogger.whileDisabled(new Factory<Map<String, Object>>() {
+            public Map<String, Object> create() {
+                Map<String, Object> map = Maps.newHashMap();
+                for (Field field : thisClass.getDeclaredFields()) {
+                    if (!isOptionField(field)) {
+                        continue;
+                    }
+                    addValueToMapIfNotNull(map, field);
+                }
+                return map;
+            }
+        });
     }
 
     private void addValueToMapIfNotNull(Map<String, Object> map, Field field) {
