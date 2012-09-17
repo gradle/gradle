@@ -16,8 +16,8 @@
 
 package org.gradle.api.plugins.maven.internal;
 
-import jarjar.org.apache.maven.model.io.xpp3.MavenXpp3Writer;
-import jarjar.org.apache.maven.project.MavenProject;
+import org.gradle.mvn3.org.apache.maven.model.io.xpp3.MavenXpp3Writer;
+import org.gradle.mvn3.org.apache.maven.project.MavenProject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

@@ -32,9 +32,7 @@ task jarJarMaven3(type: JarJar) {
     inputJars = configurations.mvn3Input
     outputDir = file("$buildDir/libs/jarjar")
 
-    //TODO SF
-    //org.apache.maven -> org.gradle.mvn3.org.apache.maven
-    rule('org.**', 'jarjar.org.@1')
+    rule('org.**', 'org.gradle.mvn3.org.@1')
 
     avoidConflictingPlexusComponents(it)
 }

@@ -18,7 +18,7 @@
 
 package org.gradle.api.plugins.maven.internal
 
-import jarjar.org.apache.maven.project.MavenProject
+import org.gradle.mvn3.org.apache.maven.project.MavenProject
 
 /**
  * This script obtains  the effective pom of the current project, reads its dependencies
