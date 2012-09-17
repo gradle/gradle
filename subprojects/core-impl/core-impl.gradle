@@ -1,6 +1,6 @@
 apply plugin: "groovy"
 
-import org.gradle.build.JarJar
+import org.gradle.build.*
 
 configurations {
     mvn3Input
@@ -21,31 +21,38 @@ dependencies {
 
     testCompile libraries.junit
 
-    compile files(["$buildDir/libs/jarjar/jarjar-maven-settings-3.0.4.jar",
-            "$buildDir/libs/jarjar/jarjar-maven-settings-builder-3.0.4.jar",
-            "$buildDir/libs/jarjar/jarjar-plexus-cipher-1.7.jar",
-            "$buildDir/libs/jarjar/jarjar-plexus-component-annotations-1.5.5.jar",
-            "$buildDir/libs/jarjar/jarjar-plexus-interpolation-1.14.jar",
-            "$buildDir/libs/jarjar/jarjar-plexus-sec-dispatcher-1.3.jar",
-            "$buildDir/libs/jarjar/jarjar-plexus-utils-2.0.6.jar"]) {
-        builtBy tasks.withType(JarJar)
+    compile fileTree("$buildDir/libs/jarjar") {
+        builtBy 'jarJarMaven3'
     }
 
     mvn3Input libraries.maven3_settings_builder
 }
-//TODO SF we should not resolve at config time
-configurations.mvn3Input.files.each{libFile->
-   task "jarjar-${libFile.name}"(type: JarJar) {
-        inputFile = libFile
-        outputFile = file("$buildDir/libs/jarjar/jarjar-${libFile.name}")
-        rule('org.**', 'jarjar.org.@1')
 
-       //TODO SF
-       //org.apache.maven -> org.gradle.mvn3.org.apache.maven
-   }
+task jarJarMaven3(type: JarJarAll) {
+    inputJars = configurations.mvn3Input
+    outputDir = file("$buildDir/libs/jarjar")
+
+    //TODO SF
+    //org.apache.maven -> org.gradle.mvn3.org.apache.maven
+    rule('org.**', 'jarjar.org.@1')
+
+    //TODO SF hide away or find a better way
+    doLast {
+        def plexusSec = "$outputDir/jarjar-plexus-sec-dispatcher-1.3.jar"
+        def plexusSecNoComps = "$outputDir/jarjar-plexus-sec-dispatcher-1.3.jar.noComps"
+        ant {
+            zip(destfile: plexusSecNoComps, update: true) {
+                zipfileset(src: plexusSec) {
+                    exclude(name: 'META-INF/plexus/components.xml')
+                }
+            }
+            move(file: plexusSecNoComps, tofile: plexusSec)
+        }
+    }
 }
 
-def allJarJars = tasks.withType(JarJar)
+
+def allJarJars = tasks.withType(JarJarAll)
 ideaModule.dependsOn allJarJars // I expected that buildable file collections links the ideaModule to the allJarJars already.
-eclipseClasspath.dependsOn allJarJars 
+eclipseClasspath.dependsOn allJarJars
 useTestFixtures()

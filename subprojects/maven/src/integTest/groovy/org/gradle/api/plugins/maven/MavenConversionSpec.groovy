@@ -19,14 +19,12 @@ package org.gradle.api.plugins.maven
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
-import spock.lang.Ignore
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 /**
  * by Szczepan Faber, created at: 9/4/12
  */
-@Ignore //work in progress
 class MavenConversionSpec extends AbstractIntegrationSpec {
 
     @Rule public final TestResources resources = new TestResources()
