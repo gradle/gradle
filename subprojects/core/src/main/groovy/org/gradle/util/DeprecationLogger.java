@@ -135,6 +135,15 @@ public class DeprecationLogger {
         }
     }
 
+    public static void whileDisabled(Runnable action) {
+        ENABLED.set(false);
+        try {
+            action.run();
+        } finally {
+            ENABLED.set(true);
+        }
+    }
+
     private static boolean isTraceLoggingEnabled() {
         return Boolean.getBoolean(ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME) || LOG_TRACE.get();
     }
