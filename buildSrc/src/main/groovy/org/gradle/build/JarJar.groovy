@@ -14,20 +14,19 @@
  * limitations under the License.
  */
 
+
+
 package org.gradle.build
 
 import com.tonicsystems.jarjar.Main as JarJarMain
-import org.gradle.api.DefaultTask
-import org.gradle.api.GradleException
+import org.gradle.api.*
+import org.gradle.api.file.*
 import org.gradle.api.internal.file.TemporaryFileProvider
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.InputFile
-import org.gradle.api.tasks.OutputFile
-import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.*
 
 class JarJar extends DefaultTask {
-    @InputFile File inputFile
-    @OutputFile File outputFile
+    @InputFiles FileCollection inputJars
+    @OutputDirectory File outputDir
 
     @Input def rules = [:]
     @Input def keeps = []
@@ -39,8 +38,14 @@ class JarJar extends DefaultTask {
             File tempRuleFile = tmpFileProvider.createTemporaryFile("jarjar", "rule")
             writeRuleFile(tempRuleFile)
 
-            JarJarMain.main("process", tempRuleFile.absolutePath, inputFile.absolutePath, outputFile.absolutePath)
-        } catch (IOException e) {
+            if (inputJars.empty) {
+                throw new GradleException("Unable to execute JarJar task because there are no input jars.");
+            }
+
+            for(file in inputJars) {
+                JarJarMain.main("process", tempRuleFile.absolutePath, file.absolutePath, new File(outputDir, "jarjar-$file.name").absolutePath)
+            }
+        } catch (Exception e) {
             throw new GradleException("Unable to execute JarJar task", e);
         }
     }
