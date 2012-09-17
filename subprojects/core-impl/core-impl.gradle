@@ -36,10 +36,23 @@ task jarJarMaven3(type: JarJarAll) {
     //org.apache.maven -> org.gradle.mvn3.org.apache.maven
     rule('org.**', 'jarjar.org.@1')
 
-    //TODO SF hide away or find a better way
-    doLast {
+    avoidConflictingPlexusComponents(it)
+}
+
+//adding explicit task dependencies due to http://issues.gradle.org/browse/GRADLE-2481
+def allJarJars = tasks.withType(JarJarAll)
+ideaModule.dependsOn allJarJars
+eclipseClasspath.dependsOn allJarJars
+useTestFixtures()
+
+def avoidConflictingPlexusComponents(JarJarAll task) {
+    //DefaultSecDispatcher component is configured in 2 different jars (META-INF/plexus/components.xml).
+    //The implementation is the same but the 'hint' is different and this makes plexus fail to start.
+    //I'm removing the components.xml file from the sec-dispatcher jar.
+    //This file contains only single component so I think we can remove it.
+    task.doLast {
         def plexusSec = "$outputDir/jarjar-plexus-sec-dispatcher-1.3.jar"
-        def plexusSecNoComps = "$outputDir/jarjar-plexus-sec-dispatcher-1.3.jar.noComps"
+        def plexusSecNoComps = "$plexusSec-noComps"
         ant {
             zip(destfile: plexusSecNoComps, update: true) {
                 zipfileset(src: plexusSec) {
@@ -50,10 +63,3 @@ task jarJarMaven3(type: JarJarAll) {
         }
     }
 }
-
-
-//adding explicit task dependencies due to http://issues.gradle.org/browse/GRADLE-2481
-def allJarJars = tasks.withType(JarJarAll)
-ideaModule.dependsOn allJarJars
-eclipseClasspath.dependsOn allJarJars
-useTestFixtures()
