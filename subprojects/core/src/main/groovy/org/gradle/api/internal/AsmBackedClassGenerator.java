@@ -16,11 +16,9 @@
 package org.gradle.api.internal;
 
 import groovy.lang.*;
-import org.gradle.api.Action;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.internal.reflect.JavaReflectionUtil;
-import org.gradle.util.ConfigureUtil;
 import org.gradle.util.JavaMethod;
 import org.objectweb.asm.*;
 import org.objectweb.asm.Type;
@@ -823,15 +821,4 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
     }
 
-    public static class ClosureBackedAction implements Action<Object> {
-        private final Closure cl;
-
-        public ClosureBackedAction(Closure cl) {
-            this.cl = cl;
-        }
-
-        public void execute(Object o) {
-            ConfigureUtil.configure(cl, o);
-        }
-    }
 }
