@@ -20,7 +20,7 @@ import org.gradle.util.ConfigureUtil
 
 class ProjectOutcomesBuilder {
 
-    MutableProjectOutcomes build(String name = "root", File dir = new File("."), Closure c) {
+    MutableProjectOutcomes build(String name = "root", File dir, Closure c) {
         def root = new MutableProjectOutcomes()
         root.name = name
         root.description = "root project"
