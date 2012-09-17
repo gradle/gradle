@@ -20,39 +20,45 @@ This spec will assume this capability exists (or will exist) in so far as it is 
 * tasks that manage the daemon (eg show status, stop all, etc).
 * tasks that make IDE integration possible for other people's projects (i.e. generated IDE metadata without needing to add IDE plugin to project explicitly)
 
-## Implementation ideas
+## Implementation plan
 
-### 1. Use existing plugin metadata file
+The lookup mechanism will be based on finding a file @ `META-INF/gradle-tasks/«task name».properties` on the classpath. This file is required to only have one entry: `plugin-implementation-class=«fully qualified plugin class name»`. If there is such a file for a task that a plugin creates, it is said to be “advertised”.
 
-We already have a metadata file for binary plugins that maps the common name to the implementing class. This could be extended to include tasks that the plugin can satisfy…
+As an example, the to make the `clean` an advertised task the following file would need to be added:
 
-    # META-INF/gradle-plugins/idea.properties
-    implementation-class=org.gradle.plugins.ide.idea.IdeaPlugin
-    implicit-tasks=idea,cleanIdea,ideaWorkspace
+    // META-INF/gradle-tasks/clean.properties
+    plugin-implementation-class=org.gradle.api.plugins.BasePlugin
 
-**Pros:**
+The first matching file on the classpath will be used; any others will be completely ignored.
 
-1. Simple for implementors, does not introduce new files or constructs.
-2. Provides meta-data that can be used to include in the DSL reference the list of tasks provided by a task, and an index of all known tasks.
-3. Provides meta-data that can be used to provide informative error messages, for example: Task 'cleanIdea' not found. Did you mean to apply the 'idea' plugin?
-4. Provides meta-data that can be used to implement content assistance in the IDE. So, given apply plugin: 'idea', we know that 'cleanIdea' and 'tasks.cleanIdea' is available.
+The order of how a task name can be satisfied will be:
 
-**Cons:**
+1. A task with the exact given name in the defined project
+2. An advertised task with the exact given name
+3. Partial name matching of an existing task (e.g. camel case execution)
+4. Task rules
 
-1. Potentially expensive to dereference. Would involve reading every plugin descriptor available until one is found that provides the task.
+The implication of this ordering is that partial task names cannot be used for advertised tasks (unless the plugin has not been explicitly applied by the user in the build script, making it a “regular” task). 
 
-### 2. Using a metadata file per implicit task
+Also, tasks that are available via task rules are not advertisable.
 
-Introducing a convention such as…
+The logic to look for plugins to apply to satisfy the task request will be needed to `TaskSelector`, or something similar.
 
-    # META-INF/gradle-implicit-tasks/cleanIdea.properties
-    implementation-class=org.gradle.plugins.ide.idea.IdeaPlugin
+## Test Coverage
 
-**Pros:**
+* Verify the resolution order above
+* Advertised task with plugin-implementation-class that is not found
+* Advertised task with malformed descriptor
+* Executing advertised task that is available due to explicitly applying plugin in build script
 
-1. Efficient to dereference, the classpath can be scanned for `META-INF/gradle-implicit-tasks/«task name».properties
+## Open Issues
 
-**Cons:**
+It's a bit cumbersome for users to maintain these `/gradle-tasks/*` properties files. They could easily diverge from the actual plugin implementation. We could generate these static properties files from annotations on the plugin class, as a compromise:
 
-1. A file per implicit task (clumsy for implementors, could be minimised by a “Gradle Plugin” plugin that generates these files from annotations etc.)
-2. Duplication between this task and the plugin implementation, creating risk of divergence (i.e. the plugin changing to no longer provide the advertised task)
+    @AdvertisedTasks([
+        @AdvertisedTask("someTask"),
+        @AdvertisedTask("someOtherTask")
+    ])
+    class MyPlugin implements Plugin<Project> {}
+
+The Gradle `plugin-development` plugin that is used to build Gradle plugins could generate the static descriptor files from the annotations. The annotations are convenient for users to maintain, and the static files are easy for tooling (Gradle and IDEs etc.) to find and understand.    
