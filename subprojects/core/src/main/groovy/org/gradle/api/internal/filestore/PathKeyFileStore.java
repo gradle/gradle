@@ -32,7 +32,6 @@ import org.gradle.util.GFileUtils;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
-import java.util.Random;
 import java.util.Set;
 
 /**
@@ -46,7 +45,6 @@ import java.util.Set;
 public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<String> {
 
     public static final String MARKER_FILE_SUFFIX = ".fslck";
-    private final Random generator = new Random(System.currentTimeMillis());
 
     private File baseDir;
     private final DeleteActionImpl deleteAction = new DeleteActionImpl(new IdentityFileResolver());
@@ -71,11 +69,6 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
         return new File(baseDir, path);
     }
 
-    public File getTempFile() {
-        long tempLong = generator.nextLong();
-        tempLong = tempLong < 0 ? -tempLong : tempLong;
-        return new File(baseDir, "temp/" + tempLong);
-    }
 
     public void moveFilestore(File destination) {
         if (baseDir.exists()) {

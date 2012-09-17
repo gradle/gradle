@@ -20,13 +20,17 @@ import org.gradle.api.Transformer;
 import org.gradle.util.hash.HashUtil;
 
 import java.io.File;
+import java.util.Random;
 import java.util.Set;
 
 public class GroupedAndNamedUniqueFileStore<K> implements FileStore<K>, FileStoreSearcher<K> {
 
+    private final Random generator = new Random(System.currentTimeMillis());
+
     private PathKeyFileStore delegate;
     private final Transformer<String, K> grouper;
     private final Transformer<String, K> namer;
+
 
     public GroupedAndNamedUniqueFileStore(PathKeyFileStore delegate, Transformer<String, K> grouper, Transformer<String, K> namer) {
         this.delegate = delegate;
@@ -58,7 +62,9 @@ public class GroupedAndNamedUniqueFileStore<K> implements FileStore<K>, FileStor
     }
 
     public File getTempFile() {
-        return delegate.getTempFile();
+        long tempLong = generator.nextLong();
+        tempLong = tempLong < 0 ? -tempLong : tempLong;
+        return new File(delegate.getBaseDir(), "temp/" + tempLong);
     }
 
     public void moveFilestore(File destination) {
