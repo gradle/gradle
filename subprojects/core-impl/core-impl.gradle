@@ -56,3 +56,4 @@ def allJarJars = tasks.withType(JarJarAll)
 ideaModule.dependsOn allJarJars // I expected that buildable file collections links the ideaModule to the allJarJars already.
 eclipseClasspath.dependsOn allJarJars
 useTestFixtures()
+classpathManifest.dependsOn(allJarJars) //TODO SF hotfix for the classpath manfiest issue, needs a better fix
