@@ -1,15 +1,12 @@
-
 This spec describes the implementation plan for [GRADLE-1653](http://issues.gradle.org/browse/GRADLE-1653) (a repository notation for
 obtaining dependencies from GitHub) and the general approach to providing custom repository notations in the future.
 
 # Use cases
 
 It is becoming common for people to host files on GitHub that Gradle users wish to consume as dependencies. At the moment users need to configure
-a custom dependency repository with a custom artifact pattern which is error prone.
+a custom dependency repository with a custom artifact pattern which is error prone. 
 
 The benefit of a custom repository notation is not limited to GitHub and could be applied to other places such as Google Code.
-
-Note: The existing `javascript-base` plugin adds some custom repository notations which should be unified with whatever approach we settle on.
 
 # User visible changes
 
@@ -18,70 +15,53 @@ The ideal API will look very similar to:
     apply plugin: 'github-dependencies'
     
     repositories {
-      github.downloads { user "«github username»" }
+      github.downloads("«github username"», "«github repository»")
+      github.downloads("«github username"», "«github repository»") { 
+        // further configuration 
+      }
     }
 
 That is, an extension named `github` is added to the `repositories {}` script block to extend that DSL. It is _not_ a project extension.
 
 It looks like:
 
-    public class GitHubRepositoryHandlerExtension {
-        RepositoryHandler repositories
-        
-        public GitHubDownloadsRepository downloads(Action<GitHubDownloadsRepository> configure) {
-          GitHubDownloadsRepository repo = createGitHubDownloadsRepository()
-          configure.execute(repo)
-          repositories.add(repo)
-          return repo
-        }
+    class GitHubRepositoryHandlerExtension {
+      GitHubDownloadsRepository downloads(String user, String repo) {}
+      GitHubDownloadsRepository downloads(String user, String repo, Action<GitHubDownloadsRepository> configure) {}
     }
     
 The `GitHubDownloadsRepository` looks like:
 
-    public interface GitHubDownloadsRepository extends ArtifactRepository, AuthenticationSupported {
+    interface GitHubDownloadsRepository extends ArtifactRepository {
         // For overriding the default base: https://github.com/downloads
-        void setBaseUrl(Object baseUrl);
-        URI getBaseUrl();
+        void setBaseUrl(Object baseUrl)
+        URI getBaseUrl()
         
-        void setUser(String user);
-        String getUser();
-        
-        // Control the artifact pattern, defaults to: "[organisation]/[artifact](-[classifier])(-[revision]).[ext]";
-        void setArtifactPattern(String pattern);
-        String getArtifactPattern();
-        
-        // Look for a pom file instead of ivy.xml? defaults true
-        void setUsePom(boolean flag);
-        boolean isUsePom();
-        
-        // Control the ivy pattern (ignored if !isUsePom()), defaults to: "[organisation]/[artifact](-[revision])-ivy.xml";
-        void setIvyPattern(String pattern);
-        String getIvyPattern();
+        void setUser(String user)
+        String getUser()
+
+        void setRepo(String repo)
+        String getRepo()
     }
 
 Given:
     
     repositories {
-      github.downloads { user "githubUser" }
+      github.downloads("githubUser", "myProject")
     }
 
-this is how different notations will resolve:
+This is how different notations will resolve:
 
-* `myProject:myThing` - `https://github.com/downloads/githubUser/myProject/myThing.jar` (`githubUser/myProject/myThing.pom`)
-* `myProject:myThing:1.0` - `https://github.com/downloads/githubUser/myProject/myThing-1.0.jar` (`githubUser/myProject/myThing-1.0.pom`)
-* `myProject:myThing:1.0@zip` - `https://github.com/downloads/githubUser/myProject/myThing-1.0.zip` (`githubUser/myProject/myThing-1.0.pom`)
+* `org.my:myThing` - `https://github.com/downloads/githubUser/myProject/org.my-myThing.jar`
+* `org.my:myThing:1.0` - `https://github.com/downloads/githubUser/myProject/org.my-myThing-1.0.jar`
+* `org.my:myThing:1.0@zip` - `https://github.com/downloads/githubUser/myProject/org.my-myThing-1.0.zip`
+* `:myThing` - `https://github.com/downloads/githubUser/myProject/myThing.jar`
+* `:myThing:1.0` - `https://github.com/downloads/githubUser/myProject/myThing.jar`
 
-Given:
-    
-    repositories {
-      github.downloads { user "githubUser"; usePoms false }
-    }
+Notes:
 
-this is how different notations will resolve:
-
-* `myProject:myThing` - `https://github.com/downloads/githubUser/myProject/myThing.jar` (`githubUser/myProject/myThing-ivy.xml`)
-* `myProject:myThing:1.0` - `https://github.com/downloads/githubUser/myProject/myThing-1.0.jar` (`githubUser/myProject/myThing-1.0-ivy.xml`)
-* `myProject:myThing:1.0@zip` - `https://github.com/downloads/githubUser/myProject/myThing-1.0.zip` (`githubUser/myProject/myThing-1.0-ivy.xml`)
+1. Dependency metadata is not supported in this initial implementation
+2. Private github repositories are unsupported
 
 ## Sad day cases
 
@@ -98,13 +78,15 @@ We should also run 1 happy day case against the real GitHub and one sad day case
 
 ## Changing dependencies
 
-GitHub does not automatically serve checksums or ETags, which our changing support is predicated on. We will ensure we have an integration test for this situation (i.e. we have no way of telling if it's changed without downloading).
+It is unlikely that checksums will be published @ GitHub downloads. However, GitHub downloads does serve last modified and ETags.
 
-We cannot practically tests a real changing dependency at GitHub.
+Changing dependencies will be supported.
 
 ## Dynamic dependencies
 
 GitHub downloads does not support directory listings. If you hit a directory you get a 403 and some XML. We will have to verify that we can handle this gracefully.
+
+Dynamic dependencies will not be supported.
 
 ## Headers and other specific behaviour
 
@@ -126,4 +108,4 @@ If `isUsePoms() == true` a `MavenResolver` will be returned, otherwise an `IvyRe
 
 * Private GitHub repos require preemptive auth for download request, and 404s are returned for any kind of authn/authz failure. Not sure how our credential support will hanlde this.
 
-* If the user wants to use a POM file they can't use a group with `.`'s in it, because the maven resolver converts `.` to `/` when resolving the pattern. The GitHub downloads space is flat so this won't work. Ideally, we'd have a resolver that can deal with POMs that doesn't require `m2Compatible = true`.
+* Support for metadata will be needed in the future. This should be a configurable aspect of the `GitHubDownloadsRepository` DSL.
