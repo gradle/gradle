@@ -24,7 +24,6 @@ import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.plugins.maven.internal.Maven2Gradle
-import org.gradle.api.plugins.maven.internal.MavenProjectsCreator
 import org.gradle.api.tasks.TaskAction
 
 /**
@@ -59,8 +58,6 @@ Not everything may work perfectly at the moment.
         def locator = services.get(DependencyManagementServices).get(LocalMavenRepositoryLocator);
         def settings = locator.buildSettings()
 
-        def mavenProjects = new MavenProjectsCreator(settings, project.file("pom.xml")).create()
-
-        new Maven2Gradle(mavenProjects).convert(args)
+        new Maven2Gradle().convert(args)
     }
 }
