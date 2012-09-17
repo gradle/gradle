@@ -16,11 +16,11 @@
 
 package org.gradle.api.internal.filestore
 
+import org.gradle.api.Action
 import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestFile
 import org.junit.Rule
 import spock.lang.Specification
-import org.gradle.api.Action
 
 class PathKeyFileStoreTest extends Specification {
 
@@ -70,11 +70,19 @@ class PathKeyFileStoreTest extends Specification {
 
     def "can get from filestore"() {
         when:
+        createFile("abc", "fs/a")
+        then:
+        store.get("a") != null
+        store.get("b") == null
+    }
+
+    def "get cleans up filestore"() {
+        when:
         createFile("abc", "fs/a").exists()
         createFile("lock", "fs/a.fslck").exists()
         then:
-        store.get("a").file.exists() == false
-        store.get("a.fslock").file.exists() == false
+        store.get("a") == null
+        store.get("a.fslock") == null
     }
 
     def "can overwrite stale files "() {
@@ -138,7 +146,7 @@ class PathKeyFileStoreTest extends Specification {
         def search = store.search("**/*")
         then:
         search.size() == 2
-        search.collect{entry -> entry.file.name}.sort() == ["a", "c"]
+        search.collect {entry -> entry.file.name}.sort() == ["a", "c"]
     }
 
     def "move filestore"() {
