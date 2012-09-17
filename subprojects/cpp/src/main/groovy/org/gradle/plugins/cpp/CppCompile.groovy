@@ -16,7 +16,18 @@
 
 package org.gradle.plugins.cpp
 
-import org.gradle.plugins.binaries.tasks.Compile
+import org.gradle.api.DefaultTask
+import org.gradle.api.internal.tasks.compile.Compiler
+import org.gradle.api.tasks.TaskAction
+import org.gradle.plugins.binaries.model.CompileSpec
 
-class CppCompile extends Compile {
+class CppCompile extends DefaultTask {
+    CompileSpec spec
+    Compiler compiler
+
+    @TaskAction
+    void compile() {
+        def result = compiler.execute(spec)
+        didWork = result.didWork
+    }
 }
