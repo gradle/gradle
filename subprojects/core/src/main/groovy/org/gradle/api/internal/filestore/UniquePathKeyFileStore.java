@@ -16,19 +16,30 @@
 
 package org.gradle.api.internal.filestore;
 
+import org.gradle.api.Action;
+
 import java.io.File;
 
 /**
  * Assumes that files do not need to be replaced in the filestore.
  *
- * Can be used as an optimisation if path contains a checksum of the file, as
- * there is no point to perform the replace in that circumstance.
+ * Can be used as an optimisation if path contains a checksum of the file, as there is no point to perform the replace in that circumstance.
  */
 public class UniquePathKeyFileStore extends PathKeyFileStore {
 
     public UniquePathKeyFileStore(File baseDir) {
         super(baseDir);
     }
+
+    public FileStoreEntry add(String key, Action<File> addAction) {
+        final FileStoreEntry fileStoreEntry = get(key);
+        if (fileStoreEntry != null) {
+            return fileStoreEntry;
+        }
+        return super.add(key, addAction);
+
+    }
+
 
     @Override
     protected FileStoreEntry saveIntoFileStore(File source, File destination, boolean isMove) {
