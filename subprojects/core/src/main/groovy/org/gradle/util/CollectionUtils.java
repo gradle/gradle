@@ -68,6 +68,10 @@ public abstract class CollectionUtils {
         return collect(list, new ArrayList<R>(list.size()), transformer);
     }
 
+    public static <R, I> List<R> collect(I[] list, Transformer<R, I> transformer) {
+        return collect(Arrays.asList(list), transformer);
+    }
+
     public static <R, I> Set<R> collect(Set<? extends I> set, Transformer<R, I> transformer) {
         return collect(set, new HashSet<R>(), transformer);
     }

@@ -86,6 +86,11 @@ class CollectionUtilsTest extends Specification {
 
     }
 
+    def "collect array"() {
+        expect:
+        collect([1, 2, 3] as Object[], transformer { it * 2 }) == [2, 4, 6]
+    }
+
     def "list stringize"() {
         expect:
         stringize([1, 2, 3]) == ["1", "2", "3"]
