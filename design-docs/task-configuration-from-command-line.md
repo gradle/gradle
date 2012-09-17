@@ -22,8 +22,18 @@ It might have been implemented this way to avoid extensive reflecting on many ty
 
 ## Support the new dependency report
 
-Here's what is needed for the 'dependencyInsightReport' that renders the 'inverted' dependency tree(s) for given dependency (more about that - see the the spec about improving dependency reporting).
+Here's what is needed for the 'dependencyInsightReport' that renders the inverted dependency tree(s) for given dependency (more about that - see the the spec about improving dependency reporting).
 This report needs some support on the command line.
+
+### User visible changes
+
+TBD
+
+### Test coverage
+
+TBD
+
+### Implementation approach
 
 1. Make the command line option can carry the `String` value. E.g. remove the current limitation of only `boolean` fields supported.
 2. Work well if if name-matching selection returns multiple tasks from different projects. I assume we want to configure them all.
@@ -33,11 +43,31 @@ This report needs some support on the command line.
 
 ## Make the feature public
 
+### User visible changes
+
+TBD
+
+### Test coverage
+
+TBD
+
+### Implementation approach
+
 1. Move the `@CommandLineOption` annotation to the public API and mark `@Incubating`.
 2. Add documentation to 'implementing custom tasks` chapter.
 3. Support annotating a Groovy task field.
 
 ## Improve error handling
+
+### User visible changes
+
+TBD
+
+### Test coverage
+
+TBD
+
+### Implementation approach
 
 1. Fix issue where an unknown option leads to an internal error.
 2. Nice error reporting for misspelled options.
@@ -45,18 +75,51 @@ This report needs some support on the command line.
 
 ## Allow command-line options to be discovered
 
-1. Add some command line interface for discovering available command-line options. For example, perhaps `gradle help test` shows a usage message for the `test` task, plus perhaps some
-   details about the task - which plugin it came from, its dependencies, its outputs, etc.
+Add some command line interface for discovering available command-line options. For example, perhaps `gradle help test` shows a usage message for the `test` task.
 
-## Include the command-line options in the generated DSL reference
+### User visible changes
 
-1. The reference page for a task type should show which command-line options are available for the type.
+TBD
+
+### Test coverage
+
+TBD
+
+### Implementation approach
+
+TBD
 
 ## Add command-line options to other tasks
+
+### User visible changes
+
+TBD
+
+### Test coverage
+
+TBD
+
+### Implementation approach
 
 1. Add option to `DependencyReportTask` to select the configuration(s) to be reported on.
 2. Add option to `Test` task to select which tests to include, which tests to exclude, and whether to run with debugging enabled.
 3. Probably more - see use cases above.
+
+## Include the command-line options in the generated DSL reference
+
+The reference page for a task type should show which command-line options are available for the type.
+
+### User visible changes
+
+TBD
+
+### Test coverage
+
+TBD
+
+### Implementation approach
+
+TBD
 
 # Open issues
 
