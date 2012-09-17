@@ -25,6 +25,8 @@ import org.gradle.api.internal.tasks.compile.daemon.DaemonGroovyCompiler;
 import org.gradle.api.internal.tasks.compile.daemon.InProcessCompilerDaemonFactory;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.compile.GroovyCompileOptions;
+import org.gradle.internal.Factory;
+import org.gradle.util.DeprecationLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,30 +44,34 @@ public class GroovyCompilerFactory {
         this.javaCompilerFactory = javaCompilerFactory;
     }
 
-    Compiler<GroovyJavaJointCompileSpec> create(GroovyCompileOptions groovyOptions, CompileOptions javaOptions) {
-        // Some sanity checking of options
-        if (groovyOptions.isUseAnt() && !javaOptions.isUseAnt()) {
-            LOGGER.warn("When groovyOptions.useAnt is enabled, options.useAnt must also be enabled. Ignoring options.useAnt = false.");
-            javaOptions.setUseAnt(true);
-        } else if (!groovyOptions.isUseAnt() && javaOptions.isUseAnt()) {
-            LOGGER.warn("When groovyOptions.useAnt is disabled, options.useAnt must also be disabled. Ignoring options.useAnt = true.");
-            javaOptions.setUseAnt(false);
-        }
+    Compiler<GroovyJavaJointCompileSpec> create(final GroovyCompileOptions groovyOptions, final CompileOptions javaOptions) {
+        return DeprecationLogger.whileDisabled(new Factory<Compiler<GroovyJavaJointCompileSpec>>() {
+            public Compiler<GroovyJavaJointCompileSpec> create() {
+                // Some sanity checking of options
+                if (groovyOptions.isUseAnt() && !javaOptions.isUseAnt()) {
+                    LOGGER.warn("When groovyOptions.useAnt is enabled, options.useAnt must also be enabled. Ignoring options.useAnt = false.");
+                    javaOptions.setUseAnt(true);
+                } else if (!groovyOptions.isUseAnt() && javaOptions.isUseAnt()) {
+                    LOGGER.warn("When groovyOptions.useAnt is disabled, options.useAnt must also be disabled. Ignoring options.useAnt = true.");
+                    javaOptions.setUseAnt(false);
+                }
 
-        if (groovyOptions.isUseAnt()) {
-            return new AntGroovyCompiler(antBuilder, classPathRegistry);
-        }
+                if (groovyOptions.isUseAnt()) {
+                    return new AntGroovyCompiler(antBuilder, classPathRegistry);
+                }
 
-        javaCompilerFactory.setGroovyJointCompilation(true);
-        Compiler<JavaCompileSpec> javaCompiler = javaCompilerFactory.create(javaOptions);
-        Compiler<GroovyJavaJointCompileSpec> groovyCompiler = new ApiGroovyCompiler(javaCompiler);
-        CompilerDaemonFactory daemonFactory;
-        if (groovyOptions.isFork()) {
-            daemonFactory = CompilerDaemonManager.getInstance();
-        } else {
-            daemonFactory = InProcessCompilerDaemonFactory.getInstance();
-        }
-        groovyCompiler = new DaemonGroovyCompiler(project, groovyCompiler, daemonFactory);
-        return new NormalizingGroovyCompiler(groovyCompiler);
+                javaCompilerFactory.setGroovyJointCompilation(true);
+                Compiler<JavaCompileSpec> javaCompiler = javaCompilerFactory.create(javaOptions);
+                Compiler<GroovyJavaJointCompileSpec> groovyCompiler = new ApiGroovyCompiler(javaCompiler);
+                CompilerDaemonFactory daemonFactory;
+                if (groovyOptions.isFork()) {
+                    daemonFactory = CompilerDaemonManager.getInstance();
+                } else {
+                    daemonFactory = InProcessCompilerDaemonFactory.getInstance();
+                }
+                groovyCompiler = new DaemonGroovyCompiler(project, groovyCompiler, daemonFactory);
+                return new NormalizingGroovyCompiler(groovyCompiler);
+            }
+        });
     }
 }

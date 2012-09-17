@@ -40,8 +40,7 @@ class JreJavaHomeGroovyIntegrationTest extends AbstractIntegrationSpec {
                 }
                 compileGroovy{
                     options.fork = ${forkMode}
-                    options.useAnt = ${useAnt}
-                    groovyOptions.useAnt = ${useAnt}
+                    DeprecationLogger.whileDisabled { options.useAnt = ${useAnt} }
                 }
                 """
         when:
@@ -67,7 +66,7 @@ class JreJavaHomeGroovyIntegrationTest extends AbstractIntegrationSpec {
             }
             compileGroovy{
                 options.fork = ${forkMode}
-                options.useAnt = ${useAnt}
+                DeprecationLogger.whileDisabled { options.useAnt = ${useAnt} }
                 groovyOptions.useAnt = ${useAnt}
             }
             """

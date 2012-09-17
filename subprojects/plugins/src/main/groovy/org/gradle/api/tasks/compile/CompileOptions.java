@@ -174,7 +174,10 @@ public class CompileOptions extends AbstractOptions {
     /**
      * Tells whether to produce optimized byte code. Only takes effect if {@code useAnt} is {@code true}.
      * Note that this flag is ignored by Sun's javac starting with JDK 1.3.
+     *
+     * @deprecated No replacement
      */
+    @Deprecated
     public boolean isOptimize() {
         return optimize;
     }
@@ -182,9 +185,12 @@ public class CompileOptions extends AbstractOptions {
     /**
      * Tells whether to produce optimized byte code. Only takes effect if {@code useAnt} is {@code true}.
      * Note that this flag is ignored by Sun's javac starting with JDK 1.3.
+     *
+     * @deprecated No replacement
      */
     // @Input not recognized if there is only an "is" method
     @Input
+    @Deprecated
     public boolean getOptimize() {
         return optimize;
     }
@@ -192,14 +198,18 @@ public class CompileOptions extends AbstractOptions {
     /**
      * Sets whether to produce optimized byte code. Only takes effect if {@code useAnt} is {@code true}.
      * Note that this flag is ignored by Sun's javac starting with JDK 1.3.
+     *
+     * @deprecated No replacement
      */
+    @Deprecated
     public void setOptimize(boolean optimize) {
+        DeprecationLogger.nagUserOfDiscontinuedProperty("CompileOptions.optimize", "There is no replacement for this property.");
         this.optimize = optimize;
     }
 
     /**
      * Tells whether to include debugging information in the generated class files. Defaults
-     * to {@code true}. See {@link DebugOptions#debugLevel} for which debugging information will be generated.
+     * to {@code true}. See {@link DebugOptions#getDebugLevel()} for which debugging information will be generated.
      */
     public boolean isDebug() {
         return debug;
@@ -207,7 +217,7 @@ public class CompileOptions extends AbstractOptions {
 
     /**
      * Tells whether to include debugging information in the generated class files. Defaults
-     * to {@code true}. See {@link DebugOptions#debugLevel} for which debugging information will be generated.
+     * to {@code true}. See {@link DebugOptions#getDebugLevel()} for which debugging information will be generated.
      */
     // @Input not recognized if there is only an "is" method
     @Input
@@ -217,7 +227,7 @@ public class CompileOptions extends AbstractOptions {
 
     /**
      * Sets whether to include debugging information in the generated class files. Defaults
-     * to {@code true}. See {@link DebugOptions#debugLevel} for which debugging information will be generated.
+     * to {@code true}. See {@link DebugOptions#getDebugLevel()} for which debugging information will be generated.
      */
     public void setDebug(boolean debug) {
         this.debug = debug;
@@ -329,7 +339,10 @@ public class CompileOptions extends AbstractOptions {
     /**
      * Tells whether the Java runtime should be put on the compile class path. Only takes effect if
      * {@code useAnt} is {@code true}. Defaults to {@code false}.
+     *
+     * @deprecated No replacement
      */
+    @Deprecated
     public boolean isIncludeJavaRuntime() {
         return includeJavaRuntime;
     }
@@ -337,9 +350,12 @@ public class CompileOptions extends AbstractOptions {
     /**
      * Tells whether the Java runtime should be put on the compile class path. Only takes effect if
      * {@code useAnt} is {@code true}. Defaults to {@code false}.
+     *
+     * @deprecated No replacement
      */
     // @Input not recognized if there is only an "is" method
     @Input
+    @Deprecated
     public boolean getIncludeJavaRuntime() {
         return includeJavaRuntime;
     }
@@ -347,8 +363,12 @@ public class CompileOptions extends AbstractOptions {
     /**
      * Sets whether the Java runtime should be put on the compile class path. Only takes effect if
      * {@code useAnt} is {@code true}. Defaults to {@code false}.
+     *
+     * @deprecated No replacement
      */
+    @Deprecated
     public void setIncludeJavaRuntime(boolean includeJavaRuntime) {
+        DeprecationLogger.nagUserOfDiscontinuedProperty("CompileOptions.includeJavaRuntime", "There is no replacement for this property.");
         this.includeJavaRuntime = includeJavaRuntime;
     }
 
@@ -408,7 +428,10 @@ public class CompileOptions extends AbstractOptions {
     /**
      * Tells whether to use the Ant javac task over Gradle's own Java compiler integration.
      * Defaults to {@code false}.
+     *
+     * @deprecated No replacement
      */
+    @Deprecated
     public boolean isUseAnt() {
         return useAnt;
     }
@@ -416,8 +439,12 @@ public class CompileOptions extends AbstractOptions {
     /**
      * Sets whether to use the Ant javac task over Gradle's own Java compiler integration.
      * Defaults to {@code false}.
+     *
+     * @deprecated No replacement
      */
+    @Deprecated
     public void setUseAnt(boolean useAnt) {
+        DeprecationLogger.nagUserOfDiscontinuedProperty("CompileOptions.useAnt", "There is no replacement for this property.");
         this.useAnt = useAnt;
     }
 

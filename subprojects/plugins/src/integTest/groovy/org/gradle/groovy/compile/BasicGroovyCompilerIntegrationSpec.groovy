@@ -98,8 +98,11 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 dependencies { groovy 'org.codehaus.groovy:groovy-all:$version' }
         """
 
-        buildFile << compilerConfiguration()
-        println "->> USING BUILD FILE: ${buildFile.text}"
+        buildFile << """
+DeprecationLogger.whileDisabled {
+    ${compilerConfiguration()}
+}
+"""
     }
 
     abstract String compilerConfiguration()

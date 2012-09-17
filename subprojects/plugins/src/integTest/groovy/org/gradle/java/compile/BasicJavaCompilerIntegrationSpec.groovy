@@ -23,7 +23,11 @@ abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec 
     def setup() {
         executer.withArguments("-i")
         buildFile << buildScript()
-        buildFile << compilerConfiguration()
+        buildFile << """
+DeprecationLogger.whileDisabled {
+    ${compilerConfiguration()}
+}
+"""
     }
 
     def compileGoodCode() {

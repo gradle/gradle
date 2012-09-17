@@ -36,7 +36,7 @@ class JreJavaHomeJavaIntegrationTest extends AbstractIntegrationSpec {
         apply plugin:'java'
         compileJava{
             options.fork = ${forkMode}
-            options.useAnt = ${useAnt}
+            DeprecationLogger.whileDisabled { options.useAnt = ${useAnt} }
         }
         """
         when:
@@ -57,7 +57,7 @@ class JreJavaHomeJavaIntegrationTest extends AbstractIntegrationSpec {
                     apply plugin:'java'
                     compileJava{
                         options.fork = ${forkMode}
-                        options.useAnt = ${useAnt}
+                        DeprecationLogger.whileDisabled { options.useAnt = ${useAnt} }
         }
         """
         def envVars = System.getenv().findAll { it.key != 'JAVA_HOME' || it.key != 'Path'}
