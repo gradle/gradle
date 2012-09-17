@@ -96,8 +96,9 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
             markerFile.createNewFile();
             destination.delete();
             addAction.execute(destination);
-        } catch (IOException e) {
-            throw new GradleException(String.format("Failed to add file with key '%s' into filestore at '%s' ", key, getBaseDir().getAbsolutePath()), e);
+        } catch (Exception exception) {
+            destination.delete();
+            throw new GradleException(String.format("Failed to add file with key '%s' into filestore at '%s' ", key, getBaseDir().getAbsolutePath()), exception);
         } finally {
             markerFile.delete();
         }
@@ -123,11 +124,11 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
                 FileUtils.copyFile(source, destination);
             }
             deleteAction.delete(markerFile);
-        } catch (IOException e) {
+        } catch (Exception exception) {
             deleteAction.delete(destination);
             deleteAction.delete(markerFile);
             String verb = isMove ? "move" : "copy";
-            throw new GradleException(String.format("Failed to %s file '%s' into filestore at '%s' ", verb, source, destination), e);
+            throw new GradleException(String.format("Failed to %s file '%s' into filestore at '%s' ", verb, source, destination), exception);
         }
 
         return entryAt(destination);

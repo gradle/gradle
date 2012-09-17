@@ -17,6 +17,7 @@
 package org.gradle.api.internal.filestore
 
 import org.gradle.api.Action
+import org.gradle.api.GradleException
 import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestFile
 import org.junit.Rule
@@ -66,6 +67,15 @@ class PathKeyFileStoreTest extends Specification {
         then:
         fsBase.file("a").text == "abc"
         fsBase.file("b").text == "def"
+    }
+
+    def "add throws GradleException if exception in action occured"() {
+        when:
+        store.add("a", { File f -> throw new Exception("TestException")} as Action<File>)
+        then:
+        thrown(GradleException)
+        !fsBase.file("a").exists()
+        !fsBase.file("a.fslock").exists()
     }
 
     def "can get from filestore"() {
