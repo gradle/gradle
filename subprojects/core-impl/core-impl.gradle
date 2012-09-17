@@ -52,8 +52,8 @@ task jarJarMaven3(type: JarJarAll) {
 }
 
 
+//adding explicit task dependencies due to http://issues.gradle.org/browse/GRADLE-2481
 def allJarJars = tasks.withType(JarJarAll)
-ideaModule.dependsOn allJarJars // I expected that buildable file collections links the ideaModule to the allJarJars already.
+ideaModule.dependsOn allJarJars
 eclipseClasspath.dependsOn allJarJars
 useTestFixtures()
-classpathManifest.dependsOn(allJarJars) //TODO SF hotfix for the classpath manfiest issue, needs a better fix
