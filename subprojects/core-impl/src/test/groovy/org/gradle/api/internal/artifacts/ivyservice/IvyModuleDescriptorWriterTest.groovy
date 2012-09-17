@@ -26,13 +26,6 @@ import org.gradle.util.TestFile
 import org.junit.Rule
 import spock.lang.Specification
 
-/**
- * Created with IntelliJ IDEA.
- * User: Rene
- * Date: 12.09.12
- * Time: 17:49
- * To change this template use File | Settings | File Templates.
- */
 class IvyModuleDescriptorWriterTest extends Specification {
 
 
