@@ -26,6 +26,8 @@ import org.gradle.util.TestFile
 import org.junit.Rule
 import spock.lang.Specification
 
+import java.text.SimpleDateFormat
+
 class IvyModuleDescriptorWriterTest extends Specification {
 
 
@@ -43,7 +45,7 @@ class IvyModuleDescriptorWriterTest extends Specification {
         _ * md.getLicenses() >> Collections.emptyList()
         _ * md.inheritedDescriptors >> Collections.emptyList()
         _ * md.resolvedModuleRevisionId >> resolvedModuleRevisionId
-        _ * md.resolvedPublicationDate >> new Date(0)
+        _ * md.resolvedPublicationDate >> date("20120817120000")
         _ * md.moduleRevisionId >> moduleRevisionId;
         _ * moduleRevisionId.organisation >> "org.test"
         _ * moduleRevisionId.name >> "projectA"
@@ -66,6 +68,11 @@ class IvyModuleDescriptorWriterTest extends Specification {
         assert ivyModule.@version == "2.0"
         assert ivyModule.info.@organisation == "org.test"
         assert ivyModule.info.@module == "projectA"
-        assert ivyModule.info.@publication == "19700101010000"
+        assert ivyModule.info.@publication == "20120817120000"
+    }
+
+    def date(String timestamp) {
+        def format = new SimpleDateFormat("yyyyMMddHHmmss")
+        return format.parse(timestamp)
     }
 }
