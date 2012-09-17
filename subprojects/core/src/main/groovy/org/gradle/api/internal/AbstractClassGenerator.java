@@ -165,7 +165,8 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
                 boolean hasClosure = false;
                 Class[] actionMethodParameterTypes = method.getNativeParameterTypes();
                 int numParams = actionMethodParameterTypes.length;
-                Class[] closureMethodParameterTypes = Arrays.copyOf(actionMethodParameterTypes, numParams);
+                Class[] closureMethodParameterTypes = new Class[actionMethodParameterTypes.length];
+                System.arraycopy(actionMethodParameterTypes, 0, closureMethodParameterTypes, 0, actionMethodParameterTypes.length);
                 closureMethodParameterTypes[numParams - 1] = Closure.class;
                 for (MetaMethod otherMethod : methods.get(method.getName())) {
                     if (Arrays.equals(otherMethod.getNativeParameterTypes(), closureMethodParameterTypes)) {

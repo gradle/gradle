@@ -31,7 +31,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class AsmBackedClassGenerator extends AbstractClassGenerator {
@@ -780,7 +779,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 }
             });
             int numParams = originalParameterTypes.length;
-            Type[] closurisedParameterTypes = Arrays.copyOf(originalParameterTypes, originalParameterTypes.length);
+            Type[] closurisedParameterTypes = new Type[numParams];
+            System.arraycopy(originalParameterTypes, 0, closurisedParameterTypes, 0, numParams);
             closurisedParameterTypes[numParams - 1] = closureType;
 
             String methodDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE, closurisedParameterTypes);
