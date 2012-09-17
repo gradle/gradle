@@ -21,6 +21,7 @@ import com.google.common.collect.Multimap;
 import groovy.lang.*;
 import org.apache.commons.collections.map.AbstractReferenceMap;
 import org.apache.commons.collections.map.ReferenceMap;
+import org.codehaus.groovy.reflection.CachedClass;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.plugins.ExtensionAware;
@@ -148,19 +149,26 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
                 if (method.isPrivate()) {
                     continue;
                 }
-                if (method.getParameterTypes().length != 1) {
+                CachedClass[] parameterTypes = method.getParameterTypes();
+                if (parameterTypes.length == 0) {
                     continue;
                 }
                 methods.put(method.getName(), method);
-                if (method.getParameterTypes()[0].getTheClass().equals(Action.class)) {
+
+                CachedClass lastParameter = parameterTypes[parameterTypes.length - 1];
+                if (lastParameter.getTheClass().equals(Action.class)) {
                     actionMethods.add(method);
                 }
             }
 
             for (MetaMethod method : actionMethods) {
                 boolean hasClosure = false;
+                Class[] actionMethodParameterTypes = method.getNativeParameterTypes();
+                int numParams = actionMethodParameterTypes.length;
+                Class[] closureMethodParameterTypes = Arrays.copyOf(actionMethodParameterTypes, numParams);
+                closureMethodParameterTypes[numParams - 1] = Closure.class;
                 for (MetaMethod otherMethod : methods.get(method.getName())) {
-                    if (otherMethod.getParameterTypes()[0].getTheClass().equals(Closure.class)) {
+                    if (Arrays.equals(otherMethod.getNativeParameterTypes(), closureMethodParameterTypes)) {
                         hasClosure = true;
                         break;
                     }

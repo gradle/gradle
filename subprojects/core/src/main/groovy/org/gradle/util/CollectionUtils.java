@@ -19,6 +19,7 @@ import com.google.common.collect.Lists;
 import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
 
+import java.lang.reflect.Array;
 import java.util.*;
 
 public abstract class CollectionUtils {
@@ -61,6 +62,18 @@ public abstract class CollectionUtils {
             }
         }
 
+        return destination;
+    }
+
+    public static <R, I> R[] collectArray(I[] list, Class<R> newType, Transformer<R, I> transformer) {
+        return collectArray(list, (R[]) Array.newInstance(newType, list.length), transformer);
+    }
+
+    public static <R, I> R[] collectArray(I[] list, R[] destination, Transformer<R, I> transformer) {
+        assert list.length <= destination.length;
+        for (int i = 0; i < list.length; ++i) {
+            destination[i] = transformer.transform(list[i]);
+        }
         return destination;
     }
 

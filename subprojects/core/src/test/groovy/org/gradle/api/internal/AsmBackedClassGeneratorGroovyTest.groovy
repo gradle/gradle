@@ -20,6 +20,7 @@ import org.gradle.internal.reflect.DirectInstantiator
 import spock.lang.Specification
 import spock.lang.Issue
 import org.gradle.util.ConfigureUtil
+import org.gradle.api.Action
 
 class AsmBackedClassGeneratorGroovyTest extends Specification {
 
@@ -77,6 +78,65 @@ class AsmBackedClassGeneratorGroovyTest extends Specification {
 
     }
 
+    def "any method with action as the last param is closurised"() {
+        given:
+        def tester = create(ActionsTester)
+
+        when:
+        tester.oneAction { assert it == "subject" }
+
+        then:
+        tester.lastMethod == "oneAction"
+        tester.lastArgs.size() == 1
+        tester.lastArgs.first() instanceof ClosureBackedAction
+
+        when:
+        tester.twoArgs("1") { assert it == "subject" }
+
+        then:
+        tester.lastMethod == "twoArgs"
+        tester.lastArgs.size() == 2
+        tester.lastArgs.first() == "1"
+        tester.lastArgs.last() instanceof ClosureBackedAction
+
+        when:
+        tester.threeArgs("1", "2") { assert it == "subject" }
+
+        then:
+        tester.lastMethod == "threeArgs"
+        tester.lastArgs.size() == 3
+        tester.lastArgs.first() == "1"
+        tester.lastArgs[1] == "2"
+        tester.lastArgs.last() instanceof ClosureBackedAction
+
+        when:
+        tester.overloaded("1") { assert it == "subject" }
+
+        then:
+        tester.lastMethod == "overloaded"
+        tester.lastArgs.size() == 2
+        tester.lastArgs.first() == "1"
+        tester.lastArgs.last() instanceof ClosureBackedAction
+
+        when:
+        tester.overloaded(1) { assert it == "subject" }
+
+        then:
+        tester.lastMethod == "overloaded"
+        tester.lastArgs.size() == 2
+        tester.lastArgs.first() == 1
+        tester.lastArgs.last() instanceof ClosureBackedAction
+
+        when:
+        def closure = { assert it == "subject" }
+        tester.hasClosure("1", closure)
+
+        then:
+        tester.lastMethod == "hasClosure"
+        tester.lastArgs.size() == 2
+        tester.lastArgs.first() == "1"
+        tester.lastArgs.last().is(closure)
+    }
 
     def conf(o, c) {
         ConfigureUtil.configure(c, o)
@@ -102,4 +162,54 @@ class DynamicThing {
     def propertyMissing(String name, value) {
         onPropertyMissingSet(name, value)
     }
+}
+
+class ActionsTester {
+
+    Object subject = "subject"
+    String lastMethod
+    List lastArgs
+
+    void oneAction(Action action) {
+        lastMethod = "oneAction"
+        lastArgs = [action]
+        action.execute(subject)
+    }
+
+    void twoArgs(String first, Action action) {
+        lastMethod = "twoArgs"
+        lastArgs = [first, action]
+        action.execute(subject)
+    }
+
+    void threeArgs(String first, String second, Action action) {
+        lastMethod = "threeArgs"
+        lastArgs = [first, second, action]
+        action.execute(subject)
+    }
+
+    void overloaded(Integer i, Action action) {
+        lastMethod = "overloaded"
+        lastArgs = [i, action]
+        action.execute(subject)
+    }
+
+    void overloaded(String s, Action action) {
+        lastMethod = "overloaded"
+        lastArgs = [s, action]
+        action.execute(subject)
+    }
+
+    void hasClosure(String s, Action action) {
+        lastMethod = "hasClosure"
+        lastArgs = [s, action]
+    }
+
+    void hasClosure(String s, Closure closure) {
+        lastMethod = "hasClosure"
+        lastArgs = [s, closure]
+    }
+
+
+
 }
