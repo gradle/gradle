@@ -21,8 +21,8 @@ import org.gradle.integtests.resolve.http.AbstractHttpsRepoResolveIntegrationTes
 class MavenHttpsRepoResolveIntegrationTest extends AbstractHttpsRepoResolveIntegrationTest {
     protected String setupRepo() {
         def module = mavenRepo().module('my-group', 'my-module').publish()
-        server.expectGet('/repo1/my-group/my-module/1.0/my-module-1.0.pom', module.pomFile)
-        server.expectGet('/repo1/my-group/my-module/1.0/my-module-1.0.jar', module.artifactFile)
+        server.allowGetOrHead('/repo1/my-group/my-module/1.0/my-module-1.0.pom', module.pomFile)
+        server.allowGetOrHead('/repo1/my-group/my-module/1.0/my-module-1.0.jar', module.artifactFile)
         "maven"
     }
 }

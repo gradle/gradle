@@ -20,19 +20,19 @@ import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 
+import static org.gradle.util.Matchers.containsText
+
 abstract class AbstractHttpsRepoResolveIntegrationTest extends AbstractDependencyResolutionTest {
     @Rule TestResources resources
-    File clientStore
-    File serverStore
+    File clientStore // contains the client's public and private keys
+    File serverStore // contains the server's public and private keys
 
     abstract protected String setupRepo()
 
-    def "resolve with server authentication"() {
+    def "resolve with server certificate"() {
         setupCertStores()
         server.enableSsl(serverStore.path, "asdfgh")
         server.start()
-
-        println "SSL port: $server.sslPort"
 
         def repoType = setupRepo()
         setupBuildFile(repoType)
@@ -46,7 +46,7 @@ abstract class AbstractHttpsRepoResolveIntegrationTest extends AbstractDependenc
         file('libs').assertHasDescendants('my-module-1.0.jar')
     }
 
-    def "resolve with server and client authentication"() {
+    def "resolve with server and client certificate"() {
         setupCertStores()
         server.enableSsl(serverStore.path, "asdfgh", clientStore.path, "asdfgh")
         server.start()
@@ -63,6 +63,46 @@ abstract class AbstractHttpsRepoResolveIntegrationTest extends AbstractDependenc
 
         then:
         file('libs').assertHasDescendants('my-module-1.0.jar')
+    }
+
+    def "decent error message when client can't authenticate server"() {
+        setupCertStores()
+        server.enableSsl(serverStore.path, "asdfgh")
+        server.start()
+
+        def repoType = setupRepo()
+        setupBuildFile(repoType)
+
+        when:
+        def failure = executer.withStackTraceChecksDisabled() // Jetty logs stuff to console
+                .withArgument("-Djavax.net.ssl.trustStore=$clientStore.path") // intentionally use wrong trust store for client
+                .withArgument("-Djavax.net.ssl.trustStorePassword=asdfgh")
+                .withTasks('libs').runWithFailure()
+
+        then:
+        failure.assertThatCause(containsText("Could not GET 'https://localhost:(\\d*)/repo1/my-group/my-module/1.0/"))
+        failure.assertHasCause("peer not authenticated")
+    }
+
+    def "decent error message when server can't authenticate client"() {
+        setupCertStores()
+        server.enableSsl(serverStore.path, "asdfgh", serverStore.path, "asdfgh") // intentionally use wrong trust store for server
+        server.start()
+
+        def repoType = setupRepo()
+        setupBuildFile(repoType)
+
+        when:
+        def failure = executer.withStackTraceChecksDisabled() // Jetty logs stuff to console
+                .withArgument("-Djavax.net.ssl.trustStore=$serverStore.path")
+                .withArgument("-Djavax.net.ssl.trustStorePassword=asdfgh")
+                .withArgument("-Djavax.net.ssl.keyStore=$clientStore.path")
+                .withArgument("-Djavax.net.ssl.keyStorePassword=asdfgh")
+                .withTasks('libs').runWithFailure()
+
+        then:
+        failure.assertThatCause(containsText("Could not GET 'https://localhost:(\\d*)/repo1/my-group/my-module/1.0/"))
+        failure.assertHasCause("peer not authenticated")
     }
 
     def setupCertStores() {

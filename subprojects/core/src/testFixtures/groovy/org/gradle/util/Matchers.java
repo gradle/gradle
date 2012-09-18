@@ -91,6 +91,19 @@ public class Matchers {
     }
 
     @Factory
+    public static <T extends CharSequence> Matcher<T> containsText(final String pattern) {
+        return new BaseMatcher<T>() {
+            public boolean matches(Object o) {
+                return Pattern.compile(pattern).matcher((CharSequence) o).find();
+            }
+
+            public void describeTo(Description description) {
+                description.appendText("a CharSequence that contains text ").appendValue(pattern);
+            }
+        };
+    }
+
+    @Factory
     public static <T> Matcher<T> strictlyEqual(final T other) {
         return new BaseMatcher<T>() {
             public boolean matches(Object o) {

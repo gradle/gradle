@@ -21,8 +21,8 @@ import org.gradle.integtests.resolve.http.AbstractHttpsRepoResolveIntegrationTes
 class IvyHttpsRepoResolveIntegrationTest extends AbstractHttpsRepoResolveIntegrationTest {
     protected String setupRepo() {
         def module = ivyRepo().module('my-group', 'my-module').publish()
-        server.expectGet('/repo1/my-group/my-module/1.0/ivy-1.0.xml', module.ivyFile)
-        server.expectGet('/repo1/my-group/my-module/1.0/my-module-1.0.jar', module.jarFile)
+        server.allowGetOrHead('/repo1/my-group/my-module/1.0/ivy-1.0.xml', module.ivyFile)
+        server.allowGetOrHead('/repo1/my-group/my-module/1.0/my-module-1.0.jar', module.jarFile)
         "ivy"
     }
 }
