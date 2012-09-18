@@ -18,6 +18,8 @@ package org.gradle.launcher.daemon.server;
 
 import org.gradle.internal.concurrent.Synchronizer;
 import org.gradle.messaging.remote.internal.Connection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Connection decorator that synchronizes dispatching.
@@ -25,6 +27,7 @@ import org.gradle.messaging.remote.internal.Connection;
  * by Szczepan Faber, created at: 2/27/12
  */
 public class SynchronizedDispatchConnection<T> implements Connection<T> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(SynchronizedDispatchConnection.class);
     
     private final Synchronizer sync = new Synchronizer();
     private final Connection<T> delegate;
@@ -34,12 +37,14 @@ public class SynchronizedDispatchConnection<T> implements Connection<T> {
     }
     
     public void requestStop() {
+        LOGGER.debug("thread {}: requesting stop for connection", Thread.currentThread().getId());
         delegate.requestStop();
     }
 
     public void dispatch(final T message) {
         sync.synchronize(new Runnable() {
             public void run() {
+                LOGGER.debug("thread {}: dispatching {}", Thread.currentThread().getId(), message);
                 delegate.dispatch(message);
             }
         });
@@ -48,10 +53,13 @@ public class SynchronizedDispatchConnection<T> implements Connection<T> {
     public T receive() {
         //in case one wants to synchronize this method,
         //bear in mind that it is blocking so it cannot share the same lock as others
-        return delegate.receive();
+        T result = delegate.receive();
+        LOGGER.debug("thread {}: received {}", Thread.currentThread().getId(), result);
+        return result;
     }
 
     public void stop() {
+        LOGGER.debug("thread {}: stopping connection", Thread.currentThread().getId());
         delegate.stop();
     }
 
