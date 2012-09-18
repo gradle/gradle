@@ -384,33 +384,12 @@
         </table>
     </section>
 
-    <section id="dsl-element-types">
-        <title>Backwards compatibility across Gradle versions</title>
-        <para>Most DSL elements documented here are considered <firstterm>public</firstterm> elements. This means that they are fully supported
-            and will remain unchanged until at least the next major version of Gradle. And in most cases, a feature will be supported well
-            beyond the next major version.
-            By <firstterm>major version</firstterm>, we mean a change to the first part of the version number. So, if a public feature is available
-            in Gradle 1.2, it will continue to be available in Gradle 1.3, Gradle 1.4, and so on until at least Gradle 2.0.
-        </para>
-        <para>Some elements of the DSL are marked as <firstterm>deprecated</firstterm>. This means that the element is not longer
-            intended to be used, and will be removed at some point in the future. In most cases, there is a replacement for the deprecated element,
-            and this will be described in the documentation.
-        </para>
+    <section id="element-annotations">
+        <title>Element annotations</title>
         <para>
-            A deprecated element will not be removed before the next major version of Gradle. You can continue to use the element
-            until then. However, you will receive a deprecation warning when you run a build that uses the element, to remind you that the
-            element is to be removed.
-            We recommend that you change your code so that it no longer uses the deprecated element and uses the appropriate replacement instead.
-        </para>
-        <para>Some elements of the DSL are marked as <firstterm>incubating</firstterm>. This means that the element is a work-in-progress,
-            and may require some changes before it is ready to become public. These changes are based on feedback as these features are used in
-            real builds. Please feel free to try an incubating element and give us your feedback, but please be aware that it may change in
-            future versions of Gradle, including minor versions.
-        </para>
-        <para>Finally, there are also some <firstterm>internal</firstterm> undocumented features present in Gradle.
-            These are intended to be used in Gradle itself, and may change at any time.
-            Internal features are not documented in this DSL reference, the user guide, or in the javadoc and groovydoc API documentation.
-            If a feature is not documented, then it is likely an internal feature, and we recommend that you avoid using it.
+            Elements in the DSL reference can be annotated as <emphasis>deprecated</emphasis> or <emphasis>incubating</emphasis>.
+            These annotations refer to the Gradle Feature Lifecycle, which is
+            <ulink url="../userguide/feature_lifecycle.html">described in the User Guide</ulink>.
         </para>
     </section>
 

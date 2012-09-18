@@ -31,7 +31,7 @@ public class ElementWarningsRenderer {
             para.appendChild(document.createTextNode(String.format("Note: This %s is ", type)));
             Element link = document.createElement("link");
             para.appendChild(link);
-            link.setAttribute("linkend", "dsl-element-types");
+            link.setAttribute("linkend", "element-annotations");
             link.appendChild(document.createTextNode("deprecated"));
             para.appendChild(document.createTextNode(" and will be removed in the next major version of Gradle."));
         }
@@ -44,7 +44,7 @@ public class ElementWarningsRenderer {
             para.appendChild(document.createTextNode(String.format("Note: This %s is ", type)));
             Element link = document.createElement("link");
             para.appendChild(link);
-            link.setAttribute("linkend", "dsl-element-types");
+            link.setAttribute("linkend", "element-annotations");
             link.appendChild(document.createTextNode("incubating"));
             para.appendChild(document.createTextNode(" and may change in a future version of Gradle."));
         }
