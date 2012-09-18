@@ -68,13 +68,13 @@ public class HttpClientHelper {
         try {
             response = executeGetOrHead(request);
         } catch (IOException e) {
-            throw new UncheckedIOException(String.format("Could not %s '%s'.", method, request.getURI()), e);
+            throw new HttpRequestException(String.format("Could not %s '%s'.", method, request.getURI()), e);
         }
 
         return response;
     }
 
-    private HttpResponse executeGetOrHead(HttpRequestBase method) throws IOException {
+    protected HttpResponse executeGetOrHead(HttpRequestBase method) throws IOException {
         HttpResponse httpResponse = performHttpRequest(method);
         // Consume content for non-successful, responses. This avoids the connection being left open.
         if (!wasSuccessful(httpResponse)) {
