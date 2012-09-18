@@ -92,11 +92,9 @@ libraries += [
         xbean: 'org.apache.xbean:xbean-reflect:3.4@jar' //required by maven3 classes
 ]
 
-//configuring maven3 dependencies is work in progress
-libraries.maven3_settings_builder = dependencies.module("org.apache.maven:maven-settings-builder:3.0.4") {
+libraries.maven3 = dependencies.module("org.apache.maven:maven-core:3.0.4") {
     dependency "org.apache.maven:maven-settings:3.0.4@jar"
-
-    //TODO SF the dependency list is a work in progress, for now hooked to the maven3_settings_builder
+    dependency "org.apache.maven:maven-settings-builder:3.0.4@jar"
 
     //plexus:
     dependency "org.codehaus.plexus:plexus-utils:2.0.6@jar"
@@ -121,8 +119,6 @@ libraries.maven3_settings_builder = dependencies.module("org.apache.maven:maven-
     dependency "org.apache.maven:maven-plugin-api:3.0.4@jar"
     dependency "org.apache.maven:maven-aether-provider:3.0.4@jar"
     dependency "org.apache.maven.wagon:wagon-provider-api:2.2@jar"
-
-    //TODO SF the dependencies below possibly don't have to be jarjarred
 
     //eather:
     dependency "org.sonatype.aether:aether-api:1.13.1@jar"

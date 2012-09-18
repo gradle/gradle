@@ -18,6 +18,7 @@ dependencies {
     compile libraries.slf4j_api
     compile libraries.maven_ant_tasks
     compile libraries.nekohtml
+    runtime libraries.xbean //maven3 classes dependency
 
     testCompile libraries.junit
 
@@ -25,14 +26,19 @@ dependencies {
         builtBy 'jarJarMaven3'
     }
 
-    mvn3Input libraries.maven3_settings_builder
+    mvn3Input libraries.maven3
 }
 
 task jarJarMaven3(type: JarJar) {
     inputJars = configurations.mvn3Input
     outputDir = file("$buildDir/libs/jarjar")
 
-    rule('org.**', 'org.gradle.mvn3.org.@1')
+    //unfortunately, all those need to be jarjarred.
+    // Even if some library (like aether) is not included in maven-ant-tasks it has
+    // META-INF/plexus/components.xml that to jarjarred components.
+    rule('org.apache.maven.**', 'org.gradle.mvn3.org.apache.maven.@1')
+    rule('org.codehaus.**', 'org.gradle.mvn3.org.codehaus.@1')
+    rule('org.sonatype.**', 'org.gradle.mvn3.org.sonatype.@1')
 
     avoidConflictingPlexusComponents(it)
 }
