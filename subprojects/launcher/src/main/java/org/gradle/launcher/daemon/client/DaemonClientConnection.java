@@ -58,7 +58,7 @@ public class DaemonClientConnection implements Connection<Object> {
     }
 
     public void dispatch(Object message) {
-        LOG.debug("thread {}: dispatching {}", Thread.currentThread().getId(), message);
+        LOG.debug("thread {}: dispatching {}", Thread.currentThread().getId(), message.getClass());
         try {
             connection.dispatch(message);
         } catch (Exception e) {
@@ -71,7 +71,7 @@ public class DaemonClientConnection implements Connection<Object> {
     public Object receive() {
         try {
             Object result = connection.receive();
-            LOG.debug("thread {}: received {}", Thread.currentThread().getId(), result);
+            LOG.debug("thread {}: received {}", Thread.currentThread().getId(), result == null ? "null" : result.getClass());
             return result;
         } catch (Exception e) {
             LOG.debug("Problem receiving message to the daemon. Performing 'on failure' operation...");

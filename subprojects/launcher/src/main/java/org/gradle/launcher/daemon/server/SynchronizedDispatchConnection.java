@@ -44,7 +44,7 @@ public class SynchronizedDispatchConnection<T> implements Connection<T> {
     public void dispatch(final T message) {
         sync.synchronize(new Runnable() {
             public void run() {
-                LOGGER.debug("thread {}: dispatching {}", Thread.currentThread().getId(), message);
+                LOGGER.debug("thread {}: dispatching {}", Thread.currentThread().getId(), message.getClass());
                 delegate.dispatch(message);
             }
         });
@@ -54,7 +54,7 @@ public class SynchronizedDispatchConnection<T> implements Connection<T> {
         //in case one wants to synchronize this method,
         //bear in mind that it is blocking so it cannot share the same lock as others
         T result = delegate.receive();
-        LOGGER.debug("thread {}: received {}", Thread.currentThread().getId(), result);
+        LOGGER.debug("thread {}: received {}", Thread.currentThread().getId(), result == null ? "null" : result.getClass());
         return result;
     }
 
