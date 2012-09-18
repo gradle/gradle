@@ -93,7 +93,7 @@ subprojects {
         def id = module.artifactId.text()
         String moduleDependencies = dependencies.get(id)
         boolean warPack = module.packaging.text().equals("war")
-        def hasDependencies = !(moduleDependencies == null || moduleDependencies.isEmpty())
+        def hasDependencies = !(moduleDependencies == null || moduleDependencies.length() == 0)
         print "Generating build.gradle for module ${id}... "
         File submoduleBuildFile = new File(projectDir(module), 'build.gradle')
         def group = ''
