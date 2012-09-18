@@ -22,7 +22,7 @@ import org.gradle.util.TextUtil
 /**
  * by Szczepan Faber, created at: 1/20/12
  */
-class StoppingDaemonSmokeIntegrationSpec extends DaemonIntegrationSpec {
+class StoppingDaemonIntegrationSpec extends DaemonIntegrationSpec {
     def "can handle multiple concurrent stop requests"() {
         given:
         def projectDir = distribution.testDir
@@ -47,7 +47,7 @@ Thread.sleep(60000)
         out.contains(DaemonMessages.NO_DAEMONS_RUNNING)
     }
 
-    def "reports exact number of daemons stopped"() {
+    def "reports exact number of daemons stopped and keeps console output clean"() {
         given:
         executer.allowExtraLogging = false
         executer.run()
@@ -64,6 +64,7 @@ Gradle daemon stopped.
         out = executer.withArguments("--stop").run().output
 
         then:
-        out.contains DaemonMessages.NO_DAEMONS_RUNNING
+        out == TextUtil.toPlatformLineSeparators("""$DaemonMessages.NO_DAEMONS_RUNNING
+""")
     }
 }
