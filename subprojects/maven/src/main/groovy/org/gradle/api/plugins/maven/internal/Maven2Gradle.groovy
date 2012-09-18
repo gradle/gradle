@@ -235,7 +235,7 @@ ${globalExclusions(this.effectivePom)}
 
   def modules = {allProjects, incReactors ->
     return allProjects.findAll { project ->
-      !project.parent.text().empty && (incReactors || project.packaging.text() != 'pom')
+      project.parent.text().length() > 0 && (incReactors || project.packaging.text() != 'pom')
     }
   }
 
