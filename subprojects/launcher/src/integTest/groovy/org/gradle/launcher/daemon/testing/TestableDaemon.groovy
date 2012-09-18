@@ -24,12 +24,12 @@ import org.gradle.process.internal.ExecHandleBuilder
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
-class TheDaemon {
+class TestableDaemon {
 
     DaemonContext context
     String logContent
 
-    TheDaemon(File daemonLog) {
+    TestableDaemon(File daemonLog) {
         this.logContent = daemonLog.text
         this.context = DaemonContextParser.parseFrom(logContent)
     }

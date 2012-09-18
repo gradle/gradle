@@ -29,23 +29,23 @@ class DaemonLogsAnalyzer {
         daemonLogs = daemonFiles.findAll { it.name.endsWith('.log') }
     }
 
-    List<TheDaemon> getDaemons() {
-        def out = new LinkedList<TheDaemon>()
+    List<TestableDaemon> getDaemons() {
+        def out = new LinkedList<TestableDaemon>()
         daemonLogs.each {
-            out << new TheDaemon(it)
+            out << new TestableDaemon(it)
         }
         out
     }
 
-    TheDaemon getIdleDaemon() {
+    TestableDaemon getIdleDaemon() {
         def daemons = getDaemons()
         assert daemons.size() == 1: "Expected only a single daemon."
-        TheDaemon daemon = daemons[0]
+        TestableDaemon daemon = daemons[0]
         assert daemon.idle : "Expected the daemon to be idle."
         daemon
     }
 
-    TheDaemon getDaemon() {
+    TestableDaemon getDaemon() {
         def daemons = getDaemons()
         assert daemons.size() == 1: "Expected only a single daemon."
         daemons[0]
