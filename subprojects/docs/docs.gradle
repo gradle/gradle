@@ -167,7 +167,7 @@ task userguideStyleSheets(type: Copy) {
         include '*.xsl'
     }
     from(cssFiles)
-    from(zipTree(configurations.userGuideStyleSheets.singleFile)) {
+    from({ zipTree(configurations.userGuideStyleSheets.singleFile) }) {
         // Remove the prefix
         eachFile { fcd -> fcd.path = fcd.path.replaceFirst('^docbook-xsl-[0-9\\.]+/', '') }
     }
