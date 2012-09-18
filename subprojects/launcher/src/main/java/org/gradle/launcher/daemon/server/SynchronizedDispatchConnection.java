@@ -17,6 +17,7 @@
 package org.gradle.launcher.daemon.server;
 
 import org.gradle.internal.concurrent.Synchronizer;
+import org.gradle.logging.internal.OutputEvent;
 import org.gradle.messaging.remote.internal.Connection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +45,9 @@ public class SynchronizedDispatchConnection<T> implements Connection<T> {
     public void dispatch(final T message) {
         sync.synchronize(new Runnable() {
             public void run() {
-                LOGGER.debug("thread {}: dispatching {}", Thread.currentThread().getId(), message.getClass());
+                if (!(message instanceof OutputEvent)) {
+                    LOGGER.debug("thread {}: dispatching {}", Thread.currentThread().getId(), message.getClass());
+                }
                 delegate.dispatch(message);
             }
         });
