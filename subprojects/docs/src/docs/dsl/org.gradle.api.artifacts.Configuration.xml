@@ -17,6 +17,9 @@
                 <td>state</td>
             </tr>
             <tr>
+                <td>incoming</td>
+            </tr>
+            <tr>
                 <td>visible</td>
             </tr>
             <tr>
