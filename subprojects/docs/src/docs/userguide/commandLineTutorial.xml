@@ -61,16 +61,14 @@
 
     <section id="sec:continue_build_on_failure">
         <title>Continuing the build when a failure occurs</title>
-        <para>By default, Gradle will abort execution and fail the build as soon as any task fails. This allows the build will complete sooner, but does not reveal failures in other, independent
-            tasks. In order to discover as many failures as possible in a single build execution, you can use the `--continue` option.
+        <para>By default, Gradle will abort execution and fail the build as soon as any task fails. This allows the build to complete sooner, but hides other failures
+            that would have occurred. In order to discover as many failures as possible in a single build execution, you can use the <literal>--continue</literal> option.
         </para>
-        <para>When executed with `--continue`, Gradle will execute _every_ independent task where all of the dependencies for that task have been successfully executed.
-            For example if your build uses the 'java' and 'checkstyle' plugins, Gradle can then run checkstlye,
-            execute your unit tests and build your javadoc in a single execution, even if your code fails the checkstyle checks and one of your unit tests fail.
-            All failures are reported at the end of the build making it easy to fix each of the issue at hand.
+        <para>When executed with <literal>--continue</literal>, Gradle will execute <emphasis>every</emphasis> task to be executed where all of the dependencies for that task completed without failure,
+            instead of stopping as soon as the first failure is encountered. Each of the encountered failures will be reported at the end of the build.
         </para>
-        <para>Note that a task will only be executed when all of it's dependencies have been successfully executed. So in the example above, your unit-tests will not
-            run if there is a failure in compiling your java code. This is because the `test` task depends indirectly on the `compileJava` task.
+        <para>If a task fails, any subsequent tasks that were depending on it will not be executed, as it is not safe to do so. For example, tests will not
+            run if there is a compilation failure in the code under test; because the test task will depend on the compilation task (either directly or indirectly).
         </para>
     </section>
 
