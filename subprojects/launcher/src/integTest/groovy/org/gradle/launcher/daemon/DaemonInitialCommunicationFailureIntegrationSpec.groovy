@@ -24,6 +24,7 @@ import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 
 import static org.gradle.tests.fixtures.ConcurrentTestUtil.poll
+import org.junit.Rule
 
 /**
  * by Szczepan Faber, created at: 1/20/12
@@ -33,6 +34,8 @@ import static org.gradle.tests.fixtures.ConcurrentTestUtil.poll
 //The implementation is not OS specific, only the test is
 // so it's not a big deal it does not run everywhere.
 class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegrationSpec {
+
+    @Rule HttpServer server = new HttpServer()
 
     def cleanup() {
         stopDaemonsNow()
@@ -53,7 +56,7 @@ class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegration
         and:
         //starting some service on the daemon port
         poll {
-            new HttpServer().start(daemon.port)
+            server.start(daemon.port)
         }
 
         then:
@@ -83,7 +86,7 @@ class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegration
         when:
         daemon.kill()
         poll {
-            new HttpServer().start(daemon.port)
+            server.start(daemon.port)
         }
 
         then:
