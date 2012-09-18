@@ -69,7 +69,7 @@ public abstract class AbstractTestLogger {
                 // This deals with the fact that in TestNG, there are no class-level events,
                 // but we nevertheless want to see the class name. We use "." rather than
                 // " > " as a separator to make it clear that the class is not a separate
-                // level. This matters when configuring min/max/displayGranularity.
+                // level. This matters when configuring granularity.
                 names.add(current.getClassName() + "." + current.getName());
             } else {
                 names.add(current.getName());
