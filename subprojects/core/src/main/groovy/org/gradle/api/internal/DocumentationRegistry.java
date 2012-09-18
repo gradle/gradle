@@ -47,4 +47,8 @@ public class DocumentationRegistry {
         }
         return String.format("http://gradle.org/docs/current/userguide/%s.html", id);
     }
+
+    public String getFeatureLifecycle() {
+        return getDocumentationFor("feature_lifecycle");
+    }
 }

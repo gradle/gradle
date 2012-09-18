@@ -17,6 +17,7 @@ package org.gradle.api.internal.project;
 
 import org.gradle.StartParameter;
 import org.gradle.api.execution.TaskActionListener;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.changedetection.*;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.execution.*;
@@ -81,6 +82,6 @@ public class TaskExecutionServices extends DefaultServiceRegistry {
     protected TaskPlanExecutor createTaskExecutorFactory() {
         StartParameter startParameter = gradle.getStartParameter();
         TaskArtifactStateCacheAccess cacheAccess = get(TaskArtifactStateCacheAccess.class);
-        return new TaskPlanExecutorFactory(cacheAccess, startParameter.getParallelThreadCount()).create();
+        return new TaskPlanExecutorFactory(cacheAccess, startParameter.getParallelThreadCount(), get(DocumentationRegistry.class)).create();
     }
 }

@@ -27,6 +27,9 @@ import org.gradle.api.plugins.maven.internal.Maven2Gradle
 import org.gradle.api.plugins.maven.internal.MavenProjectsCreator
 import org.gradle.api.tasks.TaskAction
 
+import org.gradle.api.internal.DocumentationRegistry
+import javax.inject.Inject
+
 /**
  * by Szczepan Faber, created at: 8/1/12
  */
@@ -36,14 +39,20 @@ class ConvertMaven2Gradle extends DefaultTask {
     boolean verbose
     boolean keepFile
 
+    private final DocumentationRegistry documentationRegistry
+
+    @Inject
+    ConvertMaven2Gradle(DocumentationRegistry documentationRegistry) {
+        this.documentationRegistry = documentationRegistry
+    }
+
     @TaskAction
     void convertNow() {
         LOG.lifecycle("""
 ---------------
-Maven to Gradle conversion is *experimental*.
+Maven to Gradle conversion is an "incubating" feature, which means it is still in development.
+See ${documentationRegistry.featureLifecycle} for more on "incubating" features.
 Please use it, report any problems and share your feedback with us.
-Be advised that although the functionality is already very useful it is not yet completed.
-Not everything may work perfectly at the moment.
 ---------------
 """)
 
