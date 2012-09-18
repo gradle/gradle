@@ -28,7 +28,9 @@ import spock.lang.Specification
 import spock.lang.Issue
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.fixtures.GradleHandle
+import spock.lang.Ignore
 
+@Ignore
 class ToolingApiIntegrationTest extends Specification {
     @Rule public final GradleDistribution dist = new GradleDistribution()
     final ToolingApi toolingApi = new ToolingApi(dist)
