@@ -42,6 +42,9 @@ public interface JavadocLexer {
 
         void onText(String text) {
         }
+
+        void onEnd() {
+        }
     }
 
 }

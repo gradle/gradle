@@ -85,6 +85,7 @@ class BasicJavadocLexer implements JavadocLexer {
 
             visitor.onText(text.toString());
         }
+        visitor.onEnd();
     }
 
     private void parseHtmlEntity(StringBuilder buffer) {
