@@ -31,6 +31,7 @@ import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -134,10 +135,11 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
     }
 
     public Set<? extends FileStoreEntry> search(String pattern) {
+        if (!getBaseDir().exists()) {
+            return Collections.emptySet();
+        }
+
         final Set<FileStoreEntry> entries = new HashSet<FileStoreEntry>();
-        //TODO SF below may emit an awkward INFO-level message that the base dir does not exist
-        //('file or directory xxx not found')
-        //Consider bailing out early if the baseDir does not exist or reducing the log level
         findFiles(pattern).visit(new EmptyFileVisitor() {
             public void visitFile(FileVisitDetails fileDetails) {
                 final File fileStoreFile = fileDetails.getFile();
