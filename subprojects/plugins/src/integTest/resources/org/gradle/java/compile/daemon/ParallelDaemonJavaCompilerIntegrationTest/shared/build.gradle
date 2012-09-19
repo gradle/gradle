@@ -1,0 +1,9 @@
+subprojects {
+    apply plugin: "java"
+
+    compileJava.options.with {
+        useAnt = false
+        fork = true
+    }
+}
+
