@@ -51,6 +51,22 @@ public class GFileUtils {
         }
     }
 
+    public static void moveFile(File source, File destination) {
+        try {
+            FileUtils.moveFile(source, destination);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    public static void copyFile(File source, File destination) {
+        try {
+            FileUtils.copyFile(source, destination);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
     public static String readFile(File file) {
         return readFile(file, Charset.defaultCharset().name());
     }

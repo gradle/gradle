@@ -81,56 +81,46 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
         baseDir = destination;
     }
 
-    public FileStoreEntry add(String key, Action<File> addAction) {
-        File destination = getFile(key);
+    public FileStoreEntry add(String path, Action<File> addAction) {
+        String error = String.format("Failed to add into filestore '%s' at '%s' ", getBaseDir().getAbsolutePath(), path);
+        return doAdd(getFile(path), error, addAction);
+    }
+
+    protected FileStoreEntry saveIntoFileStore(final File source, final File destination, final boolean isMove) {
+        String verb = isMove ? "move" : "copy";
+
+        if (!source.exists()) {
+            throw new GradleException(String.format("Cannot %s '%s' into filestore @ '%s' as it does not exist", verb, source, destination));
+        }
+
+        String error = String.format("Failed to %s file '%s' into filestore at '%s' ", verb, source, destination);
+
+        return doAdd(destination, error, new Action<File>() {
+            public void execute(File file) {
+                if (isMove) {
+                    GFileUtils.moveFile(source, destination);
+                } else {
+                    GFileUtils.copyFile(source, destination);
+                }
+            }
+        });
+    }
+
+    protected FileStoreEntry doAdd(File destination, String failureDescription, Action<File> action) {
         GFileUtils.parentMkdirs(destination);
         File markerFile = getMarkerFile(destination);
+
         try {
-            markerFile.createNewFile();
+            GFileUtils.touch(markerFile);
             deleteAction.delete(destination);
-            addAction.execute(destination);
+            action.execute(destination);
         } catch (Exception exception) {
             deleteAction.delete(destination);
-            throw new GradleException(String.format("Failed to add file with key '%s' into filestore at '%s' ", key, getBaseDir().getAbsolutePath()), exception);
+            throw new GradleException(failureDescription, exception);
         } finally {
             deleteAction.delete(markerFile);
         }
         return entryAt(destination);
-    }
-
-    protected FileStoreEntry saveIntoFileStore(File source, File destination, boolean isMove) {
-        if (!source.exists()) {
-            throw new GradleException(String.format("Cannot copy '%s' into filestore @ '%s' as it does not exist", source, destination));
-        }
-        File parentDir = destination.getParentFile();
-        if (!parentDir.mkdirs() && !parentDir.exists()) {
-            throw new GradleException(String.format("Unable to create filestore directory %s", parentDir));
-        }
-
-        File markerFile = getMarkerFile(destination);
-        try {
-            markerFile.createNewFile();
-            deleteAction.delete(destination);
-            if (isMove) {
-                FileUtils.moveFile(source, destination);
-            } else {
-                FileUtils.copyFile(source, destination);
-            }
-            deleteAction.delete(markerFile);
-        } catch (Exception exception) {
-            deleteAction.delete(destination);
-            deleteAction.delete(markerFile);
-            String verb = isMove ? "move" : "copy";
-            throw new GradleException(String.format("Failed to %s file '%s' into filestore at '%s' ", verb, source, destination), exception);
-        }
-
-        return entryAt(destination);
-    }
-
-    private File getMarkerFile(File destination) {
-        final File destinationParentFile = destination.getParentFile();
-        final String markerFileName = destination.getName() + MARKER_FILE_SUFFIX;
-        return new File(destinationParentFile, markerFileName);
     }
 
     public Set<? extends FileStoreEntry> search(String pattern) {
@@ -152,6 +142,10 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
         });
 
         return entries;
+    }
+
+    private File getMarkerFile(File file) {
+        return new File(file.getParent(), file.getName() + MARKER_FILE_SUFFIX);
     }
 
     private DirectoryFileTree findFiles(String pattern) {

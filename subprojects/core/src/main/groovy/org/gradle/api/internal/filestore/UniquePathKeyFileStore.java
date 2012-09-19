@@ -31,12 +31,12 @@ public class UniquePathKeyFileStore extends PathKeyFileStore {
         super(baseDir);
     }
 
-    public FileStoreEntry add(String key, Action<File> addAction) {
-        final FileStoreEntry fileStoreEntry = get(key);
+    public FileStoreEntry add(String path, Action<File> addAction) {
+        final FileStoreEntry fileStoreEntry = get(path);
         if (fileStoreEntry != null) {
             return fileStoreEntry;
         }
-        return super.add(key, addAction);
+        return super.add(path, addAction);
 
     }
 
