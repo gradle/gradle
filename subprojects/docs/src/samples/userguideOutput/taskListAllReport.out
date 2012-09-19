@@ -19,7 +19,9 @@ webapp:libs - Builds the JAR [api:libs]
 
 Help tasks
 ----------
-dependencies - Displays the dependencies of root project 'projectReports'.
+dependencies - Displays all dependencies declared in root project 'projectReports'.
+api:dependencyInsight - Displays the insight into a specific dependency in project ':api'.
+webapp:dependencyInsight - Displays the insight into a specific dependency in project ':webapp'.
 help - Displays a help message
 projects - Displays the sub-projects of root project 'projectReports'.
 properties - Displays the properties of root project 'projectReports'.
