@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.filestore;
 
-import org.apache.commons.io.FileUtils;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.EmptyFileVisitor;
@@ -26,11 +25,9 @@ import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.copy.DeleteActionImpl;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.UncheckedException;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -92,11 +89,7 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
 
     public void moveFilestore(File destination) {
         if (baseDir.exists()) {
-            try {
-                FileUtils.moveDirectory(baseDir, destination);
-            } catch (IOException e) {
-                throw new UncheckedException(e);
-            }
+            GFileUtils.moveDirectory(baseDir, destination);
         }
         baseDir = destination;
     }

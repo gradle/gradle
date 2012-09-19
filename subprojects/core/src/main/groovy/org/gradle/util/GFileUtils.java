@@ -67,6 +67,13 @@ public class GFileUtils {
         }
     }
 
+    public static void moveDirectory(File source, File destination) {
+        try {
+            FileUtils.moveDirectory(source, destination);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
     public static String readFile(File file) {
         return readFile(file, Charset.defaultCharset().name());
     }
