@@ -14,16 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.api.fixture
+package org.gradle.api.internal.fixture;
 
-import org.gradle.api.Plugin
-import org.gradle.api.Project
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
 
 /**
  * by Szczepan Faber, created at: 9/19/12
  */
-class DummyPlugin implements Plugin<Project> {
-    void apply(Project target) {
+public class DummyPlugin implements Plugin<Project> {
+
+    //TODO SF figure out a better way to resolve the problem with unknown plugin 'id'
+    public void apply(Project target) {
         //no op
     }
 }
