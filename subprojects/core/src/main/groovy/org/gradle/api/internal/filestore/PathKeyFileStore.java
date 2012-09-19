@@ -83,7 +83,7 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
 
     public FileStoreEntry add(String key, Action<File> addAction) {
         File destination = getFile(key);
-        destination.getParentFile().mkdirs(); //revisit this. found issue when running PathKeyFileStoreTest#can add to filestore
+        GFileUtils.parentMkdirs(destination);
         File markerFile = getMarkerFile(destination);
         try {
             markerFile.createNewFile();
