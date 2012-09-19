@@ -64,3 +64,7 @@ This was replaced by `CppCompile` in Gradle 1.2. You should use the replacement 
 #### Incubating `GppCompileSpec` properties removed
 
 The deprecated `task` property was removed from `GppCompileSpec`.
+
+#### Removed GraphvizReportRenderer (private API)
+
+This type was an early contribution. It is unlikely anyone uses it because it does not work and it is an undocumented private type.
