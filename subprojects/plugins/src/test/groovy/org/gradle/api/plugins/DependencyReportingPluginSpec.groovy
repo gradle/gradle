@@ -16,7 +16,7 @@
 
 package org.gradle.api.plugins
 
-import org.gradle.api.tasks.reporting.DependencyInsightReportTask
+import org.gradle.api.tasks.diagnostics.DependencyInsightReportTask
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.reporting;
+package org.gradle.api.tasks.diagnostics;
 
 
 import org.gradle.api.Action
@@ -26,7 +26,7 @@ import org.gradle.api.internal.tasks.CommandLineOption
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.diagnostics.internal.GraphRenderer
 import org.gradle.api.tasks.diagnostics.internal.dependencies.RenderableDependency
-import org.gradle.api.tasks.reporting.internal.DependencyInsightReporter
+import org.gradle.api.tasks.diagnostics.internal.DependencyInsightReporter
 import org.gradle.logging.StyledTextOutput
 import org.gradle.logging.StyledTextOutputFactory
 

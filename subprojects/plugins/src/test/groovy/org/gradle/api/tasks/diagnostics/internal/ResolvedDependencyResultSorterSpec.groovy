@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.reporting.internal
+package org.gradle.api.tasks.diagnostics.internal
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ModuleVersionSelector
@@ -24,6 +24,7 @@ import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
+import org.gradle.api.tasks.diagnostics.internal.ResolvedDependencyResultSorter
 
 /**
  * by Szczepan Faber, created at: 8/22/12

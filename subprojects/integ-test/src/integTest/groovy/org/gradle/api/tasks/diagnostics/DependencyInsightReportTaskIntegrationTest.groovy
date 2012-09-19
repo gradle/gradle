@@ -69,7 +69,6 @@ class DependencyInsightReportTaskIntegrationTest extends AbstractIntegrationSpec
         run "dependencyInsight", "--includes", "leaf2", "--configuration", "conf"
 
         then:
-        1 == 1
         output.contains(toPlatformLineSeparators("""
 org:leaf2:2.5 (conflict resolution)
 \\--- org:toplevel3:1.0
