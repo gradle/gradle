@@ -41,7 +41,6 @@ class DependencyReportingPlugin implements Plugin<ProjectInternal> {
 
         //for compatibility reasons, I'm adding the dependencies task as an implicit task
         //this way name-matching execution will not trigger dependencies task for every project in a multi project build
-        //TODO SF add coverage for this functionality
         project.implicitTasks.add(name: "dependencies", type: DependencyReportTask) {
             description = "Displays all dependencies declared in $project."
             group = ImplicitTasksConfigurer.HELP_GROUP

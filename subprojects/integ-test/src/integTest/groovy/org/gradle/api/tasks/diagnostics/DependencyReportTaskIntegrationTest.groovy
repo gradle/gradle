@@ -455,4 +455,24 @@ rootProject.name = 'root'
         then:
         output.contains "No configurations"
     }
+
+    def "dependencies report does not run for subprojects by default"() {
+        given:
+        file("settings.gradle") << "include 'a'"
+
+        file("build.gradle") << """
+        project(":a") {
+          configurations { foo }
+          dependencies {
+            foo "i.dont.exist:foo:1.0"
+          }
+        }
+"""
+        when:
+        run "dependencies"
+
+        then:
+        noExceptionThrown()
+        //note that 'a' project dependencies are not being resolved
+    }
 }
