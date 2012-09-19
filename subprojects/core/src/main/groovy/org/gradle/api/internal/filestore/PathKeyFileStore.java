@@ -37,14 +37,24 @@ import java.util.Set;
 /**
  * File store that accepts the target path as the key for the entry.
  *
- * There is always at most one entry for a given key for this file store. If an entry already exists at the given path, it will be overwritten. Paths can contain directory components, which will be
- * created on demand.
- *
+ * This implementation is explicitly NOT THREAD SAFE. Concurrent access must be organised externally.
+ * <p>
+ * There is always at most one entry for a given key for this file store. If an entry already exists at the given path, it will be overwritten.
+ * Paths can contain directory components, which will be created on demand.
+ * <p>
+ * This file store is self repairing in so far that any files partially written before a fatal error will be ignored and
+ * removed at a later time.
+ * <p>
  * This file store also provides searching via relative ant path patterns.
  */
 public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<String> {
 
-    public static final String MARKER_FILE_SUFFIX = ".fslck";
+    /*
+        When writing a file into the filestore a marker file with this suffix is written alongside,
+        then removed after the write. This is used to detect partially written files (due to a serious crash)
+        and to silently clean them.
+     */
+    public static final String IN_PROGRESS_MARKER_FILE_SUFFIX = ".fslck";
 
     private File baseDir;
     private final DeleteActionImpl deleteAction = new DeleteActionImpl(new IdentityFileResolver());
@@ -107,18 +117,18 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
     }
 
     protected FileStoreEntry doAdd(File destination, String failureDescription, Action<File> action) {
-        GFileUtils.parentMkdirs(destination);
-        File markerFile = getMarkerFile(destination);
-
+        File inProgressMarkerFile = null;
         try {
-            GFileUtils.touch(markerFile);
+            GFileUtils.parentMkdirs(destination);
+            inProgressMarkerFile = getInProgressMarkerFile(destination);
+            GFileUtils.touch(inProgressMarkerFile);
             deleteAction.delete(destination);
             action.execute(destination);
         } catch (Exception exception) {
             deleteAction.delete(destination);
             throw new GradleException(failureDescription, exception);
         } finally {
-            deleteAction.delete(markerFile);
+            deleteAction.delete(inProgressMarkerFile);
         }
         return entryAt(destination);
     }
@@ -131,9 +141,9 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
         findFiles(pattern).visit(new EmptyFileVisitor() {
             public void visitFile(FileVisitDetails fileDetails) {
                 final File fileStoreFile = fileDetails.getFile();
-                if (!fileStoreFile.getName().endsWith(PathKeyFileStore.MARKER_FILE_SUFFIX)) {
-                    final File markerFile = getMarkerFile(fileStoreFile);
-                    if (!markerFile.exists()) {
+                if (!fileStoreFile.getName().endsWith(PathKeyFileStore.IN_PROGRESS_MARKER_FILE_SUFFIX)) {
+                    final File inProgressMarkerFile = getInProgressMarkerFile(fileStoreFile);
+                    if (!inProgressMarkerFile.exists()) {
                         entries.add(entryAt(fileStoreFile));
                     }
                 }
@@ -144,8 +154,8 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
         return entries;
     }
 
-    private File getMarkerFile(File file) {
-        return new File(file.getParent(), file.getName() + MARKER_FILE_SUFFIX);
+    private File getInProgressMarkerFile(File file) {
+        return new File(file.getParent(), file.getName() + IN_PROGRESS_MARKER_FILE_SUFFIX);
     }
 
     private DirectoryFileTree findFiles(String pattern) {
@@ -169,7 +179,7 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
 
     public FileStoreEntry get(String key) {
         final File file = getFile(key);
-        final File markerFile = getMarkerFile(file);
+        final File markerFile = getInProgressMarkerFile(file);
         if (markerFile.exists()) {
             deleteAction.delete(file);
             deleteAction.delete(markerFile);
