@@ -87,13 +87,13 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
         File markerFile = getMarkerFile(destination);
         try {
             markerFile.createNewFile();
-            destination.delete();
+            deleteAction.delete(destination);
             addAction.execute(destination);
         } catch (Exception exception) {
-            destination.delete();
+            deleteAction.delete(destination);
             throw new GradleException(String.format("Failed to add file with key '%s' into filestore at '%s' ", key, getBaseDir().getAbsolutePath()), exception);
         } finally {
-            markerFile.delete();
+            deleteAction.delete(markerFile);
         }
         return entryAt(destination);
     }
