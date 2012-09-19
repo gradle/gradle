@@ -27,9 +27,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.zip.Checksum;
 
 /**
@@ -220,6 +218,62 @@ public class GFileUtils {
             return org.apache.tools.ant.util.FileUtils.getRelativePath(from, to);
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
+        }
+    }
+
+    /**
+     * Makes the parent directory of the file, and any non existent parents.
+     *
+     * @param child The file to create the parent dir for
+     * @return The parent dir file
+     * @see #mkdirs(java.io.File)
+     */
+    public static File parentMkdirs(File child) {
+        File parent = child.getParentFile();
+        mkdirs(parent);
+        return parent;
+    }
+
+    /**
+     * Like {@link java.io.File#mkdirs()}, except throws an informative error if a dir cannot be created.
+     *
+     * @param dir The dir to create, including any non existent parent dirs.
+     */
+    public static void mkdirs(File dir) {
+        dir = dir.getAbsoluteFile();
+        if (dir.isDirectory()) {
+            return;
+        }
+
+        if (dir.exists() && !dir.isDirectory()) {
+            throw new UncheckedIOException(String.format("Cannot create directory '%s' as it already exists, but is not a directory", dir));
+        }
+
+        List<File> toCreate = new LinkedList<File>();
+        File parent = dir.getParentFile();
+        while (!parent.exists()) {
+            toCreate.add(parent);
+            parent = parent.getParentFile();
+        }
+
+        Collections.reverse(toCreate);
+        for (File parentDirToCreate : toCreate) {
+            if (parentDirToCreate.isDirectory()) {
+                continue;
+            }
+
+            File parentDirToCreateParent = parentDirToCreate.getParentFile();
+            if (!parentDirToCreateParent.isDirectory()) {
+                throw new UncheckedIOException(String.format("Cannot create parent directory '%s' when creating directory '%s' as '%s' is not a directory", parentDirToCreate, dir, parentDirToCreateParent));
+            }
+
+            if (!parentDirToCreate.mkdir()) {
+                throw new UncheckedIOException(String.format("Failed to create parent directory '%s' when creating directory '%s'", parentDirToCreate, dir));
+            }
+        }
+
+        if (!dir.mkdirs()) {
+            throw new UncheckedIOException(String.format("Failed to create directory '%s'", dir));
         }
     }
 }
