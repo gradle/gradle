@@ -80,6 +80,15 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
         return new File(baseDir, path);
     }
 
+    private File getFileWhileCleaningInProgress(String path) {
+        File file = getFile(path);
+        File markerFile = getInProgressMarkerFile(file);
+        if (markerFile.exists()) {
+            deleteAction.delete(file);
+            deleteAction.delete(markerFile);
+        }
+        return file;
+    }
 
     public void moveFilestore(File destination) {
         if (baseDir.exists()) {
@@ -142,14 +151,12 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
         final Set<FileStoreEntry> entries = new HashSet<FileStoreEntry>();
         findFiles(pattern).visit(new EmptyFileVisitor() {
             public void visitFile(FileVisitDetails fileDetails) {
-                final File fileStoreFile = fileDetails.getFile();
-                if (!fileStoreFile.getName().endsWith(PathKeyFileStore.IN_PROGRESS_MARKER_FILE_SUFFIX)) {
-                    final File inProgressMarkerFile = getInProgressMarkerFile(fileStoreFile);
-                    if (!inProgressMarkerFile.exists()) {
-                        entries.add(entryAt(fileStoreFile));
-                    }
+                final File file = fileDetails.getFile();
+                // We cannot clean in progress markers, or in progress files here because
+                // the file system visitor stuff can't handle the file system mutating while visiting
+                if (!isInProgressMarkerFile(file) && !isInProgressFile(file)) {
+                    entries.add(entryAt(file));
                 }
-
             }
         });
 
@@ -158,6 +165,14 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
 
     private File getInProgressMarkerFile(File file) {
         return new File(file.getParent(), file.getName() + IN_PROGRESS_MARKER_FILE_SUFFIX);
+    }
+
+    private boolean isInProgressMarkerFile(File file) {
+        return file.getName().endsWith(IN_PROGRESS_MARKER_FILE_SUFFIX);
+    }
+
+    private boolean isInProgressFile(File file) {
+        return getInProgressMarkerFile(file).exists();
     }
 
     private DirectoryFileTree findFiles(String pattern) {
@@ -180,12 +195,7 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
     }
 
     public FileStoreEntry get(String key) {
-        final File file = getFile(key);
-        final File markerFile = getInProgressMarkerFile(file);
-        if (markerFile.exists()) {
-            deleteAction.delete(file);
-            deleteAction.delete(markerFile);
-        }
+        final File file = getFileWhileCleaningInProgress(key);
         if (file.exists()) {
             return entryAt(file);
         } else {
