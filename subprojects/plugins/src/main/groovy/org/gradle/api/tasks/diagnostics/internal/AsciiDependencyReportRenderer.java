@@ -39,7 +39,7 @@ import static org.gradle.logging.StyledTextOutput.Style.*;
  *
  * @author Phil Messenger
  */
-public class    AsciiReportRenderer extends TextReportRenderer implements DependencyReportRenderer {
+public class AsciiDependencyReportRenderer extends TextReportRenderer implements DependencyReportRenderer {
     private boolean hasConfigs;
     private boolean hasCyclicDependencies;
     private GraphRenderer renderer;

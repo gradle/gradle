@@ -23,9 +23,9 @@ import org.gradle.logging.TestStyledTextOutput
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
 
-class AsciiReportRendererTest extends Specification {
+class AsciiDependencyReportRendererTest extends Specification {
     private final TestStyledTextOutput textOutput = new TestStyledTextOutput().ignoreStyle()
-    private final AsciiReportRenderer renderer = new AsciiReportRenderer()
+    private final AsciiDependencyReportRenderer renderer = new AsciiDependencyReportRenderer()
     private final Project project = HelperUtil.createRootProject()
 
     def setup() {

@@ -27,15 +27,16 @@ class DependencyReportingPluginSpec extends Specification {
 
     def project = new ProjectBuilder().build()
 
-    def "adds task"() {
+    def "adds tasks"() {
         when:
         project.apply(plugin: 'dependency-reporting')
 
         then:
         project.tasks.getByName("dependencyInsight")
+        project.implicitTasks.getByName("dependencies")
     }
 
-    def "preconfigures task for java project"() {
+    def "preconfigures tasks for java project"() {
         given:
         project.apply plugin: 'dependency-reporting'
         project.apply plugin: 'java'

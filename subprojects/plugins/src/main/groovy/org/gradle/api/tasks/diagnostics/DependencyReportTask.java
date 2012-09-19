@@ -17,7 +17,7 @@ package org.gradle.api.tasks.diagnostics;
 
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.tasks.diagnostics.internal.AsciiReportRenderer;
+import org.gradle.api.tasks.diagnostics.internal.AsciiDependencyReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.ReportRenderer;
 
@@ -36,7 +36,7 @@ import java.util.TreeSet;
  */
 public class DependencyReportTask extends AbstractReportTask {
 
-    private DependencyReportRenderer renderer = new AsciiReportRenderer();
+    private DependencyReportRenderer renderer = new AsciiDependencyReportRenderer();
 
     private Set<Configuration> configurations;
 

@@ -25,7 +25,6 @@ import static org.gradle.api.artifacts.result.ModuleVersionSelectionReason.confl
 import static org.gradle.api.artifacts.result.ModuleVersionSelectionReason.forced
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
-import org.gradle.api.tasks.diagnostics.internal.DependencyInsightReporter
 
 /**
  * Created: 23/08/2012
