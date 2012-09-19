@@ -65,6 +65,12 @@ Scenarios:
 
 ## New report shows usages of each dependency
 
+Attempts to answer following questions:
+
+* why this dependency is in the dependency tree?
+* what are all the requested versions of this dependency?
+* why this dependency has this version selected?
+
 ### User visible changes
 
 A brand new report that traverses the graph the opposite way (Dependency Insight Report).
@@ -91,9 +97,17 @@ The idea is to traverse the graph the other way and print the dependent path for
 This report is useful to track where the given version of some dependency was picked up from in case of conflict resolution.
 This drives some conveniences to our DependencyGraph API.
 
+For interesting version modules, the report shows also if the the version was 'forced' or if it was selected by 'conflict resolution'.
+
 ### Integration test coverage
 
-TBD
+* shows multiple trees if dependency occurs in the tree with different requested version
+* annotates 'forced' version
+* annotates version selected by 'conflict resolution'
+* shows plain ordinary version, one tree
+* what if there's no matching dependency and/or configuration?
+* what if there are unresolved dependencies?
+* deals with dependency cycles
 
 ### Implementation approach
 
