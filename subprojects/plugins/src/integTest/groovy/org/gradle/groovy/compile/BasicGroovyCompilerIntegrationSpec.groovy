@@ -102,7 +102,7 @@ dependencies { groovy 'org.codehaus.groovy:groovy-all:$version' }
 DeprecationLogger.whileDisabled {
     ${compilerConfiguration()}
 }
-"""
+        """
     }
 
     abstract String compilerConfiguration()
