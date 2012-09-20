@@ -24,9 +24,9 @@ import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.artifacts.result.ResolvedDependencyResult
 import org.gradle.api.internal.tasks.CommandLineOption
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.diagnostics.internal.DependencyInsightReporter
 import org.gradle.api.tasks.diagnostics.internal.GraphRenderer
 import org.gradle.api.tasks.diagnostics.internal.dependencies.RenderableDependency
-import org.gradle.api.tasks.diagnostics.internal.DependencyInsightReporter
 import org.gradle.logging.StyledTextOutput
 import org.gradle.logging.StyledTextOutputFactory
 
@@ -63,7 +63,14 @@ public class DependencyInsightReportTask extends DefaultTask {
     }
 
     @TaskAction
-    public void interrogate() {
+    public void report() {
+        if (configuration == null) {
+            throw new ReportException("Dependency insight report cannot be generated because the input configuration was not specified.")
+        }
+        if (includes == null) {
+            throw new ReportException("Dependency insight report cannot be generated because the dependency to include was not specified.")
+        }
+
         output = getServices().get(StyledTextOutputFactory.class).create(getClass());
         renderer = new GraphRenderer(output);
 

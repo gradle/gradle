@@ -293,6 +293,21 @@ org:leaf2:1.0
 """))
     }
 
+    def "no configuration"() {
+        given:
+        file("build.gradle") << """
+            task insight(type: DependencyInsightReportTask) {
+                includes = { it.requested.name == 'leaf2' }
+            }
+        """
+
+        when:
+        def failure = runAndFail("insight")
+
+        then:
+        failure.assertHasCause("Dependency insight report cannot be generated because the input configuration was not specified.")
+    }
+
     //TODO SF more coverage
     // some of those tests should be units
     // - no matching dependencies
