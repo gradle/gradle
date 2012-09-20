@@ -36,36 +36,43 @@ public class IvyModuleDescriptorWriter {
         //Utility class
     }
 
+    public static void write(ModuleDescriptor md, PrintWriter writer) throws IOException {
+        writer.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+        StringBuffer xmlNamespace = new StringBuffer();
+        Map namespaces = md.getExtraAttributesNamespaces();
+        for (Iterator iter = namespaces.entrySet().iterator(); iter.hasNext();) {
+            Map.Entry ns = (Map.Entry) iter.next();
+            xmlNamespace.append(" xmlns:").append(ns.getKey()).append("=\"")
+                    .append(ns.getValue()).append("\"");
+        }
+
+        String version = "2.0";
+        if (md.getInheritedDescriptors().length > 0) {
+            version = "2.2";
+        }
+
+        writer.println("<ivy-module version=\"" + version + "\"" + xmlNamespace + ">");
+        printInfoTag(md, writer);
+        printConfigurations(md, writer);
+        printPublications(md, writer);
+        printDependencies(md, writer);
+        writer.println("</ivy-module>");
+        if (writer.checkError()) {
+            throw new IOException("Unknown Error occured while writing Ivy module descriptor");
+        }
+    }
+
     public static void write(ModuleDescriptor md, File output)
             throws IOException {
         if (output.getParentFile() != null) {
             output.getParentFile().mkdirs();
         }
-        PrintWriter out = new PrintWriter(new OutputStreamWriter(new FileOutputStream(output),
-                "UTF-8"));
+        PrintWriter writer = new PrintWriter(new OutputStreamWriter(new FileOutputStream(output), "UTF-8"));
         try {
-            out.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-            StringBuffer xmlNamespace = new StringBuffer();
-            Map namespaces = md.getExtraAttributesNamespaces();
-            for (Iterator iter = namespaces.entrySet().iterator(); iter.hasNext();) {
-                Map.Entry ns = (Map.Entry) iter.next();
-                xmlNamespace.append(" xmlns:").append(ns.getKey()).append("=\"")
-                        .append(ns.getValue()).append("\"");
-            }
+            write(md, writer);
 
-            String version = "2.0";
-            if (md.getInheritedDescriptors().length > 0) {
-                version = "2.2";
-            }
-
-            out.println("<ivy-module version=\"" + version + "\"" + xmlNamespace + ">");
-            printInfoTag(md, out);
-            printConfigurations(md, out);
-            printPublications(md, out);
-            printDependencies(md, out);
-            out.println("</ivy-module>");
         } finally {
-            out.close();
+            writer.close();
         }
     }
 

@@ -30,14 +30,13 @@ import java.text.SimpleDateFormat
 
 class IvyModuleDescriptorWriterTest extends Specification {
 
-
     private @Rule TemporaryFolder temporaryFolder;
     private ModuleDescriptor md = Mock();
     private ModuleRevisionId moduleRevisionId = Mock()
     private ModuleRevisionId resolvedModuleRevisionId = Mock()
+    private PrintWriter printWriter = Mock()
 
-    def "can create empty ivy descriptor"() {
-        given:
+    def setup() {
         _ * md.extraAttributesNamespaces >> Collections.emptyMap()
         _ * md.extraAttributes >> Collections.emptyMap()
         _ * md.extraAttributes >> Collections.emptyMap()
@@ -52,15 +51,25 @@ class IvyModuleDescriptorWriterTest extends Specification {
         _ * md.getConfigurations() >> new Configuration[0]
         _ * md.getAllArtifacts() >> new Artifact[0]
         _ * md.getDependencies() >> new DependencyDescriptor[0]
+    }
 
-
+    def "can create empty ivy descriptor"() {
         when:
-
         File ivyFile = temporaryFolder.file("ivy.xml")
         IvyModuleDescriptorWriter.write(md, ivyFile);
         then:
         isIvyFile(ivyFile)
     }
+
+    def "error in printwriter are escalated as IOException"() {
+        given:
+        printWriter.checkError()>>true
+        when:
+        IvyModuleDescriptorWriter.write(md, printWriter);
+        then:
+        thrown(IOException)
+    }
+
 
     void isIvyFile(TestFile testFile) {
         println testFile.text
