@@ -77,9 +77,19 @@ public class DependencyInsightReportTask extends DefaultTask {
         ResolutionResult result = configuration.getIncoming().getResolutionResult();
         Set<? extends ResolvedDependencyResult> allDependencies = result.getAllDependencies()
 
+        if (allDependencies.empty) {
+            output.println("No dependencies found in $configuration")
+            return
+        }
+
         def selectedDependencies = allDependencies.findAll { ResolvedDependencyResult it ->
             //TODO SF this is quite crude for now but I need to get some feedback before implementing more.
             includes(it)
+        }
+
+        if (selectedDependencies.empty) {
+            output.println("No dependencies matching given input were found in $configuration")
+            return
         }
 
         def sortedDeps = new DependencyInsightReporter().prepare(selectedDependencies)

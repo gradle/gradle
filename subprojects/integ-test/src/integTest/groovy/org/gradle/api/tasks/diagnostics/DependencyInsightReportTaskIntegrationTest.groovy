@@ -293,7 +293,7 @@ org:leaf2:1.0
 """))
     }
 
-    def "no configuration"() {
+    def "shows decent failure when inputs missing"() {
         given:
         file("build.gradle") << """
             task insight(type: DependencyInsightReportTask) {
@@ -308,9 +308,54 @@ org:leaf2:1.0
         failure.assertHasCause("Dependency insight report cannot be generated because the input configuration was not specified.")
     }
 
+    def "informs that there are no dependencies"() {
+        given:
+        file("build.gradle") << """
+            configurations {
+                conf
+            }
+            task insight(type: DependencyInsightReportTask) {
+                includes = { it.requested.name == 'whatever' }
+                configuration = configurations.conf
+            }
+        """
+
+        when:
+        run "insight"
+
+        then:
+        output.contains("No dependencies found")
+    }
+
+    def "informs that nothing matches the input dependency"() {
+        given:
+        repo.module("org", "top").publish()
+
+        file("build.gradle") << """
+            repositories {
+                maven { url "${repo.uri}" }
+            }
+            configurations {
+                conf
+            }
+            dependencies {
+                conf 'org:top:1.0'
+            }
+            task insight(type: DependencyInsightReportTask) {
+                includes = { it.requested.name == 'foo.unknown' }
+                configuration = configurations.conf
+            }
+        """
+
+        when:
+        run "insight"
+
+        then:
+        output.contains("No dependencies matching given input were found")
+    }
+
     //TODO SF more coverage
     // some of those tests should be units
-    // - no matching dependencies
-    // - configuration / dependency not configured
     // - unresolved dependencies
+    // - cycle
 }
