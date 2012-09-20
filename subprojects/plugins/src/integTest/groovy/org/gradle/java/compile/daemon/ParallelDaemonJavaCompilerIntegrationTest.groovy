@@ -18,17 +18,45 @@ package org.gradle.java.compile.daemon
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
-import spock.lang.Timeout
 
-@Timeout(10)
 class ParallelDaemonJavaCompilerIntegrationTest extends AbstractIntegrationSpec {
     @Rule TestResources resources
 
     def "daemon compiler can handle --parallel"() {
+        generateProjects(20, 50, 50)
+
         executer.withForkingExecuter()
         args("--parallel")
 
         expect:
-        succeeds("compileJava")
+        succeeds("classes")
+    }
+
+    private generateProjects(int numProjects, int numJavaSources, int numGroovySources) {
+        def settingsText = ""
+        numProjects.times { count ->
+            settingsText += "include 'project$count'\n"
+        }
+        resources.dir.file("settings.gradle") << settingsText
+
+        numProjects.times { count ->
+            def projectDir = resources.dir.createDir("project$count")
+            generateSources(numJavaSources, resources.dir.file("JavaClass.java"), new File(projectDir, "src/main/java"))
+            generateSources(numGroovySources, resources.dir.file("GroovyClass.groovy"), new File(projectDir, "src/main/groovy"))
+        }
+    }
+
+    private generateSources(int num, File originalFile, File destinationDir) {
+        def text = originalFile.text
+        def className = originalFile.name.substring(0, originalFile.name.lastIndexOf("."))
+        def extension = originalFile.name.substring(originalFile.name.lastIndexOf(".") + 1)
+
+        num.times { count ->
+            def newClassName = className + count
+            def newText = text.replace(className, newClassName)
+            def file = new File(destinationDir, "${newClassName}.${extension}")
+            file.parentFile.mkdirs()
+            file << newText
+        }
     }
 }

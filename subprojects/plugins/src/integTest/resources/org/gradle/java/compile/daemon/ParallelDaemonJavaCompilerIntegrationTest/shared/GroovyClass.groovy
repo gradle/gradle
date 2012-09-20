@@ -1,29 +1,17 @@
-import org.gradle.internal.UncheckedException;
-
-import java.io.File;
-import java.io.Serializable;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-
 /**
  * An immutable classpath.
  */
-public class DefaultClassPath3 implements ClassPath, Serializable {
+public class GroovyClass implements Serializable {
     private final List<File> files;
 
-    public DefaultClassPath3(Iterable<File> files) {
+    public GroovyClass(Iterable<File> files) {
         this.files = new ArrayList<File>();
         for (File file : files) {
             this.files.add(file);
         }
     }
 
-    public DefaultClassPath3(File... files) {
+    public GroovyClass(File... files) {
         this(Arrays.asList(files));
     }
 
@@ -59,27 +47,27 @@ public class DefaultClassPath3 implements ClassPath, Serializable {
             try {
                 urls.add(file.toURI().toURL());
             } catch (MalformedURLException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
+                throw new RuntimeException(e);
             }
         }
         return urls;
     }
 
-    public ClassPath plus(ClassPath other) {
+    public GroovyClass plus(GroovyClass other) {
         if (files.isEmpty()) {
             return other;
         }
         if (other.isEmpty()) {
             return this;
         }
-        return new DefaultClassPath3(concat(files, other.getAsFiles()));
+        return new GroovyClass(concat(files, other.getAsFiles()));
     }
 
-    public ClassPath plus(Collection<File> other) {
+    public GroovyClass plus(Collection<File> other) {
         if (other.isEmpty()) {
             return this;
         }
-        return new DefaultClassPath3(concat(files, other));
+        return new GroovyClass(concat(files, other));
     }
 
     private Iterable<File> concat(List<File> files1, Collection<File> files2) {
@@ -97,7 +85,7 @@ public class DefaultClassPath3 implements ClassPath, Serializable {
         if (obj == null || obj.getClass() != getClass()) {
             return false;
         }
-        DefaultClassPath3 other = (DefaultClassPath3) obj;
+        GroovyClass other = (GroovyClass) obj;
         return files.equals(other.files);
     }
 
