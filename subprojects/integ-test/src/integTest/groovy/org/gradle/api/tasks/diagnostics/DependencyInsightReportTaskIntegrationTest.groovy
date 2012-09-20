@@ -30,7 +30,7 @@ class DependencyInsightReportTaskIntegrationTest extends AbstractIntegrationSpec
         distribution.requireOwnUserHomeDir()
     }
 
-    def "basic dependency graph with conflicting versions"() {
+    def "basic dependency insight with conflicting versions"() {
         given:
         repo.module("org", "leaf1").publish()
         repo.module("org", "leaf2").publish()
@@ -51,7 +51,7 @@ class DependencyInsightReportTaskIntegrationTest extends AbstractIntegrationSpec
         repo.module("org", "toplevel4").dependsOn("middle3").publish()
 
         file("build.gradle") << """
-            apply plugin: 'dependency-reporting'
+            apply plugin: DependencyReportingPlugin
 
             repositories {
                 maven { url "${repo.uri}" }
@@ -251,6 +251,45 @@ org:leaf:1.0 (forced)
 org:leaf:2.0 -> 1.0
 \\--- org:bar:1.0
      \\--- conf
+"""))
+    }
+
+    def "shows basic single tree"() {
+        given:
+        repo.module("org", "leaf1").publish()
+        repo.module("org", "leaf2").publish()
+
+        repo.module("org", "middle").dependsOn("leaf1", "leaf2").publish()
+
+        repo.module("org", "top").dependsOn("middle", "leaf2").publish()
+
+        file("build.gradle") << """
+            repositories {
+                maven { url "${repo.uri}" }
+            }
+            configurations {
+                conf
+            }
+            dependencies {
+                conf 'org:top:1.0'
+            }
+            task insight(type: DependencyInsightReportTask) {
+                includes = { it.requested.name == 'leaf2' }
+                configuration = configurations.conf
+            }
+        """
+
+        when:
+        run "insight"
+
+        then:
+        output.contains(toPlatformLineSeparators("""
+org:leaf2:1.0
++--- org:top:1.0
+|    \\--- conf
+\\--- org:middle:1.0
+     \\--- org:top:1.0
+          \\--- conf
 """))
     }
 
