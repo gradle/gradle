@@ -78,7 +78,7 @@ public class DependencyInsightReportTask extends DefaultTask {
         Set<? extends ResolvedDependencyResult> allDependencies = result.getAllDependencies()
 
         if (allDependencies.empty) {
-            output.println("No dependencies found in $configuration")
+            output.println("No resolved dependencies found in $configuration")
             return
         }
 
@@ -88,7 +88,7 @@ public class DependencyInsightReportTask extends DefaultTask {
         }
 
         if (selectedDependencies.empty) {
-            output.println("No dependencies matching given input were found in $configuration")
+            output.println("No resolved dependencies matching given input were found in $configuration")
             return
         }
 

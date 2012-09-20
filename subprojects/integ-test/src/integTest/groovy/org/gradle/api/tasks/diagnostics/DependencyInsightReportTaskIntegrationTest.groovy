@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 package org.gradle.api.tasks.diagnostics
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -28,6 +27,45 @@ class DependencyInsightReportTaskIntegrationTest extends AbstractIntegrationSpec
 
     def setup() {
         distribution.requireOwnUserHomeDir()
+    }
+
+    def "shows basic single tree"() {
+        given:
+        repo.module("org", "leaf1").publish()
+        repo.module("org", "leaf2").publish()
+
+        repo.module("org", "middle").dependsOn("leaf1", "leaf2").publish()
+
+        repo.module("org", "top").dependsOn("middle", "leaf2").publish()
+
+        file("build.gradle") << """
+            repositories {
+                maven { url "${repo.uri}" }
+            }
+            configurations {
+                conf
+            }
+            dependencies {
+                conf 'org:top:1.0'
+            }
+            task insight(type: DependencyInsightReportTask) {
+                includes = { it.requested.name == 'leaf2' }
+                configuration = configurations.conf
+            }
+        """
+
+        when:
+        run "insight"
+
+        then:
+        output.contains(toPlatformLineSeparators("""
+org:leaf2:1.0
++--- org:top:1.0
+|    \\--- conf
+\\--- org:middle:1.0
+     \\--- org:top:1.0
+          \\--- conf
+"""))
     }
 
     def "basic dependency insight with conflicting versions"() {
@@ -88,7 +126,7 @@ org:leaf2:1.5 -> 2.5
 """))
     }
 
-    def "with forced version"() {
+    def "shows forced version"() {
         given:
         repo.module("org", "leaf", 1.0).publish()
         repo.module("org", "leaf", 2.0).publish()
@@ -254,45 +292,6 @@ org:leaf:2.0 -> 1.0
 """))
     }
 
-    def "shows basic single tree"() {
-        given:
-        repo.module("org", "leaf1").publish()
-        repo.module("org", "leaf2").publish()
-
-        repo.module("org", "middle").dependsOn("leaf1", "leaf2").publish()
-
-        repo.module("org", "top").dependsOn("middle", "leaf2").publish()
-
-        file("build.gradle") << """
-            repositories {
-                maven { url "${repo.uri}" }
-            }
-            configurations {
-                conf
-            }
-            dependencies {
-                conf 'org:top:1.0'
-            }
-            task insight(type: DependencyInsightReportTask) {
-                includes = { it.requested.name == 'leaf2' }
-                configuration = configurations.conf
-            }
-        """
-
-        when:
-        run "insight"
-
-        then:
-        output.contains(toPlatformLineSeparators("""
-org:leaf2:1.0
-+--- org:top:1.0
-|    \\--- conf
-\\--- org:middle:1.0
-     \\--- org:top:1.0
-          \\--- conf
-"""))
-    }
-
     def "shows decent failure when inputs missing"() {
         given:
         file("build.gradle") << """
@@ -324,7 +323,7 @@ org:leaf2:1.0
         run "insight"
 
         then:
-        output.contains("No dependencies found")
+        output.contains("No resolved dependencies found")
     }
 
     def "informs that nothing matches the input dependency"() {
@@ -351,11 +350,36 @@ org:leaf2:1.0
         run "insight"
 
         then:
-        output.contains("No dependencies matching given input were found")
+        output.contains("No resolved dependencies matching given input were found")
+    }
+
+    def "deals with unresolved dependencies"() {
+        given:
+        repo.module("org", "top").dependsOn("middle").publish()
+
+        file("build.gradle") << """
+            repositories {
+                maven { url "${repo.uri}" }
+            }
+            configurations {
+                conf
+            }
+            dependencies {
+                conf 'org:top:1.0'
+            }
+            task insight(type: DependencyInsightReportTask) {
+                includes = { it.requested.name == 'middle' }
+                configuration = configurations.conf
+            }
+        """
+
+        when:
+        run "insight"
+
+        then:
+        output.contains("No resolved dependencies matching given input were found")
     }
 
     //TODO SF more coverage
-    // some of those tests should be units
-    // - unresolved dependencies
     // - cycle
 }
