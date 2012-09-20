@@ -28,11 +28,11 @@ import org.apache.ivy.plugins.parser.ModuleDescriptorParser;
 import org.apache.ivy.plugins.parser.ParserSettings;
 import org.apache.ivy.plugins.parser.m2.PomDependencyMgt;
 import org.apache.ivy.plugins.parser.m2.PomReader;
-import org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorWriter;
 import org.apache.ivy.plugins.repository.Resource;
 import org.apache.ivy.plugins.repository.url.URLResource;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.util.Message;
+import org.gradle.api.internal.artifacts.ivyservice.IvyModuleDescriptorWriter;
 import org.xml.sax.SAXException;
 
 import java.io.File;
@@ -52,7 +52,7 @@ public final class GradlePomModuleDescriptorParser implements ModuleDescriptorPa
     public void toIvyFile(InputStream is, Resource res, File destFile, ModuleDescriptor md)
             throws ParseException, IOException {
         try {
-            XmlModuleDescriptorWriter.write(md, destFile);
+            IvyModuleDescriptorWriter.write(md, destFile);
         } finally {
             if (is != null) {
                 is.close();

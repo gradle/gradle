@@ -70,7 +70,6 @@ class IvyModuleDescriptorWriterTest extends Specification {
         thrown(IOException)
     }
 
-
     void isIvyFile(TestFile testFile) {
         println testFile.text
         def ivyModule = new XmlSlurper().parse(testFile);
@@ -82,6 +81,6 @@ class IvyModuleDescriptorWriterTest extends Specification {
 
     def date(String timestamp) {
         def format = new SimpleDateFormat("yyyyMMddHHmmss")
-        return format.parse(timestamp)
+        format.parse(timestamp)
     }
 }
