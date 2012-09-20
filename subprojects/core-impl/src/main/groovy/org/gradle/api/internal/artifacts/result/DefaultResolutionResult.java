@@ -40,16 +40,19 @@ public class DefaultResolutionResult implements ResolutionResult {
     }
 
     public Set<? extends ResolvedDependencyResult> getAllDependencies() {
-        //TODO SF/AM make sure this works if there are cycles / coverage
-        //void allDependencies(Action<ResolvedDependencyResult> action) / void allDependencies(Closure cl)
+        //TODO SF api change: void allDependencies(Action<ResolvedDependencyResult> action) / void allDependencies(Closure cl)
         Set<ResolvedDependencyResult> out = new LinkedHashSet<ResolvedDependencyResult>();
-        collectDependencies(root, out);
+        Set<ResolvedModuleVersionResult> visited = new LinkedHashSet<ResolvedModuleVersionResult>();
+        collectDependencies(root, out, visited);
         return out;
     }
 
-    private void collectDependencies(ResolvedModuleVersionResult node, Set<ResolvedDependencyResult> out) {
+    private void collectDependencies(ResolvedModuleVersionResult node, Set<ResolvedDependencyResult> out, Set<ResolvedModuleVersionResult> visited) {
+        if (!visited.add(node)) {
+            return;
+        }
         for (ResolvedDependencyResult d : node.getDependencies()) {
-            collectDependencies(d.getSelected(), out);
+            collectDependencies(d.getSelected(), out, visited);
             out.add(d);
         }
     }

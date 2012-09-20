@@ -29,7 +29,7 @@ class DependencyInsightReportTaskIntegrationTest extends AbstractIntegrationSpec
         distribution.requireOwnUserHomeDir()
     }
 
-    def "shows basic single tree"() {
+    def "shows basic single tree with repeated dependency"() {
         given:
         repo.module("org", "leaf1").publish()
         repo.module("org", "leaf2").publish()
@@ -63,9 +63,9 @@ org:leaf2:1.0
 +--- org:top:1.0
 |    \\--- conf
 \\--- org:middle:1.0
-     \\--- org:top:1.0
-          \\--- conf
+     \\--- org:top:1.0 (*)
 """))
+        //TODO SF legend, same as for the dependencies report
     }
 
     def "basic dependency insight with conflicting versions"() {
@@ -380,6 +380,36 @@ org:leaf:2.0 -> 1.0
         output.contains("No resolved dependencies matching given input were found")
     }
 
-    //TODO SF more coverage
-    // - cycle
+    def "deals with dependency cycles"() {
+        given:
+        repo.module("org", "leaf1").dependsOn("leaf2").publish()
+        repo.module("org", "leaf2").dependsOn("leaf1").publish()
+
+        file("build.gradle") << """
+            repositories {
+                maven { url "${repo.uri}" }
+            }
+            configurations {
+                conf
+            }
+            dependencies {
+                conf 'org:leaf1:1.0'
+            }
+            task insight(type: DependencyInsightReportTask) {
+                includes = { it.requested.name == 'leaf2' }
+                configuration = configurations.conf
+            }
+        """
+
+        when:
+        run "insight"
+
+        then:
+        output.contains(toPlatformLineSeparators("""
+org:leaf2:1.0
+\\--- org:leaf1:1.0
+     +--- conf
+     \\--- org:leaf2:1.0 (*)
+"""))
+    }
 }

@@ -20,6 +20,7 @@ package org.gradle.api.tasks.diagnostics;
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.artifacts.result.ResolvedDependencyResult
 import org.gradle.api.internal.tasks.CommandLineOption
@@ -29,6 +30,8 @@ import org.gradle.api.tasks.diagnostics.internal.GraphRenderer
 import org.gradle.api.tasks.diagnostics.internal.dependencies.RenderableDependency
 import org.gradle.logging.StyledTextOutput
 import org.gradle.logging.StyledTextOutputFactory
+
+import static org.gradle.logging.StyledTextOutput.Style.Info
 
 /**
  * by Szczepan Faber, created at: 8/17/12
@@ -103,31 +106,41 @@ public class DependencyInsightReportTask extends DefaultTask {
                     }
                 }
             }, true);
-            renderParents(dependency.getParents());
+            def visited = new HashSet<ModuleVersionIdentifier>()
+            visited.add(dependency.getId())
+            renderParents(dependency.getParents(), visited);
             output.println()
         }
     }
 
-    private void renderParents(Set<? extends RenderableDependency> parents) {
+    private void renderParents(Set<? extends RenderableDependency> parents, Set<ModuleVersionIdentifier> visited) {
         renderer.startChildren();
         int i = 0;
         for (RenderableDependency parent : parents) {
             boolean last = i++ == parents.size() - 1;
-            render(parent, last);
+            render(parent, last, visited);
         }
         renderer.completeChildren();
     }
 
-    private void render(final RenderableDependency parent, boolean last) {
+    private void render(final RenderableDependency parent, boolean last, Set<ModuleVersionIdentifier> visited) {
         def parents = parent.getParents();
-        String printable = parents.size() == 0? configuration.name : parent.name
+        boolean leaf = parents.size() == 0
+        String printable = leaf? configuration.name : parent.name
+        boolean alreadyRendered = !visited.add(parent.getId())
 
         renderer.visit(new Action<StyledTextOutput>() {
             public void execute(StyledTextOutput styledTextOutput) {
                 styledTextOutput.text(printable);
+                if (alreadyRendered && !leaf) {
+                    styledTextOutput.withStyle(Info).text(" (*)")
+                }
             }
         }, last);
 
-        renderParents(parents);
+
+        if (!alreadyRendered) {
+            renderParents(parents, visited);
+        }
     }
 }
