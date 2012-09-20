@@ -123,6 +123,14 @@ For interesting version modules, the report shows also if the the version was 'f
 - the report prints a warning if the configuration resolves with failures because this can affect the dependency tree
 - the plugin implementation potentially should go to 'reporting' subproject
 
+### Open issues
+
+- the name of the report is not good. The existing 'dependencies' report also gives 'insight' into the dependencies.
+- the task-level api (the configuration & dependency spec inputs, outputs)
+- should the new report extend AbstractReportTask? In that case we need decide what to do with 'projects' public property on AbstractReportTask.
+- if there is a single configuration in the project, should it be used by default by the task?
+- behavior when some dependencies are unresolved
+
 ## Allow new report to be used from command-line
 
 There should be some simple way to run the report from the command line.
