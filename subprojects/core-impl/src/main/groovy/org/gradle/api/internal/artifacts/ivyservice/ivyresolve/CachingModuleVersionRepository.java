@@ -44,7 +44,7 @@ public class CachingModuleVersionRepository implements ModuleVersionRepository {
     private final ModuleResolutionCache moduleResolutionCache;
     private final ModuleDescriptorCache moduleDescriptorCache;
     private final CachedExternalResourceIndex<ArtifactAtRepositoryKey> artifactAtRepositoryCachedResolutionIndex;
-    
+
     private final CachePolicy cachePolicy;
 
     private final ModuleVersionRepository delegate;
@@ -106,7 +106,7 @@ public class CachingModuleVersionRepository implements ModuleVersionRepository {
                 return original;
             } else {
                 LOGGER.debug("Found resolved revision in dynamic revision cache of '{}': Using '{}' for '{}'",
-                        new Object[] {repository.getName(), cachedModuleResolution.getResolvedVersion(), originalId});
+                        new Object[]{repository.getName(), cachedModuleResolution.getResolvedVersion(), originalId});
                 return original.clone(cachedModuleResolution.getResolvedVersion());
             }
         }
@@ -121,7 +121,7 @@ public class CachingModuleVersionRepository implements ModuleVersionRepository {
             return notFound();
         }
         if (cachedModuleDescriptor.isMissing()) {
-            if (cachePolicy.mustRefreshModule(moduleVersionIdentifier, null, cachedModuleDescriptor.getAgeMillis())) {
+            if (cachePolicy.mustRefreshModule(moduleVersionIdentifier, null, resolvedModuleVersionId, cachedModuleDescriptor.getAgeMillis())) {
                 LOGGER.debug("Cached meta-data for missing module is expired: will perform fresh resolve of '{}' in '{}'", resolvedModuleVersionId, repository.getName());
                 return notFound();
             }
@@ -136,7 +136,7 @@ public class CachingModuleVersionRepository implements ModuleVersionRepository {
             }
             LOGGER.debug("Found cached version of changing module '{}' in '{}'", resolvedModuleVersionId, repository.getName());
         } else {
-            if (cachePolicy.mustRefreshModule(moduleVersionIdentifier, cachedModuleDescriptor.getModuleVersion(), cachedModuleDescriptor.getAgeMillis())) {
+            if (cachePolicy.mustRefreshModule(moduleVersionIdentifier, cachedModuleDescriptor.getModuleVersion(), null, cachedModuleDescriptor.getAgeMillis())) {
                 LOGGER.debug("Cached meta-data for module must be refreshed: will perform fresh resolve of '{}' in '{}'", resolvedModuleVersionId, repository.getName());
                 return notFound();
             }
@@ -153,7 +153,7 @@ public class CachingModuleVersionRepository implements ModuleVersionRepository {
             artifactAtRepositoryCachedResolutionIndex.clear(new ArtifactAtRepositoryKey(repository, artifact.getId()));
         }
     }
-    
+
     public ModuleVersionDescriptor resolveModule(DependencyDescriptor resolvedDependencyDescriptor, DependencyDescriptor requestedDependencyDescriptor) {
         ModuleVersionDescriptor module = delegate.getDependency(ForceChangeDependencyDescriptor.forceChangingFlag(resolvedDependencyDescriptor, true));
 
