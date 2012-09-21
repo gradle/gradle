@@ -40,16 +40,14 @@ public class CompilerDaemonManager implements CompilerDaemonFactory {
     private static final CompilerDaemonManager INSTANCE = new CompilerDaemonManager();
     
     private final List<CompilerDaemonClient> clients = new ArrayList<CompilerDaemonClient>();
-    private boolean firstRequest = true;
 
     public static CompilerDaemonManager getInstance() {
         return INSTANCE;
     }
 
     public synchronized CompilerDaemon getDaemon(ProjectInternal project, DaemonForkOptions forkOptions) {
-        if (firstRequest) {
+        if (clients.isEmpty()) {
             registerStopOnBuildFinished(project);
-            firstRequest = false;
         }
 
         for (CompilerDaemonClient client: clients) {
@@ -68,6 +66,7 @@ public class CompilerDaemonManager implements CompilerDaemonFactory {
         for (CompilerDaemonClient client : clients) {
             client.stop();
         }
+        clients.clear();
         LOGGER.info("Stopped {} Gradle compiler daemon(s).", clients.size());
     }
 
