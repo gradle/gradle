@@ -40,7 +40,7 @@ class MavenConversionSpec extends AbstractIntegrationSpec {
         file("settings.gradle").exists()
 
         when:
-        run '-i', 'clean', 'build', 'install'
+        run '-i', 'clean', 'build'
 
         then: //smoke test the build artifacts
         file("webinar-api/build/libs/webinar-api-1.0-SNAPSHOT.jar").exists()
@@ -75,7 +75,7 @@ Root project 'webinar-parent'
         //TODO SF this build should fail because the TestNG test is failing
         //however the plugin does not generate testNG for single module project atm (bug)
         //def failure = runAndFail('clean', 'build')  //assert if fails for the right reason
-        run 'clean', 'build', 'install'
+        run 'clean', 'build'
 
         then:
         file("build/libs/util-2.5.jar").exists()
