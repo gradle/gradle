@@ -21,7 +21,7 @@ import org.gradle.util.TestPrecondition
 import org.gradle.integtests.fixtures.TargetVersions
 
 @Requires(TestPrecondition.JDK7)
-@TargetVersions(['2.0.2:indy'])
+@TargetVersions(['2.0.3:indy'])
 class InvokeDynamicGroovyCompilerSpec extends ApiGroovyCompilerIntegrationSpec {
     def canEnableAndDisableInvokeDynamicOptimization() {
         when:
