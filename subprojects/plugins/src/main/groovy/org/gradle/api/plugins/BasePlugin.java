@@ -61,7 +61,7 @@ public class BasePlugin implements Plugin<Project> {
 
     private void addAssemble(Project project) {
         Task assembleTask = project.getTasks().add(ASSEMBLE_TASK_NAME);
-        assembleTask.setDescription("Assembles all Jar, War, Zip, and Tar archives.");
+        assembleTask.setDescription("Assembles Jar, War, Zip, and Tar archives that belong to 'archives' configuration.");
         assembleTask.setGroup(BUILD_GROUP);
         assembleTask.dependsOn(project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).getAllArtifacts().getBuildDependencies());
     }
