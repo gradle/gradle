@@ -17,7 +17,6 @@ package org.gradle.api.tasks.diagnostics.internal
 
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.tasks.diagnostics.internal.dependencies.SimpleDependency
 import org.gradle.logging.TestStyledTextOutput
 import org.gradle.util.HelperUtil
@@ -32,7 +31,7 @@ class AsciiDependencyReportRendererTest extends Specification {
         renderer.output = textOutput
     }
 
-    def writesMessageWhenProjectHasNoConfigurations() {
+    def "informs if no configurations"() {
         when:
         renderer.startProject(project);
         renderer.completeProject(project);
@@ -41,7 +40,7 @@ class AsciiDependencyReportRendererTest extends Specification {
         textOutput.value.contains('No configurations')
     }
 
-    def writesConfigurationHeader() {
+    def "shows configuration header"() {
         Configuration configuration1 = Mock()
         configuration1.getName() >> 'config1'
         configuration1.getDescription() >> 'description'
@@ -62,38 +61,38 @@ class AsciiDependencyReportRendererTest extends Specification {
         ]
     }
 
-    //TODO SF move this test elsewhere
-    def rendersDependencyTreeForConfiguration() {
-        ConfigurationInternal configuration = Mock()
-        configuration.name >> 'config'
-
+    def "renders dependency graph"() {
+        renderer.dependencyGraphRenderer = Mock(DependencyGraphRenderer)
         def root = new SimpleDependency("root")
-        def dep1 = new SimpleDependency("dep1")
-        def dep11 = new SimpleDependency("dep1.1")
-        def dep2 = new SimpleDependency("dep2")
-        def dep21 = new SimpleDependency("dep2.1")
-        def dep22 = new SimpleDependency("dep2.2")
-
-        root.children.addAll(dep1, dep2)
-        dep1.children.addAll(dep11)
-        dep2.children.addAll(dep21, dep22)
+        root.children.add(new SimpleDependency("dep"))
 
         when:
-        renderer.startConfiguration(configuration)
         renderer.renderNow(root)
 
         then:
-        textOutput.value.readLines() == [
-                'config',
-                '+--- dep1',
-                '|    \\--- dep1.1',
-                '\\--- dep2',
-                '     +--- dep2.1',
-                '     \\--- dep2.2'
-        ]
+        1 * renderer.dependencyGraphRenderer.render(root)
     }
 
-    def rendersDependencyTreeForEmptyConfiguration() {
+    def "renders legend on complete"() {
+        renderer.dependencyGraphRenderer = Mock(DependencyGraphRenderer)
+
+        when:
+        renderer.complete()
+
+        then:
+        1 * renderer.dependencyGraphRenderer.printLegend()
+    }
+
+    def "safely completes if no configurations"() {
+        when:
+        //no configuration started, and:
+        renderer.complete()
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "informs if no dependencies"() {
         def root = new SimpleDependency("root", "config")
 
         when:

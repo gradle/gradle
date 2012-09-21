@@ -26,7 +26,6 @@ import org.gradle.logging.StyledTextOutput;
 import org.gradle.util.GUtil;
 
 import java.io.IOException;
-import java.util.Set;
 
 import static org.gradle.logging.StyledTextOutput.Style.*;
 
@@ -37,7 +36,7 @@ import static org.gradle.logging.StyledTextOutput.Style.*;
  */
 public class AsciiDependencyReportRenderer extends TextReportRenderer implements DependencyReportRenderer {
     private boolean hasConfigs;
-    private DependencyGraphRenderer dependencyGraphRenderer;
+    DependencyGraphRenderer dependencyGraphRenderer;
 
     @Override
     public void startProject(Project project) {
@@ -66,14 +65,7 @@ public class AsciiDependencyReportRenderer extends TextReportRenderer implements
             }
         }, true);
 
-        NodeRenderer nodeRenderer = new NodeRenderer() {
-            public void renderNode(StyledTextOutput output, RenderableDependency node, Set<RenderableDependency> children, boolean alreadyRendered) {
-                output.text(node.getName());
-                if (alreadyRendered) {
-                    output.withStyle(Info).text(" (*)");
-                }
-            }
-        };
+        NodeRenderer nodeRenderer = new SimpleNodeRenderer();
         dependencyGraphRenderer = new DependencyGraphRenderer(renderer, nodeRenderer);
     }
 
@@ -111,4 +103,5 @@ public class AsciiDependencyReportRenderer extends TextReportRenderer implements
 
         super.complete();
     }
+
 }
