@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.java.compile.daemon
+package org.gradle.compile.daemon
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 
-class ParallelDaemonJavaCompilerIntegrationTest extends AbstractIntegrationSpec {
+class ParallelCompilerDaemonIntegrationTest extends AbstractIntegrationSpec {
     @Rule TestResources resources
 
     def "daemon compiler can handle --parallel"() {
-        generateProjects(20, 50, 50)
+        generateProjects(10, 10, 10)
 
         executer.withForkingExecuter()
         args("--parallel")
