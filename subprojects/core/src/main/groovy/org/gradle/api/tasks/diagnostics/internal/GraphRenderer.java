@@ -62,4 +62,8 @@ public class GraphRenderer {
             prefix.setLength(prefix.length() - 5);
         }
     }
+
+    public StyledTextOutput getOutput() {
+        return output;
+    }
 }

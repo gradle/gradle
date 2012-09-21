@@ -17,42 +17,37 @@
 package org.gradle.api.tasks.diagnostics.internal.dependencies;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
 
-import java.util.LinkedHashSet;
 import java.util.Set;
 
-import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId;
+/**
+ * by Szczepan Faber, created at: 8/10/12
+ */
+public abstract class AbstractRenderableModuleResult implements RenderableDependency {
 
-public class SimpleDependency implements RenderableDependency {
+    protected final ResolvedModuleVersionResult module;
 
-    private final ModuleVersionIdentifier id;
-    private final String name;
-    private final String description;
-    private final Set<RenderableDependency> children = new LinkedHashSet<RenderableDependency>();
-
-    public SimpleDependency(String name) {
-        this(name, null);
-    }
-
-    public SimpleDependency(String name, String description) {
-        this.name = name;
-        this.description = description;
-        this.id = newId(name, name, "1.0");
+    public AbstractRenderableModuleResult(ResolvedModuleVersionResult module) {
+        this.module = module;
     }
 
     public ModuleVersionIdentifier getId() {
-        return id;
+        return module.getId();
     }
 
     public String getName() {
-        return name;
+        return module.getId().getGroup() + ":" + module.getId().getName() + ":" + module.getId().getVersion();
     }
 
     public String getDescription() {
-        return description;
+        return null;
     }
 
-    public Set<RenderableDependency> getChildren() {
-        return children;
+    public abstract Set<RenderableDependency> getChildren();
+
+    @Override
+    public String toString() {
+        return module.toString();
     }
 }

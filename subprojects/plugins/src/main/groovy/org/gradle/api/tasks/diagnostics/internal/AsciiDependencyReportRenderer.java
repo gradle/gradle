@@ -18,7 +18,6 @@ package org.gradle.api.tasks.diagnostics.internal;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.tasks.diagnostics.internal.dependencies.RenderableDependency;
@@ -27,9 +26,6 @@ import org.gradle.logging.StyledTextOutput;
 import org.gradle.util.GUtil;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import static org.gradle.logging.StyledTextOutput.Style.*;
@@ -41,14 +37,12 @@ import static org.gradle.logging.StyledTextOutput.Style.*;
  */
 public class AsciiDependencyReportRenderer extends TextReportRenderer implements DependencyReportRenderer {
     private boolean hasConfigs;
-    private boolean hasCyclicDependencies;
-    private GraphRenderer renderer;
+    private DependencyGraphRenderer dependencyGraphRenderer;
 
     @Override
     public void startProject(Project project) {
         super.startProject(project);
         hasConfigs = false;
-        hasCyclicDependencies = false;
     }
 
     @Override
@@ -64,13 +58,23 @@ public class AsciiDependencyReportRenderer extends TextReportRenderer implements
             getTextOutput().println();
         }
         hasConfigs = true;
-        renderer = new GraphRenderer(getTextOutput());
+        GraphRenderer renderer = new GraphRenderer(getTextOutput());
         renderer.visit(new Action<StyledTextOutput>() {
             public void execute(StyledTextOutput styledTextOutput) {
                 getTextOutput().withStyle(Identifier).text(configuration.getName());
                 getTextOutput().withStyle(Description).text(getDescription(configuration));
             }
         }, true);
+
+        NodeRenderer nodeRenderer = new NodeRenderer() {
+            public void renderNode(StyledTextOutput output, RenderableDependency node, Set<RenderableDependency> children, boolean alreadyRendered) {
+                output.text(node.getName());
+                if (alreadyRendered) {
+                    output.withStyle(Info).text(" (*)");
+                }
+            }
+        };
+        dependencyGraphRenderer = new DependencyGraphRenderer(renderer, nodeRenderer);
     }
 
     private String getDescription(Configuration configuration) {
@@ -96,47 +100,15 @@ public class AsciiDependencyReportRenderer extends TextReportRenderer implements
             return;
         }
 
-        renderChildren(root.getChildren(), new HashSet<ModuleVersionIdentifier>());
+        dependencyGraphRenderer.render(root);
     }
 
     public void complete() throws IOException {
-        if (hasCyclicDependencies) {
-            getTextOutput().withStyle(Info).println("\n(*) - dependencies omitted (listed previously)");
+        if (dependencyGraphRenderer != null) {
+            getTextOutput().println();
+            dependencyGraphRenderer.printLegend();
         }
-        
+
         super.complete();
     }
-    
-    private void render(final RenderableDependency resolvedDependency, Set<ModuleVersionIdentifier> visitedDependencyNames, boolean lastChild) {
-        final boolean isFirstVisitOfDependencyInConfiguration = visitedDependencyNames.add(resolvedDependency.getId());
-        if (!isFirstVisitOfDependencyInConfiguration) {
-            hasCyclicDependencies = true;
-        }
-
-        renderer.visit(new Action<StyledTextOutput>() {
-            public void execute(StyledTextOutput styledTextOutput) {
-                getTextOutput().text(resolvedDependency.getName());
-                StyledTextOutput infoStyle = getTextOutput().withStyle(Info);
-
-                if (!isFirstVisitOfDependencyInConfiguration) {
-                    infoStyle.append(" (*)");
-                }
-            }
-        }, lastChild);
-
-        if (isFirstVisitOfDependencyInConfiguration) {
-            renderChildren(resolvedDependency.getChildren(), visitedDependencyNames);
-        }
-    }
-
-    private void renderChildren(Set<RenderableDependency> children, Set<ModuleVersionIdentifier> visitedDependencyNames) {
-        renderer.startChildren();
-        List<RenderableDependency> mergedChildren = new ArrayList<RenderableDependency>(children);
-        for (int i = 0; i < mergedChildren.size(); i++) {
-            RenderableDependency dependency = mergedChildren.get(i);
-            render(dependency, visitedDependencyNames, i == mergedChildren.size() - 1);
-        }
-        renderer.completeChildren();
-    }
-
 }

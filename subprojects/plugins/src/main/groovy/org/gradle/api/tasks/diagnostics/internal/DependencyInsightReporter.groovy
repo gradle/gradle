@@ -20,8 +20,8 @@ package org.gradle.api.tasks.diagnostics.internal;
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.result.ModuleVersionSelectionReason
 import org.gradle.api.artifacts.result.ResolvedDependencyResult
+import org.gradle.api.tasks.diagnostics.internal.dependencies.InvertedRenderableDependencyResult
 import org.gradle.api.tasks.diagnostics.internal.dependencies.RenderableDependency
-import org.gradle.api.tasks.diagnostics.internal.dependencies.RenderableDependencyResult
 import org.gradle.api.tasks.diagnostics.internal.dependencies.SimpleDependency
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
@@ -53,7 +53,7 @@ public class DependencyInsightReporter {
                 }
             }
 
-            out << new RenderableDependencyResult(dependency, description)
+            out << new InvertedRenderableDependencyResult(dependency, description)
         }
 
         out

@@ -19,27 +19,26 @@ package org.gradle.api.tasks.diagnostics.internal.dependencies;
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
+import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
- * by Szczepan Faber, created at: 7/27/12
+ * Children of this renderable dependency node are its dependents.
+ *
+ * by Szczepan Faber, created at: 8/10/12
  */
-public class RenderableDependencyResult extends AbstractRenderableDependencyResult implements RenderableDependency {
+public class InvertedRenderableModuleResult extends RenderableModuleResult implements RenderableDependency {
 
-    public RenderableDependencyResult(ResolvedDependencyResult dependency) {
-        this(dependency, null);
-    }
-
-    public RenderableDependencyResult(ResolvedDependencyResult dependency, String description) {
-        super(dependency, description);
+    public InvertedRenderableModuleResult(ResolvedModuleVersionResult module) {
+        super(module);
     }
 
     public Set<RenderableDependency> getChildren() {
-        return new LinkedHashSet(Collections2.transform(dependency.getSelected().getDependencies(), new Function<ResolvedDependencyResult, RenderableDependency>() {
+        return new LinkedHashSet(Collections2.transform(module.getDependents(), new Function<ResolvedDependencyResult, RenderableDependency>() {
             public RenderableDependency apply(ResolvedDependencyResult input) {
-                return new RenderableDependencyResult(input);
+                return new InvertedRenderableModuleResult(input.getFrom());
             }
         }));
     }

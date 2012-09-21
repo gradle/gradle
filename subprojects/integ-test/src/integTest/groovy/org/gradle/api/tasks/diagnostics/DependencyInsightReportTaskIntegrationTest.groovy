@@ -64,8 +64,9 @@ org:leaf2:1.0
 |    \\--- conf
 \\--- org:middle:1.0
      \\--- org:top:1.0 (*)
+
+(*) - dependencies omitted (listed previously)
 """))
-        //TODO SF legend, same as for the dependencies report
     }
 
     def "basic dependency insight with conflicting versions"() {

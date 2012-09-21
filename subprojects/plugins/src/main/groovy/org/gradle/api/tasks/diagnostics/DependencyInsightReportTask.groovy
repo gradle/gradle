@@ -20,13 +20,14 @@ package org.gradle.api.tasks.diagnostics;
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.artifacts.result.ResolvedDependencyResult
 import org.gradle.api.internal.tasks.CommandLineOption
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.diagnostics.internal.DependencyGraphRenderer
 import org.gradle.api.tasks.diagnostics.internal.DependencyInsightReporter
 import org.gradle.api.tasks.diagnostics.internal.GraphRenderer
+import org.gradle.api.tasks.diagnostics.internal.NodeRenderer
 import org.gradle.api.tasks.diagnostics.internal.dependencies.RenderableDependency
 import org.gradle.logging.StyledTextOutput
 import org.gradle.logging.StyledTextOutputFactory
@@ -85,7 +86,7 @@ public class DependencyInsightReportTask extends DefaultTask {
             return
         }
 
-        def selectedDependencies = allDependencies.findAll { ResolvedDependencyResult it ->
+        Collection<ResolvedDependencyResult> selectedDependencies = allDependencies.findAll { ResolvedDependencyResult it ->
             //TODO SF this is quite crude for now but I need to get some feedback before implementing more.
             includes(it)
         }
@@ -97,6 +98,17 @@ public class DependencyInsightReportTask extends DefaultTask {
 
         def sortedDeps = new DependencyInsightReporter().prepare(selectedDependencies)
 
+        def nodeRenderer = new NodeRenderer() {
+            void renderNode(StyledTextOutput output, RenderableDependency node, Set<RenderableDependency> children, boolean alreadyRendered) {
+                boolean leaf = children.empty
+                output.text(leaf? DependencyInsightReportTask.this.configuration.name : node.name);
+                if (alreadyRendered && !leaf) {
+                    output.withStyle(Info).text(" (*)")
+                }
+            }
+        }
+        def dependencyGraphRenderer = new DependencyGraphRenderer(renderer, nodeRenderer)
+
         for (RenderableDependency dependency: sortedDeps) {
             renderer.visit(new Action<StyledTextOutput>() {
                 public void execute(StyledTextOutput out) {
@@ -106,41 +118,10 @@ public class DependencyInsightReportTask extends DefaultTask {
                     }
                 }
             }, true);
-            def visited = new HashSet<ModuleVersionIdentifier>()
-            visited.add(dependency.getId())
-            renderParents(dependency.getParents(), visited);
+            dependencyGraphRenderer.render(dependency)
             output.println()
         }
-    }
 
-    private void renderParents(Set<? extends RenderableDependency> parents, Set<ModuleVersionIdentifier> visited) {
-        renderer.startChildren();
-        int i = 0;
-        for (RenderableDependency parent : parents) {
-            boolean last = i++ == parents.size() - 1;
-            render(parent, last, visited);
-        }
-        renderer.completeChildren();
-    }
-
-    private void render(final RenderableDependency parent, boolean last, Set<ModuleVersionIdentifier> visited) {
-        def parents = parent.getParents();
-        boolean leaf = parents.size() == 0
-        String printable = leaf? configuration.name : parent.name
-        boolean alreadyRendered = !visited.add(parent.getId())
-
-        renderer.visit(new Action<StyledTextOutput>() {
-            public void execute(StyledTextOutput styledTextOutput) {
-                styledTextOutput.text(printable);
-                if (alreadyRendered && !leaf) {
-                    styledTextOutput.withStyle(Info).text(" (*)")
-                }
-            }
-        }, last);
-
-
-        if (!alreadyRendered) {
-            renderParents(parents, visited);
-        }
+        dependencyGraphRenderer.printLegend()
     }
 }

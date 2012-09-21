@@ -18,7 +18,6 @@ package org.gradle.api.tasks.diagnostics.internal.dependencies;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
 
@@ -28,24 +27,10 @@ import java.util.Set;
 /**
  * by Szczepan Faber, created at: 8/10/12
  */
-public class RenderableModuleResult implements RenderableDependency {
-
-    private final ResolvedModuleVersionResult module;
+public class RenderableModuleResult extends AbstractRenderableModuleResult implements RenderableDependency {
 
     public RenderableModuleResult(ResolvedModuleVersionResult module) {
-        this.module = module;
-    }
-
-    public ModuleVersionIdentifier getId() {
-        return module.getId();
-    }
-
-    public String getName() {
-        return module.getId().getGroup() + ":" + module.getId().getName() + ":" + module.getId().getVersion();
-    }
-
-    public String getDescription() {
-        return null;
+        super(module);
     }
 
     public Set<RenderableDependency> getChildren() {
@@ -54,18 +39,5 @@ public class RenderableModuleResult implements RenderableDependency {
                 return new RenderableDependencyResult(input);
             }
         }));
-    }
-
-    public Set<RenderableDependency> getParents() {
-        return new LinkedHashSet(Collections2.transform(module.getDependents(), new Function<ResolvedDependencyResult, RenderableDependency>() {
-            public RenderableDependency apply(ResolvedDependencyResult input) {
-                return new RenderableModuleResult(input.getFrom());
-            }
-        }));
-    }
-
-    @Override
-    public String toString() {
-        return module.toString();
     }
 }

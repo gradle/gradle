@@ -62,6 +62,7 @@ class AsciiDependencyReportRendererTest extends Specification {
         ]
     }
 
+    //TODO SF move this test elsewhere
     def rendersDependencyTreeForConfiguration() {
         ConfigurationInternal configuration = Mock()
         configuration.name >> 'config'
