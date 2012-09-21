@@ -70,7 +70,6 @@ public class IvyModuleDescriptorWriter {
         PrintWriter writer = new PrintWriter(new OutputStreamWriter(new FileOutputStream(output), "UTF-8"));
         try {
             write(md, writer);
-
         } finally {
             writer.close();
         }
@@ -94,18 +93,19 @@ public class IvyModuleDescriptorWriter {
     protected static void printDependency(ModuleDescriptor md, DependencyDescriptor dep,
                                           PrintWriter out) {
         out.print("<dependency");
+        ModuleRevisionId dependencyRevisionId = dep.getDependencyRevisionId();
         out.print(" org=\""
-                + XMLHelper.escape(dep.getDependencyRevisionId().getOrganisation()) + "\"");
+                + XMLHelper.escape(dependencyRevisionId.getOrganisation()) + "\"");
         out.print(" name=\""
-                + XMLHelper.escape(dep.getDependencyRevisionId().getName()) + "\"");
-        if (dep.getDependencyRevisionId().getBranch() != null) {
+                + XMLHelper.escape(dependencyRevisionId.getName()) + "\"");
+        if (dependencyRevisionId.getBranch() != null) {
             out.print(" branch=\""
-                    + XMLHelper.escape(dep.getDependencyRevisionId().getBranch()) + "\"");
+                    + XMLHelper.escape(dependencyRevisionId.getBranch()) + "\"");
         }
         out.print(" rev=\""
-                + XMLHelper.escape(dep.getDependencyRevisionId().getRevision()) + "\"");
+                + XMLHelper.escape(dependencyRevisionId.getRevision()) + "\"");
         if (!dep.getDynamicConstraintDependencyRevisionId()
-                .equals(dep.getDependencyRevisionId())) {
+                .equals(dependencyRevisionId)) {
             if (dep.getDynamicConstraintDependencyRevisionId().getBranch() != null) {
                 out.print(" branchConstraint=\"" + XMLHelper.escape(
                         dep.getDynamicConstraintDependencyRevisionId().getBranch()) + "\"");
@@ -387,9 +387,10 @@ public class IvyModuleDescriptorWriter {
         out.print(" name=\"" + XMLHelper.escape(conf.getName()) + "\"");
         out.print(" visibility=\""
                 + XMLHelper.escape(conf.getVisibility().toString()) + "\"");
-        if (conf.getDescription() != null) {
+        String description = conf.getDescription();
+        if (description != null) {
             out.print(" description=\""
-                    + XMLHelper.escape(conf.getDescription()) + "\"");
+                    + XMLHelper.escape(description) + "\"");
         }
         String[] exts = conf.getExtends();
         if (exts.length > 0) {
@@ -413,15 +414,18 @@ public class IvyModuleDescriptorWriter {
     }
 
     private static void printInfoTag(ModuleDescriptor md, PrintWriter out) {
+        ModuleRevisionId moduleRevisionId = md.getModuleRevisionId();
         out.println("\t<info organisation=\""
-                + XMLHelper.escape(md.getModuleRevisionId().getOrganisation())
+                + XMLHelper.escape(moduleRevisionId.getOrganisation())
                 + "\"");
-        out.println("\t\tmodule=\"" + XMLHelper.escape(md.getModuleRevisionId().getName()) + "\"");
-        String branch = md.getResolvedModuleRevisionId().getBranch();
+        out.println("\t\tmodule=\"" + XMLHelper.escape(moduleRevisionId.getName()) + "\"");
+
+        ModuleRevisionId resolvedModuleRevisionId = md.getResolvedModuleRevisionId();
+        String branch = resolvedModuleRevisionId.getBranch();
         if (branch != null) {
             out.println("\t\tbranch=\"" + XMLHelper.escape(branch) + "\"");
         }
-        String revision = md.getResolvedModuleRevisionId().getRevision();
+        String revision = resolvedModuleRevisionId.getRevision();
         if (revision != null) {
             out.println("\t\trevision=\"" + XMLHelper.escape(revision) + "\"");
         }

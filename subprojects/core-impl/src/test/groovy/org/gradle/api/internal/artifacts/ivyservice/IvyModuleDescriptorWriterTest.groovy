@@ -36,36 +36,34 @@ class IvyModuleDescriptorWriterTest extends Specification {
     private PrintWriter printWriter = Mock()
 
     def setup() {
-        _ * md.extraAttributesNamespaces >> [:]
-        _ * md.extraAttributes >> [buildNr: "815"]
-        _ * md.qualifiedExtraAttributes >> [buildNr: "815"]
-        _ * md.getExtraInfo() >> Collections.emptyMap()
-        _ * md.getLicenses() >> Collections.emptyList()
-        _ * md.inheritedDescriptors >> Collections.emptyList()
-        _ * md.resolvedModuleRevisionId >> resolvedModuleRevisionId
-        _ * md.resolvedPublicationDate >> date("20120817120000")
-        _ * md.status >> "integration"
-        _ * resolvedModuleRevisionId.revision >> "1.0"
-        _ * md.moduleRevisionId >> moduleRevisionId;
-        _ * moduleRevisionId.organisation >> "org.test"
-        _ * moduleRevisionId.name >> "projectA"
-        _ * md.configurations >> [mockConfiguration("archives"), mockConfiguration("compile"), mockConfiguration("runtime", ["compile"])]
-        _ * md.configurationsNames >> ["archives", "runtime", "compile"]
-        _ * md.allExcludeRules >> []
-        _ * md.allArtifacts >> [mockArtifact()]
-        _ * md.allDependencyDescriptorMediators >> []
-        _ * md.publicConfigurationsNames >> ["archives"]
+        1 * md.extraAttributesNamespaces >> [:]
+        1 * md.extraAttributes >> [buildNr: "815"]
+        1 * md.qualifiedExtraAttributes >> [buildNr: "815"]
+        1 * md.getExtraInfo() >> Collections.emptyMap()
+        1 * md.getLicenses() >> Collections.emptyList()
+        2 * md.inheritedDescriptors >> Collections.emptyList()
+        1 * md.resolvedModuleRevisionId >> resolvedModuleRevisionId
+        1 * md.resolvedPublicationDate >> date("20120817120000")
+        1 * md.status >> "integration"
+        1 * resolvedModuleRevisionId.revision >> "1.0"
+        1 * md.moduleRevisionId >> moduleRevisionId;
+        1 * moduleRevisionId.organisation >> "org.test"
+        1 * moduleRevisionId.name >> "projectA"
+        1 * md.configurations >> [mockConfiguration("archives"), mockConfiguration("compile"), mockConfiguration("runtime", ["compile"])]
+        1 * md.configurationsNames >> ["archives", "runtime", "compile"]
+        1 * md.allExcludeRules >> []
+        1 * md.allArtifacts >> [mockArtifact()]
+        1 * md.allDependencyDescriptorMediators >> []
     }
-
 
     def "can create ivy descriptor"() {
         setup:
         def dependency1 = mockDependencyDescriptor("Dep1")
         def dependency2 = mockDependencyDescriptor("Dep2")
-        _ * dependency1.transitive >> true
-        _ * dependency2.force >> true
-        _ * dependency2.changing >> true
-        _ * md.dependencies >> [dependency1, dependency2]
+        2 * dependency2.force >> true
+        2 * dependency2.changing >> true
+        1 * md.dependencies >> [dependency1, dependency2]
+        1 * dependency1.transitive >> true
         when:
         File ivyFile = temporaryFolder.file("test/ivy/ivy.xml")
         IvyModuleDescriptorWriter.write(md, ivyFile);
@@ -85,7 +83,7 @@ class IvyModuleDescriptorWriterTest extends Specification {
 
     def "error in printwriter are escalated as IOException"() {
         given:
-        _ * md.dependencies >> [mockDependencyDescriptor("Dep1"), mockDependencyDescriptor("Dep2")]
+        1 * md.dependencies >> [mockDependencyDescriptor("Dep1"), mockDependencyDescriptor("Dep2")]
 
         printWriter.checkError() >> true
         when:
@@ -102,38 +100,36 @@ class IvyModuleDescriptorWriterTest extends Specification {
     def mockDependencyDescriptor(String organisation = "org.test", String moduleName, String revision = "1.0") {
         DependencyDescriptor dependencyDescriptor = Mock()
         ModuleRevisionId moduleRevisionId = Mock()
-        _ * moduleRevisionId.organisation >> organisation
-        _ * moduleRevisionId.name >> moduleName
-        _ * moduleRevisionId.revision >> revision
-        _ * dependencyDescriptor.dependencyRevisionId >> moduleRevisionId
-        _ * dependencyDescriptor.dynamicConstraintDependencyRevisionId >> moduleRevisionId
-        _ * dependencyDescriptor.moduleConfigurations >> ["default"]
-        _ * dependencyDescriptor.getDependencyConfigurations("default") >> ["compile, archives"]
-        _ * dependencyDescriptor.getDependencyConfigurations("compile") >> ["transitive"]
-        _ * dependencyDescriptor.allDependencyArtifacts >> []
-        _ * dependencyDescriptor.allIncludeRules >> []
-        _ * dependencyDescriptor.allExcludeRules >> []
+        1 * moduleRevisionId.organisation >> organisation
+        1 * moduleRevisionId.name >> moduleName
+        1 * moduleRevisionId.revision >> revision
+        1 * dependencyDescriptor.dependencyRevisionId >> moduleRevisionId
+        1 * dependencyDescriptor.dynamicConstraintDependencyRevisionId >> moduleRevisionId
+        1 * dependencyDescriptor.moduleConfigurations >> ["default"]
+        1 * dependencyDescriptor.getDependencyConfigurations("default") >> ["compile, archives"]
+        1 * dependencyDescriptor.allDependencyArtifacts >> []
+        1 * dependencyDescriptor.allIncludeRules >> []
+        1 * dependencyDescriptor.allExcludeRules >> []
         dependencyDescriptor
     }
 
     def mockArtifact() {
         Artifact artifact = Mock()
-        _ * artifact.name >> "testartifact"
-        _ * artifact.configurations >> ["archives, runtime"]
-        _ * artifact.ext >> "jar"
-        _ * artifact.type >> "jar"
-        _ * md.getArtifacts("archives") >> [artifact]
-        _ * md.getArtifacts("compile") >> []
-        _ * md.getArtifacts("runtime") >> []
+        1 * artifact.name >> "testartifact"
+        1 * artifact.ext >> "jar"
+        1 * artifact.type >> "jar"
+        1 * md.getArtifacts("archives") >> [artifact]
+        1 * md.getArtifacts("compile") >> []
+        1 * md.getArtifacts("runtime") >> []
         artifact
     }
 
     def mockConfiguration(String configurationName, List extended = []) {
         Configuration configuration = Mock()
-        _ * configuration.name >> configurationName
-        _ * configuration.description >> "just another test configuration"
-        _ * configuration.extends >> extended
-        _ * configuration.visibility >> Configuration.Visibility.PUBLIC
+        1 * configuration.name >> configurationName
+        1 * configuration.description >> "just another test configuration"
+        1 * configuration.extends >> extended
+        1 * configuration.visibility >> Configuration.Visibility.PUBLIC
         configuration
     }
 }

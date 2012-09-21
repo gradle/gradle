@@ -46,8 +46,9 @@ class RefreshWhenMissingInAllRepositoriesCachePolicyTest extends Specification {
     ModuleVersionRepository repo2 = Mock()
     ModuleVersionRepository repo3 = Mock()
     ModuleVersionRepository repo4 = Mock()
-    ModuleDescriptorCache.CachedModuleDescriptor cachedModuleDescriptorOnRepo2 = Mock()
-    ModuleDescriptorCache.CachedModuleDescriptor cachedModuleDescriptorOnRepo3 = Mock()
+    ModuleDescriptorCache.CachedModuleDescriptor cachedModuleDescriptorFound = Mock()
+    ModuleDescriptorCache.CachedModuleDescriptor cachedModuleDescriptorMissing = Mock()
+    ModuleResolutionCache.CachedModuleResolution cachedModuleResolution = Mock()
 
     def setup(){
         policy.registerRepository(repo1)
@@ -94,6 +95,18 @@ class RefreshWhenMissingInAllRepositoriesCachePolicyTest extends Specification {
         4 * moduleDescriptorCache.getCachedModuleDescriptor(_, _)
     }
 
+    def "must not refresh when dynamic moduleDescriptor is cached in other repo"() {
+        when:
+        def refresh = policy.mustRefreshModule(moduleVersionId, resolvedModuleVersion, moduleRevisionId, ageMillis);
+        then:
+        refresh == false
+        1 * delegateCachePolicy.mustRefreshModule(moduleVersionId, resolvedModuleVersion, moduleRevisionId, ageMillis) >> false
+        1 * moduleResolutionCache.getCachedModuleResolution(repo1, moduleRevisionId) >> cachedModuleResolution
+        1 * cachedModuleResolution.resolvedVersion >> moduleRevisionId
+        1 * moduleDescriptorCache.getCachedModuleDescriptor(repo1, moduleRevisionId) >> cachedModuleDescriptorFound
+        1 * cachedModuleDescriptorFound.missing >> false
+    }
+
     def "with negative mustRefreshModule on underlaying CachePolicy moduleDescriptor cache is hitten to check other repositories"() {
         when:
         def refresh = policy.mustRefreshModule(moduleVersionId, resolvedModuleVersion, moduleRevisionId, ageMillis);
@@ -101,10 +114,10 @@ class RefreshWhenMissingInAllRepositoriesCachePolicyTest extends Specification {
         refresh == false
         1 * delegateCachePolicy.mustRefreshModule(moduleVersionId, resolvedModuleVersion, moduleRevisionId, ageMillis) >> false
         1 * moduleDescriptorCache.getCachedModuleDescriptor(repo1, moduleRevisionId) >> null
-        1 * cachedModuleDescriptorOnRepo2.isMissing() >> true
-        1 * moduleDescriptorCache.getCachedModuleDescriptor(repo2, _) >> cachedModuleDescriptorOnRepo2
-        1 * moduleDescriptorCache.getCachedModuleDescriptor(repo3, _) >> cachedModuleDescriptorOnRepo3
-        1 * cachedModuleDescriptorOnRepo3.isMissing() >> false
+        1 * cachedModuleDescriptorMissing.isMissing() >> true
+        1 * moduleDescriptorCache.getCachedModuleDescriptor(repo2, _) >> cachedModuleDescriptorMissing
+        1 * moduleDescriptorCache.getCachedModuleDescriptor(repo3, _) >> cachedModuleDescriptorFound
+        1 * cachedModuleDescriptorFound.isMissing() >> false
         0 * moduleDescriptorCache.getCachedModuleDescriptor(repo4, _) >> null
     }
 }
