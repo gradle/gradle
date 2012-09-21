@@ -103,7 +103,6 @@ public class AsciiDependencyReportRenderer extends TextReportRenderer implements
 
     public void complete() throws IOException {
         if (dependencyGraphRenderer != null) {
-            getTextOutput().println();
             dependencyGraphRenderer.printLegend();
         }
 

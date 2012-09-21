@@ -78,6 +78,7 @@ class DependencyGraphRendererSpec extends Specification {
                 '\\--- dep2',
                 '     +--- dep1 (*)',
                 '     \\--- dep2.2',
+                '',
                 '(*) - dependencies omitted (listed previously)'
         ]
     }

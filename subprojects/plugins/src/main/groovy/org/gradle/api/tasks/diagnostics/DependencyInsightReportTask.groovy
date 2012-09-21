@@ -109,6 +109,7 @@ public class DependencyInsightReportTask extends DefaultTask {
         }
         def dependencyGraphRenderer = new DependencyGraphRenderer(renderer, nodeRenderer)
 
+        int i = 1
         for (RenderableDependency dependency: sortedDeps) {
             renderer.visit(new Action<StyledTextOutput>() {
                 public void execute(StyledTextOutput out) {
@@ -119,7 +120,10 @@ public class DependencyInsightReportTask extends DefaultTask {
                 }
             }, true);
             dependencyGraphRenderer.render(dependency)
-            output.println()
+            boolean last = i++ == sortedDeps.size()
+            if (!last) {
+                output.println()
+            }
         }
 
         dependencyGraphRenderer.printLegend()

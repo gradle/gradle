@@ -74,6 +74,7 @@ class DependencyGraphRenderer {
 
     void printLegend() {
         if (hasCyclicDependencies) {
+            renderer.output.println()
             renderer.output.withStyle(Info).println("(*) - dependencies omitted (listed previously)");
         }
     }
