@@ -110,12 +110,23 @@ class HttpServer extends ExternalResource {
         connector = new SocketConnector()
         connector.port = port
         server.addConnector(connector)
-        server.start()
+        try {
+            server.start()
+        } catch (java.net.BindException e) {
+            //without this, it is not possible to retry starting the server on the same port
+            //retrying is useful if we need to start server on a specific port
+            //and the OS forces us to wait until it is available.
+            server.removeConnector(connector)
+            throw e
+        }
     }
 
     void stop() {
         resetExpectations()
         server?.stop()
+        if (connector) {
+            server?.removeConnector(connector)
+        }
     }
 
     private void onFailure(Throwable failure) {

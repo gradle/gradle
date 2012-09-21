@@ -21,6 +21,7 @@ import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.launcher.daemon.testing.DaemonLogsAnalyzer
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.junit.Rule
 import spock.lang.Issue
 
 import static org.gradle.tests.fixtures.ConcurrentTestUtil.poll
@@ -34,8 +35,7 @@ import static org.gradle.tests.fixtures.ConcurrentTestUtil.poll
 // so it's not a big deal it does not run everywhere.
 class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegrationSpec {
 
-    //TODO SF use rule
-    //@Rule HttpServer server = new HttpServer()
+    @Rule HttpServer server = new HttpServer()
 
     def cleanup() {
         stopDaemonsNow()
@@ -56,7 +56,7 @@ class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegration
         and:
         //starting some service on the daemon port
         poll {
-            new HttpServer().start(daemon.port)
+            server.start(daemon.port)
         }
 
         then:
@@ -86,7 +86,7 @@ class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegration
         when:
         daemon.kill()
         poll {
-            new HttpServer().start(daemon.port)
+            server.start(daemon.port)
         }
 
         then:
