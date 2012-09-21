@@ -82,7 +82,7 @@ libraries += [
         dom4j: 'dom4j:dom4j:1.6.1@jar',
         guava: 'com.google.guava:guava:11.0.2@jar',
         jsr305: 'com.google.code.findbugs:jsr305:1.3.9',
-        groovy: 'org.codehaus.groovy:groovy-all:1.8.6@jar',
+        groovy: 'org.codehaus.groovy:groovy-all:1.8.8@jar',
         jaxen: 'jaxen:jaxen:1.1@jar',
         jcip: "net.jcip:jcip-annotations:1.0",
         jna: 'net.java.dev.jna:jna:3.2.7@jar',
