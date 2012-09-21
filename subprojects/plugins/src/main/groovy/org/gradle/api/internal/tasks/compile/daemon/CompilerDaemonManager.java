@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.tasks.compile.daemon;
 
-import net.jcip.annotations.NotThreadSafe;
+import net.jcip.annotations.ThreadSafe;
 
 import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
@@ -34,7 +34,7 @@ import java.util.List;
 /**
  * Controls the lifecycle of the compiler daemon and provides access to it.
  */
-@NotThreadSafe
+@ThreadSafe
 public class CompilerDaemonManager implements CompilerDaemonFactory {
     private static final Logger LOGGER = Logging.getLogger(CompilerDaemonManager.class);
     private static final CompilerDaemonManager INSTANCE = new CompilerDaemonManager();

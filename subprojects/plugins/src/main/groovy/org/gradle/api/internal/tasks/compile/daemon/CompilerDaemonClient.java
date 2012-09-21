@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.tasks.compile.daemon;
 
+import net.jcip.annotations.ThreadSafe;
+
 import org.gradle.api.internal.tasks.compile.CompileSpec;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.internal.Stoppable;
@@ -26,6 +28,7 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+@ThreadSafe
 public class CompilerDaemonClient implements CompilerDaemon, CompilerDaemonClientProtocol, Stoppable {
     private final DaemonForkOptions forkOptions;
     private final WorkerProcess workerProcess;
