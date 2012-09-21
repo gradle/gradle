@@ -33,7 +33,6 @@ public class InvertedRenderableDependencyResult extends RenderableDependencyResu
     }
 
     public Set<RenderableDependency> getChildren() {
-        //TODO SF unit test for this and other Renderables
         Set<RenderableDependency> out = new LinkedHashSet<RenderableDependency>();
         for (ResolvedDependencyResult r : dependency.getSelected().getDependents()) {
             //we want only the dependents that match the requested
