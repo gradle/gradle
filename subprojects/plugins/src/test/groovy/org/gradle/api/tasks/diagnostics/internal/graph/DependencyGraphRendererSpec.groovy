@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.diagnostics.internal
+package org.gradle.api.tasks.diagnostics.internal.graph
 
-import org.gradle.api.tasks.diagnostics.internal.dependencies.SimpleDependency
+import org.gradle.api.tasks.diagnostics.internal.GraphRenderer
+import org.gradle.api.tasks.diagnostics.internal.graph.nodes.SimpleDependency
 import org.gradle.logging.TestStyledTextOutput
 import spock.lang.Specification
 

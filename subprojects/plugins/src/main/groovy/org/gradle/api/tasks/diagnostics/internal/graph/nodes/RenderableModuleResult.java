@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.diagnostics.internal.dependencies;
+package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
@@ -25,20 +25,18 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
- * Children of this renderable dependency node are its dependents.
- *
  * by Szczepan Faber, created at: 8/10/12
  */
-public class InvertedRenderableModuleResult extends RenderableModuleResult implements RenderableDependency {
+public class RenderableModuleResult extends AbstractRenderableModuleResult implements RenderableDependency {
 
-    public InvertedRenderableModuleResult(ResolvedModuleVersionResult module) {
+    public RenderableModuleResult(ResolvedModuleVersionResult module) {
         super(module);
     }
 
     public Set<RenderableDependency> getChildren() {
-        return new LinkedHashSet(Collections2.transform(module.getDependents(), new Function<ResolvedDependencyResult, RenderableDependency>() {
+        return new LinkedHashSet(Collections2.transform(module.getDependencies(), new Function<ResolvedDependencyResult, RenderableDependency>() {
             public RenderableDependency apply(ResolvedDependencyResult input) {
-                return new InvertedRenderableModuleResult(input.getFrom());
+                return new RenderableDependencyResult(input);
             }
         }));
     }

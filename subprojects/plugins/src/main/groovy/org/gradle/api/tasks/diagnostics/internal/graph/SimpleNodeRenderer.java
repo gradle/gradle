@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.diagnostics.internal;
+package org.gradle.api.tasks.diagnostics.internal.graph;
 
-import org.gradle.api.tasks.diagnostics.internal.dependencies.RenderableDependency;
+import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency;
 import org.gradle.logging.StyledTextOutput;
 
 import java.util.Set;
@@ -26,7 +26,7 @@ import static org.gradle.logging.StyledTextOutput.Style.Info;
 /**
 * by Szczepan Faber, created at: 9/21/12
 */
-class SimpleNodeRenderer implements NodeRenderer {
+public class SimpleNodeRenderer implements NodeRenderer {
     public void renderNode(StyledTextOutput output, RenderableDependency node, Set<RenderableDependency> children, boolean alreadyRendered) {
         output.text(node.getName());
         if (alreadyRendered) {

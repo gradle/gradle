@@ -24,11 +24,11 @@ import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.artifacts.result.ResolvedDependencyResult
 import org.gradle.api.internal.tasks.CommandLineOption
 import org.gradle.api.tasks.TaskAction
-import org.gradle.api.tasks.diagnostics.internal.DependencyGraphRenderer
-import org.gradle.api.tasks.diagnostics.internal.DependencyInsightReporter
 import org.gradle.api.tasks.diagnostics.internal.GraphRenderer
-import org.gradle.api.tasks.diagnostics.internal.NodeRenderer
-import org.gradle.api.tasks.diagnostics.internal.dependencies.RenderableDependency
+import org.gradle.api.tasks.diagnostics.internal.graph.DependencyGraphRenderer
+import org.gradle.api.tasks.diagnostics.internal.graph.NodeRenderer
+import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency
+import org.gradle.api.tasks.diagnostics.internal.insight.DependencyInsightReporter
 import org.gradle.logging.StyledTextOutput
 import org.gradle.logging.StyledTextOutputFactory
 

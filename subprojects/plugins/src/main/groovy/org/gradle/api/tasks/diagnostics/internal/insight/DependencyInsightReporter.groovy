@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.diagnostics.internal;
+package org.gradle.api.tasks.diagnostics.internal.insight;
 
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.result.ModuleVersionSelectionReason
 import org.gradle.api.artifacts.result.ResolvedDependencyResult
-import org.gradle.api.tasks.diagnostics.internal.dependencies.InvertedRenderableDependencyResult
-import org.gradle.api.tasks.diagnostics.internal.dependencies.RenderableDependency
-import org.gradle.api.tasks.diagnostics.internal.dependencies.SimpleDependency
+import org.gradle.api.tasks.diagnostics.internal.graph.nodes.InvertedRenderableDependencyResult
+import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency
+import org.gradle.api.tasks.diagnostics.internal.graph.nodes.SimpleDependency
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 

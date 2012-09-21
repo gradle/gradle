@@ -13,15 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.tasks.diagnostics.internal;
+package org.gradle.api.tasks.diagnostics.internal.dependencies;
 
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.result.ResolutionResult;
-import org.gradle.api.tasks.diagnostics.internal.dependencies.RenderableDependency;
-import org.gradle.api.tasks.diagnostics.internal.dependencies.RenderableModuleResult;
+import org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer;
+import org.gradle.api.tasks.diagnostics.internal.GraphRenderer;
+import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer;
+import org.gradle.api.tasks.diagnostics.internal.graph.DependencyGraphRenderer;
+import org.gradle.api.tasks.diagnostics.internal.graph.NodeRenderer;
+import org.gradle.api.tasks.diagnostics.internal.graph.SimpleNodeRenderer;
+import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency;
+import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableModuleResult;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.util.GUtil;
 

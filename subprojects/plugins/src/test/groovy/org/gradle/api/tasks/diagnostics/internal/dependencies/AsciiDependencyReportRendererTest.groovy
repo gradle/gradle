@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.tasks.diagnostics.internal
+package org.gradle.api.tasks.diagnostics.internal.dependencies
 
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.tasks.diagnostics.internal.dependencies.SimpleDependency
+import org.gradle.api.tasks.diagnostics.internal.graph.DependencyGraphRenderer
+import org.gradle.api.tasks.diagnostics.internal.graph.nodes.SimpleDependency
 import org.gradle.logging.TestStyledTextOutput
 import org.gradle.util.HelperUtil
 import spock.lang.Specification

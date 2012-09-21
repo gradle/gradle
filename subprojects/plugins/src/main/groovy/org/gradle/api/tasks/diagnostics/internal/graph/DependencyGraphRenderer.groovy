@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.diagnostics.internal
+package org.gradle.api.tasks.diagnostics.internal.graph
 
 import org.gradle.api.Action
 import org.gradle.api.artifacts.ModuleVersionIdentifier
-import org.gradle.api.tasks.diagnostics.internal.dependencies.RenderableDependency
+import org.gradle.api.tasks.diagnostics.internal.GraphRenderer
+import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency
 import org.gradle.logging.StyledTextOutput
 
 import static org.gradle.logging.StyledTextOutput.Style.Info

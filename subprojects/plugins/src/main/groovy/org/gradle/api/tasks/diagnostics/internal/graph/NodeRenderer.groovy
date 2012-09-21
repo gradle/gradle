@@ -14,18 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.diagnostics.internal.dependencies;
+package org.gradle.api.tasks.diagnostics.internal.graph
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-
-import java.util.Set;
+import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency
+import org.gradle.logging.StyledTextOutput
 
 /**
-* by Szczepan Faber, created at: 7/27/12
-*/
-public interface RenderableDependency {
-    ModuleVersionIdentifier getId();
-    String getName();
-    String getDescription();
-    Set<RenderableDependency> getChildren();
+ * by Szczepan Faber, created at: 9/20/12
+ */
+interface NodeRenderer {
+    void renderNode(StyledTextOutput output, RenderableDependency node,
+                    Set<RenderableDependency>children, boolean alreadyRendered);
 }

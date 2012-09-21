@@ -14,34 +14,33 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.diagnostics.internal.dependencies;
+package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Collections2;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
- * Children of this renderable dependency node are its dependents.
- *
  * by Szczepan Faber, created at: 7/27/12
  */
-public class InvertedRenderableDependencyResult extends RenderableDependencyResult implements RenderableDependency {
+public class RenderableDependencyResult extends AbstractRenderableDependencyResult implements RenderableDependency {
 
-    public InvertedRenderableDependencyResult(ResolvedDependencyResult dependency, String description) {
+    public RenderableDependencyResult(ResolvedDependencyResult dependency) {
+        this(dependency, null);
+    }
+
+    public RenderableDependencyResult(ResolvedDependencyResult dependency, String description) {
         super(dependency, description);
     }
 
     public Set<RenderableDependency> getChildren() {
-        //TODO SF unit test for this and other Renderables
-        Set<RenderableDependency> out = new LinkedHashSet<RenderableDependency>();
-        for (ResolvedDependencyResult r : dependency.getSelected().getDependents()) {
-            //we want only the dependents that match the requested
-            if (r.getRequested().equals(this.dependency.getRequested())) {
-                out.add(new InvertedRenderableModuleResult(r.getFrom()));
+        return new LinkedHashSet(Collections2.transform(dependency.getSelected().getDependencies(), new Function<ResolvedDependencyResult, RenderableDependency>() {
+            public RenderableDependency apply(ResolvedDependencyResult input) {
+                return new RenderableDependencyResult(input);
             }
-        }
-
-        return out;
+        }));
     }
 }
