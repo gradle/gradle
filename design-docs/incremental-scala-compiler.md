@@ -94,3 +94,6 @@ especially for multi-project builds.
 When performing Scala/Java joint compilation, Zinc's compiler apparently not only reads Java sources but also compiles them. Can we avoid that? If not,
 can we at least reroute Java compilation to use our own Java compiler integration (like we do for Groovy)? Is this behavior specific to Zinc,
 or does it also apply to sbt's incremental compiler?
+
+The incremental compiler stores some metadata on disk. When incremental compilation is flipped on and off on successive compilations, can this lead to
+incorrect compilation results, or does it, in the worst case, lead to more files being recompiled than necessary?
