@@ -110,7 +110,9 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
         try {
             cache.update(new PersistentStateCache.UpdateAction<DaemonRegistryContent>() {
                 public DaemonRegistryContent update(DaemonRegistryContent oldValue) {
-                    assertCacheNotEmpty(oldValue);
+                    if (oldValue == null) {
+                        return oldValue;
+                    }
                     oldValue.removeInfo(address);
                     return oldValue;
                 }

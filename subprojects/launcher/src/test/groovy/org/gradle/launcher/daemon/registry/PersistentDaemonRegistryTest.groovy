@@ -70,6 +70,18 @@ class PersistentDaemonRegistryTest extends Specification {
         and: //it is safe to remove it again
         registry.remove(address)
     }
+
+    def "safely removes if registry empty"() {
+        given:
+        def registry = new PersistentDaemonRegistry(tmp.file("registry"), lockManager)
+        def address = address()
+
+        when:
+        registry.remove(address)
+
+        then:
+        registry.all.empty
+    }
     
     DaemonContext daemonContext() {
         new DaemonContextBuilder(new NativeServices().get(ProcessEnvironment)).with {
