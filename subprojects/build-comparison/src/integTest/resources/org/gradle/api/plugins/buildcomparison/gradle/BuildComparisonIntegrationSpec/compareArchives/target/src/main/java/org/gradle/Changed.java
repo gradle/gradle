@@ -1,6 +1,6 @@
 package org.gradle;
 
-public class ChangedClass {
+public class Changed {
     private String changedField;
     private int field2;
 

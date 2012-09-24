@@ -1,6 +1,6 @@
 package org.gradle;
 
-public class UnchangedClass {
+public class Unchanged {
     private String field1;
     private int field2;
 

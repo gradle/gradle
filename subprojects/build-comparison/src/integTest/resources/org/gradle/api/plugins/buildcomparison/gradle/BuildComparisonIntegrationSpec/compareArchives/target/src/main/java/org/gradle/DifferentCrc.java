@@ -1,6 +1,6 @@
 package org.gradle;
 
-public class DifferentCrcClass {
+public class DifferentCrc {
     private String field9;
     private int field2;
 

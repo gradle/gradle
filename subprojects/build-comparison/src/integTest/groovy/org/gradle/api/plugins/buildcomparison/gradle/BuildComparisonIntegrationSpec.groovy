@@ -24,7 +24,7 @@ import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.junit.Rule
 
-class GradleBuildComparisonIntegrationSpec extends WellBehavedPluginTest {
+class BuildComparisonIntegrationSpec extends WellBehavedPluginTest {
     private static final String NOT_IDENTICAL_MESSAGE_PREFIX = "The build outcomes were not found to be identical. See the report at: file:///"
     @Rule TestResources testResources
 
@@ -47,8 +47,8 @@ class GradleBuildComparisonIntegrationSpec extends WellBehavedPluginTest {
         given:
         buildFile << """
             compareGradleBuilds {
-                sourceBuild.projectDir "sourceBuild"
-                targetBuild { projectDir "targetBuild" }
+                sourceBuild.projectDir "source"
+                targetBuild { projectDir "target" }
             }
         """
 
@@ -66,10 +66,10 @@ class GradleBuildComparisonIntegrationSpec extends WellBehavedPluginTest {
         // Entry comparisons
         def rows = html.select("table")[2].select("tr").tail().collectEntries { [it.select("td")[0].text(), it.select("td")[1].text()] }
         rows.size() == 4
-        rows["org/gradle/ChangedClass.class"] == "entry in the source build is 409 bytes - in the target build it is 486 bytes (+77)"
-        rows["org/gradle/DifferentCrcClass.class"] == "entries are of identical size but have different content"
-        rows["org/gradle/SourceBuildOnlyClass.class"] == "entry does not exist in target build archive"
-        rows["org/gradle/TargetBuildOnlyClass.class"] == "entry does not exist in source build archive"
+        rows["org/gradle/Changed.class"] == "entry in the source build is 394 bytes - in the target build it is 471 bytes (+77)"
+        rows["org/gradle/DifferentCrc.class"] == "entries are of identical size but have different content"
+        rows["org/gradle/SourceBuildOnly.class"] == "entry does not exist in target build archive"
+        rows["org/gradle/TargetBuildOnly.class"] == "entry does not exist in source build archive"
 
         and:
         storedFile("source").exists()
