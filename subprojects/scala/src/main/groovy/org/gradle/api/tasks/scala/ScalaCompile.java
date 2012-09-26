@@ -45,6 +45,13 @@ public class ScalaCompile extends AbstractCompile {
     private final CompileOptions compileOptions = new CompileOptions();
     private final ScalaCompileOptions scalaCompileOptions;
 
+    /**
+     * For testing only.
+     */
+    public ScalaCompile() {
+        scalaCompileOptions = new ScalaCompileOptions();
+    }
+
     @Inject
     public ScalaCompile(Instantiator instantiator) {
         scalaCompileOptions = instantiator.newInstance(ScalaCompileOptions.class);
