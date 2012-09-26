@@ -47,15 +47,18 @@ public abstract class AbstractOptions implements Serializable {
     }
 
     public Map<String, Object> optionMap() {
-        final Class<? extends AbstractOptions> thisClass = getClass();
+        final Class<?> thisClass = getClass();
         return DeprecationLogger.whileDisabled(new Factory<Map<String, Object>>() {
             public Map<String, Object> create() {
                 Map<String, Object> map = Maps.newHashMap();
-                for (Field field : thisClass.getDeclaredFields()) {
-                    if (!isOptionField(field)) {
-                        continue;
+                Class<?> currClass = thisClass;
+                while (currClass != AbstractOptions.class) {
+                    for (Field field : currClass.getDeclaredFields()) {
+                        if (isOptionField(field)) {
+                            addValueToMapIfNotNull(map, field);
+                        }
                     }
-                    addValueToMapIfNotNull(map, field);
+                    currClass = currClass.getSuperclass();
                 }
                 return map;
             }

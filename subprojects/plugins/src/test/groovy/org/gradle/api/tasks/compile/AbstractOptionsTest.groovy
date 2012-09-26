@@ -43,11 +43,11 @@ public class AbstractOptionsTest extends Specification {
         options.optionMap() == [intProp: 42, stringProp: "new valuenew value", objectProp: [21]]
     }
 
-    def "has limitation that a concrete options class must directly extend AbstractOptions"() {
-        def options = new IndirectlyExtendingOptions(intProp: 42, stringProp: "new value", objectProp: [21])
+    def "option class can extend another option class"() {
+        def options = new DeeplyInheritedOptions(intProp: 42, stringProp: "new value", objectProp: [21], deepProp: "deep")
 
         expect:
-        options.optionMap() == [:]
+        options.optionMap() == [intProp: 42, stringProp: "new value", objectProp: [21], deepProp: "deep"]
     }
 
     static class TestOptions extends AbstractOptions {
@@ -77,6 +77,8 @@ public class AbstractOptionsTest extends Specification {
         }
     }
 
-    static class IndirectlyExtendingOptions extends TestOptions {}
+    static class DeeplyInheritedOptions extends TestOptions {
+      String deepProp
+    }
 }
 
