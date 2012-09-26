@@ -20,10 +20,12 @@ import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec;
 import org.gradle.api.tasks.scala.ScalaCompileOptions;
 
 import java.io.File;
+import java.util.Map;
 
 public class DefaultScalaJavaJointCompileSpec extends DefaultJavaCompileSpec implements ScalaJavaJointCompileSpec {
     private ScalaCompileOptions options;
     private Iterable<File> scalaClasspath;
+    private Map<File, File> incrementalCacheMap;
 
     public ScalaCompileOptions getScalaCompileOptions() {
         return options;
@@ -39,5 +41,13 @@ public class DefaultScalaJavaJointCompileSpec extends DefaultJavaCompileSpec imp
 
     public void setScalaClasspath(Iterable<File> scalaClasspath) {
         this.scalaClasspath = scalaClasspath;
+    }
+
+    public Map<File, File> getIncrementalCacheMap() {
+        return incrementalCacheMap;
+    }
+
+    public void setIncrementalCacheMap(Map<File, File> map) {
+        this.incrementalCacheMap = map;
     }
 }

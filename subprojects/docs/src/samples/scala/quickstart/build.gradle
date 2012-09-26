@@ -10,15 +10,21 @@ repositories {
 
 dependencies {
     // Libraries needed to run the scala tools
-    scalaTools 'org.scala-lang:scala-compiler:2.8.1'
-    scalaTools 'org.scala-lang:scala-library:2.8.1'
+    scalaTools 'org.scala-lang:scala-compiler:2.9.2'
+    scalaTools 'org.scala-lang:scala-library:2.9.2'
+    scalaTools 'com.typesafe.sbt:sbt-interface:0.12.0'
+    scalaTools 'com.typesafe.sbt:compiler-interface:0.12.0:sources'
 
     // Libraries needed for scala api
-    compile 'org.scala-lang:scala-library:2.8.1'
+    compile 'org.scala-lang:scala-library:2.9.2'
 }
 // END SNIPPET declare-scala-version
 
 dependencies {
     compile group: 'commons-collections', name: 'commons-collections', version: '3.2'
     testCompile group: 'junit', name: 'junit', version: '4.8.2'
+}
+
+tasks.withType(org.gradle.api.tasks.scala.ScalaCompile) {
+    scalaCompileOptions.incremental = true
 }

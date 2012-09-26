@@ -43,7 +43,7 @@ public class ScalaBasePlugin implements Plugin<Project> {
     }
 
     private void configureSourceSetDefaults(Project project, JavaBasePlugin javaPlugin) {
-        project.convention.getPlugin(JavaPluginConvention.class).sourceSets.all {SourceSet sourceSet ->
+        project.convention.getPlugin(JavaPluginConvention.class).sourceSets.all { SourceSet sourceSet ->
             sourceSet.convention.plugins.scala = new DefaultScalaSourceSet(sourceSet.displayName, project.fileResolver)
             sourceSet.scala.srcDir { project.file("src/$sourceSet.name/scala")}
             sourceSet.allJava.source(sourceSet.scala)
@@ -62,8 +62,11 @@ public class ScalaBasePlugin implements Plugin<Project> {
     }
 
     private void configureCompileDefaults(final Project project, JavaBasePlugin javaPlugin) {
-        project.tasks.withType(ScalaCompile.class) {ScalaCompile compile ->
+        project.tasks.withType(ScalaCompile.class) { ScalaCompile compile ->
             compile.scalaClasspath = project.configurations[SCALA_TOOLS_CONFIGURATION_NAME]
+            compile.scalaCompileOptions.conventionMapping.incrementalCacheFile = {
+                new File(project.buildDir, "tmp/scala/incremental/${compile.name}.cache")
+            }
         }
     }
 

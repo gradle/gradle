@@ -109,6 +109,17 @@ public class ScalaCompileOptions extends AbstractOptions {
      */
     List<String> loggingPhases
 
+    /**
+     * Tells whether to use incremental compilation. If {@code true}, dependency analysis will be performed
+     * to only recompile code affected by source code changes that occurred after the previous compilation.
+     * Incremental compilation is based on the sbt/Zinc incremental compiler.
+     */
+    boolean incremental
+
+    /**
+     * File location to store results of dependency analysis. Only used if {@code incremental} is {@code true}.
+     */
+    File incrementalCacheFile
 
     Map fieldName2AntMap() {
         [
@@ -136,7 +147,7 @@ public class ScalaCompileOptions extends AbstractOptions {
     }
 
     List excludedFieldsFromOptionMap() {
-        ['useCompileDaemon'] + (optimize ? [] : ['optimize'])
+        ['useCompileDaemon', 'incremental', 'incrementalCacheFile'] + (optimize ? [] : ['optimize'])
     }
 
     private String toOnOffString(value) {

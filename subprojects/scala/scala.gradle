@@ -16,8 +16,11 @@
 dependencies {
     groovy libraries.groovy
 
-    compile project(':core')
-    compile project(':plugins')
+    compile project(":core")
+    compile project(":plugins")
+    compile("com.typesafe.zinc:zinc:0.1.1") {
+        exclude module: "ensime-sbt-cmd"
+    }
 
     testCompile libraries.slf4j_api
 }

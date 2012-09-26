@@ -16,17 +16,25 @@
 package org.gradle.api.tasks.scala;
 
 import org.gradle.api.AntBuilder;
+import org.gradle.api.Project;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.tasks.compile.AntJavaCompiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.scala.*;
+import org.gradle.api.internal.tasks.scala.incremental.SbtScalaCompiler;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.internal.tasks.compile.Compiler;
+import org.gradle.internal.reflect.Instantiator;
+
+import javax.inject.Inject;
+import java.io.File;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Compiles Scala source files, and optionally, Java source files.
@@ -35,12 +43,11 @@ public class ScalaCompile extends AbstractCompile {
     private FileCollection scalaClasspath;
     private Compiler<ScalaJavaJointCompileSpec> compiler;
     private final CompileOptions compileOptions = new CompileOptions();
-    private final ScalaCompileOptions scalaCompileOptions = new ScalaCompileOptions();
+    private final ScalaCompileOptions scalaCompileOptions;
 
-    public ScalaCompile() {
-        Compiler<ScalaCompileSpec> scalaCompiler = new AntScalaCompiler(getServices().get(IsolatedAntBuilder.class));
-        Compiler<JavaCompileSpec> javaCompiler = new AntJavaCompiler(getServices().getFactory(AntBuilder.class));
-        compiler = new IncrementalScalaCompiler(new DefaultScalaJavaJointCompiler(scalaCompiler, javaCompiler), getOutputs());
+    @Inject
+    public ScalaCompile(Instantiator instantiator) {
+        scalaCompileOptions = instantiator.newInstance(ScalaCompileOptions.class);
     }
 
     /**
@@ -53,14 +60,6 @@ public class ScalaCompile extends AbstractCompile {
 
     public void setScalaClasspath(FileCollection scalaClasspath) {
         this.scalaClasspath = scalaClasspath;
-    }
-
-    public Compiler<ScalaJavaJointCompileSpec> getCompiler() {
-        return compiler;
-    }
-
-    public void setCompiler(Compiler<ScalaJavaJointCompileSpec> compiler) {
-        this.compiler = compiler;
     }
 
     /**
@@ -79,11 +78,18 @@ public class ScalaCompile extends AbstractCompile {
         return compileOptions;
     }
 
+    /**
+     * For testing only.
+     */
+    void setCompiler(Compiler<ScalaJavaJointCompileSpec> compiler) {
+        this.compiler = compiler;
+    }
+
     @Override
     protected void compile() {
-        FileTree source = getSource();
+        Compiler<ScalaJavaJointCompileSpec> compiler = createCompiler();
         DefaultScalaJavaJointCompileSpec spec = new DefaultScalaJavaJointCompileSpec();
-        spec.setSource(source);
+        spec.setSource(getSource());
         spec.setDestinationDir(getDestinationDir());
         spec.setClasspath(getClasspath());
         spec.setScalaClasspath(getScalaClasspath());
@@ -91,6 +97,40 @@ public class ScalaCompile extends AbstractCompile {
         spec.setTargetCompatibility(getTargetCompatibility());
         spec.setCompileOptions(compileOptions);
         spec.setScalaCompileOptions(scalaCompileOptions);
+        if (scalaCompileOptions.isIncremental()) {
+            spec.setIncrementalCacheMap(createIncrementalCacheMap());
+        }
         compiler.execute(spec);
+    }
+
+    private Compiler<ScalaJavaJointCompileSpec> createCompiler() {
+        if (this.compiler != null) {
+            return this.compiler;
+        }
+
+        Compiler<JavaCompileSpec> javaCompiler = new AntJavaCompiler(getServices().getFactory(AntBuilder.class));
+
+        if (scalaCompileOptions.isIncremental()) {
+            return new DefaultScalaJavaJointCompiler(new SbtScalaCompiler(), javaCompiler);
+        }
+
+        Compiler<ScalaCompileSpec> scalaCompiler = new AntScalaCompiler(getServices().get(IsolatedAntBuilder.class));
+        Compiler<ScalaJavaJointCompileSpec> jointCompiler = new DefaultScalaJavaJointCompiler(scalaCompiler, javaCompiler);
+        return new IncrementalScalaCompiler(jointCompiler, getOutputs());
+    }
+
+    private Map<File, File> createIncrementalCacheMap() {
+        Map<File, File> cacheMap = new HashMap<File, File>();
+        for (Project project : getProject().getRootProject().getAllprojects()) {
+            Collection<ScalaCompile> compileTasks = project.getTasks().withType(ScalaCompile.class);
+            for (ScalaCompile task : compileTasks) {
+                if (task.getScalaCompileOptions().isIncremental()) {
+                    // TODO: is this the correct key, or does it have to be the Jar that
+                    // eventually lands on another ScalaCompile task's compile class path?
+                    cacheMap.put(task.getDestinationDir(), task.getScalaCompileOptions().getIncrementalCacheFile());
+                }
+            }
+        }
+        return cacheMap;
     }
 }
