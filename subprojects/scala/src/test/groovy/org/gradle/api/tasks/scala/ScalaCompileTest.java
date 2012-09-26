@@ -48,10 +48,8 @@ public class ScalaCompileTest extends AbstractCompileTest {
         return scalaCompile;
     }
 
-    @Override
     @Before
     public void setUp() {
-        super.setUp();
         scalaCompile = createTask(ScalaCompile.class);
         scalaCompiler = context.mock(Compiler.class);
         scalaCompile.setCompiler(scalaCompiler);
