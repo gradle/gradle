@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 
 public class ScalaCompileOptions extends AbstractOptions {
+    private static final long serialVersionUID = 0;
 
     private boolean useCompileDaemon;
 
