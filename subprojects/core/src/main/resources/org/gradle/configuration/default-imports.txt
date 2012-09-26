@@ -29,4 +29,5 @@ import org.gradle.api.tasks.javadoc.*
 import org.gradle.api.tasks.testing.*
 import org.gradle.api.tasks.util.*
 import org.gradle.api.tasks.wrapper.*
+import org.gradle.api.tasks.scala.*
 import org.gradle.process.*
