@@ -52,6 +52,9 @@ public abstract class AbstractOptions implements Serializable {
             public Map<String, Object> create() {
                 Map<String, Object> map = Maps.newHashMap();
                 Class<?> currClass = thisClass;
+                if (currClass.getName().endsWith("_Decorated")) {
+                    currClass = currClass.getSuperclass();
+                }
                 while (currClass != AbstractOptions.class) {
                     for (Field field : currClass.getDeclaredFields()) {
                         if (isOptionField(field)) {
