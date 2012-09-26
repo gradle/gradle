@@ -30,7 +30,7 @@ import java.util.concurrent.Callable;
 
 public class ScalaCompileOptions extends AbstractOptions {
 
-    private boolean useCompileDaemon = false;
+    private boolean useCompileDaemon;
 
     private String daemonServer;
 
@@ -42,9 +42,9 @@ public class ScalaCompileOptions extends AbstractOptions {
 
     private String debugLevel;
 
-    private boolean optimize = false;
+    private boolean optimize;
 
-    private String encoding = null;
+    private String encoding;
 
     private String force = "never";
 
@@ -58,7 +58,7 @@ public class ScalaCompileOptions extends AbstractOptions {
 
     private List<String> loggingPhases;
 
-    private boolean fork = false;
+    private boolean fork;
 
     private BaseForkOptions forkOptions;
 
