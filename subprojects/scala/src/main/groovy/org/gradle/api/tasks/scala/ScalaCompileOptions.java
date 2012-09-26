@@ -28,6 +28,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
+/**
+ * Options for Scala compilation.
+ */
 public class ScalaCompileOptions extends AbstractOptions {
     private static final long serialVersionUID = 0;
 
