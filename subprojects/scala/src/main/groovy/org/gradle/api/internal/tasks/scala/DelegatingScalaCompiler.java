@@ -16,22 +16,18 @@
 
 package org.gradle.api.internal.tasks.scala;
 
-import org.gradle.api.internal.tasks.compile.JvmLanguageCompileSpec;
-import org.gradle.api.tasks.scala.ScalaCompileOptions;
+import org.gradle.api.internal.tasks.compile.Compiler;
+import org.gradle.api.tasks.WorkResult;
 
-import java.io.File;
-import java.util.Map;
+public class DelegatingScalaCompiler implements org.gradle.api.internal.tasks.compile.Compiler<ScalaJavaJointCompileSpec> {
+    private final ScalaCompilerFactory compilerFactory;
 
-public interface ScalaCompileSpec extends JvmLanguageCompileSpec {
-    ScalaCompileOptions getScalaCompileOptions();
+    public DelegatingScalaCompiler(ScalaCompilerFactory compilerFactory) {
+        this.compilerFactory = compilerFactory;
+    }
 
-    Iterable<File> getScalaClasspath();
-
-    void setScalaClasspath(Iterable<File> classpath);
-
-    Iterable<File> getZincClasspath();
-
-    void setZincClasspath(Iterable<File> classpath);
-
-    public Map<File, File> getCompilerCacheMap();
+    public WorkResult execute(ScalaJavaJointCompileSpec spec) {
+        Compiler<ScalaJavaJointCompileSpec> delegate = compilerFactory.create(spec.getScalaCompileOptions(), spec.getCompileOptions());
+        return delegate.execute(spec);
+    }
 }

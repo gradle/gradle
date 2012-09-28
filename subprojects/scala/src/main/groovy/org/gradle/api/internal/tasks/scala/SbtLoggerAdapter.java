@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.scala.incremental;
+package org.gradle.api.internal.tasks.scala;
 
 import xsbti.F0;
 import xsbti.Logger;

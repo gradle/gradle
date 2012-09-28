@@ -64,11 +64,11 @@ public class ScalaCompileOptions extends AbstractOptions {
 
     private boolean fork;
 
-    private BaseForkOptions forkOptions;
+    private BaseForkOptions forkOptions = new BaseForkOptions();
 
-    private boolean incremental;
+    private boolean useAnt = true;
 
-    private File incrementalCacheFile;
+    private File compilerCacheFile;
 
     /**
      * Whether to use the fsc compile daemon.
@@ -266,27 +266,28 @@ public class ScalaCompileOptions extends AbstractOptions {
     }
 
     /**
-     * Tells whether to use incremental compilation. If {@code true}, dependency analysis will be performed
-     * to only recompile code affected by source code changes that occurred after the previous compilation.
-     * Incremental compilation is based on the sbt/Zinc incremental compiler.
+     * Tells whether to use Ant for compilation. If {@code true}, the standard Ant scalac (or fsc) task will be used for
+     * Scala and Java joint compilation. If {@code false}, the Zinc incremental compiler will be used
+     * instead. The latter can be significantly faster, especially if there are few source code changes
+     * between compiler runs. Defaults to {@code true}.
      */
-    public boolean isIncremental() {
-        return incremental;
+    public boolean isUseAnt() {
+        return useAnt;
     }
 
-    public void setIncremental(boolean incremental) {
-        this.incremental = incremental;
+    public void setUseAnt(boolean useAnt) {
+        this.useAnt = useAnt;
     }
 
     /**
-     * File location to store results of dependency analysis. Only used if {@code incremental} is {@code true}.
+     * File location to store results of dependency analysis. Only used if {@code useAnt} is {@code true}.
      */
-    public File getIncrementalCacheFile() {
-        return incrementalCacheFile;
+    public File getCompilerCacheFile() {
+        return compilerCacheFile;
     }
 
-    public void setIncrementalCacheFile(File incrementalCacheFile) {
-        this.incrementalCacheFile = incrementalCacheFile;
+    public void setCompilerCacheFile(File compilerCacheFile) {
+        this.compilerCacheFile = compilerCacheFile;
     }
 
     protected Map<String, String> fieldName2AntMap() {
@@ -340,7 +341,7 @@ public class ScalaCompileOptions extends AbstractOptions {
 
     protected List<String> excludedFieldsFromOptionMap() {
         ImmutableList.Builder<String> builder = new ImmutableList.Builder<String>()
-                .add("useCompileDaemon", "forkOptions", "incremental", "incrementalCacheFile");
+                .add("useCompileDaemon", "forkOptions", "useAnt", "compilerCacheFile");
         if (!optimize) {
             builder.add("optimize");
         }

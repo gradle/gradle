@@ -30,12 +30,17 @@ import org.gradle.api.tasks.scala.ScalaDoc
 public class ScalaBasePlugin implements Plugin<Project> {
     // public configurations
     public static final String SCALA_TOOLS_CONFIGURATION_NAME = "scalaTools";
+    public static final String ZINC_CONFIGURATION_NAME = "zinc";
 
     public void apply(Project project) {
         JavaBasePlugin javaPlugin = project.plugins.apply(JavaBasePlugin.class);
 
-        project.configurations.add(SCALA_TOOLS_CONFIGURATION_NAME).setVisible(false).setTransitive(true).
-                setDescription("The Scala tools libraries to be used for this Scala project.");
+        project.configurations.add(SCALA_TOOLS_CONFIGURATION_NAME)
+                .setVisible(false)
+                .setDescription("The Scala tools libraries to be used for this Scala project.");
+        project.configurations.add(ZINC_CONFIGURATION_NAME)
+                .setVisible(false)
+                .setDescription("The Zinc incremental compiler to be used for this Scala project.");
 
         configureCompileDefaults(project, javaPlugin)
         configureSourceSetDefaults(project, javaPlugin)
@@ -64,8 +69,25 @@ public class ScalaBasePlugin implements Plugin<Project> {
     private void configureCompileDefaults(final Project project, JavaBasePlugin javaPlugin) {
         project.tasks.withType(ScalaCompile.class) { ScalaCompile compile ->
             compile.scalaClasspath = project.configurations[SCALA_TOOLS_CONFIGURATION_NAME]
-            compile.scalaCompileOptions.conventionMapping.incrementalCacheFile = {
-                new File(project.buildDir, "tmp/scala/incremental/${compile.name}.cache")
+            compile.conventionMapping.zincClasspath = {
+                def config = project.configurations[ZINC_CONFIGURATION_NAME]
+                if (config.dependencies.empty) {
+                    project.dependencies {
+                        zinc("com.typesafe.zinc:zinc:0.1.1") {
+                            exclude module: "ensime-sbt-cmd"
+                        }
+                    }
+                }
+                config
+            }
+            // TODO: Not nice, but scalaCompileOptions can't be convention mapping enabled
+            // because then it's no longer serializable. Also, we can't defer setting the
+            // default until a ScalaCompile task executes because ScalaCompile tasks need
+            // access to the compiler cache files of all other ScalaCompile tasks in the build
+            project.gradle.projectsEvaluated {
+                if (compile.scalaCompileOptions.compilerCacheFile == null) {
+                    compile.scalaCompileOptions.compilerCacheFile = new File("$project.buildDir/tmp/scala/compilerCache/${compile.name}.cache")
+                }
             }
         }
     }

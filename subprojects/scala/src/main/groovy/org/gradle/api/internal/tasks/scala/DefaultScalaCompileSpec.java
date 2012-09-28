@@ -25,7 +25,8 @@ import java.util.Map;
 public class DefaultScalaCompileSpec extends DefaultJvmLanguageCompileSpec implements ScalaCompileSpec {
     private final ScalaCompileOptions options = new ScalaCompileOptions();
     private Iterable<File> scalaClasspath;
-    private Map<File, File> incrementalCacheMap;
+    private Iterable<File> zincClasspath;
+    private Map<File, File> compilerCacheMap;
 
     public ScalaCompileOptions getScalaCompileOptions() {
         return options;
@@ -39,11 +40,19 @@ public class DefaultScalaCompileSpec extends DefaultJvmLanguageCompileSpec imple
         this.scalaClasspath = scalaClasspath;
     }
 
-    public Map<File, File> getIncrementalCacheMap() {
-        return incrementalCacheMap;
+    public Iterable<File> getZincClasspath() {
+        return zincClasspath;
     }
 
-    public void setIncrementalCacheMap(Map<File, File> incrementalCacheMap) {
-        this.incrementalCacheMap = incrementalCacheMap;
+    public void setZincClasspath(Iterable<File> zincClasspath) {
+        this.zincClasspath = zincClasspath;
+    }
+
+    public Map<File, File> getCompilerCacheMap() {
+        return compilerCacheMap;
+    }
+
+    public void setCompilerCacheMap(Map<File, File> compilerCacheMap) {
+        this.compilerCacheMap = compilerCacheMap;
     }
 }

@@ -13,12 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+apply from: "$rootDir/gradle/providedConfiguration.gradle"
+
 dependencies {
     groovy libraries.groovy
 
     compile project(":core")
     compile project(":plugins")
-    compile("com.typesafe.zinc:zinc:0.1.1") {
+
+    provided("com.typesafe.zinc:zinc:0.1.1") {
         exclude module: "ensime-sbt-cmd"
     }
 

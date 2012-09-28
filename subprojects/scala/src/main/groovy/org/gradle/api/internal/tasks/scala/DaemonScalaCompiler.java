@@ -78,9 +78,9 @@ public class DaemonScalaCompiler implements org.gradle.api.internal.tasks.compil
 
     private DaemonForkOptions createScalaForkOptions(ScalaJavaJointCompileSpec spec) {
         BaseForkOptions options = spec.getScalaCompileOptions().getForkOptions();
-        List<String> scalaPackages = Arrays.asList("scala", "org.typesafe.zinc", "xsbti", "com.sun.tools.javac");
+        List<String> sharedPackages = Arrays.asList("scala", "com.typesafe.zinc", "xsbti", "com.sun.tools.javac");
         return new DaemonForkOptions(options.getMemoryInitialSize(), options.getMemoryMaximumSize(),
-                options.getJvmArgs(), spec.getScalaClasspath(), scalaPackages);
+                options.getJvmArgs(), spec.getZincClasspath(), sharedPackages);
     }
 }
 
