@@ -15,6 +15,7 @@
  */
 package org.gradle.messaging.remote.internal.protocol;
 
+import com.google.common.base.Objects;
 import org.gradle.messaging.remote.internal.Message;
 
 import java.util.Arrays;
@@ -52,5 +53,13 @@ public class RemoteMethodInvocation extends Message {
     @Override
     public int hashCode() {
         return key.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return Objects.toStringHelper(this)
+                .add("key", key)
+                .add("arguments", Arrays.toString(arguments))
+                .toString();
     }
 }
