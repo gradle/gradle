@@ -88,6 +88,7 @@ public class AbstractOptionsTest extends Specification {
       String deepProp
     }
 
+    @SuppressWarnings("ClassName")
     static class TestOptions_Decorated extends TestOptions {
         String decoratedProp
     }
