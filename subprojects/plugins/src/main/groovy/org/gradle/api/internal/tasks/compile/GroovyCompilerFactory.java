@@ -60,7 +60,7 @@ public class GroovyCompilerFactory {
                     return new AntGroovyCompiler(antBuilder, classPathRegistry);
                 }
 
-                javaCompilerFactory.setGroovyJointCompilation(true);
+                javaCompilerFactory.setJointCompilation(true);
                 Compiler<JavaCompileSpec> javaCompiler = javaCompilerFactory.create(javaOptions);
                 Compiler<GroovyJavaJointCompileSpec> groovyCompiler = new ApiGroovyCompiler(javaCompiler);
                 CompilerDaemonFactory daemonFactory;

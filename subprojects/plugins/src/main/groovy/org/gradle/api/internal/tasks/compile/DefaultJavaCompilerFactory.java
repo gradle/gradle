@@ -31,7 +31,7 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
     private final TemporaryFileProvider tempFileProvider;
     private final Factory<AntBuilder> antBuilderFactory;
     private final JavaCompilerFactory inProcessCompilerFactory;
-    private boolean groovyJointCompilation;
+    private boolean jointCompilation;
 
     public DefaultJavaCompilerFactory(ProjectInternal project, TemporaryFileProvider tempFileProvider, Factory<AntBuilder> antBuilderFactory, JavaCompilerFactory inProcessCompilerFactory){
         this.project = project;
@@ -42,11 +42,11 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
 
     /**
      * If true, the Java compiler to be created is used for joint compilation
-     * together with a Groovy compiler in the compiler daemon.
-     * In that case, the Groovy normalizing and daemon compilers should be used.
+     * together with another language's compiler in the compiler daemon.
+     * In that case, the other language's normalizing and daemon compilers should be used.
      */
-    public void setGroovyJointCompilation(boolean flag) {
-        groovyJointCompilation = flag;
+    public void setJointCompilation(boolean flag) {
+        jointCompilation = flag;
     }
 
     public Compiler<JavaCompileSpec> create(CompileOptions options) {
@@ -57,7 +57,7 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
         }
 
         Compiler<JavaCompileSpec> result = createTargetCompiler(options);
-        if (!groovyJointCompilation) {
+        if (!jointCompilation) {
             result = new NormalizingJavaCompiler(result);
         }
         return result;
@@ -78,7 +78,7 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
         }
 
         Compiler<JavaCompileSpec> compiler = inProcessCompilerFactory.create(options);
-        if (options.isFork() && !groovyJointCompilation) {
+        if (options.isFork() && !jointCompilation) {
             return new DaemonJavaCompiler(project, compiler);
         }
 
