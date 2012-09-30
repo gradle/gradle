@@ -17,7 +17,6 @@
 package org.gradle.launcher.daemon.registry
 
 import org.gradle.internal.nativeplatform.ProcessEnvironment
-import org.gradle.internal.nativeplatform.services.NativeServices
 import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.daemon.context.DaemonContextBuilder
 import org.gradle.messaging.remote.Address
@@ -84,7 +83,7 @@ class PersistentDaemonRegistryTest extends Specification {
     }
     
     DaemonContext daemonContext() {
-        new DaemonContextBuilder(new NativeServices().get(ProcessEnvironment)).with {
+        new DaemonContextBuilder([maybeGetPid: {null}] as ProcessEnvironment).with {
             daemonRegistryDir = tmp.createDir("daemons")
             create()
         }
