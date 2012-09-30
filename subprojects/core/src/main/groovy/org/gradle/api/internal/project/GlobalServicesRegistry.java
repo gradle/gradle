@@ -52,7 +52,7 @@ public class GlobalServicesRegistry extends DefaultServiceRegistry {
 
     public GlobalServicesRegistry(ServiceRegistry loggingServices) {
         super(loggingServices);
-        add(new NativeServices());
+        add(NativeServices.getInstance());
     }
 
     protected CommandLineConverter<StartParameter> createCommandLine2StartParameterConverter() {

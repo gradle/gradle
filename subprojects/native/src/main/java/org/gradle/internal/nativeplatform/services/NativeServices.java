@@ -30,6 +30,20 @@ import org.gradle.internal.service.DefaultServiceRegistry;
  * Provides various native platform integration services.
  */
 public class NativeServices extends DefaultServiceRegistry {
+    private static NativeServices instance = new NativeServices();
+
+    public static NativeServices getInstance() {
+        return instance;
+    }
+
+    private NativeServices() {
+    }
+
+    @Override
+    public void close() {
+        // Don't close
+    }
+
     protected OperatingSystem createOperatingSystem() {
         return OperatingSystem.current();
     }

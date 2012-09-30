@@ -22,7 +22,7 @@ import org.gradle.internal.os.OperatingSystem
 import spock.lang.Specification
 
 class NativeServicesTest extends Specification {
-    final NativeServices services = new NativeServices()
+    final NativeServices services = NativeServices.getInstance()
     
     def "makes a ProcessEnvironment available"() {
         expect:

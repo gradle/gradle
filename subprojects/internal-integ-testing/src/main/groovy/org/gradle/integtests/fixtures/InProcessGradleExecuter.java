@@ -58,7 +58,7 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 public class InProcessGradleExecuter extends AbstractGradleExecuter {
-    private final ProcessEnvironment processEnvironment = new NativeServices().get(ProcessEnvironment.class);
+    private final ProcessEnvironment processEnvironment = NativeServices.getInstance().get(ProcessEnvironment.class);
 
     @Override
     protected ExecutionResult doRun() {

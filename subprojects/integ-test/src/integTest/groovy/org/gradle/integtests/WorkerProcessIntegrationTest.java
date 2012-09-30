@@ -67,7 +67,7 @@ public class WorkerProcessIntegrationTest {
     private final MessagingServices messagingServices = new MessagingServices(getClass().getClassLoader());
     private final MessagingServer server = messagingServices.get(MessagingServer.class);
     @Rule public final TemporaryFolder tmpDir = new TemporaryFolder();
-    private final ProcessMetaDataProvider metaDataProvider = new DefaultProcessMetaDataProvider(new NativeServices().get(ProcessEnvironment.class));
+    private final ProcessMetaDataProvider metaDataProvider = new DefaultProcessMetaDataProvider(NativeServices.getInstance().get(ProcessEnvironment.class));
     private final CacheFactory factory = new DefaultCacheFactory(new DefaultFileLockManager(metaDataProvider)).create();
     private final CacheRepository cacheRepository = new DefaultCacheRepository(tmpDir.getDir(), null, CacheUsage.ON, factory);
     private final ModuleRegistry moduleRegistry = new DefaultModuleRegistry();

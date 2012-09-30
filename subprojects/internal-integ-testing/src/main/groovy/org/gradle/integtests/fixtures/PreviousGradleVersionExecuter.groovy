@@ -39,7 +39,7 @@ public class PreviousGradleVersionExecuter extends AbstractGradleExecuter implem
         return new DefaultCacheFactory(
                 new DefaultFileLockManager(
                         new DefaultProcessMetaDataProvider(
-                                new NativeServices().get(ProcessEnvironment)),
+                                NativeServices.getInstance().get(ProcessEnvironment)),
                         20 * 60 * 1000 // allow up to 20 minutes to download a distribution
                 )).create()
     }

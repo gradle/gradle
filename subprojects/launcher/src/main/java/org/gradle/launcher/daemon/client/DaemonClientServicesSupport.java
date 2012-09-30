@@ -53,7 +53,7 @@ abstract public class DaemonClientServicesSupport extends DefaultServiceRegistry
     public DaemonClientServicesSupport(ServiceRegistry loggingServices, InputStream buildStandardInput) {
         this.loggingServices = loggingServices;
         this.buildStandardInput = buildStandardInput;
-        add(new NativeServices());
+        add(NativeServices.getInstance());
     }
 
     public ServiceRegistry getLoggingServices() {
