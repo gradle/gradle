@@ -50,6 +50,7 @@ class VersionForcingDependencyToModuleResolverTest extends Specification {
 
         then:
         result.result == resolvedVersion
+        result.selectionReason == ModuleVersionIdResolveResult.IdSelectionReason.forced
 
         and:
         1 * dep.clone(forced) >> modified

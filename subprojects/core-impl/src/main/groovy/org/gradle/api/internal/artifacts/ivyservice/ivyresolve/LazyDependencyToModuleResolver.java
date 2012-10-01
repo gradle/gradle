@@ -135,6 +135,10 @@ public class LazyDependencyToModuleResolver implements DependencyToModuleVersion
             return resolveResult;
         }
 
+        public IdSelectionReason getSelectionReason() {
+            return IdSelectionReason.requested;
+        }
+
         private void checkDescriptor(ModuleDescriptor descriptor) {
             ModuleRevisionId id = descriptor.getModuleRevisionId();
             if (!copy(id).equals(copy(dependencyDescriptor.getDependencyRevisionId()))) {

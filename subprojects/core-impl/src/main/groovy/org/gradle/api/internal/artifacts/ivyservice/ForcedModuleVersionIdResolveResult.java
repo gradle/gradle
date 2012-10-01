@@ -21,7 +21,7 @@ import org.apache.ivy.core.module.id.ModuleRevisionId;
 /**
  * by Szczepan Faber, created at: 8/29/12
  */
-public class ForcedModuleVersionIdResolveResult implements ModuleVersionIdResolveResult {
+class ForcedModuleVersionIdResolveResult implements ModuleVersionIdResolveResult {
 
     final ModuleVersionIdResolveResult result;
 
@@ -39,5 +39,9 @@ public class ForcedModuleVersionIdResolveResult implements ModuleVersionIdResolv
 
     public ModuleVersionResolveResult resolve() {
         return result.resolve();
+    }
+
+    public IdSelectionReason getSelectionReason() {
+        return IdSelectionReason.forced;
     }
 }
