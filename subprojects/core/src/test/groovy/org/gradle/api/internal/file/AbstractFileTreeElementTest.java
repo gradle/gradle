@@ -16,26 +16,31 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.file.RelativePath;
+import org.gradle.internal.nativeplatform.filesystem.Chmod;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
-import org.gradle.internal.nativeplatform.filesystem.FileSystems;
 import org.gradle.util.GFileUtils;
+import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.TemporaryFolder;
 import org.gradle.util.TestFile;
-import org.gradle.util.TestPrecondition;
+import org.jmock.Expectations;
+import org.jmock.integration.junit4.JMock;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
-import static org.junit.Assume.assumeTrue;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertThat;
 
+@RunWith(JMock.class)
 public class AbstractFileTreeElementTest {
     @Rule
     public final TemporaryFolder tmpDir = new TemporaryFolder();
+    final JUnit4GroovyMockery context = new JUnit4GroovyMockery();
+    final Chmod chmod = context.mock(Chmod.class);
 
     @Test
     public void canCopyToOutputStream() {
@@ -52,6 +57,10 @@ public class AbstractFileTreeElementTest {
         TestFile src = writeToFile("src", "content");
         TestFile dest = tmpDir.file("dir/dest");
 
+        context.checking(new Expectations(){{
+            ignoring(chmod);
+        }});
+
         new TestFileTreeElement(src).copyTo(dest);
 
         dest.assertIsFile();
@@ -60,16 +69,14 @@ public class AbstractFileTreeElementTest {
 
     @Test
     public void copiedFileHasExpectedPermissions() throws Exception {
-        assumeTrue(TestPrecondition.FILE_PERMISSIONS.isFulfilled());
-
         TestFile src = writeToFile("src", "");
-        TestFile dest = tmpDir.file("dest");
+        final TestFile dest = tmpDir.file("dest");
+
+        context.checking(new Expectations(){{
+            one(chmod).chmod(dest, 0666);
+        }});
 
         new TestFileTreeElement(src, 0666).copyTo(dest);
-        assertPermissionsEquals("666", dest);
-
-        new TestFileTreeElement(src, 0644).copyTo(dest);
-        assertPermissionsEquals("644", dest);
     }
 
     @Test
@@ -82,14 +89,9 @@ public class AbstractFileTreeElementTest {
     }
 
     private TestFile writeToFile(String name, String content) {
-        final TestFile result = tmpDir.file(name);
+        TestFile result = tmpDir.file(name);
         result.write(content);
         return result;
-    }
-
-    private void assertPermissionsEquals(String expected, File f) throws Exception {
-        assertThat(Integer.toOctalString(FileSystems.getDefault().getUnixMode(f)),
-            equalTo(expected));
     }
 
     private class TestFileTreeElement extends AbstractFileTreeElement {
@@ -125,6 +127,11 @@ public class AbstractFileTreeElementTest {
             return file.length();
         }
 
+        @Override
+        protected Chmod getChmod() {
+            return chmod;
+        }
+
         public RelativePath getRelativePath() {
             throw new UnsupportedOperationException();
         }
@@ -134,9 +141,7 @@ public class AbstractFileTreeElementTest {
         }
 
         public int getMode() {
-            return mode == null
-                ? super.getMode()
-                : mode;
+            return mode == null ? super.getMode() : mode;
         }
     }
 }
