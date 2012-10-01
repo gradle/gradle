@@ -89,8 +89,10 @@ com.coolcorp.util:util-core:2.4.6 -> 4.0.7
 \--- com.coolcorp.cfg2:cfg:2.8.0
      \--- com.coolcorp.sharedlibs:lispring-lispring-core:1.3.30
           \--- com.coolcorp.container:container-http-impl:3.0.24
-               \--- com.coolcorp.container:container-rpc-impl:3.0.24
-                    \--- compile
+          |    \--- com.coolcorp.container:container-rpc-impl:3.0.24
+          |         \--- compile
+          \--- com.foo.bar:foo-bar:1.0
+               \--- compile
 </pre>
 
 The idea is to traverse the graph the other way and print the dependent path for a given dependency.
