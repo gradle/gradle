@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 
 import java.util.Collections;
 import java.util.Set;
@@ -49,7 +50,7 @@ public class EmptyResolutionResult implements ResolutionResult {
             }
 
             public ModuleVersionSelectionReason getSelectionReason() {
-                return ModuleVersionSelectionReason.requested;
+                return VersionSelectionReasons.REQUESTED;
             }
         };
     }

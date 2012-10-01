@@ -34,6 +34,7 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.InternalDependencyResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ModuleVersionSelection;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedConfigurationListener;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -602,7 +603,7 @@ public class DependencyGraphBuilder {
         ModuleDescriptor descriptor;
         ModuleState state = ModuleState.New;
         ModuleVersionSelectorResolveState resolver;
-        ModuleVersionSelectionReason selectionReason = ModuleVersionSelectionReason.requested;
+        ModuleVersionSelectionReason selectionReason = VersionSelectionReasons.REQUESTED;
 
         private DefaultModuleRevisionResolveState(ModuleResolveState module, ModuleRevisionId id, ResolveState resolveState) {
             this.module = module;
@@ -922,7 +923,7 @@ public class DependencyGraphBuilder {
 
             //TODO SF put this info on th idResolveResult
             if (idResolveResult instanceof ForcedModuleVersionIdResolveResult) {
-                targetModuleRevision.selectionReason = ModuleVersionSelectionReason.forced;
+                targetModuleRevision.selectionReason = VersionSelectionReasons.FORCED;
             }
 
             return targetModuleRevision;
@@ -961,14 +962,14 @@ public class DependencyGraphBuilder {
             for (ConfigurationNode configuration : root.configurations) {
                 for (DependencyEdge outgoingEdge : configuration.outgoingEdges) {
                     if (outgoingEdge.dependencyDescriptor.isForce() && candidates.contains(outgoingEdge.targetModuleRevision)) {
-                        outgoingEdge.targetModuleRevision.selectionReason = ModuleVersionSelectionReason.forced;
+                        outgoingEdge.targetModuleRevision.selectionReason = VersionSelectionReasons.FORCED;
                         return outgoingEdge.targetModuleRevision;
                     }
                 }
             }
             //TODO SF unit test
             DefaultModuleRevisionResolveState out = (DefaultModuleRevisionResolveState) resolver.select(candidates, root);
-            out.selectionReason = ModuleVersionSelectionReason.conflictResolution;
+            out.selectionReason = VersionSelectionReasons.CONFLICT_RESOLUTION;
             return out;
         }
     }

@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.CollectionUtils;
 
@@ -37,7 +38,7 @@ public class DefaultResolvedModuleVersionResult implements ResolvedModuleVersion
     private final ModuleVersionSelectionReason selectionReason;
 
     public DefaultResolvedModuleVersionResult(ModuleVersionIdentifier id) {
-        this(id, ModuleVersionSelectionReason.requested);
+        this(id, VersionSelectionReasons.REQUESTED);
     }
 
     public DefaultResolvedModuleVersionResult(ModuleVersionIdentifier id, ModuleVersionSelectionReason selectionReason) {

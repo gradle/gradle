@@ -22,6 +22,7 @@ import org.gradle.api.Incubating;
  * Answers the question why given module version was selected during the dependency resolution
  */
 @Incubating
-public enum ModuleVersionSelectionReason {
-    forced, conflictResolution, requested
+public interface ModuleVersionSelectionReason {
+    boolean isForced();
+    boolean isConflictResolution();
 }

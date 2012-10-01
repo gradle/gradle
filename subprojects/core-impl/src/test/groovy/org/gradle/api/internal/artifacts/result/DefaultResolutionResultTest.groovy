@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.result
 
 import org.gradle.api.artifacts.result.ModuleVersionSelectionReason
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
@@ -65,7 +66,7 @@ class DefaultResolutionResultTest extends Specification {
         new DefaultResolvedDependencyResult(newSelector(group, module, version), newModule(group, module, version), newModule())
     }
 
-    def newModule(String group='a', String module='a', String version='1', ModuleVersionSelectionReason selectionReason = ModuleVersionSelectionReason.requested) {
+    def newModule(String group='a', String module='a', String version='1', ModuleVersionSelectionReason selectionReason = VersionSelectionReasons.REQUESTED) {
         new DefaultResolvedModuleVersionResult(newId(group, module, version), selectionReason)
     }
 }

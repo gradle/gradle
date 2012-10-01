@@ -17,12 +17,11 @@
 package org.gradle.api.tasks.diagnostics.internal.insight
 
 import org.gradle.api.artifacts.result.ModuleVersionSelectionReason
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
 import org.gradle.api.internal.artifacts.result.DefaultResolvedDependencyResult
 import org.gradle.api.internal.artifacts.result.DefaultResolvedModuleVersionResult
 import spock.lang.Specification
 
-import static org.gradle.api.artifacts.result.ModuleVersionSelectionReason.conflictResolution
-import static org.gradle.api.artifacts.result.ModuleVersionSelectionReason.forced
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 
@@ -98,7 +97,7 @@ class DependencyInsightReporterSpec extends Specification {
         sorted[2].description == 'forced'
     }
 
-    private dep(String group, String name, String requested, String selected = requested, ModuleVersionSelectionReason selectionReason = ModuleVersionSelectionReason.requested) {
+    private dep(String group, String name, String requested, String selected = requested, ModuleVersionSelectionReason selectionReason = VersionSelectionReasons.REQUESTED) {
         def selectedModule = new DefaultResolvedModuleVersionResult(newId(group, name, selected), selectionReason)
         new DefaultResolvedDependencyResult(newSelector(group, name, requested),
                 selectedModule,

@@ -60,9 +60,9 @@ public class DependencyInsightReporter {
     }
 
     private String describeReason(ModuleVersionSelectionReason reason) {
-        if (reason == ModuleVersionSelectionReason.conflictResolution) {
+        if (reason.conflictResolution) {
             return "conflict resolution"
-        } else if (reason == ModuleVersionSelectionReason.forced) {
+        } else if (reason.forced) {
             return "forced"
         } else {
             return null

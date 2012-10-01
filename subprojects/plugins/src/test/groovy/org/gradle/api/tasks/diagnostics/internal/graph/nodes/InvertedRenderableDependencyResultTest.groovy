@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes
 
 import org.gradle.api.artifacts.result.ModuleVersionSelectionReason
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
 import org.gradle.api.internal.artifacts.result.DefaultResolvedDependencyResult
 import org.gradle.api.internal.artifacts.result.DefaultResolvedModuleVersionResult
 import spock.lang.Specification
@@ -71,7 +72,7 @@ class InvertedRenderableDependencyResultTest extends Specification {
         out
     }
 
-    def newModule(String group='a', String module='a', String version='1', ModuleVersionSelectionReason selectionReason = ModuleVersionSelectionReason.requested) {
+    def newModule(String group='a', String module='a', String version='1', ModuleVersionSelectionReason selectionReason = VersionSelectionReasons.REQUESTED) {
         new DefaultResolvedModuleVersionResult(newId(group, module, version), selectionReason)
     }
 }

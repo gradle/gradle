@@ -22,8 +22,6 @@ import org.gradle.api.artifacts.result.ResolvedModuleVersionResult
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier
 import spock.lang.Specification
 
-import static ModuleVersionSelectionReason.conflictResolution
-import static ModuleVersionSelectionReason.forced
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 
@@ -105,7 +103,7 @@ class ResolutionResultBuilderSpec extends Specification {
     def "includes selection reason"() {
         given:
         builder.start(confId("a"))
-        resolvedConf("a", [dep("b", null, "b", forced), dep("c", null, "c", conflictResolution), dep("d", new RuntimeException("Boo!"))])
+        resolvedConf("a", [dep("b", null, "b", VersionSelectionReasons.FORCED), dep("c", null, "c", VersionSelectionReasons.CONFLICT_RESOLUTION), dep("d", new RuntimeException("Boo!"))])
         resolvedConf("b", [])
         resolvedConf("c", [])
         resolvedConf("d", [])
@@ -117,8 +115,8 @@ class ResolutionResultBuilderSpec extends Specification {
         def b = deps.find { it.selected.id.name == 'b' }
         def c = deps.find { it.selected.id.name == 'c' }
 
-        b.selected.selectionReason == forced
-        c.selected.selectionReason == conflictResolution
+        b.selected.selectionReason.forced
+        c.selected.selectionReason.conflictResolution
     }
 
     def "links dependents correctly"() {
@@ -194,7 +192,7 @@ class ResolutionResultBuilderSpec extends Specification {
         builder.resolvedConfiguration(confId(module), deps)
     }
 
-    private InternalDependencyResult dep(String requested, Exception failure = null, String selected = requested, ModuleVersionSelectionReason selectionReason = ModuleVersionSelectionReason.requested) {
+    private InternalDependencyResult dep(String requested, Exception failure = null, String selected = requested, ModuleVersionSelectionReason selectionReason = VersionSelectionReasons.REQUESTED) {
         def selection = failure != null ? null : new ModuleVersionSelection(newId("x", selected, "1"), selectionReason)
         new InternalDependencyResult(newSelector("x", requested, "1"), selection, failure)
     }

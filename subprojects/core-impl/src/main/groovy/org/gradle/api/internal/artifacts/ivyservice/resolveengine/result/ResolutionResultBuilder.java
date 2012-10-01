@@ -41,11 +41,11 @@ public class ResolutionResultBuilder implements ResolvedConfigurationListener {
     //TODO SF/AM Use ModuleVersionIdentifier instead of ResolvedConfigurationIdentifier, then we can get rid of the EmptyDependencyGraph
     //and create an empty using: new ResolutionResultBuilder().start(DefaultModuleVersionIdentifier.newId(module)).getResult()
     public void start(ResolvedConfigurationIdentifier root) {
-        rootModule = getModule(root.getId(), ModuleVersionSelectionReason.requested);
+        rootModule = getModule(root.getId(), VersionSelectionReasons.REQUESTED);
     }
 
     public void resolvedConfiguration(ResolvedConfigurationIdentifier id, Collection<InternalDependencyResult> dependencies) {
-        DefaultResolvedModuleVersionResult from = getModule(id.getId(), ModuleVersionSelectionReason.requested);
+        DefaultResolvedModuleVersionResult from = getModule(id.getId(), VersionSelectionReasons.REQUESTED);
 
         for (InternalDependencyResult d : dependencies) {
             if (d.getFailure() != null) {
