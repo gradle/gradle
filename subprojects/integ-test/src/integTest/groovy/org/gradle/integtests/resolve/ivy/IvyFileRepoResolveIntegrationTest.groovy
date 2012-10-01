@@ -17,9 +17,11 @@ package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
 import spock.lang.Issue
+import spock.lang.Ignore
 
 class IvyFileRepoResolveIntegrationTest extends AbstractDependencyResolutionTest {
 
+    @Ignore
     @Issue("GRADLE-2502")
     public void "can resolve dynamic version from different repositories"() {
         given:
