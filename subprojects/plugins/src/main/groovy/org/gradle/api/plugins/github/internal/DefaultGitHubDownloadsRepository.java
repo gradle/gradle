@@ -96,6 +96,8 @@ public class DefaultGitHubDownloadsRepository implements GitHubDownloadsReposito
         applyCredentialsTo(repository.getCredentials());
 
         ArtifactRepositoryInternal repositoryInternal = toArtifactRepositoryInternal(repository);
+        //TODO we should try to avoid directly depending on core-impl
+        //if we fix this MavenResolver problem we can replace compile dependency on coreImpl with 'testCompile' dependency.
         MavenResolver resolver = toMavenResolver(repositoryInternal.createResolver());
 
         resolver.setPattern(PATTERN);
