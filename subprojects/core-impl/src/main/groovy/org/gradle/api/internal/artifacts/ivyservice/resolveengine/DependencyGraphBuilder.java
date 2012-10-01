@@ -20,6 +20,7 @@ import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.resolve.IvyNode;
 import org.apache.ivy.core.resolve.ResolveData;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedArtifact;
@@ -418,16 +419,7 @@ public class DependencyGraphBuilder {
         }
 
         public ModuleVersionSelection getSelectedModule() {
-            DefaultModuleRevisionResolveState selected = selector.module.selected;
-            if (selected == null) {
-                //this situation is detected by DependencyGraphBuilderTest which uses mocks
-                //it suppose to mean that the dependency is unresolved.
-                return null;
-            }
-            return new ModuleVersionSelection(new DefaultModuleVersionIdentifier(
-                    selected.id.getOrganisation(),
-                    selected.id.getName(),
-                    selected.getRevision()), selected.selectionReason);
+            return selector.module.selected;
         }
     }
 
@@ -594,7 +586,7 @@ public class DependencyGraphBuilder {
         }
     }
 
-    private static class DefaultModuleRevisionResolveState implements ModuleRevisionResolveState {
+    private static class DefaultModuleRevisionResolveState implements ModuleRevisionResolveState, ModuleVersionSelection {
         final ModuleResolveState module;
         final ModuleRevisionId id;
         final ResolveState resolveState;
@@ -661,6 +653,17 @@ public class DependencyGraphBuilder {
             if (this.descriptor == null) {
                 this.descriptor = descriptor;
             }
+        }
+
+        public ModuleVersionIdentifier getSelectedId() {
+            return new DefaultModuleVersionIdentifier(
+                    id.getOrganisation(),
+                    id.getName(),
+                    id.getRevision());
+        }
+
+        public ModuleVersionSelectionReason getSelectionReason() {
+            return selectionReason;
         }
     }
 

@@ -22,24 +22,9 @@ import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
 /**
 * by Szczepan Faber, created at: 8/31/12
 */
-public class ModuleVersionSelection {
+public interface ModuleVersionSelection {
 
-    private ModuleVersionIdentifier id;
-    private ModuleVersionSelectionReason selectionReason;
+    ModuleVersionIdentifier getSelectedId();
 
-    public ModuleVersionSelection(ModuleVersionIdentifier id, ModuleVersionSelectionReason selectionReason) {
-        assert id != null;
-        assert selectionReason != null;
-
-        this.id = id;
-        this.selectionReason = selectionReason;
-    }
-
-    public ModuleVersionIdentifier getId() {
-        return id;
-    }
-
-    public ModuleVersionSelectionReason getSelectionReason() {
-        return selectionReason;
-    }
+    ModuleVersionSelectionReason getSelectionReason();
 }
