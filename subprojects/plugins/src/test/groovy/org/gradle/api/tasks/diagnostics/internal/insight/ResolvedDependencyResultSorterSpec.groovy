@@ -40,11 +40,13 @@ class ResolvedDependencyResultSorterSpec extends Specification {
         def d5 = newDependency(newSelector("org.gradle", "zzzz", "1.5"), newId("org.gradle", "zzzz", "3.0"))
         def d6 = newDependency(newSelector("org.gradle", "zzzz", "2.0"), newId("org.gradle", "zzzz", "3.0"))
 
+        def d7 = newDependency(newSelector("org.aha", "aha", "1.0"), newId("org.gradle", "zzzz", "3.0"))
+
         when:
-        def sorted = ResolvedDependencyResultSorter.sort([d5, d3, d6, d1, d2, d4])
+        def sorted = ResolvedDependencyResultSorter.sort([d5, d3, d6, d1, d2, d7, d4])
 
         then:
-        sorted == [d1, d2, d3, d4, d5, d6]
+        sorted == [d7, d1, d2, d3, d4, d5, d6]
     }
 
     def "excludes dependencies with the same requested->selected"() {
