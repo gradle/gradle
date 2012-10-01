@@ -921,7 +921,7 @@ public class DependencyGraphBuilder {
             targetModuleRevision = resolveState.getRevision(idResolveResult.getId());
             targetModuleRevision.addResolver(this);
 
-            if (idResolveResult.getSelectionReason() == ModuleVersionIdResolveResult.IdSelectionReason.forced ) {
+            if (idResolveResult.getSelectionReason() == ModuleVersionIdResolveResult.IdSelectionReason.forced) {
                 targetModuleRevision.selectionReason = VersionSelectionReasons.FORCED;
             }
 

@@ -24,6 +24,8 @@ import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
+import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons.CONFLICT_RESOLUTION
+import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons.FORCED
 
 /**
  * Created: 23/08/2012
@@ -57,7 +59,7 @@ class DependencyInsightReporterSpec extends Specification {
     }
 
     def "adds header dependency if the selected version does not exist in the graph"() {
-        def dependencies = [dep("a", "x", "1.0", "2.0", forced), dep("a", "x", "1.5", "2.0", forced), dep("b", "a", "5.0")]
+        def dependencies = [dep("a", "x", "1.0", "2.0", FORCED), dep("a", "x", "1.5", "2.0", FORCED), dep("b", "a", "5.0")]
 
         when:
         def sorted = new DependencyInsightReporter().prepare(dependencies);
@@ -79,7 +81,7 @@ class DependencyInsightReporterSpec extends Specification {
     }
 
     def "annotates only first dependency in the group"() {
-        def dependencies = [dep("a", "x", "1.0", "2.0", conflictResolution), dep("a", "x", "2.0", "2.0", conflictResolution), dep("b", "a", "5.0", "5.0", forced)]
+        def dependencies = [dep("a", "x", "1.0", "2.0", CONFLICT_RESOLUTION), dep("a", "x", "2.0", "2.0", CONFLICT_RESOLUTION), dep("b", "a", "5.0", "5.0", FORCED)]
 
         when:
         def sorted = new DependencyInsightReporter().prepare(dependencies);
