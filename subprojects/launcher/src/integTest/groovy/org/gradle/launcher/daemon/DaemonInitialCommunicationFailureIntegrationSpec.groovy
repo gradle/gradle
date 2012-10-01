@@ -17,11 +17,11 @@
 package org.gradle.launcher.daemon
 
 import org.gradle.integtests.fixtures.HttpServer
+import org.gradle.integtests.fixtures.KillProcessAvailability
 import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.launcher.daemon.testing.DaemonLogsAnalyzer
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.junit.Rule
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 import static org.gradle.tests.fixtures.ConcurrentTestUtil.poll
@@ -29,7 +29,7 @@ import static org.gradle.tests.fixtures.ConcurrentTestUtil.poll
 /**
  * by Szczepan Faber, created at: 1/20/12
  */
-@Requires(TestPrecondition.UNIX)
+@IgnoreIf({ !KillProcessAvailability.CAN_KILL })
 //because we can only forcefully kill daemons on Unix atm.
 //The implementation is not OS specific, only the test is
 // so it's not a big deal it does not run everywhere.

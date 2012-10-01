@@ -17,6 +17,7 @@
 package org.gradle.integtests.fixtures
 
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.process.internal.ExecHandleBuilder
 
 /**
  * by Szczepan Faber, created at: 9/24/12
@@ -31,7 +32,14 @@ class KillProcessAvailability {
         } else if (OperatingSystem.current().isWindows()) {
             //On some windowses, taskkill does not seem to work when triggered from java
             //On our CIs this works fine
-            CAN_KILL = "taskkill.exe /?".execute().waitFor() == 0
+            def e = new ExecHandleBuilder()
+                    .commandLine("taskkill.exe", "/?")
+                    .redirectErrorStream()
+                    .workingDir(new File(".").absoluteFile) //does not matter
+                    .build()
+            e.start()
+            def result = e.waitForFinish()
+            CAN_KILL = result.exitValue == 0
         } else {
             CAN_KILL = false
         }
