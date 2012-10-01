@@ -16,8 +16,46 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
+import spock.lang.Issue
 
 class IvyFileRepoResolveIntegrationTest extends AbstractDependencyResolutionTest {
+
+    @Issue("GRADLE-2502")
+    public void "can resolve dynamic version from different repositories"() {
+        given:
+        def repo1 = ivyRepo("ivyRepo1")
+        def repo2 = ivyRepo("ivyRepo2")
+        repo1.module('group', 'projectA', '1.1').withStatus("milestone").publish()
+        repo2.module('group', 'projectA', '1.2').withStatus("integration").publish()
+
+        and:
+        buildFile << """
+  repositories {
+      ivy {
+          url "${repo1.uri}"
+      }
+      ivy {
+          url "${repo2.uri}"
+      }
+
+  }
+  configurations { compile }
+  dependencies {
+      compile 'group:projectA:latest.milestone'
+  }
+  task retrieve(type: Sync) {
+      from configurations.compile
+      into 'libs'
+  }
+  """
+
+        when:
+        run 'retrieve'
+
+        then:
+        file('libs').assertHasDescendants('projectA-1.1.jar')
+    }
+
     public void "does not cache local artifacts or metadata"() {
         given:
         def repo = ivyRepo()
