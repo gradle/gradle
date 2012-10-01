@@ -19,20 +19,18 @@ package org.gradle.api.internal.tasks.scala;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.compile.*;
+import org.gradle.api.internal.tasks.compile.AntJavaCompiler;
 import org.gradle.api.internal.tasks.compile.Compiler;
+import org.gradle.api.internal.tasks.compile.DefaultJavaCompilerFactory;
+import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
 import org.gradle.api.internal.tasks.compile.daemon.InProcessCompilerDaemonFactory;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.scala.ScalaCompileOptions;
 import org.gradle.internal.Factory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class ScalaCompilerFactory {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ScalaCompilerFactory.class);
-
     private final ProjectInternal project;
     private final IsolatedAntBuilder antBuilder;
     private final Factory<AntBuilder> antBuilderFactory;
@@ -53,7 +51,12 @@ public class ScalaCompilerFactory {
         }
 
         // for now, leave it up to sbt to also do java compilation
-        Compiler<ScalaJavaJointCompileSpec> scalaCompiler = new ApiScalaCompiler();
+        Compiler<ScalaJavaJointCompileSpec> scalaCompiler = null;
+        try {
+            scalaCompiler = (Compiler<ScalaJavaJointCompileSpec>) getClass().getClassLoader().loadClass("org.gradle.api.internal.tasks.scala.ApiScalaCompiler").newInstance();
+        } catch (Exception e) {
+            throw new RuntimeException("Could not load Scala compiler adapter.", e);
+        }
         CompilerDaemonFactory daemonFactory;
         if (scalaOptions.isFork()) {
             daemonFactory = CompilerDaemonManager.getInstance();
