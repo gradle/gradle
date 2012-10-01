@@ -41,6 +41,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
+import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId;
+
 public class DependencyGraphBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(DependencyGraphBuilder.class);
     private final ModuleDescriptorConverter moduleDescriptorConverter;
@@ -145,21 +147,16 @@ public class DependencyGraphBuilder {
      */
     private void assembleResult(ResolveState resolveState, ResolvedConfigurationBuilder result, ResolvedConfigurationListener listener) {
         FailureState failureState = new FailureState(resolveState.root);
-        ResolvedConfigurationIdentifier root = resolveState.root.toId();
+        ModuleVersionIdentifier root = resolveState.root.toId();
         listener.start(root);
 
         for (ConfigurationNode resolvedConfiguration : resolveState.getConfigurationNodes()) {
             resolvedConfiguration.attachToParents(resolvedArtifactFactory, result);
             resolvedConfiguration.collectFailures(failureState);
 
-            notifyListener(listener, resolvedConfiguration);
+            listener.resolvedConfiguration(resolvedConfiguration.toId(), resolvedConfiguration.outgoingEdges);
         }
         failureState.attachFailures(result);
-    }
-
-    private void notifyListener(ResolvedConfigurationListener listener, ConfigurationNode resolvedConfiguration) {
-        ResolvedConfigurationIdentifier id = resolvedConfiguration.toId();
-        listener.resolvedConfiguration(id, resolvedConfiguration.outgoingEdges);
     }
 
     private static class FailureState {
@@ -863,12 +860,10 @@ public class DependencyGraphBuilder {
             }
         }
 
-        private ResolvedConfigurationIdentifier toId() {
-            return new ResolvedConfigurationIdentifier(
-                    moduleRevision.id.getOrganisation(),
+        private ModuleVersionIdentifier toId() {
+            return newId(moduleRevision.id.getOrganisation(),
                     moduleRevision.id.getName(),
-                    moduleRevision.id.getRevision(),
-                    configurationName);
+                    moduleRevision.id.getRevision());
         }
     }
 

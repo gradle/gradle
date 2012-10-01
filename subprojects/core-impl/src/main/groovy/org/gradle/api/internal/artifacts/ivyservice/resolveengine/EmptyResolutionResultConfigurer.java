@@ -16,11 +16,14 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
-import org.gradle.api.internal.artifacts.result.EmptyResolutionResult;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultBuilder;
+import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
 
 /**
  * by Szczepan Faber, created at: 9/10/12
@@ -33,7 +36,9 @@ public class EmptyResolutionResultConfigurer implements ArtifactDependencyResolv
     }
 
     public ResolvedConfiguration resolve(ConfigurationInternal configuration) throws ResolveException {
-        configuration.setResolutionResult(new EmptyResolutionResult(configuration.getModule()));
+        ModuleVersionIdentifier id = DefaultModuleVersionIdentifier.newId(configuration.getModule());
+        DefaultResolutionResult emptyResult = new ResolutionResultBuilder().start(id).getResult();
+        configuration.setResolutionResult(emptyResult);
         return delegate.resolve(configuration);
     }
 }

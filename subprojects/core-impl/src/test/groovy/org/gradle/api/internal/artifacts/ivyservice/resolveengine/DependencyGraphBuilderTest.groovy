@@ -26,7 +26,6 @@ import org.apache.ivy.plugins.matcher.PatternMatcher
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact
-import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.EnhancedDependencyDescriptor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedConfigurationListener
@@ -35,6 +34,8 @@ import spock.lang.Specification
 import org.apache.ivy.core.module.descriptor.*
 import org.gradle.api.artifacts.*
 import org.gradle.api.internal.artifacts.ivyservice.*
+
+import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 
 class DependencyGraphBuilderTest extends Specification {
     final ModuleDescriptorConverter moduleDescriptorConverter = Mock()
@@ -90,11 +91,11 @@ class DependencyGraphBuilderTest extends Specification {
         builder.resolve(configuration, resolveData, listener)
 
         then:
-        1 * listener.start(new ResolvedConfigurationIdentifier("group", "root", "1.0", "root"))
+        1 * listener.start(newId("group", "root", "1.0"))
         then:
-        1 * listener.resolvedConfiguration({ it.moduleName == 'root' }, { it*.requested.name == ['a', 'b'] } )
+        1 * listener.resolvedConfiguration({ it.name == 'root' }, { it*.requested.name == ['a', 'b'] } )
         then:
-        1 * listener.resolvedConfiguration({ it.moduleName == 'a' },    { it*.requested.name == ['c', 'd'] && it*.failure.count { it != null } == 1 } )
+        1 * listener.resolvedConfiguration({ it.name == 'a' },    { it*.requested.name == ['c', 'd'] && it*.failure.count { it != null } == 1 } )
     }
 
     def "does not resolve a given dynamic module selector more than once"() {

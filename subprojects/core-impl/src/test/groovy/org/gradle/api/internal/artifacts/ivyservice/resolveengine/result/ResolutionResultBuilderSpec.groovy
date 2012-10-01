@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.result.ModuleVersionSelectionReason
 import org.gradle.api.artifacts.result.ResolvedDependencyResult
 import org.gradle.api.artifacts.result.ResolvedModuleVersionResult
-import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
@@ -199,8 +198,8 @@ class ResolutionResultBuilderSpec extends Specification {
         new DummyInternalDependencyResult(requested: newSelector("x", requested, "1"), selected: selection, failure: failure)
     }
 
-    private ResolvedConfigurationIdentifier confId(String module, String configuration='conf') {
-        new ResolvedConfigurationIdentifier("x", module, "1", configuration)
+    private ModuleVersionIdentifier confId(String module) {
+        newId("x", module, "1")
     }
 
     String print(ResolvedModuleVersionResult root) {

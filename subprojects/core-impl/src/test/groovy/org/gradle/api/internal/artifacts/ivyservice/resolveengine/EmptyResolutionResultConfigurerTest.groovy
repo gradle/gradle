@@ -16,10 +16,12 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine
 
-import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver
+import org.gradle.api.internal.artifacts.DefaultModule
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import spock.lang.Specification
+
+import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 
 /**
  * by Szczepan Faber, created at: 9/10/12
@@ -30,12 +32,13 @@ class EmptyResolutionResultConfigurerTest extends Specification {
         def delegate = Mock(ArtifactDependencyResolver)
         def configurer = new EmptyResolutionResultConfigurer(delegate)
         def conf = Mock(ConfigurationInternal)
+        conf.getModule() >> new DefaultModule("foo", "bar", "1.0")
 
         when:
         configurer.resolve(conf)
 
         then:
-        conf.setResolutionResult(_ as ResolutionResult)
+        1 * conf.setResolutionResult({ it.root.id == newId('foo', 'bar', '1.0') && it.root.dependencies.empty && it.root.dependents.empty })
 
         then:
         1 * delegate.resolve(conf)

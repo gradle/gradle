@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
-import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedDependencyResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedModuleVersionResult;
@@ -38,14 +37,13 @@ public class ResolutionResultBuilder implements ResolvedConfigurationListener {
     private Map<ModuleVersionIdentifier, DefaultResolvedModuleVersionResult> modules
             = new LinkedHashMap<ModuleVersionIdentifier, DefaultResolvedModuleVersionResult>();
 
-    //TODO SF/AM Use ModuleVersionIdentifier instead of ResolvedConfigurationIdentifier, then we can get rid of the EmptyDependencyGraph
-    //and create an empty using: new ResolutionResultBuilder().start(DefaultModuleVersionIdentifier.newId(module)).getResult()
-    public void start(ResolvedConfigurationIdentifier root) {
-        rootModule = getModule(root.getId(), VersionSelectionReasons.REQUESTED);
+    public ResolutionResultBuilder start(ModuleVersionIdentifier root) {
+        rootModule = getModule(root, VersionSelectionReasons.REQUESTED);
+        return this;
     }
 
-    public void resolvedConfiguration(ResolvedConfigurationIdentifier id, Collection<? extends InternalDependencyResult> dependencies) {
-        DefaultResolvedModuleVersionResult from = getModule(id.getId(), VersionSelectionReasons.REQUESTED);
+    public void resolvedConfiguration(ModuleVersionIdentifier id, Collection<? extends InternalDependencyResult> dependencies) {
+        DefaultResolvedModuleVersionResult from = getModule(id, VersionSelectionReasons.REQUESTED);
 
         for (InternalDependencyResult d : dependencies) {
             if (d.getFailure() != null) {
