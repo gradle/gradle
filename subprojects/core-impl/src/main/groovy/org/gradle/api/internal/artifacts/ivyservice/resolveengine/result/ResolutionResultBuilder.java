@@ -44,7 +44,7 @@ public class ResolutionResultBuilder implements ResolvedConfigurationListener {
         rootModule = getModule(root.getId(), VersionSelectionReasons.REQUESTED);
     }
 
-    public void resolvedConfiguration(ResolvedConfigurationIdentifier id, Collection<InternalDependencyResult> dependencies) {
+    public void resolvedConfiguration(ResolvedConfigurationIdentifier id, Collection<? extends InternalDependencyResult> dependencies) {
         DefaultResolvedModuleVersionResult from = getModule(id.getId(), VersionSelectionReasons.REQUESTED);
 
         for (InternalDependencyResult d : dependencies) {

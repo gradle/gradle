@@ -22,32 +22,11 @@ import org.gradle.api.artifacts.ModuleVersionSelector;
 /**
  * by Szczepan Faber, created at: 8/24/12
  */
-public class InternalDependencyResult {
+public interface InternalDependencyResult {
 
-    //TODO SF/AM change to an interface and make the DependencyEdge implement it.
+    ModuleVersionSelector getRequested();
 
-    private final ModuleVersionSelector requested;
-    private final Exception failure;
-    private final ModuleVersionSelection selected;
+    @Nullable Exception getFailure();
 
-    public InternalDependencyResult(ModuleVersionSelector requested, ModuleVersionSelection selected, Exception failure) {
-        assert requested != null;
-        this.requested = requested;
-        this.selected = selected;
-        this.failure = failure;
-    }
-
-    public ModuleVersionSelector getRequested() {
-        return requested;
-    }
-
-    @Nullable
-    public Exception getFailure() {
-        return failure;
-    }
-
-    @Nullable
-    public ModuleVersionSelection getSelected() {
-        return selected;
-    }
+    @Nullable ModuleVersionSelection getSelected();
 }

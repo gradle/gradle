@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier
+import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.result.ModuleVersionSelectionReason
 import org.gradle.api.artifacts.result.ResolvedDependencyResult
 import org.gradle.api.artifacts.result.ResolvedModuleVersionResult
@@ -195,7 +196,7 @@ class ResolutionResultBuilderSpec extends Specification {
 
     private InternalDependencyResult dep(String requested, Exception failure = null, String selected = requested, ModuleVersionSelectionReason selectionReason = VersionSelectionReasons.REQUESTED) {
         def selection = failure != null ? null : new DummyModuleVersionSelection(selectedId: newId("x", selected, "1"), selectionReason: selectionReason)
-        new InternalDependencyResult(newSelector("x", requested, "1"), selection, failure)
+        new DummyInternalDependencyResult(requested: newSelector("x", requested, "1"), selected: selection, failure: failure)
     }
 
     private ResolvedConfigurationIdentifier confId(String module, String configuration='conf') {
@@ -225,5 +226,11 @@ class ResolutionResultBuilderSpec extends Specification {
     class DummyModuleVersionSelection implements ModuleVersionSelection{
         ModuleVersionIdentifier selectedId
         ModuleVersionSelectionReason selectionReason
+    }
+
+    class DummyInternalDependencyResult implements InternalDependencyResult {
+        ModuleVersionSelector requested
+        ModuleVersionSelection selected
+        Exception failure
     }
 }

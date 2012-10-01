@@ -159,14 +159,7 @@ public class DependencyGraphBuilder {
 
     private void notifyListener(ResolvedConfigurationListener listener, ConfigurationNode resolvedConfiguration) {
         ResolvedConfigurationIdentifier id = resolvedConfiguration.toId();
-        Set<InternalDependencyResult> dependencies = new LinkedHashSet<InternalDependencyResult>();
-
-        for (DependencyEdge edge : resolvedConfiguration.outgoingEdges) {
-            InternalDependencyResult d = new InternalDependencyResult(edge.toSelector(), edge.getSelectedModule(), edge.getFailure());
-            dependencies.add(d);
-        }
-
-        listener.resolvedConfiguration(id, dependencies);
+        listener.resolvedConfiguration(id, resolvedConfiguration.outgoingEdges);
     }
 
     private static class FailureState {
@@ -263,7 +256,7 @@ public class DependencyGraphBuilder {
         }
     }
 
-    private static class DependencyEdge {
+    private static class DependencyEdge implements InternalDependencyResult {
         private final ConfigurationNode from;
         private final DependencyDescriptor dependencyDescriptor;
         private final Set<String> targetConfigurationRules;
@@ -401,8 +394,19 @@ public class DependencyGraphBuilder {
             return selector != null && selector.failure != null;
         }
 
+        public ModuleVersionSelector getRequested() {
+            return new DefaultModuleVersionSelector(
+                    dependencyDescriptor.getDependencyRevisionId().getOrganisation(),
+                    dependencyDescriptor.getDependencyRevisionId().getName(),
+                    dependencyDescriptor.getDependencyRevisionId().getRevision());
+        }
+
         public ModuleVersionResolveException getFailure() {
             return selector.failure;
+        }
+
+        public ModuleVersionSelection getSelected() {
+            return selector.module.selected;
         }
 
         public void collectFailures(FailureState failureState) {
@@ -411,16 +415,6 @@ public class DependencyGraphBuilder {
             }
         }
 
-        public ModuleVersionSelector toSelector() {
-            return new DefaultModuleVersionSelector(
-                    dependencyDescriptor.getDependencyRevisionId().getOrganisation(),
-                    dependencyDescriptor.getDependencyRevisionId().getName(),
-                    dependencyDescriptor.getDependencyRevisionId().getRevision());
-        }
-
-        public ModuleVersionSelection getSelectedModule() {
-            return selector.module.selected;
-        }
     }
 
     private static class ResolveState {
