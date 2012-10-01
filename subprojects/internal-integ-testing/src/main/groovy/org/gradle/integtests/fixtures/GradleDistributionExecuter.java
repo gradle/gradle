@@ -41,6 +41,7 @@ import static org.gradle.util.Matchers.matchesRegexp;
  */
 public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter implements MethodRule {
     private static final String EXECUTER_SYS_PROP = "org.gradle.integtest.executer";
+    private static final String UNKNOWN_OS_SYS_PROP = "org.gradle.integtest.unknownos";
     private static final int DEFAULT_DAEMON_IDLE_TIMEOUT_SECS = 2 * 60;
 
     private GradleDistribution dist;
@@ -260,6 +261,10 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
 
         configureTmpDir(gradleExecuter);
         configureForSettingsFile(gradleExecuter);
+
+        if (System.getProperty(UNKNOWN_OS_SYS_PROP) != null) {
+            gradleExecuter.withGradleOpts("-Dos.arch=unknown architecture", "-Dos.name=unknown operating system", "-Dos.version=unknown version");
+        }
 
         return gradleExecuter;
     }
