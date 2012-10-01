@@ -38,8 +38,8 @@ public class NativeServices extends DefaultServiceRegistry {
      * Initializes the native services to use the given user home directory to store native libs and other resources. Does nothing if already
      * initialized. Will be implicitly initialized on first usage of a native service.
      */
-    public static void initialize(File userHomeDir) throws NativeIntegrationUnavailableException {
-        new JnaBootPathConfigurer(userHomeDir).configure();
+    public static void initialize(File userHomeDir) {
+        new JnaBootPathConfigurer().configure(userHomeDir);
     }
 
     public static NativeServices getInstance() {

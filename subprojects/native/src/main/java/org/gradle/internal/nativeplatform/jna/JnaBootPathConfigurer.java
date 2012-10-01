@@ -18,7 +18,6 @@ package org.gradle.internal.nativeplatform.jna;
 
 import org.apache.commons.io.IOUtils;
 import org.gradle.internal.nativeplatform.NativeIntegrationException;
-import org.gradle.internal.nativeplatform.NativeIntegrationUnavailableException;
 import org.gradle.internal.os.OperatingSystem;
 
 import java.io.File;
@@ -30,8 +29,6 @@ import java.io.InputStream;
  * @author: Szczepan Faber, created at: 9/12/11
  */
 public class JnaBootPathConfigurer {
-    private final File storageDir;
-
     /**
      * Attempts to find the jna library and copies it to a specified folder.
      * The copy operation happens only once. Sets the jna-related system property.
@@ -40,21 +37,18 @@ public class JnaBootPathConfigurer {
      *
      * @param storageDir - where to store the jna library
      */
-    public JnaBootPathConfigurer(File storageDir) {
-        this.storageDir = storageDir;
-    }
-
-    public void configure() throws NativeIntegrationUnavailableException {
-        File tmpDir = new File(storageDir, "jna");
+    public void configure(File storageDir) {
+        String nativePrefix = OperatingSystem.current().getNativePrefix();
+        File tmpDir = new File(storageDir, String.format("jna/%s", nativePrefix));
         tmpDir.mkdirs();
         String jnaLibName = OperatingSystem.current().isMacOsX() ? "libjnidispatch.jnilib" : System.mapLibraryName("jnidispatch");
         File libFile = new File(tmpDir, jnaLibName);
         if (!libFile.exists()) {
-            String resourceName = "/com/sun/jna/" + OperatingSystem.current().getNativePrefix() + "/" + jnaLibName;
+            String resourceName = "/com/sun/jna/" + nativePrefix + "/" + jnaLibName;
             try {
                 InputStream lib = getClass().getResourceAsStream(resourceName);
                 if (lib == null) {
-                    throw new NativeIntegrationUnavailableException(String.format("Could not locate JNA native library resource '%s'.", resourceName));
+                    return;
                 }
                 try {
                     FileOutputStream outputStream = new FileOutputStream(libFile);
