@@ -23,7 +23,7 @@ import org.gradle.internal.TimeProvider;
 import org.gradle.internal.TrueTimeProvider;
 import org.gradle.internal.nativeplatform.NoOpTerminalDetector;
 import org.gradle.internal.nativeplatform.TerminalDetector;
-import org.gradle.internal.nativeplatform.jna.JnaBootPathConfigurer;
+import org.gradle.internal.nativeplatform.services.NativeServices;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.logging.internal.*;
 import org.gradle.logging.internal.logback.LogbackLoggingConfigurer;
@@ -123,8 +123,8 @@ public class LoggingServiceRegistry extends DefaultServiceRegistry {
         TerminalDetector terminalDetector;
         if (detectConsole) {
             StartParameter startParameter = new StartParameter();
-            JnaBootPathConfigurer jnaConfigurer = new JnaBootPathConfigurer(startParameter.getGradleUserHomeDir());
-            terminalDetector = new TerminalDetectorFactory().create(jnaConfigurer);
+            NativeServices.initialize(startParameter.getGradleUserHomeDir());
+            terminalDetector = NativeServices.getInstance().get(TerminalDetector.class);
         } else {
             terminalDetector = new NoOpTerminalDetector();
         }

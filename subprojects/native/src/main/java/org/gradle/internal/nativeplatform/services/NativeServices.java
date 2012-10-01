@@ -16,21 +16,31 @@
 package org.gradle.internal.nativeplatform.services;
 
 import com.sun.jna.Native;
-import org.gradle.internal.nativeplatform.NoOpTerminalDetector;
-import org.gradle.internal.nativeplatform.ProcessEnvironment;
-import org.gradle.internal.nativeplatform.TerminalDetector;
-import org.gradle.internal.nativeplatform.WindowsTerminalDetector;
+import org.gradle.internal.nativeplatform.*;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.nativeplatform.filesystem.FileSystems;
 import org.gradle.internal.nativeplatform.jna.*;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.DefaultServiceRegistry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
 
 /**
  * Provides various native platform integration services.
  */
 public class NativeServices extends DefaultServiceRegistry {
+    private static final Logger LOGGER = LoggerFactory.getLogger(NativeServices.class);
     private static NativeServices instance = new NativeServices();
+
+    /**
+     * Initializes the native services to use the given user home directory to store native libs and other resources. Does nothing if already
+     * initialized. Will be implicitly initialized on first usage of a native service.
+     */
+    public static void initialize(File userHomeDir) throws NativeIntegrationUnavailableException {
+        new JnaBootPathConfigurer(userHomeDir).configure();
+    }
 
     public static NativeServices getInstance() {
         return instance;
@@ -63,6 +73,7 @@ public class NativeServices extends DefaultServiceRegistry {
             }
         } catch (LinkageError e) {
             // Thrown when jna cannot initialize the native stuff
+            LOGGER.debug("Unable to load native library. Continuing with fallback.", e);
             return new UnsupportedEnvironment();
         }
     }
@@ -75,6 +86,7 @@ public class NativeServices extends DefaultServiceRegistry {
             return new LibCBackedTerminalDetector(get(LibC.class));
         } catch (LinkageError e) {
             // Thrown when jna cannot initialize the native stuff
+            LOGGER.debug("Unable to load native library. Continuing with fallback.", e);
             return new NoOpTerminalDetector();
         }
     }

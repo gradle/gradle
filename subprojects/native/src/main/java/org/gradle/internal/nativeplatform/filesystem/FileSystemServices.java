@@ -121,7 +121,7 @@ public class FileSystemServices {
         try {
             return (LibC) Native.loadLibrary("c", LibC.class);
         } catch (LinkageError e) {
-            LOGGER.debug("Unable to load LibC library. Continuing with fallback filesystem implementations.");
+            LOGGER.debug("Unable to load LibC library. Continuing with fallback filesystem implementations.", e);
             return null;
         }
     }
