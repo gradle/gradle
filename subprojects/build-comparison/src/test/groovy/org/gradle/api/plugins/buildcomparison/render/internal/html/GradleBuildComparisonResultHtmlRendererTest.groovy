@@ -17,7 +17,7 @@
 package org.gradle.api.plugins.buildcomparison.render.internal.html
 
 import org.gradle.api.Transformer
-import org.gradle.api.internal.file.BaseDirFileResolver
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.plugins.buildcomparison.compare.internal.BuildComparisonResult
 import org.gradle.api.plugins.buildcomparison.compare.internal.BuildOutcomeComparisonResult
 import org.gradle.api.plugins.buildcomparison.gradle.internal.ComparableGradleBuildExecuter
@@ -27,9 +27,10 @@ import org.gradle.api.plugins.buildcomparison.outcome.internal.DefaultBuildOutco
 import org.gradle.api.plugins.buildcomparison.outcome.string.StringBuildOutcome
 import org.gradle.api.plugins.buildcomparison.outcome.string.StringBuildOutcomeComparisonResult
 import org.gradle.api.plugins.buildcomparison.outcome.string.StringBuildOutcomeComparisonResultHtmlRenderer
+import org.gradle.api.plugins.buildcomparison.outcome.string.StringBuildOutcomeHtmlRenderer
 import org.gradle.api.plugins.buildcomparison.render.internal.BuildComparisonResultRenderer
 import org.gradle.api.plugins.buildcomparison.render.internal.DefaultBuildOutcomeComparisonResultRendererFactory
-import org.gradle.internal.nativeplatform.filesystem.FileSystems
+import org.gradle.api.plugins.buildcomparison.render.internal.DefaultBuildOutcomeRendererFactory
 import org.gradle.util.TemporaryFolder
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
@@ -37,8 +38,6 @@ import org.junit.Rule
 import spock.lang.Specification
 
 import java.nio.charset.Charset
-import org.gradle.api.plugins.buildcomparison.render.internal.DefaultBuildOutcomeRendererFactory
-import org.gradle.api.plugins.buildcomparison.outcome.string.StringBuildOutcomeHtmlRenderer
 
 class GradleBuildComparisonResultHtmlRendererTest extends Specification {
 
@@ -57,7 +56,7 @@ class GradleBuildComparisonResultHtmlRendererTest extends Specification {
 
     def sourceBuildDir = dir.createDir("source")
     def targetBuildDir = dir.createDir("target")
-    def resolver = new BaseDirFileResolver(FileSystems.default, dir.dir)
+    def resolver = TestFiles.resolver(dir.dir)
     def sourceBuildSpec = new DefaultGradleBuildInvocationSpec(resolver, sourceBuildDir)
     def targetBuildSpec = new DefaultGradleBuildInvocationSpec(resolver, targetBuildDir)
     def sourceBuildExecuter = new ComparableGradleBuildExecuter(sourceBuildSpec)
