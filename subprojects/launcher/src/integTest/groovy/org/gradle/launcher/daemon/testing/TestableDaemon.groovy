@@ -35,14 +35,10 @@ class TestableDaemon {
     }
 
     void kill() {
-        if (!OperatingSystem.current().unix) {
-            throw new RuntimeException("This implementation can only kill processes on Unix platform.");
-        }
-
         println "Killing daemon with pid: $context.pid"
         def output = new ByteArrayOutputStream()
         def e = new ExecHandleBuilder()
-                .commandLine("kill", "-9", context.pid)
+                .commandLine(killArgs(context.pid))
                 .redirectErrorStream()
                 .setStandardOutput(output)
                 .workingDir(new File(".").absoluteFile) //does not matter
@@ -50,6 +46,20 @@ class TestableDaemon {
         e.start()
         def result = e.waitForFinish()
         result.rethrowFailure()
+    }
+
+    private static Object[] killArgs(Long pid) {
+        if (pid == null) {
+            throw new RuntimeException("Unable to force kill the daemon because provided pid is null!")
+        }
+        if (OperatingSystem.current().isUnix()) {
+            return ["kill", "-9", pid]
+        } else if (OperatingSystem.current().isWindows()) {
+            return ["taskkill.exe", "/F", "/T", "/PID", pid]
+        }
+        else {
+            throw new RuntimeException("This implementation does not know how to forcefully kill the daemon on os: " + OperatingSystem.current())
+        }
     }
 
     enum State { busy, idle }
