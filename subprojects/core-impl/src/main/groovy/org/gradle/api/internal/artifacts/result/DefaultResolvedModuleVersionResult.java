@@ -34,7 +34,7 @@ import java.util.Set;
 public class DefaultResolvedModuleVersionResult implements ResolvedModuleVersionResult {
     private final ModuleVersionIdentifier id;
     private final Set<DependencyResult> dependencies = new LinkedHashSet<DependencyResult>();
-    private final Set<DefaultResolvedDependencyResult> dependents = new LinkedHashSet<DefaultResolvedDependencyResult>();
+    private final Set<ResolvedDependencyResult> dependents = new LinkedHashSet<ResolvedDependencyResult>();
     private final ModuleVersionSelectionReason selectionReason;
 
     public DefaultResolvedModuleVersionResult(ModuleVersionIdentifier id) {
@@ -61,7 +61,7 @@ public class DefaultResolvedModuleVersionResult implements ResolvedModuleVersion
         });
     }
 
-    public Set<DefaultResolvedDependencyResult> getDependents() {
+    public Set<ResolvedDependencyResult> getDependents() {
         return dependents;
     }
 
@@ -70,38 +70,17 @@ public class DefaultResolvedModuleVersionResult implements ResolvedModuleVersion
         return this;
     }
 
-    public DefaultResolvedModuleVersionResult addDependent(DefaultResolvedDependencyResult dependent) {
+    public DefaultResolvedModuleVersionResult addDependent(ResolvedDependencyResult dependent) {
         this.dependents.add(dependent);
         return this;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof ResolvedModuleVersionResult)) {
-            return false;
-        }
-
-        ResolvedModuleVersionResult that = (ResolvedModuleVersionResult) o;
-
-        return id.equals(that.getId());
-    }
-
-    //TODO SF find out if we can get rid of equals/hashcode on this and the dependency type.
-
-    @Override
-    public int hashCode() {
-        return id.hashCode();
+    public ModuleVersionSelectionReason getSelectionReason() {
+        return selectionReason;
     }
 
     @Override
     public String toString() {
         return id.getGroup() + ":" + id.getName() + ":" + id.getVersion();
-    }
-
-    public ModuleVersionSelectionReason getSelectionReason() {
-        return selectionReason;
     }
 }

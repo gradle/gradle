@@ -22,60 +22,12 @@ import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
-import static org.gradle.util.Matchers.strictlyEqual
 
 /**
  * Created: 10/08/2012
  * @author Szczepan Faber
  */
 class DefaultResolvedModuleVersionResultSpec extends Specification {
-
-    def "equals"() {
-        def module = newModule("group", "module", "version")
-        def same = newModule("group", "module", "version")
-
-        def differentGroup = newModule("other", "module", "version")
-        def differentModule = newModule("group", "other", "version")
-        def differentVersion = newModule("group", "module", "other")
-        def differentReason = newModule("group", "module", "version", VersionSelectionReasons.CONFLICT_RESOLUTION)
-
-        expect:
-        module strictlyEqual(same)
-        module strictlyEqual(differentReason)
-
-        module != differentGroup
-        module != differentModule
-        module != differentVersion
-    }
-
-    def "equals does not consider dependencies and dependents"() {
-        def result = newModule("group", "module", "version")
-        def differentDeps = newModule("group", "module", "version")
-                .addDependency(newDependency())
-        def differentDependents = newModule("group", "module", "version")
-                .addDependent(newDependency())
-
-        expect:
-        result == differentDeps
-        result == differentDependents
-    }
-
-    def "equals and hashcode do not recurse forever"() {
-        given: "simple dependency A->B"
-        def depA = newDependency("a", "A", "1")
-        def moduleA = depA.selected
-
-        def depB = newDependency("a", "B", "1")
-        def moduleB = depB.selected
-
-        when:
-        moduleA.addDependency(depB)
-        moduleB.addDependent(depA)
-
-        then:
-        moduleA.hashCode()
-        !moduleA.equals(moduleB)
-    }
 
     def "mutating dependencies is harmless"() {
         given:

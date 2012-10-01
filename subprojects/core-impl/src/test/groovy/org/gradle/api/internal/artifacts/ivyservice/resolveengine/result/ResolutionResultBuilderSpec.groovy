@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.result.ModuleVersionSelectionReason
 import org.gradle.api.artifacts.result.ResolvedDependencyResult
 import org.gradle.api.artifacts.result.ResolvedModuleVersionResult
+import spock.lang.Ignore
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
@@ -150,12 +151,13 @@ class ResolutionResultBuilderSpec extends Specification {
         dependencies.iterator().next()
     }
 
-    def "accumulates dependencies"() {
+    def "accumulates and avoids duplicate dependencies"() {
         given:
         builder.start(confId("root"))
         resolvedConf("root", [dep("mid1")])
 
         resolvedConf("mid1", [dep("leaf1")])
+        resolvedConf("mid1", [dep("leaf1")]) //dupe
         resolvedConf("mid1", [dep("leaf2")])
 
         resolvedConf("leaf1", [])
@@ -170,6 +172,25 @@ class ResolutionResultBuilderSpec extends Specification {
     x:leaf1:1 [mid1]
     x:leaf2:1 [mid1]
 """
+    }
+
+    @Ignore //TODO SF enable this test when ResolutionResult serves UnresolvedDependencies also
+    def "accumulates and avoids duplicate unresolved dependencies"() {
+        given:
+        builder.start(confId("root"))
+        resolvedConf("root", [dep("mid1")])
+
+        resolvedConf("mid1", [dep("leaf1", new RuntimeException("foo!"))])
+        resolvedConf("mid1", [dep("leaf1", new RuntimeException("bar!"))]) //dupe
+        resolvedConf("mid1", [dep("leaf2", new RuntimeException("baz!"))])
+
+        when:
+        def result = builder.getResult()
+
+        then:
+        def mid1 = first(result.root.dependencies)
+        mid1.selected.dependencies.size() == 2
+        mid1.selected.dependencies*.requested.name == ['leaf1', 'leaf2']
     }
 
     def "builds graph without unresolved deps"() {

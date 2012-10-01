@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.result;
 
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 
 /**
@@ -26,9 +27,9 @@ public class DefaultUnresolvedDependencyResult implements UnresolvedDependencyRe
 
     private final ModuleVersionSelector requested;
     private final Exception failure;
-    private final DefaultResolvedModuleVersionResult from;
+    private final ResolvedModuleVersionResult from;
 
-    public DefaultUnresolvedDependencyResult(ModuleVersionSelector requested, Exception failure, DefaultResolvedModuleVersionResult from) {
+    public DefaultUnresolvedDependencyResult(ModuleVersionSelector requested, Exception failure, ResolvedModuleVersionResult from) {
         assert requested != null;
         assert failure != null;
         assert from != null;
@@ -42,40 +43,12 @@ public class DefaultUnresolvedDependencyResult implements UnresolvedDependencyRe
         return requested;
     }
 
-    public DefaultResolvedModuleVersionResult getFrom() {
+    public ResolvedModuleVersionResult getFrom() {
         return from;
     }
 
     @Override
     public String toString() {
         return requested.getGroup() + ":" + requested.getName() + ":" + requested.getVersion() + " - " + failure.getMessage();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof DefaultUnresolvedDependencyResult)) {
-            return false;
-        }
-
-        DefaultUnresolvedDependencyResult that = (DefaultUnresolvedDependencyResult) o;
-
-        if (!from.equals(that.from)) {
-            return false;
-        }
-        if (!requested.equals(that.requested)) {
-            return false;
-        }
-
-        return true;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = requested.hashCode();
-        result = 31 * result + from.hashCode();
-        return result;
     }
 }

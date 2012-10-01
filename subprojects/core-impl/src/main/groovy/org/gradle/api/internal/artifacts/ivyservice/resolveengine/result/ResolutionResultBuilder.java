@@ -17,11 +17,11 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
+import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
-import org.gradle.api.internal.artifacts.result.DefaultResolvedDependencyResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedModuleVersionResult;
-import org.gradle.api.internal.artifacts.result.DefaultUnresolvedDependencyResult;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -37,9 +37,15 @@ public class ResolutionResultBuilder implements ResolvedConfigurationListener {
     private Map<ModuleVersionIdentifier, DefaultResolvedModuleVersionResult> modules
             = new LinkedHashMap<ModuleVersionIdentifier, DefaultResolvedModuleVersionResult>();
 
+    CachingDependencyResultFactory dependencyResultFactory = new CachingDependencyResultFactory();
+
     public ResolutionResultBuilder start(ModuleVersionIdentifier root) {
         rootModule = getModule(root, VersionSelectionReasons.REQUESTED);
         return this;
+    }
+
+    public DefaultResolutionResult getResult() {
+        return new DefaultResolutionResult(rootModule);
     }
 
     public void resolvedConfiguration(ModuleVersionIdentifier id, Collection<? extends InternalDependencyResult> dependencies) {
@@ -47,12 +53,12 @@ public class ResolutionResultBuilder implements ResolvedConfigurationListener {
 
         for (InternalDependencyResult d : dependencies) {
             if (d.getFailure() != null) {
-                from.addDependency(new DefaultUnresolvedDependencyResult(d.getRequested(), d.getFailure(), from));
+                from.addDependency(dependencyResultFactory.createUnresolvedDependency(d.getRequested(), from, d.getFailure()));
             } else {
                 DefaultResolvedModuleVersionResult selected = getModule(d.getSelected().getSelectedId(), d.getSelected().getSelectionReason());
-                DefaultResolvedDependencyResult dependency = new DefaultResolvedDependencyResult(d.getRequested(), selected, from);
+                DependencyResult dependency = dependencyResultFactory.createResolvedDependency(d.getRequested(), from, selected);
                 from.addDependency(dependency);
-                selected.addDependent(dependency);
+                selected.addDependent((ResolvedDependencyResult) dependency);
             }
         }
     }
@@ -62,9 +68,5 @@ public class ResolutionResultBuilder implements ResolvedConfigurationListener {
             modules.put(id, new DefaultResolvedModuleVersionResult(id, selectionReason));
         }
         return modules.get(id);
-    }
-
-    public DefaultResolutionResult getResult() {
-        return new DefaultResolutionResult(rootModule);
     }
 }
