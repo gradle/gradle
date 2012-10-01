@@ -33,7 +33,7 @@ import java.util.Set;
  */
 public class CommandLineTaskConfigurer {
 
-    //TODO SF add coverage and refactor existing tests
+    //TODO SF add coverage and refactor existing tests, Use NotationParser
 
     public Options getConfigurationEntries(CommandLineParser parser, Set<Task> tasks) {
         Map<String, JavaMethod<Object, ?>> options = new HashMap<String, JavaMethod<Object, ?>>();
