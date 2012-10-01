@@ -17,6 +17,7 @@ package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.fixtures.IvyModule
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
+import spock.lang.Ignore
 
 class IvyDynamicRevisionRemoteResolveIntegrationTest extends AbstractDependencyResolutionTest {
 
@@ -187,6 +188,54 @@ task retrieveMilestone(type: Sync) {
         then:
         file('release').assertHasDescendants('projectA-2.0.jar')
         file('milestone').assertHasDescendants('projectA-2.1.jar')
+    }
+
+    @Ignore("Fails with Nullpointerexception originally caused by unclosed HttpExternalResource")
+    def "can use latest version from different remote repositories"() {
+        server.start()
+        def repo1 = ivyRepo("ivy1")
+        def repo2 = ivyRepo("ivy2")
+
+        given:
+        buildFile << """
+    repositories {
+        ivy {
+            url "http://localhost:${server.port}/repo1"
+            url "http://localhost:${server.port}/repo2"
+        }
+    }
+
+    configurations {
+        milestone
+    }
+
+    configurations.all {
+        resolutionStrategy.cacheDynamicVersionsFor 0, 'seconds'
+    }
+
+    dependencies {
+        milestone group: "group", name: "projectA", version: "latest.milestone"
+    }
+
+    task retrieveMilestone(type: Sync) {
+        from configurations.milestone
+        into 'milestone'
+    }
+    """
+
+        when: "Versions are published"
+        repo1.module('group', 'projectA', '1.1').withStatus('milestone').publish()
+        repo2.module('group', 'projectA', '1.2').withStatus('integration').publish()
+
+        and: "Server handles requests"
+        server.allowGetOrHead('/repo1', repo1.rootDir)
+        server.allowGetOrHead('/repo2', repo2.rootDir)
+
+        and:
+        run 'retrieveMilestone'
+
+        then:
+        file('milestone').assertHasDescendants('projectA-1.1.jar')
     }
 
     def "checks new repositories before returning any cached value"() {
