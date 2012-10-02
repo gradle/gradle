@@ -37,7 +37,7 @@ class ProgressLoggingFixture implements TestRule {
 
         initFile.text = """import org.gradle.logging.internal.*
 gradle.services.get(LoggingOutputInternal).addOutputEventListener(new OutputEventListener() {
-    File outputFile  = new File("${loggingOutputFile.absolutePath}")
+    File outputFile  = new File("${loggingOutputFile.absolutePath.replace("\\", "/")}")
     void onOutput(OutputEvent event) {
         if (event instanceof ProgressStartEvent) {
             outputFile << "[START \$event.description]\\n"
