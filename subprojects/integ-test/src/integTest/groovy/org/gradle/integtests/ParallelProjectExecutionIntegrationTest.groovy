@@ -37,7 +37,7 @@ allprojects {
     }
 }
 """
-        executer.withExecuter(GradleDistributionExecuter.Executer.parallel)
+        executer.withArgument('--parallel')
         executer.withArgument('--info')
     }
 

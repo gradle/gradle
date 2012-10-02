@@ -52,12 +52,14 @@ import java.io.InputStream;
 import java.io.StringWriter;
 import java.nio.charset.Charset;
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 import static org.gradle.util.Matchers.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
-public class InProcessGradleExecuter extends AbstractGradleExecuter {
+class InProcessGradleExecuter extends AbstractGradleExecuter {
     private final ProcessEnvironment processEnvironment = NativeServices.getInstance().get(ProcessEnvironment.class);
 
     @Override
@@ -163,8 +165,8 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
     }
 
     private static class BuildListenerImpl implements TaskExecutionGraphListener, BuildListener {
-        private final List<String> executedTasks = new ArrayList<String>();
-        private final Set<String> skippedTasks = new HashSet<String>();
+        private final List<String> executedTasks = new CopyOnWriteArrayList<String>();
+        private final Set<String> skippedTasks = new CopyOnWriteArraySet<String>();
 
         public void graphPopulated(TaskExecutionGraph graph) {
             List<Task> planned = new ArrayList<Task>(graph.getAllTasks());
@@ -209,7 +211,6 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         private final List<Task> planned;
         private final List<String> executedTasks;
         private final Set<String> skippedTasks;
-        private Task current;
 
         public TaskListenerImpl(List<Task> planned, List<String> executedTasks, Set<String> skippedTasks) {
             this.planned = planned;
@@ -218,9 +219,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         }
 
         public void beforeExecute(Task task) {
-            assertThat(current, nullValue());
             assertTrue(planned.contains(task));
-            current = task;
 
             String taskPath = path(task);
             if (taskPath.startsWith(":buildSrc:")) {
@@ -231,9 +230,6 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         }
 
         public void afterExecute(Task task, TaskState state) {
-            assertThat(task, sameInstance(current));
-            current = null;
-
             String taskPath = path(task);
             if (taskPath.startsWith(":buildSrc:")) {
                 return;
