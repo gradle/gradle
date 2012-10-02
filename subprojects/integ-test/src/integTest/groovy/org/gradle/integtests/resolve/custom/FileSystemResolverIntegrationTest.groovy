@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.IvyRepository
 import org.gradle.util.TextUtil
 
-class FilerSystemResolverIntegrationTest extends AbstractIntegrationSpec {
+class FileSystemResolverIntegrationTest extends AbstractIntegrationSpec {
 
     def "file system resolvers use item at source by default"() {
         when:
