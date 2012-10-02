@@ -54,14 +54,6 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
     @Delegate DaemonEventSequenceBuilder sequenceBuilder =
         new DaemonEventSequenceBuilder(stateTransitionTimeout * 1000)
 
-    def setup() {
-        //to work around an issue with the daemon having awkward jvm input arguments
-        //when GRADLE_OPTS contains -Djava.io.tmpdir with value that has spaces
-        //once this problem is fixed we could get rid of this workaround
-        //TODO SF - validate if it is still needed
-        distribution.avoidsConfiguringTmpDir()
-    }
-
     def buildDir(buildNum) {
         distribution.file("builds/$buildNum")
     }
