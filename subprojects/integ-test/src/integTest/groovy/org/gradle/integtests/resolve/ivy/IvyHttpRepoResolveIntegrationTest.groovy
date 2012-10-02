@@ -46,8 +46,8 @@ task listJars << {
         progressLogger.withProgressLogging(getExecuter())
         then:
         succeeds 'listJars'
-        progressLogger.progressLoggedFor("http://localhost:${server.port}/repo/group/projectA/1.2/ivy-1.2.xml")
-        progressLogger.progressLoggedFor("http://localhost:${server.port}/repo/group/projectA/1.2/projectA-1.2.jar")
+        progressLogger.downloadProgressLogged("http://localhost:${server.port}/repo/group/projectA/1.2/ivy-1.2.xml")
+        progressLogger.downloadProgressLogged("http://localhost:${server.port}/repo/group/projectA/1.2/projectA-1.2.jar")
         when:
         server.resetExpectations()
         progressLogger.resetExpectations()
@@ -133,12 +133,12 @@ task listJars << {
         then:
         succeeds('listJars')
         and:
-        progressLogger.progressLoggedFor("http://localhost:${server.port}/repo1/group/projectA/1.0/ivy-1.0.xml")
-        progressLogger.progressLoggedFor("http://localhost:${server.port}/repo1/group/projectA/1.0/projectA-1.0.jar")
-        progressLogger.progressLoggedFor("http://localhost:${server.port}/repo2/group/projectB/1.0/ivy-1.0.xml")
-        progressLogger.progressLoggedFor("http://localhost:${server.port}/repo2/group/projectB/1.0/projectB-1.0.jar")
-        progressLogger.progressLoggedFor("http://localhost:${server.port}/repo2/group/projectC/1.0/ivy-1.0.xml")
-        progressLogger.progressLoggedFor("http://localhost:${server.port}/repo2/group/projectC/1.0/projectC-1.0.jar")
+        progressLogger.downloadProgressLogged("http://localhost:${server.port}/repo1/group/projectA/1.0/ivy-1.0.xml")
+        progressLogger.downloadProgressLogged("http://localhost:${server.port}/repo1/group/projectA/1.0/projectA-1.0.jar")
+        progressLogger.downloadProgressLogged("http://localhost:${server.port}/repo2/group/projectB/1.0/ivy-1.0.xml")
+        progressLogger.downloadProgressLogged("http://localhost:${server.port}/repo2/group/projectB/1.0/projectB-1.0.jar")
+        progressLogger.downloadProgressLogged("http://localhost:${server.port}/repo2/group/projectC/1.0/ivy-1.0.xml")
+        progressLogger.downloadProgressLogged("http://localhost:${server.port}/repo2/group/projectC/1.0/projectC-1.0.jar")
 
         when:
         server.resetExpectations()

@@ -17,10 +17,6 @@
 
 package org.gradle.integtests.publish.ivy
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.HttpServer
-import org.gradle.integtests.fixtures.IvyModule
-import org.gradle.integtests.fixtures.IvyRepository
 import org.gradle.util.GradleVersion
 import org.gradle.util.Jvm
 import org.gradle.util.TestFile
@@ -29,6 +25,7 @@ import org.hamcrest.Matchers
 import org.junit.Rule
 import org.mortbay.jetty.HttpStatus
 import spock.lang.Unroll
+import org.gradle.integtests.fixtures.*
 
 import static org.gradle.integtests.fixtures.UserAgentMatcher.matchesNameAndVersion
 
@@ -41,6 +38,8 @@ credentials {
 '''
     @Rule
     public final HttpServer server = new HttpServer()
+
+    @Rule ProgressLoggingFixture progressLogging
 
     private IvyModule module
 
@@ -75,6 +74,8 @@ uploadArchives {
         expectUpload('/org.gradle/publish/2/ivy-2.xml', module, module.ivyFile, HttpStatus.ORDINAL_201_Created)
 
         and:
+        progressLogging.withProgressLogging(getExecuter())
+        and:
         succeeds 'uploadArchives'
 
         then:
@@ -83,6 +84,9 @@ uploadArchives {
 
         module.jarFile.assertIsCopyOf(file('build/libs/publish-2.jar'))
         module.assertChecksumPublishedFor(module.jarFile)
+        and:
+        progressLogging.uploadProgressLogged("http://localhost:${server.port}/org.gradle/publish/2/publish-2.jar")
+        progressLogging.uploadProgressLogged("http://localhost:${server.port}/org.gradle/publish/2/ivy-2.xml")
     }
 
     @Unroll
@@ -109,6 +113,7 @@ uploadArchives {
 """
 
         when:
+        progressLogging.withProgressLogging(getExecuter())
         server.authenticationScheme = authScheme
         expectUpload('/org.gradle/publish/2/publish-2.jar', module, module.jarFile, 'testuser', 'password')
         expectUpload('/org.gradle/publish/2/ivy-2.xml', module, module.ivyFile, 'testuser', 'password')
@@ -121,6 +126,10 @@ uploadArchives {
         module.assertChecksumPublishedFor(module.ivyFile)
         module.jarFile.assertIsCopyOf(file('build/libs/publish-2.jar'))
         module.assertChecksumPublishedFor(module.jarFile)
+
+        and:
+        progressLogging.uploadProgressLogged("http://localhost:${server.port}/org.gradle/publish/2/publish-2.jar")
+        progressLogging.uploadProgressLogged("http://localhost:${server.port}/org.gradle/publish/2/ivy-2.xml")
 
         where:
         authScheme << [HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST]

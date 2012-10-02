@@ -52,12 +52,20 @@ gradle.services.get(LoggingOutputInternal).addOutputEventListener(new OutputEven
         executer.usingInitScript(initFile)
     }
 
-    boolean progressLoggedFor(String downloadUrl) {
+    boolean downloadProgressLogged(String url) {
+        return progressLogged("Download", url)
+    }
+
+    boolean uploadProgressLogged(String url) {
+        return progressLogged("Upload to", url)
+    }
+
+    private boolean progressLogged(String operation, String url) {
         assert loggingOutputFile != null
         assert loggingOutputFile != null
 
         def lines = loggingOutputFile.readLines()
-        def startIndex = lines.indexOf("[START Download " + downloadUrl + "]")
+        def startIndex = lines.indexOf("[START " + operation + " " + url + "]")
         if (startIndex == -1) {
             return false
         }

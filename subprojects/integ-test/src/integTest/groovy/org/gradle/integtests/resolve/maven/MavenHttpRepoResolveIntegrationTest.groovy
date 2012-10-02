@@ -15,9 +15,14 @@
  */
 package org.gradle.integtests.resolve.maven
 
+import org.gradle.integtests.fixtures.ProgressLoggingFixture
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
+import org.junit.Rule
 
 class MavenHttpRepoResolveIntegrationTest extends AbstractDependencyResolutionTest {
+
+    @Rule ProgressLoggingFixture progressLogging
+
     def "can resolve and cache dependencies from HTTP Maven repository"() {
         given:
         server.start()
@@ -41,6 +46,7 @@ task retrieve(type: Sync) {
 """
 
         when:
+        progressLogging.withProgressLogging(getExecuter())
         server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.pom', projectA.pomFile)
         server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.jar', projectA.artifactFile)
         server.expectGet('/repo1/group/projectB/1.0/projectB-1.0.pom', projectB.pomFile)
@@ -48,18 +54,26 @@ task retrieve(type: Sync) {
 
         and:
         run 'retrieve'
-        
+
         then:
         file('libs').assertHasDescendants('projectA-1.0.jar', 'projectB-1.0.jar')
         def snapshot = file('libs/projectA-1.0.jar').snapshot()
-        
+
+        and:
+        progressLogging.downloadProgressLogged("http://localhost:${server.port}/repo1/group/projectA/1.0/projectA-1.0.pom")
+        progressLogging.downloadProgressLogged("http://localhost:${server.port}/repo1/group/projectA/1.0/projectA-1.0.jar")
+        progressLogging.downloadProgressLogged("http://localhost:${server.port}/repo1/group/projectB/1.0/projectB-1.0.pom")
+        progressLogging.downloadProgressLogged("http://localhost:${server.port}/repo1/group/projectB/1.0/projectB-1.0.jar")
+
         when:
         server.resetExpectations()
+        progressLogging.resetExpectations()
         and:
         run 'retrieve'
-        
+
         then:
         file('libs/projectA-1.0.jar').assertHasNotChangedSince(snapshot)
+        progressLogging.noProgressLogged()
     }
 
     def "can resolve and cache artifact-only dependencies from an HTTP Maven repository"() {
@@ -262,13 +276,13 @@ task listJars << {
     }
 
     def "can resolve and cache dependencies from HTTP Maven repository with invalid settings.xml"() {
-            given:
-            server.start()
+        given:
+        server.start()
 
-            def projectB = mavenRepo().module('group', 'projectB').publish()
-            def projectA = mavenRepo().module('group', 'projectA').dependsOn('projectB').publish()
+        def projectB = mavenRepo().module('group', 'projectB').publish()
+        def projectA = mavenRepo().module('group', 'projectA').dependsOn('projectB').publish()
 
-            buildFile << """
+        buildFile << """
     repositories {
         maven { url 'http://localhost:${server.port}/repo1' }
     }
@@ -283,31 +297,31 @@ task listJars << {
     }
     """
 
-            def m2Home = file("M2_REPO")
-            def settingsFile = m2Home.file("conf/settings.xml")
-            settingsFile << "invalid content... blabla"
+        def m2Home = file("M2_REPO")
+        def settingsFile = m2Home.file("conf/settings.xml")
+        settingsFile << "invalid content... blabla"
 
-            when:
-            server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.pom', projectA.pomFile)
-            server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.jar', projectA.artifactFile)
-            server.expectGet('/repo1/group/projectB/1.0/projectB-1.0.pom', projectB.pomFile)
-            server.expectGet('/repo1/group/projectB/1.0/projectB-1.0.jar', projectB.artifactFile)
+        when:
+        server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.pom', projectA.pomFile)
+        server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.jar', projectA.artifactFile)
+        server.expectGet('/repo1/group/projectB/1.0/projectB-1.0.pom', projectB.pomFile)
+        server.expectGet('/repo1/group/projectB/1.0/projectB-1.0.jar', projectB.artifactFile)
 
-            and:
+        and:
 
-            executer.withEnvironmentVars(M2_HOME:m2Home.absolutePath)
-            run 'retrieve'
+        executer.withEnvironmentVars(M2_HOME: m2Home.absolutePath)
+        run 'retrieve'
 
-            then:
-            file('libs').assertHasDescendants('projectA-1.0.jar', 'projectB-1.0.jar')
-            def snapshot = file('libs/projectA-1.0.jar').snapshot()
+        then:
+        file('libs').assertHasDescendants('projectA-1.0.jar', 'projectB-1.0.jar')
+        def snapshot = file('libs/projectA-1.0.jar').snapshot()
 
-            when:
-            server.resetExpectations()
-            and:
-            run 'retrieve'
+        when:
+        server.resetExpectations()
+        and:
+        run 'retrieve'
 
-            then:
-            file('libs/projectA-1.0.jar').assertHasNotChangedSince(snapshot)
-        }
+        then:
+        file('libs/projectA-1.0.jar').assertHasNotChangedSince(snapshot)
+    }
 }
