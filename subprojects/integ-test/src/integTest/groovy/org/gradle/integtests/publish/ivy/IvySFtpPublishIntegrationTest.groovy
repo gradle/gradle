@@ -16,9 +16,9 @@
 package org.gradle.integtests.publish.ivy
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ProgressLoggingFixture
 import org.gradle.integtests.fixtures.SFTPServer
 import org.junit.Rule
-import org.gradle.integtests.fixtures.ProgressLoggingFixture
 
 class IvySFtpPublishIntegrationTest extends AbstractIntegrationSpec {
 
@@ -60,7 +60,6 @@ class IvySFtpPublishIntegrationTest extends AbstractIntegrationSpec {
         sftpServer.file("repos/libs/org.gradle/publish/publish-2.jar").assertIsCopyOf(file('build/libs/publish-2.jar'))
         and:
         progressLogging.uploadProgressLogged("repos/libs/org.gradle/publish/publish-2.jar")
-
     }
 
     public void "reports Authentication Errors"() {
