@@ -32,6 +32,10 @@ public abstract class AbstractDelegatingGradleExecuter extends AbstractGradleExe
         return configureExecuter().getDaemonRegistry();
     }
 
+    public void assertCanExecute() throws AssertionError {
+        configureExecuter().assertCanExecute();
+    }
+
     @Override
     public GradleHandle doStart() {
         return configureExecuter().start();

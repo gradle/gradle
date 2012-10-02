@@ -142,7 +142,7 @@ public interface GradleExecuter {
     GradleHandle start();
 
     /**
-     * Only makes sense for the forking executor or foreground daemon.
+     * Adds options that should be used to start the JVM, if a JVM is to be started. Ignored if not.
      *
      * @param gradleOpts the jvm opts
      *
@@ -176,4 +176,11 @@ public interface GradleExecuter {
      * @return this executer
      */
     GradleExecuter withDaemonBaseDir(File baseDir);
+
+    /**
+     * Asserts that this executer will be able to run a build, given its current configuration.
+     *
+     * @throws AssertionError When this executer will not be able to run a build.
+     */
+    void assertCanExecute() throws AssertionError;
 }

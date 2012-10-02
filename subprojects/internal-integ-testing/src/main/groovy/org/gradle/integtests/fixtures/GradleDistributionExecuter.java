@@ -15,7 +15,6 @@
  */
 package org.gradle.integtests.fixtures;
 
-import org.gradle.internal.jvm.Jvm;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.TestFile;
 import org.gradle.util.TextUtil;
@@ -24,7 +23,6 @@ import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
 
 import java.io.File;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -257,6 +255,18 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
         }
 
         GradleExecuter gradleExecuter = createExecuter(executerType);
+        configureExecuter(gradleExecuter);
+        try {
+            gradleExecuter.assertCanExecute();
+        } catch (AssertionError assertionError) {
+            gradleExecuter = new ForkingGradleExecuter(dist.getGradleHomeDir());
+            configureExecuter(gradleExecuter);
+        }
+
+        return gradleExecuter;
+    }
+
+    private void configureExecuter(GradleExecuter gradleExecuter) {
         copyTo(gradleExecuter);
 
         configureTmpDir(gradleExecuter);
@@ -265,47 +275,31 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
         if (System.getProperty(UNKNOWN_OS_SYS_PROP) != null) {
             gradleExecuter.withGradleOpts("-Dos.arch=unknown architecture", "-Dos.name=unknown operating system", "-Dos.version=unknown version");
         }
-
-        return gradleExecuter;
     }
 
     private GradleExecuter createExecuter(Executer executerType) {
-        if (getExecutable() != null) {
-            return createForkingExecuter();
-        }
-
         switch (executerType) {
             case embeddedDaemon:
                 return new EmbeddedDaemonGradleExecuter();
             case embedded:
-                if (canExecuteInProcess()) {
-                    return new InProcessGradleExecuter();
-                }
-                return createForkingExecuter();
+                return new InProcessGradleExecuter();
             case daemon:
                 return new DaemonGradleExecuter(dist, !isQuiet() && allowExtraLogging, noDefaultJvmArgs);
             case parallel:
                 return new ParallelForkingGradleExecuter(dist.getGradleHomeDir());
             case forking:
-                return createForkingExecuter();
+                return new ForkingGradleExecuter(dist.getGradleHomeDir());
+            default:
+                throw new RuntimeException("Not a supported executer type: " + executerType);
         }
-        throw new RuntimeException("Not a supported executer type: " + executerType);
-    }
-
-    private boolean canExecuteInProcess() {
-        return getJavaHome().equals(Jvm.current().getJavaHome()) && getDefaultCharacterEncoding().equals(Charset.defaultCharset().name());
-    }
-
-    private GradleExecuter createForkingExecuter() {
-        return new ForkingGradleExecuter(dist.getGradleHomeDir());
     }
 
     private void configureTmpDir(GradleExecuter gradleExecuter) {
         TestFile tmpDir = getTmpDir();
         tmpDir.deleteDir().createDir();
 
-        if (gradleExecuter instanceof ForkingGradleExecuter && !dist.shouldAvoidConfiguringTmpDir()) {
-            ((ForkingGradleExecuter) gradleExecuter).addGradleOpts(String.format("-Djava.io.tmpdir=%s", tmpDir));
+        if (!dist.shouldAvoidConfiguringTmpDir()) {
+            gradleExecuter.withGradleOpts(String.format("-Djava.io.tmpdir=%s", tmpDir));
         }
     }
 

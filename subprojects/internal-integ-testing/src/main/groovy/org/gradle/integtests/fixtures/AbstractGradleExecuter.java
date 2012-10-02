@@ -357,6 +357,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     public final GradleHandle start() {
+        assertCanExecute();
         try {
             return doStart();
         } finally {
@@ -365,6 +366,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     public final ExecutionResult run() {
+        assertCanExecute();
         try {
             return doRun();
         } finally {
@@ -373,6 +375,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     public final ExecutionFailure runWithFailure() {
+        assertCanExecute();
         try {
             return doRunWithFailure();
         } finally {
@@ -394,7 +397,5 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     public AbstractGradleExecuter withGradleOpts(String ... gradleOpts) {
         this.gradleOpts.addAll(asList(gradleOpts));
         return this;
-//        throw new UnsupportedOperationException("This executor: " + this.getClass().getSimpleName()
-//                + " does not support the gradle opts");
     }
 }

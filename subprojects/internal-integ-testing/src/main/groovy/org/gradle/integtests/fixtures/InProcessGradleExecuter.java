@@ -106,8 +106,6 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
 
     private BuildResult doRun(final OutputListenerImpl outputListener, OutputListenerImpl errorListener,
                               BuildListenerImpl listener) {
-        assertCanExecute();
-
         InputStream originalStdIn = System.in;
         System.setIn(getStdin());
         

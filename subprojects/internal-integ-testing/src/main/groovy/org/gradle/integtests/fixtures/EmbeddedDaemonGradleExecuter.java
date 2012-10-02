@@ -39,6 +39,9 @@ public class EmbeddedDaemonGradleExecuter extends AbstractGradleExecuter {
         return daemonClientServices.get(DaemonRegistry.class);
     }
 
+    public void assertCanExecute() throws AssertionError {
+    }
+
     protected ExecutionResult doRun() {
         return doRun(false);
     }

@@ -64,6 +64,10 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         return converter.convert(commandLineParser.parse(getAllArgs()));
     }
 
+    public void assertCanExecute() throws AssertionError {
+        // Can run any build
+    }
+
     /**
      * Adds some options to the GRADLE_OPTS environment variable to use.
      */
