@@ -31,7 +31,7 @@ import org.gradle.logging.internal.StreamBackedStandardOutputListener;
 
 import java.lang.management.ManagementFactory;
 
-public class EmbeddedDaemonGradleExecuter extends AbstractGradleExecuter {
+class EmbeddedDaemonGradleExecuter extends AbstractGradleExecuter {
 
     private final EmbeddedDaemonClientServices daemonClientServices = new EmbeddedDaemonClientServices(LoggingServiceRegistry.newEmbeddableLogging(), false);
 

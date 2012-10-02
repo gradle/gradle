@@ -31,7 +31,7 @@ import org.gradle.util.DistributionLocator
 import org.gradle.util.GradleVersion
 import org.gradle.util.TestFile
 
-public class PreviousGradleVersionExecuter extends AbstractDelegatingGradleExecuter implements BasicGradleDistribution {
+class PreviousGradleVersionExecuter extends AbstractDelegatingGradleExecuter implements BasicGradleDistribution {
     private static final CACHE_FACTORY = createCacheFactory()
 
     private static CacheFactory createCacheFactory() {

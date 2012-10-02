@@ -23,7 +23,7 @@ import java.util.List;
 
 import static java.util.Arrays.asList;
 
-public class DaemonGradleExecuter extends ForkingGradleExecuter {
+class DaemonGradleExecuter extends ForkingGradleExecuter {
     private final boolean allowExtraLogging;
     private final boolean noDefaultJvmArgs;
 
