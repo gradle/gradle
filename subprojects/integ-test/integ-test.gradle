@@ -35,5 +35,4 @@ daemonIntegTest {
 
 parallelIntegTest {
     systemProperty "org.gradle.userguide.samples.exclude", "multiProjectBuildSrc,multiprojectMessagesHack"
-    exclude "**/SamplesMultiProjectBuildSrcIntegrationTest.class" // Need thread-safety in compiler daemon
 }
