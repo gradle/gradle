@@ -80,17 +80,12 @@ public class DependencyInsightReportTask extends DefaultTask {
         renderer = new GraphRenderer(output);
 
         ResolutionResult result = configuration.getIncoming().getResolutionResult();
-        Set<? extends DependencyResult> allDependencies = result.getAllDependencies()
 
-        if (allDependencies.empty) {
-            output.println("No resolved dependencies found in $configuration")
-            return
-        }
-
-        Collection<DependencyResult> selectedDependencies = allDependencies.findAll { DependencyResult it ->
+        Set<DependencyResult> selectedDependencies = new LinkedHashSet<DependencyResult>()
+        result.allDependencies { DependencyResult it ->
             //TODO SF polish the api, revisit at the 'unresolved' dependencies story.
-            if (it instanceof ResolvedDependencyResult) {
-                return includes(it)
+            if(it instanceof ResolvedDependencyResult && includes(it)) {
+                selectedDependencies << it
             }
         }
 

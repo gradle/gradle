@@ -46,6 +46,23 @@ class DefaultResolutionResultTest extends Specification {
         all.containsAll(dep1, dep2, dep3, dep4)
     }
 
+    def "provides all dependencies hook"() {
+        given:
+        def dep = newDependency('dep1')
+        def root = newModule('root').addDependency(dep).addDependency(newDependency('dep2'))
+        dep.selected.addDependency(newDependency('dep3'))
+
+        def result = new DefaultResolutionResult(root)
+
+        when:
+        def deps = []
+        result.allDependencies { deps << it }
+
+        then:
+        deps.size() == 3
+        deps*.requested.group.containsAll(['dep1', 'dep2', 'dep3'])
+    }
+
     def "deals with dependency cycles"() {
         given:
         // a->b->a

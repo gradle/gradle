@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.artifacts.result;
 
+import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
@@ -41,22 +43,37 @@ public class DefaultResolutionResult implements ResolutionResult {
     }
 
     public Set<? extends DependencyResult> getAllDependencies() {
-        //TODO SF api change: void allDependencies(Action<ResolvedDependencyResult> action) / void allDependencies(Closure cl)
-        Set<DependencyResult> out = new LinkedHashSet<DependencyResult>();
-        Set<ResolvedModuleVersionResult> visited = new LinkedHashSet<ResolvedModuleVersionResult>();
-        collectDependencies(root, out, visited);
+        final Set<DependencyResult> out = new LinkedHashSet<DependencyResult>();
+        allDependencies(new Action<DependencyResult>() {
+            public void execute(DependencyResult dep) {
+                out.add(dep);
+            }
+        });
         return out;
     }
 
-    private void collectDependencies(ResolvedModuleVersionResult node, Set<DependencyResult> out, Set<ResolvedModuleVersionResult> visited) {
+    public void allDependencies(Action<DependencyResult> action) {
+        Set<ResolvedModuleVersionResult> visited = new LinkedHashSet<ResolvedModuleVersionResult>();
+        eachDependency(root, action, visited);
+    }
+
+    public void allDependencies(final Closure closure) {
+        allDependencies(new Action<DependencyResult>() {
+            public void execute(DependencyResult dependencyResult) {
+                closure.call(dependencyResult);
+            }
+        });
+    }
+
+    private void eachDependency(ResolvedModuleVersionResult node, Action<DependencyResult> action, Set<ResolvedModuleVersionResult> visited) {
         if (!visited.add(node)) {
             return;
         }
         for (DependencyResult d : node.getDependencies()) {
             if (d instanceof ResolvedDependencyResult) {
-                collectDependencies(((ResolvedDependencyResult) d).getSelected(), out, visited);
+                eachDependency(((ResolvedDependencyResult) d).getSelected(), action, visited);
             }
-            out.add(d);
+            action.execute(d);
         }
     }
 }

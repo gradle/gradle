@@ -324,7 +324,7 @@ org:leaf:2.0 -> 1.0
         run "insight"
 
         then:
-        output.contains("No resolved dependencies found")
+        output.contains("No resolved dependencies matching given input were found")
     }
 
     def "informs that nothing matches the input dependency"() {

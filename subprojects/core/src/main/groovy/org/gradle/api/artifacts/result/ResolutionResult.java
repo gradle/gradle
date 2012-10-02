@@ -16,6 +16,8 @@
 
 package org.gradle.api.artifacts.result;
 
+import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 
 import java.util.Set;
@@ -41,9 +43,27 @@ public interface ResolutionResult {
     /**
      * Retrieves all dependencies, including unresolved dependencies.
      * Resolved dependencies are represented by instances of {@link ResolvedDependencyResult},
-     * unresolved dependencies by {@link UnresolvedDependencyResult}
+     * unresolved dependencies by {@link UnresolvedDependencyResult}.
+     *
+     * In dependency graph terminology, this method returns the edges of the graph.
      *
      * @return all dependencies, including unresolved dependencies.
      */
     Set<? extends DependencyResult> getAllDependencies();
+
+    /**
+     * Applies given action for each dependency.
+     * An instance of {@link DependencyResult} is passed as parameter to the action.
+     *
+     * @param action - action that is applied for each dependency
+     */
+    void allDependencies(Action<DependencyResult> action);
+
+    /**
+     * Applies given closure for each dependency.
+     * An instance of {@link DependencyResult} is passed as parameter to the closure.
+     *
+     * @param closure - closure that is applied for each dependency
+     */
+    void allDependencies(Closure closure);
 }
