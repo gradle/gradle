@@ -18,11 +18,14 @@ package org.gradle.integtests.publish.ivy
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.SFTPServer
 import org.junit.Rule
+import org.gradle.integtests.fixtures.ProgressLoggingFixture
 
 class IvySFtpPublishIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
     public final SFTPServer sftpServer = new SFTPServer(distribution.temporaryFolder)
+    @Rule
+    ProgressLoggingFixture progressLogging
 
     public void "can publish using SftpResolver"() {
         given:
@@ -45,13 +48,19 @@ class IvySFtpPublishIntegrationTest extends AbstractIntegrationSpec {
             }
         }
         """
+        and:
+        progressLogging.withProgressLogging(getExecuter())
+
         when:
+
         run "uploadArchives"
         then:
-        true
         sftpServer.hasFile("repos/libs/org.gradle/publish/publish-2.jar")
         sftpServer.hasFile("repos/libs/org.gradle/publish/ivy-2.xml");
         sftpServer.file("repos/libs/org.gradle/publish/publish-2.jar").assertIsCopyOf(file('build/libs/publish-2.jar'))
+        and:
+        progressLogging.uploadProgressLogged("repos/libs/org.gradle/publish/publish-2.jar")
+
     }
 
     public void "reports Authentication Errors"() {

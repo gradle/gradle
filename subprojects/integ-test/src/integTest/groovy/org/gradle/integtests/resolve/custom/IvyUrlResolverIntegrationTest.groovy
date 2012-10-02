@@ -15,9 +15,13 @@
  */
 package org.gradle.integtests.resolve.custom
 
+import org.gradle.integtests.fixtures.ProgressLoggingFixture
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
+import org.junit.Rule
 
 class IvyUrlResolverIntegrationTest extends AbstractDependencyResolutionTest {
+
+    @Rule ProgressLoggingFixture progressLogging
 
     def setup() {
         server.expectUserAgent(null) // custom resolver uses apache/ivy as useragent strings
@@ -52,15 +56,21 @@ task listJars << {
         server.expectHead('/repo/group/projectA-1.2.jar', module.jarFile)
         server.expectGet('/repo/group/projectA-1.2.jar', module.jarFile)
 
+        and:
+        progressLogging.withProgressLogging(getExecuter())
         then:
         succeeds 'listJars'
-
+        and:
+        progressLogging.downloadProgressLogged("http://localhost:${server.port}/repo/group/ivy-projectA-1.2.xml")
+        progressLogging.downloadProgressLogged("http://localhost:${server.port}/repo/group/projectA-1.2.jar")
         when:
         server.resetExpectations()
+        progressLogging.resetExpectations()
         // No extra calls for cached dependencies
 
         then:
         succeeds 'listJars'
+        progressLogging.noProgressLogged()
     }
 
     public void "honours changing patterns from custom resolver"() {

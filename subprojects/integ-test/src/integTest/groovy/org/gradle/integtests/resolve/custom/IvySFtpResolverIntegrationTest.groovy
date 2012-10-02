@@ -19,12 +19,14 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.IvyRepository
 import org.gradle.integtests.fixtures.SFTPServer
 import org.junit.Rule
+import org.gradle.integtests.fixtures.ProgressLoggingFixture
 
 class IvySFtpResolverIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
     public final SFTPServer server = new SFTPServer(distribution.temporaryFolder)
 
+    @Rule ProgressLoggingFixture progressLogging
     def "setup"() {
         requireOwnUserHomeDir()
     }
@@ -55,7 +57,7 @@ task listJars << {
 }
 """
         when:
-        withDebugLogging()
+        progressLogging.withProgressLogging(getExecuter())
 
         succeeds 'listJars'
 
@@ -63,6 +65,9 @@ task listJars << {
         server.fileRequests == ["repos/libs/group/projectA/1.2/ivy-1.2.xml",
                                 "repos/libs/group/projectA/1.2/projectA-1.2.jar"
                                ] as Set
+
+        progressLogging.downloadProgressLogged("repos/libs/group/projectA/1.2/ivy-1.2.xml")
+        progressLogging.downloadProgressLogged("repos/libs/group/projectA/1.2/projectA-1.2.jar")
 
         when:
         server.clearRequests()
