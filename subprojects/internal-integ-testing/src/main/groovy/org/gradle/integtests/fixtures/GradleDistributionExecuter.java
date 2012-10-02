@@ -50,7 +50,6 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
     private Executer executerType;
 
     private boolean allowExtraLogging = true;
-    private boolean mustFork;
 
     public enum Executer {
         embedded(false),
@@ -94,18 +93,6 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
         reset();
     }
 
-    public boolean isMustFork() {
-        return mustFork;
-    }
-
-    public void setMustFork(boolean mustFork) {
-        this.mustFork = mustFork;
-    }
-
-    public Executer getType() {
-        return executerType;
-    }
-
     public Statement apply(Statement base, final FrameworkMethod method, Object target) {
         if (dist == null) {
             dist = RuleHelper.getField(target, GradleDistribution.class);
@@ -120,7 +107,6 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
         userHomeSet = false;
         deprecationChecksOn = true;
         stackTraceChecksOn = true;
-        mustFork = false;
         DeprecationLogger.reset();
         return this;
     }
@@ -155,11 +141,6 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
         if (!executerType.forks) {
             executerType = Executer.forking;
         }
-        return this;
-    }
-
-    public GradleDistributionExecuter withExecuter(Executer executerType) {
-        this.executerType = executerType;
         return this;
     }
 
@@ -297,10 +278,7 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
     private void configureTmpDir(GradleExecuter gradleExecuter) {
         TestFile tmpDir = getTmpDir();
         tmpDir.deleteDir().createDir();
-
-        if (!dist.shouldAvoidConfiguringTmpDir()) {
-            gradleExecuter.withGradleOpts(String.format("-Djava.io.tmpdir=%s", tmpDir));
-        }
+        gradleExecuter.withGradleOpts(String.format("-Djava.io.tmpdir=%s", tmpDir));
     }
 
     private void configureForSettingsFile(GradleExecuter gradleExecuter) {
