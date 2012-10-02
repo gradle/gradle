@@ -15,9 +15,13 @@
  */
 package org.gradle.integtests.resolve.ivy
 
+import org.gradle.integtests.fixtures.ProgressLoggingFixture
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
+import org.junit.Rule
 
 class IvyHttpRepoResolveIntegrationTest extends AbstractDependencyResolutionTest {
+
+    @Rule ProgressLoggingFixture progressLogger
 
     public void "can resolve and cache dependencies from an HTTP Ivy repository"() {
         server.start()
@@ -38,16 +42,18 @@ task listJars << {
         when:
         server.expectGet('/repo/group/projectA/1.2/ivy-1.2.xml', module.ivyFile)
         server.expectGet('/repo/group/projectA/1.2/projectA-1.2.jar', module.jarFile)
-
+        and:
+        progressLogger.withProgressLogging(getExecuter())
         then:
         succeeds 'listJars'
-
+        progressLogger.progressLoggedFor("http://localhost:${server.port}/repo/group/projectA/1.2/ivy-1.2.xml")
+        progressLogger.progressLoggedFor("http://localhost:${server.port}/repo/group/projectA/1.2/projectA-1.2.jar")
         when:
         server.resetExpectations()
-        // No extra calls for cached dependencies
-
+        progressLogger.resetExpectations()
         then:
         succeeds 'listJars'
+        progressLogger.noProgressLogged()
     }
 
     public void "can resolve and cache artifact-only dependencies from an HTTP Ivy repository"() {
