@@ -44,7 +44,6 @@ public class GradleDistribution implements MethodRule, TestFileContext, BasicGra
     private final TemporaryFolder temporaryFolder = new TemporaryFolder();
     private TestFile userHome;
     private boolean usingIsolatedDaemons;
-    private boolean avoidsConfiguringTmpDir;
 
     static {
         USER_HOME_DIR = file("integTest.gradleUserHomeDir", "intTestHomeDir").file("worker-1");
@@ -233,18 +232,6 @@ public class GradleDistribution implements MethodRule, TestFileContext, BasicGra
      */
     public TestFile testFile(Object... path) {
         return getTestDir().file(path);
-    }
-
-    /**
-     * avoids configuring -Djava.io.tmpdir=xxx property
-     */
-    public GradleDistribution avoidsConfiguringTmpDir() {
-        this.avoidsConfiguringTmpDir = true;
-        return this;
-    }
-
-    public boolean shouldAvoidConfiguringTmpDir() {
-        return avoidsConfiguringTmpDir;
     }
 }
 
