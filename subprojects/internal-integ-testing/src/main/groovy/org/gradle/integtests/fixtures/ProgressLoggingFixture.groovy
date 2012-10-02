@@ -57,7 +57,7 @@ gradle.services.get(LoggingOutputInternal).addOutputEventListener(new OutputEven
     }
 
     boolean uploadProgressLogged(String url) {
-        return progressLogged("Upload to", url)
+        return progressLogged("Upload ", url)
     }
 
     private boolean progressLogged(String operation, String url) {

@@ -64,8 +64,8 @@ class ProgressLoggingExternalResourceUploaderTest extends Specification {
 
     def startsProgress() {
         1 * progressLoggerFactory.newOperation(ProgressLoggingExternalResourceUploader.class) >> progressLogger;
-        1 * progressLogger.setDescription("Upload to http://a/remote/path")
-        1 * progressLogger.setLoggingHeader("Upload to http://a/remote/path")
+        1 * progressLogger.setDescription("Upload http://a/remote/path")
+        1 * progressLogger.setLoggingHeader("Upload http://a/remote/path")
         1 * progressLogger.started()
     }
 }

@@ -32,7 +32,7 @@ public class ProgressLoggingExternalResourceUploader extends AbstractProgressLog
     }
 
     public void upload(final Factory<InputStream> source, final Long contentLength, String destination) throws IOException {
-        final ProgressLogger progressLogger = startProgress(String.format("Upload to %s", destination), null);
+        final ProgressLogger progressLogger = startProgress(String.format("Upload %s", destination), null);
         try {
             delegate.upload(new Factory<InputStream>() {
                 public InputStream create() {
