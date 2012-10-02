@@ -20,6 +20,7 @@ package org.gradle.api.tasks.diagnostics;
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.result.DependencyResult
 import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.artifacts.result.ResolvedDependencyResult
 import org.gradle.api.internal.tasks.CommandLineOption
@@ -79,16 +80,18 @@ public class DependencyInsightReportTask extends DefaultTask {
         renderer = new GraphRenderer(output);
 
         ResolutionResult result = configuration.getIncoming().getResolutionResult();
-        Set<? extends ResolvedDependencyResult> allDependencies = result.getAllDependencies()
+        Set<? extends DependencyResult> allDependencies = result.getAllDependencies()
 
         if (allDependencies.empty) {
             output.println("No resolved dependencies found in $configuration")
             return
         }
 
-        Collection<ResolvedDependencyResult> selectedDependencies = allDependencies.findAll { ResolvedDependencyResult it ->
-            //TODO SF this is quite crude for now but I need to get some feedback before implementing more.
-            includes(it)
+        Collection<DependencyResult> selectedDependencies = allDependencies.findAll { DependencyResult it ->
+            //TODO SF polish the api, revisit at the 'unresolved' dependencies story.
+            if (it instanceof ResolvedDependencyResult) {
+                return includes(it)
+            }
         }
 
         if (selectedDependencies.empty) {

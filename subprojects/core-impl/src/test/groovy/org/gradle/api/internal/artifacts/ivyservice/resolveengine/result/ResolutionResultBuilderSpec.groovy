@@ -18,11 +18,8 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ModuleVersionSelector
-import org.gradle.api.artifacts.result.ModuleVersionSelectionReason
-import org.gradle.api.artifacts.result.ResolvedDependencyResult
-import org.gradle.api.artifacts.result.ResolvedModuleVersionResult
-import spock.lang.Ignore
 import spock.lang.Specification
+import org.gradle.api.artifacts.result.*
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
@@ -174,7 +171,6 @@ class ResolutionResultBuilderSpec extends Specification {
 """
     }
 
-    @Ignore //TODO SF enable this test when ResolutionResult serves UnresolvedDependencies also
     def "accumulates and avoids duplicate unresolved dependencies"() {
         given:
         builder.start(confId("root"))
@@ -193,7 +189,7 @@ class ResolutionResultBuilderSpec extends Specification {
         mid1.selected.dependencies*.requested.name == ['leaf1', 'leaf2']
     }
 
-    def "builds graph without unresolved deps"() {
+    def "graph includes unresolved deps"() {
         given:
         builder.start(confId("a"))
         resolvedConf("a", [dep("b"), dep("c"), dep("U", new RuntimeException("unresolved!"))])
@@ -207,6 +203,7 @@ class ResolutionResultBuilderSpec extends Specification {
         print(result.root) == """x:a:1
   x:b:1 [a]
   x:c:1 [a]
+  x:U:1 - unresolved!
 """
     }
 
@@ -226,16 +223,20 @@ class ResolutionResultBuilderSpec extends Specification {
     String print(ResolvedModuleVersionResult root) {
         StringBuilder sb = new StringBuilder();
         sb.append(root).append("\n");
-        for (ResolvedDependencyResult d : root.getDependencies()) {
+        for (DependencyResult d : root.getDependencies()) {
             print(d, sb, new HashSet(), "  ");
         }
 
         sb.toString();
     }
 
-    void print(ResolvedDependencyResult dep, StringBuilder sb, Set visited, String indent) {
+    void print(DependencyResult dep, StringBuilder sb, Set visited, String indent) {
+        if (dep instanceof UnresolvedDependencyResult) {
+            sb.append(indent + dep + "\n");
+            return
+        }
         if (!visited.add(dep.getSelected())) {
-            return;
+            return
         }
         sb.append(indent + dep + " [" + dep.selected.dependents*.from.id.name.join(",") + "]\n");
         for (ResolvedDependencyResult d : dep.getSelected().getDependencies()) {

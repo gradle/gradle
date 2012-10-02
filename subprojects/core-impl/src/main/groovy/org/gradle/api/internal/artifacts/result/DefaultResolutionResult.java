@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.result;
 
+import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
@@ -39,20 +40,22 @@ public class DefaultResolutionResult implements ResolutionResult {
         return root;
     }
 
-    public Set<? extends ResolvedDependencyResult> getAllDependencies() {
+    public Set<? extends DependencyResult> getAllDependencies() {
         //TODO SF api change: void allDependencies(Action<ResolvedDependencyResult> action) / void allDependencies(Closure cl)
-        Set<ResolvedDependencyResult> out = new LinkedHashSet<ResolvedDependencyResult>();
+        Set<DependencyResult> out = new LinkedHashSet<DependencyResult>();
         Set<ResolvedModuleVersionResult> visited = new LinkedHashSet<ResolvedModuleVersionResult>();
         collectDependencies(root, out, visited);
         return out;
     }
 
-    private void collectDependencies(ResolvedModuleVersionResult node, Set<ResolvedDependencyResult> out, Set<ResolvedModuleVersionResult> visited) {
+    private void collectDependencies(ResolvedModuleVersionResult node, Set<DependencyResult> out, Set<ResolvedModuleVersionResult> visited) {
         if (!visited.add(node)) {
             return;
         }
-        for (ResolvedDependencyResult d : node.getDependencies()) {
-            collectDependencies(d.getSelected(), out, visited);
+        for (DependencyResult d : node.getDependencies()) {
+            if (d instanceof ResolvedDependencyResult) {
+                collectDependencies(((ResolvedDependencyResult) d).getSelected(), out, visited);
+            }
             out.add(d);
         }
     }

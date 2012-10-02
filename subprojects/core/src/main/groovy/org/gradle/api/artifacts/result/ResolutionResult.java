@@ -18,6 +18,8 @@ package org.gradle.api.artifacts.result;
 
 import org.gradle.api.Incubating;
 
+import java.util.Set;
+
 /**
  * Contains the information about the resolution result.
  * Gives access to the resolved dependency graph.
@@ -35,4 +37,13 @@ public interface ResolutionResult {
      * @return the root node of the resolved dependency graph
      */
     ResolvedModuleVersionResult getRoot();
+
+    /**
+     * Retrieves all dependencies, including unresolved dependencies.
+     * Resolved dependencies are represented by instances of {@link ResolvedDependencyResult},
+     * unresolved dependencies by {@link UnresolvedDependencyResult}
+     *
+     * @return all dependencies, including unresolved dependencies.
+     */
+    Set<? extends DependencyResult> getAllDependencies();
 }

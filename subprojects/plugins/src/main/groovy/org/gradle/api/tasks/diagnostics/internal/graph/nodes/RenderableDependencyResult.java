@@ -16,8 +16,7 @@
 
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Collections2;
+import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 
 import java.util.LinkedHashSet;
@@ -37,10 +36,13 @@ public class RenderableDependencyResult extends AbstractRenderableDependencyResu
     }
 
     public Set<RenderableDependency> getChildren() {
-        return new LinkedHashSet(Collections2.transform(dependency.getSelected().getDependencies(), new Function<ResolvedDependencyResult, RenderableDependency>() {
-            public RenderableDependency apply(ResolvedDependencyResult input) {
-                return new RenderableDependencyResult(input);
+        Set<RenderableDependency> out = new LinkedHashSet<RenderableDependency>();
+        for (DependencyResult d : dependency.getSelected().getDependencies()) {
+            //TODO SF revisit when implementing the 'unresolved dependencies' story
+            if (d instanceof ResolvedDependencyResult) {
+                out.add(new RenderableDependencyResult((ResolvedDependencyResult) d));
             }
-        }));
+        }
+        return out;
     }
 }

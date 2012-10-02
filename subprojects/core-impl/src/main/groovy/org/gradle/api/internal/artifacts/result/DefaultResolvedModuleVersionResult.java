@@ -22,8 +22,6 @@ import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
-import org.gradle.api.specs.Spec;
-import org.gradle.util.CollectionUtils;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -53,16 +51,12 @@ public class DefaultResolvedModuleVersionResult implements ResolvedModuleVersion
         return id;
     }
 
-    public Set<ResolvedDependencyResult> getDependencies() {
-        return CollectionUtils.filter((Set) dependencies, new LinkedHashSet<ResolvedDependencyResult>(), new Spec<DependencyResult>() {
-            public boolean isSatisfiedBy(DependencyResult element) {
-                return element instanceof ResolvedDependencyResult;
-            }
-        });
+    public Set<DependencyResult> getDependencies() {
+        return new LinkedHashSet<DependencyResult>(dependencies);
     }
 
     public Set<ResolvedDependencyResult> getDependents() {
-        return dependents;
+        return new LinkedHashSet<ResolvedDependencyResult>(dependents);
     }
 
     public DefaultResolvedModuleVersionResult addDependency(DependencyResult dependency) {

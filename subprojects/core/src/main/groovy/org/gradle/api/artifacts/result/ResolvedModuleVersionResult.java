@@ -36,11 +36,12 @@ public interface ResolvedModuleVersionResult {
     ModuleVersionIdentifier getId();
 
     /**
-     * The dependencies of the resolved module. See {@link ResolvedDependencyResult}
+     * The dependencies of the resolved module. See {@link DependencyResult}.
+     * Includes resolved and unresolved dependencies (if any).
      *
      * @return dependencies
      */
-    Set<? extends ResolvedDependencyResult> getDependencies();
+    Set<? extends DependencyResult> getDependencies();
 
     /**
      * The dependents of the resolved module. See {@link ResolvedDependencyResult}.

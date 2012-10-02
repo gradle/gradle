@@ -16,12 +16,9 @@
 
 package org.gradle.api.internal.artifacts.result
 
-import org.gradle.api.artifacts.result.ModuleVersionSelectionReason
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
 import spock.lang.Specification
 
-import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
-import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
+import static org.gradle.api.internal.artifacts.result.ResolutionResultDataBuilder.*
 
 /**
  * Created: 10/08/2012
@@ -29,47 +26,40 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.new
  */
 class DefaultResolvedModuleVersionResultSpec extends Specification {
 
-    def "mutating dependencies is harmless"() {
+    def "mutating dependencies or dependents is harmless"() {
         given:
         def module = newModule("a", "c", "1")
-        def dependency = newDependency("a", "x", "1")
+        def dependency  = newDependency("a", "x", "1")
+        def dependent   = newDependency("a", "x2", "1")
 
         when:
         module.addDependency(dependency)
+        module.addDependent(dependent)
 
         then:
         module.dependencies == [dependency] as Set
+        module.dependents   == [dependent] as Set
 
         when:
         module.dependencies << newDependency("a", "y", "1")
+        module.dependents <<   newDependency("a", "y2", "1")
 
         then:
         module.dependencies == [dependency] as Set
+        module.dependents   == [dependent] as Set
     }
 
-    def "excludes unresolved dependencies"() {
+    def "includes unresolved dependencies"() {
         given:
         def module = newModule()
         def dependency = newDependency()
-        def unresolved = newUnresolved()
+        def unresolved = newUnresolvedDependency()
 
         when:
         module.addDependency(dependency)
         module.addDependency(unresolved)
 
         then:
-        module.dependencies == [dependency] as Set
-    }
-
-    def newDependency(String group='a', String module='a', String version='1') {
-        new DefaultResolvedDependencyResult(newSelector(group, module, version), newModule(group, module, version), newModule())
-    }
-
-    def newUnresolved(String group='x', String module='x', String version='1') {
-        new DefaultUnresolvedDependencyResult(newSelector(group, module, version), new RuntimeException("boo!"), newModule())
-    }
-
-    def newModule(String group='a', String module='a', String version='1', ModuleVersionSelectionReason selectionReason = VersionSelectionReasons.REQUESTED) {
-        new DefaultResolvedModuleVersionResult(newId(group, module, version), selectionReason)
+        module.dependencies == [dependency, unresolved] as Set
     }
 }

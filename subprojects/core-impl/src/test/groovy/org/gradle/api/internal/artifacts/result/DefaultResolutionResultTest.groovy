@@ -16,35 +16,34 @@
 
 package org.gradle.api.internal.artifacts.result
 
-import org.gradle.api.artifacts.result.ModuleVersionSelectionReason
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
 import spock.lang.Specification
 
-import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
+import static org.gradle.api.internal.artifacts.result.ResolutionResultDataBuilder.*
 
 /**
  * by Szczepan Faber, created at: 9/20/12
  */
 class DefaultResolutionResultTest extends Specification {
 
-    def "provides all dependencies"() {
+    def "provides all dependencies including unresolved"() {
         given:
-        def root = newModule('root')
         def dep1 = newDependency('dep1')
         def dep2 = newDependency('dep2')
-        root.addDependency(dep1)
-        root.addDependency(dep2)
+
+        def root = newModule('root').addDependency(dep1).addDependency(dep2)
 
         def dep3 = newDependency('dep3')
-        dep2.selected.addDependency(dep3)
+        def dep4 = newUnresolvedDependency('dep4')
+
+        dep2.selected.addDependency(dep3).addDependency(dep4)
 
         when:
         def all = new DefaultResolutionResult(root).allDependencies
 
         then:
-        all.size() == 3
-        all.containsAll(dep1, dep2, dep3)
+        all.size() == 4
+        all.containsAll(dep1, dep2, dep3, dep4)
     }
 
     def "deals with dependency cycles"() {
@@ -62,11 +61,23 @@ class DefaultResolutionResultTest extends Specification {
         all.size() == 2
     }
 
-    def newDependency(String group='a', String module='a', String version='1') {
-        new DefaultResolvedDependencyResult(newSelector(group, module, version), newModule(group, module, version), newModule())
-    }
+    def "mutating all dependencies is harmless"() {
+        given:
+        def dep1 = newDependency('dep1')
+        def dep2 = newDependency('dep2')
 
-    def newModule(String group='a', String module='a', String version='1', ModuleVersionSelectionReason selectionReason = VersionSelectionReasons.REQUESTED) {
-        new DefaultResolvedModuleVersionResult(newId(group, module, version), selectionReason)
+        def root = newModule('root').addDependency(dep1).addDependency(dep2)
+
+        when:
+        def result = new DefaultResolutionResult(root)
+
+        then:
+        result.allDependencies == [dep1, dep2] as Set
+
+        when:
+        result.allDependencies << newDependency('dep3')
+
+        then:
+        result.allDependencies == [dep1, dep2] as Set
     }
 }

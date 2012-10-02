@@ -16,14 +16,10 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
-import org.gradle.api.artifacts.result.ModuleVersionSelectionReason
-import org.gradle.api.internal.artifacts.result.DefaultResolvedDependencyResult
-import org.gradle.api.internal.artifacts.result.DefaultResolvedModuleVersionResult
-import org.gradle.api.internal.artifacts.result.DefaultUnresolvedDependencyResult
 import spock.lang.Specification
 
-import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
+import static org.gradle.api.internal.artifacts.result.ResolutionResultDataBuilder.newModule
 
 /**
  * by Szczepan Faber, created at: 10/1/12
@@ -67,18 +63,6 @@ class CachingDependencyResultFactoryTest extends Specification {
         !dep.is(differentFrom)
         !dep.is(differentRequested)
         dep.is(differentFailure) //the same dependency edge cannot have different failures
-    }
-
-    def newDependency(String group='a', String module='a', String version='1') {
-        new DefaultResolvedDependencyResult(selector(group, module, version), newModule(group, module, version), newModule())
-    }
-
-    def newUnresolved(String group='x', String module='x', String version='1') {
-        new DefaultUnresolvedDependencyResult(selector(group, module, version), new RuntimeException("boo!"), newModule())
-    }
-
-    def newModule(String group='a', String module='a', String version='1', ModuleVersionSelectionReason selectionReason = VersionSelectionReasons.REQUESTED) {
-        new DefaultResolvedModuleVersionResult(newId(group, module, version), selectionReason)
     }
 
     def selector(String group='a', String module='a', String version='1') {

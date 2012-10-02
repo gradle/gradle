@@ -16,14 +16,12 @@
 
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes
 
-import org.gradle.api.artifacts.result.ModuleVersionSelectionReason
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
 import org.gradle.api.internal.artifacts.result.DefaultResolvedDependencyResult
 import org.gradle.api.internal.artifacts.result.DefaultResolvedModuleVersionResult
 import spock.lang.Specification
 
-import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
+import static org.gradle.api.internal.artifacts.result.ResolutionResultDataBuilder.newModule
 
 /**
  * by Szczepan Faber, created at: 9/21/12
@@ -64,15 +62,11 @@ class InvertedRenderableDependencyResultTest extends Specification {
         result.children*.name == ['org:x:1.0', 'org:y:1.0']
     }
 
-    def newDependency(String group='a', String module='a', String version='1', String requested = version,
-                      DefaultResolvedModuleVersionResult from = newModule(),
-                      DefaultResolvedModuleVersionResult selected = newModule(group, module, version)) {
+    static DefaultResolvedDependencyResult newDependency(String group='a', String module='a', String version='1', String requested = version,
+                                                         DefaultResolvedModuleVersionResult from = newModule(),
+                                                         DefaultResolvedModuleVersionResult selected = newModule(group, module, version)) {
         def out = new DefaultResolvedDependencyResult(newSelector(group, module, requested), selected, from)
         selected.addDependent(out)
         out
-    }
-
-    def newModule(String group='a', String module='a', String version='1', ModuleVersionSelectionReason selectionReason = VersionSelectionReasons.REQUESTED) {
-        new DefaultResolvedModuleVersionResult(newId(group, module, version), selectionReason)
     }
 }

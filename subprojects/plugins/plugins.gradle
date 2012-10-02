@@ -60,3 +60,4 @@ test {
 
 useTestFixtures()
 useTestFixtures(sourceSet: "testFixtures")
+useTestFixtures(project: ":coreImpl")
