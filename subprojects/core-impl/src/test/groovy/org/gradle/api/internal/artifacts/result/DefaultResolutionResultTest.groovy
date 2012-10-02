@@ -26,7 +26,7 @@ import static org.gradle.api.internal.artifacts.result.ResolutionResultDataBuild
  */
 class DefaultResolutionResultTest extends Specification {
 
-    def "provides all dependencies including unresolved"() {
+    def "provides all modules and dependencies including unresolved"() {
         given:
         def dep1 = newDependency('dep1')
         def dep2 = newDependency('dep2')
@@ -39,14 +39,20 @@ class DefaultResolutionResultTest extends Specification {
         dep2.selected.addDependency(dep3).addDependency(dep4)
 
         when:
-        def all = new DefaultResolutionResult(root).allDependencies
+        def deps = new DefaultResolutionResult(root).allDependencies
+        def modules = new DefaultResolutionResult(root).allModules
 
         then:
-        all.size() == 4
-        all.containsAll(dep1, dep2, dep3, dep4)
+        deps.size() == 4
+        deps.containsAll(dep1, dep2, dep3, dep4)
+
+        and:
+        modules.size() == 4
+        //does not contain unresolved dep, contains root
+        modules.containsAll(root, dep1.selected, dep2.selected, dep3.selected)
     }
 
-    def "provides all dependencies hook"() {
+    def "provides all modules and dependencies hook"() {
         given:
         def dep = newDependency('dep1')
         def root = newModule('root').addDependency(dep).addDependency(newDependency('dep2'))
@@ -56,11 +62,17 @@ class DefaultResolutionResultTest extends Specification {
 
         when:
         def deps = []
+        def modules = []
         result.allDependencies { deps << it }
+        result.allModules { modules << it }
 
         then:
         deps.size() == 3
         deps*.requested.group.containsAll(['dep1', 'dep2', 'dep3'])
+
+        and:
+        modules.size() == 4
+        modules*.id.group.containsAll(['root', 'dep1', 'dep2', 'dep3'])
     }
 
     def "deals with dependency cycles"() {
@@ -72,13 +84,15 @@ class DefaultResolutionResultTest extends Specification {
         dep1.selected.addDependency(new DefaultResolvedDependencyResult(newSelector('a', 'a', '1'), root, dep1.selected))
 
         when:
-        def all = new DefaultResolutionResult(root).allDependencies
+        def deps = new DefaultResolutionResult(root).allDependencies
+        def modules = new DefaultResolutionResult(root).allModules
 
         then:
-        all.size() == 2
+        deps.size() == 2
+        modules.size() == 2
     }
 
-    def "mutating all dependencies is harmless"() {
+    def "mutating all dependencies or modules is harmless"() {
         given:
         def dep1 = newDependency('dep1')
         def dep2 = newDependency('dep2')
@@ -90,11 +104,14 @@ class DefaultResolutionResultTest extends Specification {
 
         then:
         result.allDependencies == [dep1, dep2] as Set
+        result.allModules == [root, dep1.selected, dep2.selected] as Set
 
         when:
         result.allDependencies << newDependency('dep3')
+        result.allModules << newModule('foo')
 
         then:
         result.allDependencies == [dep1, dep2] as Set
+        result.allModules == [root, dep1.selected, dep2.selected] as Set
     }
 }

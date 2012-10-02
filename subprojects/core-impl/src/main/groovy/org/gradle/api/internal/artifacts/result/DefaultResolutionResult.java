@@ -76,4 +76,33 @@ public class DefaultResolutionResult implements ResolutionResult {
             action.execute(d);
         }
     }
+
+    public Set<ResolvedModuleVersionResult> getAllModules() {
+        final Set<ResolvedModuleVersionResult> out = new LinkedHashSet<ResolvedModuleVersionResult>();
+        allModules(new Action<ResolvedModuleVersionResult>() {
+            public void execute(ResolvedModuleVersionResult module) {
+                out.add(module);
+            }
+        });
+        return out;
+    }
+
+    public void allModules(final Action<ResolvedModuleVersionResult> action) {
+        action.execute(root);
+        allDependencies(new Action<DependencyResult>() {
+            public void execute(DependencyResult dependencyResult) {
+                if (dependencyResult instanceof ResolvedDependencyResult) {
+                    action.execute(((ResolvedDependencyResult) dependencyResult).getSelected());
+                }
+            }
+        });
+    }
+
+    public void allModules(final Closure closure) {
+        allModules(new Action<ResolvedModuleVersionResult>() {
+            public void execute(ResolvedModuleVersionResult module) {
+                closure.call(module);
+            }
+        });
+    }
 }

@@ -66,4 +66,28 @@ public interface ResolutionResult {
      * @param closure - closure that is applied for each dependency
      */
     void allDependencies(Closure closure);
+
+    /**
+     * Retrieves all instances of {@link ResolvedModuleVersionResult} from the graph,
+     * e.g. all nodes of the dependency graph.
+     *
+     * @return all nodes of the dependency graph.
+     */
+    Set<ResolvedModuleVersionResult> getAllModules();
+
+    /**
+     * Applies given action for each module.
+     * An instance of {@link ResolvedModuleVersionResult} is passed as parameter to the action.
+     *
+     * @param action - action that is applied for each module
+     */
+    void allModules(final Action<ResolvedModuleVersionResult> action);
+
+    /**
+     * Applies given closure for each module.
+     * An instance of {@link ResolvedModuleVersionResult} is passed as parameter to the closure.
+     *
+     * @param closure - closure that is applied for each module
+     */
+    void allModules(final Closure closure);
 }
