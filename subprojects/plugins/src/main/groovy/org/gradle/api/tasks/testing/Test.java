@@ -123,7 +123,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         testLogging = instantiator.newInstance(DefaultTestLoggingContainer.class, instantiator);
     }
 
-    void setTestExecuter(TestExecuter testExecuter) {
+    public void setTestExecuter(TestExecuter testExecuter) {
         this.testExecuter = testExecuter;
     }
 
