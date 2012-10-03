@@ -43,11 +43,11 @@ public class SynchronizedDispatchConnection<T> implements Connection<T> {
     }
 
     public void dispatch(final T message) {
+        if (!(message instanceof OutputEvent)) {
+            LOGGER.debug("thread {}: dispatching {}", Thread.currentThread().getId(), message.getClass());
+        }
         sync.synchronize(new Runnable() {
             public void run() {
-                if (!(message instanceof OutputEvent)) {
-                    LOGGER.debug("thread {}: dispatching {}", Thread.currentThread().getId(), message.getClass());
-                }
                 delegate.dispatch(message);
             }
         });
