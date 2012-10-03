@@ -25,10 +25,24 @@ Improve TestNG test execution/reporting
 4. We should consider changing the default value of TestNGOptions.useDefaultListeners to false. There are 3 default listeners, html generator, xml junit results generator, xml generator.
     Since we're adding a new report, the html generator is no longer needed by default.
     Since we're adding proper generation of xml junit results (working with forkEvery/maxParallelForks, containing output), the TestNG xml junit results generator is no longer needed by default.
-    I doubt the TestNG xml report (in a TestNG proprietary format) is useful in general.
+    The TestNG xml report (in a TestNG proprietary format) has some usages but I doubt it is very popular.
     Hence it makes sense not to use the default listeners by default.
 
-Backwards compatibility must be considered and balanced out.
+### Backwards compatibility
+
+Why is old TestNG reporting useful and what backwards compatibility should we consider:
+
+1. Client CIs may be configured to look for reports in "${testReportDir}/junitreports".
+    We could configure test results dir for TestNG to use "${testReportDir}/junitreports" dir instead of conventional ${testResultsDir}.
+2. Clients may use the TestNG xml formatted results (testng-failed.xml and testng-results.xml) as input suites for next test execution.
+    It is somewhat useful for the use case when one wants to rerun failed tests.
+    However, any TestNG generated reports break if forkEvery/maxParallelForks are used.
+3. We should probably avoid using TestNG to generate any kind of reports.
+    If certain reports (like the suite xml with failed tests) are useful for our users we should make Gradle generate them.
+4. TestNG html report contain the Reporter API logs. There's a different story for this.
+5. TestNG html report includes a single-page, emailable html report.
+    I'm not sure how useful it is these days, CIs tend to generate better emails anyway.
+    I'm not sure how manageable the file is if one has lots of tests.
 
 ### Sad day cases
 
