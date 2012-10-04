@@ -21,7 +21,6 @@ import org.gradle.cli.CommandLineConverter;
 import org.gradle.internal.Factory;
 import org.gradle.internal.TimeProvider;
 import org.gradle.internal.TrueTimeProvider;
-import org.gradle.internal.console.ConsoleMetaData;
 import org.gradle.internal.console.WindowsConsoleMetaData;
 import org.gradle.internal.nativeplatform.NoOpTerminalDetector;
 import org.gradle.internal.nativeplatform.TerminalDetector;
