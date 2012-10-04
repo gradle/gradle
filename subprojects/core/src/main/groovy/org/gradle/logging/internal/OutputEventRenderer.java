@@ -17,6 +17,7 @@ package org.gradle.logging.internal;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
+import org.gradle.internal.console.ConsoleMetaData;
 import org.gradle.internal.nativeplatform.TerminalDetector;
 import org.gradle.listener.ListenerBroadcast;
 
@@ -35,8 +36,10 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
     private final Object lock = new Object();
     private final DefaultColorMap colourMap = new DefaultColorMap();
     private LogLevel logLevel = LogLevel.LIFECYCLE;
+    private final ConsoleMetaData consoleMetaData;
 
-    public OutputEventRenderer(TerminalDetector terminalDetector) {
+    public OutputEventRenderer(TerminalDetector terminalDetector, ConsoleMetaData consoleMetaData) {
+        this.consoleMetaData = consoleMetaData;
         OutputEventListener stdOutChain = onNonError(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stdoutListeners.getSource())), false));
         formatters.add(stdOutChain);
         OutputEventListener stdErrChain = onError(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stderrListeners.getSource())), false));
@@ -91,7 +94,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
     }
 
     public OutputEventRenderer addConsole(final Console console, boolean stdout, boolean stderr) {
-        final OutputEventListener consoleChain = new ConsoleBackedProgressRenderer(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(console.getMainArea()), true), console, new DefaultStatusBarFormatter());
+        final OutputEventListener consoleChain = new ConsoleBackedProgressRenderer(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(console.getMainArea()), true), console, new DefaultStatusBarFormatter(consoleMetaData));
         synchronized (lock) {
             if (stdout && stderr) {
                 formatters.add(consoleChain);

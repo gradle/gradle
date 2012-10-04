@@ -16,9 +16,17 @@
 
 package org.gradle.logging.internal;
 
+import org.gradle.internal.console.ConsoleMetaData;
+
 import java.util.List;
 
 public class DefaultStatusBarFormatter implements StatusBarFormatter {
+    private final ConsoleMetaData consoleMetaData;
+
+    public DefaultStatusBarFormatter(ConsoleMetaData consoleMetaData) {
+        this.consoleMetaData = consoleMetaData;
+    }
+
     public String format(List<ConsoleBackedProgressRenderer.Operation> operations) {
         StringBuilder builder = new StringBuilder();
         for (ConsoleBackedProgressRenderer.Operation operation : operations) {
@@ -32,6 +40,16 @@ public class DefaultStatusBarFormatter implements StatusBarFormatter {
             builder.append("> ");
             builder.append(message);
         }
-        return builder.toString();
+        return trim(builder.toString());
+    }
+
+    private String trim(String formattedString) {
+        final Integer width = consoleMetaData.getWidth();
+        if(width!=null){
+            if(formattedString.length() > width){
+                return formattedString.substring(0, width);
+            }
+        }
+        return formattedString;
     }
 }

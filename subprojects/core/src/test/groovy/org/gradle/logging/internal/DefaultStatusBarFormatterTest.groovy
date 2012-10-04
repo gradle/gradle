@@ -17,11 +17,12 @@
 package org.gradle.logging.internal
 
 import spock.lang.Specification
+import org.gradle.internal.console.ConsoleMetaData
 
 class DefaultStatusBarFormatterTest extends Specification {
 
-
-    private final StatusBarFormatter statusBarFormatter = new DefaultStatusBarFormatter()
+    ConsoleMetaData consoleMetaData = Mock()
+    private final StatusBarFormatter statusBarFormatter = new DefaultStatusBarFormatter(consoleMetaData)
 
     def "formats multiple operations"(){
         expect:
@@ -34,4 +35,10 @@ class DefaultStatusBarFormatterTest extends Specification {
         "> shortDescr2" == statusBarFormatter.format(Arrays.asList(new ConsoleBackedProgressRenderer.Operation("shortDescr2", '')))
     }
 
+    def "trims output to max console width"(){
+        when:
+        _ * consoleMetaData.getWidth() >> 30
+        then:
+        "> these are more than 30 chara" == statusBarFormatter.format(Arrays.asList(new ConsoleBackedProgressRenderer.Operation("shortDescr1", "these are more than 30 characters")))
+    }
 }
