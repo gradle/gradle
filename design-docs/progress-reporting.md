@@ -61,7 +61,7 @@ terminal, falling back to jna where native-platform is not available. Jansi will
 2. Introduce a `ConsoleMetaData` interface that is responsible for determining the console width. Add an initial implementation for UNIX platforms that
    uses the `$COLUMNS` environment variable, and an implementaiton for Windows that just returns `null`. Make an instance available via the
    `NativeServices` registry.
-3. Change the `StatusBarFormatter` implementation to usethe `ConsoleMetaData` service, to trim the status bar text at the console width. If the console
+3. Change the `StatusBarFormatter` implementation to use the `ConsoleMetaData` service, to trim the status bar text at the console width. If the console
    width is not known, then do not trim the status bar text.
 4. Add the [native-platform](https://github.com/adammurdoch/native-platform) library as a dependency for the native project. Change
    `NativeServices.initialize()` to initialize the native-plaform `Native` class.
