@@ -20,7 +20,6 @@ import java.util.List;
 
 public class DefaultStatusBarFormatter implements StatusBarFormatter {
     public String format(List<ConsoleBackedProgressRenderer.Operation> operations) {
-
         StringBuilder builder = new StringBuilder();
         for (ConsoleBackedProgressRenderer.Operation operation : operations) {
             String message = operation.getMessage();

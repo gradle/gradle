@@ -16,6 +16,9 @@
 package org.gradle.internal.nativeplatform.services;
 
 import com.sun.jna.Native;
+import org.gradle.internal.console.ConsoleMetaData;
+import org.gradle.internal.console.UnixConsoleMetaData;
+import org.gradle.internal.console.WindowsConsoleMetaData;
 import org.gradle.internal.nativeplatform.*;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.nativeplatform.filesystem.FileSystems;
@@ -93,5 +96,13 @@ public class NativeServices extends DefaultServiceRegistry {
     
     protected LibC createLibC() {
         return (LibC) Native.loadLibrary("c", LibC.class);
+    }
+
+    protected ConsoleMetaData createConsoleMetaData(){
+        final OperatingSystem operatingSystem = get(OperatingSystem.class);
+        if(operatingSystem.isWindows()){
+            return new WindowsConsoleMetaData();
+        }
+        return new UnixConsoleMetaData();
     }
 }
