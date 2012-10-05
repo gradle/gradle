@@ -34,12 +34,12 @@ public class ParallelForkingGradleHandle extends ForkingGradleHandle {
 
     @Override
     protected ExecutionResult toExecutionResult(String output, String error) {
-        return new ParallelExecutionResult(transformStandardOutput(output), transformErrorOutput(error));
+        return new ParallelExecutionResult(output, error);
     }
 
     @Override
     protected ExecutionResult toExecutionFailure(String output, String error) {
-        return new ParallelExecutionResult(transformStandardOutput(output), transformErrorOutput(error));
+        return new ParallelExecutionResult(output, error);
     }
 
     /**

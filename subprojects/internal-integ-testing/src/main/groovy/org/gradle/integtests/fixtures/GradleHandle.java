@@ -25,8 +25,4 @@ public interface GradleHandle {
     ExecutionFailure waitForFailure();
 
     boolean isRunning();
-
-    // ExecutionResult waitForFinish(double secondsToWait);
-    // ExecutionFailure waitForFailure(double secondsToWait);
-
 }

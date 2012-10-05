@@ -16,8 +16,6 @@
 
 package org.gradle.integtests.fixtures;
 
-import org.gradle.cli.CommandLineParser;
-import org.gradle.cli.SystemPropertiesCommandLineConverter;
 import org.gradle.internal.Factory;
 import org.gradle.internal.nativeplatform.jna.WindowsHandlesManipulator;
 import org.gradle.internal.os.OperatingSystem;
@@ -30,9 +28,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 import static org.junit.Assert.fail;
 
@@ -48,31 +44,12 @@ class ForkingGradleExecuter extends AbstractGradleExecuter {
 //        gradleOpts.add("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005");
     }
 
-    public TestFile getGradleHomeDir() {
-        return gradleHomeDir;
-    }
-
     public DaemonRegistry getDaemonRegistry() {
         return new DaemonRegistryServices(getDaemonBaseDir()).get(DaemonRegistry.class);
     }
 
-    protected Map<String, String> getSystemPropertiesFromArgs() {
-        SystemPropertiesCommandLineConverter converter = new SystemPropertiesCommandLineConverter();
-        CommandLineParser commandLineParser = new CommandLineParser();
-        converter.configure(commandLineParser);
-        commandLineParser.allowUnknownOptions();
-        return converter.convert(commandLineParser.parse(getAllArgs()));
-    }
-
     public void assertCanExecute() throws AssertionError {
         // Can run any build
-    }
-
-    /**
-     * Adds some options to the GRADLE_OPTS environment variable to use.
-     */
-    public void addGradleOpts(String... opts) {
-        gradleOpts.addAll(Arrays.asList(opts));
     }
 
     @Override
