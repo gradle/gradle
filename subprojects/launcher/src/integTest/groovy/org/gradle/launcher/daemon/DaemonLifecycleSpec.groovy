@@ -95,7 +95,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
             """)
             builds << executer.start()
         }
-        //TODO SF - figure out how to add waitForBuildToWait somewhere here
+        //TODO SF - rewrite the lifecycle spec so that it uses the TestableDaemon
     }
 
     void completeBuild(buildNum = 0) {

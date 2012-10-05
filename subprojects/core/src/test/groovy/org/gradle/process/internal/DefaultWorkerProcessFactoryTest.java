@@ -48,7 +48,7 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 
 @RunWith(JMock.class)
-@Ignore //TODO SF refactor this bastard to spock
+@Ignore
 public class DefaultWorkerProcessFactoryTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final MessagingServer messagingServer = context.mock(MessagingServer.class);

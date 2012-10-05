@@ -147,7 +147,7 @@ class DefaultExecHandleSpec extends Specification {
         execHandle.abort()
     }
 
-    @Ignore //TODO SF not yet implemented
+    @Ignore //TODO SF not yet implemented, as following @Ignores
     void "aborts daemon"() {
         def output = new ByteArrayOutputStream()
         def execHandle = handle().setDaemon(true).setStandardOutput(output).args(args(SlowDaemonApp.class)).build();
@@ -186,7 +186,7 @@ class DefaultExecHandleSpec extends Specification {
         execHandle.abort()
     }
 
-    @Ignore //TODO SF not yet implemented
+    @Ignore
     void "can detach from long daemon and then wait for finish"() {
         def out = new ByteArrayOutputStream()
         def execHandle = handle().setStandardOutput(out).args(args(SlowDaemonApp.class, "200")).build();
@@ -205,7 +205,7 @@ class DefaultExecHandleSpec extends Specification {
         execHandle.state == ExecHandleState.SUCCEEDED
     }
 
-    @Ignore //TODO SF not yet implemented
+    @Ignore
     void "can detach from fast app then wait for finish"() {
         def out = new ByteArrayOutputStream()
         def execHandle = handle().setStandardOutput(out).args(args(TestApp.class)).build();
@@ -220,7 +220,7 @@ class DefaultExecHandleSpec extends Specification {
     }
 
     @Ignore
-    //TODO SF. I have a feeling it is not really testable cleanly.
+    //it may not be easily testable
     void "detach detects when process did not start or died prematurely"() {
         def execHandle = handle().args(args(BrokenApp.class)).build();
 
@@ -264,7 +264,6 @@ class DefaultExecHandleSpec extends Specification {
     }
 
     @Timeout(2)
-    //TODO SF not yet implemented
     @Ignore
     void "exec handle can detach with timeout"() {
         given:
@@ -279,7 +278,6 @@ class DefaultExecHandleSpec extends Specification {
         //the timeout does not hit
     }
 
-    //TODO SF not yet implemented
     @Ignore
     void "exec handle can wait with timeout"() {
         given:
@@ -301,29 +299,6 @@ class DefaultExecHandleSpec extends Specification {
         Object call() {
             return message
         }
-    }
-
-    @Ignore
-    //TODO SF add coverage (or move somewhere else) - it should over the ibm+windows use case
-    void "consumes input"() {
-        given:
-        def bytes = new ByteArrayOutputStream()
-        def object = new ObjectOutputStream(bytes)
-        object.writeObject(new Prints(message: 'yummie input'))
-        object.flush()
-        object.close()
-        def out = new ByteArrayOutputStream()
-
-        def execHandle = handle().setStandardOutput(out).setStandardInput(new ByteArrayInputStream(bytes.toByteArray())).args(args(InputReadingApp.class)).build();
-
-        when:
-        execHandle.start()
-        def result = execHandle.waitForFinish()
-
-        then:
-        result.rethrowFailure()
-        result.exitValue == 0
-        out.toString().contains('yummie input')
     }
 
     private ExecHandleBuilder handle() {

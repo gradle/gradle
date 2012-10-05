@@ -20,7 +20,6 @@ import org.gradle.build.docs.AssembleSamplesDocTask
 import org.gradle.build.docs.Docbook2Xhtml
 import org.gradle.build.docs.dsl.docbook.AssembleDslDocTask
 import org.gradle.build.docs.dsl.source.ExtractDslMetaDataTask
-import org.gradle.internal.os.OperatingSystem
 
 apply plugin: 'base'
 apply plugin: 'pegdown'
@@ -185,7 +184,7 @@ task samplesDocs(type: Docbook2Xhtml) {
     stylesheetName = 'standaloneHtml.xsl'
 }
 
-task dslMetaData(type: ExtractDslMetaDataTask) {  //TODO SF: parseSourceCode
+task dslMetaData(type: ExtractDslMetaDataTask) {
     source { groovydoc.source }
     destFile = new File(docbookSrc, 'dsl-meta-data.bin')
 }
@@ -376,7 +375,6 @@ task decorateReleaseNotes(type: Jsoup) {
     apply from: "release-notes-transform.gradle"
 }
 
-import org.apache.tools.ant.filters.*
 task releaseNotes(type: Copy) {
     group = "release notes"
     ext.fileName = "release-notes.html"

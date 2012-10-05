@@ -636,7 +636,6 @@ project(':tool') {
         repo.module("org", "foo", '1.3.0').publish()
         repo.module("org", "foo", '2.4.0').publish()
 
-        //TODO SF generalize
         def parent = repo.module("org", "someParent", "1.0")
         parent.type = 'pom'
         parent.dependsOn("org", "foo", "1.3.0")

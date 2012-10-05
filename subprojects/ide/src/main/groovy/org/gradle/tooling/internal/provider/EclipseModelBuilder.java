@@ -97,7 +97,8 @@ public class EclipseModelBuilder implements BuildsModel {
         final List<EclipseSourceDirectoryVersion1> sourceDirectories = new LinkedList<EclipseSourceDirectoryVersion1>();
 
         for (ClasspathEntry entry : entries) {
-            //TODO SF find out why we leave out Variables here.
+            //we don't handle Variables at the moment because users didn't request it yet
+            //and it would probably push us to add support in the tooling api to retrieve the variable mappings.
             if (entry instanceof Library) {
                 AbstractLibrary library = (AbstractLibrary) entry;
                 final File file = library.getLibrary().getFile();

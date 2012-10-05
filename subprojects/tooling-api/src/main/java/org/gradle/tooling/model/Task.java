@@ -49,5 +49,4 @@ public interface Task {
      * @return The element which this task belongs to.
      */
     Element getProject();
-    //TODO SF rename to 'owner'? I'd deprecate the Task interface and leave only GradleTask (or push this method down to the GradleTask)
 }

@@ -31,7 +31,7 @@ class InvertedRenderableDependencyResultTest extends Specification {
     def "uses dependents as children"() {
         expect:
         /*
-        //TODO SF at some point, find a better way to construct test data (graphs)
+        //at some point, find a better way to construct test data (graphs)
         root->y->b(1.0)
         root->x->b(1.0)
         root->z->b(0.5)
