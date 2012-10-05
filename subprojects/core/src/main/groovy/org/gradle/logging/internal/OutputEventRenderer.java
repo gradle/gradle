@@ -53,26 +53,27 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
         }
     }
 
-    public OutputEventRenderer addStandardOutputAndError() {
-        boolean stdOutIsTerminal = terminalDetector.isTerminal(FileDescriptor.out);
-        boolean stdErrIsTerminal = terminalDetector.isTerminal(FileDescriptor.err);
-        if (stdOutIsTerminal) {
-            PrintStream outStr = org.fusesource.jansi.AnsiConsole.out();
-            Console console = new AnsiConsole(outStr, outStr, colourMap);
-            addConsole(console, true, stdErrIsTerminal);
-        } else if (stdErrIsTerminal) {
-            // Only stderr is connected to a terminal
-            PrintStream errStr = org.fusesource.jansi.AnsiConsole.err();
-            Console console = new AnsiConsole(errStr, errStr, colourMap);
-            addConsole(console, false, true);
+    public void addStandardOutputAndError() {
+        synchronized (lock) {
+            boolean stdOutIsTerminal = terminalDetector.isTerminal(FileDescriptor.out);
+            boolean stdErrIsTerminal = terminalDetector.isTerminal(FileDescriptor.err);
+            if (stdOutIsTerminal) {
+                PrintStream outStr = org.fusesource.jansi.AnsiConsole.out();
+                Console console = new AnsiConsole(outStr, outStr, colourMap);
+                addConsole(console, true, stdErrIsTerminal);
+            } else if (stdErrIsTerminal) {
+                // Only stderr is connected to a terminal
+                PrintStream errStr = org.fusesource.jansi.AnsiConsole.err();
+                Console console = new AnsiConsole(errStr, errStr, colourMap);
+                addConsole(console, false, true);
+            }
+            if (!stdOutIsTerminal) {
+                addStandardOutput(System.out);
+            }
+            if (!stdErrIsTerminal) {
+                addStandardError(System.err);
+            }
         }
-        if (!stdOutIsTerminal) {
-            addStandardOutput(System.out);
-        }
-        if (!stdErrIsTerminal) {
-            addStandardError(System.err);
-        }
-        return this;
     }
 
     public OutputEventRenderer addStandardOutput(final Appendable out) {

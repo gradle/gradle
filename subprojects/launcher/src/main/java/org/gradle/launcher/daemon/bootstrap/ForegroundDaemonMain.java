@@ -20,7 +20,6 @@ import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.server.Daemon;
 import org.gradle.launcher.daemon.server.DaemonServices;
 import org.gradle.logging.LoggingManagerInternal;
-import org.gradle.logging.internal.OutputEventRenderer;
 
 import java.io.File;
 
@@ -31,7 +30,7 @@ public class ForegroundDaemonMain extends DaemonMain {
     }
 
     @Override
-    protected void initialiseLogging(OutputEventRenderer renderer, LoggingManagerInternal loggingManager, File daemonLog) {
+    protected void initialiseLogging(LoggingManagerInternal loggingManager, File daemonLog) {
         // Don't redirect IO for foreground daemon
         loggingManager.start();
     }

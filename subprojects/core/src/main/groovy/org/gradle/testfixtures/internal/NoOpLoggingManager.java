@@ -78,4 +78,7 @@ public class NoOpLoggingManager implements LoggingManagerInternal {
 
     public void colorStdOutAndStdErr(boolean colorOutput) {
     }
+
+    public void addStandardOutputAndError() {
+    }
 }

@@ -149,6 +149,10 @@ public class DefaultLoggingManager implements LoggingManagerInternal {
         loggingOutput.colorStdOutAndStdErr(colorOutput);
     }
 
+    public void addStandardOutputAndError() {
+        loggingOutput.addStandardOutputAndError();
+    }
+
     private static class StartableLoggingSystem implements Stoppable {
         private final LoggingSystem loggingSystem;
         private LogLevel level;

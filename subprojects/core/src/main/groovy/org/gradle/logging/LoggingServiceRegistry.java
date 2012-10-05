@@ -133,6 +133,8 @@ public class LoggingServiceRegistry extends DefaultServiceRegistry {
             terminalDetector = new NoOpTerminalDetector();
             consoleMetaData = new FallbackConsoleMetaData();
         }
-        return new OutputEventRenderer(terminalDetector, consoleMetaData).addStandardOutputAndError();
+        OutputEventRenderer renderer = new OutputEventRenderer(terminalDetector, consoleMetaData);
+        renderer.addStandardOutputAndError();
+        return renderer;
     }
 }
