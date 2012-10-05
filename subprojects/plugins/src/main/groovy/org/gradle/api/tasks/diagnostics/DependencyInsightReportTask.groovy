@@ -33,6 +33,8 @@ import org.gradle.api.tasks.diagnostics.internal.insight.DependencyInsightReport
 import org.gradle.logging.StyledTextOutput
 import org.gradle.logging.StyledTextOutputFactory
 
+import javax.inject.Inject
+
 import static org.gradle.logging.StyledTextOutput.Style.Info
 
 /**
@@ -43,8 +45,14 @@ public class DependencyInsightReportTask extends DefaultTask {
     Configuration configuration;
     Closure includes;
 
-    private StyledTextOutput output;
-    private GraphRenderer renderer;
+    private final StyledTextOutput output;
+    private final GraphRenderer renderer;
+
+    @Inject
+    DependencyInsightReportTask(StyledTextOutputFactory outputFactory) {
+        output = outputFactory.create(getClass());
+        renderer = new GraphRenderer(output);
+    }
 
     public void setConfiguration(Configuration configuration) {
         this.configuration = configuration;
@@ -75,9 +83,6 @@ public class DependencyInsightReportTask extends DefaultTask {
         if (includes == null) {
             throw new ReportException("Dependency insight report cannot be generated because the dependency to include was not specified.")
         }
-
-        output = getServices().get(StyledTextOutputFactory.class).create(getClass());
-        renderer = new GraphRenderer(output);
 
         ResolutionResult result = configuration.getIncoming().getResolutionResult();
 
