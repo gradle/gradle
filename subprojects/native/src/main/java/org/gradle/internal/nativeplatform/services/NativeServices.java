@@ -50,7 +50,7 @@ public class NativeServices extends DefaultServiceRegistry {
         try {
             net.rubygrapefruit.platform.Native.init(userHomeDir);
         } catch (NativeException ex) {
-            LOGGER.warn(ex.getMessage());
+            LOGGER.info(ex.getMessage());
         }
     }
 
