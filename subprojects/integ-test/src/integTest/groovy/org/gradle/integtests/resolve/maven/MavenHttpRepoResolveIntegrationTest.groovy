@@ -60,9 +60,7 @@ task retrieve(type: Sync) {
         def snapshot = file('libs/projectA-1.0.jar').snapshot()
 
         and:
-        progressLogging.downloadProgressLogged("http://localhost:${server.port}/repo1/group/projectA/1.0/projectA-1.0.pom")
         progressLogging.downloadProgressLogged("http://localhost:${server.port}/repo1/group/projectA/1.0/projectA-1.0.jar")
-        progressLogging.downloadProgressLogged("http://localhost:${server.port}/repo1/group/projectB/1.0/projectB-1.0.pom")
         progressLogging.downloadProgressLogged("http://localhost:${server.port}/repo1/group/projectB/1.0/projectB-1.0.jar")
 
         when:
