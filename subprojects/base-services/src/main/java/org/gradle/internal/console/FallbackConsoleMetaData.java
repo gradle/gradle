@@ -16,6 +16,8 @@
 
 package org.gradle.internal.console;
 
-public interface ConsoleMetaData {
-    public int getCols();
+public class FallbackConsoleMetaData implements ConsoleMetaData{
+    public int getCols() {
+        return 0;
+    }
 }

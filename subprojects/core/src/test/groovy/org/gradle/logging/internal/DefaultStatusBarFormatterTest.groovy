@@ -37,7 +37,7 @@ class DefaultStatusBarFormatterTest extends Specification {
 
     def "trims output to max console width"(){
         when:
-        _ * consoleMetaData.getWidth() >> 30
+        _ * consoleMetaData.getCols() >> 30
         then:
         "> these are more than 30 chara" == statusBarFormatter.format(Arrays.asList(new ConsoleBackedProgressRenderer.Operation("shortDescr1", "these are more than 30 characters")))
     }

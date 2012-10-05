@@ -21,7 +21,8 @@ import org.gradle.cli.CommandLineConverter;
 import org.gradle.internal.Factory;
 import org.gradle.internal.TimeProvider;
 import org.gradle.internal.TrueTimeProvider;
-import org.gradle.internal.console.WindowsConsoleMetaData;
+import org.gradle.internal.console.ConsoleMetaData;
+import org.gradle.internal.console.FallbackConsoleMetaData;
 import org.gradle.internal.nativeplatform.NoOpTerminalDetector;
 import org.gradle.internal.nativeplatform.TerminalDetector;
 import org.gradle.internal.nativeplatform.services.NativeServices;
@@ -122,13 +123,16 @@ public class LoggingServiceRegistry extends DefaultServiceRegistry {
 
     protected OutputEventRenderer createOutputEventRenderer() {
         TerminalDetector terminalDetector;
+        ConsoleMetaData consoleMetaData;
         if (detectConsole) {
             StartParameter startParameter = new StartParameter();
             NativeServices.initialize(startParameter.getGradleUserHomeDir());
             terminalDetector = NativeServices.getInstance().get(TerminalDetector.class);
+            consoleMetaData = NativeServices.getInstance().get(ConsoleMetaData.class);
         } else {
             terminalDetector = new NoOpTerminalDetector();
+            consoleMetaData = new FallbackConsoleMetaData();
         }
-        return new OutputEventRenderer(terminalDetector, new WindowsConsoleMetaData()).addStandardOutputAndError();
+        return new OutputEventRenderer(terminalDetector, consoleMetaData).addStandardOutputAndError();
     }
 }

@@ -44,11 +44,9 @@ public class DefaultStatusBarFormatter implements StatusBarFormatter {
     }
 
     private String trim(String formattedString) {
-        final Integer width = consoleMetaData.getWidth();
-        if(width!=null){
-            if(formattedString.length() > width){
-                return formattedString.substring(0, width);
-            }
+        int width = consoleMetaData.getCols();
+        if (width > 0 && width < formattedString.length()) {
+            return formattedString.substring(0, width);
         }
         return formattedString;
     }

@@ -17,12 +17,12 @@
 package org.gradle.internal.console;
 
 public class UnixConsoleMetaData implements ConsoleMetaData {
-    public Integer getWidth() {
+    public int getCols() {
         final String width = System.getenv("COLUMNS");
         try{
             return Integer.parseInt(width);
         }catch(NumberFormatException ex){
-            return null;
+            return 0;
         }
     }
 }

@@ -14,8 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.console;
+package org.gradle.internal.nativeplatform.services;
 
-public interface ConsoleMetaData {
-    public int getCols();
+import net.rubygrapefruit.platform.Terminal;
+import org.gradle.internal.console.ConsoleMetaData;
+
+public class NativePlatformConsoleMetaData implements ConsoleMetaData {
+    private final Terminal terminal;
+
+    public NativePlatformConsoleMetaData(Terminal terminal) {
+        this.terminal = terminal;
+    }
+
+    public int getCols() {
+        return terminal.getTerminalSize().getCols();
+    }
 }

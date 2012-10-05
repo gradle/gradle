@@ -14,10 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.console;
+package org.gradle.internal.nativeplatform;
 
-public class WindowsConsoleMetaData implements ConsoleMetaData{
-    public Integer getWidth() {
-        return null;
+import net.rubygrapefruit.platform.Terminals;
+
+import java.io.FileDescriptor;
+
+import static net.rubygrapefruit.platform.Terminals.Output.Stdout;
+
+public class NativePlatformTerminalDetector implements TerminalDetector {
+    private final Terminals terminals;
+
+    public NativePlatformTerminalDetector(Terminals terminals) {
+        this.terminals = terminals;
+    }
+
+    public boolean isTerminal(FileDescriptor fileDescriptor) {
+        return terminals.isTerminal(Stdout);
     }
 }
