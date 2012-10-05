@@ -20,7 +20,6 @@ package org.gradle.api.plugins.maven
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.internal.artifacts.DependencyManagementServices
-import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.plugins.maven.internal.Maven2Gradle
@@ -29,6 +28,7 @@ import org.gradle.api.tasks.TaskAction
 
 import org.gradle.api.internal.DocumentationRegistry
 import javax.inject.Inject
+import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider
 
 /**
  * by Szczepan Faber, created at: 8/1/12
@@ -40,10 +40,12 @@ class ConvertMaven2Gradle extends DefaultTask {
     boolean keepFile
 
     private final DocumentationRegistry documentationRegistry
+    private final MavenSettingsProvider settingsProvider
 
     @Inject
-    ConvertMaven2Gradle(DocumentationRegistry documentationRegistry) {
+    ConvertMaven2Gradle(DocumentationRegistry documentationRegistry, DependencyManagementServices managementServices) {
         this.documentationRegistry = documentationRegistry
+        this.settingsProvider = managementServices.get(MavenSettingsProvider)
     }
 
     @TaskAction
@@ -65,8 +67,7 @@ Please use it, report any problems and share your feedback with us.
             args << '-keepFile'
         }
 
-        def locator = services.get(DependencyManagementServices).get(LocalMavenRepositoryLocator);
-        def settings = locator.buildSettings()
+        def settings = settingsProvider.buildSettings()
 
         def mavenProjects = new MavenProjectsCreator(settings, project.file("pom.xml")).create()
 
