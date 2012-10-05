@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures
 
+import org.apache.commons.lang.RandomStringUtils
 import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestFile
 import org.junit.rules.TestRule
@@ -30,7 +31,8 @@ class ProgressLoggingFixture implements TestRule {
     private TestFile initFile = null
     GradleExecuter executer = null
 
-    void withProgressLogging(GradleExecuter executer) {
+    void withProgressLogging(GradleExecuter executer, TestFile... testFiles) {
+        writeSomeContent(testFiles)
         this.executer = executer
         initFile = temporaryFolder.file("init.gradle")
         loggingOutputFile = temporaryFolder.file("loggingoutput.log")
@@ -50,6 +52,15 @@ gradle.services.get(LoggingOutputInternal).addOutputEventListener(new OutputEven
 })
         """
         executer.usingInitScript(initFile)
+    }
+
+    def writeSomeContent(TestFile[] testFiles) {
+        for (TestFile testFile : testFiles) {
+            if (!testFile.exists()) {
+                testFile.createFile()
+            }
+            testFile.text = RandomStringUtils.random(2 * 1024)
+        }
     }
 
     boolean downloadProgressLogged(String url) {

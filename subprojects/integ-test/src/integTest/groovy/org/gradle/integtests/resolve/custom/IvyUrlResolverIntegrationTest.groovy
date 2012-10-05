@@ -57,11 +57,10 @@ task listJars << {
         server.expectGet('/repo/group/projectA-1.2.jar', module.jarFile)
 
         and:
-        progressLogging.withProgressLogging(getExecuter())
+        progressLogging.withProgressLogging(getExecuter(), module.jarFile)
         then:
         succeeds 'listJars'
         and:
-        progressLogging.downloadProgressLogged("http://localhost:${server.port}/repo/group/ivy-projectA-1.2.xml")
         progressLogging.downloadProgressLogged("http://localhost:${server.port}/repo/group/projectA-1.2.jar")
         when:
         server.resetExpectations()

@@ -43,10 +43,9 @@ task listJars << {
         server.expectGet('/repo/group/projectA/1.2/ivy-1.2.xml', module.ivyFile)
         server.expectGet('/repo/group/projectA/1.2/projectA-1.2.jar', module.jarFile)
         and:
-        progressLogger.withProgressLogging(getExecuter())
+        progressLogger.withProgressLogging(executer, module.jarFile)
         then:
         succeeds 'listJars'
-        progressLogger.downloadProgressLogged("http://localhost:${server.port}/repo/group/projectA/1.2/ivy-1.2.xml")
         progressLogger.downloadProgressLogged("http://localhost:${server.port}/repo/group/projectA/1.2/projectA-1.2.jar")
         when:
         server.resetExpectations()
@@ -129,7 +128,7 @@ task listJars << {
         server.expectGet('/repo2/group/projectC/1.0/ivy-1.0.xml', moduleC.ivyFile)
         server.expectGet('/repo2/group/projectC/1.0/projectC-1.0.jar', moduleC.jarFile)
         and:
-        progressLogger.withProgressLogging(getExecuter())
+        progressLogger.withProgressLogging(executer, moduleA.jarFile, moduleB.jarFile, moduleC.jarFile)
         then:
         succeeds('listJars')
         and:

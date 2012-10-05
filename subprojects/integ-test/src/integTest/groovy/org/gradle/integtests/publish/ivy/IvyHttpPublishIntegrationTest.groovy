@@ -55,12 +55,12 @@ credentials {
     public void canPublishToUnauthenticatedHttpRepository() {
         given:
         server.start()
-
         settingsFile << 'rootProject.name = "publish"'
         buildFile << """
 apply plugin: 'java'
 version = '2'
 group = 'org.gradle'
+
 uploadArchives {
     repositories {
         ivy {
@@ -74,7 +74,7 @@ uploadArchives {
         expectUpload('/org.gradle/publish/2/ivy-2.xml', module, module.ivyFile, HttpStatus.ORDINAL_201_Created)
 
         and:
-        progressLogging.withProgressLogging(getExecuter())
+        withProgressLogging()
         and:
         succeeds 'uploadArchives'
 
@@ -85,9 +85,10 @@ uploadArchives {
         module.jarFile.assertIsCopyOf(file('build/libs/publish-2.jar'))
         module.assertChecksumPublishedFor(module.jarFile)
         and:
-        progressLogging.uploadProgressLogged("http://localhost:${server.port}/org.gradle/publish/2/publish-2.jar")
         progressLogging.uploadProgressLogged("http://localhost:${server.port}/org.gradle/publish/2/ivy-2.xml")
+        progressLogging.uploadProgressLogged("http://localhost:${server.port}/org.gradle/publish/2/publish-2.jar")
     }
+
 
     @Unroll
     def "can publish to authenticated repository using #authScheme auth"() {
@@ -113,7 +114,7 @@ uploadArchives {
 """
 
         when:
-        progressLogging.withProgressLogging(getExecuter())
+        withProgressLogging()
         server.authenticationScheme = authScheme
         expectUpload('/org.gradle/publish/2/publish-2.jar', module, module.jarFile, 'testuser', 'password')
         expectUpload('/org.gradle/publish/2/ivy-2.xml', module, module.ivyFile, 'testuser', 'password')
@@ -332,4 +333,9 @@ uploadArchives {
         server.expectPut(path, username, password, file)
         server.expectPut("${path}.sha1", username, password, module.sha1File(file))
     }
+
+    def withProgressLogging() {
+        progressLogging.withProgressLogging(executer, file("src/main/resources/test.properties"))
+    }
+
 }

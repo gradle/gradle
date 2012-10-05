@@ -49,7 +49,7 @@ class IvySFtpPublishIntegrationTest extends AbstractIntegrationSpec {
         }
         """
         and:
-        progressLogging.withProgressLogging(getExecuter())
+        progressLogging.withProgressLogging(executer, file("src/main/resources/test.properties"))
 
         when:
 
