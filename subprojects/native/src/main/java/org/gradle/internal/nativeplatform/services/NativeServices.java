@@ -16,9 +16,6 @@
 package org.gradle.internal.nativeplatform.services;
 
 import com.sun.jna.Native;
-import net.rubygrapefruit.platform.NativeException;
-import net.rubygrapefruit.platform.Terminal;
-import net.rubygrapefruit.platform.Terminals;
 import org.gradle.internal.console.ConsoleMetaData;
 import org.gradle.internal.console.FallbackConsoleMetaData;
 import org.gradle.internal.console.UnixConsoleMetaData;
@@ -47,11 +44,13 @@ public class NativeServices extends DefaultServiceRegistry {
      */
     public static void initialize(File userHomeDir) {
         new JnaBootPathConfigurer().configure(userHomeDir);
+        /*
         try {
             net.rubygrapefruit.platform.Native.init(userHomeDir);
         } catch (NativeException ex) {
             LOGGER.info(ex.getMessage());
         }
+        */
     }
 
     public static NativeServices getInstance() {
@@ -91,6 +90,7 @@ public class NativeServices extends DefaultServiceRegistry {
     }
 
     protected TerminalDetector createTerminalDetector() {
+        /*
         try {
             Terminals terminals = net.rubygrapefruit.platform.Native.get(Terminals.class);
             if (terminals != null) {
@@ -99,6 +99,7 @@ public class NativeServices extends DefaultServiceRegistry {
         } catch (NativeException ex) {
             LOGGER.debug("Unable to load from native platform library backed TerminalDetector. Continuing with fallback.");
         }
+        */
         try {
             if (get(OperatingSystem.class).isWindows()) {
                 return new WindowsTerminalDetector();
@@ -116,6 +117,7 @@ public class NativeServices extends DefaultServiceRegistry {
     }
 
     protected ConsoleMetaData createConsoleMetaData() {
+        /*
         try {
             Terminals terminals = net.rubygrapefruit.platform.Native.get(Terminals.class);
             if (terminals != null) {
@@ -127,6 +129,7 @@ public class NativeServices extends DefaultServiceRegistry {
         } catch (NativeException ex) {
             LOGGER.debug("Unable to load native platform backed ConsoleMetaData. Continuing with fallback.");
         }
+        */
         final OperatingSystem operatingSystem = get(OperatingSystem.class);
         if (operatingSystem.isWindows()) {
             return new FallbackConsoleMetaData();
