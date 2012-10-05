@@ -26,7 +26,7 @@ import org.gradle.logging.ProgressLoggerFactory;
 public class ProgressLoggingTransferListener extends AbstractProgressLoggingHandler implements TransferListener {
     private final Class loggingClass;
     private ProgressLogger logger;
-    private long total;
+    private long totalProcessed;
 
     public ProgressLoggingTransferListener(ProgressLoggerFactory progressLoggerFactory, Class loggingClass) {
         super(progressLoggerFactory);
@@ -40,13 +40,13 @@ public class ProgressLoggingTransferListener extends AbstractProgressLoggingHand
         }
         final int eventType = evt.getEventType();
         if (eventType == TransferEvent.TRANSFER_STARTED) {
-            total = 0;
+            totalProcessed = 0;
             String description = String.format("%s %s", StringUtils.capitalize(getRequestType(evt)), resource.getName());
             logger = startProgress(description, loggingClass);
         }
         if (eventType == TransferEvent.TRANSFER_PROGRESS) {
-            total += evt.getLength();
-            logProgress(logger, total, evt.getTotalLength(), getRequestType(evt) + "ed");
+            totalProcessed += evt.getLength();
+            logProgress(logger, totalProcessed, evt.getTotalLength(), getRequestType(evt) + "ed");
         }
         if (eventType == TransferEvent.TRANSFER_COMPLETED) {
             logger.completed();

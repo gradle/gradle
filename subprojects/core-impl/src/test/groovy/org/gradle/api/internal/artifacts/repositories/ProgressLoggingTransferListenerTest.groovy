@@ -31,6 +31,7 @@ class ProgressLoggingTransferListenerTest extends Specification {
 
     def setup() {
         transferEvent.getResource() >> resource
+        transferEvent.getLength() >>> [512, 512, 2048, 256]
         progressLoggerFactory.newOperation(_) >> progressLogger
     }
 
@@ -60,15 +61,17 @@ class ProgressLoggingTransferListenerTest extends Specification {
 
     def "transferProgress logs progress on transfers"() {
         setup:
-        transferEvent.getEventType() >>> [TransferEvent.TRANSFER_STARTED, TransferEvent.TRANSFER_PROGRESS]
+        transferEvent.getEventType() >>> [TransferEvent.TRANSFER_STARTED, TransferEvent.TRANSFER_PROGRESS, TransferEvent.TRANSFER_PROGRESS, TransferEvent.TRANSFER_PROGRESS, TransferEvent.TRANSFER_PROGRESS]
         when:
         //create progressLogger
         progressLoggingTransferListener.transferProgress(transferEvent)
         and:
         //log progress
         progressLoggingTransferListener.transferProgress(transferEvent)
+        progressLoggingTransferListener.transferProgress(transferEvent)
+        progressLoggingTransferListener.transferProgress(transferEvent)
         then:
-        1 * progressLogger.progress(_)
+        2 * progressLogger.progress(_)
         0 * progressLogger.completed()
     }
 

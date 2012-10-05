@@ -21,12 +21,14 @@ import org.gradle.logging.ProgressLoggerFactory;
 
 public class AbstractProgressLoggingHandler {
     protected final ProgressLoggerFactory progressLoggerFactory;
+    private long loggedKBytes;
 
     public AbstractProgressLoggingHandler(ProgressLoggerFactory progressLoggerFactory) {
         this.progressLoggerFactory = progressLoggerFactory;
     }
 
     protected ProgressLogger startProgress(String description, Class loggingClass) {
+        this.loggedKBytes = 0;
         ProgressLogger progressLogger = progressLoggerFactory.newOperation(loggingClass != null ? loggingClass : getClass());
         progressLogger.setDescription(description);
         progressLogger.setLoggingHeader(description);
@@ -49,8 +51,13 @@ public class AbstractProgressLoggingHandler {
 
     protected void logProgress(ProgressLogger progressLogger, Long processed, Long contentLength, String operationString) {
         if (progressLogger != null) {
-            final String progressMessage = String.format("%s/%s %s", getLengthText(processed), getLengthText(contentLength != 0 ? contentLength : null), operationString);
-            progressLogger.progress(progressMessage);
+            long processedKB = processed / 1024;
+            if (processedKB > loggedKBytes) {
+                loggedKBytes = processedKB;
+                final String progressMessage = String.format("%s/%s %s", getLengthText(processed), getLengthText(contentLength != 0 ? contentLength : null), operationString);
+                progressLogger.progress(progressMessage);
+            }
         }
+
     }
 }

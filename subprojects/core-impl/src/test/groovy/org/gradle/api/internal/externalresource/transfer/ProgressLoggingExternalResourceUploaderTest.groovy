@@ -36,21 +36,27 @@ class ProgressLoggingExternalResourceUploaderTest extends Specification {
         startsProgress()
 
         when:
-        progressLoggerUploader.upload(inputStreamFactory(), 1024, "http://a/remote/path")
+        progressLoggerUploader.upload(inputStreamFactory(), 5 * 1024, "http://a/remote/path")
         then:
         1 * delegateFactory.create() >> inputStream
-        1 * uploader.upload(_, 1024, "http://a/remote/path") >> {factory, length, destination ->
+        1 * uploader.upload(_, 5 * 1024, "http://a/remote/path") >> {factory, length, destination ->
             def stream = factory.create();
-            assert stream.read(new byte[100], 0, 10) == 5
-            assert stream.read(new byte[100]) == 10
+            assert stream.read(new byte[1024], 0, 512) == 512
+            assert stream.read(new byte[1024], 0, 1024) == 1024
+            assert stream.read(new byte[2048], 0, 2048) == 2048
+            assert stream.read(new byte[256], 0, 256) == 256
+            assert stream.read(new byte[256], 0, 256) == 256
             assert stream.read() == 48
         }
-        1 * inputStream.read(_, 0, 10) >> 5
-        1 * inputStream.read(_, 0, 100) >> 10
+        1 * inputStream.read(_, 0, 512) >> 512
+        1 * inputStream.read(_, 0, 1024) >> 1024
+        1 * inputStream.read(_, 0, 2048) >> 2048
+        1 * inputStream.read(_, 0, 256) >> 256
+        1 * inputStream.read(_, 0, 256) >> 256
         1 * inputStream.read() >> 48
-        1 * progressLogger.progress("5 B/1 KB uploaded")
-        1 * progressLogger.progress("15 B/1 KB uploaded")
-        1 * progressLogger.progress("16 B/1 KB uploaded")
+        1 * progressLogger.progress("1 KB/5 KB uploaded")
+        1 * progressLogger.progress("3 KB/5 KB uploaded")
+        1 * progressLogger.progress("4 KB/5 KB uploaded")
         1 * progressLogger.completed()
     }
 
