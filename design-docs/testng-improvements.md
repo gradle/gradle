@@ -22,18 +22,28 @@ Improve TestNG test execution/reporting
     Currently TestNG does generate the junit xml results but they don't contain output and we don't fully control the folder where they are generated.
 3. To separate the new report (generated and owned by Gradle) from the old report (generated and owned by TestNG),
     the TestNG report will be generated "${testReportDir}-testNG" folder, whereas the Gradle report into regular testReportDir.
-4. We should consider changing the default value of TestNGOptions.useDefaultListeners to false. There are 3 default listeners, html generator, xml junit results generator, xml generator.
+    The 'old' report directory should be configurable via TestNGOptions.testNGReportsDir and documented
+    that it contains TestNG-generated reports (as opposed to Gradle-generated reports).
+3.1 There is a way for the user to get the old reports working instead of the new report.
+    The way to do it would be hooking up the default 3 listeners (or less, depending which kind of reports the users wants)
+    via testNGOptions.listeners. This needs to be documented. To prevent the new html report generation the user can do test.testReport = false.
+    Make sure it is documented.
+4. Change the default value of TestNGOptions.useDefaultListeners to false.
+    There are 3 default listeners, html generator, xml junit results generator, xml generator.
     Since we're adding a new report, the html generator is no longer needed by default.
     Since we're adding proper generation of xml junit results (working with forkEvery/maxParallelForks, containing output), the TestNG xml junit results generator is no longer needed by default.
     The TestNG xml report (in a TestNG proprietary format) has some usages but I doubt it is very popular.
     Hence it makes sense not to use the default listeners by default.
+5. Deprecate the useDefaultListeners option (see also #4). This option is not very useful when the story is completed.
+    Also, if advanced TestNG users want any of the default listeners, they can be hooked via TestNGOptions.listeners << '...'.
+    Make sure the deprecation warning mentions how to get the default listeners to work.
 
 ### Backwards compatibility
 
 Why is old TestNG reporting useful and what backwards compatibility should we consider:
 
 1. Client CIs may be configured to look for reports in "${testReportDir}/junitreports".
-    We could configure test results dir for TestNG to use "${testReportDir}/junitreports" dir instead of conventional ${testResultsDir}.
+    Since the xml test results directory option is configurable, we don't consider it as a breaking change if after the upgrade the reports are generated to a different spot.
 2. Clients may use the TestNG xml formatted results (testng-failed.xml and testng-results.xml) as input suites for next test execution.
     It is somewhat useful for the use case when one wants to rerun failed tests.
     However, any TestNG generated reports break if forkEvery/maxParallelForks are used.
@@ -52,10 +62,13 @@ Why is old TestNG reporting useful and what backwards compatibility should we co
 
 1. new xml results are generated to the test results dir
 2. new html results are generated to the test report dir
-3. xml/html results contain the test output
+3. xml/html results contain the test output, also have at least one test case with no output/error.
 4. works well with forkEvery/maxParallelForks
 5. does not break when there are no tests
-6. reports failing and passing tests
+6. reports failing, passing tests;
+    class with multiple passing tests, classes with a mix of failed and passing tests, classes with 'ignored' tests
+7. generated all reports (gradle and testNG), generate only gradle reports, generate only testNG reports
+8. report directory is configurable for both testNG reports and gradle reports
 
 ### Implementation approach
 
@@ -79,4 +92,4 @@ We have to continue generating standard JUnit xml results because they are de fa
 
 # Open issues
 
-This stuff is never done. This section is to keep track of assumptions and things we haven't figured out yet.
+-
