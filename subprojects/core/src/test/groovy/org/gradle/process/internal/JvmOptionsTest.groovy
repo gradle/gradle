@@ -144,6 +144,32 @@ class JvmOptionsTest extends Specification {
         1 * target.systemProperties({it == ["file.encoding": "UTF-16"]})
     }
 
+    def "can enter debug mode"() {
+        def opts = createOpts()
+        when:
+        opts.debug = true
+        then:
+        opts.debug
+    }
+
+    def "can enter debug mode after setting other options"() {
+        def opts = createOpts()
+        when:
+        opts.jvmArgs(JvmOptions.fromString('-Xmx1G -Xms1G'))
+        opts.debug = true
+        then:
+        opts.allJvmArgs.containsAll(['-Xmx1G', '-Xms1G', '-Xdebug', '-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005'])
+    }
+
+    def "can enter debug mode before setting other options"() {
+        def opts = createOpts()
+        opts.debug = true
+        when:
+        opts.jvmArgs(JvmOptions.fromString('-Xmx1G -Xms1G'))
+        then:
+        opts.allJvmArgs.containsAll(['-Xmx1G', '-Xms1G', '-Xdebug', '-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005'])
+    }
+
     private JvmOptions createOpts() {
         return new JvmOptions(new IdentityFileResolver())
     }

@@ -197,8 +197,6 @@ public class JvmOptions {
         if (xdebugFound && xrunjdwpFound) {
             debug = true;
             extraJvmArgs.removeAll(matches);
-        } else {
-            debug = false;
         }
     }
 
