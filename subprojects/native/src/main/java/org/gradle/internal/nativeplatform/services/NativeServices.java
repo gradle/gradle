@@ -77,10 +77,11 @@ public class NativeServices extends DefaultServiceRegistry {
     }
 
     protected ProcessEnvironment createProcessEnvironment() {
+        OperatingSystem operatingSystem = get(OperatingSystem.class);
         try {
-            if (OperatingSystem.current().isUnix()) {
+            if (operatingSystem.isUnix()) {
                 return new LibCBackedProcessEnvironment(get(LibC.class));
-            } else if (OperatingSystem.current().isWindows()) {
+            } else if (operatingSystem.isWindows()) {
                 return new WindowsProcessEnvironment();
             } else {
                 return new UnsupportedEnvironment();
@@ -93,14 +94,17 @@ public class NativeServices extends DefaultServiceRegistry {
     }
 
     protected TerminalDetector createTerminalDetector() {
+        OperatingSystem operatingSystem = get(OperatingSystem.class);
         try {
-            Terminals terminals = net.rubygrapefruit.platform.Native.get(Terminals.class);
-            return new NativePlatformTerminalDetector(terminals);
+            if (!operatingSystem.isWindows()) {
+                Terminals terminals = net.rubygrapefruit.platform.Native.get(Terminals.class);
+                return new NativePlatformTerminalDetector(terminals);
+            }
         } catch (NativeException ex) {
             LOGGER.debug("Unable to load from native platform library backed TerminalDetector. Continuing with fallback.", ex);
         }
         try {
-            if (get(OperatingSystem.class).isWindows()) {
+            if (operatingSystem.isWindows()) {
                 return new WindowsTerminalDetector();
             }
             return new LibCBackedTerminalDetector(get(LibC.class));
@@ -116,16 +120,18 @@ public class NativeServices extends DefaultServiceRegistry {
     }
 
     protected ConsoleMetaData createConsoleMetaData() {
+        OperatingSystem operatingSystem = get(OperatingSystem.class);
         try {
-            Terminals terminals = net.rubygrapefruit.platform.Native.get(Terminals.class);
-            if (terminals.isTerminal(Terminals.Output.Stdout)) {
-                Terminal terminal = terminals.getTerminal(Terminals.Output.Stdout);
-                return new NativePlatformConsoleMetaData(terminal);
+            if (!operatingSystem.isWindows()) {
+                Terminals terminals = net.rubygrapefruit.platform.Native.get(Terminals.class);
+                if (terminals.isTerminal(Terminals.Output.Stdout)) {
+                    Terminal terminal = terminals.getTerminal(Terminals.Output.Stdout);
+                    return new NativePlatformConsoleMetaData(terminal);
+                }
             }
         } catch (NativeException ex) {
             LOGGER.debug("Unable to load native platform backed ConsoleMetaData. Continuing with fallback.", ex);
         }
-        final OperatingSystem operatingSystem = get(OperatingSystem.class);
         if (operatingSystem.isWindows()) {
             return new FallbackConsoleMetaData();
         }
