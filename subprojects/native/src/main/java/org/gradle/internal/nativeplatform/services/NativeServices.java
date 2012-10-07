@@ -97,7 +97,7 @@ public class NativeServices extends DefaultServiceRegistry {
             Terminals terminals = net.rubygrapefruit.platform.Native.get(Terminals.class);
             return new NativePlatformTerminalDetector(terminals);
         } catch (NativeException ex) {
-            LOGGER.debug("Unable to load from native platform library backed TerminalDetector. Continuing with fallback.");
+            LOGGER.debug("Unable to load from native platform library backed TerminalDetector. Continuing with fallback.", ex);
         }
         try {
             if (get(OperatingSystem.class).isWindows()) {
@@ -123,7 +123,7 @@ public class NativeServices extends DefaultServiceRegistry {
                 return new NativePlatformConsoleMetaData(terminal);
             }
         } catch (NativeException ex) {
-            LOGGER.debug("Unable to load native platform backed ConsoleMetaData. Continuing with fallback.");
+            LOGGER.debug("Unable to load native platform backed ConsoleMetaData. Continuing with fallback.", ex);
         }
         final OperatingSystem operatingSystem = get(OperatingSystem.class);
         if (operatingSystem.isWindows()) {
