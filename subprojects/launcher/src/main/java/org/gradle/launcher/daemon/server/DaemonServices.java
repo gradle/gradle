@@ -87,7 +87,6 @@ public class DaemonServices extends DefaultServiceRegistry {
                 "password",
                 new DefaultDaemonCommandExecuter(
                         new DefaultGradleLauncherFactory(loggingServices),
-                        get(ExecutorFactory.class),
                         get(ProcessEnvironment.class),
                         loggingManager,
                         getDaemonLogFile()),

@@ -94,6 +94,7 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
         long expiry = start + STOP_TIMEOUT_SECONDS * 1000;
         Set<String> stopped = new HashSet<String>();
 
+        // TODO - only connect to daemons that we have not yet sent a stop request to
         DaemonClientConnection connection = connector.maybeConnect(compatibilitySpec);
         if (connection == null) {
             LOGGER.lifecycle(DaemonMessages.NO_DAEMONS_RUNNING);

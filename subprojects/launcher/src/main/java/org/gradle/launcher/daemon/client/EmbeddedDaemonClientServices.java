@@ -66,7 +66,7 @@ public class EmbeddedDaemonClientServices extends DaemonClientServicesSupport {
     protected DaemonCommandExecuter createDaemonCommandExecuter() {
         LoggingManagerInternal mgr = getLoggingServices().getFactory(LoggingManagerInternal.class).create();
         return new DefaultDaemonCommandExecuter(new DefaultGradleLauncherFactory(getLoggingServices()),
-                get(ExecutorFactory.class), get(ProcessEnvironment.class), mgr, new File("dummy"));
+                get(ProcessEnvironment.class), mgr, new File("dummy"));
     }
 
     public EmbeddedDaemonClientServices(ServiceRegistry loggingServices, boolean displayOutput) {
