@@ -16,13 +16,22 @@
 
 package org.gradle.internal.console;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class UnixConsoleMetaData implements ConsoleMetaData {
+
+    public static final Logger LOGGER = LoggerFactory.getLogger(UnixConsoleMetaData.class);
+
     public int getCols() {
-        final String width = System.getenv("COLUMNS");
-        try{
-            return Integer.parseInt(width);
-        }catch(NumberFormatException ex){
-            return 0;
+        final String columns = System.getenv("COLUMNS");
+        if (columns != null) {
+            try {
+                return Integer.parseInt(columns);
+            } catch (NumberFormatException ex) {
+                LOGGER.debug("Cannot parse COLUMNS environment variable to get console width. Value: '%s'", columns);
+            }
         }
+        return 0;
     }
 }
