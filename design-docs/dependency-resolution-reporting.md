@@ -140,15 +140,32 @@ While doing that consider adding support for selecting configuration for the reg
 
 ### User visible changes
 
-TBD
+1. When the dependencyInsight task is issued from the command line, it is possible to configure extra command line parameters.
+It's not 100% decided what will be the naming of the parameters, currently it would be:
+ dependencyInsight --include org.foo:bar --configuration runtime
+ When we decide on exact naming of the task and the parameters, this spec needs to be updated.
+1. Each parameter must be applicable to at least one task in the graph. If any of the parameters cannot be applied to any of the tasks in the graph
+ then the command should fail fast. Examples:
+    'dependencyInsight --include x --configuration y' - works fine
+    'clean build dependencyInsight --include x --configuration y' - works fine, applies the configuration only to dependencyInsight task
+    'clean build --include x --configuration' - breaks as the dependencyInsight task is not in the graph so the parameters should not be used.
+1. If multiple tasks match given parameters (for example, when name-matching execution schedules multiple dependency insight tasks)
+ then *all* of the tasks should be configured with given parameters.
+1. The command line parameter takes precedence over the build script configuration
 
 ### Test coverage
 
-TBD
+1. uses command line parameter to configure task
+1. shows decent message if required parameter is missing
+1. shows decent message if required parameter value is missing
+1. shows decent message if parameter is passed but no task that accepts this parameter is scheduled
+1. shows decent message if typo in parameter name
+1. the command line parameter takes precedence over the build script configuration
+1. configures multiple tasks if parameters match multiple tasks
 
 ### Implementation approach
 
-TBD
+TaskNameResolvingBuildConfigurationAction needs to accommodate given requirements.
 
 ## Dependency report handles resolution failures
 
