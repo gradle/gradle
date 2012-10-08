@@ -15,6 +15,7 @@
  */
 package org.gradle.logging.internal;
 
+import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.internal.console.ConsoleMetaData;
@@ -28,6 +29,7 @@ import java.io.PrintStream;
  * A {@link org.gradle.logging.internal.OutputEventListener} implementation which renders output events to various
  * destinations. This implementation is thread-safe.
  */
+@ThreadSafe
 public class OutputEventRenderer implements OutputEventListener, LoggingConfigurer, LoggingOutputInternal {
     private final ListenerBroadcast<OutputEventListener> formatters = new ListenerBroadcast<OutputEventListener>(OutputEventListener.class);
     private final ListenerBroadcast<StandardOutputListener> stdoutListeners = new ListenerBroadcast<StandardOutputListener>(StandardOutputListener.class);
@@ -76,12 +78,12 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
         }
     }
 
-    public OutputEventRenderer addStandardOutput(final Appendable out) {
+    public OutputEventRenderer addStandardOutput(Appendable out) {
         addStandardOutputListener(new StreamBackedStandardOutputListener(out));
         return this;
     }
 
-    public OutputEventRenderer addStandardError(final Appendable err) {
+    public OutputEventRenderer addStandardError(Appendable err) {
         addStandardErrorListener(new StreamBackedStandardOutputListener(err));
         return this;
     }

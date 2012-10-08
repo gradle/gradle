@@ -94,7 +94,7 @@ public class DaemonMain extends EntryPoint {
 
     protected void doAction(ExecutionListener listener) {
         LoggingServiceRegistry loggingRegistry = LoggingServiceRegistry.newChildProcessLogging();
-        LoggingManagerInternal loggingManager = loggingRegistry.getFactory(LoggingManagerInternal.class).create();
+        LoggingManagerInternal loggingManager = loggingRegistry.newInstance(LoggingManagerInternal.class);
         DaemonServices daemonServices = new DaemonServices(configuration, loggingRegistry, loggingManager);
         File daemonLog = daemonServices.getDaemonLogFile();
         final DaemonContext daemonContext = daemonServices.get(DaemonContext.class);
