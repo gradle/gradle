@@ -52,7 +52,8 @@ class ExcludedTaskFilteringBuildConfigurationActionTest extends Specification {
         action.configure(context)
 
         then:
-        1 * selector.selectTasks(gradle, 'a')
+        1 * selector.init(gradle)
+        1 * selector.selectTasks('a')
         _ * selector.tasks >> []
         1 * taskGraph.useFilter(!null)
         1 * context.proceed()

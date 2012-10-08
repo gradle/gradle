@@ -30,6 +30,7 @@ public class TaskSelector {
     private final TaskNameResolver taskNameResolver;
     private Set<Task> tasks;
     private String taskName;
+    private GradleInternal gradle;
 
     public TaskSelector() {
         this(new TaskNameResolver());
@@ -39,11 +40,12 @@ public class TaskSelector {
         this.taskNameResolver = taskNameResolver;
     }
 
-    public void selectTasks(GradleInternal gradle, String path) {
+    public void selectTasks(String path) {
         SetMultimap<String, Task> tasksByName;
         String baseName;
         String prefix;
 
+        assert gradle != null : "selector should have been earlier initialized with Gradle instance";
         ProjectInternal project = gradle.getDefaultProject();
 
         if (path.contains(Project.PATH_SEPARATOR)) {
@@ -113,5 +115,9 @@ public class TaskSelector {
         }
 
         return (ProjectInternal) current;
+    }
+
+    public void init(GradleInternal gradle) {
+        this.gradle = gradle;
     }
 }
