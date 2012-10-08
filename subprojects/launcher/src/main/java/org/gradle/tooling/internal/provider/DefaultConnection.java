@@ -147,7 +147,7 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
             loggingServices = embeddedExecuterSupport.getLoggingServices();
             executer = embeddedExecuterSupport.getExecuter();
         } else {
-            loggingServices = LoggingServiceRegistry.newEmbeddableLogging();
+            loggingServices = embeddedExecuterSupport.getLoggingServices().newLogging();
             loggingServices.get(OutputEventRenderer.class).configure(operationParameters.getBuildLogLevel());
             DaemonClientServices clientServices = new DaemonClientServices(loggingServices, daemonParams, operationParameters.getStandardInput(SafeStreams.emptyInput()));
             executer = clientServices.get(DaemonClient.class);

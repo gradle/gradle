@@ -17,7 +17,6 @@
 package org.gradle.logging
 
 import org.gradle.cli.CommandLineConverter
-import org.gradle.internal.service.ServiceRegistry
 import org.gradle.logging.internal.DefaultLoggingManagerFactory
 import org.gradle.logging.internal.DefaultProgressLoggerFactory
 import org.gradle.logging.internal.DefaultStyledTextOutputFactory
@@ -28,7 +27,7 @@ import spock.lang.Specification
 
 class LoggingServiceRegistryTest extends Specification {
     @Rule RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()
-    final ServiceRegistry registry = new LoggingServiceRegistry()
+    final LoggingServiceRegistry registry = new LoggingServiceRegistry()
 
     def providesALoggingManagerFactory() {
         expect:
@@ -68,6 +67,12 @@ class LoggingServiceRegistryTest extends Specification {
         then:
         System.out != outputs.stdOutPrintStream
         System.err != outputs.stdErrPrintStream
+    }
+
+    def canCreateANestedRegistry() {
+        expect:
+        def child = registry.newLogging()
+        child != null
     }
     
 }

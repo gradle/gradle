@@ -49,23 +49,63 @@ public class LoggingServiceRegistry extends DefaultServiceRegistry {
     }
 
     /**
-     * Creates a set of logging services which are suitable to use in a command-line process.
+     * Creates a set of logging services which are suitable to use in a command-line process. In particular:
+     *
+     * <ul>
+     *     <li>Replaces System.out and System.err with implementations that route output through the logging system.</li>
+     *     <li>Configures slf4j, logback, log4j and java util logging to route log messages through the logging system.</li>
+     *     <li>Routes logging output to the original System.out and System.err.</li>
+     *     <li>Enables coloured and dynamic output when System.out or System.err are attached to a terminal.</li>
+     * </ul>
+     *
+     * <p>Does nothing until started.</p>
      */
     public static LoggingServiceRegistry newCommandLineProcessLogging() {
         return new LoggingServiceRegistry(true, false);
     }
 
     /**
-     * Creates a set of logging services which are suitable to use in a child process. Does not attempt to use any terminal trickery.
+     * Creates a set of logging services which are suitable to use in a child process. In particular:
+     *
+     * <ul>
+     *     <li>Replaces System.out and System.err with implementations that route output through the logging system.</li>
+     *     <li>Configures slf4j, logback, log4j and java util logging to route log messages through the logging system.</li>
+     *     <li>Routes logging output to the original System.out and System.err.</li>
+     * </ul>
+     *
+     * <p>Does not enable colours or dynamic output.</p>
+     *
+     * <p>Does nothing until started.</p>
      */
     public static LoggingServiceRegistry newChildProcessLogging() {
         return new LoggingServiceRegistry(false, false);
     }
 
     /**
-     * Creates a set of logging services which are suitable to use embedded in another application. Does not attempt to use any terminal trickery.
+     * Creates a set of logging services which are suitable to use embedded in another application. In particular:
+     *
+     * <ul>
+     *     <li>Routes logging output to System.out and System.err.</li>
+     * </ul>
+     *
+     * <p>Does not:</p>
+     *
+     * <ul>
+     *     <li>Replace System.out and System.err to capture output written to these destinations.</li>
+     *     <li>Configure slf4j or logback.</li>
+     *     <li>Configure log4j or java util logging.</li>
+     * </ul>
+     *
+     * <p>Does nothing until started.</p>
      */
     public static LoggingServiceRegistry newEmbeddableLogging() {
+        return new LoggingServiceRegistry(false, true);
+    }
+
+    /**
+     * Creates a set of logging services to set up a new logging scope. Does not configure any static state.
+     */
+    public LoggingServiceRegistry newLogging() {
         return new LoggingServiceRegistry(false, true);
     }
 
