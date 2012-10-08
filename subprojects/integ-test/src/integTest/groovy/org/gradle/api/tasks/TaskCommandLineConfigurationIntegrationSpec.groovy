@@ -23,10 +23,15 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
  */
 class TaskCommandLineConfigurationIntegrationSpec extends AbstractIntegrationSpec {
 
-    def "can configure task from command line"() {
+    def "can configure task from command line in multiple projects"() {
         given:
+        file("settings.gradle") << "include 'project2'"
         file("build.gradle") << """
-            task someTask(type: SomeTask)
+            allprojects {
+                task someTask(type: SomeTask)
+            }
+            task task1 //extra stress
+            task task2
 
             import org.gradle.api.internal.tasks.CommandLineOption
 
@@ -64,10 +69,75 @@ class TaskCommandLineConfigurationIntegrationSpec extends AbstractIntegrationSpe
         output.contains 'first=false,second=null'
 
         when:
-        run 'someTask', '--first', '--second', 'hey'
+        run 'task1', 'someTask', '--first', '--second', 'hey', 'task2'
 
         then:
-        output.contains 'first=true,second=hey'
+        output.count('first=true,second=hey') == 2
+        result.assertTasksExecuted(":task1", ":someTask", ":project2:someTask", ":task2")
+    }
+
+    def "task name that matches command value is not included in execution"() {
+        given:
+        file("build.gradle") << """
+            task foo
+            task someTask(type: SomeTask)
+
+            import org.gradle.api.internal.tasks.CommandLineOption
+
+            class SomeTask extends DefaultTask {
+
+                String second
+
+                @CommandLineOption(options = "second", description = "configures 'second' field")
+                void setSecond(String second) {
+                    this.second = second
+                }
+
+                @TaskAction
+                void renderFields() {
+                    println "second=" + second
+                }
+            }
+"""
+
+        when:
+        run 'someTask', '--second', 'foo'
+
+        then:
+        output.contains 'second=foo'
+        result.assertTasksExecuted(":someTask") //no 'foo' task
+    }
+
+    def "multiple different tasks configured at single command line"() {
+        given:
+        file("build.gradle") << """
+            task foo
+            task someTask(type: SomeTask)
+
+            import org.gradle.api.internal.tasks.CommandLineOption
+
+            class SomeTask extends DefaultTask {
+
+                String second
+
+                @CommandLineOption(options = "second", description = "configures 'second' field")
+                void setSecond(String second) {
+                    this.second = second
+                }
+
+                @TaskAction
+                void renderFields() {
+                    println "second=" + second
+                }
+            }
+"""
+
+        when:
+        run 'someTask', '--second', 'foo', 'tasks', '--all'
+
+        then:
+        output.contains 'second=foo'
+        result.assertTasksExecuted(":someTask", ":tasks")
     }
 
     //TODO SF more coverage for the unhappy scenarios: missing value, too many values

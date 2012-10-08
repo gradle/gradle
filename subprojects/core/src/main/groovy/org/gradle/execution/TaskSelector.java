@@ -40,7 +40,7 @@ public class TaskSelector {
         this.taskNameResolver = taskNameResolver;
     }
 
-    public void selectTasks(String path) {
+    private void selectTasks(String path) {
         SetMultimap<String, Task> tasksByName;
         String baseName;
         String prefix;
@@ -84,12 +84,10 @@ public class TaskSelector {
         throw new TaskSelectionException(matcher.formatErrorMessage("task", project));
     }
 
-    public String getTaskName() {
-        return taskName;
-    }
-
-    public Set<Task> getTasks() {
-        return tasks;
+    public TaskSelection getSelection(String path) {
+        //TODO SF tidy up
+        selectTasks(path);
+        return new TaskSelection(taskName, tasks);
     }
 
     private static ProjectInternal findProject(ProjectInternal startFrom, String path) {
@@ -119,5 +117,23 @@ public class TaskSelector {
 
     public void init(GradleInternal gradle) {
         this.gradle = gradle;
+    }
+
+    public static class TaskSelection {
+        private String taskName;
+        private Set<Task> tasks;
+
+        public TaskSelection(String taskName, Set<Task> tasks) {
+            this.taskName = taskName;
+            this.tasks = tasks;
+        }
+
+        public String getTaskName() {
+            return taskName;
+        }
+
+        public Set<Task> getTasks() {
+            return tasks;
+        }
     }
 }

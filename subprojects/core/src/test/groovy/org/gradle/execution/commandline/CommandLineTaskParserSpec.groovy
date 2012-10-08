@@ -16,7 +16,12 @@
 
 package org.gradle.execution.commandline
 
+import org.gradle.api.DefaultTask
+import org.gradle.api.Project
+import org.gradle.api.tasks.TaskAction
+import org.gradle.execution.CommandLineTaskConfigurer
 import org.gradle.execution.TaskSelector
+import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
 
 import static java.util.Collections.emptyList
@@ -26,13 +31,82 @@ import static java.util.Collections.emptyList
  */
 class CommandLineTaskParserSpec extends Specification {
 
+    Project project = new ProjectBuilder().build()
     CommandLineTaskParser parser = new CommandLineTaskParser()
     TaskSelector selector = Mock()
+    SomeTask task = project.task('someTask', type: SomeTask)
+    SomeTask task2 = project.task('someTask2', type: SomeTask)
+    SomeTask task3 = project.task('someTask3', type: SomeTask)
+
+    def setup() {
+        parser.taskConfigurer = Mock(CommandLineTaskConfigurer)
+    }
 
     def "deals with empty input"() {
         expect:
         parser.parseTasks(emptyList(), selector).empty
     }
 
-    //more tests after the next refactoring step.
+    def "parses a single task"() {
+        given:
+        selector.getSelection('foo') >> new TaskSelector.TaskSelection('foo task', [task] as Set)
+
+        when:
+        def out = parser.parseTasks(['foo'], selector)
+
+        then:
+        out.size() == 1
+        out.get('foo task') == [task] as Set
+        0 * parser.taskConfigurer._
+    }
+
+    def "parses single task with multiple matches"() {
+        given:
+        selector.getSelection('foo') >> new TaskSelector.TaskSelection('foo task', [task, task2] as Set)
+
+        when:
+        def out = parser.parseTasks(['foo'], selector)
+
+        then:
+        out.size() == 2
+        out.get('foo task') == [task, task2] as Set
+        0 * parser.taskConfigurer._
+    }
+
+    def "parses multiple matching tasks"() {
+        given:
+        selector.getSelection('foo') >> new TaskSelector.TaskSelection('foo task', [task, task2] as Set)
+        selector.getSelection('bar') >> new TaskSelector.TaskSelection('bar task', [task3] as Set)
+
+        when:
+        def out = parser.parseTasks(['foo', 'bar'], selector)
+
+        then:
+        out.size() == 3
+        out.get('foo task') == [task, task2] as Set
+        out.get('bar task') == [task3] as Set
+        0 * parser.taskConfigurer._
+    }
+
+    def "configures tasks if configuration options specified"() {
+        given:
+        selector.getSelection('foo') >> new TaskSelector.TaskSelection('foo task', [task, task2] as Set)
+        selector.getSelection('bar') >> new TaskSelector.TaskSelection('bar task', [task3] as Set)
+        selector.getSelection('lastTask') >> new TaskSelector.TaskSelection('last task', [task3] as Set)
+
+        when:
+        def out = parser.parseTasks(['foo', '--all', 'bar', '--include', 'stuff', 'lastTask'], selector)
+
+        then:
+        out.size() == 4
+
+        //TODO SF I don't understand why I need to use spock closure here
+        1 * parser.taskConfigurer.configureTasks({it == [task, task2] as Set}, ['--all', 'bar', '--include', 'stuff', 'lastTask']) >> ['bar', '--include', 'stuff', 'lastTask']
+        1 * parser.taskConfigurer.configureTasks({it == [task3] as Set}, ['--include', 'stuff', 'lastTask']) >> ['lastTask']
+        0 * parser.taskConfigurer._
+    }
+
+    public static class SomeTask extends DefaultTask {
+        @TaskAction public void dummy() {}
+    }
 }

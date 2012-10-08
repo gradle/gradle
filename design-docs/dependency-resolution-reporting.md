@@ -159,7 +159,7 @@ It's not 100% decided what will be the naming of the parameters, currently it wo
 1. shows decent message if required parameter is missing
 1. shows decent message if required parameter value is missing
 1. shows decent message if parameter is passed but no task that accepts this parameter is scheduled
-1. shows decent message if typo in parameter name
+1. shows decent message if typo in parameter name (or if single '-' used instead of '--')
 1. the command line parameter takes precedence over the build script configuration
 1. configures multiple tasks if parameters match multiple tasks
 1. deals with the scenario when value of the parameter matches some existing task name

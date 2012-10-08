@@ -19,6 +19,8 @@ import org.gradle.StartParameter
 import org.gradle.api.internal.GradleInternal
 import spock.lang.Specification
 
+import static java.util.Collections.emptySet
+
 class ExcludedTaskFilteringBuildConfigurationActionTest extends Specification {
     final BuildExecutionContext context = Mock()
     final StartParameter startParameter = Mock()
@@ -53,8 +55,7 @@ class ExcludedTaskFilteringBuildConfigurationActionTest extends Specification {
 
         then:
         1 * selector.init(gradle)
-        1 * selector.selectTasks('a')
-        _ * selector.tasks >> []
+        1 * selector.getSelection('a') >> new TaskSelector.TaskSelection('a', emptySet())
         1 * taskGraph.useFilter(!null)
         1 * context.proceed()
     }

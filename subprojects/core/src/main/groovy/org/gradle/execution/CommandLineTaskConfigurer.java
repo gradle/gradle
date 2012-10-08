@@ -24,71 +24,54 @@ import org.gradle.cli.ParsedCommandLineOption;
 import org.gradle.util.JavaMethod;
 
 import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * by Szczepan Faber, created at: 9/5/12
  */
 public class CommandLineTaskConfigurer {
 
-    //TODO SF add coverage and refactor existing tests, Use NotationParser
-
-    public Options getConfigurationEntries(CommandLineParser parser, Set<Task> tasks) {
-        Map<String, JavaMethod<Object, ?>> options = new HashMap<String, JavaMethod<Object, ?>>();
-        Options out = new Options(options);
-        if (tasks.size() != 1) {
-            return out;
-        }
-
-        for (Class<?> type = tasks.iterator().next().getClass(); type != Object.class; type = type.getSuperclass()) {
-            for (Method method : type.getDeclaredMethods()) {
-                CommandLineOption commandLineOption = method.getAnnotation(CommandLineOption.class);
-                if (commandLineOption != null) {
-                    org.gradle.cli.CommandLineOption option = parser.option(commandLineOption.options());
-                    option.hasDescription(commandLineOption.description());
-                    if (method.getParameterTypes().length > 0 && !hasSingleBooleanParameter(method)) {
-                        option.hasArgument();
-                    }
-                    options.put(commandLineOption.options()[0], JavaMethod.create(Object.class, Object.class, method));
-                }
-            }
-        }
-
-        return out;
-    }
-
     private static boolean hasSingleBooleanParameter(Method method) {
         if (method.getParameterTypes().length != 1) {
             return false;
         }
         Class<?> type = method.getParameterTypes()[0];
-        //TODO SF more testing
         return type == Boolean.class || type == Boolean.TYPE;
     }
 
-    public static class Options {
-
-        private final Map<String, JavaMethod<Object, ?>> options;
-
-        public Options(Map<String, JavaMethod<Object, ?>> options) {
-            this.options = options;
-        }
-
-        public void maybeConfigure(ParsedCommandLine commandLine, Set targets) {
-            for (Map.Entry<String, JavaMethod<Object, ?>> entry : options.entrySet()) {
-                if (commandLine.hasOption(entry.getKey())) {
-                    for (Object target : targets) {
-                        ParsedCommandLineOption o = commandLine.option(entry.getKey());
-                        if (o.hasValue()) {
-                            entry.getValue().invoke(target, o.getValue());
-                        } else {
-                            entry.getValue().invoke(target, true);
+    public List<String> configureTasks(Collection<Task> tasks, List<String> arguments) {
+        List<String> unusedArguments = new LinkedList<String>(arguments);
+        for (Task task : tasks) {
+            Map<String, JavaMethod<Object, ?>> options = new HashMap<String, JavaMethod<Object, ?>>();
+            CommandLineParser parser = new CommandLineParser();
+            for (Class<?> type = task.getClass(); type != Object.class; type = type.getSuperclass()) {
+                for (Method method : type.getDeclaredMethods()) {
+                    CommandLineOption commandLineOption = method.getAnnotation(CommandLineOption.class);
+                    if (commandLineOption != null) {
+                        String optionName = commandLineOption.options()[0];
+                        org.gradle.cli.CommandLineOption option = parser.option(optionName);
+                        option.hasDescription(commandLineOption.description());
+                        if (method.getParameterTypes().length > 0 && !hasSingleBooleanParameter(method)) {
+                            option.hasArgument();
                         }
+                        options.put(optionName, JavaMethod.create(Object.class, Object.class, method));
                     }
                 }
             }
+
+            ParsedCommandLine parsed = parser.parse(arguments);
+            for (Map.Entry<String, JavaMethod<Object, ?>> entry : options.entrySet()) {
+                if (parsed.hasOption(entry.getKey())) {
+                    ParsedCommandLineOption o = parsed.option(entry.getKey());
+                    if (o.hasValue()) {
+                        entry.getValue().invoke(task, o.getValue());
+                    } else {
+                        entry.getValue().invoke(task, true);
+                    }
+                }
+            }
+            unusedArguments.retainAll(parsed.getExtraArguments());
         }
+        return unusedArguments;
     }
 }

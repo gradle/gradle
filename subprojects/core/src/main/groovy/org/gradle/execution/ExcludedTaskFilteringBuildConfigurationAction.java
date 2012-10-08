@@ -43,8 +43,7 @@ public class ExcludedTaskFilteringBuildConfigurationAction implements BuildConfi
             final Set<Task> excludedTasks = new HashSet<Task>();
             for (String taskName : excludedTaskNames) {
                 selector.init(gradle);
-                selector.selectTasks(taskName);
-                excludedTasks.addAll(selector.getTasks());
+                excludedTasks.addAll(selector.getSelection(taskName).getTasks());
             }
             gradle.getTaskGraph().useFilter(new Spec<Task>() {
                 public boolean isSatisfiedBy(Task task) {

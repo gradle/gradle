@@ -20,11 +20,10 @@ import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.SetMultimap;
 import org.gradle.api.Task;
-import org.gradle.cli.CommandLineParser;
-import org.gradle.cli.ParsedCommandLine;
 import org.gradle.execution.CommandLineTaskConfigurer;
 import org.gradle.execution.TaskSelector;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -33,25 +32,30 @@ import java.util.Set;
  */
 public class CommandLineTaskParser {
 
+    CommandLineTaskConfigurer taskConfigurer =  new CommandLineTaskConfigurer();
+
     public Multimap<String, Task> parseTasks(List<String> paths, TaskSelector taskSelector) {
         SetMultimap<String, Task> out = LinkedHashMultimap.create();
-        List<String> remainingPaths = paths;
+        List<String> remainingPaths = new LinkedList<String>(paths);
         while (!remainingPaths.isEmpty()) {
-            String path = remainingPaths.get(0);
-            taskSelector.selectTasks(path);
-            Set<Task> tasks = taskSelector.getTasks();
+            String path = remainingPaths.remove(0);
+            TaskSelector.TaskSelection selection = taskSelector.getSelection(path);
+            Set<Task> tasks = selection.getTasks();
+            if (containsConfigurationOptions(remainingPaths)) {
+                remainingPaths = taskConfigurer.configureTasks(tasks, remainingPaths);
+            }
 
-            CommandLineParser commandLineParser = new CommandLineParser();
-            CommandLineTaskConfigurer.Options options = new CommandLineTaskConfigurer().getConfigurationEntries(commandLineParser, tasks);
-
-            ParsedCommandLine commandLine = commandLineParser.parse(remainingPaths.subList(1, remainingPaths.size()));
-
-            options.maybeConfigure(commandLine, tasks);
-
-            remainingPaths = commandLine.getExtraArguments();
-
-            out.putAll(taskSelector.getTaskName(), tasks);
+            out.putAll(selection.getTaskName(), tasks);
         }
         return out;
+    }
+
+    private boolean containsConfigurationOptions(List<String> arguments) {
+        for (String a : arguments) {
+            if (a.startsWith("--")) {
+                return true;
+            }
+        }
+        return false;
     }
 }
