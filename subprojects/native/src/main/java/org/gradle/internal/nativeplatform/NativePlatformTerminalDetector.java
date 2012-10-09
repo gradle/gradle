@@ -20,6 +20,7 @@ import net.rubygrapefruit.platform.Terminals;
 
 import java.io.FileDescriptor;
 
+import static net.rubygrapefruit.platform.Terminals.Output.Stderr;
 import static net.rubygrapefruit.platform.Terminals.Output.Stdout;
 
 public class NativePlatformTerminalDetector implements TerminalDetector {
@@ -30,6 +31,11 @@ public class NativePlatformTerminalDetector implements TerminalDetector {
     }
 
     public boolean isTerminal(FileDescriptor fileDescriptor) {
-        return terminals.isTerminal(Stdout);
+        if (fileDescriptor == FileDescriptor.out) {
+            return terminals.isTerminal(Stdout);
+        } else if (fileDescriptor == FileDescriptor.err) {
+            return terminals.isTerminal(Stderr);
+        }
+        return false;
     }
 }
