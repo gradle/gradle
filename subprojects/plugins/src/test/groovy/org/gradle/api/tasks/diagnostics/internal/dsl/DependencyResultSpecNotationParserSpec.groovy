@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.result.DependencyResult
 import org.gradle.api.internal.artifacts.result.ResolutionResultDataBuilder
 import org.gradle.api.internal.notations.api.NotationParser
 import org.gradle.api.specs.Spec
+import org.gradle.api.specs.internal.ValidatingClosureSpec
 import spock.lang.Specification
 
 /**
@@ -39,7 +40,7 @@ class DependencyResultSpecNotationParserSpec extends Specification {
         def spec = parser.parseNotation( { it.requested.name == 'mockito-core' } )
 
         then:
-        spec instanceof ClosureBasedSpec
+        spec instanceof ValidatingClosureSpec
         spec.isSatisfiedBy(mockito)
         !spec.isSatisfiedBy(other)
     }

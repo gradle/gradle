@@ -22,6 +22,7 @@ import org.gradle.api.internal.notations.NotationParserBuilder;
 import org.gradle.api.internal.notations.api.NotationParser;
 import org.gradle.api.internal.notations.api.UnsupportedNotationException;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.internal.ValidatingClosureSpec;
 
 import java.util.Collection;
 
@@ -40,7 +41,7 @@ public class DependencyResultSpecNotationParser implements NotationParser<Spec<D
         //TODO SF consider exposing a separate notation parser for closure -> spec
         if (notation instanceof Closure) {
             final Closure closure = (Closure) notation;
-            return new ClosureBasedSpec(closure, dslElement);
+            return new ValidatingClosureSpec<DependencyResult>(closure, dslElement);
         }
         if (notation instanceof CharSequence) {
             final String stringNotation = notation.toString();

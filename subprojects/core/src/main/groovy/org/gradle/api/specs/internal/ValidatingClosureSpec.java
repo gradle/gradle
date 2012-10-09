@@ -14,22 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.diagnostics.internal.dsl;
+package org.gradle.api.specs.internal;
 
 import groovy.lang.Closure;
 import org.gradle.api.GradleException;
 import org.gradle.api.specs.Spec;
 
-/**
-* by Szczepan Faber, created at: 10/9/12
-*/
-class ClosureBasedSpec<T> implements Spec<T> {
+public class ValidatingClosureSpec<T> implements Spec<T> {
 
-    //TODO SF move somewhere else
     private final Closure closure;
     private final String description;
 
-    public ClosureBasedSpec(Closure closure, String description) {
+    public ValidatingClosureSpec(Closure closure, String description) {
         this.closure = closure;
         this.description = description;
     }
@@ -39,6 +35,6 @@ class ClosureBasedSpec<T> implements Spec<T> {
         if (result instanceof Boolean) {
             return (Boolean) result;
         }
-        throw new GradleException("Incorrect closure specified for " + description + ". The closure must return boolean but it returned: " + result);
+        throw new GradleException("Closure: " + description + " must return boolean but it but it returned: " + result);
     }
 }

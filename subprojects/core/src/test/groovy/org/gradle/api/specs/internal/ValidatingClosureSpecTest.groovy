@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.diagnostics.internal.dsl
+package org.gradle.api.specs.internal
 
 import org.gradle.api.GradleException
 import spock.lang.Specification
@@ -22,20 +22,25 @@ import spock.lang.Specification
 /**
  * by Szczepan Faber, created at: 10/9/12
  */
-class ClosureBasedSpecTest extends Specification {
+class ValidatingClosureSpecTest extends Specification {
 
     def "converts closure to spec"() {
         expect:
-        def spec = new ClosureBasedSpec({ it.startsWith('foo') }, "someTask")
+        new ValidatingClosureSpec({ new Boolean(true) }, "someTask").isSatisfiedBy('foo')
+        !new ValidatingClosureSpec({ new Boolean(false) }, "someTask").isSatisfiedBy('foo')
+        new ValidatingClosureSpec({ true }, "someTask").isSatisfiedBy('foo')
+        !new ValidatingClosureSpec({ false }, "someTask").isSatisfiedBy('foo')
+
+        def spec = new ValidatingClosureSpec({ it.startsWith('foo') }, "someTask")
         spec.isSatisfiedBy("foo bar")
         !spec.isSatisfiedBy("bar foo")
     }
 
     def "reports incorrect closure"() {
         when:
-        new ClosureBasedSpec({ println it }, "someTask").isSatisfiedBy("foo")
+        new ValidatingClosureSpec({ println it }, "someTask.something").isSatisfiedBy("foo")
         then:
         def ex = thrown(GradleException)
-        ex.message == 'Incorrect closure specified for someTask. The closure must return boolean but it returned: null'
+        ex.message == 'Closure: someTask.something must return boolean but it but it returned: null'
     }
 }
