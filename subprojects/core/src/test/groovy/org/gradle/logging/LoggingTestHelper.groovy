@@ -20,18 +20,28 @@ import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.Appender
 import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.Level
+import org.junit.rules.ExternalResource
 import org.slf4j.LoggerFactory
 import ch.qos.logback.classic.LoggerContext
 
-/**
- * Should be a rule, but doesn't work with jmock.
- */
-class LoggingTestHelper {
+import java.util.logging.LogManager
+
+class LoggingTestHelper extends ExternalResource {
     private final Appender<ILoggingEvent> appender;
     private Logger logger;
 
     def LoggingTestHelper(appender) {
         this.appender = appender;
+    }
+
+    @Override
+    protected void before() {
+        attachAppender()
+    }
+
+    @Override
+    protected void after() {
+        detachAppender()
     }
 
     public void attachAppender() {
@@ -45,6 +55,7 @@ class LoggingTestHelper {
         logger.detachAppender(appender)
         LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory()
         lc.reset()
+        LogManager.getLogManager().reset()
     }
 
     public void setLevel(Level level) {

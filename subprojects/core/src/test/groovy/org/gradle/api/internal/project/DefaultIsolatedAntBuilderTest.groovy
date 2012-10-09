@@ -16,7 +16,6 @@
 package org.gradle.api.internal.project
 
 import ch.qos.logback.classic.Level
-import ch.qos.logback.core.AppenderBase
 import org.apache.tools.ant.BuildException
 import org.apache.tools.ant.Project
 import org.apache.tools.ant.taskdefs.ConditionTask
@@ -28,9 +27,10 @@ import org.gradle.api.internal.classpath.DefaultModuleRegistry
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.project.ant.BasicAntBuilder
 import org.gradle.logging.LoggingTestHelper
+import org.gradle.logging.TestAppender
 import org.gradle.util.DefaultClassLoaderFactory
-import org.junit.After
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
@@ -43,19 +43,13 @@ class DefaultIsolatedAntBuilderTest {
     private final ClassPathRegistry registry = new DefaultClassPathRegistry(new DefaultClassPathProvider(moduleRegistry))
     private final DefaultIsolatedAntBuilder builder = new DefaultIsolatedAntBuilder(registry, new DefaultClassLoaderFactory())
     private final TestAppender appender = new TestAppender()
-    private final LoggingTestHelper helper = new LoggingTestHelper(appender)
+    @Rule public final LoggingTestHelper logging = new LoggingTestHelper(appender)
     private Collection<File> classpath
 
     @Before
     public void attachAppender() {
         classpath = registry.getClassPath("GROOVY").asFiles
-        helper.attachAppender()
-        helper.setLevel(Level.INFO);
-    }
-
-    @After
-    public void detachAppender() {
-        helper.detachAppender()
+        logging.setLevel(Level.INFO);
     }
 
     @Test
@@ -121,7 +115,7 @@ class DefaultIsolatedAntBuilderTest {
             echo('${message}')
         }
 
-        assertThat(appender.writer.toString(), equalTo('[[ant:echo] a message]'))
+        assertThat(appender.toString(), equalTo('[WARN [ant:echo] a message]'))
     }
 
     @Test
@@ -133,9 +127,9 @@ class DefaultIsolatedAntBuilderTest {
             loggingTask()
         }
 
-        assertThat(appender.writer.toString(), containsString('[a jcl log message]'))
-        assertThat(appender.writer.toString(), containsString('[an slf4j log message]'))
-        assertThat(appender.writer.toString(), containsString('[a log4j log message]'))
+        assertThat(appender.toString(), containsString('[INFO a jcl log message]'))
+        assertThat(appender.toString(), containsString('[INFO an slf4j log message]'))
+        assertThat(appender.toString(), containsString('[INFO a log4j log message]'))
     }
 
     @Test
@@ -210,19 +204,5 @@ class TestAntTask extends Task {
         org.apache.commons.logging.LogFactory.getLog('ant-test').info("a jcl log message")
         org.slf4j.LoggerFactory.getLogger('ant-test').info("an slf4j log message")
         org.apache.log4j.Logger.getLogger('ant-test').info("a log4j log message")
-    }
-}
-
-class TestAppender<LoggingEvent> extends AppenderBase<LoggingEvent> {
-    final StringWriter writer = new StringWriter()
-
-    synchronized void doAppend(LoggingEvent e) {
-        append(e)
-    }
-
-    protected void append(LoggingEvent e) {
-        writer.append("[")
-        writer.append(e.formattedMessage)
-        writer.append("]")
     }
 }

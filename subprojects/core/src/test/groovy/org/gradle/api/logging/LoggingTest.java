@@ -40,16 +40,16 @@ import static org.junit.Assert.*;
 public class LoggingTest {
     private final JUnit4Mockery context = new JUnit4GroovyMockery();
     private final Appender<ILoggingEvent> appender = context.mock(Appender.class);
-    private final LoggingTestHelper helper = new LoggingTestHelper(appender);
+    private final LoggingTestHelper logging = new LoggingTestHelper(appender);
 
     @Before
     public void attachAppender() {
-        helper.attachAppender();
+        logging.attachAppender();
     }
 
     @After
     public void detachAppender() {
-        helper.detachAppender();
+        logging.detachAppender();
     }
 
     @Test
@@ -83,7 +83,7 @@ public class LoggingTest {
 
     @Test
     public void delegatesLevelIsEnabledToSlf4j() {
-        helper.setLevel(Level.WARN);
+        logging.setLevel(Level.WARN);
 
         Logger logger = Logging.getLogger(LoggingTest.class);
         assertTrue(logger.isErrorEnabled());

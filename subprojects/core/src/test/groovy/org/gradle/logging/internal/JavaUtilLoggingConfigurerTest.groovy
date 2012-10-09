@@ -16,28 +16,18 @@
 
 package org.gradle.logging.internal
 
-import spock.lang.Specification
-import java.util.logging.LogManager
-import ch.qos.logback.classic.spi.ILoggingEvent
-import ch.qos.logback.core.Appender
 import org.gradle.api.logging.LogLevel
-import java.util.logging.Logger
-import ch.qos.logback.classic.Level
 import org.gradle.logging.LoggingTestHelper
+import org.gradle.logging.TestAppender
+import org.junit.Rule
+import spock.lang.Specification
+
+import java.util.logging.Logger
 
 class JavaUtilLoggingConfigurerTest extends Specification {
-    private final Appender<ILoggingEvent> appender = Mock()
-    private final LoggingTestHelper helper = new LoggingTestHelper(appender)
+    final TestAppender appender = new TestAppender()
+    @Rule final LoggingTestHelper logging = new LoggingTestHelper(appender)
     private final JavaUtilLoggingConfigurer configurer = new JavaUtilLoggingConfigurer()
-
-    def setup() {
-        helper.attachAppender()
-    }
-
-    def cleanup() {
-        helper.detachAppender()
-        LogManager.getLogManager().reset()
-    }
 
     def routesJulToSlf4j() {
         when:
@@ -45,7 +35,6 @@ class JavaUtilLoggingConfigurerTest extends Specification {
         Logger.getLogger('test').info('info message')
 
         then:
-        1 * appender.doAppend({ILoggingEvent event -> event.level == Level.INFO && event.message == 'info message'})
-        0 * appender._
+        appender.toString() == '[INFO info message]'
     }
 }

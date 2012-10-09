@@ -16,22 +16,17 @@
 
 package org.gradle.util
 
-import ch.qos.logback.classic.spi.ILoggingEvent
-import ch.qos.logback.core.Appender
 import org.gradle.internal.Factory
 import org.gradle.logging.LoggingTestHelper
+import org.gradle.logging.TestAppender
+import org.junit.Rule
 import spock.lang.Specification
 
 class DeprecationLoggerTest extends Specification {
-    private final Appender<ILoggingEvent> appender = Mock()
-    private final LoggingTestHelper helper = new LoggingTestHelper(appender)
-
-    public void setup() {
-        helper.attachAppender()
-    }
+    final TestAppender appender = new TestAppender()
+    @Rule final LoggingTestHelper logging = new LoggingTestHelper(appender)
 
     public void cleanup() {
-        helper.detachAppender()
         DeprecationLogger.reset()
     }
 
@@ -41,10 +36,7 @@ class DeprecationLoggerTest extends Specification {
         DeprecationLogger.nagUserWith("nag")
 
         then:
-        1 * appender.doAppend(!null) >> { ILoggingEvent event ->
-            assert event.formattedMessage == 'nag'
-        }
-        0 * appender._
+        appender.toString() == '[WARN nag]'
     }
 
     def "does not log warning while disabled with factory"() {
