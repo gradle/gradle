@@ -113,16 +113,6 @@ public class LoggingServiceRegistry extends DefaultServiceRegistry {
         return new TrueTimeProvider();
     }
 
-    protected StdOutLoggingSystem createStdOutLoggingSystem() {
-        switch (type) {
-            case CommandLine:
-            case Child:
-                return new DefaultStdOutLoggingSystem(getStdoutListener(), get(TimeProvider.class));
-            default:
-                return new NoOpLoggingSystem();
-        }
-    }
-
     protected StyledTextOutputFactory createStyledTextOutputFactory() {
         return new DefaultStyledTextOutputFactory(getStdoutListener(), get(TimeProvider.class));
     }
@@ -134,44 +124,42 @@ public class LoggingServiceRegistry extends DefaultServiceRegistry {
         return stdoutListener;
     }
 
-    protected StdErrLoggingSystem createStdErrLoggingSystem() {
-        switch (type) {
-            case CommandLine:
-            case Child:
-                TextStreamOutputEventListener listener = new TextStreamOutputEventListener(get(OutputEventListener.class));
-                return new DefaultStdErrLoggingSystem(listener, get(TimeProvider.class));
-            default:
-                return new NoOpLoggingSystem();
-        }
-    }
-
     protected ProgressLoggerFactory createProgressLoggerFactory() {
         return new DefaultProgressLoggerFactory(new ProgressLoggingBridge(get(OutputEventListener.class)), get(TimeProvider.class));
     }
 
     protected Factory<LoggingManagerInternal> createLoggingManagerFactory() {
         OutputEventRenderer renderer = get(OutputEventRenderer.class);
-        DefaultLoggingConfigurer compositeConfigurer = new DefaultLoggingConfigurer(renderer);
         switch (type) {
             case CommandLine:
             case Child:
-                compositeConfigurer.add(new LogbackLoggingConfigurer(renderer));
-                compositeConfigurer.add(new JavaUtilLoggingConfigurer());
-                return new DefaultLoggingManagerFactory(compositeConfigurer, renderer, getStdOutLoggingSystem(), getStdErrLoggingSystem());
+                // Configure logback and java util logging, and capture stdout and stderr
+                LoggingSystem stdout = new DefaultStdOutLoggingSystem(getStdoutListener(), get(TimeProvider.class));
+                LoggingSystem stderr = new DefaultStdErrLoggingSystem(new TextStreamOutputEventListener(get(OutputEventListener.class)), get(TimeProvider.class));
+                return new DefaultLoggingManagerFactory(
+                        new DefaultLoggingConfigurer(renderer,
+                                new LogbackLoggingConfigurer(renderer),
+                                new JavaUtilLoggingConfigurer()),
+                        renderer,
+                        stdout,
+                        stderr);
             case Embedded:
-                compositeConfigurer.add(new LogbackLoggingConfigurer(renderer));
-                return new DefaultLoggingManagerFactory(compositeConfigurer, renderer, getStdOutLoggingSystem(), getStdErrLoggingSystem());
+                // Configure logback only
+                return new DefaultLoggingManagerFactory(
+                        new DefaultLoggingConfigurer(renderer,
+                                new LogbackLoggingConfigurer(renderer)),
+                        renderer,
+                        new NoOpLoggingSystem(),
+                        new NoOpLoggingSystem());
+            case Nested:
+                // Don't configure anything
+                return new DefaultLoggingManagerFactory(renderer,
+                        renderer,
+                        new NoOpLoggingSystem(),
+                        new NoOpLoggingSystem());
             default:
-                return new DefaultLoggingManagerFactory(compositeConfigurer, renderer, getStdOutLoggingSystem(), getStdErrLoggingSystem());
+                throw new IllegalStateException();
         }
-    }
-
-    private LoggingSystem getStdErrLoggingSystem() {
-        return get(StdErrLoggingSystem.class);
-    }
-
-    private LoggingSystem getStdOutLoggingSystem() {
-        return get(StdOutLoggingSystem.class);
     }
 
     protected OutputEventRenderer createOutputEventRenderer() {
