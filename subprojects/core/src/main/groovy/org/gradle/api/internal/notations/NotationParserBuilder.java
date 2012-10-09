@@ -36,6 +36,7 @@ public class NotationParserBuilder<T> {
     private String invalidNotationMessage;
     private Collection<NotationParser<? extends T>> notationParsers = new LinkedList<NotationParser<? extends T>>();
 
+    //TODO SF we need a type literal here so that nested generic types are neatly supported
     public NotationParserBuilder<T> resultingType(Class<T> resultingType) {
         this.resultingType = resultingType;
         return this;

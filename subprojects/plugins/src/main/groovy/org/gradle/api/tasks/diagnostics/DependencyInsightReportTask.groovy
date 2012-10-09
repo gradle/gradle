@@ -19,13 +19,16 @@ package org.gradle.api.tasks.diagnostics;
 
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
+import org.gradle.api.Incubating
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.result.DependencyResult
 import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.artifacts.result.ResolvedDependencyResult
 import org.gradle.api.internal.tasks.CommandLineOption
+import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.diagnostics.internal.GraphRenderer
+import org.gradle.api.tasks.diagnostics.internal.dsl.DependencyResultSpecNotationParser
 import org.gradle.api.tasks.diagnostics.internal.graph.DependencyGraphRenderer
 import org.gradle.api.tasks.diagnostics.internal.graph.NodeRenderer
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency
@@ -40,10 +43,11 @@ import static org.gradle.logging.StyledTextOutput.Style.Info
 /**
  * by Szczepan Faber, created at: 8/17/12
  */
+@Incubating
 public class DependencyInsightReportTask extends DefaultTask {
 
     Configuration configuration;
-    Closure includes;
+    Spec<DependencyResult> dependencySpec;
 
     private final StyledTextOutput output;
     private final GraphRenderer renderer;
@@ -54,24 +58,22 @@ public class DependencyInsightReportTask extends DefaultTask {
         renderer = new GraphRenderer(output);
     }
 
+    public void setDependencySpec(Spec<DependencyResult> dependencySpec) {
+        this.dependencySpec = dependencySpec;
+    }
+
+    @CommandLineOption(options = "dependency", description = "Shows the details of given dependency.")
+    public void dependency(Object dependencyNotation) {
+        def parser = DependencyResultSpecNotationParser.create()
+        this.dependencySpec = parser.parseNotation(dependencyNotation)
+    }
+
     public void setConfiguration(Configuration configuration) {
         this.configuration = configuration;
     }
 
-    public void setIncludes(Closure includes) {
-        this.includes = includes
-    }
-
-    @CommandLineOption(options = "includes", description = "Shows the details of given dependency.")
-    public void setIncludes(String dependencyNotation) {
-        this.includes = { ResolvedDependencyResult candidate ->
-            String candidateName = candidate.requested.group + ":" + candidate.requested.name + ":" + candidate.requested.version
-            return candidateName.contains(dependencyNotation)
-        }
-    }
-
     @CommandLineOption(options = "configuration", description = "Looks for the depedency in given configuration.")
-    public void setConfiguration(String configurationName) {
+    public void configuration(String configurationName) {
         this.configuration = project.configurations.getByName(configurationName)
     }
 
@@ -80,16 +82,16 @@ public class DependencyInsightReportTask extends DefaultTask {
         if (configuration == null) {
             throw new ReportException("Dependency insight report cannot be generated because the input configuration was not specified.")
         }
-        if (includes == null) {
-            throw new ReportException("Dependency insight report cannot be generated because the dependency to include was not specified.")
+        if (dependencySpec == null) {
+            throw new ReportException("Dependency insight report cannot be generated because the dependency to show was not specified.")
         }
 
         ResolutionResult result = configuration.getIncoming().getResolutionResult();
 
         Set<DependencyResult> selectedDependencies = new LinkedHashSet<DependencyResult>()
         result.allDependencies { DependencyResult it ->
-            //TODO SF polish the api, revisit at the 'unresolved' dependencies story.
-            if(it instanceof ResolvedDependencyResult && includes(it)) {
+            //TODO SF revisit when developing unresolved dependencies story
+            if (it instanceof ResolvedDependencyResult && dependencySpec.isSatisfiedBy(it)) {
                 selectedDependencies << it
             }
         }

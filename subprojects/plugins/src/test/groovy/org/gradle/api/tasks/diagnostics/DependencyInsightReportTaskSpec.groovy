@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.diagnostics
 
+import org.gradle.api.specs.Spec
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
 
@@ -44,5 +45,25 @@ class DependencyInsightReportTaskSpec extends Specification {
 
         then:
         thrown(ReportException)
+    }
+
+    def "can set spec and configuration directly"() {
+        when:
+        def conf = project.configurations.add("foo")
+        task.configuration = conf
+        task.dependencySpec = { true } as Spec
+        then:
+        task.dependencySpec != null
+        task.configuration == conf
+    }
+
+    def "can set spec and configuration via methods"() {
+        when:
+        project.configurations.add("foo")
+        task.configuration 'foo'
+        task.dependency 'bar'
+        then:
+        task.dependencySpec != null
+        task.configuration.name == 'foo'
     }
 }

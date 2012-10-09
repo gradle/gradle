@@ -45,7 +45,7 @@ class DependencyInsightReportTaskIntegrationTest extends AbstractIntegrationSpec
                 conf 'org:top:1.0'
             }
             task insight(type: DependencyInsightReportTask) {
-                includes = { it.requested.name == 'leaf2' }
+                dependency { it.requested.name == 'leaf2' }
                 configuration = configurations.conf
             }
         """
@@ -99,7 +99,7 @@ org:leaf2:1.0
         """
 
         when:
-        run "dependencyInsight", "--includes", "leaf2", "--configuration", "conf"
+        run "dependencyInsight", "--dependency", "leaf2", "--configuration", "conf"
 
         then:
         output.contains(toPlatformLineSeparators("""
@@ -142,7 +142,7 @@ org:leaf2:1.5 -> 2.5
             }
             task insight(type: DependencyInsightReportTask) {
                 configuration = configurations.conf
-                includes = { it.requested.name == 'leaf' }
+                dependency { it.requested.name == 'leaf' }
             }
         """
 
@@ -182,7 +182,7 @@ org:leaf:2.0 -> 1.0
             }
             task insight(type: DependencyInsightReportTask) {
                 configuration = configurations.conf
-                includes = { it.requested.name == 'leaf' }
+                dependency { it.requested.name == 'leaf' }
             }
         """
 
@@ -223,7 +223,7 @@ org:leaf:1.0 -> 2.0
             }
             task insight(type: DependencyInsightReportTask) {
                 configuration = configurations.conf
-                includes = { it.requested.name == 'leaf' }
+                dependency { it.requested.name == 'leaf' }
             }
         """
 
@@ -267,7 +267,7 @@ org:leaf:2.0 -> 1.5
             }
             task insight(type: DependencyInsightReportTask) {
                 configuration = configurations.conf
-                includes = { it.requested.name == 'leaf' }
+                dependency { it.requested.name == 'leaf' }
             }
         """
 
@@ -291,7 +291,7 @@ org:leaf:2.0 -> 1.0
         given:
         file("build.gradle") << """
             task insight(type: DependencyInsightReportTask) {
-                includes = { it.requested.name == 'leaf2' }
+                dependency { it.requested.name == 'leaf2' }
             }
         """
 
@@ -309,7 +309,7 @@ org:leaf:2.0 -> 1.0
                 conf
             }
             task insight(type: DependencyInsightReportTask) {
-                includes = { it.requested.name == 'whatever' }
+                dependency { it.requested.name == 'whatever' }
                 configuration = configurations.conf
             }
         """
@@ -336,7 +336,7 @@ org:leaf:2.0 -> 1.0
                 conf 'org:top:1.0'
             }
             task insight(type: DependencyInsightReportTask) {
-                includes = { it.requested.name == 'foo.unknown' }
+                dependency { it.requested.name == 'foo.unknown' }
                 configuration = configurations.conf
             }
         """
@@ -363,7 +363,7 @@ org:leaf:2.0 -> 1.0
                 conf 'org:top:1.0'
             }
             task insight(type: DependencyInsightReportTask) {
-                includes = { it.requested.name == 'middle' }
+                dependency { it.requested.name == 'middle' }
                 configuration = configurations.conf
             }
         """
@@ -391,7 +391,7 @@ org:leaf:2.0 -> 1.0
                 conf 'org:leaf1:1.0'
             }
             task insight(type: DependencyInsightReportTask) {
-                includes = { it.requested.name == 'leaf2' }
+                dependency { it.requested.name == 'leaf2' }
                 configuration = configurations.conf
             }
         """
