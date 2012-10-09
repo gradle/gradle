@@ -17,7 +17,7 @@
 package org.gradle.logging.internal
 
 import org.gradle.api.logging.LogLevel
-import org.gradle.logging.LoggingTestHelper
+import org.gradle.logging.ConfigureLogging
 import org.gradle.logging.TestAppender
 import org.junit.Rule
 import spock.lang.Specification
@@ -26,7 +26,7 @@ import java.util.logging.Logger
 
 class JavaUtilLoggingConfigurerTest extends Specification {
     final TestAppender appender = new TestAppender()
-    @Rule final LoggingTestHelper logging = new LoggingTestHelper(appender)
+    @Rule final ConfigureLogging logging = new ConfigureLogging(appender)
     private final JavaUtilLoggingConfigurer configurer = new JavaUtilLoggingConfigurer()
 
     def routesJulToSlf4j() {

@@ -17,14 +17,14 @@
 package org.gradle.util
 
 import org.gradle.internal.Factory
-import org.gradle.logging.LoggingTestHelper
+import org.gradle.logging.ConfigureLogging
 import org.gradle.logging.TestAppender
 import org.junit.Rule
 import spock.lang.Specification
 
 class DeprecationLoggerTest extends Specification {
     final TestAppender appender = new TestAppender()
-    @Rule final LoggingTestHelper logging = new LoggingTestHelper(appender)
+    @Rule final ConfigureLogging logging = new ConfigureLogging(appender)
 
     public void cleanup() {
         DeprecationLogger.reset()

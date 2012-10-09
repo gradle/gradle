@@ -26,7 +26,7 @@ import org.gradle.api.internal.DefaultClassPathRegistry
 import org.gradle.api.internal.classpath.DefaultModuleRegistry
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.project.ant.BasicAntBuilder
-import org.gradle.logging.LoggingTestHelper
+import org.gradle.logging.ConfigureLogging
 import org.gradle.logging.TestAppender
 import org.gradle.util.DefaultClassLoaderFactory
 import org.junit.Before
@@ -43,7 +43,7 @@ class DefaultIsolatedAntBuilderTest {
     private final ClassPathRegistry registry = new DefaultClassPathRegistry(new DefaultClassPathProvider(moduleRegistry))
     private final DefaultIsolatedAntBuilder builder = new DefaultIsolatedAntBuilder(registry, new DefaultClassLoaderFactory())
     private final TestAppender appender = new TestAppender()
-    @Rule public final LoggingTestHelper logging = new LoggingTestHelper(appender)
+    @Rule public final ConfigureLogging logging = new ConfigureLogging(appender)
     private Collection<File> classpath
 
     @Before

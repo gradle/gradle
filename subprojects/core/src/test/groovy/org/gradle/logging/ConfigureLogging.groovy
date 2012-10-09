@@ -26,11 +26,11 @@ import ch.qos.logback.classic.LoggerContext
 
 import java.util.logging.LogManager
 
-class LoggingTestHelper extends ExternalResource {
+class ConfigureLogging extends ExternalResource {
     private final Appender<ILoggingEvent> appender;
     private Logger logger;
 
-    def LoggingTestHelper(appender) {
+    def ConfigureLogging(appender) {
         this.appender = appender;
     }
 

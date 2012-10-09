@@ -34,18 +34,14 @@ import org.gradle.logging.internal.logback.LogbackLoggingConfigurer;
  * A {@link org.gradle.internal.service.ServiceRegistry} implementation which provides the logging services.
  */
 public class LoggingServiceRegistry extends DefaultServiceRegistry {
-    private TextStreamOutputEventListener stdoutListener;
-    private final boolean detectConsole;
-    private final boolean isEmbedded;
-
-    LoggingServiceRegistry() {
-        this(true, false);
+    private enum Type {
+        CommandLine, Child, Embedded, Nested
     }
+    private TextStreamOutputEventListener stdoutListener;
+    private final Type type;
 
-    LoggingServiceRegistry(boolean detectConsole, boolean isEmbedded) {
-        this.detectConsole = detectConsole;
-        this.isEmbedded = isEmbedded;
-        stdoutListener = new TextStreamOutputEventListener(get(OutputEventListener.class));
+    private LoggingServiceRegistry(Type type) {
+        this.type = type;
     }
 
     /**
@@ -61,7 +57,7 @@ public class LoggingServiceRegistry extends DefaultServiceRegistry {
      * <p>Does nothing until started.</p>
      */
     public static LoggingServiceRegistry newCommandLineProcessLogging() {
-        return new LoggingServiceRegistry(true, false);
+        return new LoggingServiceRegistry(Type.CommandLine);
     }
 
     /**
@@ -78,7 +74,7 @@ public class LoggingServiceRegistry extends DefaultServiceRegistry {
      * <p>Does nothing until started.</p>
      */
     public static LoggingServiceRegistry newChildProcessLogging() {
-        return new LoggingServiceRegistry(false, false);
+        return new LoggingServiceRegistry(Type.Child);
     }
 
     /**
@@ -86,27 +82,27 @@ public class LoggingServiceRegistry extends DefaultServiceRegistry {
      *
      * <ul>
      *     <li>Routes logging output to System.out and System.err.</li>
+     *     <li>Configures slf4j and logback.</li>
      * </ul>
      *
      * <p>Does not:</p>
      *
      * <ul>
      *     <li>Replace System.out and System.err to capture output written to these destinations.</li>
-     *     <li>Configure slf4j or logback.</li>
      *     <li>Configure log4j or java util logging.</li>
      * </ul>
      *
      * <p>Does nothing until started.</p>
      */
     public static LoggingServiceRegistry newEmbeddableLogging() {
-        return new LoggingServiceRegistry(false, true);
+        return new LoggingServiceRegistry(Type.Embedded);
     }
 
     /**
      * Creates a set of logging services to set up a new logging scope. Does not configure any static state.
      */
     public LoggingServiceRegistry newLogging() {
-        return new LoggingServiceRegistry(false, true);
+        return new LoggingServiceRegistry(Type.Nested);
     }
 
     protected CommandLineConverter<LoggingConfiguration> createCommandLineConverter() {
@@ -118,22 +114,35 @@ public class LoggingServiceRegistry extends DefaultServiceRegistry {
     }
 
     protected StdOutLoggingSystem createStdOutLoggingSystem() {
-        if (isEmbedded) {
-            return new NoOpLoggingSystem();
+        switch (type) {
+            case CommandLine:
+            case Child:
+                return new DefaultStdOutLoggingSystem(getStdoutListener(), get(TimeProvider.class));
+            default:
+                return new NoOpLoggingSystem();
         }
-        return new DefaultStdOutLoggingSystem(stdoutListener, get(TimeProvider.class));
     }
 
     protected StyledTextOutputFactory createStyledTextOutputFactory() {
-        return new DefaultStyledTextOutputFactory(stdoutListener, get(TimeProvider.class));
+        return new DefaultStyledTextOutputFactory(getStdoutListener(), get(TimeProvider.class));
+    }
+
+    private TextStreamOutputEventListener getStdoutListener() {
+        if (stdoutListener == null) {
+            stdoutListener = new TextStreamOutputEventListener(get(OutputEventListener.class));
+        }
+        return stdoutListener;
     }
 
     protected StdErrLoggingSystem createStdErrLoggingSystem() {
-        if (isEmbedded) {
-            return new NoOpLoggingSystem();
+        switch (type) {
+            case CommandLine:
+            case Child:
+                TextStreamOutputEventListener listener = new TextStreamOutputEventListener(get(OutputEventListener.class));
+                return new DefaultStdErrLoggingSystem(listener, get(TimeProvider.class));
+            default:
+                return new NoOpLoggingSystem();
         }
-        TextStreamOutputEventListener listener = new TextStreamOutputEventListener(get(OutputEventListener.class));
-        return new DefaultStdErrLoggingSystem(listener, get(TimeProvider.class));
     }
 
     protected ProgressLoggerFactory createProgressLoggerFactory() {
@@ -142,14 +151,18 @@ public class LoggingServiceRegistry extends DefaultServiceRegistry {
 
     protected Factory<LoggingManagerInternal> createLoggingManagerFactory() {
         OutputEventRenderer renderer = get(OutputEventRenderer.class);
-        if (!isEmbedded) {
-            //we want to reset and manipulate java logging only if we own the process, e.g. we're *not* embedded
-            DefaultLoggingConfigurer compositeConfigurer = new DefaultLoggingConfigurer(renderer);
-            compositeConfigurer.add(new LogbackLoggingConfigurer(renderer));
-            compositeConfigurer.add(new JavaUtilLoggingConfigurer());
-            return new DefaultLoggingManagerFactory(compositeConfigurer, renderer, getStdOutLoggingSystem(), getStdErrLoggingSystem());
-        } else {
-            return new EmbeddedLoggingManagerFactory(renderer);
+        DefaultLoggingConfigurer compositeConfigurer = new DefaultLoggingConfigurer(renderer);
+        switch (type) {
+            case CommandLine:
+            case Child:
+                compositeConfigurer.add(new LogbackLoggingConfigurer(renderer));
+                compositeConfigurer.add(new JavaUtilLoggingConfigurer());
+                return new DefaultLoggingManagerFactory(compositeConfigurer, renderer, getStdOutLoggingSystem(), getStdErrLoggingSystem());
+            case Embedded:
+                compositeConfigurer.add(new LogbackLoggingConfigurer(renderer));
+                return new DefaultLoggingManagerFactory(compositeConfigurer, renderer, getStdOutLoggingSystem(), getStdErrLoggingSystem());
+            default:
+                return new DefaultLoggingManagerFactory(compositeConfigurer, renderer, getStdOutLoggingSystem(), getStdErrLoggingSystem());
         }
     }
 
@@ -164,7 +177,7 @@ public class LoggingServiceRegistry extends DefaultServiceRegistry {
     protected OutputEventRenderer createOutputEventRenderer() {
         TerminalDetector terminalDetector;
         ConsoleMetaData consoleMetaData;
-        if (detectConsole) {
+        if (type == Type.CommandLine) {
             StartParameter startParameter = new StartParameter();
             NativeServices.initialize(startParameter.getGradleUserHomeDir());
             terminalDetector = NativeServices.getInstance().get(TerminalDetector.class);
