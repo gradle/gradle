@@ -19,10 +19,10 @@
 package org.gradle.execution
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.internal.tasks.CommandLineOption
 import org.gradle.api.tasks.TaskAction
-import org.gradle.cli.CommandLineArgumentException
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
 
@@ -79,7 +79,7 @@ class CommandLineTaskConfigurerSpec extends Specification {
         when:
         configurer.configureTasks([task, defaultTask], ['--someFlag'])
         then:
-        def ex = thrown(CommandLineArgumentException) //TODO SF improve the error message
+        def ex = thrown(GradleException)
         ex.message.contains('someFlag')
     }
 
@@ -114,7 +114,7 @@ class CommandLineTaskConfigurerSpec extends Specification {
         configurer.configureTasks([task, task2], args)
 
         then:
-        def ex = thrown(CommandLineArgumentException)
+        def ex = thrown(GradleException)
         ex.message.contains('xxx')
     }
 

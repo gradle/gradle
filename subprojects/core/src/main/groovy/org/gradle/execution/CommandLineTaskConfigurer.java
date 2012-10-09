@@ -16,8 +16,10 @@
 
 package org.gradle.execution;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.CommandLineOption;
+import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.cli.ParsedCommandLineOption;
@@ -59,7 +61,13 @@ public class CommandLineTaskConfigurer {
                 }
             }
 
-            ParsedCommandLine parsed = parser.parse(arguments);
+
+            ParsedCommandLine parsed = null;
+            try {
+                parsed = parser.parse(arguments);
+            } catch (CommandLineArgumentException e) {
+                throw new GradleException("Problem configuring task " + task.getPath() + " from command line. " + e.getMessage(), e);
+            }
             for (Map.Entry<String, JavaMethod<Object, ?>> entry : options.entrySet()) {
                 if (parsed.hasOption(entry.getKey())) {
                     ParsedCommandLineOption o = parsed.option(entry.getKey());

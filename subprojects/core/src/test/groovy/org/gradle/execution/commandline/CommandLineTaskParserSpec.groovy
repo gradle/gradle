@@ -17,6 +17,7 @@
 package org.gradle.execution.commandline
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.tasks.TaskAction
 import org.gradle.execution.CommandLineTaskConfigurer
@@ -71,6 +72,15 @@ class CommandLineTaskParserSpec extends Specification {
         out.size() == 2
         out.get('foo task') == [task, task2] as Set
         0 * parser.taskConfigurer._
+    }
+
+    def "reports incorrect commandline task configuration"() {
+        when:
+        parser.parseTasks(['tasks', '-l', '-l'], selector)
+
+        then:
+        def ex = thrown(GradleException)
+        ex.message.contains('-l')
     }
 
     def "parses multiple matching tasks"() {
