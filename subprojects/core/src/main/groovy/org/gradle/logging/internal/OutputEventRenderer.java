@@ -19,7 +19,7 @@ import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.internal.console.ConsoleMetaData;
-import org.gradle.internal.nativeplatform.TerminalDetector;
+import org.gradle.internal.nativeplatform.ConsoleDetector;
 import org.gradle.listener.ListenerBroadcast;
 
 import java.io.FileDescriptor;
@@ -34,19 +34,19 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
     private final ListenerBroadcast<OutputEventListener> formatters = new ListenerBroadcast<OutputEventListener>(OutputEventListener.class);
     private final ListenerBroadcast<StandardOutputListener> stdoutListeners = new ListenerBroadcast<StandardOutputListener>(StandardOutputListener.class);
     private final ListenerBroadcast<StandardOutputListener> stderrListeners = new ListenerBroadcast<StandardOutputListener>(StandardOutputListener.class);
-    private final TerminalDetector terminalDetector;
+    private final ConsoleDetector consoleDetector;
     private final Object lock = new Object();
     private final DefaultColorMap colourMap = new DefaultColorMap();
     private LogLevel logLevel = LogLevel.LIFECYCLE;
     private final ConsoleMetaData consoleMetaData;
 
-    public OutputEventRenderer(TerminalDetector terminalDetector, ConsoleMetaData consoleMetaData) {
+    public OutputEventRenderer(ConsoleDetector consoleDetector, ConsoleMetaData consoleMetaData) {
         this.consoleMetaData = consoleMetaData;
         OutputEventListener stdOutChain = onNonError(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stdoutListeners.getSource())), false));
         formatters.add(stdOutChain);
         OutputEventListener stdErrChain = onError(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stderrListeners.getSource())), false));
         formatters.add(stdErrChain);
-        this.terminalDetector = terminalDetector;
+        this.consoleDetector = consoleDetector;
     }
 
     public void colorStdOutAndStdErr(boolean colorOutput) {
@@ -57,8 +57,8 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
 
     public void addStandardOutputAndError() {
         synchronized (lock) {
-            boolean stdOutIsTerminal = terminalDetector.isTerminal(FileDescriptor.out);
-            boolean stdErrIsTerminal = terminalDetector.isTerminal(FileDescriptor.err);
+            boolean stdOutIsTerminal = consoleDetector.isConsole(FileDescriptor.out);
+            boolean stdErrIsTerminal = consoleDetector.isConsole(FileDescriptor.err);
             if (stdOutIsTerminal) {
                 PrintStream outStr = org.fusesource.jansi.AnsiConsole.out();
                 Console console = new AnsiConsole(outStr, outStr, colourMap);

@@ -23,8 +23,8 @@ import org.gradle.internal.TimeProvider;
 import org.gradle.internal.TrueTimeProvider;
 import org.gradle.internal.console.ConsoleMetaData;
 import org.gradle.internal.console.FallbackConsoleMetaData;
-import org.gradle.internal.nativeplatform.NoOpTerminalDetector;
-import org.gradle.internal.nativeplatform.TerminalDetector;
+import org.gradle.internal.nativeplatform.ConsoleDetector;
+import org.gradle.internal.nativeplatform.NoOpConsoleDetector;
 import org.gradle.internal.nativeplatform.services.NativeServices;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.logging.internal.*;
@@ -175,18 +175,18 @@ public class LoggingServiceRegistry extends DefaultServiceRegistry {
     }
 
     protected OutputEventRenderer createOutputEventRenderer() {
-        TerminalDetector terminalDetector;
+        ConsoleDetector consoleDetector;
         ConsoleMetaData consoleMetaData;
         if (type == Type.CommandLine) {
             StartParameter startParameter = new StartParameter();
             NativeServices.initialize(startParameter.getGradleUserHomeDir());
-            terminalDetector = NativeServices.getInstance().get(TerminalDetector.class);
+            consoleDetector = NativeServices.getInstance().get(ConsoleDetector.class);
             consoleMetaData = NativeServices.getInstance().get(ConsoleMetaData.class);
         } else {
-            terminalDetector = new NoOpTerminalDetector();
+            consoleDetector = new NoOpConsoleDetector();
             consoleMetaData = new FallbackConsoleMetaData();
         }
-        OutputEventRenderer renderer = new OutputEventRenderer(terminalDetector, consoleMetaData);
+        OutputEventRenderer renderer = new OutputEventRenderer(consoleDetector, consoleMetaData);
         renderer.addStandardOutputAndError();
         return renderer;
     }

@@ -23,14 +23,14 @@ import java.io.FileDescriptor;
 import static net.rubygrapefruit.platform.Terminals.Output.Stderr;
 import static net.rubygrapefruit.platform.Terminals.Output.Stdout;
 
-public class NativePlatformTerminalDetector implements TerminalDetector {
+public class NativePlatformConsoleDetector implements ConsoleDetector {
     private final Terminals terminals;
 
-    public NativePlatformTerminalDetector(Terminals terminals) {
+    public NativePlatformConsoleDetector(Terminals terminals) {
         this.terminals = terminals;
     }
 
-    public boolean isTerminal(FileDescriptor fileDescriptor) {
+    public boolean isConsole(FileDescriptor fileDescriptor) {
         if (fileDescriptor == FileDescriptor.out) {
             return terminals.isTerminal(Stdout);
         } else if (fileDescriptor == FileDescriptor.err) {

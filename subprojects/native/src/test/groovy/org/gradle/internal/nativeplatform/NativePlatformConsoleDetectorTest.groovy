@@ -20,23 +20,23 @@ import spock.lang.Specification
 import net.rubygrapefruit.platform.Terminals
 import spock.lang.Unroll
 
-class NativePlatformTerminalDetectorTest extends Specification {
+class NativePlatformConsoleDetectorTest extends Specification {
 
     private Terminals terminals = Mock()
 
-    private NativePlatformTerminalDetector detector = new NativePlatformTerminalDetector(terminals)
+    private NativePlatformConsoleDetector detector = new NativePlatformConsoleDetector(terminals)
 
     @Unroll
     def "isTerminal supports #output"(){
         when:
         1 * terminals.isTerminal(output) >> true
         then:
-        detector.isTerminal(fd)
+        detector.isConsole(fd)
 
         when:
         1 * terminals.isTerminal(output) >> false
         then:
-        detector.isTerminal(fd) == false
+        detector.isConsole(fd) == false
         where:
         fd                  | output
         FileDescriptor.out  | Terminals.Output.Stdout
@@ -45,7 +45,7 @@ class NativePlatformTerminalDetectorTest extends Specification {
 
     def "isTerminal is false for any non STD out / err FileDescriptors"(){
         when:
-        def isTerminal =detector.isTerminal(new FileDescriptor())
+        def isTerminal =detector.isConsole(new FileDescriptor())
         then:
         !isTerminal
         0 * terminals.isTerminal(Terminals.Output.Stdout);

@@ -18,6 +18,6 @@ package org.gradle.internal.nativeplatform;
 
 import java.io.FileDescriptor;
 
-public interface TerminalDetector {
-    boolean isTerminal(FileDescriptor fileDescriptor);
+public interface ConsoleDetector {
+    boolean isConsole(FileDescriptor fileDescriptor);
 }

@@ -16,7 +16,7 @@
 package org.gradle.internal.nativeplatform.services
 
 import org.gradle.internal.nativeplatform.ProcessEnvironment
-import org.gradle.internal.nativeplatform.TerminalDetector
+import org.gradle.internal.nativeplatform.ConsoleDetector
 import org.gradle.internal.nativeplatform.filesystem.FileSystem
 import org.gradle.internal.os.OperatingSystem
 import spock.lang.Specification
@@ -42,7 +42,7 @@ class NativeServicesTest extends Specification {
 
     def "makes a TerminalDetector available"() {
         expect:
-        services.get(TerminalDetector) != null
+        services.get(ConsoleDetector) != null
     }
 
     def "makes ConsoleMetaData available"() {

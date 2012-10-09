@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,10 @@
 
 package org.gradle.internal.nativeplatform;
 
-import org.fusesource.jansi.WindowsAnsiOutputStream;
-
-import java.io.ByteArrayOutputStream;
 import java.io.FileDescriptor;
-import java.io.IOException;
 
-public class WindowsTerminalDetector implements TerminalDetector {
-    public boolean isTerminal(FileDescriptor fileDescriptor) {
-        // Use Jansi's detection mechanism
-        try {
-            new WindowsAnsiOutputStream(new ByteArrayOutputStream());
-            return true;
-        } catch (IOException ignore) {
-            // Not attached to a console
-            return false;
-        }
+public class NoOpConsoleDetector implements ConsoleDetector {
+    public boolean isConsole(FileDescriptor fileDescriptor) {
+        return false;
     }
 }

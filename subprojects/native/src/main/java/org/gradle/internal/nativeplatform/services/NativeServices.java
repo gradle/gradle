@@ -90,25 +90,25 @@ public class NativeServices extends DefaultServiceRegistry {
         }
     }
 
-    protected TerminalDetector createTerminalDetector() {
+    protected ConsoleDetector createTerminalDetector() {
         OperatingSystem operatingSystem = get(OperatingSystem.class);
         /*
         try {
             Terminals terminals = net.rubygrapefruit.platform.Native.get(Terminals.class);
-            return new NativePlatformTerminalDetector(terminals);
+            return new NativePlatformConsoleDetector(terminals);
         } catch (NativeException ex) {
-            LOGGER.debug("Unable to load from native platform library backed TerminalDetector. Continuing with fallback.", ex);
+            LOGGER.debug("Unable to load from native platform library backed ConsoleDetector. Continuing with fallback.", ex);
         }
         */
         try {
             if (operatingSystem.isWindows()) {
-                return new WindowsTerminalDetector();
+                return new WindowsConsoleDetector();
             }
-            return new LibCBackedTerminalDetector(get(LibC.class));
+            return new LibCBackedConsoleDetector(get(LibC.class));
         } catch (LinkageError e) {
             // Thrown when jna cannot initialize the native stuff
             LOGGER.debug("Unable to load native library. Continuing with fallback.", e);
-            return new NoOpTerminalDetector();
+            return new NoOpConsoleDetector();
         }
     }
 

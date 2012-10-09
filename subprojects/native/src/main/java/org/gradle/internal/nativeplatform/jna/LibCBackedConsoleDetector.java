@@ -17,19 +17,19 @@
 package org.gradle.internal.nativeplatform.jna;
 
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.nativeplatform.TerminalDetector;
+import org.gradle.internal.nativeplatform.ConsoleDetector;
 
 import java.io.FileDescriptor;
 import java.lang.reflect.Field;
 
-public class LibCBackedTerminalDetector implements TerminalDetector {
+public class LibCBackedConsoleDetector implements ConsoleDetector {
     private final LibC libC;
 
-    public LibCBackedTerminalDetector(LibC libC) {
+    public LibCBackedConsoleDetector(LibC libC) {
         this.libC = libC;
     }
 
-    public boolean isTerminal(FileDescriptor fileDescriptor) {
+    public boolean isConsole(FileDescriptor fileDescriptor) {
         int osFileDesc;
         try {
             Field fdField = FileDescriptor.class.getDeclaredField("fd");

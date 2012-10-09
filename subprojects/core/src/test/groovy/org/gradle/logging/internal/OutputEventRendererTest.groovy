@@ -17,7 +17,7 @@ package org.gradle.logging.internal
 
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.StandardOutputListener
-import org.gradle.internal.nativeplatform.TerminalDetector
+import org.gradle.internal.nativeplatform.ConsoleDetector
 import org.gradle.util.RedirectStdOutAndErr
 import org.junit.Rule
 import org.gradle.internal.console.ConsoleMetaData
@@ -28,7 +28,7 @@ class OutputEventRendererTest extends OutputSpecification {
     private OutputEventRenderer renderer
 
     def setup() {
-        renderer = new OutputEventRenderer(Mock(TerminalDetector), Mock(ConsoleMetaData))
+        renderer = new OutputEventRenderer(Mock(ConsoleDetector), Mock(ConsoleMetaData))
         renderer.addStandardOutput(outputs.stdOutPrintStream)
         renderer.addStandardError(outputs.stdErrPrintStream)
         renderer.configure(LogLevel.INFO)
