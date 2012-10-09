@@ -17,5 +17,11 @@
 package org.gradle.internal.console;
 
 public interface ConsoleMetaData {
+
+    /**
+     * <p>Returns the number of columns available in the console.
+     *
+     * @return The number of columns available in the console. If no information is available return 0.
+     */
     public int getCols();
 }

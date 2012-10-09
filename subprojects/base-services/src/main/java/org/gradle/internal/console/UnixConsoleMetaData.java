@@ -29,7 +29,7 @@ public class UnixConsoleMetaData implements ConsoleMetaData {
             try {
                 return Integer.parseInt(columns);
             } catch (NumberFormatException ex) {
-                LOGGER.debug("Cannot parse COLUMNS environment variable to get console width. Value: '%s'", columns);
+                LOGGER.debug("Cannot parse COLUMNS environment variable to get console width. Value: '{}'", columns);
             }
         }
         return 0;
