@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 
 import java.util.Set;
@@ -36,7 +37,21 @@ public abstract class AbstractRenderableDependencyResult implements RenderableDe
 
     public String getName() {
         if (!requestedEqualsSelected(dependency)) {
-            return requested() + " -> " + dependency.getSelected().getId().getVersion();
+            return getVerboseName();
+        } else {
+            return requested();
+        }
+    }
+
+    private String getVerboseName() {
+        ModuleVersionSelector requested = dependency.getRequested();
+        ModuleVersionIdentifier selected = dependency.getSelected().getId();
+        if(!selected.getGroup().equals(requested.getGroup())) {
+            return requested() + " -> " + selected.getGroup() + ":" + selected.getName() + ":" + selected.getVersion();
+        } else if (!selected.getName().equals(requested.getName())) {
+            return requested() + " -> " + selected.getName() + ":" + selected.getVersion();
+        } else if (!selected.getVersion().equals(requested.getVersion())) {
+            return requested() + " -> " + selected.getVersion();
         } else {
             return requested();
         }
