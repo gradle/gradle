@@ -40,14 +40,14 @@ public class DefaultStatusBarFormatter implements StatusBarFormatter {
             builder.append("> ");
             builder.append(message);
         }
-        return trim(builder.toString());
+        return trim(builder);
     }
 
-    private String trim(String formattedString) {
+    private String trim(StringBuilder formattedString) {
         int width = consoleMetaData.getCols();
         if (width > 0 && width < formattedString.length()) {
             return formattedString.substring(0, width);
         }
-        return formattedString;
+        return formattedString.toString();
     }
 }
