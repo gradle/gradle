@@ -49,6 +49,17 @@ class ResolvedDependencyResultSorterSpec extends Specification {
         sorted == [d7, d1, d2, d3, d4, d5, d6]
     }
 
+    def "semantically compares versions"() {
+        def d1 = newDependency(newSelector("org.gradle", "core", "1.0"), newId("org.gradle", "core", "2.0"))
+        def d2 = newDependency(newSelector("org.gradle", "core", "1.0-alpha"), newId("org.gradle", "core", "2.0"))
+
+        when:
+        def sorted = ResolvedDependencyResultSorter.sort([d1, d2])
+
+        then:
+        sorted == [d2, d1]
+    }
+
     def "excludes dependencies with the same requested->selected"() {
         def d1 = newDependency(newSelector("org.gradle", "core", "2.0"), newId("org.gradle", "core", "2.0"), "foo")
         def d2 = newDependency(newSelector("org.gradle", "core", "1.0"), newId("org.gradle", "core", "2.0"), "bar")

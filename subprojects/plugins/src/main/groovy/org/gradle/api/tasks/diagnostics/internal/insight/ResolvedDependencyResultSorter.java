@@ -18,12 +18,11 @@ package org.gradle.api.tasks.diagnostics.internal.insight;
 
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
+import org.gradle.api.internal.artifacts.version.LatestVersionSemanticComparator;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.CollectionUtils;
 
 import java.util.*;
-
-import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId;
 
 /**
  * Created: 17/08/2012
@@ -50,6 +49,9 @@ public class ResolvedDependencyResultSorter {
     }
 
     private static class DependencyComparator implements Comparator<ResolvedDependencyResult> {
+
+        private final LatestVersionSemanticComparator versionComparator = new LatestVersionSemanticComparator();
+
         public int compare(ResolvedDependencyResult left, ResolvedDependencyResult right) {
             int byGroup = left.getRequested().getGroup().compareTo(right.getRequested().getGroup());
             if (byGroup != 0) {
@@ -62,13 +64,13 @@ public class ResolvedDependencyResultSorter {
             }
 
             //if selected matches requested version comparison is overridden
-            if (left.getSelected().getId().equals(newId(left.getRequested()))) {
+            if (left.getRequested().getAsSpec().isSatisfiedBy(left.getSelected().getId())) {
                 return -1;
-            } else if (right.getSelected().getId().equals(newId(right.getRequested()))) {
+            } else if (right.getRequested().getAsSpec().isSatisfiedBy(right.getSelected().getId())) {
                 return 1;
             }
 
-            return left.getRequested().getVersion().compareTo(right.getRequested().getVersion());
+            return versionComparator.compare(left.getRequested().getVersion(), right.getRequested().getVersion());
         }
     }
 }
