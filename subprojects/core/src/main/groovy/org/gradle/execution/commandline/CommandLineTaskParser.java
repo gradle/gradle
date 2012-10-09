@@ -21,7 +21,6 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.SetMultimap;
 import org.gradle.api.GradleException;
 import org.gradle.api.Task;
-import org.gradle.execution.CommandLineTaskConfigurer;
 import org.gradle.execution.TaskSelector;
 
 import java.util.LinkedList;

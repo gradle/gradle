@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.execution;
+package org.gradle.execution.commandline;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.Task;
