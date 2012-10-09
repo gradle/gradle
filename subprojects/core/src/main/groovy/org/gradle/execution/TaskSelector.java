@@ -28,8 +28,6 @@ import java.util.Set;
 
 public class TaskSelector {
     private final TaskNameResolver taskNameResolver;
-    private Set<Task> tasks;
-    private String taskName;
     private GradleInternal gradle;
 
     public TaskSelector() {
@@ -40,7 +38,7 @@ public class TaskSelector {
         this.taskNameResolver = taskNameResolver;
     }
 
-    private void selectTasks(String path) {
+    public TaskSelection getSelection(String path) {
         SetMultimap<String, Task> tasksByName;
         String baseName;
         String prefix;
@@ -66,9 +64,7 @@ public class TaskSelector {
         Set<Task> tasks = tasksByName.get(baseName);
         if (!tasks.isEmpty()) {
             // An exact match
-            this.tasks = tasks;
-            this.taskName = path;
-            return;
+            return new TaskSelection(path, tasks);
         }
 
         NameMatcher matcher = new NameMatcher();
@@ -76,18 +72,10 @@ public class TaskSelector {
 
         if (actualName != null) {
             // A partial match
-            this.tasks = tasksByName.get(actualName);
-            this.taskName = prefix + actualName;
-            return;
+            return new TaskSelection(prefix + actualName, tasksByName.get(actualName));
         }
 
         throw new TaskSelectionException(matcher.formatErrorMessage("task", project));
-    }
-
-    public TaskSelection getSelection(String path) {
-        //TODO SF tidy up
-        selectTasks(path);
-        return new TaskSelection(taskName, tasks);
     }
 
     private static ProjectInternal findProject(ProjectInternal startFrom, String path) {
