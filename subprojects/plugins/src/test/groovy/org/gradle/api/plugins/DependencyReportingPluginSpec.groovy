@@ -32,7 +32,7 @@ class DependencyReportingPluginSpec extends Specification {
         project.apply(plugin: 'dependency-reporting')
 
         then:
-        project.tasks.getByName("dependencyInsight")
+        project.implicitTasks.getByName("dependencyInsight")
         project.implicitTasks.getByName("dependencies")
     }
 
@@ -42,7 +42,7 @@ class DependencyReportingPluginSpec extends Specification {
         project.apply plugin: 'java'
 
         when:
-        DependencyInsightReportTask task = project.tasks.getByName("dependencyInsight")
+        DependencyInsightReportTask task = project.implicitTasks.getByName("dependencyInsight")
 
         then:
         task.configuration.name == 'compile'

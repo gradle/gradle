@@ -195,12 +195,12 @@ class TaskCommandLineConfigurationIntegrationSpec extends AbstractIntegrationSpe
 
     @Ignore
     //some existing problems with command line interface
-    def "incorrect behavior of command line parsing"() {
+    def "unfriendly behavior of command line parsing"() {
         when:
         run '-all'
 
         then:
-        "should fail with a decent error, not internal error (applies to all CommandLineArgumentException)"
+        "should fail with a decent error, not internal error (applies to all CommandLineArgumentExceptions)"
         "should complain that there's no '-all' option"
 
         when:

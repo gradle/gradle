@@ -90,8 +90,6 @@ org:leaf2:1.0
         repo.module("org", "toplevel4").dependsOn("middle3").publish()
 
         file("build.gradle") << """
-            apply plugin: DependencyReportingPlugin
-
             repositories {
                 maven { url "${repo.uri}" }
             }

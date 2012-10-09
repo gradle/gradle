@@ -30,7 +30,7 @@ import org.gradle.configuration.ImplicitTasksConfigurer
 class DependencyReportingPlugin implements Plugin<ProjectInternal> {
 
     void apply(ProjectInternal project) {
-        project.task("dependencyInsight", type: DependencyInsightReportTask) { task ->
+        project.implicitTasks.add(name: "dependencyInsight", type: DependencyInsightReportTask) { task ->
             description = "Displays the insight into a specific dependency in $project."
             group = ImplicitTasksConfigurer.HELP_GROUP
 
@@ -39,8 +39,6 @@ class DependencyReportingPlugin implements Plugin<ProjectInternal> {
             }
         }
 
-        //for compatibility reasons, I'm adding the dependencies task as an implicit task
-        //this way name-matching execution will not trigger dependencies task for every project in a multi project build
         project.implicitTasks.add(name: "dependencies", type: DependencyReportTask) {
             description = "Displays all dependencies declared in $project."
             group = ImplicitTasksConfigurer.HELP_GROUP
