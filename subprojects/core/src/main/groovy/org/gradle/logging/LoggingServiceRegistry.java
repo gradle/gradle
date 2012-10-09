@@ -23,8 +23,8 @@ import org.gradle.internal.TimeProvider;
 import org.gradle.internal.TrueTimeProvider;
 import org.gradle.internal.console.ConsoleMetaData;
 import org.gradle.internal.console.FallbackConsoleMetaData;
-import org.gradle.internal.nativeplatform.ConsoleDetector;
-import org.gradle.internal.nativeplatform.NoOpConsoleDetector;
+import org.gradle.internal.nativeplatform.NoOpTerminalDetector;
+import org.gradle.internal.nativeplatform.TerminalDetector;
 import org.gradle.internal.nativeplatform.services.NativeServices;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.logging.internal.*;
@@ -33,16 +33,8 @@ import org.gradle.logging.internal.logback.LogbackLoggingConfigurer;
 /**
  * A {@link org.gradle.internal.service.ServiceRegistry} implementation which provides the logging services.
  */
-public class LoggingServiceRegistry extends DefaultServiceRegistry {
-    private enum Type {
-        CommandLine, Child, Embedded, Nested
-    }
+public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
     private TextStreamOutputEventListener stdoutListener;
-    private final Type type;
-
-    private LoggingServiceRegistry(Type type) {
-        this.type = type;
-    }
 
     /**
      * Creates a set of logging services which are suitable to use in a command-line process. In particular:
@@ -57,7 +49,7 @@ public class LoggingServiceRegistry extends DefaultServiceRegistry {
      * <p>Does nothing until started.</p>
      */
     public static LoggingServiceRegistry newCommandLineProcessLogging() {
-        return new LoggingServiceRegistry(Type.CommandLine);
+        return new CommandLineLogging();
     }
 
     /**
@@ -74,7 +66,7 @@ public class LoggingServiceRegistry extends DefaultServiceRegistry {
      * <p>Does nothing until started.</p>
      */
     public static LoggingServiceRegistry newChildProcessLogging() {
-        return new LoggingServiceRegistry(Type.Child);
+        return new ChildProcessLogging();
     }
 
     /**
@@ -95,14 +87,14 @@ public class LoggingServiceRegistry extends DefaultServiceRegistry {
      * <p>Does nothing until started.</p>
      */
     public static LoggingServiceRegistry newEmbeddableLogging() {
-        return new LoggingServiceRegistry(Type.Embedded);
+        return new EmbeddedLogging();
     }
 
     /**
      * Creates a set of logging services to set up a new logging scope. Does not configure any static state.
      */
     public LoggingServiceRegistry newLogging() {
-        return new LoggingServiceRegistry(Type.Nested);
+        return new NestedLogging();
     }
 
     protected CommandLineConverter<LoggingConfiguration> createCommandLineConverter() {
@@ -117,7 +109,7 @@ public class LoggingServiceRegistry extends DefaultServiceRegistry {
         return new DefaultStyledTextOutputFactory(getStdoutListener(), get(TimeProvider.class));
     }
 
-    private TextStreamOutputEventListener getStdoutListener() {
+    protected TextStreamOutputEventListener getStdoutListener() {
         if (stdoutListener == null) {
             stdoutListener = new TextStreamOutputEventListener(get(OutputEventListener.class));
         }
@@ -128,54 +120,65 @@ public class LoggingServiceRegistry extends DefaultServiceRegistry {
         return new DefaultProgressLoggerFactory(new ProgressLoggingBridge(get(OutputEventListener.class)), get(TimeProvider.class));
     }
 
-    protected Factory<LoggingManagerInternal> createLoggingManagerFactory() {
-        OutputEventRenderer renderer = get(OutputEventRenderer.class);
-        switch (type) {
-            case CommandLine:
-            case Child:
-                // Configure logback and java util logging, and capture stdout and stderr
-                LoggingSystem stdout = new DefaultStdOutLoggingSystem(getStdoutListener(), get(TimeProvider.class));
-                LoggingSystem stderr = new DefaultStdErrLoggingSystem(new TextStreamOutputEventListener(get(OutputEventListener.class)), get(TimeProvider.class));
-                return new DefaultLoggingManagerFactory(
-                        new DefaultLoggingConfigurer(renderer,
-                                new LogbackLoggingConfigurer(renderer),
-                                new JavaUtilLoggingConfigurer()),
-                        renderer,
-                        stdout,
-                        stderr);
-            case Embedded:
-                // Configure logback only
-                return new DefaultLoggingManagerFactory(
-                        new DefaultLoggingConfigurer(renderer,
-                                new LogbackLoggingConfigurer(renderer)),
-                        renderer,
-                        new NoOpLoggingSystem(),
-                        new NoOpLoggingSystem());
-            case Nested:
-                // Don't configure anything
-                return new DefaultLoggingManagerFactory(renderer,
-                        renderer,
-                        new NoOpLoggingSystem(),
-                        new NoOpLoggingSystem());
-            default:
-                throw new IllegalStateException();
+    protected abstract Factory<LoggingManagerInternal> createLoggingManagerFactory();
+
+    protected OutputEventRenderer createOutputEventRenderer() {
+        TerminalDetector terminalDetector = new NoOpTerminalDetector();
+        ConsoleMetaData consoleMetaData = new FallbackConsoleMetaData();
+        OutputEventRenderer renderer = new OutputEventRenderer(terminalDetector, consoleMetaData);
+        renderer.addStandardOutputAndError();
+        return renderer;
+    }
+
+    private static class ChildProcessLogging extends LoggingServiceRegistry {
+        protected Factory<LoggingManagerInternal> createLoggingManagerFactory() {
+            OutputEventRenderer renderer = get(OutputEventRenderer.class);
+            // Configure logback and java util logging, and capture stdout and stderr
+            LoggingSystem stdout = new DefaultStdOutLoggingSystem(getStdoutListener(), get(TimeProvider.class));
+            LoggingSystem stderr = new DefaultStdErrLoggingSystem(new TextStreamOutputEventListener(get(OutputEventListener.class)), get(TimeProvider.class));
+            return new DefaultLoggingManagerFactory(
+                    new DefaultLoggingConfigurer(renderer,
+                            new LogbackLoggingConfigurer(renderer),
+                            new JavaUtilLoggingConfigurer()),
+                    renderer,
+                    stdout,
+                    stderr);
         }
     }
 
-    protected OutputEventRenderer createOutputEventRenderer() {
-        ConsoleDetector consoleDetector;
-        ConsoleMetaData consoleMetaData;
-        if (type == Type.CommandLine) {
+    private static class CommandLineLogging extends ChildProcessLogging {
+        protected OutputEventRenderer createOutputEventRenderer() {
             StartParameter startParameter = new StartParameter();
             NativeServices.initialize(startParameter.getGradleUserHomeDir());
-            consoleDetector = NativeServices.getInstance().get(ConsoleDetector.class);
-            consoleMetaData = NativeServices.getInstance().get(ConsoleMetaData.class);
-        } else {
-            consoleDetector = new NoOpConsoleDetector();
-            consoleMetaData = new FallbackConsoleMetaData();
+            TerminalDetector terminalDetector = NativeServices.getInstance().get(TerminalDetector.class);
+            ConsoleMetaData consoleMetaData = NativeServices.getInstance().get(ConsoleMetaData.class);
+            OutputEventRenderer renderer = new OutputEventRenderer(terminalDetector, consoleMetaData);
+            renderer.addStandardOutputAndError();
+            return renderer;
         }
-        OutputEventRenderer renderer = new OutputEventRenderer(consoleDetector, consoleMetaData);
-        renderer.addStandardOutputAndError();
-        return renderer;
+    }
+
+    private static class EmbeddedLogging extends LoggingServiceRegistry {
+        protected Factory<LoggingManagerInternal> createLoggingManagerFactory() {
+            OutputEventRenderer renderer = get(OutputEventRenderer.class);
+            // Configure logback only
+            return new DefaultLoggingManagerFactory(
+                    new DefaultLoggingConfigurer(renderer,
+                            new LogbackLoggingConfigurer(renderer)),
+                    renderer,
+                    new NoOpLoggingSystem(),
+                    new NoOpLoggingSystem());
+        }
+    }
+
+    private static class NestedLogging extends LoggingServiceRegistry {
+        protected Factory<LoggingManagerInternal> createLoggingManagerFactory() {
+            OutputEventRenderer renderer = get(OutputEventRenderer.class);
+            // Don't configure anything
+            return new DefaultLoggingManagerFactory(renderer,
+                    renderer,
+                    new NoOpLoggingSystem(),
+                    new NoOpLoggingSystem());
+        }
     }
 }
