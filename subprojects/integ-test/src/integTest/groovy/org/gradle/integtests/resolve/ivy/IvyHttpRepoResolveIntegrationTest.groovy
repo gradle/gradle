@@ -126,19 +126,10 @@ task listJars << {
         server.addBroken('/repo1/group/projectC')
         server.expectGet('/repo2/group/projectC/1.0/ivy-1.0.xml', moduleC.ivyFile)
         server.expectGet('/repo2/group/projectC/1.0/projectC-1.0.jar', moduleC.jarFile)
-        and:
-        progressLogger.withProgressLogging(moduleA.jarFile, moduleB.jarFile, moduleC.jarFile)
         then:
         succeeds('listJars')
-        and:
-        progressLogger.downloadProgressLogged("http://localhost:${server.port}/repo1/group/projectA/1.0/projectA-1.0.jar")
-        progressLogger.downloadProgressLogged("http://localhost:${server.port}/repo2/group/projectB/1.0/projectB-1.0.jar")
-        progressLogger.downloadProgressLogged("http://localhost:${server.port}/repo2/group/projectC/1.0/projectC-1.0.jar")
-
         when:
         server.resetExpectations()
-        progressLogger.resetExpectations()
-        progressLogger.noProgressLogged()
         server.addBroken('/repo1/group/projectC') // Will always re-attempt a broken repository
         // No extra calls for cached dependencies
 
