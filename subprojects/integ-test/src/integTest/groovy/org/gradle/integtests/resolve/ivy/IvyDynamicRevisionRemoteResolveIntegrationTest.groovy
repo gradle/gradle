@@ -452,7 +452,7 @@ task retrieve(type: Sync) {
         serveUpDynamicRevision(version2)
 
         and: "We request 1.+, with zero expiry for dynamic revision cache"
-        executer.withArguments("-d", "-PnoDynamicRevisionCache").withTasks('retrieve').run()
+        executer.withArguments("-PnoDynamicRevisionCache").withTasks('retrieve').run()
 
         then: "Version 1.2 is used"
         file('libs').assertHasDescendants('projectA-1.2.jar')
