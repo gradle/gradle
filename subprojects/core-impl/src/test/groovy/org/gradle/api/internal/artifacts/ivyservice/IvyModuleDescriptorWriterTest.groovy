@@ -81,17 +81,6 @@ class IvyModuleDescriptorWriterTest extends Specification {
         assert ivyModule.dependencies.dependency.collect{ "${it.@org}:${it.@name}:${it.@rev}" } == ["org.test:Dep1:1.0", "org.test:Dep2:1.0"]
     }
 
-    def "error in printwriter are escalated as IOException"() {
-        given:
-        1 * md.dependencies >> [mockDependencyDescriptor("Dep1"), mockDependencyDescriptor("Dep2")]
-
-        printWriter.checkError() >> true
-        when:
-        IvyModuleDescriptorWriter.write(md, printWriter);
-        then:
-        thrown(IOException)
-    }
-
     def date(String timestamp) {
         def format = new SimpleDateFormat("yyyyMMddHHmmss")
         format.parse(timestamp)
