@@ -30,24 +30,16 @@ public class LineBufferingOutputStream extends OutputStream {
     private boolean hasBeenClosed;
     private final byte[] lineSeparator;
     private final int bufferIncrement;
+    private final Action<String> action;
     private byte[] buf;
     private int count;
-    private final Output output;
 
     public LineBufferingOutputStream(Action<String> action) {
-        this(action, false, 2048);
+        this(action, 2048);
     }
 
-    public LineBufferingOutputStream(Action<String> action, boolean includeEOL) {
-        this(action, includeEOL, 2048);
-    }
-
-    public LineBufferingOutputStream(Action<String> action, boolean includeEOL, int bufferLength) {
-        this(new StringOutput(includeEOL, action), bufferLength);
-    }
-
-    private LineBufferingOutputStream(Output output, int bufferLength) {
-        this.output = output;
+    public LineBufferingOutputStream(Action<String> action, int bufferLength) {
+        this.action = action;
         bufferIncrement = bufferLength;
         buf = new byte[bufferLength];
         count = 0;
@@ -114,11 +106,7 @@ public class LineBufferingOutputStream extends OutputStream {
      */
     public void flush() {
         if (count != 0) {
-            int length = count;
-            if (endsWithLineSeparator()) {
-                length -= lineSeparator.length;
-            }
-            output.write(buf, length, count);
+            action.execute(new String(buf, 0, count));
         }
         reset();
     }
@@ -128,27 +116,5 @@ public class LineBufferingOutputStream extends OutputStream {
             buf = new byte[bufferIncrement];
         }
         count = 0;
-    }
-
-    private interface Output {
-        void write(byte[] buffer, int textLength, int lineLength);
-    }
-
-    private static class StringOutput implements Output {
-        private final boolean includeEOL;
-        private final Action<String> action;
-
-        public StringOutput(boolean includeEOL, Action<String> action) {
-            this.includeEOL = includeEOL;
-            this.action = action;
-        }
-
-        public void write(byte[] buffer, int textLength, int lineLength) {
-            if (includeEOL) {
-                action.execute(new String(buffer, 0, lineLength));
-            } else {
-                action.execute(new String(buffer, 0, textLength));
-            }
-        }
     }
 }

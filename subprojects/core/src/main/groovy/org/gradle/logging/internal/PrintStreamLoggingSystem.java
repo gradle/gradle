@@ -35,7 +35,7 @@ abstract class PrintStreamLoggingSystem implements LoggingSystem {
         public void execute(String output) {
             destination.get().onOutput(output);
         }
-    }, true);
+    });
     private StandardOutputListener original;
     private LogLevel logLevel;
     private final StandardOutputListener listener;

@@ -25,7 +25,7 @@ class LinePerThreadBufferingOutputStreamTest extends MultithreadedTestCase {
     @Test
     public void interleavesLinesFromEachThread() {
         List<String> output = [].asSynchronized()
-        Action<String> action = { line -> output << line } as Action
+        Action<String> action = { String line -> output << line.replace(TextUtil.platformLineSeparator, "<EOL>") } as Action
         LinePerThreadBufferingOutputStream outstr = new LinePerThreadBufferingOutputStream(action)
         10.times {
             start {
@@ -39,6 +39,6 @@ class LinePerThreadBufferingOutputStreamTest extends MultithreadedTestCase {
         waitForAll()
 
         assertThat(output.size(), equalTo(1000))
-        assertThat(output.findAll({!it.matches('write \\d+')}), equalTo([]))
+        assertThat(output.findAll({!it.matches('write \\d+<EOL>')}), equalTo([]))
     }
 }
