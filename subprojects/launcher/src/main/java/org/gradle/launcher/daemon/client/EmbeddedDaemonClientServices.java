@@ -47,7 +47,7 @@ public class EmbeddedDaemonClientServices extends DaemonClientServicesSupport {
     private final boolean displayOutput;
 
     public EmbeddedDaemonClientServices() {
-        this(LoggingServiceRegistry.newCommandLineProcessLogging(), false);
+        this(LoggingServiceRegistry.newProcessLogging(), false);
     }
 
     private class EmbeddedDaemonFactory implements Factory<Daemon> {

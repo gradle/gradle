@@ -76,7 +76,7 @@ public class NoOpLoggingManager implements LoggingManagerInternal {
     public void removeOutputEventListener(OutputEventListener listener) {
     }
 
-    public void colorStdOutAndStdErr(boolean colorOutput) {
+    public void attachConsole(boolean colorOutput) {
     }
 
     public void addStandardOutputAndError() {

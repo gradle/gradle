@@ -23,7 +23,10 @@ public interface LoggingOutputInternal extends LoggingOutput {
      */
     void addStandardOutputAndError();
 
-    void colorStdOutAndStdErr(boolean colorOutput);
+    /**
+     * Adds the console as logging destination, if available.
+     */
+    void attachConsole(boolean colorOutput);
 
     void addOutputEventListener(OutputEventListener listener);
 

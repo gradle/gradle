@@ -15,9 +15,9 @@
  */
 package org.gradle.logging.internal
 
+import org.gradle.api.Action
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.StandardOutputListener
-import org.gradle.internal.nativeplatform.ConsoleDetector
 import org.gradle.util.RedirectStdOutAndErr
 import org.junit.Rule
 import org.gradle.internal.console.ConsoleMetaData
@@ -25,17 +25,17 @@ import org.gradle.internal.console.ConsoleMetaData
 class OutputEventRendererTest extends OutputSpecification {
     @Rule public final RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()
     private final ConsoleStub console = new ConsoleStub()
+    private final Action<OutputEventRenderer> consoleConfigureAction = Mock()
     private OutputEventRenderer renderer
 
     def setup() {
-        renderer = new OutputEventRenderer(Mock(ConsoleDetector), Mock(ConsoleMetaData))
-        renderer.addStandardOutput(outputs.stdOutPrintStream)
-        renderer.addStandardError(outputs.stdErrPrintStream)
+        renderer = new OutputEventRenderer(consoleConfigureAction, Mock(ConsoleMetaData))
         renderer.configure(LogLevel.INFO)
     }
 
     def rendersLogEventsToStdOut() {
         when:
+        renderer.addStandardOutputAndError()
         renderer.onOutput(event('message', LogLevel.INFO))
 
         then:
@@ -45,6 +45,7 @@ class OutputEventRendererTest extends OutputSpecification {
 
     def rendersErrorLogEventsToStdErr() {
         when:
+        renderer.addStandardOutputAndError()
         renderer.onOutput(event('message', LogLevel.ERROR))
 
         then:
@@ -53,13 +54,15 @@ class OutputEventRendererTest extends OutputSpecification {
     }
 
     def rendersLogEventsWhenLogLevelIsDebug() {
+        def listener = new TestListener()
+
         when:
+        renderer.addStandardOutputListener(listener)
         renderer.configure(LogLevel.DEBUG)
         renderer.onOutput(event(tenAm, 'message', LogLevel.INFO))
 
         then:
-        outputs.stdOut.readLines() == ['10:00:00.000 [INFO] [category] message']
-        outputs.stdErr == ''
+        listener.value.readLines() == ['10:00:00.000 [INFO] [category] message']
     }
 
     def rendersLogEventsToStdOutListener() {
@@ -168,6 +171,7 @@ class OutputEventRendererTest extends OutputSpecification {
 
     def rendersProgressEvents() {
         when:
+        renderer.addStandardOutputAndError()
         renderer.onOutput(start(loggingHeader: 'description'))
         renderer.onOutput(complete('status'))
 
@@ -178,6 +182,7 @@ class OutputEventRendererTest extends OutputSpecification {
 
     def doesNotRendersProgressEventsForLogLevelQuiet() {
         when:
+        renderer.addStandardOutputAndError()
         renderer.configure(LogLevel.QUIET)
         renderer.onOutput(start('description'))
         renderer.onOutput(complete('status'))
@@ -187,7 +192,7 @@ class OutputEventRendererTest extends OutputSpecification {
         outputs.stdErr == ''
     }
 
-    def rendersLogEventsWhenStdOutAndStdErrAreTerminal() {
+    def rendersLogEventsWhenStdOutAndStdErrAreConsole() {
         renderer.addConsole(console, true, true)
 
         when:
@@ -200,7 +205,7 @@ class OutputEventRendererTest extends OutputSpecification {
         console.value.readLines() == ['description', 'info', '{error}error', '{normal}description {progressstatus}status{normal}']
     }
 
-    def rendersLogEventsWhenOnlyStdOutIsTerminal() {
+    def rendersLogEventsWhenOnlyStdOutIsConsole() {
         renderer.addConsole(console, true, false)
 
         when:
@@ -213,7 +218,7 @@ class OutputEventRendererTest extends OutputSpecification {
         console.value.readLines() == ['description', 'info', 'description {progressstatus}status{normal}']
     }
 
-    def rendersLogEventsWhenOnlyStdErrIsTerminal() {
+    def rendersLogEventsWhenOnlyStdErrIsConsole() {
         renderer.addConsole(console, false, true)
 
         when:
@@ -224,6 +229,45 @@ class OutputEventRendererTest extends OutputSpecification {
 
         then:
         console.value.readLines() == ['{error}error', '{normal}']
+    }
+
+    def attachesConsoleWhenStdOutAndStdErrAreAttachedToConsole() {
+        when:
+        renderer.addStandardOutputAndError()
+        renderer.addConsole(console, true, true)
+        renderer.onOutput(event('info', LogLevel.INFO))
+        renderer.onOutput(event('error', LogLevel.ERROR))
+
+        then:
+        console.value.readLines() == ['info', '{error}error', '{normal}']
+        outputs.stdOut == ''
+        outputs.stdErr == ''
+    }
+
+    def attachesConsoleWhenOnlyStdOutIsAttachedToConsole() {
+        when:
+        renderer.addStandardOutputAndError()
+        renderer.addConsole(console, true, false)
+        renderer.onOutput(event('info', LogLevel.INFO))
+        renderer.onOutput(event('error', LogLevel.ERROR))
+
+        then:
+        console.value.readLines() == ['info']
+        outputs.stdOut == ''
+        outputs.stdErr.readLines() == ['error']
+    }
+
+    def attachesConsoleWhenOnlyStdErrIsAttachedToConsole() {
+        when:
+        renderer.addStandardOutputAndError()
+        renderer.addConsole(console, false, true)
+        renderer.onOutput(event('info', LogLevel.INFO))
+        renderer.onOutput(event('error', LogLevel.ERROR))
+
+        then:
+        console.value.readLines() == ['{error}error', '{normal}']
+        outputs.stdOut.readLines() == ['info']
+        outputs.stdErr == ''
     }
 }
 

@@ -31,7 +31,15 @@ import org.gradle.logging.internal.*;
 import org.gradle.logging.internal.logback.LogbackLoggingConfigurer;
 
 /**
- * A {@link org.gradle.internal.service.ServiceRegistry} implementation which provides the logging services.
+ * A {@link org.gradle.internal.service.ServiceRegistry} implementation that provides the logging services. To use this:
+ *
+ * <ol>
+ *     <li>Create an instance using one of the static factory methods below.</li>
+ *     <li>Create an instance of {@link LoggingManagerInternal}.</li>
+ *     <li>Configure the logging manager as appropriate.</li>
+ *     <li>Start the logging manager using {@link org.gradle.logging.LoggingManagerInternal#start()}.</li>
+ *     <li>When finished, stop the logging manager using {@link LoggingManagerInternal#stop()}.</li>
+ * </ol>
  */
 public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
     private TextStreamOutputEventListener stdoutListener;
@@ -43,17 +51,18 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
      *     <li>Replaces System.out and System.err with implementations that route output through the logging system.</li>
      *     <li>Configures slf4j, logback, log4j and java util logging to route log messages through the logging system.</li>
      *     <li>Routes logging output to the original System.out and System.err.</li>
-     *     <li>Enables coloured and dynamic output when System.out or System.err are attached to a terminal.</li>
      * </ul>
      *
      * <p>Does nothing until started.</p>
+     *
+     * <p>Allows dynamic and colored output to be written to the console. Use {@link LoggingManagerInternal#attachConsole(boolean)} to enable this.</p>
      */
     public static LoggingServiceRegistry newCommandLineProcessLogging() {
         return new CommandLineLogging();
     }
 
     /**
-     * Creates a set of logging services which are suitable to use in a child process. In particular:
+     * Creates a set of logging services which are suitable to use globally in a process. In particular:
      *
      * <ul>
      *     <li>Replaces System.out and System.err with implementations that route output through the logging system.</li>
@@ -61,11 +70,9 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
      *     <li>Routes logging output to the original System.out and System.err.</li>
      * </ul>
      *
-     * <p>Does not enable colours or dynamic output.</p>
-     *
      * <p>Does nothing until started.</p>
      */
-    public static LoggingServiceRegistry newChildProcessLogging() {
+    public static LoggingServiceRegistry newProcessLogging() {
         return new ChildProcessLogging();
     }
 
@@ -125,7 +132,7 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
     protected OutputEventRenderer createOutputEventRenderer() {
         ConsoleDetector consoleDetector = new NoOpConsoleDetector();
         ConsoleMetaData consoleMetaData = new FallbackConsoleMetaData();
-        OutputEventRenderer renderer = new OutputEventRenderer(consoleDetector, consoleMetaData);
+        OutputEventRenderer renderer = new OutputEventRenderer(new ConsoleConfigureAction(consoleDetector), consoleMetaData);
         renderer.addStandardOutputAndError();
         return renderer;
     }
@@ -152,7 +159,7 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
             NativeServices.initialize(startParameter.getGradleUserHomeDir());
             ConsoleDetector consoleDetector = NativeServices.getInstance().get(ConsoleDetector.class);
             ConsoleMetaData consoleMetaData = NativeServices.getInstance().get(ConsoleMetaData.class);
-            OutputEventRenderer renderer = new OutputEventRenderer(consoleDetector, consoleMetaData);
+            OutputEventRenderer renderer = new OutputEventRenderer(new ConsoleConfigureAction(consoleDetector), consoleMetaData);
             renderer.addStandardOutputAndError();
             return renderer;
         }

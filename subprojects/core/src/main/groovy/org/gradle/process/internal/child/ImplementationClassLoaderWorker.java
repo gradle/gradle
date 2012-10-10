@@ -82,7 +82,7 @@ public class ImplementationClassLoaderWorker implements Action<WorkerContext>, S
     }
 
     LoggingManagerInternal createLoggingManager() {
-        return LoggingServiceRegistry.newChildProcessLogging().newInstance(LoggingManagerInternal.class);
+        return LoggingServiceRegistry.newProcessLogging().newInstance(LoggingManagerInternal.class);
     }
 
     MutableURLClassLoader createImplementationClassLoader(ClassLoader system, ClassLoader application) {

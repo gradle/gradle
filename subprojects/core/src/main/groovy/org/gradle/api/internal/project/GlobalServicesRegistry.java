@@ -47,7 +47,7 @@ import org.gradle.util.DefaultClassLoaderFactory;
  */
 public class GlobalServicesRegistry extends DefaultServiceRegistry {
     public GlobalServicesRegistry() {
-        this(LoggingServiceRegistry.newCommandLineProcessLogging());
+        this(LoggingServiceRegistry.newProcessLogging());
     }
 
     public GlobalServicesRegistry(ServiceRegistry loggingServices) {
