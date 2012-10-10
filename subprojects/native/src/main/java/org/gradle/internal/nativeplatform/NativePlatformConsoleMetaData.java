@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.nativeplatform.services;
+package org.gradle.internal.nativeplatform;
 
 import net.rubygrapefruit.platform.Terminal;
 import org.gradle.internal.console.ConsoleMetaData;

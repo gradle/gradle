@@ -16,8 +16,10 @@
 
 package org.gradle.internal.nativeplatform;
 
+import org.gradle.internal.console.ConsoleMetaData;
+
 import java.io.FileDescriptor;
 
 public interface ConsoleDetector {
-    boolean isConsole(FileDescriptor fileDescriptor);
+    ConsoleMetaData isConsole(FileDescriptor fileDescriptor);
 }

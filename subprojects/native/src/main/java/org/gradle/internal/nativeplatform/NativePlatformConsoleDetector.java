@@ -17,6 +17,7 @@
 package org.gradle.internal.nativeplatform;
 
 import net.rubygrapefruit.platform.Terminals;
+import org.gradle.internal.console.ConsoleMetaData;
 
 import java.io.FileDescriptor;
 
@@ -30,12 +31,12 @@ public class NativePlatformConsoleDetector implements ConsoleDetector {
         this.terminals = terminals;
     }
 
-    public boolean isConsole(FileDescriptor fileDescriptor) {
-        if (fileDescriptor == FileDescriptor.out) {
-            return terminals.isTerminal(Stdout);
-        } else if (fileDescriptor == FileDescriptor.err) {
-            return terminals.isTerminal(Stderr);
+    public ConsoleMetaData isConsole(FileDescriptor fileDescriptor) {
+        if (fileDescriptor == FileDescriptor.out && terminals.isTerminal(Stdout)){
+            return new NativePlatformConsoleMetaData(terminals.getTerminal(Stdout));
+        } else if (fileDescriptor == FileDescriptor.err && terminals.isTerminal(Stderr)) {
+            return new NativePlatformConsoleMetaData(terminals.getTerminal(Stderr));
         }
-        return false;
+        return null;
     }
 }

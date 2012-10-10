@@ -15,16 +15,15 @@
  */
 package org.gradle.internal.nativeplatform.services
 
-import org.gradle.internal.nativeplatform.ProcessEnvironment
 import org.gradle.internal.nativeplatform.ConsoleDetector
+import org.gradle.internal.nativeplatform.ProcessEnvironment
 import org.gradle.internal.nativeplatform.filesystem.FileSystem
 import org.gradle.internal.os.OperatingSystem
 import spock.lang.Specification
-import org.gradle.internal.console.ConsoleMetaData
 
 class NativeServicesTest extends Specification {
     final NativeServices services = NativeServices.getInstance()
-    
+
     def "makes a ProcessEnvironment available"() {
         expect:
         services.get(ProcessEnvironment) != null
@@ -43,10 +42,5 @@ class NativeServicesTest extends Specification {
     def "makes a ConsoleDetector available"() {
         expect:
         services.get(ConsoleDetector) != null
-    }
-
-    def "makes ConsoleMetaData available"() {
-        expect:
-        services.get(ConsoleMetaData) != null
     }
 }

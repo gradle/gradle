@@ -16,11 +16,10 @@
 package org.gradle.internal.nativeplatform.services;
 
 import com.sun.jna.Native;
-import org.gradle.internal.console.ConsoleMetaData;
-import org.gradle.internal.console.FallbackConsoleMetaData;
-import org.gradle.internal.console.UnixConsoleMetaData;
-import org.gradle.internal.nativeplatform.*;
+import org.gradle.internal.nativeplatform.ConsoleDetector;
+import org.gradle.internal.nativeplatform.NoOpConsoleDetector;
 import org.gradle.internal.nativeplatform.ProcessEnvironment;
+import org.gradle.internal.nativeplatform.WindowsConsoleDetector;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.nativeplatform.filesystem.FileSystems;
 import org.gradle.internal.nativeplatform.jna.*;
@@ -43,6 +42,7 @@ public class NativeServices extends DefaultServiceRegistry {
      * of a native service. Also initializes the Native-Platform library using the passed user home directory.
      */
     public static void initialize(File userHomeDir) {
+
         new JnaBootPathConfigurer().configure(userHomeDir);
         /*
         try {
@@ -114,24 +114,5 @@ public class NativeServices extends DefaultServiceRegistry {
 
     protected LibC createLibC() {
         return (LibC) Native.loadLibrary("c", LibC.class);
-    }
-
-    protected ConsoleMetaData createConsoleMetaData() {
-        OperatingSystem operatingSystem = get(OperatingSystem.class);
-        /*
-        try {
-            Terminals terminals = net.rubygrapefruit.platform.Native.get(Terminals.class);
-            if (terminals.isTerminal(Terminals.Output.Stdout)) {
-                Terminal terminal = terminals.getTerminal(Terminals.Output.Stdout);
-                return new NativePlatformConsoleMetaData(terminal);
-            }
-        } catch (NativeException ex) {
-            LOGGER.debug("Unable to load native platform backed ConsoleMetaData. Continuing with fallback.", ex);
-        }
-        */
-        if (operatingSystem.isWindows()) {
-            return new FallbackConsoleMetaData();
-        }
-        return new UnixConsoleMetaData();
     }
 }

@@ -17,6 +17,8 @@
 package org.gradle.internal.nativeplatform.jna;
 
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.console.ConsoleMetaData;
+import org.gradle.internal.console.UnixConsoleMetaData;
 import org.gradle.internal.nativeplatform.ConsoleDetector;
 
 import java.io.FileDescriptor;
@@ -29,7 +31,7 @@ public class LibCBackedConsoleDetector implements ConsoleDetector {
         this.libC = libC;
     }
 
-    public boolean isConsole(FileDescriptor fileDescriptor) {
+    public ConsoleMetaData isConsole(FileDescriptor fileDescriptor) {
         int osFileDesc;
         try {
             Field fdField = FileDescriptor.class.getDeclaredField("fd");
@@ -41,16 +43,16 @@ public class LibCBackedConsoleDetector implements ConsoleDetector {
 
         // Determine if we're connected to a terminal
         if (libC.isatty(osFileDesc) == 0) {
-            return false;
+            return null;
         }
 
         // Dumb terminal doesn't support ANSI control codes. Should really be using termcap database.
         String term = System.getenv("TERM");
         if (term != null && term.equals("dumb")) {
-            return false;
+            return null;
         }
 
         // Assume a terminal
-        return true;
+        return new UnixConsoleMetaData();
     }
 }

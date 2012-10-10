@@ -31,12 +31,12 @@ class NativePlatformConsoleDetectorTest extends Specification {
         when:
         1 * terminals.isTerminal(output) >> true
         then:
-        detector.isConsole(fd)
+        detector.isConsole(fd) != null
 
         when:
         1 * terminals.isTerminal(output) >> false
         then:
-        detector.isConsole(fd) == false
+        detector.isConsole(fd) == null
         where:
         fd                  | output
         FileDescriptor.out  | Terminals.Output.Stdout

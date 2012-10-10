@@ -16,10 +16,12 @@
 
 package org.gradle.internal.nativeplatform;
 
+import org.gradle.internal.console.ConsoleMetaData;
+
 import java.io.FileDescriptor;
 
 public class NoOpConsoleDetector implements ConsoleDetector {
-    public boolean isConsole(FileDescriptor fileDescriptor) {
-        return false;
+    public ConsoleMetaData isConsole(FileDescriptor fileDescriptor) {
+        return null;
     }
 }
