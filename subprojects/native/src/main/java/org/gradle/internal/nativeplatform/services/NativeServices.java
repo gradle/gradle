@@ -90,7 +90,7 @@ public class NativeServices extends DefaultServiceRegistry {
         }
     }
 
-    protected ConsoleDetector createTerminalDetector() {
+    protected ConsoleDetector createConsoleDetector() {
         OperatingSystem operatingSystem = get(OperatingSystem.class);
         /*
         try {

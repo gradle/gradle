@@ -40,7 +40,7 @@ class NativeServicesTest extends Specification {
         services.get(FileSystem) != null
     }
 
-    def "makes a TerminalDetector available"() {
+    def "makes a ConsoleDetector available"() {
         expect:
         services.get(ConsoleDetector) != null
     }
