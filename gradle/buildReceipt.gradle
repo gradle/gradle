@@ -63,7 +63,7 @@ task determineCommitId {
 
                     standardOutput = baos
                 }
-                if (execResult == 0) {
+                if (execResult.exitValue == 0) {
                     new String(baos.toByteArray(), "utf8").trim()
                 } else {
                     // Read commit id directly from filesystem
