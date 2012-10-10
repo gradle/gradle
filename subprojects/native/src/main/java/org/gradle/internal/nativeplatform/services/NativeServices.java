@@ -16,6 +16,7 @@
 package org.gradle.internal.nativeplatform.services;
 
 import com.sun.jna.Native;
+import org.gradle.internal.SystemProperties;
 import org.gradle.internal.nativeplatform.ConsoleDetector;
 import org.gradle.internal.nativeplatform.NoOpConsoleDetector;
 import org.gradle.internal.nativeplatform.ProcessEnvironment;
@@ -42,13 +43,14 @@ public class NativeServices extends DefaultServiceRegistry {
      * of a native service. Also initializes the Native-Platform library using the passed user home directory.
      */
     public static void initialize(File userHomeDir) {
-
         new JnaBootPathConfigurer().configure(userHomeDir);
         /*
         try {
             net.rubygrapefruit.platform.Native.init(userHomeDir);
+        } catch (NativeIntegrationUnavailableException ex) {
+            LOGGER.debug("Native-platform is not available.");
         } catch (NativeException ex) {
-            LOGGER.info(ex.getMessage());
+            LOGGER.debug("Unable to initialize native-platform. Failure: {}", format(ex));
         }
         */
     }
@@ -85,7 +87,7 @@ public class NativeServices extends DefaultServiceRegistry {
             }
         } catch (LinkageError e) {
             // Thrown when jna cannot initialize the native stuff
-            LOGGER.debug("Unable to load native library. Continuing with fallback.", e);
+            LOGGER.debug("Unable to load native library. Continuing with fallback. Failure: {}", format(e));
             return new UnsupportedEnvironment();
         }
     }
@@ -96,8 +98,10 @@ public class NativeServices extends DefaultServiceRegistry {
         try {
             Terminals terminals = net.rubygrapefruit.platform.Native.get(Terminals.class);
             return new NativePlatformConsoleDetector(terminals);
+        } catch (NativeIntegrationUnavailableException ex) {
+            LOGGER.debug("Native-platform terminal is not available. Continuing with fallback.");
         } catch (NativeException ex) {
-            LOGGER.debug("Unable to load from native platform library backed ConsoleDetector. Continuing with fallback.", ex);
+            LOGGER.debug("Unable to load from native-platform backed ConsoleDetector. Continuing with fallback. Failure: {}", format(ex));
         }
         */
         try {
@@ -107,12 +111,23 @@ public class NativeServices extends DefaultServiceRegistry {
             return new LibCBackedConsoleDetector(get(LibC.class));
         } catch (LinkageError e) {
             // Thrown when jna cannot initialize the native stuff
-            LOGGER.debug("Unable to load native library. Continuing with fallback.", e);
+            LOGGER.debug("Unable to load native library. Continuing with fallback. Failure: {}", format(e));
             return new NoOpConsoleDetector();
         }
     }
 
     protected LibC createLibC() {
         return (LibC) Native.loadLibrary("c", LibC.class);
+    }
+
+    private static String format(Throwable throwable) {
+        StringBuilder builder = new StringBuilder();
+        builder.append(throwable.toString());
+        for (Throwable current = throwable.getCause(); current != null; current = current.getCause()) {
+            builder.append(SystemProperties.getLineSeparator());
+            builder.append("caused by: ");
+            builder.append(current.toString());
+        }
+        return builder.toString();
     }
 }
