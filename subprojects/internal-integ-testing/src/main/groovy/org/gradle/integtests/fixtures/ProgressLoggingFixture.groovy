@@ -67,13 +67,6 @@ class ProgressLoggingFixture implements MethodRule {
         }
     }
 
-    boolean noProgressLogged() {
-        if (loggingOutputFile != null && loggingOutputFile.exists()) {
-            return !loggingOutputFile.text.matches(FILE_TRANSFER_PATTERN)
-        }
-        true
-    }
-
     Statement apply(Statement base, FrameworkMethod method, Object target) {
         TestFile initFile
         GradleDistributionExecuter executer = RuleHelper.getField(target, GradleDistributionExecuter)
@@ -82,7 +75,7 @@ class ProgressLoggingFixture implements MethodRule {
         loggingOutputFile = temporaryFolder.file("loggingoutput.log")
         initFile = temporaryFolder.file("init.gradle")
         initFile.text = """import org.gradle.logging.internal.*
-                           File outputFile = new File("${loggingOutputFile.getAbsolutePath()}")
+                           File outputFile = file("${loggingOutputFile.toURI()}")
                            OutputEventListener outputEventListener = new OutputEventListener() {
                                 void onOutput(OutputEvent event) {
                                     if (event instanceof ProgressStartEvent) {
