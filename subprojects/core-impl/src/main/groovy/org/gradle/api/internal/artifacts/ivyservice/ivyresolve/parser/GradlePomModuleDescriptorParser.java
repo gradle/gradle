@@ -32,7 +32,6 @@ import org.apache.ivy.plugins.repository.Resource;
 import org.apache.ivy.plugins.repository.url.URLResource;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.util.Message;
-import org.gradle.api.internal.artifacts.ivyservice.IvyModuleDescriptorWriter;
 import org.xml.sax.SAXException;
 
 import java.io.File;
@@ -51,13 +50,7 @@ import java.util.Map;
 public final class GradlePomModuleDescriptorParser implements ModuleDescriptorParser {
     public void toIvyFile(InputStream is, Resource res, File destFile, ModuleDescriptor md)
             throws ParseException, IOException {
-        try {
-            IvyModuleDescriptorWriter.write(md, destFile);
-        } finally {
-            if (is != null) {
-                is.close();
-            }
-        }
+        throw new UnsupportedOperationException();
     }
 
     public boolean accept(Resource res) {

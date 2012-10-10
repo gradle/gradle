@@ -27,13 +27,14 @@ import spock.lang.Specification
 
 import java.text.SimpleDateFormat
 
-class IvyModuleDescriptorWriterTest extends Specification {
+class IvyXmlModuleDescriptorWriterTest extends Specification {
 
     private @Rule TemporaryFolder temporaryFolder;
     private ModuleDescriptor md = Mock();
     private ModuleRevisionId moduleRevisionId = Mock()
     private ModuleRevisionId resolvedModuleRevisionId = Mock()
     private PrintWriter printWriter = Mock()
+    def ivyXmlModuleDescriptorWriter = new IvyXmlModuleDescriptorWriter()
 
     def setup() {
         1 * md.extraAttributesNamespaces >> [:]
@@ -66,7 +67,7 @@ class IvyModuleDescriptorWriterTest extends Specification {
         1 * dependency1.transitive >> true
         when:
         File ivyFile = temporaryFolder.file("test/ivy/ivy.xml")
-        IvyModuleDescriptorWriter.write(md, ivyFile);
+        ivyXmlModuleDescriptorWriter.write(md, ivyFile);
         then:
         def ivyModule = new XmlSlurper().parse(ivyFile);
         assert ivyModule.@version == "2.0"
@@ -76,9 +77,9 @@ class IvyModuleDescriptorWriterTest extends Specification {
         assert ivyModule.info.@status == "integration"
         assert ivyModule.info.@publication == "20120817120000"
         assert ivyModule.info.@buildNr == "815"
-        assert ivyModule.configurations.conf.collect{it.@name } == ["archives", "compile", "runtime"]
-        assert ivyModule.publications.artifact.collect{it.@name } == ["testartifact"]
-        assert ivyModule.dependencies.dependency.collect{ "${it.@org}:${it.@name}:${it.@rev}" } == ["org.test:Dep1:1.0", "org.test:Dep2:1.0"]
+        assert ivyModule.configurations.conf.collect {it.@name } == ["archives", "compile", "runtime"]
+        assert ivyModule.publications.artifact.collect {it.@name } == ["testartifact"]
+        assert ivyModule.dependencies.dependency.collect { "${it.@org}:${it.@name}:${it.@rev}" } == ["org.test:Dep1:1.0", "org.test:Dep2:1.0"]
     }
 
     def date(String timestamp) {

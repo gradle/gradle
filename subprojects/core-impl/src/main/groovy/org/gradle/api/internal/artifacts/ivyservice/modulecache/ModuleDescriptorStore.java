@@ -41,9 +41,11 @@ public class ModuleDescriptorStore {
 
     private final XmlModuleDescriptorParser parser = XmlModuleDescriptorParser.getInstance();
     private final PathKeyFileStore pathKeyFileStore;
+    private final IvyModuleDescriptorWriter ivyModuleDescriptorWriter;
 
-    public ModuleDescriptorStore(PathKeyFileStore pathKeyFileStore) {
+    public ModuleDescriptorStore(PathKeyFileStore pathKeyFileStore, IvyModuleDescriptorWriter ivyModuleDescriptorWriter) {
         this.pathKeyFileStore = pathKeyFileStore;
+        this.ivyModuleDescriptorWriter = ivyModuleDescriptorWriter;
     }
 
     public ModuleDescriptor getModuleDescriptor(ModuleVersionRepository repository, ModuleRevisionId moduleRevisionId) {
@@ -61,7 +63,7 @@ public class ModuleDescriptorStore {
         pathKeyFileStore.add(filePath, new Action<File>() {
             public void execute(File moduleDescriptorFile) {
                 try {
-                    IvyModuleDescriptorWriter.write(moduleDescriptor, moduleDescriptorFile);
+                    ivyModuleDescriptorWriter.write(moduleDescriptor, moduleDescriptorFile);
                 } catch (Exception e) {
                     throw UncheckedException.throwAsUncheckedException(e);
                 }

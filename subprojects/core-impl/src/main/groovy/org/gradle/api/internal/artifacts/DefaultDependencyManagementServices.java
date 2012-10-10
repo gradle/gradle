@@ -235,9 +235,10 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         LocallyAvailableResourceFinderFactory finderFactory = new LocallyAvailableResourceFinderFactory(
                 get(ArtifactCacheMetaData.class), get(LocalMavenRepositoryLocator.class), get(ArtifactRevisionIdFileStore.class)
         );
-        
+
         return finderFactory.create();
     }
+
     protected RepositoryTransportFactory createRepositoryTransportFactory() {
         return new RepositoryTransportFactory(
                 get(ProgressLoggerFactory.class), get(ArtifactRevisionIdFileStore.class), get(ByUrlCachedExternalResourceIndex.class)
@@ -357,11 +358,11 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
             );
             return new EmptyResolutionResultConfigurer(
                     new ErrorHandlingArtifactDependencyResolver(
-                        new ShortcircuitEmptyConfigsArtifactDependencyResolver(
-                            new SelfResolvingDependencyResolver(
-                                    new CacheLockingArtifactDependencyResolver(
-                                            get(CacheLockingManager.class),
-                                            resolver)))));
+                            new ShortcircuitEmptyConfigsArtifactDependencyResolver(
+                                    new SelfResolvingDependencyResolver(
+                                            new CacheLockingArtifactDependencyResolver(
+                                                    get(CacheLockingManager.class),
+                                                    resolver)))));
         }
 
         ArtifactPublisher createArtifactPublisher(DefaultRepositoryHandler resolverProvider) {
@@ -376,7 +377,8 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                             get(PublishModuleDescriptorConverter.class),
                             fileModuleDescriptorConverter,
                             get(IvyFactory.class),
-                            new DefaultIvyDependencyPublisher()));
+                            new DefaultIvyDependencyPublisher(),
+                            new IvyXmlModuleDescriptorWriter()));
         }
     }
 

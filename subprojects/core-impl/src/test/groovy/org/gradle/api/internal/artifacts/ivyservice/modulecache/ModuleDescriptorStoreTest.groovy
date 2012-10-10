@@ -16,13 +16,14 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.modulecache
 
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.apache.ivy.core.module.id.ModuleRevisionId
+import org.gradle.api.Action
+import org.gradle.api.internal.artifacts.ivyservice.IvyModuleDescriptorWriter
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository
+import org.gradle.api.internal.filestore.FileStoreEntry
 import org.gradle.api.internal.filestore.PathKeyFileStore
 import spock.lang.Specification
-import org.gradle.api.internal.filestore.FileStoreEntry
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor
-import org.gradle.api.Action
 
 class ModuleDescriptorStoreTest extends Specification {
     ModuleDescriptorStore store
@@ -31,9 +32,10 @@ class ModuleDescriptorStoreTest extends Specification {
     ModuleVersionRepository repository = Mock()
     FileStoreEntry fileStoreEntry = Mock()
     ModuleDescriptor moduleDescriptor = Mock()
+    IvyModuleDescriptorWriter ivyModuleDescriptorWriter = Mock()
 
     def setup() {
-        store = new ModuleDescriptorStore(pathKeyFileStore);
+        store = new ModuleDescriptorStore(pathKeyFileStore, ivyModuleDescriptorWriter);
         _ * repository.getId() >> "repositoryId"
         _ * moduleRevisionId.getOrganisation() >> "org.test"
         _ * moduleRevisionId.getName() >> "testArtifact"
