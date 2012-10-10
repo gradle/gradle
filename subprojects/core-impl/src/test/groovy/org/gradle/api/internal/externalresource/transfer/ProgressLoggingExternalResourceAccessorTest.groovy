@@ -84,7 +84,6 @@ class ProgressLoggingExternalResourceAccessorTest extends Specification {
         1 * progressLogger.progress("3 KB/64 KB downloaded")
         1 * progressLogger.progress("4 KB/64 KB downloaded")
         1 * progressLogger.progress("6 KB/64 KB downloaded")
-        0 * progressLogger.progress(_)
         1 * progressLogger.completed()
         0 * progressLogger.progress(_)
     }
