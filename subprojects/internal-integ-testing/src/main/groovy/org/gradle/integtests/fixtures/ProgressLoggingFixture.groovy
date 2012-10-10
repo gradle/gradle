@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.fixtures
 
-import org.apache.commons.lang.RandomStringUtils
 import org.gradle.util.TestFile
 import org.junit.rules.MethodRule
 import org.junit.runners.model.FrameworkMethod
@@ -24,23 +23,7 @@ import org.junit.runners.model.Statement
 
 class ProgressLoggingFixture implements MethodRule {
 
-    private static final String FILE_TRANSFER_PATTERN = /\[START (Download|Upload).*]/
-
     private TestFile loggingOutputFile = null
-
-    void withProgressLogging(TestFile... testFiles) {
-        writeSomeContent(testFiles)
-
-    }
-
-    def writeSomeContent(TestFile[] testFiles) {
-        for (TestFile testFile : testFiles) {
-            if (!testFile.exists()) {
-                testFile.createFile()
-            }
-            testFile.text = RandomStringUtils.random(2 * 1024)
-        }
-    }
 
     boolean downloadProgressLogged(String url) {
         return progressLogged("Download", url)
@@ -59,12 +42,6 @@ class ProgressLoggingFixture implements MethodRule {
         lines = lines[startIndex..<lines.size()]
         lines = lines[0..lines.indexOf("[END " + operation + " " + url + "]")]
         lines.size() >= 2
-    }
-
-    void resetExpectations() {
-        if (loggingOutputFile != null && loggingOutputFile.exists()) {
-            loggingOutputFile.text = ""
-        }
     }
 
     Statement apply(Statement base, FrameworkMethod method, Object target) {
@@ -95,18 +72,9 @@ class ProgressLoggingFixture implements MethodRule {
         executer.usingInitScript(initFile)
 
         return new Statement() {
-
-
             @Override
             public void evaluate() throws Throwable {
-                try {
-                    base.evaluate();
-                } finally {
-                    resetExpectations()
-                    if (initFile != null) {
-                        initFile.delete()
-                    }
-                }
+                base.evaluate();
             }
         };
     }

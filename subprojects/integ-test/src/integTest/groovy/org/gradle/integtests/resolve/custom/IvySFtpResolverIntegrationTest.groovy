@@ -58,7 +58,6 @@ task listJars << {
 }
 """
         when:
-        progressLogging.withProgressLogging(module.jarFile)
         succeeds 'listJars'
 
         then:
