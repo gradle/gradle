@@ -129,7 +129,7 @@ libraries.maven3 = dependencies.module("org.apache.maven:maven-core:3.0.4") {
 }
 
 libraries.spock = [
-    'org.spockframework:spock-core:0.7-groovy-1.8-SNAPSHOT@jar',
+    'org.spockframework:spock-core:0.7-groovy-1.8@jar',
     libraries.groovy,
     'org.objenesis:objenesis:1.2',
     'cglib:cglib-nodep:2.2.2'
