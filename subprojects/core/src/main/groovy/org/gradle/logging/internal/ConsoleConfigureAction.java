@@ -16,31 +16,32 @@
 
 package org.gradle.logging.internal;
 
+import org.gradle.StartParameter;
 import org.gradle.api.Action;
+import org.gradle.internal.console.ConsoleMetaData;
 import org.gradle.internal.nativeplatform.ConsoleDetector;
+import org.gradle.internal.nativeplatform.services.NativeServices;
 
 import java.io.FileDescriptor;
 import java.io.PrintStream;
 
 public class ConsoleConfigureAction implements Action<OutputEventRenderer> {
-    private final ConsoleDetector consoleDetector;
-
-    public ConsoleConfigureAction(ConsoleDetector consoleDetector) {
-        this.consoleDetector = consoleDetector;
-    }
-
     public void execute(OutputEventRenderer renderer) {
+        StartParameter startParameter = new StartParameter();
+        NativeServices.initialize(startParameter.getGradleUserHomeDir());
+        ConsoleDetector consoleDetector = NativeServices.getInstance().get(ConsoleDetector.class);
+        ConsoleMetaData consoleMetaData = NativeServices.getInstance().get(ConsoleMetaData.class);
         boolean stdOutIsTerminal = consoleDetector.isConsole(FileDescriptor.out);
         boolean stdErrIsTerminal = consoleDetector.isConsole(FileDescriptor.err);
         if (stdOutIsTerminal) {
-            PrintStream outStr = org.fusesource.jansi.AnsiConsole.out();
+            PrintStream outStr = new PrintStream(org.fusesource.jansi.AnsiConsole.wrapOutputStream(renderer.getOriginalStdOut()));
             Console console = new AnsiConsole(outStr, outStr, renderer.getColourMap());
-            renderer.addConsole(console, true, stdErrIsTerminal);
+            renderer.addConsole(console, true, stdErrIsTerminal, consoleMetaData);
         } else if (stdErrIsTerminal) {
             // Only stderr is connected to a terminal
-            PrintStream errStr = org.fusesource.jansi.AnsiConsole.err();
+            PrintStream errStr = new PrintStream(org.fusesource.jansi.AnsiConsole.wrapOutputStream(renderer.getOriginalStdErr()));
             Console console = new AnsiConsole(errStr, errStr, renderer.getColourMap());
-            renderer.addConsole(console, false, true);
+            renderer.addConsole(console, false, true, consoleMetaData);
         }
     }
 }

@@ -25,11 +25,12 @@ import org.gradle.internal.console.ConsoleMetaData
 class OutputEventRendererTest extends OutputSpecification {
     @Rule public final RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()
     private final ConsoleStub console = new ConsoleStub()
+    private final ConsoleMetaData metaData = Mock()
     private final Action<OutputEventRenderer> consoleConfigureAction = Mock()
     private OutputEventRenderer renderer
 
     def setup() {
-        renderer = new OutputEventRenderer(consoleConfigureAction, Mock(ConsoleMetaData))
+        renderer = new OutputEventRenderer(consoleConfigureAction)
         renderer.configure(LogLevel.INFO)
     }
 
@@ -57,12 +58,24 @@ class OutputEventRendererTest extends OutputSpecification {
         def listener = new TestListener()
 
         when:
-        renderer.addStandardOutputListener(listener)
         renderer.configure(LogLevel.DEBUG)
+        renderer.addStandardOutputListener(listener)
         renderer.onOutput(event(tenAm, 'message', LogLevel.INFO))
 
         then:
         listener.value.readLines() == ['10:00:00.000 [INFO] [category] message']
+    }
+
+    def rendersLogEventsToStdOutandStdErrWhenLogLevelIsDebug() {
+        when:
+        renderer.configure(LogLevel.DEBUG)
+        renderer.addStandardOutputAndError()
+        renderer.onOutput(event(tenAm, 'info', LogLevel.INFO))
+        renderer.onOutput(event(tenAm, 'error', LogLevel.ERROR))
+
+        then:
+        outputs.stdOut.readLines() == ['10:00:00.000 [INFO] [category] info']
+        outputs.stdErr.readLines() == ['10:00:00.000 [ERROR] [category] error']
     }
 
     def rendersLogEventsToStdOutListener() {
@@ -101,7 +114,7 @@ class OutputEventRendererTest extends OutputSpecification {
         then:
         listener.value.readLines() == ['10:00:00.000 [INFO] [category] message']
     }
-    
+
     def rendersErrorLogEventsToStdErrListener() {
         def listener = new TestListener()
 
@@ -193,7 +206,7 @@ class OutputEventRendererTest extends OutputSpecification {
     }
 
     def rendersLogEventsWhenStdOutAndStdErrAreConsole() {
-        renderer.addConsole(console, true, true)
+        renderer.addConsole(console, true, true, metaData)
 
         when:
         renderer.onOutput(start(loggingHeader: 'description'))
@@ -206,7 +219,7 @@ class OutputEventRendererTest extends OutputSpecification {
     }
 
     def rendersLogEventsWhenOnlyStdOutIsConsole() {
-        renderer.addConsole(console, true, false)
+        renderer.addConsole(console, true, false, metaData)
 
         when:
         renderer.onOutput(start(loggingHeader: 'description'))
@@ -219,7 +232,7 @@ class OutputEventRendererTest extends OutputSpecification {
     }
 
     def rendersLogEventsWhenOnlyStdErrIsConsole() {
-        renderer.addConsole(console, false, true)
+        renderer.addConsole(console, false, true, metaData)
 
         when:
         renderer.onOutput(start('description'))
@@ -231,10 +244,22 @@ class OutputEventRendererTest extends OutputSpecification {
         console.value.readLines() == ['{error}error', '{normal}']
     }
 
+    def rendersLogEventsInConsoleWhenLogLevelIsDebug() {
+        renderer.configure(LogLevel.DEBUG)
+        renderer.addConsole(console, true, true, metaData)
+
+        when:
+        renderer.onOutput(event(tenAm, 'info', LogLevel.INFO))
+        renderer.onOutput(event(tenAm, 'error', LogLevel.ERROR))
+
+        then:
+        console.value.readLines() == ['10:00:00.000 [INFO] [category] info', '{error}10:00:00.000 [ERROR] [category] error', '{normal}']
+    }
+
     def attachesConsoleWhenStdOutAndStdErrAreAttachedToConsole() {
         when:
         renderer.addStandardOutputAndError()
-        renderer.addConsole(console, true, true)
+        renderer.addConsole(console, true, true, metaData)
         renderer.onOutput(event('info', LogLevel.INFO))
         renderer.onOutput(event('error', LogLevel.ERROR))
 
@@ -247,7 +272,7 @@ class OutputEventRendererTest extends OutputSpecification {
     def attachesConsoleWhenOnlyStdOutIsAttachedToConsole() {
         when:
         renderer.addStandardOutputAndError()
-        renderer.addConsole(console, true, false)
+        renderer.addConsole(console, true, false, metaData)
         renderer.onOutput(event('info', LogLevel.INFO))
         renderer.onOutput(event('error', LogLevel.ERROR))
 
@@ -260,7 +285,7 @@ class OutputEventRendererTest extends OutputSpecification {
     def attachesConsoleWhenOnlyStdErrIsAttachedToConsole() {
         when:
         renderer.addStandardOutputAndError()
-        renderer.addConsole(console, false, true)
+        renderer.addConsole(console, false, true, metaData)
         renderer.onOutput(event('info', LogLevel.INFO))
         renderer.onOutput(event('error', LogLevel.ERROR))
 

@@ -16,16 +16,11 @@
 
 package org.gradle.logging;
 
-import org.gradle.StartParameter;
+import org.gradle.api.Action;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.internal.Factory;
 import org.gradle.internal.TimeProvider;
 import org.gradle.internal.TrueTimeProvider;
-import org.gradle.internal.console.ConsoleMetaData;
-import org.gradle.internal.console.FallbackConsoleMetaData;
-import org.gradle.internal.nativeplatform.ConsoleDetector;
-import org.gradle.internal.nativeplatform.NoOpConsoleDetector;
-import org.gradle.internal.nativeplatform.services.NativeServices;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.logging.internal.*;
 import org.gradle.logging.internal.logback.LogbackLoggingConfigurer;
@@ -130,9 +125,10 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
     protected abstract Factory<LoggingManagerInternal> createLoggingManagerFactory();
 
     protected OutputEventRenderer createOutputEventRenderer() {
-        ConsoleDetector consoleDetector = new NoOpConsoleDetector();
-        ConsoleMetaData consoleMetaData = new FallbackConsoleMetaData();
-        OutputEventRenderer renderer = new OutputEventRenderer(new ConsoleConfigureAction(consoleDetector), consoleMetaData);
+        OutputEventRenderer renderer = new OutputEventRenderer(new Action<OutputEventRenderer>() {
+            public void execute(OutputEventRenderer outputEventRenderer) {
+            }
+        });
         renderer.addStandardOutputAndError();
         return renderer;
     }
@@ -155,11 +151,7 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
 
     private static class CommandLineLogging extends ChildProcessLogging {
         protected OutputEventRenderer createOutputEventRenderer() {
-            StartParameter startParameter = new StartParameter();
-            NativeServices.initialize(startParameter.getGradleUserHomeDir());
-            ConsoleDetector consoleDetector = NativeServices.getInstance().get(ConsoleDetector.class);
-            ConsoleMetaData consoleMetaData = NativeServices.getInstance().get(ConsoleMetaData.class);
-            OutputEventRenderer renderer = new OutputEventRenderer(new ConsoleConfigureAction(consoleDetector), consoleMetaData);
+            OutputEventRenderer renderer = new OutputEventRenderer(new ConsoleConfigureAction());
             renderer.addStandardOutputAndError();
             return renderer;
         }

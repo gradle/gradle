@@ -22,6 +22,8 @@ import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.internal.console.ConsoleMetaData;
 import org.gradle.listener.ListenerBroadcast;
 
+import java.io.OutputStream;
+
 /**
  * A {@link org.gradle.logging.internal.OutputEventListener} implementation which renders output events to various
  * destinations. This implementation is thread-safe.
@@ -34,13 +36,13 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
     private final Object lock = new Object();
     private final DefaultColorMap colourMap = new DefaultColorMap();
     private LogLevel logLevel = LogLevel.LIFECYCLE;
-    private final ConsoleMetaData consoleMetaData;
     private final Action<OutputEventRenderer> consoleConfigureAction;
-    private StreamBackedStandardOutputListener stdout;
-    private StreamBackedStandardOutputListener stderr;
+    private OutputStream originalStdOut;
+    private OutputStream originalStdErr;
+    private StreamBackedStandardOutputListener stdOutListener;
+    private StreamBackedStandardOutputListener stdErrListener;
 
-    public OutputEventRenderer(Action<OutputEventRenderer> consoleConfigureAction, ConsoleMetaData consoleMetaData) {
-        this.consoleMetaData = consoleMetaData;
+    public OutputEventRenderer(Action<OutputEventRenderer> consoleConfigureAction) {
         OutputEventListener stdOutChain = onNonError(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stdoutListeners.getSource())), false));
         formatters.add(stdOutChain);
         OutputEventListener stdErrChain = onError(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stderrListeners.getSource())), false));
@@ -52,6 +54,14 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
         return colourMap;
     }
 
+    public OutputStream getOriginalStdOut() {
+        return originalStdOut;
+    }
+
+    public OutputStream getOriginalStdErr() {
+        return originalStdErr;
+    }
+
     public void attachConsole(boolean colorOutput) {
         synchronized (lock) {
             colourMap.setUseColor(colorOutput);
@@ -61,10 +71,12 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
 
     public void addStandardOutputAndError() {
         synchronized (lock) {
-            stdout = new StreamBackedStandardOutputListener((Appendable) System.out);
-            stderr = new StreamBackedStandardOutputListener((Appendable) System.err);
-            addStandardOutputListener(stdout);
-            addStandardErrorListener(stderr);
+            originalStdOut = System.out;
+            originalStdErr = System.err;
+            stdOutListener = new StreamBackedStandardOutputListener((Appendable) System.out);
+            stdErrListener = new StreamBackedStandardOutputListener((Appendable) System.err);
+            addStandardOutputListener(stdOutListener);
+            addStandardErrorListener(stdErrListener);
         }
     }
 
@@ -76,20 +88,25 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
         formatters.remove(listener);
     }
 
-    public OutputEventRenderer addConsole(final Console console, boolean stdout, boolean stderr) {
-        final OutputEventListener consoleChain = new ConsoleBackedProgressRenderer(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(console.getMainArea()), true), console, new DefaultStatusBarFormatter(consoleMetaData));
+    public OutputEventRenderer addConsole(Console console, boolean stdout, boolean stderr, ConsoleMetaData consoleMetaData) {
+        final OutputEventListener consoleChain = new ConsoleBackedProgressRenderer(
+                new ProgressLogEventGenerator(
+                        new StyledTextOutputBackedRenderer(console.getMainArea()), true),
+                console,
+                new DefaultStatusBarFormatter(consoleMetaData));
         synchronized (lock) {
             if (stdout && stderr) {
                 formatters.add(consoleChain);
-                stdoutListeners.remove(this.stdout);
-                stderrListeners.remove(this.stderr);
+                stdoutListeners.remove(this.stdOutListener);
+                stderrListeners.remove(this.stdErrListener);
             } else if (stdout) {
                 formatters.add(onNonError(consoleChain));
-                stdoutListeners.remove(this.stdout);
+                stdoutListeners.remove(this.stdOutListener);
             } else {
                 formatters.add(onError(consoleChain));
-                stderrListeners.remove(this.stderr);
+                stderrListeners.remove(this.stdErrListener);
             }
+            consoleChain.onOutput(new LogLevelChangeEvent(logLevel));
         }
         return this;
     }

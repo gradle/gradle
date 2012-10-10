@@ -163,8 +163,8 @@ public class CommandLineActionFactory {
 
             LoggingManagerInternal loggingManager = loggingServices.getFactory(LoggingManagerInternal.class).create();
             loggingManager.setLevel(loggingConfiguration.getLogLevel());
-            loggingManager.attachConsole(loggingConfiguration.isColorOutput());
             loggingManager.start();
+            loggingManager.attachConsole(loggingConfiguration.isColorOutput());
 
             action.execute(executionListener);
         }
