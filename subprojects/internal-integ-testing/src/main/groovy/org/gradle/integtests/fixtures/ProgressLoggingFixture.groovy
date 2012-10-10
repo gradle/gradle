@@ -51,7 +51,6 @@ class ProgressLoggingFixture implements MethodRule {
     }
 
     private boolean progressLogged(String operation, String url) {
-        if (loggingOutputFile == null) return true
         def lines = loggingOutputFile.exists() ? loggingOutputFile.text.readLines() : []
         def startIndex = lines.indexOf("[START " + operation + " " + url + "]")
         if (startIndex == -1) {
@@ -80,7 +79,7 @@ class ProgressLoggingFixture implements MethodRule {
         GradleDistributionExecuter executer = RuleHelper.getField(target, GradleDistributionExecuter)
         GradleDistribution distribution = RuleHelper.getField(target, GradleDistribution)
         TestFile temporaryFolder = distribution.getTemporaryFolder().getDir()
-        File loggingOutputFile = temporaryFolder.file("loggingoutput.log")
+        loggingOutputFile = temporaryFolder.file("loggingoutput.log")
         initFile = temporaryFolder.file("init.gradle")
         initFile.text = """import org.gradle.logging.internal.*
                            File outputFile = new File("${loggingOutputFile.getAbsolutePath()}")
