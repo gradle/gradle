@@ -42,17 +42,14 @@ task listJars << {
         when:
         server.expectGet('/repo/group/projectA/1.2/ivy-1.2.xml', module.ivyFile)
         server.expectGet('/repo/group/projectA/1.2/projectA-1.2.jar', module.jarFile)
-        and:
-        progressLogger.withProgressLogging(executer, module.jarFile)
         then:
         succeeds 'listJars'
+        progressLogger.downloadProgressLogged("http://localhost:${server.port}/repo/group/projectA/1.2/ivy-1.2.xml")
         progressLogger.downloadProgressLogged("http://localhost:${server.port}/repo/group/projectA/1.2/projectA-1.2.jar")
         when:
         server.resetExpectations()
-        progressLogger.resetExpectations()
         then:
         succeeds 'listJars'
-        progressLogger.noProgressLogged()
     }
 
     public void "can resolve and cache artifact-only dependencies from an HTTP Ivy repository"() {
@@ -79,6 +76,7 @@ task listJars << {
         server.expectGet('/repo/group/projectA/1.2/projectA-1.2.jar', module.jarFile)
 
         then:
+        executer.withArgument("-i")
         succeeds('listJars')
 
         when:
@@ -86,6 +84,7 @@ task listJars << {
         // No extra calls for cached dependencies
 
         then:
+        executer.withArgument("-i")
         succeeds('listJars')
     }
 
@@ -128,7 +127,7 @@ task listJars << {
         server.expectGet('/repo2/group/projectC/1.0/ivy-1.0.xml', moduleC.ivyFile)
         server.expectGet('/repo2/group/projectC/1.0/projectC-1.0.jar', moduleC.jarFile)
         and:
-        progressLogger.withProgressLogging(executer, moduleA.jarFile, moduleB.jarFile, moduleC.jarFile)
+        progressLogger.withProgressLogging(moduleA.jarFile, moduleB.jarFile, moduleC.jarFile)
         then:
         succeeds('listJars')
         and:

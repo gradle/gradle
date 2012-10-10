@@ -46,7 +46,6 @@ task retrieve(type: Sync) {
 """
 
         when:
-        progressLogging.withProgressLogging(getExecuter(), projectA.artifactFile, projectB.artifactFile)
         server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.pom', projectA.pomFile)
         server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.jar', projectA.artifactFile)
         server.expectGet('/repo1/group/projectB/1.0/projectB-1.0.pom', projectB.pomFile)
@@ -60,18 +59,18 @@ task retrieve(type: Sync) {
         def snapshot = file('libs/projectA-1.0.jar').snapshot()
 
         and:
+        progressLogging.downloadProgressLogged("http://localhost:${server.port}/repo1/group/projectA/1.0/projectA-1.0.pom")
         progressLogging.downloadProgressLogged("http://localhost:${server.port}/repo1/group/projectA/1.0/projectA-1.0.jar")
+        progressLogging.downloadProgressLogged("http://localhost:${server.port}/repo1/group/projectB/1.0/projectB-1.0.pom")
         progressLogging.downloadProgressLogged("http://localhost:${server.port}/repo1/group/projectB/1.0/projectB-1.0.jar")
 
         when:
         server.resetExpectations()
-        progressLogging.resetExpectations()
         and:
         run 'retrieve'
 
         then:
         file('libs/projectA-1.0.jar').assertHasNotChangedSince(snapshot)
-        progressLogging.noProgressLogged()
     }
 
     def "can resolve and cache artifact-only dependencies from an HTTP Maven repository"() {

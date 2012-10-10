@@ -17,41 +17,20 @@
 package org.gradle.integtests.fixtures
 
 import org.apache.commons.lang.RandomStringUtils
-import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestFile
-import org.junit.rules.TestRule
-import org.junit.runner.Description
+import org.junit.rules.MethodRule
+import org.junit.runners.model.FrameworkMethod
 import org.junit.runners.model.Statement
 
-class ProgressLoggingFixture implements TestRule {
+class ProgressLoggingFixture implements MethodRule {
 
-    private TemporaryFolder temporaryFolder = new TemporaryFolder();
+    private static final String FILE_TRANSFER_PATTERN = /\[START (Download|Upload).*]/
 
     private TestFile loggingOutputFile = null
-    private TestFile initFile = null
-    GradleExecuter executer = null
 
-    void withProgressLogging(GradleExecuter executer, TestFile... testFiles) {
+    void withProgressLogging(TestFile... testFiles) {
         writeSomeContent(testFiles)
-        this.executer = executer
-        initFile = temporaryFolder.file("init.gradle")
-        loggingOutputFile = temporaryFolder.file("loggingoutput.log")
 
-        initFile.text = """import org.gradle.logging.internal.*
-gradle.services.get(LoggingOutputInternal).addOutputEventListener(new OutputEventListener() {
-    File outputFile  = new File("${loggingOutputFile.absolutePath.replace("\\", "/")}")
-    void onOutput(OutputEvent event) {
-        if (event instanceof ProgressStartEvent) {
-            outputFile << "[START \$event.description]\\n"
-        } else if (event instanceof ProgressEvent) {
-            outputFile << "[\$event.status]\\n"
-        } else if (event instanceof ProgressCompleteEvent) {
-            outputFile << "[END]\\n"
-        }
-    }
-})
-        """
-        executer.usingInitScript(initFile)
     }
 
     def writeSomeContent(TestFile[] testFiles) {
@@ -72,39 +51,71 @@ gradle.services.get(LoggingOutputInternal).addOutputEventListener(new OutputEven
     }
 
     private boolean progressLogged(String operation, String url) {
-        assert loggingOutputFile != null
-        assert loggingOutputFile != null
-
-        def lines = loggingOutputFile.readLines()
+        if (loggingOutputFile == null) return true
+        def lines = loggingOutputFile.exists() ? loggingOutputFile.text.readLines() : []
         def startIndex = lines.indexOf("[START " + operation + " " + url + "]")
         if (startIndex == -1) {
             return false
         }
         lines = lines[startIndex..<lines.size()]
-        lines = lines[0..lines.indexOf("[END]")]
-        lines.size() > 2
+        lines = lines[0..lines.indexOf("[END " + operation + " " + url + "]")]
+        lines.size() >= 2
     }
 
     void resetExpectations() {
-        initFile = null;
-        loggingOutputFile = null
+        if (loggingOutputFile != null && loggingOutputFile.exists()) {
+            loggingOutputFile.text = ""
+        }
     }
 
     boolean noProgressLogged() {
-        loggingOutputFile == null || loggingOutputFile.text.isEmpty()
+        if (loggingOutputFile != null && loggingOutputFile.exists()) {
+            return !loggingOutputFile.text.matches(FILE_TRANSFER_PATTERN)
+        }
+        true
     }
 
-    Statement apply(Statement base, Description description) {
+    Statement apply(Statement base, FrameworkMethod method, Object target) {
+        TestFile initFile
+        GradleDistributionExecuter executer = RuleHelper.getField(target, GradleDistributionExecuter)
+        GradleDistribution distribution = RuleHelper.getField(target, GradleDistribution)
+        TestFile temporaryFolder = distribution.getTemporaryFolder().getDir()
+        File loggingOutputFile = temporaryFolder.file("loggingoutput.log")
+        initFile = temporaryFolder.file("init.gradle")
+        initFile.text = """import org.gradle.logging.internal.*
+                           File outputFile = new File("${loggingOutputFile.getAbsolutePath()}")
+                           OutputEventListener outputEventListener = new OutputEventListener() {
+                                void onOutput(OutputEvent event) {
+                                    if (event instanceof ProgressStartEvent) {
+                                        outputFile << "[START \$event.description]\\n"
+                                    } else if (event instanceof ProgressEvent) {
+                                        outputFile << "[\$event.status]\\n"
+                                    } else if (event instanceof ProgressCompleteEvent) {
+                                        outputFile << "[END \$event.description]\\n"
+                                    }
+                                }
+                           }
+                           def loggingOutputInternal = gradle.services.get(LoggingOutputInternal)
+                           loggingOutputInternal.addOutputEventListener(outputEventListener)
+                           buildFinished{
+                                loggingOutputInternal.removeOutputEventListener(outputEventListener)
+                           }"""
+        executer.usingInitScript(initFile)
+
         return new Statement() {
+
+
             @Override
             public void evaluate() throws Throwable {
                 try {
                     base.evaluate();
                 } finally {
                     resetExpectations()
+                    if (initFile != null) {
+                        initFile.delete()
+                    }
                 }
             }
-
         };
     }
 }

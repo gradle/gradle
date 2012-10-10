@@ -48,9 +48,6 @@ class IvySFtpPublishIntegrationTest extends AbstractIntegrationSpec {
             }
         }
         """
-        and:
-        progressLogging.withProgressLogging(executer, file("src/main/resources/test.properties"))
-
         when:
 
         run "uploadArchives"
@@ -59,6 +56,7 @@ class IvySFtpPublishIntegrationTest extends AbstractIntegrationSpec {
         sftpServer.hasFile("repos/libs/org.gradle/publish/ivy-2.xml");
         sftpServer.file("repos/libs/org.gradle/publish/publish-2.jar").assertIsCopyOf(file('build/libs/publish-2.jar'))
         and:
+        progressLogging.uploadProgressLogged("repos/libs/org.gradle/publish/ivy-2.xml")
         progressLogging.uploadProgressLogged("repos/libs/org.gradle/publish/publish-2.jar")
     }
 

@@ -74,8 +74,6 @@ uploadArchives {
         expectUpload('/org.gradle/publish/2/ivy-2.xml', module, module.ivyFile, HttpStatus.ORDINAL_201_Created)
 
         and:
-        withProgressLogging()
-        and:
         succeeds 'uploadArchives'
 
         then:
@@ -114,7 +112,6 @@ uploadArchives {
 """
 
         when:
-        withProgressLogging()
         server.authenticationScheme = authScheme
         expectUpload('/org.gradle/publish/2/publish-2.jar', module, module.jarFile, 'testuser', 'password')
         expectUpload('/org.gradle/publish/2/ivy-2.xml', module, module.ivyFile, 'testuser', 'password')
@@ -129,8 +126,8 @@ uploadArchives {
         module.assertChecksumPublishedFor(module.jarFile)
 
         and:
-        progressLogging.uploadProgressLogged("http://localhost:${server.port}/org.gradle/publish/2/publish-2.jar")
         progressLogging.uploadProgressLogged("http://localhost:${server.port}/org.gradle/publish/2/ivy-2.xml")
+        progressLogging.uploadProgressLogged("http://localhost:${server.port}/org.gradle/publish/2/publish-2.jar")
 
         where:
         authScheme << [HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST]
@@ -333,9 +330,4 @@ uploadArchives {
         server.expectPut(path, username, password, file)
         server.expectPut("${path}.sha1", username, password, module.sha1File(file))
     }
-
-    def withProgressLogging() {
-        progressLogging.withProgressLogging(executer, file("src/main/resources/test.properties"))
-    }
-
 }

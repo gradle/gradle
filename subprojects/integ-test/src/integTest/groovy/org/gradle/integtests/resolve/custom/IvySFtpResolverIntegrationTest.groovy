@@ -58,7 +58,7 @@ task listJars << {
 }
 """
         when:
-        progressLogging.withProgressLogging(executer, module.jarFile)
+        progressLogging.withProgressLogging(module.jarFile)
         succeeds 'listJars'
 
         then:
@@ -66,6 +66,7 @@ task listJars << {
                 "repos/libs/group/projectA/1.2/projectA-1.2.jar"
         ] as Set
 
+        progressLogging.downloadProgressLogged("repos/libs/group/projectA/1.2/ivy-1.2.xml")
         progressLogging.downloadProgressLogged("repos/libs/group/projectA/1.2/projectA-1.2.jar")
 
         when:
