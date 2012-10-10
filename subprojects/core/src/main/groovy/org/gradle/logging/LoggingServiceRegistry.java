@@ -23,8 +23,8 @@ import org.gradle.internal.TimeProvider;
 import org.gradle.internal.TrueTimeProvider;
 import org.gradle.internal.console.ConsoleMetaData;
 import org.gradle.internal.console.FallbackConsoleMetaData;
-import org.gradle.internal.nativeplatform.NoOpTerminalDetector;
-import org.gradle.internal.nativeplatform.TerminalDetector;
+import org.gradle.internal.nativeplatform.ConsoleDetector;
+import org.gradle.internal.nativeplatform.NoOpConsoleDetector;
 import org.gradle.internal.nativeplatform.services.NativeServices;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.logging.internal.*;
@@ -123,9 +123,9 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
     protected abstract Factory<LoggingManagerInternal> createLoggingManagerFactory();
 
     protected OutputEventRenderer createOutputEventRenderer() {
-        TerminalDetector terminalDetector = new NoOpTerminalDetector();
+        ConsoleDetector consoleDetector = new NoOpConsoleDetector();
         ConsoleMetaData consoleMetaData = new FallbackConsoleMetaData();
-        OutputEventRenderer renderer = new OutputEventRenderer(terminalDetector, consoleMetaData);
+        OutputEventRenderer renderer = new OutputEventRenderer(consoleDetector, consoleMetaData);
         renderer.addStandardOutputAndError();
         return renderer;
     }
@@ -150,9 +150,9 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
         protected OutputEventRenderer createOutputEventRenderer() {
             StartParameter startParameter = new StartParameter();
             NativeServices.initialize(startParameter.getGradleUserHomeDir());
-            TerminalDetector terminalDetector = NativeServices.getInstance().get(TerminalDetector.class);
+            ConsoleDetector consoleDetector = NativeServices.getInstance().get(ConsoleDetector.class);
             ConsoleMetaData consoleMetaData = NativeServices.getInstance().get(ConsoleMetaData.class);
-            OutputEventRenderer renderer = new OutputEventRenderer(terminalDetector, consoleMetaData);
+            OutputEventRenderer renderer = new OutputEventRenderer(consoleDetector, consoleMetaData);
             renderer.addStandardOutputAndError();
             return renderer;
         }
