@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.nativeplatform;
+package org.gradle.internal.nativeplatform.console;
 
 import org.fusesource.jansi.WindowsAnsiOutputStream;
-import org.gradle.internal.console.ConsoleMetaData;
-import org.gradle.internal.console.FallbackConsoleMetaData;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

@@ -20,7 +20,7 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.StandardOutputListener
 import org.gradle.util.RedirectStdOutAndErr
 import org.junit.Rule
-import org.gradle.internal.console.ConsoleMetaData
+import org.gradle.internal.nativeplatform.console.ConsoleMetaData
 
 class OutputEventRendererTest extends OutputSpecification {
     @Rule public final RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()

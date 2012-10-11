@@ -14,18 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.console;
+package org.gradle.internal.nativeplatform.console;
 
-public class FallbackConsoleMetaData implements ConsoleMetaData{
-    public boolean isStdOut() {
-        return true;
-    }
+public interface ConsoleMetaData {
+    /**
+     * Returns true if the current process' stdout is attached to the console.
+     */
+    boolean isStdOut();
 
-    public boolean isStdErr() {
-        return true;
-    }
+    /**
+     * Returns true if the current process' stderr is attached to the console.
+     */
+    boolean isStdErr();
 
-    public int getCols() {
-        return 0;
-    }
+    /**
+     * <p>Returns the number of columns available in the console.</p>
+     *
+     * @return The number of columns available in the console. If no information is available return 0.
+     */
+    public int getCols();
 }

@@ -17,9 +17,9 @@
 package org.gradle.internal.nativeplatform.jna;
 
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.console.ConsoleMetaData;
-import org.gradle.internal.console.UnixConsoleMetaData;
-import org.gradle.internal.nativeplatform.ConsoleDetector;
+import org.gradle.internal.nativeplatform.console.ConsoleMetaData;
+import org.gradle.internal.nativeplatform.console.UnixConsoleMetaData;
+import org.gradle.internal.nativeplatform.console.ConsoleDetector;
 
 import java.io.FileDescriptor;
 import java.lang.reflect.Field;

@@ -14,23 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.console;
+package org.gradle.internal.nativeplatform.console;
 
-public interface ConsoleMetaData {
-    /**
-     * Returns true if the current process' stdout is attached to the console.
-     */
-    boolean isStdOut();
+import org.gradle.api.Nullable;
 
+public interface ConsoleDetector {
     /**
-     * Returns true if the current process' stderr is attached to the console.
-     */
-    boolean isStdErr();
-
-    /**
-     * <p>Returns the number of columns available in the console.</p>
+     * Locates the console for this process, if any.
      *
-     * @return The number of columns available in the console. If no information is available return 0.
+     * @return Information about the console, or null if this process is not attached to the console.
      */
-    public int getCols();
+    @Nullable
+    ConsoleMetaData getConsole();
 }

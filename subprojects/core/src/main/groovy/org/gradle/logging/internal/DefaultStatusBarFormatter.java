@@ -16,7 +16,7 @@
 
 package org.gradle.logging.internal;
 
-import org.gradle.internal.console.ConsoleMetaData;
+import org.gradle.internal.nativeplatform.console.ConsoleMetaData;
 
 import java.util.List;
 

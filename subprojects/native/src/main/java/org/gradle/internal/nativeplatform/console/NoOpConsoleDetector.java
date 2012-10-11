@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.nativeplatform;
-
-import org.gradle.internal.console.ConsoleMetaData;
+package org.gradle.internal.nativeplatform.console;
 
 public class NoOpConsoleDetector implements ConsoleDetector {
     public ConsoleMetaData getConsole() {

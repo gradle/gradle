@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.nativeplatform;
+package org.gradle.internal.nativeplatform.console;
 
-import org.gradle.api.Nullable;
-import org.gradle.internal.console.ConsoleMetaData;
+public class FallbackConsoleMetaData implements ConsoleMetaData{
+    public boolean isStdOut() {
+        return true;
+    }
 
-public interface ConsoleDetector {
-    /**
-     * Locates the console for this process, if any.
-     *
-     * @return Information about the console, or null if this process is not attached to the console.
-     */
-    @Nullable
-    ConsoleMetaData getConsole();
+    public boolean isStdErr() {
+        return true;
+    }
+
+    public int getCols() {
+        return 0;
+    }
 }

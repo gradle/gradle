@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.console;
+package org.gradle.internal.nativeplatform.console;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import net.rubygrapefruit.platform.Terminal;
 
-public class UnixConsoleMetaData implements ConsoleMetaData {
-    public static final Logger LOGGER = LoggerFactory.getLogger(UnixConsoleMetaData.class);
+public class NativePlatformConsoleMetaData implements ConsoleMetaData {
     private final boolean stdout;
     private final boolean stderr;
+    private final Terminal terminal;
 
-    public UnixConsoleMetaData(boolean stdout, boolean stderr) {
+    public NativePlatformConsoleMetaData(boolean stdout, boolean stderr, Terminal terminal) {
         this.stdout = stdout;
         this.stderr = stderr;
+        this.terminal = terminal;
     }
 
     public boolean isStdOut() {
@@ -38,14 +38,6 @@ public class UnixConsoleMetaData implements ConsoleMetaData {
     }
 
     public int getCols() {
-        final String columns = System.getenv("COLUMNS");
-        if (columns != null) {
-            try {
-                return Integer.parseInt(columns);
-            } catch (NumberFormatException ex) {
-                LOGGER.debug("Cannot parse COLUMNS environment variable to get console width. Value: '{}'", columns);
-            }
-        }
-        return 0;
+        return terminal.getTerminalSize().getCols();
     }
 }

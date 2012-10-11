@@ -18,8 +18,8 @@ package org.gradle.logging.internal;
 
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
-import org.gradle.internal.console.ConsoleMetaData;
-import org.gradle.internal.nativeplatform.ConsoleDetector;
+import org.gradle.internal.nativeplatform.console.ConsoleMetaData;
+import org.gradle.internal.nativeplatform.console.ConsoleDetector;
 import org.gradle.internal.nativeplatform.services.NativeServices;
 
 import java.io.PrintStream;

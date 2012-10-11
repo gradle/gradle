@@ -19,7 +19,7 @@ import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
-import org.gradle.internal.console.ConsoleMetaData;
+import org.gradle.internal.nativeplatform.console.ConsoleMetaData;
 import org.gradle.listener.ListenerBroadcast;
 
 import java.io.OutputStream;

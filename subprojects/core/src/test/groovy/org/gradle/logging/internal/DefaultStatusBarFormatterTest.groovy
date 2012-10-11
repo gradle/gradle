@@ -17,7 +17,7 @@
 package org.gradle.logging.internal
 
 import spock.lang.Specification
-import org.gradle.internal.console.ConsoleMetaData
+import org.gradle.internal.nativeplatform.console.ConsoleMetaData
 
 class DefaultStatusBarFormatterTest extends Specification {
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.nativeplatform
+package org.gradle.internal.nativeplatform.console
 
 import spock.lang.Specification
 import net.rubygrapefruit.platform.Terminals

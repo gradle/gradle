@@ -15,7 +15,7 @@
  */
 package org.gradle.logging.internal
 
-import org.gradle.internal.console.ConsoleMetaData
+import org.gradle.internal.nativeplatform.console.ConsoleMetaData
 
 class ConsoleBackedProgressRendererTest extends OutputSpecification {
     private final OutputEventListener listener = Mock()
