@@ -23,7 +23,7 @@ import spock.lang.Ignore
  * by Szczepan Faber, created at: 9/5/12
  */
 class TaskCommandLineConfigurationIntegrationSpec extends AbstractIntegrationSpec {
-
+    @Ignore
     def "can configure task from command line in multiple projects"() {
         given:
         file("settings.gradle") << "include 'project2'"
