@@ -20,8 +20,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class UnixConsoleMetaData implements ConsoleMetaData {
-
     public static final Logger LOGGER = LoggerFactory.getLogger(UnixConsoleMetaData.class);
+    private final boolean stdout;
+    private final boolean stderr;
+
+    public UnixConsoleMetaData(boolean stdout, boolean stderr) {
+        this.stdout = stdout;
+        this.stderr = stderr;
+    }
+
+    public boolean isStdOut() {
+        return stdout;
+    }
+
+    public boolean isStdErr() {
+        return stderr;
+    }
 
     public int getCols() {
         final String columns = System.getenv("COLUMNS");

@@ -20,10 +20,22 @@ import net.rubygrapefruit.platform.Terminal;
 import org.gradle.internal.console.ConsoleMetaData;
 
 public class NativePlatformConsoleMetaData implements ConsoleMetaData {
+    private final boolean stdout;
+    private final boolean stderr;
     private final Terminal terminal;
 
-    public NativePlatformConsoleMetaData(Terminal terminal) {
+    public NativePlatformConsoleMetaData(boolean stdout, boolean stderr, Terminal terminal) {
+        this.stdout = stdout;
+        this.stderr = stderr;
         this.terminal = terminal;
+    }
+
+    public boolean isStdOut() {
+        return stdout;
+    }
+
+    public boolean isStdErr() {
+        return stderr;
     }
 
     public int getCols() {

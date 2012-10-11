@@ -31,18 +31,10 @@ public class LibCBackedConsoleDetector implements ConsoleDetector {
         this.libC = libC;
     }
 
-    public ConsoleMetaData isConsole(FileDescriptor fileDescriptor) {
-        int osFileDesc;
-        try {
-            Field fdField = FileDescriptor.class.getDeclaredField("fd");
-            fdField.setAccessible(true);
-            osFileDesc = fdField.getInt(fileDescriptor);
-        } catch (Exception e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
-
-        // Determine if we're connected to a terminal
-        if (libC.isatty(osFileDesc) == 0) {
+    public ConsoleMetaData getConsole() {
+        boolean stdout = checkIsConsole(FileDescriptor.out);
+        boolean stderr = checkIsConsole(FileDescriptor.err);
+        if (!stdout && !stderr) {
             return null;
         }
 
@@ -53,6 +45,20 @@ public class LibCBackedConsoleDetector implements ConsoleDetector {
         }
 
         // Assume a terminal
-        return new UnixConsoleMetaData();
+        return new UnixConsoleMetaData(stdout, stderr);
+    }
+
+    private boolean checkIsConsole(FileDescriptor fileDescriptor) {
+        int osFileDesc;
+        try {
+            Field fdField = FileDescriptor.class.getDeclaredField("fd");
+            fdField.setAccessible(true);
+            osFileDesc = fdField.getInt(fileDescriptor);
+        } catch (Exception e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+
+        // Determine if we're connected to a terminal
+        return libC.isatty(osFileDesc) != 0;
     }
 }

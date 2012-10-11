@@ -17,6 +17,14 @@
 package org.gradle.internal.console;
 
 public class FallbackConsoleMetaData implements ConsoleMetaData{
+    public boolean isStdOut() {
+        return true;
+    }
+
+    public boolean isStdErr() {
+        return true;
+    }
+
     public int getCols() {
         return 0;
     }

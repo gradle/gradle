@@ -17,6 +17,15 @@
 package org.gradle.internal.console;
 
 public interface ConsoleMetaData {
+    /**
+     * Returns true if the current process' stdout is attached to the console.
+     */
+    boolean isStdOut();
+
+    /**
+     * Returns true if the current process' stderr is attached to the console.
+     */
+    boolean isStdErr();
 
     /**
      * <p>Returns the number of columns available in the console.</p>

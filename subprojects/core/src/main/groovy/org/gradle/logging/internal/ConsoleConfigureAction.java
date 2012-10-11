@@ -22,7 +22,6 @@ import org.gradle.internal.console.ConsoleMetaData;
 import org.gradle.internal.nativeplatform.ConsoleDetector;
 import org.gradle.internal.nativeplatform.services.NativeServices;
 
-import java.io.FileDescriptor;
 import java.io.PrintStream;
 
 public class ConsoleConfigureAction implements Action<OutputEventRenderer> {
@@ -30,19 +29,21 @@ public class ConsoleConfigureAction implements Action<OutputEventRenderer> {
         StartParameter startParameter = new StartParameter();
         NativeServices.initialize(startParameter.getGradleUserHomeDir());
         ConsoleDetector consoleDetector = NativeServices.getInstance().get(ConsoleDetector.class);
-        final ConsoleMetaData stdoutConsole = consoleDetector.isConsole(FileDescriptor.out);
-        final ConsoleMetaData stderrConsole = consoleDetector.isConsole(FileDescriptor.err);
-        boolean stdOutIsTerminal = stdoutConsole != null;
-        boolean stdErrIsTerminal = stderrConsole != null;
+        ConsoleMetaData consoleMetaData = consoleDetector.getConsole();
+        if (consoleMetaData == null) {
+            return;
+        }
+        boolean stdOutIsTerminal = consoleMetaData.isStdOut();
+        boolean stdErrIsTerminal = consoleMetaData.isStdErr();
         if (stdOutIsTerminal) {
             PrintStream outStr = new PrintStream(org.fusesource.jansi.AnsiConsole.wrapOutputStream(renderer.getOriginalStdOut()));
             Console console = new AnsiConsole(outStr, outStr, renderer.getColourMap());
-            renderer.addConsole(console, true, stdErrIsTerminal, stdoutConsole);
+            renderer.addConsole(console, true, stdErrIsTerminal, consoleMetaData);
         } else if (stdErrIsTerminal) {
             // Only stderr is connected to a terminal
             PrintStream errStr = new PrintStream(org.fusesource.jansi.AnsiConsole.wrapOutputStream(renderer.getOriginalStdErr()));
             Console console = new AnsiConsole(errStr, errStr, renderer.getColourMap());
-            renderer.addConsole(console, false, true, stderrConsole);
+            renderer.addConsole(console, false, true, consoleMetaData);
         }
     }
 }

@@ -19,8 +19,6 @@ package org.gradle.internal.nativeplatform;
 import net.rubygrapefruit.platform.Terminals;
 import org.gradle.internal.console.ConsoleMetaData;
 
-import java.io.FileDescriptor;
-
 import static net.rubygrapefruit.platform.Terminals.Output.Stderr;
 import static net.rubygrapefruit.platform.Terminals.Output.Stdout;
 
@@ -31,11 +29,20 @@ public class NativePlatformConsoleDetector implements ConsoleDetector {
         this.terminals = terminals;
     }
 
-    public ConsoleMetaData isConsole(FileDescriptor fileDescriptor) {
-        if (fileDescriptor == FileDescriptor.out && terminals.isTerminal(Stdout)){
-            return new NativePlatformConsoleMetaData(terminals.getTerminal(Stdout));
-        } else if (fileDescriptor == FileDescriptor.err && terminals.isTerminal(Stderr)) {
-            return new NativePlatformConsoleMetaData(terminals.getTerminal(Stderr));
+    public ConsoleMetaData getConsole() {
+        // Dumb terminal doesn't support ANSI control codes.
+        // TODO - remove this when we use Terminal rather than JAnsi to render to console
+        String term = System.getenv("TERM");
+        if (term != null && term.equals("dumb")) {
+            return null;
+        }
+
+        boolean stdout = terminals.isTerminal(Stdout);
+        boolean stderr = terminals.isTerminal(Stderr);
+        if (stdout) {
+            return new NativePlatformConsoleMetaData(stdout, stderr, terminals.getTerminal(Stdout));
+        } else if (stderr) {
+            return new NativePlatformConsoleMetaData(stdout, stderr, terminals.getTerminal(Stderr));
         }
         return null;
     }

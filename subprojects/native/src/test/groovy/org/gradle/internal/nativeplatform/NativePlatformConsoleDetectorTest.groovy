@@ -18,38 +18,50 @@ package org.gradle.internal.nativeplatform
 
 import spock.lang.Specification
 import net.rubygrapefruit.platform.Terminals
-import spock.lang.Unroll
 
 class NativePlatformConsoleDetectorTest extends Specification {
-
     private Terminals terminals = Mock()
-
     private NativePlatformConsoleDetector detector = new NativePlatformConsoleDetector(terminals)
 
-    @Unroll
-    def "isTerminal supports #output"(){
-        when:
-        1 * terminals.isTerminal(output) >> true
-        then:
-        detector.isConsole(fd) != null
+    def "returns null when neither stdout or stderr is attached to console"() {
+        given:
+        terminals.isTerminal(Terminals.Output.Stdout) >> false
+        terminals.isTerminal(Terminals.Output.Stderr) >> false
 
-        when:
-        1 * terminals.isTerminal(output) >> false
-        then:
-        detector.isConsole(fd) == null
-        where:
-        fd                  | output
-        FileDescriptor.out  | Terminals.Output.Stdout
-        FileDescriptor.err  | Terminals.Output.Stderr
+        expect:
+        detector.console == null
     }
 
-    def "isTerminal is false for any non STD out / err FileDescriptors"(){
-        when:
-        def isTerminal =detector.isConsole(new FileDescriptor())
-        then:
-        !isTerminal
-        0 * terminals.isTerminal(Terminals.Output.Stdout);
-        0 * terminals.isTerminal(Terminals.Output.Stderr);
+    def "returns metadata when stdout and stderr are attached to console"() {
+        given:
+        terminals.isTerminal(Terminals.Output.Stdout) >> true
+        terminals.isTerminal(Terminals.Output.Stderr) >> true
+
+        expect:
+        detector.console != null
+        detector.console.stdOut
+        detector.console.stdErr
     }
 
+    def "returns metadata when only stdout is attached to console"() {
+        given:
+        terminals.isTerminal(Terminals.Output.Stdout) >> true
+        terminals.isTerminal(Terminals.Output.Stderr) >> false
+
+        expect:
+        detector.console != null
+        detector.console.stdOut
+        !detector.console.stdErr
+    }
+
+    def "returns metadata when only stderr is attached to console"() {
+        given:
+        terminals.isTerminal(Terminals.Output.Stdout) >> false
+        terminals.isTerminal(Terminals.Output.Stderr) >> true
+
+        expect:
+        detector.console != null
+        !detector.console.stdOut
+        detector.console.stdErr
+    }
 }

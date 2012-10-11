@@ -16,10 +16,15 @@
 
 package org.gradle.internal.nativeplatform;
 
+import org.gradle.api.Nullable;
 import org.gradle.internal.console.ConsoleMetaData;
 
-import java.io.FileDescriptor;
-
 public interface ConsoleDetector {
-    ConsoleMetaData isConsole(FileDescriptor fileDescriptor);
+    /**
+     * Locates the console for this process, if any.
+     *
+     * @return Information about the console, or null if this process is not attached to the console.
+     */
+    @Nullable
+    ConsoleMetaData getConsole();
 }
