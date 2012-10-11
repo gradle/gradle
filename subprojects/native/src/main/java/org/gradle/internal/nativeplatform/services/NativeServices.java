@@ -16,11 +16,11 @@
 package org.gradle.internal.nativeplatform.services;
 
 import com.sun.jna.Native;
+import net.rubygrapefruit.platform.NativeException;
+import net.rubygrapefruit.platform.NativeIntegrationUnavailableException;
+import net.rubygrapefruit.platform.Terminals;
 import org.gradle.internal.SystemProperties;
-import org.gradle.internal.nativeplatform.ConsoleDetector;
-import org.gradle.internal.nativeplatform.NoOpConsoleDetector;
-import org.gradle.internal.nativeplatform.ProcessEnvironment;
-import org.gradle.internal.nativeplatform.WindowsConsoleDetector;
+import org.gradle.internal.nativeplatform.*;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.nativeplatform.filesystem.FileSystems;
 import org.gradle.internal.nativeplatform.jna.*;
@@ -36,27 +36,29 @@ import java.io.File;
  */
 public class NativeServices extends DefaultServiceRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(NativeServices.class);
-    private static NativeServices instance = new NativeServices();
+    private static final boolean USE_NATIVE_PLATFORM = "true".equalsIgnoreCase(System.getProperty("org.gradle.native", "true"));
+    private static final NativeServices INSTANCE = new NativeServices();
 
     /**
      * Initializes the native services to use the given user home directory to store native libs and other resources. Does nothing if already initialized. Will be implicitly initialized on first usage
      * of a native service. Also initializes the Native-Platform library using the passed user home directory.
      */
     public static void initialize(File userHomeDir) {
-        new JnaBootPathConfigurer().configure(userHomeDir);
-        /*
-        try {
-            net.rubygrapefruit.platform.Native.init(userHomeDir);
-        } catch (NativeIntegrationUnavailableException ex) {
-            LOGGER.debug("Native-platform is not available.");
-        } catch (NativeException ex) {
-            LOGGER.debug("Unable to initialize native-platform. Failure: {}", format(ex));
+        File nativeDir = new File(userHomeDir, "native");
+        if (USE_NATIVE_PLATFORM) {
+            try {
+                net.rubygrapefruit.platform.Native.init(nativeDir);
+            } catch (NativeIntegrationUnavailableException ex) {
+                LOGGER.debug("Native-platform is not available.");
+            } catch (NativeException ex) {
+                LOGGER.debug("Unable to initialize native-platform. Failure: {}", format(ex));
+            }
         }
-        */
+        new JnaBootPathConfigurer().configure(nativeDir);
     }
 
     public static NativeServices getInstance() {
-        return instance;
+        return INSTANCE;
     }
 
     private NativeServices() {
@@ -94,16 +96,16 @@ public class NativeServices extends DefaultServiceRegistry {
 
     protected ConsoleDetector createConsoleDetector() {
         OperatingSystem operatingSystem = get(OperatingSystem.class);
-        /*
-        try {
-            Terminals terminals = net.rubygrapefruit.platform.Native.get(Terminals.class);
-            return new NativePlatformConsoleDetector(terminals);
-        } catch (NativeIntegrationUnavailableException ex) {
-            LOGGER.debug("Native-platform terminal is not available. Continuing with fallback.");
-        } catch (NativeException ex) {
-            LOGGER.debug("Unable to load from native-platform backed ConsoleDetector. Continuing with fallback. Failure: {}", format(ex));
+        if (USE_NATIVE_PLATFORM) {
+            try {
+                Terminals terminals = net.rubygrapefruit.platform.Native.get(Terminals.class);
+                return new NativePlatformConsoleDetector(terminals);
+            } catch (NativeIntegrationUnavailableException ex) {
+                LOGGER.debug("Native-platform terminal is not available. Continuing with fallback.");
+            } catch (NativeException ex) {
+                LOGGER.debug("Unable to load from native-platform backed ConsoleDetector. Continuing with fallback. Failure: {}", format(ex));
+            }
         }
-        */
         try {
             if (operatingSystem.isWindows()) {
                 return new WindowsConsoleDetector();
