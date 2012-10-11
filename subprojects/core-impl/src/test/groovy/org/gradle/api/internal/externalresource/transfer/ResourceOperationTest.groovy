@@ -62,4 +62,14 @@ class ResourceOperationTest extends Specification {
         then:
         1 * progressLogger.completed()
     }
+
+    void "handles unknown content length"() {
+        given:
+        def operation = new ResourceOperation(progressLogger, ResourceOperation.UPLOAD, 0)
+        when:
+        operation.logProcessedBytes(1024)
+        then:
+        1 * progressLogger.progress("1 KB/unknown size uploaded")
+    }
 }
+
