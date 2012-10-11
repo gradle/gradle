@@ -59,7 +59,7 @@ class ProgressLoggingExternalResourceAccessorTest extends Specification {
         loadedResource instanceof ProgressLoggingExternalResourceAccessor.ProgressLoggingExternalResource
     }
 
-    def "ProgressLoggingExternalResource.writeTo wraps delegate call in progress logger and logs progress in kbyte steps"() {
+    def "ProgressLoggingExternalResource.writeTo wraps delegate call in progress logger"() {
         setup:
         accessor.getResource("location") >> externalResource
         externalResource.getName() >> "test resource"
@@ -68,12 +68,14 @@ class ProgressLoggingExternalResourceAccessorTest extends Specification {
             stream.write(12)
             stream.write(2)
             stream.write(112)
+            stream.write(new byte[1024])
         }
         when:
         progressLoggerAccessor.getResource("location").writeTo(new ByteArrayOutputStream())
         then:
         1 * progressLoggerFactory.newOperation(_) >> progressLogger
         1 * progressLogger.started()
+        1 * progressLogger.progress(_)
         1 * progressLogger.completed()
     }
 
@@ -83,7 +85,7 @@ class ProgressLoggingExternalResourceAccessorTest extends Specification {
         externalResource.getName() >> "test resource"
         externalResource.getContentLength() >> 1023
         externalResource.writeTo(_) >> { OutputStream stream ->
-            stream.write(new byte[1023], 0, 1023)
+            stream.write(new byte[1023])
         }
         when:
         progressLoggerAccessor.getResource("location").writeTo(new ByteArrayOutputStream())

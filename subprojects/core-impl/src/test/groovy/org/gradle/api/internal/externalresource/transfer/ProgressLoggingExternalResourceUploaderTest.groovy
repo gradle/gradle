@@ -41,22 +41,12 @@ class ProgressLoggingExternalResourceUploaderTest extends Specification {
         1 * delegateFactory.create() >> inputStream
         1 * uploader.upload(_, 5 * 1024, "http://a/remote/path") >> {factory, length, destination ->
             def stream = factory.create();
-            assert stream.read(new byte[1024], 0, 512) == 512
-            assert stream.read(new byte[1024], 0, 1024) == 1024
-            assert stream.read(new byte[2048], 0, 2048) == 2048
-            assert stream.read(new byte[256], 0, 256) == 256
-            assert stream.read(new byte[256], 0, 256) == 256
+            assert stream.read(new byte[1024]) == 1024
             assert stream.read() == 48
         }
-        1 * inputStream.read(_, 0, 512) >> 512
         1 * inputStream.read(_, 0, 1024) >> 1024
-        1 * inputStream.read(_, 0, 2048) >> 2048
-        1 * inputStream.read(_, 0, 256) >> 256
-        1 * inputStream.read(_, 0, 256) >> 256
         1 * inputStream.read() >> 48
-        1 * progressLogger.progress("1 KB/5 KB uploaded")
-        1 * progressLogger.progress("3 KB/5 KB uploaded")
-        1 * progressLogger.progress("4 KB/5 KB uploaded")
+        1 * progressLogger.progress(_)
         1 * progressLogger.completed()
     }
 
