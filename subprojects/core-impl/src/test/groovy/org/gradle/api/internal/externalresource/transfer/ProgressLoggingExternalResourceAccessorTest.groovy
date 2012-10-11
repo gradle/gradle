@@ -26,7 +26,7 @@ class ProgressLoggingExternalResourceAccessorTest extends Specification {
 
     ExternalResourceAccessor accessor = Mock()
     ProgressLoggerFactory progressLoggerFactory = Mock();
-    def progressLoggerAccessor = new ProgressLoggingExternalResourceAccessor(accessor, progressLoggerFactory)
+    ProgressLoggingExternalResourceAccessor progressLoggerAccessor = new ProgressLoggingExternalResourceAccessor(accessor, progressLoggerFactory)
     ProgressLogger progressLogger = Mock()
     ExternalResource externalResource = Mock()
 
@@ -59,31 +59,37 @@ class ProgressLoggingExternalResourceAccessorTest extends Specification {
         loadedResource instanceof ProgressLoggingExternalResourceAccessor.ProgressLoggingExternalResource
     }
 
-
     def "ProgressLoggingExternalResource.writeTo wraps delegate call in progress logger and logs progress in kbyte steps"() {
         setup:
         accessor.getResource("location") >> externalResource
         externalResource.getName() >> "test resource"
-        externalResource.getContentLength() >> 64 * 1024
+        externalResource.getContentLength() >> 2060
         externalResource.writeTo(_) >> { OutputStream stream ->
-            stream.write(new byte[1024 * 6], 0, 1024 * 3)
-            stream.write(new byte[1024], 0, 256)
-            stream.write(new byte[256])
-            stream.write(new byte[256])
-            stream.write(new byte[256])
-            stream.write(new byte[2 * 1024])
             stream.write(12)
+            stream.write(2)
+            stream.write(112)
         }
         when:
-        def processLoggableResource = progressLoggerAccessor.getResource("location")
-        and:
-        processLoggableResource.writeTo(new ByteArrayOutputStream())
+        progressLoggerAccessor.getResource("location").writeTo(new ByteArrayOutputStream())
         then:
         1 * progressLoggerFactory.newOperation(_) >> progressLogger
         1 * progressLogger.started()
-        1 * progressLogger.progress("3 KB/64 KB downloaded")
-        1 * progressLogger.progress("4 KB/64 KB downloaded")
-        1 * progressLogger.progress("6 KB/64 KB downloaded")
+        1 * progressLogger.completed()
+    }
+
+    def "no progress events logged for resources smaller 1024 bytes"() {
+        setup:
+        accessor.getResource("location") >> externalResource
+        externalResource.getName() >> "test resource"
+        externalResource.getContentLength() >> 1023
+        externalResource.writeTo(_) >> { OutputStream stream ->
+            stream.write(new byte[1023], 0, 1023)
+        }
+        when:
+        progressLoggerAccessor.getResource("location").writeTo(new ByteArrayOutputStream())
+        then:
+        1 * progressLoggerFactory.newOperation(_) >> progressLogger
+        1 * progressLogger.started()
         1 * progressLogger.completed()
         0 * progressLogger.progress(_)
     }

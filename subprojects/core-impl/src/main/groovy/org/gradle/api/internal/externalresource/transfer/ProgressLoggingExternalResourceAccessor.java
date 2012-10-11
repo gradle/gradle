@@ -20,7 +20,6 @@ import org.apache.ivy.plugins.repository.Resource;
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
-import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.hash.HashValue;
 
@@ -73,12 +72,12 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
         }
 
         public void writeTo(OutputStream outputStream) throws IOException {
-            ProgressLogger progressLogger = startProgress(String.format("Download %s", getName()), null);
-            final ProgressLoggingOutputStream progressLoggingOutputStream = new ProgressLoggingOutputStream(outputStream, progressLogger, resource.getContentLength());
+            final ResourceOperation downloadOperation = createResourceOperation(resource.getName(), ResourceOperation.DOWNLOAD, getClass(), resource.getContentLength());
+            final ProgressLoggingOutputStream progressLoggingOutputStream = new ProgressLoggingOutputStream(outputStream, downloadOperation);
             try {
                 resource.writeTo(progressLoggingOutputStream);
             } finally {
-                progressLogger.completed();
+                downloadOperation.completed();
             }
         }
 
@@ -121,15 +120,12 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
     }
 
     private class ProgressLoggingOutputStream extends OutputStream {
-        private long totalWritten;
         private OutputStream outputStream;
-        private final ProgressLogger progressLogger;
-        private long contentLength;
+        private final ResourceOperation resourceOperation;
 
-        public ProgressLoggingOutputStream(OutputStream outputStream, ProgressLogger progressLogger, long contentLength) {
+        public ProgressLoggingOutputStream(OutputStream outputStream, ResourceOperation resourceOperation) {
             this.outputStream = outputStream;
-            this.progressLogger = progressLogger;
-            this.contentLength = contentLength;
+            this.resourceOperation = resourceOperation;
         }
 
         @Override
@@ -145,18 +141,12 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
         @Override
         public void write(int b) throws IOException {
             outputStream.write(b);
-            totalWritten++;
-            doLogProgress();
+            resourceOperation.logProcessedBytes(1l);
         }
 
         public void write(byte b[], int off, int len) throws IOException {
             outputStream.write(b, off, len);
-            totalWritten += len;
-            doLogProgress();
-        }
-
-        private void doLogProgress() {
-            logProgress(progressLogger, totalWritten, contentLength, "downloaded");
+            resourceOperation.logProcessedBytes(len);
         }
     }
 }

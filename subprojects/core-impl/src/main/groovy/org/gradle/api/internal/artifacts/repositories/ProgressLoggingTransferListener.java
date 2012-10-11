@@ -15,18 +15,16 @@
  */
 package org.gradle.api.internal.artifacts.repositories;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.ivy.plugins.repository.Resource;
 import org.apache.ivy.plugins.repository.TransferEvent;
 import org.apache.ivy.plugins.repository.TransferListener;
 import org.gradle.api.internal.externalresource.transfer.AbstractProgressLoggingHandler;
-import org.gradle.logging.ProgressLogger;
+import org.gradle.api.internal.externalresource.transfer.ResourceOperation;
 import org.gradle.logging.ProgressLoggerFactory;
 
 public class ProgressLoggingTransferListener extends AbstractProgressLoggingHandler implements TransferListener {
     private final Class loggingClass;
-    private ProgressLogger logger;
-    private long totalProcessed;
+    private ResourceOperation resourceOperation;
 
     public ProgressLoggingTransferListener(ProgressLoggerFactory progressLoggerFactory, Class loggingClass) {
         super(progressLoggerFactory);
@@ -40,16 +38,13 @@ public class ProgressLoggingTransferListener extends AbstractProgressLoggingHand
         }
         final int eventType = evt.getEventType();
         if (eventType == TransferEvent.TRANSFER_STARTED) {
-            totalProcessed = 0;
-            String description = String.format("%s %s", StringUtils.capitalize(getRequestType(evt)), resource.getName());
-            logger = startProgress(description, loggingClass);
+            resourceOperation = createResourceOperation(resource.getName(), ResourceOperation.Type.valueOf(getRequestType(evt)), loggingClass, evt.getTotalLength());
         }
         if (eventType == TransferEvent.TRANSFER_PROGRESS) {
-            totalProcessed += evt.getLength();
-            logProgress(logger, totalProcessed, evt.getTotalLength(), getRequestType(evt) + "ed");
+            resourceOperation.logProcessedBytes(evt.getLength());
         }
         if (eventType == TransferEvent.TRANSFER_COMPLETED) {
-            logger.completed();
+            resourceOperation.completed();
         }
     }
 
