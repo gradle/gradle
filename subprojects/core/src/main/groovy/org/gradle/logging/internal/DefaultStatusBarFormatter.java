@@ -44,7 +44,8 @@ public class DefaultStatusBarFormatter implements StatusBarFormatter {
     }
 
     private String trim(StringBuilder formattedString) {
-        int width = consoleMetaData.getCols();
+        // Don't write to the right-most column, as on some consoles the cursor will wrap to the next line
+        int width = consoleMetaData.getCols() - 1;
         if (width > 0 && width < formattedString.length()) {
             return formattedString.substring(0, width);
         }

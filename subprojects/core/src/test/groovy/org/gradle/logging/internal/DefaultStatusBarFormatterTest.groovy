@@ -35,10 +35,10 @@ class DefaultStatusBarFormatterTest extends Specification {
         "> shortDescr2" == statusBarFormatter.format(Arrays.asList(new ConsoleBackedProgressRenderer.Operation("shortDescr2", '')))
     }
 
-    def "trims output to max console width"(){
+    def "trims output to one less than the max console width"(){
         when:
-        _ * consoleMetaData.getCols() >> 30
+        _ * consoleMetaData.getCols() >> 10
         then:
-        "> these are more than 30 chara" == statusBarFormatter.format(Arrays.asList(new ConsoleBackedProgressRenderer.Operation("shortDescr1", "these are more than 30 characters")))
+        "> these a" == statusBarFormatter.format(Arrays.asList(new ConsoleBackedProgressRenderer.Operation("shortDescr1", "these are more than 10 characters")))
     }
 }
