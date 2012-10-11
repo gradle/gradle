@@ -183,6 +183,12 @@ class TaskCommandLineConfigurationIntegrationSpec extends AbstractIntegrationSpe
 
         then:
         failure.assertHasDescription("Problem configuring task :someTask from command line. No argument was provided for command-line option '--second'.")
+
+        when:
+        runAndFail 'someTask', '--second', 'hey', '--second', 'buddy'
+
+        then:
+        failure.assertHasDescription("Problem configuring task :someTask from command line. Multiple arguments were provided for command-line option '--second'.")
     }
 
     def "single dash user error yields decent error message"() {
