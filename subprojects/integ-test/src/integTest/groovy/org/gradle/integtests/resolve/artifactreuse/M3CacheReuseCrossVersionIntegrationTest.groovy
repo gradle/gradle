@@ -16,7 +16,7 @@
 package org.gradle.integtests.resolve.artifactreuse
 
 import org.gradle.integtests.fixtures.HttpServer
-import org.gradle.integtests.fixtures.MavenRepository
+import org.gradle.integtests.fixtures.MavenFileRepository
 import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.junit.Rule
@@ -28,7 +28,7 @@ class M3CacheReuseCrossVersionIntegrationTest extends CrossVersionIntegrationSpe
 
     def "uses cached artifacts from previous Gradle version"() {
         given:
-        def projectB = new MavenRepository(file('repo')).module('org.name', 'projectB').publish()
+        def projectB = new MavenFileRepository(file('repo')).module('org.name', 'projectB').publish()
 
         server.start()
         buildFile << """

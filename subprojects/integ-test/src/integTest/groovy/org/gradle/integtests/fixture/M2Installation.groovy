@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixture
 
+import org.gradle.integtests.fixtures.MavenFileRepository
 import org.gradle.util.TestFile
 import org.gradle.integtests.fixtures.MavenRepository
 
@@ -34,7 +35,7 @@ class M2Installation {
     }
 
     MavenRepository mavenRepo(TestFile file) {
-        new MavenRepository(file)
+        new MavenFileRepository(file)
     }
 
     TestFile createGlobalSettingsFile(TestFile globalMavenDirectory) {

@@ -15,7 +15,7 @@
  */
 package org.gradle.integtests.tooling.m5
 
-import org.gradle.integtests.fixtures.MavenRepository
+import org.gradle.integtests.fixtures.MavenFileRepository
 import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
@@ -165,7 +165,7 @@ idea.module.excludeDirs += file('foo')
         def projectDir = dist.testDir
         def fakeRepo = projectDir.file("repo")
 
-        def dependency = new MavenRepository(fakeRepo).module("foo.bar", "coolLib", 1.0)
+        def dependency = new MavenFileRepository(fakeRepo).module("foo.bar", "coolLib", 1.0)
         dependency.artifact(classifier: 'sources')
         dependency.artifact(classifier: 'javadoc')
         dependency.publish()

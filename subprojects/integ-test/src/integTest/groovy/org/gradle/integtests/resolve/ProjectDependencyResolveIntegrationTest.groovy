@@ -16,7 +16,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.MavenRepository
+import org.gradle.integtests.fixtures.MavenFileRepository
 
 class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec {
     public void "project dependency includes artifacts and transitive dependencies of default configuration in target project"() {
@@ -298,6 +298,6 @@ project('c') {
     }
     
     def getRepo() {
-        return new MavenRepository(file('repo'))
+        return new MavenFileRepository(file('repo'))
     }
 }

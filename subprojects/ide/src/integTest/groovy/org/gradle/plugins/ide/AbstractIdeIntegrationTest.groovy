@@ -18,6 +18,7 @@
 package org.gradle.plugins.ide
 
 import org.gradle.integtests.fixtures.ExecutionResult
+import org.gradle.integtests.fixtures.MavenFileRepository
 import org.gradle.integtests.fixtures.MavenRepository
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.util.TestFile
@@ -50,7 +51,7 @@ abstract class AbstractIdeIntegrationTest extends AbstractIntegrationTest {
     }
 
     protected MavenRepository getMavenRepo() {
-        return new MavenRepository(getFile([:], 'repo'))
+        return new MavenFileRepository(getFile([:], 'repo'))
     }
 
     protected ExecutionResult runIdeaTask(buildScript) {

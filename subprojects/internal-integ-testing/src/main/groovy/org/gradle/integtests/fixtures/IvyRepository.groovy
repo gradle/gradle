@@ -20,21 +20,10 @@ import org.gradle.util.hash.HashUtil
 
 import java.util.regex.Pattern
 
-class IvyRepository {
-    final TestFile rootDir
+interface IvyRepository {
+    URI getUri()
 
-    IvyRepository(TestFile rootDir) {
-        this.rootDir = rootDir
-    }
-
-    URI getUri() {
-        return rootDir.toURI()
-    }
-
-    IvyModule module(String organisation, String module, Object revision = '1.0') {
-        def moduleDir = rootDir.file("$organisation/$module/$revision")
-        return new IvyModule(moduleDir, organisation, module, revision as String)
-    }
+    IvyModule module(String organisation, String module, Object revision)
 }
 
 class IvyModule {

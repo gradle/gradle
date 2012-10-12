@@ -16,7 +16,7 @@
 package org.gradle.integtests.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.MavenRepository
+import org.gradle.integtests.fixtures.MavenFileRepository
 
 class MavenJavaProjectPublishIntegrationTest extends AbstractIntegrationSpec {
     public void "can publish jar and meta-data to maven repository"() {
@@ -53,7 +53,7 @@ uploadArchives {
         run "uploadArchives"
 
         then:
-        def mavenModule = new MavenRepository(file("maven-repo")).module("org.gradle.test", "publishTest", "1.9")
+        def mavenModule = new MavenFileRepository(file("maven-repo")).module("org.gradle.test", "publishTest", "1.9")
         mavenModule.assertArtifactsPublished("publishTest-1.9.pom", "publishTest-1.9.jar")
         mavenModule.pom.scopes.compile.assertDependsOn("commons-collections", "commons-collections", "3.2.1")
         mavenModule.pom.scopes.runtime.assertDependsOn("commons-io", "commons-io", "1.4")

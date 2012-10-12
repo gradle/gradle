@@ -15,7 +15,7 @@
  */
 package org.gradle.integtests.resolve.maven
 
-import org.gradle.integtests.fixtures.MavenRepository
+import org.gradle.integtests.fixtures.MavenFileRepository
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
 
 class MavenFileRepoResolveIntegrationTest extends AbstractDependencyResolutionTest {
@@ -100,7 +100,7 @@ task retrieve(type: Sync) {
         moduleA.publish()
         moduleB.publish()
 
-        def artifactsRepo = new MavenRepository(distribution.testFile('artifactsRepo'));
+        def artifactsRepo = new MavenFileRepository(distribution.testFile('artifactsRepo'));
         // Create a module to get the correct module directory, but do not publish the module
         def artifactsModuleA = artifactsRepo.module('group', 'projectA', '1.2')
         moduleA.artifactFile.moveToDirectory(artifactsModuleA.moduleDir)

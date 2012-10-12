@@ -16,7 +16,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.ExecutionFailure
-import org.gradle.integtests.fixtures.MavenRepository
+import org.gradle.integtests.fixtures.MavenFileRepository
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.util.TestFile
@@ -130,9 +130,9 @@ task listMissingClassifier << { configurations.missingClassifier.each { } }
     @Test
     @Issue("GRADLE-1342")
     public void resolutionDoesNotUseCachedArtifactFromDifferentRepository() {
-        def repo1 = new MavenRepository(testFile('repo1'))
+        def repo1 = new MavenFileRepository(testFile('repo1'))
         repo1.module('org.gradle.test', 'external1', '1.0').publish()
-        def repo2 = new MavenRepository(testFile('repo2'))
+        def repo2 = new MavenFileRepository(testFile('repo2'))
 
         testFile('settings.gradle') << 'include "a", "b"'
         testFile('build.gradle') << """

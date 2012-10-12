@@ -17,11 +17,11 @@
 package org.gradle.integtests.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.MavenRepository
+import org.gradle.integtests.fixtures.MavenFileRepository
 import spock.lang.Issue
 
 class MavenMultiProjectPublishIntegrationTest extends AbstractIntegrationSpec {
-    def mavenRepo = new MavenRepository(file("maven-repo"))
+    def mavenRepo = new MavenFileRepository(file("maven-repo"))
     def mavenModule = mavenRepo.module("org.gradle.test", "project1", "1.9")
 
     def "project dependency correctly reflected in POM if publication coordinates are unchanged"() {

@@ -15,8 +15,8 @@
  */
 package org.gradle.integtests.resolve.maven
 
+import org.gradle.integtests.fixtures.MavenFileRepository
 import org.gradle.integtests.fixtures.MavenModule
-import org.gradle.integtests.fixtures.MavenRepository
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
 
 class MavenSnapshotResolveIntegrationTest extends AbstractDependencyResolutionTest {
@@ -366,7 +366,7 @@ allprojects {
         server.start()
         given:
         def module = mavenRepo().module("org.gradle", "testproject", "1.0-SNAPSHOT").withNonUniqueSnapshots().publish()
-        def module2 = new MavenRepository(file('repo2')).module("org.gradle", "testproject", "1.0-SNAPSHOT").withNonUniqueSnapshots().publish()
+        def module2 = new MavenFileRepository(file('repo2')).module("org.gradle", "testproject", "1.0-SNAPSHOT").withNonUniqueSnapshots().publish()
         module2.artifactFile << module2.artifactFile.bytes // ensure it's a different length to the first one
         module2.pomFile << '    ' // ensure it's a different length to the first one
 

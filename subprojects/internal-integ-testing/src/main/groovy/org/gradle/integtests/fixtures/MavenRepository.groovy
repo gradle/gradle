@@ -24,21 +24,10 @@ import java.text.SimpleDateFormat
 /**
  * A fixture for dealing with Maven repositories.
  */
-class MavenRepository {
-    final TestFile rootDir
+interface MavenRepository {
+    URI getUri()
 
-    MavenRepository(TestFile rootDir) {
-        this.rootDir = rootDir
-    }
-
-    URI getUri() {
-        return rootDir.toURI()
-    }
-
-    MavenModule module(String groupId, String artifactId, Object version = '1.0') {
-        def artifactDir = rootDir.file("${groupId.replace('.', '/')}/$artifactId/$version")
-        return new MavenModule(artifactDir, groupId, artifactId, version as String)
-    }
+    MavenModule module(String groupId, String artifactId, Object version)
 }
 
 class MavenModule {

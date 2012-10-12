@@ -21,7 +21,7 @@ import org.custommonkey.xmlunit.XMLAssert
 import org.custommonkey.xmlunit.examples.RecursiveElementNameAndTextQualifier
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
-import org.gradle.integtests.fixtures.MavenRepository
+import org.gradle.integtests.fixtures.MavenFileRepository
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.util.Resources
 import org.gradle.internal.SystemProperties
@@ -51,7 +51,7 @@ class SamplesMavenPomGenerationIntegrationTest {
     
     @Test
     void "can deploy to local repository"() {
-        def repo = new MavenRepository(pomProjectDir.file('pomRepo'))
+        def repo = new MavenFileRepository(pomProjectDir.file('pomRepo'))
         def module = repo.module('deployGroup', 'mywar', '1.0MVN')
 
         executer.inDirectory(pomProjectDir).withTasks('uploadArchives').withArguments("--stacktrace").run()
@@ -65,7 +65,7 @@ class SamplesMavenPomGenerationIntegrationTest {
 
     @Test
     void "can install to local repository"() {
-        def repo = new MavenRepository(new TestFile("$SystemProperties.userHome/.m2/repository"))
+        def repo = new MavenFileRepository(new TestFile("$SystemProperties.userHome/.m2/repository"))
         def module = repo.module('installGroup', 'mywar', '1.0MVN')
         module.moduleDir.deleteDir()
 

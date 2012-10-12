@@ -17,6 +17,7 @@ package org.gradle.integtests.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.HttpServer
+import org.gradle.integtests.fixtures.MavenFileRepository
 import org.gradle.integtests.fixtures.MavenRepository
 import org.gradle.util.GradleVersion
 import org.junit.Rule
@@ -362,6 +363,6 @@ uploadArchives {
     }
 
     def MavenRepository repo() {
-        new MavenRepository(distribution.testFile('mavenRepo'))
+        new MavenFileRepository(distribution.testFile('mavenRepo'))
     }
 }

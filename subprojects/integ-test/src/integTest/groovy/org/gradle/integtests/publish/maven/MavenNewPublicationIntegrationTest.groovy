@@ -17,6 +17,7 @@
 package org.gradle.integtests.publish.maven
 
 import org.gradle.integtests.fixtures.HttpServer
+import org.gradle.integtests.fixtures.MavenFileRepository
 import org.gradle.integtests.fixtures.MavenRepository
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.SystemProperties
@@ -70,7 +71,7 @@ version = '5.0-SNAPSHOT'
         executer.withTasks('installArchives').run()
 
         then:
-        def localRepo = new MavenRepository(new TestFile("$SystemProperties.userHome/.m2/repository"))
+        def localRepo = new MavenFileRepository(new TestFile("$SystemProperties.userHome/.m2/repository"))
         def module = localRepo.module('org.test', 'someCoolProject', '5.0-SNAPSHOT')
 
         def files = module.moduleDir.list() as List
@@ -153,6 +154,6 @@ publications {
 //    }
 
     def MavenRepository repo() {
-        new MavenRepository(distribution.testFile('mavenRepo'))
+        new MavenFileRepository(distribution.testFile('mavenRepo'))
     }
 }

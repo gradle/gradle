@@ -16,14 +16,14 @@
 package org.gradle.api.tasks.diagnostics
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.IvyRepository
-import org.gradle.integtests.fixtures.MavenRepository
+import org.gradle.integtests.fixtures.IvyFileRepository
+import org.gradle.integtests.fixtures.MavenFileRepository
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class DependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
 
-    def repo = new MavenRepository(file("repo"))
+    def repo = new MavenFileRepository(file("repo"))
 
     def setup() {
         distribution.requireOwnUserHomeDir()
@@ -312,7 +312,7 @@ rootProject.name = 'root'
 
     def "renders ivy tree with custom configurations"() {
         given:
-        def repo = new IvyRepository(file("repo"))
+        def repo = new IvyFileRepository(file("repo"))
 
         def module = repo.module("org", "child")
         module.configurations['first'] = [extendsFrom: ['second'], transitive: true]
@@ -345,7 +345,7 @@ rootProject.name = 'root'
 
     def "renders the ivy tree with conflicts"() {
         given:
-        def repo = new IvyRepository(file("repo"))
+        def repo = new IvyFileRepository(file("repo"))
 
         repo.module("org", "leaf1").publish()
         repo.module("org", "leaf2").publish()
@@ -390,7 +390,7 @@ rootProject.name = 'root'
 
     def "previously evicted nodes should contain correct target version"() {
         given:
-        def repo = new IvyRepository(file("repo"))
+        def repo = new IvyFileRepository(file("repo"))
 
         /*
         a1->b1

@@ -16,6 +16,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.HttpServer
+import org.gradle.integtests.fixtures.MavenFileRepository
 import org.gradle.integtests.fixtures.MavenModule
 import org.gradle.integtests.fixtures.MavenRepository
 import org.gradle.integtests.fixtures.TestResources
@@ -90,6 +91,6 @@ task retrieve(type: Sync) {
     }
 
     MavenRepository repo() {
-        return new MavenRepository(file('repo'))
+        return new MavenFileRepository(file('repo'))
     }
 }

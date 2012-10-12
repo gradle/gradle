@@ -44,7 +44,7 @@ credentials {
     private IvyModule module
 
     def setup() {
-        def repo = new IvyRepository(distribution.testFile('ivy-repo'))
+        def repo = new IvyFileRepository(distribution.testFile('ivy-repo'))
         module = repo.module("org.gradle", "publish", "2")
         module.moduleDir.mkdirs()
         //for unknown os tests

@@ -16,14 +16,14 @@
 package org.gradle.integtests.publish.ivy
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.IvyRepository
+import org.gradle.integtests.fixtures.IvyFileRepository
 import org.spockframework.util.TextUtil
 import spock.lang.Issue
 
 public class IvyLocalPublishIntegrationTest extends AbstractIntegrationSpec {
     public void canPublishToLocalFileRepository() {
         given:
-        def repo = new IvyRepository(distribution.testFile('ivy-repo'))
+        def repo = new IvyFileRepository(distribution.testFile('ivy-repo'))
         def module = repo.module("org.gradle", "publish", "2")
 
         def rootDir = TextUtil.escape(repo.rootDir.path)
@@ -54,7 +54,7 @@ uploadArchives {
     @Issue("GRADLE-2456")
     public void generatesSHA1FileWithLeadingZeros() {
         given:
-        def repo = new IvyRepository(distribution.testFile('ivy-repo'))
+        def repo = new IvyFileRepository(distribution.testFile('ivy-repo'))
         def module = repo.module("org.gradle", "publish", "2")
         byte[] jarBytes = [0, 0, 0, 5]
         def artifactFile = file("testfile.bin")

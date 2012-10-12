@@ -51,6 +51,6 @@ class SigningSamplesSpec extends AbstractIntegrationSpec {
     }
 
     MavenRepository getRepo() {
-        return new MavenRepository(mavenSample.dir.file("build/repo"))
+        return new MavenFileRepository(mavenSample.dir.file("build/repo"))
     }
 }

@@ -60,6 +60,6 @@ public abstract class AbstractIntegrationTest implements TestFileContext {
     }
 
     public MavenRepository maven(TestFile repo) {
-        return new MavenRepository(repo);
+        return new MavenFileRepository(repo);
     }
 }

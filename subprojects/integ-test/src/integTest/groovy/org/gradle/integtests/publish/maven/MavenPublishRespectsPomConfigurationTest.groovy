@@ -17,7 +17,7 @@
 package org.gradle.integtests.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.MavenRepository
+import org.gradle.integtests.fixtures.MavenFileRepository
 import spock.lang.Ignore
 
 class MavenPublishRespectsPomConfigurationTest extends AbstractIntegrationSpec {
@@ -75,9 +75,9 @@ class MavenPublishRespectsPomConfigurationTest extends AbstractIntegrationSpec {
         then:
         noExceptionThrown()
 
-        def project1Module = new MavenRepository(mvnRepo).module("org.gradle.test", "custom_project1", "0.1")
+        def project1Module = new MavenFileRepository(mvnRepo).module("org.gradle.test", "custom_project1", "0.1")
         project1Module.assertArtifactsPublished("custom_project1-0.1.pom", "custom_project1-0.1.jar")
-        def project2Module = new MavenRepository(mvnRepo).module("org.gradle.test", "project2", "0.1")
+        def project2Module = new MavenFileRepository(mvnRepo).module("org.gradle.test", "project2", "0.1")
         project2Module.assertArtifactsPublished("project2-0.1.pom", "project2-0.1.jar")
         project2Module.pom.scopes.compile.assertDependsOn("org.gradle.test", "custom_project1", "0.1")
     }

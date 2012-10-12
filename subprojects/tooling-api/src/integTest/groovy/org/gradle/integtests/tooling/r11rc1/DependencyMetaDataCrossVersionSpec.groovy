@@ -15,7 +15,7 @@
  */
 package org.gradle.integtests.tooling.r11rc1
 
-import org.gradle.integtests.fixtures.MavenRepository
+import org.gradle.integtests.fixtures.MavenFileRepository
 import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
@@ -54,7 +54,7 @@ class DependencyMetaDataCrossVersionSpec extends ToolingApiSpecification {
 
     private void prepareBuild() {
         def fakeRepo = dist.file("repo")
-        new MavenRepository(fakeRepo).module("foo.bar", "coolLib", 2.0).publish()
+        new MavenFileRepository(fakeRepo).module("foo.bar", "coolLib", 2.0).publish()
 
         dist.file("yetAnotherJar.jar").createFile()
 

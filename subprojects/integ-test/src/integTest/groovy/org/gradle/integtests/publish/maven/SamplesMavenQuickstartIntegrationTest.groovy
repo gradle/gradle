@@ -21,7 +21,7 @@ import org.custommonkey.xmlunit.XMLAssert
 import org.custommonkey.xmlunit.examples.RecursiveElementNameAndTextQualifier
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
-import org.gradle.integtests.fixtures.MavenRepository
+import org.gradle.integtests.fixtures.MavenFileRepository
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.util.Resources
 import org.gradle.internal.SystemProperties
@@ -50,7 +50,7 @@ class SamplesMavenQuickstartIntegrationTest {
     void "can publish to a local repository"() {
         executer.inDirectory(pomProjectDir).withTasks('uploadArchives').run()
 
-        def repo = new MavenRepository(pomProjectDir.file('pomRepo'))
+        def repo = new MavenFileRepository(pomProjectDir.file('pomRepo'))
         def module = repo.module('gradle', 'quickstart', '1.0')
         module.assertArtifactsPublished('quickstart-1.0.jar', 'quickstart-1.0.pom')
         compareXmlWithIgnoringOrder(expectedPom('1.0', "gradle"), module.pomFile.text)
@@ -59,7 +59,7 @@ class SamplesMavenQuickstartIntegrationTest {
 
     @Test
     void "can install to local repository"() {
-        def repo = new MavenRepository(new TestFile("$SystemProperties.userHome/.m2/repository"))
+        def repo = new MavenFileRepository(new TestFile("$SystemProperties.userHome/.m2/repository"))
         def module = repo.module('gradle', 'quickstart', '1.0')
         module.moduleDir.deleteDir()
 

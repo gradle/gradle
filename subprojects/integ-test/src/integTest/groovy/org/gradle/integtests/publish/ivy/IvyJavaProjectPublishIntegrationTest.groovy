@@ -16,7 +16,7 @@
 package org.gradle.integtests.publish.ivy
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.IvyRepository
+import org.gradle.integtests.fixtures.IvyFileRepository
 
 class IvyJavaProjectPublishIntegrationTest extends AbstractIntegrationSpec {
     public void "can publish jar and meta-data to ivy repository"() {
@@ -52,7 +52,7 @@ uploadArchives {
         run "uploadArchives"
 
         then:
-        def ivyModule = new IvyRepository(file("ivy-repo")).module("org.gradle.test", "publishTest", "1.9")
+        def ivyModule = new IvyFileRepository(file("ivy-repo")).module("org.gradle.test", "publishTest", "1.9")
         ivyModule.assertArtifactsPublished("ivy-1.9.xml", "publishTest-1.9.jar")
         ivyModule.ivy.configurations.compile.assertDependsOn("commons-collections", "commons-collections", "3.2.1")
         ivyModule.ivy.configurations.runtime.assertDependsOn("commons-io", "commons-io", "1.4")

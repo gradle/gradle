@@ -17,13 +17,13 @@
 package org.gradle.api.tasks.diagnostics
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.MavenRepository
+import org.gradle.integtests.fixtures.MavenFileRepository
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class DependencyInsightReportTaskIntegrationTest extends AbstractIntegrationSpec {
 
-    def repo = new MavenRepository(file("repo"))
+    def repo = new MavenFileRepository(file("repo"))
 
     def setup() {
         distribution.requireOwnUserHomeDir()

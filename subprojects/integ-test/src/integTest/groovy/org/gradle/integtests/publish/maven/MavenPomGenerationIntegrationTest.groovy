@@ -17,7 +17,7 @@
 package org.gradle.integtests.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.MavenRepository
+import org.gradle.integtests.fixtures.MavenFileRepository
 
 // this spec documents the status quo, not a desired behavior
 class MavenPomGenerationIntegrationTest extends AbstractIntegrationSpec {
@@ -49,7 +49,7 @@ uploadArchives {
         run "uploadArchives"
 
         then:
-        def mavenRepo = new MavenRepository(file("maven-repo"))
+        def mavenRepo = new MavenFileRepository(file("maven-repo"))
         def mavenModule = mavenRepo.module("org.gradle.test", pomArtifactId, pomVersion)
         def pom = mavenModule.pom
         pom.groupId == "org.gradle.test"
@@ -94,7 +94,7 @@ uploadArchives {
         run "uploadArchives"
 
         then:
-        def mavenRepo = new MavenRepository(file("maven-repo"))
+        def mavenRepo = new MavenFileRepository(file("maven-repo"))
         def mavenModule = mavenRepo.module(pomGroupId, pomArtifactId, pomVersion)
         def pom = mavenModule.pom
         pom.groupId == pomGroupId
