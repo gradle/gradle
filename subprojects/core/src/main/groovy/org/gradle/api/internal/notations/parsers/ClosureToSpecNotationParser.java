@@ -27,8 +27,8 @@ import java.util.Collection;
 /**
  * by Szczepan Faber, created at: 10/12/12
  */
-public class ClosureToSpecNotationParser implements NotationParser<Spec> {
-    public Spec parseNotation(Object notation) throws UnsupportedNotationException {
+public class ClosureToSpecNotationParser<T> implements NotationParser<Spec<T>> {
+    public Spec<T> parseNotation(Object notation) throws UnsupportedNotationException {
         if (notation instanceof Closure) {
             return Specs.convertClosureToSpec((Closure) notation);
         }

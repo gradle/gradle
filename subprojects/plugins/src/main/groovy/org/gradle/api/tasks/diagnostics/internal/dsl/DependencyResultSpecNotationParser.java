@@ -18,6 +18,7 @@ package org.gradle.api.tasks.diagnostics.internal.dsl;
 
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.internal.notations.NotationParserBuilder;
+import org.gradle.api.internal.notations.TypeInfo;
 import org.gradle.api.internal.notations.api.NotationParser;
 import org.gradle.api.internal.notations.api.UnsupportedNotationException;
 import org.gradle.api.internal.notations.parsers.ClosureToSpecNotationParser;
@@ -50,10 +51,10 @@ public class DependencyResultSpecNotationParser implements NotationParser<Spec<D
     }
 
     public static NotationParser<Spec<DependencyResult>> create() {
-        return (NotationParser) new NotationParserBuilder<Spec>()
-                .resultingType(Spec.class)
+        return new NotationParserBuilder<Spec<DependencyResult>>()
+                .resultingType(new TypeInfo<Spec<DependencyResult>>(Spec.class))
                 .invalidNotationMessage("Please check the input for the DependencyInsight.dependency element.")
-                .parser(new ClosureToSpecNotationParser())
+                .parser(new ClosureToSpecNotationParser<DependencyResult>())
                 .parser(new DependencyResultSpecNotationParser())
                 .toComposite();
     }
