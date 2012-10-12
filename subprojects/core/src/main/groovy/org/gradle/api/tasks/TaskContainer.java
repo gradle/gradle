@@ -76,7 +76,7 @@ public interface TaskContainer extends TaskCollection<Task>, NamedDomainObjectCo
      * <p>After the task is added, it is made available as a property of the project, so that you can reference the task
      * by name in your build file.  See <a href="../Project.html#properties">here</a> for more details.</p>
      *
-     * <p>If a task with the given name already exists in this container and the <code>override</code> option is not set
+     * <p>If a task with the given name already exists in this container and the <code>overwrite</code> option is not set
      * to true, an exception is thrown.</p>
      *
      * @param options The task creation options.
