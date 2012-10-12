@@ -23,7 +23,7 @@ import spock.lang.Ignore
  * by Szczepan Faber, created at: 9/5/12
  */
 class TaskCommandLineConfigurationIntegrationSpec extends AbstractIntegrationSpec {
-    @Ignore
+
     def "can configure task from command line in multiple projects"() {
         given:
         file("settings.gradle") << "include 'project2'"
@@ -70,10 +70,10 @@ class TaskCommandLineConfigurationIntegrationSpec extends AbstractIntegrationSpe
         output.contains 'first=false,second=null'
 
         when:
-        run 'task1', 'someTask', '--first', '--second', '"hey buddy"', 'task2'
+        run 'task1', 'someTask', '--first', '--second', 'hey buddy', 'task2'
 
         then:
-        output.count('first=true,second="hey buddy"') == 2
+        output.count('first=true,second=hey buddy') == 2
         result.assertTasksExecuted(":task1", ":someTask", ":project2:someTask", ":task2")
     }
 
