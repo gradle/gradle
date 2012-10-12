@@ -15,9 +15,8 @@
  */
 package org.gradle.integtests.samples
 
-import org.gradle.integtests.fixtures.MavenFileRepository
-import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.Sample
 import org.junit.Rule
 
 class SamplesJavaApiAndImplIntegrationTest extends AbstractIntegrationSpec {
@@ -80,7 +79,7 @@ class SamplesJavaApiAndImplIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def module(suffix) {
-        return new MavenFileRepository(apiAndImpl.dir.file("build/repo")).module("myorg", "apiAndImpl${suffix}", "1.0")
+        return maven(apiAndImpl.dir.file("build/repo")).module("myorg", "apiAndImpl${suffix}", "1.0")
     }
 
     def artifact(type) {

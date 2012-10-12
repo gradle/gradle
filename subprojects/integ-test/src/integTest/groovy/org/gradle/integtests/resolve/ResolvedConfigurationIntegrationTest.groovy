@@ -20,31 +20,27 @@ import org.gradle.api.artifacts.LenientConfiguration
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.specs.Specs
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
-import org.gradle.integtests.fixtures.MavenFileRepository
-import org.gradle.integtests.fixtures.MavenRepository
 import org.gradle.util.HelperUtil
 import org.junit.Before
 import org.junit.Test
 
 public class ResolvedConfigurationIntegrationTest extends AbstractIntegrationTest {
-
     def DefaultProject project = HelperUtil.createRootProject()
     def Project childProject = HelperUtil.createChildProject(project, "child", new File("."))
-    def File repo = testFile('repo')
 
     @Before
     public void boringSetup() {
         project.allprojects { apply plugin: 'java' }
 
         project.repositories {
-            maven { url repo }
+            maven { url mavenRepo.uri }
         }
     }
 
     @Test
     public void "resolves leniently"() {
-        maven(repo).module('org.foo', 'hiphop').publish()
-        maven(repo).module('org.foo', 'rock').dependsOn("some unresolved dependency").publish()
+        mavenRepo.module('org.foo', 'hiphop').publish()
+        mavenRepo.module('org.foo', 'rock').dependsOn("some unresolved dependency").publish()
 
         project.dependencies {
             compile 'org.foo:hiphop:1.0'
@@ -69,19 +65,15 @@ public class ResolvedConfigurationIntegrationTest extends AbstractIntegrationTes
         assert unresolved.find { it.selector.name == 'some unresolved dependency' }
     }
 
-    public MavenRepository maven(File repo) {
-        return new MavenFileRepository(repo)
-    }
-
     @Test
     public void "resolves leniently from mixed confs"() {
-        maven(repo).module('org.foo', 'hiphop').publish()
-        maven(repo).module('org.foo', 'rock').dependsOn("some unresolved dependency").publish()
+        mavenRepo.module('org.foo', 'hiphop').publish()
+        mavenRepo.module('org.foo', 'rock').dependsOn("some unresolved dependency").publish()
 
         project.allprojects { apply plugin: 'java' }
 
         project.repositories {
-            maven { url repo }
+            maven { url mavenRepo }
         }
 
         project.configurations {

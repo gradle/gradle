@@ -19,9 +19,7 @@ import groovy.text.SimpleTemplateEngine
 import org.custommonkey.xmlunit.Diff
 import org.custommonkey.xmlunit.XMLAssert
 import org.custommonkey.xmlunit.examples.RecursiveElementNameAndTextQualifier
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
-import org.gradle.integtests.fixtures.MavenFileRepository
+import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.util.Resources
 import org.gradle.internal.SystemProperties
@@ -35,10 +33,7 @@ import org.junit.Test
 /**
  * @author Hans Dockter
  */
-class SamplesMavenPomGenerationIntegrationTest {
-    @Rule public final GradleDistribution dist = new GradleDistribution()
-    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
-
+class SamplesMavenPomGenerationIntegrationTest extends AbstractIntegrationTest {
     private TestFile pomProjectDir
 
     @Rule public Resources resources = new Resources();
@@ -51,7 +46,7 @@ class SamplesMavenPomGenerationIntegrationTest {
     
     @Test
     void "can deploy to local repository"() {
-        def repo = new MavenFileRepository(pomProjectDir.file('pomRepo'))
+        def repo = maven(pomProjectDir.file('pomRepo'))
         def module = repo.module('deployGroup', 'mywar', '1.0MVN')
 
         executer.inDirectory(pomProjectDir).withTasks('uploadArchives').withArguments("--stacktrace").run()
@@ -65,7 +60,7 @@ class SamplesMavenPomGenerationIntegrationTest {
 
     @Test
     void "can install to local repository"() {
-        def repo = new MavenFileRepository(new TestFile("$SystemProperties.userHome/.m2/repository"))
+        def repo = maven(new TestFile("$SystemProperties.userHome/.m2/repository"))
         def module = repo.module('installGroup', 'mywar', '1.0MVN')
         module.moduleDir.deleteDir()
 

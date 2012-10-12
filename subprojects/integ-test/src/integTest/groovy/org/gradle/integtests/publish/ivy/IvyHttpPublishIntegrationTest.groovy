@@ -17,6 +17,10 @@
 
 package org.gradle.integtests.publish.ivy
 
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.HttpServer
+import org.gradle.integtests.fixtures.IvyModule
+import org.gradle.integtests.fixtures.ProgressLoggingFixture
 import org.gradle.util.GradleVersion
 import org.gradle.util.Jvm
 import org.gradle.util.TestFile
@@ -25,7 +29,6 @@ import org.hamcrest.Matchers
 import org.junit.Rule
 import org.mortbay.jetty.HttpStatus
 import spock.lang.Unroll
-import org.gradle.integtests.fixtures.*
 
 import static org.gradle.integtests.fixtures.UserAgentMatcher.matchesNameAndVersion
 
@@ -44,8 +47,7 @@ credentials {
     private IvyModule module
 
     def setup() {
-        def repo = new IvyFileRepository(distribution.testFile('ivy-repo'))
-        module = repo.module("org.gradle", "publish", "2")
+        module = ivyRepo.module("org.gradle", "publish", "2")
         module.moduleDir.mkdirs()
         //for unknown os tests
         file("gradle.properties") << System.properties.findAll {key, value -> key.startsWith("os.")}.collect {key, value -> "systemProp.${key}=$value"}.join("\n")

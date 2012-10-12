@@ -17,8 +17,6 @@ package org.gradle.integtests.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.HttpServer
-import org.gradle.integtests.fixtures.MavenFileRepository
-import org.gradle.integtests.fixtures.MavenRepository
 import org.gradle.util.GradleVersion
 import org.junit.Rule
 import org.spockframework.util.TextUtil
@@ -47,7 +45,7 @@ dependencies {
 uploadArchives {
     repositories {
         mavenDeployer {
-            repository(url: uri("mavenRepo"))
+            repository(url: "${mavenRepo.uri}")
         }
     }
 }
@@ -56,18 +54,17 @@ uploadArchives {
         succeeds 'uploadArchives'
 
         then:
-        def module = repo().module('group', 'root', 1.0)
+        def module = mavenRepo.module('group', 'root', 1.0)
         module.assertArtifactsPublished('root-1.0.jar', 'root-1.0.pom')
     }
 
     @Issue("GRADLE-2456")
     public void generatesSHA1FileWithLeadingZeros() {
         given:
-        def module = repo().module("org.gradle", "publish", "2")
+        def module = mavenRepo.module("org.gradle", "publish", "2")
         byte[] jarBytes = [0, 0, 0, 5]
         def artifactFile = file("testfile.bin")
         artifactFile << jarBytes
-        def rootDir = TextUtil.escape(repo().rootDir.path)
         def artifactPath = TextUtil.escape(artifactFile.path)
         settingsFile << 'rootProject.name = "publish"'
         buildFile << """
@@ -82,7 +79,7 @@ uploadArchives {
     uploadArchives {
         repositories {
             mavenDeployer {
-                repository(url: uri("mavenRepo"))
+                repository(url: "${mavenRepo.uri}")
             }
         }
     }
@@ -115,7 +112,7 @@ artifacts {
 uploadArchives {
     repositories {
         mavenDeployer {
-            repository(url: uri('mavenRepo'))
+            repository(url: "${mavenRepo.uri}")
         }
     }
 }
@@ -124,7 +121,7 @@ uploadArchives {
         succeeds 'uploadArchives'
 
         then:
-        def module = repo().module('group', 'root', 1.0)
+        def module = mavenRepo.module('group', 'root', 1.0)
         module.assertArtifactsPublished('root-1.0-source.jar')
     }
 
@@ -154,7 +151,7 @@ artifacts {
 uploadArchives {
     repositories {
         mavenDeployer {
-            repository(url: uri("mavenRepo"))
+            repository(url: uri("${mavenRepo.uri}"))
             beforeDeployment { MavenDeployment deployment ->
                 assert deployment.pomArtifact.file.isFile()
                 assert deployment.pomArtifact.name == 'root'
@@ -176,7 +173,7 @@ uploadArchives {
         succeeds 'uploadArchives'
 
         then:
-        def module = repo().module('group', 'root', 1.0)
+        def module = mavenRepo.module('group', 'root', 1.0)
         module.assertArtifactsPublished('root-1.0.jar', 'root-1.0.jar.sig', 'root-1.0.pom', 'root-1.0.pom.sig')
     }
 
@@ -192,7 +189,7 @@ archivesBaseName = 'test'
 uploadArchives {
     repositories {
         mavenDeployer {
-            snapshotRepository(url: uri("mavenRepo"))
+            snapshotRepository(url: "${mavenRepo.uri}")
         }
     }
 }
@@ -202,7 +199,7 @@ uploadArchives {
         succeeds 'uploadArchives'
 
         then:
-        def module = repo().module('org.gradle', 'test', '1.0-SNAPSHOT')
+        def module = mavenRepo.module('org.gradle', 'test', '1.0-SNAPSHOT')
         module.assertArtifactsPublished('test-1.0-SNAPSHOT.jar', 'test-1.0-SNAPSHOT.pom')
     }
 
@@ -250,7 +247,7 @@ uploadArchives {
 }
 """
         when:
-        def module = repo().module('org.test', 'someCoolProject')
+        def module = mavenRepo.module('org.test', 'someCoolProject')
         def moduleDir = module.moduleDir
         moduleDir.mkdirs()
 
@@ -289,7 +286,7 @@ uploadArchives {
 }
 """
         when:
-        def module = repo().module('org.test', 'root')
+        def module = mavenRepo.module('org.test', 'root')
         def moduleDir = module.moduleDir
         moduleDir.mkdirs()
         expectPublishArtifact(moduleDir, "/repo/org/test/root/1.0", "root-1.0.pom")
@@ -337,7 +334,7 @@ uploadArchives {
         server.authenticationScheme = authScheme
 
         and:
-        def module = repo().module('org.test', 'root')
+        def module = mavenRepo.module('org.test', 'root')
         def moduleDir = module.moduleDir
         moduleDir.mkdirs()
         expectPublishArtifact(moduleDir, "/repo/org/test/root/1.0", "root-1.0.jar", username, password)
@@ -360,9 +357,5 @@ uploadArchives {
         server.expectPut("$path/$name", username, password, moduleDir.file("$name"))
         server.expectPut("$path/${name}.md5", username, password, moduleDir.file("${name}.md5"))
         server.expectPut("$path/${name}.sha1", username, password, moduleDir.file("${name}.sha1"))
-    }
-
-    def MavenRepository repo() {
-        new MavenFileRepository(distribution.testFile('mavenRepo'))
     }
 }

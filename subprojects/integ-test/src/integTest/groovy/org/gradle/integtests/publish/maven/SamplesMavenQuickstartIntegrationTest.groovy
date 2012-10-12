@@ -19,9 +19,7 @@ import groovy.text.SimpleTemplateEngine
 import org.custommonkey.xmlunit.Diff
 import org.custommonkey.xmlunit.XMLAssert
 import org.custommonkey.xmlunit.examples.RecursiveElementNameAndTextQualifier
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
-import org.gradle.integtests.fixtures.MavenFileRepository
+import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.util.Resources
 import org.gradle.internal.SystemProperties
@@ -33,9 +31,7 @@ import org.junit.Test
 /**
  * @author Hans Dockter
  */
-class SamplesMavenQuickstartIntegrationTest {
-    @Rule public final GradleDistribution dist = new GradleDistribution()
-    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
+class SamplesMavenQuickstartIntegrationTest extends AbstractIntegrationTest {
     @Rule public Resources resources = new Resources();
     @Rule public final Sample sample = new Sample('maven/quickstart')
 
@@ -50,7 +46,7 @@ class SamplesMavenQuickstartIntegrationTest {
     void "can publish to a local repository"() {
         executer.inDirectory(pomProjectDir).withTasks('uploadArchives').run()
 
-        def repo = new MavenFileRepository(pomProjectDir.file('pomRepo'))
+        def repo = maven(pomProjectDir.file('pomRepo'))
         def module = repo.module('gradle', 'quickstart', '1.0')
         module.assertArtifactsPublished('quickstart-1.0.jar', 'quickstart-1.0.pom')
         compareXmlWithIgnoringOrder(expectedPom('1.0', "gradle"), module.pomFile.text)
@@ -59,7 +55,7 @@ class SamplesMavenQuickstartIntegrationTest {
 
     @Test
     void "can install to local repository"() {
-        def repo = new MavenFileRepository(new TestFile("$SystemProperties.userHome/.m2/repository"))
+        def repo = maven(new TestFile("$SystemProperties.userHome/.m2/repository"))
         def module = repo.module('gradle', 'quickstart', '1.0')
         module.moduleDir.deleteDir()
 

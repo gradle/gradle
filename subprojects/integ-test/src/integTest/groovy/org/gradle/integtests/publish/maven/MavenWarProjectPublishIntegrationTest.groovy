@@ -16,7 +16,6 @@
 package org.gradle.integtests.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.MavenFileRepository
 
 class MavenWarProjectPublishIntegrationTest extends AbstractIntegrationSpec {
     public void "publishes WAR only for mixed java and WAR project"() {
@@ -43,7 +42,7 @@ dependencies {
 uploadArchives {
     repositories {
         mavenDeployer {
-            repository(url: uri("maven-repo"))
+            repository(url: uri("${mavenRepo.uri}"))
         }
     }
 }
@@ -53,7 +52,7 @@ uploadArchives {
         run "uploadArchives"
 
         then:
-        def mavenModule = new MavenFileRepository(file("maven-repo")).module("org.gradle.test", "publishTest", "1.9")
+        def mavenModule = mavenRepo.module("org.gradle.test", "publishTest", "1.9")
         mavenModule.assertArtifactsPublished("publishTest-1.9.pom", "publishTest-1.9.war")
     }
 }

@@ -147,7 +147,7 @@ eclipse {
         libraries[1].assertHasJar('LIB_DIR/dep.jar')
 
         //javadoc is not substituted
-        libraries[0].assertHasJavadoc(file("repo/coolGroup/niceArtifact/1.0/niceArtifact-1.0-javadoc.jar"))
+        libraries[0].assertHasJavadoc(file("maven-repo/coolGroup/niceArtifact/1.0/niceArtifact-1.0-javadoc.jar"))
     }
 
     @Test

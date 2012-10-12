@@ -31,11 +31,7 @@ class M2Installation {
     }
 
     MavenRepository mavenRepo() {
-        mavenRepo(userM2Directory.file("repository"))
-    }
-
-    MavenRepository mavenRepo(TestFile file) {
-        new MavenFileRepository(file)
+        new MavenFileRepository(userM2Directory.file("repository"))
     }
 
     TestFile createGlobalSettingsFile(TestFile globalMavenDirectory) {

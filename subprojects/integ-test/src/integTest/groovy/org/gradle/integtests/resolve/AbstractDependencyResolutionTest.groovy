@@ -18,9 +18,7 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.HttpServer
-import org.gradle.integtests.fixtures.IvyFileRepository
 import org.gradle.integtests.fixtures.IvyRepository
-import org.gradle.integtests.fixtures.MavenFileRepository
 import org.gradle.integtests.fixtures.MavenRepository
 import org.gradle.util.GradleVersion
 import org.junit.Rule
@@ -42,10 +40,10 @@ abstract class AbstractDependencyResolutionTest extends AbstractIntegrationSpec 
     }
 
     IvyRepository ivyRepo(def dir = 'ivy-repo') {
-        return new IvyFileRepository(distribution.testFile(dir))
+        return ivy(dir)
     }
 
     MavenRepository mavenRepo(String name = "repo") {
-        return new MavenFileRepository(file(name))
+        return maven(name)
     }
 }

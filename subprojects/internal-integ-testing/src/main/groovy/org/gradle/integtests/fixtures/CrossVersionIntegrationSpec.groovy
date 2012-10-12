@@ -24,6 +24,7 @@ import spock.lang.Specification
 abstract class CrossVersionIntegrationSpec extends Specification {
     @Rule public final GradleDistribution current = new GradleDistribution()
     static BasicGradleDistribution previous
+    private MavenFileRepository mavenRepo
 
     BasicGradleDistribution getPrevious() {
         return previous
@@ -39,6 +40,13 @@ abstract class CrossVersionIntegrationSpec extends Specification {
 
     protected TestFile file(Object... path) {
         testDir.file(path);
+    }
+
+    protected MavenRepository getMavenRepo() {
+        if (mavenRepo == null) {
+            mavenRepo = new MavenFileRepository(file("maven-repo"))
+        }
+        return mavenRepo
     }
 
     def version(BasicGradleDistribution dist) {

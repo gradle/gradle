@@ -17,27 +17,23 @@
 package org.gradle.integtests.resolve.custom
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.IvyFileRepository
-import org.gradle.util.TextUtil
 
 class FileSystemResolverIntegrationTest extends AbstractIntegrationSpec {
 
     def "file system resolvers use item at source by default"() {
         when:
-        def repoDir = testDir.createDir("repo")
-        def repo = new IvyFileRepository(repoDir)
-        def repoDirPath = TextUtil.escapeString(repoDir.absolutePath)
-        def module = repo.module("group", "projectA", "1.2")
+        def module = ivyRepo.module("group", "projectA", "1.2")
         module.publish()
         def jar = module.jarFile
         jar.text = "1"
         
         buildFile << """
+            def repoDir = file('${ivyRepo.uri}')
             repositories {
                 add(new org.apache.ivy.plugins.resolver.FileSystemResolver()) {
                     name = "repo"
-                    addIvyPattern("$repoDirPath/[organization]/[module]/[revision]/ivy-[module]-[revision].xml")
-                    addArtifactPattern("$repoDirPath/[organization]/[module]/[revision]/[module]-[revision].[ext]")
+                    addIvyPattern(repoDir.absolutePath + "/[organization]/[module]/[revision]/ivy-[module]-[revision].xml")
+                    addArtifactPattern(repoDir.absolutePath + "/[organization]/[module]/[revision]/[module]-[revision].[ext]")
                 }
             }
             configurations { compile }

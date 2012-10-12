@@ -16,7 +16,6 @@
 package org.gradle.integtests.resolve.custom
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.IvyFileRepository
 import org.gradle.integtests.fixtures.IvyRepository
 import org.gradle.integtests.fixtures.ProgressLoggingFixture
 import org.gradle.integtests.fixtures.SFTPServer
@@ -78,6 +77,6 @@ task listJars << {
     }
 
     IvyRepository ivyRepo() {
-        return new IvyFileRepository(server.file("repos/libs/"))
+        return ivy(server.file("repos/libs/"))
     }
 }

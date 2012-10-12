@@ -17,7 +17,6 @@
 package org.gradle.integtests.publish.ivy
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.IvyFileRepository
 
 class IvySingleProjectPublishIntegrationTest extends AbstractIntegrationSpec {
     def "publish multiple artifacts in single configuration"() {
@@ -50,7 +49,7 @@ artifacts {
 uploadPublish {
     repositories {
         ivy {
-            url "ivy-repo"
+            url "${ivyRepo.uri}"
         }
     }
 }
@@ -60,7 +59,7 @@ uploadPublish {
         run "uploadPublish"
 
         then:
-        def ivyModule = new IvyFileRepository(file("ivy-repo")).module("org.gradle.test", "publishTest", "1.9")
+        def ivyModule = ivyRepo.module("org.gradle.test", "publishTest", "1.9")
         ivyModule.assertArtifactsPublished("ivy-1.9.xml", "jar1-1.9.jar", "jar2-1.9.jar")
         ivyModule.moduleDir.file("jar1-1.9.jar").bytes == file("build/libs/jar1-1.9.jar").bytes
         ivyModule.moduleDir.file("jar2-1.9.jar").bytes == file("build/libs/jar2-1.9.jar").bytes
@@ -102,7 +101,7 @@ artifacts {
 tasks.withType(Upload) {
     repositories {
         ivy {
-            url "ivy-repo"
+            url "${ivyRepo.uri}"
         }
     }
 }
@@ -112,7 +111,7 @@ tasks.withType(Upload) {
         run "uploadPublish$n"
 
         then:
-        def ivyModule = new IvyFileRepository(file("ivy-repo")).module("org.gradle.test", "publishTest", "1.9")
+        def ivyModule = ivyRepo.module("org.gradle.test", "publishTest", "1.9")
         ivyModule.assertArtifactsPublished("ivy-1.9.xml", "jar$n-1.9.jar")
         ivyModule.moduleDir.file("jar$n-1.9.jar").bytes == file("build/libs/jar$n-1.9.jar").bytes
 

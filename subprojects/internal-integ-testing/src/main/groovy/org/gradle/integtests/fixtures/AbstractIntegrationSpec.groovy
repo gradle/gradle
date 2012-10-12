@@ -31,6 +31,8 @@ class AbstractIntegrationSpec extends Specification {
 
     ExecutionResult result
     ExecutionFailure failure
+    private MavenFileRepository mavenRepo
+    private IvyFileRepository ivyRepo
 
     protected TestFile getBuildFile() {
         testDir.file('build.gradle')
@@ -140,6 +142,35 @@ class AbstractIntegrationSpec extends Specification {
         return new GradleBackedArtifactBuilder(executer, getTestDir().file("artifacts"))
     }
 
+    public MavenRepository maven(TestFile repo) {
+        return new MavenFileRepository(repo)
+    }
+
+    public MavenRepository maven(Object repo) {
+        return new MavenFileRepository(file(repo))
+    }
+
+    public MavenRepository getMavenRepo() {
+        if (mavenRepo == null) {
+            mavenRepo = new MavenFileRepository(file("maven-repo"))
+        }
+        return mavenRepo
+    }
+
+    public IvyRepository ivy(TestFile repo) {
+        return new IvyFileRepository(repo)
+    }
+
+    public IvyRepository ivy(Object repo) {
+        return new IvyFileRepository(file(repo))
+    }
+
+    public IvyRepository getIvyRepo() {
+        if (ivyRepo == null) {
+            ivyRepo = new IvyFileRepository(file("ivy-repo"))
+        }
+        return ivyRepo
+    }
 
     def createZip(String name, Closure cl) {
         TestFile zipRoot = file("${name}.root")

@@ -16,13 +16,12 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.MavenFileRepository
 
 class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec {
     public void "project dependency includes artifacts and transitive dependencies of default configuration in target project"() {
         given:
-        repo.module("org.other", "externalA", 1.2).publish()
-        repo.module("org.other", "externalB", 2.1).publish()
+        mavenRepo.module("org.other", "externalA", 1.2).publish()
+        mavenRepo.module("org.other", "externalB", 2.1).publish()
 
         and:
         file('settings.gradle') << "include 'a', 'b'"
@@ -30,7 +29,7 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec {
         and:
         buildFile << """
 allprojects {
-    repositories { maven { url '$repo.uri' } }
+    repositories { maven { url '$mavenRepo.uri' } }
 }
 project(":a") {
     configurations {
@@ -63,7 +62,7 @@ project(":b") {
 
     public void "project dependency that specifies a target configuration includes artifacts and transitive dependencies of selected configuration"() {
         given:
-        repo.module("org.other", "externalA", 1.2).publish()
+        mavenRepo.module("org.other", "externalA", 1.2).publish()
 
         and:
         file('settings.gradle') << "include 'a', 'b'"
@@ -71,7 +70,7 @@ project(":b") {
         and:
         buildFile << """
 allprojects {
-    repositories { maven { url '$repo.uri' } }
+    repositories { maven { url '$mavenRepo.uri' } }
 }
 project(":a") {
     configurations {
@@ -134,7 +133,7 @@ project(":b") {
 
     public void "project dependency that references an artifact includes the matching artifact only plus the transitive dependencies of referenced configuration"() {
         given:
-        repo.module("group", "externalA", 1.5).publish()
+        mavenRepo.module("group", "externalA", 1.5).publish()
 
         and:
         file('settings.gradle') << "include 'a', 'b'"
@@ -143,7 +142,7 @@ project(":b") {
         buildFile << """
 allprojects {
     apply plugin: 'base'
-    repositories { maven { url '${repo.uri}' } }
+    repositories { maven { url '${mavenRepo.uri}' } }
 }
 
 project(":a") {
@@ -171,7 +170,7 @@ project(":b") {
 
     public void "non-transitive project dependency includes only the artifacts of the target configuration"() {
         given:
-        repo.module("group", "externalA", 1.5).publish()
+        mavenRepo.module("group", "externalA", 1.5).publish()
 
         and:
         file('settings.gradle') << "include 'a', 'b'"
@@ -295,9 +294,5 @@ project('c') {
         
         and:
         file("b/build/copied/a-1.0.zip").exists()
-    }
-    
-    def getRepo() {
-        return new MavenFileRepository(file('repo'))
     }
 }

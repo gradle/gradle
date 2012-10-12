@@ -15,12 +15,10 @@
  */
 package org.gradle.integtests.resolve
 
-import org.gradle.integtests.fixtures.HttpServer
-import org.gradle.integtests.fixtures.MavenFileRepository
-import org.gradle.integtests.fixtures.MavenModule
-import org.gradle.integtests.fixtures.MavenRepository
-import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.HttpServer
+import org.gradle.integtests.fixtures.MavenModule
+import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 
 class ArtifactOnlyResolutionIntegrationTest extends AbstractIntegrationSpec {
@@ -32,7 +30,7 @@ class ArtifactOnlyResolutionIntegrationTest extends AbstractIntegrationSpec {
     def "setup"() {
         requireOwnUserHomeDir()
 
-        projectA = repo().module('group', 'projectA').publish()
+        projectA = mavenRepo.module('group', 'projectA').publish()
         server.start()
 
         buildFile << """
@@ -88,9 +86,5 @@ task retrieve(type: Sync) {
         def result = run 'retrieve'
         file('libs/projectA-1.0.jar').assertHasNotChangedSince(snapshot)
         return result
-    }
-
-    MavenRepository repo() {
-        return new MavenFileRepository(file('repo'))
     }
 }

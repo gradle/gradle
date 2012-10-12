@@ -27,6 +27,8 @@ import java.text.SimpleDateFormat
 interface MavenRepository {
     URI getUri()
 
+    MavenModule module(String groupId, String artifactId)
+
     MavenModule module(String groupId, String artifactId, Object version)
 }
 
@@ -98,6 +100,7 @@ class MavenModule {
             artifactNames = names.collect { it.replace('-SNAPSHOT', "-${timestamp}-${build}")}
             artifactNames.add("maven-metadata.xml")
         }
+        assert moduleDir.isDirectory()
         Set actual = moduleDir.list() as Set
         for (name in artifactNames) {
             assert actual.remove(name)

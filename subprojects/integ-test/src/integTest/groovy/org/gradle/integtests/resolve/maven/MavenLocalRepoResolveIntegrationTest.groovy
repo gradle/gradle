@@ -17,14 +17,12 @@ package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixture.M2Installation
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.MavenFileRepository
 import org.gradle.integtests.fixtures.MavenModule
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.TestFile
 import org.junit.Rule
 
 import static org.hamcrest.Matchers.containsString
-import static org.hamcrest.Matchers.not
 
 class MavenLocalRepoResolveIntegrationTest extends AbstractIntegrationSpec {
 
@@ -65,7 +63,7 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractIntegrationSpec {
 
     public void "can resolve artifacts from local m2 with custom localRepository defined in user settings.xml"() {
         given:
-        def artifactRepo = new MavenFileRepository(file("artifactrepo"))
+        def artifactRepo = maven("artifactrepo")
         def m2 = localM2() {
             userSettingsFile << """<settings>
                         <localRepository>${artifactRepo.rootDir.absolutePath}</localRepository>
@@ -84,7 +82,7 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractIntegrationSpec {
 
     public void "can resolve artifacts from local m2 with custom localRepository defined in global settings.xml"() {
         given:
-        def artifactRepo = new MavenFileRepository(file("artifactrepo"))
+        def artifactRepo = maven("artifactrepo")
         def m2 = localM2() {
             createGlobalSettingsFile(file("global_M2")) << """<settings>
                         <localRepository>${artifactRepo.rootDir.absolutePath}</localRepository>
@@ -104,8 +102,8 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractIntegrationSpec {
 
     public void "localRepository in user settings take precedence over the localRepository global settings"() {
         given:
-        def globalRepo = new MavenFileRepository(file("globalArtifactRepo"))
-        def userRepo = new MavenFileRepository(file("userArtifactRepo"))
+        def globalRepo = maven("globalArtifactRepo")
+        def userRepo = maven("userArtifactRepo")
         def m2 = localM2() {
             createGlobalSettingsFile(file("global_M2")) << """<settings>
                             <localRepository>${globalRepo.rootDir.absolutePath}</localRepository>
@@ -147,7 +145,7 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractIntegrationSpec {
 
     public void "mavenLocal is ignored if no local maven repository exists"() {
         given:
-        def anotherRepo = new MavenFileRepository(file("another-local-repo"))
+        def anotherRepo = maven("another-local-repo")
         def moduleA = anotherRepo.module('group', 'projectA', '1.2')
         moduleA.publishWithChangedContent();
 

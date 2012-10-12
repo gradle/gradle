@@ -16,15 +16,10 @@
 package org.gradle.api.tasks.diagnostics
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.IvyFileRepository
-import org.gradle.integtests.fixtures.MavenFileRepository
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class DependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
-
-    def repo = new MavenFileRepository(file("repo"))
-
     def setup() {
         distribution.requireOwnUserHomeDir()
     }
@@ -65,12 +60,12 @@ class DependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
 
     def "renders even if resolution fails"() {
         given:
-        repo.module("foo", "bar", 1.0).dependsOn("i dont exist").publish()
-        repo.module("foo", "baz", 1.0).dependsOn("foo:bar:1.0").publish()
+        mavenRepo.module("foo", "bar", 1.0).dependsOn("i dont exist").publish()
+        mavenRepo.module("foo", "baz", 1.0).dependsOn("foo:bar:1.0").publish()
 
         file("build.gradle") << """
             repositories {
-                maven { url "${repo.uri}" }
+                maven { url "${mavenRepo.uri}" }
             }
             configurations { foo }
             dependencies {
@@ -94,12 +89,12 @@ foo
 
     def "renders dependencies even if the configuration was already resolved"() {
         given:
-        repo.module("foo", "bar", 1.0).publish()
-        repo.module("foo", "bar", 2.0).publish()
+        mavenRepo.module("foo", "bar", 1.0).publish()
+        mavenRepo.module("foo", "bar", 2.0).publish()
 
         file("build.gradle") << """
             repositories {
-                maven { url "${repo.uri}" }
+                maven { url "${mavenRepo.uri}" }
             }
             configurations { foo }
             dependencies {
@@ -121,12 +116,12 @@ foo
 
     def "renders selected versions in case of a conflict"() {
         given:
-        repo.module("foo", "bar", 1.0).publish()
-        repo.module("foo", "bar", 2.0).publish()
-        repo.module("foo", "bar", 3.0).dependsOn('foo', 'baz', '5.0').publish()
+        mavenRepo.module("foo", "bar", 1.0).publish()
+        mavenRepo.module("foo", "bar", 2.0).publish()
+        mavenRepo.module("foo", "bar", 3.0).dependsOn('foo', 'baz', '5.0').publish()
 
 
-        repo.module("foo", "baz", 5.0).publish()
+        mavenRepo.module("foo", "baz", 5.0).publish()
 
         file("settings.gradle") << """include 'a', 'b', 'c', 'd', 'e'
 rootProject.name = 'root'
@@ -137,7 +132,7 @@ rootProject.name = 'root'
                 apply plugin: 'java'
                 version = '1.0'
                 repositories {
-                    maven { url "${repo.uri}" }
+                    maven { url "${mavenRepo.uri}" }
                 }
             }
 
@@ -199,19 +194,19 @@ rootProject.name = 'root'
 
     def "renders the dependency tree"() {
         given:
-        repo.module("org", "leaf1").publish()
-        repo.module("org", "leaf2").publish()
-        repo.module("org", "leaf3").publish()
-        repo.module("org", "leaf4").publish()
+        mavenRepo.module("org", "leaf1").publish()
+        mavenRepo.module("org", "leaf2").publish()
+        mavenRepo.module("org", "leaf3").publish()
+        mavenRepo.module("org", "leaf4").publish()
 
-        repo.module("org", "middle1").dependsOn('leaf1', 'leaf2').publish()
-        repo.module("org", "middle2").dependsOn('leaf3', 'leaf4').publish()
+        mavenRepo.module("org", "middle1").dependsOn('leaf1', 'leaf2').publish()
+        mavenRepo.module("org", "middle2").dependsOn('leaf3', 'leaf4').publish()
 
-        repo.module("org", "toplevel").dependsOn("middle1", "middle2").publish()
+        mavenRepo.module("org", "toplevel").dependsOn("middle1", "middle2").publish()
 
         file("build.gradle") << """
             repositories {
-                maven { url "${repo.uri}" }
+                maven { url "${mavenRepo.uri}" }
             }
 
             configurations {
@@ -239,17 +234,17 @@ rootProject.name = 'root'
 
     def "shows selected versions in case of a multi-phase conflict"() {
         given:
-        repo.module("foo", "foo", 1.0).publish()
-        repo.module("foo", "foo", 2.0).publish()
-        repo.module("foo", "foo", 3.0).publish()
-        repo.module("foo", "foo", 4.0).publish()
+        mavenRepo.module("foo", "foo", 1.0).publish()
+        mavenRepo.module("foo", "foo", 2.0).publish()
+        mavenRepo.module("foo", "foo", 3.0).publish()
+        mavenRepo.module("foo", "foo", 4.0).publish()
 
-        repo.module("bar", "bar", 5.0).dependsOn("foo", "foo", "4.0").publish()
-        repo.module("bar", "bar", 6.0).dependsOn("foo", "foo", "3.0").publish()
+        mavenRepo.module("bar", "bar", 5.0).dependsOn("foo", "foo", "4.0").publish()
+        mavenRepo.module("bar", "bar", 6.0).dependsOn("foo", "foo", "3.0").publish()
 
         file("build.gradle") << """
             repositories {
-                maven { url "${repo.uri}" }
+                maven { url "${mavenRepo.uri}" }
             }
 
             configurations {
@@ -278,16 +273,16 @@ rootProject.name = 'root'
 
     def "deals with dynamic versions with conflicts"() {
         given:
-        repo.module("foo", "bar", 1.0).publish()
-        repo.module("foo", "bar", 2.0).publish()
+        mavenRepo.module("foo", "bar", 1.0).publish()
+        mavenRepo.module("foo", "bar", 2.0).publish()
 
-        repo.module("foo", "foo", 1.0).dependsOn("foo", "bar", "1.0").publish()
-        repo.module("foo", "foo", 2.0).dependsOn("foo", "bar", "1.0").publish()
-        repo.module("foo", "foo", 2.5).dependsOn("foo", "bar", "2.0").publish()
+        mavenRepo.module("foo", "foo", 1.0).dependsOn("foo", "bar", "1.0").publish()
+        mavenRepo.module("foo", "foo", 2.0).dependsOn("foo", "bar", "1.0").publish()
+        mavenRepo.module("foo", "foo", 2.5).dependsOn("foo", "bar", "2.0").publish()
 
         file("build.gradle") << """
             repositories {
-                maven { url "${repo.uri}" }
+                maven { url "${mavenRepo.uri}" }
             }
 
             configurations {
@@ -312,21 +307,19 @@ rootProject.name = 'root'
 
     def "renders ivy tree with custom configurations"() {
         given:
-        def repo = new IvyFileRepository(file("repo"))
-
-        def module = repo.module("org", "child")
+        def module = ivyRepo.module("org", "child")
         module.configurations['first'] = [extendsFrom: ['second'], transitive: true]
         module.configurations['second'] = [extendsFrom: [], transitive: true]
         module.publish()
 
-        module = repo.module("org", "parent").dependsOn('child')
+        module = ivyRepo.module("org", "parent").dependsOn('child')
         module.configurations['first'] = [extendsFrom: ['second'], transitive: true]
         module.configurations['second'] = [extendsFrom: [], transitive: true]
         module.publish()
 
         file("build.gradle") << """
             repositories {
-                ivy { url "${repo.uri}" }
+                ivy { url "${ivyRepo.uri}" }
             }
             configurations {
                 conf
@@ -345,23 +338,21 @@ rootProject.name = 'root'
 
     def "renders the ivy tree with conflicts"() {
         given:
-        def repo = new IvyFileRepository(file("repo"))
-
-        repo.module("org", "leaf1").publish()
-        repo.module("org", "leaf2").publish()
-        repo.module("org", "leaf3").publish()
-        repo.module("org", "leaf4").publish()
-        repo.module("org", "leaf4", 2.0).publish()
+        ivyRepo.module("org", "leaf1").publish()
+        ivyRepo.module("org", "leaf2").publish()
+        ivyRepo.module("org", "leaf3").publish()
+        ivyRepo.module("org", "leaf4").publish()
+        ivyRepo.module("org", "leaf4", 2.0).publish()
 
         //also asserting on correct order of transitive dependencies
-        repo.module("org", "middle1").dependsOn('leaf1', 'leaf2').publish()
-        repo.module("org", "middle2").dependsOn('leaf3', 'leaf4') publish()
+        ivyRepo.module("org", "middle1").dependsOn('leaf1', 'leaf2').publish()
+        ivyRepo.module("org", "middle2").dependsOn('leaf3', 'leaf4') publish()
 
-        repo.module("org", "toplevel").dependsOn("middle1", "middle2").publish()
+        ivyRepo.module("org", "toplevel").dependsOn("middle1", "middle2").publish()
 
         file("build.gradle") << """
             repositories {
-                ivy { url "${repo.uri}" }
+                ivy { url "${ivyRepo.uri}" }
             }
 
             configurations {
@@ -390,8 +381,6 @@ rootProject.name = 'root'
 
     def "previously evicted nodes should contain correct target version"() {
         given:
-        def repo = new IvyFileRepository(file("repo"))
-
         /*
         a1->b1
         a2->b2->a1
@@ -406,15 +395,15 @@ rootProject.name = 'root'
            ('dependencies' report pre 1.2 would not show the a1 dependency leaf for this scenario)
         */
 
-        repo.module("org", "b", '1.0').publish()
-        repo.module("org", "a", '1.0').dependsOn("org", "b", '1.0').publish()
-        repo.module("org", "b", '2.0').dependsOn("org", "a", "1.0").publish()
-        repo.module("org", "a", '2.0').dependsOn("org", "b", '2.0').publish()
+        ivyRepo.module("org", "b", '1.0').publish()
+        ivyRepo.module("org", "a", '1.0').dependsOn("org", "b", '1.0').publish()
+        ivyRepo.module("org", "b", '2.0').dependsOn("org", "a", "1.0").publish()
+        ivyRepo.module("org", "a", '2.0').dependsOn("org", "b", '2.0').publish()
 
         file("build.gradle") << """
             apply plugin: 'dependency-reporting'
             repositories {
-                ivy { url "${repo.uri}" }
+                ivy { url "${ivyRepo.uri}" }
             }
 
             configurations {

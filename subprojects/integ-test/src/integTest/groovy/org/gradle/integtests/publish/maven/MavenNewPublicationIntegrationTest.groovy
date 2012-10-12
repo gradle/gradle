@@ -16,15 +16,12 @@
 
 package org.gradle.integtests.publish.maven
 
-import org.gradle.integtests.fixtures.HttpServer
-import org.gradle.integtests.fixtures.MavenFileRepository
-import org.gradle.integtests.fixtures.MavenRepository
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.HttpServer
 import org.gradle.internal.SystemProperties
 import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
-
 /**
  * @author: Szczepan Faber, created at: 6/16/11
  */
@@ -42,14 +39,14 @@ group = 'org.test'
 archivesBaseName = 'someCoolProject'
 version = '5.0-SNAPSHOT'
 
-publications.maven.repository.url = '${repo().uri}'
+publications.maven.repository.url = '${mavenRepo.uri}'
 """
 
         when:
         executer.withTasks('publishArchives').run()
 
         then:
-        def module = repo().module('org.test', 'someCoolProject', '5.0-SNAPSHOT')
+        def module = mavenRepo.module('org.test', 'someCoolProject', '5.0-SNAPSHOT')
         module.assertArtifactsPublished("someCoolProject-5.0-SNAPSHOT.jar", "someCoolProject-5.0-SNAPSHOT.pom")
     }
 
@@ -71,7 +68,7 @@ version = '5.0-SNAPSHOT'
         executer.withTasks('installArchives').run()
 
         then:
-        def localRepo = new MavenFileRepository(new TestFile("$SystemProperties.userHome/.m2/repository"))
+        def localRepo = maven(new TestFile("$SystemProperties.userHome/.m2/repository"))
         def module = localRepo.module('org.test', 'someCoolProject', '5.0-SNAPSHOT')
 
         def files = module.moduleDir.list() as List
@@ -152,8 +149,4 @@ publications {
 //      pom.whenConfigured { Model model -> }
 //      pom.withXml { }
 //    }
-
-    def MavenRepository repo() {
-        new MavenFileRepository(distribution.testFile('mavenRepo'))
-    }
 }

@@ -17,9 +17,8 @@ package org.gradle.integtests.resolve.artifactreuse
 
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.gradle.integtests.fixtures.HttpServer
-import org.gradle.integtests.fixtures.MavenFileRepository
-import org.junit.Rule
 import org.gradle.integtests.fixtures.TargetVersions
+import org.junit.Rule
 
 @TargetVersions('1.0-milestone-6+')
 class CacheReuseCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
@@ -27,7 +26,7 @@ class CacheReuseCrossVersionIntegrationTest extends CrossVersionIntegrationSpec 
 
     def "uses cached artifacts from previous Gradle version when no sha1 header"() {
         given:
-        def projectB = new MavenFileRepository(file('repo')).module('org.name', 'projectB').publish()
+        def projectB = mavenRepo.module('org.name', 'projectB').publish()
         server.sendSha1Header = false
         server.start()
         buildFile << """
@@ -48,7 +47,7 @@ task retrieve(type: Sync) {
         def userHome = file('user-home')
 
         when:
-        server.allowGetOrHead('/org', file('repo/org'))
+        server.allowGetOrHead('/org', mavenRepo.rootDir.file('org'))
 
         and:
         version previous withUserHomeDir userHome withTasks 'retrieve' withArguments '-i' run()
@@ -74,7 +73,7 @@ task retrieve(type: Sync) {
 
     def "uses cached artifacts from previous Gradle version with sha1 header"() {
         given:
-        def projectB = new MavenFileRepository(file('repo')).module('org.name', 'projectB').publish()
+        def projectB = mavenRepo.module('org.name', 'projectB').publish()
         server.sendSha1Header = true
         server.start()
         buildFile << """
@@ -95,7 +94,7 @@ task retrieve(type: Sync) {
         def userHome = file('user-home')
 
         when:
-        server.allowGetOrHead('/org', file('repo/org'))
+        server.allowGetOrHead('/org', mavenRepo.rootDir.file('org'))
 
         and:
         version previous withUserHomeDir userHome withTasks 'retrieve' withArguments '-i' run()
