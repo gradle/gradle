@@ -16,13 +16,12 @@
 
 package org.gradle.api.tasks.diagnostics.internal.dsl;
 
-import groovy.lang.Closure;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.internal.notations.NotationParserBuilder;
 import org.gradle.api.internal.notations.api.NotationParser;
 import org.gradle.api.internal.notations.api.UnsupportedNotationException;
+import org.gradle.api.internal.notations.parsers.ClosureToSpecNotationParser;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.specs.Specs;
 
 import java.util.Collection;
 
@@ -32,11 +31,6 @@ import java.util.Collection;
 public class DependencyResultSpecNotationParser implements NotationParser<Spec<DependencyResult>> {
 
     public Spec<DependencyResult> parseNotation(final Object notation) throws UnsupportedNotationException {
-        //TODO SF consider exposing a separate notation parser for closure -> spec
-        if (notation instanceof Closure) {
-            final Closure closure = (Closure) notation;
-            return Specs.convertClosureToSpec(closure);
-        }
         if (notation instanceof CharSequence) {
             final String stringNotation = notation.toString();
             return new Spec<DependencyResult>() {
@@ -59,6 +53,7 @@ public class DependencyResultSpecNotationParser implements NotationParser<Spec<D
         return (NotationParser) new NotationParserBuilder<Spec>()
                 .resultingType(Spec.class)
                 .invalidNotationMessage("Please check the input for the DependencyInsight.dependency element.")
+                .parser(new ClosureToSpecNotationParser())
                 .parser(new DependencyResultSpecNotationParser())
                 .toComposite();
     }

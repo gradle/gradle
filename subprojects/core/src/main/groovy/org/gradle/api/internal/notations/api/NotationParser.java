@@ -22,7 +22,7 @@ import java.util.Collection;
  * by Szczepan Faber, created at: 11/8/11
  */
 public interface NotationParser<T> {
-    void describe(Collection<String> candidateFormats);
-
     T parseNotation(Object notation) throws UnsupportedNotationException;
+
+    void describe(Collection<String> candidateFormats);
 }
