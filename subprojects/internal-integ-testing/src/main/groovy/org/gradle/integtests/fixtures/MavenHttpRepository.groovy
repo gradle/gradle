@@ -16,8 +16,6 @@
 
 package org.gradle.integtests.fixtures
 
-import org.gradle.util.TestFile
-
 /**
  * A fixture for dealing with remote HTTP Maven repositories.
  */
@@ -46,75 +44,5 @@ class MavenHttpRepository {
     MavenHttpModule module(String groupId, String artifactId, Object version) {
         def backingModule = backingRepository.module(groupId, artifactId, version)
         return new MavenHttpModule(server, "$contextPath/${groupId.replace('.', '/')}/$artifactId/$version", backingModule)
-    }
-}
-
-class MavenHttpModule {
-    private final HttpServer server
-    private final String modulePath
-    private final MavenModule backingModule
-
-    MavenHttpModule(HttpServer server, String modulePath, MavenModule backingModule) {
-        this.backingModule = backingModule
-        this.server = server
-        this.modulePath = modulePath
-    }
-
-    MavenHttpModule publish() {
-        backingModule.publish()
-        return this
-    }
-
-    MavenHttpModule publishWithChangedContent() {
-        backingModule.publishWithChangedContent()
-        return this
-    }
-
-    TestFile getPomFile() {
-        return backingModule.pomFile
-    }
-
-    TestFile getArtifactFile() {
-        return backingModule.artifactFile
-    }
-
-    void allowAll() {
-        server.allowGetOrHead(modulePath, backingModule.moduleDir)
-    }
-
-    void expectPomGet() {
-        server.expectGet("$modulePath/$pomFile.name", pomFile)
-    }
-
-    void expectPomHead() {
-        server.expectHead("$modulePath/$pomFile.name", pomFile)
-    }
-
-    void expectPomSha1Get() {
-        server.expectGet("$modulePath/${pomFile.name}.sha1", backingModule.sha1File(pomFile))
-    }
-
-    void expectPomGetMissing() {
-        server.expectGetMissing("$modulePath/$pomFile.name")
-    }
-
-    void expectArtifactGet() {
-        server.expectGet("$modulePath/$artifactFile.name", artifactFile)
-    }
-
-    void expectArtifactHead() {
-        server.expectHead("$modulePath/$artifactFile.name", artifactFile)
-    }
-
-    void expectArtifactSha1Get() {
-        server.expectGet("$modulePath/${artifactFile.name}.sha1", backingModule.sha1File(artifactFile))
-    }
-
-    void expectArtifactGetMissing() {
-        server.expectGetMissing("$modulePath/$artifactFile.name")
-    }
-
-    void expectArtifactHeadMissing() {
-        server.expectHeadMissing("$modulePath/$artifactFile.name")
     }
 }
