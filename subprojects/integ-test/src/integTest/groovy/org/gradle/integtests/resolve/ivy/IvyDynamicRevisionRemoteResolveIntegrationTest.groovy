@@ -15,7 +15,7 @@
  */
 package org.gradle.integtests.resolve.ivy
 
-import org.gradle.integtests.fixtures.IvyModule
+import org.gradle.integtests.fixtures.IvyFileModule
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
 import spock.lang.Ignore
 
@@ -585,7 +585,7 @@ task retrieve(type: Sync) {
         succeeds('listJars')
     }
 
-    private def serveUpDynamicRevision(IvyModule module, String prefix = "") {
+    private def serveUpDynamicRevision(IvyFileModule module, String prefix = "") {
         server.expectGetDirectoryListing("${prefix}/${module.organisation}/${module.module}/", module.moduleDir.parentFile)
         server.expectGet("${prefix}/${module.organisation}/${module.module}/${module.revision}/ivy-${module.revision}.xml", module.ivyFile)
         server.expectGet("${prefix}/${module.organisation}/${module.module}/${module.revision}/${module.module}-${module.revision}.jar", module.jarFile)

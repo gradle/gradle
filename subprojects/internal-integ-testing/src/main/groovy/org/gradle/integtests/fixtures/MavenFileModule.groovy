@@ -154,7 +154,7 @@ class MavenFileModule implements MavenModule {
     /**
      * Publishes the pom.xml plus main artifact, plus any additional artifacts for this module.
      */
-    MavenFileModule publish() {
+    MavenModule publish() {
         moduleDir.createDir()
         def rootMavenMetaData = getRootMetaDataFile()
 

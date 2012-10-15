@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
+
+
 package org.gradle.integtests.fixtures
 
 import org.gradle.util.TestFile
 import org.gradle.util.hash.HashUtil
 
-class IvyModule {
+class IvyFileModule implements IvyModule {
     final TestFile moduleDir
     final String organisation
     final String module
@@ -30,7 +32,7 @@ class IvyModule {
     String status = "integration"
     int publishCount
 
-    IvyModule(TestFile moduleDir, String organisation, String module, String revision) {
+    IvyFileModule(TestFile moduleDir, String organisation, String module, String revision) {
         this.moduleDir = moduleDir
         this.organisation = organisation
         this.module = module
@@ -45,27 +47,27 @@ class IvyModule {
      * @param options Can specify any of name, type or classifier
      * @return this
      */
-    IvyModule artifact(Map<String, ?> options) {
+    IvyFileModule artifact(Map<String, ?> options) {
         artifacts << [name: options.name ?: module, type: options.type ?: 'jar', classifier: options.classifier ?: null]
         return this
     }
 
-    IvyModule dependsOn(String organisation, String module, String revision) {
+    IvyFileModule dependsOn(String organisation, String module, String revision) {
         dependencies << [organisation: organisation, module: module, revision: revision]
         return this
     }
 
-    IvyModule dependsOn(String ... modules) {
+    IvyFileModule dependsOn(String ... modules) {
         modules.each { dependsOn(organisation, it, revision) }
         return this
     }
 
-    IvyModule nonTransitive(String config) {
+    IvyFileModule nonTransitive(String config) {
         configurations[config].transitive = false
         return this
     }
 
-    IvyModule withStatus(String status) {
+    IvyFileModule withStatus(String status) {
         this.status = status;
         return this
     }

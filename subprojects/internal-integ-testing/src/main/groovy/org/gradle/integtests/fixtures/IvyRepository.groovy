@@ -15,8 +15,6 @@
  */
 package org.gradle.integtests.fixtures
 
-import java.util.regex.Pattern
-
 interface IvyRepository {
     URI getUri()
 

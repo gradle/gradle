@@ -15,7 +15,7 @@
  */
 package org.gradle.integtests.resolve.ivy
 
-import org.gradle.integtests.fixtures.IvyModule
+import org.gradle.integtests.fixtures.IvyFileModule
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
 
 import static org.hamcrest.Matchers.containsString
@@ -184,12 +184,12 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants('projectA-1.2.jar')
     }
 
-    def expectExistingArtifact(String repo, IvyModule module) {
+    def expectExistingArtifact(String repo, IvyFileModule module) {
         server.expectGet("/${repo}/${module.getOrganisation()}/${module.getModule()}/${module.getRevision()}/ivy-${module.getRevision()}.xml", module.ivyFile)
         server.expectGet("/${repo}/${module.getOrganisation()}/${module.getModule()}/${module.getRevision()}/${module.getModule()}-${module.getRevision()}.jar", module.jarFile)
     }
 
-    def expectMissingArtifact(String repo, IvyModule module) {
+    def expectMissingArtifact(String repo, IvyFileModule module) {
         server.expectGetMissing("/${repo}/${module.getOrganisation()}/${module.getModule()}/${module.getRevision()}/ivy-${module.getRevision()}.xml")
         server.expectHeadMissing("/${repo}/${module.getOrganisation()}/${module.getModule()}/${module.getRevision()}/${module.getModule()}-${module.getRevision()}.jar")
     }

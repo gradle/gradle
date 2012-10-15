@@ -13,27 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests.fixtures
 
-import org.gradle.util.TestFile
+package org.gradle.integtests.fixtures;
 
-class IvyFileRepository implements IvyRepository {
-    final TestFile rootDir
+import org.gradle.util.TestFile;
 
-    IvyFileRepository(TestFile rootDir) {
-        this.rootDir = rootDir
-    }
+public interface IvyModule {
+    TestFile getIvyFile();
 
-    URI getUri() {
-        return rootDir.toURI()
-    }
+    TestFile getJarFile();
 
-    IvyFileModule module(String organisation, String module, Object revision = '1.0') {
-        def moduleDir = rootDir.file("$organisation/$module/$revision")
-        return new IvyFileModule(moduleDir, organisation, module, revision as String)
-    }
+    /**
+     * Publishes ivy.xml plus all artifacts with different content to previous publication.
+     */
+    IvyModule publishWithChangedContent();
+
+    /**
+     * Publishes ivy.xml plus all artifacts
+     */
+    IvyModule publish();
 }
-
-
-
-

@@ -16,7 +16,6 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.MavenFileModule
-import org.gradle.integtests.fixtures.MavenModule
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
 
 class MavenSnapshotResolveIntegrationTest extends AbstractDependencyResolutionTest {
@@ -588,6 +587,4 @@ project('second') {
         server.expectGetMissing("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/maven-metadata.xml")
         server.expectHeadMissing("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/${moduleName}-1.0-SNAPSHOT.jar")
     }
-
-
 }

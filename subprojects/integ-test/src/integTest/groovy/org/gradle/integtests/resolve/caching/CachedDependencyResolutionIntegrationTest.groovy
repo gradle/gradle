@@ -16,17 +16,16 @@
 
 package org.gradle.integtests.resolve.caching
 
-import org.gradle.integtests.fixtures.IvyModule
+import org.gradle.integtests.fixtures.HttpServer
+import org.gradle.integtests.fixtures.IvyFileModule
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
 import org.gradle.util.TestFile
-import org.gradle.integtests.fixtures.HttpServer
-
 /**
  * We are using Ivy here, but the strategy is the same for any kind of repository.
  */
 class CachedDependencyResolutionIntegrationTest extends AbstractDependencyResolutionTest {
 
-    IvyModule module
+    IvyFileModule module
 
     TestFile downloaded
     TestFile.Snapshot lastState
