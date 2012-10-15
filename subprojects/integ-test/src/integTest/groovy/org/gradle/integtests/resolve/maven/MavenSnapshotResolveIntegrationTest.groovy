@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.resolve.maven
 
+import org.gradle.integtests.fixtures.MavenFileModule
 import org.gradle.integtests.fixtures.MavenModule
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
 
@@ -533,7 +534,7 @@ project('second') {
         downloadedJarFile.assertIsCopyOf(module.artifactFile)
     }
 
-    private expectModuleServed(MavenModule module, def prefix, boolean sha1requests = false, boolean headRequests = false) {
+    private expectModuleServed(MavenFileModule module, def prefix, boolean sha1requests = false, boolean headRequests = false) {
         def moduleName = module.artifactId;
         server.expectGet("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/maven-metadata.xml", module.moduleDir.file("maven-metadata.xml"))
         server.expectGet("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/${module.pomFile.name}", module.pomFile)
@@ -552,7 +553,7 @@ project('second') {
         }
     }
 
-    private expectChangedArtifactServed(MavenModule module, def prefix, boolean sha1requests = false, boolean headRequests = false) {
+    private expectChangedArtifactServed(MavenFileModule module, def prefix, boolean sha1requests = false, boolean headRequests = false) {
         def moduleName = module.artifactId;
         server.expectGet("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/maven-metadata.xml", module.moduleDir.file("maven-metadata.xml"))
         server.expectHead("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/${module.pomFile.name}", module.pomFile)
@@ -565,7 +566,7 @@ project('second') {
         server.expectGet("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/${module.artifactFile.name}", module.artifactFile)
     }
 
-    private expectChangedProbe(prefix, MavenModule module, boolean expectSha1) {
+    private expectChangedProbe(prefix, MavenFileModule module, boolean expectSha1) {
         module.expectMetaDataGet(server, prefix)
         module.expectPomHead(server, prefix)
         if (expectSha1) {
@@ -579,7 +580,7 @@ project('second') {
         }
     }
     
-    private expectModuleMissing(MavenModule module, def prefix) {
+    private expectModuleMissing(MavenFileModule module, def prefix) {
         def moduleName = module.artifactId;
         server.expectGetMissing("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/maven-metadata.xml")
         server.expectGetMissing("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/${moduleName}-1.0-SNAPSHOT.pom")

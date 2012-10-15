@@ -18,12 +18,12 @@ package org.gradle.integtests.fixtures
 
 import org.gradle.util.TestFile
 
-class MavenHttpModule {
+class MavenHttpModule implements MavenModule {
     private final HttpServer server
     private final String modulePath
-    private final MavenModule backingModule
+    private final MavenFileModule backingModule
 
-    MavenHttpModule(HttpServer server, String modulePath, MavenModule backingModule) {
+    MavenHttpModule(HttpServer server, String modulePath, MavenFileModule backingModule) {
         this.backingModule = backingModule
         this.server = server
         this.modulePath = modulePath

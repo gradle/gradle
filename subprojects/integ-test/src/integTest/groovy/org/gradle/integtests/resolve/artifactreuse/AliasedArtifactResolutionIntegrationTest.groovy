@@ -16,7 +16,7 @@
 package org.gradle.integtests.resolve.artifactreuse
 
 import org.gradle.integtests.fixtures.IvyModule
-import org.gradle.integtests.fixtures.MavenModule
+import org.gradle.integtests.fixtures.MavenFileModule
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
 import org.junit.Rule
@@ -25,7 +25,7 @@ import spock.lang.Ignore
 class AliasedArtifactResolutionIntegrationTest extends AbstractDependencyResolutionTest {
     @Rule public final TestResources resources = new TestResources();
 
-    MavenModule projectB
+    MavenFileModule projectB
     IvyModule ivyProjectB
 
     def mRepo1 = "/mavenRepo1"

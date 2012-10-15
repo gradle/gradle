@@ -164,7 +164,7 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractIntegrationSpec {
 
     def hasArtifact(MavenModule module) {
         def buildDir = file('build')
-        def artifactName = module.artifactFile.getName()
+        def artifactName = module.artifactFile.name
         buildDir.assertHasDescendants(artifactName)
         buildDir.file(artifactName).assertIsCopyOf(module.artifactFile)
     }

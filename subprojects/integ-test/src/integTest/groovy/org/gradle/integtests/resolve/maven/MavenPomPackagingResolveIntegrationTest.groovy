@@ -15,13 +15,13 @@
  */
 package org.gradle.integtests.resolve.maven
 
+import org.gradle.integtests.fixtures.MavenFileModule
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
-import spock.lang.Issue
-import org.gradle.integtests.fixtures.MavenModule
 import spock.lang.FailsWith
+import spock.lang.Issue
 
 class MavenPomPackagingResolveIntegrationTest extends AbstractDependencyResolutionTest {
-    MavenModule projectA
+    MavenFileModule projectA
 
     def setup() {
         server.start()
