@@ -16,8 +16,9 @@
 package org.gradle.integtests.fixtures
 
 import org.gradle.util.TestFile
+
 /**
- * A fixture for dealing with Maven repositories.
+ * A fixture for dealing with local Maven repositories.
  */
 class MavenFileRepository implements MavenRepository {
     final TestFile rootDir

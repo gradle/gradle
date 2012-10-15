@@ -37,8 +37,6 @@ class WrapperProjectIntegrationTest extends AbstractIntegrationSpec {
 
     void setup() {
         server.start()
-        //pass os.name, os.arch and os.version to the system.properties file (needed for unknown os tests)
-        file("gradle.properties") << System.properties.findAll {key, value -> key.startsWith("os.")}.collect {key, value -> "systemProp.${key}=$value"}.join("\n")
         server.expectUserAgent(matchesNameAndVersion("gradlew", GradleVersion.current().getVersion()))
     }
 

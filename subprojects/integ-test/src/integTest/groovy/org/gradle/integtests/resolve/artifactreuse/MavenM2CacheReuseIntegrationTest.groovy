@@ -19,19 +19,15 @@ import org.gradle.integtests.fixture.M2Installation
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
 
 class MavenM2CacheReuseIntegrationTest extends AbstractDependencyResolutionTest {
-
-    def setup(){
-        requireOwnUserHomeDir();
-    }
-
     def "uses cached artifacts from maven local cache"() {
         given:
-        publishAndInstallToMaven()
+        def module1 = mavenHttpRepo.module('gradletest.maven.local.cache.test', "foo", "1.0").publish()
+        def module2 = new M2Installation(distribution.userHomeDir.file(".m2")).mavenRepo().module('gradletest.maven.local.cache.test', "foo", "1.0").publish()
         server.start()
 
         buildFile.text = """
 repositories {
-    maven { url "http://localhost:${server.port}" }
+    maven { url "${mavenHttpRepo.uri}" }
 }
 configurations { compile }
 dependencies {
@@ -42,23 +38,17 @@ task retrieve(type: Sync) {
     into 'build'
 }
 """
+        and:
+        module1.expectPomHead()
+        module1.expectPomSha1Get()
+        module1.expectArtifactHead()
+        module1.expectArtifactSha1Get()
 
         when:
-        def repoFile = file('repo')
-        server.expectHead('/gradletest/maven/local/cache/test/foo/1.0/foo-1.0.pom', repoFile.file('gradletest/maven/local/cache/test/foo/1.0/foo-1.0.pom'))
-        server.expectGet('/gradletest/maven/local/cache/test/foo/1.0/foo-1.0.pom.sha1', repoFile.file('gradletest/maven/local/cache/test/foo/1.0/foo-1.0.pom.sha1'))
-        server.expectHead('/gradletest/maven/local/cache/test/foo/1.0/foo-1.0.jar', repoFile.file('gradletest/maven/local/cache/test/foo/1.0/foo-1.0.jar'))
-        server.expectGet('/gradletest/maven/local/cache/test/foo/1.0/foo-1.0.jar.sha1', repoFile.file('gradletest/maven/local/cache/test/foo/1.0/foo-1.0.jar.sha1'))
-
-        then:
         executer.withArguments("-Duser.home=${distribution.getUserHomeDir()}")
         run 'retrieve'
-    }
 
-    private def publishAndInstallToMaven() {
-        def module1 = mavenRepo().module('gradletest.maven.local.cache.test', "foo", "1.0")
-        module1.publish();
-        def module2 = new M2Installation(distribution.getUserHomeDir().file(".m2")).mavenRepo().module('gradletest.maven.local.cache.test', "foo", "1.0")
-        module2.publish()
+        then:
+        file('build/foo-1.0.jar').assertIsCopyOf(module2.artifactFile)
     }
 }

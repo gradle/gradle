@@ -26,8 +26,6 @@ class EclipseClasspathRemoteResolutionIntegrationTest extends AbstractEclipseInt
     @Rule public final HttpServer server = new HttpServer()
     @Rule public final TestResources testResources = new TestResources()
 
-    String content
-
     @Before
     void "setup"() {
         distribution.requireOwnUserHomeDir()

@@ -142,30 +142,30 @@ class AbstractIntegrationSpec extends Specification {
         return new GradleBackedArtifactBuilder(executer, getTestDir().file("artifacts"))
     }
 
-    public MavenRepository maven(TestFile repo) {
+    public MavenFileRepository maven(TestFile repo) {
         return new MavenFileRepository(repo)
     }
 
-    public MavenRepository maven(Object repo) {
+    public MavenFileRepository maven(Object repo) {
         return new MavenFileRepository(file(repo))
     }
 
-    public MavenRepository getMavenRepo() {
+    public MavenFileRepository getMavenRepo() {
         if (mavenRepo == null) {
             mavenRepo = new MavenFileRepository(file("maven-repo"))
         }
         return mavenRepo
     }
 
-    public IvyRepository ivy(TestFile repo) {
+    public IvyFileRepository ivy(TestFile repo) {
         return new IvyFileRepository(repo)
     }
 
-    public IvyRepository ivy(Object repo) {
+    public IvyFileRepository ivy(Object repo) {
         return new IvyFileRepository(file(repo))
     }
 
-    public IvyRepository getIvyRepo() {
+    public IvyFileRepository getIvyRepo() {
         if (ivyRepo == null) {
             ivyRepo = new IvyFileRepository(file("ivy-repo"))
         }

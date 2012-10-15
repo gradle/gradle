@@ -23,18 +23,20 @@ class CachedMissingModulesIntegrationTest extends AbstractDependencyResolutionTe
     def "cached not-found information is ignored if module is not available in any repo"() {
         given:
         server.start()
-
-        mavenRepo("repo2")
+        def repo1 = mavenHttpRepo("repo1")
+        def repo1Module = repo1.module("group", "projectA", "1.0")
+        def repo2 = mavenHttpRepo("repo2")
+        def repo2Module = repo2.module("group", "projectA", "1.0")
 
         buildFile << """
     repositories {
         maven {
             name 'repo1'
-            url 'http://localhost:${server.port}/repo1'
+            url '${repo1.uri}'
         }
         maven {
             name 'repo2'
-            url 'http://localhost:${server.port}/repo2'
+            url '${repo2.uri}'
         }
     }
     configurations { compile }
@@ -49,31 +51,29 @@ class CachedMissingModulesIntegrationTest extends AbstractDependencyResolutionTe
     """
 
         when:
-        server.expectGetMissing('/repo1/group/projectA/1.0/projectA-1.0.pom')
-        server.expectGetMissing('/repo2/group/projectA/1.0/projectA-1.0.pom')
-        server.expectHeadMissing('/repo1/group/projectA/1.0/projectA-1.0.jar')
-        server.expectHeadMissing('/repo2/group/projectA/1.0/projectA-1.0.jar')
+        repo1Module.expectPomGetMissing()
+        repo1Module.expectArtifactHeadMissing()
+        repo2Module.expectPomGetMissing()
+        repo2Module.expectArtifactHeadMissing()
 
         then:
         runAndFail 'retrieve'
 
         when:
         server.resetExpectations()
-        def projectA = mavenRepo("repo2").module('group', 'projectA').publish()
-
-        server.expectGetMissing('/repo1/group/projectA/1.0/projectA-1.0.pom')
-        server.expectHeadMissing('/repo1/group/projectA/1.0/projectA-1.0.jar')
-
-        server.expectGet("/repo2/group/projectA/1.0/projectA-1.0.pom", projectA.pomFile)
-        server.expectGet("/repo2/group/projectA/1.0/projectA-1.0.jar", projectA.artifactFile)
+        repo2Module.publish()
+        repo1Module.expectPomGetMissing()
+        repo1Module.expectArtifactHeadMissing()
+        repo2Module.expectPomGet()
+        repo2Module.expectArtifactGet()
 
         then:
-        run 'retrieve'//
+        run 'retrieve'
 
         when:
         server.resetExpectations()
+
         then:
-        executer.withArgument("--rerun-tasks")
         run 'retrieve'
     }
 }

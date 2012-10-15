@@ -23,6 +23,8 @@ import java.util.regex.Pattern
 interface IvyRepository {
     URI getUri()
 
+    IvyModule module(String organisation, String module)
+
     IvyModule module(String organisation, String module, Object revision)
 }
 

@@ -144,8 +144,6 @@ class ListenerImpl extends BuildAdapter {
     @Test
     public void canFetchScriptViaHttp() {
         TestFile script = testFile('external.gradle')
-        //for unknown os tests:
-        file("gradle.properties") << System.properties.findAll {key, value -> key.startsWith("os.")}.collect {key, value -> "systemProp.${key}=$value"}.join("\n")
         server.expectUserAgent(UserAgentMatcher.matchesNameAndVersion("Gradle", GradleVersion.current().getVersion()))
         server.expectGet('/external.gradle', script)
         server.start()
