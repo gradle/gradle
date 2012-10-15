@@ -21,7 +21,6 @@ package org.gradle.build
 import com.tonicsystems.jarjar.Main as JarJarMain
 import org.gradle.api.*
 import org.gradle.api.file.*
-import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.api.tasks.*
 
 class JarJar extends DefaultTask {
@@ -33,20 +32,15 @@ class JarJar extends DefaultTask {
 
     @TaskAction
     void nativeJarJar() {
-        try {
-            TemporaryFileProvider tmpFileProvider = getServices().get(TemporaryFileProvider);
-            File tempRuleFile = tmpFileProvider.createTemporaryFile("jarjar", "rule")
-            writeRuleFile(tempRuleFile)
+        File tempRuleFile = new File(getTemporaryDir(), "jarjar.rules.txt")
+        writeRuleFile(tempRuleFile)
 
-            if (inputJars.empty) {
-                throw new GradleException("Unable to execute JarJar task because there are no input jars.");
-            }
+        if (inputJars.empty) {
+            throw new GradleException("Unable to execute JarJar task because there are no input jars.");
+        }
 
-            for(file in inputJars) {
-                JarJarMain.main("process", tempRuleFile.absolutePath, file.absolutePath, new File(outputDir, "jarjar-$file.name").absolutePath)
-            }
-        } catch (Exception e) {
-            throw new GradleException("Unable to execute JarJar task", e);
+        for(file in inputJars) {
+            JarJarMain.main("process", tempRuleFile.absolutePath, file.absolutePath, new File(outputDir, "jarjar-$file.name").absolutePath)
         }
     }
 
