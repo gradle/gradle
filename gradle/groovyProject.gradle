@@ -76,7 +76,7 @@ if (file("src/integTest").exists()) {
 
 class ClasspathManifest extends DefaultTask {
 
-    @InputFiles FileCollection input = project.configurations.runtime
+    FileCollection input = project.configurations.runtime
 
     @OutputFile
     File getManifestFile() {

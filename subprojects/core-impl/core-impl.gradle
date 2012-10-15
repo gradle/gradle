@@ -43,6 +43,8 @@ task jarJarMaven3(type: JarJar) {
     avoidConflictingPlexusComponents(it)
 }
 
+classpathManifest.dependsOn jarJarMaven3 //see GRADLE-2521
+
 //adding explicit task dependencies due to http://issues.gradle.org/browse/GRADLE-2481
 def allJarJars = tasks.withType(JarJar)
 ideaModule.dependsOn allJarJars
