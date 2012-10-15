@@ -29,10 +29,12 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.api.internal.DocumentationRegistry
 import javax.inject.Inject
 import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider
+import org.gradle.api.Incubating
 
 /**
  * by Szczepan Faber, created at: 8/1/12
  */
+@Incubating
 class ConvertMaven2Gradle extends DefaultTask {
 
     private final static Logger LOG = Logging.getLogger(ConvertMaven2Gradle.class)
@@ -69,7 +71,7 @@ Please use it, report any problems and share your feedback with us.
 
         def settings = settingsProvider.buildSettings()
 
-        def mavenProjects = new MavenProjectsCreator(settings, project.file("pom.xml")).create()
+        def mavenProjects = new MavenProjectsCreator().create(settings, project.file("pom.xml"))
 
         new Maven2Gradle(mavenProjects).convert(args)
     }

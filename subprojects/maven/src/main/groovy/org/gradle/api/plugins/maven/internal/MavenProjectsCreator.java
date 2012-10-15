@@ -44,23 +44,18 @@ import java.util.Set;
  */
 public class MavenProjectsCreator {
 
-    private final Settings mavenSettings;
-    private final File pomFile;
-
-    public MavenProjectsCreator(Settings mavenSettings, File pomFile) {
-        this.mavenSettings = mavenSettings;
-        this.pomFile = pomFile;
-    }
-
-    public Set<MavenProject> create() {
+    public Set<MavenProject> create(Settings mavenSettings, File pomFile) {
+        if (!pomFile.exists()) {
+            throw new GradleException("Unable to create maven project model. The input pom file does not exist: " + pomFile);
+        }
         try {
-            return createNow(mavenSettings);
+            return createNow(mavenSettings, pomFile);
         } catch (Exception e) {
-            throw new GradleException("Unable to create MavenProject model.", e);
+            throw new GradleException("Unable to create maven project model using pom file: " + pomFile.getAbsolutePath(), e);
         }
     }
 
-    private Set<MavenProject> createNow(Settings settings) throws PlexusContainerException, PlexusConfigurationException, ComponentLookupException, MavenExecutionRequestPopulationException, ProjectBuildingException {
+    private Set<MavenProject> createNow(Settings settings, File pomFile) throws PlexusContainerException, PlexusConfigurationException, ComponentLookupException, MavenExecutionRequestPopulationException, ProjectBuildingException {
         //using jarjar for maven3 classes affects the contents of the effective pom
         //references to certain maven standard plugins contain jarjar in the fqn
         //not sure if this is a problem.
