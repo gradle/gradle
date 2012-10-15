@@ -21,11 +21,12 @@ import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
+import org.gradle.integtests.fixtures.JUnitTestExecutionResult
 
 /**
  * by Szczepan Faber, created at: 9/4/12
  */
-class MavenConversionSpec extends AbstractIntegrationSpec {
+class MavenConversionIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule public final TestResources resources = new TestResources()
 
@@ -47,7 +48,8 @@ class MavenConversionSpec extends AbstractIntegrationSpec {
         file("webinar-impl/build/libs/webinar-impl-1.0-SNAPSHOT.jar").exists()
         file("webinar-war/build/libs/webinar-war-1.0-SNAPSHOT.war").exists()
         file('webinar-impl/build/reports/tests/index.html').exists()
-        file('webinar-impl/build/test-results').list().find { it.contains('WebinarTest') }
+
+        new JUnitTestExecutionResult(file("webinar-impl")).assertTestClassesExecuted('webinar.WebinarTest')
 
         when:
         run 'projects'
