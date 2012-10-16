@@ -17,7 +17,9 @@ package org.gradle.api.internal.artifacts.configurations
 
 import org.gradle.api.Action
 import org.gradle.api.Task
+import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver
+import org.gradle.api.internal.artifacts.ResolverResults
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.listener.ListenerBroadcast
@@ -56,7 +58,7 @@ class DefaultConfigurationSpec extends Specification {
     // You need to wrap this in an interaction {} block when calling it
     ResolvedConfiguration resolvedConfiguration(Configuration config, ArtifactDependencyResolver dependencyResolver = dependencyResolver) {
         ResolvedConfiguration resolvedConfiguration = Mock()
-        1 * dependencyResolver.resolve(config) >> resolvedConfiguration
+        1 * dependencyResolver.resolve(config) >> new ResolverResults(resolvedConfiguration, Mock(ResolutionResult))
         resolvedConfiguration
     }
 

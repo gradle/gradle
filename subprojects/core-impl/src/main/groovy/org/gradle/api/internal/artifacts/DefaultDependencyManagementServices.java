@@ -43,7 +43,6 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.*;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.*;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectModuleRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DefaultDependencyResolver;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.EmptyResolutionResultConfigurer;
 import org.gradle.api.internal.artifacts.mvnsettings.*;
 import org.gradle.api.internal.artifacts.repositories.DefaultResolverFactory;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
@@ -356,13 +355,12 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                     new DefaultProjectModuleRegistry(
                             get(PublishModuleDescriptorConverter.class))
             );
-            return new EmptyResolutionResultConfigurer(
-                    new ErrorHandlingArtifactDependencyResolver(
+            return new ErrorHandlingArtifactDependencyResolver(
                             new ShortcircuitEmptyConfigsArtifactDependencyResolver(
                                     new SelfResolvingDependencyResolver(
                                             new CacheLockingArtifactDependencyResolver(
                                                     get(CacheLockingManager.class),
-                                                    resolver)))));
+                                                    resolver))));
         }
 
         ArtifactPublisher createArtifactPublisher(DefaultRepositoryHandler resolverProvider) {

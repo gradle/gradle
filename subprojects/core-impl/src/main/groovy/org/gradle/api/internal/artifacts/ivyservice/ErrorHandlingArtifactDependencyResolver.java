@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.artifacts.*;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
+import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.specs.Spec;
 
@@ -30,14 +31,15 @@ public class ErrorHandlingArtifactDependencyResolver implements ArtifactDependen
         this.dependencyResolver = dependencyResolver;
     }
 
-    public ResolvedConfiguration resolve(final ConfigurationInternal configuration) {
-        final ResolvedConfiguration resolvedConfiguration;
+    public ResolverResults resolve(final ConfigurationInternal configuration) {
+        final ResolverResults results;
         try {
-            resolvedConfiguration = dependencyResolver.resolve(configuration);
+            results = dependencyResolver.resolve(configuration);
         } catch (final Throwable e) {
-            return new BrokenResolvedConfiguration(e, configuration);
+            return new ResolverResults(new BrokenResolvedConfiguration(e, configuration), wrapException(e, configuration));
         }
-        return new ErrorHandlingResolvedConfiguration(resolvedConfiguration, configuration);
+        ResolvedConfiguration withErrorHandling = new ErrorHandlingResolvedConfiguration(results.getResolvedConfiguration(), configuration);
+        return results.withResolvedConfiguration(withErrorHandling);
     }
 
     private static ResolveException wrapException(Throwable e, Configuration configuration) {

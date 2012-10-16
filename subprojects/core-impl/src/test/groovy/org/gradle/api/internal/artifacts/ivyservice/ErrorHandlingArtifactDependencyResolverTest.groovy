@@ -16,118 +16,97 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 
-import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.ResolvedConfiguration
+import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver
+import org.gradle.api.internal.artifacts.ResolverResults
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
-import org.gradle.api.specs.Spec
-import org.gradle.util.JUnit4GroovyMockery
-import org.jmock.integration.junit4.JMock
-import org.junit.Test
-import org.junit.runner.RunWith
-import static org.hamcrest.Matchers.equalTo
-import static org.hamcrest.Matchers.sameInstance
-import static org.junit.Assert.assertThat
+import org.gradle.api.specs.Specs
+import spock.lang.Specification
+
 import static org.junit.Assert.fail
 
-@RunWith(JMock.class)
-public class ErrorHandlingArtifactDependencyResolverTest {
-    private final JUnit4GroovyMockery context = new JUnit4GroovyMockery();
-    private final ArtifactDependencyResolver resolverMock = context.mock(ArtifactDependencyResolver.class);
-    private final ResolvedConfiguration resolvedConfigurationMock = context.mock(ResolvedConfiguration.class);
-    private final ConfigurationInternal configurationMock = context.mock(ConfigurationInternal.class, "<config display name>");
-    private final Spec<Dependency> specDummy = context.mock(Spec.class);
-    private final RuntimeException failure = new RuntimeException();
-    private final ErrorHandlingArtifactDependencyResolver dependencyResolver = new ErrorHandlingArtifactDependencyResolver(resolverMock);
+public class ErrorHandlingArtifactDependencyResolverTest extends Specification {
 
-    @Test
-    public void resolveDelegatesToBackingService() {
-        context.checking {
-            one(resolverMock).resolve(configurationMock);
-            will(returnValue(resolvedConfigurationMock));
-        }
+    private delegate = Mock(ArtifactDependencyResolver)
+    private resolvedConfiguration = Mock(ResolvedConfiguration)
+    private resolutionResult = Mock(ResolutionResult)
+    private configuration = Mock(ConfigurationInternal.class, name: 'coolConf')
+    private resolver = new ErrorHandlingArtifactDependencyResolver(delegate);
 
-        ResolvedConfiguration resolvedConfiguration = dependencyResolver.resolve(configurationMock);
+    void "delegates to backing service"() {
+        given:
+        delegate.resolve(configuration) >> new ResolverResults(resolvedConfiguration, resolutionResult)
 
-        context.checking {
-            one(resolvedConfigurationMock).hasError();
-            one(resolvedConfigurationMock).rethrowFailure();
-            one(resolvedConfigurationMock).getFiles(specDummy);
-        }
+        when:
+        ResolverResults outerResults = resolver.resolve(configuration);
+        outerResults.resolvedConfiguration.hasError()
+        outerResults.resolvedConfiguration.rethrowFailure()
+        outerResults.resolvedConfiguration.getFiles(Specs.satisfyAll())
 
-        resolvedConfiguration.hasError();
-        resolvedConfiguration.rethrowFailure();
-        resolvedConfiguration.getFiles(specDummy);
+        then:
+        1 * resolvedConfiguration.hasError()
+        1 * resolvedConfiguration.rethrowFailure()
+        1 * resolvedConfiguration.getFiles(Specs.satisfyAll())
+        outerResults.resolutionResult == resolutionResult
     }
 
-    @Test
-    public void returnsAnExceptionThrowingConfigurationWhenResolveFails() {
+    void "wraps operations with the failure"() {
+        given:
+        def failure = new RuntimeException()
+        delegate.resolve(configuration) >> { throw failure }
 
-        context.checking {
-            one(resolverMock).resolve(configurationMock);
-            will(throwException(failure));
-        }
+        when:
+        ResolverResults results = resolver.resolve(configuration);
 
-        ResolvedConfiguration resolvedConfiguration = dependencyResolver.resolve(configurationMock);
+        then:
+        results.resolvedConfiguration.hasError()
 
-        assertThat(resolvedConfiguration.hasError(), equalTo(true));
-
-        assertFailsWithResolveException {
-            resolvedConfiguration.rethrowFailure();
-        }
-        assertFailsWithResolveException {
-            resolvedConfiguration.getFiles(specDummy);
-        }
-        assertFailsWithResolveException {
-            resolvedConfiguration.getFirstLevelModuleDependencies();
-        }
-        assertFailsWithResolveException {
-            resolvedConfiguration.getResolvedArtifacts();
-        }
+        failsWith(failure)
+            .when { results.resolvedConfiguration.rethrowFailure(); }
+            .when { results.resolvedConfiguration.getFiles(Specs.satisfyAll()); }
+            .when { results.resolvedConfiguration.getFirstLevelModuleDependencies(); }
+            .when { results.resolvedConfiguration.getResolvedArtifacts(); }
     }
 
-    @Test
-    public void wrapsExceptionsThrownByResolvedConfiguration() {
-        context.checking {
-            one(resolverMock).resolve(configurationMock);
-            will(returnValue(resolvedConfigurationMock));
-        }
+    void "wraps exceptions thrown by resolved configuration"() {
+        given:
+        def failure = new RuntimeException()
 
-        ResolvedConfiguration resolvedConfiguration = dependencyResolver.resolve(configurationMock);
+        resolvedConfiguration.rethrowFailure() >> { throw failure }
+        resolvedConfiguration.getFiles(Specs.satisfyAll()) >> { throw failure }
+        resolvedConfiguration.getFirstLevelModuleDependencies() >> { throw failure }
+        resolvedConfiguration.getResolvedArtifacts() >> { throw failure }
 
-        context.checking {
-            allowing(resolvedConfigurationMock).rethrowFailure()
-            will(throwException(failure))
-            allowing(resolvedConfigurationMock).getFiles(specDummy)
-            will(throwException(failure))
-            allowing(resolvedConfigurationMock).getFirstLevelModuleDependencies()
-            will(throwException(failure))
-            allowing(resolvedConfigurationMock).getResolvedArtifacts()
-            will(throwException(failure))
-        }
+        delegate.resolve(configuration) >> { new ResolverResults(resolvedConfiguration, resolutionResult) }
 
-        assertFailsWithResolveException {
-            resolvedConfiguration.rethrowFailure();
-        }
-        assertFailsWithResolveException {
-            resolvedConfiguration.getFiles(specDummy);
-        }
-        assertFailsWithResolveException {
-            resolvedConfiguration.getFirstLevelModuleDependencies();
-        }
-        assertFailsWithResolveException {
-            resolvedConfiguration.getResolvedArtifacts();
-        }
+        when:
+        ResolverResults results = resolver.resolve(configuration);
+
+        then:
+        failsWith(failure)
+                .when { results.resolvedConfiguration.rethrowFailure(); }
+                .when { results.resolvedConfiguration.getFiles(Specs.satisfyAll()); }
+                .when { results.resolvedConfiguration.getFirstLevelModuleDependencies(); }
+                .when { results.resolvedConfiguration.getResolvedArtifacts(); }
     }
 
-    def assertFailsWithResolveException(Closure cl) {
-        try {
-            cl();
-            fail();
-        } catch (ResolveException e) {
-            assertThat(e.message, equalTo("Could not resolve all dependencies for <config display name>."));
-            assertThat(e.cause, sameInstance((Throwable) failure));
+    ExceptionFixture failsWith(Throwable failure) {
+        new ExceptionFixture(failure: failure)
+    }
+
+    class ExceptionFixture {
+        Throwable failure
+        ExceptionFixture when(Closure cl) {
+            try {
+                cl();
+                fail();
+            } catch (ResolveException e) {
+                assert e.message == "Could not resolve all dependencies for Mock for type 'ConfigurationInternal' named 'coolConf'."
+                assert e.cause.is(failure);
+            }
+            this
         }
     }
 }

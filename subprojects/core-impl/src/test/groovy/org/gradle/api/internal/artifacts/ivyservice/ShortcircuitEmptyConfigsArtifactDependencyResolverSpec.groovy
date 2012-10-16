@@ -20,6 +20,8 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver
+import org.gradle.api.internal.artifacts.DefaultModule
+import org.gradle.api.internal.artifacts.ResolverResults
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.specs.Specs
 import spock.lang.Specification
@@ -36,9 +38,11 @@ class ShortcircuitEmptyConfigsArtifactDependencyResolverSpec extends Specificati
         given:
         dependencies.isEmpty() >> true
         configuration.getAllDependencies() >> dependencies
+        configuration.getModule() >> new DefaultModule("org", "foo", "1.0")
 
         when:
-        ResolvedConfiguration resolvedConfig = dependencyResolver.resolve(configuration);
+        ResolverResults results = dependencyResolver.resolve(configuration);
+        ResolvedConfiguration resolvedConfig = results.resolvedConfiguration
 
         then:
         !resolvedConfig.hasError()
@@ -51,16 +55,16 @@ class ShortcircuitEmptyConfigsArtifactDependencyResolverSpec extends Specificati
 
     def "delegates to backing service"() {
         given:
-        final ResolvedConfiguration configurationDummy = Mock()
+        def resultsDummy = Mock(ResolverResults)
 
         dependencies.isEmpty() >> false
         configuration.getAllDependencies() >> dependencies
-        delegate.resolve(configuration) >> configurationDummy
+        delegate.resolve(configuration) >> resultsDummy
 
         when:
         def out = dependencyResolver.resolve(configuration)
 
         then:
-        out == configurationDummy
+        out == resultsDummy
     }
 }

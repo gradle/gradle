@@ -16,8 +16,8 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
 import org.gradle.api.artifacts.ResolveException;
-import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
+import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.conflicts.StrictConflictResolution;
 import org.gradle.api.internal.artifacts.ivyservice.*;
@@ -46,7 +46,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         this.projectModuleRegistry = projectModuleRegistry;
     }
 
-    public ResolvedConfiguration resolve(ConfigurationInternal configuration) throws ResolveException {
+    public ResolverResults resolve(ConfigurationInternal configuration) throws ResolveException {
         LOGGER.debug("Resolving {}", configuration);
 
         IvyAdapter ivyAdapter = ivyFactory.create(configuration);
@@ -67,7 +67,6 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         DependencyGraphBuilder builder = new DependencyGraphBuilder(moduleDescriptorConverter, resolvedArtifactFactory, idResolver, conflictResolver);
         ResolutionResultBuilder resultBuilder = new ResolutionResultBuilder();
         DefaultLenientConfiguration result = builder.resolve(configuration, ivyAdapter.getResolveData(), resultBuilder);
-        configuration.setResolutionResult(resultBuilder.getResult());
-        return new DefaultResolvedConfiguration(result);
+        return new ResolverResults(new DefaultResolvedConfiguration(result), resultBuilder.getResult());
     }
 }

@@ -19,6 +19,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.CachingDependencyResolveContext;
+import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.CollectionUtils;
@@ -34,52 +35,73 @@ public class SelfResolvingDependencyResolver implements ArtifactDependencyResolv
         this.resolver = resolver;
     }
 
-    public ArtifactDependencyResolver getResolver() {
-        return resolver;
+    public ResolverResults resolve(final ConfigurationInternal configuration) {
+        ResolverResults results = resolver.resolve(configuration);
+        ResolvedConfiguration resolvedConfiguration = results.getResolvedConfiguration();
+        Set<Dependency> dependencies = configuration.getAllDependencies();
+        CachingDependencyResolveContext resolveContext = new CachingDependencyResolveContext(configuration.isTransitive());
+        SelfResolvingFilesProvider provider = new SelfResolvingFilesProvider(resolveContext, dependencies);
+
+        return results.withResolvedConfiguration(new FilesAggregatingResolvedConfiguration(resolvedConfiguration, provider));
     }
 
-    public ResolvedConfiguration resolve(final ConfigurationInternal configuration) {
-        final ResolvedConfiguration resolvedConfiguration = resolver.resolve(configuration);
-        final Set<Dependency> dependencies = configuration.getAllDependencies();
+    protected static class SelfResolvingFilesProvider {
 
-        return new ResolvedConfiguration() {
-            private final CachingDependencyResolveContext resolveContext = new CachingDependencyResolveContext(configuration.isTransitive());
+        final CachingDependencyResolveContext resolveContext;
+        final Set<Dependency> dependencies;
 
-            public Set<File> getFiles(Spec<? super Dependency> dependencySpec) {
-                Set<File> files = new LinkedHashSet<File>();
+        public SelfResolvingFilesProvider(CachingDependencyResolveContext resolveContext, Set<Dependency> dependencies) {
+            this.resolveContext = resolveContext;
+            this.dependencies = dependencies;
+        }
 
-                Set<Dependency> selectedDependencies = CollectionUtils.filter(dependencies, dependencySpec);
-                for (Dependency dependency : selectedDependencies) {
-                    resolveContext.add(dependency);
-                }
-                files.addAll(resolveContext.resolve().getFiles());
-                files.addAll(resolvedConfiguration.getFiles(dependencySpec));
-                return files;
+        Set<File> getFiles(Spec<? super Dependency> dependencySpec) {
+            Set<Dependency> selectedDependencies = CollectionUtils.filter(dependencies, dependencySpec);
+            for (Dependency dependency : selectedDependencies) {
+                resolveContext.add(dependency);
             }
+            return resolveContext.resolve().getFiles();
+        }
+    }
 
-            public Set<ResolvedArtifact> getResolvedArtifacts() {
-                return resolvedConfiguration.getResolvedArtifacts();
-            }
+    protected static class FilesAggregatingResolvedConfiguration implements ResolvedConfiguration {
+        final ResolvedConfiguration resolvedConfiguration;
+        final SelfResolvingFilesProvider selfResolvingFilesProvider;
 
-            public Set<ResolvedDependency> getFirstLevelModuleDependencies() {
-                return resolvedConfiguration.getFirstLevelModuleDependencies();
-            }
+        FilesAggregatingResolvedConfiguration(ResolvedConfiguration resolvedConfiguration, SelfResolvingFilesProvider selfResolvingFilesProvider) {
+            this.resolvedConfiguration = resolvedConfiguration;
+            this.selfResolvingFilesProvider = selfResolvingFilesProvider;
+        }
 
-            public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) throws ResolveException {
-                return resolvedConfiguration.getFirstLevelModuleDependencies(dependencySpec);
-            }
+        public Set<File> getFiles(Spec<? super Dependency> dependencySpec) {
+            Set<File> files = new LinkedHashSet<File>();
+            files.addAll(selfResolvingFilesProvider.getFiles(dependencySpec));
+            files.addAll(resolvedConfiguration.getFiles(dependencySpec));
+            return files;
+        }
 
-            public boolean hasError() {
-                return resolvedConfiguration.hasError();
-            }
+        public Set<ResolvedArtifact> getResolvedArtifacts() {
+            return resolvedConfiguration.getResolvedArtifacts();
+        }
 
-            public LenientConfiguration getLenientConfiguration() {
-                return resolvedConfiguration.getLenientConfiguration();
-            }
+        public Set<ResolvedDependency> getFirstLevelModuleDependencies() {
+            return resolvedConfiguration.getFirstLevelModuleDependencies();
+        }
 
-            public void rethrowFailure() throws GradleException {
-                resolvedConfiguration.rethrowFailure();
-            }
-        };
+        public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) throws ResolveException {
+            return resolvedConfiguration.getFirstLevelModuleDependencies(dependencySpec);
+        }
+
+        public boolean hasError() {
+            return resolvedConfiguration.hasError();
+        }
+
+        public LenientConfiguration getLenientConfiguration() {
+            return resolvedConfiguration.getLenientConfiguration();
+        }
+
+        public void rethrowFailure() throws GradleException {
+            resolvedConfiguration.rethrowFailure();
+        }
     }
 }

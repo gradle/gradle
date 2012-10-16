@@ -16,9 +16,9 @@
 package org.gradle.api.internal.artifacts.ivyservice
 
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver
-import spock.lang.Specification
+import org.gradle.api.internal.artifacts.ResolverResults
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
-import org.gradle.api.artifacts.ResolvedConfiguration
+import spock.lang.Specification
 
 class CacheLockingArtifactDependencyResolverTest extends Specification {
     final CacheLockingManager lockingManager = Mock()
@@ -27,18 +27,18 @@ class CacheLockingArtifactDependencyResolverTest extends Specification {
 
     def "resolves while holding a lock on the cache"() {
         ConfigurationInternal configuration = Mock()
-        ResolvedConfiguration resolvedConfiguration = Mock()
+        ResolverResults resolverResults = Mock()
 
         when:
-        def result = resolver.resolve(configuration)
+        def results = resolver.resolve(configuration)
 
         then:
-        result == resolvedConfiguration
+        results == resolverResults
 
         and:
         1 * lockingManager.useCache("resolve $configuration", !null) >> {
             it[1].create()
         }
-        1 * target.resolve(configuration) >> resolvedConfiguration
+        1 * target.resolve(configuration) >> resolverResults
     }
 }
