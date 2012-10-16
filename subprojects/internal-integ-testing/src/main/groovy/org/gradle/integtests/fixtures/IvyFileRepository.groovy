@@ -28,6 +28,22 @@ class IvyFileRepository implements IvyRepository {
         return rootDir.toURI()
     }
 
+    String getIvyPattern() {
+        return "${uri}/${baseIvyPattern}"
+    }
+
+    String getArtifactPattern() {
+        return "${uri}/${baseArtifactPattern}"
+    }
+
+    String getBaseIvyPattern() {
+        return "[organisation]/[module]/[revision]/ivy-[revision].xml"
+    }
+
+    String getBaseArtifactPattern() {
+        return "[organisation]/[module]/[revision]/[artifact]-[revision](.[ext])"
+    }
+
     IvyFileModule module(String organisation, String module, Object revision = '1.0') {
         def moduleDir = rootDir.file("$organisation/$module/$revision")
         return new IvyFileModule(moduleDir, organisation, module, revision as String)

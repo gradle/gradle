@@ -18,6 +18,10 @@ package org.gradle.integtests.fixtures
 interface IvyRepository {
     URI getUri()
 
+    String getArtifactPattern()
+
+    String getIvyPattern()
+
     IvyModule module(String organisation, String module)
 
     IvyModule module(String organisation, String module, Object revision)

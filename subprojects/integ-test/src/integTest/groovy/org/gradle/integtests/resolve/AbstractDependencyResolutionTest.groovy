@@ -34,6 +34,10 @@ abstract class AbstractDependencyResolutionTest extends AbstractIntegrationSpec 
         return ivy(dir)
     }
 
+    IvyHttpRepository getIvyHttpRepo() {
+        return new IvyHttpRepository(server, "/repo", ivyRepo)
+    }
+
     MavenFileRepository mavenRepo(String name = "repo") {
         return maven(name)
     }
@@ -45,5 +49,9 @@ abstract class AbstractDependencyResolutionTest extends AbstractIntegrationSpec 
     MavenHttpRepository mavenHttpRepo(String name) {
         assert !name.startsWith("/")
         return new MavenHttpRepository(server, "/${name}", mavenRepo(name))
+    }
+
+    MavenHttpRepository mavenHttpRepo(String contextPath, MavenFileRepository backingRepo) {
+        return new MavenHttpRepository(server, contextPath, backingRepo)
     }
 }

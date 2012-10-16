@@ -39,6 +39,11 @@ class MavenHttpModule implements MavenModule {
         return this
     }
 
+    MavenHttpModule withNonUniqueSnapshots() {
+        backingModule.withNonUniqueSnapshots()
+        return this
+    }
+
     TestFile getPomFile() {
         return backingModule.pomFile
     }
@@ -47,8 +52,20 @@ class MavenHttpModule implements MavenModule {
         return backingModule.artifactFile
     }
 
+    TestFile getMetaDataFile() {
+        return backingModule.metaDataFile
+    }
+
     void allowAll() {
         server.allowGetOrHead(modulePath, backingModule.moduleDir)
+    }
+
+    void expectMetaDataGet() {
+        server.expectGet("$modulePath/$metaDataFile.name", metaDataFile)
+    }
+
+    void expectMetaDataGetMissing() {
+        server.expectGetMissing("$modulePath/$metaDataFile.name")
     }
 
     void expectPomGet() {
@@ -59,12 +76,24 @@ class MavenHttpModule implements MavenModule {
         server.expectHead("$modulePath/$pomFile.name", pomFile)
     }
 
+    void expectPomGetMissing() {
+        server.expectGetMissing("$modulePath/$missingPomName")
+    }
+
     void expectPomSha1Get() {
         server.expectGet("$modulePath/${pomFile.name}.sha1", backingModule.sha1File(pomFile))
     }
 
-    void expectPomGetMissing() {
-        server.expectGetMissing("$modulePath/$pomFile.name")
+    void expectPomSha1GetMissing() {
+        server.expectGetMissing("$modulePath/${missingPomName}.sha1")
+    }
+
+    private String getMissingPomName() {
+        if (backingModule.version.endsWith("-SNAPSHOT")) {
+            return "${backingModule.artifactId}-${backingModule.version}.pom"
+        } else {
+            return pomFile.name
+        }
     }
 
     void expectArtifactGet() {
@@ -75,15 +104,27 @@ class MavenHttpModule implements MavenModule {
         server.expectHead("$modulePath/$artifactFile.name", artifactFile)
     }
 
+    void expectArtifactGetMissing() {
+        server.expectGetMissing("$modulePath/$missingArtifactName")
+    }
+
+    void expectArtifactHeadMissing() {
+        server.expectHeadMissing("$modulePath/$missingArtifactName")
+    }
+
     void expectArtifactSha1Get() {
         server.expectGet("$modulePath/${artifactFile.name}.sha1", backingModule.sha1File(artifactFile))
     }
 
-    void expectArtifactGetMissing() {
-        server.expectGetMissing("$modulePath/$artifactFile.name")
+    void expectArtifactSha1GetMissing() {
+        server.expectGetMissing("$modulePath/${missingArtifactName}.sha1")
     }
 
-    void expectArtifactHeadMissing() {
-        server.expectHeadMissing("$modulePath/$artifactFile.name")
+    private String getMissingArtifactName() {
+        if (backingModule.version.endsWith("-SNAPSHOT")) {
+            return "${backingModule.artifactId}-${backingModule.version}.jar"
+        } else {
+            return artifactFile.name
+        }
     }
 }

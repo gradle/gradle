@@ -19,11 +19,22 @@ package org.gradle.integtests.fixtures
 import org.gradle.util.TestFile
 
 interface MavenModule {
+    /**
+     * Publishes the pom.xml plus main artifact, plus any additional artifacts for this module.
+     */
     MavenModule publish()
 
+    /**
+     * Publishes the pom.xml plus main artifact, plus any additional artifacts for this module, with changed content to any
+     * previous publication.
+     */
     MavenModule publishWithChangedContent()
+
+    MavenModule withNonUniqueSnapshots()
 
     TestFile getPomFile()
 
     TestFile getArtifactFile()
+
+    TestFile getMetaDataFile()
 }

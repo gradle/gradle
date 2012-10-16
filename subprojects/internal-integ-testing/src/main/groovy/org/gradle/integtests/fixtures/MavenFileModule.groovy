@@ -131,10 +131,6 @@ class MavenFileModule implements MavenModule {
         return moduleDir.file(fileName)
     }
 
-    /**
-     * Publishes the pom.xml plus main artifact, plus any additional artifacts for this module, with changed content to any
-     * previous publication.
-     */
     MavenFileModule publishWithChangedContent() {
         publishCount++
         return publish()
@@ -151,9 +147,6 @@ class MavenFileModule implements MavenModule {
         return new Date(updateFormat.parse("20100101120000").time + publishCount * 1000)
     }
 
-    /**
-     * Publishes the pom.xml plus main artifact, plus any additional artifacts for this module.
-     */
     MavenModule publish() {
         moduleDir.createDir()
         def rootMavenMetaData = getRootMetaDataFile()
@@ -302,14 +295,6 @@ class MavenFileModule implements MavenModule {
         return hashFile
     }
 
-    public expectMetaDataGet(HttpServer server, prefix = null) {
-        server.expectGet(metadataPath(prefix), metaDataFile)
-    }
-
-    public metadataPath(prefix = null) {
-        path(prefix, "maven-metadata.xml")
-    }
-
     public expectPomHead(HttpServer server, prefix = null) {
         server.expectHead(pomPath(prefix), pomFile)
     }
@@ -318,16 +303,8 @@ class MavenFileModule implements MavenModule {
         server.allowHead(pomPath(prefix), pomFile)
     }
 
-    public expectPomGet(HttpServer server, prefix = null) {
-        server.expectGet(pomPath(prefix), pomFile)
-    }
-
     public pomPath(prefix = null) {
         path(prefix, pomFile.name)
-    }
-
-    public expectPomSha1Get(HttpServer server, prefix = null) {
-        server.expectGet(pomSha1Path(prefix), sha1File(pomFile))
     }
 
     public allowPomSha1GetOrHead(HttpServer server, prefix = null) {
@@ -340,10 +317,6 @@ class MavenFileModule implements MavenModule {
 
     public expectArtifactHead(HttpServer server, prefix = null) {
         server.expectHead(artifactPath(prefix), artifactFile)
-    }
-
-    public expectArtifactGet(HttpServer server, prefix = null) {
-        server.expectGet(artifactPath(prefix), pomFile)
     }
 
     public allowArtifactHead(HttpServer httpServer, prefix = null) {
