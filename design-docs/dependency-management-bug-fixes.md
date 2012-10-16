@@ -3,42 +3,34 @@ This feature is really a bucket for key things we want to fix in the short-term 
 
 As this 'feature' is a list of bug fixes, this feature spec will not follow the usual template.
 
-## Contents
-* [Invalid checksum files generated on publish](#invalid-checksum-files)
-* [File stores handle process crash when adding file to store](#crash-safe-file-store)
-* [Errors writing cached module descriptor are silently ignored](#errors-on-descriptor-write)
-* [Honor SSL system properties when accessing HTTP repositories](#ssl-system-properties)
-* [Ignore cached missing module entry when module is missing for all repositories](#cached-missing-modules)
-* [Correctness issues in HTTP resource caching](#http-resource-caching)
-* [Inform the user about why a module is considered broken](#error-reporting)
-* [Correct handling of packaging and dependency type declared in poms](#pom-packaging)
-* [RedHat finishes porting gradle to fedora](#fedora)
-* [Allow resolution of java-source and javadoc types from maven repositories](#maven-types)
-* [Expiring of changing module artifacts from cache is inadequate in some cases, overly aggressive in others](#changing-module-caching)
-* [Correct naming of resolved native binaries](#native-binaries)
-* [Handle pom-only modules in mavenLocal](#pom-only-modules)
-* [Support for kerberos and custom authentication](#authentication)
+# Lastest status dynamic version work across multiple repositories
 
-<a href="invalid-checksum-files">
-# Invalid checksum files generated on publish
-
-SHA-1 checksums should be 40 hex characters long. When publishing, Gradle generates a checksum string that does not include leading zeros, so
-that sometimes the checksum is shorter than 40 characters.
-
-See [GRADLE-2456](http://issues.gradle.org/browse/GRADLE-2456)
+See [GRADLE-2502](http://issues.gradle.org/browse/GRADLE-2502)
 
 ### Test coverage
 
-* Publish an artifact containing the following bytes: [0, 0, 0, 5]. This has an SHA-1 that is 38 hex characters long.
-* Assert that the published SHA-1 file contains exactly the following 40 characters: 00e14c6ef59816760e2c9b5a57157e8ac9de4012
-* Test the above for Ivy and Maven publication.
-
 ### Implementation strategy
 
-* Change `DefaultExternalResourceRepository` to include leading '0's.
-* Change `DefaultExternalResourceRepository` to encode the SHA1 file's content using US-ASCII.
+Change ExternalResourceResolver.getDependency() to use the following algorithm:
+1. Calculate an ordered list of candidate versions.
+    1. For a static version selector the list is a singleton.
+    2. For a dynamic version selector the list is the full set of versions for the module.
+        * For a Maven repository, this is determined using `maven-metadata.xml` if available, falling back to a directory listing.
+        * For an Ivy repository, this is determined using a directory listing.
+        * Fail if directory listing is not available.
+2. For each candidate version:
+    1. If the version matcher does not accept the module version, continue.
+    2. Fetch the module version meta-data. If not found, continue.
+    3. If the version matcher requires the module meta-data and it does not accept the meta-data, continue.
+    4. Use the module version.
+3. Return not found.
 
-<a href="crash-safe-file-store">
+To fetch the meta-data for a module version:
+1. Download the meta data descriptor resource, via the resource cache. If found, parse.
+    1. Validate module version in meta-data == the expected module version.
+2. Check for a jar artifact, via the resource cache. If found, use default meta-data. The meta-data must have `default` set to `true` and `status` set to `integration`.
+3. Return not found.
+
 # File stores recover from process crash while adding file to store
 
 When Gradle crashes after writing to a `FileStore` implementation, it can leave a partially written file behind. Subsequent invocations of Gradle
@@ -72,43 +64,6 @@ Something like this:
     5. Maybe also add some handling to `File.move()` the original destination file out of the way in step 1, and back in on failure in step 4.
 * Change `PathKeyFileStore.get()` and `search()` to ignore and/or remove destination files for which a marker file exists.
 
-<a href="errors-on-descriptor-write">
-# Errors writing cached module descriptor are silently ignored
-
-See [GRADLE-2458](http://issues.gradle.org/browse/GRADLE-2458)
-
-### Test coverage
-
-No specific coverage at this point, other than unit testing.
-
-### Implementation strategy
-
-* Copy XmlModuleDescriptorWriter, add some unit tests.
-* Fix XmlModuleDescriptorWriter so that it does not ignore errors.
-* Change ModuleDescriptorStore and IvyBackedArtifactPublisher to use this to write the descriptors.
-
-<a href="ssl-system-properties">
-# Honor SSL system properties when accessing HTTP repositories
-
-See [GRADLE-2234](http://issues.gradle.org/browse/GRADLE-2234)
-
-### Test coverage
-
-* Can resolve dependencies from an HTTPS Maven repository with both server and client authentication enabled.
-    * Both an SSL trust store containing the server cert and a key store containing the client cert have been specified using the `ssl.*`
-      system properties.
-    * Assert that expected client cert has been received by the server.
-* Can publish dependencies to an HTTPS Maven repository with both server and client authentication enabled, as above.
-* Resolution from an HTTP Maven repository fails with a decent error message when client fails to authenticate the server (eg no trust store specified).
-* Resolution from an HTTP Maven repository fails with a decent error message when server fails to authenticate the client (eg no key store specified).
-* Same happy day tests for an HTTP Ivy repository.
-
-### Implementation strategy
-
-Needs some research. Looks like we need should be using a `DecompressingHttpClient` chained in front of a `SystemDefaultHttpClient` instead of
-using a `ContentEncodingHttpClient`.
-
-<a href="cached-missing-modules">
 # Ignore cached missing module entry when module is missing for all repositories
 
 See [GRADLE-2455](http://issues.gradle.org/browse/GRADLE-2455)
@@ -143,7 +98,6 @@ When resolving a dependency descriptor in `UserResolverChain` for a particular r
    unexpired 'found' entry, use the cached value.
 3. Otherwise, resolve the dependency using this repository.
 
-<a href="http-resource-caching">
 # Correctness issues in HTTP resource caching
 
 * GRADLE-2328 - invalidate cached HTTP/HTTPS resource when user credentials change.
@@ -158,7 +112,6 @@ TBD
 
 TBD
 
-<a href="error-reporting">
 # Inform the user about why a module is considered broken
 
 ### Description
@@ -203,7 +156,6 @@ TODO - flesh this out
 
 TODO - flesh this out
 
-<a href="pom-packaging">
 # Correct handling of packaging and dependency type declared in poms
 
 * GRADLE-2188: Artifact not found resolving dependencies with packaging/type "orbit"
@@ -257,7 +209,6 @@ artifact model. This will be a small step toward an independent Gradle model of 
     * If not found, use the artifact from the type location
 * In 2.0, we will remove the packaging->extension mapping and the deprecation warning
 
-<a href="fedora">
 # RedHat finishes porting gradle to fedora
 
 * GRADLE-2210: Migrate to maven 3
@@ -312,7 +263,6 @@ And a test that regular resolve succeeds from http repository when settings.xml 
 * Implement m2 repository location with Maven3
 * Use jarjar to repackage the required maven3 classes and include them in the Gradle distro.
 
-<a href="maven-types">
 # Allow resolution of java-source and javadoc types from maven repositories (and other types: tests, ejb-client)
 
 * GRADLE-201: Enable support for retrieving source artifacts of a module
@@ -392,7 +342,6 @@ Until we map these types into the ivy repository model as well:
 * The IDEDependenciesExtractor will need to continue using type+classifier
 * We cannot deprecate the use of classifier='sources'
 
-<a href="changing-module-caching">
 # Expiring of changing module artifacts from cache is inadequate in some cases, overly aggressive in others
 
 * GRADLE-2175: Snapshot dependencies with sources/test classifier are not considered 'changing'
@@ -453,23 +402,72 @@ removes/expires all artifacts linked to that module. One option is to update the
 and will require a new version whenever the binary storage format is changed. The filestore-N directory will store downloaded files in a pattern that encapsulates the artifact identifier and the SHA1 checksum
 of the downloaded artifact (same as current format).
 
-<a href="native-binaries">
 # Correct naming of resolved native binaries
 
 * GRADLE-2211: Resolved binary executables and libraries do not use the platform specific naming scheme
 
-<a href="pom-only-modules">
 # Handle pom-only modules in mavenLocal
 
 * GRADLE-2034: Existence of pom file requires that declared artifacts can be found in the same repository
 * GRADLE-2369: Dependency resolution fails for mavenLocal(), mavenCentral() if artifact partially in mavenLocal()
 
-<a href="authentication">
 # Support for kerberos and custom authentication
 
 * GRADLE-2335: Provide the ability to implement a custom HTTP authentication scheme for repository access
 
 # Done
+
+## Invalid checksum files generated on publish
+
+SHA-1 checksums should be 40 hex characters long. When publishing, Gradle generates a checksum string that does not include leading zeros, so
+that sometimes the checksum is shorter than 40 characters.
+
+See [GRADLE-2456](http://issues.gradle.org/browse/GRADLE-2456)
+
+### Test coverage
+
+* Publish an artifact containing the following bytes: [0, 0, 0, 5]. This has an SHA-1 that is 38 hex characters long.
+* Assert that the published SHA-1 file contains exactly the following 40 characters: 00e14c6ef59816760e2c9b5a57157e8ac9de4012
+* Test the above for Ivy and Maven publication.
+
+### Implementation strategy
+
+* Change `DefaultExternalResourceRepository` to include leading '0's.
+* Change `DefaultExternalResourceRepository` to encode the SHA1 file's content using US-ASCII.
+
+## Errors writing cached module descriptor are silently ignored
+
+See [GRADLE-2458](http://issues.gradle.org/browse/GRADLE-2458)
+
+### Test coverage
+
+No specific coverage at this point, other than unit testing.
+
+### Implementation strategy
+
+* Copy XmlModuleDescriptorWriter, add some unit tests.
+* Fix XmlModuleDescriptorWriter so that it does not ignore errors.
+* Change ModuleDescriptorStore and IvyBackedArtifactPublisher to use this to write the descriptors.
+
+## Honor SSL system properties when accessing HTTP repositories
+
+See [GRADLE-2234](http://issues.gradle.org/browse/GRADLE-2234)
+
+### Test coverage
+
+* Can resolve dependencies from an HTTPS Maven repository with both server and client authentication enabled.
+    * Both an SSL trust store containing the server cert and a key store containing the client cert have been specified using the `ssl.*`
+      system properties.
+    * Assert that expected client cert has been received by the server.
+* Can publish dependencies to an HTTPS Maven repository with both server and client authentication enabled, as above.
+* Resolution from an HTTP Maven repository fails with a decent error message when client fails to authenticate the server (eg no trust store specified).
+* Resolution from an HTTP Maven repository fails with a decent error message when server fails to authenticate the client (eg no key store specified).
+* Same happy day tests for an HTTP Ivy repository.
+
+### Implementation strategy
+
+Needs some research. Looks like we need should be using a `DecompressingHttpClient` chained in front of a `SystemDefaultHttpClient` instead of
+using a `ContentEncodingHttpClient`.
 
 ## Project dependencies in generated poms use correct artifactIds
 
