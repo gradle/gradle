@@ -24,6 +24,15 @@ public interface IvyModule {
     TestFile getJarFile();
 
     /**
+     * Don't publish an ivy.xml for this module.
+     */
+    IvyModule withNoMetaData();
+
+    IvyModule withStatus(String status);
+
+    IvyModule dependsOn(String organisation, String module, String revision);
+
+    /**
      * Publishes ivy.xml plus all artifacts with different content to previous publication.
      */
     IvyModule publishWithChangedContent();

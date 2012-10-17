@@ -45,6 +45,10 @@ class IvyHttpRepository implements IvyRepository {
         return "$uri/${backingRepository.baseArtifactPattern}"
     }
 
+    void expectVersionsGet(String organisation, String module) {
+        server.expectGetDirectoryListing("$contextPath/$organisation/$module/", backingRepository.module(organisation, module, "1.0").moduleDir.parentFile)
+    }
+
     IvyHttpModule module(String organisation, String module, Object revision = "1.0") {
         return new IvyHttpModule(server, "$contextPath/$organisation/$module/$revision", backingRepository.module(organisation, module, revision))
     }
@@ -71,6 +75,21 @@ class IvyHttpModule implements IvyModule {
         return this
     }
 
+    IvyHttpModule withNoMetaData() {
+        backingModule.withNoMetaData()
+        return this
+    }
+
+    IvyHttpModule withStatus(String status) {
+        backingModule.withStatus(status)
+        return this
+    }
+
+    IvyHttpModule dependsOn(String organisation, String module, String revision) {
+        backingModule.dependsOn(organisation, module, revision)
+        return this
+    }
+
     String getIvyFileUri() {
         return "http://localhost:${server.port}$prefix/$ivyFile.name"
     }
@@ -89,6 +108,10 @@ class IvyHttpModule implements IvyModule {
 
     void expectIvyGet() {
         server.expectGet("$prefix/$ivyFile.name", ivyFile)
+    }
+
+    void expectIvyGetMissing() {
+        server.expectGetMissing("$prefix/$ivyFile.name")
     }
 
     void expectIvyHead() {
