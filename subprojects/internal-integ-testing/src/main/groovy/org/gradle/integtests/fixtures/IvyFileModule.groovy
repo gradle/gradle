@@ -30,6 +30,7 @@ class IvyFileModule implements IvyModule {
     final Map<String, Map> configurations = [:]
     final List artifacts = []
     String status = "integration"
+    boolean noMetaData
     int publishCount
 
     IvyFileModule(TestFile moduleDir, String organisation, String module, String revision) {
@@ -72,6 +73,11 @@ class IvyFileModule implements IvyModule {
         return this
     }
 
+    IvyFileModule withNoMetaData() {
+        noMetaData = true;
+        return this
+    }
+
     TestFile getIvyFile() {
         return moduleDir.file("ivy-${revision}.xml")
     }
@@ -93,10 +99,20 @@ class IvyFileModule implements IvyModule {
     }
 
     /**
-     * Publishes ivy.xml plus all artifacts
+     * Publishes ivy.xml (if enabled) plus all artifacts
      */
     IvyModule publish() {
         moduleDir.createDir()
+
+        artifacts.each { artifact ->
+            def artifactFile = file(artifact)
+            publish(artifactFile) {
+                artifactFile << "${artifactFile.name} : $publishCount"
+            }
+        }
+        if (noMetaData) {
+            return this
+        }
 
         publish(ivyFile) {
             ivyFile.text = """<?xml version="1.0" encoding="UTF-8"?>
@@ -122,10 +138,6 @@ class IvyFileModule implements IvyModule {
 	<publications>
 """
             artifacts.each { artifact ->
-                def artifactFile = file(artifact)
-                publish(artifactFile) {
-                    artifactFile << "${artifactFile.name} : $publishCount"
-                }
                 ivyFile << """<artifact name="${artifact.name}" type="${artifact.type}" ext="${artifact.type}" conf="*" m:classifier="${artifact.classifier ?: ''}"/>
 """
             }
