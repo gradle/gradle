@@ -21,6 +21,7 @@ import org.apache.ivy.core.cache.ArtifactOrigin;
 import org.apache.ivy.core.cache.RepositoryCacheManager;
 import org.apache.ivy.core.module.descriptor.*;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
+import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.report.ArtifactDownloadReport;
 import org.apache.ivy.core.report.DownloadReport;
@@ -317,6 +318,21 @@ public class ExternalResourceResolver extends BasicResolver {
         }
         return findResourceUsingPatterns(mrid, artifactPatterns, artifact,
                 getDefaultRMDParser(artifact.getModuleRevisionId().getModuleId()), date, forDownload);
+    }
+
+    protected ResourceMDParser getDefaultRMDParser(final ModuleId mid) {
+        return new ResourceMDParser() {
+            public MDResolvedResource parse(Resource resource, String rev) {
+                DefaultModuleDescriptor md =
+                    DefaultModuleDescriptor.newDefaultInstance(new ModuleRevisionId(mid, rev));
+                md.setStatus("integration");
+                MetadataArtifactDownloadReport madr =
+                    new MetadataArtifactDownloadReport(md.getMetadataArtifact());
+                madr.setDownloadStatus(DownloadStatus.NO);
+                madr.setSearched(true);
+                return new MDResolvedResource(resource, rev, new ResolvedModuleRevision(ExternalResourceResolver.this, ExternalResourceResolver.this, md, madr, isForce()));
+            }
+        };
     }
 
     protected ResolvedResource findResourceUsingPatterns(ModuleRevisionId moduleRevision, List<String> patternList, Artifact artifact, ResourceMDParser rmdparser, Date date, boolean forDownload) {

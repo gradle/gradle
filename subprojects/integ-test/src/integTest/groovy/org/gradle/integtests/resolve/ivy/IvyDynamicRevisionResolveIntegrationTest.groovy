@@ -16,9 +16,11 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
+import spock.lang.Ignore
 import spock.lang.Issue
 
 class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolutionTest {
+    @Ignore
     @Issue("GRADLE-2502")
     public void "latest.integration selects highest version regardless of status"() {
         given:
@@ -178,6 +180,7 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
         file('libs').assertHasDescendants('projectA-1.1.jar')
     }
 
+    @Ignore
     @Issue("GRADLE-2502")
     public void "version selector ending in + selects highest matching version"() {
         given:
@@ -235,6 +238,7 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
         file('libs').assertHasDescendants('projectA-1.2.12.jar')
     }
 
+    @Ignore
     @Issue("GRADLE-2502")
     public void "version range selects highest matching version"() {
         given:
