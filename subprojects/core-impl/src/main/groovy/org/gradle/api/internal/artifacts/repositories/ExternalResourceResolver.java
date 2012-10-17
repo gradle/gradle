@@ -19,19 +19,21 @@ package org.gradle.api.internal.artifacts.repositories;
 import org.apache.ivy.core.IvyPatternHelper;
 import org.apache.ivy.core.cache.ArtifactOrigin;
 import org.apache.ivy.core.cache.RepositoryCacheManager;
-import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.DefaultArtifact;
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+import org.apache.ivy.core.module.descriptor.*;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.report.ArtifactDownloadReport;
 import org.apache.ivy.core.report.DownloadReport;
+import org.apache.ivy.core.report.DownloadStatus;
+import org.apache.ivy.core.report.MetadataArtifactDownloadReport;
 import org.apache.ivy.core.resolve.DownloadOptions;
 import org.apache.ivy.core.resolve.ResolveData;
+import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.core.search.ModuleEntry;
 import org.apache.ivy.core.search.OrganisationEntry;
 import org.apache.ivy.core.search.RevisionEntry;
+import org.apache.ivy.plugins.parser.ModuleDescriptorParser;
+import org.apache.ivy.plugins.parser.ModuleDescriptorParserRegistry;
 import org.apache.ivy.plugins.repository.ArtifactResourceResolver;
 import org.apache.ivy.plugins.repository.Resource;
 import org.apache.ivy.plugins.repository.ResourceDownloader;
@@ -61,6 +63,7 @@ import org.slf4j.LoggerFactory;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.text.ParseException;
 import java.util.*;
 
 public class ExternalResourceResolver extends BasicResolver {
@@ -100,6 +103,169 @@ public class ExternalResourceResolver extends BasicResolver {
 
     protected ExternalResourceRepository getRepository() {
         return repository;
+    }
+
+    public ResolvedModuleRevision getDependency(DependencyDescriptor dd, ResolveData data)
+            throws ParseException {
+        DependencyDescriptor systemDd = dd;
+        DependencyDescriptor nsDd = fromSystem(dd);
+
+        ModuleRevisionId systemMrid = systemDd.getDependencyRevisionId();
+        ModuleRevisionId nsMrid = nsDd.getDependencyRevisionId();
+
+        boolean isDynamic = getSettings().getVersionMatcher().isDynamic(systemMrid);
+        ResolvedModuleRevision rmr = null;
+
+        ResolvedResource ivyRef = findIvyFileRef(nsDd, data);
+
+        // get module descriptor
+        ModuleDescriptor nsMd;
+        ModuleDescriptor systemMd;
+        if (ivyRef == null) {
+            if (!isAllownomd()) {
+                LOGGER.debug("No ivy file found for {}", systemMrid);
+                return null;
+            }
+            nsMd = DefaultModuleDescriptor.newDefaultInstance(nsMrid, nsDd
+                    .getAllDependencyArtifacts());
+            ResolvedResource artifactRef = findFirstArtifactRef(nsMd, nsDd, data);
+            if (artifactRef == null) {
+                LOGGER.debug("No ivy file nor artifact found for {}", systemMrid);
+                return null;
+            } else {
+                long lastModified = artifactRef.getLastModified();
+                if (lastModified != 0 && nsMd instanceof DefaultModuleDescriptor) {
+                    ((DefaultModuleDescriptor) nsMd).setLastModified(lastModified);
+                }
+                Message.verbose("\t" + getName() + ": no ivy file found for " + systemMrid
+                        + ": using default data");
+                if (isDynamic) {
+                    nsMd.setResolvedModuleRevisionId(ModuleRevisionId.newInstance(nsMrid,
+                            artifactRef.getRevision()));
+                }
+                systemMd = toSystem(nsMd);
+                MetadataArtifactDownloadReport madr =
+                        new MetadataArtifactDownloadReport(systemMd.getMetadataArtifact());
+                madr.setDownloadStatus(DownloadStatus.NO);
+                madr.setSearched(true);
+                rmr = new ResolvedModuleRevision(this, this, systemMd, madr, isForce());
+                getRepositoryCacheManager().cacheModuleDescriptor(this, artifactRef, toSystem(dd),
+                        systemMd.getAllArtifacts()[0], null, getCacheOptions(data));
+            }
+        } else {
+            if (ivyRef instanceof MDResolvedResource) {
+                rmr = ((MDResolvedResource) ivyRef).getResolvedModuleRevision();
+            }
+            if (rmr == null) {
+                rmr = parse(ivyRef, systemDd, data);
+            }
+            if (!rmr.getReport().isDownloaded()
+                    && rmr.getReport().getLocalFile() != null) {
+                return rmr;
+            } else {
+                nsMd = rmr.getDescriptor();
+
+                // check descriptor data is in sync with resource revision and names
+                systemMd = toSystem(nsMd);
+                if (isCheckconsistency()) {
+                    checkDescriptorConsistency(systemMrid, systemMd, ivyRef);
+                    checkDescriptorConsistency(nsMrid, nsMd, ivyRef);
+                }
+                rmr = new ResolvedModuleRevision(
+                        this, this, systemMd, toSystem(rmr.getReport()), isForce());
+            }
+        }
+
+        return rmr;
+    }
+
+    public ResolvedModuleRevision parse(final ResolvedResource mdRef, DependencyDescriptor dd,
+            ResolveData data) throws ParseException {
+
+        DependencyDescriptor nsDd = dd;
+        dd = toSystem(nsDd);
+
+        ModuleRevisionId mrid = dd.getDependencyRevisionId();
+        ModuleDescriptorParser parser = ModuleDescriptorParserRegistry
+                .getInstance().getParser(mdRef.getResource());
+        if (parser == null) {
+            throw new RuntimeException("no module descriptor parser available for " + mdRef.getResource());
+        }
+
+        ModuleRevisionId resolvedMrid = mrid;
+
+        // first check if this dependency has not yet been resolved
+        if (getSettings().getVersionMatcher().isDynamic(mrid)) {
+            resolvedMrid = ModuleRevisionId.newInstance(mrid, mdRef.getRevision());
+        }
+
+        Artifact moduleArtifact = parser.getMetadataArtifact(resolvedMrid, mdRef.getResource());
+        return getRepositoryCacheManager().cacheModuleDescriptor(this, mdRef, dd, moduleArtifact, resourceDownloader, getCacheOptions(data));
+    }
+
+    private void checkDescriptorConsistency(ModuleRevisionId mrid, ModuleDescriptor md,
+            ResolvedResource ivyRef) throws ParseException {
+        boolean ok = true;
+        StringBuffer errors = new StringBuffer();
+        if (!mrid.getOrganisation().equals(md.getModuleRevisionId().getOrganisation())) {
+            Message.error("\t" + getName() + ": bad organisation found in " + ivyRef.getResource()
+                    + ": expected='" + mrid.getOrganisation() + "' found='"
+                    + md.getModuleRevisionId().getOrganisation() + "'");
+            errors.append("bad organisation: expected='" + mrid.getOrganisation() + "' found='"
+                    + md.getModuleRevisionId().getOrganisation() + "'; ");
+            ok = false;
+        }
+        if (!mrid.getName().equals(md.getModuleRevisionId().getName())) {
+            Message.error("\t" + getName() + ": bad module name found in " + ivyRef.getResource()
+                    + ": expected='" + mrid.getName() + " found='"
+                    + md.getModuleRevisionId().getName() + "'");
+            errors.append("bad module name: expected='" + mrid.getName() + "' found='"
+                    + md.getModuleRevisionId().getName() + "'; ");
+            ok = false;
+        }
+        if (mrid.getBranch() != null
+                && !mrid.getBranch().equals(md.getModuleRevisionId().getBranch())) {
+            Message.error("\t" + getName() + ": bad branch name found in " + ivyRef.getResource()
+                    + ": expected='" + mrid.getBranch() + " found='"
+                    + md.getModuleRevisionId().getBranch() + "'");
+            errors.append("bad branch name: expected='" + mrid.getBranch() + "' found='"
+                    + md.getModuleRevisionId().getBranch() + "'; ");
+            ok = false;
+        }
+        if (ivyRef.getRevision() != null && !ivyRef.getRevision().startsWith("working@")) {
+            ModuleRevisionId expectedMrid = ModuleRevisionId
+                    .newInstance(mrid, ivyRef.getRevision());
+            if (!getSettings().getVersionMatcher().accept(expectedMrid, md)) {
+                Message.error("\t" + getName() + ": bad revision found in " + ivyRef.getResource()
+                        + ": expected='" + ivyRef.getRevision() + " found='"
+                        + md.getModuleRevisionId().getRevision() + "'");
+                errors.append("bad revision: expected='" + ivyRef.getRevision() + "' found='"
+                        + md.getModuleRevisionId().getRevision() + "'; ");
+                ok = false;
+            }
+        }
+        if (!getSettings().getStatusManager().isStatus(md.getStatus())) {
+            Message.error("\t" + getName() + ": bad status found in " + ivyRef.getResource()
+                    + ": '" + md.getStatus() + "'");
+            errors.append("bad status: '" + md.getStatus() + "'; ");
+            ok = false;
+        }
+        for (Iterator it = mrid.getExtraAttributes().entrySet().iterator(); it.hasNext();) {
+            Map.Entry extra = (Map.Entry) it.next();
+            if (extra.getValue() != null && !extra.getValue().equals(
+                                                md.getExtraAttribute((String) extra.getKey()))) {
+                String errorMsg = "bad " + extra.getKey() + " found in " + ivyRef.getResource()
+                                        + ": expected='" + extra.getValue() + "' found='"
+                                        + md.getExtraAttribute((String) extra.getKey()) + "'";
+                Message.error("\t" + getName() + ": " + errorMsg);
+                errors.append(errorMsg + ";");
+                ok = false;
+            }
+        }
+        if (!ok) {
+            throw new ParseException("inconsistent module descriptor file found in '"
+                    + ivyRef.getResource() + "': " + errors, 0);
+        }
     }
 
     public ResolvedResource findIvyFileRef(DependencyDescriptor dd, ResolveData data) {
