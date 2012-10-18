@@ -195,7 +195,7 @@ class Main {
 
     def badCode() {
         file("src/main/java/compile/test/Person.java") << '''
-        package compile.fork;
+        package compile.test;
 
         public class Person {
             String name;
