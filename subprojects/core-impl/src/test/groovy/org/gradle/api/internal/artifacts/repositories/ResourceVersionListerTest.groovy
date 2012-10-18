@@ -35,46 +35,62 @@ class ResourceVersionListerTest extends Specification {
         lister = new ResourceVersionLister(repo)
     }
 
-    def "getVersionList returns propagates Exceptions as ResourceException"() {
+    def "visit propagates Exceptions as ResourceException"() {
         setup:
         def failure = new IOException("Test IO Exception")
         def testPattern = "/a/pattern/with/[revision]/"
         1 * repo.list(_) >> { throw failure }
+
         when:
-        lister.getVersionList(moduleRevisionId, testPattern, artifact)
+        def versionList = lister.getVersionList(moduleRevisionId)
+        versionList.visit(testPattern, artifact)
+
         then:
         ResourceException e = thrown()
         e.message == "Could not list versions using pattern '/a/pattern/with/[revision]/'."
         e.cause == failure
     }
 
-    def "getVersionList throws ResourceNotFoundException for missing resource"() {
+    def "visit throws ResourceNotFoundException for missing resource"() {
         setup:
         1 * repo.list(_) >> null
+
         when:
-        lister.getVersionList(moduleRevisionId, testPattern, artifact)
+        def versionList = lister.getVersionList(moduleRevisionId)
+        versionList.visit(testPattern, artifact)
+
         then:
         ResourceNotFoundException e = thrown()
         e.message == "Cannot list versions from /some/."
+
         where:
         testPattern << ["/some/[revision]", "/some/version-[revision]"]
     }
 
-    def "getVersionList returns empty VersionList when repository contains empty list"() {
+    def "visit returns empty VersionList when repository contains empty list"() {
         setup:
         1 * repo.list(_) >> []
-        expect:
-        lister.getVersionList(moduleRevisionId, "/some/[revision]", artifact).empty
+
+        when:
+        def versionList = lister.getVersionList(moduleRevisionId)
+        versionList.visit("/some/[revision]", artifact)
+
+        then:
+        versionList.empty
     }
 
     @Unroll
-    def "getVersionList resolves versions from from pattern with '#testPattern'"() {
+    def "visit resolves versions from from pattern with '#testPattern'"() {
         when:
-        def versionList = lister.getVersionList(moduleRevisionId, testPattern, artifact)
+        def versionList = lister.getVersionList(moduleRevisionId)
+        versionList.visit(testPattern, artifact)
 
         then:
-        versionList.versionStrings == ["1", "2.1", "a-version"]
+        versionList.versionStrings == ["1", "2.1", "a-version"] as Set
+
+        and:
         1 * repo.list(repoListingPath) >> repoResult
+        0 * repo._
 
         where:
         testPattern                              | repoListingPath | repoResult
@@ -97,11 +113,43 @@ class ResourceVersionListerTest extends Specification {
         "/some/proj-[revision]/[revision]/lib/"  | "/some/"        | ["/some/proj-1", "/some/proj-2.1", "/some/proj-a-version"]
     }
 
-    def "getVersionList substitutes non revision placeholders from pattern before hitting repository"() {
+    def "visit builds union of versions"() {
         when:
-        lister.getVersionList(moduleRevisionId, inputPattern, artifact)
+        def versionList = lister.getVersionList(moduleRevisionId)
+        versionList.visit("/[revision]/[artifact]-[revision].[ext]", artifact)
+        versionList.visit("/[organisation]/[revision]/[artifact]-[revision].[ext]", artifact)
+
+        then:
+        versionList.versionStrings == ["1.2", "1.3", "1.4"] as Set
+
+        and:
+        1 * repo.list("/") >> ["1.2", "1.3"]
+        1 * repo.list("/org.acme/") >> ["1.3", "1.4"]
+        0 * repo._
+    }
+
+    def "visit ignores duplicate patterns"() {
+        when:
+        def versionList = lister.getVersionList(moduleRevisionId)
+        versionList.visit("/a/[revision]/[artifact]-[revision].[ext]", artifact)
+        versionList.visit("/a/[revision]/[artifact]-[revision]", artifact)
+
+        then:
+        versionList.versionStrings == ["1.2", "1.3"] as Set
+
+        and:
+        1 * repo.list("/a/") >> ["1.2", "1.3"]
+        0 * repo._
+    }
+
+    def "visit substitutes non revision placeholders from pattern before hitting repository"() {
+        when:
+        def versionList = lister.getVersionList(moduleRevisionId)
+        versionList.visit(inputPattern, artifact)
+
         then:
         1 * repo.list(repoPath) >> []
+
         where:
         inputPattern                          | repoPath
         "/[organisation]/[revision]"          | "/org.acme/"
@@ -112,13 +160,17 @@ class ResourceVersionListerTest extends Specification {
         "/[revision]/[module]/[organisation]" | "/"
     }
 
-    def "getVersionList returns empty version list when pattern has no revision token"() {
+    def "visit returns empty version list when pattern has no revision token"() {
         setup:
         repo.list(_) >> repoResult
+
         when:
-        def versionList = lister.getVersionList(moduleRevisionId, testPattern, artifact)
+        def versionList = lister.getVersionList(moduleRevisionId)
+        versionList.visit(testPattern, artifact)
+
         then:
-        versionList.versionStrings.empty
+        versionList.empty
+
         where:
         testPattern                      | repoResult
         "/some/pattern/with/no/revision" | ["/some/1-version", "/some/2.1-version", "/some/a-version-version"]

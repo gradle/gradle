@@ -23,7 +23,9 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.resource.ResourceException;
 import org.gradle.api.internal.resource.ResourceNotFoundException;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class MavenVersionLister implements VersionLister {
     private final MavenMetadataLoader mavenMetadataLoader;
@@ -32,14 +34,24 @@ public class MavenVersionLister implements VersionLister {
         this.mavenMetadataLoader = new MavenMetadataLoader(repository);
     }
 
-    public VersionList getVersionList(ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact) throws ResourceException, ResourceNotFoundException {
-        if (!pattern.endsWith(MavenPattern.M2_PATTERN)) {
-            throw new InvalidUserDataException("Cannot locate maven-metadata.xml for non-maven layout");
-        }
-        final Map attributes = moduleRevisionId.getModuleId().getAttributes();
-        String metaDataPattern = pattern.substring(0, pattern.length() - MavenPattern.M2_PER_MODULE_PATTERN.length()) + "maven-metadata.xml";
-        String metadataLocation = IvyPatternHelper.substituteTokens(metaDataPattern, attributes);
-        MavenMetadata mavenMetaData = mavenMetadataLoader.load(metadataLocation);
-        return new DefaultVersionList(mavenMetaData.versions);
+    public VersionList getVersionList(final ModuleRevisionId moduleRevisionId) {
+        return new DefaultVersionList() {
+            final Set<String> patterns = new HashSet<String>();
+
+            @Override
+            public void visit(String pattern, Artifact artifact) throws ResourceNotFoundException, ResourceException {
+                if (!pattern.endsWith(MavenPattern.M2_PATTERN)) {
+                    throw new InvalidUserDataException("Cannot locate maven-metadata.xml for non-maven layout");
+                }
+                if (!patterns.add(pattern)) {
+                    return;
+                }
+                Map attributes = moduleRevisionId.getModuleId().getAttributes();
+                String metaDataPattern = pattern.substring(0, pattern.length() - MavenPattern.M2_PER_MODULE_PATTERN.length()) + "maven-metadata.xml";
+                String metadataLocation = IvyPatternHelper.substituteTokens(metaDataPattern, attributes);
+                MavenMetadata mavenMetaData = mavenMetadataLoader.load(metadataLocation);
+                add(mavenMetaData.versions);
+            }
+        };
     }
 }

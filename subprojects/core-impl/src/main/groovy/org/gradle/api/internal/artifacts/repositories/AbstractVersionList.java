@@ -24,9 +24,12 @@ import java.util.Collections;
 import java.util.List;
 
 abstract class AbstractVersionList implements VersionList {
+    public boolean isEmpty() {
+        return getVersionStrings().isEmpty();
+    }
 
     public List<String> sortLatestFirst(LatestStrategy latestStrategy) {
-        List<String> versions = getVersionStrings();
+        List<String> versions = new ArrayList<String>(getVersionStrings());
         ArtifactInfo[] artifactInfos = new ArtifactInfo[versions.size()];
         for (int i = 0; i < versions.size(); i++) {
             String version = versions.get(i);

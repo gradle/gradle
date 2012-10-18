@@ -34,16 +34,19 @@ class MavenVersionListerTest extends Specification {
     def pattern = "localhost:8081/testRepo/" + MavenPattern.M2_PATTERN
     String metaDataResource = 'localhost:8081/testRepo/org.acme/testproject/maven-metadata.xml'
 
-    def resource = Mock(ExternalResource)
+    final MavenVersionLister lister = new MavenVersionLister(repository)
 
-    MavenVersionLister lister = new MavenVersionLister(repository)
+    def "visit parses maven-metadata.xml"() {
+        ExternalResource resource = Mock()
 
-    def "getVersionList parses maven-metadata.xml"() {
         when:
-        def result = lister.getVersionList(moduleRevisionId, pattern, artifact)
+        def versionList = lister.getVersionList(moduleRevisionId)
+        versionList.visit(pattern, artifact)
 
         then:
-        result.versionStrings == ['1.1', '1.2']
+        versionList.versionStrings == ['1.1', '1.2'] as Set
+
+        and:
         1 * repository.getResource(metaDataResource) >> resource
         1 * resource.openStream() >> new ByteArrayInputStream("""
 <metadata>
@@ -54,11 +57,75 @@ class MavenVersionListerTest extends Specification {
         </versions>
     </versioning>
 </metadata>""".bytes)
+        1 * resource.close()
+        0 * _._
     }
 
-    def "getVersionList throws ResourceNotFoundException when maven-metadata not available"() {
+    def "visit builds union of versions"() {
+        ExternalResource resource1 = Mock()
+        ExternalResource resource2 = Mock()
+
         when:
-        lister.getVersionList(moduleRevisionId, pattern, artifact)
+        def versionList = lister.getVersionList(moduleRevisionId)
+        versionList.visit("prefix1/" + MavenPattern.M2_PATTERN, artifact)
+        versionList.visit("prefix2/" + MavenPattern.M2_PATTERN, artifact)
+
+        then:
+        versionList.versionStrings == ['1.1', '1.2', '1.3'] as Set
+
+        and:
+        1 * repository.getResource('prefix1/org.acme/testproject/maven-metadata.xml') >> resource1
+        1 * resource1.openStream() >> new ByteArrayInputStream("""
+<metadata>
+    <versioning>
+        <versions>
+            <version>1.1</version>
+            <version>1.2</version>
+        </versions>
+    </versioning>
+</metadata>""".bytes)
+        1 * repository.getResource('prefix2/org.acme/testproject/maven-metadata.xml') >> resource2
+        1 * resource2.openStream() >> new ByteArrayInputStream("""
+<metadata>
+    <versioning>
+        <versions>
+            <version>1.2</version>
+            <version>1.3</version>
+        </versions>
+    </versioning>
+</metadata>""".bytes)
+    }
+
+    def "visit ignores duplicate patterns"() {
+        ExternalResource resource = Mock()
+
+        when:
+        def versionList = lister.getVersionList(moduleRevisionId)
+        versionList.visit(pattern, artifact)
+        versionList.visit(pattern, artifact)
+
+        then:
+        versionList.versionStrings == ['1.1', '1.2'] as Set
+
+        and:
+        1 * repository.getResource(metaDataResource) >> resource
+        1 * resource.openStream() >> new ByteArrayInputStream("""
+<metadata>
+    <versioning>
+        <versions>
+            <version>1.1</version>
+            <version>1.2</version>
+        </versions>
+    </versioning>
+</metadata>""".bytes)
+        1 * resource.close()
+        0 * _._
+    }
+
+    def "visit throws ResourceNotFoundException when maven-metadata not available"() {
+        when:
+        def versionList = lister.getVersionList(moduleRevisionId)
+        versionList.visit(pattern, artifact)
 
         then:
         ResourceNotFoundException e = thrown()
@@ -67,9 +134,12 @@ class MavenVersionListerTest extends Specification {
         0 * repository._
     }
 
-    def "getVersionList throws ResourceException when maven-metadata cannot be parsed"() {
+    def "visit throws ResourceException when maven-metadata cannot be parsed"() {
+        ExternalResource resource = Mock()
+
         when:
-        lister.getVersionList(moduleRevisionId, pattern, artifact)
+        def versionList = lister.getVersionList(moduleRevisionId)
+        versionList.visit(pattern, artifact)
 
         then:
         ResourceException e = thrown()
@@ -81,11 +151,12 @@ class MavenVersionListerTest extends Specification {
         0 * repository._
     }
 
-    def "getVersionList throws ResourceException when maven-metadata cannot be loaded"() {
+    def "visit throws ResourceException when maven-metadata cannot be loaded"() {
         def failure = new IOException()
 
         when:
-        lister.getVersionList(moduleRevisionId, pattern, artifact)
+        def versionList = lister.getVersionList(moduleRevisionId)
+        versionList.visit(pattern, artifact)
 
         then:
         ResourceException e = thrown()
@@ -95,9 +166,10 @@ class MavenVersionListerTest extends Specification {
         0 * repository._
     }
 
-    def "getVersionList throws InvalidUserDataException for non M2 compatible pattern"() {
+    def "visit throws InvalidUserDataException for non M2 compatible pattern"() {
         when:
-        lister.getVersionList(moduleRevisionId, "/non/m2/pattern", artifact)
+        def versionList = lister.getVersionList(moduleRevisionId)
+        versionList.visit("/non/m2/pattern", artifact)
 
         then:
         thrown(InvalidUserDataException)

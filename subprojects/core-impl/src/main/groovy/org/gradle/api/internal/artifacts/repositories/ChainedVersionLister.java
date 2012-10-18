@@ -35,32 +35,43 @@ public class ChainedVersionLister implements VersionLister {
         this.versionListers = Arrays.asList(versionlisters);
     }
 
-    public VersionList getVersionList(ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact) throws ResourceNotFoundException, ResourceException {
-        final Iterator<VersionLister> versionListerIterator = versionListers.iterator();
-
-        while (versionListerIterator.hasNext()) {
-            VersionLister lister = versionListerIterator.next();
-            try {
-                final VersionList versionList = lister.getVersionList(moduleRevisionId, pattern, artifact);
-                if (!versionListerIterator.hasNext() || !versionList.isEmpty()) {
-                    return versionList;
-                }
-
-            } catch (ResourceNotFoundException e) {
-                if (!versionListerIterator.hasNext()) {
-                    throw new ResourceNotFoundException(String.format("Failed to list versions for %s using %s", moduleRevisionId, lister.getClass()), e);
-                }
-            } catch (Exception e) {
-                if (versionListerIterator.hasNext()) {
-                    String deprecationMessage = String.format("Error listing versions of %s using %s. Will attempt an alternate way to list versions. "
-                            + "This behaviour is deprecated: in a future version of Gradle, this build will fail.", moduleRevisionId, lister.getClass());
-                    DeprecationLogger.nagUserWith(deprecationMessage);
-                    LOGGER.debug(deprecationMessage, e);
-                } else {
-                    throw new ResourceException(String.format("Failed to list versions for %s using %s", moduleRevisionId, lister.getClass()), e);
+    public VersionList getVersionList(final ModuleRevisionId moduleRevisionId)  {
+        final List<VersionList> versionLists = new ArrayList<VersionList>();
+        for (VersionLister lister : versionListers) {
+            versionLists.add(lister.getVersionList(moduleRevisionId));
+        }
+        return new AbstractVersionList() {
+            public void visit(String pattern, Artifact artifact) throws ResourceNotFoundException, ResourceException {
+                final Iterator<VersionList> versionListIterator = versionLists.iterator();
+                while (versionListIterator.hasNext()) {
+                    VersionList list = versionListIterator.next();
+                    try {
+                        list.visit(pattern, artifact);
+                        return;
+                    } catch (ResourceNotFoundException e) {
+                        if (!versionListIterator.hasNext()) {
+                            throw e;
+                        }
+                    } catch (Exception e) {
+                        if (versionListIterator.hasNext()) {
+                            String deprecationMessage = String.format("Error listing versions of %s using %s. Will attempt an alternate way to list versions. "
+                                    + "This behaviour is deprecated: in a future version of Gradle, this build will fail.", moduleRevisionId, list.getClass());
+                            DeprecationLogger.nagUserWith(deprecationMessage);
+                            LOGGER.debug(deprecationMessage, e);
+                        } else {
+                            throw new ResourceException(String.format("Failed to list versions for %s.", moduleRevisionId), e);
+                        }
+                    }
                 }
             }
-        }
-        return new DefaultVersionList(Collections.<String>emptyList());
+
+            public Set<String> getVersionStrings() {
+                Set<String> allVersions = new HashSet<String>();
+                for (VersionList versionList : versionLists) {
+                    allVersions.addAll(versionList.getVersionStrings());
+                }
+                return allVersions;
+            }
+        };
     }
 }

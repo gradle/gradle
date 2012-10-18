@@ -16,18 +16,11 @@
 
 package org.gradle.api.internal.artifacts.repositories;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.gradle.api.internal.resource.ResourceException;
-import org.gradle.api.internal.resource.ResourceNotFoundException;
 
 public interface VersionLister {
     /**
-     * <p>Returns the VersionList for the given moduleRevisionId, pattern and artifact.</p>
-     *
-     * @return a VersionList, never returns null.
-     * @throws ResourceNotFoundException If information for versions cannot be found.
-     * @throws ResourceException If information for versions cannot be loaded.
+     * Creates an empty version list for the given module version. Call {@link VersionList#visit(String, org.apache.ivy.core.module.descriptor.Artifact)} to search for versions.
      */
-    VersionList getVersionList(ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact) throws ResourceNotFoundException, ResourceException;
+    VersionList getVersionList(ModuleRevisionId moduleRevisionId);
 }

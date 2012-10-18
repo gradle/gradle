@@ -16,12 +16,24 @@
 
 package org.gradle.api.internal.artifacts.repositories;
 
+import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.plugins.latest.LatestStrategy;
+import org.gradle.api.internal.resource.ResourceException;
+import org.gradle.api.internal.resource.ResourceNotFoundException;
 
 import java.util.List;
+import java.util.Set;
 
 public interface VersionList {
-    List<String> getVersionStrings();
+    /**
+     * <p>Adds those versions available for the given pattern.</p>
+     *
+     * @throws ResourceNotFoundException If information for versions cannot be found.
+     * @throws ResourceException If information for versions cannot be loaded.
+     */
+    void visit(String pattern, Artifact artifact) throws ResourceNotFoundException, ResourceException;
+
+    Set<String> getVersionStrings();
 
     boolean isEmpty();
 

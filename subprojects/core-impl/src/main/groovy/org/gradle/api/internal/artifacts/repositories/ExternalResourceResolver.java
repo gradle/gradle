@@ -446,16 +446,11 @@ public class ExternalResourceResolver extends BasicResolver {
     private ResolvedResource findDynamicResourceUsingPattern(ResourceMDParser resourceParser, ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact, Date date, boolean forDownload) throws IOException {
         logAttempt(IvyPatternHelper.substitute(pattern, ModuleRevisionId.newInstance(moduleRevisionId, IvyPatternHelper.getTokenString(IvyPatternHelper.REVISION_KEY)), artifact));
         VersionList versions = listVersions(moduleRevisionId, pattern, artifact);
-        if (versions.isEmpty()) {
-            LOGGER.debug("Unable to list versions for {}: pattern={}", moduleRevisionId, pattern);
-            return null;
-        } else {
-            ResolvedResource found = findLatestResource(moduleRevisionId, versions, resourceParser, date, pattern, artifact, forDownload);
-            if (found == null) {
-                LOGGER.debug("No resource found for {}: pattern={}", moduleRevisionId, pattern);
-            }
-            return found;
+        ResolvedResource found = findLatestResource(moduleRevisionId, versions, resourceParser, date, pattern, artifact, forDownload);
+        if (found == null) {
+            LOGGER.debug("No resource found for {}: pattern={}", moduleRevisionId, pattern);
         }
+        return found;
     }
 
     protected void discardResource(Resource resource) {
@@ -554,9 +549,11 @@ public class ExternalResourceResolver extends BasicResolver {
         }
     }
 
-    protected VersionList listVersions(ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact) throws IOException {
+    protected VersionList listVersions(ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact) {
         try {
-            return versionLister.getVersionList(moduleRevisionId, pattern, artifact);
+            VersionList versionList = versionLister.getVersionList(moduleRevisionId);
+            versionList.visit(pattern, artifact);
+            return versionList;
         } catch (ResourceNotFoundException e) {
             LOGGER.debug(String.format("Unable to load version list for %s from %s", moduleRevisionId.getModuleId(), getRepository()));
             return new DefaultVersionList(Collections.<String>emptyList());
