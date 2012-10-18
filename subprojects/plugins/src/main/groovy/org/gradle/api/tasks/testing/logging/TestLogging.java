@@ -214,13 +214,13 @@ public interface TestLogging extends org.gradle.api.tasks.testing.TestLogging {
 
     /**
      * Tells whether output on standard out and standard error will be logged. Equivalent to checking if both
-     * log events {@link TestLogEvent#STANDARD_OUT} and {@link TestLogEvent#STANDARD_ERROR} are set.
+     * log events {@code TestLogEvent.STANDARD_OUT} and {@code TestLogEvent.STANDARD_ERROR} are set.
      */
      boolean getShowStandardStreams();
 
     /**
      * Sets whether output on standard out and standard error will be logged. Equivalent to setting
-     * log events {@link TestLogEvent#STANDARD_OUT} and {@link TestLogEvent#STANDARD_ERROR}.
+     * log events {@code TestLogEvent.STANDARD_OUT} and {@code TestLogEvent.STANDARD_ERROR}.
      */
      TestLogging setShowStandardStreams(boolean flag);
 }
