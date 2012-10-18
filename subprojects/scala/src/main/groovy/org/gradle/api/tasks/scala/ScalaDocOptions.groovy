@@ -97,7 +97,7 @@ public class ScalaDocOptions extends AbstractOptions {
             return toOnOffString(deprecation)
         }
         if (fieldName == "unchecked") {
-            return toOnOffString("unchecked")
+            return toOnOffString(unchecked)
         }
         if (fieldName == "additionalParameters") {
             return additionalParameters.isEmpty() ? ' ' : additionalParameters.join(' ')
