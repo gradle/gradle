@@ -43,8 +43,6 @@ import org.apache.ivy.plugins.resolver.util.MDResolvedResource;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.apache.ivy.plugins.resolver.util.ResourceMDParser;
 import org.apache.ivy.plugins.version.VersionMatcher;
-import org.apache.ivy.util.ChecksumHelper;
-import org.apache.ivy.util.FileUtil;
 import org.apache.ivy.util.Message;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactOriginWithMetaData;
 import org.gradle.api.internal.externalresource.ExternalResource;
@@ -55,13 +53,10 @@ import org.gradle.api.internal.externalresource.cached.CachedExternalResourceInd
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceCandidates;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
-import org.gradle.api.internal.file.TemporaryFileProvider;
-import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
 import org.gradle.api.internal.resource.ResourceNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
@@ -70,7 +65,6 @@ import java.util.*;
 public class ExternalResourceResolver extends BasicResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExternalResourceResolver.class);
 
-    private final TemporaryFileProvider temporaryFileProvider = new TmpDirTemporaryFileProvider();
     private List<String> ivyPatterns = new ArrayList<String>();
     private List<String> artifactPatterns = new ArrayList<String>();
     private boolean m2compatible;
@@ -207,7 +201,7 @@ public class ExternalResourceResolver extends BasicResolver {
     private void checkDescriptorConsistency(ModuleRevisionId mrid, ModuleDescriptor md,
             ResolvedResource ivyRef) throws ParseException {
         boolean ok = true;
-        StringBuffer errors = new StringBuffer();
+        StringBuilder errors = new StringBuilder();
         if (!mrid.getOrganisation().equals(md.getModuleRevisionId().getOrganisation())) {
             Message.error("\t" + getName() + ": bad organisation found in " + ivyRef.getResource()
                     + ": expected='" + mrid.getOrganisation() + "' found='"
@@ -605,30 +599,13 @@ public class ExternalResourceResolver extends BasicResolver {
     }
 
     private void put(File src, String destination) throws IOException {
-        // verify the checksum algorithms before uploading artifacts!
         String[] checksums = getChecksumAlgorithms();
-        for (String checksum : checksums) {
-            if (!ChecksumHelper.isKnownAlgorithm(checksum)) {
-                throw new IllegalArgumentException("Unknown checksum algorithm: " + checksum);
-            }
+        if (checksums.length != 0) {
+            // Should not be reachable for publishing
+            throw new UnsupportedOperationException();
         }
 
         repository.put(src, destination);
-        for (String checksum : checksums) {
-            putChecksum(src, destination, checksum);
-        }
-    }
-
-    private void putChecksum(File src, String destination,
-                             String algorithm) throws IOException {
-        File csFile = temporaryFileProvider.createTemporaryFile("ivytemp", algorithm);
-        try {
-            FileUtil.copy(new ByteArrayInputStream(ChecksumHelper.computeAsString(src, algorithm)
-                    .getBytes()), csFile, null);
-            repository.put(csFile, destination + "." + algorithm);
-        } finally {
-            csFile.delete();
-        }
     }
 
     protected Collection findNames(Map tokenValues, String token) {
@@ -651,11 +628,11 @@ public class ExternalResourceResolver extends BasicResolver {
         return Collections.unmodifiableList(artifactPatterns);
     }
 
-    protected void setIvyPatterns(List patterns) {
+    protected void setIvyPatterns(List<String> patterns) {
         ivyPatterns = patterns;
     }
 
-    protected void setArtifactPatterns(List patterns) {
+    protected void setArtifactPatterns(List<String> patterns) {
         artifactPatterns = patterns;
     }
 
