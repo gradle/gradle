@@ -20,11 +20,8 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Fork options for Java compilation. Only take effect if {@code CompileOptions.fork} is {@code true}.
@@ -132,17 +129,8 @@ public class ForkOptions extends AbstractOptions {
         this.jvmArgs = jvmArgs;
     }
 
-    /**
-     * Internal method.
-     */
-    protected Map<String, String> fieldName2AntMap() {
-        return ImmutableMap.of("tempDir", "tempdir");
-    }
-
-    /**
-     * Internal method.
-     */
-    protected List<String> excludedFieldsFromOptionMap() {
-        return ImmutableList.of("jvmArgs");
+    @Override
+    protected boolean excludeFromAntProperties(String fieldName) {
+        return fieldName.equals("jvmArgs");
     }
 }

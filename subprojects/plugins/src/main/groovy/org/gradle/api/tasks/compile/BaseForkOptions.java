@@ -15,7 +15,6 @@
  */
 package org.gradle.api.tasks.compile;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
 import org.gradle.api.tasks.Input;
@@ -88,10 +87,8 @@ public class BaseForkOptions extends AbstractOptions {
         this.jvmArgs = jvmArgs;
     }
 
-    /**
-     * Internal method.
-     */
-    protected List<String> excludedFieldsFromOptionMap() {
-        return ImmutableList.of("jvmArgs");
+    @Override
+    protected boolean excludeFromAntProperties(String fieldName) {
+        return fieldName.equals("jvmArgs");
     }
 }

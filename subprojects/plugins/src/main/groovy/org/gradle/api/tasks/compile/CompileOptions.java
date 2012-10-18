@@ -16,17 +16,15 @@
 
 package org.gradle.api.tasks.compile;
 
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.util.DeprecationLogger;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
 
 /**
  * Main options for Java compilation.
@@ -35,6 +33,9 @@ import java.util.concurrent.Callable;
  */
 public class CompileOptions extends AbstractOptions {
     private static final long serialVersionUID = 0;
+
+    private static final ImmutableSet<String> EXCLUDE_FROM_ANT_PROPERTIES =
+            ImmutableSet.of("debugOptions", "forkOptions", "compilerArgs", "dependOptions", "useDepend", "useAnt");
 
     private boolean failOnError = true;
 
@@ -481,36 +482,35 @@ public class CompileOptions extends AbstractOptions {
     /**
      * Internal method.
      */
-    protected List<String> excludedFieldsFromOptionMap() {
-        return Arrays.asList("debugOptions", "forkOptions", "compilerArgs", "dependOptions", "useDepend", "useAnt");
-    }
-
-    /**
-     * Internal method.
-     */
-    protected Map<String, String> fieldName2AntMap() {
-        return ImmutableMap.of("warnings", "nowarn", "bootClasspath", "bootclasspath", "extensionDirs", "extdirs", "failOnError", "failonerror", "listFiles", "listfiles");
-    }
-
-    /**
-     * Internal method.
-     */
-    protected Map<String, ? extends Callable<Object>> fieldValue2AntMap() {
-        return ImmutableMap.of("warnings", new Callable<Object>() {
-            public Object call() {
-                return !warnings;
-            }
-        });
-    }
-
-    /**
-     * Internal method.
-     */
     public Map<String, Object> optionMap() {
         Map<String, Object> map = super.optionMap();
         map.putAll(debugOptions.optionMap());
         map.putAll(forkOptions.optionMap());
         return map;
+    }
+
+    @Override
+    protected boolean excludeFromAntProperties(String fieldName) {
+        return EXCLUDE_FROM_ANT_PROPERTIES.contains(fieldName);
+    }
+
+    @Override
+    protected String getAntPropertyName(String fieldName) {
+        if (fieldName.equals("warnings")) {
+            return "nowarn";
+        }
+        if (fieldName.equals("extensionDirs")) {
+            return "extdirs";
+        }
+        return fieldName;
+    }
+
+    @Override
+    protected Object getAntPropertyValue(String fieldName, Object value) {
+        if (fieldName.equals("warnings")) {
+            return !warnings;
+        }
+        return value;
     }
 }
 

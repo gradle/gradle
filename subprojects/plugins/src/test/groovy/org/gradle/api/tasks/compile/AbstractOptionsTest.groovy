@@ -68,8 +68,15 @@ public class AbstractOptionsTest extends Specification {
         String stringProp = "initial value"
         Object objectProp
 
-        Map fieldName2AntMap() {
-            [intProp: 'intProp2', objectProp: 'objectProp2']
+        @Override
+        protected String getAntPropertyName(String fieldName) {
+            if (fieldName == "intProp") {
+                return "intProp2"
+            }
+            if (fieldName == "objectProp") {
+                return "objectProp2"
+            }
+            return fieldName
         }
     }
 
@@ -79,8 +86,11 @@ public class AbstractOptionsTest extends Specification {
         Object objectProp
 
         @Override
-        Map fieldValue2AntMap() {
-            [stringProp: { stringProp * 2 }]
+        protected Object getAntPropertyValue(String fieldName, Object value) {
+            if (fieldName == "stringProp") {
+                return stringProp * 2
+            }
+            return value
         }
     }
 

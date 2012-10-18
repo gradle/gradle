@@ -42,7 +42,7 @@ public class ScalaCompileOptionsTest {
     }
 
     @Test public void testOptionMapContainsFailOnError() {
-        assertBooleanValue('failOnError', 'failonerror', true)
+        assertBooleanValue('failOnError', 'failOnError', true)
     }
 
     @Test public void testOptionMapContainsDeprecation() {
@@ -54,7 +54,7 @@ public class ScalaCompileOptionsTest {
     }
 
     @Test public void testOptionMapContainsDebugLevelIfSpecified() {
-        assertSimpleStringValue('debugLevel', 'debugInfo', null, 'line')
+        assertSimpleStringValue('debugLevel', 'debuginfo', null, 'line')
     }
 
     @Test public void testOptionMapContainsOptimize() {
@@ -72,16 +72,12 @@ public class ScalaCompileOptionsTest {
         assertSimpleStringValue('force', 'force', 'never', 'changed')
     }
 
-    @Test public void testOptionMapContainsTargetCompatibility() {
-        String antProperty = 'target'
-        assertThat(compileOptions.targetCompatibility as String, equalTo('1.5'))
-        assertThat(compileOptions.optionMap()[antProperty] as String, equalTo('jvm-1.5'))
-        compileOptions.targetCompatibility = '1.4'
-        assertThat(compileOptions.optionMap()['target'] as String, equalTo('jvm-1.4'))
+    @Test public void testOptionMapDoesNotContainTargetCompatibility() {
+        assert !compileOptions.optionMap().containsKey("target")
     }
 
     @Test public void testOptionMapContainsValuesForAdditionalParameters() {
-        String antProperty = 'addParams'
+        String antProperty = 'addparams'
         assertNull(compileOptions.additionalParameters)
         assertFalse(compileOptions.optionMap().containsKey(antProperty))
 
@@ -90,7 +86,7 @@ public class ScalaCompileOptionsTest {
     }
 
     @Test public void testOptionMapContainsListFiles() {
-        assertBooleanValue('listFiles', 'scalacDebugging', false)
+        assertBooleanValue('listFiles', 'scalacdebugging', false)
     }
 
     @Test public void testOptionMapContainsLoggingLevelIfSpecified() {
@@ -98,7 +94,7 @@ public class ScalaCompileOptionsTest {
     }
 
     @Test public void testOptionMapContainsValueForLoggingPhase() {
-        String antProperty = 'logPhase'
+        String antProperty = 'logphase'
         Map optionMap = compileOptions.optionMap()
         assertFalse(optionMap.containsKey(antProperty))
 

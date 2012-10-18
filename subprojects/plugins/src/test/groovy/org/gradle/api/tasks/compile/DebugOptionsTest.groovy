@@ -16,41 +16,31 @@
  
 package org.gradle.api.tasks.compile
 
-import static org.junit.Assert.*
-import org.junit.Before
-import org.junit.Test;
+import org.junit.Test
 
 /**
  * @author Hans Dockter
  */
 class DebugOptionsTest {
-    static final String TEST_DEBUG_LEVEL = 'testDebugLevel'
-    static final String DEBUG_LEVEL_PROPERTY_NAME = 'debugLevel'
-    static final String DEBUG_LEVEL_ANT_PROPERTY_NAME = 'debuglevel'
-
-    DebugOptions debugOptions
-
-    @Before public void setUp()  {
-        debugOptions = new DebugOptions()
-    }
+    DebugOptions debugOptions = new DebugOptions()
 
     @Test public void testDebugOptions() {
-        assertNull(debugOptions.debugLevel)
+        assert debugOptions.debugLevel == null
     }
 
     @Test public void testOptionMap() {
         Map optionMap = debugOptions.optionMap()
-        assertEquals(0, optionMap.size())
+        assert optionMap.isEmpty()
 
-        debugOptions.debugLevel = TEST_DEBUG_LEVEL
+        debugOptions.debugLevel = "extreme"
         optionMap = debugOptions.optionMap()
-        assertEquals(1, optionMap.size())
-        assertEquals(optionMap[DEBUG_LEVEL_ANT_PROPERTY_NAME], TEST_DEBUG_LEVEL)
+        assert optionMap.size() == 1
+        assert optionMap.debugLevel == "extreme"
     }
 
     @Test public void testDefine() {
         debugOptions.debugLevel = null
-        debugOptions.define((DEBUG_LEVEL_PROPERTY_NAME): TEST_DEBUG_LEVEL)
-        assertEquals(TEST_DEBUG_LEVEL, debugOptions.debugLevel)
+        debugOptions.define(debugLevel: "extreme")
+        assert debugOptions.debugLevel == "extreme"
     }
 }
