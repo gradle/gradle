@@ -81,7 +81,7 @@ public class ScalaCompileOptions extends AbstractOptions {
         this.useCompileDaemon = useCompileDaemon;
     }
 
-    // NOTE: Does not work for scalac 2.7.1 due to a bug in the ant task
+    // NOTE: Does not work for scalac 2.7.1 due to a bug in the Ant task
     /**
      * Server (host:port) on which the compile daemon is running.
      * The host must share disk access with the client process.
@@ -294,13 +294,13 @@ public class ScalaCompileOptions extends AbstractOptions {
         return new ImmutableMap.Builder<String, String>()
                 .put("failOnError", "failonerror")
                 .put("loggingLevel", "logging")
-                .put("loggingPhases", "logPhase")
+                .put("loggingPhases", "logphase")
                 .put("targetCompatibility", "target")
                 .put("optimize", "optimise")
                 .put("daemonServer", "server")
-                .put("listFiles", "scalacDebugging")
-                .put("debugLevel", "debugInfo")
-                .put("additionalParameters", "addParams")
+                .put("listFiles", "scalacdebugging")
+                .put("debugLevel", "debuginfo")
+                .put("additionalParameters", "addparams")
                 .build();
     }
 
