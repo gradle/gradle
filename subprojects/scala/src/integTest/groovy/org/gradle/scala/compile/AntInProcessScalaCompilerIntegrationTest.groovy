@@ -16,6 +16,9 @@
 
 package org.gradle.scala.compile
 
+import spock.lang.Ignore
+
+@Ignore
 class AntInProcessScalaCompilerIntegrationTest extends BasicScalaCompilerIntegrationTest {
     String compilerConfiguration() {
         '''
