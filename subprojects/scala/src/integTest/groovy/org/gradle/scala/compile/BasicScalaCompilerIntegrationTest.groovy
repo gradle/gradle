@@ -122,7 +122,7 @@ compileScala.scalaCompileOptions.debugLevel = "line"
         !linesOnly.debugIncludesLocalVariables
 
         // older versions of scalac Ant task don't handle 'none' correctly
-        if (versionNumber < VersionNumber.parse("2.10.0-AAA")) return
+        if (versionNumber < VersionNumber.parse("2.10.0-AAA")) { return }
 
         when:
         buildFile <<
