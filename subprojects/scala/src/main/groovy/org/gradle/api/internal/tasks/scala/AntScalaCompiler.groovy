@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory
 import org.gradle.api.internal.tasks.compile.Compiler
 
 class AntScalaCompiler implements Compiler<ScalaCompileSpec> {
-    private static Logger logger = LoggerFactory.getLogger(AntScalaCompiler)
+    private static final Logger LOGGER = LoggerFactory.getLogger(AntScalaCompiler)
 
     private final IsolatedAntBuilder antBuilder
     private final Iterable<File> bootclasspathFiles
@@ -48,6 +48,9 @@ class AntScalaCompiler implements Compiler<ScalaCompileSpec> {
         Map options = ['destDir': destinationDir] + scalaCompileOptions.optionMap()
         String taskName = scalaCompileOptions.useCompileDaemon ? 'fsc' : 'scalac'
         Iterable<File> compileClasspath = spec.classpath
+
+        LOGGER.info("Compiling with Ant scalac task.")
+        LOGGER.debug("Ant scalac task options: {}", options)
 
         antBuilder.withClasspath(spec.scalaClasspath).execute { ant ->
             taskdef(resource: 'scala/tools/ant/antlib.xml')
