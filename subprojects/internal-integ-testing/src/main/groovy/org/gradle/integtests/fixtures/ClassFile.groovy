@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.java.compile
+package org.gradle.integtests.fixtures
 
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.Opcodes

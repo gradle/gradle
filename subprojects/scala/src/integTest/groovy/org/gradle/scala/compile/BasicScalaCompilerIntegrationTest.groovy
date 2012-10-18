@@ -17,7 +17,7 @@
 package org.gradle.scala.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.java.compile.ClassFile
+import org.gradle.integtests.fixtures.ClassFile
 
 abstract class BasicScalaCompilerIntegrationTest extends AbstractIntegrationSpec {
     def setup() {

@@ -18,6 +18,7 @@
 package org.gradle.java.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ClassFile
 
 abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec {
     def setup() {
