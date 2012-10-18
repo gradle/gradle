@@ -16,14 +16,18 @@
 
 package org.gradle.scala.compile
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ClassFile
+import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
+import org.gradle.integtests.fixtures.TargetVersions
+import org.gradle.util.VersionNumber
 
-abstract class BasicScalaCompilerIntegrationTest extends AbstractIntegrationSpec {
+@TargetVersions(["2.8.2", "2.9.2", "2.10.0-RC1"])
+abstract class BasicScalaCompilerIntegrationTest extends MultiVersionIntegrationSpec {
     def setup() {
         executer.withArguments("-i")
         buildFile << buildScript()
-        buildFile << """
+        buildFile <<
+"""
 repositories {
     mavenCentral()
 }
@@ -41,6 +45,7 @@ DeprecationLogger.whileDisabled {
         expect:
         succeeds("compileScala")
         output.contains(logStatement())
+        !errorOutput
         file("build/classes/main/compile/test/Person.class").exists()
     }
 
@@ -60,7 +65,10 @@ DeprecationLogger.whileDisabled {
         badCode()
 
         and:
-        buildFile << 'compileScala.scalaCompileOptions.failOnError = false'
+        buildFile <<
+"""
+compileScala.scalaCompileOptions.failOnError = false
+"""
 
         expect:
         succeeds("compileScala")
@@ -71,20 +79,20 @@ DeprecationLogger.whileDisabled {
 
     def compileWithSpecifiedEncoding() {
         given:
-        goodCodeEncodedWith('ISO8859_7')
+        goodCodeEncodedWith("ISO8859_7")
 
         and:
-        buildFile << '''
-            apply plugin: 'application'
-            mainClassName = 'Main'
-            compileScala.scalaCompileOptions.encoding = \'ISO8859_7\'
-'''
+        buildFile <<
+"""
+apply plugin: "application"
+mainClassName = "Main"
+compileScala.scalaCompileOptions.encoding = "ISO8859_7"
+"""
 
         expect:
         succeeds("run")
         output.contains(logStatement())
-        !errorOutput
-        file('encoded.out').getText("utf-8") == "\u03b1\u03b2\u03b3"
+        file("encoded.out").getText("utf-8") == "\u03b1\u03b2\u03b3"
     }
 
     def compilesWithSpecifiedDebugSettings() {
@@ -101,29 +109,32 @@ DeprecationLogger.whileDisabled {
         fullDebug.debugIncludesLocalVariables
 
         when:
-        buildFile << """
-compileScala.scalaCompileOptions.debugLevel = 'lines'
+        buildFile <<
+"""
+compileScala.scalaCompileOptions.debugLevel = "line"
 """
         run("compileScala")
 
         then:
         def linesOnly = classFile("build/classes/main/compile/test/Person.class")
-        // Strange, but everything except local variable info is present. Bug in scalac Ant task?
         linesOnly.debugIncludesSourceFile
         linesOnly.debugIncludesLineNumbers
         !linesOnly.debugIncludesLocalVariables
 
+        // older versions of scalac Ant task don't handle 'none' correctly
+        if (versionNumber < VersionNumber.parse("2.10.0-AAA")) return
+
         when:
-        buildFile << """
-compileScala.scalaCompileOptions.debugLevel = 'none'
+        buildFile <<
+"""
+compileScala.scalaCompileOptions.debugLevel = "none"
 """
         run("compileScala")
 
         then:
         def noDebug = classFile("build/classes/main/compile/test/Person.class")
-        // Strange, but everything except local variable info is present. Bug in scalac Ant task?
-        noDebug.debugIncludesSourceFile
-        noDebug.debugIncludesLineNumbers
+        !noDebug.debugIncludesLineNumbers
+        !noDebug.debugIncludesSourceFile
         !noDebug.debugIncludesLocalVariables
     }
 
@@ -131,20 +142,16 @@ compileScala.scalaCompileOptions.debugLevel = 'none'
 
     }
 
-    def getCompilerErrorOutput() {
-        return errorOutput
-    }
-
     def buildScript() {
-        '''
+"""
 apply plugin: "scala"
 
 dependencies {
-    scalaTools "org.scala-lang:scala-compiler:2.9.2"
-    compile "org.scala-lang:scala-library:2.9.2"
+    scalaTools "org.scala-lang:scala-compiler:$version"
+    compile "org.scala-lang:scala-library:$version"
     compile localGroovy()
 }
-'''
+"""
     }
 
     abstract String compilerConfiguration()
@@ -152,7 +159,8 @@ dependencies {
     abstract String logStatement()
 
     def goodCode() {
-        file("src/main/scala/compile/test/Person.scala") << '''
+        file("src/main/scala/compile/test/Person.scala") <<
+"""
 package compile.test
 
 import scala.collection.JavaConversions._
@@ -163,17 +171,20 @@ class Person(val name: String, val age: Int) {
         val x: java.util.Collection[Int] = List(3, 1, 2)
         DefaultGroovyMethods.max(x)
     }
-}'''
-        file("src/main/scala/compile/test/Person2.scala") << '''
+}
+"""
+        file("src/main/scala/compile/test/Person2.scala") <<
+"""
 package compile.test
 
 class Person2(name: String, age: Int) extends Person(name, age) {
 }
-'''
+"""
     }
 
     def goodCodeEncodedWith(String encoding) {
-        def code = '''
+        def code =
+"""
 import java.io.{FileOutputStream, File, OutputStreamWriter}
 
 object Main {
@@ -185,7 +196,7 @@ object Main {
         writer.close()
     }
 }
-'''
+"""
         def file = file("src/main/scala/Main.scala")
         file.parentFile.mkdirs()
         file.withWriter(encoding) { writer ->
@@ -198,12 +209,14 @@ object Main {
     }
 
     def badCode() {
-        file("src/main/scala/compile/test/Person.scala") << '''
-        package compile.test
+        file("src/main/scala/compile/test/Person.scala") <<
+"""
+package compile.test
 
-        class Person(val name: String, val age: Int) {
-            def hello() : String = 42
-        } '''
+class Person(val name: String, val age: Int) {
+    def hello() : String = 42
+}
+"""
     }
 
     def classFile(String path) {

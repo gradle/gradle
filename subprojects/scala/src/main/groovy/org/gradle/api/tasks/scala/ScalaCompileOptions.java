@@ -60,7 +60,7 @@ public class ScalaCompileOptions extends AbstractOptions {
 
     private String force = "never";
 
-    private String targetCompatibility = "1.5";
+    private String targetCompatibility;
 
     private List<String> additionalParameters;
 
@@ -190,14 +190,23 @@ public class ScalaCompileOptions extends AbstractOptions {
     }
 
     /**
-     * Specifies which backend to use.
-     * Legal values: 1.4, 1.5
+     * Returns which backend is to be used.
+     *
+     * @deprecated use {@link ScalaCompile#getTargetCompatibility} instead
      */
     @Input
+    @Optional
+    @Deprecated
     public String getTargetCompatibility() {
         return targetCompatibility;
     }
 
+    /**
+     * Sets which backend is to be used.
+     *
+     * @deprecated use {@link ScalaCompile#setTargetCompatibility} instead
+     */
+    @Deprecated
     public void setTargetCompatibility(String targetCompatibility) {
         this.targetCompatibility = targetCompatibility;
     }
@@ -303,6 +312,7 @@ public class ScalaCompileOptions extends AbstractOptions {
                 || fieldName.equals("forkOptions")
                 || fieldName.equals("useAnt")
                 || fieldName.equals("compilerCacheFile")
+                || fieldName.equals("targetCompatibility") // handled directly by AntScalaCompiler
                 || fieldName.equals("optimize") && !optimize;
     }
 

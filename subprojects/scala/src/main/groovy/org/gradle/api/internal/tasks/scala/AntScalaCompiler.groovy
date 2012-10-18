@@ -18,10 +18,10 @@ package org.gradle.api.internal.tasks.scala
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.project.IsolatedAntBuilder
 import org.gradle.api.tasks.WorkResult
-import org.gradle.api.tasks.scala.ScalaCompileOptions
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.gradle.api.internal.tasks.compile.Compiler
+import org.gradle.util.VersionNumber
 
 class AntScalaCompiler implements Compiler<ScalaCompileSpec> {
     private static final Logger LOGGER = LoggerFactory.getLogger(AntScalaCompiler)
@@ -43,11 +43,13 @@ class AntScalaCompiler implements Compiler<ScalaCompileSpec> {
     }
 
     WorkResult execute(ScalaCompileSpec spec) {
-        File destinationDir = spec.destinationDir
-        ScalaCompileOptions scalaCompileOptions = spec.scalaCompileOptions
-        Map options = ['destDir': destinationDir] + scalaCompileOptions.optionMap()
-        String taskName = scalaCompileOptions.useCompileDaemon ? 'fsc' : 'scalac'
-        Iterable<File> compileClasspath = spec.classpath
+        def destinationDir = spec.destinationDir
+        def scalaCompileOptions = spec.scalaCompileOptions
+
+        def backend = chooseBackend(spec)
+        def options = [destDir: destinationDir, target: backend] + scalaCompileOptions.optionMap()
+        def taskName = scalaCompileOptions.useCompileDaemon ? 'fsc' : 'scalac'
+        def compileClasspath = spec.classpath
 
         LOGGER.info("Compiling with Ant scalac task.")
         LOGGER.debug("Ant scalac task options: {}", options)
@@ -73,4 +75,31 @@ class AntScalaCompiler implements Compiler<ScalaCompileSpec> {
         return { true } as WorkResult
     }
 
+    private VersionNumber sniffScalaVersion(Iterable<File> classpath) {
+        def classLoader = new URLClassLoader(classpath*.toURI()*.toURL() as URL[], (ClassLoader) null)
+        try {
+            def clazz = classLoader.loadClass("scala.util.Properties")
+            return VersionNumber.parse(clazz.scalaPropOrEmpty("maven.version.number"))
+        } catch (ClassNotFoundException ignored) {
+            return VersionNumber.UNKNOWN
+        } catch (LinkageError ignored) {
+            return VersionNumber.UNKNOWN
+        }
+    }
+
+    private String chooseBackend(ScalaCompileSpec spec) {
+        // deprecated, but must still honor
+        if (spec.scalaCompileOptions.targetCompatibility) {
+            return VersionNumber.parse(spec.scalaCompileOptions.targetCompatibility)
+        }
+
+        def target = VersionNumber.parse(spec.targetCompatibility)
+        if (target <= VersionNumber.parse("1.5")) { return "jvm-${target.major}.${target.minor}" }
+
+        def scalaVersion = sniffScalaVersion(spec.scalaClasspath)
+        if (scalaVersion >= VersionNumber.parse("2.10.0-AAA")) { return "jvm-${target.major}.${target.minor}" }
+
+        // prior to Scala 2.10, scalac Ant task only supports "jvm-1.5" and "msil" backends
+        return "jvm-1.5"
+    }
 }
