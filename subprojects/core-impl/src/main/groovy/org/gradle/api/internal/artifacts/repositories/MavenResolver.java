@@ -136,16 +136,14 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
             // replace the revision token in file name with the resolved revision
             String pattern = getWholePattern().replaceFirst("\\-\\[revision\\]", "-" + rev);
             Artifact pomArtifact = DefaultArtifact.newPomArtifact(moduleRevisionId, data.getDate());
-            return findResourceUsingPattern(moduleRevisionId, pattern, pomArtifact, getRMDParser(dd, data), data.getDate(), forDownload);
+            ResourcePattern resourcePattern = toResourcePattern(pattern);
+            return findResourceUsingPattern(moduleRevisionId, resourcePattern, pomArtifact, getRMDParser(dd, data), data.getDate(), forDownload);
         }
         return null;
     }
 
     protected ResolvedResource getArtifactRef(Artifact artifact, Date date, boolean forDownload) {
         ModuleRevisionId moduleRevisionId = artifact.getModuleRevisionId();
-        if (isM2compatible()) {
-            moduleRevisionId = convertM2IdForResourceSearch(moduleRevisionId);
-        }
 
         if (moduleRevisionId.getRevision().endsWith("SNAPSHOT")) {
             ResolvedResource resolvedResource = findSnapshotArtifact(artifact, date, moduleRevisionId, forDownload);
@@ -163,12 +161,14 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
             // replace the revision token in file name with the resolved revision
             // TODO:DAZ We're not using all available artifact patterns here, only the "main" pattern. This means that snapshot artifacts will not be resolved in additional artifact urls.
             String pattern = getWholePattern().replaceFirst("\\-\\[revision\\]", "-" + rev);
-            return findResourceUsingPattern(moduleRevisionId, pattern, artifact, getDefaultRMDParser(artifact.getModuleRevisionId().getModuleId()), date, forDownload);
+            ResourcePattern resourcePattern = toResourcePattern(pattern);
+            return findResourceUsingPattern(moduleRevisionId, resourcePattern, artifact, getDefaultRMDParser(artifact.getModuleRevisionId().getModuleId()), date, forDownload);
         }
         return null;
     }
 
     private String findUniqueSnapshotVersion(ModuleRevisionId moduleRevisionId) {
+        moduleRevisionId = convertM2IdForResourceSearch(moduleRevisionId);
         String metadataLocation = IvyPatternHelper.substitute(root + "[organisation]/[module]/[revision]/maven-metadata.xml", moduleRevisionId);
         MavenMetadata mavenMetadata = parseMavenMetadata(metadataLocation);
 
