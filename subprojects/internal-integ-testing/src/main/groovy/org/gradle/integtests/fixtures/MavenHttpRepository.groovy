@@ -42,6 +42,16 @@ class MavenHttpRepository {
         server.expectGet("$contextPath/$path", backingRepository.getRootDir().file(path))
     }
 
+    void expectMetaDataGetMissing(String groupId, String artifactId) {
+        def path = "${groupId.replace('.', '/')}/$artifactId/maven-metadata.xml"
+        server.expectGetMissing("$contextPath/$path")
+    }
+
+    void expectDirectoryListGet(String groupId, String artifactId) {
+        def path = "${groupId.replace('.', '/')}/$artifactId/"
+        server.expectGetDirectoryListing("$contextPath/$path", backingRepository.getRootDir().file(path))
+    }
+
     MavenHttpModule module(String groupId, String artifactId) {
         return module(groupId, artifactId, "1.0")
     }

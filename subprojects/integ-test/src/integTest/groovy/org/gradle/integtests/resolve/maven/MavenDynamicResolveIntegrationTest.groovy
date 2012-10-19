@@ -50,7 +50,7 @@ class MavenDynamicResolveIntegrationTest extends AbstractDependencyResolutionTes
         projectA.expectArtifactGet()
         projectB.expectPomGet()
         projectB.expectArtifactGet()
-        mavenHttpRepo.expectMetaDataGet("group", "projectC")
+        mavenHttpRepo.expectMetaDataGet("org.test", "projectC")
         projectC.expectPomGet()
         projectC.expectArtifactGet()
 
@@ -68,6 +68,49 @@ class MavenDynamicResolveIntegrationTest extends AbstractDependencyResolutionTes
 
         then:
         file('libs/projectA-1.0.jar').assertHasNotChangedSince(snapshot)
+    }
+
+    def "falls back to directory listing when maven-metadata.xml is missing"() {
+        given:
+        server.start()
+        mavenHttpRepo.module('org.test', 'projectA', '1.0').publish()
+        def projectA = mavenHttpRepo.module('org.test', 'projectA', '1.5').publish()
+
+        buildFile << """
+    repositories {
+        maven { url '${mavenHttpRepo.uri}' }
+    }
+    configurations { compile }
+    dependencies {
+        compile 'org.test:projectA:1.+'
+    }
+
+    task retrieve(type: Sync) {
+        into 'libs'
+        from configurations.compile
+    }
+    """
+
+        when:
+        mavenHttpRepo.expectMetaDataGetMissing("org.test", "projectA")
+        mavenHttpRepo.expectDirectoryListGet("org.test", "projectA")
+        projectA.expectPomGet()
+        projectA.expectArtifactGet()
+
+        and:
+        run 'retrieve'
+
+        then:
+        file('libs').assertHasDescendants('projectA-1.5.jar')
+        def snapshot = file('libs/projectA-1.5.jar').snapshot()
+
+        when:
+        server.resetExpectations()
+        and:
+        run 'retrieve'
+
+        then:
+        file('libs/projectA-1.5.jar').assertHasNotChangedSince(snapshot)
     }
 
     def "does not cache broken module information"() {
