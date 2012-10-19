@@ -61,7 +61,9 @@ Nice messages when user incorrectly uses a command line option.
 
 ### Implementation approach / acceptance criteria
 
-1. None of the potential user problems listed below should lead to an internal error.
+1. None of the potential user mistakes listed below should lead to an internal error.
+1. Current command line options are not handled consistently at the moment.
+    For example, --offline works same as -offline, but --ofline (typo) does not work the same as -ofline
 1. Fix issue where an unknown option leads to an internal error.
 1. Nice error reporting for:
     1. misspelled option(s).
@@ -71,6 +73,22 @@ Nice messages when user incorrectly uses a command line option.
     1. single '-' used instead of '--'
     1. option used but there are no tasks that accept this configuration option
     1. clashing options, e.g. no-value boolean option in one task is a string option in other task
+
+## Make the dependencies' report 'configuration' configurable via cmd line
+
+### User visible changes
+
+It is possible to show the dependencies for a single configuration.
+This way there's way less noise in the report (many times, the user is only interested in compile dependencies).
+Consider defaulting the dependencies report to 'compile' dependencies if java plugin applied.
+
+### Test coverage
+
+TBD
+
+### Implementation approach
+
+TBD
 
 ## Make the feature public
 
@@ -84,6 +102,9 @@ TBD
 
 ### Implementation approach
 
+1. Make sure we're happy with the notation. Current one is:
+ `some_task some_configurable_task --some_option --some_option2 optional_option2_value some_other_task`
+ I'm worried that without some kind of namespacing we'll run into problems in the long run.
 1. Move the `@CommandLineOption` annotation to the public API and mark `@Incubating`.
 2. Add documentation to 'implementing custom tasks` chapter.
 3. Support annotating a Groovy task field.

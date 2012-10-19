@@ -113,10 +113,8 @@ For interesting version modules, the report shows also if the the version was 'f
 
 ### Implementation approach
 
-- 'dependency-reporting' plugin
-    - 'dependencyInsight' task, pre-configured with:
-        - searches for dependency in 'compile' configuration if java applied, otherwise it needs to be configured
-        - requires the dependency name configured (by default does not list all)
+- 'dependencyInsight' implicit task, pre-configured with:
+    - searches for dependency in 'compile' configuration if java applied, otherwise it needs to be configured
 
 - 'dependencyInsight' task configuration:
     - can provide ResolvedDependencyResult predicate
@@ -147,7 +145,24 @@ TBD
 
 TBD
 
-## Inverted dependency report handles resolution failures
+## Dependency insight report handles resolution failures
+
+### User visible changes
+
+TBD
+
+### Test coverage
+
+TBD
+
+### Implementation approach
+
+TBD
+
+## Dependency reports include file dependencies
+
+Currently the dependencies report does not include: file dependencies, gradleApi(), localGroovy() dependencies
+In addition to above, the dependency insight report does not include the project dependencies (not sure if they are needed in this report)
 
 ### User visible changes
 
