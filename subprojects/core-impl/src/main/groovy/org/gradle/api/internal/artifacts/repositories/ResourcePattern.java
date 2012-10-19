@@ -19,7 +19,9 @@ package org.gradle.api.internal.artifacts.repositories;
 import org.apache.ivy.core.module.descriptor.Artifact;
 
 public interface ResourcePattern {
-    String getPattern();
+    String toPath(Artifact artifact);
 
-    String transform(Artifact artifact);
+    String toPathWithoutRevision(Artifact artifact);
+
+    String toModulePath(Artifact artifact);
 }

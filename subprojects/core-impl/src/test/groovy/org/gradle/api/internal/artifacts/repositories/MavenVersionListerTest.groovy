@@ -16,23 +16,22 @@
 
 package org.gradle.api.internal.artifacts.repositories
 
-import org.apache.ivy.core.module.descriptor.Artifact
+import org.apache.ivy.core.module.descriptor.DefaultArtifact
 import org.apache.ivy.core.module.id.ModuleRevisionId
-import org.gradle.api.InvalidUserDataException
 import org.gradle.api.internal.externalresource.ExternalResource
+import org.gradle.api.internal.resource.ResourceException
 import org.gradle.api.internal.resource.ResourceNotFoundException
 import org.xml.sax.SAXParseException
 import spock.lang.Specification
-import org.gradle.api.internal.resource.ResourceException
 
 class MavenVersionListerTest extends Specification {
     def repo = Mock(ExternalResourceRepository)
-    def artifact = Mock(Artifact)
     def moduleRevisionId = ModuleRevisionId.newInstance("org.acme", "testproject", "1.0")
+    def artifact = new DefaultArtifact(moduleRevisionId, new Date(), "testproject", "jar", "jar")
 
     def repository = Mock(ExternalResourceRepository)
     def pattern = pattern("localhost:8081/testRepo/" + MavenPattern.M2_PATTERN)
-    String metaDataResource = 'localhost:8081/testRepo/org.acme/testproject/maven-metadata.xml'
+    String metaDataResource = 'localhost:8081/testRepo/org/acme/testproject/maven-metadata.xml'
 
     final MavenVersionLister lister = new MavenVersionLister(repository)
 
@@ -75,7 +74,7 @@ class MavenVersionListerTest extends Specification {
         versionList.versionStrings == ['1.1', '1.2', '1.3'] as Set
 
         and:
-        1 * repository.getResource('prefix1/org.acme/testproject/maven-metadata.xml') >> resource1
+        1 * repository.getResource('prefix1/org/acme/testproject/maven-metadata.xml') >> resource1
         1 * resource1.openStream() >> new ByteArrayInputStream("""
 <metadata>
     <versioning>
@@ -85,7 +84,7 @@ class MavenVersionListerTest extends Specification {
         </versions>
     </versioning>
 </metadata>""".bytes)
-        1 * repository.getResource('prefix2/org.acme/testproject/maven-metadata.xml') >> resource2
+        1 * repository.getResource('prefix2/org/acme/testproject/maven-metadata.xml') >> resource2
         1 * resource2.openStream() >> new ByteArrayInputStream("""
 <metadata>
     <versioning>
@@ -168,19 +167,7 @@ class MavenVersionListerTest extends Specification {
         0 * repository._
     }
 
-    def "visit throws InvalidUserDataException for non M2 compatible pattern"() {
-        when:
-        def versionList = lister.getVersionList(moduleRevisionId)
-        versionList.visit(pattern("/non/m2/pattern"), artifact)
-
-        then:
-        thrown(InvalidUserDataException)
-        0 * repository._
-    }
-
     def pattern(String pattern) {
-        ResourcePattern resourcePattern = Mock()
-        _ * resourcePattern.pattern >> pattern
-        return resourcePattern
+        return new M2ResourcePattern(pattern)
     }
 }

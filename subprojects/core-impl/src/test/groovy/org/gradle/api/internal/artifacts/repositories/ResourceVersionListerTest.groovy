@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.repositories
 
-import org.apache.ivy.core.module.descriptor.Artifact
+import org.apache.ivy.core.module.descriptor.DefaultArtifact
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.internal.resource.ResourceException
 import org.gradle.api.internal.resource.ResourceNotFoundException
@@ -26,8 +26,8 @@ import spock.lang.Unroll
 class ResourceVersionListerTest extends Specification {
 
     def repo = Mock(ExternalResourceRepository)
-    def artifact = Mock(Artifact)
     def moduleRevisionId = ModuleRevisionId.newInstance("org.acme", "proj1", "1.0")
+    def artifact = new DefaultArtifact(moduleRevisionId, new Date(), "proj1", "jar", "jar")
 
     def ResourceVersionLister lister;
 
@@ -47,7 +47,7 @@ class ResourceVersionListerTest extends Specification {
 
         then:
         ResourceException e = thrown()
-        e.message == "Could not list versions using pattern '/a/pattern/with/[revision]/'."
+        e.message == "Could not list versions using Ivy pattern '/a/pattern/with/[revision]/'."
         e.cause == failure
     }
 
@@ -178,8 +178,6 @@ class ResourceVersionListerTest extends Specification {
     }
 
     def pattern(String pattern) {
-        ResourcePattern resourcePattern = Mock()
-        _ * resourcePattern.pattern >> pattern
-        return resourcePattern
+        return new IvyResourcePattern(pattern)
     }
 }

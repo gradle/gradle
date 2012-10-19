@@ -16,15 +16,12 @@
 
 package org.gradle.api.internal.artifacts.repositories;
 
-import org.apache.ivy.core.IvyPatternHelper;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.resource.ResourceException;
 import org.gradle.api.internal.resource.ResourceNotFoundException;
 
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 public class MavenVersionLister implements VersionLister {
@@ -36,19 +33,13 @@ public class MavenVersionLister implements VersionLister {
 
     public VersionList getVersionList(final ModuleRevisionId moduleRevisionId) {
         return new DefaultVersionList() {
-            final Set<String> patterns = new HashSet<String>();
+            final Set<String> searched = new HashSet<String>();
 
             public void visit(ResourcePattern resourcePattern, Artifact artifact) throws ResourceNotFoundException, ResourceException {
-                String pattern = resourcePattern.getPattern();
-                if (!pattern.endsWith(MavenPattern.M2_PATTERN)) {
-                    throw new InvalidUserDataException("Cannot locate maven-metadata.xml for non-maven layout");
-                }
-                if (!patterns.add(pattern)) {
+                String metadataLocation = resourcePattern.toModulePath(artifact) + "/maven-metadata.xml";
+                if (!searched.add(metadataLocation)) {
                     return;
                 }
-                Map attributes = moduleRevisionId.getModuleId().getAttributes();
-                String metaDataPattern = pattern.substring(0, pattern.length() - MavenPattern.M2_PER_MODULE_PATTERN.length()) + "maven-metadata.xml";
-                String metadataLocation = IvyPatternHelper.substituteTokens(metaDataPattern, attributes);
                 MavenMetadata mavenMetaData = mavenMetadataLoader.load(metadataLocation);
                 add(mavenMetaData.versions);
             }

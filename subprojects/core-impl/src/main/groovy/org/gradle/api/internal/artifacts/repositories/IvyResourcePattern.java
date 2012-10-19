@@ -19,6 +19,9 @@ package org.gradle.api.internal.artifacts.repositories;
 import org.apache.ivy.core.IvyPatternHelper;
 import org.apache.ivy.core.module.descriptor.Artifact;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class IvyResourcePattern implements ResourcePattern {
     private final String pattern;
 
@@ -30,7 +33,27 @@ public class IvyResourcePattern implements ResourcePattern {
         return pattern;
     }
 
-    public String transform(Artifact artifact) {
-        return IvyPatternHelper.substitute(pattern, artifact);
+    @Override
+    public String toString() {
+        return String.format("Ivy pattern '%s'", pattern);
+    }
+
+    public String toPath(Artifact artifact) {
+        Map<String, Object> attributes = toAttributes(artifact);
+        return IvyPatternHelper.substituteTokens(pattern, attributes);
+    }
+
+    public String toPathWithoutRevision(Artifact artifact) {
+        Map<String, Object> attributes = toAttributes(artifact);
+        attributes.remove(IvyPatternHelper.REVISION_KEY);
+        return IvyPatternHelper.substituteTokens(pattern, attributes);
+    }
+
+    public String toModulePath(Artifact artifact) {
+        throw new UnsupportedOperationException("not implemented yet.");
+    }
+
+    protected Map<String, Object> toAttributes(Artifact artifact) {
+        return new HashMap<String, Object>(artifact.getAttributes());
     }
 }

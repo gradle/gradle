@@ -46,9 +46,7 @@ public class ResourceVersionLister implements VersionLister {
             final Set<String> directories = new HashSet<String>();
 
             public void visit(ResourcePattern resourcePattern, Artifact artifact) throws ResourceNotFoundException, ResourceException {
-                ModuleRevisionId idWithoutRevision = ModuleRevisionId.newInstance(moduleRevisionId, REVISION_TOKEN);
-                String pattern = resourcePattern.getPattern();
-                String partiallyResolvedPattern = IvyPatternHelper.substitute(pattern, idWithoutRevision, artifact);
+                String partiallyResolvedPattern = resourcePattern.toPathWithoutRevision(artifact);
                 LOGGER.debug("Listing all in {}", partiallyResolvedPattern);
                 try {
                     List<String> versionStrings = listRevisionToken(partiallyResolvedPattern);
@@ -56,7 +54,7 @@ public class ResourceVersionLister implements VersionLister {
                 } catch (ResourceNotFoundException e) {
                     throw e;
                 } catch (Exception e) {
-                    throw new ResourceException(String.format("Could not list versions using pattern '%s'.", pattern), e);
+                    throw new ResourceException(String.format("Could not list versions using %s.", resourcePattern), e);
                 }
             }
 

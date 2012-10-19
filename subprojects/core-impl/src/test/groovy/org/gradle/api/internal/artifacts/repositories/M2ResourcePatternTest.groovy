@@ -20,6 +20,7 @@ package org.gradle.api.internal.artifacts.repositories
 
 import org.apache.ivy.core.module.descriptor.DefaultArtifact
 import org.apache.ivy.core.module.id.ModuleRevisionId
+import org.gradle.api.InvalidUserDataException
 import spock.lang.Specification
 
 class M2ResourcePatternTest extends Specification {
@@ -30,8 +31,40 @@ class M2ResourcePatternTest extends Specification {
         def artifact3 = DefaultArtifact.newIvyArtifact(ModuleRevisionId.newInstance(null, "projectA", "1.2"), new Date())
 
         expect:
-        pattern.transform(artifact1) == 'prefix/group/projectA/1.2/ivys/1.2/ivy.xml'
-        pattern.transform(artifact2) == 'prefix/org/group/projectA/1.2/ivys/1.2/ivy.xml'
-        pattern.transform(artifact3) == 'prefix/[organisation]/projectA/1.2/ivys/1.2/ivy.xml'
+        pattern.toPath(artifact1) == 'prefix/group/projectA/1.2/ivys/1.2/ivy.xml'
+        pattern.toPath(artifact2) == 'prefix/org/group/projectA/1.2/ivys/1.2/ivy.xml'
+        pattern.toPath(artifact3) == 'prefix/[organisation]/projectA/1.2/ivys/1.2/ivy.xml'
+    }
+
+    def "substitutes artifact attributes without version into pattern"() {
+        def pattern = new M2ResourcePattern("prefix/[organisation]/[module]/[revision]/[type]s/[revision]/[artifact].[ext]")
+        def artifact1 = DefaultArtifact.newIvyArtifact(ModuleRevisionId.newInstance("group", "projectA", "1.2"), new Date())
+        def artifact2 = DefaultArtifact.newIvyArtifact(ModuleRevisionId.newInstance("org.group", "projectA", "1.2"), new Date())
+        def artifact3 = DefaultArtifact.newIvyArtifact(ModuleRevisionId.newInstance(null, "projectA", "1.2"), new Date())
+
+        expect:
+        pattern.toPathWithoutRevision(artifact1) == 'prefix/group/projectA/[revision]/ivys/[revision]/ivy.xml'
+        pattern.toPathWithoutRevision(artifact2) == 'prefix/org/group/projectA/[revision]/ivys/[revision]/ivy.xml'
+        pattern.toPathWithoutRevision(artifact3) == 'prefix/[organisation]/projectA/[revision]/ivys/[revision]/ivy.xml'
+    }
+
+    def "can build module path"() {
+        def pattern = new M2ResourcePattern("prefix/" + MavenPattern.M2_PATTERN)
+        def artifact1 = DefaultArtifact.newIvyArtifact(ModuleRevisionId.newInstance("group", "projectA", "1.2"), new Date())
+        def artifact2 = DefaultArtifact.newIvyArtifact(ModuleRevisionId.newInstance("org.group", "projectA", "1.2"), new Date())
+
+        expect:
+        pattern.toModulePath(artifact1) == 'prefix/group/projectA'
+        pattern.toModulePath(artifact2) == 'prefix/org/group/projectA'
+    }
+
+    def "throws InvalidUserDataException for non M2 compatible pattern"() {
+        def pattern = new M2ResourcePattern("/non/m2/pattern")
+
+        when:
+        pattern.toModulePath(DefaultArtifact.newIvyArtifact(ModuleRevisionId.newInstance("group", "projectA", "1.2"), new Date()))
+
+        then:
+        thrown(InvalidUserDataException)
     }
 }

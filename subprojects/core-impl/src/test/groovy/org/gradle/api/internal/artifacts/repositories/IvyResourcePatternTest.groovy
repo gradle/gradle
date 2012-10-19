@@ -25,9 +25,21 @@ class IvyResourcePatternTest extends Specification {
         def pattern = new IvyResourcePattern("prefix/[organisation]-[module]/[revision]/[type]s/[revision]/[artifact].[ext]")
         def artifact1 = DefaultArtifact.newIvyArtifact(ModuleRevisionId.newInstance("group", "projectA", "1.2"), new Date())
         def artifact2 = DefaultArtifact.newIvyArtifact(ModuleRevisionId.newInstance("org.group", "projectA", "1.2"), new Date())
+        def artifact3 = DefaultArtifact.newIvyArtifact(ModuleRevisionId.newInstance(null, "projectA", "1.2"), new Date())
 
         expect:
-        pattern.transform(artifact1) == 'prefix/group-projectA/1.2/ivys/1.2/ivy.xml'
-        pattern.transform(artifact2) == 'prefix/org.group-projectA/1.2/ivys/1.2/ivy.xml'
+        pattern.toPath(artifact1) == 'prefix/group-projectA/1.2/ivys/1.2/ivy.xml'
+        pattern.toPath(artifact2) == 'prefix/org.group-projectA/1.2/ivys/1.2/ivy.xml'
+        pattern.toPath(artifact3) == 'prefix/[organisation]-projectA/1.2/ivys/1.2/ivy.xml'
+    }
+
+    def "substitutes artifact attributes without revision into pattern"() {
+        def pattern = new IvyResourcePattern("prefix/[organisation]-[module]/[revision]/[type]s/[revision]/[artifact].[ext]")
+        def artifact1 = DefaultArtifact.newIvyArtifact(ModuleRevisionId.newInstance("group", "projectA", "1.2"), new Date())
+        def artifact2 = DefaultArtifact.newIvyArtifact(ModuleRevisionId.newInstance("org.group", "projectA", "1.2"), new Date())
+
+        expect:
+        pattern.toPathWithoutRevision(artifact1) == 'prefix/group-projectA/[revision]/ivys/[revision]/ivy.xml'
+        pattern.toPathWithoutRevision(artifact2) == 'prefix/org.group-projectA/[revision]/ivys/[revision]/ivy.xml'
     }
 }
