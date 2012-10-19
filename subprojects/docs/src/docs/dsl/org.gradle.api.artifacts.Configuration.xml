@@ -83,6 +83,9 @@
             <tr>
                 <td>copyRecursive</td>
             </tr>
+            <tr>
+                <td>getTaskDependencyFromProjectDependency</td>
+            </tr>
         </table>
     </section>
 </section>
