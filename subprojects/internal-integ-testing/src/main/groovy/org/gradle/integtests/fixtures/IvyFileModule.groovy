@@ -31,7 +31,7 @@ class IvyFileModule implements IvyModule {
     final List artifacts = []
     String status = "integration"
     boolean noMetaData
-    int publishCount
+    int publishCount = 1
 
     IvyFileModule(TestFile moduleDir, String organisation, String module, String revision) {
         this.moduleDir = moduleDir
@@ -107,7 +107,7 @@ class IvyFileModule implements IvyModule {
         artifacts.each { artifact ->
             def artifactFile = file(artifact)
             publish(artifactFile) {
-                artifactFile << "${artifactFile.name} : $publishCount"
+                artifactFile.text = "${artifactFile.name} : $publishCount"
             }
         }
         if (noMetaData) {

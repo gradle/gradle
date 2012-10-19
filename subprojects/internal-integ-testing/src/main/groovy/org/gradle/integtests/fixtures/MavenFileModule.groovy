@@ -254,7 +254,7 @@ class MavenFileModule implements MavenModule {
         def artifactFile = artifactFile(artifact)
         publish(artifactFile) {
             if (type != 'pom') {
-                artifactFile << "add some content so that file size isn't zero: $publishCount"
+                artifactFile.text = "${artifactFile.name} : $publishCount"
             }
         }
         return artifactFile

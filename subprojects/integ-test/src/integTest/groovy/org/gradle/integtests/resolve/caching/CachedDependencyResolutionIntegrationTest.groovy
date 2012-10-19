@@ -47,7 +47,7 @@ dependencies {
     compile group: "group", name: "projectA", version: "1.1", changing: true
 }
 
-task retrieve(type: Copy) {
+task retrieve(type: Sync) {
     into 'build'
     from configurations.compile
 }
@@ -218,6 +218,4 @@ task retrieve(type: Copy) {
         headThenGetRequests()
         changedResolve()
     }
-
-
 }

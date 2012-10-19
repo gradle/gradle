@@ -665,4 +665,72 @@ task retrieve(type: Sync) {
         then:
         succeeds('listJars')
     }
+
+    def "reuses cached artifacts across repository types"() {
+        server.start()
+        def ivyRepo = ivyHttpRepo('repo1')
+        def mavenRepo = mavenHttpRepo('repo2')
+        def ivyModule = ivyRepo.module("org.test", "a", "1.1").publish()
+        def mavenModule = mavenRepo.module("org.test", "a", "1.1").publish()
+        assert ivyModule.jarFile.bytes == mavenModule.artifactFile.bytes
+
+        given:
+        buildFile.text = """
+repositories {
+    ivy { url '${ivyRepo.uri}' }
+}
+
+configurations { compile }
+
+dependencies {
+    compile 'org.test:a:1+'
+}
+
+task retrieve(type: Sync) {
+    into 'build'
+    from configurations.compile
+}
+"""
+
+        when:
+        ivyRepo.expectDirectoryListGet("org.test", "a")
+        ivyModule.expectIvyGet()
+        ivyModule.expectJarGet()
+
+        and:
+        run 'retrieve'
+
+        then:
+        file('build').assertHasDescendants('a-1.1.jar')
+
+        when:
+        buildFile.text = """
+repositories {
+    maven { url '${mavenRepo.uri}' }
+}
+
+configurations { compile }
+
+dependencies {
+    compile 'org.test:a:[1.0,2.0)'
+}
+
+task retrieve(type: Sync) {
+    into 'build'
+    from configurations.compile
+}
+"""
+
+        and:
+        mavenRepo.expectMetaDataGet("org.test", "a")
+        mavenModule.expectPomGet()
+        mavenModule.expectArtifactHead()
+        mavenModule.expectArtifactSha1Get()
+
+        and:
+        run 'retrieve'
+
+        then:
+        file('build').assertHasDescendants('a-1.1.jar')
+    }
 }

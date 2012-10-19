@@ -70,8 +70,8 @@ task retrieve(type: Copy) {
         // Server will be hit to get updated versions
         server.expectGet('/repo/group/projectA/1.1/ivy-1.1.xml.sha1', module.sha1File(module.ivyFile))
         server.expectHeadThenGet('/repo/group/projectA/1.1/ivy-1.1.xml', module.ivyFile)
+        server.expectHead('/repo/group/projectA/1.1/projectA-1.1.jar', module.jarFile)
         server.expectGet('/repo/group/projectA/1.1/projectA-1.1.jar.sha1', module.sha1File(module.jarFile))
-        server.expectHeadThenGet('/repo/group/projectA/1.1/projectA-1.1.jar', module.jarFile)
         server.expectGet('/repo/group/projectA/1.1/other-1.1.jar', module.moduleDir.file('other-1.1.jar'))
         server.expectGet('/repo/group/projectB/2.0/ivy-2.0.xml', moduleB.ivyFile)
         server.expectGet('/repo/group/projectB/2.0/projectB-2.0.jar', moduleB.jarFile)
