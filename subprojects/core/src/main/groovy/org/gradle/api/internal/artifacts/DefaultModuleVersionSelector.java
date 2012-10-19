@@ -103,10 +103,6 @@ public class DefaultModuleVersionSelector implements ModuleVersionSelector {
         return result;
     }
 
-    public static ModuleVersionSelector newSelector(ModuleVersionIdentifier id) {
-        return new DefaultModuleVersionSelector(id.getGroup(), id.getName(), id.getVersion());
-    }
-
     public static ModuleVersionSelector newSelector(String group, String name, String version) {
         return new DefaultModuleVersionSelector(group, name, version);
     }

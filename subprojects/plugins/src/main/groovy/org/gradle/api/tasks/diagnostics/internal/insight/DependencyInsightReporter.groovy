@@ -24,8 +24,6 @@ import org.gradle.api.tasks.diagnostics.internal.graph.nodes.InvertedRenderableD
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.SimpleDependency
 
-import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
-
 /**
  * Created: 23/08/2012
  *
@@ -45,7 +43,7 @@ public class DependencyInsightReporter {
             //add description only to the first module
             if (annotated.add(dependency.selected.id)) {
                 //add a heading dependency with the annotation if the dependency does not exist in the graph
-                if (!newId(dependency.requested).equals(dependency.selected.id)) {
+                if (!dependency.requested.getAsSpec().isSatisfiedBy(dependency.selected.id)) {
                     def name = dependency.selected.id.group + ":" + dependency.selected.id.name + ":" + dependency.selected.id.version
                     out << new SimpleDependency(name, describeReason(dependency.selected.selectionReason))
                 } else {
