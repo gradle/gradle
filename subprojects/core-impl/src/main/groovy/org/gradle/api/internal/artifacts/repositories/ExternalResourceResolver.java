@@ -546,7 +546,7 @@ public class ExternalResourceResolver extends BasicResolver {
     protected VersionList listVersions(ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact) {
         try {
             VersionList versionList = versionLister.getVersionList(moduleRevisionId);
-            versionList.visit(pattern, artifact);
+            versionList.visit(new IvyResourcePattern(pattern), artifact);
             return versionList;
         } catch (ResourceNotFoundException e) {
             LOGGER.debug(String.format("Unable to load version list for %s from %s", moduleRevisionId.getModuleId(), getRepository()));

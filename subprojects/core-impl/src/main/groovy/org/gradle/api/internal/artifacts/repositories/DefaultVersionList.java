@@ -39,7 +39,7 @@ public class DefaultVersionList extends AbstractVersionList {
         Iterables.addAll(versions, versionStrings);
     }
 
-    public void visit(String pattern, Artifact artifact) throws ResourceNotFoundException, ResourceException {
+    public void visit(ResourcePattern pattern, Artifact artifact) throws ResourceNotFoundException, ResourceException {
         throw new UnsupportedOperationException();
     }
 

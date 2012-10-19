@@ -18,10 +18,10 @@ package org.gradle.api.internal.artifacts.repositories
 
 import org.apache.ivy.core.module.descriptor.Artifact
 import org.apache.ivy.core.module.id.ModuleRevisionId
+import org.gradle.api.internal.resource.ResourceException
 import org.gradle.api.internal.resource.ResourceNotFoundException
 import spock.lang.Specification
 import spock.lang.Unroll
-import org.gradle.api.internal.resource.ResourceException
 
 class ResourceVersionListerTest extends Specification {
 
@@ -38,7 +38,7 @@ class ResourceVersionListerTest extends Specification {
     def "visit propagates Exceptions as ResourceException"() {
         setup:
         def failure = new IOException("Test IO Exception")
-        def testPattern = "/a/pattern/with/[revision]/"
+        def testPattern = pattern("/a/pattern/with/[revision]/")
         1 * repo.list(_) >> { throw failure }
 
         when:
@@ -57,7 +57,7 @@ class ResourceVersionListerTest extends Specification {
 
         when:
         def versionList = lister.getVersionList(moduleRevisionId)
-        versionList.visit(testPattern, artifact)
+        versionList.visit(pattern(testPattern), artifact)
 
         then:
         ResourceNotFoundException e = thrown()
@@ -73,7 +73,7 @@ class ResourceVersionListerTest extends Specification {
 
         when:
         def versionList = lister.getVersionList(moduleRevisionId)
-        versionList.visit("/some/[revision]", artifact)
+        versionList.visit(pattern("/some/[revision]"), artifact)
 
         then:
         versionList.empty
@@ -83,7 +83,7 @@ class ResourceVersionListerTest extends Specification {
     def "visit resolves versions from from pattern with '#testPattern'"() {
         when:
         def versionList = lister.getVersionList(moduleRevisionId)
-        versionList.visit(testPattern, artifact)
+        versionList.visit(pattern(testPattern), artifact)
 
         then:
         versionList.versionStrings == ["1", "2.1", "a-version"] as Set
@@ -116,8 +116,8 @@ class ResourceVersionListerTest extends Specification {
     def "visit builds union of versions"() {
         when:
         def versionList = lister.getVersionList(moduleRevisionId)
-        versionList.visit("/[revision]/[artifact]-[revision].[ext]", artifact)
-        versionList.visit("/[organisation]/[revision]/[artifact]-[revision].[ext]", artifact)
+        versionList.visit(pattern("/[revision]/[artifact]-[revision].[ext]"), artifact)
+        versionList.visit(pattern("/[organisation]/[revision]/[artifact]-[revision].[ext]"), artifact)
 
         then:
         versionList.versionStrings == ["1.2", "1.3", "1.4"] as Set
@@ -131,8 +131,8 @@ class ResourceVersionListerTest extends Specification {
     def "visit ignores duplicate patterns"() {
         when:
         def versionList = lister.getVersionList(moduleRevisionId)
-        versionList.visit("/a/[revision]/[artifact]-[revision].[ext]", artifact)
-        versionList.visit("/a/[revision]/[artifact]-[revision]", artifact)
+        versionList.visit(pattern("/a/[revision]/[artifact]-[revision].[ext]"), artifact)
+        versionList.visit(pattern("/a/[revision]/[artifact]-[revision]"), artifact)
 
         then:
         versionList.versionStrings == ["1.2", "1.3"] as Set
@@ -145,19 +145,20 @@ class ResourceVersionListerTest extends Specification {
     def "visit substitutes non revision placeholders from pattern before hitting repository"() {
         when:
         def versionList = lister.getVersionList(moduleRevisionId)
-        versionList.visit(inputPattern, artifact)
+        versionList.visit(pattern(inputPattern), artifact)
 
         then:
-        1 * repo.list(repoPath) >> []
+        1 * repo.list(repoPath) >> ['1.2']
 
         where:
-        inputPattern                          | repoPath
-        "/[organisation]/[revision]"          | "/org.acme/"
-        "/[organization]/[revision]"          | "/org.acme/"
-        "/[module]/[revision]"                | "/proj1/"
-        "/[module]/[revision]-lib.[ext]"      | "/proj1/"
-        "/[organisation]/[module]/[revision]" | "/org.acme/proj1/"
-        "/[revision]/[module]/[organisation]" | "/"
+        inputPattern                                  | repoPath
+        "/[organisation]/[revision]"                  | "/org.acme/"
+        "/[organization]/[revision]"                  | "/org.acme/"
+        "/[module]/[revision]"                        | "/proj1/"
+        "/[module]/[revision]-lib.[ext]"              | "/proj1/"
+        "/[organisation]/[module]/[revision]"         | "/org.acme/proj1/"
+        "/[revision]/[module]/[organisation]"         | "/"
+        "/[type]s/[module]/[organisation]/[revision]" | "/jars/proj1/org.acme/"
     }
 
     def "visit returns empty version list when pattern has no revision token"() {
@@ -166,7 +167,7 @@ class ResourceVersionListerTest extends Specification {
 
         when:
         def versionList = lister.getVersionList(moduleRevisionId)
-        versionList.visit(testPattern, artifact)
+        versionList.visit(pattern(testPattern), artifact)
 
         then:
         versionList.empty
@@ -174,5 +175,11 @@ class ResourceVersionListerTest extends Specification {
         where:
         testPattern                      | repoResult
         "/some/pattern/with/no/revision" | ["/some/1-version", "/some/2.1-version", "/some/a-version-version"]
+    }
+
+    def pattern(String pattern) {
+        ResourcePattern resourcePattern = Mock()
+        _ * resourcePattern.pattern >> pattern
+        return resourcePattern
     }
 }

@@ -38,8 +38,8 @@ public class MavenVersionLister implements VersionLister {
         return new DefaultVersionList() {
             final Set<String> patterns = new HashSet<String>();
 
-            @Override
-            public void visit(String pattern, Artifact artifact) throws ResourceNotFoundException, ResourceException {
+            public void visit(ResourcePattern resourcePattern, Artifact artifact) throws ResourceNotFoundException, ResourceException {
+                String pattern = resourcePattern.getPattern();
                 if (!pattern.endsWith(MavenPattern.M2_PATTERN)) {
                     throw new InvalidUserDataException("Cannot locate maven-metadata.xml for non-maven layout");
                 }

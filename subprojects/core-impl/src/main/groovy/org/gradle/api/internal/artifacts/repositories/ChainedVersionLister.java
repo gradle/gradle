@@ -41,7 +41,7 @@ public class ChainedVersionLister implements VersionLister {
             versionLists.add(lister.getVersionList(moduleRevisionId));
         }
         return new AbstractVersionList() {
-            public void visit(String pattern, Artifact artifact) throws ResourceNotFoundException, ResourceException {
+            public void visit(ResourcePattern pattern, Artifact artifact) throws ResourceNotFoundException, ResourceException {
                 final Iterator<VersionList> versionListIterator = versionLists.iterator();
                 while (versionListIterator.hasNext()) {
                     VersionList list = versionListIterator.next();

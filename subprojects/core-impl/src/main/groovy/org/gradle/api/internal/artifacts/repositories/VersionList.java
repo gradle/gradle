@@ -31,7 +31,7 @@ public interface VersionList {
      * @throws ResourceNotFoundException If information for versions cannot be found.
      * @throws ResourceException If information for versions cannot be loaded.
      */
-    void visit(String pattern, Artifact artifact) throws ResourceNotFoundException, ResourceException;
+    void visit(ResourcePattern pattern, Artifact artifact) throws ResourceNotFoundException, ResourceException;
 
     Set<String> getVersionStrings();
 

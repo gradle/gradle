@@ -31,7 +31,7 @@ class MavenVersionListerTest extends Specification {
     def moduleRevisionId = ModuleRevisionId.newInstance("org.acme", "testproject", "1.0")
 
     def repository = Mock(ExternalResourceRepository)
-    def pattern = "localhost:8081/testRepo/" + MavenPattern.M2_PATTERN
+    def pattern = pattern("localhost:8081/testRepo/" + MavenPattern.M2_PATTERN)
     String metaDataResource = 'localhost:8081/testRepo/org.acme/testproject/maven-metadata.xml'
 
     final MavenVersionLister lister = new MavenVersionLister(repository)
@@ -58,7 +58,8 @@ class MavenVersionListerTest extends Specification {
     </versioning>
 </metadata>""".bytes)
         1 * resource.close()
-        0 * _._
+        0 * repository._
+        0 * resource._
     }
 
     def "visit builds union of versions"() {
@@ -67,8 +68,8 @@ class MavenVersionListerTest extends Specification {
 
         when:
         def versionList = lister.getVersionList(moduleRevisionId)
-        versionList.visit("prefix1/" + MavenPattern.M2_PATTERN, artifact)
-        versionList.visit("prefix2/" + MavenPattern.M2_PATTERN, artifact)
+        versionList.visit(pattern("prefix1/" + MavenPattern.M2_PATTERN), artifact)
+        versionList.visit(pattern("prefix2/" + MavenPattern.M2_PATTERN), artifact)
 
         then:
         versionList.versionStrings == ['1.1', '1.2', '1.3'] as Set
@@ -119,7 +120,8 @@ class MavenVersionListerTest extends Specification {
     </versioning>
 </metadata>""".bytes)
         1 * resource.close()
-        0 * _._
+        0 * repository._
+        0 * resource._
     }
 
     def "visit throws ResourceNotFoundException when maven-metadata not available"() {
@@ -169,10 +171,16 @@ class MavenVersionListerTest extends Specification {
     def "visit throws InvalidUserDataException for non M2 compatible pattern"() {
         when:
         def versionList = lister.getVersionList(moduleRevisionId)
-        versionList.visit("/non/m2/pattern", artifact)
+        versionList.visit(pattern("/non/m2/pattern"), artifact)
 
         then:
         thrown(InvalidUserDataException)
         0 * repository._
+    }
+
+    def pattern(String pattern) {
+        ResourcePattern resourcePattern = Mock()
+        _ * resourcePattern.pattern >> pattern
+        return resourcePattern
     }
 }

@@ -31,8 +31,7 @@ import java.util.regex.Pattern;
 
 public class ResourceVersionLister implements VersionLister {
     private static final Logger LOGGER = LoggerFactory.getLogger(ResourceVersionLister.class);
-    public static final String REVISION_KEY = "revision";
-    private static final String REVISION_TOKEN = "[" + REVISION_KEY + "]";
+    private static final String REVISION_TOKEN = IvyPatternHelper.getTokenString(IvyPatternHelper.REVISION_KEY);
     public static final int REV_TOKEN_LENGTH = REVISION_TOKEN.length();
 
     private final ExternalResourceRepository repository;
@@ -46,9 +45,9 @@ public class ResourceVersionLister implements VersionLister {
         return new DefaultVersionList() {
             final Set<String> directories = new HashSet<String>();
 
-            @Override
-            public void visit(String pattern, Artifact artifact) throws ResourceNotFoundException, ResourceException {
-                ModuleRevisionId idWithoutRevision = ModuleRevisionId.newInstance(moduleRevisionId, IvyPatternHelper.getTokenString(IvyPatternHelper.REVISION_KEY));
+            public void visit(ResourcePattern resourcePattern, Artifact artifact) throws ResourceNotFoundException, ResourceException {
+                ModuleRevisionId idWithoutRevision = ModuleRevisionId.newInstance(moduleRevisionId, REVISION_TOKEN);
+                String pattern = resourcePattern.getPattern();
                 String partiallyResolvedPattern = IvyPatternHelper.substitute(pattern, idWithoutRevision, artifact);
                 LOGGER.debug("Listing all in {}", partiallyResolvedPattern);
                 try {

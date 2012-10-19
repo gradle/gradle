@@ -31,6 +31,7 @@ class ChainedVersionListerTest extends Specification {
     VersionList versionList1 = Mock()
     VersionList versionList2 = Mock()
 
+    ResourcePattern pattern = Mock()
     Artifact artifact = Mock()
     ModuleRevisionId moduleRevisionId = Mock()
 
@@ -45,10 +46,10 @@ class ChainedVersionListerTest extends Specification {
         1 * lister2.getVersionList(moduleRevisionId) >> versionList2
 
         when:
-        versionList.visit("testPattern", artifact)
+        versionList.visit(pattern, artifact)
 
         then:
-        1 * versionList1.visit("testPattern", artifact)
+        1 * versionList1.visit(pattern, artifact)
         0 * _._
 
         when:
@@ -71,11 +72,11 @@ class ChainedVersionListerTest extends Specification {
         VersionList versionList = chainedVersionLister.getVersionList(moduleRevisionId)
 
         when:
-        versionList.visit("testPattern", artifact)
+        versionList.visit(pattern, artifact)
 
         then:
-        1 * versionList1.visit("testPattern", artifact) >> { throw exception }
-        1 * versionList2.visit("testPattern", artifact)
+        1 * versionList1.visit(pattern, artifact) >> { throw exception }
+        1 * versionList2.visit(pattern, artifact)
 
         where:
         exception << [new ResourceNotFoundException("test resource not found exception"), new ResourceException("test resource exception"), new RuntimeException("broken")]
@@ -90,15 +91,15 @@ class ChainedVersionListerTest extends Specification {
         VersionList versionList = chainedVersionLister.getVersionList(moduleRevisionId)
 
         when:
-        versionList.visit("testPattern", artifact)
+        versionList.visit(pattern, artifact)
 
         then:
         def e = thrown(ResourceNotFoundException)
         e == exception
 
         and:
-        1 * versionList1.visit("testPattern", artifact) >> { throw new ResourceNotFoundException("ignore me") }
-        1 * versionList2.visit("testPattern", artifact) >> { throw exception }
+        1 * versionList1.visit(pattern, artifact) >> { throw new ResourceNotFoundException("ignore me") }
+        1 * versionList2.visit(pattern, artifact) >> { throw exception }
     }
 
     def "visit wraps failed last VersionLister"() {
@@ -110,7 +111,7 @@ class ChainedVersionListerTest extends Specification {
         VersionList versionList = chainedVersionLister.getVersionList(moduleRevisionId)
 
         when:
-        versionList.visit("testPattern", artifact)
+        versionList.visit(pattern, artifact)
 
         then:
         def e = thrown(ResourceException)
@@ -118,7 +119,7 @@ class ChainedVersionListerTest extends Specification {
         e.cause == exception
 
         and:
-        1 * versionList1.visit("testPattern", artifact) >> { throw new ResourceNotFoundException("ignore me") }
-        1 * versionList2.visit("testPattern", artifact) >> { throw exception }
+        1 * versionList1.visit(pattern, artifact) >> { throw new ResourceNotFoundException("ignore me") }
+        1 * versionList2.visit(pattern, artifact) >> { throw exception }
     }
 }
