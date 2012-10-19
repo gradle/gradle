@@ -361,7 +361,7 @@ public class ExternalResourceResolver extends BasicResolver {
         }
     }
 
-    public ResolvedResource findLatestResource(ModuleRevisionId mrid, VersionList versions, ResourceMDParser rmdparser, Date date, String pattern, Artifact artifact, boolean forDownload) throws IOException {
+    public ResolvedResource findLatestResource(ModuleRevisionId mrid, VersionList versions, ResourceMDParser rmdparser, Date date, String pattern, Artifact artifact, boolean forDownload) {
         String name = getName();
         VersionMatcher versionMatcher = getSettings().getVersionMatcher();
         List<String> sorted = versions.sortLatestFirst(getLatestStrategy());
@@ -374,6 +374,7 @@ public class ExternalResourceResolver extends BasicResolver {
             }
 
             boolean needsModuleDescriptor = versionMatcher.needModuleDescriptor(mrid, foundMrid);
+            artifact = DefaultArtifact.cloneWithAnotherMrid(artifact, foundMrid);
             String resourcePath = IvyPatternHelper.substitute(pattern, foundMrid, artifact);
             Resource resource = getResource(resourcePath, artifact, forDownload || needsModuleDescriptor);
             String description = version + " [" + resource + "]";
@@ -409,23 +410,16 @@ public class ExternalResourceResolver extends BasicResolver {
     }
 
     protected ResolvedResource findResourceUsingPattern(ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact, ResourceMDParser resourceParser, Date date, boolean forDownload) {
-        String name = getName();
         VersionMatcher versionMatcher = getSettings().getVersionMatcher();
-        try {
-            if (!versionMatcher.isDynamic(moduleRevisionId)) {
-                return findStaticResourceUsingPattern(moduleRevisionId, pattern, artifact, forDownload);
-            } else {
-                return findDynamicResourceUsingPattern(resourceParser, moduleRevisionId, pattern, artifact, date, forDownload);
-            }
-        } catch (IOException ex) {
-            throw new RuntimeException(name + ": unable to get resource for " + moduleRevisionId + ": res=" + IvyPatternHelper.substitute(pattern, moduleRevisionId, artifact) + ": " + ex, ex);
+        if (!versionMatcher.isDynamic(moduleRevisionId)) {
+            return findStaticResourceUsingPattern(moduleRevisionId, pattern, artifact, forDownload);
+        } else {
+            return findDynamicResourceUsingPattern(resourceParser, moduleRevisionId, pattern, artifact, date, forDownload);
         }
     }
 
-    private ResolvedResource findStaticResourceUsingPattern(ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact, boolean forDownload) throws IOException {
+    private ResolvedResource findStaticResourceUsingPattern(ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact, boolean forDownload) {
         String resourceName = IvyPatternHelper.substitute(pattern, moduleRevisionId, artifact);
-        logAttempt(resourceName);
-
         LOGGER.debug("Loading {}", resourceName);
         Resource res = getResource(resourceName, artifact, forDownload);
         if (res.exists()) {
@@ -437,8 +431,7 @@ public class ExternalResourceResolver extends BasicResolver {
         }
     }
 
-    private ResolvedResource findDynamicResourceUsingPattern(ResourceMDParser resourceParser, ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact, Date date, boolean forDownload) throws IOException {
-        logAttempt(IvyPatternHelper.substitute(pattern, ModuleRevisionId.newInstance(moduleRevisionId, IvyPatternHelper.getTokenString(IvyPatternHelper.REVISION_KEY)), artifact));
+    private ResolvedResource findDynamicResourceUsingPattern(ResourceMDParser resourceParser, ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact, Date date, boolean forDownload) {
         VersionList versions = listVersions(moduleRevisionId, pattern, artifact);
         ResolvedResource found = findLatestResource(moduleRevisionId, versions, resourceParser, date, pattern, artifact, forDownload);
         if (found == null) {
@@ -529,17 +522,21 @@ public class ExternalResourceResolver extends BasicResolver {
         throw new UnsupportedOperationException();
     }
 
-    protected Resource getResource(String source, Artifact target, boolean forDownload) throws IOException {
-        if (forDownload) {
-            ArtifactRevisionId arid = target.getId();
-            LocallyAvailableResourceCandidates localCandidates = locallyAvailableResourceFinder.findCandidates(arid);
-            CachedExternalResource cached = cachedExternalResourceIndex.lookup(source);
-            ExternalResource resource = repository.getResource(source, localCandidates, cached);
-            return resource == null ? new MissingExternalResource(source) : resource;
-        } else {
-            // TODO - there's a potential problem here in that we don't carry correct isLocal data in MetaDataOnlyExternalResource
-            ExternalResourceMetaData metaData = repository.getResourceMetaData(source);
-            return metaData == null ? new MissingExternalResource(source) : new MetaDataOnlyExternalResource(source, metaData);
+    protected Resource getResource(String source, Artifact target, boolean forDownload) {
+        try {
+            if (forDownload) {
+                ArtifactRevisionId arid = target.getId();
+                LocallyAvailableResourceCandidates localCandidates = locallyAvailableResourceFinder.findCandidates(arid);
+                CachedExternalResource cached = cachedExternalResourceIndex.lookup(source);
+                ExternalResource resource = repository.getResource(source, localCandidates, cached);
+                return resource == null ? new MissingExternalResource(source) : resource;
+            } else {
+                // TODO - there's a potential problem here in that we don't carry correct isLocal data in MetaDataOnlyExternalResource
+                ExternalResourceMetaData metaData = repository.getResourceMetaData(source);
+                return metaData == null ? new MissingExternalResource(source) : new MetaDataOnlyExternalResource(source, metaData);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(String.format("Could not get resource '%s'.", source), e);
         }
     }
 

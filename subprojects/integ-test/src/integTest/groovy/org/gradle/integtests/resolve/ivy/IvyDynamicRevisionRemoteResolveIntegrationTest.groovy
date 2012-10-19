@@ -416,6 +416,59 @@ task retrieve(type: Sync) {
         result.assertTaskSkipped(':retrieve')
     }
 
+    def "reuses cached artifacts that match multiple dynamic versions"() {
+        server.start()
+
+        given:
+        buildFile << """
+repositories {
+    ivy { url "${ivyHttpRepo.uri}" }
+}
+
+configurations { deps1; deps2 }
+
+dependencies {
+    deps1 group: "org.test", name: "projectA", version: "1.+"
+    deps2 group: "org.test", name: "projectA", version: "[1.0,2.0)"
+}
+
+task retrieve1(type: Sync) {
+    from configurations.deps1
+    into 'libs1'
+}
+task retrieve2(type: Sync) {
+    from configurations.deps2
+    into 'libs2'
+}
+"""
+
+        when:
+        ivyHttpRepo.module("org.test", "projectA", "1.1").publish()
+        def projectA12 = ivyHttpRepo.module("org.test", "projectA", "1.2").publish()
+
+        and:
+        ivyHttpRepo.expectDirectoryListGet("org.test", "projectA")
+        projectA12.expectIvyGet()
+        projectA12.expectJarGet()
+
+        and:
+        run 'retrieve1'
+
+        then:
+        file('libs1').assertHasDescendants('projectA-1.2.jar')
+
+        when:
+        server.resetExpectations()
+        ivyHttpRepo.expectDirectoryListGet("org.test", "projectA")
+        projectA12.expectIvyHead()
+
+        and:
+        run 'retrieve2'
+
+        then:
+        file('libs1').assertHasDescendants('projectA-1.2.jar')
+    }
+
     def "caches resolved revisions until cache expiry"() {
         server.start()
 

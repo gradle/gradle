@@ -115,4 +115,52 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants('projectB-1.0.jar')
         file('libs/projectB-1.0.jar').assertContentsHaveNotChangedSince(snapshot)
     }
+
+    def "uses cached artifacts from previous Gradle version that match dynamic version"() {
+        given:
+        def projectB = mavenRepo.module('org.name', 'projectB', '1.1').publish()
+        server.start()
+
+        buildFile << """
+repositories {
+    maven { url 'http://localhost:${server.port}' }
+}
+configurations { compile }
+dependencies {
+    compile 'org.name:projectB:[1.0,2.0]'
+}
+
+task retrieve(type: Sync) {
+    into 'libs'
+    from configurations.compile
+}
+"""
+        and:
+        def userHome = file('user-home')
+
+        when:
+        server.allowGetOrHead('/org', mavenRepo.rootDir.file('org'))
+
+        and:
+        version previous withUserHomeDir userHome withTasks 'retrieve' withArguments '-i' run()
+
+        then:
+        file('libs').assertHasDescendants('projectB-1.1.jar')
+        def snapshot = file('libs/projectB-1.1.jar').snapshot()
+
+        when:
+        server.resetExpectations()
+        server.expectGet("/org/name/projectB/maven-metadata.xml", projectB.rootMetaDataFile)
+        projectB.allowPomHead(server)
+        projectB.allowPomSha1GetOrHead(server)
+        projectB.allowArtifactHead(server)
+        projectB.allowArtifactSha1GetOrHead(server)
+
+        and:
+        version current withUserHomeDir userHome withTasks 'retrieve' withArguments '-i' run()
+
+        then:
+        file('libs').assertHasDescendants('projectB-1.1.jar')
+        file('libs/projectB-1.1.jar').assertContentsHaveNotChangedSince(snapshot)
+    }
 }
