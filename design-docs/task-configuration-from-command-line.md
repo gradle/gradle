@@ -2,44 +2,75 @@ command line options & task configuration
 
 # Use cases
 
-1. User selects the set of dependencies to run dependency reports for.
+1. User selects the dependency criteria to run dependency reports for.
 2. User selects which tests to include/exclude for test execution.
 3. User requests that tests be executed with debugging enabled.
 4. User specifies which Gradle version to perform an upgrade comparision build against.
 5. User specifies which Gradle version the wrapper should use.
-
-# Implementation plan
 
 ## State of things
 
 State of things now: There's an internal `@CommandLineOption(options='theOption', description='some description')` annotation that:
 
 1. Makes `theOption` usable on command line via `--theOption`
-2. Configures the boolean setter `setTheOption()` with `true` (this setter is annotated with `@CommandLineOption`)
-3. Is pretty much limited to implict tasks only because it only configures if single task is selected.
-This means that if multiple tasks with same name are selected for execution (name-matching execution) then this option will not configure any of the tasks.
-It might have been implemented this way to avoid extensive reflecting on many types to find method annotated with `@CommandLineOption`.
+2. Works only with Strings and booleans setters (e.g. `setTheOption()`), which are annotated with `@CommandLineOption`
 
-## Support the new dependency report
+# Stories
 
-Here's what is needed for the 'dependencyInsightReport' that renders the inverted dependency tree(s) for given dependency (more about that - see the the spec about improving dependency reporting).
-This report needs some support on the command line.
+## Configure dependency and configuration for the dependency insight report
+
+There should be some simple way to run the report from the command line.
+While doing that consider adding support for selecting configuration for the regular 'dependencies' report from command line.
 
 ### User visible changes
 
-TBD
+1. When the dependencyInsight task is issued from the command line, it is possible to configure extra command line parameters.
+It's not 100% decided what will be the naming of the parameters, currently it would be:
+ dependencyInsight --include org.foo:bar --configuration runtime
+ When we decide on exact naming of the task and the parameters, this spec needs to be updated.
+1. Each parameter must be applicable to at least one task specified at command line. If any of the parameters cannot be applied to any of the tasks
+ then the command should fail fast. Examples:
+    'dependencyInsight --include x --configuration y' - works fine
+    'clean build dependencyInsight --include x --configuration y' - works fine, applies the configuration only to dependencyInsight task
+    'clean build --include x --configuration' - breaks as the dependencyInsight is not included so the parameters should not be used
+1. If multiple tasks match given parameters (for example, when name-matching execution schedules multiple dependency insight tasks)
+ then *all* of the tasks should be configured with given parameters.
+1. The command line parameter takes precedence over the build script configuration
 
 ### Test coverage
 
-TBD
+1. uses command line parameter to configure task
+1. the command line parameter takes precedence over the build script configuration
+1. configures multiple tasks if parameters match multiple tasks
+1. deals with the scenario when value of the parameter matches some existing task name
+1. multiple different tasks configured at single command line
+1. works when there are other, not-configurable tasks scheduled
+1. nice error messages on incorrect use are fine. More in a separate story.
 
-### Implementation approach
+## Improve error handling
 
-1. Make the command line option can carry the `String` value. E.g. remove the current limitation of only `boolean` fields supported.
-2. Work well if if name-matching selection returns multiple tasks from different projects. I assume we want to configure them all.
-3. Make sure the performance does not regress when we start reflecting on types more.
-4. Handle the case when the option is missing the value.
-5. Use `NotationParser` to perform the conversion.
+### User visible changes
+
+Nice messages when user incorrectly uses a command line option.
+
+### Test coverage
+
+1. all acceptance criteria
+1. works if there are extra unrelated, non-configurable tasks
+1. works in a multi-project build
+
+### Implementation approach / acceptance criteria
+
+1. None of the potential user problems listed below should lead to an internal error.
+1. Fix issue where an unknown option leads to an internal error.
+1. Nice error reporting for:
+    1. misspelled option(s).
+    1. options required but not provided.
+    1. option needs a value (e.g. String) but none provided.
+    1. options that must not have value (e.g. boolean options) but value was provided
+    1. single '-' used instead of '--'
+    1. option used but there are no tasks that accept this configuration option
+    1. clashing options, e.g. no-value boolean option in one task is a string option in other task
 
 ## Make the feature public
 
@@ -56,22 +87,6 @@ TBD
 1. Move the `@CommandLineOption` annotation to the public API and mark `@Incubating`.
 2. Add documentation to 'implementing custom tasks` chapter.
 3. Support annotating a Groovy task field.
-
-## Improve error handling
-
-### User visible changes
-
-TBD
-
-### Test coverage
-
-TBD
-
-### Implementation approach
-
-1. Fix issue where an unknown option leads to an internal error.
-2. Nice error reporting for misspelled options.
-3. Nice error reporting for options that are required but not provided.
 
 ## Allow command-line options to be discovered
 
@@ -123,9 +138,7 @@ TBD
 
 # Open issues
 
-1. Figure out what to do if multiple tasks are selected.
-2. Figure out what to do if multiple tasks of different types are selected *and* there are clashing command line options.
+1. Figure out what to do if multiple tasks of different types are selected *and* there are clashing command line options.
 For example, 'foo' option that requires a string value in one task type but is a boolean flag in some other task type.
 This is not a blocker because we have very little command line options, yet.
-3. Decide on precedence order if task is configured from the command line and in the build script. Add coverage, etc.
-4. Figure out how the options are documented, wheter it is a 'tasks' view, etc. Currently it will be user guide / dsl reference.
+1. Decide on precedence order if task is configured from the command line and in the build script. Add coverage, etc.
