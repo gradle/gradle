@@ -32,6 +32,8 @@ interface MavenModule {
 
     MavenModule withNonUniqueSnapshots()
 
+    MavenModule dependsOn(String group, String artifactId, String version)
+
     TestFile getPomFile()
 
     TestFile getArtifactFile()

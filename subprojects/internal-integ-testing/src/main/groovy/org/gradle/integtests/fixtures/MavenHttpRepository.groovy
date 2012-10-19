@@ -37,6 +37,11 @@ class MavenHttpRepository {
         return new URI("http://localhost:${server.port}${contextPath}")
     }
 
+    void expectMetaDataGet(String groupId, String artifactId) {
+        def path = "${groupId.replace('.', '/')}/$artifactId/maven-metadata.xml"
+        server.expectGet("$contextPath/$path", backingRepository.getRootDir().file(path))
+    }
+
     MavenHttpModule module(String groupId, String artifactId) {
         return module(groupId, artifactId, "1.0")
     }

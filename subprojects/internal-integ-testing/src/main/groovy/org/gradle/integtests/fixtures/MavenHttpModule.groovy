@@ -44,6 +44,11 @@ class MavenHttpModule implements MavenModule {
         return this
     }
 
+    MavenModule dependsOn(String group, String artifactId, String version) {
+        backingModule.dependsOn(group, artifactId, version)
+        return this
+    }
+
     TestFile getPomFile() {
         return backingModule.pomFile
     }

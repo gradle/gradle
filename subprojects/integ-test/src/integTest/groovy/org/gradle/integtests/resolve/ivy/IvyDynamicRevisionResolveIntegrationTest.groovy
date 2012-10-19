@@ -32,7 +32,7 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
   }
   configurations { compile }
   dependencies {
-      compile 'group:projectA:latest.integration'
+      compile 'org.test:projectA:latest.integration'
   }
   task retrieve(type: Sync) {
       from configurations.compile
@@ -47,29 +47,29 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
         failureHasCause 'Could not find any version that matches group:group, module:projectA, version:latest.integration.'
 
         when:
-        ivyRepo.module('group', 'projectA', '1.0').withNoMetaData().publish()
+        ivyRepo.module('org.test', 'projectA', '1.0').withNoMetaData().publish()
         run 'retrieve'
 
         then:
         file('libs').assertHasDescendants('projectA-1.0.jar')
 
         when:
-        ivyRepo.module('group', 'projectA', '1.1').withStatus('integration').publish()
-        ivyRepo.module('group', 'projectA', '1.2').withStatus('integration').publish()
+        ivyRepo.module('org.test', 'projectA', '1.1').withStatus('integration').publish()
+        ivyRepo.module('org.test', 'projectA', '1.2').withStatus('integration').publish()
         run 'retrieve'
 
         then:
         file('libs').assertHasDescendants('projectA-1.2.jar')
 
         when:
-        ivyRepo.module('group', 'projectA', '1.3').withStatus('release').publish()
+        ivyRepo.module('org.test', 'projectA', '1.3').withStatus('release').publish()
         run 'retrieve'
 
         then:
         file('libs').assertHasDescendants('projectA-1.3.jar')
 
         when:
-        ivyRepo.module('group', 'projectA', '1.4').withNoMetaData().publish()
+        ivyRepo.module('org.test', 'projectA', '1.4').withNoMetaData().publish()
         run 'retrieve'
 
         then:
@@ -87,7 +87,7 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
   }
   configurations { compile }
   dependencies {
-      compile 'group:projectA:latest.milestone'
+      compile 'org.test:projectA:latest.milestone'
   }
   task retrieve(type: Sync) {
       from configurations.compile
@@ -99,32 +99,32 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
         runAndFail 'retrieve'
 
         then:
-        failureHasCause 'Could not find any version that matches group:group, module:projectA, version:latest.milestone.'
+        failureHasCause 'Could not find any version that matches group:org.test, module:projectA, version:latest.milestone.'
 
         when:
-        ivyRepo.module('group', 'projectA', '2.0').withNoMetaData().publish()
+        ivyRepo.module('org.test', 'projectA', '2.0').withNoMetaData().publish()
         runAndFail 'retrieve'
 
         then:
-        failureHasCause 'Could not find any version that matches group:group, module:projectA, version:latest.milestone.'
+        failureHasCause 'Could not find any version that matches group:org.test, module:projectA, version:latest.milestone.'
 
         when:
-        ivyRepo.module('group', 'projectA', '1.3').withStatus('integration').publish()
+        ivyRepo.module('org.test', 'projectA', '1.3').withStatus('integration').publish()
         runAndFail 'retrieve'
 
         then:
-        failureHasCause 'Could not find any version that matches group:group, module:projectA, version:latest.milestone.'
+        failureHasCause 'Could not find any version that matches group:org.test, module:projectA, version:latest.milestone.'
 
         when:
-        ivyRepo.module('group', 'projectA', '1.0').withStatus('milestone').publish()
-        ivyRepo.module('group', 'projectA', '1.1').withStatus('milestone').publish()
+        ivyRepo.module('org.test', 'projectA', '1.0').withStatus('milestone').publish()
+        ivyRepo.module('org.test', 'projectA', '1.1').withStatus('milestone').publish()
         run 'retrieve'
 
         then:
         file('libs').assertHasDescendants('projectA-1.1.jar')
 
         when:
-        ivyRepo.module('group', 'projectA', '1.2').withStatus('release').publish()
+        ivyRepo.module('org.test', 'projectA', '1.2').withStatus('release').publish()
         run 'retrieve'
 
         then:
@@ -142,7 +142,7 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
   }
   configurations { compile }
   dependencies {
-      compile 'group:projectA:latest.release'
+      compile 'org.test:projectA:latest.release'
   }
   task retrieve(type: Sync) {
       from configurations.compile
@@ -154,26 +154,26 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
         runAndFail 'retrieve'
 
         then:
-        failureHasCause 'Could not find any version that matches group:group, module:projectA, version:latest.release.'
+        failureHasCause 'Could not find any version that matches group:org.test, module:projectA, version:latest.release.'
 
         when:
-        ivyRepo.module('group', 'projectA', '2.0').withNoMetaData().publish()
+        ivyRepo.module('org.test', 'projectA', '2.0').withNoMetaData().publish()
         runAndFail 'retrieve'
 
         then:
-        failureHasCause 'Could not find any version that matches group:group, module:projectA, version:latest.release.'
+        failureHasCause 'Could not find any version that matches group:org.test, module:projectA, version:latest.release.'
 
         when:
-        ivyRepo.module('group', 'projectA', '1.3').withStatus('integration').publish()
-        ivyRepo.module('group', 'projectA', '1.2').withStatus('milestone').publish()
+        ivyRepo.module('org.test', 'projectA', '1.3').withStatus('integration').publish()
+        ivyRepo.module('org.test', 'projectA', '1.2').withStatus('milestone').publish()
         runAndFail 'retrieve'
 
         then:
-        failureHasCause 'Could not find any version that matches group:group, module:projectA, version:latest.release.'
+        failureHasCause 'Could not find any version that matches group:org.test, module:projectA, version:latest.release.'
 
         when:
-        ivyRepo.module('group', 'projectA', '1.0').withStatus('release').publish()
-        ivyRepo.module('group', 'projectA', '1.1').withStatus('release').publish()
+        ivyRepo.module('org.test', 'projectA', '1.0').withStatus('release').publish()
+        ivyRepo.module('org.test', 'projectA', '1.1').withStatus('release').publish()
         run 'retrieve'
 
         then:
@@ -192,7 +192,7 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
   }
   configurations { compile }
   dependencies {
-      compile 'group:projectA:1.2+'
+      compile 'org.test:projectA:1.2+'
   }
   task retrieve(type: Sync) {
       from configurations.compile
@@ -200,38 +200,38 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
   }
   """
         and:
-        ivyRepo.module('group', 'projectA', '1.1.2').publish()
-        ivyRepo.module('group', 'projectA', '2.0').publish()
+        ivyRepo.module('org.test', 'projectA', '1.1.2').publish()
+        ivyRepo.module('org.test', 'projectA', '2.0').publish()
 
         when:
         runAndFail 'retrieve'
 
         then:
-        failureHasCause 'Could not find any version that matches group:group, module:projectA, version:1.2+'
+        failureHasCause 'Could not find any version that matches group:org.test, module:projectA, version:1.2+'
 
         when:
-        ivyRepo.module('group', 'projectA', '1.2').withNoMetaData().publish()
+        ivyRepo.module('org.test', 'projectA', '1.2').withNoMetaData().publish()
         run 'retrieve'
 
         then:
         file('libs').assertHasDescendants('projectA-1.2.jar')
 
         when:
-        ivyRepo.module('group', 'projectA', '1.2.1').publish()
+        ivyRepo.module('org.test', 'projectA', '1.2.1').publish()
         run 'retrieve'
 
         then:
         file('libs').assertHasDescendants('projectA-1.2.1.jar')
 
         when:
-        ivyRepo.module('group', 'projectA', '1.2.9').publish()
+        ivyRepo.module('org.test', 'projectA', '1.2.9').publish()
         run 'retrieve'
 
         then:
         file('libs').assertHasDescendants('projectA-1.2.9.jar')
 
         when:
-        ivyRepo.module('group', 'projectA', '1.2.12').withNoMetaData().publish()
+        ivyRepo.module('org.test', 'projectA', '1.2.12').withNoMetaData().publish()
         run 'retrieve'
 
         then:
@@ -250,7 +250,7 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
   }
   configurations { compile }
   dependencies {
-      compile 'group:projectA:[1.2,2.0]'
+      compile 'org.test:projectA:[1.2,2.0]'
   }
   task retrieve(type: Sync) {
       from configurations.compile
@@ -258,38 +258,38 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
   }
   """
         and:
-        ivyRepo.module('group', 'projectA', '1.1.2').publish()
-        ivyRepo.module('group', 'projectA', '2.0').publish()
+        ivyRepo.module('org.test', 'projectA', '1.1.2').publish()
+        ivyRepo.module('org.test', 'projectA', '2.0').publish()
 
         when:
         runAndFail 'retrieve'
 
         then:
-        failureHasCause 'Could not find any version that matches group:group, module:projectA, version:[1.2,2.0]'
+        failureHasCause 'Could not find any version that matches group:org.test, module:projectA, version:[1.2,2.0]'
 
         when:
-        ivyRepo.module('group', 'projectA', '1.2').withNoMetaData().publish()
+        ivyRepo.module('org.test', 'projectA', '1.2').withNoMetaData().publish()
         run 'retrieve'
 
         then:
         file('libs').assertHasDescendants('projectA-1.2.jar')
 
         when:
-        ivyRepo.module('group', 'projectA', '1.2.1').publish()
+        ivyRepo.module('org.test', 'projectA', '1.2.1').publish()
         run 'retrieve'
 
         then:
         file('libs').assertHasDescendants('projectA-1.2.1.jar')
 
         when:
-        ivyRepo.module('group', 'projectA', '1.3').publish()
+        ivyRepo.module('org.test', 'projectA', '1.3').publish()
         run 'retrieve'
 
         then:
         file('libs').assertHasDescendants('projectA-1.3.jar')
 
         when:
-        ivyRepo.module('group', 'projectA', '1.3.12').withNoMetaData().publish()
+        ivyRepo.module('org.test', 'projectA', '1.3.12').withNoMetaData().publish()
         run 'retrieve'
 
         then:
@@ -301,8 +301,8 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
         given:
         def repo1 = ivyRepo("ivyRepo1")
         def repo2 = ivyRepo("ivyRepo2")
-        repo1.module('group', 'projectA', '1.1').withStatus("milestone").publish()
-        repo2.module('group', 'projectA', '1.2').withStatus("integration").publish()
+        repo1.module('org.test', 'projectA', '1.1').withStatus("milestone").publish()
+        repo2.module('org.test', 'projectA', '1.2').withStatus("integration").publish()
 
         and:
         buildFile << """
@@ -317,7 +317,7 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
   }
   configurations { compile }
   dependencies {
-      compile 'group:projectA:latest.milestone'
+      compile 'org.test:projectA:latest.milestone'
   }
   task retrieve(type: Sync) {
       from configurations.compile
