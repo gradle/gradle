@@ -19,9 +19,23 @@ package org.gradle.api.internal.artifacts.repositories;
 import org.apache.ivy.core.module.descriptor.Artifact;
 
 public interface ResourcePattern {
+    /**
+     * Returns the path to the given artifact.
+     */
     String toPath(Artifact artifact);
 
+    /**
+     * Returns the path to the given artifact, without substituting the version placeholders.
+     */
     String toPathWithoutRevision(Artifact artifact);
 
+    /**
+     * Returns the path to the module for the given artifact.
+     */
     String toModulePath(Artifact artifact);
+
+    /**
+     * Returns the path to the module version for the given artifact.
+     */
+    String toModuleVersionPath(Artifact artifact);
 }

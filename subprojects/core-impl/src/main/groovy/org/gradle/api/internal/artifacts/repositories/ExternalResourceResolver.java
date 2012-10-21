@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.repositories;
 
-import org.apache.ivy.core.IvyPatternHelper;
 import org.apache.ivy.core.cache.ArtifactOrigin;
 import org.apache.ivy.core.cache.RepositoryCacheManager;
 import org.apache.ivy.core.module.descriptor.*;
@@ -574,20 +573,10 @@ public class ExternalResourceResolver extends BasicResolver {
         } else {
             throw new IllegalStateException("impossible to publish " + artifact + " using " + this + ": no artifact pattern defined");
         }
-        // Check for m2 compatibility
-        ModuleRevisionId moduleRevisionId = artifact.getModuleRevisionId();
-        if (isM2compatible()) {
-            moduleRevisionId = convertM2IdForResourceSearch(moduleRevisionId);
-        }
-
-        String destination = getDestination(destinationPattern, artifact, moduleRevisionId);
+        String destination = toResourcePattern(destinationPattern).toPath(artifact);
 
         put(src, destination);
         LOGGER.info("Published {} to {}", artifact.getName(), hidePassword(destination));
-    }
-
-    private String getDestination(String pattern, Artifact artifact, ModuleRevisionId moduleRevisionId) {
-        return IvyPatternHelper.substitute(pattern, moduleRevisionId, artifact);
     }
 
     private void put(File src, String destination) throws IOException {
@@ -650,16 +639,7 @@ public class ExternalResourceResolver extends BasicResolver {
         m2compatible = compatible;
     }
 
-    protected ModuleRevisionId convertM2IdForResourceSearch(ModuleRevisionId mrid) {
-        if (mrid.getOrganisation() == null || mrid.getOrganisation().indexOf('.') == -1) {
-            return mrid;
-        }
-        return ModuleRevisionId.newInstance(mrid.getOrganisation().replace('.', '/'),
-                mrid.getName(), mrid.getBranch(), mrid.getRevision(),
-                mrid.getQualifiedExtraAttributes());
-    }
-
-    protected IvyResourcePattern toResourcePattern(String pattern) {
+    protected ResourcePattern toResourcePattern(String pattern) {
         return isM2compatible() ? new M2ResourcePattern(pattern) : new IvyResourcePattern(pattern);
     }
 }

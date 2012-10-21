@@ -20,7 +20,6 @@ package org.gradle.api.internal.artifacts.repositories
 
 import org.apache.ivy.core.module.descriptor.DefaultArtifact
 import org.apache.ivy.core.module.id.ModuleRevisionId
-import org.gradle.api.InvalidUserDataException
 import spock.lang.Specification
 
 class M2ResourcePatternTest extends Specification {
@@ -58,13 +57,23 @@ class M2ResourcePatternTest extends Specification {
         pattern.toModulePath(artifact2) == 'prefix/org/group/projectA'
     }
 
-    def "throws InvalidUserDataException for non M2 compatible pattern"() {
+    def "can build module version path"() {
+        def pattern = new M2ResourcePattern("prefix/" + MavenPattern.M2_PATTERN)
+        def artifact1 = DefaultArtifact.newIvyArtifact(ModuleRevisionId.newInstance("group", "projectA", "1.2"), new Date())
+        def artifact2 = DefaultArtifact.newIvyArtifact(ModuleRevisionId.newInstance("org.group", "projectA", "1.2"), new Date())
+
+        expect:
+        pattern.toModuleVersionPath(artifact1) == 'prefix/group/projectA/1.2'
+        pattern.toModuleVersionPath(artifact2) == 'prefix/org/group/projectA/1.2'
+    }
+
+    def "throws UnsupportedOperationException for non M2 compatible pattern"() {
         def pattern = new M2ResourcePattern("/non/m2/pattern")
 
         when:
         pattern.toModulePath(DefaultArtifact.newIvyArtifact(ModuleRevisionId.newInstance("group", "projectA", "1.2"), new Date()))
 
         then:
-        thrown(InvalidUserDataException)
+        thrown(UnsupportedOperationException)
     }
 }

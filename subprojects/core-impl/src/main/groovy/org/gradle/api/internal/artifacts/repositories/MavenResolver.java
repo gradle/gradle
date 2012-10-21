@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.repositories;
 
-import org.apache.ivy.core.IvyPatternHelper;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
@@ -109,7 +108,7 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
 
     public ResolvedResource findIvyFileRef(DependencyDescriptor dd, ResolveData data) {
         if (isUsepoms()) {
-            ModuleRevisionId moduleRevisionId = convertM2IdForResourceSearch(dd.getDependencyRevisionId());
+            ModuleRevisionId moduleRevisionId = dd.getDependencyRevisionId();
 
             if (moduleRevisionId.getRevision().endsWith("SNAPSHOT")) {
                 ResolvedResource resolvedResource = findSnapshotDescriptor(dd, data, moduleRevisionId, true);
@@ -168,8 +167,8 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
     }
 
     private String findUniqueSnapshotVersion(ModuleRevisionId moduleRevisionId) {
-        moduleRevisionId = convertM2IdForResourceSearch(moduleRevisionId);
-        String metadataLocation = IvyPatternHelper.substitute(root + "[organisation]/[module]/[revision]/maven-metadata.xml", moduleRevisionId);
+        Artifact pomArtifact = DefaultArtifact.newPomArtifact(moduleRevisionId, new Date());
+        String metadataLocation = toResourcePattern(getWholePattern()).toModuleVersionPath(pomArtifact) + "/maven-metadata.xml";
         MavenMetadata mavenMetadata = parseMavenMetadata(metadataLocation);
 
         if (mavenMetadata.timestamp != null) {

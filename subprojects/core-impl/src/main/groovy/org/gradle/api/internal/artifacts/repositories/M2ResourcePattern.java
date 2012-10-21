@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.repositories;
 
 import org.apache.ivy.core.IvyPatternHelper;
 import org.apache.ivy.core.module.descriptor.Artifact;
-import org.gradle.api.InvalidUserDataException;
 
 import java.util.Map;
 
@@ -36,9 +35,19 @@ public class M2ResourcePattern extends IvyResourcePattern {
     public String toModulePath(Artifact artifact) {
         String pattern = getPattern();
         if (!pattern.endsWith(MavenPattern.M2_PATTERN)) {
-            throw new InvalidUserDataException("Cannot locate maven-metadata.xml for non-maven layout");
+            throw new UnsupportedOperationException("Cannot locate module for non-maven layout.");
         }
         String metaDataPattern = pattern.substring(0, pattern.length() - MavenPattern.M2_PER_MODULE_PATTERN.length() - 1);
+        return IvyPatternHelper.substituteTokens(metaDataPattern, toAttributes(artifact));
+    }
+
+    @Override
+    public String toModuleVersionPath(Artifact artifact) {
+        String pattern = getPattern();
+        if (!pattern.endsWith(MavenPattern.M2_PATTERN)) {
+            throw new UnsupportedOperationException("Cannot locate module version for non-maven layout.");
+        }
+        String metaDataPattern = pattern.substring(0, pattern.length() - MavenPattern.M2_PER_MODULE_VERSION_PATTERN.length() - 1);
         return IvyPatternHelper.substituteTokens(metaDataPattern, toAttributes(artifact));
     }
 

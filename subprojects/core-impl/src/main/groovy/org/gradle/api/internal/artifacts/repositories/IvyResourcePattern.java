@@ -53,6 +53,10 @@ public class IvyResourcePattern implements ResourcePattern {
         throw new UnsupportedOperationException("not implemented yet.");
     }
 
+    public String toModuleVersionPath(Artifact artifact) {
+        throw new UnsupportedOperationException("not implemented yet.");
+    }
+
     protected Map<String, Object> toAttributes(Artifact artifact) {
         return new HashMap<String, Object>(artifact.getAttributes());
     }

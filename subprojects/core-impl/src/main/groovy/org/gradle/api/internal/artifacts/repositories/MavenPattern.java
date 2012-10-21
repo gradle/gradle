@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.repositories;
 
 public class MavenPattern {
-    public static final String M2_PER_MODULE_PATTERN = "[revision]/[artifact]-[revision](-[classifier]).[ext]";
+    public static final String M2_PER_MODULE_VERSION_PATTERN = "[artifact]-[revision](-[classifier]).[ext]";
+    public static final String M2_PER_MODULE_PATTERN = "[revision]/" + M2_PER_MODULE_VERSION_PATTERN;
     public static final String M2_PATTERN = "[organisation]/[module]/" + M2_PER_MODULE_PATTERN;
 }
