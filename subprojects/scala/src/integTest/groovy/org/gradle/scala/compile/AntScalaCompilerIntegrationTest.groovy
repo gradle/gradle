@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.TargetVersions
 
 //@TargetVersions(["2.8.2", "2.9.2", "2.10.0-RC1"])
 @TargetVersions(["2.9.2"]) // reduced scope to avoid permgen error
-class AntInProcessScalaCompilerIntegrationTest extends BasicScalaCompilerIntegrationTest {
+class AntScalaCompilerIntegrationTest extends BasicScalaCompilerIntegrationTest {
     String compilerConfiguration() {
         '''
 compileScala.scalaCompileOptions.with {
