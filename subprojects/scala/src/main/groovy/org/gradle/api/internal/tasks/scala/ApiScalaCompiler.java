@@ -45,10 +45,12 @@ public class ApiScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, Se
     // running in the compiler daemon and have them on the class path
     private static class Compiler {
         static WorkResult execute(ScalaJavaJointCompileSpec spec) {
+            LOGGER.info("Compiling with Zinc Scala compiler.");
+
             xsbti.Logger logger = new SbtLoggerAdapter(LOGGER);
 
             com.typesafe.zinc.Compiler compiler = createCompiler(spec.getScalaClasspath(), spec.getZincClasspath(), logger);
-            List<String> scalacOptions = Collections.emptyList(); // TODO
+            List<String> scalacOptions = new ScalaCompilerArgumentsGenerator().generate(spec);
             List<String> javacOptions = Collections.emptyList(); // TODO
             Inputs inputs = Inputs.create(ImmutableList.copyOf(spec.getClasspath()), ImmutableList.copyOf(spec.getSource()), spec.getDestinationDir(),
                     scalacOptions, javacOptions, spec.getScalaCompileOptions().getCompilerCacheFile(), spec.getCompilerCacheMap(), "mixed");
