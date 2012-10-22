@@ -40,7 +40,7 @@ public class ResolutionResultBuilder implements ResolvedConfigurationListener {
     CachingDependencyResultFactory dependencyResultFactory = new CachingDependencyResultFactory();
 
     public ResolutionResultBuilder start(ModuleVersionIdentifier root) {
-        rootModule = getModule(root, VersionSelectionReasons.REQUESTED);
+        rootModule = createOrGet(root, VersionSelectionReasons.ROOT);
         return this;
     }
 
@@ -49,13 +49,13 @@ public class ResolutionResultBuilder implements ResolvedConfigurationListener {
     }
 
     public void resolvedConfiguration(ModuleVersionIdentifier id, Collection<? extends InternalDependencyResult> dependencies) {
-        DefaultResolvedModuleVersionResult from = getModule(id, VersionSelectionReasons.REQUESTED);
-
         for (InternalDependencyResult d : dependencies) {
+            DefaultResolvedModuleVersionResult from = modules.get(id);
+            assert from != null : "Something went wrong with building the dependency graph. Module [" + id + "] should have been visited.";
             if (d.getFailure() != null) {
                 from.addDependency(dependencyResultFactory.createUnresolvedDependency(d.getRequested(), from, d.getFailure()));
             } else {
-                DefaultResolvedModuleVersionResult selected = getModule(d.getSelected().getSelectedId(), d.getSelected().getSelectionReason());
+                DefaultResolvedModuleVersionResult selected = createOrGet(d.getSelected().getSelectedId(), d.getSelected().getSelectionReason());
                 DependencyResult dependency = dependencyResultFactory.createResolvedDependency(d.getRequested(), from, selected);
                 from.addDependency(dependency);
                 selected.addDependent((ResolvedDependencyResult) dependency);
@@ -63,7 +63,7 @@ public class ResolutionResultBuilder implements ResolvedConfigurationListener {
         }
     }
 
-    private DefaultResolvedModuleVersionResult getModule(ModuleVersionIdentifier id, ModuleVersionSelectionReason selectionReason) {
+    private DefaultResolvedModuleVersionResult createOrGet(ModuleVersionIdentifier id, ModuleVersionSelectionReason selectionReason) {
         if (!modules.containsKey(id)) {
             modules.put(id, new DefaultResolvedModuleVersionResult(id, selectionReason));
         }

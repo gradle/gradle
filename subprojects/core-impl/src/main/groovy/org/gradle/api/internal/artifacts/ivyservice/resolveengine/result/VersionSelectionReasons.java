@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
  */
 public class VersionSelectionReasons {
     public static final ModuleVersionSelectionReason REQUESTED = new DefaultModuleVersionSelectionReason(false, false);
+    public static final ModuleVersionSelectionReason ROOT = new DefaultModuleVersionSelectionReason(false, false);
     public static final ModuleVersionSelectionReason FORCED = new DefaultModuleVersionSelectionReason(true, false);
     public static final ModuleVersionSelectionReason CONFLICT_RESOLUTION = new DefaultModuleVersionSelectionReason(false, true);
 
