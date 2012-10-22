@@ -73,7 +73,7 @@ public class ScalaBasePlugin implements Plugin<Project> {
                 def config = project.configurations[ZINC_CONFIGURATION_NAME]
                 if (config.dependencies.empty) {
                     project.dependencies {
-                        zinc("com.typesafe.zinc:zinc:0.1.1") {
+                        zinc("com.typesafe.zinc:zinc:0.2.0-M1") {
                             exclude module: "ensime-sbt-cmd"
                         }
                     }
