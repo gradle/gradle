@@ -130,6 +130,7 @@ For interesting version modules, the report shows also if the the version was 'f
 - should the new report extend AbstractReportTask? In that case we need decide what to do with 'projects' public property on AbstractReportTask.
 - if there is a single configuration in the project, should it be used by default by the task?
 - behavior when some dependencies are unresolved
+- needs to work with the c++ plugins in the same way it works with the java plugin
 
 ## Dependency report handles resolution failures
 
