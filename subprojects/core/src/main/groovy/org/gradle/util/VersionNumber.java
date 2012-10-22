@@ -69,10 +69,6 @@ public class VersionNumber implements Comparable<VersionNumber> {
         return Ordering.natural().nullsFirst().compare(qualifier, other.qualifier);
     }
 
-    public BigDecimal asDecimal() {
-        return new BigDecimal(major + "." + minor);
-    }
-
     public boolean equals(Object other) {
         return other instanceof VersionNumber && compareTo((VersionNumber)other) == 0;
     }

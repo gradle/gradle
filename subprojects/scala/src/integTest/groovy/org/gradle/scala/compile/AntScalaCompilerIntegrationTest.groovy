@@ -20,9 +20,10 @@ import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.api.JavaVersion
 
 import spock.lang.IgnoreIf
+import org.gradle.util.VersionNumber
 
 @TargetVersions(["2.8.2", "2.9.2", "2.10.0-RC1"])
-@IgnoreIf({ !JavaVersion.current().java6Compatible && AntScalaCompilerIntegrationTest.versionNumber.asDecimal() > 2.9 })
+@IgnoreIf({ !JavaVersion.current().java6Compatible && AntScalaCompilerIntegrationTest.versionNumber > VersionNumber.parse("2.9.9") })
 class AntScalaCompilerIntegrationTest extends BasicScalaCompilerIntegrationTest {
     String compilerConfiguration() {
         '''
