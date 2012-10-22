@@ -32,6 +32,10 @@ dependencies {
 useTestFixtures(project: ":plugins") // includes core test fixtures
 
 if (!javaVersion.java6Compatible) {
-    sourceSets.main.groovy.exclude 'org/gradle/api/internal/tasks/scala/ApiScalaCompiler.*'
-    sourceSets.main.groovy.exclude 'org/gradle/api/internal/tasks/scala/SbtLoggerAdapter.*'
+    sourceSets.main.groovy.exclude "org/gradle/api/internal/tasks/scala/ApiScalaCompiler.*"
+    sourceSets.main.groovy.exclude "org/gradle/api/internal/tasks/scala/SbtLoggerAdapter.*"
+}
+
+integrationTest {
+    jvmArgs "-XX:MaxPermSize=1g" // AntScalaCompilerIntegrationTest needs lots of permgen
 }
