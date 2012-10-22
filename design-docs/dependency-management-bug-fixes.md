@@ -3,24 +3,55 @@ This feature is really a bucket for key things we want to fix in the short-term 
 
 As this 'feature' is a list of bug fixes, this feature spec will not follow the usual template.
 
-# Lastest status dynamic version work across multiple repositories
+# Lastest status dynamic versions work across multiple repositories
 
 See [GRADLE-2502](http://issues.gradle.org/browse/GRADLE-2502)
 
 ### Test coverage
 
+1. Using `latest.integration`
+    1. Empty repository fails with not found.
+    2. Publish `1.0` and `1.1` with status `integration`. Resolves to `1.1`.
+    3. Publish `1.2` with status `release`. Resolves to `1.2`
+    4. Publish `1.3` with no ivy.xml. Resolves to `1.3`.
+2. Using `latest.milestone`
+    1. Empty repository fails with not found.
+    2. Publish `2.0` with no ivy.xml. Fails with not found.
+    3. Publish `1.3` with status `integration`. Fails with not found.
+    4. Publish `1.0` and `1.1` with ivy.xml and status `milestone`. Resolves to `1.1`.
+    5. Publish `1.2` with status `release`. Resolves to `1.2`
+3. Using `latest.release`
+    1. Empty repository fails with not found.
+    2. Publish `2.0` with no ivy.xml. Fails with not found.
+    3. Publish `1.3` with status `milestone`. Fails with not found.
+    4. Publish `1.0` and `1.1` with ivy.xml and status `release`. Resolves to `1.1`.
+4. Multiple repositories.
+5. Checking for changes. Using `latest.release`
+    1. Publish `1.0` with status `release` and `2.0` with status `milestone`.
+    2. Resolve and assert directory listing and `1.0` artifacts downloaded.
+    3. Resolve and assert directory listing downloaded.
+    4. Publish `1.1` with status `release`.
+    5. Resolve and assert directory listing and `1.1` artifacts downloaded.
+6. Maven integration
+    1. Publish `1.0`. Check `latest.integration` resolves to `1.0` and `latest.release` fails with not found.
+    2. Publish `1.1-SNAPSHOT`. Check `latest.integration` resolves to `1.1-SNAPSHOT` and `latest.release` fails with not found.
+7. Version ranges
+8. Repository with multiple patterns.
+9. Repository with `[type]` in pattern before `[revision]`.
+10. Multiple dynamic versions match the same remote revision.
+
 ### Implementation strategy
 
 Change ExternalResourceResolver.getDependency() to use the following algorithm:
 1. Calculate an ordered list of candidate versions.
-    1. For a static version selector the list is a singleton.
+    1. For a static version selector the list contains a single candidate.
     2. For a dynamic version selector the list is the full set of versions for the module.
         * For a Maven repository, this is determined using `maven-metadata.xml` if available, falling back to a directory listing.
         * For an Ivy repository, this is determined using a directory listing.
         * Fail if directory listing is not available.
 2. For each candidate version:
     1. If the version matcher does not accept the module version, continue.
-    2. Fetch the module version meta-data. If not found, continue.
+    2. Fetch the module version meta-data, as described below. If not found, continue.
     3. If the version matcher requires the module meta-data and it does not accept the meta-data, continue.
     4. Use the module version.
 3. Return not found.
