@@ -33,10 +33,14 @@ public class ScalaCompilerArgumentsGenerator {
         addOption("-encoding", options.getEncoding(), result);
         addFlag("-verbose", "verbose".equals(options.getDebugLevel()), result);
         addFlag("-Ydebug", "debug".equals(options.getDebugLevel()), result);
-        for (String phase : options.getLoggingPhases()) {
-            addConcatenatedOption("-Ylog:", phase, result);
+        if (options.getLoggingPhases() != null) {
+            for (String phase : options.getLoggingPhases()) {
+                addConcatenatedOption("-Ylog:", phase, result);
+            }
         }
-        result.addAll(options.getAdditionalParameters());
+        if (options.getAdditionalParameters() != null) {
+            result.addAll(options.getAdditionalParameters());
+        }
 
         return result;
     }

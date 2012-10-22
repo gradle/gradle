@@ -17,7 +17,6 @@ package org.gradle.api.tasks.scala;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 
 import org.gradle.api.tasks.compile.AbstractOptions;
 import org.gradle.api.tasks.Input;
@@ -64,13 +63,13 @@ public class ScalaCompileOptions extends AbstractOptions {
 
     private String targetCompatibility;
 
-    private List<String> additionalParameters = Lists.newArrayList();
+    private List<String> additionalParameters;
 
     private boolean listFiles;
 
     private String loggingLevel;
 
-    private List<String> loggingPhases = Lists.newArrayList();
+    private List<String> loggingPhases;
 
     private boolean fork;
 
