@@ -27,7 +27,7 @@ abstract class MultiVersionIntegrationSpec extends AbstractIntegrationSpec {
         version
     }
 
-    VersionNumber getVersionNumber() {
+    static VersionNumber getVersionNumber() {
         VersionNumber.parse(version)
     }
 }

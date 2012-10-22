@@ -21,6 +21,7 @@ import com.google.common.collect.Ordering;
 
 import org.gradle.api.Nullable;
 
+import java.math.BigDecimal;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -66,6 +67,10 @@ public class VersionNumber implements Comparable<VersionNumber> {
         if (minor != other.minor) { return minor - other.minor; }
         if (micro != other.micro) { return micro - other.micro; }
         return Ordering.natural().nullsFirst().compare(qualifier, other.qualifier);
+    }
+
+    public BigDecimal asDecimal() {
+        return new BigDecimal(major + "." + minor);
     }
 
     public boolean equals(Object other) {
