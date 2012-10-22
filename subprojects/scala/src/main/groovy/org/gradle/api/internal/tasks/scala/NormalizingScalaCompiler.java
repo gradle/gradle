@@ -95,7 +95,7 @@ public class NormalizingScalaCompiler implements org.gradle.api.internal.tasks.c
         try {
             return delegate.execute(spec);
         } catch (CompilationFailedException e) {
-            if (spec.getCompileOptions().isFailOnError()) {
+            if (spec.getScalaCompileOptions().isFailOnError()) {
                 throw e;
             }
             LOGGER.debug("Ignoring compilation failure.");
