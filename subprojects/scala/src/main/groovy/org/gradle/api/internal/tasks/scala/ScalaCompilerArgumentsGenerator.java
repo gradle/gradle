@@ -26,10 +26,25 @@ public class ScalaCompilerArgumentsGenerator {
         List<String> result = Lists.newArrayList();
 
         ScalaCompileOptions options = spec.getScalaCompileOptions();
+        addFlag("-deprecation", options.isDeprecation(), result);
+        addFlag("-unchecked", options.isUnchecked(), result);
+        addConcatenatedOption("-g:", options.getDebugLevel(), result);
+        addFlag("-optimise", options.isOptimize(), result);
         addOption("-encoding", options.getEncoding(), result);
-        addFlag("-g:", options.getDebugLevel(), result);
+        addFlag("-verbose", "verbose".equals(options.getDebugLevel()), result);
+        addFlag("-Ydebug", "debug".equals(options.getDebugLevel()), result);
+        for (String phase : options.getLoggingPhases()) {
+            addConcatenatedOption("-Ylog:", phase, result);
+        }
+        result.addAll(options.getAdditionalParameters());
 
         return result;
+    }
+
+    private void addFlag(String name, boolean value, List<String> result) {
+        if (value) {
+            result.add(name);
+        }
     }
 
     private void addOption(String name, Object value, List<String> result) {
@@ -39,7 +54,7 @@ public class ScalaCompilerArgumentsGenerator {
         }
     }
 
-    private void addFlag(String name, Object value, List<String> result) {
+    private void addConcatenatedOption(String name, Object value, List<String> result) {
         if (value != null) {
             result.add(name + value.toString());
         }

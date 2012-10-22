@@ -22,22 +22,84 @@ class ScalaCompilerArgumentsGeneratorTest extends Specification {
     def generator = new ScalaCompilerArgumentsGenerator()
     def spec = new DefaultScalaCompileSpec()
 
-    def "generates no options for empty spec"() {
+    def "default options"() {
         expect:
-        generator.generate(spec) == []
+        generator.generate(spec) as Set == ["-deprecation", "-unchecked"] as Set
     }
 
-    def "generates encoding option"() {
-        spec.scalaCompileOptions.encoding = "some encoding"
+    def "can suppress deprecation flag"() {
+        spec.scalaCompileOptions.deprecation = false
 
         expect:
-        generator.generate(spec) == ["-encoding", "some encoding"]
+        !generator.generate(spec).contains("-deprecation")
+    }
+
+    def "can suppress unchecked flag"() {
+        spec.scalaCompileOptions.unchecked = false
+
+        expect:
+        !generator.generate(spec).contains("-unchecked")
     }
 
     def "generates debug level option"() {
         spec.scalaCompileOptions.debugLevel = "someLevel"
 
         expect:
-        generator.generate(spec) == ["-g:someLevel"]
+        generator.generate(spec).contains("-g:someLevel")
+    }
+
+    def "generates optimize flag"() {
+        spec.scalaCompileOptions.optimize = true
+
+        expect:
+        generator.generate(spec).contains("-optimise")
+    }
+
+    def "generates encoding option"() {
+        spec.scalaCompileOptions.encoding = "some encoding"
+
+        when:
+        def args = generator.generate(spec)
+
+        then:
+        args.contains("-encoding")
+        args.contains("some encoding")
+    }
+
+    def "generates verbose flag"() {
+        spec.scalaCompileOptions.debugLevel = "verbose"
+
+        expect:
+        generator.generate(spec).contains("-verbose")
+    }
+
+    def "generates debug flag"() {
+        spec.scalaCompileOptions.debugLevel = "debug"
+
+        expect:
+        generator.generate(spec).contains("-Ydebug")
+    }
+
+    def "generates logging phases options"() {
+        spec.scalaCompileOptions.loggingPhases = ["foo", "bar", "baz"]
+
+        when:
+        def args = generator.generate(spec)
+
+        then:
+        args.contains("-Ylog:foo")
+        args.contains("-Ylog:bar")
+        args.contains("-Ylog:baz")
+    }
+
+    def "adds any additional parameters"() {
+        spec.scalaCompileOptions.additionalParameters = ["-other", "value"]
+
+        when:
+        def args = generator.generate(spec)
+
+        then:
+        args.contains("-other")
+        args.contains("value")
     }
 }
