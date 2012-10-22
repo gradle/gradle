@@ -18,10 +18,8 @@ package org.gradle.scala.compile
 
 import org.gradle.integtests.fixtures.ClassFile
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
-import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.util.VersionNumber
 
-@TargetVersions(["2.8.2", "2.9.2", "2.10.0-RC1"])
 abstract class BasicScalaCompilerIntegrationTest extends MultiVersionIntegrationSpec {
     def setup() {
         executer.withArguments("-i")
@@ -56,7 +54,7 @@ DeprecationLogger.whileDisabled {
         expect:
         fails("compileScala")
         output.contains(logStatement())
-        output.contains("error: type mismatch")
+        output.contains("type mismatch")
         file("build/classes/main").assertHasDescendants()
     }
 
@@ -73,7 +71,7 @@ compileScala.scalaCompileOptions.failOnError = false
         expect:
         succeeds("compileScala")
         output.contains(logStatement())
-        output.contains("error: type mismatch")
+        output.contains("type mismatch")
         file("build/classes/main").assertHasDescendants()
     }
 
