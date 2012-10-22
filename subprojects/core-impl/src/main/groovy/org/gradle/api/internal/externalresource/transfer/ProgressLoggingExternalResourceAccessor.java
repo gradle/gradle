@@ -117,6 +117,10 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
         public InputStream openStream() throws IOException {
             return resource.openStream();
         }
+
+        public String toString(){
+            return resource.toString();
+        }
     }
 
     private class ProgressLoggingOutputStream extends OutputStream {
