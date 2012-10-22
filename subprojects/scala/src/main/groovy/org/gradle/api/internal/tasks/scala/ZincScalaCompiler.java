@@ -28,14 +28,15 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.jvm.Jvm;
+import xsbti.F0;
 
 import java.io.File;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 
-public class ApiScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, Serializable {
-    private static final Logger LOGGER = Logging.getLogger(ApiScalaCompiler.class);
+public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, Serializable {
+    private static final Logger LOGGER = Logging.getLogger(ZincScalaCompiler.class);
 
     public WorkResult execute(ScalaJavaJointCompileSpec spec) {
         return Compiler.execute(spec);
@@ -47,7 +48,7 @@ public class ApiScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, Se
         static WorkResult execute(ScalaJavaJointCompileSpec spec) {
             LOGGER.info("Compiling with Zinc Scala compiler.");
 
-            xsbti.Logger logger = new SbtLoggerAdapter(LOGGER);
+            xsbti.Logger logger = new SbtLoggerAdapter();
 
             com.typesafe.zinc.Compiler compiler = createCompiler(spec.getScalaClasspath(), spec.getZincClasspath(), logger);
             List<String> scalacOptions = new ScalaCompilerArgumentsGenerator().generate(spec);
@@ -89,6 +90,29 @@ public class ApiScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, Se
                 Setup.debug(setup, logger);
             }
             return com.typesafe.zinc.Compiler.create(setup, logger);
+        }
+    }
+
+    // TODO: change log levels
+    private static class SbtLoggerAdapter implements xsbti.Logger {
+        public void error(F0<String> msg) {
+            LOGGER.lifecycle(msg.apply());
+        }
+
+        public void warn(F0<String> msg) {
+            LOGGER.lifecycle(msg.apply());
+        }
+
+        public void info(F0<String> msg) {
+            LOGGER.lifecycle(msg.apply());
+        }
+
+        public void debug(F0<String> msg) {
+            LOGGER.lifecycle(msg.apply());
+        }
+
+        public void trace(F0<Throwable> exception) {
+            LOGGER.lifecycle(exception.apply().toString());
         }
     }
 }
