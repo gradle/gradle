@@ -16,13 +16,8 @@
 package org.gradle.configuration;
 
 import org.gradle.api.Action;
-import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.plugins.UnknownPluginException;
-import org.gradle.api.tasks.diagnostics.ProjectReportTask;
-import org.gradle.api.tasks.diagnostics.PropertyReportTask;
-import org.gradle.api.tasks.diagnostics.TaskReportTask;
 
 public class ImplicitTasksConfigurer implements Action<ProjectInternal> {
     public static final String HELP_GROUP = "help";
@@ -30,30 +25,10 @@ public class ImplicitTasksConfigurer implements Action<ProjectInternal> {
     public static final String PROJECTS_TASK = "projects";
     public static final String TASKS_TASK = "tasks";
     public static final String PROPERTIES_TASK = "properties";
+    public static final String DEPENDENCIES_TASK = "dependencies";
+    public static final String DEPENDENCY_INSIGHT_TASK = "dependencyInsight";
 
     public void execute(ProjectInternal project) {
-        TaskContainerInternal tasks = project.getImplicitTasks();
-
-        Task task = tasks.add(HELP_TASK, Help.class);
-        task.setDescription("Displays a help message");
-        task.setGroup(HELP_GROUP);
-
-        task = tasks.add(PROJECTS_TASK, ProjectReportTask.class);
-        task.setDescription(String.format("Displays the sub-projects of %s.", project));
-        task.setGroup(HELP_GROUP);
-
-        task = tasks.add(TASKS_TASK, TaskReportTask.class);
-        task.setDescription(String.format("Displays the tasks runnable from %s (some of the displayed tasks may belong to subprojects).", project));
-        task.setGroup(HELP_GROUP);
-
-        task = tasks.add(PROPERTIES_TASK, PropertyReportTask.class);
-        task.setDescription(String.format("Displays the properties of %s.", project));
-        task.setGroup(HELP_GROUP);
-
-        applyPlugins(project);
-    }
-
-    void applyPlugins(ProjectInternal project) {
         try {
             project.getPlugins().apply("dependency-reporting");
         } catch (UnknownPluginException e) {

@@ -13,21 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.configuration
 
-import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.util.HelperUtil
-import spock.lang.Specification
+/**
+ * The diagnostic {@link org.gradle.api.Task} implementations.
+ */
+package org.gradle.api.tasks.diagnostics;
 
-class ImplicitTasksConfigurerTest extends Specification {
-    private final ImplicitTasksConfigurer configurer = Spy(ImplicitTasksConfigurer)
-    private final ProjectInternal project = HelperUtil.createRootProject()
 
-    def "configuring implicit tasks is safe"() {
-        when:
-        configurer.execute(project)
-
-        then:
-        noExceptionThrown()
-    }
-}

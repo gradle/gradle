@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,9 @@
  * limitations under the License.
  */
 
-dependencies {
-    groovy libraries.groovy
+/**
+ * Reporting related plugins
+ */
+package org.gradle.api.plugins;
 
-    compile project(":core")
-    compile project(":toolingApi")
-    compile project(":reporting")
-    compile project(":ide") // for FileOutcomeIdentifier enum
-    compile libraries.guava
-    compile libraries.slf4j_api
 
-    testCompile "org.jsoup:jsoup:1.6.3"
-}
-
-processResources {
-    into "org/gradle/api/plugins/buildcomparison/render/internal/html", {
-        from { project(":docs").css }
-        include "base.css"
-    }
-}
-
-useTestFixtures()

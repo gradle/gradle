@@ -30,6 +30,7 @@ import org.gradle.api.internal.plugins.EmbeddableJavaProject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.bundling.Jar;
+import org.gradle.api.tasks.diagnostics.DependencyInsightReportTask;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.Test;
 
@@ -68,11 +69,20 @@ public class JavaPlugin implements Plugin<Project> {
 
         configureSourceSets(javaConvention);
         configureConfigurations(project);
+        configureHelpTasks(project);
 
         configureJavaDoc(javaConvention);
         configureTest(project, javaConvention);
         configureArchives(project, javaConvention);
         configureBuild(project);
+    }
+
+    private void configureHelpTasks(Project project) {
+        ((ProjectInternal) project).getImplicitTasks().withType(DependencyInsightReportTask.class, new Action<DependencyInsightReportTask>() {
+            public void execute(DependencyInsightReportTask dependencyInsightTaskReport) {
+                dependencyInsightTaskReport.configuration(COMPILE_CONFIGURATION_NAME);
+            }
+        });
     }
 
     private void configureSourceSets(final JavaPluginConvention pluginConvention) {

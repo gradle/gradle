@@ -30,6 +30,7 @@ dependencies {
     compile project(':core')
     compile project(':coreImpl')
     compile project(':wrapper')
+    compile project(':reporting')
 
     compile libraries.ant
     compile libraries.asm
