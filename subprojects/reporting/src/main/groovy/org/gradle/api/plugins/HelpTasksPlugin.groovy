@@ -28,7 +28,7 @@ import static org.gradle.configuration.ImplicitTasksConfigurer.*
  * by Szczepan Faber, created at: 9/5/12
  */
 @Incubating
-class DependencyReportingPlugin implements Plugin<ProjectInternal> {
+class HelpTasksPlugin implements Plugin<ProjectInternal> {
 
     void apply(ProjectInternal project) {
         project.implicitTasks.add(name: HELP_TASK, type: Help) {

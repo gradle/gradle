@@ -26,17 +26,18 @@ import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.bundling.Jar
+import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.util.HelperUtil
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import org.junit.Test
+
 import static org.gradle.util.Matchers.*
 import static org.gradle.util.WrapUtil.toLinkedSet
 import static org.gradle.util.WrapUtil.toSet
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
-import org.gradle.api.tasks.compile.JavaCompile
 
 /**
  * @author Hans Dockter
@@ -233,7 +234,7 @@ class JavaPluginTest {
     @Test public void configuresHelpTasks() {
         //when:
         javaPlugin.apply(project);
-        project.plugins.apply(DependencyReportingPlugin)
+        project.plugins.apply(HelpTasksPlugin)
 
         //then:
         assert project.implicitTasks.getByName('dependencyInsight').configuration.name == 'compile'

@@ -30,10 +30,10 @@ public class ImplicitTasksConfigurer implements Action<ProjectInternal> {
 
     public void execute(ProjectInternal project) {
         try {
-            project.getPlugins().apply("dependency-reporting");
+            project.getPlugins().apply("help-tasks");
         } catch (UnknownPluginException e) {
             //some of our in-process integrations tests live in a subproject
-            //which does not depend on the subproject 'dependency-reporting' lives.
+            //which does not depend on the subproject 'help-tasks' lives.
             //I couldn't figure out a better workaround.
             //This should be still pretty safe as we have forking coverage to catch problems.
             //This workaround should go away once we have the auto-apply plugins/tasks implementation.

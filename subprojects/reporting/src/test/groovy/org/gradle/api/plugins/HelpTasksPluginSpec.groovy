@@ -16,26 +16,23 @@
 
 package org.gradle.api.plugins
 
-import org.gradle.api.tasks.diagnostics.DependencyInsightReportTask
+import org.gradle.configuration.Help
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
+import org.gradle.api.tasks.diagnostics.*
+
 import static org.gradle.configuration.ImplicitTasksConfigurer.*
-import org.gradle.configuration.Help
-import org.gradle.api.tasks.diagnostics.ProjectReportTask
-import org.gradle.api.tasks.diagnostics.TaskReportTask
-import org.gradle.api.tasks.diagnostics.PropertyReportTask
-import org.gradle.api.tasks.diagnostics.DependencyReportTask
 
 /**
  * by Szczepan Faber, created at: 9/5/12
  */
-class DependencyReportingPluginSpec extends Specification {
+class HelpTasksPluginSpec extends Specification {
 
     def project = new ProjectBuilder().build()
 
     def "adds help tasks"() {
         when:
-        project.apply(plugin: 'dependency-reporting')
+        project.apply(plugin: 'help-tasks')
 
         then:
         hasHelpTask(HELP_TASK, Help)
