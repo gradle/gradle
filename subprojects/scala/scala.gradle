@@ -36,6 +36,6 @@ if (!javaVersion.java6Compatible) {
     sourceSets.test.groovy.exclude "org/gradle/api/internal/tasks/scala/ZincScalaCompilerIntegrationTest.*"
 }
 
-integTest {
+configure([integTest, daemonIntegTest]) {
     jvmArgs "-XX:MaxPermSize=1g" // AntScalaCompilerIntegrationTest needs lots of permgen
 }
