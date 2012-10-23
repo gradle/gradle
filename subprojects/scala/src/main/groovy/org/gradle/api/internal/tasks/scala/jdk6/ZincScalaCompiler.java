@@ -36,7 +36,6 @@ import xsbti.F0;
 
 import java.io.File;
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.List;
 
 public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, Serializable {
