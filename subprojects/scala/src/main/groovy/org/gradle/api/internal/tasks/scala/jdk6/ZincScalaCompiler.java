@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.scala;
+package org.gradle.api.internal.tasks.scala.jdk6;
 
 import com.google.common.collect.ImmutableList;
 import com.typesafe.zinc.Inputs;
@@ -24,6 +24,8 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.tasks.compile.CompilationFailedException;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.internal.tasks.compile.SimpleWorkResult;
+import org.gradle.api.internal.tasks.scala.ScalaCompilerArgumentsGenerator;
+import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.WorkResult;

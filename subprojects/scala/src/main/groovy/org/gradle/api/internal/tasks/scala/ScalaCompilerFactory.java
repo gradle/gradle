@@ -53,7 +53,7 @@ public class ScalaCompilerFactory {
         // for now, leave it up to sbt to also do java compilation
         Compiler<ScalaJavaJointCompileSpec> scalaCompiler = null;
         try {
-            scalaCompiler = (Compiler<ScalaJavaJointCompileSpec>) getClass().getClassLoader().loadClass("org.gradle.api.internal.tasks.scala.ZincScalaCompiler").newInstance();
+            scalaCompiler = (Compiler<ScalaJavaJointCompileSpec>) getClass().getClassLoader().loadClass("org.gradle.api.internal.tasks.scala.jdk6.ZincScalaCompiler").newInstance();
         } catch (Exception e) {
             throw new RuntimeException("Could not load Scala compiler adapter.", e);
         }

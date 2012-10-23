@@ -32,8 +32,8 @@ dependencies {
 useTestFixtures(project: ":plugins") // includes core test fixtures
 
 if (!javaVersion.java6Compatible) {
-    sourceSets.main.groovy.exclude "org/gradle/api/internal/tasks/scala/ZincScalaCompiler.*"
-    sourceSets.test.groovy.exclude "org/gradle/api/internal/tasks/scala/ZincScalaCompilerIntegrationTest.*"
+    sourceSets.main.groovy.exclude '**/jdk6/**'
+    sourceSets.test.groovy.exclude '**/jdk6/**'
 }
 
 configure([integTest, daemonIntegTest]) {

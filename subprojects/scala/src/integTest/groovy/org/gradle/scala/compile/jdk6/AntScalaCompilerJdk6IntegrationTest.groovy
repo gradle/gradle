@@ -14,22 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.scala.compile
+
+
+package org.gradle.scala.compile.jdk6
 
 import org.gradle.integtests.fixtures.TargetVersions
+import org.gradle.scala.compile.BasicScalaCompilerIntegrationTest
 
-@TargetVersions(["2.8.2", "2.9.2"]) // Zinc 0.2.0-M1 doesn't support Scala 2.10.0-RC1
-class ZincScalaCompilerIntegrationTest extends BasicScalaCompilerIntegrationTest {
+@TargetVersions(["2.10.0-RC1"])
+class AntScalaCompilerJdk6IntegrationTest extends BasicScalaCompilerIntegrationTest {
     String compilerConfiguration() {
         '''
 compileScala.scalaCompileOptions.with {
-    useAnt = false
-    fork = true
+    useAnt = true
 }
 '''
     }
 
     String logStatement() {
-        "Compiling with Zinc Scala compiler"
+        "Compiling with Ant scalac task"
     }
 }
