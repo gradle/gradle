@@ -61,8 +61,7 @@ public class TaskNameResolvingBuildConfigurationAction implements BuildConfigura
     }
 
     private Multimap<String, Task> doSelect(GradleInternal gradle, List<String> paths, TaskNameResolver taskNameResolver) {
-        TaskSelector selector = new TaskSelector(taskNameResolver);
-        selector.init(gradle);
+        TaskSelector selector = new TaskSelector(gradle, taskNameResolver);
         return new CommandLineTaskParser().parseTasks(paths, selector);
     }
 }

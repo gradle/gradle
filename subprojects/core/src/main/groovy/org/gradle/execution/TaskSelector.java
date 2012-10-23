@@ -28,14 +28,15 @@ import java.util.Set;
 
 public class TaskSelector {
     private final TaskNameResolver taskNameResolver;
-    private GradleInternal gradle;
+    private final GradleInternal gradle;
 
-    public TaskSelector() {
-        this(new TaskNameResolver());
+    public TaskSelector(GradleInternal gradle) {
+        this(gradle, new TaskNameResolver());
     }
 
-    public TaskSelector(TaskNameResolver taskNameResolver) {
+    public TaskSelector(GradleInternal gradle, TaskNameResolver taskNameResolver) {
         this.taskNameResolver = taskNameResolver;
+        this.gradle = gradle;
     }
 
     public TaskSelection getSelection(String path) {
@@ -43,7 +44,6 @@ public class TaskSelector {
         String baseName;
         String prefix;
 
-        assert gradle != null : "selector should have been earlier initialized with Gradle instance";
         ProjectInternal project = gradle.getDefaultProject();
 
         if (path.contains(Project.PATH_SEPARATOR)) {
@@ -101,10 +101,6 @@ public class TaskSelector {
         }
 
         return (ProjectInternal) current;
-    }
-
-    public void init(GradleInternal gradle) {
-        this.gradle = gradle;
     }
 
     public static class TaskSelection {

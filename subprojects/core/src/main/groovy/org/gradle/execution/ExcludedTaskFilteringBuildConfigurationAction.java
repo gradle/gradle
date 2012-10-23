@@ -26,23 +26,14 @@ import java.util.Set;
  * A {@link BuildConfigurationAction} which filters excluded tasks.
  */
 public class ExcludedTaskFilteringBuildConfigurationAction implements BuildConfigurationAction {
-    private final TaskSelector selector;
-
-    public ExcludedTaskFilteringBuildConfigurationAction() {
-        this(new TaskSelector());
-    }
-
-    ExcludedTaskFilteringBuildConfigurationAction(TaskSelector taskSelector) {
-        selector = taskSelector;
-    }
 
     public void configure(BuildExecutionContext context) {
         GradleInternal gradle = context.getGradle();
         Set<String> excludedTaskNames = gradle.getStartParameter().getExcludedTaskNames();
         if (!excludedTaskNames.isEmpty()) {
+            TaskSelector selector = createSelector(gradle);
             final Set<Task> excludedTasks = new HashSet<Task>();
             for (String taskName : excludedTaskNames) {
-                selector.init(gradle);
                 excludedTasks.addAll(selector.getSelection(taskName).getTasks());
             }
             gradle.getTaskGraph().useFilter(new Spec<Task>() {
@@ -53,5 +44,9 @@ public class ExcludedTaskFilteringBuildConfigurationAction implements BuildConfi
         }
 
         context.proceed();
+    }
+
+    TaskSelector createSelector(GradleInternal gradle) {
+        return new TaskSelector(gradle);
     }
 }
