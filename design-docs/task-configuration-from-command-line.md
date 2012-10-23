@@ -167,6 +167,10 @@ TBD
 
 TBD
 
+## Add an API to allow command-line options for a task to be declared programmatically
+
+TBD
+
 # Open issues
 
 1. Figure out what to do if multiple tasks of different types are selected *and* there are clashing command line options.
