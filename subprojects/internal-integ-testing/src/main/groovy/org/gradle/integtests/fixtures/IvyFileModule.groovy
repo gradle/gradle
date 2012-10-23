@@ -13,9 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
 package org.gradle.integtests.fixtures
 
 import org.gradle.util.TestFile
@@ -88,6 +85,10 @@ class IvyFileModule implements IvyModule {
 
     TestFile sha1File(File file) {
         return moduleDir.file("${file.name}.sha1")
+    }
+
+    TestFile artifactFile(String name) {
+        return file(artifacts.find{ it.name == name })
     }
 
     /**
@@ -193,49 +194,5 @@ class IvyFileModule implements IvyModule {
 
     IvyDescriptor getIvy() {
         return new IvyDescriptor(ivyFile)
-    }
-
-    def expectIvyHead(HttpServer server, prefix = null) {
-        server.expectHead(ivyPath(prefix), ivyFile)
-    }
-
-    def expectIvyGet(HttpServer server, prefix = null) {
-        server.expectGet(ivyPath(prefix), ivyFile)
-    }
-
-    def ivyPath(prefix = null) {
-        path(prefix, ivyFile.name)
-    }
-
-    def expectIvySha1Get(HttpServer server, prefix = null) {
-        server.expectGet(ivySha1Path(prefix), sha1File(ivyFile))
-    }
-
-    def ivySha1Path(prefix = null) {
-        ivyPath(prefix) + ".sha1"
-    }
-
-    def expectArtifactHead(HttpServer server, prefix = null) {
-        server.expectHead(artifactPath(prefix), jarFile)
-    }
-
-    def expectArtifactGet(HttpServer server, prefix = null) {
-        server.expectGet(artifactPath(prefix), jarFile)
-    }
-
-    def artifactPath(prefix = null) {
-        path(prefix, jarFile.name)
-    }
-
-    def expectArtifactSha1Get(HttpServer server, prefix = null) {
-        server.expectGet(artifactSha1Path(prefix), sha1File(jarFile))
-    }
-
-    def artifactSha1Path(prefix = null) {
-        artifactPath(prefix) + ".sha1"
-    }
-
-    def path(prefix = null, String filename) {
-        "${prefix == null ? "" : prefix}/${organisation}/${module}/${revision}/${filename}"
     }
 }

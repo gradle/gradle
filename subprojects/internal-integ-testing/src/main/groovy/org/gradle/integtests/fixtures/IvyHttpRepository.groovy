@@ -90,6 +90,11 @@ class IvyHttpModule implements IvyModule {
         return this
     }
 
+    IvyHttpModule artifact(Map<String, ?> options) {
+        backingModule.artifact(options)
+        return this
+    }
+
     String getIvyFileUri() {
         return "http://localhost:${server.port}$prefix/$ivyFile.name"
     }
@@ -106,6 +111,10 @@ class IvyHttpModule implements IvyModule {
         return backingModule.jarFile
     }
 
+    void allowAll() {
+        server.allowGetOrHead(prefix, backingModule.moduleDir)
+    }
+
     void expectIvyGet() {
         server.expectGet("$prefix/$ivyFile.name", ivyFile)
     }
@@ -118,12 +127,33 @@ class IvyHttpModule implements IvyModule {
         server.expectHead("$prefix/$ivyFile.name", ivyFile)
     }
 
+    void expectIvySha1Get() {
+        server.expectGet("$prefix/${ivyFile.name}.sha1", backingModule.sha1File(ivyFile))
+    }
+
+    void expectIvySha1GetMissing() {
+        server.expectGetMissing("$prefix/${ivyFile.name}.sha1")
+    }
+
     void expectJarGet() {
         server.expectGet("$prefix/$jarFile.name", jarFile)
     }
 
     void expectJarHead() {
         server.expectHead("$prefix/$jarFile.name", jarFile)
+    }
+
+    void expectJarSha1Get() {
+        server.expectGet("$prefix/${jarFile.name}.sha1", backingModule.sha1File(jarFile))
+    }
+
+    void expectJarSha1GetMissing() {
+        server.expectGetMissing("$prefix/${jarFile.name}.sha1")
+    }
+
+    void expectArtifactGet(String name) {
+        def artifactFile = backingModule.artifactFile(name)
+        server.expectGet("$prefix/$artifactFile.name", artifactFile)
     }
 }
 

@@ -18,6 +18,8 @@ package org.gradle.integtests.fixtures;
 
 import org.gradle.util.TestFile;
 
+import java.util.Map;
+
 public interface IvyModule {
     TestFile getIvyFile();
 
@@ -31,6 +33,8 @@ public interface IvyModule {
     IvyModule withStatus(String status);
 
     IvyModule dependsOn(String organisation, String module, String revision);
+
+    IvyModule artifact(Map<String, ?> options);
 
     /**
      * Publishes ivy.xml plus all artifacts with different content to previous publication.

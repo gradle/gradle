@@ -22,16 +22,14 @@ public class CacheResolveIntegrationTest extends AbstractDependencyResolutionTes
         server.start()
 
         given:
-        def repo = ivyRepo()
-        def module = repo.module('group', 'projectA', '1.2')
-        module.publish()
+        def module = ivyHttpRepo.module('group', 'projectA', '1.2').publish()
 
         def cacheDir = distribution.userHomeDir.file('caches').toURI()
 
         and:
         buildFile << """
 repositories {
-    ivy { url "http://localhost:${server.port}/repo" }
+    ivy { url "${ivyHttpRepo.uri}" }
 }
 configurations { compile }
 dependencies { compile 'group:projectA:1.2' }
@@ -44,7 +42,7 @@ task deleteCacheFiles(type: Delete) {
 """
 
         and:
-        server.allowGetOrHead("/repo", repo.rootDir)
+        module.allowAll()
 
         and:
         succeeds('listJars')
@@ -52,8 +50,8 @@ task deleteCacheFiles(type: Delete) {
         
         when:
         server.resetExpectations()
-        server.expectGet('/repo/group/projectA/1.2/ivy-1.2.xml', module.ivyFile)
-        server.expectGet('/repo/group/projectA/1.2/projectA-1.2.jar', module.jarFile)
+        module.expectIvyGet()
+        module.expectJarGet()
 
         then:
         succeeds('listJars')
@@ -62,9 +60,9 @@ task deleteCacheFiles(type: Delete) {
     public void "cache entries are segregated between different repositories"() {
         server.start()
         given:
-        def repo1 = ivyRepo('ivy-repo-a')
+        def repo1 = ivyHttpRepo('ivy-repo-a')
         def module1 = repo1.module('org.gradle', 'testproject', '1.0').publish()
-        def repo2 = ivyRepo('ivy-repo-b')
+        def repo2 = ivyHttpRepo('ivy-repo-b')
         def module2 = repo2.module('org.gradle', 'testproject', '1.0').publishWithChangedContent()
 
         and:
@@ -84,27 +82,27 @@ subprojects {
 }
 project('a') {
     repositories {
-        ivy { url "http://localhost:${server.port}/repo-a" }
+        ivy { url "${repo1.uri}" }
     }
 }
 project('b') {
     repositories {
-        ivy { url "http://localhost:${server.port}/repo-b" }
+        ivy { url "${repo2.uri}" }
     }
     retrieve.dependsOn(':a:retrieve')
 }
 """
 
         when:
-        server.expectGet('/repo-a/org.gradle/testproject/1.0/ivy-1.0.xml', module1.ivyFile)
-        server.expectGet('/repo-a/org.gradle/testproject/1.0/testproject-1.0.jar', module1.jarFile)
+        module1.expectIvyGet()
+        module1.expectJarGet()
 
-        module2.expectIvyHead(server, "/repo-b")
-        server.expectGet('/repo-b/org.gradle/testproject/1.0/ivy-1.0.xml.sha1', module2.sha1File(module2.ivyFile))
-        server.expectGet('/repo-b/org.gradle/testproject/1.0/ivy-1.0.xml', module2.ivyFile)
-        module2.expectArtifactHead(server, "/repo-b")
-        server.expectGet('/repo-b/org.gradle/testproject/1.0/testproject-1.0.jar.sha1', module2.sha1File(module2.jarFile))
-        server.expectGet('/repo-b/org.gradle/testproject/1.0/testproject-1.0.jar', module2.jarFile)
+        module2.expectIvyHead()
+        module2.expectIvySha1Get()
+        module2.expectIvyGet()
+        module2.expectJarHead()
+        module2.expectJarSha1Get()
+        module2.expectJarGet()
 
         then:
         succeeds 'retrieve'
@@ -117,9 +115,9 @@ project('b') {
     public void "reuses a cached artifact retrieved from a different repository when sha1 matches"() {
         server.start()
         given:
-        def repo1 = ivyRepo('ivy-repo-a')
+        def repo1 = ivyHttpRepo('ivy-repo-a')
         def module1 = repo1.module('org.gradle', 'testproject', '1.0').publish()
-        def repo2 = ivyRepo('ivy-repo-b')
+        def repo2 = ivyHttpRepo('ivy-repo-b')
         def module2 = repo2.module('org.gradle', 'testproject', '1.0').publish()
 
         and:
@@ -139,25 +137,25 @@ subprojects {
 }
 project('a') {
     repositories {
-        ivy { url "http://localhost:${server.port}/repo-a" }
+        ivy { url "${repo1.uri}" }
     }
 }
 project('b') {
     repositories {
-        ivy { url "http://localhost:${server.port}/repo-b" }
+        ivy { url "${repo2.uri}" }
     }
     retrieve.dependsOn(':a:retrieve')
 }
 """
 
         when:
-        server.expectGet('/repo-a/org.gradle/testproject/1.0/ivy-1.0.xml', module1.ivyFile)
-        server.expectGet('/repo-a/org.gradle/testproject/1.0/testproject-1.0.jar', module1.jarFile)
+        module1.expectIvyGet()
+        module1.expectJarGet()
 
-        module2.expectIvyHead(server, "/repo-b")
-        server.expectGet('/repo-b/org.gradle/testproject/1.0/ivy-1.0.xml.sha1', module2.sha1File(module2.ivyFile))
-        module2.expectArtifactHead(server, "/repo-b")
-        server.expectGet('/repo-b/org.gradle/testproject/1.0/testproject-1.0.jar.sha1', module2.sha1File(module2.jarFile))
+        module2.expectIvyHead()
+        module2.expectIvySha1Get()
+        module2.expectJarHead()
+        module2.expectJarSha1Get()
 
         then:
         succeeds 'retrieve'

@@ -13,9 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
 package org.gradle.integtests.fixtures
 
 import groovy.xml.MarkupBuilder
@@ -294,53 +291,4 @@ class MavenFileModule implements MavenModule {
         hashFile.text = HashUtil.createHash(file, algorithm.toUpperCase()).asHexString()
         return hashFile
     }
-
-    public expectPomHead(HttpServer server, prefix = null) {
-        server.expectHead(pomPath(prefix), pomFile)
-    }
-
-    public allowPomHead(HttpServer server, prefix = null) {
-        server.allowHead(pomPath(prefix), pomFile)
-    }
-
-    public pomPath(prefix = null) {
-        path(prefix, pomFile.name)
-    }
-
-    public allowPomSha1GetOrHead(HttpServer server, prefix = null) {
-        server.allowGetOrHead(pomSha1Path(prefix), sha1File(pomFile))
-    }
-
-    public pomSha1Path(prefix = null) {
-        pomPath(prefix) + ".sha1"
-    }
-
-    public expectArtifactHead(HttpServer server, prefix = null) {
-        server.expectHead(artifactPath(prefix), artifactFile)
-    }
-
-    public allowArtifactHead(HttpServer httpServer, prefix = null) {
-        httpServer.allowHead(artifactPath(prefix), artifactFile)
-    }
-
-    public artifactPath(prefix = null) {
-        path(prefix, artifactFile.name)
-    }
-
-    public expectArtifactSha1Get(HttpServer server, prefix = null) {
-        server.expectGet(artifactSha1Path(prefix), sha1File(artifactFile))
-    }
-
-    public allowArtifactSha1GetOrHead(HttpServer server, prefix = null) {
-        server.allowGetOrHead(artifactSha1Path(prefix), sha1File(artifactFile))
-    }
-
-    public artifactSha1Path(prefix = null) {
-        artifactPath(prefix) + ".sha1"
-    }
-
-    public path(prefix = null, String filename) {
-        "${prefix == null ? "" : prefix}/${groupId.replace('.', '/')}/${artifactId}/${version}/${filename}"
-    }
-
 }
