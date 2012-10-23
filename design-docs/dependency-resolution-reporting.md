@@ -180,5 +180,4 @@ TBD
 # Open issues / ideas
 
 1. Model the unresolved dependencies - how to carry the resolution failure?
-2. Later, we'd add some conveniences to ResolvedConfiguration to do some traversal of this graph in interesting ways - find me all the module versions, find me all the artefacts, find me all the files, find me all the unresolved dependencies, and so on.
-3. I would also think about wrapping access to the graph in some kind of action
+2. I would also think about wrapping access to the graph in some kind of action
