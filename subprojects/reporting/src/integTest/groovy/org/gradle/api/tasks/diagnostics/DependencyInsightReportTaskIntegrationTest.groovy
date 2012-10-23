@@ -407,4 +407,82 @@ org:leaf2:1.0
      \\--- org:leaf2:1.0 (*)
 """))
     }
+
+    def "deals with dependency cycle to root"() {
+        given:
+        file("settings.gradle") << "include 'impl'; rootProject.name='root'"
+
+        file("build.gradle") << """
+            allprojects {
+                apply plugin: 'java'
+                group = 'org.foo'
+                version = '1.0'
+            }
+            archivesBaseName = 'root'
+            dependencies {
+                compile project(":impl")
+            }
+            project(":impl") {
+                dependencies {
+                    compile project(":")
+                }
+            }
+            task insight(type: DependencyInsightReportTask) {
+                dependency { true }
+                configuration = configurations.compile
+            }
+        """
+
+        when:
+        run "insight"
+
+        then:
+        output.contains(toPlatformLineSeparators("""
+org.foo:root:1.0
+\\--- org.foo:impl:1.0
+     \\--- org.foo:root:1.0 (*)"""))
+    }
+
+    def "shows project dependencies"() {
+        given:
+        mavenRepo.module("org", "leaf1").dependsOn("leaf2").publish()
+        mavenRepo.module("org", "leaf2").dependsOn("leaf3").publish()
+        mavenRepo.module("org", "leaf3").publish()
+
+        file("settings.gradle") << "include 'impl'; rootProject.name='root'"
+
+        file("build.gradle") << """
+            allprojects {
+                apply plugin: 'java'
+                group = 'org.foo'
+                version = '1.0-SNAPSHOT'
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+            }
+            dependencies {
+                compile project(':impl')
+            }
+            project(':impl') {
+                dependencies {
+                    compile 'org:leaf1:1.0'
+                }
+            }
+            task insight(type: DependencyInsightReportTask) {
+                dependency { it.requested.name == 'leaf2' }
+                configuration = configurations.compile
+            }
+        """
+
+        when:
+        run "insight"
+
+        then:
+        output.contains(toPlatformLineSeparators("""
+org:leaf2:1.0
+\\--- org:leaf1:1.0
+     \\--- org.foo:impl:1.0-SNAPSHOT
+          \\--- compile
+"""))
+    }
 }
