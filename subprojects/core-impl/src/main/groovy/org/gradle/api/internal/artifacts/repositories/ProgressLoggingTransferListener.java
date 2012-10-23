@@ -38,7 +38,7 @@ public class ProgressLoggingTransferListener extends AbstractProgressLoggingHand
         }
         final int eventType = evt.getEventType();
         if (eventType == TransferEvent.TRANSFER_STARTED) {
-            resourceOperation = createResourceOperation(resource.getName(), ResourceOperation.Type.valueOf(getRequestType(evt)), loggingClass, evt.getTotalLength());
+            resourceOperation = createResourceOperation(resource.getName(), getRequestType(evt), loggingClass, evt.getTotalLength());
         }
         if (eventType == TransferEvent.TRANSFER_PROGRESS) {
             resourceOperation.logProcessedBytes(evt.getLength());
@@ -48,11 +48,11 @@ public class ProgressLoggingTransferListener extends AbstractProgressLoggingHand
         }
     }
 
-    private String getRequestType(TransferEvent evt) {
+    private ResourceOperation.Type getRequestType(TransferEvent evt) {
         if (evt.getRequestType() == TransferEvent.REQUEST_PUT) {
-            return "upload";
+            return ResourceOperation.Type.upload;
         } else {
-            return "download";
+            return ResourceOperation.Type.download;
         }
     }
 }
