@@ -1,4 +1,8 @@
 
+* Has to be able to scale down.
+* Adapting between specific worlds.
+* Detangle incoming and outgoing.
+
 There are many shortcomings with the existing model and DSL for publishing. This specification describes a plan to implement a new publication model and DSL.
 
 The basic strategy taken here is to incrementally grow the new model along-side the existing model.
@@ -67,56 +71,59 @@ Note: for the following discussion, all changes are `@Incubating` unless specifi
 An initial step will provide some capability to modify the generated `ivy.xml` and `pom.xml` files before publication.
 
 1. Introduce a `Publication` interface. Probably make `Publication` a `Named` thing.
-2. Add a `Publication` container to the project. At this stage, this container will be read-only.
-2. Add `MavenPublication` interface.
-3. Change the Maven plugin so that `mavenInstaller()` and `mavenDeployer()` methods add a `MavenPublication` instance to the container for each `MavenPom` instance
-   that the installers and deployers create (ie one for each filter).
-4. Add `MavenPublication.withXml()` methods.
-5. Add `IvyPublication` interface.
-6. Add an `ivy` plugin that adds a single `IvyPublication` instance to the container. All Ivy repository instances used for upload will share the same `IvyPublication` instance.
-   This instance would use the following defaults when generating the `ivy.xml`
+2. Add a `Publication` container to the project. At this stage, this container will be _read-only_.
+3. Add `IvyPublication` interface and `IvyDependencyDescriptor` interface.
+    * An `IvyPublication` has-a property called `ivy` of type `IvyDependencyDescriptor`.
+4. Add an `ivy-publish` plugin that adds a single `IvyPublication` instance to the container. All Ivy repository instances used for upload will share the same `IvyPublication` instance.
+5. Add `IvyDependencyDescriptor.withXml()` methods and wire this up to `ivy.xml` generation.
+6. Change the defaults used for Ivy publication when the `ivy-publish` plugin is applied:
     * `organisation` == `project.group`
     * `module` == `project.name` (_not_ `archivesBaseName`)
     * `revision` == `project.version`
     * `status` == `project.status`
-    * Only dependency declarationss from public configurations are included, and no configuration extension is used.
+    * Only dependency declarations from public configurations are included, and no configuration extension is used.
     * Only artifacts from public configurations are included.
-7. Add `IvyPublication.withXml()` methods.
+7. Add `MavenPublication` interface and `MavenPom` interface.
+    * A `MavenPublication` has-a property called `pom` of type `Pom`.
+8. Add a `maven-publish` plugin. When both the `maven-publish` and `maven` plugins are applied, then the `mavenInstaller()` and `mavenDeployer()` methods
+   add a `MavenPublication` instance to the container for each `MavenPom` instance that the installers and deployers create (ie one for each filter).
+9. Add `Pom.withXml()` methods. These can delegate to the associated `MavenPom.withXml()` methods.
 
 To customise the `pom.xml`:
 
     apply plugin: 'maven'
+    apply plugin: 'maven-publish'
 
     uploadArchives {
         repositories { mavenDeployer { ... } }
     }
 
     publications.withType(MavenPublication) {
-        withXml { xml -> ... }
+        pom.withXml { xml -> ... }
     }
 
     // or
-    publications.mavenInstall.withXml { xml -> ... }
+    publications.mavenInstall.pom.withXml { xml -> ... }
 
 To customise the `ivy.xml`:
 
-    apply plugin: 'ivy'
+    apply plugin: 'ivy-publish'
 
     uploadArchives {
         repositories { ivy { ... } }
     }
 
     publications.withType(IvyPublication) {
-        withXml { xml -> ... }
+        ivy.withXml { xml -> ... }
     }
 
     // or
-    publications.ivy.withXml { xml -> ... }
+    publications.ivy.ivy.withXml { xml -> ... }
 
-The `ivy` plugin is intended to move Ivy concepts out of the core Gradle DSL, but still allow them to be available for customisation for those projects
+The `ivy-publish` plugin is intended to move Ivy concepts out of the core Gradle DSL, but still allow them to be available for customisation for those projects
 that use Ivy. It also allows us to introduce some breaking changes, in an opt-in way.
 
-Note: there's a breaking change here. If you apply the `ivy` plugin, the `archivesBaseName` property is no longer used as the default Ivy module name
+Note: there's a breaking change here. If you apply the `ivy-publish` plugin, the `archivesBaseName` property is no longer used as the default Ivy module name
 when you use any of the existing `upload$Config` tasks. In addition, only the dependency declarations and artifacts from public configurations are
 included in the generated Ivy descriptor and the publication.
 
@@ -131,14 +138,15 @@ at this point to start pulling descriptor generation up, so that it can eventual
 
 A second step will allow some basic customisation of the meta data model for each publication:
 
-1. Add `groupId`, `artifactId` and `version` properties to `MavenPublication`. These properties will delegate to the associated `MavenPom` instance.
-2. Add `organisation`, `module` and `revision` properties to `IvyPublication`.
-3. Change the `ivy.xml` generation to prefer to (organisation, module, revision) identifier of the `IvyPublication` instance from the target project
-   for a project dependencies, other the existing candidate identifiers.
+1. Add `groupId`, `artifactId` and `version` properties to `MavenPublication` and `Pom`. These properties will delegate to the associated `MavenPom` instance.
+2. Add `organisation`, `module` and `revision` properties to `IvyPublication` and `IvyDependencyDescriptor`.
+3. Change the `ivy.xml` generation to prefer the (organisation, module, revision) identifier of the `IvyPublication` instance from the target project
+   for a project dependencies, over the existing candidate identifiers.
 
 To customise the `pom.xml`:
 
     apply plugin: 'maven'
+    apply plugin: 'maven-publish'
 
     uploadArchives {
         repositories { mavenDeployer { ... } }
@@ -152,7 +160,7 @@ To customise the `pom.xml`:
 
 To customise the `ivy.xml`:
 
-    apply plugin: 'ivy'
+    apply plugin: 'ivy-publish'
 
     uploadArchives {
         repositories { ivy { ... } }
@@ -166,7 +174,7 @@ To customise the `ivy.xml`:
 
 We might also add an `ivy` and `maven` project extension as a convenience to specify defaults for all publications of the appropriate type:
 
-    apply plugin: 'ivy'
+    apply plugin: 'ivy-publish'
 
     ivy {
         organisation = 'my-organisation'
@@ -174,11 +182,21 @@ We might also add an `ivy` and `maven` project extension as a convenience to spe
         revision = '1.2'
     }
 
+And:
+
+    apply plugin: 'maven-publish'
+
+    maven {
+        groupId = 'my-group'
+        artifactId = 'my-module'
+        version = '1.2'
+    }
+
 ## Reuse Maven publication for Maven install and deploy
 
 This step moves away from the existing Maven publication DSL:
 
-1. Change `maven` plugin to add a `MavenPublication` instance to the publications container. This instance would have the following defaults:
+1. Change `maven-publish` plugin to add a `MavenPublication` instance to the publications container. This instance would have the following defaults:
     * `groupId` == `project.group`
     * `artifactId` == `project.name` (_not_ `archivesBaseName`)
     * `version` == `project.version`
@@ -190,7 +208,7 @@ This step moves away from the existing Maven publication DSL:
 
 To install into the maven cache:
 
-    apply plugin: 'maven'
+    apply plugin: 'maven-publish'
 
     task publishLocal(type: Upload) {
         repositories { mavenLocal() }
@@ -198,7 +216,7 @@ To install into the maven cache:
 
 To deploy to a remote repository:
 
-    apply plugin: 'maven'
+    apply plugin: 'maven-publish'
 
     uploadArchives {
         repositories { maven { ... } }
@@ -206,7 +224,7 @@ To deploy to a remote repository:
 
 To allow install and deploy with customisations:
 
-    apply plugin: 'maven'
+    apply plugin: 'maven-publish'
 
     publications.maven {
         groupId = 'my-group'
@@ -222,7 +240,7 @@ To allow install and deploy with customisations:
         repositories { maven { ... } }
     }
 
-Note: there's a potential breaking change here: if you use the `maven` plugin and the `maven` publication, the module `artifactId` will default
+Note: there's a potential breaking change here: if you use the `maven-publish` plugin and the `maven` publication, the module `artifactId` will default
 to the project name, not the value of `archivesBaseName`. Not strictly a breaking change, but more a potential problem.
 
 ## Allow outgoing dependencies to be customised
@@ -236,7 +254,7 @@ This step decouples the incoming and outgoing dependencies, to allow each public
     * `type`
     * `optional`
 2. Add a `MavenDependencySet` concept. This is a collection of things that can be converted into a collection of `MavenDependency` instances.
-3. Add a named container of `MavenDependencySet` scopes to `MavenPublication`. The following scopes would be made available:
+3. Add a named container of `MavenDependencySet` scopes to `Pom`. The following scopes would be made available:
     * `compile`
     * `provided`
     * `runtime`
@@ -247,9 +265,9 @@ This step decouples the incoming and outgoing dependencies, to allow each public
     * `revision`
     * `configuration`
 5. Add an `IvyConfiguration` concept. This is a collection of things that can be converted into a collection of `IvyDependency` instances.
-6. Add a named container of `IvyConfiguration` instances to `IvyPublication`.
+6. Add a named container of `IvyConfiguration` instances to `IvyDependencyDescriptor`.
 
-For the singleton `IvyPublication` and `MavenPublication` instances, these properties would have defaults as specified earlier. For `MavenPublication`
+For the singleton `ivy` and `maven` instances, these properties would have defaults as specified earlier. For `MavenPublication`
 instances backed by a `MavenPom`, these properties will default to those values specified in the `MavenPom` scope mappings. Mutating the scopes for
 a `MavenPom` backed publication would not affect the scope mappings.
 
@@ -258,10 +276,10 @@ and Ivy configuration extension, configuration mappings, and artifact includes a
 
 To customise a Maven publication:
 
-    apply plugin: 'maven'
+    apply plugin: 'maven-publish'
 
     publications.maven {
-        scopes {
+        pom.scopes {
             compile "some-group:some-artifactId:1.2"
             runtime = [compile, "some-group:some-artifactId:1.2:runtime"]
             test = []
@@ -270,10 +288,10 @@ To customise a Maven publication:
 
 To customise an Ivy publication:
 
-    apply plugin: 'ivy'
+    apply plugin: 'ivy-publish'
 
     publications.ivy {
-        configurations {
+        ivy.configurations {
             compile "some-group:some-module:1.2"
             testRuntime = []
         }
@@ -297,13 +315,13 @@ This step allows the outgoing artifacts to be customised for individual publicat
 5. Add an `IvyArtifactSet` interface. This is a collection of objects that can be converted to a collection of `IvyArtifact` instances.
 6. Add an `artifacts` property to `IvyConfiguration`.
 
-For the singleton `IvyPublication` and `MavenPublication` instances, these properties would have defaults as specified earlier. For `MavenPublication`
+For the singleton `ivy` and `maven` instances, these properties would have defaults as specified earlier. For `MavenPublication`
 instances backed by a `MavenPom`, these properties will default to those artifacts that match the `MavenPom` artifact filter. Mutating the artifacts for
 a `MavenPom` backed publication would not affect the artifact filter.
 
 To customise a Maven publication:
 
-    apply plugin: 'maven'
+    apply plugin: 'maven-publish'
 
     publications.maven {
         mainArtifact = jar
@@ -313,10 +331,10 @@ To customise a Maven publication:
 
 To customise an Ivy publication:
 
-    apply plugin: 'ivy'
+    apply plugin: 'ivy-publish'
 
     publications.ivy {
-        configurations {
+        ivy.configurations {
             runtime {
                 artifacts = [jar]
             }
@@ -356,7 +374,7 @@ These would be mixed in to various steps above (TBD), rather than as one change 
 At any point above, and as required, more meta-data for a publication can be made available for customisation. In particular:
 
 1. Add `packaging`, `name`, `description`, `url`, `licenses`, `organization`, `scm`, `issueManagement` and `mailingLists` to `MavenPublication`
-2. Add `status` and extended attributes to `IvyPublication`, `IvyConfiguration` and `IvyArtifact`.
+2. Add `status` and extended attributes to `IvyDependencyDescriptor`, `IvyConfiguration` and `IvyArtifact`.
 3. Add exclusions, inclusions, etc.
 
 
