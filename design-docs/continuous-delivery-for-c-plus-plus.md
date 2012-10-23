@@ -1,17 +1,6 @@
 
 This document describes a number of improvements to allow C++ projects to be built, tested, published are shared between teams.
 
-* [Publishing and resolving dynamic libraries](#shared-libraries)
-* [Publishing and resolving executables](#executables)
-* [Binaries built for multiple Intel x86 architectures](#multiple-architectures)
-* [Binaries built for multiple operating systems](#multiple-operating-systems)
-* [Header-only libraries](#header-only-libraries)
-* [Debug and release binaries](#debug-and-release-binaries)
-* [Building static libraries](#static-libraries)
-* [Running tests](#tests)
-* [Publishing multiple binaries from a project](#multiple-binaries)
-* [Building binaries for all operating systems in a single build](#single-build)
-
 # Current state
 
 Currently, the Gradle C++ plugins can compile and link multiple executables and shared libraries. Dependency management is partially implemented, so
@@ -32,7 +21,6 @@ via a repository.
 A project that uses the published binary in some form. In the case of a published library, the consumer usually installs, links against the library,
 and runs the result. In the case of a published executable, the consumer generally installs and runs the executable.
 
-<a name="shared-libraries"></a>
 # Publishing and resolving dynamic libraries
 
 ## Use cases
@@ -68,7 +56,6 @@ To implement this story:
 * Consumer determine which libraries are already installed on the machine, and uses these from their installed location at link time.
 * Define some standard artifact types for dynamic libraries, header archibes and export files.
 
-<a name="executables"></a>
 # Publishing and resolving executables
 
 ## Use cases
@@ -93,7 +80,6 @@ To implement this:
 * Consumer project installs the executable and libraries into a location where they are executable.
 * Define some standard artifact types for executables.
 
-<a name="multiple-architectures"></a>
 # Binaries built for multiple Intel x86 architectures
 
 ## Use cases
@@ -107,12 +93,12 @@ Out of scope for this work is support for other chipsets, or projects the build 
 
 ## Implementation
 
-There are 2 main parts to the architecture that we are interested in: The CPU instruction set that is being used, and the pointer size. Usually,
-but not always, a 32-bit processor instruction set is used with 32-bit pointer size, and a 64-bit processor instruction set is used with 64-bit pointer
-size.
+There are 2 main parts to the architecture that we are interested in: The CPU instruction set that is being used, and the data model. Usually,
+but not always, a 32-bit processor instruction set is used with 32-bit data model, and a 64-bit processor instruction set is used with 64-bit
+data model.
 
 Usually, it is possible to combine different instruction sets in the same binary. So, when linking a binary targetting the amb64 CPU, it is fine to link
-against a library built for the x86 CPU. It is not possible to combine different pointer sizes in the same executable.
+against a library built for the x86 CPU. It is not possible to combine different data models in the same executable.
 
 On OS X, a binary may target multiple architectures, as a universal binary. It should be noted that a universal binary simply supports more than one
 architecture, but not necessarily every architecture as the name suggests. For example, a universal binary might include x86 & amd64 suport but no
@@ -125,8 +111,8 @@ To implement this:
 
 * Add appropriate tasks so that producer project can compile, link and publish the binaries for all architectures in a single build invocation.
 * Add some mechanism for the developer to select the architectures they are interested in from the command-line and tooling API.
-* Include in the published meta-data information about which (cpu + pointer size) each binary was built for.
-* Consumer project selects the binaries with the appropriate cpu + pointer size when resolving the link and runtime dependencies for the executable.
+* Include in the published meta-data information about which (cpu + data model) each binary was built for.
+* Consumer project selects the binaries with the appropriate cpu + data model when resolving the link and runtime dependencies for the executable.
 * Allow compiler and linker settings to be specified for each architecture.
 * Allow resolved binaries to have the same file name across architectures. For example, a dynamic library should be called libsomething.so regardless
   of whether it happens to be built for the x86 or amd64 architectures.
@@ -143,7 +129,6 @@ Native architecture names:
 
 * OS X: i386, x86_64, ppc, ppc64
 
-<a name="multiple-operating-systems"></a>
 # Binaries built for multiple operating systems
 
 ## Use cases
@@ -185,7 +170,6 @@ To implement this:
 * Allow resolved binaries to have the same file name across operating system.
 * Define some standard operating system names.
 
-<a name="header-only-libraries"></a>
 # Header-only libraries
 
 ## Use case
@@ -200,7 +184,6 @@ To implement this:
 
 * Allow zero or more binaries for a given library at link and runtime. Also allow for zero or more header files.
 
-<a name="debug-and-release-binaries"></a>
 # Debug and release binaries
 
 ## Use case
@@ -243,7 +226,6 @@ To generate the debug binaries (default):
 * Compile with -g or /Zi
 * Link with /DEBUG
 
-<a name="static-libraries"></a>
 # Publishing and resolving static libraries
 
 ## Use cases
@@ -262,7 +244,6 @@ To implement this:
 * Consumer project selects either the static or dynamic binaries for a given dependency at link time. A dependency that is statically linked
   into a binary has no files that are required at runtime, but may have files that are required at debug time.
 
-<a name="tests"></a>
 # Running tests
 
 ## Use cases
@@ -278,12 +259,10 @@ To implement this:
 * It would be nice to generate a test launcher that is integrated with Gradle's test eventing.
 * It would be nice to generate a test launcher that runs test cases detected from the test source (as we do for JUnit and TestNG tests).
 
-<a name="multiple-binaries"></a>
 # Publishing multiple binaries from a project
 
 TBD
 
-<a name="single-build"></a>
 # Building binaries for all operating systems in a single build
 
 TBD
@@ -293,7 +272,7 @@ TBD
 * General purpose tree artifact.
 * Handling for system libraries.
 * Building for multiple chipsets.
-* Selecting a compatible architecture at resolve time. For example, if I'm building for the amd64 cpu, I can use an x86 cpu + 64bit pointer architecture.
+* Selecting a compatible architecture at resolve time. For example, if I'm building for the amd64 cpu, I can use an x86 cpu + 64 bit data model.
 * Selecting a compatible operating system version at resolve time.
 * Selecting a compatible release binary when the debug binaries are not available.
 * Need to include meta-data about which runtime a DLL is linked against. Same for dynamic libraries, but less common.
