@@ -105,9 +105,19 @@ TBD
 1. Make sure we're happy with the notation. Current one is:
  `some_task some_configurable_task --some_option --some_option2 optional_option2_value some_other_task`
  I'm worried that without some kind of namespacing we'll run into problems in the long run.
-1. Move the `@CommandLineOption` annotation to the public API and mark `@Incubating`.
-2. Add documentation to 'implementing custom tasks` chapter.
-3. Support annotating a Groovy task field.
+2. Move the `@CommandLineOption` annotation to the public API and mark `@Incubating`.
+3. Add documentation to 'implementing custom tasks` chapter.
+4. Use `NotationParser` to convert from command-line option to method parameter type.
+5. Support annotating a Groovy task field.
+6. Support multiple values for `CommandLineOption.options()` or replace `options()` with singular `option()`.
+7. Support zero args methods annotated with `@CommandLineOption`.
+8. Add validation for methods with `@CommandLineOption`:
+    * The method must take exactly zero or one parameters.
+    * The parameter must be of type boolean or assignable from String or assignable from Boolean.
+9. Add error reporting for:
+    * Configuration method throws an exception.
+    * Annotation is missing 'options' value.
+    * Annotation is missing 'description' value.
 
 ## Allow command-line options to be discovered
 
@@ -163,3 +173,6 @@ TBD
 For example, 'foo' option that requires a string value in one task type but is a boolean flag in some other task type.
 This is not a blocker because we have very little command line options, yet.
 1. Decide on precedence order if task is configured from the command line and in the build script. Add coverage, etc.
+1. If a method marked with `@CommandLineOption` accepts varargs or a Collection type as parameter, allow the command-line option to be specified multiple
+   time on the command-line.
+1. Add support for more types in the conversion from command-line option value to property value, in particular File.
