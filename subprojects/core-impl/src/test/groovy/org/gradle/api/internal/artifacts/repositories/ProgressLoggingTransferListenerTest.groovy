@@ -31,7 +31,6 @@ class ProgressLoggingTransferListenerTest extends Specification {
 
     def setup() {
         transferEvent.getResource() >> resource
-        progressLoggerFactory.newOperation(_) >> progressLogger
     }
 
     def "transferProgress does not log operations on local resources"() {
@@ -60,6 +59,7 @@ class ProgressLoggingTransferListenerTest extends Specification {
 
     def "transferProgress logs progress on transfers"() {
         setup:
+        progressLoggerFactory.newOperation(_) >> progressLogger
         transferEvent.getLength() >>> [512, 512, 2048, 256]
         transferEvent.getEventType() >>> [TransferEvent.TRANSFER_STARTED, TransferEvent.TRANSFER_PROGRESS, TransferEvent.TRANSFER_PROGRESS, TransferEvent.TRANSFER_PROGRESS, TransferEvent.TRANSFER_PROGRESS]
         when:
