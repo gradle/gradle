@@ -213,6 +213,9 @@
                 <td>org.gradle.api.tasks.diagnostics.DependencyReportTask</td>
             </tr>
             <tr>
+                <td>org.gradle.api.tasks.diagnostics.DependencyInsightReportTask</td>
+            </tr>
+            <tr>
                 <td>org.gradle.plugins.ear.Ear</td>
             </tr>
             <tr>

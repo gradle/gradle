@@ -41,12 +41,36 @@ import javax.inject.Inject
 import static org.gradle.logging.StyledTextOutput.Style.Info
 
 /**
- * by Szczepan Faber, created at: 8/17/12
+ * Generates a report that attempts to answer questions like:
+ * <ul>
+ *   <li>Why this dependency is in the dependency graph? What pulls this dependency into the graph?</li>
+ *   <li>What are all the requested versions of this dependency?</li>
+ *   <li>Why the dependency has this particular version selected?</li>
+ * </ul>
+ *
+ * Use this task to get insight into a particular dependency (or dependencies)
+ * and find out what exactly happens during dependency resolution and conflict resolution.
+ * <p>
+ * The task requires setting the dependency spec and the configuration.
+ * For more information on how to configure those please refer to the available methods and properties.
+ * <p>
+ * The task can also be configured from the command line.
+ * For more information please refer to {@link DependencyInsightReportTask#dependency(Object)}
+ * and {@link DependencyInsightReportTask#configuration(String)}
  */
 @Incubating
 public class DependencyInsightReportTask extends DefaultTask {
 
+    //TODO SF create a group in the dsl reference for the help tasks. Document the dependencies report better if necessary.
+
+    /**
+     * Configuration to look the dependency in
+     */
     Configuration configuration;
+
+    /**
+     * Selects the dependency (or dependencies if multiple matches found) to show the report for.
+     */
     Spec<DependencyResult> dependencySpec;
 
     private final StyledTextOutput output;
@@ -58,20 +82,52 @@ public class DependencyInsightReportTask extends DefaultTask {
         renderer = new GraphRenderer(output);
     }
 
+    /**
+     * The dependency spec selects the dependency (or dependencies if multiple matches found) to show the report for.
+     * The spec receives an instance of {@link DependencyResult} as parameter.
+     *
+     * @param dependencySpec
+     */
     public void setDependencySpec(Spec<DependencyResult> dependencySpec) {
         this.dependencySpec = dependencySpec;
     }
 
+    /**
+     * Configures the dependency to show the report for.
+     * Multiple notation formats are supported: Strings, instances of {@link Spec}
+     * and groovy closures. Spec and closure receive {@link DependencyResult} as parameter.
+     * Examples of String notation: 'org.slf4j:slf4j-api', 'slf4j-api', or simply: 'slf4j'.
+     * The input may potentially match multiple dependencies.
+     * See also {@link DependencyInsightReportTask#setDependencySpec(Spec)}
+     * <p>
+     * This method is exposed to the command line interface. Example usage:
+     * <pre>gradle dependencyInsight --dependency slf4j</pre>
+     *
+     * @param dependencyInsightNotation
+     */
     @CommandLineOption(options = "dependency", description = "Shows the details of given dependency.")
-    public void dependency(Object dependencyNotation) {
+    public void dependency(Object dependencyInsightNotation) {
         def parser = DependencyResultSpecNotationParser.create()
-        this.dependencySpec = parser.parseNotation(dependencyNotation)
+        this.dependencySpec = parser.parseNotation(dependencyInsightNotation)
     }
 
+    /**
+     * Sets the configuration to look the dependency in
+     *
+     * @param configuration
+     */
     public void setConfiguration(Configuration configuration) {
         this.configuration = configuration;
     }
 
+    /**
+     * Sets the configuration (via name) to look the dependency in.
+     * <p>
+     * This method is exposed to the command line interface. Example usage:
+     * <pre>gradle dependencyInsight --configuration runtime --dependency slf4j</pre>
+     *
+     * @param configurationName
+     */
     @CommandLineOption(options = "configuration", description = "Looks for the dependency in given configuration.")
     public void configuration(String configurationName) {
         this.configuration = project.configurations.getByName(configurationName)
