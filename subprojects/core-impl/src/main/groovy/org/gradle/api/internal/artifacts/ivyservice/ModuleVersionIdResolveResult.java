@@ -44,5 +44,6 @@ public interface ModuleVersionIdResolveResult {
 
     public static enum IdSelectionReason {
         requested, forced
+        //TODO SF consider changing to an interface with isForced()
     }
 }
