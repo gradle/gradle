@@ -28,10 +28,6 @@ public class ResourceOperation {
             return StringUtils.capitalize(toString());
         }
     }
-
-    public static final Type DOWNLOAD = Type.download;
-    public static final Type UPLOAD= Type.upload;
-
     private final ProgressLogger progressLogger;
     private final Type operationType;
     private final String contentLengthString;

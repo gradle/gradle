@@ -25,7 +25,7 @@ class ResourceOperationTest extends Specification {
 
     def "logs processed bytes in kbyte intervalls"() {
         given:
-        def operation = new ResourceOperation(progressLogger, ResourceOperation.DOWNLOAD, 1024 * 10)
+        def operation = new ResourceOperation(progressLogger, ResourceOperation.Type.download, 1024 * 10)
         when:
         operation.logProcessedBytes(512 * 0)
         operation.logProcessedBytes(512 * 1)
@@ -49,14 +49,14 @@ class ResourceOperationTest extends Specification {
         then:
         1 * progressLogger.progress(message)
         where:
-        type                       | message
-        ResourceOperation.DOWNLOAD | "1 KB/10 KB downloaded"
-        ResourceOperation.UPLOAD   | "1 KB/10 KB uploaded"
+        type                            | message
+        ResourceOperation.Type.download | "1 KB/10 KB downloaded"
+        ResourceOperation.Type.upload   | "1 KB/10 KB uploaded"
     }
 
     void "completed completes progressLogger"() {
         given:
-        def operation = new ResourceOperation(progressLogger, ResourceOperation.UPLOAD, 1)
+        def operation = new ResourceOperation(progressLogger, ResourceOperation.Type.upload, 1)
         when:
         operation.completed()
         then:
@@ -65,7 +65,7 @@ class ResourceOperationTest extends Specification {
 
     void "handles unknown content length"() {
         given:
-        def operation = new ResourceOperation(progressLogger, ResourceOperation.UPLOAD, 0)
+        def operation = new ResourceOperation(progressLogger, ResourceOperation.Type.upload, 0)
         when:
         operation.logProcessedBytes(1024)
         then:

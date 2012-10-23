@@ -30,12 +30,12 @@ public class ProgressLoggingExternalResourceUploader extends AbstractProgressLog
         this.delegate = delegate;
     }
     public void upload(final Factory<InputStream> source, final Long contentLength, String destination) throws IOException {
-        final ResourceOperation uploadOperation = createResourceOperation(destination, ResourceOperation.UPLOAD, getClass(), contentLength);
+        final ResourceOperation uploadOperation = createResourceOperation(destination, ResourceOperation.Type.upload, getClass(), contentLength);
 
         try {
             delegate.upload(new Factory<InputStream>() {
                 public InputStream create() {
-                    return new ProgressLoggingInputStream(source.create(), uploadOperation, contentLength);
+                    return new ProgressLoggingInputStream(source.create(), uploadOperation);
                 }
             }, contentLength, destination);
         } finally {
@@ -47,7 +47,7 @@ public class ProgressLoggingExternalResourceUploader extends AbstractProgressLog
         private InputStream inputStream;
         private final ResourceOperation resourceOperation;
 
-        public ProgressLoggingInputStream(InputStream inputStream, ResourceOperation resourceOperation, long contentLength) {
+        public ProgressLoggingInputStream(InputStream inputStream, ResourceOperation resourceOperation) {
             this.inputStream = inputStream;
             this.resourceOperation = resourceOperation;
         }
