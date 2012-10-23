@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-
-
 package org.gradle.scala.compile.jdk6
 
 import org.gradle.integtests.fixtures.TargetVersions
