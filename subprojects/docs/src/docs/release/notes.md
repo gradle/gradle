@@ -2,6 +2,16 @@
 
 Here are the new features introduced in Gradle 1.3.
 
+## Brand new 'dependency insight' report.
+
+The new report attempts to answer following questions:
+
+* why this dependency is in the dependency graph?
+* what are all the requested versions of this dependency?
+* why this dependency has this version selected?
+
+(in progress)
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to our backwards compatibility policy.
@@ -19,6 +29,10 @@ So we need you here also as beta testers.
 We will iterate on the new feature based on your feedback, eventually releasing it as stable and production-ready.
 Those of you who use new features before that point gain the competitive advantage of early access to new functionality in exchange for helping refine it over time.
 To learn more read our [forum posting on our release approach](http://forums.gradle.org/gradle/topics/the_gradle_release_approach).
+
+### Improved TestNG html report
+
+(in progress)
 
 ### Resolution result API
 
