@@ -23,6 +23,15 @@ class ResourceOperationTest extends Specification {
 
     ProgressLogger progressLogger = Mock()
 
+    def "no progress event is logged for files < 1024bytes"(){
+        given:
+        def operation = new ResourceOperation(progressLogger, ResourceOperation.Type.download, 1023)
+        when:
+        operation.logProcessedBytes(1023)
+        then:
+        0 * progressLogger.progress(_)
+    }
+
     def "logs processed bytes in kbyte intervalls"() {
         given:
         def operation = new ResourceOperation(progressLogger, ResourceOperation.Type.download, 1024 * 10)
@@ -38,6 +47,17 @@ class ResourceOperationTest extends Specification {
         then:
         1 * progressLogger.progress("1 KB/10 KB downloaded")
         1 * progressLogger.progress("2 KB/10 KB downloaded")
+        0 * progressLogger.progress(_)
+    }
+
+    def "last chunk of bytes <1k is not logged"(){
+        given:
+        def operation = new ResourceOperation(progressLogger, ResourceOperation.Type.download, 2000)
+        when:
+        operation.logProcessedBytes(1000)
+        operation.logProcessedBytes(1000)
+        then:
+        1 * progressLogger.progress("1 KB/1 KB downloaded")
         0 * progressLogger.progress(_)
     }
 
