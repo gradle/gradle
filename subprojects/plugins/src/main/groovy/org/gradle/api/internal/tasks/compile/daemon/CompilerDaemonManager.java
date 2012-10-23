@@ -66,8 +66,8 @@ public class CompilerDaemonManager implements CompilerDaemonFactory {
         for (CompilerDaemonClient client : clients) {
             client.stop();
         }
-        clients.clear();
         LOGGER.info("Stopped {} Gradle compiler daemon(s).", clients.size());
+        clients.clear();
     }
 
     private void registerStopOnBuildFinished(ProjectInternal project) {
