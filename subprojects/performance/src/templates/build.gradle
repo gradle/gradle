@@ -57,10 +57,24 @@ dependencies {
 }
 <% } %>
 
+<% if (scalaProject) { %>
+apply plugin: 'scala'
+dependencies {
+    scalaTools 'org.scala-lang:scala-compiler:2.9.2'
+    compile 'org.scala-lang:scala-library:2.9.2'
+}
+tasks.withType(ScalaCompile) {
+    scalaCompileOptions.with {
+        useAnt = false
+        fork = true
+        forkOptions.jvmArgs = ["-XX:MaxPermSize=512m"]
+    }
+}
+<% } %>
+
 task dependencyReport(type: DependencyReportTask) {
     outputFile = new File(buildDir, "dependencies.txt")
 }
-
 <% } %>
 
 if (project == rootProject) {

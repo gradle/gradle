@@ -36,9 +36,14 @@ task mixedSize(type: ProjectGeneratorTask) {
     projects[1].sourceFiles = 20000
 }
 
-task multiGroovy(type: ProjectGeneratorTask, description: 'Generates a multi-project groovy build') {
+task multiGroovy(type: ProjectGeneratorTask, description: 'Generates a multi-project Groovy build') {
     projects = 25
     groovyProject = true
+}
+
+task multiScala(type: ProjectGeneratorTask, description: 'Generates a multi-project Scala build') {
+    projects = 25
+    scalaProject = true
 }
 
 task largeMulti(type: ProjectGeneratorTask, description: 'Generates a large multi-project build') {
