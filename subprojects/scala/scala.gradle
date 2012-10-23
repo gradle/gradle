@@ -22,7 +22,7 @@ dependencies {
     compile project(":core")
     compile project(":plugins")
 
-    provided("com.typesafe.zinc:zinc:0.1.1") {
+    provided("com.typesafe.zinc:zinc:0.2.0-M1") {
         exclude module: "ensime-sbt-cmd"
     }
 
