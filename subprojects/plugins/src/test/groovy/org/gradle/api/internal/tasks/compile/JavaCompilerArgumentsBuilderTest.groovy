@@ -191,6 +191,33 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         builder.build() == ["-source", "1.4", "-g"]
     }
 
+    def "can include/exclude classpath"() {
+        def file1 = new File("/lib/lib1.jar")
+        def file2 = new File("/lib/lib2.jar")
+        spec.classpath = [file1, file2]
+
+        when:
+        builder.includeClasspath(true)
+
+        then:
+        builder.build() == ["-g", "-classpath", "$file1$File.pathSeparator$file2"]
+
+        when:
+        builder.includeClasspath(false)
+
+        then:
+        builder.build() == ["-g"]
+    }
+
+    def "includes classpath by default"() {
+        def file1 = new File("/lib/lib1.jar")
+        def file2 = new File("/lib/lib2.jar")
+        spec.classpath = [file1, file2]
+
+        expect:
+        builder.build() == ["-g", "-classpath", "$file1$File.pathSeparator$file2"]
+    }
+
     def "can include/exclude launcher options"() {
         spec.compileOptions.forkOptions.with {
             memoryInitialSize = "64m"

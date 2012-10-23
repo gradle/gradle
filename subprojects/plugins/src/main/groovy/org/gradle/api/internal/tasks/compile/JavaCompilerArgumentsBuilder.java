@@ -32,6 +32,7 @@ public class JavaCompilerArgumentsBuilder {
 
     private boolean includeLauncherOptions;
     private boolean includeMainOptions = true;
+    private boolean includeClasspath = true;
     private boolean includeSourceFiles;
 
     private List<String> args;
@@ -50,6 +51,11 @@ public class JavaCompilerArgumentsBuilder {
         return this;
     }
 
+    public JavaCompilerArgumentsBuilder includeClasspath(boolean flag) {
+        includeClasspath = flag;
+        return this;
+    }
+
     public JavaCompilerArgumentsBuilder includeSourceFiles(boolean flag) {
         includeSourceFiles = flag;
         return this;
@@ -60,6 +66,7 @@ public class JavaCompilerArgumentsBuilder {
 
         addLauncherOptions();
         addMainOptions();
+        addClasspath();
         addSourceFiles();
 
         return args;
@@ -129,13 +136,18 @@ public class JavaCompilerArgumentsBuilder {
             args.add("-extdirs");
             args.add(compileOptions.getExtensionDirs());
         }
+        if (compileOptions.getCompilerArgs() != null) {
+            args.addAll(compileOptions.getCompilerArgs());
+        }
+    }
+
+    private void addClasspath() {
+        if (!includeClasspath) { return; }
+
         Iterable<File> classpath = spec.getClasspath();
         if (classpath != null && classpath.iterator().hasNext()) {
             args.add("-classpath");
             args.add(toFileCollection(classpath).getAsPath());
-        }
-        if (compileOptions.getCompilerArgs() != null) {
-            args.addAll(compileOptions.getCompilerArgs());
         }
     }
 

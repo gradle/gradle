@@ -23,6 +23,7 @@ import com.typesafe.zinc.Setup;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.tasks.compile.CompilationFailedException;
 import org.gradle.api.internal.tasks.compile.Compiler;
+import org.gradle.api.internal.tasks.compile.JavaCompilerArgumentsBuilder;
 import org.gradle.api.internal.tasks.compile.SimpleWorkResult;
 import org.gradle.api.internal.tasks.scala.ScalaCompilerArgumentsGenerator;
 import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
@@ -54,7 +55,7 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, S
 
             com.typesafe.zinc.Compiler compiler = createCompiler(spec.getScalaClasspath(), spec.getZincClasspath(), logger);
             List<String> scalacOptions = new ScalaCompilerArgumentsGenerator().generate(spec);
-            List<String> javacOptions = Collections.emptyList(); // TODO
+            List<String> javacOptions = new JavaCompilerArgumentsBuilder(spec).includeClasspath(false).build();
             Inputs inputs = Inputs.create(ImmutableList.copyOf(spec.getClasspath()), ImmutableList.copyOf(spec.getSource()), spec.getDestinationDir(),
                     scalacOptions, javacOptions, spec.getScalaCompileOptions().getCompilerCacheFile(), spec.getCompilerCacheMap(), "mixed");
             if (LOGGER.isDebugEnabled()) {
