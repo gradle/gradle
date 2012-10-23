@@ -26,7 +26,7 @@
             </thead>
             <tr>
                 <td>configuration</td>
-                <td><literal>compile</literal></td>
+                <td><literal>compile</literal> configuration</td>
             </tr>
             <tr>
                 <td>dependencySpec</td>

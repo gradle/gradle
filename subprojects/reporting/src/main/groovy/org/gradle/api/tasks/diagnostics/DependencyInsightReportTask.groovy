@@ -45,11 +45,19 @@ import static org.gradle.logging.StyledTextOutput.Style.Info
  * <ul>
  *   <li>Why this dependency is in the dependency graph? What pulls this dependency into the graph?</li>
  *   <li>What are all the requested versions of this dependency?</li>
- *   <li>Why the dependency has this particular version selected?</li>
+ *   <li>Why the dependency has this particular version selected?
+ *   Is it because of the conflict resolution or perhaps this version was forced?</li>
  * </ul>
  *
  * Use this task to get insight into a particular dependency (or dependencies)
  * and find out what exactly happens during dependency resolution and conflict resolution.
+ * If the dependency version was forced or selected by the conflict resolution
+ * this information will be available in the report.
+ * <p>
+ * Compared to the gradle dependencies report ({@link DependencyReportTask}),
+ * this report shows an 'inverted' dependency tree.
+ * This means that the root of the tree is the dependency that matches the input specified by the user.
+ * Then, the tree recurses into the dependents.
  * <p>
  * The task requires setting the dependency spec and the configuration.
  * For more information on how to configure those please refer to the available methods and properties.
