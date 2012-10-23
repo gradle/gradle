@@ -76,4 +76,64 @@ class CachedMissingModulesIntegrationTest extends AbstractDependencyResolutionTe
         then:
         run 'retrieve'
     }
+
+    def "hit each remote repo only once per build and missing module"() {
+        given:
+        server.start()
+        def repo1 = mavenHttpRepo("repo1")
+        def repo1Module = repo1.module("group", "projectA", "1.0")
+        def repo2 = mavenHttpRepo("repo2")
+        def repo2Module = repo2.module("group", "projectA", "1.0")
+
+        buildFile << """
+            repositories {
+                maven {
+                    name 'repo1'
+                    url '${repo1.uri}'
+                }
+                maven {
+                    name 'repo2'
+                    url '${repo2.uri}'
+                }
+            }
+            configurations {
+                config1
+                config2
+            }
+            dependencies {
+                config1 'group:projectA:1.0'
+                config2 'group:projectA:1.0'
+            }
+
+            task resolveConfig1 << {
+                configurations.config1.each{
+                    println it
+                }
+            }
+
+            task resolveConfig2 << {
+                configurations.config1.each{
+                    println it
+                }
+            }
+            """
+        when:
+        repo1Module.expectPomGetMissing()
+        repo1Module.expectArtifactHeadMissing()
+        repo2Module.expectPomGetMissing()
+        repo2Module.expectArtifactHeadMissing()
+
+        then:
+        runAndFail('resolveConfig1')
+
+        when:
+        server.resetExpectations()
+        repo1Module.expectPomGetMissing()
+        repo1Module.expectArtifactHeadMissing()
+        repo2Module.expectPomGetMissing()
+        repo2Module.expectArtifactHeadMissing()
+        then:
+        executer.withArgument("--continue")
+        runAndFail "resolveConfig1", "resolveConfig2"
+    }
 }
