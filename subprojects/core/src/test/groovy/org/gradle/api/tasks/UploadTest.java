@@ -76,7 +76,7 @@ public class UploadTest extends AbstractTaskTest {
         upload.setConfiguration(configurationMock);
         upload.setArtifactPublisher(artifactPublisherMock);
         context.checking(new Expectations() {{
-            one(artifactPublisherMock).publish(configurationMock, descriptorDestination);
+            one(artifactPublisherMock).publish(configurationMock, descriptorDestination, null);
         }});
         upload.upload();
     }
@@ -87,7 +87,7 @@ public class UploadTest extends AbstractTaskTest {
         upload.setConfiguration(configurationMock);
         upload.setArtifactPublisher(artifactPublisherMock);
         context.checking(new Expectations() {{
-            one(artifactPublisherMock).publish(configurationMock, null);
+            one(artifactPublisherMock).publish(configurationMock, null, null);
         }});
         upload.upload();
     }

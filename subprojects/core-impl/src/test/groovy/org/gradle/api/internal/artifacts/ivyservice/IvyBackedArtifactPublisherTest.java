@@ -83,10 +83,10 @@ public class IvyBackedArtifactPublisherTest {
             will(returnValue(new DefaultResolutionStrategy()));
             one(ivyDependencyPublisherMock).publish(expectedConfigurations,
                     publishResolversDummy, publishModuleDescriptorDummy, someDescriptorDestination, ivyEventManagerDummy);
-            allowing(ivyModuleDescriptorWriterMock).write(fileModuleDescriptorMock, someDescriptorDestination);
+            allowing(ivyModuleDescriptorWriterMock).write(fileModuleDescriptorMock, someDescriptorDestination, null);
         }});
 
-        ivyService.publish(configuration, someDescriptorDestination);
+        ivyService.publish(configuration, someDescriptorDestination, null);
     }
 
     private IvyBackedArtifactPublisher createIvyService() {

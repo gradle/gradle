@@ -41,21 +41,21 @@ public class ErrorHandlingArtifactPublisherTest {
     @Test
     public void publishDelegatesToBackingService() {
         context.checking {
-            one(artifactPublisherMock).publish(configurationMock, null)
+            one(artifactPublisherMock).publish(configurationMock, null, null)
         }
 
-        ivyService.publish(configurationMock, null)
+        ivyService.publish(configurationMock, null, null)
     }
 
     @Test
     public void wrapsPublishException() {
         context.checking {
-            one(artifactPublisherMock).publish(configurationMock, null)
+            one(artifactPublisherMock).publish(configurationMock, null, null)
             will(throwException(failure))
         }
 
         try {
-            ivyService.publish(configurationMock, null)
+            ivyService.publish(configurationMock, null, null)
             fail()
         }
         catch(PublishException e) {

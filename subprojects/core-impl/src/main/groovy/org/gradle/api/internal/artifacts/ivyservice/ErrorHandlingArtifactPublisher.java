@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import org.gradle.api.Action;
+import org.gradle.api.XmlProvider;
 import org.gradle.api.artifacts.PublishException;
 import org.gradle.api.internal.artifacts.ArtifactPublisher;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
@@ -28,9 +30,9 @@ public class ErrorHandlingArtifactPublisher implements ArtifactPublisher {
         this.artifactPublisher = artifactPublisher;
     }
 
-    public void publish(ConfigurationInternal configuration, File descriptorDestination) {
+    public void publish(ConfigurationInternal configuration, File descriptorDestination, Action<XmlProvider> descriptorModifier) {
         try {
-            artifactPublisher.publish(configuration, descriptorDestination);
+            artifactPublisher.publish(configuration, descriptorDestination, descriptorModifier);
         } catch (Throwable e) {
             throw new PublishException(String.format("Could not publish %s.", configuration), e);
         }

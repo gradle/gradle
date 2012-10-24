@@ -17,6 +17,8 @@
 package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
+import org.gradle.api.Action;
+import org.gradle.api.XmlProvider;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.file.FileCollection;
@@ -43,6 +45,7 @@ public class Upload extends ConventionTask {
     private boolean uploadDescriptor;
 
     private File descriptorDestination;
+    private Action<XmlProvider> descriptorModification;
 
     /**
      * The resolvers to delegate the uploads to. Usually a resolver corresponds to a repository.
@@ -60,7 +63,11 @@ public class Upload extends ConventionTask {
     @TaskAction
     protected void upload() {
         logger.info("Publishing configuration: " + configuration);
-        artifactPublisher.publish((ConfigurationInternal) configuration, isUploadDescriptor() ? getDescriptorDestination() : null);
+        artifactPublisher.publish(
+                (ConfigurationInternal) configuration,
+                isUploadDescriptor() ? getDescriptorDestination() : null,
+                isUploadDescriptor() ? getDescriptorModification() : null
+        );
     }
 
     /**
@@ -127,5 +134,31 @@ public class Upload extends ConventionTask {
 
     void setArtifactPublisher(ArtifactPublisher artifactPublisher) {
         this.artifactPublisher = artifactPublisher;
+    }
+
+    /**
+     * The current descriptor modification action.
+     *
+     * @return The current descriptor modifcation action. Or null.
+     */
+    public Action<XmlProvider> getDescriptorModification() {
+        return descriptorModification;
+    }
+
+    /**
+     * Use to modify the descriptor before publication.
+     *
+     * <pre>
+     * uploadTask {
+     *     setDescriptorModification { XmlProvider descriptor ->
+     *         …
+     *     }
+     * }
+     * </pre>
+     *
+     * @param descriptorModification The modification action
+     */
+    public void setDescriptorModification(Action<XmlProvider> descriptorModification) {
+        this.descriptorModification = descriptorModification;
     }
 }

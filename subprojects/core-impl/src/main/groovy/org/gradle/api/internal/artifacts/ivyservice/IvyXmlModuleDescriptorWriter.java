@@ -25,7 +25,11 @@ import org.apache.ivy.util.Message;
 import org.apache.ivy.util.StringUtils;
 import org.apache.ivy.util.XMLHelper;
 import org.apache.ivy.util.extendable.ExtendableItem;
+import org.gradle.api.Action;
+import org.gradle.api.Nullable;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.XmlProvider;
+import org.gradle.api.internal.XmlTransformer;
 import org.gradle.util.TextUtil;
 
 import java.io.*;
@@ -37,7 +41,13 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
     public IvyXmlModuleDescriptorWriter() {
     }
 
-    private static void write(ModuleDescriptor md, Writer writer) throws IOException {
+    private static void write(ModuleDescriptor md, Writer writer, Action<XmlProvider> descriptorModifier) throws IOException {
+        Writer originalWriter = null;
+        if (descriptorModifier != null) {
+            originalWriter = writer;
+            writer = new StringWriter();
+        }
+
         writer.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
         writer.write(TextUtil.getPlatformLineSeparator());
         StringBuffer xmlNamespace = new StringBuffer();
@@ -61,16 +71,22 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
         printDependencies(md, writer);
         writer.write("</ivy-module>");
         writer.write(TextUtil.getPlatformLineSeparator());
+
+        if (originalWriter != null) {
+            XmlTransformer transformer = new XmlTransformer();
+            transformer.addAction(descriptorModifier);
+            transformer.transform(writer.toString(), originalWriter);
+        }
     }
 
-    public void write(ModuleDescriptor md, File output) {
+    public void write(ModuleDescriptor md, File output, @Nullable Action<XmlProvider> descriptorModifier) {
         if (output.getParentFile() != null) {
             output.getParentFile().mkdirs();
         }
         try {
             Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(output), "UTF-8"));
             try {
-                write(md, writer);
+                write(md, writer, descriptorModifier);
             } finally {
                 writer.close();
             }
