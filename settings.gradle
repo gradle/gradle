@@ -46,6 +46,7 @@ include 'performance'
 include 'javascript'
 include 'buildComparison'
 include 'reporting'
+include 'publish'
 
 rootProject.name = 'gradle'
 rootProject.children.each {project ->
