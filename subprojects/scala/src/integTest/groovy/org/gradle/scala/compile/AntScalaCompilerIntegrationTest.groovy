@@ -20,6 +20,10 @@ import org.gradle.integtests.fixtures.TargetVersions
 
 @TargetVersions(["2.8.2", "2.9.2"])
 class AntScalaCompilerIntegrationTest extends BasicScalaCompilerIntegrationTest {
+    def setup() {
+        distribution.requireIsolatedDaemons()
+    }
+
     String compilerConfiguration() {
         '''
 compileScala.scalaCompileOptions.with {
