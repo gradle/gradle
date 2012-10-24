@@ -1,0 +1,18 @@
+apply plugin: "scala"
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    scalaTools "org.scala-lang:scala-compiler:$scalaVersion"
+    compile "org.scala-lang:scala-library:$scalaVersion"
+}
+
+tasks.withType(ScalaCompile) {
+    scalaCompileOptions.with {
+        useAnt = false
+        fork = true
+    }
+}
+

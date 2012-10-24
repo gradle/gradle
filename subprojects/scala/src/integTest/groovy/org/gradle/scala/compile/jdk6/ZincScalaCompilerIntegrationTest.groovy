@@ -41,24 +41,39 @@ compileScala.scalaCompileOptions.with {
     def compilesScalaCodeIncrementally() {
         setup:
         def person = file("build/classes/main/Person.class")
-        def parent = file("build/classes/main/Parent.class")
+        def house = file("build/classes/main/House.class")
         def other = file("build/classes/main/Other.class")
         run("compileScala")
 
         when:
         file("src/main/scala/Person.scala").delete()
-        file("src/main/scala/Person.scala")  << "class Person(val changedProperty: Boolean)"
+        file("src/main/scala/Person.scala") << "class Person"
         args("-i", "-PscalaVersion=$version") // each run clears args (argh!)
         run("compileScala")
 
         then:
         person.lastModified() != old(person.lastModified())
-        parent.lastModified() != old(parent.lastModified())
+        house.lastModified() != old(house.lastModified())
         other.lastModified() == old(other.lastModified())
     }
 
     def compilesJavaCodeIncrementally() {
+        setup:
+        def person = file("build/classes/main/Person.class")
+        def house = file("build/classes/main/House.class")
+        def other = file("build/classes/main/Other.class")
+        run("compileScala")
+
+        when:
+        file("src/main/scala/Person.java").delete()
+        file("src/main/scala/Person.java") << "public class Person {}"
+        args("-i", "-PscalaVersion=$version") // each run clears args (argh!)
+        run("compileScala")
+
+        then:
+        person.lastModified() != old(person.lastModified())
+        house.lastModified() != old(house.lastModified())
+        other.lastModified() == old(other.lastModified())
 
     }
-
 }
