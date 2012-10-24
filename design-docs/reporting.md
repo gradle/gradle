@@ -40,6 +40,12 @@ output.
 
 # Implementation plan
 
+The approach used here is to incrementally grow a dashboard report that summarises the reports, verifications and documentation produced by the build.
+The report will start off extremely basic, and over a number of steps, more content will be added to the report. Both built-in and custom reports,
+verifications and documentation will be supported.
+
+In addition, the task graph will be changed to make the dashboard report more usable and reliable in various cases.
+
 ## Add a build dashboard report
 
 Add a basic dashboard HTML report that links to the reports declared in the build.
