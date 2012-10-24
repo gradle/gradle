@@ -234,7 +234,7 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
          * Loads the target classes for this execution. Default is the target class that this runner was constructed with.
          */
         protected List<? extends Class<?>> loadTargetClasses() {
-            return Arrays.asList(target);
+            return Collections.singletonList(target);
         }
     }
 }
