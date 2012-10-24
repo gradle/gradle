@@ -29,13 +29,13 @@ import java.util.Set;
 public class OnlyOncePerRepositoryRefreshModuleCachePolicy implements CachePolicy {
 
     private final ModuleVersionRepository moduleVersionRepository;
-    private final RepositoryModuleLookupRegistry repositoryLookUpRegistry;
-    private final RefreshWhenMissingInAllRepositoriesCachePolicy cachePolicy;
+    private final CachePolicyLookupRegistry cachePolicyLookupRegistry;
+    private final CachePolicy cachePolicy;
 
-    public OnlyOncePerRepositoryRefreshModuleCachePolicy(ModuleVersionRepository moduleVersionRepository, RepositoryModuleLookupRegistry repositoryLookUpRegistry, RefreshWhenMissingInAllRepositoriesCachePolicy refreshWhenMissingInAllRepositoriesCachePolicy) {
+    public OnlyOncePerRepositoryRefreshModuleCachePolicy(ModuleVersionRepository moduleVersionRepository, CachePolicyLookupRegistry cachePolicyLookupRegistry, CachePolicy cachePolicy) {
         this.moduleVersionRepository = moduleVersionRepository;
-        this.repositoryLookUpRegistry = repositoryLookUpRegistry;
-        cachePolicy = refreshWhenMissingInAllRepositoriesCachePolicy;
+        this.cachePolicyLookupRegistry = cachePolicyLookupRegistry;
+        this.cachePolicy = cachePolicy;
     }
 
     public boolean mustRefreshDynamicVersion(ModuleVersionSelector selector, ModuleVersionIdentifier moduleId, long ageMillis) {
@@ -43,11 +43,11 @@ public class OnlyOncePerRepositoryRefreshModuleCachePolicy implements CachePolic
     }
 
     public boolean mustRefreshModule(ModuleVersionIdentifier moduleVersionId, ResolvedModuleVersion resolvedModuleVersion, ModuleRevisionId moduleRevisionId, long ageMillis) {
-        Set<String> lookedUpRepositories = repositoryLookUpRegistry.get(moduleRevisionId);
+        Set<String> lookedUpRepositories = cachePolicyLookupRegistry.get(moduleRevisionId);
         if (lookedUpRepositories.contains(moduleVersionRepository.getId())) {
             return false;
         } else {
-            repositoryLookUpRegistry.add(moduleRevisionId, moduleVersionRepository.getId());
+            cachePolicyLookupRegistry.add(moduleRevisionId, moduleVersionRepository.getId());
             return cachePolicy.mustRefreshModule(moduleVersionId, resolvedModuleVersion, moduleRevisionId, ageMillis);
         }
     }

@@ -23,7 +23,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class RepositoryModuleLookupRegistry {
+public class CachePolicyLookupRegistry {
     Map<ModuleRevisionId, Set<String>> lookupEntries = new HashMap<ModuleRevisionId, Set<String>>();
 
     public Set<String> get(ModuleRevisionId moduleRevisionId) {

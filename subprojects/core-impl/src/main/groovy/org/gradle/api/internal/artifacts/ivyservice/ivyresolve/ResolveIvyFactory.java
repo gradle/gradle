@@ -46,7 +46,7 @@ public class ResolveIvyFactory {
     private final StartParameterResolutionOverride startParameterResolutionOverride;
     private final TimeProvider timeProvider;
     private final RefreshWhenMissingInAllRepositoriesCachePolicy refreshWhenMissingInAllRepositoriesCachePolicy;
-    private final RepositoryModuleLookupRegistry repositoryLookUpRegistry = new RepositoryModuleLookupRegistry();
+    private final CachePolicyLookupRegistry cachePolicyLookupRegistry = new CachePolicyLookupRegistry();
 
     public ResolveIvyFactory(IvyFactory ivyFactory, ResolverProvider resolverProvider, SettingsConverter settingsConverter,
                              ModuleResolutionCache moduleResolutionCache, ModuleDescriptorCache moduleDescriptorCache,
@@ -87,7 +87,7 @@ public class ResolveIvyFactory {
             moduleVersionRepository = startParameterResolutionOverride.overrideModuleVersionRepository(moduleVersionRepository);
             ModuleVersionRepository cachingRepository = new CachingModuleVersionRepository(moduleVersionRepository, moduleResolutionCache, moduleDescriptorCache, artifactAtRepositoryCachedResolutionIndex,
                     new ChainedCachePolicy(configuration.getResolutionStrategy().getCachePolicy(),
-                                           new OnlyOncePerRepositoryRefreshModuleCachePolicy(moduleVersionRepository, repositoryLookUpRegistry, refreshWhenMissingInAllRepositoriesCachePolicy)), timeProvider);
+                                           new OnlyOncePerRepositoryRefreshModuleCachePolicy(moduleVersionRepository, cachePolicyLookupRegistry, refreshWhenMissingInAllRepositoriesCachePolicy)), timeProvider);
             ModuleVersionRepository ivyContextualisedRepository = contextualiser.contextualise(ModuleVersionRepository.class, cachingRepository);
             userResolverChain.add(ivyContextualisedRepository);
         }
