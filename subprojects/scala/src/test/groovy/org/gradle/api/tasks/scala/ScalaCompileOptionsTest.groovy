@@ -20,15 +20,15 @@ import org.junit.Test
 import static org.hamcrest.Matchers.equalTo
 import static org.junit.Assert.*
 
-public class ScalaCompileOptionsTest {
+class ScalaCompileOptionsTest {
 
-    private ScalaCompileOptions compileOptions;
+    private ScalaCompileOptions compileOptions
 
-    @Before public void setUp() {
+    @Before void setUp() {
         compileOptions = new ScalaCompileOptions()
     }
 
-    @Test public void testOptionMapDoesNotContainCompileDaemon() {
+    @Test void testOptionMapDoesNotContainCompileDaemon() {
         String antProperty = 'useCompileDaemon'
         assertFalse(compileOptions.useCompileDaemon)
         assertFalse(compileOptions.optionMap().containsKey(antProperty))
@@ -37,46 +37,46 @@ public class ScalaCompileOptionsTest {
         assertFalse(compileOptions.optionMap().containsKey(antProperty))
     }
 
-    @Test public void testOptionMapContainsDaemonServerIfSpecified() {
+    @Test void testOptionMapContainsDaemonServerIfSpecified() {
         assertSimpleStringValue('daemonServer', 'server', null, 'host:9000')
     }
 
-    @Test public void testOptionMapContainsFailOnError() {
+    @Test void testOptionMapContainsFailOnError() {
         assertBooleanValue('failOnError', 'failOnError', true)
     }
 
-    @Test public void testOptionMapContainsDeprecation() {
+    @Test void testOptionMapContainsDeprecation() {
         assertOnOffValue('deprecation', 'deprecation', true)
     }
 
-    @Test public void testOptionMapContainsUnchecked() {
+    @Test void testOptionMapContainsUnchecked() {
         assertOnOffValue('unchecked', 'unchecked', true)
     }
 
-    @Test public void testOptionMapContainsDebugLevelIfSpecified() {
+    @Test void testOptionMapContainsDebugLevelIfSpecified() {
         assertSimpleStringValue('debugLevel', 'debuginfo', null, 'line')
     }
 
-    @Test public void testOptionMapContainsOptimize() {
+    @Test void testOptionMapContainsOptimize() {
         assertFalse(compileOptions.optionMap().containsKey('optimise'))
 
         compileOptions.optimize = true
         assertThat(compileOptions.optionMap()['optimise'], equalTo('on'))
     }
 
-    @Test public void testOptionMapContainsEncodingIfSpecified() {
+    @Test void testOptionMapContainsEncodingIfSpecified() {
         assertSimpleStringValue('encoding', 'encoding', null, 'utf8')
     }
 
-    @Test public void testOptionMapContainsForce() {
+    @Test void testOptionMapContainsForce() {
         assertSimpleStringValue('force', 'force', 'never', 'changed')
     }
 
-    @Test public void testOptionMapDoesNotContainTargetCompatibility() {
+    @Test void testOptionMapDoesNotContainTargetCompatibility() {
         assert !compileOptions.optionMap().containsKey("target")
     }
 
-    @Test public void testOptionMapContainsValuesForAdditionalParameters() {
+    @Test void testOptionMapContainsValuesForAdditionalParameters() {
         String antProperty = 'addparams'
         assertNull(compileOptions.additionalParameters)
         assertFalse(compileOptions.optionMap().containsKey(antProperty))
@@ -85,15 +85,15 @@ public class ScalaCompileOptionsTest {
         assertThat(compileOptions.optionMap()[antProperty] as String, equalTo('-opt1 -opt2' as String))
     }
 
-    @Test public void testOptionMapContainsListFiles() {
+    @Test void testOptionMapContainsListFiles() {
         assertBooleanValue('listFiles', 'scalacdebugging', false)
     }
 
-    @Test public void testOptionMapContainsLoggingLevelIfSpecified() {
+    @Test void testOptionMapContainsLoggingLevelIfSpecified() {
         assertSimpleStringValue('loggingLevel', 'logging', null, 'verbose')
     }
 
-    @Test public void testOptionMapContainsValueForLoggingPhase() {
+    @Test void testOptionMapContainsValueForLoggingPhase() {
         String antProperty = 'logphase'
         Map optionMap = compileOptions.optionMap()
         assertFalse(optionMap.containsKey(antProperty))
@@ -103,7 +103,7 @@ public class ScalaCompileOptionsTest {
         assertThat(optionMap[antProperty] as String, equalTo('pickler,tailcalls' as String))
     }
 
-    private def assertBooleanValue(String fieldName, String antProperty, boolean defaultValue) {
+    private assertBooleanValue(String fieldName, String antProperty, boolean defaultValue) {
         assertThat(compileOptions."$fieldName" as boolean, equalTo(defaultValue))
 
         compileOptions."$fieldName" = true
@@ -113,7 +113,7 @@ public class ScalaCompileOptionsTest {
         assertThat(compileOptions.optionMap()[antProperty] as String, equalTo('false'))
     }
 
-    private def assertOnOffValue(String fieldName, String antProperty, boolean defaultValue) {
+    private assertOnOffValue(String fieldName, String antProperty, boolean defaultValue) {
         assertThat(compileOptions."$fieldName" as boolean, equalTo(defaultValue))
 
         compileOptions."$fieldName" = true
@@ -123,7 +123,7 @@ public class ScalaCompileOptionsTest {
         assertThat(compileOptions.optionMap()[antProperty] as String, equalTo('off'))
     }
 
-    private def assertSimpleStringValue(String fieldName, String antProperty, String defaultValue, String testValue) {
+    private assertSimpleStringValue(String fieldName, String antProperty, String defaultValue, String testValue) {
         assertThat(compileOptions."${fieldName}" as String, equalTo(defaultValue))
         if (defaultValue == null) {
             assertFalse(compileOptions.optionMap().containsKey(antProperty))
