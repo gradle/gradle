@@ -88,6 +88,8 @@ An initial step will provide some capability to modify the generated `ivy.xml` a
 8. Add a `maven-publish` plugin. When both the `maven-publish` and `maven` plugins are applied, then the `mavenInstaller()` and `mavenDeployer()` methods
    add a `MavenPublication` instance to the container for each `MavenPom` instance that the installers and deployers create (ie one for each filter).
 9. Add `Pom.withXml()` methods. These can delegate to the associated `MavenPom.withXml()` methods.
+10. Deprecate `PomFilterContainer.setMavenPom()` and `PomFilter.setPomTemplate()`. These should fail with an exception when the `maven-publish` plugin has
+  been applied.
 
 To customise the `pom.xml`:
 
