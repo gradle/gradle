@@ -21,7 +21,9 @@ import org.gradle.util.ConfigureUtil
 
 /**
  * @author: Szczepan Faber, created at: 6/16/11
+ * @deprecated Replaced by the new publications model.
  */
+@Deprecated
 class Publications {
     void maven(Closure c) {
         ConfigureUtil.configure(c, getMaven())

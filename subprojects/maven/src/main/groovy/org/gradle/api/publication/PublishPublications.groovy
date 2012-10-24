@@ -23,7 +23,9 @@ import org.gradle.api.internal.file.TemporaryFileProvider
 
 /**
  * @author: Szczepan Faber, created at: 6/16/11
+ * @deprecated Replaced by the new publications model.
  */
+@Deprecated
 class PublishPublications extends ConventionTask {
 
     Publications publications

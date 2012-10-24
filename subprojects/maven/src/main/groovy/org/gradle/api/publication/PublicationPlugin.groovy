@@ -28,7 +28,9 @@ import javax.inject.Inject
  * This is only temporary plugin :) When we're happy with what it does we can move that to the core dsl?
  *
  * @author: Szczepan Faber, created at: 6/16/11
+ * @deprecated Replaced by the new publications model.
  */
+@Deprecated
 class PublicationPlugin implements Plugin<Project> {
     private final Instantiator instantiator
 
