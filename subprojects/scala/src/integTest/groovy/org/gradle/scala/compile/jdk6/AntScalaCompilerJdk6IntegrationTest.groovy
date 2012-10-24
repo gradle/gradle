@@ -21,6 +21,10 @@ import org.gradle.scala.compile.BasicScalaCompilerIntegrationTest
 
 @TargetVersions(["2.10.0-RC1"])
 class AntScalaCompilerJdk6IntegrationTest extends BasicScalaCompilerIntegrationTest {
+    def setup() {
+        distribution.requireIsolatedDaemons()
+    }
+
     String compilerConfiguration() {
         '''
 compileScala.scalaCompileOptions.with {
