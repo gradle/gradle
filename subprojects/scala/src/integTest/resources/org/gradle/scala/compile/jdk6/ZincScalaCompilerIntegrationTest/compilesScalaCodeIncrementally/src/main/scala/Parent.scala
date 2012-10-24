@@ -1,0 +1,1 @@
+class Parent(val children: Seq[Person])

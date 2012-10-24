@@ -22,7 +22,7 @@ import org.gradle.util.VersionNumber
 
 abstract class BasicScalaCompilerIntegrationTest extends MultiVersionIntegrationSpec {
     def setup() {
-        executer.withArguments("-i")
+        args("-i", "-PscalaVersion=$version")
         buildFile << buildScript()
         buildFile <<
 """

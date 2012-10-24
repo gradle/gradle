@@ -18,9 +18,13 @@ package org.gradle.scala.compile.jdk6
 
 import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.scala.compile.BasicScalaCompilerIntegrationTest
+import org.gradle.integtests.fixtures.TestResources
+import org.junit.Rule
 
 @TargetVersions(["2.8.2", "2.9.2"]) // Zinc 0.2.0-M1 doesn't support Scala 2.10.0-RC1
 class ZincScalaCompilerIntegrationTest extends BasicScalaCompilerIntegrationTest {
+    @Rule TestResources testResources
+
     String compilerConfiguration() {
         '''
 compileScala.scalaCompileOptions.with {
@@ -33,4 +37,28 @@ compileScala.scalaCompileOptions.with {
     String logStatement() {
         "Compiling with Zinc Scala compiler"
     }
+
+    def compilesScalaCodeIncrementally() {
+        setup:
+        def person = file("build/classes/main/Person.class")
+        def parent = file("build/classes/main/Parent.class")
+        def other = file("build/classes/main/Other.class")
+        run("compileScala")
+
+        when:
+        file("src/main/scala/Person.scala").delete()
+        file("src/main/scala/Person.scala")  << "class Person(val changedProperty: Boolean)"
+        args("-i", "-PscalaVersion=$version") // each run clears args (argh!)
+        run("compileScala")
+
+        then:
+        person.lastModified() != old(person.lastModified())
+        parent.lastModified() != old(parent.lastModified())
+        other.lastModified() == old(other.lastModified())
+    }
+
+    def compilesJavaCodeIncrementally() {
+
+    }
+
 }
