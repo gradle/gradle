@@ -267,7 +267,9 @@ idea {
                   <option name='PASS_PARENT_ENVS' value='true' />
                   <module name='${runnerClassModule}' />
                   <envs />
-                  <method />
+                  <method>
+                    <option name="Make" enabled="false" />
+                  </method>
                 </configuration>
             """))
 
