@@ -61,9 +61,9 @@ class CachedMissingModulesIntegrationTest extends AbstractDependencyResolutionTe
 
         when:
         server.resetExpectations()
-        repo2Module.publish()
         repo1Module.expectPomGetMissing()
         repo1Module.expectArtifactHeadMissing()
+        repo2Module.publish()
         repo2Module.expectPomGet()
         repo2Module.expectArtifactGet()
 
@@ -112,7 +112,7 @@ class CachedMissingModulesIntegrationTest extends AbstractDependencyResolutionTe
             }
 
             task resolveConfig2 << {
-                configurations.config1.each{
+                configurations.config2.each{
                     println it
                 }
             }

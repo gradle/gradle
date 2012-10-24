@@ -15,10 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.configurations.dynamicversion;
 
-/**
- * TODO RG: don't
- *
- * */
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;

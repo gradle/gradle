@@ -30,25 +30,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class RefreshWhenMissingInAllRepositoriesCachePolicy implements CachePolicy {
-    private final CachePolicy delegate;
     private final ModuleResolutionCache moduleResolutionCache;
     private final ModuleDescriptorCache moduleDescriptorCache;
 
     //We use List here instead of Set to make the behaviour of this CachePolicy Implementation more predictable.
     private List<ModuleVersionRepository> repositories = new ArrayList<ModuleVersionRepository>();
 
-    public RefreshWhenMissingInAllRepositoriesCachePolicy(CachePolicy delegate, ModuleResolutionCache moduleResolutionCache, ModuleDescriptorCache moduleDescriptorCache) {
-        this.delegate = delegate;
+    public RefreshWhenMissingInAllRepositoriesCachePolicy(ModuleResolutionCache moduleResolutionCache, ModuleDescriptorCache moduleDescriptorCache) {
         this.moduleResolutionCache = moduleResolutionCache;
         this.moduleDescriptorCache = moduleDescriptorCache;
     }
 
     public boolean mustRefreshDynamicVersion(ModuleVersionSelector selector, ModuleVersionIdentifier moduleId, long ageMillis) {
-        return delegate.mustRefreshDynamicVersion(selector, moduleId, ageMillis);
+        return false;
     }
 
     public boolean mustRefreshModule(ModuleVersionIdentifier moduleVersionId, ResolvedModuleVersion resolvedModuleVersion, ModuleRevisionId moduleRevisionId, long ageMillis) {
-        return delegate.mustRefreshModule(moduleVersionId, resolvedModuleVersion, moduleRevisionId, ageMillis) || isGloballyNotFound(moduleRevisionId);
+        return isGloballyNotFound(moduleRevisionId);
     }
 
     private boolean isGloballyNotFound(ModuleRevisionId moduleRevisionId) {
@@ -79,14 +77,16 @@ public class RefreshWhenMissingInAllRepositoriesCachePolicy implements CachePoli
     }
 
     public boolean mustRefreshChangingModule(ModuleVersionIdentifier moduleVersionId, ResolvedModuleVersion resolvedModuleVersion, long ageMillis) {
-        return delegate.mustRefreshChangingModule(moduleVersionId, resolvedModuleVersion, ageMillis);
+        return false;
     }
 
     public boolean mustRefreshArtifact(ArtifactIdentifier artifactIdentifier, File cachedArtifactFile, long ageMillis) {
-        return delegate.mustRefreshArtifact(artifactIdentifier, cachedArtifactFile, ageMillis);
+        return false;
     }
 
     public void registerRepository(ModuleVersionRepository moduleVersionRepository) {
         this.repositories.add(moduleVersionRepository);
     }
+
+
 }
