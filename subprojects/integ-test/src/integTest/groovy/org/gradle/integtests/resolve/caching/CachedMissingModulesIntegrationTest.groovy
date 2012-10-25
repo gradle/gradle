@@ -136,4 +136,48 @@ class CachedMissingModulesIntegrationTest extends AbstractDependencyResolutionTe
         executer.withArgument("--continue")
         runAndFail "resolveConfig1", "resolveConfig2"
     }
+
+    def "dont hit remote repositories if version is available in local repo"() {
+        given:
+        server.start()
+        def repo1 = mavenHttpRepo("repo1")
+        def repo1Module = repo1.module("group", "projectA", "1.0")
+        def repo2 = mavenRepo("repo2")
+        def repo2Module = repo2.module("group", "projectA", "1.0")
+
+        buildFile << """
+       repositories {
+           maven {
+               name 'repo1'
+               url '${repo1.uri}'
+           }
+           maven {
+               name 'repo2'
+               url '${repo2.uri}'
+           }
+       }
+       configurations { compile }
+       dependencies {
+           compile 'group:projectA:1.0'
+       }
+
+       task retrieve(type: Sync) {
+           into 'libs'
+           from configurations.compile
+       }
+       """
+
+        when:
+        repo2Module.publish()
+        repo1Module.expectPomGetMissing()
+        repo1Module.expectArtifactHeadMissing()
+
+        then:
+        run 'retrieve'
+
+        when:
+        server.resetExpectations()
+        then:
+        run 'retrieve'
+    }
 }

@@ -80,9 +80,13 @@ public class CachingModuleVersionRepository implements ModuleVersionRepository {
 
     public ModuleVersionDescriptor getDependency(DependencyDescriptor dd) {
         if (isLocal()) {
-            return delegate.getDependency(dd);
+            final ModuleVersionDescriptor module = delegate.getDependency(dd);
+            if (module != null) {
+                moduleDescriptorCache.cacheModuleDescriptor(delegate, module.getId(), module.getDescriptor(), true);
+                moduleResolutionCache.cacheModuleResolution(delegate, dd.getDependencyRevisionId(), module.getId());
+            }
+            return module;
         }
-
         return findModule(dd);
     }
 
