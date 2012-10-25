@@ -16,7 +16,6 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
-import spock.lang.Ignore
 
 class IvyDynamicRevisionRemoteResolveIntegrationTest extends AbstractDependencyResolutionTest {
 
@@ -202,27 +201,24 @@ task retrieveMilestone(type: Sync) {
         file('milestone').assertHasDescendants('projectA-2.1.jar')
     }
 
-    @Ignore("Fails with Nullpointerexception originally caused by unclosed HttpExternalResource")
     def "can use latest version from different remote repositories"() {
         server.start()
-        def repo1 = ivyRepo("ivy1")
-        def repo2 = ivyRepo("ivy2")
+        def repo1 = ivyHttpRepo("ivy1")
+        def repo2 = ivyHttpRepo("ivy2")
 
         given:
         buildFile << """
     repositories {
         ivy {
-            url "http://localhost:${server.port}/repo1"
-            url "http://localhost:${server.port}/repo2"
+            url "${repo1.uri}"
+        }
+        ivy {
+            url "${repo2.uri}"
         }
     }
 
     configurations {
         milestone
-    }
-
-    configurations.all {
-        resolutionStrategy.cacheDynamicVersionsFor 0, 'seconds'
     }
 
     dependencies {
@@ -236,12 +232,19 @@ task retrieveMilestone(type: Sync) {
     """
 
         when: "Versions are published"
-        repo1.module('group', 'projectA', '1.1').withStatus('milestone').publish()
-        repo2.module('group', 'projectA', '1.2').withStatus('integration').publish()
+        def version11 = repo1.module('group', 'projectA', '1.1').withStatus('milestone').publish()
+        def version12 = repo2.module('group', 'projectA', '1.2').withStatus('integration').publish()
 
         and: "Server handles requests"
-        server.allowGetOrHead('/repo1', repo1.rootDir)
-        server.allowGetOrHead('/repo2', repo2.rootDir)
+        repo1.expectDirectoryListGet("group", "projectA")
+        version11.expectIvyGet()
+        version11.expectJarGet()
+        repo2.expectDirectoryListGet("group", "projectA")
+        version12.expectIvyGet()
+        // TODO - shouldn't need this
+        repo2.expectDirectoryListGet("group", "projectA")
+        // TODO - shouldn't need this
+        version12.expectJarGet()
 
         and:
         run 'retrieveMilestone'

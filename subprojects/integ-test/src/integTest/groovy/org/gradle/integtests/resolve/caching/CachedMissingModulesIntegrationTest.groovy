@@ -132,6 +132,7 @@ class CachedMissingModulesIntegrationTest extends AbstractDependencyResolutionTe
         repo1Module.expectArtifactHeadMissing()
         repo2Module.expectPomGetMissing()
         repo2Module.expectArtifactHeadMissing()
+
         then:
         executer.withArgument("--continue")
         runAndFail "resolveConfig1", "resolveConfig2"
