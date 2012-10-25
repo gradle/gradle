@@ -121,11 +121,14 @@ TBD
 
 ## Allow command-line options to be discovered
 
-Add some command line interface for discovering available command-line options. For example, perhaps `gradle help test` shows a usage message for the `test` task.
+Add some command line interface for discovering available command-line options.
 
 ### User visible changes
 
-TBD
+Running `gradle --help test` shows a usage message for the `test` task.
+
+The resolution message (ie the `*Try: ....` console output) for a problem configuring tasks from the command-line options should suggest that the user
+run `${app-name} --help <broken-task>` or `${app-name} --help`
 
 ### Test coverage
 
