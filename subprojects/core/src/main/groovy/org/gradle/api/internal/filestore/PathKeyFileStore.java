@@ -120,18 +120,21 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
     }
 
     protected FileStoreEntry doAdd(File destination, String failureDescription, Action<File> action) {
-        File inProgressMarkerFile = null;
         try {
             GFileUtils.parentMkdirs(destination);
-            inProgressMarkerFile = getInProgressMarkerFile(destination);
+            File inProgressMarkerFile = getInProgressMarkerFile(destination);
             GFileUtils.touch(inProgressMarkerFile);
-            deleteAction.delete(destination);
-            action.execute(destination);
-        } catch (Exception exception) {
-            deleteAction.delete(destination);
-            throw new GradleException(failureDescription, exception);
-        } finally {
-            deleteAction.delete(inProgressMarkerFile);
+            try {
+                deleteAction.delete(destination);
+                action.execute(destination);
+            } catch (Throwable t) {
+                deleteAction.delete(destination);
+                throw t;
+            } finally {
+                deleteAction.delete(inProgressMarkerFile);
+            }
+        } catch (Throwable t) {
+            throw new GradleException(failureDescription, t);
         }
         return entryAt(destination);
     }
