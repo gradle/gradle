@@ -149,3 +149,8 @@ The deprecated `task` property was removed from `GppCompileSpec`.
 #### Removed GraphvizReportRenderer (private API)
 
 This type was an early contribution. It is unlikely anyone uses it because it does not work and it is an undocumented private type.
+
+#### Removed `org.gradle.api.publication` package
+
+This package contained some early experiments in a new publication model. It was incomplete and undocumented. It is superseded by the new `org.gradle.api.publish` (incubating) package
+introduced in Gradle 1.3 so has been removed.
