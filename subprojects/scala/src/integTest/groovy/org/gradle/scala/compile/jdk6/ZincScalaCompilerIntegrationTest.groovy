@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.scala.compile.BasicScalaCompilerIntegrationTest
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
+import spock.lang.Ignore
 
 @TargetVersions(["2.8.2", "2.9.2"]) // Zinc 0.2.0-M1 doesn't support Scala 2.10.0-RC1
 class ZincScalaCompilerIntegrationTest extends BasicScalaCompilerIntegrationTest {
@@ -74,6 +75,25 @@ compileScala.scalaCompileOptions.with {
         person.lastModified() != old(person.lastModified())
         house.lastModified() != old(house.lastModified())
         other.lastModified() == old(other.lastModified())
+    }
 
+    @Ignore("not yet working")
+    def "compilesIncrementallyAcrossProjectBoundaries"() {
+        setup:
+        def person = file("prj1/build/classes/main/Person.class")
+        def house = file("prj2/build/classes/main/House.class")
+        def other = file("prj2/build/classes/main/Other.class")
+        run("compileScala")
+
+        when:
+        file("prj1/src/main/scala/Person.scala").delete()
+        file("prj1/src/main/scala/Person.scala") << "class Person"
+        args("-i", "-PscalaVersion=$version") // each run clears args (argh!)
+        run("compileScala")
+
+        then:
+        person.lastModified() != old(person.lastModified())
+        house.lastModified() != old(house.lastModified())
+        other.lastModified() == old(other.lastModified())
     }
 }

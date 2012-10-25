@@ -143,6 +143,7 @@ public class ScalaCompile extends AbstractCompile {
                 if (!task.getScalaCompileOptions().isUseAnt()) {
                     // TODO: is this the correct key, or does it have to be the Jar that
                     // eventually lands on another ScalaCompile task's compile class path?
+                    //cacheMap.put(project.getTasks().withType(Jar.class).findByName("jar").getArchivePath(), task.getScalaCompileOptions().getCompilerCacheFile());
                     cacheMap.put(task.getDestinationDir(), task.getScalaCompileOptions().getCompilerCacheFile());
                 }
             }
