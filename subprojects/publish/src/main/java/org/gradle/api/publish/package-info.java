@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-dependencies {
-    groovy libraries.groovy
-    compile project(':core')
-}
-
-useTestFixtures()
+/**
+ * Classes that deal with publishing artifacts.
+ */
+package org.gradle.api.publish;

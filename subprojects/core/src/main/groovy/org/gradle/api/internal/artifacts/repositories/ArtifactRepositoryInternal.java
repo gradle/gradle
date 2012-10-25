@@ -17,7 +17,19 @@ package org.gradle.api.internal.artifacts.repositories;
 
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
+import org.gradle.api.publish.internal.NormalizedPublication;
+import org.gradle.api.publish.internal.Publisher;
 
 public interface ArtifactRepositoryInternal extends ArtifactRepository {
     DependencyResolver createResolver();
+
+    /**
+     * Creates a publisher for the given publication, if possible.
+     *
+     * @param publication The publication to create a publisher for.
+     * @param <P> The type of publication object that will be published.
+     * @return A publisher for the publication, or null if this repository cannot publish this publication.
+     */
+    <P extends NormalizedPublication> Publisher<P> createPublisher(P publication);
+
 }

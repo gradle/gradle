@@ -46,6 +46,8 @@ import org.gradle.api.publication.maven.internal.ArtifactPomContainer;
 import org.gradle.api.publication.maven.internal.PomFilter;
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.publish.internal.NormalizedPublication;
+import org.gradle.api.publish.internal.Publisher;
 import org.gradle.listener.ActionBroadcast;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.util.AntUtil;
@@ -297,4 +299,9 @@ public abstract class AbstractMavenResolver implements MavenResolver, Dependency
     public void beforeDeployment(Closure action) {
         beforeDeploymentActions.add(action);
     }
+
+    public <P extends NormalizedPublication> Publisher<P> createPublisher(P publication) {
+        return null;
+    }
+
 }

@@ -14,9 +14,19 @@
  * limitations under the License.
  */
 
-dependencies {
-    groovy libraries.groovy
-    compile project(':core')
-}
+package org.gradle.api.publish;
 
-useTestFixtures()
+import org.gradle.api.Incubating;
+import org.gradle.api.Named;
+
+/**
+ * A publication is a description of an externalised (consumable) view of one or more artifacts, and possibly associated metadata.
+ *
+ * Different types of publications are different types of representation.
+ * For example, the same artifact(s) may be published in a Maven compatible way and in an Ivy compatible way.
+ * These would be different publications of the same artifact(s).
+ */
+@Incubating
+public interface Publication extends Named {
+
+}
