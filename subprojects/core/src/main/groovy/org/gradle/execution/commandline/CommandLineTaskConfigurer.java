@@ -26,7 +26,10 @@ import org.gradle.cli.ParsedCommandLineOption;
 import org.gradle.util.JavaMethod;
 
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * by Szczepan Faber, created at: 9/5/12
@@ -42,7 +45,8 @@ public class CommandLineTaskConfigurer {
     }
 
     public List<String> configureTasks(Collection<Task> tasks, List<String> arguments) {
-        List<String> unusedArguments = new LinkedList<String>(arguments);
+        assert !tasks.isEmpty();
+        List<String> remainingArguments = null;
         for (Task task : tasks) {
             Map<String, JavaMethod<Object, ?>> options = new HashMap<String, JavaMethod<Object, ?>>();
             CommandLineParser parser = new CommandLineParser();
@@ -61,11 +65,11 @@ public class CommandLineTaskConfigurer {
                 }
             }
 
-
             ParsedCommandLine parsed = null;
             try {
                 parsed = parser.parse(arguments);
             } catch (CommandLineArgumentException e) {
+                //we expect that all options must be applicable for each task
                 throw new GradleException("Problem configuring task " + task.getPath() + " from command line. " + e.getMessage(), e);
             }
             for (Map.Entry<String, JavaMethod<Object, ?>> entry : options.entrySet()) {
@@ -78,8 +82,11 @@ public class CommandLineTaskConfigurer {
                     }
                 }
             }
-            unusedArguments.retainAll(parsed.getExtraArguments());
+            //since
+            assert remainingArguments == null || remainingArguments.equals(parsed.getExtraArguments())
+                : "we expect all options to be consumed by each task so remainingArguments should be the same for each task";
+            remainingArguments = parsed.getExtraArguments();
         }
-        return unusedArguments;
+        return remainingArguments;
     }
 }

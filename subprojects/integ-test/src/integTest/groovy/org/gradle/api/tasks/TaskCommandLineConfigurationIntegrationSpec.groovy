@@ -24,6 +24,34 @@ import spock.lang.Ignore
  */
 class TaskCommandLineConfigurationIntegrationSpec extends AbstractIntegrationSpec {
 
+    final String someConfigurableTaskType = """
+    import org.gradle.api.internal.tasks.CommandLineOption
+
+    class SomeTask extends DefaultTask {
+        boolean first
+        String second
+
+        @CommandLineOption(options = "first", description = "configures 'first' field")
+        void setFirst(boolean first) {
+            this.first = first
+        }
+
+        @CommandLineOption(options = "second", description = "configures 'second' field")
+        void setSecond(String second) {
+            this.second = second
+        }
+
+        //more stress
+        void setSecond(Object second) {
+            this.second = second.toString()
+        }
+
+        @TaskAction
+        void renderFields() {
+            println "first=" + first + ",second=" + second
+        }
+    }"""
+
     def "can configure task from command line in multiple projects"() {
         given:
         file("settings.gradle") << "include 'project2'"
@@ -34,33 +62,7 @@ class TaskCommandLineConfigurationIntegrationSpec extends AbstractIntegrationSpe
             task task1 //extra stress
             task task2
 
-            import org.gradle.api.internal.tasks.CommandLineOption
-
-            class SomeTask extends DefaultTask {
-
-                boolean first
-                String second
-
-                @CommandLineOption(options = "first", description = "configures 'first' field")
-                void setFirst(boolean first) {
-                    this.first = first
-                }
-
-                @CommandLineOption(options = "second", description = "configures 'second' field")
-                void setSecond(String second) {
-                    this.second = second
-                }
-
-                //more stress
-                void setSecond(Object second) {
-                    this.second = second.toString()
-                }
-
-                @TaskAction
-                void renderFields() {
-                    println "first=" + first + ",second=" + second
-                }
-            }
+            $someConfigurableTaskType
 """
 
         when:
@@ -77,28 +79,53 @@ class TaskCommandLineConfigurationIntegrationSpec extends AbstractIntegrationSpe
         result.assertTasksExecuted(":task1", ":someTask", ":project2:someTask", ":task2")
     }
 
+    def "tasks can be configured with different options"() {
+        given:
+        file("settings.gradle") << "include 'project2'"
+        file("build.gradle") << """
+            allprojects {
+                task someTask(type: SomeTask)
+            }
+
+            $someConfigurableTaskType
+"""
+
+        when:
+        run ':someTask', '--second', 'one', ':project2:someTask', '--second', 'two'
+
+        then:
+        result.assertTasksExecuted(":someTask", ":project2:someTask")
+        output.count('second=one') == 1
+        output.count('second=two') == 1
+    }
+
+    def "tasks are configured exclusively with their options"() {
+        given:
+        file("settings.gradle") << "include 'project2'"
+        file("build.gradle") << """
+            allprojects {
+                task someTask(type: SomeTask)
+            }
+
+            $someConfigurableTaskType
+"""
+
+        when:
+        run ':someTask', '--second', 'one', ':project2:someTask', '--first'
+
+        then:
+        result.assertTasksExecuted(":someTask", ":project2:someTask")
+        output.count('first=false,second=one') == 1 //--first flag was set only on the :project2:someTask
+        output.count('first=true,second=null') == 1 //--second option was set only on the :someTask
+    }
+
     def "task name that matches command value is not included in execution"() {
         given:
         file("build.gradle") << """
             task foo
             task someTask(type: SomeTask)
 
-            import org.gradle.api.internal.tasks.CommandLineOption
-
-            class SomeTask extends DefaultTask {
-
-                String second
-
-                @CommandLineOption(options = "second", description = "configures 'second' field")
-                void setSecond(String second) {
-                    this.second = second
-                }
-
-                @TaskAction
-                void renderFields() {
-                    println "second=" + second
-                }
-            }
+            $someConfigurableTaskType
 """
 
         when:
@@ -115,22 +142,7 @@ class TaskCommandLineConfigurationIntegrationSpec extends AbstractIntegrationSpe
             task foo
             task someTask(type: SomeTask)
 
-            import org.gradle.api.internal.tasks.CommandLineOption
-
-            class SomeTask extends DefaultTask {
-
-                String second
-
-                @CommandLineOption(options = "second", description = "configures 'second' field")
-                void setSecond(String second) {
-                    this.second = second
-                }
-
-                @TaskAction
-                void renderFields() {
-                    println "second=" + second
-                }
-            }
+            $someConfigurableTaskType
 """
 
         when:
@@ -146,30 +158,16 @@ class TaskCommandLineConfigurationIntegrationSpec extends AbstractIntegrationSpe
         file("build.gradle") << """
             task foo
             task someTask(type: SomeTask)
+            task someTask2(type: SomeTask)
 
-            import org.gradle.api.internal.tasks.CommandLineOption
-
-            class SomeTask extends DefaultTask {
-
-                String second
-
-                @CommandLineOption(options = "second", description = "configures 'second' field")
-                void setSecond(String second) {
-                    this.second = second
-                }
-
-                @TaskAction
-                void renderFields() {
-                    println "second=" + second
-                }
-            }
+            $someConfigurableTaskType
 """
 
         when:
-        runAndFail 'someTask', '--secon', 'foo'
+        runAndFail 'someTask', '--second', 'foo', 'someTask2', '--secon', 'bar'
 
         then:
-        failure.assertHasDescription("Problem configuring task :someTask from command line. Unknown command-line option '--secon'.")
+        failure.assertHasDescription("Problem configuring task :someTask2 from command line. Unknown command-line option '--secon'.")
 
         //TODO SF it's not fixable easily we would need to change some stuff in options parsing. See also ignore test method below.
 //        when:
@@ -194,6 +192,23 @@ class TaskCommandLineConfigurationIntegrationSpec extends AbstractIntegrationSpe
     def "single dash user error yields decent error message"() {
         when:
         runAndFail 'tasks', '-all'
+
+        then:
+        failure.assertHasDescription("Incorrect command line arguments: [-l, -l]. Task options require double dash, for example: 'gradle tasks --all'.")
+    }
+
+    @Ignore
+    //more work & design decisions needed
+    def "single dash error is detected in the subsequent option"() {
+        given:
+        file("build.gradle") << """
+            task someTask(type: SomeTask)
+
+            $someConfigurableTaskType
+"""
+
+        when:
+        runAndFail 'someTask', '--first', '-second', 'foo'
 
         then:
         failure.assertHasDescription("Incorrect command line arguments: [-l, -l]. Task options require double dash, for example: 'gradle tasks --all'.")

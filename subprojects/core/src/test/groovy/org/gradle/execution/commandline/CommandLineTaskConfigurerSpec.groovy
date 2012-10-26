@@ -84,6 +84,17 @@ class CommandLineTaskConfigurerSpec extends Specification {
         ex.message.contains('someFlag')
     }
 
+    def "fails if one of the options cannot be applied to one of the tasks"() {
+        when:
+        configurer.configureTasks([task, otherTask], input)
+        then:
+        def ex = thrown(GradleException)
+        ex.message.contains('someFlag2')
+
+        where:
+        input << [['--someFlag', '--someFlag2'], ['--someFlag2', '--someFlag']]
+    }
+
     def "configures the Boolean option"() {
         when:
         configurer.configureTasks([task], ['--someFlag2'])
@@ -102,11 +113,11 @@ class CommandLineTaskConfigurerSpec extends Specification {
     }
 
     def "configures options and returns unused arguments"() {
-        def args = ['--someFlag', '--content', 'Hey!', 'foo', '--baz']
+        def args = ['--someFlag', '--content', 'Hey!', 'foo', '--baz', '--someFlag']
         when:
         def out = configurer.configureTasks([task, task2], args)
         then:
-        out == ['foo', '--baz']
+        out == ['foo', '--baz', '--someFlag']
     }
 
     def "fails on unknown option"() {

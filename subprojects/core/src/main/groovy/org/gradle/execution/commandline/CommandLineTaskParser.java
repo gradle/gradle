@@ -43,8 +43,8 @@ public class CommandLineTaskParser {
             TaskSelector.TaskSelection selection = taskSelector.getSelection(path);
             Set<Task> tasks = selection.getTasks();
             if (containsConfigurationOptions(remainingPaths)) {
-                    remainingPaths = taskConfigurer.configureTasks(tasks, remainingPaths);
-                }
+                remainingPaths = taskConfigurer.configureTasks(tasks, remainingPaths);
+            }
 
             out.putAll(selection.getTaskName(), tasks);
         }
