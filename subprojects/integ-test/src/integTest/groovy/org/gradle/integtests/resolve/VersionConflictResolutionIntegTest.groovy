@@ -540,7 +540,6 @@ task checkDeps << {
 """
 
         //expect
-        executer.withArgument("-i")
         def failure = executer.withTasks("checkDeps").runWithFailure()
         failure.assertHasCause("Could not find group:org, module:external, version:1.4.")
     }
