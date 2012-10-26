@@ -49,5 +49,5 @@ public interface ModuleVersionSelector {
      *
      * @return the spec.
      */
-    Spec<ModuleVersionIdentifier> getAsSpec();
+    Spec<ModuleVersionIdentifier> getAsSpec();  //TODO SF change to 'matchesStrictly'
 }
