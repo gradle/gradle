@@ -42,9 +42,7 @@ public class CommandLineTaskParser {
             String path = remainingPaths.remove(0);
             TaskSelector.TaskSelection selection = taskSelector.getSelection(path);
             Set<Task> tasks = selection.getTasks();
-            if (containsConfigurationOptions(remainingPaths)) {
-                remainingPaths = taskConfigurer.configureTasks(tasks, remainingPaths);
-            }
+            remainingPaths = taskConfigurer.configureTasks(tasks, remainingPaths);
 
             out.putAll(selection.getTaskName(), tasks);
         }
@@ -61,14 +59,5 @@ public class CommandLineTaskParser {
         if (!invalidTasks.isEmpty()) {
             throw new GradleException("Incorrect command line arguments: " + invalidTasks + ". Task options require double dash, for example: 'gradle tasks --all'.");
         }
-    }
-
-    private boolean containsConfigurationOptions(List<String> arguments) {
-        for (String a : arguments) {
-            if (a.startsWith("--")) {
-                return true;
-            }
-        }
-        return false;
     }
 }

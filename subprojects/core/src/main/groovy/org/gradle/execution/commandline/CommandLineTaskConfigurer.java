@@ -36,16 +36,15 @@ import java.util.Map;
  */
 public class CommandLineTaskConfigurer {
 
-    private static boolean hasSingleBooleanParameter(Method method) {
-        if (method.getParameterTypes().length != 1) {
-            return false;
-        }
-        Class<?> type = method.getParameterTypes()[0];
-        return type == Boolean.class || type == Boolean.TYPE;
-    }
-
     public List<String> configureTasks(Collection<Task> tasks, List<String> arguments) {
         assert !tasks.isEmpty();
+        if (!shouldConfigureWith(arguments)) {
+            return arguments;
+        }
+        return configureTasksNow(tasks, arguments);
+    }
+
+    private List<String> configureTasksNow(Collection<Task> tasks, List<String> arguments) {
         List<String> remainingArguments = null;
         for (Task task : tasks) {
             Map<String, JavaMethod<Object, ?>> options = new HashMap<String, JavaMethod<Object, ?>>();
@@ -88,5 +87,22 @@ public class CommandLineTaskConfigurer {
             remainingArguments = parsed.getExtraArguments();
         }
         return remainingArguments;
+    }
+
+    private boolean hasSingleBooleanParameter(Method method) {
+        if (method.getParameterTypes().length != 1) {
+            return false;
+        }
+        Class<?> type = method.getParameterTypes()[0];
+        return type == Boolean.class || type == Boolean.TYPE;
+    }
+
+    private boolean shouldConfigureWith(List<String> arguments) {
+        for (String a : arguments) {
+            if (a.startsWith("--")) {
+                return true;
+            }
+        }
+        return false;
     }
 }

@@ -53,6 +53,17 @@ class CommandLineTaskConfigurerSpec extends Specification {
         !task2.someFlag2
     }
 
+    def "does not attempt configure if no options"() {
+        configurer = Spy(CommandLineTaskConfigurer)
+
+        when:
+        def out = configurer.configureTasks([task, task2], ['foo'])
+
+        then:
+        out == ['foo']
+        0 * configurer.configureTasksNow(_, _)
+    }
+
     def "configures string option on all tasks"() {
         when:
         configurer.configureTasks([task, task2], ['--content', 'Hey!', 'foo'])

@@ -24,6 +24,7 @@ import org.gradle.execution.TaskSelector
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
 
+import static com.google.common.collect.Sets.newHashSet
 import static java.util.Collections.emptyList
 
 /**
@@ -40,6 +41,7 @@ class CommandLineTaskParserSpec extends Specification {
 
     def setup() {
         parser.taskConfigurer = Mock(CommandLineTaskConfigurer)
+        parser.taskConfigurer.configureTasks(_, _) >> { args -> args[1] }
     }
 
     def "deals with empty input"() {
@@ -57,7 +59,6 @@ class CommandLineTaskParserSpec extends Specification {
         then:
         out.size() == 1
         out.get('foo task') == [task] as Set
-        0 * parser.taskConfigurer._
     }
 
     def "parses single task with multiple matches"() {
@@ -70,7 +71,6 @@ class CommandLineTaskParserSpec extends Specification {
         then:
         out.size() == 2
         out.get('foo task') == [task, task2] as Set
-        0 * parser.taskConfigurer._
     }
 
     def "reports incorrect commandline task configuration"() {
@@ -94,7 +94,6 @@ class CommandLineTaskParserSpec extends Specification {
         out.size() == 3
         out.get('foo task') == [task, task2] as Set
         out.get('bar task') == [task3] as Set
-        0 * parser.taskConfigurer._
     }
 
     def "configures tasks if configuration options specified"() {
@@ -108,10 +107,9 @@ class CommandLineTaskParserSpec extends Specification {
 
         then:
         out.size() == 4
-
-        //TODO SF I don't understand why I need to use spock closure here
-        1 * parser.taskConfigurer.configureTasks({it == [task, task2] as Set}, ['--all', 'bar', '--include', 'stuff', 'lastTask']) >> ['bar', '--include', 'stuff', 'lastTask']
-        1 * parser.taskConfigurer.configureTasks({it == [task3] as Set}, ['--include', 'stuff', 'lastTask']) >> ['lastTask']
+        1 * parser.taskConfigurer.configureTasks(newHashSet(task, task2), ['--all', 'bar', '--include', 'stuff', 'lastTask']) >> ['bar', '--include', 'stuff', 'lastTask']
+        1 * parser.taskConfigurer.configureTasks(newHashSet(task3), ['--include', 'stuff', 'lastTask']) >> ['lastTask']
+        1 * parser.taskConfigurer.configureTasks(newHashSet(task3), []) >> []
         0 * parser.taskConfigurer._
     }
 
