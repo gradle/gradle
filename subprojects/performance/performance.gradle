@@ -18,6 +18,7 @@ task small(type: ProjectGeneratorTask, description: 'Generates a small project')
 task largeSrc(type: ProjectGeneratorTask, description: 'Generates a single project with lots of source files') {
     sourceFiles = 50000
     linesOfCodePerSourceFile = 20
+    withPlainAntCompile = true
 }
 
 task multi(type: ProjectGeneratorTask, description: 'Generates a multi-project build') {

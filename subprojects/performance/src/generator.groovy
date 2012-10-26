@@ -38,6 +38,7 @@ class ProjectGeneratorTask extends DefaultTask {
     File destDir
     boolean groovyProject
     boolean scalaProject
+    boolean withPlainAntCompile
     int sourceFiles = 1
     Integer testSourceFiles
     int linesOfCodePerSourceFile = 5
@@ -148,7 +149,7 @@ class ProjectGeneratorTask extends DefaultTask {
             }
         }
 
-        args += [projectName: testProject.name, groovyProject: groovyProject, scalaProject: scalaProject,
+        args += [projectName: testProject.name, groovyProject: groovyProject, scalaProject: scalaProject, withPlainAntCompile: withPlainAntCompile,
                 propertyCount: (testProject.linesOfCodePerSourceFile.intdiv(7)), repository: testProject.repository, dependencies:testProject.dependencies]
 
         files.each {String name ->
