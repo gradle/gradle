@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 import spock.lang.Ignore
 
-@TargetVersions(["2.8.2", "2.9.2"]) // Zinc 0.2.0-M1 doesn't support Scala 2.10.0-RC1
+@TargetVersions(["2.8.2", "2.9.2", "2.10.0-RC1"])
 class ZincScalaCompilerIntegrationTest extends BasicScalaCompilerIntegrationTest {
     @Rule TestResources testResources
 
