@@ -15,10 +15,12 @@
  */
 package org.gradle.api.internal.artifacts;
 
+import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
+import org.gradle.api.internal.artifacts.repositories.FixedResolverArtifactRepository;
 
 /**
  * Factory for {@link ArtifactRepository} implementations.
@@ -41,4 +43,7 @@ public interface BaseRepositoryFactory {
 
     MavenArtifactRepository createMavenRepository();
 
+    <T extends DependencyResolver> T toResolver(Class<T> type, ArtifactRepository repository);
+
+    FixedResolverArtifactRepository createResolverBackedRepository(DependencyResolver resolver);
 }

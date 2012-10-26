@@ -26,9 +26,7 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerIn
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
-import org.gradle.api.internal.artifacts.dsl.DefaultArtifactHandler;
-import org.gradle.api.internal.artifacts.dsl.DefaultPublishArtifactFactory;
-import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
+import org.gradle.api.internal.artifacts.dsl.*;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
@@ -250,6 +248,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         private final DependencyMetaDataProvider dependencyMetaDataProvider;
         private final ProjectFinder projectFinder;
         private final DomainObjectContext domainObjectContext;
+        private RepositoryFactoryInternal repositoryFactory;
         private DefaultRepositoryHandler repositoryHandler;
         private ConfigurationContainerInternal configurationContainer;
         private DependencyHandler dependencyHandler;
@@ -271,6 +270,13 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
             return repositoryHandler;
         }
 
+        public RepositoryFactoryInternal getRepositoryFactory() {
+            if (repositoryFactory == null) {
+                repositoryFactory = new DefaultRepositoryFactory(getBaseRepositoryFactory());
+            }
+            return repositoryFactory;
+        }
+
         public BaseRepositoryFactory getBaseRepositoryFactory() {
             if (baseRepositoryFactory == null) {
                 Instantiator instantiator = parent.get(Instantiator.class);
@@ -290,7 +296,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
 
         private DefaultRepositoryHandler createRepositoryHandler() {
             Instantiator instantiator = parent.get(Instantiator.class);
-            return instantiator.newInstance(DefaultRepositoryHandler.class, getBaseRepositoryFactory(), instantiator);
+            return instantiator.newInstance(DefaultRepositoryHandler.class, getRepositoryFactory(), instantiator);
         }
 
         public ConfigurationContainerInternal getConfigurationContainer() {

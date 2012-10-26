@@ -17,356 +17,214 @@
 package org.gradle.api.internal.artifacts.dsl
 
 import org.apache.ivy.plugins.resolver.DependencyResolver
+import org.apache.ivy.plugins.resolver.FileSystemResolver
 import org.gradle.api.Action
 import org.gradle.api.artifacts.ArtifactRepositoryContainer
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
-import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.api.internal.ThreadGlobalInstantiator
 import org.gradle.api.internal.artifacts.DefaultArtifactRepositoryContainerTest
-import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal
-import org.jmock.integration.junit4.JMock
+import org.gradle.internal.reflect.Instantiator
 import org.junit.Test
-import org.junit.runner.RunWith
-import static org.junit.Assert.assertEquals
 
-/**
- * @author Hans Dockter
- */
-@RunWith(JMock)
 class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTest {
-    private DefaultRepositoryHandler repositoryHandler
 
-    public ArtifactRepositoryContainer createResolverContainer() {
-        repositoryHandler = new DefaultRepositoryHandler(baseRepositoryFactoryMock, new DirectInstantiator());
-        return repositoryHandler;
+    RepositoryFactoryInternal repositoryFactory
+    DefaultRepositoryHandler handler
+
+    def setup() {
+        repositoryFactory = Mock(RepositoryFactoryInternal)
+        repositoryFactory.getBaseRepositoryFactory() >> baseRepositoryFactory
+        handler = createRepositoryHandler()
     }
 
-    @Test public void testFlatDirWithClosure() {
-        def repository = context.mock(FlatDirectoryArtifactRepository)
-
-        context.checking {
-            one(baseRepositoryFactoryMock).createFlatDirRepository(); will(returnValue(repository))
-            one(repository).setName('libs')
-            allowing(repository).getName(); will(returnValue('libs'))
-        }
-
-        assert repositoryHandler.flatDir { name = 'libs' }.is(repository)
-    }
-    
-    @Test public void testFlatDirWithNameAndDirs() {
-        def repository = context.mock(FlatDirectoryArtifactRepository)
-
-        context.checking {
-            one(baseRepositoryFactoryMock).createFlatDirRepository(); will(returnValue(repository))
-            one(repository).setDirs(['a', 'b'])
-            one(repository).setName('libs')
-            allowing(repository).getName(); will(returnValue('libs'))
-        }
-
-        assert repositoryHandler.flatDir([name: 'libs'] + [dirs: ['a', 'b']]).is(repository)
+    public ArtifactRepositoryContainer createRepositoryHandler(
+            RepositoryFactoryInternal repositoryFactory = repositoryFactory,
+            Instantiator instantiator = ThreadGlobalInstantiator.getOrCreate()
+    ) {
+        new DefaultRepositoryHandler(repositoryFactory, instantiator)
     }
 
-    @Test public void testFlatDirWithNameAndSingleDir() {
-        def repository = context.mock(FlatDirectoryArtifactRepository)
+    def testFlatDirWithClosure() {
+        given:
+        def repository = Mock(FlatDirectoryArtifactRepository)
+        1 * repositoryFactory.flatDir(_ as Action) >> repository
 
-        context.checking {
-            one(baseRepositoryFactoryMock).createFlatDirRepository(); will(returnValue(repository))
-            one(repository).setDirs(['a'])
-            one(repository).setName('libs')
-            allowing(repository).getName(); will(returnValue('libs'))
-        }
-
-        assert repositoryHandler.flatDir([name: 'libs'] + [dirs: 'a']).is(repository)
+        expect:
+        handler.flatDir { name = 'libs' }.is(repository)
     }
 
-    @Test public void testFlatDirWithoutNameAndWithDirs() {
-        def repository = context.mock(FlatDirectoryArtifactRepository)
+    def testFlatDirWithMap() {
+        given:
+        def repository = Mock(FlatDirectoryArtifactRepository)
+        1 * repositoryFactory.flatDir(_ as Map) >> repository
 
-        context.checking {
-            one(baseRepositoryFactoryMock).createFlatDirRepository(); will(returnValue(repository))
-            one(repository).setDirs(['a', 12])
-            one(repository).getName(); will(returnValue(null))
-            one(repository).setName('flatDir')
-            allowing(repository).getName(); will(returnValue('flatDir'))
-        }
-
-        assert repositoryHandler.flatDir([dirs: ['a', 12]]).is(repository)
+        expect:
+        handler.flatDir([name: 'libs'] + [dirs: ['a', 'b']]).is(repository)
     }
 
-    @Test
     public void testMavenCentralWithNoArgs() {
-        MavenArtifactRepository repository = context.mock(MavenArtifactRepository)
+        when:
+        MavenArtifactRepository repository = Mock(MavenArtifactRepository)
+        1 * repositoryFactory.mavenCentral() >> repository
+        repository.getName() >> "name"
 
-        context.checking {
-            one(baseRepositoryFactoryMock).createMavenCentralRepository()
-            will(returnValue(repository))
-            one(repository).getName()
-            will(returnValue(null))
-            one(repository).setName(ArtifactRepositoryContainer.DEFAULT_MAVEN_CENTRAL_REPO_NAME)
-            allowing(repository).getName()
-            will(returnValue(ArtifactRepositoryContainer.DEFAULT_MAVEN_CENTRAL_REPO_NAME))
-        }
-
-        assert repositoryHandler.mavenCentral().is(repository)
+        then:
+        handler.mavenCentral().is(repository)
     }
 
-    @Test
-    public void testMavenCentralWithSingleUrl() {
-        String testUrl2 = 'http://www.gradle2.org'
+    public void testMavenCentralWithMap() {
+        when:
+        MavenArtifactRepository repository = Mock(MavenArtifactRepository)
+        1 * repositoryFactory.mavenCentral(_ as Map) >> repository
+        repository.getName() >> "name"
 
-        MavenArtifactRepository repository = context.mock(MavenArtifactRepository)
-
-        context.checking {
-            one(baseRepositoryFactoryMock).createMavenCentralRepository()
-            will(returnValue(repository))
-            one(repository).getName()
-            will(returnValue(null))
-            one(repository).setName(ArtifactRepositoryContainer.DEFAULT_MAVEN_CENTRAL_REPO_NAME)
-            allowing(repository).getName()
-            will(returnValue(ArtifactRepositoryContainer.DEFAULT_MAVEN_CENTRAL_REPO_NAME))
-            one(repository).setArtifactUrls([testUrl2])
-        }
-
-        assert repositoryHandler.mavenCentral(artifactUrls: [testUrl2]).is(repository)
+        then:
+        handler.mavenCentral(artifactUrls: ["abc"]).is(repository)
     }
 
-    @Test
-    public void testMavenCentralWithNameAndUrls() {
-        String testUrl1 = 'http://www.gradle1.org'
-        String testUrl2 = 'http://www.gradle2.org'
-        String name = 'customName'
+    def testMavenLocalWithNoArgs() {
+        when:
+        MavenArtifactRepository repository = Mock(MavenArtifactRepository)
+        1 * repositoryFactory.mavenLocal() >> repository
+        repository.getName() >> "name"
 
-        MavenArtifactRepository repository = context.mock(MavenArtifactRepository)
-
-        context.checking {
-            one(baseRepositoryFactoryMock).createMavenCentralRepository()
-            will(returnValue(repository))
-            one(repository).setName('customName')
-            allowing(repository).getName()
-            will(returnValue('customName'))
-            one(repository).setArtifactUrls([testUrl1, testUrl2])
-        }
-
-        assert repositoryHandler.mavenCentral(name: name, artifactUrls: [testUrl1, testUrl2]).is(repository)
+        then:
+        handler.mavenLocal().is(repository)
     }
 
-    @Test
-    public void testMavenLocalWithNoArgs() {
-        MavenArtifactRepository repository = context.mock(MavenArtifactRepository)
-
-        context.checking {
-            one(baseRepositoryFactoryMock).createMavenLocalRepository()
-            will(returnValue(repository))
-            one(repository).getName()
-            will(returnValue(null))
-            one(repository).setName(ArtifactRepositoryContainer.DEFAULT_MAVEN_LOCAL_REPO_NAME)
-            allowing(repository).getName()
-            will(returnValue(ArtifactRepositoryContainer.DEFAULT_MAVEN_LOCAL_REPO_NAME))
-        }
-
-        assert repositoryHandler.mavenLocal() == repository
-    }
-
-    @Test
-    public void testMavenRepoWithNameAndUrls() {
+    def testMavenRepoWithNameAndUrls() {
+        when:
         String testUrl1 = 'http://www.gradle1.org'
         String testUrl2 = 'http://www.gradle2.org'
         String repoRoot = 'http://www.reporoot.org'
         String repoName = 'mavenRepoName'
 
-        TestMavenArtifactRepository repository = context.mock(TestMavenArtifactRepository)
+        TestMavenArtifactRepository repository = Mock(TestMavenArtifactRepository)
+        repositoryFactory.maven(_ as Action) >> repository
+        1 * repository.setName(repoName)
+        repository.getName() >> repoName
+        1 * repository.setUrl(repoRoot)
+        1 * repository.setArtifactUrls([testUrl1, testUrl2])
+        DependencyResolver resolver = new FileSystemResolver(name: "resolver")
+        1 * baseRepositoryFactory.toResolver(_, repository) >> resolver
 
-        context.checking {
-            one(baseRepositoryFactoryMock).createMavenRepository()
-            will(returnValue(repository))
-            one(repository).setName(repoName)
-            allowing(repository).getName()
-            will(returnValue(repoName))
-            one(repository).setUrl(repoRoot)
-            one(repository).setArtifactUrls([testUrl1, testUrl2])
-            allowing(repository).createResolver(); will(returnValue(expectedResolver))
-        }
-
-        assert repositoryHandler.mavenRepo([name: repoName, url: repoRoot, artifactUrls: [testUrl1, testUrl2]]).is(expectedResolver)
-        assertEquals([expectedResolver], repositoryHandler.resolvers)
+        then:
+        handler.mavenRepo([name: repoName, url: repoRoot, artifactUrls: [testUrl1, testUrl2]]).is(resolver)
+        handler.resolvers == [resolver]
     }
 
     @Test
     public void testMavenRepoWithNameAndRootUrlOnly() {
+        when:
         String repoRoot = 'http://www.reporoot.org'
         String repoName = 'mavenRepoName'
 
-        TestMavenArtifactRepository repository = context.mock(TestMavenArtifactRepository)
+        TestMavenArtifactRepository repository = Mock(TestMavenArtifactRepository)
+        repositoryFactory.maven(_ as Action) >> repository
+        1 * repository.setName(repoName)
+        repository.getName() >> repoName
+        1 * repository.setUrl(repoRoot)
+        DependencyResolver resolver = new FileSystemResolver(name: "resolver")
+        1 * baseRepositoryFactory.toResolver(_, repository) >> resolver
 
-        context.checking {
-            one(baseRepositoryFactoryMock).createMavenRepository()
-            will(returnValue(repository))
-            one(repository).setName(repoName)
-            allowing(repository).getName()
-            will(returnValue(repoName))
-            one(repository).setUrl(repoRoot)
-            allowing(repository).createResolver(); will(returnValue(expectedResolver))
-        }
-
-        assert repositoryHandler.mavenRepo([name: repoName, url: repoRoot]).is(expectedResolver)
-        assertEquals([expectedResolver], repositoryHandler.resolvers)
+        then:
+        handler.mavenRepo([name: repoName, url: repoRoot]).is(resolver)
+        handler.resolvers == [resolver]
     }
 
     @Test
     public void testMavenRepoWithoutName() {
-        String testUrl2 = 'http://www.gradle2.org'
+        when:
         String repoRoot = 'http://www.reporoot.org'
 
-        TestMavenArtifactRepository repository = context.mock(TestMavenArtifactRepository)
+        TestMavenArtifactRepository repository = Mock(TestMavenArtifactRepository)
+        repositoryFactory.maven(_ as Action) >> repository
+        repository.getName() >> null
+        1 * repository.setUrl(repoRoot)
+        DependencyResolver resolver = new FileSystemResolver(name: "resolver")
+        1 * baseRepositoryFactory.toResolver(_, repository) >> resolver
 
-        context.checking {
-            one(baseRepositoryFactoryMock).createMavenRepository()
-            will(returnValue(repository))
-            allowing(repository).getName()
-            will(returnValue(null))
-            one(repository).setUrl(repoRoot)
-            one(repository).setArtifactUrls([testUrl2])
-            allowing(repository).createResolver(); will(returnValue(expectedResolver))
-        }
-
-        assert repositoryHandler.mavenRepo([url: repoRoot, artifactUrls: [testUrl2]]).is(expectedResolver)
-        assertEquals([expectedResolver], repositoryHandler.resolvers)
+        then:
+        handler.mavenRepo([url: repoRoot]).is(resolver)
+        handler.resolvers == [resolver]
     }
 
-    @Test
     public void createIvyRepositoryUsingClosure() {
-        IvyArtifactRepository repository = context.mock(IvyArtifactRepository.class)
+        when:
+        def repository = Mock(IvyArtifactRepository)
+        1 * repositoryFactory.ivy(_ as Action) >> repository
 
-        context.checking {
-            one(baseRepositoryFactoryMock).createIvyRepository()
-            will(returnValue(repository))
-            allowing(repository).getName()
-            will(returnValue("name"))
-        }
-
-        def arg
-        def result = repositoryHandler.ivy {
-            arg = it
-        }
-
-        assert arg == repository
-        assert result == repository
+        then:
+        handler.ivy { }.is repository
     }
 
-    @Test
-    public void createIvyRepositoryUsingAction() {
-        IvyArtifactRepository repository = context.mock(IvyArtifactRepository.class)
-        Action<IvyArtifactRepository> action = context.mock(Action.class)
+    def createIvyRepositoryUsingAction() {
+        when:
+        def repository = Mock(IvyArtifactRepository)
+        def action = Mock(Action)
+        1 * repositoryFactory.ivy(action) >> repository
 
-        context.checking {
-            one(baseRepositoryFactoryMock).createIvyRepository()
-            will(returnValue(repository))
-            one(action).execute(repository)
-            allowing(repository).getName()
-            will(returnValue("name"))
-        }
-
-        def result = repositoryHandler.ivy(action)
-        assert result == repository
+        then:
+        handler.ivy(action).is repository
     }
 
     @Test
     public void providesADefaultNameForIvyRepository() {
-        IvyArtifactRepository repository1 = context.mock(IvyArtifactRepository.class)
+        given:
+        def repo1 = Mock(IvyArtifactRepository)
+        def repo2 = Mock(IvyArtifactRepository)
+        def repo3 = Mock(IvyArtifactRepository)
 
-        context.checking {
-            one(baseRepositoryFactoryMock).createIvyRepository()
-            will(returnValue(repository1))
-            one(repository1).getName()
-            will(returnValue(null))
-            one(repository1).setName("ivy")
-            allowing(repository1).getName()
-            will(returnValue("ivy"))
-        }
+        when:
+        handler.ivy { }
 
-        repositoryHandler.ivy { }
+        then:
+        1 * repositoryFactory.ivy(_) >> repo1
+        3 * repo1.getName() >> "ivy"
+        1 * repo1.setName("ivy")
 
-        IvyArtifactRepository repository2 = context.mock(IvyArtifactRepository.class)
+        when:
+        handler.ivy { }
 
-        context.checking {
-            one(baseRepositoryFactoryMock).createIvyRepository()
-            will(returnValue(repository2))
-            allowing(repository2).getName()
-            will(returnValue("ivy2"))
-        }
+        then:
+        repo1.getName() >> "ivy"
+        1 * repositoryFactory.ivy(_) >> repo2
+        3 * repo2.getName() >>> ["ivy", "ivy2"]
+        1 * repo2.setName("ivy2")
 
-        repositoryHandler.ivy { }
+        when:
+        handler.ivy { }
 
-        IvyArtifactRepository repository3 = context.mock(IvyArtifactRepository.class)
+        then:
+        repo1.getName() >> "ivy"
+        repo2.getName() >> "ivy2"
 
-        context.checking {
-            one(baseRepositoryFactoryMock).createIvyRepository()
-            will(returnValue(repository3))
-            one(repository3).getName()
-            will(returnValue(null))
-            one(repository3).setName("ivy3")
-            allowing(repository3).getName()
-            will(returnValue("ivy3"))
-        }
-
-        repositoryHandler.ivy { }
+        1 * repositoryFactory.ivy(_) >> repo3
+        1 * repo3.setName("ivy3")
+        3 * repo3.getName() >>> ["ivy", "ivy3"]
     }
 
-    @Test
     public void createMavenRepositoryUsingClosure() {
-        MavenArtifactRepository repository = context.mock(TestMavenArtifactRepository.class)
+        when:
+        def repository = Mock(MavenArtifactRepository)
+        1 * repositoryFactory.maven(_ as Action) >> repository
 
-        context.checking {
-            one(baseRepositoryFactoryMock).createMavenRepository()
-            will(returnValue(repository))
-            allowing(repository).getName()
-            will(returnValue("name"))
-        }
-
-        def arg
-        def result = repositoryHandler.maven {
-            arg = it
-        }
-
-        assert arg == repository
-        assert result == repository
+        then:
+        handler.maven { }.is repository
     }
 
-    @Test
     public void createMavenRepositoryUsingAction() {
-        MavenArtifactRepository repository = context.mock(TestMavenArtifactRepository.class)
-        Action<MavenArtifactRepository> action = context.mock(Action.class)
+        when:
+        def repository = Mock(MavenArtifactRepository)
+        def action = Mock(Action)
+        1 * repositoryFactory.maven(action) >> repository
 
-        context.checking {
-            one(baseRepositoryFactoryMock).createMavenRepository()
-            will(returnValue(repository))
-            one(action).execute(repository)
-            allowing(repository).getName()
-            will(returnValue("name"))
-        }
-
-        def result = repositoryHandler.maven(action)
-        assert result == repository
+        then:
+        handler.maven(action).is repository
     }
 
-    private DependencyResolver resolver(String name = 'name') {
-        DependencyResolver resolver = context.mock(DependencyResolver.class)
-        context.checking {
-            allowing(resolver).getName(); will(returnValue(name))
-        }
-        return resolver
-    }
-
-    private void prepareName(mavenResolver, String expectedName) {
-        context.checking {
-            one(mavenResolver).setName(expectedName)
-        }
-    }
 }
 
-interface TestMavenArtifactRepository extends MavenArtifactRepository, ArtifactRepositoryInternal {
-}
 
-interface TestFlatDirectoryArtifactRepository extends FlatDirectoryArtifactRepository, ArtifactRepositoryInternal {
-}

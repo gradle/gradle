@@ -110,6 +110,15 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
         );
     }
 
+    public <T extends DependencyResolver> T toResolver(Class<T> type, ArtifactRepository repository) {
+        DependencyResolver resolver = ((ArtifactRepositoryInternal) repository).createResolver();
+        return type.cast(resolver);
+    }
+
+    public FixedResolverArtifactRepository createResolverBackedRepository(DependencyResolver resolver) {
+        return new FixedResolverArtifactRepository(resolver);
+    }
+
     private PasswordCredentials createPasswordCredentials() {
         return instantiator.newInstance(DefaultPasswordCredentials.class);
     }
