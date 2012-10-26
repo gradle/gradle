@@ -97,7 +97,3 @@ or does it also apply to sbt's incremental compiler?
 
 The incremental compiler stores some metadata on disk. When incremental compilation is flipped on and off on successive compilations, can this lead to
 incorrect compilation results, or does it, in the worst case, lead to more files being recompiled than necessary?
-
-Judging from my experiments, sbt/Zinc not only require the scala-library Jar (7MB) on their own class path, but also the scala-compiler Jar (15MB).
-This is although they can be configured with the Scala compiler (Jar) to be used for compilation. Since we can't ship such big Jars with the Gradle
-distribution, questions arise around how to load sbt/Zinc dynamically, which versions to use at runtime (vs. compile time), etc.
