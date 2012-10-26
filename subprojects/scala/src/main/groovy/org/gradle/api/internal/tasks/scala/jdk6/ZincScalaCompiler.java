@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.scala.jdk6;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.typesafe.zinc.Inputs;
+import com.typesafe.zinc.ScalaLocation;
 import com.typesafe.zinc.Setup;
 
 import org.gradle.api.InvalidUserDataException;
@@ -83,14 +84,10 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, S
         }
 
         static com.typesafe.zinc.Compiler createCompiler(Iterable<File> scalaClasspath, Iterable<File> zincClasspath, xsbti.Logger logger) {
-            File compilerJar = findJar(scalaClasspath, "scala-compiler(-.*)?.jar");
-            File libraryJar = findJar(scalaClasspath, "scala-library(-.*)?.jar");
-            List<File> extraJars = Lists.newArrayList(scalaClasspath);
-            extraJars.remove(compilerJar);
-            extraJars.remove(libraryJar);
+            ScalaLocation scalaLocation = ScalaLocation.fromPath(Lists.newArrayList(scalaClasspath));
             File sbtInterfaceJar = findJar(zincClasspath, "sbt-interface(-.*)?.jar");
             File compilerInterfaceSourcesJar = findJar(zincClasspath, "compiler-interface(-.*)?-sources.jar");
-            Setup setup = Setup.create(compilerJar, libraryJar, extraJars, sbtInterfaceJar, compilerInterfaceSourcesJar, Jvm.current().getJavaHome());
+            Setup setup = Setup.create(scalaLocation, sbtInterfaceJar, compilerInterfaceSourcesJar, Jvm.current().getJavaHome());
             if (LOGGER.isDebugEnabled()) {
                 Setup.debug(setup, logger);
             }
