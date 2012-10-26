@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
+import org.gradle.api.internal.ClosureBackedAction;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -52,57 +53,45 @@ public class DefaultResolutionResult implements ResolutionResult {
         return out;
     }
 
-    public void allDependencies(Action<DependencyResult> action) {
+    public void allDependencies(Action<? super DependencyResult> action) {
         Set<ResolvedModuleVersionResult> visited = new LinkedHashSet<ResolvedModuleVersionResult>();
-        eachDependency(root, action, visited);
+        eachElement(root, new NoOpAction<ResolvedModuleVersionResult>(), action, visited);
     }
 
     public void allDependencies(final Closure closure) {
-        allDependencies(new Action<DependencyResult>() {
-            public void execute(DependencyResult dependencyResult) {
-                closure.call(dependencyResult);
-            }
-        });
+        allDependencies(new ClosureBackedAction<DependencyResult>(closure));
     }
 
-    private void eachDependency(ResolvedModuleVersionResult node, Action<DependencyResult> action, Set<ResolvedModuleVersionResult> visited) {
+    private void eachElement(ResolvedModuleVersionResult node,
+                             Action<? super ResolvedModuleVersionResult> moduleAction, Action<? super DependencyResult> dependencyAction,
+                             Set<ResolvedModuleVersionResult> visited) {
         if (!visited.add(node)) {
             return;
         }
+        moduleAction.execute(node);
         for (DependencyResult d : node.getDependencies()) {
+            dependencyAction.execute(d);
             if (d instanceof ResolvedDependencyResult) {
-                eachDependency(((ResolvedDependencyResult) d).getSelected(), action, visited);
+                eachElement(((ResolvedDependencyResult) d).getSelected(), moduleAction, dependencyAction, visited);
             }
-            action.execute(d);
         }
     }
 
-    public Set<ResolvedModuleVersionResult> getAllModules() {
+    public Set<ResolvedModuleVersionResult> getAllModuleVersions() {
         final Set<ResolvedModuleVersionResult> out = new LinkedHashSet<ResolvedModuleVersionResult>();
-        allModules(new Action<ResolvedModuleVersionResult>() {
-            public void execute(ResolvedModuleVersionResult module) {
-                out.add(module);
-            }
-        });
+        eachElement(root, new NoOpAction<ResolvedModuleVersionResult>(), new NoOpAction<DependencyResult>(), out);
         return out;
     }
 
-    public void allModules(final Action<ResolvedModuleVersionResult> action) {
-        action.execute(root);
-        allDependencies(new Action<DependencyResult>() {
-            public void execute(DependencyResult dependencyResult) {
-                if (dependencyResult instanceof ResolvedDependencyResult) {
-                    action.execute(((ResolvedDependencyResult) dependencyResult).getSelected());
-                }
-            }
-        });
+    public void allModuleVersions(final Action<? super ResolvedModuleVersionResult> action) {
+        eachElement(root, action, new NoOpAction<DependencyResult>(), new LinkedHashSet<ResolvedModuleVersionResult>());
     }
 
-    public void allModules(final Closure closure) {
-        allModules(new Action<ResolvedModuleVersionResult>() {
-            public void execute(ResolvedModuleVersionResult module) {
-                closure.call(module);
-            }
-        });
+    public void allModuleVersions(final Closure closure) {
+        allModuleVersions(new ClosureBackedAction<ResolvedModuleVersionResult>(closure));
+    }
+
+    private static class NoOpAction<T> implements Action<T> {
+        public void execute(T t) {}
     }
 }

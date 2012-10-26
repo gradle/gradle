@@ -40,23 +40,23 @@ class DefaultResolutionResultTest extends Specification {
 
         when:
         def deps = new DefaultResolutionResult(root).allDependencies
-        def modules = new DefaultResolutionResult(root).allModules
+        def modules = new DefaultResolutionResult(root).allModuleVersions
 
         then:
-        deps.size() == 4
-        deps.containsAll(dep1, dep2, dep3, dep4)
+        deps == [dep1, dep2, dep3, dep4] as Set
 
         and:
-        modules.size() == 4
         //does not contain unresolved dep, contains root
-        modules.containsAll(root, dep1.selected, dep2.selected, dep3.selected)
+        modules == [root, dep1.selected, dep2.selected, dep3.selected] as Set
     }
 
-    def "provides all modules and dependencies hook"() {
+    def "provides hooks for iterating each module or dependency exactly once"() {
         given:
+        //root -> dep1,dep2; dep1 -> dep3
         def dep = newDependency('dep1')
-        def root = newModule('root').addDependency(dep).addDependency(newDependency('dep2'))
-        dep.selected.addDependency(newDependency('dep3'))
+        def dep3 = newDependency('dep3')
+        def root = newModule('root').addDependency(dep).addDependency(newDependency('dep2')).addDependency(dep3)
+        dep.selected.addDependency(dep3)
 
         def result = new DefaultResolutionResult(root)
 
@@ -64,15 +64,13 @@ class DefaultResolutionResultTest extends Specification {
         def deps = []
         def modules = []
         result.allDependencies { deps << it }
-        result.allModules { modules << it }
+        result.allModuleVersions { modules << it }
 
         then:
-        deps.size() == 3
-        deps*.requested.group.containsAll(['dep1', 'dep2', 'dep3'])
+        deps*.requested.group as Set == ['dep1', 'dep2', 'dep3', 'dep3'] as Set
 
         and:
-        modules.size() == 4
-        modules*.id.group.containsAll(['root', 'dep1', 'dep2', 'dep3'])
+        modules*.id.group as Set == ['root', 'dep1', 'dep2', 'dep3'] as Set
     }
 
     def "deals with dependency cycles"() {
@@ -85,7 +83,7 @@ class DefaultResolutionResultTest extends Specification {
 
         when:
         def deps = new DefaultResolutionResult(root).allDependencies
-        def modules = new DefaultResolutionResult(root).allModules
+        def modules = new DefaultResolutionResult(root).allModuleVersions
 
         then:
         deps.size() == 2
@@ -104,14 +102,14 @@ class DefaultResolutionResultTest extends Specification {
 
         then:
         result.allDependencies == [dep1, dep2] as Set
-        result.allModules == [root, dep1.selected, dep2.selected] as Set
+        result.allModuleVersions == [root, dep1.selected, dep2.selected] as Set
 
         when:
         result.allDependencies << newDependency('dep3')
-        result.allModules << newModule('foo')
+        result.allModuleVersions << newModule('foo')
 
         then:
         result.allDependencies == [dep1, dep2] as Set
-        result.allModules == [root, dep1.selected, dep2.selected] as Set
+        result.allModuleVersions == [root, dep1.selected, dep2.selected] as Set
     }
 }

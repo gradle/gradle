@@ -57,7 +57,7 @@ public interface ResolutionResult {
      *
      * @param action - action that is applied for each dependency
      */
-    void allDependencies(Action<DependencyResult> action);
+    void allDependencies(Action<? super DependencyResult> action);
 
     /**
      * Applies given closure for each dependency.
@@ -73,7 +73,7 @@ public interface ResolutionResult {
      *
      * @return all nodes of the dependency graph.
      */
-    Set<ResolvedModuleVersionResult> getAllModules();
+    Set<ResolvedModuleVersionResult> getAllModuleVersions();
 
     /**
      * Applies given action for each module.
@@ -81,7 +81,7 @@ public interface ResolutionResult {
      *
      * @param action - action that is applied for each module
      */
-    void allModules(final Action<ResolvedModuleVersionResult> action);
+    void allModuleVersions(Action<? super ResolvedModuleVersionResult> action);
 
     /**
      * Applies given closure for each module.
@@ -89,5 +89,5 @@ public interface ResolutionResult {
      *
      * @param closure - closure that is applied for each module
      */
-    void allModules(final Closure closure);
+    void allModuleVersions(Closure closure);
 }

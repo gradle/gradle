@@ -21,14 +21,14 @@ import org.gradle.api.Action;
 import org.gradle.api.InvalidActionClosureException;
 import org.gradle.util.ConfigureUtil;
 
-public class ClosureBackedAction implements Action<Object> {
+public class ClosureBackedAction<T> implements Action<T> {
     private final Closure closure;
 
     public ClosureBackedAction(Closure closure) {
         this.closure = closure;
     }
 
-    public void execute(Object o) {
+    public void execute(T o) {
         try {
             ConfigureUtil.configure(closure, o);
         } catch (groovy.lang.MissingMethodException e) {
