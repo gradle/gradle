@@ -19,6 +19,7 @@ package org.gradle.api.artifacts.dsl;
 import groovy.lang.Closure;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
@@ -28,6 +29,7 @@ import java.util.Map;
 /**
  * A repository factory is capable of creating different kinds of {@link org.gradle.api.artifacts.repositories.ArtifactRepository} types.
  */
+@Incubating
 public interface RepositoryFactory {
 
     /**
