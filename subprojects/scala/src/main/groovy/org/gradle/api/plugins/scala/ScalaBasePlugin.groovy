@@ -71,7 +71,7 @@ public class ScalaBasePlugin implements Plugin<Project> {
             compile.scalaClasspath = project.configurations[SCALA_TOOLS_CONFIGURATION_NAME]
             compile.conventionMapping.zincClasspath = {
                 def config = project.configurations[ZINC_CONFIGURATION_NAME]
-                if (config.dependencies.empty) {
+                if (!compile.scalaCompileOptions.useAnt && config.dependencies.empty) {
                     project.dependencies {
                         zinc("com.typesafe.zinc:zinc:0.2.0-M2") {
                             exclude module: "ensime-sbt-cmd"
