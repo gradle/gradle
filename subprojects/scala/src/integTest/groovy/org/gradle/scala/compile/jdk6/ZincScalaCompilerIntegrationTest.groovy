@@ -27,12 +27,12 @@ class ZincScalaCompilerIntegrationTest extends BasicScalaCompilerIntegrationTest
     @Rule TestResources testResources
 
     String compilerConfiguration() {
-        '''
+"""
 compileScala.scalaCompileOptions.with {
     useAnt = false
     fork = true
 }
-'''
+"""
     }
 
     String logStatement() {

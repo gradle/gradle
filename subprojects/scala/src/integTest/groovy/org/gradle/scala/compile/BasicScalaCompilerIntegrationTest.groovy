@@ -26,10 +26,6 @@ abstract class BasicScalaCompilerIntegrationTest extends MultiVersionIntegration
         buildFile << buildScript()
         buildFile <<
 """
-repositories {
-    mavenCentral()
-}
-
 DeprecationLogger.whileDisabled {
     ${compilerConfiguration()}
 }
@@ -143,6 +139,12 @@ compileScala.scalaCompileOptions.debugLevel = "none"
     def buildScript() {
 """
 apply plugin: "scala"
+
+repositories {
+    mavenCentral()
+    // temporary measure for the next few hours, until Zinc 0.2-M2 has landed in Central
+    maven { url "https://oss.sonatype.org/content/repositories/releases" }
+}
 
 dependencies {
     scalaTools "org.scala-lang:scala-compiler:$version"
