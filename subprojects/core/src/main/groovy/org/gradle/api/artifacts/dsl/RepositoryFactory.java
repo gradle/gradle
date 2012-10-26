@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.artifacts.dsl;
 
 import groovy.lang.Closure;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.ArtifactRepositoryContainer;
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
@@ -26,16 +26,14 @@ import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import java.util.Map;
 
 /**
- * A {@code RepositoryHandler} manages a set of repositories, allowing repositories to be defined and queried.
- *
- * @author Hans Dockter
+ * A repository factory is capable of creating different kinds of {@link org.gradle.api.artifacts.repositories.ArtifactRepository} types.
  */
-public interface RepositoryHandler extends ArtifactRepositoryContainer, RepositoryFactory {
+public interface RepositoryFactory {
 
     /**
-     * Adds a resolver that looks into a number of directories for artifacts. The artifacts are expected to be located in the
-     * root of the specified directories. The resolver ignores any group/organization information specified in the
-     * dependency section of your build script. If you only use this kind of resolver you might specify your
+     * Creates a repository that looks into a number of directories for artifacts. The artifacts are expected to be located in the
+     * root of the specified directories. The repository ignores any group/organization information specified in the
+     * dependency section of your build script. If you only use this kind of repository you might specify your
      * dependencies like <code>":junit:4.4"</code> instead of <code>"junit:junit:4.4"</code>.
      *
      * The following parameter are accepted as keys for the map:
@@ -61,22 +59,14 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer, Reposito
      * </p>
      *
      * @param args The arguments used to configure the repository.
-     * @return the added resolver
+     * @return the created repository
      * @throws org.gradle.api.InvalidUserDataException In the case neither rootDir nor rootDirs is specified of if both
      * are specified.
      */
     FlatDirectoryArtifactRepository flatDir(Map<String, ?> args);
 
     /**
-     * Adds an configures a repository which will look for dependencies in a number of local directories.
-     *
-     * @param configureClosure The closure to execute to configure the repository.
-     * @return The repository.
-     */
-    FlatDirectoryArtifactRepository flatDir(Closure configureClosure);
-
-    /**
-     * Adds an configures a repository which will look for dependencies in a number of local directories.
+     * Creates and configures a repository which will look for dependencies in a number of local directories.
      *
      * @param action The action to execute to configure the repository.
      * @return The repository.
@@ -84,9 +74,9 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer, Reposito
     FlatDirectoryArtifactRepository flatDir(Action<? super FlatDirectoryArtifactRepository> action);
 
     /**
-     * Adds a repository which looks in the Maven central repository for dependencies. The URL used to access this repository is
-     * always {@link org.gradle.api.artifacts.ArtifactRepositoryContainer#MAVEN_CENTRAL_URL}. The behavior of this resolver
-     * is otherwise the same as the ones added by {@link #mavenRepo(java.util.Map)}.
+     * Creates a repository which looks in the Maven central repository for dependencies. The URL used to access this repository is
+     * always {@link org.gradle.api.artifacts.ArtifactRepositoryContainer#MAVEN_CENTRAL_URL}. The behavior of this repository
+     * is otherwise the same as the ones creates by {@link #mavenRepo(java.util.Map)}.
      *
      * The following parameter are accepted as keys for the map:
      *
@@ -106,54 +96,36 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer, Reposito
      *
      * <p>Examples:
      * <pre>
-     * repositories {
-     *     mavenCentral artifactUrls: ["http://www.mycompany.com/artifacts1", "http://www.mycompany.com/artifacts2"]
-     *     mavenCentral name: "nonDefaultName", artifactUrls: ["http://www.mycompany.com/artifacts1"]
-     * }
+     * factory.mavenCentral(artifactUrls: ["http://www.mycompany.com/artifacts1", "http://www.mycompany.com/artifacts2"])
+     * factory.mavenCentral(name: "nonDefaultName", artifactUrls: ["http://www.mycompany.com/artifacts1"])
      * </pre>
      * </p>
      *
      * @param args A list of urls of repositories to look for artifacts only.
-     * @return the added repository
+     * @return the created repository
      */
     MavenArtifactRepository mavenCentral(Map<String, ?> args);
 
     /**
-     * Adds a repository which looks in the Maven central repository for dependencies. The URL used to access this repository is
+     * Creates a repository which looks in the Maven central repository for dependencies. The URL used to access this repository is
      * {@value org.gradle.api.artifacts.ArtifactRepositoryContainer#MAVEN_CENTRAL_URL}. The name of the repository is
      * {@value org.gradle.api.artifacts.ArtifactRepositoryContainer#DEFAULT_MAVEN_CENTRAL_REPO_NAME}.
      *
-     * <p>Examples:
-     * <pre>
-     * repositories {
-     *     mavenCentral()
-     * }
-     * </pre>
-     * </p>
-     *
-     * @return the added resolver
+     * @return the created repository
      * @see #mavenCentral(java.util.Map)
      */
     MavenArtifactRepository mavenCentral();
 
     /**
-     * Adds a repository which looks in the local Maven cache for dependencies. The name of the repository is
+     * Creates a repository which looks in the local Maven cache for dependencies. The name of the repository is
      * {@value org.gradle.api.artifacts.ArtifactRepositoryContainer#DEFAULT_MAVEN_LOCAL_REPO_NAME}.
      *
-     * <p>Examples:
-     * <pre>
-     * repositories {
-     *     mavenLocal()
-     * }
-     * </pre>
-     * </p>
-     *
-     * @return the added resolver
+     * @return the created repository
      */
     MavenArtifactRepository mavenLocal();
 
     /**
-     * Adds a repository which is Maven compatible. The compatibility is in regard to layout, snapshot handling and
+     * Creates a repository which is Maven compatible. The compatibility is in regard to layout, snapshot handling and
      * dealing with the pom.xml. This repository can't be used for publishing in a Maven compatible way. For publishing
      * to a Maven repository, have a look at {@link org.gradle.api.plugins.MavenRepositoryHandlerConvention#mavenDeployer(java.util.Map)} or
      * {@link org.gradle.api.plugins.MavenRepositoryHandlerConvention#mavenInstaller(java.util.Map)}.
@@ -195,51 +167,35 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer, Reposito
      * For Ivy related reasons, Maven Snapshot dependencies are only properly resolved if no additional jar locations
      * are specified. This is unfortunate and we hope to improve this in a future release.
      *
-     * @param args The argument to create the repository
-     * @return the added repository
+     * @param args The argument to create the resolver
+     * @return the created repository
      */
     @SuppressWarnings("JavadocReference")
     DependencyResolver mavenRepo(Map<String, ?> args);
 
     /**
-     * Adds a repository which is Maven compatible.
-     * 
+     * Creates a repository which is Maven compatible.
+     *
      * @param args The argument to create the repository
-     * @param configClosure Further configuration of the dependency resolver
+     * @param configClosure Further configuration of the dependency repository
      * @return The created dependency resolver
      * @see #mavenRepo(java.util.Map)
      */
     DependencyResolver mavenRepo(Map<String, ?> args, Closure configClosure);
 
     /**
-     * Adds and configures a Maven repository.
-     *
-     * @param closure The closure to use to configure the repository.
-     * @return The added repository.
-     */
-    MavenArtifactRepository maven(Closure closure);
-
-    /**
-     * Adds and configures a Maven repository.
+     * Creates and configures a Maven repository.
      *
      * @param action The action to use to configure the repository.
-     * @return The added repository.
+     * @return The created repository.
      */
     MavenArtifactRepository maven(Action<? super MavenArtifactRepository> action);
 
     /**
-     * Adds and configures an Ivy repository.
-     *
-     * @param closure The closure to use to configure the repository.
-     * @return The added repository.
-     */
-    IvyArtifactRepository ivy(Closure closure);
-
-    /**
-     * Adds and configures an Ivy repository.
+     * Creates and configures an Ivy repository.
      *
      * @param action The action to use to configure the repository.
-     * @return The added repository.
+     * @return The created repository.
      */
     IvyArtifactRepository ivy(Action<? super IvyArtifactRepository> action);
 
