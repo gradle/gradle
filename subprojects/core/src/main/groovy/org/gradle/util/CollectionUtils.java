@@ -103,7 +103,17 @@ public abstract class CollectionUtils {
         }
         return result;
     }
-    
+
+    public static List<Object> toList(Object object) {
+        if (object instanceof List) {
+            return (List<Object>) object;
+        }
+        if (object instanceof Iterable) {
+            return Lists.newArrayList((Iterable<Object>) object);
+        }
+        return Collections.singletonList(object);
+    }
+
     public static <E> List<E> compact(List<E> list) {
         boolean foundAtLeastOneNull = false;
         List<E> compacted = null;

@@ -160,6 +160,16 @@ class CollectionUtilsTest extends Specification {
         every([], spec { false })
     }
 
+    def "toList"() {
+        def integers = [1, 2, 3]
+
+        expect:
+        toList(integers) is integers
+        toList([1,2,3] as Set) == [1,2,3]
+        toList("asdfa") == ["asdfa"]
+        toList(null) == [null]
+    }
+
     Spec<?> spec(Closure c) {
         Specs.convertClosureToSpec(c)
     }
