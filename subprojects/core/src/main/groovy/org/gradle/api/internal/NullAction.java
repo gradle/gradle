@@ -18,7 +18,7 @@ package org.gradle.api.internal;
 
 import org.gradle.api.Action;
 
-public class NullAction implements Action<Object> {
+public class NullAction<T> implements Action<T> {
 
     public void execute(Object o) {}
 

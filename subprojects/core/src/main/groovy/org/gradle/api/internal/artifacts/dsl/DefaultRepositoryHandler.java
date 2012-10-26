@@ -53,7 +53,7 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
     }
 
     public FlatDirectoryArtifactRepository flatDir(Closure configureClosure) {
-        return flatDir(new ClosureBackedAction(configureClosure));
+        return flatDir(new ClosureBackedAction<FlatDirectoryArtifactRepository>(configureClosure));
     }
 
     public FlatDirectoryArtifactRepository flatDir(Map<String, ?> args) {
@@ -89,7 +89,7 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
             }
         }
 
-        MavenArtifactRepository repository = repositoryFactory.maven(new NullAction());
+        MavenArtifactRepository repository = repositoryFactory.maven(new NullAction<MavenArtifactRepository>());
         ConfigureUtil.configureByMap(modifiedArgs, repository);
         DependencyResolver resolver = repositoryFactory.getBaseRepositoryFactory().toResolver(DependencyResolver.class, repository);
         ConfigureUtil.configure(configClosure, resolver);
@@ -103,7 +103,7 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
     }
 
     public MavenArtifactRepository maven(Closure closure) {
-        return maven(new ClosureBackedAction(closure));
+        return maven(new ClosureBackedAction<MavenArtifactRepository>(closure));
     }
 
     public IvyArtifactRepository ivy(Action<? super IvyArtifactRepository> action) {
@@ -111,7 +111,7 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
     }
 
     public IvyArtifactRepository ivy(Closure closure) {
-        return ivy(new ClosureBackedAction(closure));
+        return ivy(new ClosureBackedAction<IvyArtifactRepository>(closure));
     }
 
 }
