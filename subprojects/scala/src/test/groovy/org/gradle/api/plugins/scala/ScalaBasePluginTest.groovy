@@ -59,12 +59,22 @@ public class ScalaBasePluginTest {
         assertTrue(configuration.transitive)
     }
 
-    @Test void preconfiguresZincClasspathForCompileTasks() {
+    @Test void preconfiguresZincClasspathForCompileTasksThatUseZinc() {
         scalaPlugin.apply(project)
         project.sourceSets.add('custom')
         def task = project.tasks.compileCustomScala
+        task.scalaCompileOptions.useAnt = false
         assert task.zincClasspath instanceof Configuration
         assert task.zincClasspath.dependencies.find { it.name.contains('zinc') }
+    }
+
+    @Test void doesNotPreconfigureZincClasspathForCompileTasksThatUseAnt() {
+        scalaPlugin.apply(project)
+        project.sourceSets.add('custom')
+        def task = project.tasks.compileCustomScala
+        task.scalaCompileOptions.useAnt = true
+        assert task.zincClasspath instanceof Configuration
+        assert task.zincClasspath.empty
     }
 
     @Test void addsScalaConventionToNewSourceSet() {
