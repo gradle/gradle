@@ -42,7 +42,7 @@ import java.util.Map;
  */
 public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObjectList<ArtifactRepository>
         implements ArtifactRepositoryContainer {
-    private final ResolverFactory resolverFactory;
+    private final BaseRepositoryFactory baseRepositoryFactory;
 
     private final Action<ArtifactRepository> addLastAction = new Action<ArtifactRepository>() {
         public void execute(ArtifactRepository repository) {
@@ -55,9 +55,9 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
         }
     };
 
-    public DefaultArtifactRepositoryContainer(ResolverFactory resolverFactory, Instantiator instantiator) {
+    public DefaultArtifactRepositoryContainer(BaseRepositoryFactory baseRepositoryFactory, Instantiator instantiator) {
         super(ArtifactRepository.class, instantiator, new RepositoryNamer());
-        this.resolverFactory = resolverFactory;
+        this.baseRepositoryFactory = baseRepositoryFactory;
     }
 
     private static class RepositoryNamer implements Namer<ArtifactRepository> {
@@ -152,7 +152,7 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
     }
 
     private DependencyResolver addCustomDependencyResolver(Object userDescription, Closure configureClosure, Action<ArtifactRepository> orderAction) {
-        ArtifactRepository repository = resolverFactory.createRepository(userDescription);
+        ArtifactRepository repository = baseRepositoryFactory.createRepository(userDescription);
         DependencyResolver resolver = toResolver(DependencyResolver.class, repository);
         ConfigureUtil.configure(configureClosure, resolver);
         addRepository(new FixedResolverArtifactRepository(resolver), "repository", orderAction);
@@ -172,8 +172,8 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
         return returnedResolvers;
     }
 
-    public ResolverFactory getResolverFactory() {
-        return resolverFactory;
+    public BaseRepositoryFactory getBaseRepositoryFactory() {
+        return baseRepositoryFactory;
     }
 
     protected <T extends ArtifactRepository> T addRepository(T repository, Action<? super T> action, String defaultName) {

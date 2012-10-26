@@ -52,7 +52,7 @@ class DefaultResolverFactoryTest {
     final CachedExternalResourceIndex cachedExternalResourceIndex = context.mock(CachedExternalResourceIndex);
 
 
-    final DefaultResolverFactory factory = new DefaultResolverFactory(
+    final DefaultBaseRepositoryFactory factory = new DefaultBaseRepositoryFactory(
             localMavenRepoLocator, fileResolver, new DirectInstantiator(), transportFactory, locallyAvailableResourceFinder, cachedExternalResourceIndex
     )
 

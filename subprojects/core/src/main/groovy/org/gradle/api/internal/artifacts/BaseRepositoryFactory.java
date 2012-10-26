@@ -21,9 +21,14 @@ import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 
 /**
- * @author Hans Dockter
+ * Factory for {@link ArtifactRepository} implementations.
+ *
+ * Differs from {@link org.gradle.api.artifacts.dsl.RepositoryFactory} in that this is internal and does not provide
+ * API for configuring the repositories at creation time. {@link org.gradle.api.artifacts.dsl.RepositoryFactory} is the DSL
+ * layer on top of this internal factory.
  */
-public interface ResolverFactory {
+public interface BaseRepositoryFactory {
+
     ArtifactRepository createRepository(Object userDescription);
 
     FlatDirectoryArtifactRepository createFlatDirRepository();
@@ -35,4 +40,5 @@ public interface ResolverFactory {
     IvyArtifactRepository createIvyRepository();
 
     MavenArtifactRepository createMavenRepository();
+
 }

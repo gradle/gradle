@@ -53,12 +53,12 @@ class DefaultArtifactRepositoryContainerTest {
     FileSystemResolver expectedResolver2
     FileSystemResolver expectedResolver3
 
-    ResolverFactory resolverFactoryMock;
+    BaseRepositoryFactory baseRepositoryFactoryMock;
 
     JUnit4GroovyMockery context = new JUnit4GroovyMockery()
 
     ArtifactRepositoryContainer createResolverContainer() {
-        return new DefaultArtifactRepositoryContainer(resolverFactoryMock, context.mock(Instantiator.class))
+        return new DefaultArtifactRepositoryContainer(baseRepositoryFactoryMock, context.mock(Instantiator.class))
     }
 
     @Before public void setUp() {
@@ -74,14 +74,14 @@ class DefaultArtifactRepositoryContainerTest {
         expectedResolver.name = expectedName
         expectedResolver2.name = expectedName2
         expectedResolver3.name = expectedName3
-        resolverFactoryMock = context.mock(ResolverFactory)
+        baseRepositoryFactoryMock = context.mock(BaseRepositoryFactory)
         ArtifactRepository repo1 = context.mock(TestArtifactRepository)
         ArtifactRepository repo2 = context.mock(TestArtifactRepository)
         ArtifactRepository repo3 = context.mock(TestArtifactRepository)
         context.checking {
-            allowing(resolverFactoryMock).createRepository(expectedUserDescription); will(returnValue(repo1))
-            allowing(resolverFactoryMock).createRepository(expectedUserDescription2); will(returnValue(repo2))
-            allowing(resolverFactoryMock).createRepository(expectedUserDescription3); will(returnValue(repo3))
+            allowing(baseRepositoryFactoryMock).createRepository(expectedUserDescription); will(returnValue(repo1))
+            allowing(baseRepositoryFactoryMock).createRepository(expectedUserDescription2); will(returnValue(repo2))
+            allowing(baseRepositoryFactoryMock).createRepository(expectedUserDescription3); will(returnValue(repo3))
             allowing(repo1).createResolver(); will(returnValue(expectedResolver))
             allowing(repo2).createResolver(); will(returnValue(expectedResolver2))
             allowing(repo3).createResolver(); will(returnValue(expectedResolver3))

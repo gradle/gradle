@@ -38,7 +38,7 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
     private DefaultRepositoryHandler repositoryHandler
 
     public ArtifactRepositoryContainer createResolverContainer() {
-        repositoryHandler = new DefaultRepositoryHandler(resolverFactoryMock, new DirectInstantiator());
+        repositoryHandler = new DefaultRepositoryHandler(baseRepositoryFactoryMock, new DirectInstantiator());
         return repositoryHandler;
     }
 
@@ -46,7 +46,7 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
         def repository = context.mock(FlatDirectoryArtifactRepository)
 
         context.checking {
-            one(resolverFactoryMock).createFlatDirRepository(); will(returnValue(repository))
+            one(baseRepositoryFactoryMock).createFlatDirRepository(); will(returnValue(repository))
             one(repository).setName('libs')
             allowing(repository).getName(); will(returnValue('libs'))
         }
@@ -58,7 +58,7 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
         def repository = context.mock(FlatDirectoryArtifactRepository)
 
         context.checking {
-            one(resolverFactoryMock).createFlatDirRepository(); will(returnValue(repository))
+            one(baseRepositoryFactoryMock).createFlatDirRepository(); will(returnValue(repository))
             one(repository).setDirs(['a', 'b'])
             one(repository).setName('libs')
             allowing(repository).getName(); will(returnValue('libs'))
@@ -71,7 +71,7 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
         def repository = context.mock(FlatDirectoryArtifactRepository)
 
         context.checking {
-            one(resolverFactoryMock).createFlatDirRepository(); will(returnValue(repository))
+            one(baseRepositoryFactoryMock).createFlatDirRepository(); will(returnValue(repository))
             one(repository).setDirs(['a'])
             one(repository).setName('libs')
             allowing(repository).getName(); will(returnValue('libs'))
@@ -84,7 +84,7 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
         def repository = context.mock(FlatDirectoryArtifactRepository)
 
         context.checking {
-            one(resolverFactoryMock).createFlatDirRepository(); will(returnValue(repository))
+            one(baseRepositoryFactoryMock).createFlatDirRepository(); will(returnValue(repository))
             one(repository).setDirs(['a', 12])
             one(repository).getName(); will(returnValue(null))
             one(repository).setName('flatDir')
@@ -99,7 +99,7 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
         MavenArtifactRepository repository = context.mock(MavenArtifactRepository)
 
         context.checking {
-            one(resolverFactoryMock).createMavenCentralRepository()
+            one(baseRepositoryFactoryMock).createMavenCentralRepository()
             will(returnValue(repository))
             one(repository).getName()
             will(returnValue(null))
@@ -118,7 +118,7 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
         MavenArtifactRepository repository = context.mock(MavenArtifactRepository)
 
         context.checking {
-            one(resolverFactoryMock).createMavenCentralRepository()
+            one(baseRepositoryFactoryMock).createMavenCentralRepository()
             will(returnValue(repository))
             one(repository).getName()
             will(returnValue(null))
@@ -140,7 +140,7 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
         MavenArtifactRepository repository = context.mock(MavenArtifactRepository)
 
         context.checking {
-            one(resolverFactoryMock).createMavenCentralRepository()
+            one(baseRepositoryFactoryMock).createMavenCentralRepository()
             will(returnValue(repository))
             one(repository).setName('customName')
             allowing(repository).getName()
@@ -156,7 +156,7 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
         MavenArtifactRepository repository = context.mock(MavenArtifactRepository)
 
         context.checking {
-            one(resolverFactoryMock).createMavenLocalRepository()
+            one(baseRepositoryFactoryMock).createMavenLocalRepository()
             will(returnValue(repository))
             one(repository).getName()
             will(returnValue(null))
@@ -178,7 +178,7 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
         TestMavenArtifactRepository repository = context.mock(TestMavenArtifactRepository)
 
         context.checking {
-            one(resolverFactoryMock).createMavenRepository()
+            one(baseRepositoryFactoryMock).createMavenRepository()
             will(returnValue(repository))
             one(repository).setName(repoName)
             allowing(repository).getName()
@@ -200,7 +200,7 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
         TestMavenArtifactRepository repository = context.mock(TestMavenArtifactRepository)
 
         context.checking {
-            one(resolverFactoryMock).createMavenRepository()
+            one(baseRepositoryFactoryMock).createMavenRepository()
             will(returnValue(repository))
             one(repository).setName(repoName)
             allowing(repository).getName()
@@ -221,7 +221,7 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
         TestMavenArtifactRepository repository = context.mock(TestMavenArtifactRepository)
 
         context.checking {
-            one(resolverFactoryMock).createMavenRepository()
+            one(baseRepositoryFactoryMock).createMavenRepository()
             will(returnValue(repository))
             allowing(repository).getName()
             will(returnValue(null))
@@ -239,7 +239,7 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
         IvyArtifactRepository repository = context.mock(IvyArtifactRepository.class)
 
         context.checking {
-            one(resolverFactoryMock).createIvyRepository()
+            one(baseRepositoryFactoryMock).createIvyRepository()
             will(returnValue(repository))
             allowing(repository).getName()
             will(returnValue("name"))
@@ -260,7 +260,7 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
         Action<IvyArtifactRepository> action = context.mock(Action.class)
 
         context.checking {
-            one(resolverFactoryMock).createIvyRepository()
+            one(baseRepositoryFactoryMock).createIvyRepository()
             will(returnValue(repository))
             one(action).execute(repository)
             allowing(repository).getName()
@@ -276,7 +276,7 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
         IvyArtifactRepository repository1 = context.mock(IvyArtifactRepository.class)
 
         context.checking {
-            one(resolverFactoryMock).createIvyRepository()
+            one(baseRepositoryFactoryMock).createIvyRepository()
             will(returnValue(repository1))
             one(repository1).getName()
             will(returnValue(null))
@@ -290,7 +290,7 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
         IvyArtifactRepository repository2 = context.mock(IvyArtifactRepository.class)
 
         context.checking {
-            one(resolverFactoryMock).createIvyRepository()
+            one(baseRepositoryFactoryMock).createIvyRepository()
             will(returnValue(repository2))
             allowing(repository2).getName()
             will(returnValue("ivy2"))
@@ -301,7 +301,7 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
         IvyArtifactRepository repository3 = context.mock(IvyArtifactRepository.class)
 
         context.checking {
-            one(resolverFactoryMock).createIvyRepository()
+            one(baseRepositoryFactoryMock).createIvyRepository()
             will(returnValue(repository3))
             one(repository3).getName()
             will(returnValue(null))
@@ -318,7 +318,7 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
         MavenArtifactRepository repository = context.mock(TestMavenArtifactRepository.class)
 
         context.checking {
-            one(resolverFactoryMock).createMavenRepository()
+            one(baseRepositoryFactoryMock).createMavenRepository()
             will(returnValue(repository))
             allowing(repository).getName()
             will(returnValue("name"))
@@ -339,7 +339,7 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
         Action<MavenArtifactRepository> action = context.mock(Action.class)
 
         context.checking {
-            one(resolverFactoryMock).createMavenRepository()
+            one(baseRepositoryFactoryMock).createMavenRepository()
             will(returnValue(repository))
             one(action).execute(repository)
             allowing(repository).getName()

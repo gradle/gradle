@@ -44,7 +44,7 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectModuleRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DefaultDependencyResolver;
 import org.gradle.api.internal.artifacts.mvnsettings.*;
-import org.gradle.api.internal.artifacts.repositories.DefaultResolverFactory;
+import org.gradle.api.internal.artifacts.repositories.DefaultBaseRepositoryFactory;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.externalresource.cached.ByUrlCachedExternalResourceIndex;
 import org.gradle.api.internal.externalresource.ivy.ArtifactAtRepositoryCachedExternalResourceIndex;
@@ -254,7 +254,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         private ConfigurationContainerInternal configurationContainer;
         private DependencyHandler dependencyHandler;
         private DefaultArtifactHandler artifactHandler;
-        private ResolverFactory resolverFactory;
+        private BaseRepositoryFactory baseRepositoryFactory;
 
         private DefaultDependencyResolutionServices(ServiceRegistry parent, FileResolver fileResolver, DependencyMetaDataProvider dependencyMetaDataProvider, ProjectFinder projectFinder, DomainObjectContext domainObjectContext) {
             this.parent = parent;
@@ -271,11 +271,11 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
             return repositoryHandler;
         }
 
-        public ResolverFactory getResolverFactory() {
-            if (resolverFactory == null) {
+        public BaseRepositoryFactory getBaseRepositoryFactory() {
+            if (baseRepositoryFactory == null) {
                 Instantiator instantiator = parent.get(Instantiator.class);
                 //noinspection unchecked
-                resolverFactory = new DefaultResolverFactory(
+                baseRepositoryFactory = new DefaultBaseRepositoryFactory(
                         get(LocalMavenRepositoryLocator.class),
                         fileResolver,
                         instantiator,
@@ -285,12 +285,12 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                 );
             }
 
-            return resolverFactory;
+            return baseRepositoryFactory;
         }
 
         private DefaultRepositoryHandler createRepositoryHandler() {
             Instantiator instantiator = parent.get(Instantiator.class);
-            return instantiator.newInstance(DefaultRepositoryHandler.class, getResolverFactory(), instantiator);
+            return instantiator.newInstance(DefaultRepositoryHandler.class, getBaseRepositoryFactory(), instantiator);
         }
 
         public ConfigurationContainerInternal getConfigurationContainer() {

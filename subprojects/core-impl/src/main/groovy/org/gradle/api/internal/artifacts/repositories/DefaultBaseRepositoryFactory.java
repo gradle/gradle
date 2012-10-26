@@ -21,7 +21,7 @@ import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.*;
-import org.gradle.api.internal.artifacts.ResolverFactory;
+import org.gradle.api.internal.artifacts.BaseRepositoryFactory;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex;
@@ -36,7 +36,7 @@ import java.util.Map;
 /**
  * @author Hans Dockter
  */
-public class DefaultResolverFactory implements ResolverFactory {
+public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
     private final LocalMavenRepositoryLocator localMavenRepositoryLocator;
     private final FileResolver fileResolver;
     private final Instantiator instantiator;
@@ -44,10 +44,10 @@ public class DefaultResolverFactory implements ResolverFactory {
     private final LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder;
     private final CachedExternalResourceIndex<String> cachedExternalResourceIndex;
 
-    public DefaultResolverFactory(LocalMavenRepositoryLocator localMavenRepositoryLocator, FileResolver fileResolver, Instantiator instantiator,
-                                  RepositoryTransportFactory transportFactory,
-                                  LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder,
-                                  CachedExternalResourceIndex<String> cachedExternalResourceIndex) {
+    public DefaultBaseRepositoryFactory(LocalMavenRepositoryLocator localMavenRepositoryLocator, FileResolver fileResolver, Instantiator instantiator,
+                                        RepositoryTransportFactory transportFactory,
+                                        LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder,
+                                        CachedExternalResourceIndex<String> cachedExternalResourceIndex) {
         this.localMavenRepositoryLocator = localMavenRepositoryLocator;
         this.fileResolver = fileResolver;
         this.instantiator = instantiator;

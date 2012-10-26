@@ -19,7 +19,7 @@ package org.gradle.api.plugins.github
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
-import org.gradle.api.internal.artifacts.ResolverFactory
+import org.gradle.api.internal.artifacts.BaseRepositoryFactory
 import org.gradle.api.internal.artifacts.repositories.DefaultPasswordCredentials
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.plugins.github.internal.DefaultGitHubDownloadsRepository
@@ -35,13 +35,13 @@ class GitHubDependenciesPlugin implements Plugin<Project> {
 
     FileResolver fileResolver
     Instantiator instantiator
-    ResolverFactory resolverFactory
+    BaseRepositoryFactory resolverFactory
 
     @Inject
     GitHubDependenciesPlugin(FileResolver fileResolver, Instantiator instantiator, DependencyResolutionServices dependencyResolutionServices) {
         this.fileResolver = fileResolver
         this.instantiator = instantiator
-        this.resolverFactory = dependencyResolutionServices.resolverFactory
+        this.resolverFactory = dependencyResolutionServices.baseRepositoryFactory
     }
 
     void apply(Project project) {
