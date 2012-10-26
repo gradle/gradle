@@ -18,13 +18,13 @@ and some types appear to leak through. Recent versions of the [scala-maven-plugi
 
 # Implementation plan
 
-## Make ScalaCompile task support sbt's incremental compiler
+## Make ScalaCompile task support Zinc's incremental compiler
 
-Figure out whether to integrate directly with sbt or go via Zinc. In both cases, we will integrate via a compiler API, and no external process will be involved.
+Integrate via Zinc's compiler API.
 
 ### User visible changes
 
-New switch to enable the incremental compiler: ScalaCompileOptions.useIncrementalCompiler = true|false.
+New option to switch between Ant and Zinc compiler, similar to what we have for Java and Groovy: ScalaCompileOptions.useAnt = true|false.
 
 ### Sad day cases
 
