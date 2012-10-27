@@ -15,7 +15,6 @@
  */
 package org.gradle.api.plugins.scala;
 
-
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.FileTreeElement
@@ -27,24 +26,24 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.scala.ScalaCompile
 import org.gradle.api.tasks.scala.ScalaDoc
 
-public class ScalaBasePlugin implements Plugin<Project> {
+class ScalaBasePlugin implements Plugin<Project> {
     // public configurations
-    public static final String SCALA_TOOLS_CONFIGURATION_NAME = "scalaTools";
-    public static final String ZINC_CONFIGURATION_NAME = "zinc";
+    static final String SCALA_TOOLS_CONFIGURATION_NAME = "scalaTools"
+    static final String ZINC_CONFIGURATION_NAME = "zinc"
 
-    public void apply(Project project) {
-        JavaBasePlugin javaPlugin = project.plugins.apply(JavaBasePlugin.class);
+    void apply(Project project) {
+        def javaPlugin = project.plugins.apply(JavaBasePlugin.class)
 
         project.configurations.add(SCALA_TOOLS_CONFIGURATION_NAME)
                 .setVisible(false)
-                .setDescription("The Scala tools libraries to be used for this Scala project.");
+                .setDescription("The Scala tools libraries to be used for this Scala project.")
         project.configurations.add(ZINC_CONFIGURATION_NAME)
                 .setVisible(false)
-                .setDescription("The Zinc incremental compiler to be used for this Scala project.");
+                .setDescription("The Zinc incremental compiler to be used for this Scala project.")
 
         configureCompileDefaults(project, javaPlugin)
         configureSourceSetDefaults(project, javaPlugin)
-        configureScaladoc(project);
+        configureScaladoc(project)
     }
 
     private void configureSourceSetDefaults(Project project, JavaBasePlugin javaPlugin) {
@@ -55,11 +54,11 @@ public class ScalaBasePlugin implements Plugin<Project> {
             sourceSet.allSource.source(sourceSet.scala)
             sourceSet.resources.filter.exclude { FileTreeElement element -> sourceSet.scala.contains(element.file) }
 
-            String taskName = sourceSet.getCompileTaskName('scala')
-            ScalaCompile scalaCompile = project.tasks.add(taskName, ScalaCompile.class);
+            def taskName = sourceSet.getCompileTaskName('scala')
+            def scalaCompile = project.tasks.add(taskName, ScalaCompile);
             scalaCompile.dependsOn sourceSet.compileJavaTaskName
-            javaPlugin.configureForSourceSet(sourceSet, scalaCompile);
-            scalaCompile.description = "Compiles the $sourceSet.scala.";
+            javaPlugin.configureForSourceSet(sourceSet, scalaCompile)
+            scalaCompile.description = "Compiles the $sourceSet.scala."
             scalaCompile.source = sourceSet.scala
             configureIncrementalCompilation(scalaCompile, project, sourceSet)
 
