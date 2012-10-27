@@ -37,7 +37,9 @@ import static org.gradle.util.CollectionUtils.toList;
 
 public class DefaultRepositoryFactory implements RepositoryFactoryInternal {
 
-    private static final String FLAT_DIR_DEFAULT_NAME = "flatDir";
+    public static final String FLAT_DIR_DEFAULT_NAME = "flatDir";
+    private static final String MAVEN_REPO_DEFAULT_NAME = "maven";
+    private static final String IVY_REPO_DEFAULT_NAME = "ivy";
 
     private final BaseRepositoryFactory baseRepositoryFactory;
 
@@ -83,11 +85,11 @@ public class DefaultRepositoryFactory implements RepositoryFactoryInternal {
     }
 
     public MavenArtifactRepository maven(Action<? super MavenArtifactRepository> action) {
-        return configure(baseRepositoryFactory.createMavenRepository(), action, "maven");
+        return configure(baseRepositoryFactory.createMavenRepository(), action, MAVEN_REPO_DEFAULT_NAME);
     }
 
     public IvyArtifactRepository ivy(Action<? super IvyArtifactRepository> action) {
-        return configure(baseRepositoryFactory.createIvyRepository(), action, "ivy");
+        return configure(baseRepositoryFactory.createIvyRepository(), action, IVY_REPO_DEFAULT_NAME);
     }
 
     private <T extends ArtifactRepository> T configure(T repository, Action<? super T> action, String name) {
@@ -103,7 +105,7 @@ public class DefaultRepositoryFactory implements RepositoryFactoryInternal {
     private <T extends ArtifactRepository> T configure(T repository, String name) {
         String repositoryName = repository.getName();
         if (!GUtil.isTrue(repositoryName)) {
-            repository.setName(repositoryName);
+            repository.setName(name);
         }
         return repository;
     }

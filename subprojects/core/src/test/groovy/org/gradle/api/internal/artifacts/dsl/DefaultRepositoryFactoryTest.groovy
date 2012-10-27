@@ -24,6 +24,9 @@ import org.gradle.api.internal.ClosureBackedAction
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory
 import spock.lang.Specification
 
+import static org.gradle.api.artifacts.ArtifactRepositoryContainer.DEFAULT_MAVEN_CENTRAL_REPO_NAME
+import static org.gradle.api.artifacts.ArtifactRepositoryContainer.DEFAULT_MAVEN_LOCAL_REPO_NAME
+
 class DefaultRepositoryFactoryTest extends Specification {
 
     BaseRepositoryFactory baseRepositoryFactory = Mock(BaseRepositoryFactory)
@@ -31,6 +34,16 @@ class DefaultRepositoryFactoryTest extends Specification {
 
     Action action(Closure closure) {
         new ClosureBackedAction(closure)
+    }
+
+    def "flat dir repos are given a default name"() {
+        when:
+        def repo = Mock(FlatDirectoryArtifactRepository)
+        1 * baseRepositoryFactory.createFlatDirRepository() >> repo
+        1 * repo.setName(DefaultRepositoryFactory.FLAT_DIR_DEFAULT_NAME)
+
+        then:
+        factory.flatDir(action { }).is(repo)
     }
 
     def "can configure flat dir by action"() {
@@ -73,6 +86,7 @@ class DefaultRepositoryFactoryTest extends Specification {
         when:
         MavenArtifactRepository repository = Mock(MavenArtifactRepository)
         1 * baseRepositoryFactory.createMavenCentralRepository() >> repository
+        1 * repository.setName(DEFAULT_MAVEN_CENTRAL_REPO_NAME)
 
         then:
         factory.mavenCentral().is(repository)
@@ -112,9 +126,20 @@ class DefaultRepositoryFactoryTest extends Specification {
         when:
         MavenArtifactRepository repository = Mock(MavenArtifactRepository)
         1 * baseRepositoryFactory.createMavenLocalRepository() >> repository
+        1 * repository.setName(DEFAULT_MAVEN_LOCAL_REPO_NAME)
 
         then:
         factory.mavenLocal().is(repository)
+    }
+
+    def "ivy repos are assigned a default name"() {
+        when:
+        def repo = Mock(IvyArtifactRepository)
+        baseRepositoryFactory.createIvyRepository() >> repo
+        1 * repo.setName("ivy")
+
+        then:
+        factory.ivy(action { })
     }
 
     def testIvyWithAction() {
