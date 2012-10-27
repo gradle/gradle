@@ -308,7 +308,7 @@ public class ScalaCompileOptions extends AbstractOptions {
         return fieldName.equals("useCompileDaemon")
                 || fieldName.equals("forkOptions")
                 || fieldName.equals("useAnt")
-                || fieldName.equals("compilerCacheFile")
+                || fieldName.equals("incrementalOptions")
                 || fieldName.equals("targetCompatibility") // handled directly by AntScalaCompiler
                 || fieldName.equals("optimize") && !optimize;
     }
