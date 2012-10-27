@@ -19,24 +19,47 @@ package org.gradle.api.tasks.scala;
 import java.io.File;
 import java.io.Serializable;
 
+/**
+ * Options for incremental compilation of Scala code. Only used if
+ * {@link org.gradle.api.tasks.scala.ScalaCompileOptions#isUseAnt()} is {@code false}.
+ */
 public class IncrementalCompileOptions implements Serializable {
     private static final long serialVersionUID = 0;
 
     private File analysisFile;
     private File publishedCode;
 
+    /**
+     * Returns the file path where results of code analysis are to be stored.
+     *
+     * @return the file path where which results of code analysis are to be stored
+     */
     public File getAnalysisFile() {
         return analysisFile;
     }
 
+    /**
+     * Sets the file path where results of code analysis are to be stored.
+     */
     public void setAnalysisFile(File analysisFile) {
         this.analysisFile = analysisFile;
     }
 
+    /**
+     * Returns the directory or archive path by which the code produced by this task
+     * is published to other {@code ScalaCompile} tasks.
+     *
+     * @return the directory or archive path by which the code produced by this task
+     * is published to other {@code ScalaCompile} tasks
+     */
     public File getPublishedCode() {
         return publishedCode;
     }
 
+    /**
+     * Sets the directory or archive path by which the code produced by this task
+     * is published to other {@code ScalaCompile} tasks.
+     */
     public void setPublishedCode(File publishedCode) {
         this.publishedCode = publishedCode;
     }
