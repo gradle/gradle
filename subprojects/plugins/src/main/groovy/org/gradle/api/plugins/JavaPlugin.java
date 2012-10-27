@@ -108,7 +108,6 @@ public class JavaPlugin implements Plugin<Project> {
     }
 
     private void configureArchives(final Project project, final JavaPluginConvention pluginConvention) {
-        project.getTasks().getByName(JavaBasePlugin.CHECK_TASK_NAME).dependsOn(TEST_TASK_NAME);
         Jar jar = project.getTasks().add(JAR_TASK_NAME, Jar.class);
         jar.getManifest().from(pluginConvention.getManifest());
         jar.setDescription("Assembles a jar archive containing the main classes.");
@@ -153,6 +152,7 @@ public class JavaPlugin implements Plugin<Project> {
             }
         });
         Test test = project.getTasks().add(TEST_TASK_NAME, Test.class);
+        project.getTasks().getByName(JavaBasePlugin.CHECK_TASK_NAME).dependsOn(test);
         test.setDescription("Runs the unit tests.");
         test.setGroup(JavaBasePlugin.VERIFICATION_GROUP);
     }
