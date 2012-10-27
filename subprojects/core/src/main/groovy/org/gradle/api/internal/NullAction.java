@@ -18,7 +18,9 @@ package org.gradle.api.internal;
 
 import org.gradle.api.Action;
 
-public class NullAction<T> implements Action<T> {
+import java.io.Serializable;
+
+public class NullAction<T> implements Action<T>, Serializable {
 
     public void execute(Object o) {}
 
