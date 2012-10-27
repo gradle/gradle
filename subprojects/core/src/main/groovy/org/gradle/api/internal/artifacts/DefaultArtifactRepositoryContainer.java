@@ -173,11 +173,6 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
         return returnedResolvers;
     }
 
-    protected <T extends ArtifactRepository> T addRepository(T repository, Action<? super T> action, String defaultName) {
-        action.execute(repository);
-        return addRepository(repository, defaultName);
-    }
-
     public <T extends ArtifactRepository> T addRepository(T repository, Closure closure, String defaultName) {
         return addRepository(repository, closure, defaultName, addLastAction);
     }
