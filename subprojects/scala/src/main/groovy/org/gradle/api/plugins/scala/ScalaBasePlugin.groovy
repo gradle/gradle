@@ -61,8 +61,25 @@ public class ScalaBasePlugin implements Plugin<Project> {
             javaPlugin.configureForSourceSet(sourceSet, scalaCompile);
             scalaCompile.description = "Compiles the $sourceSet.scala.";
             scalaCompile.source = sourceSet.scala
+            configureIncrementalCompilation(scalaCompile, project, sourceSet)
 
             project.tasks[sourceSet.classesTaskName].dependsOn(taskName)
+        }
+    }
+
+    private void configureIncrementalCompilation(ScalaCompile scalaCompile, Project project, SourceSet sourceSet) {
+        // cannot use convention mapping because the resulting object won't be serializable
+        // cannot compute at task execution time because we need association with source set
+        project.gradle.projectsEvaluated {
+            scalaCompile.scalaCompileOptions.incrementalOptions.with {
+                if (!analysisFile) {
+                    analysisFile = new File("$project.buildDir/tmp/scala/compilerAnalysis/${scalaCompile.name}.analysis")
+                }
+                if (!publishedCode) {
+                    def jarTask = project.tasks.findByName(sourceSet.getJarTaskName())
+                    publishedCode = jarTask?.archivePath
+                }
+            }
         }
     }
 
@@ -79,15 +96,6 @@ public class ScalaBasePlugin implements Plugin<Project> {
                     }
                 }
                 config
-            }
-            // TODO: Not nice, but scalaCompileOptions can't be convention mapping enabled
-            // because then it's no longer serializable. Also, we can't defer setting the
-            // default until a ScalaCompile task executes because ScalaCompile tasks need
-            // access to the compiler cache files of all other ScalaCompile tasks in the build
-            project.gradle.projectsEvaluated {
-                if (compile.scalaCompileOptions.compilerCacheFile == null) {
-                    compile.scalaCompileOptions.compilerCacheFile = new File("$project.buildDir/tmp/scala/compilerCache/${compile.name}.cache")
-                }
             }
         }
     }

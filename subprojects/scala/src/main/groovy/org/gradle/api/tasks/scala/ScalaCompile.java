@@ -15,6 +15,9 @@
  */
 package org.gradle.api.tasks.scala;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.Project;
 import org.gradle.api.file.FileCollection;
@@ -26,18 +29,19 @@ import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.internal.tasks.scala.*;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.internal.Factory;
-import org.gradle.internal.reflect.Instantiator;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Compiles Scala source files, and optionally, Java source files.
@@ -52,7 +56,7 @@ public class ScalaCompile extends AbstractCompile {
     private final ScalaCompileOptions scalaCompileOptions = new ScalaCompileOptions();
 
     @Inject
-    public ScalaCompile(Instantiator instantiator) { // TODO: don't need instantiator ATM
+    public ScalaCompile() {
         ProjectInternal projectInternal = (ProjectInternal) getProject();
         IsolatedAntBuilder antBuilder = getServices().get(IsolatedAntBuilder.class);
         Factory<AntBuilder> antBuilderFactory = getServices().getFactory(AntBuilder.class);
@@ -125,29 +129,52 @@ public class ScalaCompile extends AbstractCompile {
         spec.setCompileOptions(compileOptions);
         spec.setScalaCompileOptions(scalaCompileOptions);
         if (!scalaCompileOptions.isUseAnt()) {
-            spec.setCompilerCacheMap(createCompilerCacheMap());
-
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Compiler cache file: {}", scalaCompileOptions.getCompilerCacheFile());
-                LOGGER.debug("Compiler cache map: {}", spec.getCompilerCacheMap());
-            }
+            configureIncrementalCompilation(spec);
         }
+
         compiler.execute(spec);
     }
 
-    private Map<File, File> createCompilerCacheMap() {
-        Map<File, File> cacheMap = new HashMap<File, File>();
-        for (Project project : getProject().getRootProject().getAllprojects()) {
-            Collection<ScalaCompile> compileTasks = project.getTasks().withType(ScalaCompile.class);
-            for (ScalaCompile task : compileTasks) {
-                if (!task.getScalaCompileOptions().isUseAnt()) {
-                    // TODO: is this the correct key, or does it have to be the Jar that
-                    // eventually lands on another ScalaCompile task's compile class path?
-                    //cacheMap.put(project.getTasks().withType(Jar.class).findByName("jar").getArchivePath(), task.getScalaCompileOptions().getCompilerCacheFile());
-                    cacheMap.put(task.getDestinationDir(), task.getScalaCompileOptions().getCompilerCacheFile());
+    private void configureIncrementalCompilation(ScalaCompileSpec spec) {
+        Map<File, File> globalAnalysisMap = getOrCreateGlobalAnalysisMap();
+        HashMap<File, File> filteredMap = filterForClasspath(globalAnalysisMap, spec.getClasspath());
+        spec.setAnalysisMap(filteredMap);
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Analysis file: {}", scalaCompileOptions.getIncrementalOptions().getAnalysisFile());
+            LOGGER.debug("Published code: {}", scalaCompileOptions.getIncrementalOptions().getPublishedCode());
+            LOGGER.debug("Analysis map: {}", filteredMap);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<File, File> getOrCreateGlobalAnalysisMap() {
+        ExtraPropertiesExtension extraProperties = getProject().getRootProject().getExtensions().getExtraProperties();
+        Map<File, File> analysisMap;
+
+        if (extraProperties.has("scalaCompileAnalysisMap")) {
+            analysisMap = (Map) extraProperties.get("scalaCompileAnalysisMap");
+        } else {
+            analysisMap = Maps.newHashMap();
+            for (Project project : getProject().getRootProject().getAllprojects()) {
+                for (ScalaCompile task : project.getTasks().withType(ScalaCompile.class)) {
+                    if (task.getScalaCompileOptions().isUseAnt()) { continue; }
+                    File publishedCode = task.getScalaCompileOptions().getIncrementalOptions().getPublishedCode();
+                    File analysisFile = task.getScalaCompileOptions().getIncrementalOptions().getAnalysisFile();
+                    analysisMap.put(publishedCode, analysisFile);
                 }
             }
+            extraProperties.set("scalaCompileAnalysisMap", Collections.unmodifiableMap(analysisMap));
         }
-        return cacheMap;
+        return analysisMap;
+    }
+
+    private HashMap<File, File> filterForClasspath(Map<File, File> analysisMap, Iterable<File> classpath) {
+        final Set<File> classpathLookup = Sets.newHashSet(classpath);
+        return Maps.newHashMap(Maps.filterEntries(analysisMap, new Predicate<Map.Entry<File, File>>() {
+            public boolean apply(Map.Entry<File, File> entry) {
+                return classpathLookup.contains(entry.getKey());
+            }
+        }));
     }
 }

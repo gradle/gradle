@@ -14,26 +14,30 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.scala;
-
-import org.gradle.api.internal.tasks.compile.JvmLanguageCompileSpec;
-import org.gradle.api.tasks.scala.ScalaCompileOptions;
+package org.gradle.api.tasks.scala;
 
 import java.io.File;
-import java.util.Map;
+import java.io.Serializable;
 
-public interface ScalaCompileSpec extends JvmLanguageCompileSpec {
-    ScalaCompileOptions getScalaCompileOptions();
+public class IncrementalCompileOptions implements Serializable {
+    private static final long serialVersionUID = 0;
 
-    Iterable<File> getScalaClasspath();
+    private File analysisFile;
+    private File publishedCode;
 
-    void setScalaClasspath(Iterable<File> classpath);
+    public File getAnalysisFile() {
+        return analysisFile;
+    }
 
-    Iterable<File> getZincClasspath();
+    public void setAnalysisFile(File analysisFile) {
+        this.analysisFile = analysisFile;
+    }
 
-    void setZincClasspath(Iterable<File> classpath);
+    public File getPublishedCode() {
+        return publishedCode;
+    }
 
-    Map<File, File> getAnalysisMap();
-
-    void setAnalysisMap(Map<File, File> analysisMap);
+    public void setPublishedCode(File publishedCode) {
+        this.publishedCode = publishedCode;
+    }
 }

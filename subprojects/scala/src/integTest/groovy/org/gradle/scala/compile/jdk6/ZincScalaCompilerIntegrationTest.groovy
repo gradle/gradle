@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.scala.compile.BasicScalaCompilerIntegrationTest
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
-import spock.lang.Ignore
 
 @TargetVersions(["2.8.2", "2.9.2", "2.10.0-RC1"])
 class ZincScalaCompilerIntegrationTest extends BasicScalaCompilerIntegrationTest {
@@ -77,8 +76,7 @@ compileScala.scalaCompileOptions.with {
         other.lastModified() == old(other.lastModified())
     }
 
-    @Ignore("not yet working")
-    def "compilesIncrementallyAcrossProjectBoundaries"() {
+    def compilesIncrementallyAcrossProjectBoundaries() {
         setup:
         def person = file("prj1/build/classes/main/Person.class")
         def house = file("prj2/build/classes/main/House.class")

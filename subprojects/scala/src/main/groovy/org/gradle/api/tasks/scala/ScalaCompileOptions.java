@@ -23,7 +23,6 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.compile.BaseForkOptions;
 
-import java.io.File;
 import java.util.List;
 
 /**
@@ -77,7 +76,7 @@ public class ScalaCompileOptions extends AbstractOptions {
 
     private boolean useAnt = true;
 
-    private File compilerCacheFile;
+    private IncrementalCompileOptions incrementalOptions = new IncrementalCompileOptions();
 
     /**
      * Whether to use the fsc compile daemon.
@@ -297,15 +296,12 @@ public class ScalaCompileOptions extends AbstractOptions {
         this.useAnt = useAnt;
     }
 
-    /**
-     * File location to store results of dependency analysis. Only used if {@code useAnt} is {@code true}.
-     */
-    public File getCompilerCacheFile() {
-        return compilerCacheFile;
+    public IncrementalCompileOptions getIncrementalOptions() {
+        return incrementalOptions;
     }
 
-    public void setCompilerCacheFile(File compilerCacheFile) {
-        this.compilerCacheFile = compilerCacheFile;
+    public void setIncrementalOptions(IncrementalCompileOptions incrementalOptions) {
+        this.incrementalOptions = incrementalOptions;
     }
 
     protected boolean excludeFromAntProperties(String fieldName) {

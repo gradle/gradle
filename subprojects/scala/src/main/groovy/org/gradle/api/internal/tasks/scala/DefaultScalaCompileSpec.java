@@ -26,7 +26,7 @@ public class DefaultScalaCompileSpec extends DefaultJvmLanguageCompileSpec imple
     private final ScalaCompileOptions options = new ScalaCompileOptions();
     private Iterable<File> scalaClasspath;
     private Iterable<File> zincClasspath;
-    private Map<File, File> compilerCacheMap;
+    private Map<File, File> analysisMap;
 
     public ScalaCompileOptions getScalaCompileOptions() {
         return options;
@@ -48,11 +48,11 @@ public class DefaultScalaCompileSpec extends DefaultJvmLanguageCompileSpec imple
         this.zincClasspath = zincClasspath;
     }
 
-    public Map<File, File> getCompilerCacheMap() {
-        return compilerCacheMap;
+    public Map<File, File> getAnalysisMap() {
+        return analysisMap;
     }
 
-    public void setCompilerCacheMap(Map<File, File> compilerCacheMap) {
-        this.compilerCacheMap = compilerCacheMap;
+    public void setAnalysisMap(Map<File, File> analysisMap) {
+        this.analysisMap = analysisMap;
     }
 }

@@ -26,7 +26,7 @@ public class DefaultScalaJavaJointCompileSpec extends DefaultJavaCompileSpec imp
     private ScalaCompileOptions options;
     private Iterable<File> scalaClasspath;
     private Iterable<File> zincClasspath;
-    private Map<File, File> compilerCacheMap;
+    private Map<File, File> analysisMap;
 
     public ScalaCompileOptions getScalaCompileOptions() {
         return options;
@@ -52,11 +52,11 @@ public class DefaultScalaJavaJointCompileSpec extends DefaultJavaCompileSpec imp
         this.zincClasspath = zincClasspath;
     }
 
-    public Map<File, File> getCompilerCacheMap() {
-        return compilerCacheMap;
+    public Map<File, File> getAnalysisMap() {
+        return analysisMap;
     }
 
-    public void setCompilerCacheMap(Map<File, File> map) {
-        this.compilerCacheMap = map;
+    public void setAnalysisMap(Map<File, File> analysisMap) {
+        this.analysisMap = analysisMap;
     }
 }
