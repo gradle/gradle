@@ -41,11 +41,11 @@ public class MethodMetaInfo extends Message {
 
     @Override
     public String toString() {
-        return "MethodMetaInfo{" +
-                "type=" + type +
-                ", methodName='" + methodName + '\'' +
-                ", paramTypes=" + (paramTypes == null ? null : Arrays.asList(paramTypes)) +
-                '}';
+        return "MethodMetaInfo{"
+                + "type=" + type
+                + ", methodName='" + methodName + '\''
+                + ", paramTypes=" + (paramTypes == null ? null : Arrays.asList(paramTypes))
+                + '}';
     }
 
     public Object getKey() {
@@ -123,9 +123,9 @@ public class MethodMetaInfo extends Message {
 
         @Override
         public String toString() {
-            return "Type{" +
-                    "typeName='" + typeName + '\'' +
-                    '}';
+            return "Type{"
+                    + "typeName='" + typeName + '\''
+                    + '}';
         }
     }
 }
