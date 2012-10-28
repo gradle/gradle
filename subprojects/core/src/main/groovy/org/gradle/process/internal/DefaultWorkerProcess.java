@@ -88,7 +88,10 @@ public class DefaultWorkerProcess implements WorkerProcess {
 
     @Override
     public String toString() {
-        return execHandle.toString();
+        return "DefaultWorkerProcess{"
+                + "running=" + running
+                + ", execHandle=" + execHandle
+                + '}';
     }
 
     public ObjectConnection getConnection() {
