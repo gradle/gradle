@@ -13,29 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.gradle.api.internal.artifacts.repositories;
+package org.gradle.api.internal.artifacts.repositories.cachemanager;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
+import org.apache.ivy.core.report.ArtifactDownloadReport;
+import org.apache.ivy.core.report.DownloadStatus;
 
-public interface ResourcePattern {
-    /**
-     * Returns the path to the given artifact.
-     */
-    String toPath(Artifact artifact);
+public class EnhancedArtifactDownloadReport extends ArtifactDownloadReport {
+    private Throwable failure;
 
-    /**
-     * Returns the path to the given artifact, without substituting the version placeholders.
-     */
-    String toPathWithoutRevision(Artifact artifact);
+    public EnhancedArtifactDownloadReport(Artifact artifact) {
+        super(artifact);
+    }
 
-    /**
-     * Returns the path to the module for the given artifact.
-     */
-    String toModulePath(Artifact artifact);
+    public Throwable getFailure() {
+        return failure;
+    }
 
-    /**
-     * Returns the path to the module version for the given artifact.
-     */
-    String toModuleVersionPath(Artifact artifact);
+    public void failed(Throwable throwable) {
+        setDownloadStatus(DownloadStatus.FAILED);
+        setDownloadDetails(throwable.getMessage());
+        failure = throwable;
+    }
 }

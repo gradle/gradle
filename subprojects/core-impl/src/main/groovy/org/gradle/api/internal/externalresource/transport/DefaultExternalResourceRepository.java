@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.repositories;
+package org.gradle.api.internal.externalresource.transport;
 
 
 import org.gradle.api.internal.externalresource.ExternalResource;

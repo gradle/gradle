@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.repositories
+package org.gradle.api.internal.artifacts.repositories.transport
 
 import spock.lang.Specification
 import org.apache.ivy.plugins.repository.TransferEvent
@@ -26,7 +26,7 @@ class ProgressLoggingTransferListenerTest extends Specification {
     TransferEvent transferEvent = Mock()
     Resource resource = Mock()
     ProgressLoggerFactory progressLoggerFactory = Mock()
-    ProgressLoggingTransferListener progressLoggingTransferListener = new ProgressLoggingTransferListener(progressLoggerFactory, null)
+    org.gradle.api.internal.artifacts.repositories.transport.ProgressLoggingTransferListener progressLoggingTransferListener = new org.gradle.api.internal.artifacts.repositories.transport.ProgressLoggingTransferListener(progressLoggerFactory, null)
     ProgressLogger progressLogger = Mock()
 
     def setup() {

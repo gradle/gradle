@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.repositories.layout;
 
-import org.gradle.api.internal.artifacts.repositories.PatternBasedResolver;
+import org.gradle.api.internal.artifacts.repositories.resolver.PatternBasedResolver;
 
 import java.net.URI;
 import java.util.LinkedHashSet;

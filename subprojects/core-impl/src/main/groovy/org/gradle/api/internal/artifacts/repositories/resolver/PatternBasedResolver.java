@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.api.internal.artifacts.repositories.resolver;
 
-package org.gradle.api.internal.artifacts.repositories;
+import org.apache.ivy.plugins.resolver.DependencyResolver;
 
-public class MavenPattern {
-    public static final String M2_PER_MODULE_VERSION_PATTERN = "[artifact]-[revision](-[classifier]).[ext]";
-    public static final String M2_PER_MODULE_PATTERN = "[revision]/" + M2_PER_MODULE_VERSION_PATTERN;
-    public static final String M2_PATTERN = "[organisation]/[module]/" + M2_PER_MODULE_PATTERN;
+import java.net.URI;
+import java.util.List;
+
+public interface PatternBasedResolver extends DependencyResolver {
+    void addArtifactLocation(URI baseUri, String pattern);
+
+    void addDescriptorLocation(URI baseUri, String pattern);
+
+    void setM2compatible(boolean b);
+
+    List<String> getIvyPatterns();
+
+    List<String> getArtifactPatterns();
 }

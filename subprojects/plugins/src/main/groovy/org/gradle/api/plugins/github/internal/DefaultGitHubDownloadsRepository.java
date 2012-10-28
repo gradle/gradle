@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;
-import org.gradle.api.internal.artifacts.repositories.MavenResolver;
+import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.plugins.github.GitHubDownloadsRepository;
 import org.gradle.api.publish.internal.NormalizedPublication;

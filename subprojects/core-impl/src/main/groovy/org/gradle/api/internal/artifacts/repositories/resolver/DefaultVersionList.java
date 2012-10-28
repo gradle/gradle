@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.repositories;
+package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import com.google.common.collect.Iterables;
 import org.apache.ivy.core.module.descriptor.Artifact;

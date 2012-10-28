@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.repositories
+package org.gradle.api.internal.artifacts.repositories.resolver
 
 import org.apache.ivy.core.module.descriptor.Artifact
 import org.apache.ivy.core.module.id.ModuleRevisionId
@@ -35,7 +35,7 @@ class ChainedVersionListerTest extends Specification {
     Artifact artifact = Mock()
     ModuleRevisionId moduleRevisionId = Mock()
 
-    def chainedVersionLister = new ChainedVersionLister(lister1, lister2)
+    def chainedVersionLister = new org.gradle.api.internal.artifacts.repositories.resolver.ChainedVersionLister(lister1, lister2)
 
     def "visit stops listing after first success"() {
         when:

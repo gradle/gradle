@@ -17,8 +17,8 @@ package org.gradle.api.internal.externalresource.transport.file;
 
 import org.apache.ivy.core.cache.RepositoryCacheManager;
 import org.apache.ivy.plugins.resolver.AbstractResolver;
-import org.gradle.api.internal.artifacts.repositories.DefaultExternalResourceRepository;
-import org.gradle.api.internal.artifacts.repositories.ExternalResourceRepository;
+import org.gradle.api.internal.externalresource.transport.DefaultExternalResourceRepository;
+import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 
 import java.io.File;

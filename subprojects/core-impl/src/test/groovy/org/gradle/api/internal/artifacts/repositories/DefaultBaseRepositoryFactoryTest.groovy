@@ -37,7 +37,7 @@ import org.gradle.api.internal.externalresource.cached.CachedExternalResourceInd
  * @author Hans Dockter
  */
 @RunWith(JMock.class)
-class DefaultResolverFactoryTest {
+class DefaultBaseRepositoryFactoryTest {
     static final URI RESOLVER_URL = new URI('http://a.b.c/')
     static final String TEST_REPO_NAME = 'reponame'
     static final String TEST_REPO = 'http://www.gradle.org'

@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.repositories;
+package org.gradle.api.internal.artifacts.repositories.resolver;
 
-import java.util.ArrayList;
-import java.util.List;
+import org.apache.ivy.core.module.id.ModuleRevisionId;
 
-class MavenMetadata {
-    String timestamp;
-    String buildNumber;
-    List<String> versions = new ArrayList<String>();
+public interface VersionLister {
+    /**
+     * Creates an empty version list for the given module version. Call {@link VersionList#visit(String, org.apache.ivy.core.module.descriptor.Artifact)} to search for versions.
+     */
+    VersionList getVersionList(ModuleRevisionId moduleRevisionId);
 }

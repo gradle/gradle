@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.repositories
+package org.gradle.api.internal.artifacts.repositories.resolver
 
 import org.apache.ivy.core.module.descriptor.DefaultArtifact
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.internal.externalresource.ExternalResource
+import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository
 import org.gradle.api.internal.resource.ResourceException
 import org.gradle.api.internal.resource.ResourceNotFoundException
 import org.xml.sax.SAXParseException
@@ -33,7 +34,7 @@ class MavenVersionListerTest extends Specification {
     def pattern = pattern("localhost:8081/testRepo/" + MavenPattern.M2_PATTERN)
     String metaDataResource = 'localhost:8081/testRepo/org/acme/testproject/maven-metadata.xml'
 
-    final MavenVersionLister lister = new MavenVersionLister(repository)
+    final org.gradle.api.internal.artifacts.repositories.resolver.MavenVersionLister lister = new org.gradle.api.internal.artifacts.repositories.resolver.MavenVersionLister(repository)
 
     def "visit parses maven-metadata.xml"() {
         ExternalResource resource = Mock()
@@ -168,6 +169,6 @@ class MavenVersionListerTest extends Specification {
     }
 
     def pattern(String pattern) {
-        return new M2ResourcePattern(pattern)
+        return new org.gradle.api.internal.artifacts.repositories.resolver.M2ResourcePattern(pattern)
     }
 }

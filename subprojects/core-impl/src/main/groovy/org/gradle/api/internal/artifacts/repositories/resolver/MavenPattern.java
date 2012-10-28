@@ -14,13 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.repositories;
+package org.gradle.api.internal.artifacts.repositories.resolver;
 
-import org.apache.ivy.core.module.id.ModuleRevisionId;
-
-public interface VersionLister {
-    /**
-     * Creates an empty version list for the given module version. Call {@link VersionList#visit(String, org.apache.ivy.core.module.descriptor.Artifact)} to search for versions.
-     */
-    VersionList getVersionList(ModuleRevisionId moduleRevisionId);
+public class MavenPattern {
+    public static final String M2_PER_MODULE_VERSION_PATTERN = "[artifact]-[revision](-[classifier]).[ext]";
+    public static final String M2_PER_MODULE_PATTERN = "[revision]/" + M2_PER_MODULE_VERSION_PATTERN;
+    public static final String M2_PATTERN = "[organisation]/[module]/" + M2_PER_MODULE_PATTERN;
 }

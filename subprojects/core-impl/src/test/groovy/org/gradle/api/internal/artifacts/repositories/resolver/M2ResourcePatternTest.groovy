@@ -16,7 +16,7 @@
 
 
 
-package org.gradle.api.internal.artifacts.repositories
+package org.gradle.api.internal.artifacts.repositories.resolver
 
 import org.apache.ivy.core.module.descriptor.DefaultArtifact
 import org.apache.ivy.core.module.id.ModuleRevisionId

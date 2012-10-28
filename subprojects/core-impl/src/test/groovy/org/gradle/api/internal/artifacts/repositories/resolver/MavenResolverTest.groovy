@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.repositories
+package org.gradle.api.internal.artifacts.repositories.resolver
 
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
 import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder
+import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -37,13 +38,13 @@ class MavenResolverTest extends Specification {
     @Unroll
     def "setUseMavenMetaData '#value' adapts versionLister to #classname"() {
         setup:
-        MavenResolver testresolver = new MavenResolver("test maven resolver", rootUri, repositoryTransport, locallyAvailableResourceFinder, cachedExternalResourceIndex)
+        org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver testresolver = new org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver("test maven resolver", rootUri, repositoryTransport, locallyAvailableResourceFinder, cachedExternalResourceIndex)
         when:
         testresolver.setUseMavenMetadata(value)
         then:
         testresolver.versionLister.class.name == classname
         where:
         value << [true, false]
-        classname << [ChainedVersionLister.class.name, ResourceVersionLister.class.name]
+        classname << [org.gradle.api.internal.artifacts.repositories.resolver.ChainedVersionLister.class.name, ResourceVersionLister.class.name]
     }
 }

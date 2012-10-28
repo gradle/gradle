@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.repositories
+package org.gradle.api.internal.artifacts.repositories.resolver
 
 import org.apache.ivy.core.module.descriptor.DefaultArtifact
 import org.apache.ivy.core.module.id.ModuleRevisionId
+import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository
 import org.gradle.api.internal.resource.ResourceException
 import org.gradle.api.internal.resource.ResourceNotFoundException
 import spock.lang.Specification
@@ -29,10 +30,10 @@ class ResourceVersionListerTest extends Specification {
     def moduleRevisionId = ModuleRevisionId.newInstance("org.acme", "proj1", "1.0")
     def artifact = new DefaultArtifact(moduleRevisionId, new Date(), "proj1", "jar", "jar")
 
-    def ResourceVersionLister lister;
+    def org.gradle.api.internal.artifacts.repositories.resolver.ResourceVersionLister lister;
 
     def setup() {
-        lister = new ResourceVersionLister(repo)
+        lister = new org.gradle.api.internal.artifacts.repositories.resolver.ResourceVersionLister(repo)
     }
 
     def "visit propagates Exceptions as ResourceException"() {
@@ -178,6 +179,6 @@ class ResourceVersionListerTest extends Specification {
     }
 
     def pattern(String pattern) {
-        return new IvyResourcePattern(pattern)
+        return new org.gradle.api.internal.artifacts.repositories.resolver.IvyResourcePattern(pattern)
     }
 }
