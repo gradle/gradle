@@ -43,7 +43,7 @@ class Maven2Gradle {
       this.mavenProjects = mavenProjects
   }
 
-  def convert(String[] args) {
+  def convert() {
     workingDir = new File('.').canonicalFile
     println "Working path:" + workingDir.absolutePath + "\n"
 

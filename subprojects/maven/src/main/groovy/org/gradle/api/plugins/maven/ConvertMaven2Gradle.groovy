@@ -36,10 +36,7 @@ import org.gradle.api.Incubating
  */
 @Incubating
 class ConvertMaven2Gradle extends DefaultTask {
-
     private final static Logger LOG = Logging.getLogger(ConvertMaven2Gradle.class)
-    boolean verbose
-    boolean keepFile
 
     private final DocumentationRegistry documentationRegistry
     private final MavenSettingsProvider settingsProvider
@@ -61,18 +58,10 @@ Please use it, report any problems and share your feedback with us.
 """)
 
 
-        String[] args = []
-        if (verbose) {
-            args << '-verbose'
-        }
-        if (keepFile) {
-            args << '-keepFile'
-        }
-
         def settings = settingsProvider.buildSettings()
 
         def mavenProjects = new MavenProjectsCreator().create(settings, project.file("pom.xml"))
 
-        new Maven2Gradle(mavenProjects).convert(args)
+        new Maven2Gradle(mavenProjects).convert()
     }
 }

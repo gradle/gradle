@@ -30,10 +30,7 @@ class Maven2GradlePlugin implements Plugin<Project>{
     void apply(Project project) {
         project.task("maven2Gradle", type: ConvertMaven2Gradle) {
             group = 'Bootstrap experimental'
-            description = '[experimental] Attempts to generate gradle builds from maven project.'
-
-            verbose = false
-            keepFile = false
+            description = '[incubating] Attempts to generate gradle builds from maven project.'
         }
     }
 }
