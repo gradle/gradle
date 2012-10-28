@@ -417,10 +417,10 @@ public class TestFile extends File implements TestFileContext {
     }
 
     public TestFile createDir() {
-        if (isDirectory()) {
+        if (mkdirs()) {
             return this;
         }
-        if (mkdirs()) {
+        if (isDirectory()) {
             return this;
         }
         throw new AssertionError("Problems creating dir: " + this
