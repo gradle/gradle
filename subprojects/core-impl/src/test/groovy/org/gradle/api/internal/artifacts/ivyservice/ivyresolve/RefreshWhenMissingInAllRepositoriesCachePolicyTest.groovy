@@ -20,7 +20,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import spock.lang.Specification
 import org.gradle.api.artifacts.ArtifactIdentifier
-import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy
+
 import org.gradle.api.artifacts.ResolvedModuleVersion
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.apache.ivy.core.module.id.ModuleRevisionId
@@ -32,7 +32,7 @@ class RefreshWhenMissingInAllRepositoriesCachePolicyTest extends Specification {
 
     private ArtifactIdentifier artifactIdentifier = Mock()
     private File cachedArtifactFile = Mock()
-    private long ageMillis = 0;
+    private long ageMillis = 1000;
     private ResolvedModuleVersion resolvedModuleVersion = Mock()
     private ModuleVersionIdentifier moduleVersionId = Mock()
     private ModuleRevisionId moduleRevisionId = Mock()
@@ -48,6 +48,7 @@ class RefreshWhenMissingInAllRepositoriesCachePolicyTest extends Specification {
     ModuleDescriptorCache.CachedModuleDescriptor cachedModuleDescriptorFound = Mock()
     ModuleDescriptorCache.CachedModuleDescriptor cachedModuleDescriptorMissing = Mock()
     ModuleResolutionCache.CachedModuleResolution cachedModuleResolution = Mock()
+
 
     def setup(){
         policy.registerRepository(repo1)
@@ -85,6 +86,18 @@ class RefreshWhenMissingInAllRepositoriesCachePolicyTest extends Specification {
         1 * cachedModuleResolution.resolvedVersion >> moduleRevisionId
         1 * moduleDescriptorCache.getCachedModuleDescriptor(repo1, moduleRevisionId) >> cachedModuleDescriptorFound
         1 * cachedModuleDescriptorFound.missing >> false
+    }
+
+    def "must not refresh module when build has started before last cache entry was written"(){
+        when:
+        def refresh = policy.mustRefreshModule(moduleVersionId, resolvedModuleVersion, moduleRevisionId, 0)
+        then:
+        refresh == false;
+        0 * moduleResolutionCache.getCachedModuleResolution(repo1, moduleRevisionId)
+        0 * cachedModuleResolution.resolvedVersion
+        0 * moduleDescriptorCache.getCachedModuleDescriptor(repo1, moduleRevisionId)
+        0 * cachedModuleDescriptorFound.missing
+
     }
 
     def "moduleDescriptorCache is hitten to check module for each repository"() {

@@ -24,7 +24,7 @@ class CachedMissingModulesIntegrationTest extends AbstractDependencyResolutionTe
         given:
         server.start()
         def repo1 = mavenHttpRepo("repo1")
-        def repo1Module = repo1.module("group", "projectA", "1.0")
+        repo1.module("group", "projectA", "1.0")
         def repo2 = mavenHttpRepo("repo2")
         def repo2Module = repo2.module("group", "projectA", "1.0")
 
@@ -149,24 +149,25 @@ class CachedMissingModulesIntegrationTest extends AbstractDependencyResolutionTe
         def repo2 = mavenHttpRepo("repo2")
         def repo2Module = repo2.module("group", "projectA", "1.0")
 
+        settingsFile <<  "include 'subproject'"
         buildFile << """
-            repositories {
-                maven {
-                    name 'repo1'
-                    url '${repo1.uri}'
-                }
-                maven {
-                    name 'repo2'
-                    url '${repo2.uri}'
+            allprojects{
+                repositories {
+                    maven {
+                        name 'repo1'
+                        url '${repo1.uri}'
+                    }
+                    maven {
+                        name 'repo2'
+                        url '${repo2.uri}'
+                    }
                 }
             }
             configurations {
                 config1
-                config2
             }
             dependencies {
                 config1 'group:projectA:1.0'
-                config2 'group:projectA:1.0'
             }
 
             task resolveConfig1 << {
@@ -175,9 +176,17 @@ class CachedMissingModulesIntegrationTest extends AbstractDependencyResolutionTe
                 }
             }
 
-            task resolveConfig2 << {
-                configurations.config2.each{
-                    println it
+            project(":subproject"){
+                configurations{
+                    config2
+                }
+                dependencies{
+                    config2 'group:projectA:1.0'
+                }
+                task resolveConfig2 << {
+                    configurations.config2.each{
+                        println it
+                    }
                 }
             }
             """
