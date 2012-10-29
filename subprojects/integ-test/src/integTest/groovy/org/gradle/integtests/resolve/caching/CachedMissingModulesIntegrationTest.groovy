@@ -138,7 +138,7 @@ class CachedMissingModulesIntegrationTest extends AbstractDependencyResolutionTe
         runAndFail "resolveConfig1", "resolveConfig2"
     }
 
-    def "dont hit remote repositories if version is available in local repo"() {
+    def "does not hit remote repositories if version is available in local repo"() {
         given:
         server.start()
         def repo1 = mavenHttpRepo("repo1")
