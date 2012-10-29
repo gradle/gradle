@@ -119,6 +119,8 @@ class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegration
         buildSucceeds()
 
         and:
-        output.contains DaemonMessages.REMOVING_DAEMON_ADDRESS_ON_FAILURE
+        def analyzer = new DaemonLogsAnalyzer(distribution.daemonBaseDir)
+        analyzer.daemons.size() == 2        //2 daemon participated
+        analyzer.registry.all.size() == 1   //only one address in the registry
     }
 }

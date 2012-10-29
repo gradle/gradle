@@ -16,16 +16,21 @@
 
 package org.gradle.launcher.daemon.testing
 
+import org.gradle.launcher.daemon.registry.DaemonRegistry
+import org.gradle.launcher.daemon.registry.DaemonRegistryServices
+
 /**
  * by Szczepan Faber, created at: 9/3/12
  */
 class DaemonLogsAnalyzer {
 
-    List<File> daemonLogs
+    private List<File> daemonLogs
+    private File daemonBaseDir
 
-    DaemonLogsAnalyzer(File baseDir) {
-        assert baseDir.listFiles().length == 1
-        def daemonFiles = baseDir.listFiles()[0].listFiles()
+    DaemonLogsAnalyzer(File daemonBaseDir) {
+        this.daemonBaseDir = daemonBaseDir
+        assert daemonBaseDir.listFiles().length == 1
+        def daemonFiles = daemonBaseDir.listFiles()[0].listFiles()
         daemonLogs = daemonFiles.findAll { it.name.endsWith('.log') }
     }
 
@@ -49,5 +54,9 @@ class DaemonLogsAnalyzer {
         def daemons = getDaemons()
         assert daemons.size() == 1: "Expected only a single daemon."
         daemons[0]
+    }
+
+    DaemonRegistry getRegistry() {
+        new DaemonRegistryServices(daemonBaseDir).get(DaemonRegistry)
     }
 }
