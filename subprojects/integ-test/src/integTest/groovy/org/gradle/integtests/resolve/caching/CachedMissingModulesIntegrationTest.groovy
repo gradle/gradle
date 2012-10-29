@@ -20,7 +20,71 @@ import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
 
 class CachedMissingModulesIntegrationTest extends AbstractDependencyResolutionTest {
 
-    def "cached not-found information is ignored if module is not available in any repo"() {
+    def "cached not-found information for dynamic version is ignored if module is not available in any repo"() {
+        given:
+        server.start()
+        def repo1 = mavenHttpRepo("repo1")
+        def repo1Module = repo1.module("group", "projectA", "1.0")
+        def repo2 = mavenHttpRepo("repo2")
+        def repo2Module = repo2.module("group", "projectA", "1.0")
+
+        buildFile << """
+            repositories {
+                maven {
+                    name 'repo1'
+                    url '${repo1.uri}'
+                }
+                maven {
+                    name 'repo2'
+                    url '${repo2.uri}'
+                }
+            }
+            configurations { compile }
+            dependencies {
+                compile 'group:projectA:latest.integration'
+            }
+
+            task retrieve(type: Sync) {
+                into 'libs'
+                from configurations.compile
+            }
+            """
+
+        when:
+        repo1.expectMetaDataGetMissing("group", "projectA")
+        repo1.expectMetaDataGetMissing("group", "projectA")
+        repo1.expectDirectoryListGet("group", "projectA")
+        repo1.expectDirectoryListGet("group", "projectA")
+        repo2.expectMetaDataGetMissing("group", "projectA")
+        repo2.expectMetaDataGetMissing("group", "projectA")
+        repo2.expectDirectoryListGet("group", "projectA")
+        repo2.expectDirectoryListGet("group", "projectA")
+
+        then:
+        runAndFail 'retrieve'
+
+        when:
+        server.resetExpectations()
+        repo1.expectMetaDataGetMissing("group", "projectA")
+        repo1.expectMetaDataGetMissing("group", "projectA")
+        repo1.expectDirectoryListGet("group", "projectA")
+        repo1.expectDirectoryListGet("group", "projectA")
+        repo2Module.publish()
+        repo2.expectMetaDataGet("group", "projectA")
+        repo2Module.expectPomGet()
+        repo2Module.expectArtifactGet()
+
+        then:
+        run 'retrieve'
+
+        when:
+        server.resetExpectations()
+
+        then:
+        run 'retrieve'
+    }
+
+    def "cached not-found information for fixed version is ignored if module is not available in any repo"() {
         given:
         server.start()
         def repo1 = mavenHttpRepo("repo1")
