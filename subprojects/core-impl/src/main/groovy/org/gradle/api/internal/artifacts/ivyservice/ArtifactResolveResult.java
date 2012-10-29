@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException;
+import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 
 import java.io.File;
 
@@ -31,4 +32,10 @@ public interface ArtifactResolveResult {
      * @throws ArtifactResolveException If the resolution was unsuccessful.
      */
     File getFile() throws ArtifactResolveException;
+
+    /**
+     * @throws ArtifactResolveException If the resolution was unsuccessful.
+     */
+    @Nullable
+    ExternalResourceMetaData getExternalResourceMetaData() throws ArtifactResolveException;
 }

@@ -26,6 +26,8 @@ import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.FileBackedArtifactResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ForceChangeDependencyDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache;
@@ -196,7 +198,7 @@ public class CachingModuleVersionRepository implements ModuleVersionRepository {
         }
     }
 
-    public DownloadedArtifact download(Artifact artifact) {
+    public ArtifactResolveResult download(Artifact artifact) {
         if (isLocal()) {
             return delegate.download(artifact);
         }
@@ -218,18 +220,18 @@ public class CachingModuleVersionRepository implements ModuleVersionRepository {
                 File cachedArtifactFile = cached.getCachedFile();
                 if (!cachePolicy.mustRefreshArtifact(artifactIdentifier, cachedArtifactFile, age)) {
                     LOGGER.debug("Found artifact '{}' in resolver cache: {}", artifact.getId(), cachedArtifactFile);
-                    return new DownloadedArtifact(cachedArtifactFile, cached.getExternalResourceMetaData());
+                    return new FileBackedArtifactResolveResult(cachedArtifactFile, cached.getExternalResourceMetaData());
                 }
             }
         }
 
-        DownloadedArtifact downloadedArtifact = delegate.download(artifact);
+        ArtifactResolveResult downloadedArtifact = delegate.download(artifact);
         LOGGER.debug("Downloaded artifact '{}' from resolver: {}", artifact.getId(), delegate);
 
         if (downloadedArtifact == null) {
             artifactAtRepositoryCachedResolutionIndex.storeMissing(resolutionCacheIndexKey);
         } else {
-            artifactAtRepositoryCachedResolutionIndex.store(resolutionCacheIndexKey, downloadedArtifact.getLocalFile(), downloadedArtifact.getExternalResourceMetaData());
+            artifactAtRepositoryCachedResolutionIndex.store(resolutionCacheIndexKey, downloadedArtifact.getFile(), downloadedArtifact.getExternalResourceMetaData());
         }
 
         return downloadedArtifact;

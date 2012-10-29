@@ -15,8 +15,9 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.apache.ivy.core.cache.ArtifactOrigin;
 import org.apache.ivy.core.module.descriptor.Artifact;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.FileBackedArtifactResolveResult;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.EnhancedArtifactDownloadReport;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
@@ -34,21 +35,18 @@ public class ExternalResourceResolverAdapter extends AbstractDependencyResolverA
         this.resolver = resolver;
     }
 
-    public DownloadedArtifact download(Artifact artifact) {
+    public ArtifactResolveResult download(Artifact artifact) {
         EnhancedArtifactDownloadReport artifactDownloadReport = resolver.download(artifact);
         if (downloadFailed(artifactDownloadReport)) {
             throw new ArtifactResolveException(artifactDownloadReport.getArtifact(), artifactDownloadReport.getFailure());
         }
 
-        ArtifactOrigin artifactOrigin = artifactDownloadReport.getArtifactOrigin();
+        ArtifactOriginWithMetaData artifactOrigin = artifactDownloadReport.getArtifactOrigin();
 
         File localFile = artifactDownloadReport.getLocalFile();
         if (localFile != null) {
-            ExternalResourceMetaData metaData = null;
-            if (artifactOrigin instanceof ArtifactOriginWithMetaData) {
-                metaData = ((ArtifactOriginWithMetaData) artifactOrigin).getMetaData();
-            }
-            return new DownloadedArtifact(localFile, metaData);
+            ExternalResourceMetaData metaData = artifactOrigin.getMetaData();
+            return new FileBackedArtifactResolveResult(localFile, metaData);
         } else {
             return null;
         }

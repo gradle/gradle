@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException;
+import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 
 import java.io.File;
 
@@ -31,6 +32,10 @@ public class BrokenArtifactResolveResult implements ArtifactResolveResult {
     }
 
     public File getFile() throws ArtifactResolveException {
+        throw failure;
+    }
+
+    public ExternalResourceMetaData getExternalResourceMetaData() throws ArtifactResolveException {
         throw failure;
     }
 }

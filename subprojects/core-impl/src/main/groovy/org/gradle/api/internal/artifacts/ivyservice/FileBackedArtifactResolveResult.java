@@ -15,15 +15,19 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import org.gradle.api.Nullable;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException;
+import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 
 import java.io.File;
 
 public class FileBackedArtifactResolveResult implements ArtifactResolveResult {
     private final File file;
+    private final ExternalResourceMetaData metaData;
 
-    public FileBackedArtifactResolveResult(File file) {
+    public FileBackedArtifactResolveResult(File file, @Nullable ExternalResourceMetaData metaData) {
         this.file = file;
+        this.metaData = metaData;
     }
 
     public ArtifactResolveException getFailure() {
@@ -32,5 +36,9 @@ public class FileBackedArtifactResolveResult implements ArtifactResolveResult {
 
     public File getFile() throws ArtifactResolveException {
         return file;
+    }
+
+    public ExternalResourceMetaData getExternalResourceMetaData() throws ArtifactResolveException {
+        return metaData;
     }
 }

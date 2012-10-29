@@ -15,12 +15,15 @@
  */
 package org.gradle.api.internal.artifacts.repositories.cachemanager;
 
+import org.apache.ivy.core.cache.ArtifactOrigin;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.report.ArtifactDownloadReport;
 import org.apache.ivy.core.report.DownloadStatus;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactOriginWithMetaData;
 
 public class EnhancedArtifactDownloadReport extends ArtifactDownloadReport {
     private Throwable failure;
+    private ArtifactOriginWithMetaData artifactOrigin;
 
     public EnhancedArtifactDownloadReport(Artifact artifact) {
         super(artifact);
@@ -28,6 +31,21 @@ public class EnhancedArtifactDownloadReport extends ArtifactDownloadReport {
 
     public Throwable getFailure() {
         return failure;
+    }
+
+    @Override
+    public ArtifactOriginWithMetaData getArtifactOrigin() {
+        return artifactOrigin;
+    }
+
+    @Override
+    public void setArtifactOrigin(ArtifactOrigin origin) {
+        if (origin instanceof ArtifactOriginWithMetaData) {
+            artifactOrigin = (ArtifactOriginWithMetaData) origin;
+            super.setArtifactOrigin(origin);
+        } else {
+            throw new IllegalArgumentException();
+        }
     }
 
     public void failed(Throwable throwable) {

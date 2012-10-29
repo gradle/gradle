@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 
 /**
@@ -38,7 +39,7 @@ public interface ModuleVersionRepository {
     /**
      * @return null if not found.
      */
-    DownloadedArtifact download(Artifact artifact) throws ArtifactResolveException;
+    ArtifactResolveResult download(Artifact artifact) throws ArtifactResolveException;
 
     // TODO - should be internal to the implementation of this (is only used to communicate IvyDependencyResolverAdapter -> CachingModuleVersionRepository)
     boolean isLocal();

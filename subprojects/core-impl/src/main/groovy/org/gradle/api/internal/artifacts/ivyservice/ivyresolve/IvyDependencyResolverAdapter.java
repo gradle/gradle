@@ -20,6 +20,8 @@ import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.report.ArtifactDownloadReport;
 import org.apache.ivy.core.resolve.DownloadOptions;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.FileBackedArtifactResolveResult;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.EnhancedArtifactDownloadReport;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 
@@ -35,7 +37,7 @@ public class IvyDependencyResolverAdapter extends AbstractDependencyResolverAdap
         super(resolver);
     }
 
-    public DownloadedArtifact download(Artifact artifact) {
+    public ArtifactResolveResult download(Artifact artifact) {
         ArtifactDownloadReport artifactDownloadReport = resolver.download(new Artifact[]{artifact}, downloadOptions).getArtifactReport(artifact);
         if (downloadFailed(artifactDownloadReport)) {
             if (artifactDownloadReport instanceof EnhancedArtifactDownloadReport) {
@@ -53,7 +55,7 @@ public class IvyDependencyResolverAdapter extends AbstractDependencyResolverAdap
             if (artifactOrigin instanceof ArtifactOriginWithMetaData) {
                 metaData = ((ArtifactOriginWithMetaData) artifactOrigin).getMetaData();
             }
-            return new DownloadedArtifact(localFile, metaData);
+            return new FileBackedArtifactResolveResult(localFile, metaData);
         } else {
             return null;
         }

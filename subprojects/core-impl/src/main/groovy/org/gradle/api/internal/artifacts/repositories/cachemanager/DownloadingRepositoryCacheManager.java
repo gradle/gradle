@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.repositories.cachemanager;
 
-import org.apache.ivy.core.cache.ArtifactOrigin;
 import org.apache.ivy.core.cache.CacheDownloadOptions;
 import org.apache.ivy.core.cache.CacheMetadataOptions;
 import org.apache.ivy.core.cache.DownloadListener;
@@ -72,7 +71,7 @@ public class DownloadingRepositoryCacheManager extends AbstractRepositoryCacheMa
         try {
             ResolvedResource artifactRef = resourceResolver.resolve(artifact);
             if (artifactRef != null) {
-                ArtifactOrigin origin = new ArtifactOriginWithMetaData(artifact, artifactRef.getResource());
+                ArtifactOriginWithMetaData origin = new ArtifactOriginWithMetaData(artifact, artifactRef.getResource());
                 if (listener != null) {
                     listener.startArtifactDownload(this, artifactRef, artifact, origin);
                 }

@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 import org.apache.ivy.core.module.descriptor.Artifact
 import org.apache.ivy.core.module.id.ArtifactRevisionId
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy
-
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache
 import spock.lang.Specification
@@ -47,7 +47,8 @@ class CachingModuleVersionRepositoryTest extends Specification {
     @Unroll "last modified date is cached - lastModified = #lastModified"(Date lastModified) {
         given:
         ExternalResourceMetaData externalResourceMetaData = new DefaultExternalResourceMetaData("remote url", lastModified, -1, null, null)
-        DownloadedArtifact downloadedArtifact = new DownloadedArtifact(new File("artifact"), externalResourceMetaData)
+        File file = new File("local")
+        ArtifactResolveResult downloadedArtifact = Mock()
         Artifact artifact = Mock()
         ArtifactRevisionId id = arid()
         ArtifactAtRepositoryKey atRepositoryKey = new ArtifactAtRepositoryKey(realRepo, id)
@@ -57,13 +58,15 @@ class CachingModuleVersionRepositoryTest extends Specification {
         _ * realRepo.isLocal() >> false
         _ * artifactAtRepositoryCache.lookup(atRepositoryKey) >> null
         _ * realRepo.download(artifact) >> downloadedArtifact
+        _ * downloadedArtifact.file >> file
+        _ * downloadedArtifact.externalResourceMetaData >> externalResourceMetaData
         _ * artifact.getId() >> id
 
         when:
         repo.download(artifact)
         
         then:
-        1 * artifactAtRepositoryCache.store(atRepositoryKey, downloadedArtifact.localFile, externalResourceMetaData)
+        1 * artifactAtRepositoryCache.store(atRepositoryKey, file, externalResourceMetaData)
         
         where:
         lastModified << [new Date(), null]

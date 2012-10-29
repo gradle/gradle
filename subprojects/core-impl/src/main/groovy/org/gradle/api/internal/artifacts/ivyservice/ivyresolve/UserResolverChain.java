@@ -152,16 +152,16 @@ public class UserResolverChain implements DependencyToModuleResolver {
 
         public ArtifactResolveResult resolve(Artifact artifact) {
             LOGGER.debug("Attempting to download {} using repository '{}'", artifact, repository.getName());
-            DownloadedArtifact downloadedArtifact;
+            ArtifactResolveResult result;
             try {
-                downloadedArtifact = repository.download(artifact);
+                result = repository.download(artifact);
             } catch (ArtifactResolveException e) {
                 return new BrokenArtifactResolveResult(e);
             }
-            if (downloadedArtifact == null) {
+            if (result == null) {
                 return new BrokenArtifactResolveResult(new ArtifactNotFoundException(artifact));
             }
-            return new FileBackedArtifactResolveResult(downloadedArtifact.getLocalFile());
+            return result;
         }
     }
 }
