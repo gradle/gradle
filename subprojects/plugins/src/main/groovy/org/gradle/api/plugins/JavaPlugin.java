@@ -80,7 +80,7 @@ public class JavaPlugin implements Plugin<Project> {
     private void configureHelpTasks(Project project) {
         ((ProjectInternal) project).getImplicitTasks().withType(DependencyInsightReportTask.class, new Action<DependencyInsightReportTask>() {
             public void execute(DependencyInsightReportTask dependencyInsightTaskReport) {
-                dependencyInsightTaskReport.configuration(COMPILE_CONFIGURATION_NAME);
+                dependencyInsightTaskReport.setConfiguration(COMPILE_CONFIGURATION_NAME);
             }
         });
     }

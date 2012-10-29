@@ -60,11 +60,13 @@ import static org.gradle.logging.StyledTextOutput.Style.Info
  * Then, the tree recurses into the dependents.
  * <p>
  * The task requires setting the dependency spec and the configuration.
- * For more information on how to configure those please refer to the available methods and properties.
+ * For more information on how to configure those please refer to docs for
+ * {@link DependencyInsightReportTask#setDependencySpec(Object)} and
+ * {@link DependencyInsightReportTask#setConfiguration(String)}.
  * <p>
  * The task can also be configured from the command line.
- * For more information please refer to {@link DependencyInsightReportTask#dependency(Object)}
- * and {@link DependencyInsightReportTask#configuration(String)}
+ * For more information please refer to {@link DependencyInsightReportTask#setDependencySpec(Object)}
+ * and {@link DependencyInsightReportTask#setConfiguration(String)}
  */
 @Incubating
 public class DependencyInsightReportTask extends DefaultTask {
@@ -114,13 +116,13 @@ public class DependencyInsightReportTask extends DefaultTask {
      * @param dependencyInsightNotation
      */
     @CommandLineOption(options = "dependency", description = "Shows the details of given dependency.")
-    public void dependency(Object dependencyInsightNotation) {
+    public void setDependencySpec(Object dependencyInsightNotation) {
         def parser = DependencyResultSpecNotationParser.create()
         this.dependencySpec = parser.parseNotation(dependencyInsightNotation)
     }
 
     /**
-     * Sets the configuration to look the dependency in
+     * Sets the configuration to look the dependency in.
      *
      * @param configuration
      */
@@ -137,7 +139,7 @@ public class DependencyInsightReportTask extends DefaultTask {
      * @param configurationName
      */
     @CommandLineOption(options = "configuration", description = "Looks for the dependency in given configuration.")
-    public void configuration(String configurationName) {
+    public void setConfiguration(String configurationName) {
         this.configuration = project.configurations.getByName(configurationName)
     }
 
