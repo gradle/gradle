@@ -32,12 +32,8 @@ public class ConfigureDelegate extends GroovyObjectSupport {
         }
     };
 
-    private static final Action<String> NOOP_ACTION = new Action<String>() {
-        public void execute(String s) {}
-    };
-
     public ConfigureDelegate(Object owner, Object delegate) {
-        this(owner, delegate, NOOP_ACTION);
+        this(owner, delegate, new NullAction<String>());
     }
     public ConfigureDelegate(Object owner, Object delegate, Action<String> onMissing) {
         this.owner = DynamicObjectUtil.asDynamicObject(owner);
