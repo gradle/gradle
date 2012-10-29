@@ -26,7 +26,6 @@ import org.gradle.api.artifacts.ArtifactRepositoryContainer;
 import org.gradle.api.artifacts.UnknownRepositoryException;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.internal.DefaultNamedDomainObjectList;
-import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
@@ -168,7 +167,7 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
     public List<DependencyResolver> getResolvers() {
         List<DependencyResolver> returnedResolvers = new ArrayList<DependencyResolver>();
         for (ArtifactRepository repository : this) {
-            returnedResolvers.add(((ArtifactRepositoryInternal) repository).createResolver());
+            returnedResolvers.add(baseRepositoryFactory.toResolver(repository));
         }
         return returnedResolvers;
     }
