@@ -48,6 +48,7 @@ include 'buildComparison'
 include 'reporting'
 include 'diagnostics'
 include 'publish'
+include 'ivy'
 
 rootProject.name = 'gradle'
 rootProject.children.each {project ->

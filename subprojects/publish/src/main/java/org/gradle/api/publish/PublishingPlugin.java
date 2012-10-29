@@ -48,6 +48,6 @@ public class PublishingPlugin implements Plugin<Project> {
     public void apply(Project project) {
         RepositoryHandler repositories = instantiator.newInstance(DefaultRepositoryHandler.class, repositoryFactory, instantiator);
         PublicationContainer publications = instantiator.newInstance(DefaultPublicationContainer.class, instantiator);
-        project.getExtensions().create("publications", DefaultPublishingExtension.class, repositories, publications);
+        project.getExtensions().create("publishing", DefaultPublishingExtension.class, repositories, publications);
     }
 }
