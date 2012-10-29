@@ -50,7 +50,7 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
 
     @Override
     public void run(RunNotifier notifier) {
-        initExecutions();
+        initDescription();
         for (Execution execution : executions) {
             execution.run(notifier);
         }
@@ -61,6 +61,7 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
         for (Execution execution : executions) {
             execution.filter(filter);
         }
+        invalidateDescription();
     }
 
     public void sort(Sorter sorter) {
@@ -68,6 +69,7 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
         for (Execution execution : executions) {
             execution.sort(sorter);
         }
+        invalidateDescription();
     }
 
     private void initExecutions() {
@@ -87,6 +89,10 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
                 execution.addDescriptions(description);
             }
         }
+    }
+
+    private void invalidateDescription() {
+        description = null;
     }
 
     protected abstract void createExecutions();
