@@ -26,7 +26,7 @@ import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 public class ResolvedDependencyResultPrinter {
 
     public static String print(ResolvedDependencyResult result) {
-        if (!result.getRequested().getAsSpec().isSatisfiedBy(result.getSelected().getId())) {
+        if (!result.getRequested().matchesStrictly(result.getSelected().getId())) {
             return requested(result) + " -> " + result.getSelected().getId().getVersion();
         } else {
             return requested(result);

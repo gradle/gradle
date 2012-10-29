@@ -24,7 +24,7 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.new
 /**
  * by Szczepan Faber, created at: 9/10/12
  */
-class ModuleVersionSelectorSpecTest extends Specification {
+class ModuleVersionSelectorStrictSpecTest extends Specification {
 
     def "knows if matches the id"() {
         def selector = newSelector("org", "util", "1.0")
@@ -35,10 +35,10 @@ class ModuleVersionSelectorSpecTest extends Specification {
         def differentVersion = newId("org", "xutil", "x1.0")
 
         expect:
-        selector.asSpec.isSatisfiedBy(matching)
+        selector.matchesStrictly(matching)
 
-        !selector.asSpec.isSatisfiedBy(differentGroup)
-        !selector.asSpec.isSatisfiedBy(differentName)
-        !selector.asSpec.isSatisfiedBy(differentVersion)
+        !selector.matchesStrictly(differentGroup)
+        !selector.matchesStrictly(differentName)
+        !selector.matchesStrictly(differentVersion)
     }
 }

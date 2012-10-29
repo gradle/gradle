@@ -23,11 +23,11 @@ import org.gradle.api.specs.Spec;
 /**
  * by Szczepan Faber, created at: 9/10/12
  */
-public class ModuleVersionSelectorSpec implements Spec<ModuleVersionIdentifier> {
+public class ModuleVersionSelectorStrictSpec implements Spec<ModuleVersionIdentifier> {
 
     private final ModuleVersionSelector selector;
 
-    public ModuleVersionSelectorSpec(ModuleVersionSelector selector) {
+    public ModuleVersionSelectorStrictSpec(ModuleVersionSelector selector) {
         assert selector != null;
         this.selector = selector;
     }

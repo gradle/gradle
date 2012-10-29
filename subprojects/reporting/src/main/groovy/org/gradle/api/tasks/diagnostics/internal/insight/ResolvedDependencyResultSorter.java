@@ -64,9 +64,9 @@ public class ResolvedDependencyResultSorter {
             }
 
             //if selected matches requested version comparison is overridden
-            if (left.getRequested().getAsSpec().isSatisfiedBy(left.getSelected().getId())) {
+            if (left.getRequested().matchesStrictly(left.getSelected().getId())) {
                 return -1;
-            } else if (right.getRequested().getAsSpec().isSatisfiedBy(right.getSelected().getId())) {
+            } else if (right.getRequested().matchesStrictly(right.getSelected().getId())) {
                 return 1;
             }
 
