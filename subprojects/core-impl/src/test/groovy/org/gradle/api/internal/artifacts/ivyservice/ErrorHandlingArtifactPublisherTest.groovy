@@ -29,33 +29,36 @@ import static org.hamcrest.Matchers.sameInstance
 import static org.junit.Assert.assertThat
 import static org.junit.Assert.fail
 import org.gradle.api.internal.artifacts.ArtifactPublisher
+import org.gradle.api.artifacts.Module
 
 @RunWith(JMock.class)
 public class ErrorHandlingArtifactPublisherTest {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery();
     private final ArtifactPublisher artifactPublisherMock = context.mock(ArtifactPublisher.class);
     private final ConfigurationInternal configurationMock = context.mock(ConfigurationInternal.class, "<config display name>");
+    private final Module moduleMock = context.mock(Module)
+
     private final RuntimeException failure = new RuntimeException();
     private final ErrorHandlingArtifactPublisher ivyService = new ErrorHandlingArtifactPublisher(artifactPublisherMock);
 
     @Test
     public void publishDelegatesToBackingService() {
         context.checking {
-            one(artifactPublisherMock).publish(configurationMock, null, null)
+            one(artifactPublisherMock).publish(moduleMock, configurationMock, null, null)
         }
 
-        ivyService.publish(configurationMock, null, null)
+        ivyService.publish(moduleMock, configurationMock, null, null)
     }
 
     @Test
     public void wrapsPublishException() {
         context.checking {
-            one(artifactPublisherMock).publish(configurationMock, null, null)
+            one(artifactPublisherMock).publish(moduleMock, configurationMock, null, null)
             will(throwException(failure))
         }
 
         try {
-            ivyService.publish(configurationMock, null, null)
+            ivyService.publish(moduleMock, configurationMock, null, null)
             fail()
         }
         catch(PublishException e) {

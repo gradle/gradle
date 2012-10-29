@@ -65,7 +65,7 @@ public class IvyBackedArtifactPublisher implements ArtifactPublisher {
         return ivyFactory.createIvy(settingsConverter.convertForPublish(publishResolvers));
     }
 
-    public void publish(ConfigurationInternal configuration, File descriptorDestination, @Nullable Action<XmlProvider> descriptorModifier) throws PublishException {
+    public void publish(Module module, ConfigurationInternal configuration, File descriptorDestination, @Nullable Action<XmlProvider> descriptorModifier) throws PublishException {
         List<DependencyResolver> publishResolvers = resolverProvider.getResolvers();
         Ivy ivy = ivyForPublish(publishResolvers);
         Set<Configuration> configurationsToPublish = configuration.getHierarchy();

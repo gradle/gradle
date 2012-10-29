@@ -17,6 +17,7 @@
 package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
+import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.file.FileCollection;
@@ -50,12 +51,13 @@ public class UploadTest extends AbstractTaskTest {
     private RepositoryHandler repositoriesMock;
     private ArtifactPublisher artifactPublisherMock;
     private ConfigurationInternal configurationMock;
+    private Module moduleMock;
 
     @Before public void setUp() {
         upload = createTask(Upload.class);
         repositoriesMock = context.mock(RepositoryHandler.class);
         artifactPublisherMock = context.mock(ArtifactPublisher.class);
-
+        moduleMock = context.mock(Module.class);
         configurationMock = context.mock(ConfigurationInternal.class);
     }
 
@@ -76,7 +78,8 @@ public class UploadTest extends AbstractTaskTest {
         upload.setConfiguration(configurationMock);
         upload.setArtifactPublisher(artifactPublisherMock);
         context.checking(new Expectations() {{
-            one(artifactPublisherMock).publish(configurationMock, descriptorDestination, null);
+            one(configurationMock).getModule(); will(returnValue(moduleMock));
+            one(artifactPublisherMock).publish(moduleMock, configurationMock, descriptorDestination, null);
         }});
         upload.upload();
     }
@@ -87,7 +90,8 @@ public class UploadTest extends AbstractTaskTest {
         upload.setConfiguration(configurationMock);
         upload.setArtifactPublisher(artifactPublisherMock);
         context.checking(new Expectations() {{
-            one(artifactPublisherMock).publish(configurationMock, null, null);
+            one(configurationMock).getModule(); will(returnValue(moduleMock));
+            one(artifactPublisherMock).publish(moduleMock, configurationMock, null, null);
         }});
         upload.upload();
     }
