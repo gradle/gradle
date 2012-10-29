@@ -39,13 +39,14 @@ public class ModuleDescriptorStore {
     private static final String DESCRIPTOR_ARTIFACT_PATTERN =
             "module-metadata/[organisation]/[module](/[branch])/[revision]/[resolverId].ivy.xml";
 
-    private final XmlModuleDescriptorParser parser = XmlModuleDescriptorParser.getInstance();
+    private final XmlModuleDescriptorParser parser;
     private final PathKeyFileStore pathKeyFileStore;
     private final IvyModuleDescriptorWriter ivyModuleDescriptorWriter;
 
-    public ModuleDescriptorStore(PathKeyFileStore pathKeyFileStore, IvyModuleDescriptorWriter ivyModuleDescriptorWriter) {
+    public ModuleDescriptorStore(PathKeyFileStore pathKeyFileStore, IvyModuleDescriptorWriter ivyModuleDescriptorWriter, XmlModuleDescriptorParser xmlModuleDescriptorParser) {
         this.pathKeyFileStore = pathKeyFileStore;
         this.ivyModuleDescriptorWriter = ivyModuleDescriptorWriter;
+        parser = xmlModuleDescriptorParser;
     }
 
     public ModuleDescriptor getModuleDescriptor(ModuleVersionRepository repository, ModuleRevisionId moduleRevisionId) {
