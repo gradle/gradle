@@ -90,6 +90,22 @@ For example: we could provide merged standard output and error instead of showin
 
 We have to continue generating standard JUnit xml results because they are de facto a standard in the CI servers and other tools.
 
+## Bug GRADLE-2524: Missing stuff in TestNG output
+
+### Problem
+
+There are a couple of jira tickets related to the problem with missing stuff in TestNG output.
+Typically, those are outputs printed by TestNG listeners (our API enables hooking the listeners)
+or outputs printed very early/very late in the game (BeforeSuite/AfterSuite, etc).
+
+### Possible fix
+
+TestNGTestClassProcessor uses CaptureTestOutputTestResultProcessor to capture the output.
+However, the latter class is geared towards the JUnit model, where we receive notifications on class start / end.
+In TestNG, we only receive notification on entire suite start / end and then on each test method start / end.
+This means that with TestNG, the CaptureTestOutputTestResultProcessor is started only when the first test starts.
+We could possibly fix it by starting redirecting the output at suite start in the TestNG scenario.
+
 # Open issues
 
 -
