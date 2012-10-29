@@ -139,6 +139,8 @@ public class Publish extends DefaultTask {
         Class<T> normalizedPublicationType = publication.getNormalisedPublicationType();
         Publisher<T> publisher = repository.createPublisher(normalizedPublicationType);
 
+        // If it wasn't for convention mapping, we could hoist this check up to configuration time
+        // But we can't really know when publication or repository changes to run this check
         if (publisher == null) {
             throw new InvalidUserDataException(
                     String.format("Repository '%s' cannot publish publication '%s'", repository, publication)
