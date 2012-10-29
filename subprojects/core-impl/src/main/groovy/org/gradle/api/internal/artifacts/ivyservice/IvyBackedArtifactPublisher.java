@@ -69,11 +69,11 @@ public class IvyBackedArtifactPublisher implements ArtifactPublisher {
         Ivy ivy = ivyForPublish(publishResolvers);
         Set<Configuration> configurationsToPublish = configuration.getHierarchy();
         Set<String> confs = Configurations.getNames(configurationsToPublish, false);
-        writeDescriptorFile(descriptorDestination, configurationsToPublish, configuration.getModule(), descriptorModifier);
+        writeDescriptorFile(descriptorDestination, configurationsToPublish, module, descriptorModifier);
         dependencyPublisher.publish(
                 confs,
                 publishResolvers,
-                publishModuleDescriptorConverter.convert(configurationsToPublish, configuration.getModule()),
+                publishModuleDescriptorConverter.convert(configurationsToPublish, module),
                 descriptorDestination,
                 ivy.getEventManager());
     }
