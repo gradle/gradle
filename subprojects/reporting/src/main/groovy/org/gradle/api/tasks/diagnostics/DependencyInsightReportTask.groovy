@@ -144,10 +144,12 @@ public class DependencyInsightReportTask extends DefaultTask {
     @TaskAction
     public void report() {
         if (configuration == null) {
-            throw new ReportException("Dependency insight report cannot be generated because the input configuration was not specified.")
+            throw new ReportException("Dependency insight report cannot be generated because the input configuration was not specified. "
+                    + "\nIt can be specified from the command line, e.g: 'dependencyInsight --configuration someConf --dependency someDep'")
         }
         if (dependencySpec == null) {
-            throw new ReportException("Dependency insight report cannot be generated because the dependency to show was not specified.")
+            throw new ReportException("Dependency insight report cannot be generated because the dependency to show was not specified."
+                    + "\nIt can be specified from the command line, e.g: 'dependencyInsight --dependency someDep'")
         }
 
         ResolutionResult result = configuration.getIncoming().getResolutionResult();
