@@ -48,20 +48,21 @@ public class UserResolverChain implements DependencyToModuleResolver {
         moduleVersionRepositoryNames.add(repository.getName());
     }
 
-    public ModuleVersionResolveResult resolve(DependencyDescriptor dependencyDescriptor) {
+    public void resolve(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionResolveResult result) {
         LOGGER.debug("Attempting to resolve module '{}' using repositories {}", dependencyDescriptor.getDependencyRevisionId(), moduleVersionRepositoryNames);
         List<Throwable> errors = new ArrayList<Throwable>();
         final ModuleResolution latestResolved = findLatestModule(dependencyDescriptor, errors);
         if (latestResolved != null) {
             final ModuleVersionDescriptor downloadedModule = latestResolved.module;
             LOGGER.debug("Using module '{}' from repository '{}'", downloadedModule.getId(), latestResolved.repository.getName());
-            return latestResolved;
+            result.resolved(latestResolved.getId(), latestResolved.getDescriptor(), latestResolved.getArtifactResolver());
+            return;
         }
         if (!errors.isEmpty()) {
-            return new BrokenModuleVersionResolveResult(new ModuleVersionResolveException(dependencyDescriptor.getDependencyRevisionId(), errors));
+            result.failed(new ModuleVersionResolveException(dependencyDescriptor.getDependencyRevisionId(), errors));
+        } else {
+            result.failed(new ModuleVersionNotFoundException(dependencyDescriptor.getDependencyRevisionId()));
         }
-        
-        return new BrokenModuleVersionResolveResult(new ModuleVersionNotFoundException(dependencyDescriptor.getDependencyRevisionId()));
     }
 
     private ModuleResolution findLatestModule(DependencyDescriptor dependencyDescriptor, Collection<Throwable> failures) {
@@ -108,17 +109,13 @@ public class UserResolverChain implements DependencyToModuleResolver {
         return comparison < 0 ? two : one;
     }
 
-    private static class ModuleResolution implements ArtifactInfo, ModuleVersionResolveResult {
+    private static class ModuleResolution implements ArtifactInfo {
         public final ModuleVersionRepository repository;
         public final ModuleVersionDescriptor module;
 
         public ModuleResolution(ModuleVersionRepository repository, ModuleVersionDescriptor module) {
             this.repository = repository;
             this.module = module;
-        }
-
-        public ModuleVersionResolveException getFailure() {
-            return null;
         }
 
         public ModuleRevisionId getId() throws ModuleVersionResolveException {

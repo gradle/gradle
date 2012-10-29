@@ -13,31 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 
-public class BrokenModuleVersionResolveResult implements ModuleVersionResolveResult {
-    private final ModuleVersionResolveException failure;
+public interface BuildableModuleVersionResolveResult extends ModuleVersionResolveResult {
+    void resolved(ModuleRevisionId moduleRevisionId, ModuleDescriptor descriptor, ArtifactResolver artifactResolver);
 
-    public BrokenModuleVersionResolveResult(ModuleVersionResolveException failure) {
-        this.failure = failure;
-    }
+    void failed(ModuleVersionResolveException failure);
 
-    public ModuleVersionResolveException getFailure() {
-        return failure;
-    }
+    /**
+     * Replaces the meta-data in the result. Result must already be resolved.
+     */
+    void setMetaData(ModuleRevisionId moduleRevisionId, ModuleDescriptor descriptor);
 
-    public ModuleRevisionId getId() throws ModuleVersionResolveException {
-        throw failure;
-    }
-
-    public ModuleDescriptor getDescriptor() throws ModuleVersionResolveException {
-        throw failure;
-    }
-
-    public ArtifactResolver getArtifactResolver() throws ModuleVersionResolveException {
-        throw failure;
-    }
+    /**
+     * Replaces the artifact resolver in the result. Result must already be resolved.
+     */
+    void setArtifactResolver(ArtifactResolver artifactResolver);
 }
