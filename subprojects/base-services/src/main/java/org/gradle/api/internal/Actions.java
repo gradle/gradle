@@ -19,6 +19,7 @@ package org.gradle.api.internal;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -34,9 +35,11 @@ public abstract class Actions {
      * @return An action object with an empty implementation
      */
     public static <T> Action<T> doNothing() {
-        return new Action<T>() {
-            public void execute(T t) {}
-        };
+        return new NullAction<T>();
+    }
+
+    private static class NullAction<T> implements Action<T>, Serializable {
+        public void execute(T t) {}
     }
 
     /**
@@ -49,14 +52,21 @@ public abstract class Actions {
     public static <T> Action<T> composite(Action<? super T>... actions) {
         final List<Action<? super T>> actionsCopy = new ArrayList<Action<? super T>>(actions.length);
         Collections.addAll(actionsCopy, actions);
+        return new CompositeAction<T>(actionsCopy);
+   }
 
-        return new Action<T>() {
-            public void execute(final T item) {
-                for (Action<? super T> action : actionsCopy) {
-                    action.execute(item);
-                }
+    private static class CompositeAction<T> implements Action<T> {
+        private final Iterable<Action<? super T>> actions;
+
+        private CompositeAction(Iterable<Action<? super T>> actions) {
+            this.actions = actions;
+        }
+
+        public void execute(T item) {
+            for (Action<? super T> action : actions) {
+                action.execute(item);
             }
-        };
+        }
     }
 
     /**
@@ -69,12 +79,22 @@ public abstract class Actions {
      * @return An action that transforms an object of type I to type O to give to the given action
      */
     public static <T, I> Action<I> transformBefore(final Action<? super T> action, final Transformer<T, I> transformer) {
-        return new Action<I>() {
-            public void execute(I thing) {
-                T transformed = transformer.transform(thing);
-                action.execute(transformed);
-            }
-        };
+        return new TransformingActionAdapter<T, I>(transformer, action);
+    }
+
+    private static class TransformingActionAdapter<T, I> implements Action<I> {
+        private final Transformer<T, I> transformer;
+        private final Action<? super T> action;
+
+        private TransformingActionAdapter(Transformer<T, I> transformer, Action<? super T> action) {
+            this.transformer = transformer;
+            this.action = action;
+        }
+
+        public void execute(I thing) {
+            T transformed = transformer.transform(thing);
+            action.execute(transformed);
+        }
     }
 
     /**
