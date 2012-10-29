@@ -19,6 +19,7 @@ import org.gradle.api.Project
 import org.gradle.api.internal.artifacts.configurations.Configurations
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.reporting.ReportingExtension
+import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.scala.ScalaCompile
 import org.gradle.api.tasks.scala.ScalaDoc
 import org.gradle.api.artifacts.Configuration
@@ -96,6 +97,32 @@ public class ScalaBasePluginTest {
         assertThat(task.scalaClasspath, equalTo(project.configurations[ScalaBasePlugin.SCALA_TOOLS_CONFIGURATION_NAME]))
         assertThat(task.source as List, equalTo(project.sourceSets.custom.scala as List))
         assertThat(task, dependsOn('compileCustomJava'))
+    }
+
+    @Test void preconfiguresIncrementalCompileOptions() {
+        scalaPlugin.apply(project)
+
+        project.sourceSets.add('custom')
+        project.tasks.add('customJar', Jar)
+        ScalaCompile task = project.tasks['compileCustomScala']
+        project.gradle.buildListenerBroadcaster.projectsEvaluated(project.gradle)
+
+        assertThat(task.scalaCompileOptions.incrementalOptions.analysisFile, equalTo(new File("$project.buildDir/tmp/scala/compilerAnalysis/compileCustomScala.analysis")))
+        assertThat(task.scalaCompileOptions.incrementalOptions.publishedCode, equalTo(project.tasks['customJar'].archivePath))
+    }
+
+    @Test void incrementalCompileOptionsCanBeOverridden() {
+        scalaPlugin.apply(project)
+
+        project.sourceSets.add('custom')
+        project.tasks.add('customJar', Jar)
+        ScalaCompile task = project.tasks['compileCustomScala']
+        task.scalaCompileOptions.incrementalOptions.analysisFile = new File("/my/file")
+        task.scalaCompileOptions.incrementalOptions.publishedCode = new File("/my/published/code.jar")
+        project.gradle.buildListenerBroadcaster.projectsEvaluated(project.gradle)
+
+        assertThat(task.scalaCompileOptions.incrementalOptions.analysisFile, equalTo(new File("/my/file")))
+        assertThat(task.scalaCompileOptions.incrementalOptions.publishedCode, equalTo(new File("/my/published/code.jar")))
     }
     
     @Test void dependenciesOfJavaPluginTasksIncludeScalaCompileTasks() {
