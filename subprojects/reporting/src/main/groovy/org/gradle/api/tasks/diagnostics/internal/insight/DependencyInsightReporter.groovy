@@ -43,7 +43,7 @@ public class DependencyInsightReporter {
             //add description only to the first module
             if (annotated.add(dependency.selected.id)) {
                 //add a heading dependency with the annotation if the dependency does not exist in the graph
-                if (!dependency.requested.getAsSpec().isSatisfiedBy(dependency.selected.id)) {
+                if (!dependency.requested.matchesStrictly(dependency.selected.id)) {
                     def name = dependency.selected.id.group + ":" + dependency.selected.id.name + ":" + dependency.selected.id.version
                     out << new SimpleDependency(name, describeReason(dependency.selected.selectionReason))
                 } else {

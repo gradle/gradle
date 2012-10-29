@@ -16,7 +16,7 @@
 
 package org.gradle.api.artifacts;
 
-import org.gradle.api.specs.Spec;
+import org.gradle.api.Incubating;
 
 /**
  * Selects a module version
@@ -45,9 +45,13 @@ public interface ModuleVersionSelector {
     String getVersion();
 
     /**
-     * Returns a spec that knows whether this selector matches given module version identifier
+     * To match strictly means that the given identifier needs to have
+     * equal group, module name and version.
+     * It does not smartly match dynamic versions,
+     * e.g. '1.+' selector does not strictly match '1.2' identifier.
      *
-     * @return the spec.
+     * @return if this selector matches exactly the given identifier.
      */
-    Spec<ModuleVersionIdentifier> getAsSpec();  //TODO SF change to 'matchesStrictly'
+    @Incubating
+    boolean matchesStrictly(ModuleVersionIdentifier identifier);
 }

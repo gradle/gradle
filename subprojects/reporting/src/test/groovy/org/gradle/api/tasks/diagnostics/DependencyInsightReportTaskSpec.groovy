@@ -60,8 +60,8 @@ class DependencyInsightReportTaskSpec extends Specification {
     def "can set spec and configuration via methods"() {
         when:
         project.configurations.add("foo")
-        task.configuration 'foo'
-        task.dependency 'bar'
+        task.setConfiguration 'foo'
+        task.setDependencySpec 'bar'
         then:
         task.dependencySpec != null
         task.configuration.name == 'foo'

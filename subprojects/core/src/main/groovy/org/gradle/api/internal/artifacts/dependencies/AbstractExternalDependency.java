@@ -17,8 +17,7 @@ package org.gradle.api.internal.artifacts.dependencies;
 
 import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.ModuleVersionSelectorSpec;
-import org.gradle.api.specs.Spec;
+import org.gradle.api.internal.artifacts.ModuleVersionSelectorStrictSpec;
 
 public abstract class AbstractExternalDependency extends AbstractModuleDependency implements ExternalDependency {
     public AbstractExternalDependency(String configuration) {
@@ -37,7 +36,7 @@ public abstract class AbstractExternalDependency extends AbstractModuleDependenc
         return isForce() == dependencyRhs.isForce();
     }
 
-    public Spec<ModuleVersionIdentifier> getAsSpec() {
-        return new ModuleVersionSelectorSpec(this);
+    public boolean matchesStrictly(ModuleVersionIdentifier identifier) {
+        return new ModuleVersionSelectorStrictSpec(this).isSatisfiedBy(identifier);
     }
 }

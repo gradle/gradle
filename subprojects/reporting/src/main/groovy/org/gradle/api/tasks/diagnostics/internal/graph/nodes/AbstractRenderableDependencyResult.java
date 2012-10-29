@@ -58,7 +58,7 @@ public abstract class AbstractRenderableDependencyResult implements RenderableDe
     }
 
     private static boolean requestedEqualsSelected(ResolvedDependencyResult dependency) {
-        return dependency.getRequested().getAsSpec().isSatisfiedBy(dependency.getSelected().getId());
+        return dependency.getRequested().matchesStrictly(dependency.getSelected().getId());
     }
 
     private String requested() {

@@ -27,13 +27,50 @@ class LatestVersionSemanticComparatorSpec extends Specification {
 
     def "compares versions"() {
         expect:
-        //equal
-        comparator.compare("1.0", "1.0") == 0
-        //less
-        comparator.compare("1.0", "2.0") < 0
-        comparator.compare("1.0-alpha", "1.0") < 0
-        //more
-        comparator.compare("2.0", "1.0") > 0
-        comparator.compare("1.0", "1.0-alpha") > 0
+        comparator.compare(a, b) < 0
+        comparator.compare(b, a) > 0
+        comparator.compare(a, a) == 0
+        comparator.compare(b, b) == 0
+
+        where:
+        a                   | b
+        '1.0'               | '2.0'
+        '1.2'               | '1.10'
+        '1.0'               | '1.0.1'
+        '1.0-rc-1'          | '1.0-rc-2'
+        '1.0-alpha'         | '1.0'
+        '1.0-alpha'         | '1.0-beta'
+        '1.0-1'             | '1.0-2'
+        '1.0.a'             | '1.0.b'
+        '1.0.alpha'         | '1.0.b'
+    }
+
+    def "equal"() {
+        expect:
+        comparator.compare(a, b) == 0
+        comparator.compare(b, a) == 0
+
+        //some of the comparison are not working hence commented out.
+        //consider updating the implementation when we port the ivy comparison mechanism.
+        where:
+        a                   | b
+        '1.0'               | '1.0'
+        '5.0'               | '5.0'
+//        '1.0.0'             | '1.0'
+//        '1.0.0'             | '1'
+//        '1.0-alpha'         | '1.0-ALPHA'
+//        '1.0.alpha'         | '1.0-alpha'
+    }
+
+    def "not equal"() {
+        expect:
+        comparator.compare(a, b) != 0
+        comparator.compare(b, a) != 0
+
+        where:
+        a                   | b
+        '1.0'               | ''
+        '1.0'               | null
+        '1.0'               | 'hey joe'
     }
 }

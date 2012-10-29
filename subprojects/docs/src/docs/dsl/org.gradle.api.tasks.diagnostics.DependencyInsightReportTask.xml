@@ -42,12 +42,6 @@
                     <td>Name</td>
                 </tr>
             </thead>
-            <tr>
-                <td>dependency</td>
-            </tr>
-            <tr>
-                <td>configuration</td>
-            </tr>
         </table>
     </section>
 </section>
