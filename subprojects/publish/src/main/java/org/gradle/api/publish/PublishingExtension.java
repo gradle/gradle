@@ -14,10 +14,24 @@
  * limitations under the License.
  */
 
-dependencies {
-    groovy libraries.groovy
-    compile project(':core')
-    testCompile project(':plugins')
-}
+package org.gradle.api.publish;
 
-useTestFixtures()
+import org.gradle.api.Action;
+import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.dsl.RepositoryHandler;
+
+/**
+ * Provides access to the publications and repositories to publish to.
+ */
+@Incubating
+public interface PublishingExtension {
+
+    RepositoryHandler getRepositories();
+
+    void repositories(Action<RepositoryHandler> configure);
+
+    PublicationContainer getPublications();
+
+    void publications(Action<PublicationContainer> configure);
+
+}

@@ -14,10 +14,25 @@
  * limitations under the License.
  */
 
-dependencies {
-    groovy libraries.groovy
-    compile project(':core')
-    testCompile project(':plugins')
-}
+package org.gradle.api.publish;
 
-useTestFixtures()
+import org.gradle.api.Incubating;
+import org.gradle.api.NamedDomainObjectSet;
+
+/**
+ * <p>A {@code PublicationContainer} is responsible for declaring and managing publications. See also {@link Publication}.</p>
+ */
+@Incubating
+public interface PublicationContainer extends NamedDomainObjectSet<Publication> {
+
+    /**
+     * {@inheritDoc}
+     */
+    Publication getByName(String name) throws UnknownPublicationException;
+
+    /**
+     * {@inheritDoc}
+     */
+    Publication getAt(String name) throws UnknownPublicationException;
+
+}

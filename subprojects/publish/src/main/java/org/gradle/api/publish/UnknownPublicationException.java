@@ -14,10 +14,15 @@
  * limitations under the License.
  */
 
-dependencies {
-    groovy libraries.groovy
-    compile project(':core')
-    testCompile project(':plugins')
-}
+package org.gradle.api.publish;
 
-useTestFixtures()
+import org.gradle.api.UnknownDomainObjectException;
+
+/**
+ * <p>An {@code UnknownPublicationException} is thrown when a configuration referenced by name cannot be found.</p>
+ */
+public class UnknownPublicationException extends UnknownDomainObjectException {
+    public UnknownPublicationException(String message) {
+        super(message);
+    }
+}

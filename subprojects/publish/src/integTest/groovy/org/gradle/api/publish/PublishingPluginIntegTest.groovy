@@ -14,10 +14,15 @@
  * limitations under the License.
  */
 
-dependencies {
-    groovy libraries.groovy
-    compile project(':core')
-    testCompile project(':plugins')
-}
+package org.gradle.api.publish
 
-useTestFixtures()
+import org.gradle.integtests.fixtures.WellBehavedPluginTest
+
+class PublishingPluginIntegTest extends WellBehavedPluginTest {
+
+    @Override
+    String getMainTask() {
+        "tasks"
+    }
+
+}
