@@ -54,19 +54,19 @@ class ScalaBasePlugin implements Plugin<Project> {
             sourceSet.allSource.source(sourceSet.scala)
             sourceSet.resources.filter.exclude { FileTreeElement element -> sourceSet.scala.contains(element.file) }
 
-            def taskName = sourceSet.getCompileTaskName('scala')
-            def scalaCompile = project.tasks.add(taskName, ScalaCompile);
-            scalaCompile.dependsOn sourceSet.compileJavaTaskName
-            javaPlugin.configureForSourceSet(sourceSet, scalaCompile)
-            scalaCompile.description = "Compiles the $sourceSet.scala."
-            scalaCompile.source = sourceSet.scala
-            configureIncrementalCompilation(scalaCompile, project, sourceSet)
-
-            project.tasks[sourceSet.classesTaskName].dependsOn(taskName)
+            configureScalaCompile(project, javaPlugin, sourceSet)
         }
     }
 
-    private void configureIncrementalCompilation(ScalaCompile scalaCompile, Project project, SourceSet sourceSet) {
+    private void configureScalaCompile(Project project, JavaBasePlugin javaPlugin, SourceSet sourceSet) {
+        def taskName = sourceSet.getCompileTaskName('scala')
+        def scalaCompile = project.tasks.add(taskName, ScalaCompile)
+        scalaCompile.dependsOn sourceSet.compileJavaTaskName
+        javaPlugin.configureForSourceSet(sourceSet, scalaCompile)
+        scalaCompile.description = "Compiles the $sourceSet.scala."
+        scalaCompile.source = sourceSet.scala
+        project.tasks[sourceSet.classesTaskName].dependsOn(taskName)
+
         // cannot use convention mapping because the resulting object won't be serializable
         // cannot compute at task execution time because we need association with source set
         project.gradle.projectsEvaluated {
