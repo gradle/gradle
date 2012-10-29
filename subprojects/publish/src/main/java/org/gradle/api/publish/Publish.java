@@ -132,27 +132,20 @@ public class Publish extends DefaultTask {
             throw new InvalidUserDataException("The 'repository' property is required");
         }
 
-        NormalizedPublication normalizedPublication = publicationInternal.asNormalisedPublication();
-        Publisher<NormalizedPublication> publisher = repositoryInternal.createPublisher(normalizedPublication);
+        doPublish(publicationInternal, repositoryInternal);
+    }
+
+    private <T extends NormalizedPublication> void doPublish(PublicationInternal<T> publication, ArtifactRepositoryInternal repository) {
+        Class<T> normalizedPublicationType = publication.getNormalisedPublicationType();
+        Publisher<T> publisher = repository.createPublisher(normalizedPublicationType);
 
         if (publisher == null) {
             throw new InvalidUserDataException(
-                    String.format("Repository '%s' cannot publish publication '%s'", repositoryInternal, publicationInternal)
+                    String.format("Repository '%s' cannot publish publication '%s'", repository, publication)
             );
         }
 
-        // Verify that the publisher is expecting our normalised publication type.
-        Class<?> expectedPublicationType = publisher.getPublicationType();
-        Class<?> actualPublicationType = normalizedPublication.getClass();
-        if (!expectedPublicationType.isAssignableFrom(actualPublicationType)) {
-            throw new IllegalStateException(
-                    String.format(
-                            "Internal error: publisher '%s' expects publication type '%s', tried to give it '%s'",
-                            publisher, expectedPublicationType.getName(), actualPublicationType.getName()
-                    )
-            );
-        }
-
+        T normalizedPublication = publication.asNormalisedPublication();
         publisher.publish(normalizedPublication);
     }
 

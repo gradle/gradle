@@ -21,6 +21,7 @@ import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
+import org.gradle.api.internal.artifacts.ArtifactPublisherFactory;
 import org.gradle.api.internal.artifacts.repositories.layout.*;
 import org.gradle.api.internal.artifacts.repositories.resolver.IvyResolver;
 import org.gradle.api.internal.artifacts.repositories.resolver.PatternBasedResolver;
@@ -30,6 +31,8 @@ import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFi
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.publish.internal.NormalizedPublication;
 import org.gradle.api.publish.internal.Publisher;
+import org.gradle.api.publish.ivy.internal.IvyNormalizedPublication;
+import org.gradle.api.publish.ivy.internal.IvyPublisher;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.WrapUtil;
 
@@ -46,10 +49,12 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     private final RepositoryTransportFactory transportFactory;
     private final LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder;
     private final CachedExternalResourceIndex<String> cachedExternalResourceIndex;
+    private final ArtifactPublisherFactory artifactPublisherFactory;
 
     public DefaultIvyArtifactRepository(FileResolver fileResolver, PasswordCredentials credentials, RepositoryTransportFactory transportFactory,
                                         LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder,
-                                        CachedExternalResourceIndex<String> cachedExternalResourceIndex) {
+                                        CachedExternalResourceIndex<String> cachedExternalResourceIndex,
+                                        ArtifactPublisherFactory artifactPublisherFactory) {
         super(credentials);
         this.fileResolver = fileResolver;
         this.transportFactory = transportFactory;
@@ -57,6 +62,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         this.cachedExternalResourceIndex = cachedExternalResourceIndex;
         this.additionalPatternsLayout = new AdditionalPatternsRepositoryLayout(fileResolver);
         this.layout = new GradleRepositoryLayout();
+        this.artifactPublisherFactory = artifactPublisherFactory;
     }
 
     public DependencyResolver createResolver() {
@@ -165,8 +171,13 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         }
     }
 
-    public <P extends NormalizedPublication> Publisher<P> createPublisher(P publication) {
-        return null;
+    public <T extends NormalizedPublication> Publisher<T> createPublisher(Class<T> publicationType) {
+        if (IvyNormalizedPublication.class.isAssignableFrom(publicationType)) {
+            //noinspection unchecked
+            return (Publisher<T>) new IvyPublisher(artifactPublisherFactory.createArtifactPublisher(this));
+        } else {
+            return null;
+        }
     }
 
 

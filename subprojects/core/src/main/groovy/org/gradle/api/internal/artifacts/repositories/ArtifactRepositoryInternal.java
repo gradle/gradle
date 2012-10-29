@@ -24,12 +24,12 @@ public interface ArtifactRepositoryInternal extends ArtifactRepository {
     DependencyResolver createResolver();
 
     /**
-     * Creates a publisher for the given publication, if possible.
+     * Creates a publisher for the given publication type, if possible.
      *
-     * @param publication The publication to create a publisher for.
-     * @param <P> The type of publication object that will be published.
-     * @return A publisher for the publication, or null if this repository cannot publish this publication.
+     * @param normalisedPublicationType The type of normalised publication to create a publisher for.
+     * @param <T> The type of publication object that will be published.
+     * @return A publisher for the publication type, or null if this repository cannot publish this publication type.
      */
-    <P extends NormalizedPublication> Publisher<P> createPublisher(P publication);
+    <T extends NormalizedPublication> Publisher<T> createPublisher(Class<T> normalisedPublicationType);
 
 }

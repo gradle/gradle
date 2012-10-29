@@ -38,6 +38,7 @@ class PublishTest extends Specification {
 
     def publication = Mock(PublicationInternal) {
         asNormalisedPublication() >> normalizedPublication
+        getNormalisedPublicationType() >> NormalizedPublication
     }
 
     def publisher = Mock(Publisher) {
@@ -45,7 +46,7 @@ class PublishTest extends Specification {
     }
 
     def repository = Mock(ArtifactRepositoryInternal) {
-        createPublisher(normalizedPublication) >> publisher
+        createPublisher(NormalizedPublication) >> publisher
     }
 
     def setup() {
@@ -104,6 +105,11 @@ class PublishTest extends Specification {
     }
 
     def "repository and publication are required"() {
+        given:
+        repository = Mock(ArtifactRepositoryInternal) {
+            1 * createPublisher(NormalizedPublication) >> publisher
+        }
+
         when:
         publish.execute()
 
@@ -129,17 +135,16 @@ class PublishTest extends Specification {
         publish.execute()
 
         then:
-        notThrown(Exception)
+        true
     }
 
     def "publisher must support normalised publication type"() {
         given:
-        publisher = Mock(Publisher) {
-            getPublicationType() >> String
-        }
-
         repository = Mock(ArtifactRepositoryInternal) {
-            createPublisher(normalizedPublication) >> publisher
+            1 * createPublisher(String) >> null
+        }
+        publication = Mock(PublicationInternal) {
+            1 * getNormalisedPublicationType() >> String
         }
 
         publish.publication = publication
@@ -150,8 +155,8 @@ class PublishTest extends Specification {
 
         then:
         def e = thrown(TaskExecutionException)
-        e.cause instanceof IllegalStateException
-        e.cause.message ==~ /Internal error: publisher 'Mock for type 'Publisher' named 'publisher'' expects publication type 'java.lang.String', tried to give it '.+'/
+        e.cause instanceof InvalidUserDataException
+        e.cause.message == "Repository 'Mock for type 'ArtifactRepositoryInternal' named 'repository'' cannot publish publication 'Mock for type 'PublicationInternal' named 'publication''"
     }
 
     Publish createPublish(String name) {

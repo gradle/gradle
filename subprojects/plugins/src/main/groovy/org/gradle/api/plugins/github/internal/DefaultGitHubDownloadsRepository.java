@@ -121,7 +121,7 @@ public class DefaultGitHubDownloadsRepository implements GitHubDownloadsReposito
         other.setPassword(credentials.getPassword());
     }
 
-    public <P extends NormalizedPublication> Publisher<P> createPublisher(P publication) {
+    public <P extends NormalizedPublication> Publisher<P> createPublisher(Class<P> publicationType) {
         return null;
     }
 

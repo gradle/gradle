@@ -300,7 +300,7 @@ public abstract class AbstractMavenResolver implements MavenResolver, Dependency
         beforeDeploymentActions.add(action);
     }
 
-    public <P extends NormalizedPublication> Publisher<P> createPublisher(P publication) {
+    public <P extends NormalizedPublication> Publisher<P> createPublisher(Class<P> publicationType) {
         return null;
     }
 

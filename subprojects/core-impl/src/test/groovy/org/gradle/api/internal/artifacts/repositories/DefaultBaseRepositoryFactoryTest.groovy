@@ -32,6 +32,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder
 import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex
+import org.gradle.api.internal.artifacts.ArtifactPublisherFactory
 
 /**
  * @author Hans Dockter
@@ -50,10 +51,11 @@ class DefaultBaseRepositoryFactoryTest {
     final RepositoryTransportFactory transportFactory = context.mock(RepositoryTransportFactory.class)
     final LocallyAvailableResourceFinder locallyAvailableResourceFinder = context.mock(LocallyAvailableResourceFinder.class)
     final CachedExternalResourceIndex cachedExternalResourceIndex = context.mock(CachedExternalResourceIndex);
+    final ArtifactPublisherFactory artifactPublisherFactory = context.mock(ArtifactPublisherFactory);
 
 
     final DefaultBaseRepositoryFactory factory = new DefaultBaseRepositoryFactory(
-            localMavenRepoLocator, fileResolver, new DirectInstantiator(), transportFactory, locallyAvailableResourceFinder, cachedExternalResourceIndex
+            localMavenRepoLocator, fileResolver, new DirectInstantiator(), transportFactory, locallyAvailableResourceFinder, cachedExternalResourceIndex, artifactPublisherFactory
     )
 
     @Before public void setup() {

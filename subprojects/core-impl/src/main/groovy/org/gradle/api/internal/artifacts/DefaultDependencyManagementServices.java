@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts;
 
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.gradle.StartParameter;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
@@ -25,6 +26,7 @@ import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
+import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.internal.artifacts.dsl.*;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler;
@@ -287,7 +289,12 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                         instantiator,
                         get(RepositoryTransportFactory.class),
                         get(LocallyAvailableResourceFinder.class),
-                        get(ByUrlCachedExternalResourceIndex.class)
+                        get(ByUrlCachedExternalResourceIndex.class),
+                        new DefaultArtifactPublisherFactory(new Transformer<ArtifactPublisher, ResolverProvider>() {
+                            public ArtifactPublisher transform(ResolverProvider resolverProvider) {
+                                return createArtifactPublisher(resolverProvider);
+                            }
+                        })
                 );
             }
 
@@ -369,7 +376,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                                                     resolver))));
         }
 
-        ArtifactPublisher createArtifactPublisher(DefaultRepositoryHandler resolverProvider) {
+        ArtifactPublisher createArtifactPublisher(ResolverProvider resolverProvider) {
             PublishModuleDescriptorConverter fileModuleDescriptorConverter = new PublishModuleDescriptorConverter(
                     get(ResolveModuleDescriptorConverter.class),
                     new DefaultArtifactsToModuleDescriptorConverter(DefaultArtifactsToModuleDescriptorConverter.IVY_FILE_STRATEGY));

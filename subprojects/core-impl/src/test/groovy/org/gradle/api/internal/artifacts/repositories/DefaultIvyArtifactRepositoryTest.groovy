@@ -28,6 +28,7 @@ import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFi
 import org.gradle.api.internal.file.FileResolver
 import spock.lang.Specification
 import org.gradle.logging.ProgressLoggerFactory
+import org.gradle.api.internal.artifacts.ArtifactPublisherFactory
 
 class DefaultIvyArtifactRepositoryTest extends Specification {
     final FileResolver fileResolver = Mock()
@@ -37,8 +38,10 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
     final LocallyAvailableResourceFinder locallyAvailableResourceFinder = Mock()
     final CachedExternalResourceIndex cachedExternalResourceIndex = Mock()
     final ProgressLoggerFactory progressLoggerFactory = Mock()
+    final ArtifactPublisherFactory artifactPublisherFactory = Mock()
+
     final DefaultIvyArtifactRepository repository = new DefaultIvyArtifactRepository(
-            fileResolver, credentials, transportFactory, locallyAvailableResourceFinder, cachedExternalResourceIndex
+            fileResolver, credentials, transportFactory, locallyAvailableResourceFinder, cachedExternalResourceIndex, artifactPublisherFactory
     )
 
     def "cannot create a resolver for url with unknown scheme"() {

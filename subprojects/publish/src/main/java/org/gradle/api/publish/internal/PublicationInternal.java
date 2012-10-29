@@ -50,4 +50,6 @@ public interface PublicationInternal<T extends NormalizedPublication> extends Pu
      */
     T asNormalisedPublication();
 
+    Class<T> getNormalisedPublicationType();
+
 }

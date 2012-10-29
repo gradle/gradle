@@ -83,7 +83,7 @@ public class DefaultFlatDirArtifactRepository implements FlatDirectoryArtifactRe
         return resolver;
     }
 
-    public <P extends NormalizedPublication> Publisher<P> createPublisher(P publication) {
+    public <P extends NormalizedPublication> Publisher<P> createPublisher(Class<P> publicationType) {
         return null;
     }
 

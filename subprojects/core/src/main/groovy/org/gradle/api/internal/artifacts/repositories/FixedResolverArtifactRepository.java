@@ -39,7 +39,7 @@ public class FixedResolverArtifactRepository implements ArtifactRepository, Arti
         return resolver;
     }
 
-    public <P extends NormalizedPublication> Publisher<P> createPublisher(P publication) {
+    public <P extends NormalizedPublication> Publisher<P> createPublisher(Class<P> publication) {
         return null;
     }
 
