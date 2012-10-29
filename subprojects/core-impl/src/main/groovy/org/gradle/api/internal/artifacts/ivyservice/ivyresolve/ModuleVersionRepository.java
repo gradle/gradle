@@ -37,9 +37,9 @@ public interface ModuleVersionRepository {
     ModuleVersionDescriptor getDependency(DependencyDescriptor dd) throws ModuleVersionResolveException;
 
     /**
-     * @return null if not found.
+     * Downloads the given artifact. Any failures are packaged up in the result.
      */
-    ArtifactResolveResult download(Artifact artifact) throws ArtifactResolveException;
+    ArtifactResolveResult download(Artifact artifact);
 
     // TODO - should be internal to the implementation of this (is only used to communicate IvyDependencyResolverAdapter -> CachingModuleVersionRepository)
     boolean isLocal();

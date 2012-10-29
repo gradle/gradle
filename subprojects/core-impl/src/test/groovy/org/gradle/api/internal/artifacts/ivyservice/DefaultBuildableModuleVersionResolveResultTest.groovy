@@ -102,4 +102,12 @@ class DefaultBuildableModuleVersionResolveResultTest extends Specification {
         then:
         result.failure == null
     }
+
+    def "fails with a not found exception when not found"() {
+        when:
+        result.notFound(Mock(ModuleRevisionId))
+
+        then:
+        result.failure instanceof ModuleVersionNotFoundException
+    }
 }

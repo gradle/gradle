@@ -61,7 +61,7 @@ public class UserResolverChain implements DependencyToModuleResolver {
         if (!errors.isEmpty()) {
             result.failed(new ModuleVersionResolveException(dependencyDescriptor.getDependencyRevisionId(), errors));
         } else {
-            result.failed(new ModuleVersionNotFoundException(dependencyDescriptor.getDependencyRevisionId()));
+            result.notFound(dependencyDescriptor.getDependencyRevisionId());
         }
     }
 

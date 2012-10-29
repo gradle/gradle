@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.BrokenArtifactResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.FileBackedArtifactResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ForceChangeDependencyDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
@@ -214,7 +215,7 @@ public class CachingModuleVersionRepository implements ModuleVersionRepository {
             if (cached.isMissing()) {
                 if (!cachePolicy.mustRefreshArtifact(artifactIdentifier, null, age)) {
                     LOGGER.debug("Detected non-existence of artifact '{}' in resolver cache", artifact.getId());
-                    return null;
+                    return new BrokenArtifactResolveResult(new ArtifactNotFoundException(artifact));
                 }
             } else {
                 File cachedArtifactFile = cached.getCachedFile();
@@ -228,7 +229,7 @@ public class CachingModuleVersionRepository implements ModuleVersionRepository {
         ArtifactResolveResult downloadedArtifact = delegate.download(artifact);
         LOGGER.debug("Downloaded artifact '{}' from resolver: {}", artifact.getId(), delegate);
 
-        if (downloadedArtifact == null) {
+        if (downloadedArtifact.getFailure() instanceof ArtifactNotFoundException) {
             artifactAtRepositoryCachedResolutionIndex.storeMissing(resolutionCacheIndexKey);
         } else {
             artifactAtRepositoryCachedResolutionIndex.store(resolutionCacheIndexKey, downloadedArtifact.getFile(), downloadedArtifact.getExternalResourceMetaData());

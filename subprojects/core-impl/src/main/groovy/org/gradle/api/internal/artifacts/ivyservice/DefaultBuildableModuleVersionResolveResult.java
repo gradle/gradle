@@ -30,6 +30,10 @@ public class DefaultBuildableModuleVersionResolveResult implements BuildableModu
         this.failure = failure;
     }
 
+    public void notFound(ModuleRevisionId moduleRevisionId) {
+        failed(new ModuleVersionNotFoundException(moduleRevisionId));
+    }
+
     public void resolved(ModuleRevisionId moduleRevisionId, ModuleDescriptor descriptor, ArtifactResolver artifactResolver) {
         this.moduleRevisionId = moduleRevisionId;
         this.moduleDescriptor = descriptor;
