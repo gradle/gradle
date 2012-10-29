@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal
 
-import java.util.concurrent.Callable
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.Task
@@ -26,6 +25,9 @@ import org.gradle.listener.ListenerManager
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
+
+import java.util.concurrent.Callable
+
 import static org.gradle.util.Matchers.isEmpty
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
@@ -79,8 +81,8 @@ class DefaultTaskTest extends AbstractTaskTest {
 
     @Test
     public void testDoFirstAddsActionToTheStartOfActionsList() {
-        Action<Task> action1 = createTaskAction();
-        Action<Task> action2 = createTaskAction();
+        Action<Task> action1 = new NullAction<Task>();
+        Action<Task> action2 = new NullAction<Task>();
 
         assertSame(defaultTask, defaultTask.doFirst(action1));
         assertEquals(1, defaultTask.actions.size());
@@ -94,8 +96,8 @@ class DefaultTaskTest extends AbstractTaskTest {
 
     @Test
     public void testDoLastAddsActionToTheEndOfActionsList() {
-        Action<Task> action1 = createTaskAction();
-        Action<Task> action2 = createTaskAction();
+        Action<Task> action1 = new NullAction<Task>();
+        Action<Task> action2 = new NullAction<Task>();
 
         assertSame(defaultTask, defaultTask.doLast(action1));
         assertEquals(1, defaultTask.actions.size());
