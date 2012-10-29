@@ -28,6 +28,7 @@ import spock.lang.Specification
 import java.text.SimpleDateFormat
 import org.gradle.api.XmlProvider
 import org.gradle.api.Action
+import org.gradle.api.internal.XmlTransformer
 
 class IvyXmlModuleDescriptorWriterTest extends Specification {
 
@@ -91,7 +92,8 @@ class IvyXmlModuleDescriptorWriterTest extends Specification {
         1 * md.dependencies >> [dependency1, dependency2]
         when:
         File ivyFile = temporaryFolder.file("test/ivy/ivy.xml")
-        ivyXmlModuleDescriptorWriter.write(md, ivyFile, new Action<XmlProvider>() {
+        XmlTransformer xmlTransformer = new XmlTransformer()
+        xmlTransformer.addAction(new Action<XmlProvider>() {
             void execute(XmlProvider xml) {
                 def node = xml.asNode()
                 node.info[0].@status = "foo"
@@ -99,6 +101,7 @@ class IvyXmlModuleDescriptorWriterTest extends Specification {
                 node.dependencies[0].dependency[0].@name = "changed"
             }
         })
+        ivyXmlModuleDescriptorWriter.write(md, ivyFile, xmlTransformer)
 
         then:
         def ivyModule = new XmlSlurper().parse(ivyFile);

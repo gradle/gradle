@@ -24,6 +24,7 @@ import org.gradle.api.XmlProvider;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.PublishException;
+import org.gradle.api.internal.XmlTransformer;
 import org.gradle.api.internal.artifacts.ArtifactPublisher;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
@@ -65,7 +66,7 @@ public class IvyBackedArtifactPublisher implements ArtifactPublisher {
         return ivyFactory.createIvy(settingsConverter.convertForPublish(publishResolvers));
     }
 
-    public void publish(Module module, ConfigurationInternal configuration, File descriptorDestination, @Nullable Action<XmlProvider> descriptorModifier) throws PublishException {
+    public void publish(Module module, ConfigurationInternal configuration, File descriptorDestination, @Nullable XmlTransformer descriptorModifier) throws PublishException {
         List<DependencyResolver> publishResolvers = resolverProvider.getResolvers();
         Ivy ivy = ivyForPublish(publishResolvers);
         Set<Configuration> configurationsToPublish = configuration.getHierarchy();
@@ -79,7 +80,7 @@ public class IvyBackedArtifactPublisher implements ArtifactPublisher {
                 ivy.getEventManager());
     }
 
-    private void writeDescriptorFile(File descriptorDestination, Set<Configuration> configurationsToPublish, Module module, Action<XmlProvider> descriptorModifier) {
+    private void writeDescriptorFile(File descriptorDestination, Set<Configuration> configurationsToPublish, Module module, XmlTransformer descriptorModifier) {
         if (descriptorDestination == null) {
             return;
         }

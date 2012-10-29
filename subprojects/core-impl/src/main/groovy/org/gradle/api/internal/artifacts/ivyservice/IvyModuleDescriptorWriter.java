@@ -17,14 +17,13 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.gradle.api.Action;
 import org.gradle.api.Nullable;
-import org.gradle.api.XmlProvider;
+import org.gradle.api.internal.XmlTransformer;
 
 import java.io.File;
 
 public interface IvyModuleDescriptorWriter {
 
-    public void write(ModuleDescriptor md, File output, @Nullable Action<XmlProvider> descriptorModifier);
+    public void write(ModuleDescriptor md, File output, @Nullable XmlTransformer descriptorModifier);
 
 }

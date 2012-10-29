@@ -25,10 +25,8 @@ import org.apache.ivy.util.Message;
 import org.apache.ivy.util.StringUtils;
 import org.apache.ivy.util.XMLHelper;
 import org.apache.ivy.util.extendable.ExtendableItem;
-import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.XmlProvider;
 import org.gradle.api.internal.XmlTransformer;
 import org.gradle.util.TextUtil;
 
@@ -41,9 +39,9 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
     public IvyXmlModuleDescriptorWriter() {
     }
 
-    private static void write(ModuleDescriptor md, Writer writer, Action<XmlProvider> descriptorModifier) throws IOException {
+    private static void write(ModuleDescriptor md, Writer writer, @Nullable XmlTransformer descriptorTransformer) throws IOException {
         Writer originalWriter = null;
-        if (descriptorModifier != null) {
+        if (descriptorTransformer != null) {
             originalWriter = writer;
             writer = new StringWriter();
         }
@@ -72,21 +70,19 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
         writer.write("</ivy-module>");
         writer.write(TextUtil.getPlatformLineSeparator());
 
-        if (originalWriter != null) {
-            XmlTransformer transformer = new XmlTransformer();
-            transformer.addAction(descriptorModifier);
-            transformer.transform(writer.toString(), originalWriter);
+        if (descriptorTransformer != null) {
+            descriptorTransformer.transform(writer.toString(), originalWriter);            
         }
     }
 
-    public void write(ModuleDescriptor md, File output, @Nullable Action<XmlProvider> descriptorModifier) {
+    public void write(ModuleDescriptor md, File output, @Nullable XmlTransformer descriptorTransformer) {
         if (output.getParentFile() != null) {
             output.getParentFile().mkdirs();
         }
         try {
             Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(output), "UTF-8"));
             try {
-                write(md, writer, descriptorModifier);
+                write(md, writer, descriptorTransformer);
             } finally {
                 writer.close();
             }
