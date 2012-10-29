@@ -37,7 +37,15 @@ task mixedSize(type: ProjectGeneratorTask) {
     projects[1].sourceFiles = 20000
 }
 
-task multiGroovy(type: ProjectGeneratorTask, description: 'Generates a multi-project Groovy build') {
+task withTestNG(type: ProjectGeneratorTask) {
+    projects = 2
+    sourceFiles = 10
+    testReport = true
+    testFramework = 'useTestNG()'
+    testClassTemplate = 'TestNGTest.java'
+}
+
+task multiGroovy(type: ProjectGeneratorTask, description: 'Generates a multi-project groovy build') {
     projects = 25
     groovyProject = true
 }

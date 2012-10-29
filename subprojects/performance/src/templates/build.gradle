@@ -38,6 +38,7 @@ dependencies {
     compile "org.codehaus.groovy:groovy:1.8.8"
     compile "commons-codec:commons-codec:1.2"
     testCompile 'junit:junit:4.8.2'
+    testCompile 'org.testng:testng:6.4'
     runtime 'com.googlecode:reflectasm:1.01'
 
     <% if (dependencies) { dependencies.each { %>
@@ -47,7 +48,8 @@ dependencies {
 
 test {
     jvmArgs '-XX:MaxPermSize=512m', '-XX:+HeapDumpOnOutOfMemoryError'
-    testReport = false
+    testReport = <%=testProject.defaults.testReport%>
+    <%=testProject.defaults.testFramework%>
 }
 
 <% if (groovyProject) { %>
