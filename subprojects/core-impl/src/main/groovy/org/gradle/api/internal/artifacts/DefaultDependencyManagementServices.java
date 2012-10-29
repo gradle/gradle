@@ -50,6 +50,7 @@ import org.gradle.api.internal.externalresource.cached.ByUrlCachedExternalResour
 import org.gradle.api.internal.externalresource.ivy.ArtifactAtRepositoryCachedExternalResourceIndex;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 import org.gradle.api.internal.externalresource.local.ivy.LocallyAvailableResourceFinderFactory;
+import org.gradle.api.internal.file.DefaultTemporaryFileProvider;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.internal.filestore.PathKeyFileStore;
@@ -207,7 +208,11 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
     }
 
     protected ArtifactRevisionIdFileStore createArtifactRevisionIdFileStore() {
-        return new ArtifactRevisionIdFileStore(get(PathKeyFileStore.class));
+        return new ArtifactRevisionIdFileStore(get(PathKeyFileStore.class), new DefaultTemporaryFileProvider(new Factory<File>() {
+            public File create() {
+                return new File(get(PathKeyFileStore.class).getBaseDir(), "tmp");
+            }
+        }));
     }
 
     protected SettingsConverter createSettingsConverter() {
@@ -234,7 +239,6 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         LocallyAvailableResourceFinderFactory finderFactory = new LocallyAvailableResourceFinderFactory(
                 get(ArtifactCacheMetaData.class), get(LocalMavenRepositoryLocator.class), get(ArtifactRevisionIdFileStore.class)
         );
-
         return finderFactory.create();
     }
 
@@ -369,11 +373,11 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                             get(PublishModuleDescriptorConverter.class))
             );
             return new ErrorHandlingArtifactDependencyResolver(
-                            new ShortcircuitEmptyConfigsArtifactDependencyResolver(
-                                    new SelfResolvingDependencyResolver(
-                                            new CacheLockingArtifactDependencyResolver(
-                                                    get(CacheLockingManager.class),
-                                                    resolver))));
+                    new ShortcircuitEmptyConfigsArtifactDependencyResolver(
+                            new SelfResolvingDependencyResolver(
+                                    new CacheLockingArtifactDependencyResolver(
+                                            get(CacheLockingManager.class),
+                                            resolver))));
         }
 
         ArtifactPublisher createArtifactPublisher(ResolverProvider resolverProvider) {

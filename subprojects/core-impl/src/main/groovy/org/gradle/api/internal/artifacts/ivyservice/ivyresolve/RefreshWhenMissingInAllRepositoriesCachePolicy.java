@@ -46,6 +46,9 @@ public class RefreshWhenMissingInAllRepositoriesCachePolicy implements CachePoli
     }
 
     public boolean mustRefreshModule(ModuleVersionIdentifier moduleVersionId, ResolvedModuleVersion resolvedModuleVersion, ModuleRevisionId moduleRevisionId, long ageMillis) {
+        if (ageMillis <= 0) {
+            return false;
+        }
         return isGloballyNotFound(moduleRevisionId);
     }
 

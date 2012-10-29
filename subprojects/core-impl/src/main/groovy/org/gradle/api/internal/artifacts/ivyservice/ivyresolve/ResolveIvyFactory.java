@@ -47,7 +47,6 @@ public class ResolveIvyFactory {
     private final StartParameterResolutionOverride startParameterResolutionOverride;
     private final TimeProvider timeProvider;
     private final RefreshWhenMissingInAllRepositoriesCachePolicy refreshWhenMissingInAllRepositoriesCachePolicy;
-    private final CachePolicyLookupRegistry cachePolicyLookupRegistry = new CachePolicyLookupRegistry();
 
     public ResolveIvyFactory(IvyFactory ivyFactory, ResolverProvider resolverProvider, SettingsConverter settingsConverter,
                              ModuleResolutionCache moduleResolutionCache, ModuleDescriptorCache moduleDescriptorCache,
@@ -64,7 +63,6 @@ public class ResolveIvyFactory {
         this.startParameterResolutionOverride = startParameterResolutionOverride;
         this.timeProvider = timeProvider;
         this.refreshWhenMissingInAllRepositoriesCachePolicy = new RefreshWhenMissingInAllRepositoriesCachePolicy(moduleResolutionCache, moduleDescriptorCache);
-
     }
 
     public IvyAdapter create(ConfigurationInternal configuration) {
@@ -92,8 +90,7 @@ public class ResolveIvyFactory {
             moduleVersionRepository = new CacheLockingModuleVersionRepository(moduleVersionRepository, cacheLockingManager);
             moduleVersionRepository = startParameterResolutionOverride.overrideModuleVersionRepository(moduleVersionRepository);
             ModuleVersionRepository cachingRepository = new CachingModuleVersionRepository(moduleVersionRepository, moduleResolutionCache, moduleDescriptorCache, artifactAtRepositoryCachedResolutionIndex,
-                    new ChainedCachePolicy(configuration.getResolutionStrategy().getCachePolicy(),
-                                           new OnlyOncePerRepositoryRefreshModuleCachePolicy(moduleVersionRepository, cachePolicyLookupRegistry, refreshWhenMissingInAllRepositoriesCachePolicy)), timeProvider);
+                    new ChainedCachePolicy(configuration.getResolutionStrategy().getCachePolicy(), refreshWhenMissingInAllRepositoriesCachePolicy), timeProvider);
             ModuleVersionRepository ivyContextualisedRepository = contextualiser.contextualise(ModuleVersionRepository.class, cachingRepository);
             userResolverChain.add(ivyContextualisedRepository);
         }
