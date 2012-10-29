@@ -22,9 +22,9 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.AbstractTask;
+import org.gradle.api.internal.Actions;
 import org.gradle.api.internal.AsmBackedClassGenerator;
 import org.gradle.api.internal.DependencyInjectingInstantiator;
-import org.gradle.api.internal.NullAction;
 import org.gradle.api.internal.project.AbstractProject;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -143,8 +143,8 @@ public abstract class AbstractTaskTest {
 
     @Test
     public void testDeleteAllActions() {
-        Action<Task> action1 = new NullAction<Task>();
-        Action<Task> action2 = new NullAction<Task>();
+        Action<Task> action1 = Actions.doNothing();
+        Action<Task> action2 = Actions.doNothing();
         getTask().doLast(action1);
         getTask().doLast(action2);
         assertSame(getTask(), getTask().deleteAllActions());

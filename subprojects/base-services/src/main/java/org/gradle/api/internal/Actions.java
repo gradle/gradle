@@ -18,10 +18,20 @@ package org.gradle.api.internal;
 
 import org.gradle.api.Action;
 
-import java.io.Serializable;
+public abstract class Actions {
 
-public class NullAction<T> implements Action<T>, Serializable {
-
-    public void execute(Object o) {}
+    /**
+     * Creates an action implementation that simply does nothing.
+     *
+     * A new action instance is created each time.
+     *
+     * @param <T> The parameter type
+     * @return An action object with an empty implementation
+     */
+    public static <T> Action<T> doNothing() {
+        return new Action<T>() {
+            public void execute(T t) {}
+        };
+    }
 
 }

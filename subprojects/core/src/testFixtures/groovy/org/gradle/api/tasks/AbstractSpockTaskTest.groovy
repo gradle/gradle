@@ -40,7 +40,7 @@ import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
 import static org.junit.Assert.assertFalse
-import org.gradle.api.internal.NullAction
+import org.gradle.api.internal.Actions
 
 /**
  * @author Hans Dockter
@@ -136,8 +136,8 @@ public abstract class AbstractSpockTaskTest extends Specification {
 
     def testDeleteAllActions() {
         when:
-        Action<Task> action1 = new NullAction<Task>()
-        Action<Task> action2 = new NullAction<Task>()
+        Action<Task> action1 = Actions.doNothing();
+        Action<Task> action2 = Actions.doNothing();
         getTask().doLast(action1);
         getTask().doLast(action2);
 

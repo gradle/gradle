@@ -19,10 +19,7 @@ package org.gradle.integtests;
 import org.apache.tools.ant.Project;
 import org.gradle.CacheUsage;
 import org.gradle.api.Action;
-import org.gradle.api.internal.ClassPathRegistry;
-import org.gradle.api.internal.DefaultClassPathProvider;
-import org.gradle.api.internal.DefaultClassPathRegistry;
-import org.gradle.api.internal.NullAction;
+import org.gradle.api.internal.*;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.TestFiles;
@@ -165,7 +162,7 @@ public class WorkerProcessIntegrationTest {
 
     @Test
     public void handlesWorkerProcessWhenJvmFailsToStart() throws Throwable {
-        execute(worker(new NullAction<WorkerProcessContext>()).jvmArgs("--broken").expectStartFailure());
+        execute(worker(Actions.doNothing()).jvmArgs("--broken").expectStartFailure());
     }
 
     private ChildProcess worker(Action<? super WorkerProcessContext> action) {

@@ -81,8 +81,8 @@ class DefaultTaskTest extends AbstractTaskTest {
 
     @Test
     public void testDoFirstAddsActionToTheStartOfActionsList() {
-        Action<Task> action1 = new NullAction<Task>();
-        Action<Task> action2 = new NullAction<Task>();
+        Action<Task> action1 = Actions.doNothing();
+        Action<Task> action2 = Actions.doNothing();
 
         assertSame(defaultTask, defaultTask.doFirst(action1));
         assertEquals(1, defaultTask.actions.size());
@@ -96,8 +96,8 @@ class DefaultTaskTest extends AbstractTaskTest {
 
     @Test
     public void testDoLastAddsActionToTheEndOfActionsList() {
-        Action<Task> action1 = new NullAction<Task>();
-        Action<Task> action2 = new NullAction<Task>();
+        Action<Task> action1 = Actions.doNothing();
+        Action<Task> action2 = Actions.doNothing();
 
         assertSame(defaultTask, defaultTask.doLast(action1));
         assertEquals(1, defaultTask.actions.size());

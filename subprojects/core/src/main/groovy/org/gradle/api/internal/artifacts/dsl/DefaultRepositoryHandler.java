@@ -22,8 +22,8 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
+import org.gradle.api.internal.Actions;
 import org.gradle.api.internal.ClosureBackedAction;
-import org.gradle.api.internal.NullAction;
 import org.gradle.api.internal.artifacts.DefaultArtifactRepositoryContainer;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
 import org.gradle.api.internal.artifacts.repositories.FixedResolverArtifactRepository;
@@ -89,7 +89,7 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
             }
         }
 
-        MavenArtifactRepository repository = repositoryFactory.maven(new NullAction<MavenArtifactRepository>());
+        MavenArtifactRepository repository = repositoryFactory.maven(Actions.doNothing());
         ConfigureUtil.configureByMap(modifiedArgs, repository);
         DependencyResolver resolver = repositoryFactory.getBaseRepositoryFactory().toResolver(repository);
         ConfigureUtil.configure(configClosure, resolver);

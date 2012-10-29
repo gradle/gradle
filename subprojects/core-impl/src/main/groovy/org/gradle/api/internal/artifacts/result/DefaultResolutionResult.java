@@ -22,8 +22,8 @@ import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
+import org.gradle.api.internal.Actions;
 import org.gradle.api.internal.ClosureBackedAction;
-import org.gradle.api.internal.NullAction;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -56,7 +56,7 @@ public class DefaultResolutionResult implements ResolutionResult {
 
     public void allDependencies(Action<? super DependencyResult> action) {
         Set<ResolvedModuleVersionResult> visited = new LinkedHashSet<ResolvedModuleVersionResult>();
-        eachElement(root, new NullAction<ResolvedModuleVersionResult>(), action, visited);
+        eachElement(root, Actions.doNothing(), action, visited);
     }
 
     public void allDependencies(final Closure closure) {
@@ -80,12 +80,12 @@ public class DefaultResolutionResult implements ResolutionResult {
 
     public Set<ResolvedModuleVersionResult> getAllModuleVersions() {
         final Set<ResolvedModuleVersionResult> out = new LinkedHashSet<ResolvedModuleVersionResult>();
-        eachElement(root, new NullAction<ResolvedModuleVersionResult>(), new NullAction<DependencyResult>(), out);
+        eachElement(root, Actions.doNothing(), Actions.doNothing(), out);
         return out;
     }
 
     public void allModuleVersions(final Action<? super ResolvedModuleVersionResult> action) {
-        eachElement(root, action, new NullAction<DependencyResult>(), new LinkedHashSet<ResolvedModuleVersionResult>());
+        eachElement(root, action, Actions.doNothing(), new LinkedHashSet<ResolvedModuleVersionResult>());
     }
 
     public void allModuleVersions(final Closure closure) {
