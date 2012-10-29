@@ -78,15 +78,15 @@ public abstract class Actions {
      * @param <I> The type of the original argument
      * @return An action that transforms an object of type I to type O to give to the given action
      */
-    public static <T, I> Action<I> transformBefore(final Action<? super T> action, final Transformer<T, I> transformer) {
+    public static <T, I> Action<I> transformBefore(final Action<? super T> action, final Transformer<? extends T, ? super I> transformer) {
         return new TransformingActionAdapter<T, I>(transformer, action);
     }
 
     private static class TransformingActionAdapter<T, I> implements Action<I> {
-        private final Transformer<T, I> transformer;
+        private final Transformer<? extends T, ? super I> transformer;
         private final Action<? super T> action;
 
-        private TransformingActionAdapter(Transformer<T, I> transformer, Action<? super T> action) {
+        private TransformingActionAdapter(Transformer<? extends T, ? super I> transformer, Action<? super T> action) {
             this.transformer = transformer;
             this.action = action;
         }
