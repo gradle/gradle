@@ -17,6 +17,11 @@
 package org.gradle.api.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.Transformer;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public abstract class Actions {
 
@@ -32,6 +37,57 @@ public abstract class Actions {
         return new Action<T>() {
             public void execute(T t) {}
         };
+    }
+
+    /**
+     * Creates an action that will call each of the given actions in order.
+     *
+     * @param actions The actions to make a composite of.
+     * @param <T> The type of the object that action is for
+     * @return The composite action.
+     */
+    public static <T> Action<T> composite(Action<? super T>... actions) {
+        final List<Action<? super T>> actionsCopy = new ArrayList<Action<? super T>>(actions.length);
+        Collections.addAll(actionsCopy, actions);
+
+        return new Action<T>() {
+            public void execute(final T item) {
+                for (Action<? super T> action : actionsCopy) {
+                    action.execute(item);
+                }
+            }
+        };
+    }
+
+    /**
+     * Creates a new composite action, where the argument is first transformed.
+     *
+     * @param action The action.
+     * @param transformer The transformer to transform the argument with
+     * @param <T> The type the action is expecting (that the argument is transformed to)
+     * @param <I> The type of the original argument
+     * @return An action that transforms an object of type I to type O to give to the given action
+     */
+    public static <T, I> Action<I> transformBefore(final Action<? super T> action, final Transformer<T, I> transformer) {
+        return new Action<I>() {
+            public void execute(I thing) {
+                T transformed = transformer.transform(thing);
+                action.execute(transformed);
+            }
+        };
+    }
+
+    /**
+     * Adapts an action to a different type by casting the object before giving it to the action.
+     *
+     * @param actionType The type the action is expecting
+     * @param action The action
+     * @param <T> The type the action is expecting
+     * @param <I> The type before casting
+     * @return An action that casts the object to the given type before giving it to the given action
+     */
+    public static <T, I> Action<I> castBefore(final Class<T> actionType, final Action<? super T> action) {
+        return transformBefore(action, new CastingTransformer<T, I>(actionType));
     }
 
 }
