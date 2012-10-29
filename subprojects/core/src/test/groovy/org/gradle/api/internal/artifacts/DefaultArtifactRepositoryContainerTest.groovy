@@ -71,7 +71,7 @@ class DefaultArtifactRepositoryContainerTest extends Specification {
         container.addLast(repo1Notation).is resolver1
         assert container.findByName(resolver1.name) != null
         container.addLast(repo2Notation)
-        container.resolvers == [resolver1, resolver2]
+        container == [resolverRepo1, resolverRepo2]
     }
 
     def "can add repositories with duplicate names"() {
@@ -108,7 +108,7 @@ class DefaultArtifactRepositoryContainerTest extends Specification {
         container.addBefore(repo2Notation, "repository")
 
         then:
-        container.resolvers == [resolver2, resolver1]
+        container == [resolverRepo2, resolverRepo1]
     }
 
     def testAddAfter() {
@@ -123,7 +123,7 @@ class DefaultArtifactRepositoryContainerTest extends Specification {
         container.addAfter(repo3Notation, "repository")
 
         then:
-        container.resolvers == [resolver1, resolver3, resolver2]
+        container == [resolverRepo1, resolverRepo3, resolverRepo2]
     }
 
 
@@ -182,7 +182,7 @@ class DefaultArtifactRepositoryContainerTest extends Specification {
         container.addFirst(repo2Notation)
 
         then:
-        container.resolvers == [resolver2, resolver1]
+        container == [resolverRepo2, resolverRepo1]
     }
 
     def testAddLastUsingUserDescription() {
@@ -195,7 +195,7 @@ class DefaultArtifactRepositoryContainerTest extends Specification {
         container.addLast(repo2Notation)
 
         then:
-        container.resolvers == [resolver1, resolver2]
+        container == [resolverRepo1, resolverRepo2]
     }
 
     public void testAddWithUnnamedResolver() {

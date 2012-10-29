@@ -27,6 +27,7 @@ import org.gradle.api.internal.ThreadGlobalInstantiator
 import org.gradle.api.internal.artifacts.DefaultArtifactRepositoryContainerTest
 import org.gradle.internal.reflect.Instantiator
 import org.junit.Test
+import org.gradle.api.internal.artifacts.repositories.FixedResolverArtifactRepository
 
 class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTest {
 
@@ -112,7 +113,9 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
 
         then:
         handler.mavenRepo([name: repoName, url: repoRoot, artifactUrls: [testUrl1, testUrl2]]).is(resolver)
-        handler.resolvers == [resolver]
+        handler.size() == 1
+        handler.first() instanceof FixedResolverArtifactRepository
+        handler.first().createResolver() == resolver
     }
 
     @Test
@@ -131,7 +134,8 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
 
         then:
         handler.mavenRepo([name: repoName, url: repoRoot]).is(resolver)
-        handler.resolvers == [resolver]
+        handler.size() == 1
+        handler.first().createResolver() == resolver
     }
 
     @Test
@@ -148,7 +152,8 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
 
         then:
         handler.mavenRepo([url: repoRoot]).is(resolver)
-        handler.resolvers == [resolver]
+        handler.size() == 1
+        handler.first().createResolver() == resolver
     }
 
     public void createIvyRepositoryUsingClosure() {
