@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.apache.ivy.core.cache.ArtifactOrigin;
+import org.apache.ivy.core.cache.CacheDownloadOptions;
 import org.apache.ivy.core.cache.RepositoryCacheManager;
 import org.apache.ivy.core.module.descriptor.*;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
@@ -44,6 +45,7 @@ import org.apache.ivy.plugins.resolver.util.ResourceMDParser;
 import org.apache.ivy.plugins.version.VersionMatcher;
 import org.apache.ivy.util.Message;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactOriginWithMetaData;
+import org.gradle.api.internal.artifacts.repositories.cachemanager.EnhancedArtifactDownloadReport;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.MetaDataOnlyExternalResource;
 import org.gradle.api.internal.externalresource.MissingExternalResource;
@@ -445,18 +447,15 @@ public class ExternalResourceResolver extends BasicResolver {
         }
     }
 
+    public EnhancedArtifactDownloadReport download(Artifact artifact) {
+        RepositoryCacheManager cacheManager = getRepositoryCacheManager();
+        return (EnhancedArtifactDownloadReport) cacheManager.download(artifact, artifactResourceResolver, resourceDownloader, new CacheDownloadOptions());
+    }
+
     @Override
     public DownloadReport download(Artifact[] artifacts, DownloadOptions options) {
-        RepositoryCacheManager cacheManager = getRepositoryCacheManager();
-
-        clearArtifactAttempts();
-        DownloadReport dr = new DownloadReport();
-        for (Artifact artifact : artifacts) {
-            ArtifactDownloadReport adr = cacheManager.download(artifact, artifactResourceResolver, resourceDownloader, getCacheDownloadOptions(options));
-            dr.addArtifactReport(adr);
-        }
-
-        return dr;
+        // This is never used
+        throw new UnsupportedOperationException();
     }
 
     @Override

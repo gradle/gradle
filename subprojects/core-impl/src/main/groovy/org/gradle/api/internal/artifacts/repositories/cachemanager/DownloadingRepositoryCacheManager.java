@@ -59,7 +59,7 @@ public class DownloadingRepositoryCacheManager extends AbstractRepositoryCacheMa
         this.artifactUrlCachedResolutionIndex = artifactUrlCachedResolutionIndex;
     }
 
-    public ArtifactDownloadReport download(Artifact artifact, ArtifactResourceResolver resourceResolver,
+    public EnhancedArtifactDownloadReport download(Artifact artifact, ArtifactResourceResolver resourceResolver,
                                            ResourceDownloader resourceDownloader, CacheDownloadOptions options) {
         EnhancedArtifactDownloadReport adr = new EnhancedArtifactDownloadReport(artifact);
 

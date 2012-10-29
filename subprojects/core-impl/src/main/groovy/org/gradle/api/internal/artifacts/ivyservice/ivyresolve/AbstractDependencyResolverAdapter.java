@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,36 +15,25 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.apache.ivy.core.cache.ArtifactOrigin;
-import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.report.ArtifactDownloadReport;
 import org.apache.ivy.core.report.DownloadStatus;
-import org.apache.ivy.core.resolve.DownloadOptions;
 import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.gradle.api.internal.artifacts.repositories.cachemanager.EnhancedArtifactDownloadReport;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.LocalFileRepositoryCacheManager;
-import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.UncheckedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.text.ParseException;
 
-/**
- * A {@link ModuleVersionRepository} wrapper around an Ivy {@link DependencyResolver}.
- */
-public class DependencyResolverAdapter implements ModuleVersionRepository {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DependencyResolverAdapter.class);
-
+public abstract class AbstractDependencyResolverAdapter implements ModuleVersionRepository {
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractDependencyResolverAdapter.class);
     private final DependencyResolverIdentifier identifier;
-    private final DependencyResolver resolver;
-    private final DownloadOptions downloadOptions = new DownloadOptions();
+    protected final DependencyResolver resolver;
 
-    public DependencyResolverAdapter(DependencyResolver resolver) {
+    public AbstractDependencyResolverAdapter(DependencyResolver resolver) {
         this.identifier = new DependencyResolverIdentifier(resolver);
         this.resolver = resolver;
     }
@@ -66,37 +55,13 @@ public class DependencyResolverAdapter implements ModuleVersionRepository {
         return resolver.getRepositoryCacheManager() instanceof LocalFileRepositoryCacheManager;
     }
 
-    public DownloadedArtifact download(Artifact artifact) {
-        ArtifactDownloadReport artifactDownloadReport = resolver.download(new Artifact[]{artifact}, downloadOptions).getArtifactReport(artifact);
-        if (downloadFailed(artifactDownloadReport)) {
-            if (artifactDownloadReport instanceof EnhancedArtifactDownloadReport) {
-                EnhancedArtifactDownloadReport enhancedReport = (EnhancedArtifactDownloadReport) artifactDownloadReport;
-                throw new ArtifactResolveException(artifactDownloadReport.getArtifact(), enhancedReport.getFailure());
-            }
-            throw new ArtifactResolveException(artifactDownloadReport.getArtifact(), artifactDownloadReport.getDownloadDetails());
-        }
-
-        ArtifactOrigin artifactOrigin = artifactDownloadReport.getArtifactOrigin();
-
-        File localFile = artifactDownloadReport.getLocalFile();
-        if (localFile != null) {
-            ExternalResourceMetaData metaData = null;
-            if (artifactOrigin instanceof ArtifactOriginWithMetaData) {
-                metaData = ((ArtifactOriginWithMetaData) artifactOrigin).getMetaData();
-            }
-            return new DownloadedArtifact(localFile, metaData);
-        } else {
-            return null;
-        }
-    }
-
-    private boolean downloadFailed(ArtifactDownloadReport artifactReport) {
+    protected boolean downloadFailed(ArtifactDownloadReport artifactReport) {
         // Ivy reports FAILED with MISSING_ARTIFACT message when the artifact doesn't exist.
         return artifactReport.getDownloadStatus() == DownloadStatus.FAILED
                 && !artifactReport.getDownloadDetails().equals(ArtifactDownloadReport.MISSING_ARTIFACT);
     }
 
-    public ModuleVersionDescriptor getDependency(final DependencyDescriptor dd) {
+    public ModuleVersionDescriptor getDependency(DependencyDescriptor dd) {
         ResolveData resolveData = IvyContextualiser.getIvyContext().getResolveData();
         try {
             ResolvedModuleRevision revision = resolver.getDependency(dd, resolveData);

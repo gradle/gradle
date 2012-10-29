@@ -49,7 +49,7 @@ public class UserResolverChain implements DependencyToModuleResolver {
     }
 
     public ModuleVersionResolveResult resolve(DependencyDescriptor dependencyDescriptor) {
-        LOGGER.debug("Attempting to resolve module '{}' using repositories '{}'", dependencyDescriptor.getDependencyRevisionId(), moduleVersionRepositoryNames);
+        LOGGER.debug("Attempting to resolve module '{}' using repositories {}", dependencyDescriptor.getDependencyRevisionId(), moduleVersionRepositoryNames);
         List<Throwable> errors = new ArrayList<Throwable>();
         final ModuleResolution latestResolved = findLatestModule(dependencyDescriptor, errors);
         if (latestResolved != null) {
@@ -134,9 +134,6 @@ public class UserResolverChain implements DependencyToModuleResolver {
         }
 
         public boolean isGeneratedModuleDescriptor() {
-            if (module == null) {
-                throw new IllegalStateException();
-            }
             return module.getDescriptor().isDefault();
         }
 

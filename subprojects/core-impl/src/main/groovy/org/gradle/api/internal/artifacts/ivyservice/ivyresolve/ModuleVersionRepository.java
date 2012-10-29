@@ -40,6 +40,6 @@ public interface ModuleVersionRepository {
      */
     DownloadedArtifact download(Artifact artifact) throws ArtifactResolveException;
 
-    // TODO - should be internal to the implementation of this (is only used to communicate DependencyResolverAdapter -> CachingModuleVersionRepository)
+    // TODO - should be internal to the implementation of this (is only used to communicate IvyDependencyResolverAdapter -> CachingModuleVersionRepository)
     boolean isLocal();
 }

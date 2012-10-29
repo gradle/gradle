@@ -28,6 +28,7 @@ import org.gradle.api.internal.artifacts.ivyservice.IvyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.SettingsConverter;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache;
+import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
 import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex;
 import org.gradle.api.internal.externalresource.ivy.ArtifactAtRepositoryKey;
 import org.gradle.internal.TimeProvider;
@@ -81,7 +82,12 @@ public class ResolveIvyFactory {
         for (DependencyResolver rawResolver : rawResolvers) {
             // TODO:DAZ This could be lazily provided via the ivy context. Then we can change resolverProvider.getResolvers() -> getRepositories().
             rawResolver.setSettings(ivySettings);
-            ModuleVersionRepository moduleVersionRepository = new DependencyResolverAdapter(rawResolver);
+            ModuleVersionRepository moduleVersionRepository;
+            if (rawResolver instanceof ExternalResourceResolver) {
+                moduleVersionRepository = new ExternalResourceResolverAdapter((ExternalResourceResolver) rawResolver);
+            } else {
+                moduleVersionRepository = new IvyDependencyResolverAdapter(rawResolver);
+            }
             refreshWhenMissingInAllRepositoriesCachePolicy.registerRepository(moduleVersionRepository);
             moduleVersionRepository = new CacheLockingModuleVersionRepository(moduleVersionRepository, cacheLockingManager);
             moduleVersionRepository = startParameterResolutionOverride.overrideModuleVersionRepository(moduleVersionRepository);
