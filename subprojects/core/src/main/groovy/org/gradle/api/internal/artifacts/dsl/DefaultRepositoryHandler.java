@@ -91,7 +91,7 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
 
         MavenArtifactRepository repository = repositoryFactory.maven(new NullAction<MavenArtifactRepository>());
         ConfigureUtil.configureByMap(modifiedArgs, repository);
-        DependencyResolver resolver = repositoryFactory.getBaseRepositoryFactory().toResolver(DependencyResolver.class, repository);
+        DependencyResolver resolver = repositoryFactory.getBaseRepositoryFactory().toResolver(repository);
         ConfigureUtil.configure(configClosure, resolver);
         addRepository(new FixedResolverArtifactRepository(resolver));
         return resolver;

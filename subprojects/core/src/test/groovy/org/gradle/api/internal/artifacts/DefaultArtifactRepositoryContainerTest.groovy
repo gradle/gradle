@@ -55,7 +55,7 @@ class DefaultArtifactRepositoryContainerTest extends Specification {
 
         interaction {
             1 * baseRepositoryFactory.createRepository(notation) >> repo
-            1 * baseRepositoryFactory.toResolver(_, repo) >> resolver
+            1 * baseRepositoryFactory.toResolver(repo) >> resolver
             1 * baseRepositoryFactory.createResolverBackedRepository(resolver) >> resolverRepo
         }
 

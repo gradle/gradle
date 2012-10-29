@@ -108,7 +108,7 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
         1 * repository.setUrl(repoRoot)
         1 * repository.setArtifactUrls([testUrl1, testUrl2])
         DependencyResolver resolver = new FileSystemResolver(name: "resolver")
-        1 * baseRepositoryFactory.toResolver(_, repository) >> resolver
+        1 * baseRepositoryFactory.toResolver(repository) >> resolver
 
         then:
         handler.mavenRepo([name: repoName, url: repoRoot, artifactUrls: [testUrl1, testUrl2]]).is(resolver)
@@ -127,7 +127,7 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
         repository.getName() >> repoName
         1 * repository.setUrl(repoRoot)
         DependencyResolver resolver = new FileSystemResolver(name: "resolver")
-        1 * baseRepositoryFactory.toResolver(_, repository) >> resolver
+        1 * baseRepositoryFactory.toResolver(repository) >> resolver
 
         then:
         handler.mavenRepo([name: repoName, url: repoRoot]).is(resolver)
@@ -144,7 +144,7 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
         repository.getName() >> null
         1 * repository.setUrl(repoRoot)
         DependencyResolver resolver = new FileSystemResolver(name: "resolver")
-        1 * baseRepositoryFactory.toResolver(_, repository) >> resolver
+        1 * baseRepositoryFactory.toResolver(repository) >> resolver
 
         then:
         handler.mavenRepo([url: repoRoot]).is(resolver)

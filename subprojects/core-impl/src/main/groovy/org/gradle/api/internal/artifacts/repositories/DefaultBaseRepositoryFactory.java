@@ -110,9 +110,8 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
         );
     }
 
-    public <T extends DependencyResolver> T toResolver(Class<T> type, ArtifactRepository repository) {
-        DependencyResolver resolver = ((ArtifactRepositoryInternal) repository).createResolver();
-        return type.cast(resolver);
+    public DependencyResolver toResolver(ArtifactRepository repository) {
+        return ((ArtifactRepositoryInternal) repository).createResolver();
     }
 
     public FixedResolverArtifactRepository createResolverBackedRepository(DependencyResolver resolver) {

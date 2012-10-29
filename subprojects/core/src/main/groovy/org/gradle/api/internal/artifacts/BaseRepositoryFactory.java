@@ -43,7 +43,7 @@ public interface BaseRepositoryFactory {
 
     MavenArtifactRepository createMavenRepository();
 
-    <T extends DependencyResolver> T toResolver(Class<T> type, ArtifactRepository repository);
+    DependencyResolver toResolver(ArtifactRepository repository);
 
     FixedResolverArtifactRepository createResolverBackedRepository(DependencyResolver resolver);
 }

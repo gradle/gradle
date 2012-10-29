@@ -152,7 +152,7 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
 
     private DependencyResolver addCustomDependencyResolver(Object userDescription, Closure configureClosure, Action<ArtifactRepository> orderAction) {
         ArtifactRepository repository = baseRepositoryFactory.createRepository(userDescription);
-        DependencyResolver resolver = baseRepositoryFactory.toResolver(DependencyResolver.class, repository);
+        DependencyResolver resolver = baseRepositoryFactory.toResolver(repository);
         ConfigureUtil.configure(configureClosure, resolver);
         ArtifactRepository resolverRepository = baseRepositoryFactory.createResolverBackedRepository(resolver);
         resolverRepository.setName("repository");
