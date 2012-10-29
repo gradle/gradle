@@ -16,6 +16,8 @@
 
 package org.gradle.api.tasks.scala;
 
+import org.gradle.api.tasks.Input;
+
 import java.io.File;
 import java.io.Serializable;
 
@@ -34,6 +36,7 @@ public class IncrementalCompileOptions implements Serializable {
      *
      * @return the file path where which results of code analysis are to be stored
      */
+    @Input
     public File getAnalysisFile() {
         return analysisFile;
     }
@@ -52,6 +55,7 @@ public class IncrementalCompileOptions implements Serializable {
      * @return the directory or archive path by which the code produced by this task
      * is published to other {@code ScalaCompile} tasks
      */
+    // only an input for other task instances
     public File getPublishedCode() {
         return publishedCode;
     }

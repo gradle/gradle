@@ -18,6 +18,7 @@ package org.gradle.api.tasks.scala;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 
+import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.compile.AbstractOptions;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
@@ -296,6 +297,7 @@ public class ScalaCompileOptions extends AbstractOptions {
         this.useAnt = useAnt;
     }
 
+    @Nested
     public IncrementalCompileOptions getIncrementalOptions() {
         return incrementalOptions;
     }
