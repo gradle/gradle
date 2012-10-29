@@ -33,22 +33,80 @@ class UniquePathKeyFileStoreTest extends Specification {
     }
 
     def "add executes action if file does not exist"() {
+        def file = temporaryFolder.file("fsbase/a/a");
+
         when:
         def fileInStore = uniquePathKeyFileStore.add("a/a", action)
+
         then:
-        fileInStore != null
-        1 * action.execute(_)
+        fileInStore.file == file
+        1 * action.execute(file) >> { File f -> f.text = 'hi' }
     }
 
     def "add skips action if file already exists"() {
-        UniquePathKeyFileStore uniquePathKeyFileStore = new UniquePathKeyFileStore(temporaryFolder.createDir("fsbase"))
         setup:
-        temporaryFolder.createFile("fsbase/a/a");
+        def file = temporaryFolder.createFile("fsbase/a/a");
+
         when:
         def fileInStore = uniquePathKeyFileStore.add("a/a", action)
+
         then:
-        fileInStore != null
+        fileInStore.file == file
         0 * action.execute(_)
     }
 
+    def "copy returns existing file it it already exists"() {
+        setup:
+        def source = temporaryFolder.createFile("some-file")
+        def file = temporaryFolder.createFile("fsbase/a/a");
+        file.text = 'existing content'
+
+        when:
+        def fileInStore = uniquePathKeyFileStore.copy("a/a", source)
+
+        then:
+        fileInStore.file == file
+        file.text == 'existing content'
+    }
+
+    def "copy adds file it it does not exist"() {
+        setup:
+        def source = temporaryFolder.createFile("some-file")
+        def file = temporaryFolder.file("fsbase/a/a");
+
+        when:
+        def fileInStore = uniquePathKeyFileStore.copy("a/a", source)
+
+        then:
+        fileInStore.file == file
+        file.assertIsCopyOf(source)
+    }
+
+    def "move returns existing file it it already exists"() {
+        setup:
+        def source = temporaryFolder.createFile("some-file")
+        def file = temporaryFolder.createFile("fsbase/a/a");
+        file.text = 'existing content'
+
+        when:
+        def fileInStore = uniquePathKeyFileStore.move("a/a", source)
+
+        then:
+        fileInStore.file == file
+        file.text == 'existing content'
+        !source.exists()
+    }
+
+    def "move adds file it it does not exist"() {
+        setup:
+        def source = temporaryFolder.createFile("some-file")
+        def file = temporaryFolder.file("fsbase/a/a");
+
+        when:
+        def fileInStore = uniquePathKeyFileStore.move("a/a", source)
+
+        then:
+        fileInStore.file == file
+        !source.exists()
+    }
 }
