@@ -22,9 +22,8 @@ dependencies {
     compile project(":core")
     compile project(":plugins")
 
-    provided("com.typesafe.zinc:zinc:0.2.0-M2") {
-        exclude module: "ensime-sbt-cmd"
-    }
+    // keep in sync with ScalaBasePlugin code
+    provided("com.typesafe.zinc:zinc:0.2.0-M2")
 
     testCompile libraries.slf4j_api
 }
