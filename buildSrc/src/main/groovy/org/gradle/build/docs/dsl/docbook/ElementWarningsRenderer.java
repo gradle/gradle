@@ -29,9 +29,9 @@ public class ElementWarningsRenderer {
             Element para = document.createElement("para");
             caution.appendChild(para);
             para.appendChild(document.createTextNode(String.format("Note: This %s is ", type)));
-            Element link = document.createElement("link");
+            Element link = document.createElement("ulink");
             para.appendChild(link);
-            link.setAttribute("linkend", "element-annotations");
+            link.setAttribute("url", "../userguide/feature_lifecycle.html");
             link.appendChild(document.createTextNode("deprecated"));
             para.appendChild(document.createTextNode(" and will be removed in the next major version of Gradle."));
         }
@@ -42,9 +42,9 @@ public class ElementWarningsRenderer {
             Element para = document.createElement("para");
             caution.appendChild(para);
             para.appendChild(document.createTextNode(String.format("Note: This %s is ", type)));
-            Element link = document.createElement("link");
+            Element link = document.createElement("ulink");
             para.appendChild(link);
-            link.setAttribute("linkend", "element-annotations");
+            link.setAttribute("url", "../userguide/feature_lifecycle.html");
             link.appendChild(document.createTextNode("incubating"));
             para.appendChild(document.createTextNode(" and may change in a future version of Gradle."));
         }

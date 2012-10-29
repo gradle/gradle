@@ -387,13 +387,4 @@
         </table>
     </section>
 
-    <section id="element-annotations">
-        <title>Element annotations</title>
-        <para>
-            Elements in the DSL reference can be annotated as <emphasis>deprecated</emphasis> or <emphasis>incubating</emphasis>.
-            These annotations refer to the Gradle Feature Lifecycle, which is
-            <ulink url="../userguide/feature_lifecycle.html">described in the User Guide</ulink>.
-        </para>
-    </section>
-
 </book>
