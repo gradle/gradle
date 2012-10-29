@@ -22,7 +22,7 @@ import org.gradle.logging.StyledTextOutput;
 import org.gradle.logging.StyledTextOutputFactory;
 import org.gradle.util.GradleVersion;
 
-import static org.gradle.logging.StyledTextOutput.Style.*;
+import static org.gradle.logging.StyledTextOutput.Style.UserInput;
 
 public class Help extends DefaultTask {
     @TaskAction

@@ -43,6 +43,20 @@ class HelpTasksPluginSpec extends Specification {
         hasHelpTask(PROPERTIES_TASK, PropertyReportTask)
     }
 
+    def "configures tasks for java plugin"() {
+        when:
+        project.apply(plugin: 'help-tasks')
+
+        then:
+        !project.implicitTasks[DEPENDENCY_INSIGHT_TASK].configuration
+
+        when:
+        project.plugins.apply(JavaPlugin)
+
+        then:
+        project.implicitTasks[DEPENDENCY_INSIGHT_TASK].configuration == project.configurations.compile
+    }
+
     private void hasHelpTask(String name, Class type) {
         def task = project.implicitTasks.getByName(name)
         assert type.isInstance(task)

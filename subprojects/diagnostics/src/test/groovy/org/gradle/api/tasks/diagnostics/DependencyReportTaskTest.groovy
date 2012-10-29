@@ -17,12 +17,11 @@ package org.gradle.api.tasks.diagnostics;
 
 
 import org.gradle.api.Project
-
+import org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer
+import org.gradle.api.tasks.diagnostics.internal.dependencies.AsciiDependencyReportRenderer
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
-import org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer
-import org.gradle.api.tasks.diagnostics.internal.dependencies.AsciiDependencyReportRenderer
 
 public class DependencyReportTaskTest extends Specification {
 

@@ -16,9 +16,9 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.Project
+import org.gradle.api.reporting.ReportingExtension
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
-import org.gradle.api.reporting.ReportingExtension
 
 // Note: ReportingBasePluginConvention has been deprecated
 public class ReportingBasePluginConventionTest extends Specification {

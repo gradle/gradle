@@ -14,6 +14,10 @@ configurations {
 
 dependencies {
     integTestCompile project(":internalIntegTesting")
+
+    //so that implicit help tasks are available:
+    integTestRuntime project(':diagnostics')
+    //above can be removed when we implement the auto-apply plugins
 }
 
 ext.integTestTasks = tasks.withType(Test).matching { it.name.toLowerCase().endsWith('integtest') }

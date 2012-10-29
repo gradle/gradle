@@ -15,33 +15,29 @@
  */
 package org.gradle.api.plugins
 
-import org.gradle.util.HelperUtil
-
-import spock.lang.Specification
 import org.gradle.api.Project
 import org.gradle.api.reporting.ReportingExtension
+import org.gradle.util.WrapUtil
 
-public class ReportingBasePluginTest extends Specification {
+public class ProjectReportsPluginConvention {
+    /**
+     * The name of the directory to generate the project reports into, relative to the project's reports dir.
+     */
+    String projectReportDirName = 'project'
+    private final Project project
 
-    Project project = HelperUtil.createRootProject();
-    
-    def setup() {
-        project.plugins.apply(ReportingBasePlugin)
+    def ProjectReportsPluginConvention(Project project) {
+        this.project = project;
     }
-    
-    def addsTasksAndConventionToProject() {
-        expect:
-        project.convention.plugins.get("reportingBase") instanceof ReportingBasePluginConvention
+
+    /**
+     * Returns the directory to generate the project reports into.
+     */
+    File getProjectReportDir() {
+        project.extensions.getByType(ReportingExtension).file(projectReportDirName)
     }
-    
-    def "adds reporting extension"() {
-        expect:
-        project.reporting instanceof ReportingExtension
-        
-        project.configure(project) {
-            reporting {
-                baseDir "somewhere"
-            }
-        }
+
+    Set<Project> getProjects() {
+        WrapUtil.toSet(project)
     }
 }

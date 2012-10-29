@@ -16,8 +16,8 @@
 package org.gradle.api.tasks.diagnostics;
 
 import org.gradle.api.Project;
-import org.gradle.api.tasks.diagnostics.internal.ReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.PropertyReportRenderer;
+import org.gradle.api.tasks.diagnostics.internal.ReportRenderer;
 
 import java.io.IOException;
 import java.util.Map;

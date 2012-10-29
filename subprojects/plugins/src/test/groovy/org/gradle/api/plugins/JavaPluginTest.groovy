@@ -231,15 +231,6 @@ class JavaPluginTest {
         assertThat(task.testReportDir, equalTo(project.testReportDir))
     }
 
-    @Test public void configuresHelpTasks() {
-        //when:
-        javaPlugin.apply(project);
-        project.plugins.apply(HelpTasksPlugin)
-
-        //then:
-        assert project.implicitTasks.getByName('dependencyInsight').configuration.name == 'compile'
-    }
-
     @Test public void buildOtherProjects() {
         DefaultProject commonProject = HelperUtil.createChildProject(project, "common");
         DefaultProject middleProject = HelperUtil.createChildProject(project, "middle");

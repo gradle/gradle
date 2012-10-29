@@ -1,9 +1,6 @@
 dependencies {
     groovy libraries.groovy
     compile project(':core')
-    testCompile project(':coreImpl')
-    integTestRuntime project(':plugins')
 }
 
 useTestFixtures()
-useTestFixtures(project: ':coreImpl')

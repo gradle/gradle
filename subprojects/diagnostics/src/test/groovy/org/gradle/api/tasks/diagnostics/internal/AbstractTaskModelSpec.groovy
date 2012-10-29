@@ -15,10 +15,10 @@
  */
 package org.gradle.api.tasks.diagnostics.internal
 
-import spock.lang.Specification
-import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.Task
+import org.gradle.api.tasks.TaskDependency
 import org.gradle.util.Path
+import spock.lang.Specification
 
 abstract class AbstractTaskModelSpec extends Specification {
     def taskDetails(String path) {

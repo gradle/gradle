@@ -51,9 +51,12 @@ class HelpTasksPlugin implements Plugin<ProjectInternal> {
             group = HELP_GROUP
         }
 
-        project.implicitTasks.add(name: DEPENDENCY_INSIGHT_TASK, type: DependencyInsightReportTask) {
+        project.implicitTasks.add(name: DEPENDENCY_INSIGHT_TASK, type: DependencyInsightReportTask) { task ->
             description = "Displays the insight into a specific dependency in $project."
             group = HELP_GROUP
+            project.plugins.withType(JavaPlugin) {
+                task.configuration = project.configurations.compile
+            }
         }
 
         project.implicitTasks.add(name: DEPENDENCIES_TASK, type: DependencyReportTask) {

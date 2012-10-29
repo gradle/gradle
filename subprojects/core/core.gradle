@@ -54,7 +54,6 @@ dependencies {
     testFixturesRuntime project(':coreImpl')
 
     integTestCompile project(":internalIntegTesting")
-    integTestRuntime project(":reporting")
 
     reports 'css3-pie:css3-pie:1.0beta3'
 }

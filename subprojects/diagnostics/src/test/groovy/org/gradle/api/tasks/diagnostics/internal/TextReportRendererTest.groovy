@@ -17,8 +17,8 @@ package org.gradle.api.tasks.diagnostics.internal;
 
 
 import org.gradle.api.Project
-import org.gradle.logging.internal.StreamingStyledTextOutput
 import org.gradle.logging.TestStyledTextOutput
+import org.gradle.logging.internal.StreamingStyledTextOutput
 import org.gradle.util.TemporaryFolder
 import org.jmock.Expectations
 import org.jmock.integration.junit4.JMock
@@ -26,6 +26,7 @@ import org.jmock.integration.junit4.JUnit4Mockery
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+
 import static org.gradle.util.Matchers.containsLine
 import static org.hamcrest.Matchers.instanceOf
 import static org.hamcrest.Matchers.nullValue

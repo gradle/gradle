@@ -19,7 +19,10 @@ import com.google.common.collect.SetMultimap;
 import com.google.common.collect.TreeMultimap;
 import org.gradle.util.Path;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
 
 public class AggregateMultiProjectTaskReportModel implements TaskReportModel {
     private List<TaskReportModel> projects = new ArrayList<TaskReportModel>();
