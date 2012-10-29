@@ -16,9 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolveResult;
-import org.gradle.api.internal.artifacts.ivyservice.BrokenArtifactResolveResult;
-import org.gradle.api.internal.artifacts.ivyservice.FileBackedArtifactResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.EnhancedArtifactDownloadReport;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
@@ -36,10 +34,11 @@ public class ExternalResourceResolverAdapter extends AbstractDependencyResolverA
         this.resolver = resolver;
     }
 
-    public ArtifactResolveResult download(Artifact artifact) {
+    public void download(Artifact artifact, BuildableArtifactResolveResult result) {
         EnhancedArtifactDownloadReport artifactDownloadReport = resolver.download(artifact);
         if (downloadFailed(artifactDownloadReport)) {
-            return new BrokenArtifactResolveResult(new ArtifactResolveException(artifactDownloadReport.getArtifact(), artifactDownloadReport.getFailure()));
+            result.failed(new ArtifactResolveException(artifactDownloadReport.getArtifact(), artifactDownloadReport.getFailure()));
+            return;
         }
 
         ArtifactOriginWithMetaData artifactOrigin = artifactDownloadReport.getArtifactOrigin();
@@ -47,9 +46,9 @@ public class ExternalResourceResolverAdapter extends AbstractDependencyResolverA
         File localFile = artifactDownloadReport.getLocalFile();
         if (localFile != null) {
             ExternalResourceMetaData metaData = artifactOrigin.getMetaData();
-            return new FileBackedArtifactResolveResult(localFile, metaData);
+            result.resolved(localFile, metaData);
         } else {
-            return new BrokenArtifactResolveResult(new ArtifactNotFoundException(artifact));
+            result.notFound(artifact);
         }
     }
 }

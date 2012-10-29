@@ -26,9 +26,7 @@ import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolveResult;
-import org.gradle.api.internal.artifacts.ivyservice.BrokenArtifactResolveResult;
-import org.gradle.api.internal.artifacts.ivyservice.FileBackedArtifactResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ForceChangeDependencyDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache;
@@ -199,9 +197,10 @@ public class CachingModuleVersionRepository implements ModuleVersionRepository {
         }
     }
 
-    public ArtifactResolveResult download(Artifact artifact) {
+    public void download(Artifact artifact, BuildableArtifactResolveResult result) {
         if (isLocal()) {
-            return delegate.download(artifact);
+            delegate.download(artifact, result);
+            return;
         }
 
         ArtifactAtRepositoryKey resolutionCacheIndexKey = new ArtifactAtRepositoryKey(delegate, artifact.getId());
@@ -215,27 +214,27 @@ public class CachingModuleVersionRepository implements ModuleVersionRepository {
             if (cached.isMissing()) {
                 if (!cachePolicy.mustRefreshArtifact(artifactIdentifier, null, age)) {
                     LOGGER.debug("Detected non-existence of artifact '{}' in resolver cache", artifact.getId());
-                    return new BrokenArtifactResolveResult(new ArtifactNotFoundException(artifact));
+                    result.notFound(artifact);
+                    return;
                 }
             } else {
                 File cachedArtifactFile = cached.getCachedFile();
                 if (!cachePolicy.mustRefreshArtifact(artifactIdentifier, cachedArtifactFile, age)) {
                     LOGGER.debug("Found artifact '{}' in resolver cache: {}", artifact.getId(), cachedArtifactFile);
-                    return new FileBackedArtifactResolveResult(cachedArtifactFile, cached.getExternalResourceMetaData());
+                    result.resolved(cachedArtifactFile, cached.getExternalResourceMetaData());
+                    return;
                 }
             }
         }
 
-        ArtifactResolveResult downloadedArtifact = delegate.download(artifact);
+        delegate.download(artifact, result);
         LOGGER.debug("Downloaded artifact '{}' from resolver: {}", artifact.getId(), delegate);
 
-        if (downloadedArtifact.getFailure() instanceof ArtifactNotFoundException) {
+        if (result.getFailure() instanceof ArtifactNotFoundException) {
             artifactAtRepositoryCachedResolutionIndex.storeMissing(resolutionCacheIndexKey);
         } else {
-            artifactAtRepositoryCachedResolutionIndex.store(resolutionCacheIndexKey, downloadedArtifact.getFile(), downloadedArtifact.getExternalResourceMetaData());
+            artifactAtRepositoryCachedResolutionIndex.store(resolutionCacheIndexKey, result.getFile(), result.getExternalResourceMetaData());
         }
-
-        return downloadedArtifact;
     }
 
     private ModuleVersionSelector createModuleVersionSelector(ModuleRevisionId moduleRevisionId) {

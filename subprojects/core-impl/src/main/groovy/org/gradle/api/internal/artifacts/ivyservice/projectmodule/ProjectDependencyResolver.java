@@ -19,7 +19,6 @@ import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.*;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException;
 
 import java.io.File;
 
@@ -44,9 +43,9 @@ public class ProjectDependencyResolver implements DependencyToModuleResolver {
     }
 
     private static class ProjectArtifactResolver implements ArtifactResolver {
-        public ArtifactResolveResult resolve(Artifact artifact) throws ArtifactResolveException {
+        public void resolve(Artifact artifact, BuildableArtifactResolveResult result) {
             String path = artifact.getExtraAttribute(DefaultIvyDependencyPublisher.FILE_ABSOLUTE_PATH_EXTRA_ATTRIBUTE);
-            return new FileBackedArtifactResolveResult(new File(path), null);
+            result.resolved(new File(path), null);
         }
     }
 }

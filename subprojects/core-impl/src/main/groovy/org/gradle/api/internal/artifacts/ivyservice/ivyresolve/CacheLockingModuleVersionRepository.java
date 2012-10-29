@@ -17,7 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 import org.gradle.internal.Factory;
@@ -54,10 +54,10 @@ public class CacheLockingModuleVersionRepository implements ModuleVersionReposit
         });
     }
 
-    public ArtifactResolveResult download(final Artifact artifact) throws ArtifactResolveException {
-        return cacheLockingManager.longRunningOperation(String.format("Download %s using repository %s", artifact, getId()), new Factory<ArtifactResolveResult>() {
-            public ArtifactResolveResult create() {
-                return repository.download(artifact);
+    public void download(final Artifact artifact, final BuildableArtifactResolveResult result) {
+        cacheLockingManager.longRunningOperation(String.format("Download %s using repository %s", artifact, getId()), new Runnable() {
+            public void run() {
+                repository.download(artifact, result);
             }
         });
     }

@@ -17,22 +17,21 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import org.apache.ivy.core.module.descriptor.Artifact
+import org.apache.ivy.core.module.id.ArtifactId
 import org.apache.ivy.core.module.id.ArtifactRevisionId
+import org.apache.ivy.core.module.id.ModuleId
+import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolveResult
+import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache
+import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex
+import org.gradle.api.internal.externalresource.ivy.ArtifactAtRepositoryKey
+import org.gradle.api.internal.externalresource.metadata.DefaultExternalResourceMetaData
+import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData
+import org.gradle.internal.TrueTimeProvider
 import spock.lang.Specification
 import spock.lang.Unroll
-
-import org.gradle.api.internal.externalresource.ivy.ArtifactAtRepositoryKey
-import org.apache.ivy.core.module.id.ModuleId
-import org.apache.ivy.core.module.id.ArtifactId
-import org.apache.ivy.core.module.id.ModuleRevisionId
-import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex
-import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData
-import org.gradle.api.internal.externalresource.metadata.DefaultExternalResourceMetaData
-import org.gradle.internal.TrueTimeProvider
 
 class CachingModuleVersionRepositoryTest extends Specification {
 
@@ -48,7 +47,7 @@ class CachingModuleVersionRepositoryTest extends Specification {
         given:
         ExternalResourceMetaData externalResourceMetaData = new DefaultExternalResourceMetaData("remote url", lastModified, -1, null, null)
         File file = new File("local")
-        ArtifactResolveResult downloadedArtifact = Mock()
+        BuildableArtifactResolveResult result = Mock()
         Artifact artifact = Mock()
         ArtifactRevisionId id = arid()
         ArtifactAtRepositoryKey atRepositoryKey = new ArtifactAtRepositoryKey(realRepo, id)
@@ -57,13 +56,13 @@ class CachingModuleVersionRepositoryTest extends Specification {
         and:
         _ * realRepo.isLocal() >> false
         _ * artifactAtRepositoryCache.lookup(atRepositoryKey) >> null
-        _ * realRepo.download(artifact) >> downloadedArtifact
-        _ * downloadedArtifact.file >> file
-        _ * downloadedArtifact.externalResourceMetaData >> externalResourceMetaData
+        _ * realRepo.download(artifact, result)
+        _ * result.file >> file
+        _ * result.externalResourceMetaData >> externalResourceMetaData
         _ * artifact.getId() >> id
 
         when:
-        repo.download(artifact)
+        repo.download(artifact, result)
         
         then:
         1 * artifactAtRepositoryCache.store(atRepositoryKey, file, externalResourceMetaData)
