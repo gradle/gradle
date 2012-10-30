@@ -16,8 +16,6 @@
 
 package org.gradle.api.publish.ivy.internal;
 
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.Module;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
@@ -55,18 +53,11 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     public IvyNormalizedPublication asNormalisedPublication() {
-        return new IvyNormalizedPublication(getModule(), configuration, ivy.getDescriptorFile(), ivy.getDescriptorTransformer());
+        return new IvyNormalizedPublication(dependencyMetaDataProvider.getModule(), configuration, ivy.getDescriptorFile(), ivy.getDescriptorTransformer());
     }
 
     public Class<IvyNormalizedPublication> getNormalisedPublicationType() {
         return IvyNormalizedPublication.class;
     }
 
-    public Configuration getConfiguration() {
-        return configuration;
-    }
-
-    public Module getModule() {
-        return dependencyMetaDataProvider.getModule();
-    }
 }

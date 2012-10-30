@@ -16,11 +16,16 @@
 
 package org.gradle.api.publish.ivy.internal;
 
-import org.gradle.api.publish.internal.PublicationInternal;
+import org.gradle.api.Buildable;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.publish.ivy.IvyPublication;
 
-public interface IvyPublicationInternal extends IvyPublication, PublicationInternal<IvyNormalizedPublication> {
+public interface IvyPublicationInternal extends IvyPublication, Buildable {
 
     IvyDependencyDescriptorInternal getIvy();
+
+    FileCollection getPublishableFiles();
+
+    IvyNormalizedPublication asNormalisedPublication();
 
 }

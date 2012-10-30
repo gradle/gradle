@@ -22,8 +22,6 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.publish.internal.NormalizedPublication;
-import org.gradle.api.publish.internal.Publisher;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -81,10 +79,6 @@ public class DefaultFlatDirArtifactRepository implements FlatDirectoryArtifactRe
         resolver.setValidate(false);
         resolver.setRepositoryCacheManager(repositoryTransportFactory.getLocalCacheManager());
         return resolver;
-    }
-
-    public <P extends NormalizedPublication> Publisher<P> createPublisher(Class<P> publicationType) {
-        return null;
     }
 
 }

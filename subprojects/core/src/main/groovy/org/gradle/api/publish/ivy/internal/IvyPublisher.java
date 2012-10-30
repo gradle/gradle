@@ -17,18 +17,13 @@
 package org.gradle.api.publish.ivy.internal;
 
 import org.gradle.api.internal.artifacts.ArtifactPublisher;
-import org.gradle.api.publish.internal.Publisher;
 
-public class IvyPublisher implements Publisher<IvyNormalizedPublication> {
+public class IvyPublisher {
 
     private final ArtifactPublisher artifactPublisher;
 
     public IvyPublisher(ArtifactPublisher artifactPublisher) {
         this.artifactPublisher = artifactPublisher;
-    }
-
-    public Class<IvyNormalizedPublication> getPublicationType() {
-        return IvyNormalizedPublication.class;
     }
 
     public void publish(IvyNormalizedPublication publication) {

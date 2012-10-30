@@ -14,39 +14,36 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publish
+package org.gradle.api.publish.ivy
 
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.artifacts.repositories.ArtifactRepository
-import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal
-import org.gradle.api.publish.internal.NormalizedPublication
-import org.gradle.api.publish.internal.PublicationInternal
-import org.gradle.api.publish.internal.Publisher
+import org.gradle.api.artifacts.repositories.IvyArtifactRepository
+import org.gradle.api.internal.artifacts.repositories.IvyArtifactRepositoryInternal
+import org.gradle.api.publish.ivy.internal.IvyNormalizedPublication
+import org.gradle.api.publish.ivy.internal.IvyPublicationInternal
+import org.gradle.api.publish.ivy.internal.IvyPublisher
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
 
-class PublishTest extends Specification {
+class IvyPublishTest extends Specification {
 
     Project project
-    Publish publish
+    IvyPublish publish
 
-    def normalizedPublication = Mock(NormalizedPublication)
+    def normalizedPublication = Mock(IvyNormalizedPublication)
 
-    def publication = Mock(PublicationInternal) {
+    def publication = Mock(IvyPublicationInternal) {
         asNormalisedPublication() >> normalizedPublication
-        getNormalisedPublicationType() >> NormalizedPublication
     }
 
-    def publisher = Mock(Publisher) {
-        getPublicationType() >> NormalizedPublication
-    }
+    def publisher = Mock(IvyPublisher) {}
 
-    def repository = Mock(ArtifactRepositoryInternal) {
-        createPublisher(NormalizedPublication) >> publisher
+    def repository = Mock(IvyArtifactRepositoryInternal) {
+        createPublisher() >> publisher
     }
 
     def setup() {
@@ -56,13 +53,13 @@ class PublishTest extends Specification {
 
     def "publication must implement the internal interface"() {
         when:
-        publish.publication = [:] as Publication
+        publish.publication = [:] as IvyPublication
 
         then:
         thrown(InvalidUserDataException)
 
         when:
-        publish.publication = [:] as PublicationInternal
+        publish.publication = [:] as IvyPublicationInternal
 
         then:
         notThrown(Exception)
@@ -70,13 +67,13 @@ class PublishTest extends Specification {
 
     def "repository must implement the internal interface"() {
         when:
-        publish.repository = [:] as ArtifactRepository
+        publish.repository = [:] as IvyArtifactRepository
 
         then:
         thrown(InvalidUserDataException)
 
         when:
-        publish.repository = [:] as ArtifactRepositoryInternal
+        publish.repository = [:] as IvyArtifactRepositoryInternal
 
         then:
         notThrown(Exception)
@@ -106,8 +103,8 @@ class PublishTest extends Specification {
 
     def "repository and publication are required"() {
         given:
-        repository = Mock(ArtifactRepositoryInternal) {
-            1 * createPublisher(NormalizedPublication) >> publisher
+        repository = Mock(IvyArtifactRepositoryInternal) {
+            1 * createPublisher() >> publisher
         }
 
         when:
@@ -138,29 +135,8 @@ class PublishTest extends Specification {
         true
     }
 
-    def "publisher must support normalised publication type"() {
-        given:
-        repository = Mock(ArtifactRepositoryInternal) {
-            1 * createPublisher(String) >> null
-        }
-        publication = Mock(PublicationInternal) {
-            1 * getNormalisedPublicationType() >> String
-        }
-
-        publish.publication = publication
-        publish.repository = repository
-
-        when:
-        publish.execute()
-
-        then:
-        def e = thrown(TaskExecutionException)
-        e.cause instanceof InvalidUserDataException
-        e.cause.message == "Repository 'Mock for type 'ArtifactRepositoryInternal' named 'repository'' cannot publish publication 'Mock for type 'PublicationInternal' named 'publication''"
-    }
-
-    Publish createPublish(String name) {
-        project.tasks.add(name, Publish)
+    IvyPublish createPublish(String name) {
+        project.tasks.add(name, IvyPublish)
     }
 
 }

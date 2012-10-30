@@ -19,7 +19,6 @@ import groovy.lang.Closure;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.internal.artifacts.ArtifactPublisherFactory;
 import org.gradle.api.internal.artifacts.repositories.layout.*;
@@ -29,9 +28,6 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.publish.internal.NormalizedPublication;
-import org.gradle.api.publish.internal.Publisher;
-import org.gradle.api.publish.ivy.internal.IvyNormalizedPublication;
 import org.gradle.api.publish.ivy.internal.IvyPublisher;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.WrapUtil;
@@ -40,7 +36,7 @@ import java.net.URI;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupportedRepository implements IvyArtifactRepository, ArtifactRepositoryInternal {
+public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupportedRepository implements IvyArtifactRepositoryInternal {
     private String name;
     private Object baseUrl;
     private RepositoryLayout layout;
@@ -171,13 +167,8 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         }
     }
 
-    public <T extends NormalizedPublication> Publisher<T> createPublisher(Class<T> publicationType) {
-        if (IvyNormalizedPublication.class.isAssignableFrom(publicationType)) {
-            //noinspection unchecked
-            return (Publisher<T>) new IvyPublisher(artifactPublisherFactory.createArtifactPublisher(this));
-        } else {
-            return null;
-        }
+    public IvyPublisher createPublisher() {
+        return new IvyPublisher(artifactPublisherFactory.createArtifactPublisher(this));
     }
 
 

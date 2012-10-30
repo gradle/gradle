@@ -17,8 +17,6 @@ package org.gradle.api.internal.artifacts.repositories;
 
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
-import org.gradle.api.publish.internal.NormalizedPublication;
-import org.gradle.api.publish.internal.Publisher;
 
 public class FixedResolverArtifactRepository implements ArtifactRepository, ArtifactRepositoryInternal {
     protected final DependencyResolver resolver;
@@ -37,10 +35,6 @@ public class FixedResolverArtifactRepository implements ArtifactRepository, Arti
 
     public DependencyResolver createResolver() {
         return resolver;
-    }
-
-    public <P extends NormalizedPublication> Publisher<P> createPublisher(Class<P> publication) {
-        return null;
     }
 
 }

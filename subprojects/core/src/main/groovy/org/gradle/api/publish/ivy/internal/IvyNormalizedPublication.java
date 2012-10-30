@@ -19,11 +19,10 @@ package org.gradle.api.publish.ivy.internal;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.internal.XmlTransformer;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
-import org.gradle.api.publish.internal.NormalizedPublication;
 
 import java.io.File;
 
-public class IvyNormalizedPublication implements NormalizedPublication {
+public class IvyNormalizedPublication {
 
     private final Module module;
     private final File descriptorFile;

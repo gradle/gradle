@@ -25,8 +25,6 @@ import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.plugins.github.GitHubDownloadsRepository;
-import org.gradle.api.publish.internal.NormalizedPublication;
-import org.gradle.api.publish.internal.Publisher;
 import org.gradle.internal.Factory;
 import org.gradle.util.ConfigureUtil;
 
@@ -119,10 +117,6 @@ public class DefaultGitHubDownloadsRepository implements GitHubDownloadsReposito
     private void applyCredentialsTo(PasswordCredentials other) {
         other.setUsername(credentials.getUsername());
         other.setPassword(credentials.getPassword());
-    }
-
-    public <P extends NormalizedPublication> Publisher<P> createPublisher(Class<P> publicationType) {
-        return null;
     }
 
 }

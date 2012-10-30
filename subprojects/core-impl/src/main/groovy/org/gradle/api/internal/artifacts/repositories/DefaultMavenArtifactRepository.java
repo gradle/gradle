@@ -27,8 +27,6 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.publish.internal.NormalizedPublication;
-import org.gradle.api.publish.internal.Publisher;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -106,10 +104,6 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         } else {
             return transportFactory.createHttpTransport(name, getCredentials());
         }
-    }
-
-    public <P extends NormalizedPublication> Publisher<P> createPublisher(Class<P> publicationType) {
-        return null;
     }
 
 }
