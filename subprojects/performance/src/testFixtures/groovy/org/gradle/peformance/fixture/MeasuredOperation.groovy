@@ -32,7 +32,7 @@ public class MeasuredOperation {
     }
 
     String getPrettyBytes() {
-        humanReadableByteCount(totalMemoryUsed)
+        prettyBytes(totalMemoryUsed)
     }
 
     static MeasuredOperation measure(Closure operation) {
@@ -51,7 +51,7 @@ public class MeasuredOperation {
     }
 
     //stolen from the web, TODO SF, replace with commons or something
-    static String humanReadableByteCount(long bytes) {
+    static String prettyBytes(long bytes) {
         int unit = 1024;
         if (bytes < unit) {
             return bytes + " B";
@@ -59,5 +59,9 @@ public class MeasuredOperation {
         int exp = (int) (Math.log(bytes) / Math.log(unit));
         String pre = "kMGTPE".charAt(exp-1)
         return String.format("%.1f %sB", bytes / Math.pow(unit, exp), pre);
+    }
+
+    static String prettyBytes(double bytes) {
+        prettyBytes(bytes.round())
     }
 }

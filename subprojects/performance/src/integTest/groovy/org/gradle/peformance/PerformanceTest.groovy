@@ -116,4 +116,29 @@ class PerformanceTest extends Specification {
         "multi"           | 5    | 1000
         "lotDependencies" | 5    | 1000
     }
+
+    @Unroll("Project '#testProject'")
+    def "verbose tests with report"() {
+        when:
+        def result = new PerformanceTestRunner(testProject: testProject,
+                tasksToRun: ['cleanTest', 'test'],
+                runs: runs,
+                warmUpRuns: 1,
+                accuracyMs: accuracyMs
+        ).run()
+
+        then:
+
+        result.assertCurrentReleaseIsNotSlower()
+
+        //TODO after tackling the outstanding performance issues
+        //this test should be made less tolerant (reduce the max mem regression, accuracy)
+
+        result.assertMemoryUsed(0.03)
+
+        where:
+        testProject         | runs | accuracyMs
+        "withTestNG"        | 4    | 800
+        "withVerboseJUnits" | 4    | 800
+    }
 }

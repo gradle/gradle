@@ -55,7 +55,7 @@ class PerformanceResultsTest extends Specification {
         then:
         AssertionError e = thrown()
         e.message.startsWith('Looks like the current gradle is slower than latest release.')
-        e.message.contains('Difference between average current and average previous: 10.33 millis.')
+        e.message.contains('Difference: 0.01 secs (10.33 ms)')
     }
 
     def "passes when average heap usage for current release is smaller than average heap usage for previous release"() {
@@ -90,7 +90,7 @@ class PerformanceResultsTest extends Specification {
         then:
         AssertionError e = thrown()
         e.message.startsWith('Looks like the current gradle requires more memory than the latest release.')
-        e.message.contains('Difference in memory consumption: 100.33 bytes')
+        e.message.contains('Difference: 100 B (100.33 B)')
     }
 
     private MeasuredOperation operation(Map<String, Object> args) {

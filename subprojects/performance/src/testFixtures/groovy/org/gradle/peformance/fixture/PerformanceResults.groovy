@@ -19,6 +19,9 @@ package org.gradle.peformance.fixture
 import org.gradle.api.logging.Logging
 import java.math.RoundingMode
 
+import static org.gradle.peformance.fixture.MeasuredOperation.prettyBytes
+import static org.gradle.util.Clock.prettyTime
+
 public class PerformanceResults {
 
     int accuracyMs
@@ -26,8 +29,8 @@ public class PerformanceResults {
 
     private final static LOGGER = Logging.getLogger(PerformanceTestRunner.class)
 
-    List<MeasuredOperation> previous = new LinkedList<MeasuredOperation>()
-    List<MeasuredOperation> current = new LinkedList<MeasuredOperation>()
+    MeasuredOperationList previous = new MeasuredOperationList()
+    MeasuredOperationList current = new MeasuredOperationList()
 
     def clear() {
         previous.clear();
@@ -49,60 +52,45 @@ public class PerformanceResults {
 
     void assertMemoryUsed(double maxRegression) {
         assertEveryBuildSucceeds()
+        assert (current.avgMemory() - (maxRegression * previous.avgMemory())) <= previous.avgMemory(): "Looks like the current gradle requires more memory than the latest release.\n${memoryStats(maxRegression)}"
 
-        List<Long> previousBytes = previous.collect { it.totalMemoryUsed }
-        List<Long> currentBytes = current.collect { it.totalMemoryUsed }
-
-        def averagePrevious = (previousBytes.sum() / previous.size()).setScale(2, RoundingMode.HALF_UP)
-        def averageCurrent  = (currentBytes.sum() / current.size()).setScale(2, RoundingMode.HALF_UP)
-
-        println ("""---------------
-Build stats. $displayName:
- -previous: $previous
- -previous average: ${averagePrevious} b, min: ${previousBytes.min()} b, max: ${previousBytes.max()} b
- -current: $current
- -current average: ${averageCurrent} b, min: ${currentBytes.min()} b, max: ${currentBytes.max()} b
- -change: ${percentChange(averageCurrent, averagePrevious)}%
----------------""")
-
-        assert (averageCurrent - (maxRegression * averagePrevious)) <= averagePrevious : """Looks like the current gradle requires more memory than the latest release.
-  Previous release stats: ${previousBytes}
-  Current gradle stats:   ${currentBytes}
-  Difference in memory consumption: ${averageCurrent - averagePrevious} bytes
-  Currently configured max regression: $maxRegression (${averagePrevious * maxRegression})
-"""
-    }
-
-    private Number percentChange(Number current, Number previous) {
-        def result = (100 * (previous-current) / previous).setScale(2, RoundingMode.HALF_UP)
-        return result
+        String message;
+        if (current.avgMemory() > previous.avgMemory()) {
+            message = "Memory $displayName: current Gradle needs a little more memory on average."
+        } else {
+            message = "Memory $displayName: AWESOME! current Gradle needs less memory on average :D"
+        }
+        println("\n$message\n${memoryStats(maxRegression)}")
     }
 
     void assertCurrentReleaseIsNotSlower() {
         assertEveryBuildSucceeds()
-        def previousTimes = previous.collect { it.executionTime }
-        def averagePrevious = (previousTimes.sum() / previous.size()).setScale(2, RoundingMode.HALF_UP)
-        def currentTimes = current.collect { it.executionTime }
-        def averageCurrent  = (currentTimes.sum() / current.size()).setScale(2, RoundingMode.HALF_UP)
 
-        println("""---------------
-Build stats. $displayName:
- -previous: $previousTimes
- -previous average: $averagePrevious ms, min: ${previousTimes.min()} ms, max: ${previousTimes.max()} ms
- -current : $currentTimes
- -current average: $averageCurrent ms, min: ${currentTimes.min()} ms, max: ${currentTimes.max()} ms
- -change: ${percentChange(averageCurrent, averagePrevious)}%
----------------""")
+        assert (current.avgTime() - accuracyMs) <= previous.avgTime() : "Looks like the current gradle is slower than latest release.\n${speedStats()}"
 
-        if (averageCurrent > averagePrevious) {
-            LOGGER.warn("Before applying any statistical tuning, the current release average build time is slower than the previous.")
+        String message;
+        if (current.avgTime() > previous.avgTime()) {
+            message = "Speed $displayName: current Gradle is a little slower on average."
+        } else {
+            message = "Speed $displayName: AWESOME! current Gradle is faster on average :D"
         }
+        println("\n$message\n${speedStats()}")
+    }
 
-        assert (averageCurrent - accuracyMs) <= averagePrevious : """Looks like the current gradle is slower than latest release.
-  Previous release build times: ${previousTimes}
-  Current gradle build times:   ${currentTimes}
-  Difference between average current and average previous: ${averageCurrent - averagePrevious} millis.
-  Currently configured accuracy treshold: $accuracyMs
-"""
+    String memoryStats(double maxRegression) {
+        """  Previous release avg: ${prettyBytes(previous.avgMemory())} ${previous*.prettyBytes}
+  Current gradle avg: ${prettyBytes(current.avgMemory())} ${current*.prettyBytes}%
+  Difference: ${prettyBytes(current.avgMemory() - previous.avgMemory())} (${(current.avgMemory() - previous.avgMemory()).round(2)} B), ${percentChange(current.avgMemory().round(), previous.avgMemory().round())}%, max regression: $maxRegression (${prettyBytes((long) (previous.avgMemory() * maxRegression))})"""
+    }
+
+    String speedStats() {
+        """  Previous release avg: ${prettyTime(previous.avgTime().round())} ${previous*.prettyTime}
+  Current gradle avg: ${prettyTime(current.avgTime().round())} ${current*.prettyTime}
+  Difference: ${prettyTime((current.avgTime() - previous.avgTime()).round())} (${(current.avgTime() - previous.avgTime()).round(2)} ms), ${percentChange(current.avgTime().round(), previous.avgTime().round())}%, max regression: $accuracyMs ms"""
+    }
+
+    private Number percentChange(Number current, Number previous) {
+        def result = (-1) * (100 * (previous-current) / previous).setScale(2, RoundingMode.HALF_UP)
+        return result
     }
 }

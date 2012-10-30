@@ -45,6 +45,13 @@ task withTestNG(type: ProjectGeneratorTask) {
     testClassTemplate = 'TestNGTest.java'
 }
 
+task withVerboseJUnits(type: ProjectGeneratorTask) {
+    projects = 2
+    sourceFiles = 10
+    testReport = true
+    testClassTemplate = 'VerboseJUnitTest.java'
+}
+
 task multiGroovy(type: ProjectGeneratorTask, description: 'Generates a multi-project groovy build') {
     projects = 25
     groovyProject = true
@@ -78,7 +85,7 @@ generators.all {
 }
 task all(dependsOn: generators)
 
-task prepareSamples(dependsOn: [small, multi, lotDependencies])
+task prepareSamples(dependsOn: [small, multi, lotDependencies, withTestNG, withVerboseJUnits])
 
 integTestTasks.all {
     if (buildTypes.isActive('performanceTest')) {
