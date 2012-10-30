@@ -98,7 +98,13 @@ integTestTasks.all {
     maxParallelForks = 1
 }
 
-tasks.integTest.testLogging.showStandardStreams = true
+tasks.integTest.testLogging {
+    showStandardStreams = true
+    lifecycle {
+        exceptionFormat 'full'
+    }
+}
+
 eclipse {
     classpath {
         file.whenMerged { classpath ->

@@ -129,6 +129,7 @@ class PerformanceTest extends Specification {
         when:
         def result = new PerformanceTestRunner(testProject: testProject,
                 tasksToRun: ['cleanTest', 'test'],
+                args: ['-q'],
                 runs: runs,
                 warmUpRuns: 1,
                 maxExecutionTimeRegression: maxExecutionTimeRegression,

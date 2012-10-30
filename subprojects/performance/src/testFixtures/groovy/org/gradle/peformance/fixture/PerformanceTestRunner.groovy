@@ -38,6 +38,7 @@ public class PerformanceTestRunner {
     List<String> otherVersions = []
     List<String> tasksToRun = []
     DataCollector dataCollector = new MemoryInfoCollector(outputFileName: "build/totalMemoryUsed.txt")
+    List<String> args = []
 
     PerformanceResults results
 
@@ -46,14 +47,14 @@ public class PerformanceTestRunner {
         results.previous.name = "Gradle ${previous.version}"
         otherVersions.each { results.others[it] = new MeasuredOperationList(name: "Gradle $it") }
 
-        LOGGER.lifecycle("Running performance tests for test project '{}', no. # runs: {}", testProject, runs)
+        println "Running performance tests for test project '$testProject', no. of runs: $runs"
         warmUpRuns.times {
-            LOGGER.info("Executing warm-up run #${it + 1}")
+            println "Executing warm-up run #${it + 1}"
             runOnce()
         }
         results.clear()
         runs.times {
-            LOGGER.info("Executing test run #${it + 1}")
+            println "Executing test run #${it + 1}"
             runOnce()
         }
         results
@@ -87,6 +88,6 @@ public class PerformanceTestRunner {
             executer = dist.executer()
         }
         executer.withGradleUserHomeDir(current.userHomeDir)
-        return executer.withArguments('-u').inDirectory(projectDir).withTasks(tasksToRun)
+        return executer.withArguments('-u').inDirectory(projectDir).withTasks(tasksToRun).withArguments(args)
     }
 }
