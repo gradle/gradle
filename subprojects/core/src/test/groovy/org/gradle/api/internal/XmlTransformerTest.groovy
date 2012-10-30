@@ -262,6 +262,35 @@ class XmlTransformerTest extends Specification {
         "\t"     | "  " // tabs not supported, two spaces used instead
     }
 
+    def "can use with action api"() {
+        given:
+        def writer = new StringWriter()
+        def input = "<things><thing/></things>"
+        def generator = new Action<Writer>() {
+            void execute(Writer t) {
+                t.write(input)
+            }
+        }
+
+        when:
+        transformer.transform(writer, generator)
+
+        then:
+        writer.toString() == input
+
+        when:
+        writer.buffer.setLength(0)
+        transformer.addAction(new Action<XmlProvider>() {
+            void execute(XmlProvider xml) {
+                xml.asNode().thing[0].@foo = "bar"
+            }
+        })
+        transformer.transform(writer, generator)
+
+        then:
+        looksLike('<things>\n  <thing foo="bar"/>\n</things>', writer.toString())
+    }
+
     private void looksLike(String expected, String actual) {
         assert removeTrailingWhitespace(actual) == removeTrailingWhitespace(TextUtil.toPlatformLineSeparators(addXmlDeclaration(expected)))
     }

@@ -64,7 +64,7 @@ public class ModuleDescriptorStore {
         pathKeyFileStore.add(filePath, new Action<File>() {
             public void execute(File moduleDescriptorFile) {
                 try {
-                    ivyModuleDescriptorWriter.write(moduleDescriptor, moduleDescriptorFile, null);
+                    ivyModuleDescriptorWriter.write(moduleDescriptor, moduleDescriptorFile);
                 } catch (Exception e) {
                     throw UncheckedException.throwAsUncheckedException(e);
                 }

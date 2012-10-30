@@ -25,70 +25,61 @@ import org.apache.ivy.util.Message;
 import org.apache.ivy.util.StringUtils;
 import org.apache.ivy.util.XMLHelper;
 import org.apache.ivy.util.extendable.ExtendableItem;
-import org.gradle.api.Nullable;
-import org.gradle.api.UncheckedIOException;
+import org.gradle.api.Action;
+import org.gradle.api.internal.IoAction;
+import org.gradle.api.internal.IoActions;
 import org.gradle.api.internal.XmlTransformer;
 import org.gradle.util.TextUtil;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.Writer;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map;
 
 public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
-    public IvyXmlModuleDescriptorWriter() {
-    }
 
-    private static void write(ModuleDescriptor md, Writer writer, @Nullable XmlTransformer descriptorTransformer) throws IOException {
-        Writer originalWriter = null;
-        if (descriptorTransformer != null) {
-            originalWriter = writer;
-            writer = new StringWriter();
-        }
+    private static Action<Writer> createWriterAction(final ModuleDescriptor md) {
+        return IoActions.toAction(new IoAction<Writer>() {
+            public void execute(Writer writer) throws IOException {
+                writer.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+                writer.write(TextUtil.getPlatformLineSeparator());
+                StringBuffer xmlNamespace = new StringBuffer();
+                Map namespaces = md.getExtraAttributesNamespaces();
+                for (Iterator iter = namespaces.entrySet().iterator(); iter.hasNext();) {
+                    Map.Entry ns = (Map.Entry) iter.next();
+                    xmlNamespace.append(" xmlns:").append(ns.getKey()).append("=\"")
+                            .append(ns.getValue()).append("\"");
+                }
 
-        writer.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-        writer.write(TextUtil.getPlatformLineSeparator());
-        StringBuffer xmlNamespace = new StringBuffer();
-        Map namespaces = md.getExtraAttributesNamespaces();
-        for (Iterator iter = namespaces.entrySet().iterator(); iter.hasNext();) {
-            Map.Entry ns = (Map.Entry) iter.next();
-            xmlNamespace.append(" xmlns:").append(ns.getKey()).append("=\"")
-                    .append(ns.getValue()).append("\"");
-        }
+                String version = "2.0";
+                if (md.getInheritedDescriptors().length > 0) {
+                    version = "2.2";
+                }
 
-        String version = "2.0";
-        if (md.getInheritedDescriptors().length > 0) {
-            version = "2.2";
-        }
-
-        writer.write("<ivy-module version=\"" + version + "\"" + xmlNamespace + ">");
-        writer.write(TextUtil.getPlatformLineSeparator());
-        printInfoTag(md, writer);
-        printConfigurations(md, writer);
-        printPublications(md, writer);
-        printDependencies(md, writer);
-        writer.write("</ivy-module>");
-        writer.write(TextUtil.getPlatformLineSeparator());
-
-        if (descriptorTransformer != null) {
-            descriptorTransformer.transform(writer.toString(), originalWriter);            
-        }
-    }
-
-    public void write(ModuleDescriptor md, File output, @Nullable XmlTransformer descriptorTransformer) {
-        if (output.getParentFile() != null) {
-            output.getParentFile().mkdirs();
-        }
-        try {
-            Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(output), "UTF-8"));
-            try {
-                write(md, writer, descriptorTransformer);
-            } finally {
-                writer.close();
+                writer.write("<ivy-module version=\"" + version + "\"" + xmlNamespace + ">");
+                writer.write(TextUtil.getPlatformLineSeparator());
+                printInfoTag(md, writer);
+                printConfigurations(md, writer);
+                printPublications(md, writer);
+                printDependencies(md, writer);
+                writer.write("</ivy-module>");
+                writer.write(TextUtil.getPlatformLineSeparator());
             }
-        } catch (IOException e) {
-            throw new UncheckedIOException(String.format("Could not write Ivy descriptor to '%s'.", output), e);
+        });
+    }
+
+    public void write(ModuleDescriptor md, File output) {
+        write(md, output, null);
+    }
+
+    public void write(ModuleDescriptor md, File output, XmlTransformer descriptorTransformer) {
+        if (descriptorTransformer == null) {
+            descriptorTransformer = new XmlTransformer();
         }
+
+        descriptorTransformer.transform(output, "UTF-8", createWriterAction(md));
     }
 
     private static void printDependencies(ModuleDescriptor md, Writer writer) throws IOException {

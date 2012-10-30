@@ -59,6 +59,25 @@ public class XmlTransformer implements Transformer<String, String> {
         actions.add((Action<XmlProvider>) DefaultGroovyMethods.asType(closure, Action.class));
     }
 
+    public void transform(File destination, String encoding, final Action<? super Writer> generator) {
+        Action<Action<? super Writer>> writeAction = IoActions.createFileWriteAction(destination, encoding);
+        writeAction.execute(new Action<Writer>() {
+            public void execute(Writer writer) {
+                transform(writer, generator);
+            }
+        });
+    }
+
+    public void transform(Writer destination, Action<? super Writer> generator) {
+        if (actions.isEmpty()) {
+            generator.execute(destination);
+        } else {
+            StringWriter stringWriter = new StringWriter();
+            generator.execute(stringWriter);
+            transform(stringWriter.toString(), destination);
+        }
+    }
+
     public String transform(String original) {
         return doTransform(original).toString();
     }

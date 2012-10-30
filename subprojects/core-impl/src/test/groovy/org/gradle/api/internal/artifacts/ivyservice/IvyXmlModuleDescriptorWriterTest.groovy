@@ -21,14 +21,14 @@ import org.apache.ivy.core.module.descriptor.Configuration
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.apache.ivy.core.module.id.ModuleRevisionId
+import org.gradle.api.Action
+import org.gradle.api.XmlProvider
+import org.gradle.api.internal.XmlTransformer
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
 
 import java.text.SimpleDateFormat
-import org.gradle.api.XmlProvider
-import org.gradle.api.Action
-import org.gradle.api.internal.XmlTransformer
 
 class IvyXmlModuleDescriptorWriterTest extends Specification {
 
@@ -70,7 +70,7 @@ class IvyXmlModuleDescriptorWriterTest extends Specification {
         1 * dependency1.transitive >> true
         when:
         File ivyFile = temporaryFolder.file("test/ivy/ivy.xml")
-        ivyXmlModuleDescriptorWriter.write(md, ivyFile, null);
+        ivyXmlModuleDescriptorWriter.write(md, ivyFile);
         then:
         def ivyModule = new XmlSlurper().parse(ivyFile);
         assert ivyModule.@version == "2.0"

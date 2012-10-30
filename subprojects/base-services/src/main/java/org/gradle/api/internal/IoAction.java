@@ -14,17 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice;
+package org.gradle.api.internal;
 
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.gradle.api.internal.XmlTransformer;
+import java.io.IOException;
 
-import java.io.File;
+/**
+ * Performs some action against objects of type T, that may throw IOExceptions.
+ *
+ * This is not assignment compatible with {@link org.gradle.api.Action}.
+ *
+ * @param <T> The type of object which this action accepts.
+ */
+public interface IoAction<T> {
 
-public interface IvyModuleDescriptorWriter {
-
-    public void write(ModuleDescriptor md, File output);
-
-    public void write(ModuleDescriptor md, File output, XmlTransformer descriptorModifier);
+    void execute(T thing) throws IOException;
 
 }
