@@ -61,7 +61,7 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
         this.baseDir = baseDir;
     }
 
-    public File getBaseDir() {
+    protected File getBaseDir() {
         return baseDir;
     }
 
