@@ -6,6 +6,7 @@ import org.gradle.api.artifacts.result.*
 import org.gradle.api.artifacts.dsl.*
 import org.gradle.api.artifacts.maven.*
 import org.gradle.api.artifacts.specs.*
+import org.gradle.api.publish.*
 import org.gradle.api.execution.*
 import org.gradle.api.file.*
 import org.gradle.api.resources.*

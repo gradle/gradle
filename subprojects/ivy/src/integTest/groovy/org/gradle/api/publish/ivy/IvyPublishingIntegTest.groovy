@@ -41,7 +41,7 @@ class IvyPublishingIntegTest extends AbstractIntegrationSpec {
                 }
             }
 
-            task publishIvy(type: org.gradle.api.publish.Publish) {
+            task publishIvy(type: Publish) {
                 publication publishing.publications.ivy
                 repository publishing.repositories.ivy
             }
