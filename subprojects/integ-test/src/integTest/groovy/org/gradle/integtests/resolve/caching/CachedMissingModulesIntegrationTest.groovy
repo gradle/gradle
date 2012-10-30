@@ -149,7 +149,7 @@ class CachedMissingModulesIntegrationTest extends AbstractDependencyResolutionTe
         def repo2 = mavenHttpRepo("repo2")
         def repo2Module = repo2.module("group", "projectA", "1.0")
 
-        settingsFile <<  "include 'subproject'"
+        settingsFile << "include 'subproject'"
         buildFile << """
             allprojects{
                 repositories {
@@ -171,9 +171,9 @@ class CachedMissingModulesIntegrationTest extends AbstractDependencyResolutionTe
             }
 
             task resolveConfig1 << {
-                configurations.config1.each{
-                    println it
-                }
+                   configurations.config1.incoming.resolutionResult.allDependencies{
+                        it instanceof UnresolvedDependencyResult
+                   }
             }
 
             project(":subproject"){
@@ -184,15 +184,13 @@ class CachedMissingModulesIntegrationTest extends AbstractDependencyResolutionTe
                     config2 'group:projectA:1.0'
                 }
                 task resolveConfig2 << {
-                    if(gradle.startParameter.oarallelThreadCountThread != 0){
-                        Thread.sleep 50
-                    }
-                    configurations.config2.each{
-                        println it
+                    configurations.config2.incoming.resolutionResult.allDependencies{
+                        it instanceof UnresolvedDependencyResult
                     }
                 }
             }
-            """
+            resolveConfig1.dependsOn(":subproject:resolveConfig2")
+        """
         when:
         repo1Module.expectPomGetMissing()
         repo1Module.expectArtifactHeadMissing()
@@ -200,7 +198,7 @@ class CachedMissingModulesIntegrationTest extends AbstractDependencyResolutionTe
         repo2Module.expectArtifactHeadMissing()
 
         then:
-        runAndFail('resolveConfig1')
+        run('resolveConfig2')
 
         when:
         server.resetExpectations()
@@ -210,8 +208,7 @@ class CachedMissingModulesIntegrationTest extends AbstractDependencyResolutionTe
         repo2Module.expectArtifactHeadMissing()
 
         then:
-        executer.withArgument("--continue")
-        runAndFail "resolveConfig1", "resolveConfig2"
+        run "resolveConfig1"
     }
 
     def "does not hit remote repositories if version is available in local repo"() {
@@ -223,7 +220,7 @@ class CachedMissingModulesIntegrationTest extends AbstractDependencyResolutionTe
         def repo2Module = repo2.module("group", "projectA", "1.0")
 
         buildFile << """
-       repositories {
+        repositories {
            maven {
                name 'repo1'
                url '${repo1.uri}'
