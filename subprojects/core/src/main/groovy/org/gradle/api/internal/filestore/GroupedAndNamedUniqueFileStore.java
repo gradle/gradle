@@ -21,12 +21,9 @@ import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.util.hash.HashUtil;
 
 import java.io.File;
-import java.util.Random;
 import java.util.Set;
 
 public class GroupedAndNamedUniqueFileStore<K> implements FileStore<K>, FileStoreSearcher<K> {
-
-    private final Random generator = new Random(System.currentTimeMillis());
 
     private PathKeyFileStore delegate;
     private final TemporaryFileProvider temporaryFileProvider;
