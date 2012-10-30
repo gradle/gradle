@@ -101,6 +101,14 @@ To learn more read our [forum posting on our release approach](http://forums.gra
 
 (in progress)
 
+TestNG received a decent dose of love in Gradle 1.3. Your Gradle projects with TestNG tests now enjoy much better reports:
+
+    * Both reports: xml (for CI) and html reports (for you) contain test output,  e.g. messages logged to standard streams or standard logging toolkits. This is extremely useful for debugging certain test failures. Xml results means
+    * The html report is way, way easier to read and browse. Did I mention it contains the test output?
+    * The reports neatly work with Gradle's parallel testing (test.maxParallelForks) and forking features (test.forkEvery). Run your tests in parallel so that they run faster!
+
+The reports are not yet turned on by default... They are @Incubating and we need more feedback before we make Gradle use them by default. The new report might exhibit increased heap space usage for tests that eagerly log to the standard streams. In case your tests get hungry here's how you can feed them. To enable the new test reports, please set the test.testReport = true.
+
 ### Resolution result API
 
 * (in progress)
