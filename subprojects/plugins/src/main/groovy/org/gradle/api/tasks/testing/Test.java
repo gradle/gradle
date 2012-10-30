@@ -106,7 +106,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     private boolean ignoreFailures;
     private FileCollection classpath;
     private TestFramework testFramework;
-    private boolean testReport = true;
+    private boolean testReport;
     private boolean scanForTestClasses = true;
     private long forkEvery;
     private int maxParallelForks = 1;

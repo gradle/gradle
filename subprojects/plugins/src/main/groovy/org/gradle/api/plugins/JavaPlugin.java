@@ -28,6 +28,7 @@ import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.plugins.EmbeddableJavaProject;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.javadoc.Javadoc;
@@ -122,7 +123,7 @@ public class JavaPlugin implements Plugin<Project> {
 
     private void configureTest(final Project project, final JavaPluginConvention pluginConvention) {
         project.getTasks().withType(Test.class, new Action<Test>() {
-            public void execute(Test test) {
+            public void execute(final Test test) {
                 test.getConventionMapping().map("testClassesDir", new Callable<Object>() {
                     public Object call() throws Exception {
                         return pluginConvention.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME).getOutput().getClassesDir();
@@ -137,6 +138,11 @@ public class JavaPlugin implements Plugin<Project> {
                     public Object call() throws Exception {
                         return new ArrayList<File>(pluginConvention.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME)
                                 .getJava().getSrcDirs());
+                    }
+                });
+                test.getConventionMapping().map("testReport", new Callable<Object>() {
+                    public Object call() throws Exception {
+                        return !(test.getTestFramework() instanceof TestNGTestFramework);
                     }
                 });
             }

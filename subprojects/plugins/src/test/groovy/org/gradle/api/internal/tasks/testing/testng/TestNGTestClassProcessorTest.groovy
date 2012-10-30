@@ -17,39 +17,33 @@
 package org.gradle.api.internal.tasks.testing.testng
 
 import org.gradle.api.GradleException
-import org.gradle.api.internal.tasks.testing.TestDescriptorInternal
-import org.gradle.api.internal.tasks.testing.TestResultProcessor
-
 import org.gradle.api.tasks.testing.TestResult.ResultType
 import org.gradle.api.tasks.testing.testng.TestNGOptions
-import org.gradle.api.internal.tasks.testing.TestClassRunInfo
+import org.gradle.internal.id.LongIdGenerator
+import org.gradle.logging.StandardOutputRedirector
 import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.TemporaryFolder
 import org.jmock.Sequence
 import org.jmock.integration.junit4.JMock
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.testng.annotations.AfterClass
-import org.testng.annotations.BeforeClass
-import org.testng.annotations.BeforeMethod
-import org.testng.annotations.Factory
+import org.gradle.api.internal.tasks.testing.*
+import org.testng.annotations.*
+
 import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
-import org.gradle.internal.id.LongIdGenerator
-import org.junit.Ignore
-import org.gradle.api.internal.tasks.testing.TestCompleteEvent
-import org.gradle.api.internal.tasks.testing.TestStartEvent
-import org.gradle.logging.StandardOutputRedirector
-import org.testng.annotations.AfterMethod
+import static org.junit.Assert.assertThat
+import static org.junit.Assert.fail
 
 @RunWith(JMock.class)
 class TestNGTestClassProcessorTest {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
-    @Rule public final TemporaryFolder tmpDir = new TemporaryFolder();
+    @Rule public final TemporaryFolder reportDir = new TemporaryFolder();
+    @Rule public final TemporaryFolder resultsDir = new TemporaryFolder();
     private final TestResultProcessor resultProcessor = context.mock(TestResultProcessor.class);
-    private final TestNGOptions options = new TestNGOptions(tmpDir.dir)
-    private final TestNGTestClassProcessor processor = new TestNGTestClassProcessor(tmpDir.dir, options, [], new LongIdGenerator(), {} as StandardOutputRedirector);
+    private final TestNGOptions options = new TestNGOptions(reportDir.dir)
+    private final TestNGTestClassProcessor processor = new TestNGTestClassProcessor(reportDir.dir, options, [], new LongIdGenerator(), {} as StandardOutputRedirector, resultsDir.dir, true);
 
     @Test
     public void executesATestClass() {

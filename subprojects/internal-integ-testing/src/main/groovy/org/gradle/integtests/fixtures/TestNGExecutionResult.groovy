@@ -36,6 +36,11 @@ class TestNGExecutionResult implements TestExecutionResult {
         xmlReportFile().isFile()
     }
 
+    boolean hasJUnitResultsGeneratedByTestNG() {
+        def dir = projectDir.file("$DEFAULT_TESTNG_REPORT/junitreports")
+        dir.isDirectory() && dir.list().length > 0
+    }
+
     boolean hasHtmlResults() {
         htmlReportFile().isFile()
     }

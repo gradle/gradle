@@ -79,8 +79,10 @@ public class TestNGTestFrameworkTest extends AbstractTestFrameworkTest {
         setMocks();
 
         context.checking(new Expectations() {{
-            allowing(testMock).getTestSrcDirs();  will(returnValue(testSrcDirs));
-            allowing(testMock).getTestReportDir(); will(returnValue(testReportDir));
+            allowing(testMock).getTestSrcDirs();    will(returnValue(testSrcDirs));
+            allowing(testMock).getTestReportDir();  will(returnValue(testReportDir));
+            allowing(testMock).getTestResultsDir(); will(returnValue(testResultsDir));
+            allowing(testMock).isTestReport();      will(returnValue(false));
             allowing(serviceRegistry).get(IdGenerator.class); will(returnValue(idGeneratorMock));
             one(testngOptionsMock).setTestResources(testSrcDirs);
             one(testngOptionsMock).getSuites(temporaryDir);
