@@ -31,6 +31,6 @@ public class DefaultPublicationContainer extends DefaultNamedDomainObjectSet<Pub
 
     @Override
     protected UnknownDomainObjectException createNotFoundException(String name) {
-        return new UnknownPublicationException(String.format("Configuration with name '%s' not found.", name));
+        return new UnknownPublicationException(String.format("Publication with name '%s' not found", name));
     }
 }
