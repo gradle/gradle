@@ -54,6 +54,9 @@ class IvyPublishDynamicTaskCreatorTest extends Specification {
         then:
         ivyPublishTasks.size() == 1
         project.tasks["publishIvyToIvy"] != null
+        IvyPublish task = project.tasks.publishIvyToIvy
+        task.group == "publishing"
+        task.description != null
 
         when:
         publishing.publications.add(ivyPublication("ivy2"))
