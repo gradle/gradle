@@ -61,7 +61,7 @@ public class UserResolverChain implements DependencyToModuleResolver {
         if (!errors.isEmpty()) {
             result.failed(new ModuleVersionResolveException(dependencyDescriptor.getDependencyRevisionId(), errors));
         } else {
-            result.failed(new ModuleVersionNotFoundException(dependencyDescriptor.getDependencyRevisionId()));
+            result.notFound(dependencyDescriptor.getDependencyRevisionId());
         }
     }
 
@@ -150,18 +150,9 @@ public class UserResolverChain implements DependencyToModuleResolver {
             this.repository = repository;
         }
 
-        public ArtifactResolveResult resolve(Artifact artifact) {
+        public void resolve(Artifact artifact, BuildableArtifactResolveResult result) {
             LOGGER.debug("Attempting to download {} using repository '{}'", artifact, repository.getName());
-            ArtifactResolveResult result;
-            try {
-                result = repository.download(artifact);
-            } catch (ArtifactResolveException e) {
-                return new BrokenArtifactResolveResult(e);
-            }
-            if (result == null) {
-                return new BrokenArtifactResolveResult(new ArtifactNotFoundException(artifact));
-            }
-            return result;
+            repository.download(artifact, result);
         }
     }
 }

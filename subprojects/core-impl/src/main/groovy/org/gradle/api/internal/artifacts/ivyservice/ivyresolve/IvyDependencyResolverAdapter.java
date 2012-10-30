@@ -20,8 +20,7 @@ import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.report.ArtifactDownloadReport;
 import org.apache.ivy.core.resolve.DownloadOptions;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolveResult;
-import org.gradle.api.internal.artifacts.ivyservice.FileBackedArtifactResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.EnhancedArtifactDownloadReport;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 
@@ -37,14 +36,16 @@ public class IvyDependencyResolverAdapter extends AbstractDependencyResolverAdap
         super(resolver);
     }
 
-    public ArtifactResolveResult download(Artifact artifact) {
+    public void download(Artifact artifact, BuildableArtifactResolveResult result) {
         ArtifactDownloadReport artifactDownloadReport = resolver.download(new Artifact[]{artifact}, downloadOptions).getArtifactReport(artifact);
         if (downloadFailed(artifactDownloadReport)) {
             if (artifactDownloadReport instanceof EnhancedArtifactDownloadReport) {
                 EnhancedArtifactDownloadReport enhancedReport = (EnhancedArtifactDownloadReport) artifactDownloadReport;
-                throw new ArtifactResolveException(artifactDownloadReport.getArtifact(), enhancedReport.getFailure());
+                result.failed(new ArtifactResolveException(artifactDownloadReport.getArtifact(), enhancedReport.getFailure()));
+            } else {
+                result.failed(new ArtifactResolveException(artifactDownloadReport.getArtifact(), artifactDownloadReport.getDownloadDetails()));
             }
-            throw new ArtifactResolveException(artifactDownloadReport.getArtifact(), artifactDownloadReport.getDownloadDetails());
+            return;
         }
 
         ArtifactOrigin artifactOrigin = artifactDownloadReport.getArtifactOrigin();
@@ -55,9 +56,9 @@ public class IvyDependencyResolverAdapter extends AbstractDependencyResolverAdap
             if (artifactOrigin instanceof ArtifactOriginWithMetaData) {
                 metaData = ((ArtifactOriginWithMetaData) artifactOrigin).getMetaData();
             }
-            return new FileBackedArtifactResolveResult(localFile, metaData);
+            result.resolved(localFile, metaData);
         } else {
-            return null;
+            result.notFound(artifact);
         }
     }
 }

@@ -20,9 +20,20 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 
 public interface BuildableModuleVersionResolveResult extends ModuleVersionResolveResult {
+    /**
+     * Marks the module version as resolved, with the given meta-data and artifact resolver.
+     */
     void resolved(ModuleRevisionId moduleRevisionId, ModuleDescriptor descriptor, ArtifactResolver artifactResolver);
 
+    /**
+     * Marks the resolve as failed with the given exception.
+     */
     void failed(ModuleVersionResolveException failure);
+
+    /**
+     * Marks the module version as not found.
+     */
+    void notFound(ModuleRevisionId moduleRevisionId);
 
     /**
      * Replaces the meta-data in the result. Result must already be resolved.

@@ -13,29 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import org.apache.ivy.core.module.descriptor.Artifact;
+import org.gradle.api.Nullable;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 
 import java.io.File;
 
-public class BrokenArtifactResolveResult implements ArtifactResolveResult {
-    private final ArtifactResolveException failure;
+public interface BuildableArtifactResolveResult extends ArtifactResolveResult {
+    /**
+     * Marks the module version as resolved, with the given meta-data and artifact resolver.
+     */
+    void resolved(File file, @Nullable ExternalResourceMetaData resourceMetaData);
 
-    public BrokenArtifactResolveResult(ArtifactResolveException failure) {
-        this.failure = failure;
-    }
+    /**
+     * Marks the resolve as failed with the given exception.
+     */
+    void failed(ArtifactResolveException failure);
 
-    public ArtifactResolveException getFailure() {
-        return failure;
-    }
-
-    public File getFile() throws ArtifactResolveException {
-        throw failure;
-    }
-
-    public ExternalResourceMetaData getExternalResourceMetaData() throws ArtifactResolveException {
-        throw failure;
-    }
+    /**
+     * Marks the module version as not found.
+     */
+    void notFound(Artifact artifact);
 }

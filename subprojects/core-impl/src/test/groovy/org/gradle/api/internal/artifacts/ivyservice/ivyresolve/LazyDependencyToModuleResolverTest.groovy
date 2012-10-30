@@ -199,7 +199,7 @@ class LazyDependencyToModuleResolverTest extends Specification {
         def module = module()
         def artifact = artifact()
         ArtifactResolver targetResolver = Mock()
-        ArtifactResolveResult resolvedArtifact = Mock()
+        BuildableArtifactResolveResult result = Mock()
 
         when:
         def resolveResult = resolver.resolve(dependency).resolve()
@@ -208,13 +208,10 @@ class LazyDependencyToModuleResolverTest extends Specification {
         1 * target.resolve(dependency, _) >> { args -> args[1].resolved(module.moduleRevisionId, module, targetResolver)}
 
         when:
-        def artifactResult = resolveResult.artifactResolver.resolve(artifact)
+        resolveResult.artifactResolver.resolve(artifact, result)
 
         then:
-        artifactResult == resolvedArtifact
-
-        and:
-        1 * targetResolver.resolve(artifact) >> resolvedArtifact
+        1 * targetResolver.resolve(artifact, result)
         0 * targetResolver._
         0 * target._
     }
@@ -224,6 +221,7 @@ class LazyDependencyToModuleResolverTest extends Specification {
         def artifact = artifact()
         def module = module()
         ArtifactResolver targetResolver = Mock()
+        BuildableArtifactResolveResult result = Mock()
         def failure = new RuntimeException("broken")
 
         when:
@@ -233,22 +231,16 @@ class LazyDependencyToModuleResolverTest extends Specification {
         1 * target.resolve(dependency, _) >> { args -> args[1].resolved(module.moduleRevisionId, module, targetResolver)}
 
         when:
-        def artifactResult = resolveResult.artifactResolver.resolve(artifact)
+        resolveResult.artifactResolver.resolve(artifact, result)
 
         then:
-        artifactResult.failure instanceof ArtifactResolveException
-        artifactResult.failure.message == "Could not download artifact 'group:module:1.0@zip'"
-        artifactResult.failure.cause == failure
+        1 * result.failed(_) >> { ArtifactResolveException e ->
+            assert e.message == "Could not download artifact 'group:module:1.0@zip'"
+            assert e.cause == failure
+        }
 
         and:
-        _ * targetResolver.resolve(artifact) >> { throw failure }
-
-        when:
-        artifactResult.file
-
-        then:
-        ArtifactResolveException e = thrown()
-        e.is(artifactResult.failure)
+        _ * targetResolver.resolve(artifact, result) >> { throw failure }
     }
 
     def module() {
