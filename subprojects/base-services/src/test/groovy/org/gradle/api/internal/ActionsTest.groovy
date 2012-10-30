@@ -67,7 +67,6 @@ class ActionsTest extends Specification {
 
         then:
         def e = thrown(ClassCastException)
-        e.message == "Cannot cast java.lang.String to java.lang.Integer"
 
         when:
         castBefore(CharSequence, action).execute("1")
