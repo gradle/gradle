@@ -40,7 +40,7 @@ task mixedSize(type: ProjectGeneratorTask) {
 task withTestNG(type: ProjectGeneratorTask) {
     projects = 2
     sourceFiles = 10
-    testReport = true
+    testReport = false
     testFramework = 'useTestNG()'
     testClassTemplate = 'TestNGTest.java'
 }
