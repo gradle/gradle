@@ -23,12 +23,9 @@ import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static org.gradle.api.artifacts.ArtifactRepositoryContainer.DEFAULT_MAVEN_CENTRAL_REPO_NAME;
@@ -69,19 +66,7 @@ public class DefaultRepositoryFactory implements RepositoryFactoryInternal {
     }
 
     public MavenArtifactRepository mavenCentral() {
-        return mavenCentral(Collections.<String, Object>emptyMap());
-    }
-
-    public MavenArtifactRepository mavenCentral(Map<String, ?> args) {
-        Map<String, Object> modifiedArgs = new HashMap<String, Object>(args);
-        if (modifiedArgs.containsKey("urls")) {
-            DeprecationLogger.nagUserWith("The 'urls' property of the RepositoryHandler.mavenCentral() method is deprecated and will be removed in a future version of Gradle. "
-                    + "You should use the 'artifactUrls' property to define additional artifact locations.");
-            List<Object> urls = toList(modifiedArgs.remove("urls"));
-            modifiedArgs.put("artifactUrls", urls);
-        }
-
-        return configure(baseRepositoryFactory.createMavenCentralRepository(), modifiedArgs, DEFAULT_MAVEN_CENTRAL_REPO_NAME);
+        return configure(baseRepositoryFactory.createMavenCentralRepository(), DEFAULT_MAVEN_CENTRAL_REPO_NAME);
     }
 
     public MavenArtifactRepository maven(Action<? super MavenArtifactRepository> action) {

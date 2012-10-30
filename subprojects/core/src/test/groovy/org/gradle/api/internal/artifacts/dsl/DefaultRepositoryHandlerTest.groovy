@@ -25,9 +25,9 @@ import org.gradle.api.artifacts.repositories.IvyArtifactRepository
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 import org.gradle.api.internal.ThreadGlobalInstantiator
 import org.gradle.api.internal.artifacts.DefaultArtifactRepositoryContainerTest
+import org.gradle.api.internal.artifacts.repositories.FixedResolverArtifactRepository
 import org.gradle.internal.reflect.Instantiator
 import org.junit.Test
-import org.gradle.api.internal.artifacts.repositories.FixedResolverArtifactRepository
 
 class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTest {
 
@@ -78,7 +78,8 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
     public void testMavenCentralWithMap() {
         when:
         MavenArtifactRepository repository = Mock(MavenArtifactRepository)
-        1 * repositoryFactory.mavenCentral(_ as Map) >> repository
+        1 * repositoryFactory.mavenCentral() >> repository
+        1 * repository.setArtifactUrls(["abc"])
         repository.getName() >> "name"
 
         then:

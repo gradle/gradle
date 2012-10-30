@@ -92,36 +92,6 @@ class DefaultRepositoryFactoryTest extends Specification {
         factory.mavenCentral().is(repository)
     }
 
-
-    def testMavenCentralWithSingleUrl() {
-        when:
-        String testUrl2 = 'http://www.gradle2.org'
-        def repository = Mock(MavenArtifactRepository)
-        1 * baseRepositoryFactory.createMavenCentralRepository() >> repository
-        1 * repository.setArtifactUrls([testUrl2])
-        repository.getName() >> "name"
-
-        then:
-        assert factory.mavenCentral(artifactUrls: [testUrl2]).is(repository)
-    }
-
-    def testMavenCentralWithNameAndUrls() {
-        when:
-        String testUrl1 = 'http://www.gradle1.org'
-        String testUrl2 = 'http://www.gradle2.org'
-        String name = 'customName'
-
-        MavenArtifactRepository repository = Mock(MavenArtifactRepository)
-
-        baseRepositoryFactory.createMavenCentralRepository() >> repository
-        1 * repository.setName(name)
-        1 * repository.getName() >> name
-        1 * repository.setArtifactUrls([testUrl1, testUrl2])
-
-        then:
-        factory.mavenCentral(name: name, artifactUrls: [testUrl1, testUrl2]).is(repository)
-    }
-
     def testMavenLocalWithNoArgs() {
         when:
         MavenArtifactRepository repository = Mock(MavenArtifactRepository)

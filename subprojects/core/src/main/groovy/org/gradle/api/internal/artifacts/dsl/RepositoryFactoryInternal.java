@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.dsl;
 
-import org.gradle.api.artifacts.dsl.RepositoryFactory;
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory;
 
 public interface RepositoryFactoryInternal extends RepositoryFactory {

@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.artifacts.dsl;
+package org.gradle.api.internal.artifacts.dsl;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
@@ -27,7 +26,6 @@ import java.util.Map;
 /**
  * A repository factory is capable of creating different kinds of {@link org.gradle.api.artifacts.repositories.ArtifactRepository} types.
  */
-@Incubating
 public interface RepositoryFactory {
 
     /*
@@ -79,44 +77,10 @@ public interface RepositoryFactory {
 
     /**
      * Creates a repository which looks in the Maven central repository for dependencies. The URL used to access this repository is
-     * always {@link org.gradle.api.artifacts.ArtifactRepositoryContainer#MAVEN_CENTRAL_URL}. The behavior of this repository
-     * is otherwise the same as the ones created by {@link #maven(org.gradle.api.Action)}.
-     *
-     * The following parameter are accepted as keys for the map:
-     *
-     * <table summary="Shows property keys and associated values">
-     * <tr><th>Key</th>
-     *     <th>Description of Associated Value</th></tr>
-     * <tr><td><code>name</code></td>
-     *     <td><em>(optional)</em> The name of the repository. The default is
-     * {@value org.gradle.api.artifacts.ArtifactRepositoryContainer#DEFAULT_MAVEN_CENTRAL_REPO_NAME} is used as the name. A name
-     * must be unique amongst a repository group.
-     * </td></tr>
-     * <tr><td><code>artifactUrls</code></td>
-     *     <td>A single jar repository or a collection of jar repositories containing additional artifacts not found in the maven central repository.
-     * But be aware that the POM must exist in maven central.
-     * The provided values are evaluated as for {@link org.gradle.api.Project#uri(Object)}.</td></tr>
-     * </table>
-     *
-     * <p>Examples:
-     * <pre>
-     * factory.mavenCentral(artifactUrls: ["http://www.mycompany.com/artifacts1", "http://www.mycompany.com/artifacts2"])
-     * factory.mavenCentral(name: "nonDefaultName", artifactUrls: ["http://www.mycompany.com/artifacts1"])
-     * </pre>
-     * </p>
-     *
-     * @param args A list of urls of repositories to look for artifacts only.
-     * @return the created repository
-     */
-    MavenArtifactRepository mavenCentral(Map<String, ?> args);
-
-    /**
-     * Creates a repository which looks in the Maven central repository for dependencies. The URL used to access this repository is
      * {@value org.gradle.api.artifacts.ArtifactRepositoryContainer#MAVEN_CENTRAL_URL}. The name of the repository is
      * {@value org.gradle.api.artifacts.ArtifactRepositoryContainer#DEFAULT_MAVEN_CENTRAL_REPO_NAME}.
      *
      * @return the created repository
-     * @see #mavenCentral(java.util.Map)
      */
     MavenArtifactRepository mavenCentral();
 

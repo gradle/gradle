@@ -36,6 +36,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.gradle.util.CollectionUtils.toList;
+
 /**
  * @author Hans Dockter
  */
@@ -65,7 +67,17 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
     }
 
     public MavenArtifactRepository mavenCentral(Map<String, ?> args) {
-        return addRepository(repositoryFactory.mavenCentral(args));
+        Map<String, Object> modifiedArgs = new HashMap<String, Object>(args);
+        if (modifiedArgs.containsKey("urls")) {
+            DeprecationLogger.nagUserWith("The 'urls' property of the RepositoryHandler.mavenCentral() method is deprecated and will be removed in a future version of Gradle. "
+                    + "You should use the 'artifactUrls' property to define additional artifact locations.");
+            List<Object> urls = toList(modifiedArgs.remove("urls"));
+            modifiedArgs.put("artifactUrls", urls);
+        }
+
+        MavenArtifactRepository repo = repositoryFactory.mavenCentral();
+        ConfigureUtil.configureByMap(modifiedArgs, repo);
+        return addRepository(repo);
     }
 
     public MavenArtifactRepository mavenLocal() {

@@ -25,8 +25,8 @@ import org.gradle.api.internal.artifacts.repositories.FixedResolverArtifactRepos
 /**
  * Factory for {@link ArtifactRepository} implementations.
  *
- * Differs from {@link org.gradle.api.artifacts.dsl.RepositoryFactory} in that this is internal and does not provide
- * API for configuring the repositories at creation time. {@link org.gradle.api.artifacts.dsl.RepositoryFactory} is the DSL
+ * Differs from {@link org.gradle.api.internal.artifacts.dsl.RepositoryFactory} in that this is internal and does not provide
+ * API for configuring the repositories at creation time. {@link org.gradle.api.internal.artifacts.dsl.RepositoryFactory} is the DSL
  * layer on top of this internal factory.
  */
 public interface BaseRepositoryFactory {
