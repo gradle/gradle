@@ -30,8 +30,8 @@ public interface IvyDependencyDescriptor {
 
     void withXml(Action<XmlProvider> action);
 
-    File getDescriptorFile();
+    File getFile();
 
-    void setDescriptorFile(File descriptorFile);
+    void setFile(File descriptorFile);
 
 }

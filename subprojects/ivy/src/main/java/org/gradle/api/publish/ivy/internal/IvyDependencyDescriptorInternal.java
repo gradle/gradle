@@ -21,6 +21,6 @@ import org.gradle.api.publish.ivy.IvyDependencyDescriptor;
 
 public interface IvyDependencyDescriptorInternal extends IvyDependencyDescriptor {
 
-    XmlTransformer getDescriptorTransformer();
+    XmlTransformer getTransformer();
 
 }

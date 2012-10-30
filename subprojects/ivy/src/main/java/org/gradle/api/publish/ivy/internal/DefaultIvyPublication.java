@@ -16,22 +16,24 @@
 
 package org.gradle.api.publish.ivy.internal;
 
+import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
+import org.gradle.api.publish.ivy.IvyDependencyDescriptor;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.reflect.Instantiator;
 
 public class DefaultIvyPublication implements IvyPublicationInternal {
 
     private final String name;
-    private final IvyDependencyDescriptorInternal ivy;
+    private final IvyDependencyDescriptorInternal descriptor;
     private final ConfigurationInternal configuration;
     private final DependencyMetaDataProvider dependencyMetaDataProvider;
 
     public DefaultIvyPublication(String name, Instantiator instantiator, ConfigurationInternal configuration, DependencyMetaDataProvider dependencyMetaDataProvider) {
         this.name = name;
-        this.ivy = instantiator.newInstance(DefaultIvyDependencyDescriptor.class);
+        this.descriptor = instantiator.newInstance(DefaultIvyDependencyDescriptor.class);
         this.configuration = configuration;
         this.dependencyMetaDataProvider = dependencyMetaDataProvider;
     }
@@ -41,7 +43,11 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     public IvyDependencyDescriptorInternal getDescriptor() {
-        return ivy;
+        return descriptor;
+    }
+
+    public void descriptor(Action<? super IvyDependencyDescriptor> action) {
+        action.execute(descriptor);
     }
 
     public FileCollection getPublishableFiles() {
@@ -53,7 +59,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     public IvyNormalizedPublication asNormalisedPublication() {
-        return new IvyNormalizedPublication(dependencyMetaDataProvider.getModule(), configuration, ivy.getDescriptorFile(), ivy.getDescriptorTransformer());
+        return new IvyNormalizedPublication(dependencyMetaDataProvider.getModule(), configuration, descriptor.getFile(), descriptor.getTransformer());
     }
 
     public Class<IvyNormalizedPublication> getNormalisedPublicationType() {

@@ -68,7 +68,7 @@ public class IvyPublishPlugin implements Plugin<Project> {
         IvyDependencyDescriptorInternal descriptor = publication.getDescriptor();
         DslObject descriptorDslObject = new DslObject(descriptor);
         ConventionMapping descriptorConventionMapping = descriptorDslObject.getConventionMapping();
-        descriptorConventionMapping.map("descriptorFile", new Callable<Object>() {
+        descriptorConventionMapping.map("file", new Callable<Object>() {
             public Object call() throws Exception {
                 return new File(project.getBuildDir(), "publications/" + publication.getName() + "/ivy.xml");
             }

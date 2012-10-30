@@ -66,4 +66,19 @@ class IvyPublishPluginTest extends Specification {
         normalizedPublication.module.version == project.version.toString()
         normalizedPublication.module.status == project.status
     }
+
+    def "can configure descriptor"() {
+        given:
+        IvyPublicationInternal publication = extension.publications.ivy
+
+        when:
+        publication.descriptor {
+            withXml {
+                it.asNode().@foo = "bar"
+            }
+        }
+
+        then:
+        publication.descriptor.transformer.transform("<things/>").contains('things foo="bar"')
+    }
 }

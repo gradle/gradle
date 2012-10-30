@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.ivy;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.publish.Publication;
 
@@ -26,5 +27,7 @@ import org.gradle.api.publish.Publication;
 public interface IvyPublication extends Publication {
 
     IvyDependencyDescriptor getDescriptor();
+
+    void descriptor(Action<? super IvyDependencyDescriptor> action);
 
 }

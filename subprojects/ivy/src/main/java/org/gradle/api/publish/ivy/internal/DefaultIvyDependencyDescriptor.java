@@ -24,22 +24,22 @@ import java.io.File;
 
 public class DefaultIvyDependencyDescriptor implements IvyDependencyDescriptorInternal {
 
-    private final XmlTransformer withXml = new XmlTransformer();
-    private File descriptorFile;
+    private final XmlTransformer transformer = new XmlTransformer();
+    private File file;
 
     public void withXml(Action<XmlProvider> action) {
-        withXml.addAction(action);
+        transformer.addAction(action);
     }
 
-    public File getDescriptorFile() {
-        return descriptorFile;
+    public File getFile() {
+        return file;
     }
 
-    public void setDescriptorFile(File descriptorFile) {
-        this.descriptorFile = descriptorFile;
+    public void setFile(File descriptorFile) {
+        this.file = descriptorFile;
     }
 
-    public XmlTransformer getDescriptorTransformer() {
-        return withXml;
+    public XmlTransformer getTransformer() {
+        return transformer;
     }
 }
