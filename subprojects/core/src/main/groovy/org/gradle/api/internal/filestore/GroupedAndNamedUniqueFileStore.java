@@ -65,7 +65,7 @@ public class GroupedAndNamedUniqueFileStore<K> implements FileStore<K>, FileStor
     }
 
     public File getTempFile() {
-        return temporaryFileProvider.newTemporaryFile(delegate.getBaseDir().getAbsolutePath());
+        return temporaryFileProvider.createTemporaryFile("filestore", "bin");
     }
 
     public void moveFilestore(File destination) {
