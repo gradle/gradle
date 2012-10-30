@@ -33,10 +33,10 @@ public interface PublishingExtension {
 
     RepositoryHandler getRepositories();
 
-    void repositories(Action<RepositoryHandler> configure);
+    void repositories(Action<? super RepositoryHandler> configure);
 
     PublicationContainer getPublications();
 
-    void publications(Action<PublicationContainer> configure);
+    void publications(Action<? super PublicationContainer> configure);
 
 }

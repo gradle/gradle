@@ -35,7 +35,7 @@ public class DefaultPublishingExtension implements PublishingExtension {
         return repositories;
     }
 
-    public void repositories(Action<RepositoryHandler> configure) {
+    public void repositories(Action<? super RepositoryHandler> configure) {
         configure.execute(repositories);
     }
 
@@ -43,7 +43,7 @@ public class DefaultPublishingExtension implements PublishingExtension {
         return publications;
     }
 
-    public void publications(Action<PublicationContainer> configure) {
+    public void publications(Action<? super PublicationContainer> configure) {
         configure.execute(publications);
     }
 }
