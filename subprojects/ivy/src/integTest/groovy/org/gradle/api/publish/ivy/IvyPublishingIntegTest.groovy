@@ -16,10 +16,10 @@
 
 package org.gradle.api.publish.ivy
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import groovy.util.slurpersupport.GPathResult
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-class IvyDescriptorModificationPublishIntegrationTest extends AbstractIntegrationSpec {
+class IvyPublishingIntegTest extends AbstractIntegrationSpec {
 
     def module = ivyRepo.module("org.gradle", "publish", "2")
 
