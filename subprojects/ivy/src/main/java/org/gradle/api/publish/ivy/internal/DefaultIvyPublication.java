@@ -40,7 +40,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         return name;
     }
 
-    public IvyDependencyDescriptorInternal getIvy() {
+    public IvyDependencyDescriptorInternal getDescriptor() {
         return ivy;
     }
 

@@ -63,7 +63,7 @@ class IvyPublishingIntegTest extends AbstractIntegrationSpec {
             publishing {
                 publications {
                     ivy {
-                        ivy.withXml {
+                        descriptor.withXml {
                             it.asNode().info[0].@revision = "3"
                         }
                     }

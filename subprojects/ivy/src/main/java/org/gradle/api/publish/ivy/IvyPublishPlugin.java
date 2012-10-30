@@ -65,7 +65,7 @@ public class IvyPublishPlugin implements Plugin<Project> {
                 "ivy", instantiator, configuration, dependencyMetaDataProvider
         );
 
-        IvyDependencyDescriptorInternal descriptor = publication.getIvy();
+        IvyDependencyDescriptorInternal descriptor = publication.getDescriptor();
         DslObject descriptorDslObject = new DslObject(descriptor);
         ConventionMapping descriptorConventionMapping = descriptorDslObject.getConventionMapping();
         descriptorConventionMapping.map("descriptorFile", new Callable<Object>() {

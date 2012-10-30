@@ -25,6 +25,6 @@ import org.gradle.api.publish.Publication;
 @Incubating
 public interface IvyPublication extends Publication {
 
-    IvyDependencyDescriptor getIvy();
+    IvyDependencyDescriptor getDescriptor();
 
 }

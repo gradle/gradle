@@ -22,7 +22,7 @@ import org.gradle.api.publish.ivy.IvyPublication;
 
 public interface IvyPublicationInternal extends IvyPublication, Buildable {
 
-    IvyDependencyDescriptorInternal getIvy();
+    IvyDependencyDescriptorInternal getDescriptor();
 
     FileCollection getPublishableFiles();
 
