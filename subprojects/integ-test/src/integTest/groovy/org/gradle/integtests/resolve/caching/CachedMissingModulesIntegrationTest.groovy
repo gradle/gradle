@@ -184,6 +184,9 @@ class CachedMissingModulesIntegrationTest extends AbstractDependencyResolutionTe
                     config2 'group:projectA:1.0'
                 }
                 task resolveConfig2 << {
+                    if(gradle.startParameter.oarallelThreadCountThread != 0){
+                        Thread.sleep 50
+                    }
                     configurations.config2.each{
                         println it
                     }
