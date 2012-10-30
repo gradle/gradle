@@ -20,20 +20,20 @@ import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
-import org.gradle.api.publish.ivy.IvyDependencyDescriptor;
+import org.gradle.api.publish.ivy.IvyModuleDescriptor;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.reflect.Instantiator;
 
 public class DefaultIvyPublication implements IvyPublicationInternal {
 
     private final String name;
-    private final IvyDependencyDescriptorInternal descriptor;
+    private final IvyModuleDescriptorInternal descriptor;
     private final ConfigurationInternal configuration;
     private final DependencyMetaDataProvider dependencyMetaDataProvider;
 
     public DefaultIvyPublication(String name, Instantiator instantiator, ConfigurationInternal configuration, DependencyMetaDataProvider dependencyMetaDataProvider) {
         this.name = name;
-        this.descriptor = instantiator.newInstance(DefaultIvyDependencyDescriptor.class);
+        this.descriptor = instantiator.newInstance(DefaultIvyModuleDescriptor.class);
         this.configuration = configuration;
         this.dependencyMetaDataProvider = dependencyMetaDataProvider;
     }
@@ -42,11 +42,11 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         return name;
     }
 
-    public IvyDependencyDescriptorInternal getDescriptor() {
+    public IvyModuleDescriptorInternal getDescriptor() {
         return descriptor;
     }
 
-    public void descriptor(Action<? super IvyDependencyDescriptor> action) {
+    public void descriptor(Action<? super IvyModuleDescriptor> action) {
         action.execute(descriptor);
     }
 

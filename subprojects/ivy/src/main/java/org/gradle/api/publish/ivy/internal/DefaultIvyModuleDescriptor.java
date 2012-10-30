@@ -16,11 +16,30 @@
 
 package org.gradle.api.publish.ivy.internal;
 
+import org.gradle.api.Action;
+import org.gradle.api.XmlProvider;
 import org.gradle.api.internal.XmlTransformer;
-import org.gradle.api.publish.ivy.IvyDependencyDescriptor;
 
-public interface IvyDependencyDescriptorInternal extends IvyDependencyDescriptor {
+import java.io.File;
 
-    XmlTransformer getTransformer();
+public class DefaultIvyModuleDescriptor implements IvyModuleDescriptorInternal {
 
+    private final XmlTransformer transformer = new XmlTransformer();
+    private File file;
+
+    public void withXml(Action<XmlProvider> action) {
+        transformer.addAction(action);
+    }
+
+    public File getFile() {
+        return file;
+    }
+
+    public void setFile(File descriptorFile) {
+        this.file = descriptorFile;
+    }
+
+    public XmlTransformer getTransformer() {
+        return transformer;
+    }
 }

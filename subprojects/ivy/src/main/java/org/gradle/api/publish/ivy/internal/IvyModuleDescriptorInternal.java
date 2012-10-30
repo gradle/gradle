@@ -14,24 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publish.ivy;
+package org.gradle.api.publish.ivy.internal;
 
-import org.gradle.api.Action;
-import org.gradle.api.Incubating;
-import org.gradle.api.XmlProvider;
+import org.gradle.api.internal.XmlTransformer;
+import org.gradle.api.publish.ivy.IvyModuleDescriptor;
 
-import java.io.File;
+public interface IvyModuleDescriptorInternal extends IvyModuleDescriptor {
 
-/**
- * The descriptor of any Ivy publication.
- */
-@Incubating
-public interface IvyDependencyDescriptor {
-
-    void withXml(Action<XmlProvider> action);
-
-    File getFile();
-
-    void setFile(File descriptorFile);
+    XmlTransformer getTransformer();
 
 }

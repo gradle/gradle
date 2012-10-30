@@ -28,7 +28,7 @@ import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.PublishingPlugin;
 import org.gradle.api.publish.ivy.internal.DefaultIvyPublication;
-import org.gradle.api.publish.ivy.internal.IvyDependencyDescriptorInternal;
+import org.gradle.api.publish.ivy.internal.IvyModuleDescriptorInternal;
 import org.gradle.api.publish.ivy.internal.IvyPublishDynamicTaskCreator;
 import org.gradle.internal.reflect.Instantiator;
 
@@ -69,7 +69,7 @@ public class IvyPublishPlugin implements Plugin<Project> {
                 "ivy", instantiator, configuration, dependencyMetaDataProvider
         );
 
-        IvyDependencyDescriptorInternal descriptor = publication.getDescriptor();
+        IvyModuleDescriptorInternal descriptor = publication.getDescriptor();
         DslObject descriptorDslObject = new DslObject(descriptor);
         ConventionMapping descriptorConventionMapping = descriptorDslObject.getConventionMapping();
         descriptorConventionMapping.map("file", new Callable<Object>() {
