@@ -48,6 +48,7 @@ class PublishingPluginTest extends Specification {
 
         then:
         extension.repositories.size() == 1
+        project.repositories.size() == 0 // ensure we didn't somehow create a resolution repo
     }
 
     def "can add publication"() {

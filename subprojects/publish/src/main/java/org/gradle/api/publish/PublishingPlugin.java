@@ -20,10 +20,8 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
-import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryFactory;
-import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
-import org.gradle.api.internal.artifacts.dsl.RepositoryFactoryInternal;
 import org.gradle.api.publish.internal.DefaultPublicationContainer;
 import org.gradle.api.publish.internal.DefaultPublishingExtension;
 import org.gradle.internal.reflect.Instantiator;
@@ -36,17 +34,17 @@ import javax.inject.Inject;
 @Incubating
 public class PublishingPlugin implements Plugin<Project> {
 
-    private final RepositoryFactoryInternal repositoryFactory;
+    private final ArtifactPublicationServices artifactPublicationServices;
     private final Instantiator instantiator;
 
     @Inject
     public PublishingPlugin(DependencyResolutionServices dependencyResolutionServices, Instantiator instantiator) {
-        this.repositoryFactory = new DefaultRepositoryFactory(dependencyResolutionServices.getBaseRepositoryFactory());
+        this.artifactPublicationServices = dependencyResolutionServices.getPublishServicesFactory().create();
         this.instantiator = instantiator;
     }
 
     public void apply(Project project) {
-        RepositoryHandler repositories = instantiator.newInstance(DefaultRepositoryHandler.class, repositoryFactory, instantiator);
+        RepositoryHandler repositories = artifactPublicationServices.getRepositoryHandler();
         PublicationContainer publications = instantiator.newInstance(DefaultPublicationContainer.class, instantiator);
         project.getExtensions().create("publishing", DefaultPublishingExtension.class, repositories, publications);
     }
