@@ -16,10 +16,7 @@
 package org.gradle.api;
 
 /**
- * <code>UncheckedIOException</code> is used to wrap an
- * java.io.IOException into an unchecked exception.
- * 
- * @author Hans Dockter
+ * <code>UncheckedIOException</code> is used to wrap an {@link java.io.IOException} into an unchecked exception.
  */
 public class UncheckedIOException extends RuntimeException {
     public UncheckedIOException() {
