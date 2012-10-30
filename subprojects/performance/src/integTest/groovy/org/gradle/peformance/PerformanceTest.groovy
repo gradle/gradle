@@ -139,6 +139,6 @@ class PerformanceTest extends Specification {
         where:
         testProject         | runs | accuracyMs
         "withTestNG"        | 4    | 800
-        "withVerboseJUnits" | 4    | 800
+        "withVerboseJUnits" | 4    | 1200
     }
 }

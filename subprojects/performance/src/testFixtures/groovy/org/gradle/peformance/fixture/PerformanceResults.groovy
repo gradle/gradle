@@ -17,9 +17,8 @@
 package org.gradle.peformance.fixture
 
 import org.gradle.api.logging.Logging
-import java.math.RoundingMode
 
-import static org.gradle.peformance.fixture.MeasuredOperation.prettyBytes
+import static PrettyCalculator.prettyBytes
 import static org.gradle.util.Clock.prettyTime
 
 public class PerformanceResults {
@@ -80,17 +79,13 @@ public class PerformanceResults {
     String memoryStats(double maxRegression) {
         """  Previous release avg: ${prettyBytes(previous.avgMemory())} ${previous*.prettyBytes}
   Current gradle avg: ${prettyBytes(current.avgMemory())} ${current*.prettyBytes}%
-  Difference: ${prettyBytes(current.avgMemory() - previous.avgMemory())} (${(current.avgMemory() - previous.avgMemory()).round(2)} B), ${percentChange(current.avgMemory().round(), previous.avgMemory().round())}%, max regression: $maxRegression (${prettyBytes((long) (previous.avgMemory() * maxRegression))})"""
+  Difference: ${prettyBytes(current.avgMemory() - previous.avgMemory())} (${(current.avgMemory() - previous.avgMemory()).round(2)} B), ${PrettyCalculator.percentChange(current.avgMemory(), previous.avgMemory())}%, max regression: $maxRegression (${prettyBytes((long) (previous.avgMemory() * maxRegression))})"""
     }
 
     String speedStats() {
         """  Previous release avg: ${prettyTime(previous.avgTime().round())} ${previous*.prettyTime}
   Current gradle avg: ${prettyTime(current.avgTime().round())} ${current*.prettyTime}
-  Difference: ${prettyTime((current.avgTime() - previous.avgTime()).round())} (${(current.avgTime() - previous.avgTime()).round(2)} ms), ${percentChange(current.avgTime().round(), previous.avgTime().round())}%, max regression: $accuracyMs ms"""
+  Difference: ${prettyTime((current.avgTime() - previous.avgTime()).round())} (${(current.avgTime() - previous.avgTime()).round(2)} ms), ${PrettyCalculator.percentChange(current.avgTime(), previous.avgTime())}%, max regression: $accuracyMs ms"""
     }
 
-    private Number percentChange(Number current, Number previous) {
-        def result = (-1) * (100 * (previous-current) / previous).setScale(2, RoundingMode.HALF_UP)
-        return result
-    }
 }
