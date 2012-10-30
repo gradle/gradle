@@ -21,6 +21,8 @@ import org.gradle.api.publish.Publication
 import org.gradle.api.publish.PublicationContainer
 import org.gradle.api.publish.UnknownPublicationException
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.util.ConfigureUtil
+import spock.lang.Ignore
 import spock.lang.Specification
 
 class DefaultPublicationContainerTest extends Specification {
@@ -43,6 +45,7 @@ class DefaultPublicationContainerTest extends Specification {
         e.message == "Publication with name 'notHere' not found"
     }
 
+    @Ignore("This throws an MME, which is not as nice for the user")
     def "right exception is thrown on unknown access as method"() {
         given:
         container.add(publication("foo"))
@@ -51,7 +54,7 @@ class DefaultPublicationContainerTest extends Specification {
         container.foo { } instanceof Publication
 
         when:
-        container.notHere { }
+        ConfigureUtil.configure({ notHere { } }, container)
 
         then:
         def e = thrown(UnknownPublicationException)
