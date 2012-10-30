@@ -26,6 +26,11 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler;
 @Incubating
 public interface PublishingExtension {
 
+    /**
+     * The name of this extension when installed by the {@link PublishingPlugin} ({@value}).
+     */
+    String NAME = "publishing";
+
     RepositoryHandler getRepositories();
 
     void repositories(Action<RepositoryHandler> configure);

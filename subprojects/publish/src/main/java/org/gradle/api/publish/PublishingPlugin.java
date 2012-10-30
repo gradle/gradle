@@ -46,6 +46,6 @@ public class PublishingPlugin implements Plugin<Project> {
     public void apply(Project project) {
         RepositoryHandler repositories = artifactPublicationServices.getRepositoryHandler();
         PublicationContainer publications = instantiator.newInstance(DefaultPublicationContainer.class, instantiator);
-        project.getExtensions().create("publishing", DefaultPublishingExtension.class, repositories, publications);
+        project.getExtensions().create(PublishingExtension.NAME, DefaultPublishingExtension.class, repositories, publications);
     }
 }
