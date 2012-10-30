@@ -20,8 +20,8 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 
 public class DefaultIvyPublication implements IvyPublicationInternal {
@@ -29,13 +29,13 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     private final String name;
     private final IvyDependencyDescriptorInternal ivy;
     private final ConfigurationInternal configuration;
-    private final Factory<Module> moduleFactory;
+    private final DependencyMetaDataProvider dependencyMetaDataProvider;
 
-    public DefaultIvyPublication(String name, Instantiator instantiator, ConfigurationInternal configuration, Factory<Module> moduleFactory) {
+    public DefaultIvyPublication(String name, Instantiator instantiator, ConfigurationInternal configuration, DependencyMetaDataProvider dependencyMetaDataProvider) {
         this.name = name;
         this.ivy = instantiator.newInstance(DefaultIvyDependencyDescriptor.class);
         this.configuration = configuration;
-        this.moduleFactory = moduleFactory;
+        this.dependencyMetaDataProvider = dependencyMetaDataProvider;
     }
 
     public String getName() {
@@ -55,7 +55,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     public IvyNormalizedPublication asNormalisedPublication() {
-        return new IvyNormalizedPublication(moduleFactory.create(), configuration, ivy.getDescriptorFile(), ivy.getDescriptorTransformer());
+        return new IvyNormalizedPublication(getModule(), configuration, ivy.getDescriptorFile(), ivy.getDescriptorTransformer());
     }
 
     public Class<IvyNormalizedPublication> getNormalisedPublicationType() {
@@ -67,6 +67,6 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     public Module getModule() {
-        return moduleFactory.create();
+        return dependencyMetaDataProvider.getModule();
     }
 }

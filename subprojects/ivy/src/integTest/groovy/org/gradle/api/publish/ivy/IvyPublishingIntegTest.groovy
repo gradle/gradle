@@ -50,6 +50,7 @@ class IvyPublishingIntegTest extends AbstractIntegrationSpec {
 
     def "can modify descriptor during publication"() {
         when:
+        args "-i"
         succeeds 'publishIvy'
 
         then:
@@ -70,11 +71,12 @@ class IvyPublishingIntegTest extends AbstractIntegrationSpec {
                 }
             }
         """
+        args "-i"
         succeeds 'publishIvy'
+
 
         then:
         ":jar" in skippedTasks
-
         and:
         asXml(module.ivyFile).info[0].@revision == "3"
     }

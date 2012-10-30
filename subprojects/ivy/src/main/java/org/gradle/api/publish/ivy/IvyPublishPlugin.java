@@ -22,13 +22,13 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.ConventionMapping;
+import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.PublishingPlugin;
 import org.gradle.api.publish.ivy.internal.DefaultIvyPublication;
 import org.gradle.api.publish.ivy.internal.IvyDependencyDescriptorInternal;
-import org.gradle.api.publish.ivy.internal.ProjectBackedModuleFactory;
 import org.gradle.internal.reflect.Instantiator;
 
 import javax.inject.Inject;
@@ -42,10 +42,12 @@ import java.util.concurrent.Callable;
 public class IvyPublishPlugin implements Plugin<Project> {
 
     private final Instantiator instantiator;
+    private final DependencyMetaDataProvider dependencyMetaDataProvider;
 
     @Inject
-    public IvyPublishPlugin(Instantiator instantiator) {
+    public IvyPublishPlugin(Instantiator instantiator, DependencyMetaDataProvider dependencyMetaDataProvider) {
         this.instantiator = instantiator;
+        this.dependencyMetaDataProvider = dependencyMetaDataProvider;
     }
 
     public void apply(Project project) {
@@ -60,7 +62,7 @@ public class IvyPublishPlugin implements Plugin<Project> {
     private IvyPublication createPublication(Configuration configuration, final Project project) {
         final DefaultIvyPublication publication = instantiator.newInstance(
                 DefaultIvyPublication.class,
-                "ivy", instantiator, configuration, new ProjectBackedModuleFactory(project)
+                "ivy", instantiator, configuration, dependencyMetaDataProvider
         );
 
         IvyDependencyDescriptorInternal descriptor = publication.getIvy();

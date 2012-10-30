@@ -17,11 +17,11 @@
 package org.gradle.api.publish.ivy
 
 import org.gradle.api.Project
+import org.gradle.api.publish.PublishingExtension
+import org.gradle.api.publish.ivy.internal.IvyNormalizedPublication
+import org.gradle.api.publish.ivy.internal.IvyPublicationInternal
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
-import org.gradle.api.publish.PublishingExtension
-import org.gradle.api.publish.ivy.internal.IvyPublicationInternal
-import org.gradle.api.publish.ivy.internal.IvyNormalizedPublication
 
 class IvyPublishPluginTest extends Specification {
 
@@ -59,6 +59,7 @@ class IvyPublishPluginTest extends Specification {
         project.group = "bar"
         project.version = 2.0
         project.status = "final"
+        normalizedPublication = publication.asNormalisedPublication()
 
         then:
         normalizedPublication.module.group == project.group
