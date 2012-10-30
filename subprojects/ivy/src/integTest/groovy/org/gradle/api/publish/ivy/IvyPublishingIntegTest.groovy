@@ -40,17 +40,12 @@ class IvyPublishingIntegTest extends AbstractIntegrationSpec {
                     ivy { url "${ivyRepo.uri}" }
                 }
             }
-
-            task publishIvy(type: IvyPublish) {
-                publication publishing.publications.ivy
-                repository publishing.repositories.ivy
-            }
         """
     }
 
     def "can modify descriptor during publication"() {
         when:
-        succeeds 'publishIvy'
+        succeeds 'publishIvyToIvy'
 
         then:
         ":jar" in executedTasks
@@ -72,7 +67,7 @@ class IvyPublishingIntegTest extends AbstractIntegrationSpec {
                 }
             }
         """
-        succeeds 'publishIvy'
+        succeeds 'publishIvyToIvy'
 
 
         then:

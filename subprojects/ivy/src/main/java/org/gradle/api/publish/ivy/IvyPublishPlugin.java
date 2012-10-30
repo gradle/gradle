@@ -29,6 +29,7 @@ import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.PublishingPlugin;
 import org.gradle.api.publish.ivy.internal.DefaultIvyPublication;
 import org.gradle.api.publish.ivy.internal.IvyDependencyDescriptorInternal;
+import org.gradle.api.publish.ivy.internal.IvyPublishDynamicTaskCreator;
 import org.gradle.internal.reflect.Instantiator;
 
 import javax.inject.Inject;
@@ -57,6 +58,9 @@ public class IvyPublishPlugin implements Plugin<Project> {
         project.getPlugins().apply(PublishingPlugin.class);
         PublishingExtension extension = project.getExtensions().getByType(PublishingExtension.class);
         extension.getPublications().add(createPublication(archivesConfiguration, project));
+
+        // Create publish tasks automatically for any Ivy publication and repository combinations
+        new IvyPublishDynamicTaskCreator(project.getTasks()).monitor(extension.getPublications(), extension.getRepositories());
     }
 
     private IvyPublication createPublication(Configuration configuration, final Project project) {
