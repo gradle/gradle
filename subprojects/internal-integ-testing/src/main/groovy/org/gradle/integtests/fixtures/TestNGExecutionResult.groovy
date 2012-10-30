@@ -25,22 +25,44 @@ import org.hamcrest.Matcher
  */
 class TestNGExecutionResult implements TestExecutionResult {
     private final TestFile projectDir
-    private final GPathResult resultsXml
+    private GPathResult resultsXml
+    public static final String DEFAULT_TESTNG_REPORT = "build/reports/tests"
 
     def TestNGExecutionResult(projectDir) {
         this.projectDir = projectDir;
-        resultsXml = new XmlSlurper().parse(projectDir.file('build/reports/tests/testng-results.xml').assertIsFile())
+    }
+
+    boolean hasTestNGXmlResults() {
+        xmlReportFile().isFile()
+    }
+
+    boolean hasHtmlResults() {
+        htmlReportFile().isFile()
     }
 
     TestExecutionResult assertTestClassesExecuted(String... testClasses) {
-        projectDir.file('build/reports/tests/index.html').assertIsFile()
+        parseResults()
+        htmlReportFile().assertIsFile()
         def actualTestClasses = findTestClasses().keySet()
         org.junit.Assert.assertThat(actualTestClasses, org.hamcrest.Matchers.equalTo(testClasses as Set))
         this
     }
 
+    private TestFile htmlReportFile() {
+        projectDir.file('build/reports/tests/index.html')
+    }
+
     TestClassExecutionResult testClass(String testClass) {
+        parseResults()
         return new org.gradle.integtests.fixtures.TestNgTestClassExecutionResult(testClass, findTestClass(testClass))
+    }
+
+    private void parseResults() {
+        resultsXml = new XmlSlurper().parse(xmlReportFile().assertIsFile())
+    }
+
+    private TestFile xmlReportFile() {
+        projectDir.file("$DEFAULT_TESTNG_REPORT/testng-results.xml")
     }
 
     private def findTestClass(String testClass) {
@@ -67,6 +89,10 @@ private class TestNgTestClassExecutionResult implements TestClassExecutionResult
     def TestNgTestClassExecutionResult(String testClass, GPathResult resultXml) {
         this.testClass = testClass
         this.testClassNode = resultXml
+    }
+
+    TestClassExecutionResult assertTestCount(int tests, int failures, int errors) {
+        throw new RuntimeException("Unsupported. Implement if you need it.");
     }
 
     TestClassExecutionResult assertTestsExecuted(String... testNames) {
