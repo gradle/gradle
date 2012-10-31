@@ -25,6 +25,7 @@ public class PerformanceResults {
 
     int accuracyMs
     String displayName
+    double maxMemoryRegression
 
     private final static LOGGER = Logging.getLogger(PerformanceTestRunner.class)
 
@@ -45,13 +46,28 @@ public class PerformanceResults {
         LOGGER.info("Asserting all builds have succeeded...");
         assert previous.size() == current.size()
         def previousExceptions = previous.findAll { it.exception }.collect() { it.exception }
-        def currentExceptions  = previous.findAll { it.exception }.collect() { it.exception }
+        def currentExceptions = previous.findAll { it.exception }.collect() { it.exception }
         assert previousExceptions.isEmpty() & currentExceptions.isEmpty()
     }
 
-    void assertMemoryUsed(double maxRegression) {
+    void assertCurrentVersionHasNotRegressed() {
+        def slower = assertCurrentReleaseIsNotSlower()
+        def larger = assertMemoryUsed()
+        if (slower && larger) {
+            throw new AssertionError("$slower\n$larger")
+        }
+        if (slower) {
+            throw new AssertionError(slower)
+        }
+        if (larger) {
+            throw new AssertionError(larger)
+        }
+    }
+
+    private String assertMemoryUsed() {
+        double maxRegression = maxMemoryRegression
         assertEveryBuildSucceeds()
-        assert (current.avgMemory() - (maxRegression * previous.avgMemory())) <= previous.avgMemory(): "Looks like the current gradle requires more memory than the latest release.\n${memoryStats(maxRegression)}"
+        def failed = (current.avgMemory() - (maxRegression * previous.avgMemory())) > previous.avgMemory()
 
         String message;
         if (current.avgMemory() > previous.avgMemory()) {
@@ -59,13 +75,15 @@ public class PerformanceResults {
         } else {
             message = "Memory $displayName: AWESOME! current Gradle needs less memory on average :D"
         }
-        println("\n$message\n${memoryStats(maxRegression)}")
+        message += "\n${memoryStats(maxRegression)}"
+        println("\n$message")
+        return failed ? message : null
     }
 
-    void assertCurrentReleaseIsNotSlower() {
+    private String assertCurrentReleaseIsNotSlower() {
         assertEveryBuildSucceeds()
 
-        assert (current.avgTime() - accuracyMs) <= previous.avgTime() : "Looks like the current gradle is slower than latest release.\n${speedStats()}"
+        def failed = (current.avgTime() - accuracyMs) > previous.avgTime()
 
         String message;
         if (current.avgTime() > previous.avgTime()) {
@@ -73,18 +91,24 @@ public class PerformanceResults {
         } else {
             message = "Speed $displayName: AWESOME! current Gradle is faster on average :D"
         }
-        println("\n$message\n${speedStats()}")
+        message += "\n${speedStats()}"
+        println("\n$message")
+        return failed ? message : null
     }
 
     String memoryStats(double maxRegression) {
         """  Previous release avg: ${prettyBytes(previous.avgMemory())} ${previous*.prettyBytes}
+  Previous release min: ${prettyBytes(previous.minMemory())}, max: ${prettyBytes(previous.maxMemory())}
   Current gradle avg: ${prettyBytes(current.avgMemory())} ${current*.prettyBytes}%
+  Current gradle min: ${prettyBytes(current.minMemory())}, max: ${prettyBytes(current.maxMemory())}
   Difference: ${prettyBytes(current.avgMemory() - previous.avgMemory())} (${(current.avgMemory() - previous.avgMemory()).round(2)} B), ${PrettyCalculator.percentChange(current.avgMemory(), previous.avgMemory())}%, max regression: $maxRegression (${prettyBytes((long) (previous.avgMemory() * maxRegression))})"""
     }
 
     String speedStats() {
         """  Previous release avg: ${prettyTime(previous.avgTime().round())} ${previous*.prettyTime}
+  Previous release min: ${prettyTime(previous.minTime())}, max: ${prettyTime(previous.maxTime())}
   Current gradle avg: ${prettyTime(current.avgTime().round())} ${current*.prettyTime}
+  Current gradle min: ${prettyTime(current.minTime())}, max: ${prettyTime(current.maxTime())}
   Difference: ${prettyTime((current.avgTime() - previous.avgTime()).round())} (${(current.avgTime() - previous.avgTime()).round(2)} ms), ${PrettyCalculator.percentChange(current.avgTime(), previous.avgTime())}%, max regression: $accuracyMs ms"""
     }
 

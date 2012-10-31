@@ -30,13 +30,14 @@ public class PerformanceTestRunner {
     int runs
     int warmUpRuns
     int accuracyMs
+    double maxMemoryRegression
     List<String> tasksToRun = ['clean', 'build']
     DataCollector dataCollector = new MemoryInfoCollector(outputFileName: "build/totalMemoryUsed.txt")
 
     PerformanceResults results
 
     PerformanceResults run() {
-        results = new PerformanceResults(accuracyMs: accuracyMs, displayName: "Results for test project '$testProject'")
+        results = new PerformanceResults(accuracyMs: accuracyMs, maxMemoryRegression: maxMemoryRegression, displayName: "Results for test project '$testProject' with tasks ${tasksToRun.join(', ')}")
         LOGGER.lifecycle("Running performance tests for test project '{}', no. # runs: {}", testProject, runs)
         warmUpRuns.times {
             LOGGER.info("Executing warm-up run #${it+1}")

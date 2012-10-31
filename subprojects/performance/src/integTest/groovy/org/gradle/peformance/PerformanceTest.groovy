@@ -31,10 +31,10 @@ class PerformanceTest extends Specification {
                 tasksToRun: ['clean', 'build'],
                 runs: runs,
                 warmUpRuns: 1,
-                accuracyMs: accuracyMs
+                accuracyMs: accuracyMs,
+                maxMemoryRegression: 0.01
         ).run()
-        result.assertCurrentReleaseIsNotSlower()
-        result.assertMemoryUsed(0.01)
+        result.assertCurrentVersionHasNotRegressed()
 
         where:
         testProject       | runs | accuracyMs
@@ -50,10 +50,10 @@ class PerformanceTest extends Specification {
                 tasksToRun: ['build'],
                 runs: runs,
                 warmUpRuns: 1,
-                accuracyMs: accuracyMs
+                accuracyMs: accuracyMs,
+                maxMemoryRegression: 0.01
         ).run()
-        result.assertCurrentReleaseIsNotSlower()
-        result.assertMemoryUsed(0.01)
+        result.assertCurrentVersionHasNotRegressed()
 
         where:
         testProject       | runs | accuracyMs
@@ -69,10 +69,10 @@ class PerformanceTest extends Specification {
                 tasksToRun: ['dependencyReport'],
                 runs: runs,
                 warmUpRuns: 1,
-                accuracyMs: accuracyMs
+                accuracyMs: accuracyMs,
+                maxMemoryRegression: 0.01
         ).run()
-        result.assertCurrentReleaseIsNotSlower()
-        result.assertMemoryUsed(0.01)
+        result.assertCurrentVersionHasNotRegressed()
 
         where:
         testProject       | runs | accuracyMs
@@ -86,10 +86,10 @@ class PerformanceTest extends Specification {
                 tasksToRun: ['eclipse'],
                 runs: runs,
                 warmUpRuns: 1,
-                accuracyMs: accuracyMs
+                accuracyMs: accuracyMs,
+                maxMemoryRegression: 0.01
         ).run()
-        result.assertCurrentReleaseIsNotSlower()
-        result.assertMemoryUsed(0.01)
+        result.assertCurrentVersionHasNotRegressed()
 
         where:
         testProject       | runs | accuracyMs
@@ -105,10 +105,10 @@ class PerformanceTest extends Specification {
                 tasksToRun: ['idea'],
                 runs: runs,
                 warmUpRuns: 1,
-                accuracyMs: accuracyMs
+                accuracyMs: accuracyMs,
+                maxMemoryRegression: 0.01
         ).run()
-        result.assertCurrentReleaseIsNotSlower()
-        result.assertMemoryUsed(0.01)
+        result.assertCurrentVersionHasNotRegressed()
 
         where:
         testProject       | runs | accuracyMs
@@ -119,22 +119,20 @@ class PerformanceTest extends Specification {
 
     @Unroll("Project '#testProject'")
     def "verbose tests with report"() {
+        //TODO after tackling the outstanding performance issues
+        //this test should be made less tolerant (reduce the max mem regression, accuracy)
+
         when:
         def result = new PerformanceTestRunner(testProject: testProject,
                 tasksToRun: ['cleanTest', 'test'],
                 runs: runs,
                 warmUpRuns: 1,
-                accuracyMs: accuracyMs
+                accuracyMs: accuracyMs,
+                maxMemoryRegression: 0.03
         ).run()
 
         then:
-
-        result.assertCurrentReleaseIsNotSlower()
-
-        //TODO after tackling the outstanding performance issues
-        //this test should be made less tolerant (reduce the max mem regression, accuracy)
-
-        result.assertMemoryUsed(0.03)
+        result.assertCurrentVersionHasNotRegressed()
 
         where:
         testProject         | runs | accuracyMs

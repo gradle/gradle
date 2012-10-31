@@ -30,8 +30,24 @@ public class MeasuredOperationList extends LinkedList<MeasuredOperation> {
         (bytes.sum() / bytes.size()).setScale(2, RoundingMode.HALF_UP)
     }
 
+    long minMemory() {
+        return this.collect { it.totalMemoryUsed }.min()
+    }
+
+    long maxMemory() {
+        return this.collect { it.totalMemoryUsed }.max()
+    }
+
     double avgTime() {
         def currentTimes = this.collect { it.executionTime }
         (currentTimes.sum() / currentTimes.size()).setScale(2, RoundingMode.HALF_UP)
+    }
+
+    long maxTime() {
+        return this.collect { it.executionTime }.max()
+    }
+
+    long minTime() {
+        return this.collect { it.executionTime }.min()
     }
 }

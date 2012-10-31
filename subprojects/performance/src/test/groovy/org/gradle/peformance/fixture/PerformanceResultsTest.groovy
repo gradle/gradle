@@ -28,7 +28,7 @@ class PerformanceResultsTest extends Specification {
         result.addResult(operation(executionTime: 90), operation(executionTime: 90))
 
         expect:
-        result.assertCurrentReleaseIsNotSlower()
+        result.assertCurrentVersionHasNotRegressed()
     }
 
     def "passes when average execution time for current release is within specified range of average execution time for previous release"() {
@@ -39,22 +39,23 @@ class PerformanceResultsTest extends Specification {
         result.addResult(operation(executionTime: 100), operation(executionTime: 110))
 
         expect:
-        result.assertCurrentReleaseIsNotSlower()
+        result.assertCurrentVersionHasNotRegressed()
     }
 
     def "fails when average execution time for current release is larger than average execution time for previous release"() {
         given:
+        result.displayName = '<test>'
         result.accuracyMs = 10
         result.addResult(operation(executionTime: 100), operation(executionTime: 110))
         result.addResult(operation(executionTime: 100), operation(executionTime: 110))
         result.addResult(operation(executionTime: 100), operation(executionTime: 111))
 
         when:
-        result.assertCurrentReleaseIsNotSlower()
+        result.assertCurrentVersionHasNotRegressed()
 
         then:
         AssertionError e = thrown()
-        e.message.startsWith('Looks like the current gradle is slower than latest release.')
+        e.message.startsWith('Speed <test>: current Gradle is a little slower on average.')
         e.message.contains('Difference: 0.01 secs (10.33 ms)')
     }
 
@@ -65,31 +66,55 @@ class PerformanceResultsTest extends Specification {
         result.addResult(operation(heapUsed: 1000), operation(heapUsed: 994))
 
         expect:
-        result.assertMemoryUsed(0)
+        result.assertCurrentVersionHasNotRegressed()
     }
 
     def "passes when average heap usage for current release is slightly larger than average heap usage for previous release"() {
         given:
+        result.maxMemoryRegression = 0.1
         result.addResult(operation(heapUsed: 1000), operation(heapUsed: 1100))
         result.addResult(operation(heapUsed: 1000), operation(heapUsed: 1100))
         result.addResult(operation(heapUsed: 1000), operation(heapUsed: 1100))
 
         expect:
-        result.assertMemoryUsed(0.1)
+        result.assertCurrentVersionHasNotRegressed()
     }
 
     def "fails when average heap usage for current release is larger than average heap usage for previous release"() {
         given:
+        result.displayName = '<test>'
+        result.maxMemoryRegression = 0.1
         result.addResult(operation(heapUsed: 1000), operation(heapUsed: 1100))
         result.addResult(operation(heapUsed: 1000), operation(heapUsed: 1100))
         result.addResult(operation(heapUsed: 1000), operation(heapUsed: 1101))
 
         when:
-        result.assertMemoryUsed(0.1)
+        result.assertCurrentVersionHasNotRegressed()
 
         then:
         AssertionError e = thrown()
-        e.message.startsWith('Looks like the current gradle requires more memory than the latest release.')
+        e.message.startsWith('Memory <test>: current Gradle needs a little more memory on average.')
+        e.message.contains('Difference: 100 B (100.33 B)')
+    }
+
+    def "fails when both heap usage and execution time have regressed"() {
+        given:
+        result.displayName = '<test>'
+        result.addResult(operation(heapUsed: 1000), operation(heapUsed: 1100))
+        result.addResult(operation(heapUsed: 1000), operation(heapUsed: 1100))
+        result.addResult(operation(heapUsed: 1000), operation(heapUsed: 1101))
+        result.addResult(operation(executionTime: 100), operation(executionTime: 110))
+        result.addResult(operation(executionTime: 100), operation(executionTime: 110))
+        result.addResult(operation(executionTime: 100), operation(executionTime: 111))
+
+        when:
+        result.assertCurrentVersionHasNotRegressed()
+
+        then:
+        AssertionError e = thrown()
+        e.message.contains('Speed <test>: current Gradle is a little slower on average.')
+        e.message.contains('Difference: 0.0052 secs (5.17 ms)')
+        e.message.contains('Memory <test>: current Gradle needs a little more memory on average.')
         e.message.contains('Difference: 100 B (100.33 B)')
     }
 
