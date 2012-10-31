@@ -29,8 +29,8 @@ public class PerformanceResults {
 
     private final static LOGGER = Logging.getLogger(PerformanceTestRunner.class)
 
-    MeasuredOperationList previous = new MeasuredOperationList()
-    MeasuredOperationList current = new MeasuredOperationList()
+    final MeasuredOperationList previous = new MeasuredOperationList("Previous release")
+    final MeasuredOperationList current = new MeasuredOperationList("Current Gradle")
 
     def clear() {
         previous.clear();
@@ -97,19 +97,24 @@ public class PerformanceResults {
     }
 
     String memoryStats(double maxRegression) {
-        """  Previous release avg: ${prettyBytes(previous.avgMemory())} ${previous*.prettyBytes}
-  Previous release min: ${prettyBytes(previous.minMemory())}, max: ${prettyBytes(previous.maxMemory())}
-  Current gradle avg: ${prettyBytes(current.avgMemory())} ${current*.prettyBytes}%
-  Current gradle min: ${prettyBytes(current.minMemory())}, max: ${prettyBytes(current.maxMemory())}
+        """${memoryStats(previous)}
+${memoryStats(current)}
   Difference: ${prettyBytes(current.avgMemory() - previous.avgMemory())} (${(current.avgMemory() - previous.avgMemory()).round(2)} B), ${PrettyCalculator.percentChange(current.avgMemory(), previous.avgMemory())}%, max regression: $maxRegression (${prettyBytes((long) (previous.avgMemory() * maxRegression))})"""
     }
 
+    String memoryStats(MeasuredOperationList list) {
+        """  ${list.name} avg: ${prettyBytes(list.avgMemory())} ${list*.prettyBytes}
+  ${list.name} min: ${prettyBytes(list.minMemory())}, max: ${prettyBytes(list.maxMemory())}"""
+    }
+
     String speedStats() {
-        """  Previous release avg: ${prettyTime(previous.avgTime().round())} ${previous*.prettyTime}
-  Previous release min: ${prettyTime(previous.minTime())}, max: ${prettyTime(previous.maxTime())}
-  Current gradle avg: ${prettyTime(current.avgTime().round())} ${current*.prettyTime}
-  Current gradle min: ${prettyTime(current.minTime())}, max: ${prettyTime(current.maxTime())}
+        """${speedStats(previous)}
+${speedStats(current)}
   Difference: ${prettyTime((current.avgTime() - previous.avgTime()).round())} (${(current.avgTime() - previous.avgTime()).round(2)} ms), ${PrettyCalculator.percentChange(current.avgTime(), previous.avgTime())}%, max regression: $accuracyMs ms"""
     }
 
+    String speedStats(MeasuredOperationList list) {
+        """  ${list.name} avg: ${prettyTime(list.avgTime().round())} ${list*.prettyTime}
+  ${list.name} min: ${prettyTime(list.minTime())}, max: ${prettyTime(list.maxTime())}"""
+    }
 }

@@ -24,6 +24,11 @@ import java.math.RoundingMode
  * by Szczepan Faber, created at: 2/10/12
  */
 public class MeasuredOperationList extends LinkedList<MeasuredOperation> {
+    final String name
+
+    MeasuredOperationList(String name) {
+        this.name = name
+    }
 
     double avgMemory() {
         def bytes = this.collect { it.totalMemoryUsed }

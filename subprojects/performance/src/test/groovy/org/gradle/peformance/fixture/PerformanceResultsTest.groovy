@@ -113,15 +113,14 @@ class PerformanceResultsTest extends Specification {
         then:
         AssertionError e = thrown()
         e.message.contains('Speed <test>: current Gradle is a little slower on average.')
-        e.message.contains('Difference: 0.0052 secs (5.17 ms)')
+        e.message.contains('Difference: 0.0050 secs (5.17 ms)')
         e.message.contains('Memory <test>: current Gradle needs a little more memory on average.')
-        e.message.contains('Difference: 100 B (100.33 B)')
+        e.message.contains('Difference: 50 B (50.17 B)')
     }
 
     private MeasuredOperation operation(Map<String, Object> args) {
         def operation = new MeasuredOperation()
         operation.executionTime = args.executionTime ?: 120
-        operation.prettyTime = operation.executionTime
         operation.totalMemoryUsed = args.heapUsed ?: 1024
         return operation
     }

@@ -24,11 +24,14 @@ import org.gradle.util.Clock
 public class MeasuredOperation {
     long executionTime
     Exception exception
-    String prettyTime
     long totalMemoryUsed
-    
+
     String toString() {
-        (totalMemoryUsed == 0)? prettyTime : prettyTime + ", " + getPrettyBytes()
+        "${prettyTime} ${prettyBytes}"
+    }
+
+    String getPrettyTime() {
+        Clock.prettyTime(executionTime)
     }
 
     String getPrettyBytes() {
@@ -44,11 +47,7 @@ public class MeasuredOperation {
         } catch (Exception e) {
             out.exception = e
         }
-        //not very atomic... :)
-        out.prettyTime = clock.time
         out.executionTime = clock.timeInMs
         return out
     }
-
-    //stolen from the web, TODO SF, replace with commons or something
 }
