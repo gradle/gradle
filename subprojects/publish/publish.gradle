@@ -17,7 +17,6 @@
 dependencies {
     groovy libraries.groovy
     compile project(':core')
-    testCompile project(':plugins')
 }
 
 useTestFixtures()
