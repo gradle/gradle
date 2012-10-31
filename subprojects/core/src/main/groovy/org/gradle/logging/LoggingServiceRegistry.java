@@ -125,7 +125,7 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
     protected abstract Factory<LoggingManagerInternal> createLoggingManagerFactory();
 
     protected OutputEventRenderer createOutputEventRenderer() {
-        OutputEventRenderer renderer = new OutputEventRenderer(Actions.<OutputEventRenderer>doNothing());
+        OutputEventRenderer renderer = new OutputEventRenderer(Actions.doNothing());
         renderer.addStandardOutputAndError();
         return renderer;
     }

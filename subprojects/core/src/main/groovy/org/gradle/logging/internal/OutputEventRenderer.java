@@ -36,13 +36,13 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
     private final Object lock = new Object();
     private final DefaultColorMap colourMap = new DefaultColorMap();
     private LogLevel logLevel = LogLevel.LIFECYCLE;
-    private final Action<OutputEventRenderer> consoleConfigureAction;
+    private final Action<? super OutputEventRenderer> consoleConfigureAction;
     private OutputStream originalStdOut;
     private OutputStream originalStdErr;
     private StreamBackedStandardOutputListener stdOutListener;
     private StreamBackedStandardOutputListener stdErrListener;
 
-    public OutputEventRenderer(Action<OutputEventRenderer> consoleConfigureAction) {
+    public OutputEventRenderer(Action<? super OutputEventRenderer> consoleConfigureAction) {
         OutputEventListener stdOutChain = onNonError(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stdoutListeners.getSource())), false));
         formatters.add(stdOutChain);
         OutputEventListener stdErrChain = onError(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stderrListeners.getSource())), false));

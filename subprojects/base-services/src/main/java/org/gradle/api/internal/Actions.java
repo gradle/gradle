@@ -31,15 +31,14 @@ public abstract class Actions {
      *
      * A new action instance is created each time.
      *
-     * @param <T> The parameter type
      * @return An action object with an empty implementation
      */
-    public static <T> Action<T> doNothing() {
-        return new NullAction<T>();
+    public static Action<Object> doNothing() {
+        return new NullAction();
     }
 
-    private static class NullAction<T> implements Action<T>, Serializable {
-        public void execute(T t) {}
+    private static class NullAction implements Action<Object>, Serializable {
+        public void execute(Object t) {}
     }
 
     /**
