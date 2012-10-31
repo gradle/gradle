@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.tasks.testing.detection;
 
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 
 import java.io.File;
@@ -26,4 +27,8 @@ public interface TestFrameworkDetector {
     void startDetection(TestClassProcessor testClassProcessor);
 
     boolean processTestClass(File testClassFile);
+
+    void setTestClassesDirectory(File testClassesDir);
+
+    void setTestClasspath(FileCollection classpath);
 }
