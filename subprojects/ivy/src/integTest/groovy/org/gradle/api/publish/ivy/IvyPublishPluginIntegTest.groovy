@@ -25,4 +25,8 @@ class IvyPublishPluginIntegTest extends WellBehavedPluginTest {
         "ivy-publish"
     }
 
+    @Override
+    String getMainTask() {
+        "tasks"
+    }
 }

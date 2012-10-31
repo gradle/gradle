@@ -75,7 +75,6 @@ class IvyPublishingIntegTest extends AbstractIntegrationSpec {
 
         and:
         asXml(module.ivyFile).info[0].@revision == "3"
-        false
     }
 
     GPathResult asXml(File file) {
