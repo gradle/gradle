@@ -18,6 +18,7 @@ package org.gradle.util;
 
 import groovy.lang.Closure;
 import groovy.lang.MissingMethodException;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.DynamicObject;
 import org.gradle.api.internal.DynamicObjectUtil;
 
@@ -125,23 +126,8 @@ public class ConfigureUtil {
     }
 
     private static <T> T configure(Closure configureClosure, T delegate, int resolveStrategy, boolean configureableAware) {
-        if (configureClosure == null) {
-            return delegate;
-        }
-
-        if (configureableAware && delegate instanceof Configurable) {
-            ((Configurable)delegate).configure(configureClosure);
-        } else {
-            Closure copy = (Closure) configureClosure.clone();
-            copy.setResolveStrategy(resolveStrategy);
-            copy.setDelegate(delegate);
-            if (copy.getMaximumNumberOfParameters() == 0) {
-                copy.call();
-            } else {
-                copy.call(delegate);
-            }
-        }
-
+        ClosureBackedAction<T> action = new ClosureBackedAction<T>(configureClosure, resolveStrategy, configureableAware);
+        action.execute(delegate);
         return delegate;
     }
 }
