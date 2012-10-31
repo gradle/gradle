@@ -17,6 +17,9 @@
 package org.gradle.integtests.resolve.caching
 
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
+import spock.lang.Ignore
+import spock.lang.IgnoreIf
+import org.gradle.integtests.fixtures.GradleDistributionExecuter
 
 class CachedMissingModulesIntegrationTest extends AbstractDependencyResolutionTest {
 
@@ -141,6 +144,7 @@ class CachedMissingModulesIntegrationTest extends AbstractDependencyResolutionTe
         run 'retrieve'
     }
 
+    @IgnoreIf({ GradleDistributionExecuter.systemPropertyExecuter.executeParallel })
     def "hit each remote repo only once per build and missing module"() {
         given:
         server.start()
@@ -189,7 +193,6 @@ class CachedMissingModulesIntegrationTest extends AbstractDependencyResolutionTe
                     }
                 }
             }
-            resolveConfig1.dependsOn(":subproject:resolveConfig2")
         """
         when:
         repo1Module.expectPomGetMissing()
@@ -198,7 +201,7 @@ class CachedMissingModulesIntegrationTest extends AbstractDependencyResolutionTe
         repo2Module.expectArtifactHeadMissing()
 
         then:
-        run('resolveConfig2')
+        run('resolveConfig1')
 
         when:
         server.resetExpectations()
@@ -208,7 +211,7 @@ class CachedMissingModulesIntegrationTest extends AbstractDependencyResolutionTe
         repo2Module.expectArtifactHeadMissing()
 
         then:
-        run "resolveConfig1"
+        run "resolveConfig1", "resolveConfig2"
     }
 
     def "does not hit remote repositories if version is available in local repo"() {
