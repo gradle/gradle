@@ -198,6 +198,9 @@ public class DefaultJavaForkOptionsTest {
         assertTrue(options.debug)
         assertThat(options.jvmArgs, equalTo([]))
 
+        options.allJvmArgs = []
+        assertFalse(options.debug)
+
         options.debug = false
         options.jvmArgs = ['-Xdebug']
         assertFalse(options.debug)

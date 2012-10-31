@@ -125,6 +125,7 @@ public class JvmOptions {
         maxHeapSize = null;
         extraJvmArgs.clear();
         assertionsEnabled = false;
+        debug = false;
         jvmArgs(arguments);
     }
 
