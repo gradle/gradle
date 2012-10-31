@@ -17,7 +17,6 @@
 
 package org.gradle.integtests.publish.ivy
 
-import org.gradle.integtests.fixtures.*
 import org.gradle.util.GradleVersion
 import org.gradle.util.Jvm
 import org.gradle.util.TestFile
@@ -26,6 +25,7 @@ import org.hamcrest.Matchers
 import org.junit.Rule
 import org.mortbay.jetty.HttpStatus
 import spock.lang.Unroll
+import org.gradle.integtests.fixtures.*
 
 import static org.gradle.integtests.fixtures.UserAgentMatcher.matchesNameAndVersion
 
@@ -160,7 +160,7 @@ uploadArchives {
 
         and:
         failure.assertHasDescription('Execution failed for task \':uploadArchives\'.')
-        failure.assertHasCause('Could not publish configuration \':archives\'.')
+        failure.assertHasCause('Could not publish configuration: \'archives\'')
         failure.assertThatCause(Matchers.containsString('Received status code 401 from server: Unauthorized'))
 
         where:
@@ -195,7 +195,7 @@ uploadArchives {
 
         and:
         failure.assertHasDescription('Execution failed for task \':uploadArchives\'.')
-        failure.assertHasCause('Could not publish configuration \':archives\'.')
+        failure.assertHasCause('Could not publish configuration: \'archives\'')
         failure.assertThatCause(Matchers.containsString('Received status code 500 from server: broken'))
 
         when:
@@ -206,7 +206,7 @@ uploadArchives {
 
         and:
         failure.assertHasDescription('Execution failed for task \':uploadArchives\'.')
-        failure.assertHasCause('Could not publish configuration \':archives\'.')
+        failure.assertHasCause('Could not publish configuration: \'archives\'')
         failure.assertHasCause("org.apache.http.conn.HttpHostConnectException: Connection to ${repositoryUrl} refused")
     }
 

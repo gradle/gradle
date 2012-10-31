@@ -15,15 +15,18 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.PublishException;
 import org.gradle.api.internal.XmlTransformer;
 import org.gradle.api.internal.artifacts.ArtifactPublisher;
-import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.util.Set;
+
+import static org.gradle.util.CollectionUtils.collect;
+import static org.gradle.util.CollectionUtils.join;
 
 public class ErrorHandlingArtifactPublisher implements ArtifactPublisher {
     private final ArtifactPublisher artifactPublisher;
@@ -36,7 +39,16 @@ public class ErrorHandlingArtifactPublisher implements ArtifactPublisher {
         try {
             artifactPublisher.publish(module, configurations, descriptorDestination, descriptorModifier);
         } catch (Throwable e) {
-            throw new PublishException(String.format("Could not publish %s.", GUtil.toString(configurations)), e);
+            String message = String.format(
+                    "Could not publish configuration%s: %s",
+                    configurations.size() > 1 ? "s" : "",
+                    join(", ", collect(configurations, new Transformer<String, Configuration>() {
+                        public String transform(Configuration configuration) {
+                            return String.format("'%s'", configuration.getName());
+                        }
+                    }))
+            );
+            throw new PublishException(message, e);
         }
     }
 }

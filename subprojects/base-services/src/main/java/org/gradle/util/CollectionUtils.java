@@ -263,7 +263,7 @@ public abstract class CollectionUtils {
         return setDiff;
     }
 
-    public static String join(Iterable<Object> objects, String seperator) {
+    public static String join(String seperator, Iterable<?> objects) {
         boolean first = true;
         StringBuilder string = new StringBuilder();
         for (Object object : objects) {
