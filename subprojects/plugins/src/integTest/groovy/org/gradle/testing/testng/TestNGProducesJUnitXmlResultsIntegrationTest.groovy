@@ -26,6 +26,9 @@ import static org.hamcrest.core.IsNot.not
 
 public class TestNGProducesJUnitXmlResultsIntegrationTest extends
         AbstractIntegrationSpec {
+    def setup() {
+        executer.allowExtraLogging = false
+    }
 
     @Unroll("#testConfiguration")
     def "produces JUnit xml results"() {

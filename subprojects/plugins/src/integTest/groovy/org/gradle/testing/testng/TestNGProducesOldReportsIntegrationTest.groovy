@@ -24,6 +24,9 @@ import org.gradle.integtests.fixtures.JUnitTestExecutionResult
 import org.gradle.integtests.fixtures.TestNGExecutionResult
 
 public class TestNGProducesOldReportsIntegrationTest extends AbstractIntegrationSpec {
+    def setup() {
+        executer.allowExtraLogging = false
+    }
 
     def "produces only the old reports by default"() {
         given:
