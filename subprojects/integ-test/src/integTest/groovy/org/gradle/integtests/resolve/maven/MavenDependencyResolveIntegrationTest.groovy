@@ -108,7 +108,9 @@ task check << {
         given:
         buildFile << """
 repositories {
-    mavenCentral()
+    maven {
+        url = "http://repo.gradle.org/gradle/repo1"
+    }
 }
 
 configurations {
