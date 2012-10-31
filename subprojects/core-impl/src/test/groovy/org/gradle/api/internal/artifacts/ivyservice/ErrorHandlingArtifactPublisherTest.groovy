@@ -54,6 +54,7 @@ public class ErrorHandlingArtifactPublisherTest {
     @Test
     public void wrapsPublishException() {
         context.checking {
+            one(configurationMock).getName(); will(returnValue("name"))
             one(artifactPublisherMock).publish(moduleMock, configurations, null, null)
             will(throwException(failure))
         }
@@ -63,7 +64,7 @@ public class ErrorHandlingArtifactPublisherTest {
             fail()
         }
         catch(PublishException e) {
-            assertThat e.message, equalTo("Could not publish '<config display name>'.")
+            assertThat e.message, equalTo("Could not publish configuration: 'name'")
             assertThat(e.cause, sameInstance((Throwable) failure));
         }
     }
