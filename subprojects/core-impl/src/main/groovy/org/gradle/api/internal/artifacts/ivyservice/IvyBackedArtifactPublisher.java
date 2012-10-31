@@ -24,7 +24,6 @@ import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.PublishException;
 import org.gradle.api.internal.XmlTransformer;
 import org.gradle.api.internal.artifacts.ArtifactPublisher;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
 
@@ -64,21 +63,20 @@ public class IvyBackedArtifactPublisher implements ArtifactPublisher {
         return ivyFactory.createIvy(settingsConverter.convertForPublish(publishResolvers));
     }
 
-    public void publish(Module module, ConfigurationInternal configuration, File descriptorDestination, @Nullable XmlTransformer descriptorModifier) throws PublishException {
+    public void publish(Module module, Set<? extends Configuration> configurations, File descriptorDestination, @Nullable XmlTransformer descriptorModifier) throws PublishException {
         List<DependencyResolver> publishResolvers = resolverProvider.getResolvers();
         Ivy ivy = ivyForPublish(publishResolvers);
-        Set<Configuration> configurationsToPublish = configuration.getHierarchy();
-        Set<String> confs = Configurations.getNames(configurationsToPublish, false);
-        writeDescriptorFile(descriptorDestination, configurationsToPublish, module, descriptorModifier);
+        Set<String> confs = Configurations.getNames(configurations, false);
+        writeDescriptorFile(descriptorDestination, configurations, module, descriptorModifier);
         dependencyPublisher.publish(
                 confs,
                 publishResolvers,
-                publishModuleDescriptorConverter.convert(configurationsToPublish, module),
+                publishModuleDescriptorConverter.convert(configurations, module),
                 descriptorDestination,
                 ivy.getEventManager());
     }
 
-    private void writeDescriptorFile(File descriptorDestination, Set<Configuration> configurationsToPublish, Module module, XmlTransformer descriptorModifier) {
+    private void writeDescriptorFile(File descriptorDestination, Set<? extends Configuration> configurationsToPublish, Module module, XmlTransformer descriptorModifier) {
         if (descriptorDestination == null) {
             return;
         }

@@ -17,25 +17,38 @@
 package org.gradle.api.publish.ivy.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
+import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.publish.ivy.IvyModuleDescriptor;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.reflect.Instantiator;
+
+import java.util.Set;
 
 public class DefaultIvyPublication implements IvyPublicationInternal {
 
     private final String name;
     private final IvyModuleDescriptorInternal descriptor;
-    private final ConfigurationInternal configuration;
     private final DependencyMetaDataProvider dependencyMetaDataProvider;
+    private final Set<? extends Configuration> configurations;
+    private final FileResolver fileResolver;
+    private final TaskResolver taskResolver;
 
-    public DefaultIvyPublication(String name, Instantiator instantiator, ConfigurationInternal configuration, DependencyMetaDataProvider dependencyMetaDataProvider) {
+    public DefaultIvyPublication(
+            String name, Instantiator instantiator, Set<? extends Configuration> configurations,
+            DependencyMetaDataProvider dependencyMetaDataProvider, FileResolver fileResolver, TaskResolver taskResolver
+    ) {
         this.name = name;
         this.descriptor = instantiator.newInstance(DefaultIvyModuleDescriptor.class);
-        this.configuration = configuration;
+        this.configurations = configurations;
         this.dependencyMetaDataProvider = dependencyMetaDataProvider;
+        this.fileResolver = fileResolver;
+        this.taskResolver = taskResolver;
     }
 
     public String getName() {
@@ -51,15 +64,19 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     public FileCollection getPublishableFiles() {
-        return configuration.getAllArtifacts().getFiles();
+        return new DefaultConfigurableFileCollection("publication artifacts", fileResolver, taskResolver, configurations);
     }
 
     public TaskDependency getBuildDependencies() {
-        return configuration.getAllArtifacts().getBuildDependencies();
+        DefaultTaskDependency taskDependency = new DefaultTaskDependency(taskResolver);
+        for (Configuration configuration : configurations) {
+            taskDependency.add(configuration.getArtifacts());
+        }
+        return taskDependency;
     }
 
     public IvyNormalizedPublication asNormalisedPublication() {
-        return new IvyNormalizedPublication(dependencyMetaDataProvider.getModule(), configuration, descriptor.getFile(), descriptor.getTransformer());
+        return new IvyNormalizedPublication(dependencyMetaDataProvider.getModule(), configurations, descriptor.getFile(), descriptor.getTransformer());
     }
 
     public Class<IvyNormalizedPublication> getNormalisedPublicationType() {

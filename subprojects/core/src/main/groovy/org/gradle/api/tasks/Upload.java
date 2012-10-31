@@ -62,7 +62,7 @@ public class Upload extends ConventionTask {
         logger.info("Publishing configuration: " + configuration);
         ConfigurationInternal configurationInternal = (ConfigurationInternal) configuration;
         artifactPublisher.publish(
-                configurationInternal.getModule(), configurationInternal,
+                configurationInternal.getModule(), configuration.getHierarchy(),
                 isUploadDescriptor() ? getDescriptorDestination() : null,
                 null
         );

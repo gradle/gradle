@@ -17,6 +17,7 @@
 package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
@@ -36,6 +37,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
+import java.util.Collections;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
@@ -79,7 +81,8 @@ public class UploadTest extends AbstractTaskTest {
         upload.setArtifactPublisher(artifactPublisherMock);
         context.checking(new Expectations() {{
             one(configurationMock).getModule(); will(returnValue(moduleMock));
-            one(artifactPublisherMock).publish(moduleMock, configurationMock, descriptorDestination, null);
+            one(configurationMock).getHierarchy(); will(returnValue(Collections.emptySet()));
+            one(artifactPublisherMock).publish(moduleMock, Collections.<Configuration>emptySet(), descriptorDestination, null);
         }});
         upload.upload();
     }
@@ -91,7 +94,8 @@ public class UploadTest extends AbstractTaskTest {
         upload.setArtifactPublisher(artifactPublisherMock);
         context.checking(new Expectations() {{
             one(configurationMock).getModule(); will(returnValue(moduleMock));
-            one(artifactPublisherMock).publish(moduleMock, configurationMock, null, null);
+            one(configurationMock).getHierarchy(); will(returnValue(Collections.emptySet()));
+            one(artifactPublisherMock).publish(moduleMock, Collections.<Configuration>emptySet(), null, null);
         }});
         upload.upload();
     }

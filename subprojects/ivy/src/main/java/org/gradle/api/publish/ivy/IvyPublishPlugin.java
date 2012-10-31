@@ -20,20 +20,21 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.plugins.DslObject;
-import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.PublishingPlugin;
 import org.gradle.api.publish.ivy.internal.DefaultIvyPublication;
 import org.gradle.api.publish.ivy.internal.IvyModuleDescriptorInternal;
 import org.gradle.api.publish.ivy.internal.IvyPublishDynamicTaskCreator;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.reflect.Instantiator;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 /**
@@ -44,29 +45,37 @@ public class IvyPublishPlugin implements Plugin<Project> {
 
     private final Instantiator instantiator;
     private final DependencyMetaDataProvider dependencyMetaDataProvider;
+    private final FileResolver fileResolver;
 
     @Inject
-    public IvyPublishPlugin(Instantiator instantiator, DependencyMetaDataProvider dependencyMetaDataProvider) {
+    public IvyPublishPlugin(
+            Instantiator instantiator, DependencyMetaDataProvider dependencyMetaDataProvider, FileResolver fileResolver
+    ) {
         this.instantiator = instantiator;
         this.dependencyMetaDataProvider = dependencyMetaDataProvider;
+        this.fileResolver = fileResolver;
     }
 
     public void apply(Project project) {
-        project.getPlugins().apply(BasePlugin.class);
-        Configuration archivesConfiguration = project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION);
-
         project.getPlugins().apply(PublishingPlugin.class);
         PublishingExtension extension = project.getExtensions().getByType(PublishingExtension.class);
-        extension.getPublications().add(createPublication(archivesConfiguration, project));
+
+        Set<Configuration> visibleConfigurations = project.getConfigurations().matching(new Spec<Configuration>() {
+            public boolean isSatisfiedBy(Configuration configuration) {
+                return configuration.isVisible();
+            }
+        });
+
+        extension.getPublications().add(createPublication(project, visibleConfigurations));
 
         // Create publish tasks automatically for any Ivy publication and repository combinations
         new IvyPublishDynamicTaskCreator(project.getTasks()).monitor(extension.getPublications(), extension.getRepositories());
     }
 
-    private IvyPublication createPublication(Configuration configuration, final Project project) {
+    private IvyPublication createPublication(final Project project, Set<? extends Configuration> configurations) {
         final DefaultIvyPublication publication = instantiator.newInstance(
                 DefaultIvyPublication.class,
-                "ivy", instantiator, configuration, dependencyMetaDataProvider
+                "ivy", instantiator, configurations, dependencyMetaDataProvider, fileResolver, project.getTasks()
         );
 
         IvyModuleDescriptorInternal descriptor = publication.getDescriptor();

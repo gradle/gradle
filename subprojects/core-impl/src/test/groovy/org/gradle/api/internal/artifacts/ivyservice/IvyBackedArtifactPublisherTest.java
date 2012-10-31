@@ -86,7 +86,7 @@ public class IvyBackedArtifactPublisherTest {
             allowing(ivyModuleDescriptorWriterMock).write(fileModuleDescriptorMock, someDescriptorDestination, null);
         }});
 
-        ivyService.publish(configuration.getModule(), configuration, someDescriptorDestination, null);
+        ivyService.publish(configuration.getModule(), configuration.getHierarchy(), someDescriptorDestination, null);
     }
 
     private IvyBackedArtifactPublisher createIvyService() {
