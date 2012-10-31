@@ -15,7 +15,6 @@
  */
 package org.gradle.util;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
 
@@ -97,21 +96,42 @@ public abstract class CollectionUtils {
     }
 
     public static List<String> toStringList(Iterable<?> iterable) {
-        List<String> result = Lists.newArrayList();
+        List<String> result = new ArrayList<String>();
         for (Object elem : iterable) {
             result.add(elem.toString());
         }
         return result;
     }
 
-    public static List<Object> toList(Object object) {
+    public static List<Object> listize(Object object) {
         if (object instanceof List) {
             return (List<Object>) object;
         }
         if (object instanceof Iterable) {
-            return Lists.newArrayList((Iterable<Object>) object);
+            @SuppressWarnings("unchecked")
+            Iterable<Object> source = (Iterable<Object>) object;
+            List<Object> destination = new ArrayList<Object>();
+            for (Object item : source) {
+                destination.add(item);
+            }
+            return destination;
         }
         return Collections.singletonList(object);
+    }
+
+    public static <T> List<T> toList(Iterable<? extends T> things) {
+        if (things == null) {
+            return new ArrayList<T>(0);
+        }
+        if (things instanceof List) {
+            return (List<T>) things;
+        }
+
+        List<T> list = new ArrayList<T>();
+        for (T thing : things) {
+            list.add(thing);
+        }
+        return list;
     }
 
     public static <E> List<E> compact(List<E> list) {
@@ -242,4 +262,18 @@ public abstract class CollectionUtils {
 
         return setDiff;
     }
+
+    public static String join(Iterable<Object> objects, String seperator) {
+        boolean first = true;
+        StringBuilder string = new StringBuilder();
+        for (Object object : objects) {
+            if (!first) {
+                string.append(seperator);
+            }
+            string.append(object.toString());
+            first = false;
+        }
+        return string.toString();
+    }
+
 }

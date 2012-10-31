@@ -15,10 +15,12 @@
  */
 package org.gradle.api.specs;
 
-import com.google.common.collect.Iterables;
 import groovy.lang.Closure;
+import org.gradle.api.specs.internal.ClosureSpec;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * A {@link org.gradle.api.specs.CompositeSpec} which requires all its specs to be true in order to evaluate to true.
@@ -46,10 +48,15 @@ public class AndSpec<T> extends CompositeSpec<T> {
     }
 
     public AndSpec<T> and(Spec<? super T>... specs) {
-        return new AndSpec<T>(Iterables.concat(getSpecs(), Arrays.asList(specs)));
+        List<Spec<? super T>> specs1 = getSpecs();
+        List<Spec<? super T>> specs2 = Arrays.asList(specs);
+        List<Spec<? super T>> combined = new ArrayList<Spec<? super T>>(specs1.size() + specs2.size());
+        combined.addAll(specs1);
+        combined.addAll(specs2);
+        return new AndSpec<T>(combined);
     }
 
     public AndSpec<T> and(Closure spec) {
-        return and(Specs.<T>convertClosureToSpec(spec));
+        return and(new ClosureSpec<T>(spec));
     }
 }

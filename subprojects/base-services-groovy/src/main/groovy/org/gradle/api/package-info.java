@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.specs;
 
 /**
- * A {@link Spec} implementation which negates another {@code Spec}.
- * 
- * @author Hans Dockter
- * @param <T> The target type for this Spec
+ * <p><b>Start Here:</b> Gradle's {@link org.gradle.api.Project} API, which is available from your build files. The
+ * API used from your build files is made up of 2 main interfaces:</p>
+ *
+ * <ul>
+ * <li>{@link org.gradle.api.Project}</li>
+ * <li>{@link org.gradle.api.Task}</li>
+ * </ul>
  */
-public class NotSpec<T> implements Spec<T> {
-    private Spec<? super T> sourceSpec;
-
-    public NotSpec(Spec<? super T> sourceSpec) {
-        this.sourceSpec = sourceSpec;
-    }
-
-    public boolean isSatisfiedBy(T element) {
-        return !sourceSpec.isSatisfiedBy(element);
-    }
-}
+package org.gradle.api;

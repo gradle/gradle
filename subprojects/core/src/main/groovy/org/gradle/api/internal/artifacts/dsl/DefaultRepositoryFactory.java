@@ -30,7 +30,7 @@ import java.util.Map;
 
 import static org.gradle.api.artifacts.ArtifactRepositoryContainer.DEFAULT_MAVEN_CENTRAL_REPO_NAME;
 import static org.gradle.api.artifacts.ArtifactRepositoryContainer.DEFAULT_MAVEN_LOCAL_REPO_NAME;
-import static org.gradle.util.CollectionUtils.toList;
+import static org.gradle.util.CollectionUtils.listize;
 
 public class DefaultRepositoryFactory implements RepositoryFactoryInternal {
 
@@ -55,7 +55,7 @@ public class DefaultRepositoryFactory implements RepositoryFactoryInternal {
     public FlatDirectoryArtifactRepository flatDir(Map<String, ?> args) {
         Map<String, Object> modifiedArgs = new HashMap<String, Object>(args);
         if (modifiedArgs.containsKey("dirs")) {
-            modifiedArgs.put("dirs", toList(modifiedArgs.get("dirs")));
+            modifiedArgs.put("dirs", listize(modifiedArgs.get("dirs")));
         }
 
         return configure(getBaseRepositoryFactory().createFlatDirRepository(), modifiedArgs, FLAT_DIR_DEFAULT_NAME);

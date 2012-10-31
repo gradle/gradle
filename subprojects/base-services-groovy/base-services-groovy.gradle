@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-/**
- * Classes for defining general purpose criteria.
- */
-package org.gradle.api.specs;
+dependencies {
+    groovy libraries.groovy
+    compile project(":baseServices")
+}

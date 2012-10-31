@@ -15,17 +15,17 @@
  */
 package org.gradle.api.specs;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
 import org.gradle.util.HelperUtil;
 import org.junit.Test;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Hans Dockter
  */
 public class AndSpecTest extends AbstractCompositeSpecTest {
-    public CompositeSpec<Object> createCompositeSpec(Spec<Object>... specs) {
+    public org.gradle.api.specs.CompositeSpec<Object> createCompositeSpec(Spec<Object>... specs) {
         return new AndSpec<Object>(specs);
     }
 

@@ -22,7 +22,7 @@ dependencies {
     groovy libraries.groovy
 
     publishCompile libraries.slf4j_api
-    publishCompile project(":baseServices")
+    publishCompile project(":baseServices"), project(":baseServicesGroovy")
     publishCompile project(":messaging")
 
     compile libraries.asm

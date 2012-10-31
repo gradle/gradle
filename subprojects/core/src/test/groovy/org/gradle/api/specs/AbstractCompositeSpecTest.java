@@ -22,7 +22,7 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.gradle.util.Matchers.*;
+import static org.gradle.util.Matchers.strictlyEqual;
 import static org.junit.Assert.*;
 
 /**
@@ -32,7 +32,7 @@ abstract public class AbstractCompositeSpecTest {
     private Spec spec1;
     private Spec spec2;
 
-    public abstract CompositeSpec<Object> createCompositeSpec(Spec<Object>... specs);
+    public abstract org.gradle.api.specs.CompositeSpec<Object> createCompositeSpec(Spec<Object>... specs);
 
     @Before
     public void setUp() {
@@ -50,7 +50,7 @@ abstract public class AbstractCompositeSpecTest {
 
     @Test
     public void init() {
-        CompositeSpec<Object> compositeSpec = createCompositeSpec(spec1, spec2);
+        org.gradle.api.specs.CompositeSpec<Object> compositeSpec = createCompositeSpec(spec1, spec2);
         assertEquals(WrapUtil.toList(spec1, spec2), compositeSpec.getSpecs());
     }
 

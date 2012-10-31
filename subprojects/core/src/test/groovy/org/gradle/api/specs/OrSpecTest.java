@@ -17,9 +17,10 @@ package org.gradle.api.specs;
 
 import org.gradle.api.artifacts.Dependency;
 import org.jmock.integration.junit4.JUnit4Mockery;
+import org.junit.Test;
+
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import org.junit.Test;
 
 /**
  * @author Hans Dockter
@@ -27,13 +28,13 @@ import org.junit.Test;
 public class OrSpecTest extends AbstractCompositeSpecTest {
     private JUnit4Mockery context = new JUnit4Mockery();
 
-    public CompositeSpec createCompositeSpec(Spec... specs) {
-        return new OrSpec(specs);
+    public org.gradle.api.specs.CompositeSpec createCompositeSpec(Spec... specs) {
+        return new org.gradle.api.specs.OrSpec(specs);
     }
 
     @Test
     public void isSatisfiedWhenNoSpecs() {
-        assertTrue(new OrSpec().isSatisfiedBy(new Object()));
+        assertTrue(new org.gradle.api.specs.OrSpec().isSatisfiedBy(new Object()));
     }
     
     @Test

@@ -15,21 +15,25 @@
  */
 package org.gradle.api.specs;
 
+import groovy.lang.Closure;
 import org.gradle.api.specs.internal.ClosureSpec;
 import org.gradle.util.DeprecationLogger;
-
-import groovy.lang.Closure;
 
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
 /**
- * Provides a number of {@link Spec} implementations.
+ * Provides a number of {@link org.gradle.api.specs.Spec} implementations.
  *
  * @author Hans Dockter
  */
 public class Specs {
+
+    /*
+        Note: This should be in baseServicesGroovy, but it needs the DeprecationLogger which needs commons-lang
+              It as
+     */
     public static final Spec<Object> SATISFIES_ALL = new Spec<Object>() {
         public boolean isSatisfiedBy(Object element) {
             return true;

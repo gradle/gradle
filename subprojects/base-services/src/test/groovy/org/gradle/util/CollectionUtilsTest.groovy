@@ -160,14 +160,24 @@ class CollectionUtilsTest extends Specification {
         every([], spec { false })
     }
 
-    def "toList"() {
+    def "listize"() {
         def integers = [1, 2, 3]
 
         expect:
-        toList(integers) is integers
+        listize(integers) is integers
+        listize([1,2,3] as Set) == [1,2,3]
+        listize("asdfa") == ["asdfa"]
+        listize(null) == [null]
+    }
+
+    def "to list"() {
+        def integersList = [1,2,3]
+
+        expect:
+        toList(integersList).is(integersList)
         toList([1,2,3] as Set) == [1,2,3]
-        toList("asdfa") == ["asdfa"]
-        toList(null) == [null]
+        toList([] as Set) == []
+        toList(null) == []
     }
 
     Spec<?> spec(Closure c) {

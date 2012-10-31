@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal
 
-import spock.lang.Specification
 import org.gradle.api.Action
 import org.gradle.api.InvalidActionClosureException
+import spock.lang.Specification
 
 class ClosureBackedActionTest extends Specification {
 

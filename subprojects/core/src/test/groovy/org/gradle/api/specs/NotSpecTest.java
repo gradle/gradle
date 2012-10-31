@@ -15,9 +15,10 @@
  */
 package org.gradle.api.specs;
 
+import org.junit.Test;
+
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
-import org.junit.Test;
 
 /**
  * @author Hans Dockter
@@ -25,8 +26,8 @@ import org.junit.Test;
 public class NotSpecTest {
     @Test
     public void testIsSatisfiedBy() {
-        assertThat(new NotSpec(createFilterSpec()).isSatisfiedBy(true), equalTo(false));
-        assertThat(new NotSpec(createFilterSpec()).isSatisfiedBy(false), equalTo(true));
+        assertThat(new org.gradle.api.specs.NotSpec(createFilterSpec()).isSatisfiedBy(true), equalTo(false));
+        assertThat(new org.gradle.api.specs.NotSpec(createFilterSpec()).isSatisfiedBy(false), equalTo(true));
     }
 
     private Spec<Boolean> createFilterSpec() {

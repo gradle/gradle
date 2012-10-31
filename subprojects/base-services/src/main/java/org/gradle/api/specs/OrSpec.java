@@ -18,7 +18,7 @@ package org.gradle.api.specs;
 import java.util.List;
 
 /**
- * A {@link org.gradle.api.specs.CompositeSpec} which requires any one of its specs to be true in order to evaluate to
+ * A {@link CompositeSpec} which requires any one of its specs to be true in order to evaluate to
  * true. Uses lazy evaluation.
  *
  * @author Hans Dockter
