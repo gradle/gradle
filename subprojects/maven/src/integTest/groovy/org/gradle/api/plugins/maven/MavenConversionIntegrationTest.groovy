@@ -82,4 +82,22 @@ Root project 'webinar-parent'
         then:
         file("build/libs/util-2.5.jar").exists()
     }
+
+    def "testjar"() {
+        given:
+        file("build.gradle") << "apply plugin: 'maven2Gradle'"
+
+        when:
+        run 'maven2Gradle'
+
+        then:
+        noExceptionThrown()
+
+        when:
+        run 'clean', 'build'
+
+        then:
+        file("build/libs/testjar-2.5.jar").exists()
+        file("build/libs/testjar-2.5-tests.jar").exists()
+    }
 }

@@ -413,7 +413,7 @@ artifacts.archives packageSources"""
     def jarPlugin = plugin('maven-jar-plugin', project)
     pluginGoal('test-jar', jarPlugin) ? """
 task packageTests(type: Jar) {
-  from sourceSets.test.classes
+  from sourceSets.test.output
   classifier = 'tests'
 }
 artifacts.archives packageTests
