@@ -31,5 +31,5 @@ public interface CommandLineAction {
      * Creates an executable action from the given command-line args. Returns null if this action was not selected by the given
      * command-line args.
      */
-    Action<ExecutionListener> createAction(CommandLineParser parser, ParsedCommandLine commandLine);
+    Action<? super ExecutionListener> createAction(CommandLineParser parser, ParsedCommandLine commandLine);
 }

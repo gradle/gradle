@@ -110,4 +110,31 @@ public abstract class Actions {
         return transformBefore(action, new CastingTransformer<T, I>(actionType));
     }
 
+    /**
+     * Wraps the given runnable in an {@link Action}, where the execute implementation runs the runnable ignoring the argument.
+     *
+     * @param runnable The runnable to run for the action execution.
+     * @return An action that runs the given runnable, ignoring the argument.
+     */
+    public static Action<Object> toAction(Runnable runnable) {
+        return new RunnableActionAdapter(runnable);
+    }
+
+    private static class RunnableActionAdapter implements Action<Object> {
+        private final Runnable runnable;
+
+        private RunnableActionAdapter(Runnable runnable) {
+            this.runnable = runnable;
+        }
+
+        public void execute(Object o) {
+            runnable.run();
+        }
+
+        @Override
+        public String toString() {
+            return String.format("RunnableActionAdapter{runnable=%s}", runnable);
+        }
+    }
+
 }

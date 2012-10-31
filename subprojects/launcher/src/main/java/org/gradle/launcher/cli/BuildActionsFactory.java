@@ -18,6 +18,7 @@ package org.gradle.launcher.cli;
 
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
+import org.gradle.api.internal.Actions;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
@@ -25,6 +26,7 @@ import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.initialization.DefaultGradleLauncherFactory;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.launcher.bootstrap.ExecutionListener;
 import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonMain;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.DaemonClientServices;
@@ -34,7 +36,6 @@ import org.gradle.launcher.daemon.configuration.CurrentProcess;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.configuration.ForegroundDaemonConfiguration;
 import org.gradle.launcher.exec.BuildActionParameters;
-import org.gradle.launcher.bootstrap.ExecutionListener;
 import org.gradle.launcher.exec.GradleLauncherActionExecuter;
 import org.gradle.launcher.exec.InProcessGradleLauncherActionExecuter;
 
@@ -69,7 +70,7 @@ class BuildActionsFactory implements CommandLineAction {
         parser.option(STOP).hasDescription("Stops the Gradle daemon if it is running.");
     }
 
-    public Action<ExecutionListener> createAction(CommandLineParser parser, ParsedCommandLine commandLine) {
+    public Action<? super ExecutionListener> createAction(CommandLineParser parser, ParsedCommandLine commandLine) {
         StartParameter startParameter = new StartParameter();
         startParameterConverter.convert(commandLine, startParameter);
         DaemonParameters daemonParameters = constructDaemonParameters(startParameter);
@@ -79,7 +80,7 @@ class BuildActionsFactory implements CommandLineAction {
         if (commandLine.hasOption(FOREGROUND)) {
             ForegroundDaemonConfiguration conf = new ForegroundDaemonConfiguration(
                     daemonParameters.getUid(), daemonParameters.getBaseDir(), daemonParameters.getIdleTimeout());
-            return new ActionAdapter(new ForegroundDaemonMain(conf));
+            return Actions.toAction(new ForegroundDaemonMain(conf));
         }
         if (useDaemon(commandLine, daemonParameters)) {
             return runBuildWithDaemon(startParameter, daemonParameters, loggingServices);
@@ -99,10 +100,10 @@ class BuildActionsFactory implements CommandLineAction {
         return daemonParameters;
     }
 
-    private Action<ExecutionListener> stopAllDaemons(DaemonParameters daemonParameters, ServiceRegistry loggingServices) {
+    private Action<? super ExecutionListener> stopAllDaemons(DaemonParameters daemonParameters, ServiceRegistry loggingServices) {
         DaemonClientServices clientServices = new StopDaemonClientServices(loggingServices, daemonParameters, System.in);
         DaemonClient stopClient = clientServices.get(DaemonClient.class);
-        return new ActionAdapter(new StopDaemonAction(stopClient));
+        return Actions.toAction(new StopDaemonAction(stopClient));
     }
 
     private boolean useDaemon(ParsedCommandLine commandLine, DaemonParameters daemonParameters) {
@@ -112,7 +113,7 @@ class BuildActionsFactory implements CommandLineAction {
         return useDaemon;
     }
 
-    private Action<ExecutionListener> runBuildWithDaemon(StartParameter startParameter, DaemonParameters daemonParameters, ServiceRegistry loggingServices) {
+    private Action<? super ExecutionListener> runBuildWithDaemon(StartParameter startParameter, DaemonParameters daemonParameters, ServiceRegistry loggingServices) {
         // Create a client that will match based on the daemon startup parameters.
         DaemonClientServices clientServices = new DaemonClientServices(loggingServices, daemonParameters, System.in);
         DaemonClient client = clientServices.get(DaemonClient.class);
@@ -124,12 +125,12 @@ class BuildActionsFactory implements CommandLineAction {
         return currentProcess.configureForBuild(requiredBuildParameters);
     }
 
-    private Action<ExecutionListener> runBuildInProcess(StartParameter startParameter, DaemonParameters daemonParameters, ServiceRegistry loggingServices) {
+    private Action<? super ExecutionListener> runBuildInProcess(StartParameter startParameter, DaemonParameters daemonParameters, ServiceRegistry loggingServices) {
         InProcessGradleLauncherActionExecuter executer = new InProcessGradleLauncherActionExecuter(new DefaultGradleLauncherFactory(loggingServices));
         return daemonBuildAction(startParameter, daemonParameters, executer);
     }
 
-    private Action<ExecutionListener> runBuildInSingleUseDaemon(StartParameter startParameter, DaemonParameters daemonParameters, ServiceRegistry loggingServices) {
+    private Action<? super ExecutionListener> runBuildInSingleUseDaemon(StartParameter startParameter, DaemonParameters daemonParameters, ServiceRegistry loggingServices) {
         //(SF) this is a workaround until this story is completed. I'm hardcoding setting the idle timeout to be max X mins.
         //this way we avoid potential runaway daemons that steal resources on linux and break builds on windows.
         //We might leave that in if we decide it's a good idea for an extra safety net.
@@ -145,8 +146,8 @@ class BuildActionsFactory implements CommandLineAction {
         return daemonBuildAction(startParameter, daemonParameters, client);
     }
 
-    private Action<ExecutionListener> daemonBuildAction(StartParameter startParameter, DaemonParameters daemonParameters, GradleLauncherActionExecuter<BuildActionParameters> executer) {
-        return new ActionAdapter(
+    private Action<? super ExecutionListener> daemonBuildAction(StartParameter startParameter, DaemonParameters daemonParameters, GradleLauncherActionExecuter<BuildActionParameters> executer) {
+        return Actions.toAction(
                 new RunBuildAction(executer, startParameter, getWorkingDir(), clientMetaData(), getBuildStartTime(), daemonParameters.getEffectiveSystemProperties(), System.getenv()));
     }
 
