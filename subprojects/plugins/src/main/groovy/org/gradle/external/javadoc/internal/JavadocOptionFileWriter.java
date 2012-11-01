@@ -54,7 +54,7 @@ public class JavadocOptionFileWriter {
 
             final Map<String, JavadocOptionFileOption> optionsWithoutLocale = CollectionUtils.filter(options, new Spec<Map.Entry<String, JavadocOptionFileOption>>() {
                 public boolean isSatisfiedBy(Map.Entry<String, JavadocOptionFileOption> element) {
-                    return "locale".equals(element.getKey());
+                    return !"locale".equals(element.getKey());
                 }
             });
             for (final String option : optionsWithoutLocale.keySet()) {
