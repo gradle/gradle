@@ -22,6 +22,9 @@ import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
 
+import static org.gradle.api.internal.IoActions.createFileWriteAction
+import static org.gradle.api.internal.IoActions.writeFile
+
 class IoActionsTest extends Specification {
 
     @Rule TemporaryFolder tmp
@@ -31,7 +34,7 @@ class IoActionsTest extends Specification {
         def file = tmp.file("foo.txt")
 
         when:
-        IoActions.createFileWriteAction(file, "UTF-8").execute(new Action<Writer>() {
+        createFileWriteAction(file, "UTF-8").execute(new Action<Writer>() {
             void execute(Writer writer) {
                 writer.write("bar")
             }
@@ -48,13 +51,28 @@ class IoActionsTest extends Specification {
         def action = Mock(Action)
 
         when:
-        IoActions.createFileWriteAction(file, "UTF-8").execute(action)
+        createFileWriteAction(file, "UTF-8").execute(action)
 
         then:
         0 * action.execute(_)
         def e = thrown UncheckedIOException
         e.cause instanceof IOException
         e.cause.message.startsWith("Unable to create directory")
+    }
+
+    def "can write file"() {
+        given:
+        def file = tmp.file("foo.txt")
+
+        when:
+        writeFile(file, "UTF-8", new Action() {
+            void execute(writer) {
+                writer.append("bar")
+            }
+        })
+
+        then:
+        file.text == "bar"
     }
 
 }

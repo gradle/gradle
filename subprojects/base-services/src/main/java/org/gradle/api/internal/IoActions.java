@@ -26,6 +26,26 @@ import java.io.*;
  */
 public abstract class IoActions {
 
+    /**
+     * Gives a writer for the given file/encoding to the given write action, managing the streams.
+     *
+     * @param output The file to write to
+     * @param encoding The character encoding to write with
+     * @param action The action to write the actual content
+     */
+    public static void writeFile(File output, String encoding, Action<? super Writer> action) {
+        createFileWriteAction(output, encoding).execute(action);
+    }
+
+    /**
+     * Creates an action that itself takes an action that will perform that actual writing to the file.
+     *
+     * All IO is deferred until the execution of the returned action.
+     *
+     * @param output The file to write to
+     * @param encoding The character encoding to write with
+     * @return An action that receives an action that performs the actual writing
+     */
     public static  Action<? super Action<? super Writer>> createFileWriteAction(File output, String encoding) {
         return new FileWriterIoAction(output, encoding);
     }

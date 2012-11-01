@@ -60,8 +60,7 @@ public class XmlTransformer implements Transformer<String, String> {
     }
 
     public void transform(File destination, String encoding, final Action<? super Writer> generator) {
-        Action<? super Action<? super Writer>> writeAction = IoActions.createFileWriteAction(destination, encoding);
-        writeAction.execute(new Action<Writer>() {
+        IoActions.writeFile(destination, encoding, new Action<Writer>() {
             public void execute(Writer writer) {
                 transform(writer, generator);
             }
