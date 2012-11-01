@@ -112,11 +112,13 @@ public abstract class Actions {
     /**
      * Wraps the given runnable in an {@link Action}, where the execute implementation runs the runnable ignoring the argument.
      *
+     * If the given runnable is {@code null}, the action returned is effectively a noop.
+     *
      * @param runnable The runnable to run for the action execution.
      * @return An action that runs the given runnable, ignoring the argument.
      */
     public static Action<Object> toAction(Runnable runnable) {
-        return new RunnableActionAdapter(runnable);
+        return runnable == null ? doNothing() : new RunnableActionAdapter(runnable);
     }
 
     private static class RunnableActionAdapter implements Action<Object> {

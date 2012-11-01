@@ -74,4 +74,25 @@ class ActionsTest extends Specification {
         then:
         1 * action.execute("1")
     }
+
+    def "adapting runnables"() {
+        given:
+        def runnable = Mock(Runnable)
+        def arg = Mock(Object)
+
+        when:
+        toAction(runnable).execute(arg)
+
+        then:
+        0 * arg._(*_)
+        1 * runnable.run()
+    }
+
+    def "adapting null runnables"() {
+        when:
+        toAction((Runnable) null).execute("foo")
+
+        then:
+        notThrown(Exception)
+    }
 }
