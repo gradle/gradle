@@ -22,6 +22,12 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler;
 
 /**
  * Provides access to the publications and repositories to publish to.
+ *
+ * The {@code “publish”} plugin installs an instance of this extension to the {@link org.gradle.api.Project} with the name {@value #NAME}.
+
+ * See the {@code “ivy-publish”} plugin documentation for example usage.
+ *
+ * @since 1.3
  */
 @Incubating
 public interface PublishingExtension {
@@ -31,12 +37,33 @@ public interface PublishingExtension {
      */
     String NAME = "publishing";
 
+    /**
+     * The container of possible repositories to publish to.
+     *
+     * @return The container of possible repositories to publish to.
+     */
     RepositoryHandler getRepositories();
 
+    /**
+     * Configures the container of possible repositories to publish to.
+     *
+     * @param configure The action to configure the container of repositories with.
+     */
     void repositories(Action<? super RepositoryHandler> configure);
 
+    /**
+     * The publications of this project.
+     *
+     * @return The publications of this project.
+     * @see PublicationContainer
+     */
     PublicationContainer getPublications();
 
+    /**
+     * Configures the publications of this project.
+     *
+     * @param configure The action to configure the publications with.
+     */
     void publications(Action<? super PublicationContainer> configure);
 
 }

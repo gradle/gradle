@@ -16,11 +16,15 @@
 
 package org.gradle.api.publish;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.UnknownDomainObjectException;
 
 /**
- * <p>An {@code UnknownPublicationException} is thrown when a configuration referenced by name cannot be found.</p>
+ * An {@code UnknownPublicationException} is thrown when a configuration referenced by name cannot be found.
+ *
+ * @since 1.3
  */
+@Incubating
 public class UnknownPublicationException extends UnknownDomainObjectException {
     public UnknownPublicationException(String message) {
         super(message);

@@ -29,7 +29,9 @@ import org.gradle.internal.reflect.Instantiator;
 import javax.inject.Inject;
 
 /**
- * Installs a {@link PublishingExtension} with name "publishing".
+ * Installs a {@link PublishingExtension} with name {@value PublishingExtension#NAME}.
+ *
+ * @since 1.3
  */
 @Incubating
 public class PublishingPlugin implements Plugin<Project> {

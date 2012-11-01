@@ -20,7 +20,15 @@ import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectSet;
 
 /**
- * <p>A {@code PublicationContainer} is responsible for declaring and managing publications. See also {@link Publication}.</p>
+ * A {@code PublicationContainer} is responsible for declaring and managing publications.
+ *
+ * Publications cannot be added to a publication container by users at this time. Publication plugins
+ * are responsible for creating {@link Publication} instances in the container.
+ *
+ * See the documentation for the Ivy Publishing plugin for more information.
+ *
+ * @since 1.3
+ * @see Publication
  */
 @Incubating
 public interface PublicationContainer extends NamedDomainObjectSet<Publication> {

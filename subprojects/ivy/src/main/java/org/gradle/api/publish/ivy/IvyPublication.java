@@ -21,13 +21,25 @@ import org.gradle.api.Incubating;
 import org.gradle.api.publish.Publication;
 
 /**
- * The publication of an Ivy module.
+ * An {@code IvyPublication} is the representation/configuration of how Gradle should publish something in Ivy format.
+ *
+ * @since 1.3
  */
 @Incubating
 public interface IvyPublication extends Publication {
 
+    /**
+     * The module descriptor that will be published.
+     *
+     * @return The module descriptor that will be published.
+     */
     IvyModuleDescriptor getDescriptor();
 
+    /**
+     * Configures the descriptor that will be published.
+     *
+     * @param action The configuration action.
+     */
     void descriptor(Action<? super IvyModuleDescriptor> action);
 
 }

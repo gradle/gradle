@@ -16,5 +16,10 @@
 
 /**
  * Classes that deal with publishing artifacts.
+ *
+ * @since 1.3
  */
+@Incubating
 package org.gradle.api.publish;
+
+import org.gradle.api.Incubating;
