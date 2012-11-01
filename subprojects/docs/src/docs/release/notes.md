@@ -182,10 +182,11 @@ introduced in Gradle 1.3 so has been removed.
 
 ### External Contributions
 
-We received a bunch of patches and pull requests in the last weeks. We managed to include some of them in this release. We want to thank
+We would like to thank the following community members for making contributions to this release of Gradle.
 
-* Matt Khan for a fix for GRADLE-2485
-* Gerd Aschemann for fixing GRADLE-2501
-* Cruz Fernandez for fixing the properties sample project
-* Fadeev Alexandr for fixing GRADLE-2461
+* Matt Khan - fixed resetting of `test.debug` to `false` when using `test.jvmArgs`  (GRADLE-2485)
+* Gerd Aschemann - fixes for `application` plugins generated shell scripts (GRADLE-2501)
+* Cruz Fernandez - fixes to the properties sample project
+* Fadeev Alexandr - fixes for Gradle Daemon on Win 7 when `PATH` env var is not set (GRADLE-2461)
 
+We love getting contributions from the Gradle community. For information on contributing, please see (gradle.org/contribute)[http://gradle.org/contribute]
