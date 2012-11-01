@@ -18,7 +18,7 @@ package org.gradle.integtests.fixtures
 import org.gradle.util.TestFile
 import org.gradle.util.hash.HashUtil
 
-class IvyFileModule implements IvyModule {
+class IvyFileModule extends AbstractIvyModule {
     final TestFile moduleDir
     final String organisation
     final String module

@@ -54,7 +54,7 @@ class IvyHttpRepository implements IvyRepository {
     }
 }
 
-class IvyHttpModule implements IvyModule {
+class IvyHttpModule extends AbstractIvyModule {
     private final IvyFileModule backingModule
     private final HttpServer server
     private final String prefix

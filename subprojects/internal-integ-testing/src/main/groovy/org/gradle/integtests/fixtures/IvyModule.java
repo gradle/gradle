@@ -16,12 +16,15 @@
 
 package org.gradle.integtests.fixtures;
 
+import groovy.util.slurpersupport.GPathResult;
 import org.gradle.util.TestFile;
 
 import java.util.Map;
 
 public interface IvyModule {
     TestFile getIvyFile();
+
+    GPathResult getIvyXml();
 
     TestFile getJarFile();
 
