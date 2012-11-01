@@ -274,32 +274,51 @@
 
     <section>
         <title>Incremental compilation</title>
-        <para>Scala compilation can be sped up significantly by using an <emphasis>incremental compiler</emphasis>. After an
-            initial full compilation, an incremental compiler will only recompile classes that are directly or indirectly
-            affected by source code changes that have occurred since the previous compilation. This strategy is particularly
-            effective when the source code changes between subsequent compilations are small and don't affect many other classes.
-            Because incremental compilation requires sophisticated analysis of class dependencies, it can be slower than a full
-            non-incremental build for larger source code changes or changes affecting many classes.
+        <para>
+            By compiling only classes whose source code has changed since the previous compilation, and classes affected by these changes,
+            incremental compilation can significantly reduce Scala compilation time. It is particularly effective when frequently compiling
+            small code increments, as is often done at development time.
         </para>
-        <para>To support incremental compilation, Gradle integrates with Zinc, a standalone version of sbt's incremental
-            Scala compiler. The Zinc compiler is selected with <literal>scalaCompileOptions.useAnt = false</literal>.
-            Although not strictly necessary, it is recommended to execute the Zinc compiler in the Gradle compiler daemon
-            (<literal>scalaCompileOptions.fork = true</literal>).
-            Except where noted otherwise in the API documentation, the same configuration options are supported for the Zinc compiler
-            as for the Ant based compiler (which is used by default). Also, joint compilation of Scala and Java code
-            is still possible, with the Java code being compiled incrementally as well.
+
+        <para>
+            The Scala plugin now supports incremental compilation by integrating with <ulink url="https://github.com/typesafehub/zinc">Zinc</ulink>,
+            a standalone version of <ulink url="https://github.com/harrah/xsbt">sbt</ulink>'s incremental Scala compiler. To switch the
+            <literal>ScalaCompile</literal> task from the default Ant based compiler to the new Zinc based compiler, use
+            <literal>scalaCompileOptions.useAnt = false</literal>. It is recommended to execute the Zinc based compiler outside the main Gradle process
+            in the Gradle compiler daemon. This is achieved with <literal>scalaCompileOptions.fork = true</literal>. Compiler memory settings can be
+            adjusted via <literal>scalaCompileOptions.forkOptions</literal>. Except where noted in
+            the <ulink url="http://gradle.org/docs/current/dsl/org.gradle.api.tasks.scala.ScalaCompile.html">API documentation</ulink>, the Zinc based
+            compiler supports exactly the same configuration options as the Ant based compiler.
         </para>
-        <para>Incremental compilation requires analysis of the dependencies between classes. Each
-            ScalaCompile task stores the results of this analysis in the file designated by
-            <literal>scalaCompileOptions.incrementalOptions.analysisFile</literal>. The
-            <literal>scalaCompileOptions.incrementalOptions.publishedCode</literal> property designates the classes directory
-            or Jar file by which the compiled classes are passed on to the compile class path of any downstream ScalaCompile tasks.
-            Downstream tasks will use this information to find all analysis files of code produced by upstream ScalaCompile tasks.
-            The ScalaCompile tasks added by the Scala plugin have suitable defaults for both properties.
+
+        <para>
+            The Scala plugin adds a configuration named <literal>zinc</literal> to resolve the Zinc library and its dependencies. To override the
+            Zinc version that Gradle uses by default, add an explicit Zinc dependency (for example <literal>zinc "com.typesafe.zinc:zinc:0.1.4"</literal>).
+            No matter which Zinc version is used, the Zinc compiler will always use the Scala compiler found on the <literal>scalaTools</literal> configuration.
         </para>
-        <para>Note: As of Gradle 1.3, Zinc's Nailgun based daemon mode is not supported. Instead, we plan to enhance Gradle's
-            own compiler daemon (activated with <literal>scalaCompileOptions.fork = true</literal>) to stay alive for longer
-            than a single Gradle invocation. This will allow Gradle to keep the Scala compiler code warm, which has shown to
-            result in another significant speedup for Scala compilation.</para>
+
+        <para>
+            Just like Gradle's Ant based compiler, the Zinc based compiler supports joint compilation of Java and Scala code. By default, all Java and Scala code
+            under <literal>src/main/scala</literal> will participate in joint compilation. With the Zinc based compiler, even Java code will be compiled incrementally.
+        </para>
+
+        <para>
+            Incremental compilation requires dependency analysis of the source code. The results of this analysis are stored in the file designated
+            by <literal>scalaCompileOptions.incrementalOptions.analysisFile</literal> (which has a sensible default). In a multi-project build, analysis
+            files are passed on to downstream <literal>ScalaCompile</literal> tasks to enable incremental compilation across project boundaries. For
+            <literal>ScalaCompile</literal> tasks added by the Scala plugin, no configuration is necessary to make this work. For other
+            <literal>ScalaCompile</literal> tasks, <literal>scalaCompileOptions.incrementalOptions.publishedCode</literal> needs to be configured to point
+            to the classes folder or Jar archive by which the code is passed on to compile class paths of downstream <literal>ScalaCompile</literal> tasks.
+            Note that if <literal>publishedCode</literal> is not set correctly, downstream tasks may not recompile code affected by upstream changes.
+        </para>
+
+        <para>
+            Due to the overhead of dependency analysis, a clean compilation or a compilation after a larger code change may take longer than with the Ant based compiler.
+        </para>
+
+        <para>
+            Note that Zinc's Nailgun based daemon mode is not supported. Instead, we plan to enhance Gradle's own compiler daemon to stay alive across Gradle
+            invocations and reuse the same Scala compiler. This is expected to yield another significant speedup for Scala compilation.
+        </para>
     </section>
 </chapter>
