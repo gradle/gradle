@@ -31,8 +31,8 @@ import java.util.LinkedHashSet;
  */
 public class CompositeDomainObjectSet<T> extends DefaultDomainObjectSet<T> {
 
-    private Spec<T> uniqueSpec = new ItemIsUniqueInCompositeSpec();
-    private Spec<T> notInSpec = new ItemNotInCompositeSpec();
+    private Spec<? super T> uniqueSpec = new ItemIsUniqueInCompositeSpec();
+    private Spec<? super T> notInSpec = new ItemNotInCompositeSpec();
     
     public CompositeDomainObjectSet(Class<T> type) {
         super(type, new CompositeCollection());
@@ -86,7 +86,7 @@ public class CompositeDomainObjectSet<T> extends DefaultDomainObjectSet<T> {
 
     public void removeCollection(DomainObjectCollection<? extends T> collection) {
         getStore().removeComposited(collection);
-        Action<T> action = getEventRegister().getRemoveAction();
+        Action<? super T> action = getEventRegister().getRemoveAction();
         for (T item : collection) {
             action.execute(item);
         }
