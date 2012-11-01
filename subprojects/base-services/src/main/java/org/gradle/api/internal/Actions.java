@@ -18,6 +18,7 @@ package org.gradle.api.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
+import org.gradle.api.specs.Spec;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -136,6 +137,36 @@ public abstract class Actions {
         public String toString() {
             return String.format("RunnableActionAdapter{runnable=%s}", runnable);
         }
+    }
+
+    /**
+     * Creates a new action that only forwards arguments on to the given filter is they are satisfied by the given spec.
+     *
+     * @param action The action to delegate filtered items to
+     * @param filter The spec to use to filter items by
+     * @param <T> The type of item the action expects
+     * @return A new action that only forwards arguments on to the given filter is they are satisfied by the given spec.
+     */
+    public static <T> Action<T> filter(Action<? super T> action, Spec<? super T> filter) {
+        return new FilteredAction<T>(action, filter);
+    }
+
+    private static class FilteredAction<T> implements Action<T> {
+
+        private final Spec<? super T> filter;
+        private final Action<? super T> action;
+
+        public FilteredAction(Action<? super T> action, Spec<? super T> filter) {
+            this.filter = filter;
+            this.action = action;
+        }
+
+        public void execute(T t) {
+            if (filter.isSatisfiedBy(t)) {
+                action.execute(t);
+            }
+        }
+
     }
 
 }

@@ -15,10 +15,10 @@
  */
 package org.gradle.api.internal.collections;
 
-import org.gradle.api.internal.FilteredAction;
 import org.gradle.api.Action;
-import org.gradle.listener.ActionBroadcast;
+import org.gradle.api.internal.Actions;
 import org.gradle.api.specs.Specs;
+import org.gradle.listener.ActionBroadcast;
 
 public class CollectionEventRegister<T> {
 
@@ -66,11 +66,11 @@ public class CollectionEventRegister<T> {
         }
 
         public Action<? super S> registerAddAction(Action<? super S> addAction) {
-            return super.registerAddAction(new FilteredAction<S>(filter, addAction));
+            return super.registerAddAction(Actions.filter(addAction, filter));
         }
 
         public Action<? super S> registerRemoveAction(Action<? super S> removeAction) {
-            return super.registerRemoveAction(new FilteredAction<S>(filter, removeAction));
+            return super.registerRemoveAction(Actions.filter(removeAction, filter));
         }
 
         public <K extends S> CollectionEventRegister<K> filtered(CollectionFilter<K> filter) {

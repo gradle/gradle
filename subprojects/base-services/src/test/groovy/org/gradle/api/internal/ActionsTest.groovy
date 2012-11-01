@@ -18,6 +18,7 @@ package org.gradle.api.internal
 
 import org.gradle.api.Action
 import org.gradle.api.Transformer
+import org.gradle.api.specs.Spec
 import spock.lang.Specification
 
 import static org.gradle.api.internal.Actions.*
@@ -52,6 +53,7 @@ class ActionsTest extends Specification {
             Integer transform(String original) {
                 Integer.valueOf(original, 10) * 2
             }
+
         }).execute("1")
 
         then:
@@ -95,4 +97,37 @@ class ActionsTest extends Specification {
         then:
         notThrown(Exception)
     }
+
+    def "filtered action fires for matching"() {
+        given:
+        def called = false
+        def action = filter(action { called = true }, spec { true })
+
+        when:
+        action.execute "object"
+
+        then:
+        called
+    }
+
+    def "filtered action doesnt fire for not matching"() {
+        given:
+        def called = false
+        def action = filter(action { called = true }, spec { false })
+
+        when:
+        action.execute "object"
+
+        then:
+        !called
+    }
+
+    protected Spec spec(Closure spec) {
+        spec as Spec
+    }
+
+    protected action(Closure action) {
+        action as Action
+    }
+
 }

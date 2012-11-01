@@ -15,14 +15,14 @@
  */
 package org.gradle.api.internal;
 
+import org.apache.commons.collections.collection.CompositeCollection;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.specs.Spec;
 
-import org.apache.commons.collections.collection.CompositeCollection;
-import java.util.LinkedHashSet;
-import java.util.Iterator;
 import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
 
 /**
  * A domain object collection that presents a combined view of one or more collections.
@@ -71,11 +71,11 @@ public class CompositeDomainObjectSet<T> extends DefaultDomainObjectSet<T> {
     }
 
     public Action<? super T> whenObjectAdded(Action<? super T> action) {
-        return super.whenObjectAdded(new FilteredAction<T>(uniqueSpec, action));
+        return super.whenObjectAdded(Actions.filter(action, uniqueSpec));
     }
 
     public Action<? super T> whenObjectRemoved(Action<? super T> action) {
-        return super.whenObjectRemoved(new FilteredAction<T>(notInSpec, action));
+        return super.whenObjectRemoved(Actions.filter(action, notInSpec));
     }
     
     public void addCollection(DomainObjectCollection<? extends T> collection) {
