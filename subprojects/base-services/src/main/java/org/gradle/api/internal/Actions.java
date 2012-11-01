@@ -110,6 +110,18 @@ public abstract class Actions {
         return transformBefore(action, new CastingTransformer<T, I>(actionType));
     }
 
+    private static class CastingTransformer<O, I> implements Transformer<O, I> {
+        final Class<O> outputType;
+
+        public CastingTransformer(Class<O> outputType) {
+            this.outputType = outputType;
+        }
+
+        public O transform(I input) {
+            return outputType.cast(input);
+        }
+    }
+
     /**
      * Wraps the given runnable in an {@link Action}, where the execute implementation runs the runnable ignoring the argument.
      *
@@ -152,7 +164,6 @@ public abstract class Actions {
     }
 
     private static class FilteredAction<T> implements Action<T> {
-
         private final Spec<? super T> filter;
         private final Action<? super T> action;
 
@@ -166,7 +177,6 @@ public abstract class Actions {
                 action.execute(t);
             }
         }
-
     }
 
 }
