@@ -67,13 +67,13 @@ class IvyPublishTest extends Specification {
 
     def "repository must implement the internal interface"() {
         when:
-        publish.repository = [:] as IvyArtifactRepository
+        publish.to = [:] as IvyArtifactRepository
 
         then:
         thrown(InvalidUserDataException)
 
         when:
-        publish.repository = [:] as IvyArtifactRepositoryInternal
+        publish.to = [:] as IvyArtifactRepositoryInternal
 
         then:
         notThrown(Exception)
@@ -128,7 +128,7 @@ class IvyPublishTest extends Specification {
         when:
         publish = createPublish("publish3")
         publish.publication = publication
-        publish.repository = repository
+        publish.to = repository
         publish.execute()
 
         then:
