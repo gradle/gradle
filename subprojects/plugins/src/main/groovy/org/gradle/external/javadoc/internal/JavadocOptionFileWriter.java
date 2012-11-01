@@ -17,12 +17,14 @@
 package org.gradle.external.javadoc.internal;
 
 import org.apache.commons.io.IOUtils;
+import org.gradle.api.specs.Spec;
 import org.gradle.external.javadoc.JavadocOptionFileOption;
+import org.gradle.util.CollectionUtils;
 
-import java.io.IOException;
 import java.io.BufferedWriter;
-import java.io.FileWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -45,7 +47,17 @@ public class JavadocOptionFileWriter {
             writer = new BufferedWriter(new FileWriter(outputFile));
             JavadocOptionFileWriterContext writerContext = new JavadocOptionFileWriterContext(writer);
 
-            for (final String option : options.keySet()) {
+            JavadocOptionFileOption localeOption = options.get("locale");
+            if (localeOption != null) {
+                localeOption.write(writerContext);
+            }
+
+            final Map<String, JavadocOptionFileOption> optionsWithoutLocale = CollectionUtils.filter(options, new Spec<Map.Entry<String, JavadocOptionFileOption>>() {
+                public boolean isSatisfiedBy(Map.Entry<String, JavadocOptionFileOption> element) {
+                    return element.getKey() != "locale";
+                }
+            });
+            for (final String option : optionsWithoutLocale.keySet()) {
                 options.get(option).write(writerContext);
             }
 
