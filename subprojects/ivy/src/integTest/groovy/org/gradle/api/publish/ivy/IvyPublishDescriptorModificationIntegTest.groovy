@@ -74,6 +74,8 @@ class IvyPublishDescriptorModificationIntegTest extends AbstractIntegrationSpec 
         ":jar" in skippedTasks
 
         and:
+        // Note that the modified “coordinates” do not affect how the module is published
+        // This is intentional
         asXml(module.ivyFile).info[0].@revision == "3"
     }
 
