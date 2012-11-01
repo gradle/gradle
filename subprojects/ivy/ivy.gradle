@@ -21,6 +21,8 @@ dependencies {
     compile project(':core'),
             project(':publish'),
             project(':plugins') // for base plugin to get archives conf
+
+    integTestCompile project(":ear")
 }
 
 useTestFixtures()
