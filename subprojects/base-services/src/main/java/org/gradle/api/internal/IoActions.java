@@ -26,7 +26,7 @@ import java.io.*;
  */
 public abstract class IoActions {
 
-    public static  Action<Action<? super Writer>> createFileWriteAction(File output, String encoding) {
+    public static  Action<? super Action<? super Writer>> createFileWriteAction(File output, String encoding) {
         return new FileWriterIoAction(output, encoding);
     }
 
