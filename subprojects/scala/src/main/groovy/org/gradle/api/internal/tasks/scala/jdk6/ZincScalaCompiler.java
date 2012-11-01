@@ -23,7 +23,6 @@ import com.typesafe.zinc.SbtJars;
 import com.typesafe.zinc.ScalaLocation;
 import com.typesafe.zinc.Setup;
 
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.tasks.compile.CompilationFailedException;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.internal.tasks.compile.JavaCompilerArgumentsBuilder;
