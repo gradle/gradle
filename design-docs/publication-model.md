@@ -74,8 +74,8 @@ to repositories.
 
 1. Introduce a `Publication` interface. Probably make `Publication` a `Named` thing.
 2. Add a `Publication` container to the project. At this stage, this container will be _read-only_.
-3. Add `IvyPublication` interface and `IvyDependencyDescriptor` interface.
-    * Has-a property called `ivy` of type `IvyDependencyDescriptor`.
+3. Add `IvyPublication` interface and `IvyModuleDescriptor` interface.
+    * Has-a property called `descriptor` of type `IvyModuleDescriptor`.
 4. Add an `ivy-publish` plugin that adds a single `IvyPublication` instance to the container.
 5. When using this `IvyPublication` for publishing, the following defaults are used:
     * `organisation` == `project.group`
@@ -84,25 +84,27 @@ to repositories.
     * `status` == `project.status`
     * Only dependency declarations from public configurations are included, and no configuration extension is used.
     * All artifacts from public configurations are published.
-6. Add a `Publish` task type.
-    * Has-a property called `publication` of type `Publication`
-    * Has-a property called `repository` of type `ArtifactRepository`
+6. Add an `IvyPublish` task type.
+    * Has-a property called `publication` of type `IvyPublication`
+    * Has-a property called `repository` of type `IvyArtifactRepository`
 7. When the `ivy-publish` plugin is applied, a rule is added that will add a `publish${publication.name}` task of type `Publish` for each publicaton
    added to the publications container.
     * The `publication` property will be wired up to the publication
     * The `repository` property will be left unspecified.
 8. When the `ivy-publish` plugin is applied, a lifecycle task called `publish` is added that dependsOn those tasks added by the above rule.
-9. Add `IvyDependencyDescriptor.withXml()` methods and wire this up to `ivy.xml` generation.
-10. Extract a `RepositoryFactory` interface out of `RepositoryHandler` that includes all the factory methods currently on `RepositoryHandler`, such as `mavenCentral()`,
-    `ivy()`, etc.
-11. Add `Publish.to` that returns an object of type `RepositoryFactory`. Calling a factory method on this object will define the repository that the task
-    must publish to. It is an error to define multiple repositories.
+9. Add `IvyModuleDescriptor.withXml()` methods and wire this up to `ivy.xml` generation.
 
-To publish and Ivy module:
+TBD - Add a `publishing` extension with repositories and publications
+
+To publish an Ivy module:
 
     apply plugin: 'ivy-publish'
 
-    publishIvy.to.ivy { ... }
+    publishing {
+        repositories {
+            ivy { ... }
+        }
+    }
 
 Running `gradle publish` will build the artifacts and upload to the specified repository.
 
@@ -110,34 +112,34 @@ To customise the `ivy.xml`:
 
     apply plugin: 'ivy-publish'
 
-    publishIvy.to.ivy { ... }
+    publishing {
+        repositories.ivy { ... }
 
-    publications.ivy.ivy.withXml { xml -> ... }
+        publications.ivy.descriptor.withXml { xml -> ... }
+    }
 
 Another example, using rules:
 
     apply plugin: 'ivy-publish'
 
-    publications.withType(IvyPublication) {
-        ivy.withXml { xml -> ... }
-    }
+    publishing {
+        repositories.ivy { ... }
 
-    tasks.withType(Publish) {
-        to.ivy { ... }
+        publications.withType(IvyPublication) {
+            ivy.withXml { xml -> ... }
+        }
     }
 
 To publish to multiple repositories:
 
     apply plugin: 'ivy-publish'
 
-    publishIvy.to.ivy { ... }
-
-    task publishToOtherRepo(type: Publish) {
-        publication publications.ivy
-        to.ivy { ... }
+    publishing {
+        repositories {
+            ivy { ... }
+            ivy { ... }
+        }
     }
-
-    publish.dependsOn publishToOtherRepo
 
 Running `gradle publish` will publish the module to both repositories.
 
@@ -159,6 +161,8 @@ at this point to start pulling descriptor generation up, so that it can eventual
 ### Test cases
 
 * Basic test that running the `publish` task actually publishes something.
+    * With java plugin
+    * With no other plugins
 * Multi-project build with project dependencies that is published to an Ivy repository can be successfully resolved by another build.
 * A `withXml` action can be used to modify the generated `ivy.xml`.
 * Decent error message when the `withXml` action fails.
@@ -181,19 +185,22 @@ publication tasks to publish Maven modules.
     * All artifacts from public configurations are published.
     * When the `java` plugin is applied, the following dependencies are included in the `pom.xml`:
         * All dependencies specified in `configurations.runtime` are added with runtime scope.
-4. When the `maven-publish` plugin is applied, a rule is added to define a publish task for each publication, as for the `ivy-plugin` above.
-5. When the `maven-publish` plugin is applied, a rule is added to define a `publishLocal${publication.name}` task of type `Publish` for each publication
+4. Add a `MavenPublish` task.
+5. Change the `maven` repository type to handle publishing a `MavenPublication`.
+6. Add `Pom.withXml()` methods and wire these up to pom generation.
+7. When the `maven-publish` plugin is applied, a rule is added to define a `MavenPublish` task instance for each `MavenPublication`, as for the `ivy-plugin` above.
+8. When the `maven-publish` plugin is applied, a rule is added to define a `publishLocal${publication.name}` task of type `MavenPublish` for each publication
    of type `MavenPublication` added to the publications container.
     * The `publication` property is wired up to the publication
     * The `repository` property defaults to `mavenLocal()`.
-6. Change the `maven` repository type to handle publishing a `MavenPublication`.
-7. Add `Pom.withXml()` methods and wire these up to pom generation.
 
 To publish a Maven module:
 
     apply plugin: 'maven-publish'
 
-    publishMaven.to.maven { ... }
+    repositories {
+        maven { ... }
+    }
 
 Running `gradle publish` will build the artifacts and upload to the specified repository. Running `gradle publishMavenLocal` will build the artifacts and
 copy them into the local Maven repository.
@@ -202,20 +209,22 @@ To customise the `pom.xml`:
 
     apply plugin: 'maven-publish'
 
-    publishMaven.to.maven { ... }
+    publishing {
+        repositories.maven { ... }
 
-    publications.maven.pom.withXml { xml -> ... }
+        publications.maven.pom.withXml { xml -> ... }
+    }
 
 Or, using rules:
 
     apply plugin: 'maven-publish'
 
-    tasks.withType(Publish) {
-        to.maven { ... }
-    }
+    publishing {
+        repositories.maven { ... }
 
-    publications.withType(MavenPublication) {
-        pom.withXml { xml -> ... }
+        publications.withType(MavenPublication) {
+            pom.withXml { xml -> ... }
+        }
     }
 
 Publishing both an Ivy and Maven module:
@@ -223,9 +232,12 @@ Publishing both an Ivy and Maven module:
     apply plugin: 'ivy-publish'
     apply plugin: 'maven-publish'
 
-    publishIvy.to.ivy { ... }
-
-    publishMaven.to.maven { ... }
+    publishing {
+        repositories {
+            ivy { ... }
+            maven { ... }
+        }
+    }
 
 Running `gradle publish` will build and upload both modules.
 
@@ -253,7 +265,7 @@ This step will allow some basic customisation of the meta data model for each pu
 
 1. Add `groupId`, `artifactId`, `version` properties to `MavenPublication` and `Pom`. Add `packaging` property to `Pom`.
 2. Change `pom.xml` generation to use these properties.
-3. Add `organisation`, `module`, `revision` properties to `IvyPublication` and `IvyDependencyDescriptor`. Add `status` property to `IvyDependencyDescriptor`.
+3. Add `organisation`, `module`, `revision` properties to `IvyPublication` and `IvyModuleDescriptor`. Add `status` property to `IvyModuleDescriptor`.
 4. Change `ivy.xml` generation to use these properties.
 5. Change the `ivy.xml` generation to prefer the (organisation, module, revision) identifier of the `IvyPublication` instance from the target project
    for a project dependencies, over the existing candidate identifiers.
@@ -264,12 +276,14 @@ To customise the `pom.xml`:
 
     apply plugin: 'maven-publish'
 
-    publishMaven.to.maven { ... }
+    publishing {
+        repositories.maven { ... }
 
-    publications.withType(MavenPublication) {
-        groupId 'my-maven-group'
-        artifactId 'my-artifact-id'
-        version '1.2'
+        publications.withType(MavenPublication) {
+            groupId 'my-maven-group'
+            artifactId 'my-artifact-id'
+            version '1.2'
+        }
     }
 
 Running `gradle publish` will publish to the remote repostory, with the customisations. Running `gradle publishLocalMaven` will publish to the local
@@ -279,12 +293,14 @@ To customise the `ivy.xml`:
 
     apply plugin: 'ivy-publish'
 
-    publishIvy.to.ivy{ ... }
+    publishing {
+        repositories.ivy { ... }
 
-    publications.ivy {
-        organisation 'my-organisation'
-        module 'my-module'
-        revision '1.2'
+        publications.ivy {
+            organisation 'my-organisation'
+            module 'my-module'
+            revision '1.2'
+        }
     }
 
 We might also add an `ivy` and `maven` project extension as a convenience to specify defaults for all publications of the appropriate type:
@@ -338,7 +354,7 @@ This step decouples the incoming and outgoing dependencies, to allow each public
     * `revision`
     * `configuration`
 5. Add an `IvyConfiguration` concept. This is a collection of things that can be converted into a collection of `IvyDependency` instances.
-6. Add a named container of `IvyConfiguration` instances to `IvyDependencyDescriptor`.
+6. Add a named container of `IvyConfiguration` instances to `IvyModuleDescriptor`.
 
 For the singleton `ivy` and `maven` instances, these properties would have defaults as specified earlier.
 
@@ -349,11 +365,15 @@ To customise a Maven publication:
 
     apply plugin: 'maven-publish'
 
-    publications.maven {
-        pom.scopes {
-            compile "some-group:some-artifactId:1.2"
-            runtime = [compile, "some-group:some-artifactId:1.2:runtime"]
-            test = []
+    publishing {
+        publications {
+            maven {
+                pom.scopes {
+                    compile "some-group:some-artifactId:1.2"
+                    runtime = [compile, "some-group:some-artifactId:1.2:runtime"]
+                    test = []
+                }
+            }
         }
     }
 
@@ -361,10 +381,14 @@ To customise an Ivy publication:
 
     apply plugin: 'ivy-publish'
 
-    publications.ivy {
-        ivy.configurations {
-            compile "some-group:some-module:1.2"
-            testRuntime = []
+    publishing {
+        publications {
+            ivy {
+                descriptor.configurations {
+                    compile "some-group:some-module:1.2"
+                    testRuntime = []
+                }
+            }
         }
     }
 
@@ -392,23 +416,31 @@ To customise a Maven publication:
 
     apply plugin: 'maven-publish'
 
-    publications.maven {
-        mainArtifact jar
-        artifacts = [sourceJar, javadocJar]
-        artifact file: distZip, classifier: 'dist'
+    publishing {
+        publications {
+            maven {
+                mainArtifact jar
+                artifacts = [sourceJar, javadocJar]
+                artifact file: distZip, classifier: 'dist'
+            }
+        }
     }
 
 To customise an Ivy publication:
 
     apply plugin: 'ivy-publish'
 
-    publications.ivy {
-        ivy.configurations {
-            runtime {
-                artifacts = [jar]
-            }
-            distributions {
-                artifact file: distZip, type: 'java-library-distribution'
+    publishing {
+        publications {
+            ivy {
+                descriptor.configurations {
+                    runtime {
+                        artifacts = [jar]
+                    }
+                    distributions {
+                        artifact file: distZip, type: 'java-library-distribution'
+                    }
+                }
             }
         }
     }
@@ -425,16 +457,18 @@ To publish multiple Ivy modules:
 
     apply plugin: 'ivy-publish'
 
-    publications {
-        api {
-            module 'my-api'
-            ...
+    publishing {
+        repositories { ivy { ... } }
+
+        publications {
+            api(type: IvyPublication) {
+                module 'my-api'
+                ...
+            }
         }
     }
 
-    tasks.withType(Publish) {
-        to.ivy { ... }
-    }
+Running `gradle publish` will build and upload both modules to the Ivy repositories.
 
 TBD - Which publication does a project dependency refer to? The 'main' one? All of them?
 
@@ -442,7 +476,7 @@ TBD - Which publication does a project dependency refer to? The 'main' one? All 
 
 In this step, the meta-data file generation for a publication is moved out of the `publish` tasks and into a separate task.
 
-1. Add `GenerateIvyFile` task type. Takes a `IvyDependencyDescriptor` as input and generates an `ivy.xml` from this.
+1. Add `GenerateIvyFile` task type. Takes a `IvyModuleDescriptor` as input and generates an `ivy.xml` from this.
 2. The `ivy-publish` task adds a rule to define a `generate${publication}MetaData` task for each publication of type `IvyPublication` added to the
    publications container.
 3. Add `GeneratePomFile` task type. Takes a `Pom` as input and generated a `pom.xml` from this.
@@ -486,7 +520,7 @@ These would be mixed in to various steps above (TBD), rather than as one change 
 At any point above, and as required, more meta-data for a publication can be made available for customisation. In particular:
 
 1. Add `name`, `description`, `url`, `licenses`, `organization`, `scm`, `issueManagement` and `mailingLists` to `MavenPublication`
-2. Add extended attributes to `IvyDependencyDescriptor`, `IvyConfiguration` and `IvyArtifact`.
+2. Add extended attributes to `IvyModuleDescriptor`, `IvyConfiguration` and `IvyArtifact`.
 3. Add exclusions, inclusions, etc.
 
 ## Introduce components
@@ -509,7 +543,15 @@ A rough plan:
 9. The `cpp-exe` plugin add a `cpp-executable` component for each executable.
 10. The `javascript` plugin adds a `javascript` component.
 
-TBD - is each component merged into the 'main' publications, or is there a publication per component?
+Each component is available as a local publication, and can be referenced from any other project.
+
+TBD - how each component is mapped to Ivy and Maven modules.
+    - is each component merged into the 'main' publications?
+    - or is there a publication per component?
+    - or is there explicit attachment?
+    - does applying the '$lang-library' plugin implicitly make the library component available as a publication?
+
+TBD - consuming components.
 
 # Open issues
 
@@ -519,3 +561,4 @@ TBD - is each component merged into the 'main' publications, or is there a publi
 * How to map a project dependency to Ivy publication or Maven publication when generating descriptor?
 * Add in local publications.
 * Add Gradle descriptor.
+* Move Project.repositories to Project.dependencies.repositories.
