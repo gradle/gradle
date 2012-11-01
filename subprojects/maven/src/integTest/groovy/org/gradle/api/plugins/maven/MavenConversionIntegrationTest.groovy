@@ -63,6 +63,42 @@ Root project 'webinar-parent'
 """))
     }
 
+    def "flatmultimodule"() {
+            given:
+            file("webinar-parent/build.gradle") << "apply plugin: 'maven2Gradle'"
+
+            when:
+            executer.inDirectory(file("webinar-parent"))
+            run 'maven2Gradle'
+
+            then:
+            file("webinar-parent/settings.gradle").exists()
+
+            when:
+            executer.inDirectory(file("webinar-parent"))
+            run '-i', 'clean', 'build'
+
+            then: //smoke test the build artifacts
+            file("webinar-api/build/libs/webinar-api-1.0-SNAPSHOT.jar").exists()
+            file("webinar-impl/build/libs/webinar-impl-1.0-SNAPSHOT.jar").exists()
+            file("webinar-war/build/libs/webinar-war-1.0-SNAPSHOT.war").exists()
+            file('webinar-impl/build/reports/tests/index.html').exists()
+
+            new JUnitTestExecutionResult(file("webinar-impl")).assertTestClassesExecuted('webinar.WebinarTest')
+
+            when:
+            executer.inDirectory(file("webinar-parent"))
+            run 'projects'
+
+            then:
+            output.contains(toPlatformLineSeparators("""
+Root project 'webinar-parent'
++--- Project ':webinar-api' - Webinar APIs
++--- Project ':webinar-impl' - Webinar implementation
+\\--- Project ':webinar-war' - Webinar web application
+"""))
+        }
+
     def "singleModule"() {
         given:
         file("build.gradle") << "apply plugin: 'maven2Gradle'"

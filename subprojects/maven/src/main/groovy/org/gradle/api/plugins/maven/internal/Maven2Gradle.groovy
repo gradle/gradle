@@ -19,6 +19,7 @@
 package org.gradle.api.plugins.maven.internal
 
 import org.gradle.mvn3.org.apache.maven.project.MavenProject
+import org.gradle.util.GFileUtils
 
 /**
  * This script obtains  the effective pom of the current project, reads its dependencies
@@ -475,7 +476,7 @@ artifacts.archives packageTests
     if (projects) {
       modulePoms.each { project ->
         def fqn = fqn(project, projects)
-        artifactIdToDir[fqn] = workingDir.toURI().relativize(projectDir(project).toURI()).path
+        artifactIdToDir[fqn] = GFileUtils.relativePath(workingDir, projectDir(project))
         modules.append("'${fqn}', ")
       }
       def strLength = modules.length()
