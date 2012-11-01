@@ -26,8 +26,7 @@ import org.apache.ivy.util.StringUtils;
 import org.apache.ivy.util.XMLHelper;
 import org.apache.ivy.util.extendable.ExtendableItem;
 import org.gradle.api.Action;
-import org.gradle.api.internal.IoAction;
-import org.gradle.api.internal.IoActions;
+import org.gradle.api.internal.ErroringAction;
 import org.gradle.api.internal.XmlTransformer;
 import org.gradle.util.TextUtil;
 
@@ -41,8 +40,8 @@ import java.util.Map;
 public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
 
     private static Action<Writer> createWriterAction(final ModuleDescriptor md) {
-        return IoActions.toAction(new IoAction<Writer>() {
-            public void execute(Writer writer) throws IOException {
+        return new ErroringAction<Writer>() {
+            public void doExecute(Writer writer) throws IOException {
                 writer.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
                 writer.write(TextUtil.getPlatformLineSeparator());
                 StringBuffer xmlNamespace = new StringBuffer();
@@ -67,7 +66,7 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
                 writer.write("</ivy-module>");
                 writer.write(TextUtil.getPlatformLineSeparator());
             }
-        });
+        };
     }
 
     public void write(ModuleDescriptor md, File output) {

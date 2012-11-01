@@ -26,35 +26,6 @@ import java.io.*;
  */
 public abstract class IoActions {
 
-    /**
-     * Creates an Action wrapper for an {@link IoAction}, simply converting any thrown {@link IOException}s to {@link UncheckedIOException}s.
-     *
-     * The wrapper exception will have no message.
-     *
-     * @param ioAction The IoAction to wrap
-     * @param <T> The type of thing the action expects
-     * @return An action implementation that unchecks IOExceptions thrown by the IoAction
-     */
-    public static <T> Action<T> toAction(IoAction<? super T> ioAction) {
-        return new IoActionAdapter<T>(ioAction);
-    }
-
-    private static class IoActionAdapter<T> implements Action<T> {
-        private final IoAction<? super T> ioAction;
-
-        private IoActionAdapter(IoAction<? super T> ioAction) {
-            this.ioAction = ioAction;
-        }
-
-        public void execute(T thing) {
-            try {
-                ioAction.execute(thing);
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
-            }
-        }
-    }
-
     public static  Action<Action<? super Writer>> createFileWriteAction(File output, String encoding) {
         return new FileWriterIoAction(output, encoding);
     }

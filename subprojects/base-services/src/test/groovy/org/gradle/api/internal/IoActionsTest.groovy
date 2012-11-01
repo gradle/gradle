@@ -26,21 +26,6 @@ class IoActionsTest extends Specification {
 
     @Rule TemporaryFolder tmp
 
-    def "can convert IO action to action"() {
-        given:
-        def action = IoActions.toAction(new IoAction() {
-            void execute(Object thing) {
-                throw new IOException("!")
-            }
-        })
-
-        when:
-        action.execute("foo")
-
-        then:
-        thrown UncheckedIOException
-    }
-
     def "can use file action to write to file"() {
         given:
         def file = tmp.file("foo.txt")
