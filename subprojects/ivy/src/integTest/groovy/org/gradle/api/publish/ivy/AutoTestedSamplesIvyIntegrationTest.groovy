@@ -14,12 +14,16 @@
  * limitations under the License.
  */
 
-/**
- * Types that deal with publishing in the Ivy format.
- *
- * @since 1.3
- */
-@Incubating
-package org.gradle.api.publish.ivy;
+package org.gradle.api.publish.ivy
 
-import org.gradle.api.Incubating;
+import org.gradle.integtests.fixtures.AbstractAutoTestedSamplesTest
+import org.junit.Test
+
+class AutoTestedSamplesIvyIntegrationTest extends AbstractAutoTestedSamplesTest {
+
+    @Test
+    void runSamples() {
+        runSamplesFrom("subprojects/ivy/src/main")
+    }
+
+}

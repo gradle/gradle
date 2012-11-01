@@ -38,7 +38,9 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 
 /**
- * Creates an IvyPublication named "ivy" in project.publications, configured to publish the archives configuration.
+ * Creates an IvyPublication named "ivy" in project.publications, configured to publish all of the visible configurations of the project.
+ *
+ * @since 1.3
  */
 @Incubating
 public class IvyPublishPlugin implements Plugin<Project> {

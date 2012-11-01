@@ -18,6 +18,7 @@ package org.gradle.api.publish.ivy;
 
 import org.gradle.api.Buildable;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.file.FileCollection;
@@ -31,7 +32,10 @@ import java.util.concurrent.Callable;
 
 /**
  * Publishes an IvyPublication to an IvyArtifactRepository.
+ *
+ * @since 1.3
  */
+@Incubating
 public class IvyPublish extends DefaultTask {
 
     private IvyPublicationInternal publication;
@@ -62,16 +66,26 @@ public class IvyPublish extends DefaultTask {
         // Dependencies: Can't think of a case here
     }
 
+    /**
+     * The publication to be published.
+     *
+     * @return The publication to be published
+     */
     public IvyPublication getPublication() {
         return publication;
     }
 
-    protected IvyPublicationInternal getPublicationInternal() {
-        return toPublicationInternal(getPublication());
-    }
-
+    /**
+     * Sets the publication to be published.
+     *
+     * @param publication The publication to be published
+     */
     public void setPublication(IvyPublication publication) {
         this.publication = toPublicationInternal(publication);
+    }
+
+    private IvyPublicationInternal getPublicationInternal() {
+        return toPublicationInternal(getPublication());
     }
 
     private static IvyPublicationInternal toPublicationInternal(IvyPublication publication) {
@@ -90,16 +104,26 @@ public class IvyPublish extends DefaultTask {
         }
     }
 
+    /**
+     * The repository to publish to.
+     *
+     * @return The repository to publish to
+     */
     public IvyArtifactRepository getRepository() {
         return repository;
     }
 
-    private IvyArtifactRepositoryInternal getRepositoryInternal() {
-        return toRepositoryInternal(getRepository());
-    }
-
+    /**
+     * Sets the repository to publish to.
+     *
+     * @param repository The repository to publish to
+     */
     public void setRepository(IvyArtifactRepository repository) {
         this.repository = toRepositoryInternal(repository);
+    }
+
+    private IvyArtifactRepositoryInternal getRepositoryInternal() {
+        return toRepositoryInternal(getRepository());
     }
 
     private static IvyArtifactRepositoryInternal toRepositoryInternal(IvyArtifactRepository repository) {
