@@ -733,17 +733,20 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     }
 
     /**
-     * <p>Returns the test options options.</p>
+     * Returns test framework specific options. Make sure to call {@link #useJUnit()} or {@link #useTestNG()} before using this method.
      *
-     * <p>Be sure to call the appropriate {@link #useJUnit()} or {@link #useTestNG()} method before using this method.</p>
-     *
-     * @return The testframework options.
+     * @return The test framework options.
      */
     @Nested
     public TestFrameworkOptions getOptions() {
         return options(null);
     }
 
+    /**
+     * Configures test framework specific options. Make sure to call {@link #useJUnit()} or {@link #useTestNG()} before using this method.
+     *
+     * @return The test framework options.
+     */
     public TestFrameworkOptions options(Closure testFrameworkConfigure) {
         TestFrameworkOptions options = getTestFramework().getOptions();
         ConfigureUtil.configure(testFrameworkConfigure, testFramework.getOptions());
