@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.scala.jdk6;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.typesafe.zinc.Inputs;
+import com.typesafe.zinc.SbtJars;
 import com.typesafe.zinc.ScalaLocation;
 import com.typesafe.zinc.Setup;
 
@@ -72,22 +73,10 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, S
             return new SimpleWorkResult(true);
         }
 
-        static File findJar(Iterable<File> classpath, String pattern) {
-            for (File file : classpath) {
-                if (file.getName().matches(pattern)) {
-                    return file;
-                }
-            }
-            throw new InvalidUserDataException(String.format(
-                    "Cannot find a Jar matching pattern '%s' on Scala classpath %s. Please make sure it is available.",
-                    pattern, ImmutableList.copyOf(classpath)));
-        }
-
         static com.typesafe.zinc.Compiler createCompiler(Iterable<File> scalaClasspath, Iterable<File> zincClasspath, xsbti.Logger logger) {
             ScalaLocation scalaLocation = ScalaLocation.fromPath(Lists.newArrayList(scalaClasspath));
-            File sbtInterfaceJar = findJar(zincClasspath, "sbt-interface(-.*)?.jar");
-            File compilerInterfaceSourcesJar = findJar(zincClasspath, "compiler-interface(-.*)?-sources.jar");
-            Setup setup = Setup.create(scalaLocation, sbtInterfaceJar, compilerInterfaceSourcesJar, Jvm.current().getJavaHome());
+            SbtJars sbtJars = SbtJars.fromPath(Lists.newArrayList(zincClasspath));
+            Setup setup = Setup.create(scalaLocation, sbtJars, Jvm.current().getJavaHome());
             if (LOGGER.isDebugEnabled()) {
                 Setup.debug(setup, logger);
             }
