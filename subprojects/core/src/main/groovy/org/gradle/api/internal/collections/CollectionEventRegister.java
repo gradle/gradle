@@ -66,11 +66,11 @@ public class CollectionEventRegister<T> {
         }
 
         public Action<? super S> registerAddAction(Action<? super S> addAction) {
-            return super.registerAddAction(Actions.filter(addAction, filter));
+            return super.registerAddAction(Actions.<S>filter(addAction, filter));
         }
 
         public Action<? super S> registerRemoveAction(Action<? super S> removeAction) {
-            return super.registerRemoveAction(Actions.filter(removeAction, filter));
+            return super.registerRemoveAction(Actions.<S>filter(removeAction, filter));
         }
 
         public <K extends S> CollectionEventRegister<K> filtered(CollectionFilter<K> filter) {
