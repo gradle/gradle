@@ -23,7 +23,7 @@ import org.gradle.api.tasks.Optional;
 import java.util.List;
 
 /**
- * Fork options for Groovy compilation. Only take effect if {@code GroovyCompileOptions.fork}
+ * Fork options for compilation. Only take effect if {@code fork}
  * is {@code true}.
  *
  * @author Hans Dockter
