@@ -179,3 +179,13 @@ This type was an early contribution. It is unlikely anyone uses it because it do
 
 This package contained some early experiments in a new publication model. It was incomplete and undocumented. It is superseded by the new `org.gradle.api.publish` (incubating) package
 introduced in Gradle 1.3 so has been removed.
+
+### External Contributions
+
+We received a bunch of patches and pull requests in the last weeks. We managed to include some of them in this release. We want to thank
+
+* Matt Khan for a fix for GRADLE-2485
+* Gerd Aschemann for fixing GRADLE-2501
+* Cruz Fernandez for fixing the properties sample project
+* Fadeev Alexandr for fixing GRADLE-2461
+
