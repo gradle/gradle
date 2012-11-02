@@ -51,12 +51,10 @@ class IvyPublishMultipleReposIntegrationTest extends AbstractIntegrationSpec {
                     }
                 }
                 repositories {
-                    ivy {
-                        name "repo1"
+                    repo1 {
                         url "${repo1.uri}"
                     }
-                    ivy {
-                        name "repo2"
+                    repo2 {
                         url "${repo2.uri}"
                     }
                 }
