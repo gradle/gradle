@@ -75,7 +75,6 @@ public class GroupedAndNamedUniqueFileStore<K> implements FileStore<K>, FileStor
         final File tempFile = getTempFile();
         addAction.execute(tempFile);
         final String groupedAndNamedKey = toPath(key, getChecksum(tempFile));
-        final FileStoreEntry fileStoreEntry = delegate.move(groupedAndNamedKey, tempFile);
-        return fileStoreEntry;
+        return delegate.move(groupedAndNamedKey, tempFile);
     }
 }
