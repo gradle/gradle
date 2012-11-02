@@ -14,7 +14,7 @@ The report can be used to answer (very common) questions such as:
     * Is it the same as what was *requested*?
 * Why is the *selected* version of a dependency different to the *requested*?
 
-The *selected* version of a dependency can be different to the *requested* (i.e. user declared) version due to dependency conflict resolution or by explicit dependency force rules. The `dependencyInsight` report makes this clear.
+The *selected* version of a dependency can be different to the *requested* (i.e. user declared) version due to dependency conflict resolution or by explicit dependency force rules. Similar to the standard gradle depenency report, the `dependencyInsight` report shows both versions. It also shows a requested dynamic version (e.g. "junit:junit:4.+") together with the actually selected version (e.g. "junit:junit:4.10"). Please keep in mind that Maven snapshot dependencies are not treated as dynamic versions but as changing modules, similar to what Maven does (for the difference see the [userguide](http://gradle.org/docs/nightly/userguide/dependency_management.html#sec:dependency_management_overview)). Maven snapshots might be treated as dynamic versions in a future version of Gradle which would provide nice insight into pom snapshot resolution.   
 
 The `dependencyInsight` report task is invaluable when investigating how and why a dependency is resolved, and it is available on all projects out of the box.
 
@@ -124,7 +124,7 @@ TestNG received a decent dose of love in Gradle 1.3. Your Gradle projects with T
     * The html report is way, way easier to read and browse. Did I mention it contains the test output?
     * The reports neatly work with Gradle's parallel testing (test.maxParallelForks) and forking features (test.forkEvery). Run your tests in parallel so that they run faster!
 
-The reports are not yet turned on by default... They are @Incubating and we need more feedback before we make Gradle use them by default. The new report might exhibit increased heap space usage for tests that eagerly log to the standard streams. In case your tests get hungry here's how you can feed them. To enable the new test reports, please set the test.testReport = true.
+The reports are not yet turned on by default... They are @Incubating and we need more feedback before we make Gradle use them by default. The new report might exhibit increased heap space usage for tests that eagerly log to the standard streams. In case your tests get hungry here's how you can feed them: To enable the new test reports, please set the test.testReport = true.
 
 ### Resolution result API
 
