@@ -42,6 +42,7 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.maven.*;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.NoOpRepositoryCacheManager;
+import org.gradle.api.internal.artifacts.repositories.AbstractArtifactRepository;
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.publication.maven.internal.ArtifactPomContainer;
@@ -59,9 +60,7 @@ import java.util.Set;
 /**
  * @author Hans Dockter
  */
-public abstract class AbstractMavenResolver implements MavenResolver, DependencyResolver, ArtifactRepositoryInternal {
-
-    private String name;
+public abstract class AbstractMavenResolver extends AbstractArtifactRepository implements MavenResolver, DependencyResolver, ArtifactRepositoryInternal {
     
     private ArtifactPomContainer artifactPomContainer;
 
@@ -82,14 +81,6 @@ public abstract class AbstractMavenResolver implements MavenResolver, Dependency
     }
 
     protected abstract InstallDeployTaskSupport createPreConfiguredTask(Project project);
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
 
     public DependencyResolver createResolver() {
         return this;

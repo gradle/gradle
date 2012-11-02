@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.ArtifactRepositoryContainer;
 import org.gradle.api.artifacts.UnknownRepositoryException;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.internal.DefaultNamedDomainObjectList;
+import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
@@ -34,6 +35,8 @@ import org.gradle.util.GUtil;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import static org.gradle.api.internal.Transformers.cast;
 
 /**
  * @author Hans Dockter
@@ -216,6 +219,7 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
         repository.setName(uniquifyName(repository.getName()));
         assertCanAdd(repository.getName());
         insertion.execute(repository);
+        cast(ArtifactRepositoryInternal.class, repository).onAddToContainer(this);
         return repository;
     }
 

@@ -37,7 +37,6 @@ import java.util.Set;
 public class DefaultMavenArtifactRepository extends AbstractAuthenticationSupportedRepository implements MavenArtifactRepository, ArtifactRepositoryInternal {
     private final FileResolver fileResolver;
     private final RepositoryTransportFactory transportFactory;
-    private String name;
     private Object url;
     private List<Object> additionalUrls = new ArrayList<Object>();
     private final LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder;
@@ -51,14 +50,6 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         this.transportFactory = transportFactory;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
         this.cachedExternalResourceIndex = cachedExternalResourceIndex;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     public URI getUrl() {
@@ -91,7 +82,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
             throw new InvalidUserDataException("You must specify a URL for a Maven repository.");
         }
 
-        MavenResolver resolver = new MavenResolver(name, rootUri, getTransport(rootUri.getScheme()), locallyAvailableResourceFinder, cachedExternalResourceIndex);
+        MavenResolver resolver = new MavenResolver(getName(), rootUri, getTransport(rootUri.getScheme()), locallyAvailableResourceFinder, cachedExternalResourceIndex);
         for (URI repoUrl : getArtifactUrls()) {
             resolver.addArtifactLocation(repoUrl, null);
         }
@@ -100,9 +91,9 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
 
     private RepositoryTransport getTransport(String scheme) {
         if (scheme.equalsIgnoreCase("file")) {
-            return transportFactory.createFileTransport(name);
+            return transportFactory.createFileTransport(getName());
         } else {
-            return transportFactory.createHttpTransport(name, getCredentials());
+            return transportFactory.createHttpTransport(getName(), getCredentials());
         }
     }
 

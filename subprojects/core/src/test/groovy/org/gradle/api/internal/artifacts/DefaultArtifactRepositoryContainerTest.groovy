@@ -51,12 +51,13 @@ class DefaultArtifactRepositoryContainerTest extends Specification {
     List setupNotation(notation, repoName, resolverName, baseRepositoryFactory = baseRepositoryFactory) {
         def repo = Mock(ArtifactRepositoryInternal) { getName() >> repoName }
         def resolver = new FileSystemResolver()
-        def resolverRepo = new FixedResolverArtifactRepository(resolver)
+        def resolverRepo = Spy(FixedResolverArtifactRepository, constructorArgs: [resolver])
 
         interaction {
             1 * baseRepositoryFactory.createRepository(notation) >> repo
             1 * baseRepositoryFactory.toResolver(repo) >> resolver
             1 * baseRepositoryFactory.createResolverBackedRepository(resolver) >> resolverRepo
+            1 * resolverRepo.onAddToContainer(container)
         }
 
         [notation, repo, resolver, resolverRepo]

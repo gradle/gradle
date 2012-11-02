@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.artifacts.repositories;
 
-import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.NamedDomainObjectCollection;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
+import org.gradle.util.DeprecationLogger;
 
-public interface ArtifactRepositoryInternal extends ArtifactRepository {
+public abstract class AbstractArtifactRepository implements ArtifactRepositoryInternal {
 
-    DependencyResolver createResolver();
+    private String name;
+    private boolean isPartOfContainer;
 
-    void onAddToContainer(NamedDomainObjectCollection<ArtifactRepository> container);
+    public void onAddToContainer(NamedDomainObjectCollection<ArtifactRepository> container) {
+        isPartOfContainer = true;
+    }
 
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        if (isPartOfContainer) {
+            DeprecationLogger.nagUserOfDeprecated("Changing the name of an ArtifactRepository that is part of a container", "Set the name when creating the repository");
+        }
+        this.name = name;
+    }
 }

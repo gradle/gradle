@@ -161,6 +161,24 @@ deprecated and will be removed in Gradle 2.0:
 * `stacktrace`
 * `includeJavaRuntime`
 
+#### Changing the name of a repository once added to a repository container
+
+The [`ArtifactRepository`](http://gradle.org/docs/current/javadoc/org/gradle/api/artifacts/repositories/ArtifactRepository.html) type has a `setName(String)` method that you
+could use to change the repository name after it has been created. Doing so has been deprecated. The name of the repository should be specified at creation time via the DSL.
+
+For example:
+
+    repositories {
+        ivy {
+            name "my-ivy-repo"
+        }
+    }
+    
+    // The following is now deprecated
+    repositories.ivy.name = "changed-name"
+
+A deprecation warning will be issued if a name change is attempted.
+
 ### Potential breaking changes
 
 #### Incubating C++ `Compile` task type removed

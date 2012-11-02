@@ -21,6 +21,7 @@ import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
+import org.gradle.api.internal.artifacts.repositories.AbstractArtifactRepository;
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver;
 import org.gradle.api.internal.file.FileResolver;
@@ -30,11 +31,10 @@ import org.gradle.util.ConfigureUtil;
 
 import java.net.URI;
 
-public class DefaultGitHubDownloadsRepository implements GitHubDownloadsRepository, ArtifactRepositoryInternal {
+public class DefaultGitHubDownloadsRepository extends AbstractArtifactRepository implements GitHubDownloadsRepository, ArtifactRepositoryInternal {
 
     private static final String PATTERN = "[organisation]/[artifact](-[revision])(-[classifier]).[ext]";
 
-    private String name;
     private String user;
     private Object baseUrl = DOWNLOADS_URL_BASE;
 
@@ -65,10 +65,10 @@ public class DefaultGitHubDownloadsRepository implements GitHubDownloadsReposito
     }
 
     public String getName() {
-        if (name == null) {
+        if (super.getName() == null) {
             return getDefaultName();
         } else {
-            return name;
+            return super.getName();
         }
     }
 
@@ -77,9 +77,6 @@ public class DefaultGitHubDownloadsRepository implements GitHubDownloadsReposito
         return String.format("GitHub Downloads for GitHub user '%s'", user == null ? "" : user);
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
 
     public PasswordCredentials getCredentials() {
         return credentials;

@@ -126,7 +126,11 @@ public class DeprecationLogger {
             logTraceIfNecessary();
         }
     }
-    
+
+    public static void nagUserOfDeprecated(String thing, String explanation) {
+        nagUserWith(String.format("%s %s. %s", thing, DEPRECATION_MESSAGE, explanation));
+    }
+
     public static <T> T whileDisabled(Factory<T> factory) {
         ENABLED.set(false);
         try {

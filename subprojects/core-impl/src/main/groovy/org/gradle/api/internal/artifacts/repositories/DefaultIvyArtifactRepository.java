@@ -37,7 +37,6 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupportedRepository implements IvyArtifactRepositoryInternal {
-    private String name;
     private Object baseUrl;
     private RepositoryLayout layout;
     private final AdditionalPatternsRepositoryLayout additionalPatternsLayout;
@@ -84,20 +83,12 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
             throw new InvalidUserDataException("You may only specify 'file', 'http' and 'https' urls for an ivy repository.");
         }
         if (WrapUtil.toSet("http", "https").containsAll(schemes)) {
-            return new IvyResolver(name, transportFactory.createHttpTransport(name, getCredentials()), locallyAvailableResourceFinder, cachedExternalResourceIndex);
+            return new IvyResolver(getName(), transportFactory.createHttpTransport(getName(), getCredentials()), locallyAvailableResourceFinder, cachedExternalResourceIndex);
         }
         if (WrapUtil.toSet("file").containsAll(schemes)) {
-            return new IvyResolver(name, transportFactory.createFileTransport(name), locallyAvailableResourceFinder, cachedExternalResourceIndex);
+            return new IvyResolver(getName(), transportFactory.createFileTransport(getName()), locallyAvailableResourceFinder, cachedExternalResourceIndex);
         }
         throw new InvalidUserDataException("You cannot mix file and http(s) urls for a single ivy repository. Please declare 2 separate repositories.");
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     public URI getUrl() {

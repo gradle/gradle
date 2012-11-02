@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.repositories;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
 
-public class FixedResolverArtifactRepository implements ArtifactRepository, ArtifactRepositoryInternal {
+public class FixedResolverArtifactRepository extends AbstractArtifactRepository implements ArtifactRepository, ArtifactRepositoryInternal {
     protected final DependencyResolver resolver;
 
     public FixedResolverArtifactRepository(DependencyResolver resolver) {
@@ -31,6 +31,10 @@ public class FixedResolverArtifactRepository implements ArtifactRepository, Arti
 
     public void setName(String name) {
         resolver.setName(name);
+
+        // We are doing this because we are relying on the deprecation warning that
+        // AbstractArtifactRepository (super) issues. This is a bit awkward.
+        super.setName(name);
     }
 
     public DependencyResolver createResolver() {

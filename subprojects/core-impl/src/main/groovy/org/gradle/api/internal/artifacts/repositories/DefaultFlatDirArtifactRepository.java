@@ -29,23 +29,14 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
-public class DefaultFlatDirArtifactRepository implements FlatDirectoryArtifactRepository, ArtifactRepositoryInternal {
+public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository implements FlatDirectoryArtifactRepository, ArtifactRepositoryInternal {
     private final FileResolver fileResolver;
-    private String name;
     private List<Object> dirs = new ArrayList<Object>();
     private final RepositoryCacheManager localCacheManager;
 
     public DefaultFlatDirArtifactRepository(FileResolver fileResolver, RepositoryCacheManager localCacheManager) {
         this.fileResolver = fileResolver;
         this.localCacheManager = localCacheManager;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     public Set<File> getDirs() {
@@ -71,7 +62,7 @@ public class DefaultFlatDirArtifactRepository implements FlatDirectoryArtifactRe
         }
 
         FileSystemResolver resolver = new FileSystemResolver();
-        resolver.setName(name);
+        resolver.setName(getName());
         for (File root : dirs) {
             resolver.addArtifactPattern(root.getAbsolutePath() + "/[artifact]-[revision](-[classifier]).[ext]");
             resolver.addArtifactPattern(root.getAbsolutePath() + "/[artifact](-[classifier]).[ext]");
