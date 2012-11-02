@@ -305,7 +305,7 @@ public class GroovyCompileOptions extends AbstractOptions {
     }
 
     /**
-     * Convenience method to set {@link ForkOptions} with named parameter syntax.
+     * Convenience method to set {@link GroovyForkOptions} with named parameter syntax.
      * Calling this method will set {@code fork} to {@code true}.
      */
     public GroovyCompileOptions fork(Map forkArgs) {
