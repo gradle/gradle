@@ -52,7 +52,7 @@ public class ScalaCompilerFactory {
         try {
             scalaCompiler = (Compiler<ScalaJavaJointCompileSpec>) getClass().getClassLoader().loadClass("org.gradle.api.internal.tasks.scala.jdk6.ZincScalaCompiler").newInstance();
         } catch (Exception e) {
-            throw new AssertionError("Failed to dynamically load ZincScalaCompiler", e);
+            throw new RuntimeException("Failed to dynamically load ZincScalaCompiler", e);
         }
         CompilerDaemonFactory daemonFactory;
         if (scalaOptions.isFork()) {
