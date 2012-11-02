@@ -96,6 +96,14 @@ under `src/main/scala` will participate in joint compilation. With the Zinc base
 
 To learn more about incremental Scala compilation, see the [Scala plugin](userguide/scala_plugin.html#N12A97) chapter in the Gradle User Guide.
 
+### Scala compilation in external process
+
+Scala compilation can now be performed outside the Gradle JVM in a dedicated compiler process, which can help to deal with memory issues. External
+compilation is supported both for the existing Ant-based and the new Zinc-based Scala compiler. The API is very similar to that for Java and
+Groovy: [`ScalaCompile.fork = true`](dsl/org.gradle.api.tasks.scala.ScalaCompile.html#org.gradle.api.tasks.scala.ScalaCompile:fork)
+activates external compilation, and [`ScalaCompile.forkOptions`](dsl/org.gradle.api.tasks.scala.ScalaCompile.html#org.gradle.api.tasks.scala.ScalaCompile:forkOptions)
+allows to adjust memory settings.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to our backwards compatibility policy.
