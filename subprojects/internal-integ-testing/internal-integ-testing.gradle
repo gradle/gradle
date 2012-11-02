@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-apply from: "$rootDir/gradle/classycle.gradle"
-
 dependencies {
     groovy libraries.groovy
     compile project(":internalTesting")
@@ -30,6 +28,7 @@ dependencies {
 }
 
 useTestFixtures(sourceSet: 'main')
+useClassycle()
 
 task prepareVersionsInfo(type: PrepareVersionsInfo) {
    url = "http://services.gradle.org/versions/all"

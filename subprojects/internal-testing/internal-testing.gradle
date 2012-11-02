@@ -17,8 +17,6 @@
 /*
     Provides generally useful test utilities, used for unit and integration testing.
 */
-apply from: "$rootDir/gradle/classycle.gradle"
-
 dependencies {
     groovy libraries.groovy
 
@@ -32,3 +30,5 @@ dependencies {
     compile libraries.spock
     compile libraries.jsr305 //it is a guava dependency needed for compilation on ibm vm / windows
 }
+
+useClassycle()

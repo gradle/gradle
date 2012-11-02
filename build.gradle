@@ -95,6 +95,7 @@ apply from: "gradle/dependencies.gradle"
 apply from: "gradle/wrapper.gradle"
 apply from: "gradle/idea.gradle"
 apply from: "gradle/eclipse.gradle"
+apply from: "gradle/classycle.gradle"
 apply from: "gradle/noDependencyResolutionDuringConfiguration.gradle"
 
 allprojects {

@@ -1,5 +1,3 @@
-apply from: "$rootDir/gradle/classycle.gradle"
-
 configurations {
     startScriptGenerator
 }
@@ -81,3 +79,5 @@ daemonIntegTest {
     //excluding to avoid unnecessary re-running and stealing resources.
     exclude "org/gradle/launcher/daemon/**/*"
 }
+
+useClassycle()

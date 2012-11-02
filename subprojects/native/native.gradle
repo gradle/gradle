@@ -1,8 +1,6 @@
 /*
     This project contains various native operating system integration utilities.
 */
-apply from: "$rootDir/gradle/classycle.gradle"
-
 dependencies {
     groovy libraries.groovy
 
@@ -27,4 +25,5 @@ if (!javaVersion.java7) {
 }
 
 useTestFixtures()
+useClassycle()
 
