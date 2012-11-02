@@ -21,6 +21,8 @@ import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
 
+import static org.gradle.util.TextUtil.toPlatformLineSeparators
+
 class JavadocOptionFileWriterTest extends Specification {
 
     @Rule TemporaryFolder temporaryFolder
@@ -37,20 +39,20 @@ class JavadocOptionFileWriterTest extends Specification {
         _ * optionfile.getSourceNames() >> new OptionLessStringsJavadocOptionFileOption();
         javadocOptionFileWriter.write(tempFile)
         then:
-        tempFile.text == """-key3 'value3'
+        tempFile.text == toPlatformLineSeparators("""-key3 'value3'
 -key2 'value2'
 -key1 'value1'
-"""
+""")
         when:
         optionsMap.put("locale", new StringJavadocOptionFileOption("locale", "alocale"));
         and:
         javadocOptionFileWriter.write(tempFile)
         then:
-        tempFile.text == """-locale 'alocale'
+        tempFile.text == toPlatformLineSeparators("""-locale 'alocale'
 -key3 'value3'
 -key2 'value2'
 -key1 'value1'
-"""
+""")
     }
 
     Map<String, JavadocOptionFileOption> createOptionsMap() {
