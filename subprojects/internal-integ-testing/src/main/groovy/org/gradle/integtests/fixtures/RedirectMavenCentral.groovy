@@ -16,6 +16,7 @@
 package org.gradle.integtests.fixtures
 
 import org.gradle.api.Action
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.TemporaryFolder
 
 class RedirectMavenCentral implements Action<GradleExecuter> {
@@ -26,6 +27,10 @@ class RedirectMavenCentral implements Action<GradleExecuter> {
     }
 
     void execute(GradleExecuter executer) {
+        if (OperatingSystem.current().isWindows()) {
+            return
+        }
+
         def file = temporaryFolder.createFile("redirect-maven-central-init.gradle")
         file.text = """
 allprojects {
