@@ -131,13 +131,9 @@ The reports are not yet turned on by default... They are @Incubating and we need
 * (in progress)
 * The entry point to the ResolutionResult API has changed, you can get access to the instance of the ResolutionResult from the ResolvableDependencies.
 
-## Upgrading from Gradle 1.2
+## Deprecations
 
-Please let us know if you encounter any issues during the upgrade to Gradle 1.3, that are not listed below.
-
-### Deprecations
-
-#### Ant-task based Java compiler integration
+### Ant-task based Java compiler integration
 
 Gradle currently supports two different Java compiler integrations: A native Gradle integration that uses the compiler APIs directly, and an Ant-task
 based implementation that uses the `<javac>` Ant task. The native Gradle integration has been the default since Gradle 1.0-milestone-9.
@@ -149,7 +145,7 @@ deprecated and will be removed in Gradle 2.0:
 * `optimize`
 * `includeJavaRuntime`
 
-#### Ant-task based Groovy compiler integration
+### Ant-task based Groovy compiler integration
 
 Gradle currently supports two different Groovy compiler integrations: A native Gradle integration that uses the compiler APIs directly, and an Ant-task
 based implementation that uses the `<groovyc>` Ant task. The native Gradle integration has been the default since Gradle 1.0.
@@ -161,7 +157,7 @@ deprecated and will be removed in Gradle 2.0:
 * `stacktrace`
 * `includeJavaRuntime`
 
-#### Changing the name of a repository once added to a repository container
+### Changing the name of a repository once added to a repository container
 
 The [`ArtifactRepository`](http://gradle.org/docs/current/javadoc/org/gradle/api/artifacts/repositories/ArtifactRepository.html) type has a `setName(String)` method that you
 could use to change the repository name after it has been created. Doing so has been deprecated. The name of the repository should be specified at creation time via the DSL.
@@ -179,26 +175,26 @@ For example:
 
 A deprecation warning will be issued if a name change is attempted.
 
-### Potential breaking changes
+## Potential breaking changes
 
-#### Incubating C++ `Compile` task type removed
+### Incubating C++ `Compile` task type removed
 
 This was replaced by `CppCompile` in Gradle 1.2. You should use the replacement class instead.
 
-#### Incubating `GppCompileSpec` properties removed
+### Incubating `GppCompileSpec` properties removed
 
 The deprecated `task` property was removed from `GppCompileSpec`.
 
-#### Removed GraphvizReportRenderer (private API)
+### Removed GraphvizReportRenderer (private API)
 
 This type was an early contribution. It is unlikely anyone uses it because it does not work and it is an undocumented private type.
 
-#### Removed `org.gradle.api.publication` package
+### Removed `org.gradle.api.publication` package
 
 This package contained some early experiments in a new publication model. It was incomplete and undocumented. It is superseded by the new `org.gradle.api.publish` (incubating) package
 introduced in Gradle 1.3 so has been removed.
 
-### External Contributions
+## External Contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
