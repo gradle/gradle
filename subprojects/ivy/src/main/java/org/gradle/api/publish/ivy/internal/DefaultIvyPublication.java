@@ -17,18 +17,20 @@
 package org.gradle.api.publish.ivy.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
-import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.publish.ivy.IvyModuleDescriptor;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.reflect.Instantiator;
 
 import java.util.Set;
+
+import static org.gradle.util.CollectionUtils.collect;
 
 public class DefaultIvyPublication implements IvyPublicationInternal {
 
@@ -64,15 +66,17 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     public FileCollection getPublishableFiles() {
-        return new DefaultConfigurableFileCollection("publication artifacts", fileResolver, taskResolver, configurations);
+        return new DefaultConfigurableFileCollection(
+                "publication artifacts", fileResolver, taskResolver,
+                collect(configurations, new Transformer<FileCollection, Configuration>() {
+                    public FileCollection transform(Configuration configuration) {
+                        return configuration.getArtifacts().getFiles();
+                    }
+                }));
     }
 
     public TaskDependency getBuildDependencies() {
-        DefaultTaskDependency taskDependency = new DefaultTaskDependency(taskResolver);
-        for (Configuration configuration : configurations) {
-            taskDependency.add(configuration.getArtifacts());
-        }
-        return taskDependency;
+        return getPublishableFiles().getBuildDependencies();
     }
 
     public IvyNormalizedPublication asNormalisedPublication() {
