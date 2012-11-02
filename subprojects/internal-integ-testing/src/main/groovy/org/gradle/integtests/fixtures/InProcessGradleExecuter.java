@@ -130,6 +130,9 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
             previousEnv.put(entry.getKey(), System.getenv(entry.getKey()));
             processEnvironment.maybeSetEnvironmentVariable(entry.getKey(), entry.getValue());
         }
+        if (getUserHomeDir() != null) {
+            System.setProperty("user.home", getUserHomeDir().getPath());
+        }
 
         DefaultGradleLauncherFactory factory = (DefaultGradleLauncherFactory) GradleLauncher.getFactory();
         factory.addListener(listener);

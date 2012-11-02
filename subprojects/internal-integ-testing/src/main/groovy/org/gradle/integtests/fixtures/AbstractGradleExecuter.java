@@ -50,6 +50,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private Map<String, String> environmentVars = new HashMap<String, String>();
     private List<File> initScripts = new ArrayList<File>();
     private String executable;
+    private File gradleUserHomeDir;
     private File userHomeDir;
     private File javaHome;
     private File buildScript;
@@ -77,7 +78,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         dependencyList = false;
         searchUpwards = false;
         executable = null;
-        userHomeDir = null;
+        gradleUserHomeDir = null;
         javaHome = null;
         environmentVars.clear();
         stdin = null;
@@ -137,7 +138,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (dependencyList) {
             executer.withDependencyList();
         }
-        executer.withUserHomeDir(userHomeDir);
+        executer.withGradleUserHomeDir(gradleUserHomeDir);
+        if (userHomeDir != null) {
+            executer.withUserHomeDir(userHomeDir);
+        }
         if (stdin != null) {
             executer.withStdIn(stdin);
         }
@@ -173,6 +177,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     public GradleExecuter usingInitScript(File initScript) {
         initScripts.add(initScript);
+        return this;
+    }
+
+    public GradleExecuter withGradleUserHomeDir(File userHomeDir) {
+        this.gradleUserHomeDir = userHomeDir;
         return this;
     }
 
@@ -344,9 +353,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (!searchUpwards) {
             allArgs.add("--no-search-upward");
         }
-        if (userHomeDir != null) {
+        if (gradleUserHomeDir != null) {
             allArgs.add("--gradle-user-home");
-            allArgs.add(userHomeDir.getAbsolutePath());
+            allArgs.add(gradleUserHomeDir.getAbsolutePath());
         }
 
         // Prevent from running with the default idle timeout as it causes CI chaos

@@ -20,9 +20,11 @@ import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
 
 class MavenM2CacheReuseIntegrationTest extends AbstractDependencyResolutionTest {
     def "uses cached artifacts from maven local cache"() {
+        def userHomeDir = file("user-home-dir")
+
         given:
         def module1 = mavenHttpRepo.module('gradletest.maven.local.cache.test', "foo", "1.0").publish()
-        def module2 = new M2Installation(distribution.userHomeDir.file(".m2")).mavenRepo().module('gradletest.maven.local.cache.test', "foo", "1.0").publish()
+        def module2 = new M2Installation(userHomeDir.file(".m2")).mavenRepo().module('gradletest.maven.local.cache.test', "foo", "1.0").publish()
         server.start()
 
         buildFile.text = """
@@ -45,7 +47,7 @@ task retrieve(type: Sync) {
         module1.expectArtifactSha1Get()
 
         when:
-        executer.withGradleOpts("-Duser.home=${distribution.getUserHomeDir()}")
+        executer.withUserHomeDir(userHomeDir)
         executer.withForkingExecuter()
         run 'retrieve'
 

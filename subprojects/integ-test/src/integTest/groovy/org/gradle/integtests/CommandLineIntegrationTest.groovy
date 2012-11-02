@@ -106,13 +106,13 @@ public class CommandLineIntegrationTest {
     public void canDefineGradleUserHomeViaEnvironmentVariable() {
         // the actual testing is done in the build script.
         File gradleUserHomeDir = dist.testDir.file('customUserHome')
-        executer.withUserHomeDir(null).withEnvironmentVars('GRADLE_USER_HOME': gradleUserHomeDir.absolutePath).withTasks("checkGradleUserHomeViaSystemEnv").run();
+        executer.withGradleUserHomeDir(null).withEnvironmentVars('GRADLE_USER_HOME': gradleUserHomeDir.absolutePath).withTasks("checkGradleUserHomeViaSystemEnv").run();
     }
 
     @Test
     public void checkDefaultGradleUserHome() {
         // the actual testing is done in the build script.
-        executer.withUserHomeDir(null).withTasks("checkDefaultGradleUserHome").run();
+        executer.withGradleUserHomeDir(null).withTasks("checkDefaultGradleUserHome").run();
     }
 
     @Test
@@ -164,7 +164,7 @@ public class CommandLineIntegrationTest {
         // the actual testing is done in the build script.
         File gradleUserHomeDir = dist.testFile("customUserHome")
         File systemPropGradleUserHomeDir = dist.testFile("systemPropCustomUserHome")
-        executer.withUserHomeDir(null).withArguments("-Dgradle.user.home=" + systemPropGradleUserHomeDir.absolutePath).withEnvironmentVars('GRADLE_USER_HOME': gradleUserHomeDir.absolutePath).withTasks("checkSystemPropertyGradleUserHomeHasPrecedence").run()
+        executer.withGradleUserHomeDir(null).withArguments("-Dgradle.user.home=" + systemPropGradleUserHomeDir.absolutePath).withEnvironmentVars('GRADLE_USER_HOME': gradleUserHomeDir.absolutePath).withTasks("checkSystemPropertyGradleUserHomeHasPrecedence").run()
     }
 
     @Test

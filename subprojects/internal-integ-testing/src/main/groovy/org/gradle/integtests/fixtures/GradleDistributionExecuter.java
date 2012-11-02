@@ -44,7 +44,7 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
 
     private GradleDistribution dist;
     private boolean workingDirSet;
-    private boolean userHomeSet;
+    private boolean gradleUserHomeDirSet;
     private boolean deprecationChecksOn = true;
     private boolean stackTraceChecksOn = true;
     private Executer executerType;
@@ -105,7 +105,7 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
     public GradleDistributionExecuter reset() {
         super.reset();
         workingDirSet = false;
-        userHomeSet = false;
+        gradleUserHomeDirSet = false;
         deprecationChecksOn = true;
         stackTraceChecksOn = true;
         DeprecationLogger.reset();
@@ -120,9 +120,9 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
     }
 
     @Override
-    public GradleDistributionExecuter withUserHomeDir(File userHomeDir) {
-        super.withUserHomeDir(userHomeDir);
-        userHomeSet = true;
+    public GradleDistributionExecuter withGradleUserHomeDir(File userHomeDir) {
+        super.withGradleUserHomeDir(userHomeDir);
+        gradleUserHomeDirSet = true;
         return this;
     }
 
@@ -218,8 +218,8 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
         if (!workingDirSet) {
             inDirectory(dist.getTestDir());
         }
-        if (!userHomeSet) {
-            withUserHomeDir(dist.getUserHomeDir());
+        if (!gradleUserHomeDirSet) {
+            withGradleUserHomeDir(dist.getUserHomeDir());
         }
         if (getDaemonIdleTimeoutSecs() == null) {
             if (dist.isUsingIsolatedDaemons() || getDaemonBaseDir() != null) {

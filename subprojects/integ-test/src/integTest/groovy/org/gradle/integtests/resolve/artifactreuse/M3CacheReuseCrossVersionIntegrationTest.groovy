@@ -52,7 +52,7 @@ task retrieve(type: Sync) {
         projectB.allowAll()
 
         and:
-        version previous withUserHomeDir userHome withTasks 'retrieve' run()
+        version previous withGradleUserHomeDir userHome withTasks 'retrieve' run()
 
         then:
         file('libs').assertHasDescendants('projectB-1.0.jar')
@@ -65,7 +65,7 @@ task retrieve(type: Sync) {
         projectB.expectArtifactSha1Get()
 
         and:
-        version current withUserHomeDir userHome withTasks 'retrieve' run()
+        version current withGradleUserHomeDir userHome withTasks 'retrieve' run()
 
         then:
         file('libs').assertHasDescendants('projectB-1.0.jar')

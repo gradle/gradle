@@ -119,6 +119,10 @@ class ForkingGradleExecuter extends AbstractGradleExecuter {
     }
 
     private String formatGradleOpts() {
+        if (getUserHomeDir() != null) {
+            gradleOpts.add(String.format("-Duser.home=%s", getUserHomeDir()));
+        }
+
         StringBuilder result = new StringBuilder();
         for (String gradleOpt : gradleOpts) {
             if (result.length() > 0) {
@@ -133,7 +137,7 @@ class ForkingGradleExecuter extends AbstractGradleExecuter {
                 result.append(gradleOpt);
             }
         }
-        
+
         result.append(" -Dfile.encoding=");
         result.append(getDefaultCharacterEncoding());
         result.append(" -Dorg.gradle.deprecation.trace=true");

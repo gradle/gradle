@@ -74,7 +74,7 @@ public class PerformanceTestRunner {
         } else {
             executer = dist.executer()
         }
-        executer.withUserHomeDir(current.userHomeDir)
+        executer.withGradleUserHomeDir(current.userHomeDir)
         return executer.withArguments('-u').inDirectory(projectDir).withTasks(tasksToRun)
     }
 }

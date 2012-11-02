@@ -138,7 +138,7 @@ class AbstractIntegrationSpec extends Specification {
 
     ArtifactBuilder artifactBuilder() {
         def executer = distribution.executer()
-        executer.withUserHomeDir(distribution.getUserHomeDir())
+        executer.withGradleUserHomeDir(distribution.getUserHomeDir())
         return new GradleBackedArtifactBuilder(executer, getTestDir().file("artifacts"))
     }
 

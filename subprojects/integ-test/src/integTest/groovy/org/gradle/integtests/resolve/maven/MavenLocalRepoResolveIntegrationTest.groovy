@@ -169,13 +169,11 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractIntegrationSpec {
         buildDir.file(artifactName).assertIsCopyOf(module.artifactFile)
     }
 
-
     def withM2(M2Installation m2) {
-        def args = ["-Duser.home=${m2.userM2Directory.parentFile.absolutePath}".toString()]
+        executer.withUserHomeDir(m2.userM2Directory.parentFile)
         if (m2.globalMavenDirectory?.exists()) {
             executer.withEnvironmentVars(M2_HOME:m2.globalMavenDirectory.absolutePath)
         }
-        executer.withArguments(args)
     }
 
     M2Installation localM2() {
