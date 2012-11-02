@@ -21,7 +21,6 @@ import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.AntJavaCompiler;
 import org.gradle.api.internal.tasks.compile.Compiler;
-import org.gradle.api.internal.tasks.compile.DefaultJavaCompilerFactory;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
@@ -34,28 +33,26 @@ public class ScalaCompilerFactory {
     private final ProjectInternal project;
     private final IsolatedAntBuilder antBuilder;
     private final Factory<AntBuilder> antBuilderFactory;
-    private final DefaultJavaCompilerFactory javaCompilerFactory;
 
-    public ScalaCompilerFactory(ProjectInternal project, IsolatedAntBuilder antBuilder, Factory<AntBuilder> antBuilderFactory, DefaultJavaCompilerFactory javaCompilerFactory) {
+    public ScalaCompilerFactory(ProjectInternal project, IsolatedAntBuilder antBuilder, Factory<AntBuilder> antBuilderFactory) {
         this.project = project;
         this.antBuilder = antBuilder;
         this.antBuilderFactory = antBuilderFactory;
-        this.javaCompilerFactory = javaCompilerFactory;
     }
 
-    public org.gradle.api.internal.tasks.compile.Compiler<ScalaJavaJointCompileSpec> create(final ScalaCompileOptions scalaOptions, final CompileOptions javaOptions) {
+    public org.gradle.api.internal.tasks.compile.Compiler<ScalaJavaJointCompileSpec> create(ScalaCompileOptions scalaOptions, CompileOptions javaOptions) {
         if (scalaOptions.isUseAnt()) {
             Compiler<ScalaCompileSpec> scalaCompiler = new AntScalaCompiler(antBuilder);
             Compiler<JavaCompileSpec> javaCompiler = new AntJavaCompiler(antBuilderFactory);
             return new DefaultScalaJavaJointCompiler(scalaCompiler, javaCompiler);
         }
 
-        // for now, leave it up to sbt to also do java compilation
-        Compiler<ScalaJavaJointCompileSpec> scalaCompiler = null;
+        // for now, we leave it to ZincScalaCompiler to also compile the Java code
+        Compiler<ScalaJavaJointCompileSpec> scalaCompiler;
         try {
             scalaCompiler = (Compiler<ScalaJavaJointCompileSpec>) getClass().getClassLoader().loadClass("org.gradle.api.internal.tasks.scala.jdk6.ZincScalaCompiler").newInstance();
         } catch (Exception e) {
-            throw new RuntimeException("Could not load Scala compiler adapter.", e);
+            throw new AssertionError("Failed to dynamically load ZincScalaCompiler", e);
         }
         CompilerDaemonFactory daemonFactory;
         if (scalaOptions.isFork()) {
