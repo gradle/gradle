@@ -273,6 +273,16 @@
     </section>
 
     <section>
+        <title>Compiling in external process</title>
+        <para>
+            By default, the Scala compiler runs in the Gradle (client or daemon) JVM. This is a simple model but can potentially cause memory issues,
+            for example when a compiler is leaking memory. When setting <literal>scalaCompileOptions.fork = true</literal>, compilation will take place
+            in an external process. (The Ant based compiler will fork a new process for every <literaL>ScalaCompile</literaL> task, whereas the Zinc based
+            compiler will leverage the Gradle compiler daemon.) <literal>scalaCompileOptions.forkOptions</literal> allows to adjust memory settings as needed.
+        </para>
+    </section>
+
+    <section>
         <title>Incremental compilation</title>
         <para>
             By compiling only classes whose source code has changed since the previous compilation, and classes affected by these changes,
@@ -284,9 +294,7 @@
             The Scala plugin now supports incremental compilation by integrating with <ulink url="https://github.com/typesafehub/zinc">Zinc</ulink>,
             a standalone version of <ulink url="https://github.com/harrah/xsbt">sbt</ulink>'s incremental Scala compiler. To switch the
             <literal>ScalaCompile</literal> task from the default Ant based compiler to the new Zinc based compiler, use
-            <literal>scalaCompileOptions.useAnt = false</literal>. It is recommended to execute the Zinc based compiler outside the main Gradle process
-            in the Gradle compiler daemon. This is achieved with <literal>scalaCompileOptions.fork = true</literal>. Compiler memory settings can be
-            adjusted via <literal>scalaCompileOptions.forkOptions</literal>.
+            <literal>scalaCompileOptions.useAnt = false</literal>.
         </para>
 
         <para>
@@ -298,7 +306,7 @@
         <para>
             The Scala plugin adds a configuration named <literal>zinc</literal> to resolve the Zinc library and its dependencies. To override the
             Zinc version that Gradle uses by default, add an explicit Zinc dependency (for example <literal>zinc "com.typesafe.zinc:zinc:0.1.4"</literal>).
-            No matter which Zinc version is used, the Zinc compiler will always use the Scala compiler found on the <literal>scalaTools</literal> configuration.
+            Regardless of which Zinc version is used, Zinc will always use the Scala compiler found on the <literal>scalaTools</literal> configuration.
         </para>
 
         <para>
@@ -313,11 +321,13 @@
             <literal>ScalaCompile</literal> tasks added by the Scala plugin, no configuration is necessary to make this work. For other
             <literal>ScalaCompile</literal> tasks, <literal>scalaCompileOptions.incrementalOptions.publishedCode</literal> needs to be configured to point
             to the classes folder or Jar archive by which the code is passed on to compile class paths of downstream <literal>ScalaCompile</literal> tasks.
-            Note that if <literal>publishedCode</literal> is not set correctly, downstream tasks may not recompile code affected by upstream changes.
+            Note that if <literal>publishedCode</literal> is not set correctly, downstream tasks may not recompile code affected by upstream changes,
+            leading to incorrect compilation results.
         </para>
 
         <para>
             Due to the overhead of dependency analysis, a clean compilation or a compilation after a larger code change may take longer than with the Ant based compiler.
+            For CI builds and release builds, we recommend to use the more mature Ant based compiler.
         </para>
 
         <para>
