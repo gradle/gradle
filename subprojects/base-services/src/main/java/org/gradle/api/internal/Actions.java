@@ -107,19 +107,7 @@ public abstract class Actions {
      * @return An action that casts the object to the given type before giving it to the given action
      */
     public static <T, I> Action<I> castBefore(final Class<T> actionType, final Action<? super T> action) {
-        return transformBefore(action, new CastingTransformer<T, I>(actionType));
-    }
-
-    private static class CastingTransformer<O, I> implements Transformer<O, I> {
-        final Class<O> outputType;
-
-        public CastingTransformer(Class<O> outputType) {
-            this.outputType = outputType;
-        }
-
-        public O transform(I input) {
-            return outputType.cast(input);
-        }
+        return transformBefore(action, Transformers.cast(actionType));
     }
 
     /**
