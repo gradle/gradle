@@ -16,11 +16,11 @@
 package org.gradle.api.internal.artifacts.repositories;
 
 import com.google.common.collect.Lists;
+import org.apache.ivy.core.cache.RepositoryCacheManager;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.FileSystemResolver;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
-import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.file.FileResolver;
 
 import java.io.File;
@@ -31,13 +31,13 @@ import java.util.Set;
 
 public class DefaultFlatDirArtifactRepository implements FlatDirectoryArtifactRepository, ArtifactRepositoryInternal {
     private final FileResolver fileResolver;
-    private final RepositoryTransportFactory repositoryTransportFactory;
     private String name;
     private List<Object> dirs = new ArrayList<Object>();
+    private final RepositoryCacheManager localCacheManager;
 
-    public DefaultFlatDirArtifactRepository(FileResolver fileResolver, RepositoryTransportFactory repositoryTransportFactory) {
+    public DefaultFlatDirArtifactRepository(FileResolver fileResolver, RepositoryCacheManager localCacheManager) {
         this.fileResolver = fileResolver;
-        this.repositoryTransportFactory = repositoryTransportFactory;
+        this.localCacheManager = localCacheManager;
     }
 
     public String getName() {
@@ -77,7 +77,7 @@ public class DefaultFlatDirArtifactRepository implements FlatDirectoryArtifactRe
             resolver.addArtifactPattern(root.getAbsolutePath() + "/[artifact](-[classifier]).[ext]");
         }
         resolver.setValidate(false);
-        resolver.setRepositoryCacheManager(repositoryTransportFactory.getLocalCacheManager());
+        resolver.setRepositoryCacheManager(localCacheManager);
         return resolver;
     }
 

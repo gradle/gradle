@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.repositories
 
+import org.apache.ivy.core.cache.RepositoryCacheManager
 import org.apache.ivy.plugins.resolver.DependencyResolver
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.dsl.RepositoryHandler
@@ -24,6 +25,7 @@ import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.util.JUnit4GroovyMockery
 import org.hamcrest.Matchers
 import org.jmock.integration.junit4.JMock
@@ -40,7 +42,6 @@ import org.gradle.api.internal.artifacts.ArtifactPublisherFactory
 @RunWith(JMock.class)
 class DefaultBaseRepositoryFactoryTest {
     static final URI RESOLVER_URL = new URI('http://a.b.c/')
-    static final String TEST_REPO_NAME = 'reponame'
     static final String TEST_REPO = 'http://www.gradle.org'
     static final URI TEST_REPO_URL = new URI('http://www.gradle.org/')
     static final URI TEST_REPO2_URL = new URI('http://www.gradleware.com/')
@@ -50,12 +51,15 @@ class DefaultBaseRepositoryFactoryTest {
     final FileResolver fileResolver = context.mock(FileResolver.class)
     final RepositoryTransportFactory transportFactory = context.mock(RepositoryTransportFactory.class)
     final LocallyAvailableResourceFinder locallyAvailableResourceFinder = context.mock(LocallyAvailableResourceFinder.class)
-    final CachedExternalResourceIndex cachedExternalResourceIndex = context.mock(CachedExternalResourceIndex);
-    final ArtifactPublisherFactory artifactPublisherFactory = context.mock(ArtifactPublisherFactory);
-
+    final CachedExternalResourceIndex cachedExternalResourceIndex = context.mock(CachedExternalResourceIndex)
+    final ArtifactPublisherFactory artifactPublisherFactory = context.mock(ArtifactPublisherFactory)
+    final RepositoryCacheManager localCacheManager = context.mock(RepositoryCacheManager)
+    final RepositoryCacheManager downloadingCacheManager = context.mock(RepositoryCacheManager)
+    final ProgressLoggerFactory progressLoggerFactory = context.mock(ProgressLoggerFactory)
 
     final DefaultBaseRepositoryFactory factory = new DefaultBaseRepositoryFactory(
-            localMavenRepoLocator, fileResolver, new DirectInstantiator(), transportFactory, locallyAvailableResourceFinder, cachedExternalResourceIndex, artifactPublisherFactory
+            localMavenRepoLocator, fileResolver, new DirectInstantiator(), transportFactory, locallyAvailableResourceFinder,
+            cachedExternalResourceIndex, progressLoggerFactory, localCacheManager, downloadingCacheManager, artifactPublisherFactory
     )
 
     @Before public void setup() {

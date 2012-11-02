@@ -21,7 +21,9 @@ import org.apache.ivy.core.module.id.ArtifactRevisionId
 import org.apache.ivy.plugins.repository.Resource
 import org.apache.ivy.plugins.repository.ResourceDownloader
 import org.apache.ivy.plugins.resolver.util.ResolvedResource
+import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager
 import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex
+import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.api.internal.filestore.FileStore
 import org.gradle.api.internal.filestore.FileStoreEntry
 import org.gradle.util.TemporaryFolder
@@ -31,28 +33,39 @@ import spock.lang.Specification
 class DownloadingRepositoryCacheManagerTest extends Specification {
     FileStore<ArtifactRevisionId> fileStore = Mock()
     CachedExternalResourceIndex<String> artifactUrlCachedResolutionIndex = Mock()
-    DownloadingRepositoryCacheManager downloadingRepositoryCacheManager = new DownloadingRepositoryCacheManager("TestCacheManager", fileStore, artifactUrlCachedResolutionIndex)
+    CacheLockingManager lockingManager = Mock()
+    TemporaryFileProvider tmpFileProvider = Mock()
+    ArtifactRevisionId artifactId = Mock()
     Artifact artifact = Mock()
     ResourceDownloader resourceDownloader = Mock()
     ResolvedResource artifactRef = Mock()
     Resource resource = Mock();
     FileStoreEntry fileStoreEntry = Mock()
+    DownloadingRepositoryCacheManager downloadingRepositoryCacheManager = new DownloadingRepositoryCacheManager("TestCacheManager", fileStore, artifactUrlCachedResolutionIndex, tmpFileProvider, lockingManager)
 
     @Rule TemporaryFolder temporaryFolder;
 
-    void "downloadArtifactFile passes download action to filestore"() {
+    void "downloadArtifactFile downloads artifact to temporary file and then moves it into the file store"() {
         setup:
-        def targetFile = temporaryFolder.createFile("testFile")
-        1 * artifactRef.getResource() >> resource
-        1 * fileStoreEntry.getFile() >> targetFile;
+
+        def downloadFile = temporaryFolder.createFile("download")
+        def storeFile = temporaryFolder.createFile("store")
+
+        _ * artifact.id >> artifactId
+        _ * artifactRef.resource >> resource
+        _ * fileStoreEntry.file >> storeFile;
+        _ * tmpFileProvider._ >> downloadFile
+
         when:
         downloadingRepositoryCacheManager.downloadArtifactFile(artifact, resourceDownloader, artifactRef)
+
         then:
-        1 * fileStore.add(_, _) >> {key, action ->
-            action.execute(targetFile)
+        1 * lockingManager.useCache(_, _) >> {name, action ->
+            return action.create()
+        }
+        1 * resourceDownloader.download(artifact, resource, downloadFile)
+        1 * fileStore.move(artifactId, downloadFile) >> {key, action ->
             return fileStoreEntry
         }
-        1 * resourceDownloader.download(artifact, resource, targetFile)
-
     }
 }

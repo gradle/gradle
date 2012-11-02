@@ -16,30 +16,22 @@
 package org.gradle.api.internal.artifacts.repositories.transport;
 
 import org.apache.ivy.core.cache.RepositoryCacheManager;
-import org.apache.ivy.core.module.id.ArtifactRevisionId;
-import org.apache.ivy.plugins.repository.Repository;
-import org.apache.ivy.plugins.repository.TransferListener;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
-import org.gradle.api.internal.artifacts.repositories.cachemanager.DownloadingRepositoryCacheManager;
-import org.gradle.api.internal.artifacts.repositories.cachemanager.LocalFileRepositoryCacheManager;
-import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex;
 import org.gradle.api.internal.externalresource.transport.file.FileTransport;
 import org.gradle.api.internal.externalresource.transport.http.HttpTransport;
-import org.gradle.api.internal.filestore.FileStore;
 import org.gradle.logging.ProgressLoggerFactory;
 
 public class RepositoryTransportFactory {
-    private final TransferListener transferListener;
     private final RepositoryCacheManager downloadingCacheManager;
     private final RepositoryCacheManager localCacheManager;
     private final ProgressLoggerFactory progressLoggerFactory;
 
     public RepositoryTransportFactory(ProgressLoggerFactory progressLoggerFactory,
-                                      FileStore<ArtifactRevisionId> fileStore, CachedExternalResourceIndex<String> byUrlCachedExternalResourceIndex) {
+                                      RepositoryCacheManager localCacheManager,
+                                      RepositoryCacheManager downloadingCacheManager) {
         this.progressLoggerFactory = progressLoggerFactory;
-        this.transferListener = new ProgressLoggingTransferListener(progressLoggerFactory, RepositoryTransport.class);
-        this.downloadingCacheManager = new DownloadingRepositoryCacheManager("downloading", fileStore, byUrlCachedExternalResourceIndex);
-        this.localCacheManager = new LocalFileRepositoryCacheManager("local");
+        this.localCacheManager = localCacheManager;
+        this.downloadingCacheManager = downloadingCacheManager;
     }
 
     public RepositoryTransport createHttpTransport(String name, PasswordCredentials credentials) {
@@ -48,19 +40,5 @@ public class RepositoryTransportFactory {
 
     public RepositoryTransport createFileTransport(String name) {
         return new FileTransport(name, localCacheManager);
-    }
-
-    public void attachListener(Repository repository) {
-        if (!repository.hasTransferListener(transferListener)) {
-            repository.addTransferListener(transferListener);
-        }
-    }
-
-    public RepositoryCacheManager getDownloadingCacheManager() {
-        return downloadingCacheManager;
-    }
-
-    public RepositoryCacheManager getLocalCacheManager() {
-        return localCacheManager;
     }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.repositories;
 
+import org.apache.ivy.core.cache.RepositoryCacheManager;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.InvalidUserDataException;
@@ -29,6 +30,7 @@ import org.gradle.api.internal.externalresource.cached.CachedExternalResourceInd
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
@@ -44,12 +46,20 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
     private final RepositoryTransportFactory transportFactory;
     private final LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder;
     private final CachedExternalResourceIndex<String> cachedExternalResourceIndex;
+    private final ProgressLoggerFactory progressLoggerFactory;
+    private final RepositoryCacheManager localCacheManager;
+    private final RepositoryCacheManager downloadingCacheManager;
     private final ArtifactPublisherFactory artifactPublisherFactory;
 
-    public DefaultBaseRepositoryFactory(LocalMavenRepositoryLocator localMavenRepositoryLocator, FileResolver fileResolver, Instantiator instantiator,
+    public DefaultBaseRepositoryFactory(LocalMavenRepositoryLocator localMavenRepositoryLocator,
+                                        FileResolver fileResolver,
+                                        Instantiator instantiator,
                                         RepositoryTransportFactory transportFactory,
                                         LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder,
                                         CachedExternalResourceIndex<String> cachedExternalResourceIndex,
+                                        ProgressLoggerFactory progressLoggerFactory,
+                                        RepositoryCacheManager localCacheManager,
+                                        RepositoryCacheManager downloadingCacheManager,
                                         ArtifactPublisherFactory artifactPublisherFactory) {
         this.localMavenRepositoryLocator = localMavenRepositoryLocator;
         this.fileResolver = fileResolver;
@@ -57,6 +67,9 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
         this.transportFactory = transportFactory;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
         this.cachedExternalResourceIndex = cachedExternalResourceIndex;
+        this.progressLoggerFactory = progressLoggerFactory;
+        this.localCacheManager = localCacheManager;
+        this.downloadingCacheManager = downloadingCacheManager;
         this.artifactPublisherFactory = artifactPublisherFactory;
     }
 
@@ -82,11 +95,11 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
         } else {
             throw new InvalidUserDataException(String.format("Cannot create a DependencyResolver instance from %s", userDescription));
         }
-        return new CustomResolverArtifactRepository(result, transportFactory);
+        return new CustomResolverArtifactRepository(result, progressLoggerFactory, localCacheManager, downloadingCacheManager);
     }
 
     public FlatDirectoryArtifactRepository createFlatDirRepository() {
-        return instantiator.newInstance(DefaultFlatDirArtifactRepository.class, fileResolver, transportFactory);
+        return instantiator.newInstance(DefaultFlatDirArtifactRepository.class, fileResolver, localCacheManager);
     }
 
     public MavenArtifactRepository createMavenLocalRepository() {

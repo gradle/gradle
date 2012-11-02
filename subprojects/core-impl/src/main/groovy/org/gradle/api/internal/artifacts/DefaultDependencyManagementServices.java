@@ -45,6 +45,8 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProject
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DefaultDependencyResolver;
 import org.gradle.api.internal.artifacts.mvnsettings.*;
 import org.gradle.api.internal.artifacts.repositories.DefaultBaseRepositoryFactory;
+import org.gradle.api.internal.artifacts.repositories.cachemanager.DownloadingRepositoryCacheManager;
+import org.gradle.api.internal.artifacts.repositories.cachemanager.LocalFileRepositoryCacheManager;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.externalresource.cached.ByUrlCachedExternalResourceIndex;
 import org.gradle.api.internal.externalresource.ivy.ArtifactAtRepositoryCachedExternalResourceIndex;
@@ -238,9 +240,18 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         return finderFactory.create();
     }
 
+    protected LocalFileRepositoryCacheManager createLocalRepositoryCacheManager() {
+        return new LocalFileRepositoryCacheManager("local");
+    }
+
+    protected DownloadingRepositoryCacheManager createDownloadingRepositoryCacheManager() {
+        return new DownloadingRepositoryCacheManager("downloading", get(ArtifactRevisionIdFileStore.class), get(ByUrlCachedExternalResourceIndex.class),
+                new TmpDirTemporaryFileProvider(), get(CacheLockingManager.class));
+    }
+
     protected RepositoryTransportFactory createRepositoryTransportFactory() {
         return new RepositoryTransportFactory(
-                get(ProgressLoggerFactory.class), get(ArtifactRevisionIdFileStore.class), get(ByUrlCachedExternalResourceIndex.class)
+                get(ProgressLoggerFactory.class), get(LocalFileRepositoryCacheManager.class), get(DownloadingRepositoryCacheManager.class)
         );
     }
 
@@ -290,6 +301,9 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                         get(RepositoryTransportFactory.class),
                         get(LocallyAvailableResourceFinder.class),
                         get(ByUrlCachedExternalResourceIndex.class),
+                        get(ProgressLoggerFactory.class),
+                        get(LocalFileRepositoryCacheManager.class),
+                        get(DownloadingRepositoryCacheManager.class),
                         new DefaultArtifactPublisherFactory(new Transformer<ArtifactPublisher, ResolverProvider>() {
                             public ArtifactPublisher transform(ResolverProvider resolverProvider) {
                                 return createArtifactPublisher(resolverProvider);
