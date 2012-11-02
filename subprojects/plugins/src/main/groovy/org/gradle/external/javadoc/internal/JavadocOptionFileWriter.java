@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * @author Tom Eyckmans
@@ -57,7 +58,8 @@ public class JavadocOptionFileWriter {
                     return !"locale".equals(element.getKey());
                 }
             });
-            for (final String option : optionsWithoutLocale.keySet()) {
+
+            for (final String option : new TreeMap<String, JavadocOptionFileOption>(optionsWithoutLocale).keySet()) {
                 options.get(option).write(writerContext);
             }
 
