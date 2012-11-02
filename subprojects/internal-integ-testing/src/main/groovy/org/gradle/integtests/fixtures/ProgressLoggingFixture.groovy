@@ -48,9 +48,9 @@ class ProgressLoggingFixture implements MethodRule {
         TestFile initFile
         GradleDistributionExecuter executer = RuleHelper.getField(target, GradleDistributionExecuter)
         GradleDistribution distribution = RuleHelper.getField(target, GradleDistribution)
-        TestFile temporaryFolder = distribution.getTemporaryFolder().getDir()
+        TestFile temporaryFolder = distribution.temporaryFolder.dir
         loggingOutputFile = temporaryFolder.file("loggingoutput.log")
-        initFile = temporaryFolder.file("init.gradle")
+        initFile = temporaryFolder.file("progress-logging-init.gradle")
         initFile.text = """import org.gradle.logging.internal.*
                            File outputFile = file("${loggingOutputFile.toURI()}")
                            OutputEventListener outputEventListener = new OutputEventListener() {
@@ -69,7 +69,9 @@ class ProgressLoggingFixture implements MethodRule {
                            buildFinished{
                                 loggingOutputInternal.removeOutputEventListener(outputEventListener)
                            }"""
-        executer.usingInitScript(initFile)
+        executer.beforeExecute {
+            usingInitScript(initFile)
+        }
 
         return new Statement() {
             @Override

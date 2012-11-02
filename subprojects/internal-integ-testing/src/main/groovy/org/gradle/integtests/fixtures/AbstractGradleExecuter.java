@@ -15,7 +15,11 @@
  */
 package org.gradle.integtests.fixtures;
 
+import groovy.lang.Closure;
+import org.gradle.api.Action;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.listener.ActionBroadcast;
 import org.gradle.util.TextUtil;
 
 import java.io.ByteArrayInputStream;
@@ -58,6 +62,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     //gradle opts make sense only for forking executer but having them here makes more sense
     protected final List<String> gradleOpts = new ArrayList<String>();
     protected boolean noDefaultJvmArgs;
+    private final ActionBroadcast<GradleExecuter> beforeExecute = new ActionBroadcast<GradleExecuter>();
 
     public GradleExecuter reset() {
         args.clear();
@@ -81,6 +86,14 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         daemonBaseDir = null;
         noDefaultJvmArgs = false;
         return this;
+    }
+
+    public void beforeExecute(Action<? super GradleExecuter> action) {
+        beforeExecute.add(action);
+    }
+
+    public void beforeExecute(Closure action) {
+        beforeExecute.add(new ClosureBackedAction<GradleExecuter>(action));
     }
 
     public GradleExecuter inDirectory(File directory) {
@@ -357,6 +370,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     public final GradleHandle start() {
+        fireBeforeExecute();
         assertCanExecute();
         try {
             return doStart();
@@ -366,6 +380,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     public final ExecutionResult run() {
+        fireBeforeExecute();
         assertCanExecute();
         try {
             return doRun();
@@ -375,12 +390,17 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     public final ExecutionFailure runWithFailure() {
+        fireBeforeExecute();
         assertCanExecute();
         try {
             return doRunWithFailure();
         } finally {
             reset();
         }
+    }
+
+    private void fireBeforeExecute() {
+        beforeExecute.execute(this);
     }
 
     protected GradleHandle doStart() {

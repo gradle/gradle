@@ -15,6 +15,8 @@
  */
 package org.gradle.integtests.fixtures;
 
+import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 
 import java.io.File;
@@ -183,4 +185,14 @@ public interface GradleExecuter {
      * @throws AssertionError When this executer will not be able to run a build.
      */
     void assertCanExecute() throws AssertionError;
+
+    /**
+     * Adds an action to be called immediately before execution, to allow extra configuration to be injected.
+     */
+    void beforeExecute(Action<? super GradleExecuter> action);
+
+    /**
+     * Adds an action to be called immediately before execution, to allow extra configuration to be injected.
+     */
+    void beforeExecute(Closure action);
 }
