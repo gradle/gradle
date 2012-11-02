@@ -37,16 +37,20 @@ class JavadocOptionFileWriterTest extends Specification {
         _ * optionfile.getSourceNames() >> new OptionLessStringsJavadocOptionFileOption();
         javadocOptionFileWriter.write(tempFile)
         then:
-        tempFile.text.contains("key1 'value1'")
-        tempFile.text.contains("key2 'value2'")
-        tempFile.text.contains("key3 'value3'")
-
+        tempFile.text == """-key3 'value3'
+-key2 'value2'
+-key1 'value1'
+"""
         when:
         optionsMap.put("locale", new StringJavadocOptionFileOption("locale", "alocale"));
         and:
         javadocOptionFileWriter.write(tempFile)
         then:
-        tempFile.text.startsWith("-locale 'alocale'")
+        tempFile.text == """-locale 'alocale'
+-key3 'value3'
+-key2 'value2'
+-key1 'value1'
+"""
     }
 
     Map<String, JavadocOptionFileOption> createOptionsMap() {
