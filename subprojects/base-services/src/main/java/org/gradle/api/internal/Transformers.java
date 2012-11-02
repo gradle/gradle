@@ -56,7 +56,13 @@ public abstract class Transformers {
         }
 
         public O transform(I input) {
-            return outputType.cast(input);
+            try {
+                return outputType.cast(input);
+            } catch (ClassCastException e) {
+                throw new ClassCastException(String.format(
+                   "Failed to cast object %s of type %s to target type %s", input, input.getClass().getName(), outputType.getName()
+                ));
+            }
         }
     }
 
