@@ -157,6 +157,6 @@ public class GUtilTest extends spock.lang.Specification {
 
     def "convert to path notation"() {
         expect:
-        asPath(["/lib/lib1.jar", "/lib/lib2.jar", new File("/lib/lib3.jar")]) == "/lib/lib1.jar$sep/lib/lib2.jar$sep/lib/lib3.jar"
+        asPath(["lib1.jar", "lib2.jar", new File("lib3.jar")]) == "lib1.jar${sep}lib2.jar${sep}lib3.jar"
     }
 }
