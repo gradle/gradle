@@ -20,8 +20,6 @@ import org.apache.ivy.plugins.resolver.DependencyResolver
 import org.apache.ivy.plugins.resolver.FileSystemResolver
 import org.gradle.api.Action
 import org.gradle.api.artifacts.ArtifactRepositoryContainer
-import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository
-import org.gradle.api.artifacts.repositories.IvyArtifactRepository
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 import org.gradle.api.internal.ThreadGlobalInstantiator
 import org.gradle.api.internal.artifacts.DefaultArtifactRepositoryContainerTest
@@ -49,7 +47,7 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
 
     def testFlatDirWithClosure() {
         given:
-        def repository = Mock(FlatDirectoryArtifactRepository)
+        def repository = Mock(TestFlatDirectoryArtifactRepository)
         1 * repositoryFactory.flatDir(_ as Action) >> repository
 
         expect:
@@ -58,7 +56,7 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
 
     def testFlatDirWithMap() {
         given:
-        def repository = Mock(FlatDirectoryArtifactRepository)
+        def repository = Mock(TestFlatDirectoryArtifactRepository)
         1 * repositoryFactory.flatDir(_ as Map) >> repository
 
         expect:
@@ -67,7 +65,7 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
 
     public void testMavenCentralWithNoArgs() {
         when:
-        MavenArtifactRepository repository = Mock(MavenArtifactRepository)
+        MavenArtifactRepository repository = Mock(TestMavenArtifactRepository)
         1 * repositoryFactory.mavenCentral() >> repository
         repository.getName() >> "name"
 
@@ -77,7 +75,7 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
 
     public void testMavenCentralWithMap() {
         when:
-        MavenArtifactRepository repository = Mock(MavenArtifactRepository)
+        MavenArtifactRepository repository = Mock(TestMavenArtifactRepository)
         1 * repositoryFactory.mavenCentral() >> repository
         1 * repository.setArtifactUrls(["abc"])
         repository.getName() >> "name"
@@ -88,7 +86,7 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
 
     def testMavenLocalWithNoArgs() {
         when:
-        MavenArtifactRepository repository = Mock(MavenArtifactRepository)
+        MavenArtifactRepository repository = Mock(TestMavenArtifactRepository)
         1 * repositoryFactory.mavenLocal() >> repository
         repository.getName() >> "name"
 
@@ -159,7 +157,7 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
 
     public void createIvyRepositoryUsingClosure() {
         when:
-        def repository = Mock(IvyArtifactRepository)
+        def repository = Mock(TestIvyArtifactRepository)
         1 * repositoryFactory.ivy(_ as Action) >> repository
 
         then:
@@ -168,7 +166,7 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
 
     def createIvyRepositoryUsingAction() {
         when:
-        def repository = Mock(IvyArtifactRepository)
+        def repository = Mock(TestIvyArtifactRepository)
         def action = Mock(Action)
         1 * repositoryFactory.ivy(action) >> repository
 
@@ -179,9 +177,9 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
     @Test
     public void providesADefaultNameForIvyRepository() {
         given:
-        def repo1 = Mock(IvyArtifactRepository)
-        def repo2 = Mock(IvyArtifactRepository)
-        def repo3 = Mock(IvyArtifactRepository)
+        def repo1 = Mock(TestIvyArtifactRepository)
+        def repo2 = Mock(TestIvyArtifactRepository)
+        def repo3 = Mock(TestIvyArtifactRepository)
 
         when:
         handler.ivy { }
@@ -214,7 +212,7 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
 
     public void createMavenRepositoryUsingClosure() {
         when:
-        def repository = Mock(MavenArtifactRepository)
+        MavenArtifactRepository repository = Mock(TestMavenArtifactRepository)
         1 * repositoryFactory.maven(_ as Action) >> repository
 
         then:
@@ -223,7 +221,7 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
 
     public void createMavenRepositoryUsingAction() {
         when:
-        def repository = Mock(MavenArtifactRepository)
+        MavenArtifactRepository repository = Mock(TestMavenArtifactRepository)
         def action = Mock(Action)
         1 * repositoryFactory.maven(action) >> repository
 
