@@ -292,7 +292,7 @@
         <para>
             Except where noted in the<ulink url="http://gradle.org/docs/current/dsl/org.gradle.api.tasks.scala.ScalaCompile.html">API documentation</ulink>,
             the Zinc based compiler supports exactly the same configuration options as the Ant based compiler. Note, however, that the Zinc compiler requires
-            JDK 6 or higher to run, and cannot be run with JDK 5.
+            Java 6 or higher to run. This means that Gradle itself has to be run with Java 6 or higher.
         </para>
 
         <para>
