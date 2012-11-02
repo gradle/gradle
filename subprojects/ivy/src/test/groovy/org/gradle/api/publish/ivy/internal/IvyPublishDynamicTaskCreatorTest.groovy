@@ -16,7 +16,6 @@
 
 package org.gradle.api.publish.ivy.internal
 
-import org.gradle.api.Transformer
 import org.gradle.api.publish.Publication
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.ivy.IvyPublication
@@ -38,11 +37,6 @@ class IvyPublishDynamicTaskCreatorTest extends Specification {
         project.plugins.apply(PublishingPlugin)
         publishing = project.extensions.getByType(PublishingExtension)
         creator.monitor(publishing.publications, publishing.repositories)
-        publishing.repositories.factory = new Transformer() {
-            def transform(name) {
-                project.repositories.ivy { delegate.name = name }
-            }
-        }
     }
 
     def "creates tasks"() {
@@ -50,36 +44,36 @@ class IvyPublishDynamicTaskCreatorTest extends Specification {
         ivyPublishTasks.size() == 0
 
         when:
-        publishing.repositories { main }
-        publishing.publications.add(publication("main"))
+        publishing.repositories.ivy { }
+        publishing.publications.add(publication("foo"))
 
         then:
         ivyPublishTasks.size() == 0
 
         when:
-        publishing.publications.add(ivyPublication("pub1"))
+        publishing.publications.add(ivyPublication("ivy"))
 
         then:
         ivyPublishTasks.size() == 1
-        project.tasks["publishPub1ToRepo"] != null
-        IvyPublish task = project.tasks.publishPub1ToRepo
+        project.tasks["publishIvyToIvyRepo"] != null
+        IvyPublish task = project.tasks.publishIvyToIvyRepo
         task.group == "publishing"
         task.description != null
 
         when:
-        publishing.publications.add(ivyPublication("pub2"))
+        publishing.publications.add(ivyPublication("ivy2"))
 
         then:
         ivyPublishTasks.size() == 2
-        project.tasks["publishPub2ToRepo"] != null
+        project.tasks["publishIvy2ToIvyRepo"] != null
 
         when:
-        publishing.repositories { other }
+        publishing.repositories.ivy {}
 
         then:
         ivyPublishTasks.size() == 4
-        project.tasks["publishPub1ToOtherRepo"] != null
-        project.tasks["publishPub2ToOtherRepo"] != null
+        project.tasks["publishIvyToIvy2Repo"] != null
+        project.tasks["publishIvy2ToIvy2Repo"] != null
     }
 
     def getIvyPublishTasks() {
