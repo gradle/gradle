@@ -22,6 +22,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.gradle.api.internal.tasks.compile.Compiler
 import org.gradle.util.VersionNumber
+import org.gradle.util.GUtil
 
 class AntScalaCompiler implements Compiler<ScalaCompileSpec> {
     private static final Logger LOGGER = LoggerFactory.getLogger(AntScalaCompiler)
@@ -48,6 +49,9 @@ class AntScalaCompiler implements Compiler<ScalaCompileSpec> {
 
         def backend = chooseBackend(spec)
         def options = [destDir: destinationDir, target: backend] + scalaCompileOptions.optionMap()
+        if (scalaCompileOptions.fork) {
+            options.compilerPath = GUtil.asPath(spec.scalaClasspath)
+        }
         def taskName = scalaCompileOptions.useCompileDaemon ? 'fsc' : 'scalac'
         def compileClasspath = spec.classpath
 

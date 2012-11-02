@@ -37,5 +37,5 @@ if (!javaVersion.java6Compatible) {
 }
 
 configure([integTest, daemonIntegTest]) {
-    jvmArgs "-XX:MaxPermSize=1g" // AntScalaCompilerIntegrationTest needs lots of permgen
+    jvmArgs "-XX:MaxPermSize=1g" // AntInProcessScalaCompilerIntegrationTest needs lots of permgen
 }
