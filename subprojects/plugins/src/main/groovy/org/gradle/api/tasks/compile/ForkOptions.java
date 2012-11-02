@@ -19,27 +19,17 @@ package org.gradle.api.tasks.compile;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
 
-import com.google.common.collect.Lists;
-
-import java.util.List;
-
 /**
  * Fork options for Java compilation. Only take effect if {@code CompileOptions.fork} is {@code true}.
  *
  * @author Hans Dockter
  */
-public class ForkOptions extends AbstractOptions {
+public class ForkOptions extends BaseForkOptions {
     private static final long serialVersionUID = 0;
 
     private String executable;
 
-    private String memoryInitialSize;
-
-    private String memoryMaximumSize;
-
     private String tempDir;
-
-    private List<String> jvmArgs = Lists.newArrayList();
 
     /**
      * Returns the compiler executable to be used. If set,
@@ -62,38 +52,6 @@ public class ForkOptions extends AbstractOptions {
     }
 
     /**
-     * Returns the initial heap size for the compiler process.
-     * Defaults to {@code null}, in which case the JVM's default will be used.
-     */
-    public String getMemoryInitialSize() {
-        return memoryInitialSize;
-    }
-
-    /**
-     * Sets the initial heap size for the compiler process.
-     * Defaults to {@code null}, in which case the JVM's default will be used.
-     */
-    public void setMemoryInitialSize(String memoryInitialSize) {
-        this.memoryInitialSize = memoryInitialSize;
-    }
-
-    /**
-     * Returns the maximum heap size for the compiler process.
-     * Defaults to {@code null}, in which case the JVM's default will be used.
-     */
-    public String getMemoryMaximumSize() {
-        return memoryMaximumSize;
-    }
-
-    /**
-     * Sets the maximum heap size for the compiler process.
-     * Defaults to {@code null}, in which case the JVM's default will be used.
-     */
-    public void setMemoryMaximumSize(String memoryMaximumSize) {
-        this.memoryMaximumSize = memoryMaximumSize;
-    }
-
-    /**
      * Returns the directory used for temporary files that may be created to pass
      * command line arguments to the compiler process. Defaults to {@code null},
      * in which case the directory will be chosen automatically.
@@ -109,24 +67,6 @@ public class ForkOptions extends AbstractOptions {
      */
     public void setTempDir(String tempDir) {
         this.tempDir = tempDir;
-    }
-
-    /**
-     * Returns any additional JVM arguments for the compiler process.
-     * Defaults to the empty list.
-     */
-    @Input
-    @Optional
-    public List<String> getJvmArgs() {
-        return jvmArgs;
-    }
-
-    /**
-     * Sets any additional JVM arguments for the compiler process.
-     * Defaults to the empty list.
-     */
-    public void setJvmArgs(List<String> jvmArgs) {
-        this.jvmArgs = jvmArgs;
     }
 
     @Override
