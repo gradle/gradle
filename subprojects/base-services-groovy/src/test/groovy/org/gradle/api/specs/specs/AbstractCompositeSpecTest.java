@@ -13,17 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.specs;
+package org.gradle.api.specs.specs;
 
-import org.gradle.util.WrapUtil;
+import org.gradle.api.specs.Spec;
+import org.gradle.util.CollectionUtils;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.gradle.util.Matchers.strictlyEqual;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
 
 /**
  * @author Hans Dockter
@@ -51,7 +52,7 @@ abstract public class AbstractCompositeSpecTest {
     @Test
     public void init() {
         org.gradle.api.specs.CompositeSpec<Object> compositeSpec = createCompositeSpec(spec1, spec2);
-        assertEquals(WrapUtil.toList(spec1, spec2), compositeSpec.getSpecs());
+        Assert.assertEquals(CollectionUtils.flattenToList(spec1, spec2), compositeSpec.getSpecs());
     }
 
     protected Spec<Object>[] createAtomicElements(boolean... satisfies) {
@@ -68,7 +69,7 @@ abstract public class AbstractCompositeSpecTest {
 
     @Test
     public void equality() {
-        assertThat(createCompositeSpec(spec1), strictlyEqual(createCompositeSpec(spec1)));
+        assert createCompositeSpec(spec1).equals(createCompositeSpec(spec1));
         assertFalse(createCompositeSpec(spec1).equals(createCompositeSpec(spec2)));
     }
 }

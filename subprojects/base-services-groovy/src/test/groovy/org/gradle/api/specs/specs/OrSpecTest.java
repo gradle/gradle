@@ -13,9 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.specs;
+package org.gradle.api.specs.specs;
 
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.specs.AndSpec;
+import org.gradle.api.specs.OrSpec;
+import org.gradle.api.specs.Spec;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Test;
 

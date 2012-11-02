@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.specs;
+package org.gradle.api.specs.specs;
 
+import org.gradle.api.specs.Spec;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.equalTo;
