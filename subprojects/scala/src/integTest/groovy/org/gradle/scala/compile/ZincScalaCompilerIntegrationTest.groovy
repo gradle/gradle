@@ -37,6 +37,8 @@ dependencies {
 }
 """
 
+        file("src/main/scala/Person.scala") << "class Person"
+
         expect:
         fails("compileScala")
         failure.output.contains("To run the Zinc Scala compiler, Java 6 or higher is required.")
