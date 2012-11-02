@@ -55,7 +55,6 @@ public class CollectionEventRegister<T> {
     public <S extends T> CollectionEventRegister<S> filtered(CollectionFilter<S> filter) {
         return new FilteringCollectionEventRegister<S>(filter, (ActionBroadcast)addActions, (ActionBroadcast)removeActions);
     }
-    
 
     private static class FilteringCollectionEventRegister<S> extends CollectionEventRegister<S> {
         private final CollectionFilter<? super S> filter;
