@@ -286,9 +286,13 @@
             <literal>ScalaCompile</literal> task from the default Ant based compiler to the new Zinc based compiler, use
             <literal>scalaCompileOptions.useAnt = false</literal>. It is recommended to execute the Zinc based compiler outside the main Gradle process
             in the Gradle compiler daemon. This is achieved with <literal>scalaCompileOptions.fork = true</literal>. Compiler memory settings can be
-            adjusted via <literal>scalaCompileOptions.forkOptions</literal>. Except where noted in
-            the <ulink url="http://gradle.org/docs/current/dsl/org.gradle.api.tasks.scala.ScalaCompile.html">API documentation</ulink>, the Zinc based
-            compiler supports exactly the same configuration options as the Ant based compiler.
+            adjusted via <literal>scalaCompileOptions.forkOptions</literal>.
+        </para>
+
+        <para>
+            Except where noted in the<ulink url="http://gradle.org/docs/current/dsl/org.gradle.api.tasks.scala.ScalaCompile.html">API documentation</ulink>,
+            the Zinc based compiler supports exactly the same configuration options as the Ant based compiler. Note, however, that the Zinc compiler requires
+            JDK 6 or higher to run, and cannot be run with JDK 5.
         </para>
 
         <para>
@@ -318,7 +322,7 @@
 
         <para>
             Note that Zinc's Nailgun based daemon mode is not supported. Instead, we plan to enhance Gradle's own compiler daemon to stay alive across Gradle
-            invocations and reuse the same Scala compiler. This is expected to yield another significant speedup for Scala compilation.
+            invocations, reusing the same Scala compiler. This is expected to yield another significant speedup for Scala compilation.
         </para>
     </section>
 </chapter>
