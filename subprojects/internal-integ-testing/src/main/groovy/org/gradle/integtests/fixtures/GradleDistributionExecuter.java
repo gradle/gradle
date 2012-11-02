@@ -278,7 +278,7 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
 
     private void configureTmpDir(GradleExecuter gradleExecuter) {
         TestFile tmpDir = getTmpDir();
-        tmpDir.deleteDir().createDir();
+//        tmpDir.deleteDir().createDir();
         gradleExecuter.withGradleOpts(String.format("-Djava.io.tmpdir=%s", tmpDir));
     }
 
