@@ -46,7 +46,7 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, S
 
     public WorkResult execute(ScalaJavaJointCompileSpec spec) {
         if (!JavaVersion.current().isJava6Compatible()) {
-            throw new GradleException("The Zinc Scala compiler requires Java 6 or higher to execute.");
+            throw new GradleException("To run the Zinc Scala compiler, Java 6 or higher is required.");
         }
         return Compiler.execute(spec);
     }

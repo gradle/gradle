@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 
 @TargetVersions(["2.8.2", "2.9.2", "2.10.0-RC1"])
-class ZincScalaCompilerIntegrationTest extends BasicScalaCompilerIntegrationTest {
+class ZincScalaCompilerJdk6IntegrationTest extends BasicScalaCompilerIntegrationTest {
     @Rule TestResources testResources
 
     String compilerConfiguration() {
