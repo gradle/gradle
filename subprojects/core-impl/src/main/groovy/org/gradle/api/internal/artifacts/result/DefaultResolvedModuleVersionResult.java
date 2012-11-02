@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -33,6 +34,10 @@ public class DefaultResolvedModuleVersionResult implements ResolvedModuleVersion
     private final Set<DependencyResult> dependencies = new LinkedHashSet<DependencyResult>();
     private final Set<ResolvedDependencyResult> dependents = new LinkedHashSet<ResolvedDependencyResult>();
     private final ModuleVersionSelectionReason selectionReason;
+
+    public DefaultResolvedModuleVersionResult(ModuleVersionIdentifier id) {
+        this(id, VersionSelectionReasons.REQUESTED);
+    }
 
     public DefaultResolvedModuleVersionResult(ModuleVersionIdentifier id, ModuleVersionSelectionReason selectionReason) {
         assert id != null;
