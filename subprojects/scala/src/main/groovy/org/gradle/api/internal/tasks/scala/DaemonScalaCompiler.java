@@ -39,8 +39,8 @@ import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemon;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory;
 import org.gradle.api.internal.tasks.compile.daemon.DaemonForkOptions;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.api.tasks.compile.ForkOptions;
+import org.gradle.api.tasks.scala.ScalaForkOptions;
 import org.gradle.internal.UncheckedException;
 
 import java.util.Arrays;
@@ -77,7 +77,7 @@ public class DaemonScalaCompiler implements org.gradle.api.internal.tasks.compil
     }
 
     private DaemonForkOptions createScalaForkOptions(ScalaJavaJointCompileSpec spec) {
-        BaseForkOptions options = spec.getScalaCompileOptions().getForkOptions();
+        ScalaForkOptions options = spec.getScalaCompileOptions().getForkOptions();
         List<String> sharedPackages = Arrays.asList("scala", "com.typesafe.zinc", "xsbti", "com.sun.tools.javac");
         return new DaemonForkOptions(options.getMemoryInitialSize(), options.getMemoryMaximumSize(),
                 options.getJvmArgs(), spec.getZincClasspath(), sharedPackages);

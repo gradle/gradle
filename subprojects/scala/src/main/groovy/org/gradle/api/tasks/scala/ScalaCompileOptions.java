@@ -22,7 +22,6 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.compile.AbstractOptions;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.compile.BaseForkOptions;
 
 import java.util.List;
 
@@ -73,7 +72,7 @@ public class ScalaCompileOptions extends AbstractOptions {
 
     private boolean fork;
 
-    private BaseForkOptions forkOptions = new BaseForkOptions();
+    private ScalaForkOptions forkOptions = new ScalaForkOptions();
 
     private boolean useAnt = true;
 
@@ -275,11 +274,11 @@ public class ScalaCompileOptions extends AbstractOptions {
      * Options for running the Scala compiler in a separate process. These options only take effect
      * if {@code fork} is set to {@code true}.
      */
-    public BaseForkOptions getForkOptions() {
+    public ScalaForkOptions getForkOptions() {
         return forkOptions;
     }
 
-    public void setForkOptions(BaseForkOptions forkOptions) {
+    public void setForkOptions(ScalaForkOptions forkOptions) {
         this.forkOptions = forkOptions;
     }
 
