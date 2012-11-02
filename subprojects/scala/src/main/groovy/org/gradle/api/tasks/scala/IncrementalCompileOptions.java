@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.scala;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Input;
 
 import java.io.File;
@@ -25,6 +26,7 @@ import java.io.Serializable;
  * Options for incremental compilation of Scala code. Only used if
  * {@link org.gradle.api.tasks.scala.ScalaCompileOptions#isUseAnt()} is {@code false}.
  */
+@Incubating
 public class IncrementalCompileOptions implements Serializable {
     private static final long serialVersionUID = 0;
 
