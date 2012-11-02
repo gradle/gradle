@@ -45,7 +45,8 @@ task retrieve(type: Sync) {
         module1.expectArtifactSha1Get()
 
         when:
-        executer.withArguments("-Duser.home=${distribution.getUserHomeDir()}")
+        executer.withGradleOpts("-Duser.home=${distribution.getUserHomeDir()}")
+        executer.withForkingExecuter()
         run 'retrieve'
 
         then:
