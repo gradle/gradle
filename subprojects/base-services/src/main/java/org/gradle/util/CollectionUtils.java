@@ -22,6 +22,8 @@ import org.gradle.api.specs.Spec;
 import java.lang.reflect.Array;
 import java.util.*;
 
+import static org.gradle.api.internal.Transformers.cast;
+
 public abstract class CollectionUtils {
 
     public static <T> T findFirst(Iterable<T> source, Spec<? super T> filter) {
@@ -97,27 +99,70 @@ public abstract class CollectionUtils {
     }
 
     public static List<String> toStringList(Iterable<?> iterable) {
-        List<String> result = new ArrayList<String>();
-        for (Object elem : iterable) {
-            result.add(elem.toString());
-        }
-        return result;
+        return collect(iterable, new LinkedList<String>(), Transformers.asString());
     }
 
-    public static List<Object> listize(Object object) {
-        if (object instanceof List) {
-            return (List<Object>) object;
-        }
-        if (object instanceof Iterable) {
-            @SuppressWarnings("unchecked")
-            Iterable<Object> source = (Iterable<Object>) object;
-            List<Object> destination = new ArrayList<Object>();
-            for (Object item : source) {
-                destination.add(item);
+    /**
+     * Recursively unpacks all the given things into a flat list.
+     *
+     * Nulls are not removed, they are left intact.
+     *
+     * @param things The things to flatten
+     * @return A flattened list of the given things
+     */
+    public static List<?> flattenToList(Object... things) {
+        return flattenToList(Object.class, things);
+    }
+
+    /**
+     * Recursively unpacks all the given things into a flat list, ensuring they are of a certain type.
+     *
+     * Nulls are not removed, they are left intact.
+     *
+     * If a non null object cannot be cast to the target type, a ClassCastException will be thrown.
+     *
+     * @param things The things to flatten
+     * @param <T> The target type in the flattened list
+     * @return A flattened list of the given things
+     */
+    public static <T> List<? extends T> flattenToList(Class<T> type, Object... things) {
+        if (things == null) {
+            return Collections.singletonList(null);
+        } else if (things.length == 0) {
+            return Collections.emptyList();
+        } else if (things.length == 1) {
+            Object thing = things[0];
+
+            if (thing == null) {
+                return Collections.singletonList(null);
             }
-            return destination;
+
+            if (thing.getClass().isArray()) {
+                Object[] thingArray = (Object[]) thing;
+                List<T> list = new ArrayList<T>(thingArray.length);
+                for (Object thingThing : thingArray) {
+                    list.addAll(flattenToList(type, thingThing));
+                }
+                return list;
+            }
+
+            if (thing instanceof Iterable) {
+                Iterable<?> iterableThing = (Iterable<?>) thing;
+                List<T> list = new ArrayList<T>();
+                for (Object thingThing : iterableThing) {
+                    list.addAll(flattenToList(type, thingThing));
+                }
+                return list;
+            }
+
+            return Collections.singletonList(cast(type, thing));
+        } else {
+            List<T> list = new ArrayList<T>();
+            for (Object thing : things) {
+                list.addAll(flattenToList(type, thing));
+            }
+            return list;
         }
-        return Collections.singletonList(object);
     }
 
     public static <T> List<T> toList(Iterable<? extends T> things) {

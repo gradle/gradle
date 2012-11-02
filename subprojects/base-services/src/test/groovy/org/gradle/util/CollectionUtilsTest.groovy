@@ -160,24 +160,33 @@ class CollectionUtilsTest extends Specification {
         every([], spec { false })
     }
 
-    def "listize"() {
+    def "flattenToList"() {
+        given:
         def integers = [1, 2, 3]
 
         expect:
-        listize(integers) is integers
-        listize([1,2,3] as Set) == [1,2,3]
-        listize("asdfa") == ["asdfa"]
-        listize(null) == [null]
-    }
+        flattenToList([1, 2, 3] as Set) == [1, 2, 3]
+        flattenToList("asdfa") == ["asdfa"]
+        flattenToList(null) == [null]
+        flattenToList([null, [null, null]]) == [null, null, null]
+        flattenToList(integers) == integers
+        flattenToList([1, 2, 3] as Set) == [1, 2, 3]
+        flattenToList([] as Set) == []
 
-    def "to list"() {
-        def integersList = [1,2,3]
+        when:
+        flattenToList(Map, "foo")
 
-        expect:
-        toList(integersList).is(integersList)
-        toList([1,2,3] as Set) == [1,2,3]
-        toList([] as Set) == []
-        toList(null) == []
+        then:
+        thrown(ClassCastException)
+
+        when:
+        flattenToList(Map, [[a: 1], "foo"])
+
+        then:
+        thrown(ClassCastException)
+
+        and:
+        flattenToList(Number, 1, [2, 3]) == [1, 2, 3]
     }
 
     Spec<?> spec(Closure c) {

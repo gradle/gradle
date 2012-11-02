@@ -28,7 +28,6 @@ import org.gradle.api.internal.artifacts.DefaultArtifactRepositoryContainer;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
 import org.gradle.api.internal.artifacts.repositories.FixedResolverArtifactRepository;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.util.CollectionUtils;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
 
@@ -36,7 +35,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.gradle.util.CollectionUtils.listize;
+import static org.gradle.util.CollectionUtils.flattenToList;
 
 /**
  * @author Hans Dockter
@@ -71,7 +70,7 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
         if (modifiedArgs.containsKey("urls")) {
             DeprecationLogger.nagUserWith("The 'urls' property of the RepositoryHandler.mavenCentral() method is deprecated and will be removed in a future version of Gradle. "
                     + "You should use the 'artifactUrls' property to define additional artifact locations.");
-            List<Object> urls = listize(modifiedArgs.remove("urls"));
+            List<?> urls = flattenToList(modifiedArgs.remove("urls"));
             modifiedArgs.put("artifactUrls", urls);
         }
 
@@ -91,12 +90,12 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
     public DependencyResolver mavenRepo(Map<String, ?> args, Closure configClosure) {
         Map<String, Object> modifiedArgs = new HashMap<String, Object>(args);
         if (modifiedArgs.containsKey("urls")) {
-            List<Object> urls = CollectionUtils.listize(modifiedArgs.remove("urls"));
+            List<?> urls = flattenToList(modifiedArgs.remove("urls"));
             if (!urls.isEmpty()) {
                 DeprecationLogger.nagUserWith("The 'urls' property of the RepositoryHandler.mavenRepo() method is deprecated and will be removed in a future version of Gradle. "
                         + "You should use the 'url' property to define the core maven repository & the 'artifactUrls' property to define any additional artifact locations.");
                 modifiedArgs.put("url", urls.get(0));
-                List<Object> extraUrls = urls.subList(1, urls.size());
+                List<?> extraUrls = urls.subList(1, urls.size());
                 modifiedArgs.put("artifactUrls", extraUrls);
             }
         }
