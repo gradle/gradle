@@ -22,6 +22,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.execution.TaskExecutionGraph;
+import org.gradle.api.internal.HasInternalProtocol;
 
 import java.io.File;
 
@@ -30,6 +31,7 @@ import java.io.File;
  *
  * <p>You can obtain a {@code Gradle} instance by calling {@link Project#getGradle()}.</p>
  */
+@HasInternalProtocol
 public interface Gradle {
     /**
      * <p>Returns the current Gradle version.</p>

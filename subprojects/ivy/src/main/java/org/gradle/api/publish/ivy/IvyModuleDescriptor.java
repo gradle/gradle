@@ -19,6 +19,7 @@ package org.gradle.api.publish.ivy;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.XmlProvider;
+import org.gradle.api.internal.HasInternalProtocol;
 
 import java.io.File;
 
@@ -32,6 +33,7 @@ import java.io.File;
  * @since 1.3
  */
 @Incubating
+@HasInternalProtocol
 public interface IvyModuleDescriptor {
 
     /**

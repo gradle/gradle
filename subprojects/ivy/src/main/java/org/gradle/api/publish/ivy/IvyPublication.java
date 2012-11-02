@@ -18,6 +18,7 @@ package org.gradle.api.publish.ivy;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.internal.HasInternalProtocol;
 import org.gradle.api.publish.Publication;
 
 /**
@@ -46,6 +47,7 @@ import org.gradle.api.publish.Publication;
  * @since 1.3
  */
 @Incubating
+@HasInternalProtocol
 public interface IvyPublication extends Publication {
 
     /**
