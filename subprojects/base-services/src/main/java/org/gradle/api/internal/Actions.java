@@ -34,12 +34,12 @@ public abstract class Actions {
      *
      * @return An action object with an empty implementation
      */
-    public static Action<Object> doNothing() {
-        return new NullAction();
+    public static <T> Action<? super T> doNothing() {
+        return new NullAction<T>();
     }
 
-    private static class NullAction implements Action<Object>, Serializable {
-        public void execute(Object t) {}
+    private static class NullAction<T> implements Action<T>, Serializable {
+        public void execute(T t) {}
     }
 
     /**
@@ -49,7 +49,7 @@ public abstract class Actions {
      * @param <T> The type of the object that action is for
      * @return The composite action.
      */
-    public static <T> Action<T> composite(Action<? super T>... actions) {
+    public static <T> Action<? super T> composite(Action<? super T>... actions) {
         final List<Action<? super T>> actionsCopy = new ArrayList<Action<? super T>>(actions.length);
         Collections.addAll(actionsCopy, actions);
         return new CompositeAction<T>(actionsCopy);
@@ -78,7 +78,7 @@ public abstract class Actions {
      * @param <I> The type of the original argument
      * @return An action that transforms an object of type I to type O to give to the given action
      */
-    public static <T, I> Action<I> transformBefore(final Action<? super T> action, final Transformer<? extends T, ? super I> transformer) {
+    public static <T, I> Action<? super I> transformBefore(final Action<? super T> action, final Transformer<? extends T, ? super I> transformer) {
         return new TransformingActionAdapter<T, I>(transformer, action);
     }
 
@@ -106,8 +106,8 @@ public abstract class Actions {
      * @param <I> The type before casting
      * @return An action that casts the object to the given type before giving it to the given action
      */
-    public static <T, I> Action<I> castBefore(final Class<T> actionType, final Action<? super T> action) {
-        return transformBefore(action, Transformers.cast(actionType));
+    public static <T, I> Action<? super I> castBefore(final Class<T> actionType, final Action<? super T> action) {
+        return transformBefore(action, Transformers.<T, I>cast(actionType));
     }
 
     /**
@@ -118,18 +118,22 @@ public abstract class Actions {
      * @param runnable The runnable to run for the action execution.
      * @return An action that runs the given runnable, ignoring the argument.
      */
-    public static Action<Object> toAction(Runnable runnable) {
-        return runnable == null ? doNothing() : new RunnableActionAdapter(runnable);
+    public static <T> Action<? super T> toAction(Runnable runnable) {
+        if (runnable == null) {
+            return Actions.doNothing();
+        } else {
+            return new RunnableActionAdapter<T>(runnable);
+        }
     }
 
-    private static class RunnableActionAdapter implements Action<Object> {
+    private static class RunnableActionAdapter<T> implements Action<T> {
         private final Runnable runnable;
 
         private RunnableActionAdapter(Runnable runnable) {
             this.runnable = runnable;
         }
 
-        public void execute(Object o) {
+        public void execute(T t) {
             runnable.run();
         }
 
@@ -147,7 +151,7 @@ public abstract class Actions {
      * @param <T> The type of item the action expects
      * @return A new action that only forwards arguments on to the given filter is they are satisfied by the given spec.
      */
-    public static <T> Action<T> filter(Action<? super T> action, Spec<? super T> filter) {
+    public static <T> Action<? super T> filter(Action<? super T> action, Spec<? super T> filter) {
         return new FilteredAction<T>(action, filter);
     }
 

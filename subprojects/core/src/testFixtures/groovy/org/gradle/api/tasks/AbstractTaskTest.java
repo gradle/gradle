@@ -143,8 +143,8 @@ public abstract class AbstractTaskTest {
 
     @Test
     public void testDeleteAllActions() {
-        Action<Object> action1 = Actions.doNothing();
-        Action<Object> action2 = Actions.doNothing();
+        Action<? super Task> action1 = Actions.<Task>doNothing();
+        Action<? super Task> action2 = Actions.<Task>doNothing();
         getTask().doLast(action1);
         getTask().doLast(action2);
         assertSame(getTask(), getTask().deleteAllActions());
