@@ -37,7 +37,7 @@ dependencies {
 }
 
 tasks.withType(ScalaCompile) {
-    useAnt = false
+    scalaCompileOptions.useAnt = false
 }
 """
 
@@ -45,6 +45,6 @@ tasks.withType(ScalaCompile) {
 
         expect:
         fails("compileScala")
-        failure.output.contains("To run the Zinc Scala compiler, Java 6 or higher is required.")
+        failure.assertHasCause("To use the Zinc Scala compiler, Java 6 or higher is required.")
     }
 }
