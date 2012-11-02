@@ -39,9 +39,9 @@ class JavadocOptionFileWriterTest extends Specification {
         _ * optionfile.getSourceNames() >> new OptionLessStringsJavadocOptionFileOption();
         javadocOptionFileWriter.write(tempFile)
         then:
-        tempFile.text == toPlatformLineSeparators("""-key3 'value3'
+        tempFile.text == toPlatformLineSeparators("""-key1 'value1'
 -key2 'value2'
--key1 'value1'
+-key3 'value3'
 """)
         when:
         optionsMap.put("locale", new StringJavadocOptionFileOption("locale", "alocale"));
@@ -49,9 +49,9 @@ class JavadocOptionFileWriterTest extends Specification {
         javadocOptionFileWriter.write(tempFile)
         then:
         tempFile.text == toPlatformLineSeparators("""-locale 'alocale'
--key3 'value3'
--key2 'value2'
 -key1 'value1'
+-key2 'value2'
+-key3 'value3'
 """)
     }
 
