@@ -49,7 +49,7 @@ public class DeprecationLogger {
     };
 
     public static final String ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME = "org.gradle.deprecation.trace";
-    private static final String DEPRECATION_MESSAGE = "has been deprecated and might be removed in Gradle 2.0";
+    private static final String DEPRECATION_MESSAGE = "has been deprecated and is scheduled to be removed in Gradle 2.0";
 
     public static void reset() {
         PLUGINS.clear();
