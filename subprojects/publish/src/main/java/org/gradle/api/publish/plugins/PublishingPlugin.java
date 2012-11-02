@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publish;
+package org.gradle.api.publish.plugins;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
+import org.gradle.api.publish.PublicationContainer;
+import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.internal.DefaultPublicationContainer;
 import org.gradle.api.publish.internal.DefaultPublishingExtension;
 import org.gradle.internal.Factory;
@@ -29,7 +31,7 @@ import org.gradle.internal.reflect.Instantiator;
 import javax.inject.Inject;
 
 /**
- * Installs a {@link PublishingExtension} with name {@value PublishingExtension#NAME}.
+ * Installs a {@link org.gradle.api.publish.PublishingExtension} with name {@value org.gradle.api.publish.PublishingExtension#NAME}.
  *
  * @since 1.3
  */

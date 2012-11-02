@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publish.ivy;
+package org.gradle.api.publish.ivy.plugins;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
@@ -25,10 +25,11 @@ import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvid
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.publish.PublishingExtension;
-import org.gradle.api.publish.PublishingPlugin;
+import org.gradle.api.publish.ivy.IvyPublication;
 import org.gradle.api.publish.ivy.internal.DefaultIvyPublication;
 import org.gradle.api.publish.ivy.internal.IvyModuleDescriptorInternal;
-import org.gradle.api.publish.ivy.internal.IvyPublishDynamicTaskCreator;
+import org.gradle.api.publish.ivy.tasks.internal.IvyPublishDynamicTaskCreator;
+import org.gradle.api.publish.plugins.PublishingPlugin;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.reflect.Instantiator;
 

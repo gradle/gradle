@@ -18,9 +18,10 @@ package org.gradle.api.publish.ivy.internal
 
 import org.gradle.api.publish.Publication
 import org.gradle.api.publish.PublishingExtension
-import org.gradle.api.publish.PublishingPlugin
 import org.gradle.api.publish.ivy.IvyPublication
-import org.gradle.api.publish.ivy.IvyPublish
+import org.gradle.api.publish.ivy.tasks.IvyPublish
+import org.gradle.api.publish.ivy.tasks.internal.IvyPublishDynamicTaskCreator
+import org.gradle.api.publish.plugins.PublishingPlugin
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
 

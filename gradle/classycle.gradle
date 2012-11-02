@@ -25,13 +25,14 @@ allprojects {
                     try {
                         ant.classycleDependencyCheck(reportFile: reportFile, failOnUnwantedDependencies: true, mergeInnerClasses: true,
                                 """
+                        show allResults
                         check absenceOfPackageCycles > 1 in org.gradle.*
                     """
                         ) {
                             fileset(dir: sourceSet.output.classesDir)
                         }
                     } catch(Exception e) {
-                        throw new RuntimeException("Classycle check failed: $e.message. See report at $reportFile", e)
+                        throw new RuntimeException("Classycle check failed: $e.message. See report at ${new org.gradle.logging.ConsoleRenderer().asClickableFileUrl(reportFile)}", e)
                     }
                 }
             }

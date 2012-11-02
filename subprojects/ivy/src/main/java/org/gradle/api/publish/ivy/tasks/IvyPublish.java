@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publish.ivy;
+package org.gradle.api.publish.ivy.tasks;
 
 import org.gradle.api.Buildable;
 import org.gradle.api.DefaultTask;
@@ -23,6 +23,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.repositories.IvyArtifactRepositoryInternal;
+import org.gradle.api.publish.ivy.IvyPublication;
 import org.gradle.api.publish.ivy.internal.IvyNormalizedPublication;
 import org.gradle.api.publish.ivy.internal.IvyPublicationInternal;
 import org.gradle.api.publish.ivy.internal.IvyPublisher;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publish.ivy.internal;
+package org.gradle.api.publish.ivy.tasks.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ArtifactRepositoryContainer;
@@ -22,7 +22,8 @@ import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.internal.artifacts.repositories.IvyArtifactRepositoryInternal;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublicationContainer;
-import org.gradle.api.publish.ivy.IvyPublish;
+import org.gradle.api.publish.ivy.internal.IvyPublicationInternal;
+import org.gradle.api.publish.ivy.tasks.IvyPublish;
 import org.gradle.api.tasks.TaskContainer;
 
 import static org.apache.commons.lang.WordUtils.capitalize;

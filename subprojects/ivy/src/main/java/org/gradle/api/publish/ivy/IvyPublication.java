@@ -24,7 +24,7 @@ import org.gradle.api.publish.Publication;
 /**
  * An {@code IvyPublication} is the representation/configuration of how Gradle should publish something in Ivy format.
  *
- * An ivy publication is publishable by an {@link IvyPublish} task, that specifies the {@link org.gradle.api.artifacts.repositories.IvyArtifactRepository} to publish to.
+ * An ivy publication is publishable by an {@link org.gradle.api.publish.ivy.tasks.IvyPublish} task, that specifies the {@link org.gradle.api.artifacts.repositories.IvyArtifactRepository} to publish to.
  *
  * The publication's module descriptor can be modified via the {@link #descriptor(org.gradle.api.Action)} method.
  *

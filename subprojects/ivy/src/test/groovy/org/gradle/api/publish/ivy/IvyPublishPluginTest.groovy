@@ -20,6 +20,7 @@ import org.gradle.api.Project
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.ivy.internal.IvyNormalizedPublication
 import org.gradle.api.publish.ivy.internal.IvyPublicationInternal
+import org.gradle.api.publish.ivy.plugins.IvyPublishPlugin
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
 

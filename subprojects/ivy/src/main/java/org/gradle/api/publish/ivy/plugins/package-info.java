@@ -14,16 +14,12 @@
  * limitations under the License.
  */
 
+/**
+ * Plugins for Ivy publishing.
+ *
+ * @since 1.3
+ */
+@Incubating
+package org.gradle.api.publish.ivy.plugins;
 
-
-dependencies {
-    groovy libraries.groovy
-    compile project(':core'),
-            project(':publish'),
-            project(':plugins') // for base plugin to get archives conf
-
-    integTestCompile project(":ear")
-}
-
-useTestFixtures()
-useClassycle()
+import org.gradle.api.Incubating;

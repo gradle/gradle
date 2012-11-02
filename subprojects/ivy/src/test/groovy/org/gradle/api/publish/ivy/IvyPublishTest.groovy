@@ -24,6 +24,7 @@ import org.gradle.api.internal.artifacts.repositories.IvyArtifactRepositoryInter
 import org.gradle.api.publish.ivy.internal.IvyNormalizedPublication
 import org.gradle.api.publish.ivy.internal.IvyPublicationInternal
 import org.gradle.api.publish.ivy.internal.IvyPublisher
+import org.gradle.api.publish.ivy.tasks.IvyPublish
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.util.HelperUtil

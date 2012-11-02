@@ -16,10 +16,11 @@
 
 package org.gradle.api.publish
 
-import spock.lang.Specification
 import org.gradle.api.Project
-import org.gradle.util.HelperUtil
 import org.gradle.api.artifacts.dsl.RepositoryHandler
+import org.gradle.api.publish.plugins.PublishingPlugin
+import org.gradle.util.HelperUtil
+import spock.lang.Specification
 
 class PublishingPluginTest extends Specification {
 

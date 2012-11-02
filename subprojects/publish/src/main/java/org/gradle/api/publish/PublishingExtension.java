@@ -33,7 +33,7 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler;
 public interface PublishingExtension {
 
     /**
-     * The name of this extension when installed by the {@link PublishingPlugin} ({@value}).
+     * The name of this extension when installed by the {@link org.gradle.api.publish.plugins.PublishingPlugin} ({@value}).
      */
     String NAME = "publishing";
 
