@@ -17,25 +17,26 @@
 package org.gradle.api.publish.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.NamedDomainObjectContainer;
+import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.PublishingExtension;
 
 public class DefaultPublishingExtension implements PublishingExtension {
 
-    private final RepositoryHandler repositories;
+    private final PublicationRepositoryContainer repositories;
     private final PublicationContainer publications;
 
-    public DefaultPublishingExtension(RepositoryHandler repositories, PublicationContainer publications) {
+    public DefaultPublishingExtension(PublicationRepositoryContainer repositories, PublicationContainer publications) {
         this.repositories = repositories;
         this.publications = publications;
     }
 
-    public RepositoryHandler getRepositories() {
+    public PublicationRepositoryContainer getRepositories() {
         return repositories;
     }
 
-    public void repositories(Action<? super RepositoryHandler> configure) {
+    public void repositories(Action<? super NamedDomainObjectContainer<ArtifactRepository>> configure) {
         configure.execute(repositories);
     }
 
