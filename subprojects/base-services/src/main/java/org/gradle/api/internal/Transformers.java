@@ -60,4 +60,14 @@ public abstract class Transformers {
         }
     }
 
+    public static Transformer<String, Object> asString() {
+        return new ToStringTransformer();
+    }
+
+    private static class ToStringTransformer implements Transformer<String, Object> {
+        public String transform(Object original) {
+            return original == null ? null : original.toString();
+        }
+    }
+
 }

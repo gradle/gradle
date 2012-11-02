@@ -16,6 +16,7 @@
 package org.gradle.util;
 
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.Transformers;
 import org.gradle.api.specs.Spec;
 
 import java.lang.reflect.Array;
@@ -158,7 +159,7 @@ public abstract class CollectionUtils {
     }
 
     public static <C extends Collection<String>> C stringize(Iterable<?> source, C destination) {
-        return collect(source, destination, new ToStringTransformer());
+        return collect(source, destination, Transformers.asString());
     }
 
     public static List<String> stringize(List<?> source) {

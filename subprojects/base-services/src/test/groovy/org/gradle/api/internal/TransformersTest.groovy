@@ -18,6 +18,7 @@ package org.gradle.api.internal
 
 import spock.lang.Specification
 
+import static org.gradle.api.internal.Transformers.asString
 import static org.gradle.api.internal.Transformers.cast
 
 class TransformersTest extends Specification {
@@ -38,5 +39,11 @@ class TransformersTest extends Specification {
         then:
         notThrown(ClassCastException)
         result.is arg
+    }
+
+    def "as string"() {
+        expect:
+        asString().transform(1) == "1"
+        asString().transform(null) == null
     }
 }
