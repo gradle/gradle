@@ -105,7 +105,7 @@ public class GUtil {
         return flatten(elements, new ArrayList());
     }
 
-    public static String join(Collection self, String separator) {
+    public static String join(Iterable self, String separator) {
         StringBuilder buffer = new StringBuilder();
         boolean first = true;
 
@@ -126,6 +126,10 @@ public class GUtil {
 
     public static String join(Object[] self, String separator) {
         return join(asList(self), separator);
+    }
+
+    public static String asPath(Iterable<?> collection) {
+        return join(collection, File.pathSeparator);
     }
 
     public static List<String> prefix(String prefix, Collection<String> strings) {
