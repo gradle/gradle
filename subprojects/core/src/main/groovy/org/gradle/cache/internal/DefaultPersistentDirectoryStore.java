@@ -19,6 +19,7 @@ import org.gradle.api.Action;
 import org.gradle.cache.*;
 import org.gradle.internal.Factory;
 import org.gradle.messaging.serialize.Serializer;
+import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -38,7 +39,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     }
 
     public DefaultPersistentDirectoryStore open() {
-        dir.mkdirs();
+        GFileUtils.createDirectory(dir);
         cacheAccess = createCacheAccess();
         try {
             cacheAccess.open(lockMode);
