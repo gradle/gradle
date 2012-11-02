@@ -18,3 +18,5 @@ dependencies {
     groovy libraries.groovy
     compile project(":baseServices")
 }
+
+useClassycle()
