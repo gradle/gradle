@@ -20,6 +20,7 @@ import org.gradle.api.publish.Publication
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.ivy.IvyPublication
 import org.gradle.api.publish.ivy.tasks.IvyPublish
+import org.gradle.api.publish.ivy.tasks.internal.DefaultIvyPublishTaskNamer
 import org.gradle.api.publish.ivy.tasks.internal.IvyPublishDynamicTaskCreator
 import org.gradle.api.publish.plugins.PublishingPlugin
 import org.gradle.util.HelperUtil
@@ -28,7 +29,7 @@ import spock.lang.Specification
 class IvyPublishDynamicTaskCreatorTest extends Specification {
 
     def project = HelperUtil.createRootProject()
-    def creator = new IvyPublishDynamicTaskCreator(project.tasks)
+    def creator = new IvyPublishDynamicTaskCreator(project.tasks, new DefaultIvyPublishTaskNamer())
 
     PublishingExtension publishing
 
@@ -54,8 +55,8 @@ class IvyPublishDynamicTaskCreatorTest extends Specification {
 
         then:
         ivyPublishTasks.size() == 1
-        project.tasks["publishIvyToIvy"] != null
-        IvyPublish task = project.tasks.publishIvyToIvy
+        project.tasks["publishIvyToIvyRepo"] != null
+        IvyPublish task = project.tasks.publishIvyToIvyRepo
         task.group == "publishing"
         task.description != null
 
@@ -64,15 +65,15 @@ class IvyPublishDynamicTaskCreatorTest extends Specification {
 
         then:
         ivyPublishTasks.size() == 2
-        project.tasks["publishIvy2ToIvy"] != null
+        project.tasks["publishIvy2ToIvyRepo"] != null
 
         when:
         publishing.repositories.ivy {}
 
         then:
         ivyPublishTasks.size() == 4
-        project.tasks["publishIvyToIvy2"] != null
-        project.tasks["publishIvy2ToIvy2"] != null
+        project.tasks["publishIvyToIvy2Repo"] != null
+        project.tasks["publishIvy2ToIvy2Repo"] != null
     }
 
     def getIvyPublishTasks() {

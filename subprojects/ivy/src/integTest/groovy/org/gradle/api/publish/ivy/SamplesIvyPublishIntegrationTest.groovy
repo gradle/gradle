@@ -36,6 +36,6 @@ public class SamplesIvyPublishIntegrationTest {
     public void testPublish() {
         // the actual testing is done in the build script.
         File projectDir = sample.dir
-        executer.inDirectory(projectDir).withTasks("publishIvyToIvy").run()
+        executer.inDirectory(projectDir).withTasks("publishToRepo").run()
     }
 }

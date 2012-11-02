@@ -35,13 +35,13 @@ artifacts {
 
 publishing {
     repositories {
-        ivy {
+        main {
             ivyPattern localPublicationsDir.absolutePath + '/[module]/[revision]/ivy.xml'
             artifactPattern localPublicationsDir.absolutePath + '/[module]/[revision]/[artifact](.[ext])'
         }
     }
     publications {
-        ivy {
+        main {
             descriptor {
                 withXml {
                     asNode().dependencies.dependency.find { it.@org == "junit" }.@rev = "4.10"
@@ -51,7 +51,7 @@ publishing {
     }
 }
 
-publishIvyToIvy {
+publishToRepo {
     doLast {
         File repoDir = new File("$buildDir/repo/ivypublish/1.0/")
         assert ["ivy.xml", "ivy.xml.sha1", "ivypublish.jar", "ivypublish.jar.sha1", "ivypublishSource.jar", "ivypublishSource.jar.sha1"] as Set == repoDir.listFiles().collect { it.name } as Set

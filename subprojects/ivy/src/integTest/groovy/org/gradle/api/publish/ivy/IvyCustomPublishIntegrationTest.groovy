@@ -43,7 +43,7 @@ class IvyCustomPublishIntegrationTest extends AbstractIntegrationSpec {
 
             publishing {
                 repositories {
-                    ivy {
+                    main {
                         url "${ivyRepo.uri}"
                     }
                 }
@@ -51,12 +51,11 @@ class IvyCustomPublishIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        succeeds 'publishIvyToIvy'
+        succeeds 'publishToRepo'
 
         then:
         module.ivyFile.assertIsFile()
         module.moduleDir.file("foo-2.txt")
-        println module.ivyFile.text
         module.ivyXml.configurations[0].conf*.@name == ["custom"]
     }
 

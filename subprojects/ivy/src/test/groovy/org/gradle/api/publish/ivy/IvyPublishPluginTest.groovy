@@ -39,8 +39,8 @@ class IvyPublishPluginTest extends Specification {
         extension.publications.size() == 1
         extension.publications.toList().first() instanceof IvyPublication
 
-        IvyPublicationInternal publication = extension.publications.ivy
-        publication.name == "ivy"
+        IvyPublicationInternal publication = extension.publications.main
+        publication.name == "main"
 
         when:
         project.group = "foo"
@@ -70,7 +70,7 @@ class IvyPublishPluginTest extends Specification {
 
     def "can configure descriptor"() {
         given:
-        IvyPublicationInternal publication = extension.publications.ivy
+        IvyPublicationInternal publication = extension.publications.main
 
         when:
         publication.descriptor {

@@ -43,7 +43,7 @@ class IvyWarProjectPublishIntegrationTest extends AbstractIntegrationSpec {
 
             publishing {
                 repositories {
-                    ivy {
+                    main {
                         url '${ivyRepo.uri}'
                     }
                 }
@@ -51,7 +51,7 @@ class IvyWarProjectPublishIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        run "publishIvyToIvy"
+        run "publishToRepo"
 
         then:
         def ivyModule = ivyRepo.module("org.gradle.test", "publishTest", "1.9")

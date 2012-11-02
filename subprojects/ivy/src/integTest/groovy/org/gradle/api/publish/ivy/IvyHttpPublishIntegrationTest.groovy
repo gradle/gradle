@@ -66,7 +66,7 @@ credentials {
 
             publishing {
                 repositories {
-                    ivy {
+                    main {
                         url "http://localhost:${server.port}"
                     }
                 }
@@ -78,7 +78,7 @@ credentials {
         expectUpload('/org.gradle/publish/2/ivy-2.xml', module, module.ivyFile, HttpStatus.ORDINAL_201_Created)
 
         and:
-        succeeds 'publishIvyToIvy'
+        succeeds 'publishToRepo'
 
         then:
         module.ivyFile.assertIsFile()
@@ -107,7 +107,7 @@ credentials {
 
             publishing {
                 repositories {
-                    ivy {
+                    main {
                         credentials {
                             username 'testuser'
                             password 'password'
@@ -124,7 +124,7 @@ credentials {
         expectUpload('/org.gradle/publish/2/ivy-2.xml', module, module.ivyFile, 'testuser', 'password')
 
         then:
-        succeeds 'publishIvyToIvy'
+        succeeds 'publishToRepo'
 
         and:
         module.ivyFile.assertIsFile()
@@ -154,7 +154,7 @@ credentials {
             group = 'org.gradle'
             publishing {
                 repositories {
-                    ivy {
+                    main {
                         $creds
                         url "http://localhost:${server.port}"
                     }
@@ -167,10 +167,10 @@ credentials {
         server.allowPut('/org.gradle/publish/2/publish-2.jar', 'testuser', 'password')
 
         then:
-        fails 'publishIvyToIvy'
+        fails 'publishToRepo'
 
         and:
-        failure.assertHasDescription('Execution failed for task \':publishIvyToIvy\'.')
+        failure.assertHasDescription('Execution failed for task \':publishToRepo\'.')
         failure.assertHasCause('Could not publish configurations: \'archives\', \'default\'')
         failure.assertThatCause(Matchers.containsString('Received status code 401 from server: Unauthorized'))
 
@@ -193,7 +193,7 @@ credentials {
 
             publishing {
                 repositories {
-                    ivy {
+                    main {
                         url "${repositoryUrl}"
                     }
                 }
@@ -204,10 +204,10 @@ credentials {
         server.addBroken("/")
 
         then:
-        fails 'publishIvyToIvy'
+        fails 'publishToRepo'
 
         and:
-        failure.assertHasDescription('Execution failed for task \':publishIvyToIvy\'.')
+        failure.assertHasDescription('Execution failed for task \':publishToRepo\'.')
         failure.assertHasCause('Could not publish configurations: \'archives\', \'default\'')
         failure.assertThatCause(Matchers.containsString('Received status code 500 from server: broken'))
 
@@ -215,10 +215,10 @@ credentials {
         server.stop()
 
         then:
-        fails 'publishIvyToIvy'
+        fails 'publishToRepo'
 
         and:
-        failure.assertHasDescription('Execution failed for task \':publishIvyToIvy\'.')
+        failure.assertHasDescription('Execution failed for task \':publishToRepo\'.')
         failure.assertHasCause('Could not publish configurations: \'archives\', \'default\'')
         failure.assertHasCause("org.apache.http.conn.HttpHostConnectException: Connection to ${repositoryUrl} refused")
     }
@@ -236,7 +236,7 @@ credentials {
             group = 'org.gradle'
             publishing {
                 repositories {
-                    ivy {
+                    main {
                         artifactPattern "http://localhost:${server.port}/primary/[module]/[artifact]-[revision].[ext]"
                         artifactPattern "http://localhost:${server.port}/alternative/[module]/[artifact]-[revision].[ext]"
                         ivyPattern "http://localhost:${server.port}/primary-ivy/[module]/ivy-[revision].xml"
@@ -251,7 +251,7 @@ credentials {
         expectUpload('/primary-ivy/publish/ivy-2.xml', module, module.ivyFile)
 
         then:
-        succeeds 'publishIvyToIvy'
+        succeeds 'publishToRepo'
 
         and:
         module.ivyFile.assertIsFile()
@@ -283,7 +283,7 @@ credentials {
 
             publishing {
                 repositories {
-                    ivy {
+                    main {
                         credentials {
                             username 'testuser'
                             password 'password'
@@ -300,7 +300,7 @@ credentials {
         expectUpload('/org.gradle/publish/2/ivy-2.xml', module, module.ivyFile, 'testuser', 'password')
 
         then:
-        succeeds 'publishIvyToIvy'
+        succeeds 'publishToRepo'
 
         and:
         module.ivyFile.assertIsFile()
@@ -322,7 +322,7 @@ credentials {
 
             publishing {
                 repositories {
-                    ivy {
+                    main {
                         url "http://localhost:${server.port}"
                     }
                 }
@@ -332,7 +332,7 @@ credentials {
         server.expectPut("/org.gradle/publish/2/publish-2.jar", module.jarFile, HttpStatus.ORDINAL_500_Internal_Server_Error)
 
         then:
-        fails ':publishIvyToIvy'
+        fails ':publishToRepo'
 
         and:
         module.jarFile.assertExists()

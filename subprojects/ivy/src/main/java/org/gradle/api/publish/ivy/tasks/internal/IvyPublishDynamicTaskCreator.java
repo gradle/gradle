@@ -26,17 +26,17 @@ import org.gradle.api.publish.ivy.internal.IvyPublicationInternal;
 import org.gradle.api.publish.ivy.tasks.IvyPublish;
 import org.gradle.api.tasks.TaskContainer;
 
-import static org.apache.commons.lang.WordUtils.capitalize;
-
 /**
  * Dynamically creates tasks for each Ivy publication/repository pair in a publication set and repository set.
  */
 public class IvyPublishDynamicTaskCreator {
 
     final private TaskContainer tasks;
+    private final IvyPublishTaskNamer taskNamer;
 
-    public IvyPublishDynamicTaskCreator(TaskContainer tasks) {
+    public IvyPublishDynamicTaskCreator(TaskContainer tasks, IvyPublishTaskNamer taskNamer) {
         this.tasks = tasks;
+        this.taskNamer = taskNamer;
     }
 
     public void monitor(final PublicationContainer publications, final ArtifactRepositoryContainer repositories) {
@@ -72,8 +72,7 @@ public class IvyPublishDynamicTaskCreator {
         IvyPublicationInternal publicationInternal = (IvyPublicationInternal) publication;
         IvyArtifactRepositoryInternal repositoryInternal = (IvyArtifactRepositoryInternal) repository;
 
-        // TODO: this feels like it needs to be externalised
-        String taskName = String.format("publish%sTo%s", capitalize(publicationInternal.getName()), capitalize(repositoryInternal.getName()));
+        String taskName = taskNamer.name(publication.getName(), repository.getName());
 
         IvyPublish task = tasks.add(taskName, IvyPublish.class);
         task.setPublication(publicationInternal);

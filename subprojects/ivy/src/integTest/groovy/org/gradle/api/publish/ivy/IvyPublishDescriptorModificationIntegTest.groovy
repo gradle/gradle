@@ -37,7 +37,7 @@ class IvyPublishDescriptorModificationIntegTest extends AbstractIntegrationSpec 
 
             publishing {
                 repositories {
-                    ivy { url "${ivyRepo.uri}" }
+                    main { url "${ivyRepo.uri}" }
                 }
             }
         """
@@ -45,7 +45,7 @@ class IvyPublishDescriptorModificationIntegTest extends AbstractIntegrationSpec 
 
     def "can modify descriptor during publication"() {
         when:
-        succeeds 'publishIvyToIvy'
+        succeeds 'publishToRepo'
 
         then:
         ":jar" in executedTasks
@@ -57,7 +57,7 @@ class IvyPublishDescriptorModificationIntegTest extends AbstractIntegrationSpec 
         buildFile << """
             publishing {
                 publications {
-                    ivy {
+                    main {
                         descriptor {
                             withXml {
                                 asNode().info[0].@revision = "3"
@@ -67,7 +67,7 @@ class IvyPublishDescriptorModificationIntegTest extends AbstractIntegrationSpec 
                 }
             }
         """
-        succeeds 'publishIvyToIvy'
+        succeeds 'publishToRepo'
 
 
         then:
