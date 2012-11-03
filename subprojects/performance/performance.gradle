@@ -7,6 +7,7 @@ configurations {
 dependencies {
     junit 'junit:junit:4.10'
     groovy libraries.groovy
+    testFixturesCompile 'org.jscience:jscience:4.3.1'
     testFixturesCompile project(':internalIntegTesting')
 }
 

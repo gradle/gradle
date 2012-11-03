@@ -16,7 +16,11 @@
 
 package org.gradle.peformance.fixture
 
+import org.jscience.physics.amount.Amount
 import spock.lang.Specification
+
+import javax.measure.unit.NonSI
+import javax.measure.unit.SI
 
 class PerformanceResultsTest extends Specification {
     def PerformanceResults result = new PerformanceResults()
@@ -71,7 +75,7 @@ class PerformanceResultsTest extends Specification {
         then:
         AssertionError e = thrown()
         e.message.startsWith('Speed <test>: current Gradle is a little slower on average.')
-        e.message.contains('Difference: 0.01 secs (10.33 ms)')
+        e.message.contains('Difference: 0.01 secs slower (10.33 ms), 10.33%')
     }
 
     def "passes when average heap usage for current release is smaller than average heap usage for previous release"() {
@@ -124,7 +128,7 @@ class PerformanceResultsTest extends Specification {
         then:
         AssertionError e = thrown()
         e.message.startsWith('Memory <test>: current Gradle needs a little more memory on average.')
-        e.message.contains('Difference: 100 B (100.33 B)')
+        e.message.contains('Difference: 100 B more (100.33 B), 10.03%')
     }
 
     def "fails when both heap usage and execution time have regressed"() {
@@ -145,15 +149,57 @@ class PerformanceResultsTest extends Specification {
         then:
         AssertionError e = thrown()
         e.message.contains('Speed <test>: current Gradle is a little slower on average.')
-        e.message.contains('Difference: 0.01 secs (10.33 ms)')
+        e.message.contains('Difference: 0.01 secs slower (10.33 ms)')
         e.message.contains('Memory <test>: current Gradle needs a little more memory on average.')
-        e.message.contains('Difference: 100 B (100.33 B)')
+        e.message.contains('Difference: 100 B more (100.33 B)')
+    }
+
+    def "fails when a previous operation fails"() {
+        given:
+        result.previous.add(operation(failure: new RuntimeException()))
+        result.current.add(operation())
+
+        when:
+        result.assertCurrentVersionHasNotRegressed()
+
+        then:
+        AssertionError e = thrown()
+        e.message.startsWith("Some builds have failed.")
+    }
+
+    def "fails when a current operation fails"() {
+        given:
+        result.previous.add(operation())
+        result.current.add(operation(failure: new RuntimeException()))
+
+        when:
+        result.assertCurrentVersionHasNotRegressed()
+
+        then:
+        AssertionError e = thrown()
+        e.message.startsWith("Some builds have failed.")
+    }
+
+    def "fails when an operation fails"() {
+        given:
+        result.others.oldVersion = new MeasuredOperationList()
+        result.previous.add(operation())
+        result.current.add(operation())
+        result.others.oldVersion.add(operation(failure: new RuntimeException()))
+
+        when:
+        result.assertCurrentVersionHasNotRegressed()
+
+        then:
+        AssertionError e = thrown()
+        e.message.startsWith("Some builds have failed.")
     }
 
     private MeasuredOperation operation(Map<String, Object> args) {
         def operation = new MeasuredOperation()
-        operation.executionTime = args.executionTime ?: 120
-        operation.totalMemoryUsed = args.heapUsed ?: 1024
+        operation.executionTime = Amount.valueOf(args?.executionTime ?: 120, SI.MILLI(SI.SECOND))
+        operation.totalMemoryUsed = Amount.valueOf(args?.heapUsed ?: 1024, NonSI.BYTE)
+        operation.exception = args?.failure
         return operation
     }
 

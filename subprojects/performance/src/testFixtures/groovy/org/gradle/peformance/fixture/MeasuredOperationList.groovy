@@ -16,39 +16,43 @@
 
 
 
+
+
 package org.gradle.peformance.fixture
 
-import java.math.RoundingMode
+import org.jscience.physics.amount.Amount
 
+import javax.measure.quantity.DataAmount
+import javax.measure.quantity.Duration
 /**
  * by Szczepan Faber, created at: 2/10/12
  */
 public class MeasuredOperationList extends LinkedList<MeasuredOperation> {
     String name
 
-    double avgMemory() {
+    Amount<DataAmount> avgMemory() {
         def bytes = this.collect { it.totalMemoryUsed }
-        (bytes.sum() / bytes.size()).setScale(2, RoundingMode.HALF_UP)
+        bytes.sum().divide(bytes.size())
     }
 
-    long minMemory() {
-        return this.collect { it.totalMemoryUsed }.min()
+    Amount<DataAmount> minMemory() {
+        return collect { it.totalMemoryUsed }.min()
     }
 
-    long maxMemory() {
-        return this.collect { it.totalMemoryUsed }.max()
+    Amount<DataAmount> maxMemory() {
+        return collect { it.totalMemoryUsed }.max()
     }
 
-    double avgTime() {
+    Amount<Duration> avgTime() {
         def currentTimes = this.collect { it.executionTime }
-        (currentTimes.sum() / currentTimes.size()).setScale(2, RoundingMode.HALF_UP)
+        currentTimes.sum().divide(currentTimes.size())
     }
 
-    long maxTime() {
-        return this.collect { it.executionTime }.max()
+    Amount<Duration> maxTime() {
+        return collect { it.executionTime }.max()
     }
 
-    long minTime() {
-        return this.collect { it.executionTime }.min()
+    Amount<Duration> minTime() {
+        return collect { it.executionTime }.min()
     }
 }

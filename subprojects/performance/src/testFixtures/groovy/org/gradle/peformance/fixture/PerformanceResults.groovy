@@ -17,9 +17,15 @@
 package org.gradle.peformance.fixture
 
 import org.gradle.api.logging.Logging
+import org.jscience.physics.amount.Amount
+
+import javax.measure.unit.SI
 
 import static PrettyCalculator.prettyBytes
-import static org.gradle.util.Clock.prettyTime
+import static PrettyCalculator.prettyTime
+import static org.gradle.peformance.fixture.PrettyCalculator.toBytes
+import static org.gradle.peformance.fixture.PrettyCalculator.toMillis
+import static org.gradle.peformance.fixture.PrettyCalculator.toString
 
 public class PerformanceResults {
 
@@ -48,7 +54,7 @@ public class PerformanceResults {
             failures.addAll it.findAll { it.exception }
         }
         failures.addAll current.findAll { it.exception }
-        assert failures.empty
+        assert failures.collect { it.exception }.empty : "Some builds have failed."
     }
 
     void assertCurrentVersionHasNotRegressed() {
@@ -68,7 +74,7 @@ public class PerformanceResults {
 
     private String assertMemoryUsed() {
         double maxRegression = maxMemoryRegression
-        def failed = (current.avgMemory() - (maxRegression * previous.avgMemory())) > previous.avgMemory()
+        def failed = (current.avgMemory() - (previous.avgMemory().times(maxRegression))) > previous.avgMemory()
 
         String message;
         if (current.avgMemory() > previous.avgMemory()) {
@@ -82,7 +88,7 @@ public class PerformanceResults {
     }
 
     private String assertCurrentReleaseIsNotSlower() {
-        def failed = (current.avgTime() - accuracyMs) > previous.avgTime()
+        def failed = (current.avgTime() - Amount.valueOf(accuracyMs, SI.MILLI(SI.SECOND))) > previous.avgTime()
 
         String message;
         if (current.avgTime() > previous.avgTime()) {
@@ -102,12 +108,14 @@ public class PerformanceResults {
             result.append(memoryStats(it))
         }
         result.append(memoryStats(current))
-        result.append("Difference: ${prettyBytes(current.avgMemory() - previous.avgMemory())} (${(current.avgMemory() - previous.avgMemory()).round(2)} B), ${PrettyCalculator.percentChange(current.avgMemory(), previous.avgMemory())}%, max regression: $maxRegression (${prettyBytes((long) (previous.avgMemory() * maxRegression))})")
+        def diff = current.avgMemory() - previous.avgMemory()
+        def desc = diff > Amount.ZERO ? "more" : "less"
+        result.append("Difference: ${prettyBytes(diff.abs())} $desc (${toBytes(diff.abs())} B), ${PrettyCalculator.percentChange(current.avgMemory(), previous.avgMemory())}%, max regression: $maxRegression (${prettyBytes(previous.avgMemory().times(maxRegression))})")
         return result.toString()
     }
 
     String memoryStats(MeasuredOperationList list) {
-        """  ${list.name} avg: ${prettyBytes(list.avgMemory())} ${list*.prettyBytes}
+        """  ${list.name} avg: ${prettyBytes(list.avgMemory())} ${list.collect { prettyBytes(it.totalMemoryUsed) }}
   ${list.name} min: ${prettyBytes(list.minMemory())}, max: ${prettyBytes(list.maxMemory())}
 """
     }
@@ -119,12 +127,14 @@ public class PerformanceResults {
             result.append(speedStats(it))
         }
         result.append(speedStats(current))
-        result.append("Difference: ${prettyTime((current.avgTime() - previous.avgTime()).round())} (${(current.avgTime() - previous.avgTime()).round(2)} ms), ${PrettyCalculator.percentChange(current.avgTime(), previous.avgTime())}%, max regression: $accuracyMs ms")
+        def diff = current.avgTime() - previous.avgTime()
+        def desc = diff > Amount.valueOf(0, SI.SECOND) ? "slower" : "faster"
+        result.append("Difference: ${prettyTime(diff.abs())} $desc (${toMillis(diff.abs())} ms), ${PrettyCalculator.percentChange(current.avgTime(), previous.avgTime())}%, max regression: $accuracyMs ms")
         return result.toString()
     }
 
     String speedStats(MeasuredOperationList list) {
-        """  ${list.name} avg: ${prettyTime(list.avgTime().round())} ${list*.prettyTime}
+        """  ${list.name} avg: ${prettyTime(list.avgTime())} ${list.collect { prettyTime(it.executionTime) }}
   ${list.name} min: ${prettyTime(list.minTime())}, max: ${prettyTime(list.maxTime())}
 """
     }
