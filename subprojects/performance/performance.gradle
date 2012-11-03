@@ -94,6 +94,7 @@ integTestTasks.all {
         enabled = false
         dependsOn = []
     }
+    maxParallelForks = 1
 }
 
 tasks.integTest.testLogging.showStandardStreams = true
