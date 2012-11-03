@@ -44,6 +44,10 @@ class DaemonGradleExecuter extends ForkingGradleExecuter {
         configureJvmArgs(args);
         configureDefaultLogging(args);
 
+        if (getUserHomeDir() != null) {
+            args.add(String.format("-Duser.home=%s", getUserHomeDir().getPath()));
+        }
+
         return args;
     }
 
