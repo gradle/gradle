@@ -30,9 +30,6 @@ import static org.gradle.tests.fixtures.ConcurrentTestUtil.poll
  * by Szczepan Faber, created at: 1/20/12
  */
 @IgnoreIf({ !KillProcessAvailability.CAN_KILL })
-//because we can only forcefully kill daemons on Unix atm.
-//The implementation is not OS specific, only the test is
-// so it's not a big deal it does not run everywhere.
 class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegrationSpec {
 
     @Rule HttpServer server = new HttpServer()
@@ -51,6 +48,9 @@ class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegration
         def daemon = new DaemonLogsAnalyzer(distribution.daemonBaseDir).daemon
 
         when:
+        // Wait until the daemon has finished updating the registry. Killing it halfway through the registry update will leave the registry corrupted,
+        // and the client will just throw the registry away and replace it with an empty one
+        daemon.waitUntilIdle()
         daemon.kill()
 
         and:
@@ -84,6 +84,7 @@ class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegration
         def daemon = new DaemonLogsAnalyzer(distribution.daemonBaseDir).daemon
 
         when:
+        daemon.waitUntilIdle()
         daemon.kill()
         poll {
             server.start(daemon.port)
@@ -113,6 +114,7 @@ class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegration
         def daemon = new DaemonLogsAnalyzer(distribution.daemonBaseDir).daemon
 
         when:
+        daemon.waitUntilIdle()
         daemon.kill()
 
         then:

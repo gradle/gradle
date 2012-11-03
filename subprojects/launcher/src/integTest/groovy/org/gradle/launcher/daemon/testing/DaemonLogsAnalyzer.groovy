@@ -26,28 +26,18 @@ class DaemonLogsAnalyzer {
 
     private List<File> daemonLogs
     private File daemonBaseDir
+    private DaemonRegistryServices services
 
     DaemonLogsAnalyzer(File daemonBaseDir) {
         this.daemonBaseDir = daemonBaseDir
         assert daemonBaseDir.listFiles().length == 1
         def daemonFiles = daemonBaseDir.listFiles()[0].listFiles()
         daemonLogs = daemonFiles.findAll { it.name.endsWith('.log') }
+        services = new DaemonRegistryServices(daemonBaseDir)
     }
 
     List<TestableDaemon> getDaemons() {
-        def out = new LinkedList<TestableDaemon>()
-        daemonLogs.each {
-            out << new TestableDaemon(it)
-        }
-        out
-    }
-
-    TestableDaemon getIdleDaemon() {
-        def daemons = getDaemons()
-        assert daemons.size() == 1: "Expected only a single daemon."
-        TestableDaemon daemon = daemons[0]
-        assert daemon.idle : "Expected the daemon to be idle."
-        daemon
+        return daemonLogs.collect { new TestableDaemon(it, registry) }
     }
 
     TestableDaemon getDaemon() {
@@ -57,6 +47,6 @@ class DaemonLogsAnalyzer {
     }
 
     DaemonRegistry getRegistry() {
-        new DaemonRegistryServices(daemonBaseDir).get(DaemonRegistry)
+        services.get(DaemonRegistry)
     }
 }

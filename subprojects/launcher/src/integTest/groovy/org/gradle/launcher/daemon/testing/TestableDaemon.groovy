@@ -19,6 +19,7 @@ package org.gradle.launcher.daemon.testing
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.daemon.logging.DaemonMessages
+import org.gradle.launcher.daemon.registry.DaemonRegistry
 import org.gradle.process.internal.ExecHandleBuilder
 
 import java.util.regex.Matcher
@@ -26,12 +27,25 @@ import java.util.regex.Pattern
 
 class TestableDaemon {
 
-    DaemonContext context
-    String logContent
+    final DaemonContext context
+    final String logContent
+    private final DaemonRegistry registry
 
-    TestableDaemon(File daemonLog) {
+    TestableDaemon(File daemonLog, DaemonRegistry registry) {
         this.logContent = daemonLog.text
         this.context = DaemonContextParser.parseFrom(logContent)
+        this.registry = registry
+    }
+
+    void waitUntilIdle() {
+        def expiry = System.currentTimeMillis() + 20000
+        while (expiry > System.currentTimeMillis()) {
+            if (registry.idle.find { it.context.pid == context.pid } != null) {
+                return
+            }
+            Thread.sleep(200)
+        }
+        throw new AssertionError("Timeout waiting for daemon with pid ${context.pid} to become idle.")
     }
 
     void kill() {
@@ -62,7 +76,9 @@ class TestableDaemon {
         }
     }
 
-    enum State { busy, idle }
+    enum State {
+        busy, idle
+    }
 
     boolean isIdle() {
         getStates()[-1] == State.idle
@@ -89,7 +105,7 @@ class TestableDaemon {
                 Pattern.MULTILINE + Pattern.DOTALL);
 
         Matcher matcher = pattern.matcher(logContent);
-        assert matcher.matches() : "Unable to find daemon address in the daemon log. Daemon: $context"
+        assert matcher.matches(): "Unable to find daemon address in the daemon log. Daemon: $context"
 
         try {
             return Integer.parseInt(matcher.group(1))
