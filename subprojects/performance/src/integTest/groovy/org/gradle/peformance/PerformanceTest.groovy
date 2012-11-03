@@ -29,7 +29,7 @@ class PerformanceTest extends Specification {
         expect:
         def result = new PerformanceTestRunner(testProject: testProject,
                 tasksToRun: ['clean', 'build'],
-                otherVersions: ['1.0-milestone-3', '1.0', '1.1'],
+                otherVersions: ['1.0'],
                 runs: runs,
                 warmUpRuns: 1,
                 accuracyMs: accuracyMs,
