@@ -29,25 +29,26 @@ public class PerformanceResults {
 
     private final static LOGGER = Logging.getLogger(PerformanceTestRunner.class)
 
-    final MeasuredOperationList previous = new MeasuredOperationList("Previous release")
-    final MeasuredOperationList current = new MeasuredOperationList("Current Gradle")
+    final MeasuredOperationList previous = new MeasuredOperationList(name: "Previous release")
+    final MeasuredOperationList current = new MeasuredOperationList(name:  "Current Gradle")
+    final Map<String, MeasuredOperationList> others = new TreeMap<>()
 
     def clear() {
         previous.clear();
         current.clear();
-    }
-
-    void addResult(MeasuredOperation previous, MeasuredOperation current) {
-        this.previous.add(previous)
-        this.current.add(current)
+        others.values()*.clear()
     }
 
     void assertEveryBuildSucceeds() {
         LOGGER.info("Asserting all builds have succeeded...");
         assert previous.size() == current.size()
-        def previousExceptions = previous.findAll { it.exception }.collect() { it.exception }
-        def currentExceptions = previous.findAll { it.exception }.collect() { it.exception }
-        assert previousExceptions.isEmpty() & currentExceptions.isEmpty()
+        def failures = []
+        failures.addAll previous.findAll { it.exception }
+        others.values().each {
+            failures.addAll it.findAll { it.exception }
+        }
+        failures.addAll current.findAll { it.exception }
+        assert failures.empty
     }
 
     void assertCurrentVersionHasNotRegressed() {
@@ -62,11 +63,11 @@ public class PerformanceResults {
         if (larger) {
             throw new AssertionError(larger)
         }
+        assertEveryBuildSucceeds()
     }
 
     private String assertMemoryUsed() {
         double maxRegression = maxMemoryRegression
-        assertEveryBuildSucceeds()
         def failed = (current.avgMemory() - (maxRegression * previous.avgMemory())) > previous.avgMemory()
 
         String message;
@@ -81,8 +82,6 @@ public class PerformanceResults {
     }
 
     private String assertCurrentReleaseIsNotSlower() {
-        assertEveryBuildSucceeds()
-
         def failed = (current.avgTime() - accuracyMs) > previous.avgTime()
 
         String message;
@@ -97,24 +96,36 @@ public class PerformanceResults {
     }
 
     String memoryStats(double maxRegression) {
-        """${memoryStats(previous)}
-${memoryStats(current)}
-  Difference: ${prettyBytes(current.avgMemory() - previous.avgMemory())} (${(current.avgMemory() - previous.avgMemory()).round(2)} B), ${PrettyCalculator.percentChange(current.avgMemory(), previous.avgMemory())}%, max regression: $maxRegression (${prettyBytes((long) (previous.avgMemory() * maxRegression))})"""
+        def result = new StringBuilder()
+        result.append(memoryStats(previous))
+        others.values().each {
+            result.append(memoryStats(it))
+        }
+        result.append(memoryStats(current))
+        result.append("Difference: ${prettyBytes(current.avgMemory() - previous.avgMemory())} (${(current.avgMemory() - previous.avgMemory()).round(2)} B), ${PrettyCalculator.percentChange(current.avgMemory(), previous.avgMemory())}%, max regression: $maxRegression (${prettyBytes((long) (previous.avgMemory() * maxRegression))})")
+        return result.toString()
     }
 
     String memoryStats(MeasuredOperationList list) {
         """  ${list.name} avg: ${prettyBytes(list.avgMemory())} ${list*.prettyBytes}
-  ${list.name} min: ${prettyBytes(list.minMemory())}, max: ${prettyBytes(list.maxMemory())}"""
+  ${list.name} min: ${prettyBytes(list.minMemory())}, max: ${prettyBytes(list.maxMemory())}
+"""
     }
 
     String speedStats() {
-        """${speedStats(previous)}
-${speedStats(current)}
-  Difference: ${prettyTime((current.avgTime() - previous.avgTime()).round())} (${(current.avgTime() - previous.avgTime()).round(2)} ms), ${PrettyCalculator.percentChange(current.avgTime(), previous.avgTime())}%, max regression: $accuracyMs ms"""
+        def result = new StringBuilder()
+        result.append(speedStats(previous))
+        others.values().each {
+            result.append(speedStats(it))
+        }
+        result.append(speedStats(current))
+        result.append("Difference: ${prettyTime((current.avgTime() - previous.avgTime()).round())} (${(current.avgTime() - previous.avgTime()).round(2)} ms), ${PrettyCalculator.percentChange(current.avgTime(), previous.avgTime())}%, max regression: $accuracyMs ms")
+        return result.toString()
     }
 
     String speedStats(MeasuredOperationList list) {
         """  ${list.name} avg: ${prettyTime(list.avgTime().round())} ${list*.prettyTime}
-  ${list.name} min: ${prettyTime(list.minTime())}, max: ${prettyTime(list.maxTime())}"""
+  ${list.name} min: ${prettyTime(list.minTime())}, max: ${prettyTime(list.maxTime())}
+"""
     }
 }

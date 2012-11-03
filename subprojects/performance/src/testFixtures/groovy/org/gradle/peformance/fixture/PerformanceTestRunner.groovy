@@ -20,7 +20,7 @@ import org.gradle.api.logging.Logging
 import org.gradle.integtests.fixtures.*
 
 public class PerformanceTestRunner {
-    
+
     private final static LOGGER = Logging.getLogger(PerformanceTestRunner.class)
 
     def current = new GradleDistribution()
@@ -31,21 +31,25 @@ public class PerformanceTestRunner {
     int warmUpRuns
     int accuracyMs
     double maxMemoryRegression
-    List<String> tasksToRun = ['clean', 'build']
+    List<String> otherVersions = []
+    List<String> tasksToRun = []
     DataCollector dataCollector = new MemoryInfoCollector(outputFileName: "build/totalMemoryUsed.txt")
 
     PerformanceResults results
 
     PerformanceResults run() {
         results = new PerformanceResults(accuracyMs: accuracyMs, maxMemoryRegression: maxMemoryRegression, displayName: "Results for test project '$testProject' with tasks ${tasksToRun.join(', ')}")
+        results.previous.name = "Gradle ${previous.version}"
+        otherVersions.each { results.others[it] = new MeasuredOperationList(name: "Gradle $it") }
+
         LOGGER.lifecycle("Running performance tests for test project '{}', no. # runs: {}", testProject, runs)
         warmUpRuns.times {
-            LOGGER.info("Executing warm-up run #${it+1}")
+            LOGGER.info("Executing warm-up run #${it + 1}")
             runOnce()
         }
         results.clear()
         runs.times {
-            LOGGER.info("Executing test run #${it+1}")
+            LOGGER.info("Executing test run #${it + 1}")
             runOnce()
         }
         results
@@ -53,25 +57,28 @@ public class PerformanceTestRunner {
 
     void runOnce() {
         File projectDir = new TestProjectLocator().findProjectDir(testProject)
-        def previousExecuter = executer(previous, projectDir)
-        def previousResult = MeasuredOperation.measure { MeasuredOperation operation ->
-            previousExecuter.run()
+        runOnce(previous, projectDir, results.previous)
+        otherVersions.each {
+            runOnce(current.previousVersion(it), projectDir, results.others[it])
         }
-        dataCollector.collect(projectDir, previousResult)
+        runOnce(current, projectDir, results.current)
+    }
 
-        def currentExecuter = executer(current, projectDir)
-        def currentResult = MeasuredOperation.measure { MeasuredOperation operation ->
-            currentExecuter.run()
+    void runOnce(BasicGradleDistribution dist, File projectDir, MeasuredOperationList results) {
+        def executer = this.executer(dist, projectDir)
+        def operation = MeasuredOperation.measure { MeasuredOperation operation ->
+            executer.run()
         }
-        dataCollector.collect(projectDir, currentResult)
-
-        results.addResult(previousResult, currentResult)
+        dataCollector.collect(projectDir, operation)
+        results.add(operation)
     }
 
     GradleExecuter executer(BasicGradleDistribution dist, File projectDir) {
         def executer
         if (dist instanceof GradleDistribution) {
             executer = new GradleDistributionExecuter(GradleDistributionExecuter.Executer.forking, dist)
+            executer.withDeprecationChecksDisabled()
+            executer.withStackTraceChecksDisabled()
         } else {
             executer = dist.executer()
         }
