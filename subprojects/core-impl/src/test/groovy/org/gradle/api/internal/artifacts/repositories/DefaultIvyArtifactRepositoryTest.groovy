@@ -182,6 +182,32 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         resolver.name == 'name'
         resolver.artifactPatterns == ['http://host/[module]/[revision]/[artifact](.[ext])'] as List
         resolver.ivyPatterns == ["http://host/[module]/[revision]/ivy.xml"] as List
+        !resolver.m2compatible
+    }
+
+    def "when requested uses maven patterns with configured pattern layout"() {
+        repository.name = 'name'
+        repository.url = 'http://host'
+        repository.layout 'pattern', {
+            artifact '[module]/[revision]/[artifact](.[ext])'
+            ivy '[module]/[revision]/ivy.xml'
+            m2compatible true
+        }
+
+        given:
+        fileResolver.resolveUri('http://host') >> new URI('http://host/')
+        transportFactory.createHttpTransport('name', credentials) >> createHttpTransport("name", credentials)
+
+        when:
+        def resolver = repository.createResolver()
+
+        then:
+        resolver instanceof ExternalResourceResolver
+        resolver.repository instanceof ExternalResourceRepository
+        resolver.name == 'name'
+        resolver.artifactPatterns == ['http://host/[module]/[revision]/[artifact](.[ext])'] as List
+        resolver.ivyPatterns == ["http://host/[module]/[revision]/ivy.xml"] as List
+        resolver.m2compatible
     }
 
     def "combines layout patterns with additionally specified patterns"() {

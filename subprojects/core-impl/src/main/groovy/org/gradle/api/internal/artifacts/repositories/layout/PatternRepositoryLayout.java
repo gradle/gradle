@@ -24,10 +24,12 @@ import java.util.Set;
 /**
  * A Repository Layout that uses user-supplied patterns. Each pattern will be appended to the base URI for the repository.
  * At least one artifact pattern must be specified. If no ivy patterns are specified, then the artifact patterns will be used.
+ * If maven 2 compatible layout is requested, the '.' characters in 'organisation' value are replaced with '/'.
  */
 public class PatternRepositoryLayout extends RepositoryLayout {
     private final Set<String> artifactPatterns = new LinkedHashSet<String>();
     private final Set<String> ivyPatterns = new LinkedHashSet<String>();
+    private boolean m2compatible = false;
 
     /**
      * Adds an Ivy artifact pattern to define where artifacts are located in this repository.
@@ -45,6 +47,14 @@ public class PatternRepositoryLayout extends RepositoryLayout {
         ivyPatterns.add(pattern);
     }
 
+    /**
+     * Request maven 2 repository compatible 'organisation' processing. It replaces the '.' characters in 'organisation' value with '/'.
+     * @param m2compatible Is m2 compatible 'organisation' value requested. Defaulted to <code>false</code>.
+     */
+    public void m2compatible(boolean m2compatible) {
+        this.m2compatible = m2compatible;
+    }
+
     @Override
     public void apply(URI baseUri, PatternBasedResolver resolver) {
         if (baseUri == null) {
@@ -59,5 +69,7 @@ public class PatternRepositoryLayout extends RepositoryLayout {
         for (String ivyPattern : usedIvyPatterns) {
             resolver.addDescriptorLocation(baseUri, ivyPattern);
         }
+
+        resolver.setM2compatible(m2compatible);
     }
 }
