@@ -42,7 +42,7 @@ class PerformanceResultsTest extends Specification {
 
     def "passes when average execution time for current release is within specified range of average execution time for previous release"() {
         given:
-        result.accuracyMs = 10
+        result.maxExecutionTimeRegression = Amount.valueOf(10, SI.MILLI(SI.SECOND))
         result.previous.add(operation(executionTime: 100))
         result.previous.add(operation(executionTime: 100))
         result.previous.add(operation(executionTime: 100))
@@ -59,7 +59,7 @@ class PerformanceResultsTest extends Specification {
     def "fails when average execution time for current release is larger than average execution time for previous release"() {
         given:
         result.displayName = '<test>'
-        result.accuracyMs = 10
+        result.maxExecutionTimeRegression = Amount.valueOf(10, SI.MILLI(SI.SECOND))
         result.previous.add(operation(executionTime: 100))
         result.previous.add(operation(executionTime: 100))
         result.previous.add(operation(executionTime: 100))
@@ -95,7 +95,7 @@ class PerformanceResultsTest extends Specification {
 
     def "passes when average heap usage for current release is slightly larger than average heap usage for previous release"() {
         given:
-        result.maxMemoryRegression = 0.1
+        result.maxMemoryRegression = Amount.valueOf(100, NonSI.BYTE)
         result.previous.add(operation(heapUsed: 1000))
         result.previous.add(operation(heapUsed: 1000))
         result.previous.add(operation(heapUsed: 1000))
@@ -112,7 +112,7 @@ class PerformanceResultsTest extends Specification {
     def "fails when average heap usage for current release is larger than average heap usage for previous release"() {
         given:
         result.displayName = '<test>'
-        result.maxMemoryRegression = 0.1
+        result.maxMemoryRegression = Amount.valueOf(100, NonSI.BYTE)
         result.previous.add(operation(heapUsed: 1000))
         result.previous.add(operation(heapUsed: 1000))
         result.previous.add(operation(heapUsed: 1000))

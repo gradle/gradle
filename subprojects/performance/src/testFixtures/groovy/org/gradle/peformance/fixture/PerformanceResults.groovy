@@ -19,19 +19,21 @@ package org.gradle.peformance.fixture
 import org.gradle.api.logging.Logging
 import org.jscience.physics.amount.Amount
 
+import javax.measure.quantity.DataAmount
+import javax.measure.quantity.Duration
+import javax.measure.unit.NonSI
 import javax.measure.unit.SI
 
 import static PrettyCalculator.prettyBytes
 import static PrettyCalculator.prettyTime
 import static org.gradle.peformance.fixture.PrettyCalculator.toBytes
 import static org.gradle.peformance.fixture.PrettyCalculator.toMillis
-import static org.gradle.peformance.fixture.PrettyCalculator.toString
 
 public class PerformanceResults {
 
-    int accuracyMs
     String displayName
-    double maxMemoryRegression
+    Amount<Duration> maxExecutionTimeRegression = Amount.valueOf(0, SI.SECOND)
+    Amount<DataAmount> maxMemoryRegression = Amount.valueOf(0, NonSI.BYTE)
 
     private final static LOGGER = Logging.getLogger(PerformanceTestRunner.class)
 
@@ -73,8 +75,7 @@ public class PerformanceResults {
     }
 
     private String assertMemoryUsed() {
-        double maxRegression = maxMemoryRegression
-        def failed = (current.avgMemory() - (previous.avgMemory().times(maxRegression))) > previous.avgMemory()
+        def failed = (current.avgMemory() - previous.avgMemory()) > maxMemoryRegression
 
         String message;
         if (current.avgMemory() > previous.avgMemory()) {
@@ -82,13 +83,13 @@ public class PerformanceResults {
         } else {
             message = "Memory $displayName: AWESOME! current Gradle needs less memory on average :D"
         }
-        message += "\n${memoryStats(maxRegression)}"
+        message += "\n${memoryStats()}"
         println("\n$message")
         return failed ? message : null
     }
 
     private String assertCurrentReleaseIsNotSlower() {
-        def failed = (current.avgTime() - Amount.valueOf(accuracyMs, SI.MILLI(SI.SECOND))) > previous.avgTime()
+        def failed = (current.avgTime() - previous.avgTime()) > maxExecutionTimeRegression
 
         String message;
         if (current.avgTime() > previous.avgTime()) {
@@ -101,7 +102,7 @@ public class PerformanceResults {
         return failed ? message : null
     }
 
-    String memoryStats(double maxRegression) {
+    String memoryStats() {
         def result = new StringBuilder()
         result.append(memoryStats(previous))
         others.values().each {
@@ -110,7 +111,7 @@ public class PerformanceResults {
         result.append(memoryStats(current))
         def diff = current.avgMemory() - previous.avgMemory()
         def desc = diff > Amount.ZERO ? "more" : "less"
-        result.append("Difference: ${prettyBytes(diff.abs())} $desc (${toBytes(diff.abs())} B), ${PrettyCalculator.percentChange(current.avgMemory(), previous.avgMemory())}%, max regression: $maxRegression (${prettyBytes(previous.avgMemory().times(maxRegression))})")
+        result.append("Difference: ${prettyBytes(diff.abs())} $desc (${toBytes(diff.abs())} B), ${PrettyCalculator.percentChange(current.avgMemory(), previous.avgMemory())}%, max regression: ${prettyBytes(maxMemoryRegression)}")
         return result.toString()
     }
 
@@ -129,7 +130,7 @@ public class PerformanceResults {
         result.append(speedStats(current))
         def diff = current.avgTime() - previous.avgTime()
         def desc = diff > Amount.valueOf(0, SI.SECOND) ? "slower" : "faster"
-        result.append("Difference: ${prettyTime(diff.abs())} $desc (${toMillis(diff.abs())} ms), ${PrettyCalculator.percentChange(current.avgTime(), previous.avgTime())}%, max regression: $accuracyMs ms")
+        result.append("Difference: ${prettyTime(diff.abs())} $desc (${toMillis(diff.abs())} ms), ${PrettyCalculator.percentChange(current.avgTime(), previous.avgTime())}%, max regression: ${prettyTime(maxExecutionTimeRegression)}")
         return result.toString()
     }
 

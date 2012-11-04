@@ -18,6 +18,10 @@ package org.gradle.peformance.fixture
 
 import org.gradle.api.logging.Logging
 import org.gradle.integtests.fixtures.*
+import org.jscience.physics.amount.Amount
+
+import javax.measure.quantity.DataAmount
+import javax.measure.quantity.Duration
 
 public class PerformanceTestRunner {
 
@@ -29,8 +33,8 @@ public class PerformanceTestRunner {
     String testProject
     int runs
     int warmUpRuns
-    int accuracyMs
-    double maxMemoryRegression
+    Amount<Duration> maxExecutionTimeRegression
+    Amount<DataAmount> maxMemoryRegression
     List<String> otherVersions = []
     List<String> tasksToRun = []
     DataCollector dataCollector = new MemoryInfoCollector(outputFileName: "build/totalMemoryUsed.txt")
@@ -38,7 +42,7 @@ public class PerformanceTestRunner {
     PerformanceResults results
 
     PerformanceResults run() {
-        results = new PerformanceResults(accuracyMs: accuracyMs, maxMemoryRegression: maxMemoryRegression, displayName: "Results for test project '$testProject' with tasks ${tasksToRun.join(', ')}")
+        results = new PerformanceResults(maxExecutionTimeRegression: maxExecutionTimeRegression, maxMemoryRegression: maxMemoryRegression, displayName: "Results for test project '$testProject' with tasks ${tasksToRun.join(', ')}")
         results.previous.name = "Gradle ${previous.version}"
         otherVersions.each { results.others[it] = new MeasuredOperationList(name: "Gradle $it") }
 
