@@ -14,11 +14,6 @@
  * limitations under the License.
  */
 
-
-
-
-
-
 package org.gradle.api.publish.ivy
 
 import org.gradle.util.GradleVersion
@@ -171,7 +166,7 @@ credentials {
 
         and:
         failure.assertHasDescription('Execution failed for task \':publishToRepo\'.')
-        failure.assertHasCause('Could not publish configurations: \'archives\', \'default\'')
+        failure.assertHasCause('Could not publish configurations: [archives, default]')
         failure.assertThatCause(Matchers.containsString('Received status code 401 from server: Unauthorized'))
 
         where:
@@ -208,7 +203,7 @@ credentials {
 
         and:
         failure.assertHasDescription('Execution failed for task \':publishToRepo\'.')
-        failure.assertHasCause('Could not publish configurations: \'archives\', \'default\'')
+        failure.assertHasCause('Could not publish configurations: [archives, default]')
         failure.assertThatCause(Matchers.containsString('Received status code 500 from server: broken'))
 
         when:
@@ -219,7 +214,7 @@ credentials {
 
         and:
         failure.assertHasDescription('Execution failed for task \':publishToRepo\'.')
-        failure.assertHasCause('Could not publish configurations: \'archives\', \'default\'')
+        failure.assertHasCause('Could not publish configurations: [archives, default]')
         failure.assertHasCause("org.apache.http.conn.HttpHostConnectException: Connection to ${repositoryUrl} refused")
     }
 
