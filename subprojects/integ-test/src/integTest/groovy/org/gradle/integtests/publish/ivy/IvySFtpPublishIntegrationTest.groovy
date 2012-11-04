@@ -86,7 +86,7 @@ class IvySFtpPublishIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasDescription('Execution failed for task \':uploadArchives\'.')
-        failure.assertHasCause('Could not publish configuration: \'archives\'')
+        failure.assertHasCause('Could not publish configuration: [archives]')
         failure.assertHasCause("java.io.IOException: Auth fail")
     }
 }
