@@ -64,7 +64,7 @@ public class ErrorHandlingArtifactPublisherTest {
             fail()
         }
         catch(PublishException e) {
-            assertThat e.message, equalTo("Could not publish configuration: 'name'")
+            assertThat e.message, equalTo("Could not publish configuration: [name]")
             assertThat(e.cause, sameInstance((Throwable) failure));
         }
     }
