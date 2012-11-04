@@ -18,7 +18,6 @@ package org.gradle.api.internal.externalresource.transport;
 
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.externalresource.ExternalResource;
-import org.gradle.api.internal.externalresource.cached.CachedExternalResource;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceCandidates;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 
@@ -40,7 +39,7 @@ public interface ExternalResourceRepository {
      *
      * @return null if the resource is not found.
      */
-    ExternalResource getResource(String source, @Nullable LocallyAvailableResourceCandidates localCandidates, @Nullable CachedExternalResource cached) throws IOException;
+    ExternalResource getResource(String source, @Nullable LocallyAvailableResourceCandidates localCandidates) throws IOException;
 
     /**
      * Transfer a resource to the repository

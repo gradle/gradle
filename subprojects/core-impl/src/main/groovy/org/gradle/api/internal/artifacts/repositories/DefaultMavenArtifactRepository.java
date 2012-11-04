@@ -24,7 +24,6 @@ import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
-import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 import org.gradle.api.internal.file.FileResolver;
 
@@ -40,16 +39,13 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     private Object url;
     private List<Object> additionalUrls = new ArrayList<Object>();
     private final LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder;
-    private final CachedExternalResourceIndex<String> cachedExternalResourceIndex;
 
     public DefaultMavenArtifactRepository(FileResolver fileResolver, PasswordCredentials credentials, RepositoryTransportFactory transportFactory,
-                                          LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder,
-                                          CachedExternalResourceIndex<String> cachedExternalResourceIndex) {
+                                          LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder) {
         super(credentials);
         this.fileResolver = fileResolver;
         this.transportFactory = transportFactory;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
-        this.cachedExternalResourceIndex = cachedExternalResourceIndex;
     }
 
     public URI getUrl() {
@@ -82,7 +78,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
             throw new InvalidUserDataException("You must specify a URL for a Maven repository.");
         }
 
-        MavenResolver resolver = new MavenResolver(getName(), rootUri, getTransport(rootUri.getScheme()), locallyAvailableResourceFinder, cachedExternalResourceIndex);
+        MavenResolver resolver = new MavenResolver(getName(), rootUri, getTransport(rootUri.getScheme()), locallyAvailableResourceFinder);
         for (URI repoUrl : getArtifactUrls()) {
             resolver.addArtifactLocation(repoUrl, null);
         }

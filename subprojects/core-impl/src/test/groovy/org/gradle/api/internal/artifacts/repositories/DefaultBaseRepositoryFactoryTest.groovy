@@ -21,10 +21,12 @@ import org.apache.ivy.plugins.resolver.DependencyResolver
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.artifacts.repositories.ArtifactRepository
-import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.api.internal.artifacts.ArtifactPublisherFactory
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
+import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.util.JUnit4GroovyMockery
 import org.hamcrest.Matchers
@@ -32,10 +34,6 @@ import org.jmock.integration.junit4.JMock
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder
-import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex
-import org.gradle.api.internal.artifacts.ArtifactPublisherFactory
-
 /**
  * @author Hans Dockter
  */
@@ -51,7 +49,6 @@ class DefaultBaseRepositoryFactoryTest {
     final FileResolver fileResolver = context.mock(FileResolver.class)
     final RepositoryTransportFactory transportFactory = context.mock(RepositoryTransportFactory.class)
     final LocallyAvailableResourceFinder locallyAvailableResourceFinder = context.mock(LocallyAvailableResourceFinder.class)
-    final CachedExternalResourceIndex cachedExternalResourceIndex = context.mock(CachedExternalResourceIndex)
     final ArtifactPublisherFactory artifactPublisherFactory = context.mock(ArtifactPublisherFactory)
     final RepositoryCacheManager localCacheManager = context.mock(RepositoryCacheManager)
     final RepositoryCacheManager downloadingCacheManager = context.mock(RepositoryCacheManager)
@@ -59,7 +56,7 @@ class DefaultBaseRepositoryFactoryTest {
 
     final DefaultBaseRepositoryFactory factory = new DefaultBaseRepositoryFactory(
             localMavenRepoLocator, fileResolver, new DirectInstantiator(), transportFactory, locallyAvailableResourceFinder,
-            cachedExternalResourceIndex, progressLoggerFactory, localCacheManager, downloadingCacheManager, artifactPublisherFactory
+            progressLoggerFactory, localCacheManager, downloadingCacheManager, artifactPublisherFactory
     )
 
     @Before public void setup() {

@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.repositories.resolver
 
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
-import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder
 import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository
 import spock.lang.Specification
@@ -29,7 +28,6 @@ class MavenResolverTest extends Specification {
 
     def rootUri = URI.create("localhost:8081:/testrepo/")
     def locallyAvailableResourceFinder = Mock(LocallyAvailableResourceFinder)
-    def cachedExternalResourceIndex = Mock(CachedExternalResourceIndex)
 
     def setup() {
         repositoryTransport.getRepository() >> repository
@@ -38,13 +36,13 @@ class MavenResolverTest extends Specification {
     @Unroll
     def "setUseMavenMetaData '#value' adapts versionLister to #classname"() {
         setup:
-        org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver testresolver = new org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver("test maven resolver", rootUri, repositoryTransport, locallyAvailableResourceFinder, cachedExternalResourceIndex)
+        MavenResolver testresolver = new MavenResolver("test maven resolver", rootUri, repositoryTransport, locallyAvailableResourceFinder)
         when:
         testresolver.setUseMavenMetadata(value)
         then:
         testresolver.versionLister.class.name == classname
         where:
         value << [true, false]
-        classname << [org.gradle.api.internal.artifacts.repositories.resolver.ChainedVersionLister.class.name, ResourceVersionLister.class.name]
+        classname << [ChainedVersionLister.class.name, ResourceVersionLister.class.name]
     }
 }

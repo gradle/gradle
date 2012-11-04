@@ -251,7 +251,11 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
 
     protected RepositoryTransportFactory createRepositoryTransportFactory() {
         return new RepositoryTransportFactory(
-                get(ProgressLoggerFactory.class), get(LocalFileRepositoryCacheManager.class), get(DownloadingRepositoryCacheManager.class)
+                get(ProgressLoggerFactory.class),
+                get(LocalFileRepositoryCacheManager.class),
+                get(DownloadingRepositoryCacheManager.class),
+                new TmpDirTemporaryFileProvider(),
+                get(ByUrlCachedExternalResourceIndex.class)
         );
     }
 
@@ -300,7 +304,6 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                         instantiator,
                         get(RepositoryTransportFactory.class),
                         get(LocallyAvailableResourceFinder.class),
-                        get(ByUrlCachedExternalResourceIndex.class),
                         get(ProgressLoggerFactory.class),
                         get(LocalFileRepositoryCacheManager.class),
                         get(DownloadingRepositoryCacheManager.class),

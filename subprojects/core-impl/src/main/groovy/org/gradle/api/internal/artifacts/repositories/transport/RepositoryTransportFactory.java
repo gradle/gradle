@@ -17,28 +17,36 @@ package org.gradle.api.internal.artifacts.repositories.transport;
 
 import org.apache.ivy.core.cache.RepositoryCacheManager;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
+import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex;
 import org.gradle.api.internal.externalresource.transport.file.FileTransport;
 import org.gradle.api.internal.externalresource.transport.http.HttpTransport;
+import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.logging.ProgressLoggerFactory;
 
 public class RepositoryTransportFactory {
     private final RepositoryCacheManager downloadingCacheManager;
+    private final TemporaryFileProvider temporaryFileProvider;
+    private final CachedExternalResourceIndex<String> cachedExternalResourceIndex;
     private final RepositoryCacheManager localCacheManager;
     private final ProgressLoggerFactory progressLoggerFactory;
 
     public RepositoryTransportFactory(ProgressLoggerFactory progressLoggerFactory,
                                       RepositoryCacheManager localCacheManager,
-                                      RepositoryCacheManager downloadingCacheManager) {
+                                      RepositoryCacheManager downloadingCacheManager,
+                                      TemporaryFileProvider temporaryFileProvider,
+                                      CachedExternalResourceIndex<String> cachedExternalResourceIndex) {
         this.progressLoggerFactory = progressLoggerFactory;
         this.localCacheManager = localCacheManager;
         this.downloadingCacheManager = downloadingCacheManager;
+        this.temporaryFileProvider = temporaryFileProvider;
+        this.cachedExternalResourceIndex = cachedExternalResourceIndex;
     }
 
     public RepositoryTransport createHttpTransport(String name, PasswordCredentials credentials) {
-        return new HttpTransport(name, credentials, downloadingCacheManager, progressLoggerFactory);
+        return new HttpTransport(name, credentials, downloadingCacheManager, progressLoggerFactory, temporaryFileProvider, cachedExternalResourceIndex);
     }
 
     public RepositoryTransport createFileTransport(String name) {
-        return new FileTransport(name, localCacheManager);
+        return new FileTransport(name, localCacheManager, temporaryFileProvider);
     }
 }

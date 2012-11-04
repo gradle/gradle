@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
-import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 
 import java.net.URI;
@@ -27,10 +26,9 @@ public class IvyResolver extends ExternalResourceResolver implements PatternBase
     private final RepositoryTransport transport;
 
     public IvyResolver(String name, RepositoryTransport transport,
-                       LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder,
-                       CachedExternalResourceIndex<String> cachedExternalResourceIndex
+                       LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder
     ) {
-        super(name, transport.getRepository(), new ResourceVersionLister(transport.getRepository()), locallyAvailableResourceFinder, cachedExternalResourceIndex);
+        super(name, transport.getRepository(), new ResourceVersionLister(transport.getRepository()), locallyAvailableResourceFinder);
         this.transport = transport;
         this.transport.configureCacheManager(this);
     }

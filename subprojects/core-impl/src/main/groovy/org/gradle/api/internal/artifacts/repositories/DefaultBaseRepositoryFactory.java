@@ -26,7 +26,6 @@ import org.gradle.api.internal.artifacts.ArtifactPublisherFactory;
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
-import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.reflect.Instantiator;
@@ -45,7 +44,6 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
     private final Instantiator instantiator;
     private final RepositoryTransportFactory transportFactory;
     private final LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder;
-    private final CachedExternalResourceIndex<String> cachedExternalResourceIndex;
     private final ProgressLoggerFactory progressLoggerFactory;
     private final RepositoryCacheManager localCacheManager;
     private final RepositoryCacheManager downloadingCacheManager;
@@ -56,7 +54,6 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
                                         Instantiator instantiator,
                                         RepositoryTransportFactory transportFactory,
                                         LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder,
-                                        CachedExternalResourceIndex<String> cachedExternalResourceIndex,
                                         ProgressLoggerFactory progressLoggerFactory,
                                         RepositoryCacheManager localCacheManager,
                                         RepositoryCacheManager downloadingCacheManager,
@@ -66,7 +63,6 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
         this.instantiator = instantiator;
         this.transportFactory = transportFactory;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
-        this.cachedExternalResourceIndex = cachedExternalResourceIndex;
         this.progressLoggerFactory = progressLoggerFactory;
         this.localCacheManager = localCacheManager;
         this.downloadingCacheManager = downloadingCacheManager;
@@ -117,13 +113,13 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
 
     public IvyArtifactRepository createIvyRepository() {
         return instantiator.newInstance(DefaultIvyArtifactRepository.class, fileResolver, createPasswordCredentials(), transportFactory,
-                locallyAvailableResourceFinder, cachedExternalResourceIndex, artifactPublisherFactory
+                locallyAvailableResourceFinder, artifactPublisherFactory
         );
     }
 
     public MavenArtifactRepository createMavenRepository() {
         return instantiator.newInstance(DefaultMavenArtifactRepository.class, fileResolver, createPasswordCredentials(), transportFactory,
-                locallyAvailableResourceFinder, cachedExternalResourceIndex
+                locallyAvailableResourceFinder
         );
     }
 

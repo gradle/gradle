@@ -17,25 +17,33 @@ package org.gradle.api.internal.externalresource.transport.file;
 
 import org.apache.ivy.core.cache.RepositoryCacheManager;
 import org.apache.ivy.plugins.resolver.AbstractResolver;
+import org.gradle.api.Nullable;
+import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
+import org.gradle.api.internal.externalresource.ExternalResource;
+import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceCandidates;
+import org.gradle.api.internal.externalresource.transfer.CacheAwareExternalResourceAccessor;
 import org.gradle.api.internal.externalresource.transport.DefaultExternalResourceRepository;
 import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository;
-import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
+import org.gradle.api.internal.file.TemporaryFileProvider;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 
 public class FileTransport implements RepositoryTransport {
     private final String name;
     private final RepositoryCacheManager repositoryCacheManager;
+    private final TemporaryFileProvider temporaryFileProvider;
 
-    public FileTransport(String name, RepositoryCacheManager repositoryCacheManager) {
+    public FileTransport(String name, RepositoryCacheManager repositoryCacheManager, TemporaryFileProvider temporaryFileProvider) {
         this.name = name;
         this.repositoryCacheManager = repositoryCacheManager;
+        this.temporaryFileProvider = temporaryFileProvider;
     }
 
     public ExternalResourceRepository getRepository() {
         FileResourceConnector connector = new FileResourceConnector();
-        return new DefaultExternalResourceRepository(name, connector, connector, connector);
+        return new DefaultExternalResourceRepository(name, connector, connector, connector, temporaryFileProvider, new NoOpCacheAwareExternalResourceAccessor(connector));
     }
 
     public void configureCacheManager(AbstractResolver resolver) {
@@ -51,5 +59,17 @@ public class FileTransport implements RepositoryTransport {
             return path;
         }
         return path + "/";
+    }
+
+    private static class NoOpCacheAwareExternalResourceAccessor implements CacheAwareExternalResourceAccessor {
+        private final FileResourceConnector connector;
+
+        public NoOpCacheAwareExternalResourceAccessor(FileResourceConnector connector) {
+            this.connector = connector;
+        }
+
+        public ExternalResource getResource(String source, @Nullable LocallyAvailableResourceCandidates localCandidates) throws IOException {
+            return connector.getResource(source);
+        }
     }
 }

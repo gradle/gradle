@@ -106,7 +106,7 @@ public class DownloadingRepositoryCacheManager extends AbstractRepositoryCacheMa
 
     private File downloadArtifactFile(final Artifact artifact, final ResourceDownloader resourceDownloader, final ResolvedResource artifactRef) throws IOException {
         final Resource resource = artifactRef.getResource();
-        final File tmpFile = temporaryFileProvider.createTemporaryFile("download", "bin");
+        final File tmpFile = temporaryFileProvider.createTemporaryFile("gradle_download", "bin");
         try {
             resourceDownloader.download(artifact, resource, tmpFile);
             return cacheLockingManager.useCache(String.format("Store %s", artifact), new Factory<File>() {

@@ -26,7 +26,6 @@ import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.apache.ivy.plugins.resolver.util.ResourceMDParser;
 import org.apache.ivy.util.Message;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
-import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 import org.gradle.api.internal.resource.ResourceNotFoundException;
 import org.gradle.api.resources.ResourceException;
@@ -51,13 +50,11 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
     private final MavenMetadataLoader mavenMetaDataLoader;
 
     public MavenResolver(String name, URI rootUri, RepositoryTransport transport,
-                         LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder,
-                         CachedExternalResourceIndex<String> cachedExternalResourceIndex) {
+                         LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder) {
         super(name,
                 transport.getRepository(),
                 new ChainedVersionLister(new MavenVersionLister(transport.getRepository()), new ResourceVersionLister(transport.getRepository())),
-                locallyAvailableResourceFinder,
-                cachedExternalResourceIndex);
+                locallyAvailableResourceFinder);
         transport.configureCacheManager(this);
 
         this.mavenMetaDataLoader = new MavenMetadataLoader(transport.getRepository());

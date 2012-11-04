@@ -49,8 +49,6 @@ import org.gradle.api.internal.artifacts.repositories.cachemanager.EnhancedArtif
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.MetaDataOnlyExternalResource;
 import org.gradle.api.internal.externalresource.MissingExternalResource;
-import org.gradle.api.internal.externalresource.cached.CachedExternalResource;
-import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceCandidates;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
@@ -72,7 +70,6 @@ public class ExternalResourceResolver extends BasicResolver {
     private boolean m2compatible;
     private final ExternalResourceRepository repository;
     private final LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder;
-    private final CachedExternalResourceIndex<String> cachedExternalResourceIndex;
     protected VersionLister versionLister;
     private ArtifactResourceResolver artifactResourceResolver = new ArtifactResourceResolver() {
         public ResolvedResource resolve(Artifact artifact) {
@@ -88,14 +85,12 @@ public class ExternalResourceResolver extends BasicResolver {
     public ExternalResourceResolver(String name,
                                     ExternalResourceRepository repository,
                                     VersionLister versionLister,
-                                    LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder,
-                                    CachedExternalResourceIndex<String> cachedExternalResourceIndex
+                                    LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder
     ) {
         setName(name);
         this.versionLister = versionLister;
         this.repository = repository;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
-        this.cachedExternalResourceIndex = cachedExternalResourceIndex;
     }
 
     protected ExternalResourceRepository getRepository() {
@@ -146,8 +141,6 @@ public class ExternalResourceResolver extends BasicResolver {
                 madr.setDownloadStatus(DownloadStatus.NO);
                 madr.setSearched(true);
                 rmr = new ResolvedModuleRevision(this, this, systemMd, madr, isForce());
-                getRepositoryCacheManager().cacheModuleDescriptor(this, artifactRef, toSystem(dd),
-                        systemMd.getAllArtifacts()[0], null, getCacheOptions(data));
             }
         } else {
             if (ivyRef instanceof MDResolvedResource) {
@@ -521,8 +514,7 @@ public class ExternalResourceResolver extends BasicResolver {
             if (forDownload) {
                 ArtifactRevisionId arid = target.getId();
                 LocallyAvailableResourceCandidates localCandidates = locallyAvailableResourceFinder.findCandidates(arid);
-                CachedExternalResource cached = cachedExternalResourceIndex.lookup(source);
-                ExternalResource resource = repository.getResource(source, localCandidates, cached);
+                ExternalResource resource = repository.getResource(source, localCandidates);
                 return resource == null ? new MissingExternalResource(source) : resource;
             } else {
                 // TODO - there's a potential problem here in that we don't carry correct isLocal data in MetaDataOnlyExternalResource

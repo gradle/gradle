@@ -18,12 +18,13 @@ package org.gradle.api.internal.externalresource.transport;
 
 
 import org.gradle.api.internal.externalresource.ExternalResource;
-import org.gradle.api.internal.externalresource.cached.CachedExternalResource;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceCandidates;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
-import org.gradle.api.internal.externalresource.transfer.*;
+import org.gradle.api.internal.externalresource.transfer.CacheAwareExternalResourceAccessor;
+import org.gradle.api.internal.externalresource.transfer.ExternalResourceAccessor;
+import org.gradle.api.internal.externalresource.transfer.ExternalResourceLister;
+import org.gradle.api.internal.externalresource.transfer.ExternalResourceUploader;
 import org.gradle.api.internal.file.TemporaryFileProvider;
-import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.GFileUtils;
@@ -37,8 +38,7 @@ import java.util.List;
 
 public class DefaultExternalResourceRepository implements ExternalResourceRepository {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultExternalResourceRepository.class);
-    private final TemporaryFileProvider temporaryFileProvider = new TmpDirTemporaryFileProvider();
-
+    private final TemporaryFileProvider temporaryFileProvider;
     private final String name;
     private final ExternalResourceAccessor accessor;
     private final ExternalResourceUploader uploader;
@@ -46,21 +46,23 @@ public class DefaultExternalResourceRepository implements ExternalResourceReposi
 
     private final CacheAwareExternalResourceAccessor cacheAwareAccessor;
 
-    public DefaultExternalResourceRepository(String name, ExternalResourceAccessor accessor, ExternalResourceUploader uploader, ExternalResourceLister lister) {
+    public DefaultExternalResourceRepository(String name, ExternalResourceAccessor accessor, ExternalResourceUploader uploader,
+                                             ExternalResourceLister lister, TemporaryFileProvider temporaryFileProvider,
+                                             CacheAwareExternalResourceAccessor cacheAwareAccessor) {
         this.name = name;
         this.accessor = accessor;
         this.uploader = uploader;
         this.lister = lister;
-
-        this.cacheAwareAccessor = new DefaultCacheAwareExternalResourceAccessor(accessor);
+        this.temporaryFileProvider = temporaryFileProvider;
+        this.cacheAwareAccessor = cacheAwareAccessor;
     }
 
     public ExternalResource getResource(String source) throws IOException {
         return accessor.getResource(source);
     }
 
-    public ExternalResource getResource(String source, LocallyAvailableResourceCandidates localCandidates, CachedExternalResource cached) throws IOException {
-        return cacheAwareAccessor.getResource(source, localCandidates, cached);
+    public ExternalResource getResource(String source, LocallyAvailableResourceCandidates localCandidates) throws IOException {
+        return cacheAwareAccessor.getResource(source, localCandidates);
     }
 
     public ExternalResourceMetaData getResourceMetaData(String source) throws IOException {
@@ -79,7 +81,7 @@ public class DefaultExternalResourceRepository implements ExternalResourceReposi
     }
 
     private File createChecksumFile(File src, String algorithm, int checksumlength) {
-        File csFile = temporaryFileProvider.createTemporaryFile("ivytemp", algorithm);
+        File csFile = temporaryFileProvider.createTemporaryFile("gradle_upload", algorithm);
         HashValue hash = HashUtil.createHash(src, algorithm);
         String formattedHashString = formatHashString(hash.asHexString(), checksumlength);
         GFileUtils.writeFile(formattedHashString, csFile, "US-ASCII");
