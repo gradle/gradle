@@ -19,7 +19,6 @@ import org.gradle.integtests.fixture.M2Installation
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.MavenModule
 import org.gradle.util.SetSystemProperties
-import org.gradle.util.TestFile
 import org.junit.Rule
 
 import static org.hamcrest.Matchers.containsString
@@ -45,11 +44,11 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractIntegrationSpec {
                 }"""
     }
 
-    public void "can resolve artifacts from local m2 with not existing user settings.xml"() {
+    public void "can resolve artifacts from local m2 when user settings.xml does not exist"() {
         given:
         def m2 = localM2()
-        def moduleA = m2.mavenRepo().module('group', 'projectA', '1.2')
-        moduleA.publish()
+        def moduleA = m2.mavenRepo().module('group', 'projectA', '1.2').publish()
+
         and:
         withM2(m2)
 
@@ -61,68 +60,50 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractIntegrationSpec {
 
     }
 
-    public void "can resolve artifacts from local m2 with custom localRepository defined in user settings.xml"() {
+    public void "can resolve artifacts from local m2 with custom local repository defined in user settings.xml"() {
         given:
         def artifactRepo = maven("artifactrepo")
-        def m2 = localM2() {
-            userSettingsFile << """<settings>
-                        <localRepository>${artifactRepo.rootDir.absolutePath}</localRepository>
-                    </settings>"""
-        }
-        def moduleA = artifactRepo.module('group', 'projectA', '1.2')
-        moduleA.publish()
+        def m2 = localM2().generateUserSettingsFile(artifactRepo)
+        def moduleA = artifactRepo.module('group', 'projectA', '1.2').publish()
+
+        and:
+        withM2(m2)
 
         when:
-        withM2(m2)
         run 'retrieve'
 
         then:
         hasArtifact(moduleA)
     }
 
-    public void "can resolve artifacts from local m2 with custom localRepository defined in global settings.xml"() {
+    public void "can resolve artifacts from local m2 with custom local repository defined in global settings.xml"() {
         given:
         def artifactRepo = maven("artifactrepo")
-        def m2 = localM2() {
-            createGlobalSettingsFile(file("global_M2")) << """<settings>
-                        <localRepository>${artifactRepo.rootDir.absolutePath}</localRepository>
-                    </settings>"""
-        }
+        def m2 = localM2().generateGlobalSettingsFile(artifactRepo)
+        def moduleA = artifactRepo.module('group', 'projectA', '1.2').publish()
 
-        def moduleA = artifactRepo.module('group', 'projectA', '1.2')
-        moduleA.publish()
+        and:
+        withM2(m2)
 
         when:
-        withM2(m2)
         run 'retrieve'
 
         then:
         hasArtifact(moduleA)
     }
 
-    public void "localRepository in user settings take precedence over the localRepository global settings"() {
+    public void "local repository in user settings take precedence over the local repository global settings"() {
         given:
         def globalRepo = maven("globalArtifactRepo")
         def userRepo = maven("userArtifactRepo")
-        def m2 = localM2() {
-            createGlobalSettingsFile(file("global_M2")) << """<settings>
-                            <localRepository>${globalRepo.rootDir.absolutePath}</localRepository>
-                        </settings>"""
-            userSettingsFile << """<settings>
-                                    <localRepository>${userRepo.rootDir.absolutePath}</localRepository>
-                                </settings>"""
+        def m2 = localM2().generateGlobalSettingsFile(globalRepo).generateUserSettingsFile(userRepo)
+        def moduleA = userRepo.module('group', 'projectA', '1.2').publish()
+        globalRepo.module('group', 'projectA', '1.2').publishWithChangedContent()
 
-        }
-
-        def moduleA = userRepo.module('group', 'projectA', '1.2')
-        moduleA.publish()
-
-        def globalModuleA = globalRepo.module('group', 'projectA', '1.2')
-        globalModuleA.publishWithChangedContent() // to ensure that resulting artifact
-                                                  // has different hash than userModuleA.artifactFile
+        and:
+        withM2(m2)
 
         when:
-        withM2(m2)
         run 'retrieve'
 
         then:
@@ -131,12 +112,13 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractIntegrationSpec {
 
     public void "fail with meaningful error message if settings.xml is invalid"() {
         given:
-        def m2 = localM2() {
-            userSettingsFile << "invalid content"
-        }
+        def m2 = localM2()
+        m2.userSettingsFile << "invalid content"
+
+        and:
+        withM2(m2)
 
         when:
-        withM2(m2)
         def failure = runAndFail('retrieve')
 
         then:
@@ -145,17 +127,21 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractIntegrationSpec {
 
     public void "mavenLocal is ignored if no local maven repository exists"() {
         given:
+        def m2 = localM2()
         def anotherRepo = maven("another-local-repo")
-        def moduleA = anotherRepo.module('group', 'projectA', '1.2')
-        moduleA.publishWithChangedContent();
+        def moduleA = anotherRepo.module('group', 'projectA', '1.2').publishWithChangedContent()
 
-        when:
+        and:
         buildFile << """
         repositories{
             maven { url "${anotherRepo.uri}" }
         }
         """
 
+        and:
+        withM2(m2)
+
+        when:
         run 'retrieve'
 
         then:
@@ -170,23 +156,13 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def withM2(M2Installation m2) {
-        executer.withUserHomeDir(m2.userM2Directory.parentFile)
+        executer.withUserHomeDir(m2.userHomeDir)
         if (m2.globalMavenDirectory?.exists()) {
             executer.withEnvironmentVars(M2_HOME:m2.globalMavenDirectory.absolutePath)
         }
     }
 
     M2Installation localM2() {
-        TestFile testUserHomeDir = distribution.getUserHomeDir()
-        TestFile userM2Dir = testUserHomeDir.file(".m2")
-        new M2Installation(userM2Dir)
-    }
-
-    M2Installation localM2(Closure configClosure) {
-        M2Installation m2 = localM2()
-        configClosure.setDelegate(m2)
-        configClosure.setResolveStrategy(Closure.DELEGATE_FIRST)
-        configClosure.call()
-        m2
+        new M2Installation(testDir)
     }
 }

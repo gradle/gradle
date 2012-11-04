@@ -18,24 +18,38 @@ package org.gradle.integtests.fixture
 
 import org.gradle.integtests.fixtures.MavenFileRepository
 import org.gradle.util.TestFile
-import org.gradle.integtests.fixtures.MavenRepository
 
 class M2Installation {
+    final TestFile userHomeDir
     final TestFile userM2Directory
     final TestFile userSettingsFile
-    TestFile globalMavenDirectory = null;
+    final TestFile globalMavenDirectory
 
     public M2Installation(TestFile m2Directory) {
-        this.userM2Directory = m2Directory;
-        this.userSettingsFile = m2Directory.file("settings.xml")
+        userHomeDir = m2Directory.createDir("maven_home")
+        userM2Directory = userHomeDir.createDir(".m2")
+        userSettingsFile = userM2Directory.file("settings.xml")
+        globalMavenDirectory = userHomeDir.createDir("m2_home")
     }
 
-    MavenRepository mavenRepo() {
+    MavenFileRepository mavenRepo() {
         new MavenFileRepository(userM2Directory.file("repository"))
     }
 
-    TestFile createGlobalSettingsFile(TestFile globalMavenDirectory) {
-        this.globalMavenDirectory = globalMavenDirectory;
-        globalMavenDirectory.file("conf/settings.xml").createFile()
+    M2Installation generateUserSettingsFile(MavenFileRepository userRepository) {
+        userSettingsFile.text = """
+<settings>
+    <localRepository>${userRepository.rootDir.absolutePath}</localRepository>
+</settings>"""
+        return this
+    }
+
+    M2Installation generateGlobalSettingsFile(MavenFileRepository globalRepository = mavenRepo()) {
+        def settings = globalMavenDirectory.file("conf/settings.xml").createFile()
+        settings.text = """
+<settings>
+    <localRepository>${globalRepository.rootDir.absolutePath}</localRepository>
+</settings>"""
+        return this
     }
 }
