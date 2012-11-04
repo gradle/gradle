@@ -79,19 +79,19 @@ public abstract class CollectionUtils {
         return destination;
     }
 
-    public static <R, I> List<R> collect(List<? extends I> list, Transformer<R, I> transformer) {
+    public static <R, I> List<R> collect(List<? extends I> list, Transformer<R, ? super I> transformer) {
         return collect(list, new ArrayList<R>(list.size()), transformer);
     }
 
-    public static <R, I> List<R> collect(I[] list, Transformer<R, I> transformer) {
+    public static <R, I> List<R> collect(I[] list, Transformer<R, ? super I> transformer) {
         return collect(Arrays.asList(list), transformer);
     }
 
-    public static <R, I> Set<R> collect(Set<? extends I> set, Transformer<R, I> transformer) {
+    public static <R, I> Set<R> collect(Set<? extends I> set, Transformer<R, ? super I> transformer) {
         return collect(set, new HashSet<R>(), transformer);
     }
 
-    public static <R, I, C extends Collection<R>> C collect(Iterable<? extends I> source, C destination, Transformer<R, I> transformer) {
+    public static <R, I, C extends Collection<R>> C collect(Iterable<? extends I> source, C destination, Transformer<R, ? super I> transformer) {
         for (I item : source) {
             destination.add(transformer.transform(item));
         }

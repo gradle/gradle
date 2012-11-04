@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal;
 
+import org.gradle.api.Named;
+import org.gradle.api.Namer;
 import org.gradle.api.Transformer;
 
 /**
@@ -73,6 +75,39 @@ public abstract class Transformers {
     private static class ToStringTransformer implements Transformer<String, Object> {
         public String transform(Object original) {
             return original == null ? null : original.toString();
+        }
+    }
+
+    /**
+     * Returns a transformer that names {@link Named} objects.
+     *
+     * Nulls are returned as null.
+     *
+     * @return The naming transformer.
+     */
+    public static Transformer<String, Named> name() {
+        return name(new Named.Namer());
+    }
+
+    /**
+     * Returns a transformer that names objects with the given {@link Namer}
+     * @param namer The namer to name the objects with
+     * @param <T> The type of objects to be named
+     * @return The naming transformer.
+     */
+    public static <T> Transformer<String, T> name(Namer<? super T> namer) {
+        return new ToNameTransformer<T>(namer);
+    }
+
+    private static class ToNameTransformer<T> implements Transformer<String, T> {
+        private final Namer<? super T> namer;
+
+        public ToNameTransformer(Namer<? super T> namer) {
+            this.namer = namer;
+        }
+
+        public String transform(T thing) {
+            return thing == null ? null : namer.determineName(thing);
         }
     }
 

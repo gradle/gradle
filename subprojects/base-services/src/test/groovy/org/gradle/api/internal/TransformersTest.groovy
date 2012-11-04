@@ -16,10 +16,11 @@
 
 package org.gradle.api.internal
 
+import org.gradle.api.Named
+import org.gradle.api.Namer
 import spock.lang.Specification
 
-import static org.gradle.api.internal.Transformers.asString
-import static org.gradle.api.internal.Transformers.cast
+import static org.gradle.api.internal.Transformers.*
 
 class TransformersTest extends Specification {
 
@@ -46,5 +47,28 @@ class TransformersTest extends Specification {
         expect:
         asString().transform(1) == "1"
         asString().transform(null) == null
+    }
+
+    def "naming"() {
+        expect:
+        name().transform(named("foo")) == "foo"
+        name().transform(named(null)) == null
+
+        and:
+        def namer = new Namer() {
+            String determineName(Object object) {
+                object.toString()
+            }
+        }
+
+        name(namer).transform(3) == "3"
+    }
+
+    Named named(String name) {
+        new Named() {
+            String getName() {
+                name
+            }
+        }
     }
 }
