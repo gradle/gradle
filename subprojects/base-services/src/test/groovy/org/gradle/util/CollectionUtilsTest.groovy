@@ -191,12 +191,12 @@ class CollectionUtilsTest extends Specification {
 
     def "joining"() {
         expect:
-        join(",", [1,2,3]) == "1,2,3"
+        join(",", [1, 2, 3]) == "1,2,3"
         join(",", [1]) == "1"
         join(",", []) == ""
 
         and:
-        join(",", [1,2,3].toArray()) == "1,2,3"
+        join(",", [1, 2, 3].toArray()) == "1,2,3"
         join(",", [1].toArray()) == "1"
         join(",", [].toArray()) == ""
     }
@@ -207,5 +207,11 @@ class CollectionUtilsTest extends Specification {
 
     Transformer<?, ?> transformer(Closure c) {
         c as Transformer
+    }
+
+    def "addAll"() {
+        expect:
+        addAll([], [1, 2, 3] as Iterable) == [1, 2, 3]
+        addAll([] as Set, [1, 2, 3, 1] as Iterable) == [1, 2, 3] as Set
     }
 }
