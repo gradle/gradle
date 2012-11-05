@@ -104,9 +104,10 @@ Groovy: [`ScalaCompile.fork = true`](dsl/org.gradle.api.tasks.scala.ScalaCompile
 activates external compilation, and [`ScalaCompile.forkOptions`](dsl/org.gradle.api.tasks.scala.ScalaCompile.html#org.gradle.api.tasks.scala.ScalaCompile:forkOptions)
 allows to adjust memory settings.
 
-### ScalaIDE integration
+### Improved Scala IDE integration
 
-The [Eclipse Plugin](http://gradle.org/docs/current/userguide/eclipse_plugin.html) has improved Scala support by generating classpath entries for the [Scala IDE](http://scala-ide.org).
+The [Eclipse Plugin](http://gradle.org/docs/current/userguide/eclipse_plugin.html) now automatically excludes dependencies already provided by the
+ 'Scala Library' class path container. This is necessary for [Scala IDE](http://scala-ide.org) to work correctly.
 
 ## Promoted features
 
@@ -214,6 +215,6 @@ We would like to thank the following community members for making contributions 
 * Gerd Aschemann - fixes for `application` plugins generated shell scripts (GRADLE-2501)
 * Cruz Fernandez - fixes to the properties sample project
 * Fadeev Alexandr - fixes for Gradle Daemon on Win 7 when `PATH` env var is not set (GRADLE-2461)
-* Ben Manes - ScalaIDE integration
+* Ben Manes - improved Scala IDE integration (https://github.com/gradle/gradle/pull/99)
 
-We love getting contributions from the Gradle community. For information on contributing, please see (gradle.org/contribute)[http://gradle.org/contribute]
+We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
