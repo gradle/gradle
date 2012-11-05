@@ -31,10 +31,11 @@ import java.util.LinkedHashSet;
  */
 public class CompositeDomainObjectSet<T> extends DefaultDomainObjectSet<T> {
 
-    private Spec<? super T> uniqueSpec = new ItemIsUniqueInCompositeSpec();
-    private Spec<? super T> notInSpec = new ItemNotInCompositeSpec();
+    private Spec<T> uniqueSpec = new ItemIsUniqueInCompositeSpec();
+    private Spec<T> notInSpec = new ItemNotInCompositeSpec();
     
     public CompositeDomainObjectSet(Class<T> type) {
+        //noinspection unchecked
         super(type, new CompositeCollection());
     }
 
@@ -66,6 +67,7 @@ public class CompositeDomainObjectSet<T> extends DefaultDomainObjectSet<T> {
         }
     }
 
+    @SuppressWarnings("unchecked")
     protected CompositeCollection getStore() {
         return (CompositeCollection)super.getStore();
     }
@@ -93,10 +95,12 @@ public class CompositeDomainObjectSet<T> extends DefaultDomainObjectSet<T> {
     }
 
     public Iterator<T> iterator() {
+        //noinspection unchecked
         return new LinkedHashSet<T>(getStore()).iterator();
     }
 
     public int size() {
+        //noinspection unchecked
         return new LinkedHashSet<T>(getStore()).size();
     }
     

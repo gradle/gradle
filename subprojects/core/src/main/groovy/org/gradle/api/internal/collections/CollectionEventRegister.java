@@ -34,11 +34,11 @@ public class CollectionEventRegister<T> {
         this.removeActions = removeActions;
     }
 
-    public Action<? super T> getAddAction() {
+    public Action<T> getAddAction() {
         return addActions;
     }   
     
-    public Action<? super  T> getRemoveAction() {
+    public Action<T> getRemoveAction() {
         return removeActions;
     }
     
