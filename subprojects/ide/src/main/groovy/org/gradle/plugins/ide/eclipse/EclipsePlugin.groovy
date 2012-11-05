@@ -144,17 +144,16 @@ class EclipsePlugin extends IdePlugin {
                         project.sourceSets.main.output.dirs + project.sourceSets.test.output.dirs
                     }
                 }
+
                 project.plugins.withType(ScalaBasePlugin) {
                     classpath.containers 'org.scala-ide.sdt.launching.SCALA_CONTAINER'
 
-                    //remove the dependencies also provided by ScalaIDE
-                    project.gradle.projectsEvaluated {
-                        def provided = ["scala-library", "scala-swing", "scala-dbc"] as Set
-                        def dependencies = project.configurations.collectMany {
-                            it.getAllDependencies()
-                        }.grep{ it.name in provided }.unique().toArray([] as Dependency[])
-                        if (dependencies != []) {
-                            classpath.minusConfigurations += project.configurations.detachedConfiguration(dependencies)
+                    // exclude the dependencies already provided by SCALA_CONTAINER; prevents problems with Eclipse Scala plugin
+                    task.doFirst {
+                        def provided = ["scala-library", "scala-swing", "scala-dbc"]
+                        def dependencies = classpath.plusConfigurations.collectMany { it.allDependencies }.findAll { it.name in provided }
+                        if (!dependencies.empty) {
+                            classpath.minusConfigurations += project.configurations.detachedConfiguration(dependencies as Dependency[])
                         }
                     }
                 }
