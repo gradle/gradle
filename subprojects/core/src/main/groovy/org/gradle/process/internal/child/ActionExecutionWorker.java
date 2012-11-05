@@ -34,12 +34,12 @@ import java.io.Serializable;
  */
 public class ActionExecutionWorker implements Action<WorkerContext>, Serializable {
     private static final Logger LOGGER = LoggerFactory.getLogger(ActionExecutionWorker.class);
-    private final Action<WorkerProcessContext> action;
+    private final Action<? super WorkerProcessContext> action;
     private final Object workerId;
     private final String displayName;
     private final Address serverAddress;
 
-    public ActionExecutionWorker(Action<WorkerProcessContext> action, Object workerId, String displayName,
+    public ActionExecutionWorker(Action<? super WorkerProcessContext> action, Object workerId, String displayName,
                                  Address serverAddress) {
         this.action = action;
         this.workerId = workerId;

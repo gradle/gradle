@@ -16,7 +16,11 @@
 
 package org.gradle.api.artifacts.result;
 
+import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+
+import java.util.Set;
 
 /**
  * Contains the information about the resolution result.
@@ -32,7 +36,58 @@ public interface ResolutionResult {
      * You can walk the graph recursively from the root to obtain information about resolved dependencies.
      * For example, Gradle's built-in 'dependencies' uses it to render the dependency tree.
      *
-     * @return the root of the resolved dependency graph
+     * @return the root node of the resolved dependency graph
      */
     ResolvedModuleVersionResult getRoot();
+
+    /**
+     * Retrieves all dependencies, including unresolved dependencies.
+     * Resolved dependencies are represented by instances of {@link ResolvedDependencyResult},
+     * unresolved dependencies by {@link UnresolvedDependencyResult}.
+     *
+     * In dependency graph terminology, this method returns the edges of the graph.
+     *
+     * @return all dependencies, including unresolved dependencies.
+     */
+    Set<? extends DependencyResult> getAllDependencies();
+
+    /**
+     * Applies given action for each dependency.
+     * An instance of {@link DependencyResult} is passed as parameter to the action.
+     *
+     * @param action - action that is applied for each dependency
+     */
+    void allDependencies(Action<? super DependencyResult> action);
+
+    /**
+     * Applies given closure for each dependency.
+     * An instance of {@link DependencyResult} is passed as parameter to the closure.
+     *
+     * @param closure - closure that is applied for each dependency
+     */
+    void allDependencies(Closure closure);
+
+    /**
+     * Retrieves all instances of {@link ResolvedModuleVersionResult} from the graph,
+     * e.g. all nodes of the dependency graph.
+     *
+     * @return all nodes of the dependency graph.
+     */
+    Set<ResolvedModuleVersionResult> getAllModuleVersions();
+
+    /**
+     * Applies given action for each module.
+     * An instance of {@link ResolvedModuleVersionResult} is passed as parameter to the action.
+     *
+     * @param action - action that is applied for each module
+     */
+    void allModuleVersions(Action<? super ResolvedModuleVersionResult> action);
+
+    /**
+     * Applies given closure for each module.
+     * An instance of {@link ResolvedModuleVersionResult} is passed as parameter to the closure.
+     *
+     * @param closure - closure that is applied for each module
+     */
+    void allModuleVersions(Closure closure);
 }

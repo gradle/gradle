@@ -24,15 +24,18 @@ import org.apache.ivy.core.resolve.ResolveOptions
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher
 import org.apache.ivy.plugins.matcher.PatternMatcher
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact
-import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.EnhancedDependencyDescriptor
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedConfigurationListener
 import org.gradle.api.specs.Spec
 import spock.lang.Specification
 import org.apache.ivy.core.module.descriptor.*
 import org.gradle.api.artifacts.*
 import org.gradle.api.internal.artifacts.ivyservice.*
+
+import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 
 class DependencyGraphBuilderTest extends Specification {
     final ModuleDescriptorConverter moduleDescriptorConverter = Mock()
@@ -78,19 +81,21 @@ class DependencyGraphBuilderTest extends Specification {
         def a = revision("a")
         def b = revision("b")
         def c = revision("c")
+        def d = revision("d")
         traverses root, a
         traverses root, b
         traverses a, c
+        traversesMissing a, d
 
         when:
         builder.resolve(configuration, resolveData, listener)
 
         then:
-        1 * listener.start(new ResolvedConfigurationIdentifier("group", "root", "1.0", "root"))
+        1 * listener.start(newId("group", "root", "1.0"))
         then:
-        1 * listener.resolvedConfiguration({ it.moduleName == 'root' }, { it*.requested.name == ['a', 'b'] } )
+        1 * listener.resolvedConfiguration({ it.name == 'root' }, { it*.requested.name == ['a', 'b'] } )
         then:
-        1 * listener.resolvedConfiguration({ it.moduleName == 'a' },    { it*.requested.name == ['c'] } )
+        1 * listener.resolvedConfiguration({ it.name == 'a' },    { it*.requested.name == ['c', 'd'] && it*.failure.count { it != null } == 1 } )
     }
 
     def "does not resolve a given dynamic module selector more than once"() {
@@ -529,7 +534,7 @@ class DependencyGraphBuilderTest extends Specification {
         then:
         result.unresolvedModuleDependencies.size() == 1
         def unresolved = result.unresolvedModuleDependencies.iterator().next()
-        unresolved.selector == new DefaultModuleVersionIdentifier('group', 'c', '1.0')
+        unresolved.selector == new DefaultModuleVersionSelector('group', 'c', '1.0')
         unresolved.problem instanceof ModuleVersionResolveException
 
         when:
@@ -559,7 +564,7 @@ class DependencyGraphBuilderTest extends Specification {
         then:
         result.unresolvedModuleDependencies.size() == 1
         def unresolved = result.unresolvedModuleDependencies.iterator().next()
-        unresolved.selector == new DefaultModuleVersionIdentifier('group', 'unknown', '1.0')
+        unresolved.selector == new DefaultModuleVersionSelector('group', 'unknown', '1.0')
         unresolved.problem instanceof ModuleVersionResolveException
 
         when:
@@ -588,7 +593,7 @@ class DependencyGraphBuilderTest extends Specification {
         then:
         result.unresolvedModuleDependencies.size() == 1
         def unresolved = result.unresolvedModuleDependencies.iterator().next()
-        unresolved.selector == new DefaultModuleVersionIdentifier('group', 'c', '1.0')
+        unresolved.selector == new DefaultModuleVersionSelector('group', 'c', '1.0')
         unresolved.problem instanceof ModuleVersionResolveException
 
         when:
@@ -618,7 +623,7 @@ class DependencyGraphBuilderTest extends Specification {
         then:
         result.unresolvedModuleDependencies.size() == 1
         def unresolved = result.unresolvedModuleDependencies.iterator().next()
-        unresolved.selector == new DefaultModuleVersionIdentifier('group', 'c', '1.0')
+        unresolved.selector == new DefaultModuleVersionSelector('group', 'c', '1.0')
         unresolved.problem instanceof ModuleVersionNotFoundException
 
         when:
@@ -648,7 +653,7 @@ class DependencyGraphBuilderTest extends Specification {
         then:
         result.unresolvedModuleDependencies.size() == 1
         def unresolved = result.unresolvedModuleDependencies.iterator().next()
-        unresolved.selector == new DefaultModuleVersionIdentifier('group', 'c', '1.0')
+        unresolved.selector == new DefaultModuleVersionSelector('group', 'c', '1.0')
         unresolved.problem instanceof ModuleVersionResolveException
 
         when:
@@ -677,7 +682,7 @@ class DependencyGraphBuilderTest extends Specification {
         then:
         result.unresolvedModuleDependencies.size() == 1
         def unresolved = result.unresolvedModuleDependencies.iterator().next()
-        unresolved.selector == new DefaultModuleVersionIdentifier('group', 'c', '1.0')
+        unresolved.selector == new DefaultModuleVersionSelector('group', 'c', '1.0')
         unresolved.problem instanceof ModuleVersionResolveException
 
         when:

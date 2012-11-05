@@ -17,6 +17,7 @@ package org.gradle.api.internal.project;
 
 
 import org.gradle.StartParameter
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.plugins.DefaultPluginRegistry
 import org.gradle.api.internal.plugins.PluginRegistry
@@ -43,6 +44,7 @@ public class GradleInternalServiceRegistryTest extends Specification {
     public void setup() {
         parent.get(ListenerManager.class) >> listenerManager
         parent.get(CacheRepository.class) >> cacheRepository
+        parent.get(DocumentationRegistry) >> Mock(DocumentationRegistry)
         gradle.getStartParameter() >> startParameter
         gradle.getScriptClassLoader() >> new MultiParentClassLoader()
     }

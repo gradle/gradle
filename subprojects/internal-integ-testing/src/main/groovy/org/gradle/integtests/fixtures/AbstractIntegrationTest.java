@@ -15,6 +15,8 @@
  */
 package org.gradle.integtests.fixtures;
 
+import org.gradle.test.fixtures.ivy.IvyFileRepository;
+import org.gradle.test.fixtures.ivy.IvyRepository;
 import org.gradle.util.TestFile;
 import org.gradle.util.TestFileContext;
 import org.junit.Rule;
@@ -24,6 +26,9 @@ import java.io.File;
 public abstract class AbstractIntegrationTest implements TestFileContext {
     @Rule public final GradleDistribution distribution = new GradleDistribution();
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter();
+
+    private MavenFileRepository mavenRepo;
+    private IvyFileRepository ivyRepo;
 
     public TestFile getTestDir() {
         return distribution.getTestDir();
@@ -54,12 +59,38 @@ public abstract class AbstractIntegrationTest implements TestFileContext {
     }
 
     protected ArtifactBuilder artifactBuilder() {
-        InProcessGradleExecuter gradleExecuter = new InProcessGradleExecuter();
-        gradleExecuter.withUserHomeDir(distribution.getUserHomeDir());
+        GradleDistributionExecuter gradleExecuter = distribution.executer();
+        gradleExecuter.withGradleUserHomeDir(distribution.getUserHomeDir());
         return new GradleBackedArtifactBuilder(gradleExecuter, getTestDir().file("artifacts"));
     }
 
     public MavenRepository maven(TestFile repo) {
-        return new MavenRepository(repo);
+        return new MavenFileRepository(repo);
+    }
+
+    public MavenRepository maven(Object repo) {
+        return new MavenFileRepository(file(repo));
+    }
+
+    public MavenRepository getMavenRepo() {
+        if (mavenRepo == null) {
+            mavenRepo = new MavenFileRepository(file("maven-repo"));
+        }
+        return mavenRepo;
+    }
+
+    public IvyRepository ivy(TestFile repo) {
+        return new IvyFileRepository(repo);
+    }
+
+    public IvyRepository ivy(Object repo) {
+        return new IvyFileRepository(file(repo));
+    }
+
+    public IvyRepository getIvyRepo() {
+        if (ivyRepo == null) {
+            ivyRepo = new IvyFileRepository(file("ivy-repo"));
+        }
+        return ivyRepo;
     }
 }

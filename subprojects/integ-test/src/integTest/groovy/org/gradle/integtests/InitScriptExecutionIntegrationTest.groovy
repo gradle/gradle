@@ -145,7 +145,7 @@ rootProject {
         run "root"
 
         then:
-        executedTasks == [':worker', ':a:worker', ':b:worker', ':root']
+        result.assertTasksExecuted(':worker', ':a:worker', ':b:worker', ':root')
     }
 
     private def createExternalJar() {

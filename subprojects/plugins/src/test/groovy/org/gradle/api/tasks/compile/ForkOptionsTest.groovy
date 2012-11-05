@@ -18,13 +18,13 @@ package org.gradle.api.tasks.compile
 
 import static org.junit.Assert.*
 import org.junit.Before
-import org.junit.Test;
+import org.junit.Test
 
 /**
  * @author Hans Dockter
  */
 class ForkOptionsTest {
-    static final Map PROPS = [executable: 'executable', memoryInitialSize: 'memoryInitialSize', memoryMaximumSize: 'memoryMaximumSize', tempDir: 'tempdir']
+    static final List PROPS = ['executable', 'memoryInitialSize', 'memoryMaximumSize', 'tempDir']
     
     ForkOptions forkOptions
 
@@ -45,17 +45,14 @@ class ForkOptionsTest {
     @Test public void testOptionMap() {
         Map optionMap = forkOptions.optionMap()
         assertEquals(0, optionMap.size())
-        PROPS.keySet().each { forkOptions."$it" = "${it}Value" }
+        PROPS.each { forkOptions."$it" = "${it}Value" }
         optionMap = forkOptions.optionMap()
         assertEquals(4, optionMap.size())
-        PROPS.keySet().each {assertEquals("${it}Value" as String, optionMap[PROPS[it]])}
+        PROPS.each { assert optionMap[it] == "${it}Value" as String }
     }
 
     @Test public void testDefine() {
-        forkOptions.define(PROPS.keySet().inject([:]) { Map map, String prop ->
-            map[prop] = "${prop}Value" as String
-            map
-        })
-        PROPS.keySet().each {assertEquals("${it}Value" as String, forkOptions."${it}")}
+        forkOptions.define(PROPS.collectEntries { [it, "${it}Value" as String ] })
+        PROPS.each { assert forkOptions."${it}" == "${it}Value" as String }
     }
 }

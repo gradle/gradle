@@ -7,7 +7,7 @@ coupling and our plan for allowing decoupled projects can be found in ./project-
 
 While parallel _execution_ does not strictly require decoupling at _configuration_ time, the long-term goal is to provide a powerful set of features that will be available for fully decoupled
 projects. Such features will include configuration of projects in parallel, re-use of configuration for unchanged projects, project-level up-to-date checks, and using pre-built artifacts in the
- place of building dependent projects.
+place of building dependent projects. See [project-configuration-model](project-configuration-model.md) for details.
 
 # Use cases
 
@@ -210,8 +210,8 @@ The output could be enhanced with some extra structure, if it proved useful:
     | Finishing 'A1'
 
 Alternatively, we could flush the log messages to console only when the task has completed, providing a similar output to the sequential build. This would have the benefit of making post-hoc analysis
-of the build output simpler, with the downside of providing no feedback during task execution. Execution feedback could be provided by enhancing the logging DSL so that it was easier to push
-messages to the console status bar.
+of the build output simpler, with the downside of providing no feedback during task execution. Execution feedback could be provided by enhancing the logging DSL so that it is easier to generate
+progress logging and send messages to the console status bar.
 
 ## Status Bar
 
@@ -267,7 +267,7 @@ Sad-day:
 - Provide basic summary status bar for parallel project execution
 - Determine a sensible default for number of parallel threads of execution when none is specified
 - Add a command-line option to specify that projects are decoupled: both warning and failing modes should be supported.
-- More sophisticated task logging: interleved project output with some buffering and pretty-printing
+- More sophisticated task logging: interleaved project output with some buffering and pretty-printing
 - Display multiple status bars, one for each build executor and one summary (up to a certain threshold).
 - Link up the number of parallel task executers and the number of parallel test executers.
 

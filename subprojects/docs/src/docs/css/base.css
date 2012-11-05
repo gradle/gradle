@@ -70,53 +70,53 @@ caption {background:#eee;}
   font-family: 'Lato';
   font-style: normal;
   font-weight: 400;
-  src: local('Lato Regular'), local('Lato-Regular'), url('data:font/opentype;base64,@lato-regular@') format('woff');
+  src: local('Lato Regular'), local('Lato-Regular'), url('data:font/opentype;base64,@lato-regular@') format('truetype');
 }
 
 @font-face {
   font-family: 'Lato';
   font-style: italic;
   font-weight: 400;
-  src: local('Lato Italic'), local('Lato-Italic'), url('data:font/opentype;base64,@lato-regular-italic@') format('woff');
+  src: local('Lato Italic'), local('Lato-Italic'), url('data:font/opentype;base64,@lato-regular-italic@') format('truetype');
 }
 
 @font-face {
   font-family: 'Lato';
   font-style: normal;
   font-weight: 700;
-  src: local('Lato Bold'), local('Lato-Bold'), url('data:font/opentype;base64,@lato-bold@') format('woff');
+  src: local('Lato Bold'), local('Lato-Bold'), url('data:font/opentype;base64,@lato-bold@') format('truetype');
 }
 
 @font-face {
   font-family: 'Lato';
   font-style: italic;
   font-weight: 700;
-  src: local('Lato Bold Italic'), local('Lato-BoldItalic'), url('data:font/opentype;base64,@lato-bold-italic@') format('woff');
+  src: local('Lato Bold Italic'), local('Lato-BoldItalic'), url('data:font/opentype;base64,@lato-bold-italic@') format('truetype');
 }
 
 @font-face {
   font-family: 'Ubuntu Mono';
   font-style: normal;
   font-weight: 700;
-  src: local('Ubuntu Mono Bold'), local('UbuntuMono-Bold'), url('data:font/opentype;base64,@ubuntumono-bold@') format('woff');
+  src: local('Ubuntu Mono Bold'), local('UbuntuMono-Bold'), url('data:font/opentype;base64,@ubuntumono-bold@') format('truetype');
 }
 @font-face {
   font-family: 'Ubuntu Mono';
   font-style: normal;
   font-weight: 400;
-  src: local('Ubuntu Mono'), local('UbuntuMono-Regular'), url('data:font/opentype;base64,@ubuntumono-regular@') format('woff');
+  src: local('Ubuntu Mono'), local('UbuntuMono-Regular'), url('data:font/opentype;base64,@ubuntumono-regular@') format('truetype');
 }
 @font-face {
   font-family: 'Ubuntu Mono';
   font-style: italic;
   font-weight: 700;
-  src: local('Ubuntu Mono Bold Italic'), local('UbuntuMono-BoldItalic'), url('data:font/opentype;base64,@ubuntumono-bold-italic@') format('woff');
+  src: local('Ubuntu Mono Bold Italic'), local('UbuntuMono-BoldItalic'), url('data:font/opentype;base64,@ubuntumono-bold-italic@') format('truetype');
 }
 @font-face {
   font-family: 'Ubuntu Mono';
   font-style: italic;
   font-weight: 400;
-  src: local('Ubuntu Mono Italic'), local('UbuntuMono-Italic'), url('data:font/opentype;base64,@ubuntumono-regular-italic@') format('woff');
+  src: local('Ubuntu Mono Italic'), local('UbuntuMono-Italic'), url('data:font/opentype;base64,@ubuntumono-regular-italic@') format('truetype');
 }
 
 body {

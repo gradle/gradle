@@ -165,6 +165,7 @@ class DefaultMavenPomTest extends Specification {
         mavenPom.configurations = null
         TestFile pomFile = tmpDir.file('someNonexistingDir').file('someFile')
         fileResolver.resolve('file') >> pomFile
+        //mavenPom.withXml {}
 
         when:
         mavenPom.writeTo('file');

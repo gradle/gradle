@@ -15,9 +15,13 @@
  */
 package org.gradle.integtests.resolve.custom
 
+import org.gradle.integtests.fixtures.ProgressLoggingFixture
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
+import org.junit.Rule
 
 class IvyUrlResolverIntegrationTest extends AbstractDependencyResolutionTest {
+
+    @Rule ProgressLoggingFixture progressLogging
 
     def setup() {
         server.expectUserAgent(null) // custom resolver uses apache/ivy as useragent strings
@@ -26,39 +30,40 @@ class IvyUrlResolverIntegrationTest extends AbstractDependencyResolutionTest {
     public void "can resolve and cache dependencies from an HTTP Ivy repository"() {
         server.start()
         given:
-        def repo = ivyRepo()
-        def module = repo.module('group', 'projectA', '1.2')
-        module.publish()
+        def module = ivyHttpRepo.module('group', 'projectA', '1.2').publish()
 
         and:
         buildFile << """
 repositories {
     add(new org.apache.ivy.plugins.resolver.URLResolver()) {
         name = "repo"
-        addIvyPattern("http://localhost:${server.port}/repo/[organization]/ivy-[module]-[revision].xml")
-        addArtifactPattern("http://localhost:${server.port}/repo/[organization]/[module]-[revision].[ext]")
+        addIvyPattern("${ivyHttpRepo.ivyPattern}")
+        addArtifactPattern("${ivyHttpRepo.artifactPattern}")
     }
 }
 configurations { compile }
-configurations.compile.resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
 dependencies { compile 'group:projectA:1.2' }
 task listJars << {
     assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
 }
 """
         when:
-        server.expectHead('/repo/group/ivy-projectA-1.2.xml', module.ivyFile)
-        server.expectGet('/repo/group/ivy-projectA-1.2.xml', module.ivyFile)
-        server.expectHead('/repo/group/projectA-1.2.jar', module.jarFile)
-        server.expectGet('/repo/group/projectA-1.2.jar', module.jarFile)
+        module.expectIvyHead()
+        module.expectIvyGet()
+        module.expectJarHead()
+        module.expectJarGet()
 
         then:
         succeeds 'listJars'
 
+        and:
+        progressLogging.downloadProgressLogged(module.ivyFileUri)
+        progressLogging.downloadProgressLogged(module.jarFileUri)
+
         when:
         server.resetExpectations()
-        // No extra calls for cached dependencies
 
+        // No extra calls for cached dependencies
         then:
         succeeds 'listJars'
     }
@@ -66,17 +71,15 @@ task listJars << {
     public void "honours changing patterns from custom resolver"() {
         server.start()
         given:
-        def repo = ivyRepo()
-        def module = repo.module('group', 'projectA', '1.2-SNAPSHOT')
-        module.publish()
+        def module = ivyHttpRepo.module('group', 'projectA', '1.2-SNAPSHOT').publish()
 
         and:
         buildFile << """
 repositories {
     add(new org.apache.ivy.plugins.resolver.URLResolver()) {
         name = "repo"
-        addIvyPattern("http://localhost:${server.port}/repo/[organization]/ivy-[module]-[revision].xml")
-        addArtifactPattern("http://localhost:${server.port}/repo/[organization]/[module]-[revision].[ext]")
+        addIvyPattern("${ivyHttpRepo.ivyPattern}")
+        addArtifactPattern("${ivyHttpRepo.artifactPattern}")
         changingMatcher = 'regexp'
         changingPattern = '.*SNAPSHOT.*'
     }
@@ -90,10 +93,10 @@ task retrieve(type: Sync) {
 }
 """
         when:
-        server.expectHead('/repo/group/ivy-projectA-1.2-SNAPSHOT.xml', module.ivyFile)
-        server.expectGet('/repo/group/ivy-projectA-1.2-SNAPSHOT.xml', module.ivyFile)
-        server.expectHead('/repo/group/projectA-1.2-SNAPSHOT.jar', module.jarFile)
-        server.expectGet('/repo/group/projectA-1.2-SNAPSHOT.jar', module.jarFile)
+        module.expectIvyHead()
+        module.expectIvyGet()
+        module.expectJarHead()
+        module.expectJarGet()
 
         run 'retrieve'
 
@@ -107,10 +110,10 @@ task retrieve(type: Sync) {
 
         server.resetExpectations()
         // Server will be hit to get updated versions
-        server.expectHead('/repo/group/ivy-projectA-1.2-SNAPSHOT.xml', module.ivyFile)
-        server.expectGet('/repo/group/ivy-projectA-1.2-SNAPSHOT.xml', module.ivyFile)
-        server.expectHead('/repo/group/projectA-1.2-SNAPSHOT.jar', module.jarFile)
-        server.expectGet('/repo/group/projectA-1.2-SNAPSHOT.jar', module.jarFile)
+        module.expectIvyHead()
+        module.expectIvyGet()
+        module.expectJarHead()
+        module.expectJarGet()
 
         run 'retrieve'
 

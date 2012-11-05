@@ -28,16 +28,16 @@ class ProjectOutcomesModuleCrossVersionSpec extends ToolingApiSpecification {
     def "modelContainsAllArchivesOnTheArchivesConfiguration"() {
         given:
         dist.file('build.gradle') << '''
-apply plugin: "java"
+			apply plugin: "java"
 
-task zip(type: Zip) {
-    from jar
-}
+			task zip(type: Zip) {
+    			from jar
+			}
 
-artifacts {
-    archives zip
-}
-'''
+			artifacts {
+    			archives zip
+			}
+		'''
 
         when:
         def projectOutcomes = withConnection { ProjectConnection connection ->
@@ -72,6 +72,9 @@ apply plugin: 'java'
 '''
 
         when:
+        buildFile << "apply plugin: 'java'"
+        file("settings.gradle") << "include 'project1', 'project2'"
+
         def projectOutcomes = withConnection { ProjectConnection connection ->
             connection.model(ProjectOutcomes.class).forTasks('assemble').get()
         }

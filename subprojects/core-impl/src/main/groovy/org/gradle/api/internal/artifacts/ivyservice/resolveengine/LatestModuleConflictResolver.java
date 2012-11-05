@@ -15,36 +15,23 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
-import org.apache.ivy.plugins.latest.ArtifactInfo;
-import org.apache.ivy.plugins.latest.LatestRevisionStrategy;
+import org.gradle.api.internal.artifacts.version.LatestVersionSemanticComparator;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
+import java.util.Collections;
+import java.util.Comparator;
 
 class LatestModuleConflictResolver implements ModuleConflictResolver {
     public ModuleRevisionResolveState select(Collection<? extends ModuleRevisionResolveState> candidates, ModuleRevisionResolveState root) {
-        List<ModuleResolveStateBackedArtifactInfo> artifactInfos = new ArrayList<ModuleResolveStateBackedArtifactInfo>();
-        for (ModuleRevisionResolveState moduleRevision : candidates) {
-            artifactInfos.add(new ModuleResolveStateBackedArtifactInfo(moduleRevision));
-        }
-        List<ModuleResolveStateBackedArtifactInfo> sorted = new LatestRevisionStrategy().sort(artifactInfos.toArray(new ArtifactInfo[artifactInfos.size()]));
-        return sorted.get(sorted.size() - 1).moduleRevision;
+        return Collections.max(candidates, new VersionComparator());
     }
 
-    private static class ModuleResolveStateBackedArtifactInfo implements ArtifactInfo {
-        final ModuleRevisionResolveState moduleRevision;
+    private class VersionComparator implements Comparator<ModuleRevisionResolveState> {
 
-        public ModuleResolveStateBackedArtifactInfo(ModuleRevisionResolveState moduleRevision) {
-            this.moduleRevision = moduleRevision;
-        }
+        LatestVersionSemanticComparator delegate = new LatestVersionSemanticComparator();
 
-        public String getRevision() {
-            return moduleRevision.getRevision();
-        }
-
-        public long getLastModified() {
-            throw new UnsupportedOperationException();
+        public int compare(ModuleRevisionResolveState left, ModuleRevisionResolveState right) {
+            return delegate.compare(left.getRevision(), right.getRevision());
         }
     }
 }

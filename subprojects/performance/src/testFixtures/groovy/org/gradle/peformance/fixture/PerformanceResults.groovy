@@ -17,92 +17,126 @@
 package org.gradle.peformance.fixture
 
 import org.gradle.api.logging.Logging
-import java.math.RoundingMode
+import org.jscience.physics.amount.Amount
+
+import javax.measure.quantity.DataAmount
+import javax.measure.quantity.Duration
+import javax.measure.unit.NonSI
+import javax.measure.unit.SI
+
+import static PrettyCalculator.prettyBytes
+import static PrettyCalculator.prettyTime
+import static org.gradle.peformance.fixture.PrettyCalculator.toBytes
+import static org.gradle.peformance.fixture.PrettyCalculator.toMillis
 
 public class PerformanceResults {
 
-    int accuracyMs
     String displayName
+    Amount<Duration> maxExecutionTimeRegression = Amount.valueOf(0, SI.SECOND)
+    Amount<DataAmount> maxMemoryRegression = Amount.valueOf(0, NonSI.BYTE)
 
     private final static LOGGER = Logging.getLogger(PerformanceTestRunner.class)
 
-    List<MeasuredOperation> previous = new LinkedList<MeasuredOperation>()
-    List<MeasuredOperation> current = new LinkedList<MeasuredOperation>()
+    final MeasuredOperationList previous = new MeasuredOperationList(name: "Previous release")
+    final MeasuredOperationList current = new MeasuredOperationList(name:  "Current Gradle")
+    final Map<String, MeasuredOperationList> others = new TreeMap<>()
 
     def clear() {
         previous.clear();
         current.clear();
-    }
-
-    void addResult(MeasuredOperation previous, MeasuredOperation current) {
-        this.previous.add(previous)
-        this.current.add(current)
+        others.values()*.clear()
     }
 
     void assertEveryBuildSucceeds() {
         LOGGER.info("Asserting all builds have succeeded...");
         assert previous.size() == current.size()
-        def previousExceptions = previous.findAll { it.exception }.collect() { it.exception }
-        def currentExceptions  = previous.findAll { it.exception }.collect() { it.exception }
-        assert previousExceptions.isEmpty() & currentExceptions.isEmpty()
+        def failures = []
+        failures.addAll previous.findAll { it.exception }
+        others.values().each {
+            failures.addAll it.findAll { it.exception }
+        }
+        failures.addAll current.findAll { it.exception }
+        assert failures.collect { it.exception }.empty : "Some builds have failed."
     }
 
-    void assertMemoryUsed(double maxRegression) {
+    void assertCurrentVersionHasNotRegressed() {
+        def slower = assertCurrentReleaseIsNotSlower()
+        def larger = assertMemoryUsed()
+        if (slower && larger) {
+            throw new AssertionError("$slower\n$larger")
+        }
+        if (slower) {
+            throw new AssertionError(slower)
+        }
+        if (larger) {
+            throw new AssertionError(larger)
+        }
         assertEveryBuildSucceeds()
+    }
 
-        List<Long> previousBytes = previous.collect { it.totalMemoryUsed }
-        List<Long> currentBytes = current.collect { it.totalMemoryUsed }
+    private String assertMemoryUsed() {
+        def failed = (current.avgMemory() - previous.avgMemory()) > maxMemoryRegression
 
-        def averagePrevious = (previousBytes.sum() / previous.size()).setScale(2, RoundingMode.HALF_UP)
-        def averageCurrent  = (currentBytes.sum() / current.size()).setScale(2, RoundingMode.HALF_UP)
+        String message;
+        if (current.avgMemory() > previous.avgMemory()) {
+            message = "Memory $displayName: current Gradle needs a little more memory on average."
+        } else {
+            message = "Memory $displayName: AWESOME! current Gradle needs less memory on average :D"
+        }
+        message += "\n${memoryStats()}"
+        println("\n$message")
+        return failed ? message : null
+    }
 
-        println ("""---------------
-Build stats. $displayName:
- -previous: $previous
- -previous average: ${averagePrevious} b, min: ${previousBytes.min()} b, max: ${previousBytes.max()} b
- -current: $current
- -current average: ${averageCurrent} b, min: ${currentBytes.min()} b, max: ${currentBytes.max()} b
- -change: ${percentChange(averageCurrent, averagePrevious)}%
----------------""")
+    private String assertCurrentReleaseIsNotSlower() {
+        def failed = (current.avgTime() - previous.avgTime()) > maxExecutionTimeRegression
 
-        assert (averageCurrent - (maxRegression * averagePrevious)) <= averagePrevious : """Looks like the current gradle requires more memory than the latest release.
-  Previous release stats: ${previousBytes}
-  Current gradle stats:   ${currentBytes}
-  Difference in memory consumption: ${averageCurrent - averagePrevious} bytes
-  Currently configured max regression: $maxRegression (${averagePrevious * maxRegression})
+        String message;
+        if (current.avgTime() > previous.avgTime()) {
+            message = "Speed $displayName: current Gradle is a little slower on average."
+        } else {
+            message = "Speed $displayName: AWESOME! current Gradle is faster on average :D"
+        }
+        message += "\n${speedStats()}"
+        println("\n$message")
+        return failed ? message : null
+    }
+
+    String memoryStats() {
+        def result = new StringBuilder()
+        result.append(memoryStats(previous))
+        others.values().each {
+            result.append(memoryStats(it))
+        }
+        result.append(memoryStats(current))
+        def diff = current.avgMemory() - previous.avgMemory()
+        def desc = diff > Amount.ZERO ? "more" : "less"
+        result.append("Difference: ${prettyBytes(diff.abs())} $desc (${toBytes(diff.abs())} B), ${PrettyCalculator.percentChange(current.avgMemory(), previous.avgMemory())}%, max regression: ${prettyBytes(maxMemoryRegression)}")
+        return result.toString()
+    }
+
+    String memoryStats(MeasuredOperationList list) {
+        """  ${list.name} avg: ${prettyBytes(list.avgMemory())} ${list.collect { prettyBytes(it.totalMemoryUsed) }}
+  ${list.name} min: ${prettyBytes(list.minMemory())}, max: ${prettyBytes(list.maxMemory())}
 """
     }
 
-    private Number percentChange(Number current, Number previous) {
-        def result = (100 * (previous-current) / previous).setScale(2, RoundingMode.HALF_UP)
-        return result
+    String speedStats() {
+        def result = new StringBuilder()
+        result.append(speedStats(previous))
+        others.values().each {
+            result.append(speedStats(it))
+        }
+        result.append(speedStats(current))
+        def diff = current.avgTime() - previous.avgTime()
+        def desc = diff > Amount.valueOf(0, SI.SECOND) ? "slower" : "faster"
+        result.append("Difference: ${prettyTime(diff.abs())} $desc (${toMillis(diff.abs())} ms), ${PrettyCalculator.percentChange(current.avgTime(), previous.avgTime())}%, max regression: ${prettyTime(maxExecutionTimeRegression)}")
+        return result.toString()
     }
 
-    void assertCurrentReleaseIsNotSlower() {
-        assertEveryBuildSucceeds()
-        def previousTimes = previous.collect { it.executionTime }
-        def averagePrevious = (previousTimes.sum() / previous.size()).setScale(2, RoundingMode.HALF_UP)
-        def currentTimes = current.collect { it.executionTime }
-        def averageCurrent  = (currentTimes.sum() / current.size()).setScale(2, RoundingMode.HALF_UP)
-
-        println("""---------------
-Build stats. $displayName:
- -previous: $previousTimes
- -previous average: $averagePrevious ms, min: ${previousTimes.min()} ms, max: ${previousTimes.max()} ms
- -current : $currentTimes
- -current average: $averageCurrent ms, min: ${currentTimes.min()} ms, max: ${currentTimes.max()} ms
- -change: ${percentChange(averageCurrent, averagePrevious)}%
----------------""")
-
-        if (averageCurrent > averagePrevious) {
-            LOGGER.warn("Before applying any statistical tuning, the current release average build time is slower than the previous.")
-        }
-
-        assert (averageCurrent - accuracyMs) <= averagePrevious : """Looks like the current gradle is slower than latest release.
-  Previous release build times: ${previousTimes}
-  Current gradle build times:   ${currentTimes}
-  Difference between average current and average previous: ${averageCurrent - averagePrevious} millis.
-  Currently configured accuracy treshold: $accuracyMs
+    String speedStats(MeasuredOperationList list) {
+        """  ${list.name} avg: ${prettyTime(list.avgTime())} ${list.collect { prettyTime(it.executionTime) }}
+  ${list.name} min: ${prettyTime(list.minTime())}, max: ${prettyTime(list.maxTime())}
 """
     }
 }

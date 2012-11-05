@@ -52,9 +52,9 @@ class GroovyCompileOptionsTest {
 
     @Test public void testOptionMapWithTrueFalseValues() {
         Map booleans = [
-                failOnError: 'failonerror',
+                failOnError: 'failOnError',
                 verbose: 'verbose',
-                listFiles: 'listfiles',
+                listFiles: 'listFiles',
                 fork: 'fork',
                 includeJavaRuntime: 'includeJavaRuntime'
         ]

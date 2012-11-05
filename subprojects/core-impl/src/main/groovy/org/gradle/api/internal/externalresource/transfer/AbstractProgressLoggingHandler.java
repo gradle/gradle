@@ -26,31 +26,16 @@ public class AbstractProgressLoggingHandler {
         this.progressLoggerFactory = progressLoggerFactory;
     }
 
-    protected ProgressLogger startProgress(String description, Class loggingClass) {
+    protected ResourceOperation createResourceOperation(String resourceName, ResourceOperation.Type operationType, Class loggingClazz, long contentLength) {
+        ProgressLogger progressLogger = startProgress(String.format("%s %s", operationType.getCapitalized(), resourceName), loggingClazz);
+        return new ResourceOperation(progressLogger, operationType, contentLength);
+    }
+
+    private ProgressLogger startProgress(String description, Class loggingClass) {
         ProgressLogger progressLogger = progressLoggerFactory.newOperation(loggingClass != null ? loggingClass : getClass());
         progressLogger.setDescription(description);
         progressLogger.setLoggingHeader(description);
         progressLogger.started();
         return progressLogger;
-    }
-
-    protected String getLengthText(Long bytes) {
-        if (bytes == null) {
-            return "unknown size";
-        }
-        if (bytes < 1024) {
-            return bytes + " B";
-        } else if (bytes < 1048576) {
-            return (bytes / 1024) + " KB";
-        } else {
-            return String.format("%.2f MB", bytes / 1048576.0);
-        }
-    }
-
-    protected void logProgress(ProgressLogger progressLogger, Long processed, Long contentLength, String operationString) {
-        if (progressLogger != null) {
-            final String progressMessage = String.format("%s/%s %s", getLengthText(processed), getLengthText(contentLength != 0 ? contentLength : null), operationString);
-            progressLogger.progress(progressMessage);
-        }
     }
 }

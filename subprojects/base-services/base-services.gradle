@@ -4,8 +4,6 @@
  * Should have a very small set of dependencies, and should be appropriate to embed in an external
  * application (eg as part of the tooling API).
  */
-apply from: "$rootDir/gradle/classycle.gradle"
-
 dependencies {
     groovy libraries.groovy
 
@@ -13,3 +11,4 @@ dependencies {
 }
 
 useTestFixtures()
+useClassycle()

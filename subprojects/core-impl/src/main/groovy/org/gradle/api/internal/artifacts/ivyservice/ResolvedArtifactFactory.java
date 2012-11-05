@@ -35,7 +35,9 @@ public class ResolvedArtifactFactory {
             public File create() {
                 return lockingManager.useCache(String.format("download %s", artifact), new Factory<File>() {
                     public File create() {
-                        return resolver.resolve(artifact).getFile();
+                        DefaultBuildableArtifactResolveResult result = new DefaultBuildableArtifactResolveResult();
+                        resolver.resolve(artifact, result);
+                        return result.getFile();
                     }
                 });
             }

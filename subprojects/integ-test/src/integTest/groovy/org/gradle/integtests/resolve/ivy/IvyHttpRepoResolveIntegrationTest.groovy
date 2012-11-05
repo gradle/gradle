@@ -15,9 +15,13 @@
  */
 package org.gradle.integtests.resolve.ivy
 
+import org.gradle.integtests.fixtures.ProgressLoggingFixture
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
+import org.junit.Rule
 
 class IvyHttpRepoResolveIntegrationTest extends AbstractDependencyResolutionTest {
+
+    @Rule ProgressLoggingFixture progressLogger
 
     public void "can resolve and cache dependencies from an HTTP Ivy repository"() {
         server.start()
@@ -38,14 +42,12 @@ task listJars << {
         when:
         server.expectGet('/repo/group/projectA/1.2/ivy-1.2.xml', module.ivyFile)
         server.expectGet('/repo/group/projectA/1.2/projectA-1.2.jar', module.jarFile)
-
         then:
         succeeds 'listJars'
-
+        progressLogger.downloadProgressLogged("http://localhost:${server.port}/repo/group/projectA/1.2/ivy-1.2.xml")
+        progressLogger.downloadProgressLogged("http://localhost:${server.port}/repo/group/projectA/1.2/projectA-1.2.jar")
         when:
         server.resetExpectations()
-        // No extra calls for cached dependencies
-
         then:
         succeeds 'listJars'
     }
@@ -74,6 +76,7 @@ task listJars << {
         server.expectGet('/repo/group/projectA/1.2/projectA-1.2.jar', module.jarFile)
 
         then:
+        executer.withArgument("-i")
         succeeds('listJars')
 
         when:
@@ -81,6 +84,7 @@ task listJars << {
         // No extra calls for cached dependencies
 
         then:
+        executer.withArgument("-i")
         succeeds('listJars')
     }
 
@@ -122,10 +126,8 @@ task listJars << {
         server.addBroken('/repo1/group/projectC')
         server.expectGet('/repo2/group/projectC/1.0/ivy-1.0.xml', moduleC.ivyFile)
         server.expectGet('/repo2/group/projectC/1.0/projectC-1.0.jar', moduleC.jarFile)
-
         then:
         succeeds('listJars')
-
         when:
         server.resetExpectations()
         server.addBroken('/repo1/group/projectC') // Will always re-attempt a broken repository

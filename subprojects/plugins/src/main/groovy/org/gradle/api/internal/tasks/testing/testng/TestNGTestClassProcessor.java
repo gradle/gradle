@@ -17,17 +17,18 @@
 package org.gradle.api.internal.tasks.testing.testng;
 
 import groovy.lang.MissingMethodException;
-
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
+import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
+import org.gradle.api.internal.tasks.testing.junit.TestNGJUnitXmlReportGenerator;
 import org.gradle.api.internal.tasks.testing.processors.CaptureTestOutputTestResultProcessor;
 import org.gradle.api.tasks.testing.testng.TestNGOptions;
-import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
+import org.gradle.internal.id.IdGenerator;
+import org.gradle.listener.ListenerBroadcast;
 import org.gradle.logging.StandardOutputRedirector;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
-import org.gradle.internal.id.IdGenerator;
 import org.gradle.util.ReflectionUtil;
 import org.testng.ITestListener;
 import org.testng.TestNG;
@@ -43,19 +44,34 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
     private final List<File> suiteFiles;
     private final IdGenerator<?> idGenerator;
     private final StandardOutputRedirector outputRedirector;
+    private final File testResultsDir;
+    private final boolean testReportOn;
     private TestNGTestResultProcessorAdapter testResultProcessor;
     private ClassLoader applicationClassLoader;
 
-    public TestNGTestClassProcessor(File testReportDir, TestNGOptions options, List<File> suiteFiles, IdGenerator<?> idGenerator, StandardOutputRedirector outputRedirector) {
+    public TestNGTestClassProcessor(File testReportDir, TestNGOptions options, List<File> suiteFiles, IdGenerator<?> idGenerator,
+                                    StandardOutputRedirector outputRedirector, File testResultsDir, boolean testReportOn) {
         this.testReportDir = testReportDir;
         this.options = options;
         this.suiteFiles = suiteFiles;
         this.idGenerator = idGenerator;
         this.outputRedirector = outputRedirector;
+        this.testResultsDir = testResultsDir;
+        this.testReportOn = testReportOn;
     }
 
     public void startProcessing(TestResultProcessor resultProcessor) {
-        testResultProcessor = new TestNGTestResultProcessorAdapter(new CaptureTestOutputTestResultProcessor(resultProcessor, outputRedirector), idGenerator);
+        ListenerBroadcast<TestResultProcessor> processors = new ListenerBroadcast<TestResultProcessor>(TestResultProcessor.class);
+        processors.add(resultProcessor);
+        if (testReportOn) {
+            //Do not generate the xml results unless the report is wanted explicitly
+            //TODO SF this check needs to be removed when new TestNG reports are turned on by default
+            processors.add(new TestNGJUnitXmlReportGenerator(testResultsDir));
+        }
+        TestResultProcessor resultProcessorChain = new CaptureTestOutputTestResultProcessor(processors.getSource(), outputRedirector);
+
+        testResultProcessor = new TestNGTestResultProcessorAdapter(resultProcessorChain, idGenerator);
+
         applicationClassLoader = Thread.currentThread().getContextClassLoader();
     }
 
@@ -82,7 +98,12 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
         if (options.getJavadocAnnotations()) {
             testNg.setSourcePath(GUtil.join(options.getTestResources(), File.pathSeparator));
         }
-        testNg.setUseDefaultListeners(options.getUseDefaultListeners());
+
+        //only use the default listeners flag when testReport is off
+        //TODO SF spockify the test, add unit test coverage and inform about 'incubating' nature of the new report
+        //we should remove this complexity when new TestNG reports are turned on by default
+        testNg.setUseDefaultListeners(!testReportOn && options.getUseDefaultListeners());
+
         testNg.addListener((Object) adaptListener(testResultProcessor));
         testNg.setVerbose(0);
         testNg.setGroups(GUtil.join(options.getIncludeGroups(), ","));

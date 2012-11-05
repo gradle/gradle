@@ -93,7 +93,7 @@ task sayHearthyGoodbye << {
 
         //running web test then stopping jetty
         sample sample
-        def jettyStop = executer.withTasks('runTest', 'jettyStop').withArguments("-d").run()
+        def jettyStop = executer.withTasks('runTest', 'jettyStop').run()
 
         //test has completed
         assert jettyStop.output.contains('hello Gradle')

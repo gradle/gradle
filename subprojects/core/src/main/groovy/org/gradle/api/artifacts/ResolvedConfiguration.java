@@ -15,8 +15,6 @@
  */
 package org.gradle.api.artifacts;
 
-import org.gradle.api.Incubating;
-import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.specs.Spec;
 
 import java.io.File;
@@ -83,12 +81,4 @@ public interface ResolvedConfiguration {
      * @throws ResolveException when the resolve was not successful.
      */
     Set<ResolvedArtifact> getResolvedArtifacts() throws ResolveException;
-
-    /**
-     * Returns an instance of {@link org.gradle.api.artifacts.result.ResolutionResult}
-     *
-     * @return the resolution result
-     */
-    @Incubating
-    ResolutionResult getResolutionResult();
 }

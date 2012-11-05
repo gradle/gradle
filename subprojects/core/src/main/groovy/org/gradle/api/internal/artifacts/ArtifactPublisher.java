@@ -15,14 +15,18 @@
  */
 package org.gradle.api.internal.artifacts;
 
+import org.gradle.api.Nullable;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.PublishException;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.XmlTransformer;
 
 import java.io.File;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
  */
 public interface ArtifactPublisher {
-    void publish(ConfigurationInternal configuration, File descriptorDestination) throws PublishException;
+    void publish(Module module, Set<? extends Configuration> configurations, File descriptorDestination, @Nullable XmlTransformer descriptorTransformer) throws PublishException;
 }

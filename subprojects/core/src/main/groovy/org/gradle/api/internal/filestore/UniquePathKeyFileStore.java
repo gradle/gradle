@@ -16,13 +16,15 @@
 
 package org.gradle.api.internal.filestore;
 
+import org.gradle.api.Action;
+import org.gradle.util.GFileUtils;
+
 import java.io.File;
 
 /**
  * Assumes that files do not need to be replaced in the filestore.
  *
- * Can be used as an optimisation if path contains a checksum of the file, as
- * there is no point to perform the replace in that circumstance.
+ * Can be used as an optimisation if path contains a checksum of the file, as there is no point to perform the replace in that circumstance.
  */
 public class UniquePathKeyFileStore extends PathKeyFileStore {
 
@@ -31,11 +33,19 @@ public class UniquePathKeyFileStore extends PathKeyFileStore {
     }
 
     @Override
-    protected FileStoreEntry saveIntoFileStore(File source, File destination, boolean isMove) {
-        if (!destination.exists()) {
-            return super.saveIntoFileStore(source, destination, isMove);
-        } else {
+    public FileStoreEntry move(String path, File source) {
+        FileStoreEntry entry = super.move(path, source);
+        if (source.exists()) {
+            GFileUtils.deleteQuietly(source);
+        }
+        return entry;
+    }
+
+    @Override
+    protected FileStoreEntry doAdd(File destination, String failureDescription, Action<File> action) {
+        if (destination.exists()) {
             return entryAt(destination);
         }
+        return super.doAdd(destination, failureDescription, action);
     }
 }

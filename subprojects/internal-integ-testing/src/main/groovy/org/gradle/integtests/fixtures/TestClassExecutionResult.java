@@ -24,6 +24,8 @@ public interface TestClassExecutionResult {
      */
     TestClassExecutionResult assertTestsExecuted(String... testNames);
 
+    TestClassExecutionResult assertTestCount(int tests, int failures, int errors);
+
     /**
      * Asserts that the given tests (and only the given tests) were skipped for the given test class.
      */

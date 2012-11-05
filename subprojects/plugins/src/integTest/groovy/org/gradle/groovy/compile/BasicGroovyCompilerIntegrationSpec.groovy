@@ -25,7 +25,7 @@ import org.junit.Rule
 
 import com.google.common.collect.Ordering
 
-@TargetVersions(['1.5.8', '1.6.9', '1.7.11', '1.8.7', '2.0.1'])
+@TargetVersions(['1.5.8', '1.6.9', '1.7.11', '1.8.8', '2.0.4'])
 abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegrationSpec {
     @Rule TestResources resources = new TestResources()
 
@@ -98,8 +98,11 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 dependencies { groovy 'org.codehaus.groovy:groovy-all:$version' }
         """
 
-        buildFile << compilerConfiguration()
-        println "->> USING BUILD FILE: ${buildFile.text}"
+        buildFile << """
+DeprecationLogger.whileDisabled {
+    ${compilerConfiguration()}
+}
+        """
     }
 
     abstract String compilerConfiguration()

@@ -22,6 +22,8 @@ import org.apache.tools.ant.taskdefs.Manifest.Attribute;
 import org.apache.tools.ant.taskdefs.Manifest.Section;
 import org.apache.tools.ant.taskdefs.ManifestException;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.ErroringAction;
+import org.gradle.api.internal.IoActions;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.java.archives.Attributes;
 import org.gradle.api.java.archives.ManifestMergeSpec;
@@ -158,20 +160,13 @@ public class DefaultManifest implements org.gradle.api.java.archives.Manifest {
     }
 
     public org.gradle.api.java.archives.Manifest writeTo(Object path) {
-        try {
-            File file = fileResolver.resolve(path);
-            if (file.getParentFile() != null) {
-                file.getParentFile().mkdirs();
+        IoActions.writeFile(fileResolver.resolve(path), new ErroringAction<Writer>() {
+            @Override
+            protected void doExecute(Writer writer) throws Exception {
+                writeTo(writer);
             }
-            FileWriter writer = new FileWriter(file);
-            try {
-                return writeTo(writer);
-            } finally {
-                writer.close();
-            }
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        });
+        return this;
     }
 
     public List<ManifestMergeSpec> getMergeSpecs() {

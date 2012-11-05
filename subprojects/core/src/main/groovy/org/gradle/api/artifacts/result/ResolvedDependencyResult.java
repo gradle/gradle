@@ -17,7 +17,6 @@
 package org.gradle.api.artifacts.result;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.artifacts.ModuleVersionSelector;
 
 /**
  * Resolved dependency result is an edge in the resolved dependency graph.
@@ -27,14 +26,7 @@ import org.gradle.api.artifacts.ModuleVersionSelector;
  * For information about those terms please refer to the user guide.
  */
 @Incubating
-public interface ResolvedDependencyResult {
-
-    /**
-     * Returns the requested module version.
-     *
-     * @return requested module version
-     */
-    ModuleVersionSelector getRequested();
+public interface ResolvedDependencyResult extends DependencyResult {
 
     /**
      * Returns the selected module version.

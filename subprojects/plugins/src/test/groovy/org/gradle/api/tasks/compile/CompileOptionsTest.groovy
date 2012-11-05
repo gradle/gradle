@@ -70,7 +70,7 @@ class CompileOptionsTest {
         Map nullables = [
                 encoding: 'encoding',
                 compiler: 'compiler',
-                bootClasspath: 'bootclasspath',
+                bootClasspath: 'bootClasspath',
                 extensionDirs: 'extdirs'
         ]
         nullables.each {String field, String antProperty ->
@@ -86,9 +86,9 @@ class CompileOptionsTest {
 
     @Test public void testOptionMapWithTrueFalseValues() {
         Map booleans = [
-                failOnError: 'failonerror',
+                failOnError: 'failOnError',
                 verbose: 'verbose',
-                listFiles: 'listfiles',
+                listFiles: 'listFiles',
                 deprecation: 'deprecation',
                 warnings: 'nowarn',
                 debug: 'debug',

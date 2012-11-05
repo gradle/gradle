@@ -19,13 +19,15 @@ package org.gradle.execution.taskgraph;
 
 import org.gradle.api.internal.changedetection.TaskArtifactStateCacheAccess
 import spock.lang.Specification
+import org.gradle.api.internal.DocumentationRegistry
 
 public class TaskPlanExecutorFactoryTest extends Specification {
     final TaskArtifactStateCacheAccess cache = Mock()
+    final DocumentationRegistry documentationRegistry = Mock()
 
     def "creates a default executor"() {
         when:
-        def factory = new TaskPlanExecutorFactory(cache, 0)
+        def factory = new TaskPlanExecutorFactory(cache, 0, documentationRegistry)
 
         then:
         factory.create().class == DefaultTaskPlanExecutor
@@ -33,7 +35,7 @@ public class TaskPlanExecutorFactoryTest extends Specification {
 
     def "creates a parallel executor"() {
         when:
-        def factory = new TaskPlanExecutorFactory(cache, parallelExecuterCount)
+        def factory = new TaskPlanExecutorFactory(cache, parallelExecuterCount, documentationRegistry)
 
         then:
         factory.create().class == ParallelTaskPlanExecutor

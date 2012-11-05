@@ -38,51 +38,6 @@ class DefaultCacheAccessTest extends Specification {
         }
     }
 
-    def "executes cache action and returns result"() {
-        Factory<String> action = Mock()
-
-        given:
-        manager.open(None)
-
-        when:
-        def result = manager.useCache("some operation", action)
-
-        then:
-        result == 'result'
-
-        and:
-        1 * action.create() >> 'result'
-        0 * _._
-    }
-
-    def "can create cache instance outside of cache action"() {
-        given:
-        manager.open(None)
-
-        when:
-        def cache = manager.newCache(tmpDir.file('cache.bin'), String.class, Integer.class)
-
-        then:
-        cache instanceof MultiProcessSafePersistentIndexedCache
-        0 * _._
-    }
-
-    def "can create cache instance inside of cache action"() {
-        def cache
-
-        given:
-        manager.open(None)
-
-        when:
-        manager.useCache("init", {
-            cache = manager.newCache(tmpDir.file('cache.bin'), String.class, Integer.class)
-        } as Factory)
-
-        then:
-        cache instanceof MultiProcessSafePersistentIndexedCache
-        0 * _._
-    }
-
     def "acquires lock on open and releases on close when initial lock mode is not none"() {
         when:
         manager.open(Shared)
@@ -113,37 +68,22 @@ class DefaultCacheAccessTest extends Specification {
         0 * _._
     }
 
-    def "does not acquire lock when no caches used during cache action"() {
-        given:
-        manager.open(None)
-        def cache = manager.newCache(tmpDir.file('cache.bin'), String.class, Integer.class)
-
-        when:
-        manager.useCache("some operation", {} as Factory)
-
-        then:
-        0 * _._
-    }
-
-    def "acquires lock when a cache is used and releases lock at the end of the cache action when initial lock mode is none"() {
+    def "acquires lock at the start of the cache action and releases lock at the end of the cache action when initial lock mode is none"() {
         Factory<String> action = Mock()
 
         given:
         manager.open(None)
-        def cache = manager.newCache(targetFile, String, Integer)
 
         when:
         manager.useCache("some operation", action)
 
         then:
-        1 * action.create() >> {
-            canAccess cache
-        }
         1 * lockManager.lock(lockFile, Exclusive, "<display-name>", "some operation") >> lock
-        _ * lock.readFile(_)
 
         and:
-        _ * lock.writeFile(_)
+        1 * action.create()
+
+        and:
         1 * lock.close()
         0 * _._
     }
@@ -167,6 +107,59 @@ class DefaultCacheAccessTest extends Specification {
         _ * lock.writeFile(_)
 
         and:
+        0 * _._
+    }
+
+    def "can create cache instance outside of cache action"() {
+        given:
+        manager.open(None)
+
+        when:
+        def cache = manager.newCache(tmpDir.file('cache.bin'), String.class, Integer.class)
+
+        then:
+        cache instanceof MultiProcessSafePersistentIndexedCache
+        0 * _._
+    }
+
+    def "can create cache instance inside of cache action"() {
+        def cache
+
+        given:
+        manager.open(None)
+
+        when:
+        manager.useCache("init", {
+            cache = manager.newCache(tmpDir.file('cache.bin'), String.class, Integer.class)
+        } as Factory)
+
+        then:
+        cache instanceof MultiProcessSafePersistentIndexedCache
+
+        and:
+        1 * lockManager.lock(lockFile, Exclusive, _, _) >> lock
+    }
+
+    def "can use cache instance during cache action"() {
+        Factory<String> action = Mock()
+
+        given:
+        manager.open(None)
+        def cache = manager.newCache(targetFile, String, Integer)
+
+        when:
+        manager.useCache("some operation", action)
+
+        then:
+        1 * action.create() >> {
+            canAccess cache
+        }
+        1 * lockManager.lock(lockFile, Exclusive, "<display-name>", "some operation") >> lock
+        _ * lock.readFile(_)
+
+        and:
+        _ * lock.writeFile(_)
+        1 * lock.close()
         0 * _._
     }
 
@@ -266,38 +259,13 @@ class DefaultCacheAccessTest extends Specification {
         manager.useCache("some operation", action)
 
         then:
+        _ * lockManager.lock(lockFile, Exclusive, "<display-name>", "some operation") >> lock
         1 * action.create() >> {
             manager.longRunningOperation("nested", longRunningAction)
         }
         1 * longRunningAction.create() >> {
             cannotAccess cache
         }
-        0 * _._
-    }
-
-    def "can nest actions and long running operations"() {
-        Factory<String> action = Mock()
-        Factory<String> longRunningAction = Mock()
-
-        given:
-        manager.open(None)
-        def cache = manager.newCache(targetFile, String, Integer)
-
-        when:
-        manager.useCache("some operation", action)
-
-        then:
-        IllegalStateException e = thrown()
-        e.message == 'The <display-name> has not been locked.'
-
-        and:
-        1 * action.create() >> {
-            manager.longRunningOperation("nested", longRunningAction)
-        }
-        1 * longRunningAction.create() >> {
-            cache.get("key")
-        }
-        0 * _._
     }
 
     def "can execute cache action from within long running operation"() {
@@ -313,31 +281,38 @@ class DefaultCacheAccessTest extends Specification {
         manager.useCache("some operation", action)
 
         then:
+        1 * lockManager.lock(lockFile, Exclusive, "<display-name>", "some operation") >> lock
+
+        and:
         1 * action.create() >> {
-            println '1'
             canAccess cache
             manager.longRunningOperation("nested", longRunningAction)
-            println '-11'
             canAccess cache
-            println '-1'
         }
+
+        and:
+        1 * lock.close()
+
+        and:
         1 * longRunningAction.create() >> {
-            println '2'
             cannotAccess cache
             manager.useCache("nested 2", nestedAction)
             cannotAccess cache
-            println '-2'
         }
-        1 * nestedAction.create() >> {
-            println '3'
-            canAccess cache
-            println '-3'
-        }
-        2 * lockManager.lock(lockFile, Exclusive, "<display-name>", "some operation") >> lock
+
+        and:
         1 * lockManager.lock(lockFile, Exclusive, "<display-name>", "nested 2") >> lock
+
+        and:
+        1 * nestedAction.create() >> {
+            canAccess cache
+        }
+
+        and:
+        1 * lockManager.lock(lockFile, Exclusive, "<display-name>", "some operation") >> lock
         _ * lock.readFile(_)
         _ * lock.writeFile(_)
-        3 * lock.close()
+        2 * lock.close()
         0 * _._
     }
 
@@ -451,14 +426,14 @@ class DefaultCacheAccessTest extends Specification {
         try {
             cache.get("key")
         } catch (IllegalStateException e) {
-            assert false : "Should be able to access cache here"
+            assert false: "Should be able to access cache here"
         }
     }
 
     def cannotAccess(def cache) {
         try {
             cache.get("key")
-            assert false : "Should not be able to access cache here"
+            assert false: "Should not be able to access cache here"
         } catch (IllegalStateException e) {
             assert e.message == 'The <display-name> has not been locked.'
         }

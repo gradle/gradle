@@ -31,12 +31,15 @@ import org.gradle.logging.internal.StreamBackedStandardOutputListener;
 
 import java.lang.management.ManagementFactory;
 
-public class EmbeddedDaemonGradleExecuter extends AbstractGradleExecuter {
+class EmbeddedDaemonGradleExecuter extends AbstractGradleExecuter {
 
     private final EmbeddedDaemonClientServices daemonClientServices = new EmbeddedDaemonClientServices(LoggingServiceRegistry.newEmbeddableLogging(), false);
 
     public DaemonRegistry getDaemonRegistry() {
         return daemonClientServices.get(DaemonRegistry.class);
+    }
+
+    public void assertCanExecute() throws AssertionError {
     }
 
     protected ExecutionResult doRun() {

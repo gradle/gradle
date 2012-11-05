@@ -5,7 +5,7 @@ repositories {
 }
 
 dependencies {
-    groovy "org.codehaus.groovy:groovy-all:1.8.7"
+    groovy "org.codehaus.groovy:groovy-all:1.8.8"
     testCompile "junit:junit:4.10"
 }
 

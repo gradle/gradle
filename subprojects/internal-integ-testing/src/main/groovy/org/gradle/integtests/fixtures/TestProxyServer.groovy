@@ -16,15 +16,12 @@
 package org.gradle.integtests.fixtures
 
 import ch.qos.logback.classic.Level
+import org.gradle.test.fixtures.server.HttpServer
 import org.gradle.util.AvailablePortFinder
 import org.jboss.netty.handler.codec.http.HttpRequest
 import org.junit.rules.ExternalResource
-import org.littleshoot.proxy.DefaultHttpProxyServer
-import org.littleshoot.proxy.HttpProxyServer
-import org.littleshoot.proxy.HttpRequestFilter
-import org.littleshoot.proxy.HttpRequestHandler
-import org.littleshoot.proxy.ProxyAuthorizationHandler
 import org.slf4j.LoggerFactory
+import org.littleshoot.proxy.*
 
 /**
  * A Proxy Server used for testing that http proxies are correctly supported.

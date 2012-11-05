@@ -22,7 +22,9 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.AbstractTask;
+import org.gradle.api.internal.Actions;
 import org.gradle.api.internal.AsmBackedClassGenerator;
+import org.gradle.api.internal.DependencyInjectingInstantiator;
 import org.gradle.api.internal.project.AbstractProject;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -32,9 +34,13 @@ import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.reflect.DirectInstantiator;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.reflect.ObjectInstantiationException;
+import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.util.*;
 import org.jmock.Expectations;
 import org.jmock.lib.legacy.ClassImposteriser;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import spock.lang.Issue;
@@ -42,8 +48,7 @@ import spock.lang.Issue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.gradle.util.Matchers.dependsOn;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.sameInstance;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 /**
@@ -54,11 +59,16 @@ public abstract class AbstractTaskTest {
     @Rule
     public TemporaryFolder tmpDir = new TemporaryFolder();
 
-    private AbstractProject project = HelperUtil.createRootProject();
-
     protected JUnit4GroovyMockery context = new JUnit4GroovyMockery() {{
         setImposteriser(ClassImposteriser.INSTANCE);
     }};
+
+    protected DefaultServiceRegistry serviceRegistry = new DefaultServiceRegistry();
+
+    protected Instantiator instantiator = new DependencyInjectingInstantiator(serviceRegistry);
+
+    private AbstractProject project = HelperUtil.createRootProject();
+
     private final AnnotationProcessingTaskFactory rootFactory = new AnnotationProcessingTaskFactory(new TaskFactory(new AsmBackedClassGenerator()));
 
     public abstract AbstractTask getTask();
@@ -72,9 +82,16 @@ public abstract class AbstractTaskTest {
     }
 
     public <T extends AbstractTask> T createTask(Class<T> type, ProjectInternal project, String name) {
-        Task task = rootFactory.createChild(project, new DirectInstantiator()).createTask(GUtil.map(Task.TASK_TYPE, type, Task.TASK_NAME, name));
+        DefaultServiceRegistry registry = new DefaultServiceRegistry();
+        registry.add(Instantiator.class, new DirectInstantiator());
+        Task task = rootFactory.createChild(project, instantiator).createTask(GUtil.map(Task.TASK_TYPE, type, Task.TASK_NAME, name));
         assertTrue(type.isAssignableFrom(task.getClass()));
         return type.cast(task);
+    }
+
+    @Before
+    public final void setupRegistry() {
+        serviceRegistry.add(Instantiator.class, instantiator);
     }
 
     @Test
@@ -126,8 +143,8 @@ public abstract class AbstractTaskTest {
 
     @Test
     public void testDeleteAllActions() {
-        Action<Task> action1 = createTaskAction();
-        Action<Task> action2 = createTaskAction();
+        Action<? super Task> action1 = Actions.<Task>doNothing();
+        Action<? super Task> action2 = Actions.<Task>doNothing();
         getTask().doLast(action1);
         getTask().doLast(action2);
         assertSame(getTask(), getTask().deleteAllActions());
@@ -272,23 +289,17 @@ public abstract class AbstractTaskTest {
         assertTrue(getTask().dependsOnTaskDidWork());
     }
 
-    public static Action<Task> createTaskAction() {
-        return new Action<Task>() {
-            public void execute(Task task) {
-            }
-        };
-    }
-    
     @Test
     @Issue("http://issues.gradle.org/browse/GRADLE-2022")
     public void testGoodErrorMessageWhenTaskInstantiatedDirectly() {
         try {
-            Class<? extends AbstractTask> clazz = getTask().getClass();
-            clazz.newInstance();
-            throw new RuntimeException("Direct instantiation of " + clazz + " should have produced an exception");
-        } catch (Exception e) {
-            assertEquals(TaskInstantiationException.class, e.getClass());
-            assert e.getMessage().contains("has been instantiated directly which is not supported");
+            instantiator.newInstance(getTask().getClass());
+            throw new RuntimeException("Direct instantiation of " + getTask().getClass() + " should have produced an exception");
+        } catch (ObjectInstantiationException e) {
+            // compared to direct instantiation, instantiator (which we use to get any ctor args injected) wraps TaskInstantiationException, so unwrap
+            Throwable cause = e.getCause();
+            assertEquals(TaskInstantiationException.class, cause.getClass());
+            assertThat(cause.getMessage(), containsString("has been instantiated directly which is not supported"));
         }
     }
 }

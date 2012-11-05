@@ -24,10 +24,12 @@ import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory
 import org.gradle.util.ConfigureUtil
 
 /**
- * Enables fine-tuning classpath details (.classpath file) of the Eclipse plugin
+ * The build path settings for the generated Eclipse project. Used by the
+ * {@link org.gradle.plugins.ide.eclipse.GenerateEclipseClasspath} task to generate an Eclipse .classpath file.
  * <p>
- * Example of use with a blend of all possible properties.
- * Bear in mind that usually you don't have configure eclipse classpath directly because Gradle configures it for free!
+ * The following example demonstrates the various configuration options.
+ * Keep in mind that all properties have sensible defaults; only configure them explicitly
+ * if the defaults don't match your needs.
  *
  * <pre autoTested=''>
  * apply plugin: 'java'
@@ -39,18 +41,17 @@ import org.gradle.util.ConfigureUtil
  * }
  *
  * eclipse {
- *
  *   //if you want parts of paths in resulting file to be replaced by variables (files):
  *   pathVariables 'GRADLE_HOME': file('/best/software/gradle'), 'TOMCAT_HOME': file('../tomcat')
  *
  *   classpath {
- *     //you can tweak the classpath of the eclipse project by adding extra configurations:
+ *     //you can tweak the classpath of the Eclipse project by adding extra configurations:
  *     plusConfigurations += configurations.provided
  *
  *     //you can also remove configurations from the classpath:
  *     minusConfigurations += configurations.someBoringConfig
  *
- *     //if you don't want some classpath entries 'exported' in eclipse
+ *     //if you don't want some classpath entries 'exported' in Eclipse
  *     noExportConfigurations += configurations.provided
  *
  *     //if you want to append extra containers:
@@ -59,18 +60,18 @@ import org.gradle.util.ConfigureUtil
  *     //customizing the classes output directory:
  *     defaultOutputDir = file('build-eclipse')
  *
- *     //default settings for dependencies sources/javadoc download:
+ *     //default settings for downloading sources and Javadoc:
  *     downloadSources = true
  *     downloadJavadoc = false
  *   }
  * }
  * </pre>
  *
- * For tackling edge cases users can perform advanced configuration on resulting xml file.
- * It is also possible to affect the way eclipse plugin merges the existing configuration
+ * For tackling edge cases, users can perform advanced configuration on the resulting XML file.
+ * It is also possible to affect the way that the Eclipse plugin merges the existing configuration
  * via beforeMerged and whenMerged closures.
  * <p>
- * beforeMerged and whenMerged closures receive {@link Classpath} object
+ * The beforeMerged and whenMerged closures receive a {@link Classpath} object.
  * <p>
  * Examples of advanced configuration:
  *
@@ -108,47 +109,46 @@ import org.gradle.util.ConfigureUtil
 class EclipseClasspath {
 
     /**
-     * The source sets to be added to the classpath.
+     * The source sets to be added.
      * <p>
-     * For example see docs for {@link EclipseClasspath}
+     * See {@link EclipseClasspath} for an example.
      */
     Iterable<SourceSet> sourceSets
 
     /**
-     * The configurations which files are to be transformed into classpath entries.
+     * The configurations whose files are to be added as classpath entries.
      * <p>
-     * For example see docs for {@link EclipseClasspath}
+     * See {@link EclipseClasspath} for an example.
      */
     Collection<Configuration> plusConfigurations = []
 
     /**
-     * The configurations which files are to be excluded from the classpath entries.
+     * The configurations whose files are to be excluded from the classpath entries.
      * <p>
-     * For example see docs for {@link EclipseClasspath}
+     * See {@link EclipseClasspath} for an example.
      */
     Collection<Configuration> minusConfigurations = []
 
     /**
-     * The included configurations (plusConfigurations) which files will not be exported.
-     * Only make sense if those configurations are also a part of {@link #plusConfigurations}
+     * A subset of {@link #plusConfigurations} whose files are not to be exported to downstream Eclipse projects.
      * <p>
-     * For example see docs for {@link EclipseClasspath}
+     * See {@link EclipseClasspath} for an example.
      */
     Collection<Configuration> noExportConfigurations = []
 
     /**
-     * Containers to be added to the classpath
+     * The classpath containers to be added.
      * <p>
-     * For example see docs for {@link EclipseClasspath}
+     * See {@link EclipseClasspath} for an example.
      */
     Set<String> containers = new LinkedHashSet<String>()
 
     /**
-     * Adds containers to the .classpath.
+     * Further classpath containers to be added.
      * <p>
-     * For example see docs for {@link EclipseClasspath}
+     * See {@link EclipseClasspath} for an example.
      *
-     * @param containers the container names to be added to the .classpath.
+     * @param containers the classpath containers to be added
      */
     void containers(String... containers) {
         assert containers != null
@@ -156,41 +156,39 @@ class EclipseClasspath {
     }
 
     /**
-     * The default output directory where eclipse puts compiled classes
+     * The default output directory where Eclipse puts compiled classes.
      * <p>
-     * For example see docs for {@link EclipseClasspath}
+     * See {@link EclipseClasspath} for an example.
      */
     File defaultOutputDir
 
     /**
-     * Whether to download and add sources associated with the dependency jars. Defaults to true.
+     * Whether to download and associate source Jars with the dependency Jars. Defaults to true.
      * <p>
-     * For example see docs for {@link EclipseClasspath}
+     * See {@link EclipseClasspath} for an example.
      */
     boolean downloadSources = true
 
     /**
-     * Whether to download and add javadocs associated with the dependency jars. Defaults to false.
+     * Whether to download and associate Javadoc Jars with the dependency Jars. Defaults to false.
      * <p>
-     * For example see docs for {@link EclipseClasspath}
+     * See {@link EclipseClasspath} for an example.
      */
     boolean downloadJavadoc = false
 
     /**
-     * Enables advanced configuration like tinkering with the output xml
-     * or affecting the way existing .classpath content is merged with gradle build information
+     * Enables advanced configuration like tinkering with the output XML or affecting the way
+     * that the contents of an existing .classpath file is merged with Gradle build information.
+     * The object passed to the whenMerged{} and beforeMerged{} closures is of type {@link Classpath}.
      * <p>
-     * The object passed to whenMerged{} and beforeMerged{} closures is of type {@link Classpath}
-     * <p>
-     *
-     * For example see docs for {@link EclipseProject}
+     * See {@link EclipseProject} for an example.
      */
     void file(Closure closure) {
         ConfigureUtil.configure(closure, file)
     }
 
     /**
-     * See {@link #file(Closure)}
+     * See {@link #file(Closure)}.
      */
     XmlFileContentMerger file
 
@@ -207,7 +205,7 @@ class EclipseClasspath {
     }
 
     /**
-     * Calculates, resolves & returns dependency entries of this classpath
+     * Calculates, resolves and returns dependency entries of this classpath.
      */
     public List<ClasspathEntry> resolveDependencies() {
         def entries = new ClasspathFactory().createEntries(this)

@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.filestore
 
+import org.gradle.api.Action
+import org.gradle.api.GradleException
 import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestFile
 import org.junit.Rule
@@ -48,7 +50,7 @@ class PathKeyFileStoreTest extends Specification {
         dir.file("b").exists()
     }
 
-    def "can add to filestore"() {
+    def "can move to filestore"() {
         when:
         store.move("a", createFile("abc"))
         store.move("b", createFile("def"))
@@ -56,6 +58,60 @@ class PathKeyFileStoreTest extends Specification {
         then:
         fsBase.file("a").text == "abc"
         fsBase.file("b").text == "def"
+    }
+
+    def "can add to filestore"() {
+        when:
+        store.add("a", { File f -> f.text = "abc"} as Action<File>)
+        store.add("b", { File f -> f.text = "def"} as Action<File>)
+        then:
+        fsBase.file("a").text == "abc"
+        fsBase.file("b").text == "def"
+    }
+
+    def "add throws GradleException if exception in action occured"() {
+        when:
+        store.add("a", { File f -> throw new Exception("TestException")} as Action<File>)
+        then:
+        thrown(GradleException)
+        !fsBase.file("a").exists()
+        !fsBase.file("a.fslock").exists()
+    }
+
+    def "can get from filestore"() {
+        when:
+        createFile("abc", "fs/a")
+        then:
+        store.get("a") != null
+        store.get("b") == null
+    }
+
+    def "get cleans up filestore"() {
+        when:
+        createFile("abc", "fs/a").exists()
+        createFile("lock", "fs/a.fslck").exists()
+        then:
+        store.get("a") == null
+        store.get("a.fslock") == null
+    }
+
+    def "can overwrite stale files "() {
+        given:
+        createFile("abc", "fs/a").exists()
+        createFile("lock", "fs/a.fslck").exists()
+        when:
+        store.add("a", { File f -> f.text = "def"} as Action<File>)
+        then:
+        store.get("a").file.text == "def"
+    }
+
+    def "get on stale file with marker removes file from filestore"() {
+        when:
+        createFile("abc", "fs/a")
+        createFile("def", "fs/b")
+        then:
+        store.get("a").file.text == "abc"
+        store.get("b").file.text == "def"
     }
 
     def "can overwrite entry"() {
@@ -89,6 +145,18 @@ class PathKeyFileStoreTest extends Specification {
         store.search("**/a").size() == 2
         store.search("*/b/*").size() == 1
         store.search("a/b/a").size() == 1
+    }
+
+    def "search ignores stale entries with marker file"() {
+        when:
+        store.move("a/a/a", createFile("a"))
+        store.move("a/b/b", createFile("b"))
+        store.move("a/c/c", createFile("c"))
+        createFile("lock", "fs/a/b/b.fslck")
+        def search = store.search("**/*")
+        then:
+        search.size() == 2
+        search.collect {entry -> entry.file.name}.sort() == ["a", "c"]
     }
 
     def "move filestore"() {

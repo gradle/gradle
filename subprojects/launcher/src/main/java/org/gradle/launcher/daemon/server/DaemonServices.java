@@ -51,7 +51,7 @@ public class DaemonServices extends DefaultServiceRegistry {
         this.loggingServices = loggingServices;
         this.loggingManager = loggingManager;
 
-        add(new NativeServices());
+        add(NativeServices.getInstance());
         add(new DaemonRegistryServices(configuration.getBaseDir()));
     }
 
@@ -87,7 +87,6 @@ public class DaemonServices extends DefaultServiceRegistry {
                 "password",
                 new DefaultDaemonCommandExecuter(
                         new DefaultGradleLauncherFactory(loggingServices),
-                        get(ExecutorFactory.class),
                         get(ProcessEnvironment.class),
                         loggingManager,
                         getDaemonLogFile()),

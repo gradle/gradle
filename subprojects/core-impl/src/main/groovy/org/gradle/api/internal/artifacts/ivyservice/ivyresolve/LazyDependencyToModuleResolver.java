@@ -53,44 +53,18 @@ public class LazyDependencyToModuleResolver implements DependencyToModuleVersion
             this.resolver = resolver;
         }
 
-        public ArtifactResolveResult resolve(Artifact artifact) throws ArtifactResolveException {
-            ArtifactResolveResult result;
+        public void resolve(Artifact artifact, BuildableArtifactResolveResult result) {
             try {
-                result = resolver.resolve(artifact);
+                resolver.resolve(artifact, result);
             } catch (Throwable t) {
-                return new BrokenArtifactResolveResult(new ArtifactResolveException(artifact, t));
+                result.failed(new ArtifactResolveException(artifact, t));
             }
-            return result;
-        }
-    }
-
-    private static class DefaultModuleVersionResolveResult implements ModuleVersionResolveResult {
-        private final ModuleVersionResolveResult resolver;
-
-        private DefaultModuleVersionResolveResult(ModuleVersionResolveResult result) {
-            this.resolver = result;
-        }
-
-        public ModuleVersionResolveException getFailure() {
-            return null;
-        }
-
-        public ModuleRevisionId getId() throws ModuleVersionResolveException {
-            return resolver.getId();
-        }
-
-        public ModuleDescriptor getDescriptor() throws ModuleVersionResolveException {
-            return resolver.getDescriptor();
-        }
-
-        public ArtifactResolver getArtifactResolver() throws ModuleVersionResolveException {
-            return new ErrorHandlingArtifactResolver(resolver.getArtifactResolver());
         }
     }
 
     private class StaticVersionResolveResult implements ModuleVersionIdResolveResult {
         private final DependencyDescriptor dependencyDescriptor;
-        private ModuleVersionResolveResult resolveResult;
+        private BuildableModuleVersionResolveResult resolveResult;
 
         public StaticVersionResolveResult(DependencyDescriptor dependencyDescriptor) {
             this.dependencyDescriptor = dependencyDescriptor;
@@ -106,11 +80,10 @@ public class LazyDependencyToModuleResolver implements DependencyToModuleVersion
 
         public ModuleVersionResolveResult resolve() {
             if (resolveResult == null) {
-                ModuleVersionResolveException failure = null;
-                ModuleVersionResolveResult resolveResult = null;
+                resolveResult = new DefaultBuildableModuleVersionResolveResult();
                 try {
                     try {
-                        resolveResult = dependencyResolver.resolve(dependencyDescriptor);
+                        dependencyResolver.resolve(dependencyDescriptor, resolveResult);
                     } catch (Throwable t) {
                         throw new ModuleVersionResolveException(dependencyDescriptor.getDependencyRevisionId(), t);
                     }
@@ -121,18 +94,17 @@ public class LazyDependencyToModuleResolver implements DependencyToModuleVersion
                         throw resolveResult.getFailure();
                     }
                     checkDescriptor(resolveResult.getDescriptor());
+                    resolveResult.setArtifactResolver(new ErrorHandlingArtifactResolver(resolveResult.getArtifactResolver()));
                 } catch (ModuleVersionResolveException e) {
-                    failure = e;
-                }
-
-                if (failure != null) {
-                    this.resolveResult = new BrokenModuleVersionResolveResult(failure);
-                } else {
-                    this.resolveResult = new DefaultModuleVersionResolveResult(resolveResult);
+                    resolveResult.failed(e);
                 }
             }
 
             return resolveResult;
+        }
+
+        public IdSelectionReason getSelectionReason() {
+            return IdSelectionReason.requested;
         }
 
         private void checkDescriptor(ModuleDescriptor descriptor) {

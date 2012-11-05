@@ -37,10 +37,15 @@ class ProjectGeneratorTask extends DefaultTask {
     @OutputDirectory
     File destDir
     boolean groovyProject
+    boolean scalaProject
+    boolean withPlainAntCompile
     int sourceFiles = 1
     Integer testSourceFiles
     int linesOfCodePerSourceFile = 5
     @InputFiles FileCollection testDependencies
+    String testClassTemplate = 'Test.java'
+    boolean testReport = false
+    String testFramework = 'useJUnit()'
 
     final List<TestProject> projects = []
     final SimpleTemplateEngine engine = new SimpleTemplateEngine()
@@ -147,7 +152,10 @@ class ProjectGeneratorTask extends DefaultTask {
             }
         }
 
-        args += [projectName: testProject.name, groovyProject: groovyProject, propertyCount: (testProject.linesOfCodePerSourceFile.intdiv(7)), repository: testProject.repository, dependencies:testProject.dependencies]
+        args += [projectName: testProject.name, groovyProject: groovyProject, scalaProject: scalaProject, withPlainAntCompile: withPlainAntCompile,
+                propertyCount: (testProject.linesOfCodePerSourceFile.intdiv(7)), repository: testProject.repository, dependencies:testProject.dependencies,
+                testProject: testProject
+                ]
 
         files.each {String name ->
             generate(name, name, args)
@@ -162,7 +170,7 @@ class ProjectGeneratorTask extends DefaultTask {
             testProject.testSourceFiles.times {
                 String packageName = "org.gradle.test.performance${(int) (it / 100) + 1}"
                 Map classArgs = args + [packageName: packageName, productionClassName: "Production${it + 1}", testClassName: "Test${it + 1}"]
-                generate("src/test/java/${packageName.replace('.', '/')}/${classArgs.testClassName}.java", 'Test.java', classArgs)
+                generate("src/test/java/${packageName.replace('.', '/')}/${classArgs.testClassName}.java", testProject.defaults.testClassTemplate, classArgs)
             }
             if (groovyProject) {
                 testProject.sourceFiles.times {
@@ -174,6 +182,18 @@ class ProjectGeneratorTask extends DefaultTask {
                     String packageName = "org.gradle.test.performance${(int) (it / 100) + 1}"
                     Map classArgs = args + [packageName: packageName, productionClassName: "ProductionGroovy${it + 1}", testClassName: "TestGroovy${it + 1}"]
                     generate("src/test/groovy/${packageName.replace('.', '/')}/${classArgs.testClassName}.groovy", 'Test.groovy', classArgs)
+                }
+            }
+            if (scalaProject) {
+                testProject.sourceFiles.times {
+                    String packageName = "org.gradle.test.performance${(int) (it / 100) + 1}"
+                    Map classArgs = args + [packageName: packageName, productionClassName: "ProductionScala${it + 1}"]
+                    generate("src/main/scala/${packageName.replace('.', '/')}/${classArgs.productionClassName}.scala", 'Production.scala', classArgs)
+                }
+                testProject.testSourceFiles.times {
+                    String packageName = "org.gradle.test.performance${(int) (it / 100) + 1}"
+                    Map classArgs = args + [packageName: packageName, productionClassName: "ProductionScala${it + 1}", testClassName: "TestScala${it + 1}"]
+                    generate("src/test/scala/${packageName.replace('.', '/')}/${classArgs.testClassName}.scala", 'Test.scala', classArgs)
                 }
             }
         }

@@ -125,6 +125,7 @@ public class JvmOptions {
         maxHeapSize = null;
         extraJvmArgs.clear();
         assertionsEnabled = false;
+        debug = false;
         jvmArgs(arguments);
     }
 
@@ -197,8 +198,6 @@ public class JvmOptions {
         if (xdebugFound && xrunjdwpFound) {
             debug = true;
             extraJvmArgs.removeAll(matches);
-        } else {
-            debug = false;
         }
     }
 

@@ -266,14 +266,6 @@ public class Jvm implements JavaInfo {
          * {@inheritDoc}
          */
         @Override
-        public File getJavaHome() {
-            return super.getJavaHome();
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
         public File getRuntimeJar() {
             File javaHome = super.getJavaHome();
             File runtimeJar = new File(javaHome.getParentFile(), "Classes/classes.jar");

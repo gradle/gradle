@@ -74,6 +74,21 @@ class JvmOptionsTest extends Specification {
         parse("-Xms1G -Dfile.encoding=UTF-8 -Dfoo.encoding=blah -Dfile.encoding=UTF-16").allJvmArgs == ["-Dfoo.encoding=blah", "-Xms1G", "-Dfile.encoding=UTF-16"]
     }
 
+    def "debug option can be set via allJvmArgs"() {
+        setup:
+        def opts = createOpts()
+
+        when:
+        opts.allJvmArgs = ['-Xdebug', '-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005']
+        then:
+        opts.debug
+
+        when:
+        opts.allJvmArgs = []
+        then:
+        opts.debug == false
+    }
+
     def "managed jvm args includes heap settings"() {
         expect:
         parse("-Xms1G -XX:-PrintClassHistogram -Xmx2G -Dfoo.encoding=blah").managedJvmArgs == ["-Xms1G", "-Xmx2G", "-Dfile.encoding=${defaultCharset}"]
@@ -142,6 +157,32 @@ class JvmOptionsTest extends Specification {
         parse("-Dfile.encoding=UTF-8 -Dfoo.encoding=blah -Dfile.encoding=UTF-16").copyTo(target)
         then:
         1 * target.systemProperties({it == ["file.encoding": "UTF-16"]})
+    }
+
+    def "can enter debug mode"() {
+        def opts = createOpts()
+        when:
+        opts.debug = true
+        then:
+        opts.debug
+    }
+
+    def "can enter debug mode after setting other options"() {
+        def opts = createOpts()
+        when:
+        opts.jvmArgs(JvmOptions.fromString('-Xmx1G -Xms1G'))
+        opts.debug = true
+        then:
+        opts.allJvmArgs.containsAll(['-Xmx1G', '-Xms1G', '-Xdebug', '-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005'])
+    }
+
+    def "can enter debug mode before setting other options"() {
+        def opts = createOpts()
+        opts.debug = true
+        when:
+        opts.jvmArgs(JvmOptions.fromString('-Xmx1G -Xms1G'))
+        then:
+        opts.allJvmArgs.containsAll(['-Xmx1G', '-Xms1G', '-Xdebug', '-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005'])
     }
 
     private JvmOptions createOpts() {

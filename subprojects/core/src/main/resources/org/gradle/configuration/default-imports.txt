@@ -6,6 +6,9 @@ import org.gradle.api.artifacts.result.*
 import org.gradle.api.artifacts.dsl.*
 import org.gradle.api.artifacts.maven.*
 import org.gradle.api.artifacts.specs.*
+import org.gradle.api.publish.*
+import org.gradle.api.publish.ivy.*
+import org.gradle.api.publish.ivy.tasks.*
 import org.gradle.api.execution.*
 import org.gradle.api.file.*
 import org.gradle.api.resources.*
@@ -29,4 +32,5 @@ import org.gradle.api.tasks.javadoc.*
 import org.gradle.api.tasks.testing.*
 import org.gradle.api.tasks.util.*
 import org.gradle.api.tasks.wrapper.*
+import org.gradle.api.tasks.scala.*
 import org.gradle.process.*

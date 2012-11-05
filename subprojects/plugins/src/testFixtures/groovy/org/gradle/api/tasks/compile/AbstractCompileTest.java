@@ -47,7 +47,7 @@ public abstract class AbstractCompileTest extends AbstractConventionTaskTest {
     protected abstract AbstractCompile getCompile();
 
     @Before
-    public void setUp() {
+    public final void setUpDirs() {
         destDir = getProject().file("destDir");
         depCacheDir = getProject().file("depCache");
         srcDir = getProject().file("src");

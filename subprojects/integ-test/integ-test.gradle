@@ -1,5 +1,3 @@
-apply from: "$rootDir/gradle/classycle.gradle"
-
 dependencies {
     groovy libraries.groovy
 
@@ -35,5 +33,6 @@ daemonIntegTest {
 
 parallelIntegTest {
     systemProperty "org.gradle.userguide.samples.exclude", "multiProjectBuildSrc,multiprojectMessagesHack"
-    exclude "**/SamplesMultiProjectBuildSrcIntegrationTest.class" // Need thread-safety in compiler daemon
 }
+
+useClassycle()

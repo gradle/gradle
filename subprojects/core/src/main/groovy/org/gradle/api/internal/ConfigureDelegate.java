@@ -24,7 +24,7 @@ import org.gradle.api.Action;
 public class ConfigureDelegate extends GroovyObjectSupport {
     private final DynamicObject owner;
     private final DynamicObject delegate;
-    private final Action<String> onMissing;
+    private final Action<? super String> onMissing;
     private final ThreadLocal<Boolean> configuring = new ThreadLocal<Boolean>() {
         @Override
         protected Boolean initialValue() {
@@ -32,14 +32,11 @@ public class ConfigureDelegate extends GroovyObjectSupport {
         }
     };
 
-    private static final Action<String> NOOP_ACTION = new Action<String>() {
-        public void execute(String s) {}
-    };
-
     public ConfigureDelegate(Object owner, Object delegate) {
-        this(owner, delegate, NOOP_ACTION);
+        this(owner, delegate, Actions.doNothing());
     }
-    public ConfigureDelegate(Object owner, Object delegate, Action<String> onMissing) {
+
+    public ConfigureDelegate(Object owner, Object delegate, Action<? super String> onMissing) {
         this.owner = DynamicObjectUtil.asDynamicObject(owner);
         this.delegate = DynamicObjectUtil.asDynamicObject(delegate);
         this.onMissing = onMissing;

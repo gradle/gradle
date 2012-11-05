@@ -96,6 +96,10 @@ public class DefaultSourceSet implements SourceSet {
         return getTaskName("process", "resources");
     }
 
+    public String getJarTaskName() {
+        return getTaskName(null, "jar");
+    }
+
     public String getTaskName(String verb, String target) {
         if (verb == null) {
             return StringUtils.uncapitalize(String.format("%s%s", getTaskBaseName(), StringUtils.capitalize(target)));

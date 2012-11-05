@@ -16,11 +16,11 @@
 package org.gradle.api.internal.artifacts.repositories;
 
 import com.google.common.collect.Lists;
+import org.apache.ivy.core.cache.RepositoryCacheManager;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.FileSystemResolver;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
-import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.file.FileResolver;
 
 import java.io.File;
@@ -29,23 +29,14 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
-public class DefaultFlatDirArtifactRepository implements FlatDirectoryArtifactRepository, ArtifactRepositoryInternal {
+public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository implements FlatDirectoryArtifactRepository, ArtifactRepositoryInternal {
     private final FileResolver fileResolver;
-    private final RepositoryTransportFactory repositoryTransportFactory;
-    private String name;
     private List<Object> dirs = new ArrayList<Object>();
+    private final RepositoryCacheManager localCacheManager;
 
-    public DefaultFlatDirArtifactRepository(FileResolver fileResolver, RepositoryTransportFactory repositoryTransportFactory) {
+    public DefaultFlatDirArtifactRepository(FileResolver fileResolver, RepositoryCacheManager localCacheManager) {
         this.fileResolver = fileResolver;
-        this.repositoryTransportFactory = repositoryTransportFactory;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
+        this.localCacheManager = localCacheManager;
     }
 
     public Set<File> getDirs() {
@@ -71,13 +62,14 @@ public class DefaultFlatDirArtifactRepository implements FlatDirectoryArtifactRe
         }
 
         FileSystemResolver resolver = new FileSystemResolver();
-        resolver.setName(name);
+        resolver.setName(getName());
         for (File root : dirs) {
             resolver.addArtifactPattern(root.getAbsolutePath() + "/[artifact]-[revision](-[classifier]).[ext]");
             resolver.addArtifactPattern(root.getAbsolutePath() + "/[artifact](-[classifier]).[ext]");
         }
         resolver.setValidate(false);
-        resolver.setRepositoryCacheManager(repositoryTransportFactory.getLocalCacheManager());
+        resolver.setRepositoryCacheManager(localCacheManager);
         return resolver;
     }
+
 }

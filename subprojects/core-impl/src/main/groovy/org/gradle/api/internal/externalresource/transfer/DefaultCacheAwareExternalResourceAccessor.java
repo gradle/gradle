@@ -21,6 +21,7 @@ import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 import org.gradle.api.internal.externalresource.cached.CachedExternalResource;
 import org.gradle.api.internal.externalresource.cached.CachedExternalResourceAdapter;
+import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResource;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceCandidates;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
@@ -37,13 +38,16 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultCacheAwareExternalResourceAccessor.class);
 
     private final ExternalResourceAccessor delegate;
+    private final CachedExternalResourceIndex<String> cachedExternalResourceIndex;
 
-    public DefaultCacheAwareExternalResourceAccessor(ExternalResourceAccessor delegate) {
+    public DefaultCacheAwareExternalResourceAccessor(ExternalResourceAccessor delegate, CachedExternalResourceIndex<String> cachedExternalResourceIndex) {
         this.delegate = delegate;
+        this.cachedExternalResourceIndex = cachedExternalResourceIndex;
     }
 
-    public ExternalResource getResource(final String location, @Nullable LocallyAvailableResourceCandidates localCandidates, @Nullable CachedExternalResource cached) throws IOException {
+    public ExternalResource getResource(final String location, @Nullable LocallyAvailableResourceCandidates localCandidates) throws IOException {
         LOGGER.debug("Constructing external resource: {}", location);
+        CachedExternalResource cached = cachedExternalResourceIndex.lookup(location);
 
         // If we have no caching options, just get the thing directly
         if (cached == null && (localCandidates == null || localCandidates.isNone())) {

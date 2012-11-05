@@ -19,13 +19,15 @@ import groovy.lang.Closure;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
+import org.gradle.api.internal.artifacts.ArtifactPublisherFactory;
 import org.gradle.api.internal.artifacts.repositories.layout.*;
+import org.gradle.api.internal.artifacts.repositories.resolver.IvyResolver;
+import org.gradle.api.internal.artifacts.repositories.resolver.PatternBasedResolver;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
-import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.publish.ivy.internal.IvyPublisher;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.WrapUtil;
 
@@ -33,26 +35,25 @@ import java.net.URI;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupportedRepository implements IvyArtifactRepository, ArtifactRepositoryInternal {
-    private String name;
+public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupportedRepository implements IvyArtifactRepositoryInternal {
     private Object baseUrl;
     private RepositoryLayout layout;
     private final AdditionalPatternsRepositoryLayout additionalPatternsLayout;
     private final FileResolver fileResolver;
     private final RepositoryTransportFactory transportFactory;
     private final LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder;
-    private final CachedExternalResourceIndex<String> cachedExternalResourceIndex;
+    private final ArtifactPublisherFactory artifactPublisherFactory;
 
     public DefaultIvyArtifactRepository(FileResolver fileResolver, PasswordCredentials credentials, RepositoryTransportFactory transportFactory,
                                         LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder,
-                                        CachedExternalResourceIndex<String> cachedExternalResourceIndex) {
+                                        ArtifactPublisherFactory artifactPublisherFactory) {
         super(credentials);
         this.fileResolver = fileResolver;
         this.transportFactory = transportFactory;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
-        this.cachedExternalResourceIndex = cachedExternalResourceIndex;
         this.additionalPatternsLayout = new AdditionalPatternsRepositoryLayout(fileResolver);
         this.layout = new GradleRepositoryLayout();
+        this.artifactPublisherFactory = artifactPublisherFactory;
     }
 
     public DependencyResolver createResolver() {
@@ -78,20 +79,12 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
             throw new InvalidUserDataException("You may only specify 'file', 'http' and 'https' urls for an ivy repository.");
         }
         if (WrapUtil.toSet("http", "https").containsAll(schemes)) {
-            return new IvyResolver(name, transportFactory.createHttpTransport(name, getCredentials()), locallyAvailableResourceFinder, cachedExternalResourceIndex);
+            return new IvyResolver(getName(), transportFactory.createHttpTransport(getName(), getCredentials()), locallyAvailableResourceFinder);
         }
         if (WrapUtil.toSet("file").containsAll(schemes)) {
-            return new IvyResolver(name, transportFactory.createFileTransport(name), locallyAvailableResourceFinder, cachedExternalResourceIndex);
+            return new IvyResolver(getName(), transportFactory.createFileTransport(getName()), locallyAvailableResourceFinder);
         }
         throw new InvalidUserDataException("You cannot mix file and http(s) urls for a single ivy repository. Please declare 2 separate repositories.");
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     public URI getUrl() {
@@ -160,5 +153,10 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
             }
         }
     }
+
+    public IvyPublisher createPublisher() {
+        return new IvyPublisher(artifactPublisherFactory.createArtifactPublisher(this));
+    }
+
 
 }

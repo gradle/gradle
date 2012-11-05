@@ -16,8 +16,6 @@
 
 package org.gradle.integtests.fixtures;
 
-import org.gradle.cli.CommandLineParser;
-import org.gradle.cli.SystemPropertiesCommandLineConverter;
 import org.gradle.internal.Factory;
 import org.gradle.internal.nativeplatform.jna.WindowsHandlesManipulator;
 import org.gradle.internal.os.OperatingSystem;
@@ -30,13 +28,11 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 import static org.junit.Assert.fail;
 
-public class ForkingGradleExecuter extends AbstractGradleExecuter {
+class ForkingGradleExecuter extends AbstractGradleExecuter {
     private static final Logger LOG = LoggerFactory.getLogger(ForkingGradleExecuter.class);
     private final TestFile gradleHomeDir;
 
@@ -48,27 +44,12 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
 //        gradleOpts.add("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005");
     }
 
-    public TestFile getGradleHomeDir() {
-        return gradleHomeDir;
-    }
-
     public DaemonRegistry getDaemonRegistry() {
         return new DaemonRegistryServices(getDaemonBaseDir()).get(DaemonRegistry.class);
     }
 
-    protected Map<String, String> getSystemPropertiesFromArgs() {
-        SystemPropertiesCommandLineConverter converter = new SystemPropertiesCommandLineConverter();
-        CommandLineParser commandLineParser = new CommandLineParser();
-        converter.configure(commandLineParser);
-        commandLineParser.allowUnknownOptions();
-        return converter.convert(commandLineParser.parse(getAllArgs()));
-    }
-
-    /**
-     * Adds some options to the GRADLE_OPTS environment variable to use.
-     */
-    public void addGradleOpts(String... opts) {
-        gradleOpts.addAll(Arrays.asList(opts));
+    public void assertCanExecute() throws AssertionError {
+        // Can run any build
     }
 
     @Override
@@ -138,6 +119,10 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
     }
 
     private String formatGradleOpts() {
+        if (getUserHomeDir() != null) {
+            gradleOpts.add(String.format("-Duser.home=%s", getUserHomeDir()));
+        }
+
         StringBuilder result = new StringBuilder();
         for (String gradleOpt : gradleOpts) {
             if (result.length() > 0) {
@@ -152,7 +137,7 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
                 result.append(gradleOpt);
             }
         }
-        
+
         result.append(" -Dfile.encoding=");
         result.append(getDefaultCharacterEncoding());
         result.append(" -Dorg.gradle.deprecation.trace=true");

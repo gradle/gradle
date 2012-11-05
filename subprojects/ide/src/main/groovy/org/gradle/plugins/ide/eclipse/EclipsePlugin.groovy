@@ -16,6 +16,7 @@
 package org.gradle.plugins.ide.eclipse
 
 import org.gradle.api.Project
+import org.gradle.api.artifacts.Dependency
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.api.plugins.GroovyBasePlugin
 import org.gradle.api.plugins.JavaBasePlugin
@@ -141,6 +142,19 @@ class EclipsePlugin extends IdePlugin {
                     }
                     task.dependsOn {
                         project.sourceSets.main.output.dirs + project.sourceSets.test.output.dirs
+                    }
+                }
+
+                project.plugins.withType(ScalaBasePlugin) {
+                    classpath.containers 'org.scala-ide.sdt.launching.SCALA_CONTAINER'
+
+                    // exclude the dependencies already provided by SCALA_CONTAINER; prevents problems with Eclipse Scala plugin
+                    project.gradle.projectsEvaluated {
+                        def provided = ["scala-library", "scala-swing", "scala-dbc"]
+                        def dependencies = classpath.plusConfigurations.collectMany { it.allDependencies }.findAll { it.name in provided }
+                        if (!dependencies.empty) {
+                            classpath.minusConfigurations += project.configurations.detachedConfiguration(dependencies as Dependency[])
+                        }
                     }
                 }
             }

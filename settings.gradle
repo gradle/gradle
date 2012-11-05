@@ -15,6 +15,7 @@
  */
 include 'distributions'
 include 'baseServices'
+include 'baseServicesGroovy'
 include 'core'
 include 'coreImpl'
 include 'wrapper'
@@ -45,6 +46,10 @@ include 'internalIntegTesting'
 include 'performance'
 include 'javascript'
 include 'buildComparison'
+include 'reporting'
+include 'diagnostics'
+include 'publish'
+include 'ivy'
 
 rootProject.name = 'gradle'
 rootProject.children.each {project ->

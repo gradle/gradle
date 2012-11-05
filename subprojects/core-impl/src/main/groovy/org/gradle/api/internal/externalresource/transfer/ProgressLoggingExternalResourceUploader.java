@@ -17,7 +17,6 @@
 package org.gradle.api.internal.externalresource.transfer;
 
 import org.gradle.internal.Factory;
-import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
 
 import java.io.IOException;
@@ -30,31 +29,27 @@ public class ProgressLoggingExternalResourceUploader extends AbstractProgressLog
         super(progressLoggerFactory);
         this.delegate = delegate;
     }
-
     public void upload(final Factory<InputStream> source, final Long contentLength, String destination) throws IOException {
-        final ProgressLogger progressLogger = startProgress(String.format("Upload to %s", destination), null);
+        final ResourceOperation uploadOperation = createResourceOperation(destination, ResourceOperation.Type.upload, getClass(), contentLength);
+
         try {
             delegate.upload(new Factory<InputStream>() {
                 public InputStream create() {
-                    return new ProgressLoggingInputStream(source.create(), progressLogger, contentLength);
+                    return new ProgressLoggingInputStream(source.create(), uploadOperation);
                 }
             }, contentLength, destination);
         } finally {
-            progressLogger.completed();
+            uploadOperation.completed();
         }
     }
 
     private class ProgressLoggingInputStream extends InputStream {
-        private long totalRead;
         private InputStream inputStream;
-        private final ProgressLogger progressLogger;
-        private long contentLength;
+        private final ResourceOperation resourceOperation;
 
-
-        public ProgressLoggingInputStream(InputStream inputStream, ProgressLogger progressLogger, long contentLength) {
+        public ProgressLoggingInputStream(InputStream inputStream, ResourceOperation resourceOperation) {
             this.inputStream = inputStream;
-            this.progressLogger = progressLogger;
-            this.contentLength = contentLength;
+            this.resourceOperation = resourceOperation;
         }
 
         @Override
@@ -66,8 +61,7 @@ public class ProgressLoggingExternalResourceUploader extends AbstractProgressLog
         public int read() throws IOException {
             int result = inputStream.read();
             if (result >= 0) {
-                totalRead++;
-                doLogProgress();
+                doLogProgress(1);
             }
             return result;
         }
@@ -75,14 +69,13 @@ public class ProgressLoggingExternalResourceUploader extends AbstractProgressLog
         public int read(byte[] b, int off, int len) throws IOException {
             int read = inputStream.read(b, off, len);
             if (read > 0) {
-                totalRead += read;
-                doLogProgress();
+                doLogProgress(read);
             }
             return read;
         }
 
-        private void doLogProgress() {
-            logProgress(progressLogger, totalRead, contentLength, "uploaded");
+        private void doLogProgress(long numberOfBytes) {
+            resourceOperation.logProcessedBytes(numberOfBytes);
         }
     }
 }

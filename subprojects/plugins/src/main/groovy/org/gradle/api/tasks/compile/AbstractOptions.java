@@ -18,16 +18,14 @@ package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.Nullable;
-import org.gradle.internal.UncheckedException;
+import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.JavaReflectionUtil;
+import org.gradle.util.DeprecationLogger;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
 
 /**
  * Base class for compilation-related options.
@@ -45,54 +43,49 @@ public abstract class AbstractOptions implements Serializable {
     }
 
     public Map<String, Object> optionMap() {
-        Map<String, Object> map = Maps.newHashMap();
-        for (Field field: getClass().getDeclaredFields()) {
-            if (!isOptionField(field)) { continue; }
-            addValueToMapIfNotNull(map, field);
-        }
-        return map;
+        final Class<?> thisClass = getClass();
+        return DeprecationLogger.whileDisabled(new Factory<Map<String, Object>>() {
+            public Map<String, Object> create() {
+                Map<String, Object> map = Maps.newHashMap();
+                Class<?> currClass = thisClass;
+                if (currClass.getName().endsWith("_Decorated")) {
+                    currClass = currClass.getSuperclass();
+                }
+                while (currClass != AbstractOptions.class) {
+                    for (Field field : currClass.getDeclaredFields()) {
+                        if (isOptionField(field)) {
+                            addValueToMapIfNotNull(map, field);
+                        }
+                    }
+                    currClass = currClass.getSuperclass();
+                }
+                return map;
+            }
+        });
+    }
+
+    protected boolean excludeFromAntProperties(String fieldName) {
+        return false;
+    }
+
+    protected String getAntPropertyName(String fieldName) {
+        return fieldName;
+    }
+
+    protected Object getAntPropertyValue(String fieldName, Object value) {
+        return value;
     }
 
     private void addValueToMapIfNotNull(Map<String, Object> map, Field field) {
         Object value = JavaReflectionUtil.readProperty(this, field.getName());
         if (value != null) {
-            map.put(antProperty(field.getName()), antValue(field.getName(), value));
+            map.put(getAntPropertyName(field.getName()), getAntPropertyValue(field.getName(), value));
         }
     }
 
     private boolean isOptionField(Field field) {
         return ((field.getModifiers() & Modifier.STATIC) == 0)
                 && (!field.getName().equals("metaClass"))
-                && (!excludedFieldsFromOptionMap().contains(field.getName()));
-    }
-
-    private String antProperty(String fieldName) {
-        if (fieldName2AntMap().containsKey(fieldName)) {
-            return fieldName2AntMap().get(fieldName);
-        }
-        return fieldName;
-    }
-
-    private Object antValue(String fieldName, Object value) {
-        if (fieldValue2AntMap().containsKey(fieldName)) {
-            try {
-                return fieldValue2AntMap().get(fieldName).call();
-            } catch (Exception e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
-        }
-        return value;
-    }
-
-    protected List<String> excludedFieldsFromOptionMap() {
-        return Collections.emptyList();
-    }
-
-    protected Map<String, String> fieldName2AntMap() {
-        return Collections.emptyMap();
-    }
-
-    protected Map<String, ? extends Callable<Object>> fieldValue2AntMap() {
-        return Collections.emptyMap();
+                && (!excludeFromAntProperties(field.getName()));
     }
 }

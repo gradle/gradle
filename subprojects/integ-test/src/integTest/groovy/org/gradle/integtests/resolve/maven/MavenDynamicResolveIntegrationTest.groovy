@@ -19,23 +19,24 @@ package org.gradle.integtests.resolve.maven
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
 
 class MavenDynamicResolveIntegrationTest extends AbstractDependencyResolutionTest {
+
     def "can resolve dynamic version declared in pom as transitive dependency from HTTP Maven repository"() {
         given:
         server.start()
 
-        mavenRepo().module('group', 'projectC', '1.1').publish()
-        def projectC = mavenRepo().module('group', 'projectC', '1.5').publish()
-        mavenRepo().module('group', 'projectC', '2.0').publish()
-        def projectB = mavenRepo().module('group', 'projectB').dependsOn("group", 'projectC', '[1.0, 2.0)').publish()
-        def projectA = mavenRepo().module('group', 'projectA').dependsOn('projectB').publish()
+        mavenHttpRepo.module('org.test', 'projectC', '1.1').publish()
+        def projectC = mavenHttpRepo.module('org.test', 'projectC', '1.5').publish()
+        mavenHttpRepo.module('org.test', 'projectC', '2.0').publish()
+        def projectB = mavenHttpRepo.module('org.test', 'projectB', '1.0').dependsOn("org.test", 'projectC', '[1.0, 2.0)').publish()
+        def projectA = mavenHttpRepo.module('org.test', 'projectA', '1.0').dependsOn('org.test', 'projectB', '1.0').publish()
 
         buildFile << """
     repositories {
-        maven { url 'http://localhost:${server.port}/repo1' }
+        maven { url '${mavenHttpRepo.uri}' }
     }
     configurations { compile }
     dependencies {
-        compile 'group:projectA:1.0'
+        compile 'org.test:projectA:1.0'
     }
 
     task retrieve(type: Sync) {
@@ -45,13 +46,13 @@ class MavenDynamicResolveIntegrationTest extends AbstractDependencyResolutionTes
     """
 
         when:
-        server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.pom', projectA.pomFile)
-        server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.jar', projectA.artifactFile)
-        server.expectGet('/repo1/group/projectB/1.0/projectB-1.0.pom', projectB.pomFile)
-        server.expectGet('/repo1/group/projectB/1.0/projectB-1.0.jar', projectB.artifactFile)
-        server.expectGet('/repo1/group/projectC/maven-metadata.xml', projectC.rootMetaDataFile)
-        server.expectGet('/repo1/group/projectC/1.5/projectC-1.5.pom', projectC.pomFile)
-        server.expectGet('/repo1/group/projectC/1.5/projectC-1.5.jar', projectC.artifactFile)
+        projectA.expectPomGet()
+        projectA.expectArtifactGet()
+        projectB.expectPomGet()
+        projectB.expectArtifactGet()
+        mavenHttpRepo.expectMetaDataGet("org.test", "projectC")
+        projectC.expectPomGet()
+        projectC.expectArtifactGet()
 
         and:
         run 'retrieve'
@@ -69,19 +70,61 @@ class MavenDynamicResolveIntegrationTest extends AbstractDependencyResolutionTes
         file('libs/projectA-1.0.jar').assertHasNotChangedSince(snapshot)
     }
 
+    def "falls back to directory listing when maven-metadata.xml is missing"() {
+        given:
+        server.start()
+        mavenHttpRepo.module('org.test', 'projectA', '1.0').publish()
+        def projectA = mavenHttpRepo.module('org.test', 'projectA', '1.5').publish()
+
+        buildFile << """
+    repositories {
+        maven { url '${mavenHttpRepo.uri}' }
+    }
+    configurations { compile }
+    dependencies {
+        compile 'org.test:projectA:1.+'
+    }
+
+    task retrieve(type: Sync) {
+        into 'libs'
+        from configurations.compile
+    }
+    """
+
+        when:
+        mavenHttpRepo.expectMetaDataGetMissing("org.test", "projectA")
+        mavenHttpRepo.expectDirectoryListGet("org.test", "projectA")
+        projectA.expectPomGet()
+        projectA.expectArtifactGet()
+
+        and:
+        run 'retrieve'
+
+        then:
+        file('libs').assertHasDescendants('projectA-1.5.jar')
+        def snapshot = file('libs/projectA-1.5.jar').snapshot()
+
+        when:
+        server.resetExpectations()
+        and:
+        run 'retrieve'
+
+        then:
+        file('libs/projectA-1.5.jar').assertHasNotChangedSince(snapshot)
+    }
 
     def "does not cache broken module information"() {
         given:
         server.start()
-        def repo1 = mavenRepo("repo1")
-        def repo2 = mavenRepo("repo2")
+        def repo1 = mavenHttpRepo("repo1")
+        def repo2 = mavenHttpRepo("repo2")
         def projectA1 = repo1.module('group', 'projectA', '1.1').publish()
         def projectA2 = repo2.module('group', 'projectA', '1.5').publish()
 
         buildFile << """
         repositories {
-            maven { url 'http://localhost:${server.port}/repo1' }
-            maven { url 'http://localhost:${server.port}/repo2' }
+            maven { url '${repo1.uri}' }
+            maven { url '${repo2.uri}' }
         }
         configurations { compile }
         dependencies {
@@ -95,11 +138,11 @@ class MavenDynamicResolveIntegrationTest extends AbstractDependencyResolutionTes
         """
 
         when:
-        server.expectGet('/repo1/group/projectA/maven-metadata.xml', projectA1.rootMetaDataFile)
-        server.expectGet('/repo1/group/projectA/1.1/projectA-1.1.pom', projectA1.pomFile)
-        server.expectGet('/repo1/group/projectA/1.1/projectA-1.1.jar', projectA1.artifactFile)
+        repo1.expectMetaDataGet("group", "projectA")
+        projectA1.expectPomGet()
+        projectA1.expectArtifactGet()
 
-        server.expectGet('/repo2/group/projectA/maven-metadata.xml', projectA2.rootMetaDataFile)
+        repo2.expectMetaDataGet("group", "projectA")
         server.addBroken('/repo2/group/projectA/1.5/projectA-1.5.pom')
 
         and:
@@ -110,9 +153,9 @@ class MavenDynamicResolveIntegrationTest extends AbstractDependencyResolutionTes
 
         when:
         server.resetExpectations()
-        server.expectGet('/repo2/group/projectA/maven-metadata.xml', projectA2.rootMetaDataFile)
-        server.expectGet('/repo2/group/projectA/1.5/projectA-1.5.pom', projectA2.pomFile)
-        server.expectGet('/repo2/group/projectA/1.5/projectA-1.5.jar', projectA2.artifactFile)
+        repo2.expectMetaDataGet("group", "projectA")
+        projectA2.expectPomGet()
+        projectA2.expectArtifactGet()
 
         and:
         run 'retrieve'

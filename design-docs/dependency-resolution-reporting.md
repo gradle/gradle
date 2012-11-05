@@ -2,7 +2,7 @@ Improved dependency resolution reporting
 
 # Use cases.
 
-1. Priority use case: It is hard to figure out why Gradle picks up version X of certain dependency because the dependency report
+1. It is hard to figure out why Gradle picks up version X of certain dependency because the dependency report
     only includes the version information *after* conflicts have been resolved.
 2. User diagnoses dependency resolve failures
     (with a possible implementation being that the reporting is robust in the face of failures)
@@ -11,9 +11,13 @@ Improved dependency resolution reporting
     It should show external dependencies, self-resolving dependencies, tweaks to sourceSets.main.compileClasspath, etc).
 4. User knows why certain dependencies appear / not appear in the graph (e.g. consider exclusions)
 
-# User visible changes
+# Implementation plan
 
-1. The dependencies report should include information of the 'asked' dependency version
+## Dependency report shows requested dependency versions
+
+### User visible changes
+
+The dependencies report should include information of the 'asked' dependency version
 Instead of raw version we can print something like: 1.0->3.0. Mock up:
 
 <pre>
@@ -26,34 +30,9 @@ testCompile - Classpath for compiling the test sources.
 
 We should also remove the confusing configurations from the view.
 
-2. A brand new report that traverses the graph the opposite way.
+### Integration test coverage
 
-Mock up:
-<pre>
-com.linkedin.util:util-core - selected version does not exist in the dependency graph.
-
-com.linkedin.util:util-core:4.0.7
-\--- com.linkedin.sharedlibs:configuration-repository-impl:1.3.30
-     \--- com.linkedin.sharedlibs:lispring-lispring-core:1.3.30
-          \--- com.linkedin.container:container-http-impl:3.0.24
-               \--- com.linkedin.container:container-rpc-impl:3.0.24
-
-com.linkedin.util:util-core:2.4.6 -> 4.0.7
-\--- com.linkedin.cfg2:cfg:2.8.0
-     \--- com.linkedin.sharedlibs:lispring-lispring-core:1.3.30
-          \--- com.linkedin.container:container-http-impl:3.0.24
-               \--- com.linkedin.container:container-rpc-impl:3.0.24
-</pre>
-
-The idea is to traverse the graph the other way and print the dependee path for a given dependency.
-This report is useful to track where the given version of some dependency was picked up from in case of conflict resolution.
-This drives some conveniences to our DependencyGraph API.
-There should be some simple way to run the report from the command line.
-While doing that consider adding support for selecting configuration for the regular 'dependencies' report from command line.
-
-# Integration test coverage
-
-1. Scenarios:
+Scenarios:
 
 * conflicting direct dependencies
 * conflicting direct & transitive dependency
@@ -73,7 +52,7 @@ While doing that consider adding support for selecting configuration for the reg
     * subtree is omitted (*)
     * the configurations are shown
 
-# Implementation approach
+### Implementation approach
 
 1. There are 3 goals:
     1. deliver the functionality to solve the use case
@@ -84,15 +63,121 @@ While doing that consider adding support for selecting configuration for the reg
 3. We should not incur increased memory usage - try to serialize the dependency graph and make it available on demand.
     Make sure it does not make things slower.
 
-## Potential approaches to ResolvedDependency
+## New report shows usages of each dependency
 
-1. We're not changing ResolvedDependency, instead we pass some kind of listener to the the dependency graph builder.
-     This listener can receive information about the dependencies and potentially build a proper graph.
-     If not listener provided then we graph builder works as usual
-2. Make the ResolvedDependency graph work based on the new model. This will require some kind of an adapter.
+Attempts to answer following questions:
+
+* why this dependency is in the dependency tree?
+* what are all the requested versions of this dependency?
+* why this dependency has this version selected?
+
+### User visible changes
+
+A brand new report that traverses the graph the opposite way (Dependency Insight Report).
+
+Mock up:
+
+<pre>
+com.coolcorp.util:util-core:4.0.7 (conflict resolution)
+\--- com.coolcorp.sharedlibs:configuration-repository-impl:1.3.30
+     \--- com.coolcorp.sharedlibs:lispring-lispring-core:1.3.30
+          \--- com.coolcorp.container:container-http-impl:3.0.24
+               \--- com.coolcorp.container:container-rpc-impl:3.0.24
+                    \--- compile
+
+com.coolcorp.util:util-core:2.4.6 -> 4.0.7
+\--- com.coolcorp.cfg2:cfg:2.8.0
+     \--- com.coolcorp.sharedlibs:lispring-lispring-core:1.3.30
+          \--- com.coolcorp.container:container-http-impl:3.0.24
+          |    \--- com.coolcorp.container:container-rpc-impl:3.0.24
+          |         \--- compile
+          \--- com.foo.bar:foo-bar:1.0
+               \--- compile
+</pre>
+
+The idea is to traverse the graph the other way and print the dependent path for a given dependency.
+This report is useful to track where the given version of some dependency was picked up from in case of conflict resolution.
+This drives some conveniences to our DependencyGraph API.
+
+For interesting version modules, the report shows also if the the version was 'forced' or if it was selected by 'conflict resolution'.
+
+### Integration test coverage
+
+* shows multiple trees if dependency occurs in the tree with different requested version
+* annotates 'forced' version
+* annotates version selected by 'conflict resolution'
+* shows plain ordinary version, one tree
+* what if there's no matching dependency and/or configuration?
+* what if there are unresolved dependencies?
+* deals with dependency cycles
+
+### Implementation approach
+
+- 'dependencyInsight' implicit task, pre-configured with:
+    - searches for dependency in 'compile' configuration if java applied, otherwise it needs to be configured
+
+- 'dependencyInsight' task configuration:
+    - can provide ResolvedDependencyResult predicate
+    - can have one configuration selected
+
+- the report prints a warning if the configuration resolves with failures because this can affect the dependency tree
+- the plugin implementation potentially should go to 'reporting' subproject
+
+### Open issues
+
+- the name of the report is not good. The existing 'dependencies' report also gives 'insight' into the dependencies.
+- the task-level api (the configuration & dependency spec inputs, outputs)
+- should the new report extend AbstractReportTask? In that case we need decide what to do with 'projects' public property on AbstractReportTask.
+- if there is a single configuration in the project, should it be used by default by the task?
+- behavior when some dependencies are unresolved
+- needs to work with the c++ plugins in the same way it works with the java plugin
+
+## Dependency report handles resolution failures
+
+### User visible changes
+
+TBD
+
+### Test coverage
+
+TBD
+
+### Implementation approach
+
+TBD
+
+## Dependency insight report handles resolution failures
+
+### User visible changes
+
+TBD
+
+### Test coverage
+
+TBD
+
+### Implementation approach
+
+TBD
+
+## Dependency reports include file dependencies
+
+Currently the dependencies report does not include: file dependencies, gradleApi(), localGroovy() dependencies
+In addition to above, the dependency insight report does not include the project dependencies (not sure if they are needed in this report)
+
+### User visible changes
+
+TBD
+
+### Test coverage
+
+TBD
+
+### Implementation approach
+
+TBD
 
 # Open issues / ideas
 
 1. Model the unresolved dependencies - how to carry the resolution failure?
-2. Later, we'd add some conveniences to ResolvedConfiguration to do some traversal of this graph in interesting ways - find me all the module versions, find me all the artefacts, find me all the files, find me all the unresolved dependencies, and so on.
-3. I would also think about wrapping access to the graph in some kind of action
+2. I would also think about wrapping access to the graph in some kind of action

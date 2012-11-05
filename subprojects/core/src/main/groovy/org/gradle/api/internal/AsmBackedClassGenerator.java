@@ -16,11 +16,11 @@
 package org.gradle.api.internal;
 
 import groovy.lang.*;
-import org.gradle.api.Action;
+import org.gradle.api.Transformer;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.internal.reflect.JavaReflectionUtil;
-import org.gradle.util.ConfigureUtil;
+import org.gradle.util.CollectionUtils;
 import org.gradle.util.JavaMethod;
 import org.objectweb.asm.*;
 import org.objectweb.asm.Type;
@@ -773,23 +773,38 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             Type actionImplType = Type.getType(ClosureBackedAction.class);
             Type closureType = Type.getType(Closure.class);
 
-            String methodDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE, new Type[]{closureType});
+            Type[] originalParameterTypes = CollectionUtils.collectArray(method.getNativeParameterTypes(), Type.class, new Transformer<Type, Class>() {
+                public Type transform(Class clazz) {
+                    return Type.getType(clazz);
+                }
+            });
+            int numParams = originalParameterTypes.length;
+            Type[] closurisedParameterTypes = new Type[numParams];
+            System.arraycopy(originalParameterTypes, 0, closurisedParameterTypes, 0, numParams);
+            closurisedParameterTypes[numParams - 1] = closureType;
 
-            // GENERATE public void <method>(Closure v) { <method>(new ClosureBackedAction(v)); }
+            String methodDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE, closurisedParameterTypes);
+
+            // GENERATE public void <method>(Closure v) { <method>(…, new ClosureBackedAction(v)); }
             MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, method.getName(), methodDescriptor, null, new String[0]);
             methodVisitor.visitCode();
 
-            // GENERATE <method>(new ClosureBackedAction(v));
+            // GENERATE <method>(…, new ClosureBackedAction(v));
             methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
+
+            for (int stackVar = 1; stackVar < numParams; ++stackVar) {
+                methodVisitor.visitVarInsn(closurisedParameterTypes[stackVar - 1].getOpcode(Opcodes.ILOAD), stackVar);
+            }
 
             // GENERATE new ClosureBackedAction(v);
             methodVisitor.visitTypeInsn(Opcodes.NEW, actionImplType.getInternalName());
             methodVisitor.visitInsn(Opcodes.DUP);
-            methodVisitor.visitVarInsn(Opcodes.ALOAD, 1);
+            methodVisitor.visitVarInsn(Opcodes.ALOAD, numParams);
             String constuctorDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE, new Type[]{closureType});
             methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, actionImplType.getInternalName(), "<init>", constuctorDescriptor);
 
-            methodDescriptor = Type.getMethodDescriptor(Type.getType(method.getReturnType()), new Type[]{Type.getType(method.getParameterTypes()[0].getTheClass())});
+
+            methodDescriptor = Type.getMethodDescriptor(Type.getType(method.getReturnType()), originalParameterTypes);
             methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, generatedType.getInternalName(), method.getName(), methodDescriptor);
 
             methodVisitor.visitInsn(Opcodes.RETURN);
@@ -823,15 +838,4 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
     }
 
-    public static class ClosureBackedAction implements Action<Object> {
-        private final Closure cl;
-
-        public ClosureBackedAction(Closure cl) {
-            this.cl = cl;
-        }
-
-        public void execute(Object o) {
-            ConfigureUtil.configure(cl, o);
-        }
-    }
 }

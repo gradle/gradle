@@ -15,9 +15,7 @@
  */
 package org.gradle.api.tasks.compile;
 
-import com.google.common.collect.ImmutableList;
-
-import java.util.List;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * Options for the Ant Depend task. Only take effect if {@code CompileOptions.useAnt} and
@@ -36,6 +34,8 @@ import java.util.List;
  */
 public class DependOptions extends AbstractOptions {
     private static final long serialVersionUID = 0;
+
+    private static final ImmutableSet<String> EXCLUDE_FROM_ANT_PROPERTIES = ImmutableSet.of("srcDir", "destDir", "cache", "useCache");
 
     private boolean useCache = true;
 
@@ -121,10 +121,8 @@ public class DependOptions extends AbstractOptions {
         this.warnOnRmiStubs = warnOnRmiStubs;
     }
 
-    /**
-     * Internal method.
-     */
-    protected List<String> excludedFieldsFromOptionMap() {
-        return ImmutableList.of("srcDir", "destDir", "cache", "useCache");
+    @Override
+    protected boolean excludeFromAntProperties(String fieldName) {
+        return EXCLUDE_FROM_ANT_PROPERTIES.contains(fieldName);
     }
 }

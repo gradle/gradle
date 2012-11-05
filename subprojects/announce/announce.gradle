@@ -18,7 +18,7 @@ dependencies {
 
     compile libraries.slf4j_api
     compile project(':core')
-    compile project(':plugins')
+    integTestRuntime project(':plugins')
 }
 
 if (!javaVersion.java6Compatible) {

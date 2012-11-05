@@ -147,7 +147,7 @@ eclipse {
         libraries[1].assertHasJar('LIB_DIR/dep.jar')
 
         //javadoc is not substituted
-        libraries[0].assertHasJavadoc(file("repo/coolGroup/niceArtifact/1.0/niceArtifact-1.0-javadoc.jar"))
+        libraries[0].assertHasJavadoc(file("maven-repo/coolGroup/niceArtifact/1.0/niceArtifact-1.0-javadoc.jar"))
     }
 
     @Test
@@ -630,5 +630,37 @@ dependencies {
         libraries[0].assertHasJar(repoJar)
         libraries[1].assertHasJar(file('unresolved dependency - i.dont Exist 1.0'))
         libraries[2].assertHasJar(localJar)
+    }
+
+    @Test
+    void addsScalaIdeClasspathContainerAndRemovesLibrariesDuplicatedByContainer() {
+        //given
+        def otherLib = mavenRepo.module('other', 'lib', '3.0').publish().artifactFile
+
+        //when
+        runEclipseTask """
+apply plugin: 'scala'
+apply plugin: 'eclipse'
+
+repositories {
+    maven { url "${mavenRepo.uri}" }
+    mavenCentral()
+}
+
+dependencies {
+    scalaTools "org.scala-lang:scala-compiler:2.9.2"
+
+    compile "org.scala-lang:scala-library:2.9.2"
+    runtime "org.scala-lang:scala-swing:2.9.1"
+    testCompile "org.scala-lang:scala-dbc:2.9.0"
+    testRuntime "other:lib:3.0"
+}
+"""
+
+        //then
+        def libraries = classpath.libs
+        assert libraries.size() == 1
+        libraries[0].assertHasJar(otherLib)
+        assert classpath.containers == ['org.eclipse.jdt.launching.JRE_CONTAINER', 'org.scala-ide.sdt.launching.SCALA_CONTAINER']
     }
 }

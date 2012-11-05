@@ -44,7 +44,7 @@ abstract class JavaCompilerIntegrationSpec extends BasicJavaCompilerIntegrationS
                 memoryInitialSize = '64m'
                 memoryMaximumSize = '128m'
             }
-'''
+        '''
 
         expect:
         succeeds("compileJava")

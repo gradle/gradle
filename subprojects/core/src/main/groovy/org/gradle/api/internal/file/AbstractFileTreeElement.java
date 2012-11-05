@@ -19,12 +19,13 @@ import org.apache.commons.io.IOUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileTreeElement;
+import org.gradle.internal.nativeplatform.filesystem.Chmod;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.nativeplatform.filesystem.FileSystems;
 
 import java.io.*;
 
-public abstract class  AbstractFileTreeElement implements FileTreeElement {
+public abstract class AbstractFileTreeElement implements FileTreeElement {
     public abstract String getDisplayName();
 
     @Override
@@ -62,11 +63,15 @@ public abstract class  AbstractFileTreeElement implements FileTreeElement {
             } else {
                 copyFile(target);
             }
-            FileSystems.getDefault().chmod(target, getMode());
+            getChmod().chmod(target, getMode());
             return true;
         } catch (Exception e) {
             throw new GradleException(String.format("Could not copy %s to '%s'.", getDisplayName(), target), e);
         }
+    }
+
+    protected Chmod getChmod() {
+        return FileSystems.getDefault();
     }
 
     private void validateTimeStamps() {

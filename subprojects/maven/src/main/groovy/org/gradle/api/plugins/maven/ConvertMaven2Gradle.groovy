@@ -19,41 +19,49 @@
 package org.gradle.api.plugins.maven
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.Incubating
+import org.gradle.api.internal.artifacts.DependencyManagementServices
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.plugins.maven.internal.Maven2Gradle
+import org.gradle.api.plugins.maven.internal.MavenProjectsCreator
 import org.gradle.api.tasks.TaskAction
+
+import org.gradle.api.internal.DocumentationRegistry
+import javax.inject.Inject
+import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider
+import org.gradle.api.Incubating
 
 /**
  * by Szczepan Faber, created at: 8/1/12
  */
 @Incubating
 class ConvertMaven2Gradle extends DefaultTask {
-
     private final static Logger LOG = Logging.getLogger(ConvertMaven2Gradle.class)
-    boolean verbose
-    boolean keepFile
+
+    private final DocumentationRegistry documentationRegistry
+    private final MavenSettingsProvider settingsProvider
+
+    @Inject
+    ConvertMaven2Gradle(DocumentationRegistry documentationRegistry, DependencyManagementServices managementServices) {
+        this.documentationRegistry = documentationRegistry
+        this.settingsProvider = managementServices.get(MavenSettingsProvider)
+    }
 
     @TaskAction
     void convertNow() {
         LOG.lifecycle("""
 ---------------
-Maven to Gradle conversion is *experimental*.
+Maven to Gradle conversion is an "incubating" feature, which means it is still in development.
+See ${documentationRegistry.featureLifecycle} for more on "incubating" features.
 Please use it, report any problems and share your feedback with us.
-Be advised that although the functionality is already very useful it is not yet completed.
-Not everything may work perfectly at the moment.
 ---------------
 """)
 
 
-        String[] args = []
-        if (verbose) {
-            args << '-verbose'
-        }
-        if (keepFile) {
-            args << '-keepFile'
-        }
-        new Maven2Gradle().convert(args)
+        def settings = settingsProvider.buildSettings()
+
+        def mavenProjects = new MavenProjectsCreator().create(settings, project.file("pom.xml"))
+
+        new Maven2Gradle(mavenProjects).convert()
     }
 }

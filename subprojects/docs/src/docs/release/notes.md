@@ -1,21 +1,24 @@
 ## New and noteworthy
 
-Here are the new features introduced in Gradle 1.2.
+Here are the new features introduced in Gradle 1.3.
 
-### Improved dependency report
+### New 'dependencyInsight' report task
 
-The dependency report (obtained by running “`gradle dependencies`”) has been improved to provide better insight into the dependency resolution process. The report now specifies the _requested_ version of a dependency and the _selected_ version. The requested version may be different to the selected for the following reasons:
+The new `dependencyInsight` report complements the `dependencies` report (that was [improved in Gradle 1.2](http://gradle.org/docs/1.2/release-notes#improved-dependency-report)). Where the `dependencies` report provides information on the whole dependency graph, the `dependencyInsight` report focusses on providing information on one (or more) dependencies within the graph.
 
-* The requested version was a _dynamic version_ (e.g. a range such as “`1.3.+`”)
-* The requested version was evicted due to a conflict (e.g. another dependency depended on a newer version)
+The report can be used to answer (very common) questions such as:
 
-In the case of a conflict, the output provides all the information you need to infer which dependency depended on the version that was eventually selected. The improved output gives much better insight into how version conflicts that were encountered were resolved and why.
+* Why is this dependency in the dependency graph?
+* Exactly which dependencies are pulling this dependency into the graph?
+* What is the actual version (i.e. *selected* version) of the dependency that will be used? 
+    * Is it the same as what was *requested*?
+* Why is the *selected* version of a dependency different to the *requested*?
 
-In the case of a dynamic dependency version, both the original dynamic version and selected real version are shown.
+The *selected* version of a dependency can be different to the *requested* (i.e. user declared) version due to dependency conflict resolution or by explicit dependency force rules. Similar to the standard gradle depenency report, the `dependencyInsight` report shows both versions. It also shows a requested dynamic version (e.g. "junit:junit:4.+") together with the actually selected version (e.g. "junit:junit:4.10"). Please keep in mind that Maven snapshot dependencies are not treated as dynamic versions but as changing modules, similar to what Maven does (for the difference see the [userguide](http://gradle.org/docs/nightly/userguide/dependency_management.html#sec:dependency_management_overview)). Maven snapshots might be treated as dynamic versions in a future version of Gradle which would provide nice insight into pom snapshot resolution.   
 
-The new dependency report is also much faster to render. Our tests have shown that for large to very large dependency graphs the time taken to display the report has been reduced by up to 50%. Further improvements are planned for the dependency report in future versions of Gradle.
+The `dependencyInsight` report task is invaluable when investigating how and why a dependency is resolved, and it is available on all projects out of the box.
 
-#### Example report
+#### Example usage
 
 Given the following build script:
 
@@ -26,223 +29,192 @@ Given the following build script:
     }
 
     dependencies {
-        compile 'commons-lang:commons-lang:2.+'
-        compile 'org.gradle:gradle-base-services:1.1' // depends on org.slf4j:slf4j-api:1.6.6
+		compile 'org.gradle:gradle-tooling-api:1.2'
         compile 'org.slf4j:slf4j-api:1.6.5'
     }
 
-The new report will look like:
+Let's find out about the `org.gradle:gradle-messaging` dependency:
 
-<pre><tt>&gt; gradle dependencies
-:dependencies
-
-------------------------------------------------------------
-Root project
-------------------------------------------------------------
-
-compile - Classpath for compiling the main sources.
-+--- commons-lang:commons-lang:2.+ -> 2.6
-+--- org.gradle:gradle-base-services:1.1
-|    \--- org.slf4j:slf4j-api:1.6.6
-\--- org.slf4j:slf4j-api:1.6.5 -> 1.6.6 (*)
+<pre><tt>&gt; gradle dependencyInsight --dependency org.gradle:gradle-messaging
+:dependencyInsight
+org.gradle:gradle-messaging:1.2
++--- org.gradle:gradle-tooling-api:1.2
+|    \--- compile
+\--- org.gradle:gradle-core:1.2
+     \--- org.gradle:gradle-tooling-api:1.2 (*)
 
 (*) - dependencies omitted (listed previously)</tt>
 </pre>
 
-(note: output for other configurations has been omitted for clarity)
+Using this report, it is easy to see that the `gradle-messaging` dependency is being included transitively through `gradle-tooling-api` and `gradle-core` (which itself is a dependency of `gradle-tooling-api`).
 
-The version that was selected for the _dynamic_ dependency is shown (i.e. “`commons-lang:commons-lang:2.+ -> 2.6`”) and the fact that version “`1.6.5`” of “`org.slf4j:slf4j-api`” was requested but version “`1.6.6`” was selected is also shown.
+Whereas the `dependencies` report shows the path from the top level dependencies down through the transitive dependencies, the `dependencyInsight` report shows the path from a particular dependency to the dependencies that pulled it in. That is, it is an *inverted* view of the `dependencies` report.
 
-### Lower memory usage
+The `dependencyInsight` report is also useful for understanding the difference between *requested* and *selected* versions.  
 
-We've continued to improve our dependency resolution engine, so that it now requires much less heap space. A moderately sized multi-project build can
-expect to see a 20-25% reduction in heap usage thanks to these improvements.
+<pre><tt>&gt; gradle dependencyInsight --dependency slf4j --configuration runtime
+:dependencyInsight
+org.slf4j:slf4j-api:1.6.6 (conflict resolution)
++--- org.gradle:gradle-tooling-api:1.2
+|    \--- runtime
++--- org.gradle:gradle-messaging:1.2
+|    +--- org.gradle:gradle-tooling-api:1.2 (*)
+|    \--- org.gradle:gradle-core:1.2
+|         \--- org.gradle:gradle-tooling-api:1.2 (*)
++--- org.gradle:gradle-base-services:1.2
+|    +--- org.gradle:gradle-tooling-api:1.2 (*)
+|    +--- org.gradle:gradle-messaging:1.2 (*)
+|    \--- org.gradle:gradle-core:1.2 (*)
+\--- org.gradle:gradle-core:1.2 (*)
 
-### <a id="multiple_build_failures"></a>Reporting of multiple build failures
+org.slf4j:slf4j-api:1.6.5 -> 1.6.6
+\--- runtime
 
-When running the build with `--continue` or the [new `--parallel` option](#parallel) it is possible to have multiple failures in your build. 
-Previously, these failures were only reported at the time they occurred. Now, additionally a complete list
-of build failures is shown on build completion.
+(*) - dependencies omitted (listed previously)</tt>
+</pre>
 
-The new output clearly indicates the cause and possible analysis of each failure, making it easier to track down the underlying issue.
-Detailing _all_ failures makes the `--continue` command line option much more useful: it is now possible to use this option to
-discover as many failures as possible with a single build execution.
+Here we see that while `slf4j-api:1.6.5` was *requested*, `slf4j-api:1.6.6` was *selected* due to conflict resolution and that it was pulled in by the other Gradle dependencies.
 
-### Configuration options for FindBugs plugin
+In this case, we were interested in the `runtime` dependency configuration. The default configuration the report uses is 'compile'.
 
-Thanks to a contribution from [Justin Ryan](https://github.com/quidryan), the FindBugs plugin now supports [more configuration options](dsl/org.gradle.api.plugins.quality.FindBugsExtension.html).
+For more information, see the [DependencyInsightReportTask documentation](dsl/org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.html).
 
-**Important:** In Gradle 1.2, there is an [identified issue](http://issues.gradle.org//browse/GRADLE-2473) that requires any FindBugs specific configuration to be performed on the task; configuration via the DSL extension is ineffectual. Please click the “More” button below for instructions on how to workaround this issue.
+### Incremental Scala compilation
 
-#### FindBugs DSL extension issue
+By compiling only classes whose source code has changed since the previous compilation, and classes affected by these changes, incremental
+compilation can significantly reduce Scala compilation time. It is particularly effective when frequently compiling small code increments,
+as is often done at development time.
 
-Instead of configuring `FindBugs` properties for all tasks globally via the DSL extension:
+The Scala plugin now supports incremental compilation by integrating with [Zinc](https://github.com/typesafehub/zinc),
+a standalone version of [sbt](https://github.com/harrah/xsbt)'s incremental Scala compiler. To switch the `ScalaCompile` task from the default
+Ant based compiler to the new Zinc based compiler, use `scalaCompileOptions.useAnt = false`. Except where noted in the
+[API documentation](http://gradle.org/docs/current/dsl/org.gradle.api.tasks.scala.ScalaCompile.html), the Zinc based compiler supports exactly
+the same configuration options as the Ant based compiler.
 
-    findbugs {
-      excludeFilter = file("$rootProject.projectDir/config/findbugs/excludeFilter.xml")
-    }
+Just like the Ant based compiler, the Zinc based compiler supports joint compilation of Java and Scala code. By default, all Java and Scala code
+under `src/main/scala` will participate in joint compilation. With the Zinc based compiler, even Java code will be compiled incrementally.
 
-You need to configure the task(s) directly, which can be done via:
+To learn more about incremental Scala compilation, see the [Scala plugin](userguide/scala_plugin.html#N12A97) chapter in the Gradle User Guide.
 
-    tasks.withType(FindBugs) {
-      excludeFilter = file("$rootProject.projectDir/config/findbugs/excludeFilter.xml")
-    }
+### Scala compilation in external process
 
-This applies to all FindBugs specific task properties. 
+Scala compilation can now be performed outside the Gradle JVM in a dedicated compiler process, which can help to deal with memory issues. External
+compilation is supported both for the existing Ant-based and the new Zinc-based Scala compiler. The API is very similar to that for Java and
+Groovy: [`ScalaCompile.fork = true`](dsl/org.gradle.api.tasks.scala.ScalaCompile.html#org.gradle.api.tasks.scala.ScalaCompile:fork)
+activates external compilation, and [`ScalaCompile.forkOptions`](dsl/org.gradle.api.tasks.scala.ScalaCompile.html#org.gradle.api.tasks.scala.ScalaCompile:forkOptions)
+allows to adjust memory settings.
 
-This issue will be resolved in Gradle 1.3, allowing you to globally configure all `FindBugs` tasks via the DSL extension.
+### Improved Scala IDE integration
 
-### Gradle related version information in HTTP requests
-
-Gradle, the Gradle Wrapper and the Gradle Tooling API now provide version information in the `User-Agent` header whenever HTTP resources are accessed.
-Especially for larger organizations, this can be very helpful to gather information about which versions of Gradle are used in which environment.
-
-#### What information is provided?
-
-The `User-Agent` header now includes information about
-
-* The Gradle application (Gradle, Gradle Wrapper or Gradle Tooling API) and version making the request.
-* The Operating system (name, version, architecture).
-* The Java version (vendor, version).
-
-An example for a Gradle generated user-agent string: "**Gradle/1.2 (Mac OS X;10.8;amd64) (Oracle Corporation;1.7.0_04-ea;23.0-b12)**"
-
-### Documentation style improvements
-
-Our documentation has received a facelift to match our new style. Check out the new look [DSL Reference](dsl/index.html) and [User Guide](userguide/userguide.html).
-
-The [DSL Reference](dsl/index.html) also now indicates which features are deprecated or incubating. See [TestLoggingContainer](dsl/org.gradle.api.tasks.testing.logging.TestLoggingContainer.html) for and example of how an incubating feature is displayed, and [Directory](dsl/org.gradle.api.tasks.Directory.html) for an example of a deprecated feature.
+The [Eclipse Plugin](http://gradle.org/docs/current/userguide/eclipse_plugin.html) now automatically excludes dependencies already provided by the
+ 'Scala Library' class path container. This is necessary for [Scala IDE](http://scala-ide.org) to work correctly.
 
 ## Promoted features
 
-Promoted features are features that were *incubating* in previous versions of Gradle but are now supported and subject to our backwards compatibility policy.
+Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to our backwards compatibility policy.
 
-### Continue on failure (`--continue`)
+## Fixed Issues
 
-Often a high-level task is dependent on multiple smaller tasks. By default, Gradle will stop executing any task and fail the build
-as soon as one of these sub-tasks fails. This means that the build will finish sooner, but it does not reveal failures in other, independent sub-tasks.
-There are many times when you would like to find out as many failures as possible in a single build execution. For example, when you kick off a build
-before heading out to lunch, or running a nightly CI job. The `--continue` command-line option allows you to do just that.
-
-With the addition of [nicer reporting of multiple build failures](#multiple_build_failures), we now consider `--continue` a production quality feature of Gradle. Please see the [User Guide section](userguide/tutorial_gradle_command_line.html#sec:continue_build_on_failure) for more details.
-
-## Fixed issues
-
-The list of issues fixed between 1.1 and 1.2 can be found [here](http://issues.gradle.org/sr/jira.issueviews:searchrequest-printable/temp/SearchRequest.html?jqlQuery=fixVersion+in+%28%221.2-rc-1%22%29+ORDER+BY+priority&tempMax=1000).
+The list of issues fixed between 1.2 and 1.3 can be found [here](http://issues.gradle.org/sr/jira.issueviews:searchrequest-printable/temp/SearchRequest.html?jqlQuery=fixVersion+in+%28%221.3-rc-1%22%29+ORDER+BY+priority&tempMax=1000).
 
 ## Incubating features
 
-We will typically introduce new features as _incubating_ at first, giving you a chance to test them out. Typically the implementation quality of the new features is already good but the API might still change with the next release based on the feedback we receive. For some very challenging engineering problems like the Gradle Daemon or parallel builds, it is impossible to get the implementation quality right from the beginning. So we need you here also as beta testers. We will iterate on the new feature based on your feedback, eventually releasing it as stable and production-ready. Those of you who use new features before that point gain the competitive advantage of early access to new functionality in exchange for helping refine it over time. To learn more, read our [forum posting on our release approach](http://forums.gradle.org/gradle/topics/the_gradle_release_approach).
+We will typically introduce new features as _incubating_ at first, giving you a chance to test them out.
+Typically the implementation quality of the new features is already good but the API might still change with the next release based on the feedback we receive.
+For some very challenging engineering problems like the Gradle Daemon or parallel builds, it is impossible to get the implementation quality right from the beginning.
+So we need you here also as beta testers.
+We will iterate on the new feature based on your feedback, eventually releasing it as stable and production-ready.
+Those of you who use new features before that point gain the competitive advantage of early access to new functionality in exchange for helping refine it over time.
+To learn more read our [forum posting on our release approach](http://forums.gradle.org/gradle/topics/the_gradle_release_approach).
 
-### Comparing builds (upgrade assistance)
+### Improved TestNG html report
 
-Gradle 1.2 delivers the first iteration of our support for comparing the _outcomes_ (e.g. the produced binary archives) of two builds. There are several reasons why you may want to compare the outcomes of two builds. You may want to compare: 
+(in progress)
 
-* A build with a newer version of Gradle than it's currently using (i.e. upgrading the Gradle version).
-* A Gradle build with a build executed by another tool such as Apache Ant, Apache Maven or something else (i.e. migrating to Gradle)
-* The same Gradle build, with the same version, before and after a change to the build (i.e. testing build changes).
+TestNG received a decent dose of love in Gradle 1.3. Your Gradle projects with TestNG tests now enjoy much better reports:
 
-The build comparison support manages the execution of the “source” build and the “target” build, the association of outcomes between the two, the comparison of the outcomes and generation of a report that identifies any encountered differences. You can then use this report to go ahead with the Gradle upgrade, build system migration or build configuration change with confidence that the outcomes are identical, or that the differences are acceptable.
+    * Both reports: xml (for CI) and html reports (for you) contain test output,  e.g. messages logged to standard streams or standard logging toolkits. This is extremely useful for debugging certain test failures. Xml results means
+    * The html report is way, way easier to read and browse. Did I mention it contains the test output?
+    * The reports neatly work with Gradle's parallel testing (test.maxParallelForks) and forking features (test.forkEvery). Run your tests in parallel so that they run faster!
 
-For Gradle 1.2, we have focused on supporting the case of comparing the current build with a newer Gradle version and zip archive outcomes (e.g. zip, jar, war, ear etc.). This feature will continue to evolve to encompass comparing more kinds of outcomes and smart integration with other build systems (such as Apache Maven) for convenient comparisons.
+The reports are not yet turned on by default... They are @Incubating and we need more feedback before we make Gradle use them by default. The new report might exhibit increased heap space usage for tests that eagerly log to the standard streams. In case your tests get hungry here's how you can feed them: To enable the new test reports, please set the test.testReport = true.
 
-See the new [User Guide chapter](userguide/comparing_builds.html) for more detail on this new capability.
+### Resolution result API
 
-#### How can I use it to try new Gradle versions?
-
-You simply add a plugin and configure the comparison task. 
-
-    apply plugin: 'compare-gradle-builds'
-    
-    compareGradleBuilds {
-      targetBuild.gradleVersion "1.3"
-    }
-
-(note: Gradle 1.3 is unreleased at this time, so the above will not work. You can use 1.2 as the value in the meantime to play with this feature though)
-
-Then simply…
-
-<pre><tt>&gt; gradle compareGradleBuilds</tt></pre>
-
-If there are _any_ differences found, a link to the HTML report identifying the differences will be given in the output.
-
-###<a id="parallel"></a>Building projects in parallel
-
-We are excited that Gradle 1.2 introduces support for building projects in parallel. By specifying the `--parallel` or `--parallel-threads` [command-line options](userguide/gradle_command_line.html), Gradle will execute multiple projects in parallel build threads, after first configuring all projects sequentially. By building separate projects in parallel, Gradle will better utilize the build machine's hardware, resulting in faster build times. We are seeing significant performance benefits with this approach.
-
-This feature is _incubating_ and has known issues and limitations; it is not yet at production quality. Over the coming releases, it will be improved and stabilized. To find out more about our plans for parallel execution, have a read of the [parallel-project-execution](https://github.com/gradle/gradle/blob/master/design-docs/parallel-project-execution.md) specification.
-
-#### Project requirements
-
-To guarantee successful parallel execution of projects, your multi-project build must be [decoupled](userguide/multi_project_builds.html#sec:decoupled_projects). At this time there are no checks implemented to ensure that projects are decoupled, and unexpected behaviour may result from executing a build with coupled projects using the new parallel executor.
-
-#### Known issues with parrallel building
-
-One known issue is that the Gradle compiler daemon is currently not thread-safe. So if multiple projects attempt to compile java code simultaneously with `fork=true`,
-exceptions will result. Workaround: don't use `options.fork=true` to compile when running with `--parallel`.
-
-### Dependency resolution result API
-
-We are exposing the new API that our improved dependency reports are using. It provides a powerful toolkit for developing your own custom dependency reports. It also allows to develop smart build logic that can make decisions based on the content of the dependency graph.
-
-The best way to start with the new API is to take a look at the Javadocs
-for <a href="javadoc/org/gradle/api/artifacts/ResolvedConfiguration.html#getResolutionResult()">`ResolvedConfiguration.getResolutionResult()`</a>.
-
-### JSR-330 dependency injection for plugins and tasks
-
-We've taken some steps towards allowing JSR-330 style dependency injection for plugins and tasks. At this stage, the changes are mostly internal. To find out why we want to use dependency injection, and our plans for this, have a read of the [dependency-injection-for-plugins](https://github.com/gradle/gradle/blob/master/design-docs/dependency-injection-for-plugins.md) specification.
-
-At this stage, only internal Gradle services are available for injection. Over time we will add public services that can be injected into plugin and task implementations.
+* (in progress)
+* The entry point to the ResolutionResult API has changed, you can get access to the instance of the ResolutionResult from the ResolvableDependencies.
 
 ## Deprecations
 
-If you make use of the deprecated features below you will get a warning from now on. But you can rest assured that those features will be supported at least until the release of Gradle 2.0, our next major release. To learn more read our [forum posting on our release and backwards compatibility approach](http://forums.gradle.org/gradle/topics/the_gradle_release_approach).
+### Ant-task based Java compiler integration
 
-### The `useMavenMetadata` property for Maven repositories
+Gradle currently supports two different Java compiler integrations: A native Gradle integration that uses the compiler APIs directly, and an Ant-task
+based implementation that uses the `<javac>` Ant task. The native Gradle integration has been the default since Gradle 1.0-milestone-9.
 
-The `useMavenMetadata` property has been deprecated for resolvers returned by `repositories.mavenRepo()`. This property controls whether Gradle should
-search for a `maven-metadata.xml` file when attempting to determine the versions that are available for a particular module. The default value is `true`,
-which means Gradle will look for a `maven-metadata.xml` file and then fall back to a directory listing if not present. When set to `false`, Gradle will
-use a directory listing only. It is part of our former internal usage of Ivy for dependency resolution.
+The Ant-task based integration has now been deprecated and will be removed in Gradle 2.0. As a result, the following properties of `CompileOptions` are also
+deprecated and will be removed in Gradle 2.0:
 
-Thanks to the various improvements we've made to make dependency management more efficient, there is no longer a performance penalty for searching
-for the `maven-metadata.xml` file. This means this property is no longer useful and will be removed in Gradle 2.0.
+* `useAnt`
+* `optimize`
+* `includeJavaRuntime`
 
-### Task class renames
+### Ant-task based Groovy compiler integration
 
-To avoid ambiguity, the Java and C++ `Compile` task classes have been renamed. The Java `org.gradle.api.tasks.compile.Compile` task class has been renamed to `org.gradle.api.tasks.compile.JavaCompile`, and
-the incubating C++ `org.gradle.plugins.binaries.tasks.Compile` task class has been renamed to `org.gradle.plugins.cpp.CppCompile`.
+Gradle currently supports two different Groovy compiler integrations: A native Gradle integration that uses the compiler APIs directly, and an Ant-task
+based implementation that uses the `<groovyc>` Ant task. The native Gradle integration has been the default since Gradle 1.0.
 
-For backwards compatibility, the old classes are still available, but are now deprecated. The old Java `Compile` class will be removed in Gradle 2.0.
-The old incubating C++ `Compile` class will be removed in Gradle 1.3.
+The Ant-task based integration has now been deprecated and will be removed in Gradle 2.0. As a result, the following properties of `GroovyCompileOptions` are also
+deprecated and will be removed in Gradle 2.0:
 
-<a name="constructors"> </a>
-### Changes to plugin and task constructor handling
+* `useAnt`
+* `stacktrace`
+* `includeJavaRuntime`
 
-As a first step towards handling JSR-330 style dependency injection for plugin and task instances, we have made some changes to how constructors for these types
-are handled by Gradle. These changes are fully backwards compatible, but some combinations of constructors are now deprecated.
+### Changing the name of a repository once added to a repository container
 
-If your plugin or task implementation class has exactly one default constructor, nothing has changed. This should be the case for the majority of implementations.
+The [`ArtifactRepository`](http://gradle.org/docs/current/javadoc/org/gradle/api/artifacts/repositories/ArtifactRepository.html) type has a `setName(String)` method that you
+could use to change the repository name after it has been created. Doing so has been deprecated. The name of the repository should be specified at creation time via the DSL.
 
-If your implementation class has multiple constructors, you will need to add an `@javax.inject.Inject` annotation to the default constructor. The implementation will continue to work
-without this, but you will receive a deprecation warning. In Gradle 2.0, a plugin or task implementation with multiple constructors will be required to annotate exactly one
-constructor with an `@Inject` annotation.
+For example:
+
+    repositories {
+        ivy {
+            name "my-ivy-repo"
+        }
+    }
+    
+    // The following is now deprecated
+    repositories.ivy.name = "changed-name"
+
+A deprecation warning will be issued if a name change is attempted.
 
 ## Potential breaking changes
 
-### Plugin and task constructors
+### Incubating C++ `Compile` task type removed
 
-See [constructor handling](#constructors) above. The changes should be backwards compatible. Please let us know if you come across a situation where
-a plugin or task implementation that worked with previous versions of Gradle does not work with Gradle 1.2.
+This was replaced by `CppCompile` in Gradle 1.2. You should use the replacement class instead.
 
-### Upgrade to ASM 4.0
+### Incubating `GppCompileSpec` properties removed
 
-Gradle uses the [ASM bytecode manipulation library](http://asm.ow2.org/) internally. The version of ASM used has been upgraded from `3.3.1` to `4.0` in the Gradle 1.2 release. 
+The deprecated `task` property was removed from `GppCompileSpec`.
 
-When building and testing custom plugins and build logic (or anything with the Gradle libraries and dependencies on the classpath), you may encounter issues if there is also an earlier version of ASM than `4.0` on the classpath. This error will manifest as an exception with a message such as:
+### Removed GraphvizReportRenderer (private API)
 
-<pre><tt>Caused by: java.lang.IncompatibleClassChangeError: Found interface org.objectweb.asm.MethodVisitor, but class was expected </tt></pre>
+This type was an early contribution. It is unlikely anyone uses it because it does not work and it is an undocumented private type.
 
-There have been some reports of this issue occurring in the Groovy Eclipse development environment. 
+### Removed `org.gradle.api.publication` package
 
-If you experience this issue, please let us know via the [Gradle Forums](http://forums.gradle.org/). 
+This package contained some early experiments in a new publication model. It was incomplete and undocumented. It is superseded by the new `org.gradle.api.publish` (incubating) package
+introduced in Gradle 1.3 so has been removed.
+
+## External Contributions
+
+We would like to thank the following community members for making contributions to this release of Gradle.
+
+* Matt Khan - fixed resetting of `test.debug` to `false` when using `test.jvmArgs`  (GRADLE-2485)
+* Gerd Aschemann - fixes for `application` plugins generated shell scripts (GRADLE-2501)
+* Cruz Fernandez - fixes to the properties sample project
+* Fadeev Alexandr - fixes for Gradle Daemon on Win 7 when `PATH` env var is not set (GRADLE-2461)
+* Ben Manes - improved Scala IDE integration (https://github.com/gradle/gradle/pull/99)
+
+We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).

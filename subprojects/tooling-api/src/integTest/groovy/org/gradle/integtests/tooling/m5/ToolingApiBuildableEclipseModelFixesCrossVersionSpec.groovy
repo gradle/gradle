@@ -36,8 +36,11 @@ task b
         def project = withConnection { connection -> connection.getModel(GradleProject.class) }
 
         then:
-        def tasks = project.tasks.collect { it.name }
-        assert tasks == ['a', 'b']: "temp tasks like 'cleanEclipse', 'eclipse', e.g. should not show on this list: " + tasks
+        def tasks = project.tasks*.name
+        tasks.contains('a')
+        tasks.contains('b')
+        !tasks.contains('cleanEclipse')
+        !tasks.contains('eclipse')
     }
 
     @Issue("GRADLE-1529")

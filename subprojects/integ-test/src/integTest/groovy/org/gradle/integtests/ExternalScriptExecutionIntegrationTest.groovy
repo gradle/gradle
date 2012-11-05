@@ -17,11 +17,15 @@
 
 package org.gradle.integtests
 
+import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.ArtifactBuilder
+import org.gradle.integtests.fixtures.ExecutionResult
+import org.gradle.test.fixtures.server.HttpServer
+import org.gradle.test.matchers.UserAgentMatcher
 import org.gradle.util.GradleVersion
 import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
-import org.gradle.integtests.fixtures.*
 
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.not
@@ -144,8 +148,6 @@ class ListenerImpl extends BuildAdapter {
     @Test
     public void canFetchScriptViaHttp() {
         TestFile script = testFile('external.gradle')
-        //for unknown os tests:
-        file("gradle.properties") << System.properties.findAll {key, value -> key.startsWith("os.")}.collect {key, value -> "systemProp.${key}=$value"}.join("\n")
         server.expectUserAgent(UserAgentMatcher.matchesNameAndVersion("Gradle", GradleVersion.current().getVersion()))
         server.expectGet('/external.gradle', script)
         server.start()

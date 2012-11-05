@@ -23,7 +23,7 @@ import java.util.List;
 
 import static java.util.Arrays.asList;
 
-public class DaemonGradleExecuter extends ForkingGradleExecuter {
+class DaemonGradleExecuter extends ForkingGradleExecuter {
     private final boolean allowExtraLogging;
     private final boolean noDefaultJvmArgs;
 
@@ -43,6 +43,10 @@ public class DaemonGradleExecuter extends ForkingGradleExecuter {
         args.addAll(originalArgs);
         configureJvmArgs(args);
         configureDefaultLogging(args);
+
+        if (getUserHomeDir() != null) {
+            args.add(String.format("-Duser.home=%s", getUserHomeDir().getPath()));
+        }
 
         return args;
     }

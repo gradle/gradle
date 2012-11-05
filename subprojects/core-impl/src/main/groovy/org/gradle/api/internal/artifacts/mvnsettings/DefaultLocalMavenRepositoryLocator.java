@@ -15,9 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.mvnsettings;
 
-import jarjar.org.apache.maven.settings.Settings;
-import jarjar.org.apache.maven.settings.building.*;
-
+import org.gradle.mvn3.org.apache.maven.settings.Settings;
+import org.gradle.mvn3.org.apache.maven.settings.building.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,25 +32,28 @@ public class DefaultLocalMavenRepositoryLocator implements LocalMavenRepositoryL
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultLocalMavenRepositoryLocator.class);
     private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("\\$\\{([^\\}]*)\\}");
 
-    private final MavenFileLocations mavenFileLocations;
     private final Map<String, String> systemProperties;
     private final Map<String, String> environmentVariables;
+    private final MavenSettingsProvider settingsProvider;
 
-    public DefaultLocalMavenRepositoryLocator(MavenFileLocations mavenFileLocations, Map<String, String> systemProperties, Map<String, String> environmentVariables) {
-        this.mavenFileLocations = mavenFileLocations;
+    public DefaultLocalMavenRepositoryLocator(MavenSettingsProvider settingsProvider, Map<String, String> systemProperties,
+                                              Map<String, String> environmentVariables) {
         this.systemProperties = systemProperties;
         this.environmentVariables = environmentVariables;
+        this.settingsProvider = settingsProvider;
     }
 
     public File getLocalMavenRepository() throws CannotLocateLocalMavenRepositoryException{
         try {
-            Settings settings = buildSettings();
+            Settings settings = settingsProvider.buildSettings();
             String repoPath = settings.getLocalRepository();
-            if (repoPath == null) {
-                repoPath = new File(System.getProperty("user.home"), "/.m2/repository").getAbsolutePath();
-                LOGGER.debug(String.format("No local repository in Settings file defined. Using default path: %s", repoPath));
+            if (repoPath != null) {
+                return new File(resolvePlaceholders(repoPath.trim()));
+            } else {
+                File defaultLocation = new File(System.getProperty("user.home"), "/.m2/repository").getAbsoluteFile();
+                LOGGER.debug(String.format("No local repository in Settings file defined. Using default path: %s", defaultLocation));
+                return defaultLocation;
             }
-            return new File(resolvePlaceholders(repoPath.trim()));
         } catch (SettingsBuildingException e) {
             throw new CannotLocateLocalMavenRepositoryException("Unable to parse local maven settings.", e);
         }
@@ -71,18 +73,5 @@ public class DefaultLocalMavenRepositoryLocator implements LocalMavenRepositoryL
         matcher.appendTail(result);
 
         return result.toString();
-    }
-
-
-    private Settings buildSettings() throws SettingsBuildingException {
-        DefaultSettingsBuilderFactory factory = new DefaultSettingsBuilderFactory();
-        DefaultSettingsBuilder defaultSettingsBuilder = factory.newInstance();
-        DefaultSettingsBuildingRequest settingsBuildingRequest = new DefaultSettingsBuildingRequest();
-        settingsBuildingRequest.setSystemProperties(System.getProperties());
-        settingsBuildingRequest.setUserSettingsFile(mavenFileLocations.getUserMavenDir());
-        settingsBuildingRequest.setUserSettingsFile(mavenFileLocations.getUserSettingsFile());
-        settingsBuildingRequest.setGlobalSettingsFile(mavenFileLocations.getGlobalSettingsFile());
-        SettingsBuildingResult settingsBuildingResult = defaultSettingsBuilder.build(settingsBuildingRequest);
-        return settingsBuildingResult.getEffectiveSettings();
     }
 }

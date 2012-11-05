@@ -7,6 +7,7 @@ configurations {
 dependencies {
     junit 'junit:junit:4.10'
     groovy libraries.groovy
+    testFixturesCompile 'org.jscience:jscience:4.3.1'
     testFixturesCompile project(':internalIntegTesting')
 }
 
@@ -18,6 +19,7 @@ task small(type: ProjectGeneratorTask, description: 'Generates a small project')
 task largeSrc(type: ProjectGeneratorTask, description: 'Generates a single project with lots of source files') {
     sourceFiles = 50000
     linesOfCodePerSourceFile = 20
+    withPlainAntCompile = true
 }
 
 task multi(type: ProjectGeneratorTask, description: 'Generates a multi-project build') {
@@ -36,9 +38,29 @@ task mixedSize(type: ProjectGeneratorTask) {
     projects[1].sourceFiles = 20000
 }
 
+task withTestNG(type: ProjectGeneratorTask) {
+    projects = 2
+    sourceFiles = 10
+    testReport = false
+    testFramework = 'useTestNG()'
+    testClassTemplate = 'TestNGTest.java'
+}
+
+task withVerboseJUnits(type: ProjectGeneratorTask) {
+    projects = 2
+    sourceFiles = 10
+    testReport = true
+    testClassTemplate = 'VerboseJUnitTest.java'
+}
+
 task multiGroovy(type: ProjectGeneratorTask, description: 'Generates a multi-project groovy build') {
     projects = 25
     groovyProject = true
+}
+
+task multiScala(type: ProjectGeneratorTask, description: 'Generates a multi-project Scala build') {
+    projects = 25
+    scalaProject = true
 }
 
 task largeMulti(type: ProjectGeneratorTask, description: 'Generates a large multi-project build') {
@@ -64,7 +86,7 @@ generators.all {
 }
 task all(dependsOn: generators)
 
-task prepareSamples(dependsOn: [small, multi, lotDependencies])
+task prepareSamples(dependsOn: [small, multi, lotDependencies, withTestNG, withVerboseJUnits])
 
 integTestTasks.all {
     if (buildTypes.isActive('performanceTest')) {
@@ -73,9 +95,16 @@ integTestTasks.all {
         enabled = false
         dependsOn = []
     }
+    maxParallelForks = 1
 }
 
-tasks.integTest.testLogging.showStandardStreams = true
+tasks.integTest.testLogging {
+    showStandardStreams = true
+    lifecycle {
+        exceptionFormat 'full'
+    }
+}
+
 eclipse {
     classpath {
         file.whenMerged { classpath ->

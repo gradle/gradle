@@ -17,23 +17,19 @@
 package org.gradle.peformance.fixture
 
 import org.gradle.util.Clock
+import org.jscience.physics.amount.Amount
+
+import javax.measure.quantity.DataAmount
+import javax.measure.quantity.Duration
+import javax.measure.unit.SI
 
 /**
  * by Szczepan Faber, created at: 2/10/12
  */
 public class MeasuredOperation {
-    long executionTime
+    Amount<Duration> executionTime
     Exception exception
-    String prettyTime
-    long totalMemoryUsed
-    
-    String toString() {
-        (totalMemoryUsed == 0)? prettyTime : prettyTime + ", " + getPrettyBytes()
-    }
-
-    String getPrettyBytes() {
-        humanReadableByteCount(totalMemoryUsed)
-    }
+    Amount<DataAmount> totalMemoryUsed
 
     static MeasuredOperation measure(Closure operation) {
         def out = new MeasuredOperation()
@@ -44,20 +40,7 @@ public class MeasuredOperation {
         } catch (Exception e) {
             out.exception = e
         }
-        //not very atomic... :)
-        out.prettyTime = clock.time
-        out.executionTime = clock.timeInMs
+        out.executionTime = Amount.valueOf(clock.timeInMs, SI.MILLI(SI.SECOND))
         return out
-    }
-
-    //stolen from the web, TODO SF, replace with commons or something
-    static String humanReadableByteCount(long bytes) {
-        int unit = 1024;
-        if (bytes < unit) {
-            return bytes + " B";
-        }
-        int exp = (int) (Math.log(bytes) / Math.log(unit));
-        String pre = "kMGTPE".charAt(exp-1)
-        return String.format("%.1f %sB", bytes / Math.pow(unit, exp), pre);
     }
 }

@@ -28,7 +28,7 @@ import java.text.ParseException;
 
 public class DownloadedIvyModuleDescriptorParser extends XmlModuleDescriptorParser {
     @Override
-    public ModuleDescriptor parseDescriptor(ParserSettings ivySettings, URL xmlURL, Resource res, boolean validate) throws ParseException, IOException {
+    synchronized public ModuleDescriptor parseDescriptor(ParserSettings ivySettings, URL xmlURL, Resource res, boolean validate) throws ParseException, IOException {
         DefaultModuleDescriptor descriptor = (DefaultModuleDescriptor) super.parseDescriptor(ivySettings, xmlURL, res, validate);
         descriptor.setDefault(false);
         return descriptor;

@@ -19,13 +19,11 @@ package org.gradle.api.internal.artifacts.configurations;
 import groovy.lang.Closure;
 import org.gradle.api.*;
 import org.gradle.api.artifacts.*;
+import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
-import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
-import org.gradle.api.internal.artifacts.DefaultDependencySet;
-import org.gradle.api.internal.artifacts.DefaultExcludeRule;
-import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet;
+import org.gradle.api.internal.artifacts.*;
 import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
@@ -68,7 +66,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     // This lock only protects the following fields
     private final Object lock = new Object();
     private State state = State.UNRESOLVED;
-    private ResolvedConfiguration cachedResolvedConfiguration;
+    private ResolverResults cachedResolverResults;
     private final DefaultResolutionStrategy resolutionStrategy;
 
     public DefaultConfiguration(String path, String name, ConfigurationsProvider configurationsProvider,
@@ -228,20 +226,24 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public ResolvedConfiguration getResolvedConfiguration() {
+        resolveNow();
+        return cachedResolverResults.getResolvedConfiguration();
+    }
+
+    private void resolveNow() {
         synchronized (lock) {
             if (state == State.UNRESOLVED) {
                 DependencyResolutionListener broadcast = getDependencyResolutionBroadcast();
                 ResolvableDependencies incoming = getIncoming();
                 broadcast.beforeResolve(incoming);
-                cachedResolvedConfiguration = dependencyResolver.resolve(this);
-                if (cachedResolvedConfiguration.hasError()) {
+                cachedResolverResults = dependencyResolver.resolve(this);
+                if (cachedResolverResults.getResolvedConfiguration().hasError()) {
                     state = State.RESOLVED_WITH_FAILURES;
                 } else {
                     state = State.RESOLVED;
                 }
                 broadcast.afterResolve(incoming);
             }
-            return cachedResolvedConfiguration;
         }
     }
 
@@ -555,6 +557,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         public void afterResolve(Closure action) {
             resolutionListenerBroadcast.add("afterResolve", action);
+        }
+
+        public ResolutionResult getResolutionResult() {
+            //TODO SF unit test
+            DefaultConfiguration.this.resolveNow();
+            return DefaultConfiguration.this.cachedResolverResults.getResolutionResult();
         }
     }
 }

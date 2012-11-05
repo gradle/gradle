@@ -19,6 +19,7 @@ import org.junit.internal.runners.ErrorReportingRunner;
 import org.junit.runner.Description;
 import org.junit.runner.RunWith;
 import org.junit.runner.Runner;
+import org.junit.runner.manipulation.*;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
 import org.junit.runner.notification.RunNotifier;
@@ -32,7 +33,7 @@ import java.util.*;
 /**
  * A base class for those test runners which execute a test multiple times.
  */
-public abstract class AbstractMultiTestRunner extends Runner {
+public abstract class AbstractMultiTestRunner extends Runner implements Filterable, Sortable {
     protected final Class<?> target;
     private Description description;
     private final List<Execution> executions = new ArrayList<Execution>();
@@ -43,27 +44,55 @@ public abstract class AbstractMultiTestRunner extends Runner {
 
     @Override
     public Description getDescription() {
-        init();
+        initDescription();
         return description;
     }
 
     @Override
     public void run(RunNotifier notifier) {
-        init();
+        initDescription();
         for (Execution execution : executions) {
             execution.run(notifier);
         }
     }
 
-    private void init() {
-        if (description == null) {
+    public void filter(Filter filter) throws NoTestsRemainException {
+        initExecutions();
+        for (Execution execution : executions) {
+            execution.filter(filter);
+        }
+        invalidateDescription();
+    }
+
+    public void sort(Sorter sorter) {
+        initExecutions();
+        for (Execution execution : executions) {
+            execution.sort(sorter);
+        }
+        invalidateDescription();
+    }
+
+    private void initExecutions() {
+        if (executions.isEmpty()) {
             createExecutions();
-            description = Description.createSuiteDescription(target);
             for (Execution execution : executions) {
                 execution.init(target);
+            }
+        }
+    }
+
+    private void initDescription() {
+        initExecutions();
+        if (description == null) {
+            description = Description.createSuiteDescription(target);
+            for (Execution execution : executions) {
                 execution.addDescriptions(description);
             }
         }
+    }
+
+    private void invalidateDescription() {
+        description = null;
     }
 
     protected abstract void createExecutions();
@@ -72,7 +101,7 @@ public abstract class AbstractMultiTestRunner extends Runner {
         executions.add(execution);
     }
 
-    protected static abstract class Execution {
+    protected static abstract class Execution implements Sortable, Filterable {
         private Runner runner;
         protected Class<?> target;
         private final Map<Description, Description> descriptionTranslations = new HashMap<Description, Description>();
@@ -163,6 +192,18 @@ public abstract class AbstractMultiTestRunner extends Runner {
             }
         }
 
+        public void filter(Filter filter) throws NoTestsRemainException {
+            if (runner instanceof Filterable) {
+                ((Filterable) runner).filter(filter);
+            }
+        }
+
+        public void sort(Sorter sorter) {
+            if (runner instanceof Sortable) {
+                ((Sortable) runner).sort(sorter);
+            }
+        }
+
         protected void before() {
         }
 
@@ -184,7 +225,7 @@ public abstract class AbstractMultiTestRunner extends Runner {
         }
 
         /**
-         * Returns a display name for this execution. Used in the Junit descriptions for test execution.
+         * Returns a display name for this execution. Used in the JUnit descriptions for test execution.
          */
         protected abstract String getDisplayName();
 
@@ -199,7 +240,7 @@ public abstract class AbstractMultiTestRunner extends Runner {
          * Loads the target classes for this execution. Default is the target class that this runner was constructed with.
          */
         protected List<? extends Class<?>> loadTargetClasses() {
-            return Arrays.asList(target);
+            return Collections.singletonList(target);
         }
     }
 }

@@ -19,6 +19,7 @@ package org.gradle.launcher.daemon.server;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Stoppable;
 import org.gradle.internal.UncheckedException;
+import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.server.exec.DaemonStateControl;
 import org.gradle.launcher.daemon.server.exec.DaemonUnavailableException;
 import org.slf4j.Logger;
@@ -72,7 +73,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
                     switch (state) {
                         case Running:
                             if (isBusy()) {
-                                LOGGER.debug("Daemon is busy, sleeping until state changes.");
+                                LOGGER.debug(DaemonMessages.DAEMON_BUSY);
                                 condition.await();
                             } else if (hasBeenIdleFor(timeoutMs)) {
                                 LOGGER.debug("Daemon has been idle for requested period.");
@@ -80,7 +81,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
                                 return false;
                             } else {
                                 Date waitUntil = new Date(lastActivityAt + timeoutMs);
-                                LOGGER.debug("Daemon is idle, sleeping until state change or idle timeout at {}", waitUntil);
+                                LOGGER.debug(DaemonMessages.DAEMON_IDLE + waitUntil);
                                 condition.awaitUntil(waitUntil);
                             }
                             break;

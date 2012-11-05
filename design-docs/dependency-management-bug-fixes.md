@@ -3,39 +3,146 @@ This feature is really a bucket for key things we want to fix in the short-term 
 
 As this 'feature' is a list of bug fixes, this feature spec will not follow the usual template.
 
-## Contents
-* [Honor SSL system properties when accessing HTTP repositories](#ssl-system-properties)
-* [Inform the user about why a module is considered broken](#error-reporting)
-* [Correct handling of packaging and dependency type declared in poms](#pom-packaging)
-* [RedHat finishes porting gradle to fedora](#fedora)
-* [Allow resolution of java-source and javadoc types from maven repositories](#maven-types)
-* [Expiring of changing module artifacts from cache is inadequate in some cases, overly aggressive in others](#changing-module-caching)
-* [Correct naming of resolved native binaries](#native-binaries)
-* [Handle pom-only modules in mavenLocal](#pom-only-modules)
-* [Support for kerberos and custom authentication](#authentication)
+# Lastest status dynamic versions work across multiple repositories
 
-<a href="ssl-system-properties">
-# Honor SSL system properties when accessing HTTP repositories
-
-See [GRADLE-2234](http://issues.gradle.org/browse/GRADLE-2234)
+See [GRADLE-2502](http://issues.gradle.org/browse/GRADLE-2502)
 
 ### Test coverage
 
-* Can resolve dependencies from an HTTPS Maven repository with both server and client authentication enabled.
-    * Both an SSL trust store containing the server cert and a key store containing the client cert have been specified using the `ssl.*`
-      system properties.
-    * Assert that expected client cert has been received by the server.
-* Can publish dependencies to an HTTPS Maven repository with both server and client authentication enabled, as above.
-* Resolution from an HTTP Maven repository fails with a decent error message when client fails to authenticate the server (eg no trust store specified).
-* Resolution from an HTTP Maven repository fails with a decent error message when server fails to authenticate the client (eg no key store specified).
-* Same happy day tests for an HTTP Ivy repository.
+1. Using `latest.integration`
+    1. Empty repository fails with not found.
+    2. Publish `1.0` and `1.1` with status `integration`. Resolves to `1.1`.
+    3. Publish `1.2` with status `release`. Resolves to `1.2`
+    4. Publish `1.3` with no ivy.xml. Resolves to `1.3`.
+2. Using `latest.milestone`
+    1. Empty repository fails with not found.
+    2. Publish `2.0` with no ivy.xml. Fails with not found.
+    3. Publish `1.3` with status `integration`. Fails with not found.
+    4. Publish `1.0` and `1.1` with ivy.xml and status `milestone`. Resolves to `1.1`.
+    5. Publish `1.2` with status `release`. Resolves to `1.2`
+3. Using `latest.release`
+    1. Empty repository fails with not found.
+    2. Publish `2.0` with no ivy.xml. Fails with not found.
+    3. Publish `1.3` with status `milestone`. Fails with not found.
+    4. Publish `1.0` and `1.1` with ivy.xml and status `release`. Resolves to `1.1`.
+4. Multiple repositories.
+5. Checking for changes. Using `latest.release`
+    1. Publish `1.0` with status `release` and `2.0` with status `milestone`.
+    2. Resolve and assert directory listing and `1.0` artifacts downloaded.
+    3. Resolve and assert directory listing downloaded.
+    4. Publish `1.1` with status `release`.
+    5. Resolve and assert directory listing and `1.1` artifacts downloaded.
+6. Maven integration
+    1. Publish `1.0`. Check `latest.integration` resolves to `1.0` and `latest.release` fails with not found.
+    2. Publish `1.1-SNAPSHOT`. Check `latest.integration` resolves to `1.1-SNAPSHOT` and `latest.release` fails with not found.
+7. Version ranges
+8. Repository with multiple patterns.
+9. Repository with `[type]` in pattern before `[revision]`.
+10. Multiple dynamic versions match the same remote revision.
 
-### Implementation
+### Implementation strategy
 
-Needs some research. Looks like we need should be using a `DecompressingHttpClient` chained in front of a `SystemDefaultHttpClient` instead of
-using a `ContentEncodingHttpClient`.
+Change ExternalResourceResolver.getDependency() to use the following algorithm:
+1. Calculate an ordered list of candidate versions.
+    1. For a static version selector the list contains a single candidate.
+    2. For a dynamic version selector the list is the full set of versions for the module.
+        * For a Maven repository, this is determined using `maven-metadata.xml` if available, falling back to a directory listing.
+        * For an Ivy repository, this is determined using a directory listing.
+        * Fail if directory listing is not available.
+2. For each candidate version:
+    1. If the version matcher does not accept the module version, continue.
+    2. Fetch the module version meta-data, as described below. If not found, continue.
+    3. If the version matcher requires the module meta-data and it does not accept the meta-data, continue.
+    4. Use the module version.
+3. Return not found.
 
-<a href="error-reporting">
+To fetch the meta-data for a module version:
+1. Download the meta data descriptor resource, via the resource cache. If found, parse.
+    1. Validate module version in meta-data == the expected module version.
+2. Check for a jar artifact, via the resource cache. If found, use default meta-data. The meta-data must have `default` set to `true` and `status` set to `integration`.
+3. Return not found.
+
+# File stores recover from process crash while adding file to store
+
+When Gradle crashes after writing to a `FileStore` implementation, it can leave a partially written file behind. Subsequent invocations of Gradle
+will attempt to use this partial file.
+
+See [GRADLE-2457](http://issues.gradle.org/browse/GRADLE-2457)
+
+### Test coverage
+
+No specific coverage at this point, other than unit testing. At some point we'll set up a stress test.
+
+### Implementation strategy
+
+Something like this:
+
+* Add `IndexableFileStore<K>` interface with a single `FileStoreEntry get(K key)` method.
+* Change PathKeyFileStore to implement this method.
+* Add `FileStore.add(K key, Action<File> addAction)` method. The action is given a file that it should write the contents to. This initial implementation would
+  basically do:
+    1. Allocate a temp file using `getTempfile()`
+    2. Call `Action.execute(tempfile)` to create the file.
+    3. If the action is successful, call `move(key, tempfile)` to move the temp file into place.
+* Change `ModuleDescriptorStore` and/or `ModuleDescriptorFileStore` to use a `PathKeyFileStore` to manage access to the actual file store.
+* Change `DownloadingRepositoryCacheManager` to use `FileStore.add()` instead of `FileStore.getTempfile()` and `move()`.
+* Remove `FileStore.getTempfile()`.
+* Change the implementation of `PathKeyFileStore.copy()`, `move()` and `add()` so that it:
+    1. Places a marker file down next to the destination file.
+    2. Calls `Action.execute(destfile)`
+    3. If successful, removes the marker file.
+    4. If fails, removes the marker file and the destination file.
+    5. Maybe also add some handling to `File.move()` the original destination file out of the way in step 1, and back in on failure in step 4.
+* Change `PathKeyFileStore.get()` and `search()` to ignore and/or remove destination files for which a marker file exists.
+
+# Ignore cached missing module entry when module is missing for all repositories
+
+See [GRADLE-2455](http://issues.gradle.org/browse/GRADLE-2455)
+
+Currently, we cache the fact that a module is missing from a given repository. This is to avoid a remote lookup when a resolution uses multiple repositories,
+and a given module is not hosted in every repository.
+
+This causes problems when the module is initially missing from every repository and subsequently becomes available. For example, when setting up a new
+repository, you may misconfigure the repository server so that a certain module is not visible. Gradle resolves against the repository and caches the fact that
+the module is missing from that repository, and reports the problem to you. You then fix the server configuration so that the module is now visible. When
+Gradle resolves a second time, it uses the cached value, instead of checking for the module.
+
+### Integration test coverage
+
+* Multiple repositories:
+    1. Resolve with multiple repositories and missing module.
+    2. Assert build fails due to missing module.
+    3. Publish the module to the second repository.
+    4. Resolve again.
+    5. Assert Gradle performs HTTP requests to look for the module.
+    6. Assert build succeeds.
+    7. Resolve again.
+    8. Assert Gradle does not make any HTTP requests
+    9. Assert build succeeds.
+
+### Implementation strategy
+
+When resolving a dependency descriptor in `UserResolverChain` for a particular repository:
+
+1. If there is a cached 'found' entry for this repository and the entry has not expired, use the cached value.
+2. If there is a cached 'not-found' entry for this repository and the entry has not expired, and there is some other repository for which there is an
+   unexpired 'found' entry, use the cached value.
+3. Otherwise, resolve the dependency using this repository.
+
+# Correctness issues in HTTP resource caching
+
+* GRADLE-2328 - invalidate cached HTTP/HTTPS resource when user credentials change.
+* Invalidate cached HTTP/HTTPS resource when proxy settings change.
+* Invalidate cached HTTPS resource when SSL settings change.
+
+### Integration test coverage
+
+TBD
+
+### Implementation strategy
+
+TBD
+
 # Inform the user about why a module is considered broken
 
 ### Description
@@ -80,7 +187,6 @@ TODO - flesh this out
 
 TODO - flesh this out
 
-<a href="pom-packaging">
 # Correct handling of packaging and dependency type declared in poms
 
 * GRADLE-2188: Artifact not found resolving dependencies with packaging/type "orbit"
@@ -134,7 +240,6 @@ artifact model. This will be a small step toward an independent Gradle model of 
     * If not found, use the artifact from the type location
 * In 2.0, we will remove the packaging->extension mapping and the deprecation warning
 
-<a href="fedora">
 # RedHat finishes porting gradle to fedora
 
 * GRADLE-2210: Migrate to maven 3
@@ -189,7 +294,6 @@ And a test that regular resolve succeeds from http repository when settings.xml 
 * Implement m2 repository location with Maven3
 * Use jarjar to repackage the required maven3 classes and include them in the Gradle distro.
 
-<a href="maven-types">
 # Allow resolution of java-source and javadoc types from maven repositories (and other types: tests, ejb-client)
 
 * GRADLE-201: Enable support for retrieving source artifacts of a module
@@ -269,7 +373,6 @@ Until we map these types into the ivy repository model as well:
 * The IDEDependenciesExtractor will need to continue using type+classifier
 * We cannot deprecate the use of classifier='sources'
 
-<a href="changing-module-caching">
 # Expiring of changing module artifacts from cache is inadequate in some cases, overly aggressive in others
 
 * GRADLE-2175: Snapshot dependencies with sources/test classifier are not considered 'changing'
@@ -330,23 +433,72 @@ removes/expires all artifacts linked to that module. One option is to update the
 and will require a new version whenever the binary storage format is changed. The filestore-N directory will store downloaded files in a pattern that encapsulates the artifact identifier and the SHA1 checksum
 of the downloaded artifact (same as current format).
 
-<a href="native-binaries">
 # Correct naming of resolved native binaries
 
 * GRADLE-2211: Resolved binary executables and libraries do not use the platform specific naming scheme
 
-<a href="pom-only-modules">
 # Handle pom-only modules in mavenLocal
 
 * GRADLE-2034: Existence of pom file requires that declared artifacts can be found in the same repository
 * GRADLE-2369: Dependency resolution fails for mavenLocal(), mavenCentral() if artifact partially in mavenLocal()
 
-<a href="authentication">
 # Support for kerberos and custom authentication
 
 * GRADLE-2335: Provide the ability to implement a custom HTTP authentication scheme for repository access
 
 # Done
+
+## Invalid checksum files generated on publish
+
+SHA-1 checksums should be 40 hex characters long. When publishing, Gradle generates a checksum string that does not include leading zeros, so
+that sometimes the checksum is shorter than 40 characters.
+
+See [GRADLE-2456](http://issues.gradle.org/browse/GRADLE-2456)
+
+### Test coverage
+
+* Publish an artifact containing the following bytes: [0, 0, 0, 5]. This has an SHA-1 that is 38 hex characters long.
+* Assert that the published SHA-1 file contains exactly the following 40 characters: 00e14c6ef59816760e2c9b5a57157e8ac9de4012
+* Test the above for Ivy and Maven publication.
+
+### Implementation strategy
+
+* Change `DefaultExternalResourceRepository` to include leading '0's.
+* Change `DefaultExternalResourceRepository` to encode the SHA1 file's content using US-ASCII.
+
+## Errors writing cached module descriptor are silently ignored
+
+See [GRADLE-2458](http://issues.gradle.org/browse/GRADLE-2458)
+
+### Test coverage
+
+No specific coverage at this point, other than unit testing.
+
+### Implementation strategy
+
+* Copy XmlModuleDescriptorWriter, add some unit tests.
+* Fix XmlModuleDescriptorWriter so that it does not ignore errors.
+* Change ModuleDescriptorStore and IvyBackedArtifactPublisher to use this to write the descriptors.
+
+## Honor SSL system properties when accessing HTTP repositories
+
+See [GRADLE-2234](http://issues.gradle.org/browse/GRADLE-2234)
+
+### Test coverage
+
+* Can resolve dependencies from an HTTPS Maven repository with both server and client authentication enabled.
+    * Both an SSL trust store containing the server cert and a key store containing the client cert have been specified using the `ssl.*`
+      system properties.
+    * Assert that expected client cert has been received by the server.
+* Can publish dependencies to an HTTPS Maven repository with both server and client authentication enabled, as above.
+* Resolution from an HTTP Maven repository fails with a decent error message when client fails to authenticate the server (eg no trust store specified).
+* Resolution from an HTTP Maven repository fails with a decent error message when server fails to authenticate the client (eg no key store specified).
+* Same happy day tests for an HTTP Ivy repository.
+
+### Implementation strategy
+
+Needs some research. Looks like we need should be using a `DecompressingHttpClient` chained in front of a `SystemDefaultHttpClient` instead of
+using a `ContentEncodingHttpClient`.
 
 ## Project dependencies in generated poms use correct artifactIds
 

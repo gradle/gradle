@@ -52,9 +52,10 @@ task determineCommitId {
 
         // If it's a checkout, ask Git for it
         strategies << {
-            if (file(".git").exists()) {
+            if (file(".git/HEAD").exists()) {
                 def baos = new ByteArrayOutputStream()
-                exec {
+                def execResult = exec {
+                    ignoreExitValue = true
                     commandLine = ["git", "log", "-1", "--format=%H"]
                     if (OperatingSystem.current().windows) {
                         commandLine = ["cmd", "/c"] + commandLine
@@ -62,7 +63,14 @@ task determineCommitId {
 
                     standardOutput = baos
                 }
-                new String(baos.toByteArray(), "utf8").trim()
+                if (execResult.exitValue == 0) {
+                    new String(baos.toByteArray(), "utf8").trim()
+                } else {
+                    // Read commit id directly from filesystem
+                    def headRef = file(".git/HEAD").text
+                    headRef = headRef.replaceAll('ref: ', '').trim()
+                    file(".git/$headRef").text.trim()
+                }
             } else {
                 null
             }

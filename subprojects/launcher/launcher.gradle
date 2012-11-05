@@ -1,5 +1,3 @@
-apply from: "$rootDir/gradle/classycle.gradle"
-
 configurations {
     startScriptGenerator
 }
@@ -17,6 +15,8 @@ dependencies {
     compile libraries.slf4j_api
 
     startScriptGenerator project(':plugins')
+
+    testRuntime project(':diagnostics')
 }
 
 useTestFixtures()
@@ -81,3 +81,5 @@ daemonIntegTest {
     //excluding to avoid unnecessary re-running and stealing resources.
     exclude "org/gradle/launcher/daemon/**/*"
 }
+
+useClassycle()

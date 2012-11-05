@@ -15,35 +15,45 @@
  */
 package org.gradle.api.internal.artifacts.repositories;
 
+import org.apache.ivy.core.cache.RepositoryCacheManager;
 import org.apache.ivy.plugins.repository.Repository;
+import org.apache.ivy.plugins.repository.TransferListener;
 import org.apache.ivy.plugins.resolver.*;
-import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
+import org.gradle.api.internal.artifacts.repositories.transport.ProgressLoggingTransferListener;
+import org.gradle.logging.ProgressLoggerFactory;
 
 import java.util.List;
 
 public class CustomResolverArtifactRepository extends FixedResolverArtifactRepository {
-    private final RepositoryTransportFactory repositoryTransportFactory;
+    private final TransferListener transferListener;
+    private final RepositoryCacheManager downloadingCacheManager;
+    private final RepositoryCacheManager localCacheManager;
 
-    public CustomResolverArtifactRepository(DependencyResolver resolver, RepositoryTransportFactory repositoryTransportFactory) {
+    public CustomResolverArtifactRepository(DependencyResolver resolver, ProgressLoggerFactory progressLoggerFactory,
+                                            RepositoryCacheManager localCacheManager, RepositoryCacheManager downloadingCacheManager) {
         super(resolver);
-        this.repositoryTransportFactory = repositoryTransportFactory;
+        this.localCacheManager = localCacheManager;
+        this.downloadingCacheManager = downloadingCacheManager;
+        this.transferListener = new ProgressLoggingTransferListener(progressLoggerFactory, CustomResolverArtifactRepository.class);
         configureResolver(resolver, true);
     }
 
     private void configureResolver(DependencyResolver dependencyResolver, boolean isTopLevel) {
         if (isTopLevel) {
             if (resolver instanceof AbstractResolver && !(resolver instanceof FileSystemResolver)) {
-                ((AbstractResolver) resolver).setRepositoryCacheManager(repositoryTransportFactory.getDownloadingCacheManager());
+                ((AbstractResolver) resolver).setRepositoryCacheManager(downloadingCacheManager);
             }
         }
 
         if (dependencyResolver instanceof FileSystemResolver) {
             ((FileSystemResolver) dependencyResolver).setLocal(true);
-            ((FileSystemResolver) dependencyResolver).setRepositoryCacheManager(repositoryTransportFactory.getLocalCacheManager());
+            ((FileSystemResolver) dependencyResolver).setRepositoryCacheManager(localCacheManager);
         }
         if (dependencyResolver instanceof RepositoryResolver) {
             Repository repository = ((RepositoryResolver) dependencyResolver).getRepository();
-            repositoryTransportFactory.attachListener(repository);
+            if (!repository.hasTransferListener(transferListener)) {
+                repository.addTransferListener(transferListener);
+            }
         }
         if (dependencyResolver instanceof DualResolver) {
             DualResolver dualResolver = (DualResolver) dependencyResolver;

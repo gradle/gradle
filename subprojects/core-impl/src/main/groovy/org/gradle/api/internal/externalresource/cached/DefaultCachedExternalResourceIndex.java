@@ -61,7 +61,7 @@ public class DefaultCachedExternalResourceIndex<K extends Serializable> implemen
     }
 
     private String operationName(String action) {
-        return String.format("%s from artifact resolution cache '%s'", action, persistentCacheFile.getName());
+        return String.format("%s artifact resolution cache '%s'", action, persistentCacheFile.getName());
     }
 
     public void store(final K key, final File artifactFile, ExternalResourceMetaData externalResourceMetaData) {
@@ -80,7 +80,7 @@ public class DefaultCachedExternalResourceIndex<K extends Serializable> implemen
     }
 
     private void storeInternal(final K key, final DefaultCachedExternalResource entry) {
-        cacheLockingManager.useCache(operationName("store"), new Runnable() {
+        cacheLockingManager.useCache(operationName("store into"), new Runnable() {
             public void run() {
                 getPersistentCache().put(key, entry);
             }
@@ -92,7 +92,7 @@ public class DefaultCachedExternalResourceIndex<K extends Serializable> implemen
             throw new IllegalArgumentException("key cannot be null");
         }
 
-        return cacheLockingManager.useCache(operationName("lookup"), new Factory<DefaultCachedExternalResource>() {
+        return cacheLockingManager.useCache(operationName("lookup from"), new Factory<DefaultCachedExternalResource>() {
             public DefaultCachedExternalResource create() {
                 DefaultCachedExternalResource found = getPersistentCache().get(key);
                 if (found == null) {
@@ -112,7 +112,7 @@ public class DefaultCachedExternalResourceIndex<K extends Serializable> implemen
             throw new IllegalArgumentException("key cannot be null");
         }
 
-        cacheLockingManager.useCache(operationName("clear"), new Runnable() {
+        cacheLockingManager.useCache(operationName("clear from"), new Runnable() {
             public void run() {
                 getPersistentCache().remove(key);
             }

@@ -18,9 +18,10 @@
 package org.gradle.integtests.publish.ivy
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.HttpServer
-import org.gradle.integtests.fixtures.IvyModule
-import org.gradle.integtests.fixtures.IvyRepository
+import org.gradle.integtests.fixtures.ProgressLoggingFixture
+import org.gradle.test.fixtures.ivy.IvyFileModule
+import org.gradle.test.fixtures.ivy.IvyModule
+import org.gradle.test.fixtures.server.HttpServer
 import org.gradle.util.GradleVersion
 import org.gradle.util.Jvm
 import org.gradle.util.TestFile
@@ -30,7 +31,7 @@ import org.junit.Rule
 import org.mortbay.jetty.HttpStatus
 import spock.lang.Unroll
 
-import static org.gradle.integtests.fixtures.UserAgentMatcher.matchesNameAndVersion
+import static org.gradle.test.matchers.UserAgentMatcher.matchesNameAndVersion
 
 public class IvyHttpPublishIntegrationTest extends AbstractIntegrationSpec {
     private static final String BAD_CREDENTIALS = '''
@@ -42,26 +43,25 @@ credentials {
     @Rule
     public final HttpServer server = new HttpServer()
 
+    @Rule ProgressLoggingFixture progressLogging
+
     private IvyModule module
 
     def setup() {
-        def repo = new IvyRepository(distribution.testFile('ivy-repo'))
-        module = repo.module("org.gradle", "publish", "2")
+        module = ivyRepo.module("org.gradle", "publish", "2")
         module.moduleDir.mkdirs()
-        //for unknown os tests
-        file("gradle.properties") << System.properties.findAll {key, value -> key.startsWith("os.")}.collect {key, value -> "systemProp.${key}=$value"}.join("\n")
         server.expectUserAgent(matchesNameAndVersion("Gradle", GradleVersion.current().getVersion()))
     }
 
     public void canPublishToUnauthenticatedHttpRepository() {
         given:
         server.start()
-
         settingsFile << 'rootProject.name = "publish"'
         buildFile << """
 apply plugin: 'java'
 version = '2'
 group = 'org.gradle'
+
 uploadArchives {
     repositories {
         ivy {
@@ -83,7 +83,11 @@ uploadArchives {
 
         module.jarFile.assertIsCopyOf(file('build/libs/publish-2.jar'))
         module.assertChecksumPublishedFor(module.jarFile)
+        and:
+        progressLogging.uploadProgressLogged("http://localhost:${server.port}/org.gradle/publish/2/ivy-2.xml")
+        progressLogging.uploadProgressLogged("http://localhost:${server.port}/org.gradle/publish/2/publish-2.jar")
     }
+
 
     @Unroll
     def "can publish to authenticated repository using #authScheme auth"() {
@@ -122,6 +126,10 @@ uploadArchives {
         module.jarFile.assertIsCopyOf(file('build/libs/publish-2.jar'))
         module.assertChecksumPublishedFor(module.jarFile)
 
+        and:
+        progressLogging.uploadProgressLogged("http://localhost:${server.port}/org.gradle/publish/2/ivy-2.xml")
+        progressLogging.uploadProgressLogged("http://localhost:${server.port}/org.gradle/publish/2/publish-2.jar")
+
         where:
         authScheme << [HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST]
     }
@@ -156,7 +164,7 @@ uploadArchives {
 
         and:
         failure.assertHasDescription('Execution failed for task \':uploadArchives\'.')
-        failure.assertHasCause('Could not publish configuration \':archives\'.')
+        failure.assertHasCause('Could not publish configuration: [archives]')
         failure.assertThatCause(Matchers.containsString('Received status code 401 from server: Unauthorized'))
 
         where:
@@ -191,7 +199,7 @@ uploadArchives {
 
         and:
         failure.assertHasDescription('Execution failed for task \':uploadArchives\'.')
-        failure.assertHasCause('Could not publish configuration \':archives\'.')
+        failure.assertHasCause('Could not publish configuration: [archives]')
         failure.assertThatCause(Matchers.containsString('Received status code 500 from server: broken'))
 
         when:
@@ -202,7 +210,7 @@ uploadArchives {
 
         and:
         failure.assertHasDescription('Execution failed for task \':uploadArchives\'.')
-        failure.assertHasCause('Could not publish configuration \':archives\'.')
+        failure.assertHasCause('Could not publish configuration: [archives]')
         failure.assertHasCause("org.apache.http.conn.HttpHostConnectException: Connection to ${repositoryUrl} refused")
     }
 
@@ -314,12 +322,12 @@ uploadArchives {
         module.ivyFile.assertDoesNotExist()
     }
 
-    private void expectUpload(String path, IvyModule module, TestFile file, int statusCode = HttpStatus.ORDINAL_200_OK) {
+    private void expectUpload(String path, IvyFileModule module, TestFile file, int statusCode = HttpStatus.ORDINAL_200_OK) {
         server.expectPut(path, file, statusCode)
         server.expectPut("${path}.sha1", module.sha1File(file), statusCode)
     }
 
-    private void expectUpload(String path, IvyModule module, TestFile file, String username, String password) {
+    private void expectUpload(String path, IvyFileModule module, TestFile file, String username, String password) {
         server.expectPut(path, username, password, file)
         server.expectPut("${path}.sha1", username, password, module.sha1File(file))
     }

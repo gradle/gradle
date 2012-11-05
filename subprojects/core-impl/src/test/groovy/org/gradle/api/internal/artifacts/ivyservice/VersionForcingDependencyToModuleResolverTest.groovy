@@ -46,10 +46,11 @@ class VersionForcingDependencyToModuleResolverTest extends Specification {
         def dep = dependency('group', 'module')
 
         when:
-        def result = resolver.resolve(dep)
+        ForcedModuleVersionIdResolveResult result = resolver.resolve(dep)
 
         then:
-        result == resolvedVersion
+        result.result == resolvedVersion
+        result.selectionReason == ModuleVersionIdResolveResult.IdSelectionReason.forced
 
         and:
         1 * dep.clone(forced) >> modified

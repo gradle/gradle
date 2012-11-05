@@ -16,6 +16,7 @@
 
 package org.gradle.integtests
 
+import org.gradle.test.fixtures.server.HttpServer
 import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.TextUtil
@@ -23,7 +24,7 @@ import org.junit.Rule
 import spock.lang.Issue
 import org.gradle.integtests.fixtures.*
 
-import static org.gradle.integtests.fixtures.UserAgentMatcher.matchesNameAndVersion
+import static org.gradle.test.matchers.UserAgentMatcher.matchesNameAndVersion
 import static org.hamcrest.Matchers.containsString
 import static org.junit.Assert.assertThat
 
@@ -37,8 +38,6 @@ class WrapperProjectIntegrationTest extends AbstractIntegrationSpec {
 
     void setup() {
         server.start()
-        //pass os.name, os.arch and os.version to the system.properties file (needed for unknown os tests)
-        file("gradle.properties") << System.properties.findAll {key, value -> key.startsWith("os.")}.collect {key, value -> "systemProp.${key}=$value"}.join("\n")
         server.expectUserAgent(matchesNameAndVersion("gradlew", GradleVersion.current().getVersion()))
     }
 

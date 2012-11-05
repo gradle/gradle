@@ -27,7 +27,6 @@ import org.gradle.launcher.exec.GradleLauncherActionExecuter;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.internal.OutputEventRenderer;
-import org.gradle.logging.internal.logback.SimpleLogbackLoggingConfigurer;
 import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.tooling.internal.build.DefaultBuildEnvironment;
 import org.gradle.tooling.internal.consumer.protocoladapter.ProtocolToModelAdapter;
@@ -44,7 +43,6 @@ import java.util.List;
 public class DefaultConnection implements InternalConnection, BuildActionRunner, ConfigurableConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConnection.class);
     private final EmbeddedExecuterSupport embeddedExecuterSupport;
-    private final SimpleLogbackLoggingConfigurer loggingConfigurer = new SimpleLogbackLoggingConfigurer();
     private final ProtocolToModelAdapter adapter = new ProtocolToModelAdapter();
 
     public DefaultConnection() {
@@ -63,7 +61,9 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
     public void configureLogging(boolean verboseLogging) {
         LogLevel providerLogLevel = verboseLogging? LogLevel.DEBUG : LogLevel.INFO;
         LOGGER.debug("Configuring logging to level: {}", providerLogLevel);
-        loggingConfigurer.configure(providerLogLevel);
+        LoggingManagerInternal loggingManager = embeddedExecuterSupport.getLoggingServices().newInstance(LoggingManagerInternal.class);
+        loggingManager.setLevel(providerLogLevel);
+        loggingManager.start();
     }
 
     public ConnectionMetaDataVersion1 getMetaData() {
@@ -147,7 +147,7 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
             loggingServices = embeddedExecuterSupport.getLoggingServices();
             executer = embeddedExecuterSupport.getExecuter();
         } else {
-            loggingServices = LoggingServiceRegistry.newEmbeddableLogging();
+            loggingServices = embeddedExecuterSupport.getLoggingServices().newLogging();
             loggingServices.get(OutputEventRenderer.class).configure(operationParameters.getBuildLogLevel());
             DaemonClientServices clientServices = new DaemonClientServices(loggingServices, daemonParams, operationParameters.getStandardInput(SafeStreams.emptyInput()));
             executer = clientServices.get(DaemonClient.class);

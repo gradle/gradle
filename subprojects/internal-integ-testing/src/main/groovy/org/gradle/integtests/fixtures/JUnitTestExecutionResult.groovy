@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures
 import groovy.util.slurpersupport.GPathResult
 import org.gradle.util.TestFile
 import org.hamcrest.Matcher
+
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
 
@@ -26,6 +27,10 @@ class JUnitTestExecutionResult implements TestExecutionResult {
 
     def JUnitTestExecutionResult(TestFile projectDir, String buildDirName = 'build') {
         this.buildDir = projectDir.file(buildDirName)
+    }
+
+    boolean hasJUnitXmlResults() {
+        xmlResultsDir().list().length > 0
     }
 
     TestExecutionResult assertTestClassesExecuted(String... testClasses) {
@@ -47,7 +52,7 @@ class JUnitTestExecutionResult implements TestExecutionResult {
     }
 
     private def findClasses() {
-        buildDir.file('test-results').assertIsDir()
+        xmlResultsDir().assertIsDir()
         buildDir.file('reports/tests/index.html').assertIsFile()
 
         Map<String, File> classes = [:]
@@ -58,6 +63,10 @@ class JUnitTestExecutionResult implements TestExecutionResult {
             }
         }
         return classes
+    }
+
+    private TestFile xmlResultsDir() {
+        buildDir.file('test-results')
     }
 }
 
@@ -74,6 +83,13 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
     TestClassExecutionResult assertTestsExecuted(String... testNames) {
         Map<String, Node> testMethods = findTests()
         assertThat(testMethods.keySet(), equalTo(testNames as Set))
+        this
+    }
+
+    TestClassExecutionResult assertTestCount(int tests, int failures, int errors) {
+        assert testClassNode.@tests == tests
+        assert testClassNode.@failures == failures
+        assert testClassNode.@errors == errors
         this
     }
 

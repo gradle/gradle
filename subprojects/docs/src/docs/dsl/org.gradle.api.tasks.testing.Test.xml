@@ -177,6 +177,9 @@
             <tr>
                 <td>testLogging</td>
             </tr>
+            <tr>
+                <td>options</td>
+            </tr>
         </table>
     </section>
 </section>

@@ -350,6 +350,7 @@ public class DefaultCommandLineConverterTest {
     public void withOffline() {
         expectedOffline = true;
         checkConversion("--offline");
+        checkConversion("-offline");
     }
 
     @Test
@@ -357,6 +358,7 @@ public class DefaultCommandLineConverterTest {
         expectedRefreshDependencies = true;
         expectedRefreshOptions = new RefreshOptions(asList(RefreshOptions.Option.DEPENDENCIES));
         checkConversion("--refresh-dependencies");
+        checkConversion("-refresh-dependencies");
     }
 
     @Test

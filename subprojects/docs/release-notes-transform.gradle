@@ -18,11 +18,10 @@ decorateReleaseNotes {
     ext {
         baseStyleFile = file("$cssFiles.dir/base.css")
         releaseNotesStyleFile = file("$cssFiles.dir/release-notes.css")
-        jqueryFile = configurations.jquery.singleFile
         scriptFile = file("src/docs/release/content/script.js")
     }
     
-    inputs.files([baseStyleFile, releaseNotesStyleFile, jqueryFile, scriptFile])
+    inputs.files([baseStyleFile, releaseNotesStyleFile, configurations.jquery, scriptFile])
     
     transform {
         outputSettings().indentAmount(2).prettyPrint(true)
@@ -35,7 +34,7 @@ decorateReleaseNotes {
 
         head().append("<style>p{}</style>").children().last().childNode(0).attr("data", baseStyleFile.text + releaseNotesStyleFile.text)
         
-        head().append("<script type='text/javascript'>1;</script>").children().last().childNode(0).attr("data", jqueryFile.text)
+        head().append("<script type='text/javascript'>1;</script>").children().last().childNode(0).attr("data", configurations.jquery.singleFile.text)
         head().append("<script type='text/javascript'>1;</script>").children().last().childNode(0).attr("data", scriptFile.text)
     }
 

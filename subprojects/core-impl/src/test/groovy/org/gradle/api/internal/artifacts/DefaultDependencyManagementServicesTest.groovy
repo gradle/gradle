@@ -36,6 +36,7 @@ import org.gradle.logging.LoggingManagerInternal
 import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.internal.TimeProvider
 import spock.lang.Specification
+import org.gradle.api.internal.file.TemporaryFileProvider
 
 class DefaultDependencyManagementServicesTest extends Specification {
     final ServiceRegistry parent = Mock()
@@ -62,6 +63,7 @@ class DefaultDependencyManagementServicesTest extends Specification {
         _ * parent.get(ListenerManager) >> listenerManager
         _ * parent.get(FileLockManager) >> Mock(FileLockManager)
         _ * parent.get(TimeProvider) >> Mock(TimeProvider)
+        _ * parent.get(TemporaryFileProvider) >> Mock(TemporaryFileProvider)
     }
 
     private CacheRepository initCacheRepository() {

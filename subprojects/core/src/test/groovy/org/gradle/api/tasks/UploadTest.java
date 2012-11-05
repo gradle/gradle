@@ -17,6 +17,8 @@
 package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.file.FileCollection;
@@ -35,6 +37,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
+import java.util.Collections;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
@@ -50,12 +53,13 @@ public class UploadTest extends AbstractTaskTest {
     private RepositoryHandler repositoriesMock;
     private ArtifactPublisher artifactPublisherMock;
     private ConfigurationInternal configurationMock;
+    private Module moduleMock;
 
     @Before public void setUp() {
         upload = createTask(Upload.class);
         repositoriesMock = context.mock(RepositoryHandler.class);
         artifactPublisherMock = context.mock(ArtifactPublisher.class);
-
+        moduleMock = context.mock(Module.class);
         configurationMock = context.mock(ConfigurationInternal.class);
     }
 
@@ -76,7 +80,9 @@ public class UploadTest extends AbstractTaskTest {
         upload.setConfiguration(configurationMock);
         upload.setArtifactPublisher(artifactPublisherMock);
         context.checking(new Expectations() {{
-            one(artifactPublisherMock).publish(configurationMock, descriptorDestination);
+            one(configurationMock).getModule(); will(returnValue(moduleMock));
+            one(configurationMock).getHierarchy(); will(returnValue(Collections.emptySet()));
+            one(artifactPublisherMock).publish(moduleMock, Collections.<Configuration>emptySet(), descriptorDestination, null);
         }});
         upload.upload();
     }
@@ -87,7 +93,9 @@ public class UploadTest extends AbstractTaskTest {
         upload.setConfiguration(configurationMock);
         upload.setArtifactPublisher(artifactPublisherMock);
         context.checking(new Expectations() {{
-            one(artifactPublisherMock).publish(configurationMock, null);
+            one(configurationMock).getModule(); will(returnValue(moduleMock));
+            one(configurationMock).getHierarchy(); will(returnValue(Collections.emptySet()));
+            one(artifactPublisherMock).publish(moduleMock, Collections.<Configuration>emptySet(), null, null);
         }});
         upload.upload();
     }

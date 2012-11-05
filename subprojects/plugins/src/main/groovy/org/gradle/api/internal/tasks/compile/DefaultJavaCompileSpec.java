@@ -22,7 +22,6 @@ import java.io.File;
 
 public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implements JavaCompileSpec {
     private String sourceCompatibility;
-    private String targetCompatibility;
     private File dependencyCacheDir;
     private CompileOptions compileOptions;
 
@@ -48,13 +47,5 @@ public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implem
 
     public void setSourceCompatibility(String sourceCompatibility) {
         this.sourceCompatibility = sourceCompatibility;
-    }
-
-    public String getTargetCompatibility() {
-        return targetCompatibility;
-    }
-
-    public void setTargetCompatibility(String targetCompatibility) {
-        this.targetCompatibility = targetCompatibility;
     }
 }

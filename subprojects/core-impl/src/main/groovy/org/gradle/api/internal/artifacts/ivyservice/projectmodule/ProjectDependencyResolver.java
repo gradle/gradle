@@ -18,9 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.internal.artifacts.ivyservice.*;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException;
 
 import java.io.File;
 
@@ -35,46 +33,19 @@ public class ProjectDependencyResolver implements DependencyToModuleResolver {
         artifactResolver = new ProjectArtifactResolver();
     }
 
-    public ModuleVersionResolveResult resolve(DependencyDescriptor dependencyDescriptor) {
+    public void resolve(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionResolveResult result) {
         ModuleDescriptor moduleDescriptor = projectModuleRegistry.findProject(dependencyDescriptor);
-
-        if (moduleDescriptor == null) {
-            return resolver.resolve(dependencyDescriptor);
+        if (moduleDescriptor != null) {
+            result.resolved(moduleDescriptor.getModuleRevisionId(), moduleDescriptor, artifactResolver);
+        } else {
+            resolver.resolve(dependencyDescriptor, result);
         }
-
-        return new ProjectDependencyModuleVersionResolveResult(moduleDescriptor, artifactResolver);
     }
 
     private static class ProjectArtifactResolver implements ArtifactResolver {
-        public ArtifactResolveResult resolve(Artifact artifact) throws ArtifactResolveException {
+        public void resolve(Artifact artifact, BuildableArtifactResolveResult result) {
             String path = artifact.getExtraAttribute(DefaultIvyDependencyPublisher.FILE_ABSOLUTE_PATH_EXTRA_ATTRIBUTE);
-            return new FileBackedArtifactResolveResult(new File(path));
-        }
-    }
-
-    private static class ProjectDependencyModuleVersionResolveResult implements ModuleVersionResolveResult {
-        private final ModuleDescriptor moduleDescriptor;
-        private final ArtifactResolver artifactResolver;
-
-        public ProjectDependencyModuleVersionResolveResult(ModuleDescriptor moduleDescriptor, ArtifactResolver artifactResolver) {
-            this.moduleDescriptor = moduleDescriptor;
-            this.artifactResolver = artifactResolver;
-        }
-
-        public ModuleVersionResolveException getFailure() {
-            return null;
-        }
-
-        public ModuleRevisionId getId() throws ModuleVersionResolveException {
-            return moduleDescriptor.getModuleRevisionId();
-        }
-
-        public ModuleDescriptor getDescriptor() throws ModuleVersionResolveException {
-            return moduleDescriptor;
-        }
-
-        public ArtifactResolver getArtifactResolver() throws ModuleVersionResolveException {
-            return artifactResolver;
+            result.resolved(new File(path), null);
         }
     }
 }

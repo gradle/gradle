@@ -1,6 +1,6 @@
 apply plugin: "groovy"
 
-import org.gradle.build.JarJar
+import org.gradle.build.*
 
 configurations {
     mvn3Input
@@ -18,30 +18,54 @@ dependencies {
     compile libraries.slf4j_api
     compile libraries.maven_ant_tasks
     compile libraries.nekohtml
+    runtime libraries.xbean //maven3 classes dependency
 
     testCompile libraries.junit
 
-    compile files(["$buildDir/libs/jarjar/jarjar-maven-settings-3.0.4.jar",
-            "$buildDir/libs/jarjar/jarjar-maven-settings-builder-3.0.4.jar",
-            "$buildDir/libs/jarjar/jarjar-plexus-cipher-1.4.jar",
-            "$buildDir/libs/jarjar/jarjar-plexus-component-annotations-1.5.5.jar",
-            "$buildDir/libs/jarjar/jarjar-plexus-interpolation-1.14.jar",
-            "$buildDir/libs/jarjar/jarjar-plexus-sec-dispatcher-1.3.jar",
-            "$buildDir/libs/jarjar/jarjar-plexus-utils-2.0.6.jar"]) {
-        builtBy tasks.withType(JarJar)
+    compile fileTree("$buildDir/libs/jarjar") {
+        builtBy 'jarJarMaven3'
     }
 
-    mvn3Input libraries.maven3_settings_builder
-}
-configurations.mvn3Input.files.each{libFile->
-   task "jarjar-${libFile.name}"(type: JarJar) {
-        inputFile = libFile
-        outputFile = file("$buildDir/libs/jarjar/jarjar-${libFile.name}")
-        rule('org.**', 'jarjar.org.@1')
-    }
+    mvn3Input libraries.maven3
 }
 
+task jarJarMaven3(type: JarJar) {
+    inputJars = configurations.mvn3Input
+    outputDir = file("$buildDir/libs/jarjar")
+
+    //unfortunately, all those need to be jarjarred.
+    // Even if some library (like aether) is not included in maven-ant-tasks it has
+    // META-INF/plexus/components.xml that to jarjarred components.
+    rule('org.apache.maven.**', 'org.gradle.mvn3.org.apache.maven.@1')
+    rule('org.codehaus.**', 'org.gradle.mvn3.org.codehaus.@1')
+    rule('org.sonatype.**', 'org.gradle.mvn3.org.sonatype.@1')
+
+    avoidConflictingPlexusComponents(it)
+}
+
+classpathManifest.dependsOn jarJarMaven3 //see GRADLE-2521
+
+//adding explicit task dependencies due to http://issues.gradle.org/browse/GRADLE-2481
 def allJarJars = tasks.withType(JarJar)
-ideaModule.dependsOn allJarJars // I expected that buildable file collections links the ideaModule to the allJarJars already.
-eclipseClasspath.dependsOn allJarJars 
+ideaModule.dependsOn allJarJars
+eclipseClasspath.dependsOn allJarJars
 useTestFixtures()
+
+def avoidConflictingPlexusComponents(JarJar task) {
+    //DefaultSecDispatcher component is configured in 2 different jars (META-INF/plexus/components.xml).
+    //The implementation is the same but the 'hint' is different and this makes plexus fail to start.
+    //I'm removing the components.xml file from the sec-dispatcher jar.
+    //This file contains only single component so I think we can remove it.
+    task.doLast {
+        def plexusSec = "$outputDir/jarjar-plexus-sec-dispatcher-1.3.jar"
+        def plexusSecNoComps = "$plexusSec-noComps"
+        ant {
+            zip(destfile: plexusSecNoComps, update: true) {
+                zipfileset(src: plexusSec) {
+                    exclude(name: 'META-INF/plexus/components.xml')
+                }
+            }
+            move(file: plexusSecNoComps, tofile: plexusSec)
+        }
+    }
+}

@@ -17,6 +17,7 @@
 package org.gradle.launcher.cli;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.Actions;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.gradleplugin.userinterface.swing.standalone.BlockingApplication;
@@ -29,9 +30,9 @@ class GuiActionsFactory implements CommandLineAction {
         parser.option(GUI).hasDescription("Launches the Gradle GUI.");
     }
 
-    public Action<ExecutionListener> createAction(CommandLineParser parser, ParsedCommandLine commandLine) {
+    public Action<? super ExecutionListener> createAction(CommandLineParser parser, ParsedCommandLine commandLine) {
         if (commandLine.hasOption(GUI)) {
-            return new ActionAdapter(new ShowGuiAction());
+            return Actions.toAction(new ShowGuiAction());
         }
         return null;
     }

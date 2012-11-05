@@ -15,9 +15,12 @@
  */
 package org.gradle.api.artifacts.repositories;
 
+import org.gradle.api.internal.HasInternalProtocol;
+
 /**
  * A repository for resolving and publishing artifacts.
  */
+@HasInternalProtocol
 public interface ArtifactRepository {
     /**
      * Returns the name for this repository. A name must be unique amongst a repository set. A default name is provided for the repository if none
@@ -31,6 +34,11 @@ public interface ArtifactRepository {
 
     /**
      * Sets the name for this repository.
+     *
+     * If this repository is to be added to an {@link org.gradle.api.artifacts.ArtifactRepositoryContainer}
+     * (including {@link org.gradle.api.artifacts.dsl.RepositoryHandler}), its name should not be changed after it has
+     * been added to the container. This capability has been deprecated and is scheduled to be removed in the next major
+     * Gradle version.
      *
      * @param name The name. Must not be null.
      */

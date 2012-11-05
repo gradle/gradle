@@ -23,7 +23,7 @@ import org.gradle.util.TestFile;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ParallelForkingGradleExecuter extends ForkingGradleExecuter {
+class ParallelForkingGradleExecuter extends ForkingGradleExecuter {
     public ParallelForkingGradleExecuter(TestFile gradleHomeDir) {
         super(gradleHomeDir);
     }

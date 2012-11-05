@@ -28,7 +28,9 @@ dependencies {
     groovy libraries.groovy
 
     compile project(':core')
+    compile project(':coreImpl')
     compile project(':wrapper')
+    compile project(':reporting')
 
     compile libraries.ant
     compile libraries.asm
@@ -59,3 +61,4 @@ test {
 
 useTestFixtures()
 useTestFixtures(sourceSet: "testFixtures")
+useTestFixtures(project: ":coreImpl")

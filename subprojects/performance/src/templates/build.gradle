@@ -35,9 +35,10 @@ dependencies {
     compile "commons-httpclient:commons-httpclient:3.0"
     compile "commons-codec:commons-codec:1.2"
     compile "org.slf4j:jcl-over-slf4j:1.6.6"
-    compile "org.codehaus.groovy:groovy:1.8.7"
+    compile "org.codehaus.groovy:groovy:1.8.8"
     compile "commons-codec:commons-codec:1.2"
     testCompile 'junit:junit:4.8.2'
+    testCompile 'org.testng:testng:6.4'
     runtime 'com.googlecode:reflectasm:1.01'
 
     <% if (dependencies) { dependencies.each { %>
@@ -47,36 +48,94 @@ dependencies {
 
 test {
     jvmArgs '-XX:MaxPermSize=512m', '-XX:+HeapDumpOnOutOfMemoryError'
-    testReport = false
+    testReport = <%=testProject.defaults.testReport%>
+    <%=testProject.defaults.testFramework%>
 }
 
 <% if (groovyProject) { %>
 apply plugin: 'groovy'
 dependencies {
-    groovy 'org.codehaus.groovy:groovy:1.8.7'
+    groovy 'org.codehaus.groovy:groovy:1.8.8'
 }
+<% } %>
+
+<% if (scalaProject) { %>
+apply plugin: 'scala'
+dependencies {
+    scalaTools 'org.scala-lang:scala-compiler:2.9.2'
+    compile 'org.scala-lang:scala-library:2.9.2'
+}
+tasks.withType(ScalaCompile) {
+    scalaCompileOptions.with {
+        useAnt = false
+        fork = true
+        forkOptions.jvmArgs = ["-XX:MaxPermSize=512m"]
+    }
+}
+<% } %>
+
+<% if (withPlainAntCompile) { %>
+class PlainAntCompile extends DefaultTask{
+	File outputDirectoy
+	File sourceDirectory
+	FileCollection classpath;
+
+	@TaskAction
+	void compile(){
+		outputDirectoy.mkdirs()
+		project.ant {
+			property(name:"build.sysclasspath", value:"last")
+			path(id:'classpath') {
+				pathelement(path:classpath.asPath)
+			}
+			path(id:'sourcepath') {
+				pathelement(location:outputDirectoy.absolutePath)
+			}
+			presetdef(name: 'antCompileJava') {
+				javac(  classpathref:'classpath',
+						encoding:'UTF-8',
+						destdir:outputDirectoy.absolutePath,
+						excludes:'',
+						fork:'true',
+						memoryInitialSize:'1024m',
+						memoryMaximumSize:'1536m',
+						source:'1.6',
+						srcdir:sourceDirectory.absolutePath,
+						target:'1.6')
+			}
+		}
+		project.ant.antCompileJava()
+	}
+}
+
+
+task plainAntCompile(type:PlainAntCompile){
+	sourceDirectory = file("src/main/java")
+	outputDirectoy = file("\$buildDir/classes/main")
+	classpath = sourceSets.main.compileClasspath
+}
+
 <% } %>
 
 task dependencyReport(type: DependencyReportTask) {
     outputFile = new File(buildDir, "dependencies.txt")
 }
-
 <% } %>
 
 if (project == rootProject) {
     gradle.buildFinished {
         def heap = ManagementFactory.memoryMXBean.heapMemoryUsage
         def nonHeap = ManagementFactory.memoryMXBean.nonHeapMemoryUsage
-        println "BEFORE GC"
-        println "heap: \${format(heap.used)} (initial \${format(heap.init)}, commited \${format(heap.committed)}, max \${format(heap.max)}"
-        println "nonHeap: \${format(nonHeap.used)} (initial \${format(nonHeap.init)}, commited \${format(nonHeap.committed)}, max \${format(nonHeap.max)}"
+        logger.lifecycle "BEFORE GC"
+        logger.lifecycle "heap: \${format(heap.used)} (initial \${format(heap.init)}, commited \${format(heap.committed)}, max \${format(heap.max)}"
+        logger.lifecycle "nonHeap: \${format(nonHeap.used)} (initial \${format(nonHeap.init)}, commited \${format(nonHeap.committed)}, max \${format(nonHeap.max)}"
 
         ManagementFactory.memoryMXBean.gc()
         heap = ManagementFactory.memoryMXBean.heapMemoryUsage
         nonHeap = ManagementFactory.memoryMXBean.nonHeapMemoryUsage
-        println "AFTER GC"
-        println "heap: \${format(heap.used)} (initial \${format(heap.init)}, commited \${format(heap.committed)}, max \${format(heap.max)}"
-        println "nonHeap: \${format(nonHeap.used)} (initial \${format(nonHeap.init)}, commited \${format(nonHeap.committed)}, max \${format(nonHeap.max)}"
+        logger.lifecycle "AFTER GC"
+        logger.lifecycle "heap: \${format(heap.used)} (initial \${format(heap.init)}, commited \${format(heap.committed)}, max \${format(heap.max)}"
+        logger.lifecycle "nonHeap: \${format(nonHeap.used)} (initial \${format(nonHeap.init)}, commited \${format(nonHeap.committed)}, max \${format(nonHeap.max)}"
         buildDir.mkdirs()
         new File(buildDir, "totalMemoryUsed.txt").text = heap.used
     }

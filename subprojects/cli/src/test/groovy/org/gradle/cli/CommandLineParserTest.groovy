@@ -590,15 +590,34 @@ class CommandLineParserTest extends Specification {
         parser.allowUnknownOptions()
 
         when:
-        def result = parser.parse(['-a', '-b'])
+        def result = parser.parse(['-a', '-b', '--long-option'])
 
         then:
         result.option("a") != null
         
         and:
-        result.extraArguments.contains("-b")
+        result.extraArguments == ['-b', '--long-option']
     }
-    
+
+    def "allow unknown options mode collects unknown short options combined with known short options"() {
+        given:
+        parser.option("a")
+        parser.option("Z")
+
+        and:
+        parser.allowUnknownOptions()
+
+        when:
+        def result = parser.parse(['-abCdZ'])
+
+        then:
+        result.option("a") != null
+        result.option("Z") != null
+
+        and:
+        result.extraArguments == ["-b", "-C", "-d"]
+    }
+
     @Issue("http://issues.gradle.org/browse/GRADLE-1871")
     def "unknown options containing known arguments in their value are allowed"() {
         given:
@@ -614,8 +633,7 @@ class CommandLineParserTest extends Specification {
         result.option("a") != null
         
         and:
-        "-ba" in result.extraArguments
-        "-ba=c" in result.extraArguments
+        result.extraArguments == ['-ba', '-ba=c']
     }
 
 }

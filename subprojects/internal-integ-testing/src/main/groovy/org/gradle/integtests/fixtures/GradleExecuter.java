@@ -15,6 +15,8 @@
  */
 package org.gradle.integtests.fixtures;
 
+import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 
 import java.io.File;
@@ -84,17 +86,23 @@ public interface GradleExecuter {
     GradleExecuter usingBuildScript(File buildScript);
 
     /**
-     * Sets the user home dir. Set to null to use the default user home dir.
+     * Sets the user's home dir to use when running the build. Implementations are not 100% accurate.
      */
     GradleExecuter withUserHomeDir(File userHomeDir);
 
     /**
-     * Sets the java home dir. Set to null to use the default java home dir.
+     * Sets the <em>Gradle</em> user home dir. Setting to null requests that the executer use the real default Gradle user home dir rather than the
+     * default used for testing.
+     */
+    GradleExecuter withGradleUserHomeDir(File userHomeDir);
+
+    /**
+     * Sets the java home dir. Setting to null requests that the executer use the real default java home dir rather than the default used for testing.
      */
     GradleExecuter withJavaHome(File userHomeDir);
 
     /**
-     * Sets the executable to use. Set to null to use the default executable (if any)
+     * Sets the executable to use. Set to null to use the read default executable (if any) rather than the default used for testing.
      */
     GradleExecuter usingExecutable(String script);
 
@@ -142,7 +150,7 @@ public interface GradleExecuter {
     GradleHandle start();
 
     /**
-     * Only makes sense for the forking executor or foreground daemon.
+     * Adds options that should be used to start the JVM, if a JVM is to be started. Ignored if not.
      *
      * @param gradleOpts the jvm opts
      *
@@ -176,4 +184,21 @@ public interface GradleExecuter {
      * @return this executer
      */
     GradleExecuter withDaemonBaseDir(File baseDir);
+
+    /**
+     * Asserts that this executer will be able to run a build, given its current configuration.
+     *
+     * @throws AssertionError When this executer will not be able to run a build.
+     */
+    void assertCanExecute() throws AssertionError;
+
+    /**
+     * Adds an action to be called immediately before execution, to allow extra configuration to be injected.
+     */
+    void beforeExecute(Action<? super GradleExecuter> action);
+
+    /**
+     * Adds an action to be called immediately before execution, to allow extra configuration to be injected.
+     */
+    void beforeExecute(Closure action);
 }

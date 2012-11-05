@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-apply from: "$rootDir/gradle/classycle.gradle"
-
 dependencies {
     groovy libraries.groovy
     compile project(":cli")
@@ -41,3 +39,4 @@ integTestTasks.all {
 }
 
 useTestFixtures()
+useClassycle()

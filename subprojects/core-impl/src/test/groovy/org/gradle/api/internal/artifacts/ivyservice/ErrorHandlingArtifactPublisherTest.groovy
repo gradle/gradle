@@ -16,50 +16,55 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 
+import org.gradle.api.artifacts.Module
 import org.gradle.api.artifacts.PublishException
 import org.gradle.api.artifacts.ResolveException
-
+import org.gradle.api.internal.artifacts.ArtifactPublisher
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.integration.junit4.JMock
 import org.junit.Test
 import org.junit.runner.RunWith
+
 import static org.hamcrest.Matchers.equalTo
 import static org.hamcrest.Matchers.sameInstance
 import static org.junit.Assert.assertThat
 import static org.junit.Assert.fail
-import org.gradle.api.internal.artifacts.ArtifactPublisher
 
 @RunWith(JMock.class)
 public class ErrorHandlingArtifactPublisherTest {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery();
     private final ArtifactPublisher artifactPublisherMock = context.mock(ArtifactPublisher.class);
     private final ConfigurationInternal configurationMock = context.mock(ConfigurationInternal.class, "<config display name>");
+    private final Set configurations = Collections.singleton(configurationMock)
+    private final Module moduleMock = context.mock(Module)
+
     private final RuntimeException failure = new RuntimeException();
     private final ErrorHandlingArtifactPublisher ivyService = new ErrorHandlingArtifactPublisher(artifactPublisherMock);
 
     @Test
     public void publishDelegatesToBackingService() {
         context.checking {
-            one(artifactPublisherMock).publish(configurationMock, null)
+            one(artifactPublisherMock).publish(moduleMock, configurations, null, null)
         }
 
-        ivyService.publish(configurationMock, null)
+        ivyService.publish(moduleMock, configurations, null, null)
     }
 
     @Test
     public void wrapsPublishException() {
         context.checking {
-            one(artifactPublisherMock).publish(configurationMock, null)
+            one(configurationMock).getName(); will(returnValue("name"))
+            one(artifactPublisherMock).publish(moduleMock, configurations, null, null)
             will(throwException(failure))
         }
 
         try {
-            ivyService.publish(configurationMock, null)
+            ivyService.publish(moduleMock, configurations, null, null)
             fail()
         }
         catch(PublishException e) {
-            assertThat e.message, equalTo("Could not publish <config display name>.")
+            assertThat e.message, equalTo("Could not publish configuration: [name]")
             assertThat(e.cause, sameInstance((Throwable) failure));
         }
     }

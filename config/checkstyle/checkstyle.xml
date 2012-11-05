@@ -104,7 +104,10 @@
     </module>
     <module name="FileTabCharacter"/>
     <module name="RegexpSingleline">
-        <property name="format" value="To change body of implemented methods use File \| Settings \| File Templates"/>
+        <property name="format" value="File \| Settings \| File Templates"/>
+    </module>
+    <module name="RegexpSingleline">
+        <property name="format" value="Created with IntelliJ IDEA"/>
     </module>
 
     <!-- allows suppressing using the //CHECKSTYLE:ON //CHECKSTYLE:OFF -->

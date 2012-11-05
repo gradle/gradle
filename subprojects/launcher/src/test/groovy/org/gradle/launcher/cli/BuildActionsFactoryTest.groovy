@@ -21,16 +21,16 @@ import org.gradle.cli.CommandLineParser
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.launcher.daemon.bootstrap.DaemonMain
+import org.gradle.launcher.daemon.client.DaemonClient
+import org.gradle.launcher.daemon.client.SingleUseDaemonClient
 import org.gradle.launcher.daemon.configuration.DaemonParameters
+import org.gradle.launcher.exec.InProcessGradleLauncherActionExecuter
+import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.logging.internal.OutputEventListener
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
-import org.gradle.logging.ProgressLoggerFactory
-import org.gradle.launcher.daemon.client.SingleUseDaemonClient
-import org.gradle.launcher.daemon.client.DaemonClient
-import org.gradle.launcher.exec.InProcessGradleLauncherActionExecuter
 
 class BuildActionsFactoryTest extends Specification {
     @Rule
@@ -107,8 +107,8 @@ class BuildActionsFactoryTest extends Specification {
         def action = convert('--stop')
 
         then:
-        action instanceof ActionAdapter
-        action.action instanceof StopDaemonAction
+        // Relying on impl of Actions.toAction(Runnable)
+        action.runnable instanceof StopDaemonAction
     }
 
     def runsDaemonInForeground() {
@@ -116,8 +116,8 @@ class BuildActionsFactoryTest extends Specification {
         def action = convert('--foreground')
 
         then:
-        action instanceof ActionAdapter
-        action.action instanceof DaemonMain
+        // Relying on impl of Actions.toAction(Runnable)
+        action.runnable instanceof DaemonMain
     }
 
     def executesBuildWithSingleUseDaemonIfJavaHomeIsNotCurrent() {
@@ -189,20 +189,20 @@ class BuildActionsFactoryTest extends Specification {
     }
 
     void isDaemon(def action) {
-        assert action instanceof ActionAdapter
-        assert action.action instanceof RunBuildAction
-        assert action.action.executer instanceof DaemonClient
+        // Relying on impl of Actions.toAction(Runnable)
+        assert action.runnable instanceof RunBuildAction
+        assert action.runnable.executer instanceof DaemonClient
     }
 
     void isInProcess(def action) {
-        assert action instanceof ActionAdapter
-        assert action.action instanceof RunBuildAction
-        assert action.action.executer instanceof InProcessGradleLauncherActionExecuter
+        // Relying on impl of Actions.toAction(Runnable)
+        assert action.runnable instanceof RunBuildAction
+        assert action.runnable.executer instanceof InProcessGradleLauncherActionExecuter
     }
 
     void isSingleUseDaemon(def action) {
-        assert action instanceof ActionAdapter
-        assert action.action instanceof RunBuildAction
-        assert action.action.executer instanceof SingleUseDaemonClient
+        // Relying on impl of Actions.toAction(Runnable)
+        assert action.runnable instanceof RunBuildAction
+        assert action.runnable.executer instanceof SingleUseDaemonClient
     }
 }

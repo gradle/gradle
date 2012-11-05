@@ -28,20 +28,18 @@ import static org.junit.Assert.assertThat;
 
 public class ParallelForkingGradleHandle extends ForkingGradleHandle {
 
-    private static final String PARALLEL_EXECUTION_WARNING = "Parallel project execution is pre-alpha and highly experimental. Many builds will not run correctly with this option.\n";
-
     public ParallelForkingGradleHandle(String outputEncoding, Factory<? extends AbstractExecHandleBuilder> execHandleFactory) {
         super(outputEncoding, execHandleFactory);
     }
 
     @Override
     protected ExecutionResult toExecutionResult(String output, String error) {
-        return new ParallelExecutionResult(transformStandardOutput(output), transformErrorOutput(error));
+        return new ParallelExecutionResult(output, error);
     }
 
     @Override
     protected ExecutionResult toExecutionFailure(String output, String error) {
-        return new ParallelExecutionResult(transformStandardOutput(output), transformErrorOutput(error));
+        return new ParallelExecutionResult(output, error);
     }
 
     /**
@@ -62,8 +60,9 @@ public class ParallelForkingGradleHandle extends ForkingGradleHandle {
         @Override
         public String getOutput() {
             String output = super.getOutput();
-            if (output.startsWith(PARALLEL_EXECUTION_WARNING)) {
-                return output.substring(PARALLEL_EXECUTION_WARNING.length());
+            String parallelWarningPrefix = "Parallel project execution is an \"incubating\" feature";
+            if (output.startsWith(parallelWarningPrefix)) {
+                return output.replaceFirst(String.format("(?m)%s.+$\n", parallelWarningPrefix), "");
             }
             return output;
         }

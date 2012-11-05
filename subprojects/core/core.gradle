@@ -25,6 +25,7 @@ dependencies {
     publishCompile project(":baseServices")
     publishCompile project(":messaging")
 
+    compile project(":baseServicesGroovy")
     compile libraries.asm
     compile libraries.ant
     compile libraries.commons_collections
@@ -49,6 +50,7 @@ dependencies {
     testCompile libraries.jcl_to_slf4j
 
     testRuntime "xerces:xercesImpl:2.9.1"
+    testRuntime project(":diagnostics")
 
     testFixturesCompile project(":internalTesting")
     testFixturesRuntime project(':coreImpl')

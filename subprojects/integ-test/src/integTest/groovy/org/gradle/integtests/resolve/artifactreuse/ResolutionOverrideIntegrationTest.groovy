@@ -16,23 +16,18 @@
 package org.gradle.integtests.resolve.artifactreuse
 
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
-import org.gradle.util.SetSystemProperties
 import org.hamcrest.Matchers
-import org.junit.Rule
 
 class ResolutionOverrideIntegrationTest extends AbstractDependencyResolutionTest {
-    @Rule
-    public SetSystemProperties systemProperties = new SetSystemProperties()
-
-    public void "will non-changing module when run with --refresh-dependencies"() {
+    public void "will refresh non-changing module when run with --refresh-dependencies"() {
         given:
         server.start()
-        def module = mavenRepo().module('org.name', 'projectA', '1.2').publish()
+        def module = mavenHttpRepo.module('org.name', 'projectA', '1.2').publish()
 
         and:
         buildFile << """
 repositories {
-    maven { url "http://localhost:${server.port}/repo" }
+    maven { url "${mavenHttpRepo.uri}" }
 }
 configurations { compile }
 dependencies { compile 'org.name:projectA:1.2' }
@@ -42,7 +37,7 @@ task retrieve(type: Sync) {
 }
 """
         and:
-        server.allowGetOrHead('/repo', mavenRepo().rootDir)
+        module.allowAll()
 
         when:
         succeeds 'retrieve'
@@ -66,12 +61,12 @@ task retrieve(type: Sync) {
         server.start()
 
         given:
-        def module = mavenRepo().module('org.name', 'projectA', '1.2').publish()
+        def module = mavenHttpRepo.module('org.name', 'projectA', '1.2').publish()
 
         buildFile << """
 repositories {
     maven {
-        url "http://localhost:${server.port}"
+        url "${mavenHttpRepo.uri}"
     }
 }
 configurations { missing }
@@ -82,16 +77,16 @@ task showMissing << { println configurations.missing.files }
 """
 
         when:
-        server.expectGetMissing('/org/name/projectA/1.2/projectA-1.2.pom')
-        server.expectHeadMissing('/org/name/projectA/1.2/projectA-1.2.jar')
+        module.expectPomGetMissing()
+        module.expectArtifactHeadMissing()
 
         then:
         fails("showMissing")
 
         when:
         server.resetExpectations()
-        server.expectGet('/org/name/projectA/1.2/projectA-1.2.pom', module.pomFile)
-        server.expectGet('/org/name/projectA/1.2/projectA-1.2.jar', module.artifactFile)
+        module.expectPomGet()
+        module.expectArtifactGet()
 
         then:
         executer.withArguments("--refresh-dependencies")
@@ -105,7 +100,7 @@ task showMissing << { println configurations.missing.files }
         buildFile << """
 repositories {
     maven {
-        url "http://localhost:${server.port}"
+        url "${mavenHttpRepo.uri}"
     }
 }
 configurations { compile }
@@ -119,19 +114,19 @@ task retrieve(type: Sync) {
 """
 
         and:
-        def module = mavenRepo().module('org.name', 'projectA', '1.2').publish()
+        def module = mavenHttpRepo.module('org.name', 'projectA', '1.2').publish()
 
         when:
-        server.expectGet('/org/name/projectA/1.2/projectA-1.2.pom', module.pomFile)
-        server.expectGetMissing('/org/name/projectA/1.2/projectA-1.2.jar')
+        module.expectPomGet()
+        module.expectArtifactGetMissing()
 
         then:
         fails "retrieve"
 
         when:
         server.resetExpectations()
-        module.expectPomHead(server)
-        module.expectArtifactGet(server)
+        module.expectPomHead()
+        module.expectArtifactGet()
 
         then:
         executer.withArguments("--refresh-dependencies")
@@ -143,12 +138,12 @@ task retrieve(type: Sync) {
 
         given:
         server.start()
-        def module = mavenRepo().module("org.name", "unique", "1.0-SNAPSHOT").publish()
+        def module = mavenHttpRepo.module("org.name", "unique", "1.0-SNAPSHOT").publish()
 
         and:
         buildFile << """
 repositories {
-    maven { url "http://localhost:${server.port}/repo" }
+    maven { url "${mavenHttpRepo.uri}" }
 }
 configurations { compile }
 configurations.all {
@@ -164,7 +159,7 @@ task retrieve(type: Sync) {
 """
 
         when:  "Server handles requests"
-        server.allowGetOrHead("/repo", mavenRepo().rootDir)
+        module.allowAll()
 
         and: "We resolve dependencies"
         run 'retrieve'
@@ -193,7 +188,7 @@ task retrieve(type: Sync) {
         and:
         buildFile << """
 repositories {
-    maven { url "http://localhost:${server.port}/repo" }
+    maven { url "${mavenHttpRepo.uri}" }
 }
 configurations { compile }
 dependencies { compile 'org.name:projectA:1.2' }

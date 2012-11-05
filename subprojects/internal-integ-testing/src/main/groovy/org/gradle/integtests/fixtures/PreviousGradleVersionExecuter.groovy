@@ -27,19 +27,18 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.nativeplatform.ProcessEnvironment
 import org.gradle.internal.nativeplatform.services.NativeServices
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.launcher.daemon.registry.DaemonRegistry
 import org.gradle.util.DistributionLocator
 import org.gradle.util.GradleVersion
 import org.gradle.util.TestFile
 
-public class PreviousGradleVersionExecuter extends AbstractGradleExecuter implements BasicGradleDistribution {
+class PreviousGradleVersionExecuter extends AbstractDelegatingGradleExecuter implements BasicGradleDistribution {
     private static final CACHE_FACTORY = createCacheFactory()
 
     private static CacheFactory createCacheFactory() {
         return new DefaultCacheFactory(
                 new DefaultFileLockManager(
                         new DefaultProcessMetaDataProvider(
-                                new NativeServices().get(ProcessEnvironment)),
+                                NativeServices.getInstance().get(ProcessEnvironment)),
                         20 * 60 * 1000 // allow up to 20 minutes to download a distribution
                 )).create()
     }
@@ -88,10 +87,6 @@ public class PreviousGradleVersionExecuter extends AbstractGradleExecuter implem
         return true
     }
 
-    DaemonRegistry getDaemonRegistry() {
-        throw new UnsupportedOperationException()
-    }
-    
     boolean isDaemonSupported() {
         // Milestone 7 was broken on the IBM jvm
         if (Jvm.current().ibmJvm && version == GradleVersion.version('1.0-milestone-7')) {
@@ -137,11 +132,12 @@ public class PreviousGradleVersionExecuter extends AbstractGradleExecuter implem
         return true
     }
 
-    protected ExecutionResult doRun() {
+    @Override
+    protected GradleExecuter configureExecuter() {
         ForkingGradleExecuter executer = new ForkingGradleExecuter(gradleHomeDir)
         executer.inDirectory(dist.testDir)
         copyTo(executer)
-        return executer.run()
+        return executer
     }
 
     GradleExecuter executer() {
@@ -174,9 +170,5 @@ public class PreviousGradleVersionExecuter extends AbstractGradleExecuter implem
         }
         zipFile.assertIsFile()
         homeDir.assertIsDir()
-    }
-
-    protected ExecutionFailure doRunWithFailure() {
-        throw new UnsupportedOperationException();
     }
 }

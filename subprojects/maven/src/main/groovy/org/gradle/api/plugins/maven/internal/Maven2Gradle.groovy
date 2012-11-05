@@ -18,6 +18,9 @@
 
 package org.gradle.api.plugins.maven.internal
 
+import org.gradle.mvn3.org.apache.maven.project.MavenProject
+import org.gradle.util.GFileUtils
+
 /**
  * This script obtains  the effective pom of the current project, reads its dependencies
  * and generates build.gradle scripts. It also generates settings.gradle for multimodule builds. <br/>
@@ -32,26 +35,33 @@ class Maven2Gradle {
   def dependentWars = []
   def qualifiedNames
   def workingDir
-  def effectiveSettings
   def effectivePom
 
-  public static void main(String[] args) {
-    new Maven2Gradle().convert(args)
+  private Set<MavenProject> mavenProjects
+
+  Maven2Gradle(Set<MavenProject> mavenProjects) {
+      assert !mavenProjects.empty : "No maven projects provided."
+      this.mavenProjects = mavenProjects
   }
 
-  def convert(String[] args) {
+  def convert() {
     workingDir = new File('.').canonicalFile
     println "Working path:" + workingDir.absolutePath + "\n"
 
-    // use the Groovy XmlSlurper library to parse the text string
-    effectivePom = new XmlSlurper().parseText(geEffectiveContents('pom', args))
-    effectiveSettings = new XmlSlurper().parseText(geEffectiveContents('settings', args))
+      //For now we're building the effective pom xml from the model
+      //and then we parse the xml using slurper.
+      //This way we don't have to rewrite the Maven2Gradle just yet.
+      //Maven2Gradle should be rewritten (with coverage) so that feeds of the maven object model, not xml.
+      def effectivePom = new MavenProjectXmlWriter().toXml(mavenProjects)
+      //use the Groovy XmlSlurper library to parse the text string
+      this.effectivePom = new XmlSlurper().parseText(effectivePom)
+
     String build
-    def multimodule = effectivePom.name() == "projects"
+    def multimodule = this.effectivePom.name() == "projects"
 
     if (multimodule) {
       println "This is multi-module project.\n"
-      def allProjects = effectivePom.project
+      def allProjects = this.effectivePom.project
       print "Generating settings.gradle... "
       qualifiedNames = generateSettings(workingDir.getName(), allProjects[0].artifactId, allProjects);
       println "Done."
@@ -84,7 +94,7 @@ subprojects {
         def id = module.artifactId.text()
         String moduleDependencies = dependencies.get(id)
         boolean warPack = module.packaging.text().equals("war")
-        def hasDependencies = !(moduleDependencies == null || moduleDependencies.isEmpty())
+        def hasDependencies = !(moduleDependencies == null || moduleDependencies.length() == 0)
         print "Generating build.gradle for module ${id}... "
         File submoduleBuildFile = new File(projectDir(module), 'build.gradle')
         def group = ''
@@ -151,18 +161,18 @@ uploadArchives {
       build = """apply plugin: 'java'
 apply plugin: 'maven'
 
-${getArtifactData(effectivePom)}
+${getArtifactData(this.effectivePom)}
 
-description = \"""${effectivePom.name}\"""
+description = \"""${this.effectivePom.name}\"""
 
-${compilerSettings(effectivePom, "")}
-${globalExclusions(effectivePom)}
+${compilerSettings(this.effectivePom, "")}
+${globalExclusions(this.effectivePom)}
 
 """
 
       print "Configuring Maven repositories... "
       Set<String> repoSet = new LinkedHashSet<String>();
-      getRepositoriesForModule(effectivePom, repoSet)
+      getRepositoriesForModule(this.effectivePom, repoSet)
       String repos = """repositories {
         $localRepoUri
 """
@@ -172,17 +182,17 @@ ${globalExclusions(effectivePom)}
       build += "${repos}}\n"
       println "Done."
       print "Configuring Dependencies... "
-      String dependencies = getDependencies(effectivePom, null)
+      String dependencies = getDependencies(this.effectivePom, null)
       build += dependencies
       println "Done."
 
-      String packageTests = packageTests(effectivePom);
+      String packageTests = packageTests(this.effectivePom);
       if (packageTests) {
         build += '//packaging tests'
         build += packageTests;
       }
       print "Generating settings.gradle if needed... "
-      generateSettings(workingDir.getName(), effectivePom.artifactId, null);
+      generateSettings(workingDir.getName(), this.effectivePom.artifactId, null);
       println "Done."
 
     }
@@ -226,7 +236,7 @@ ${globalExclusions(effectivePom)}
 
   def modules = {allProjects, incReactors ->
     return allProjects.findAll { project ->
-      !project.parent.text().empty && (incReactors || project.packaging.text() != 'pom')
+      project.parent.text().length() > 0 && (incReactors || project.packaging.text() != 'pom')
     }
   }
 
@@ -249,16 +259,7 @@ ${globalExclusions(effectivePom)}
 
 
   def localRepoUri = {
-    //we have local maven repo full with good stuff. Let's reuse it!
-    String userHome = System.properties['user.home']
-    userHome = userHome.replaceAll('\\\\', '/')
-    def localRepoUri = new File(effectiveSettings.localRepository.text()).toURI().toString()
-    if (localRepoUri.contains(userHome)) {
-      localRepoUri = localRepoUri.replace(userHome, '${System.properties[\'user.home\']}')
-    }
-    //in URI format there is one slash after file, while  Gradle needs two
-    localRepoUri = localRepoUri.replace('file:/', 'file://')
-    """mavenRepo url: \"${localRepoUri}\"
+    """mavenLocal()
     """
   }
 
@@ -413,7 +414,7 @@ artifacts.archives packageSources"""
     def jarPlugin = plugin('maven-jar-plugin', project)
     pluginGoal('test-jar', jarPlugin) ? """
 task packageTests(type: Jar) {
-  from sourceSets.test.classes
+  from sourceSets.test.output
   classifier = 'tests'
 }
 artifacts.archives packageTests
@@ -475,7 +476,7 @@ artifacts.archives packageTests
     if (projects) {
       modulePoms.each { project ->
         def fqn = fqn(project, projects)
-        artifactIdToDir[fqn] = workingDir.toURI().relativize(projectDir(project).toURI()).path
+        artifactIdToDir[fqn] = GFileUtils.relativePath(workingDir, projectDir(project))
         modules.append("'${fqn}', ")
       }
       def strLength = modules.length()
@@ -495,32 +496,6 @@ project('$entry.key').projectDir = """ + '"$rootDir/' + "${entry.value}" + '" as
     }
     settingsFile.text = settingsText
     return qualifiedNames
-  }
-
-  String geEffectiveContents(String file, String[] args) {
-//TODO work on output stream, without writing to file
-    def fileName = "effective-${file}.xml"
-    print "Wait, obtaining effective $file... "
-
-    def ant = new AntBuilder()   // create an antbuilder
-    ant.exec(outputproperty: "cmdOut",
-            errorproperty: "cmdErr",
-            failonerror: "true",
-            executable: ((String) System.properties['os.name']).toLowerCase().contains("win") ? "mvn.bat" : "mvn") {
-      arg(line: """-Doutput=${fileName} help:effective-$file""")
-      env(key: "JAVA_HOME", value: System.getProperty("java.home"))
-    }
-
-//print the output if verbose flag is on
-    println((args.any {it.equals("-verbose")}) ? "\n ${ant.project.properties.cmdOut}" : "Done.")
-
-// read in the effective pom file
-    File tmpFile = new File(fileName);
-    if (!args.any {it.equals("-keepFile")}) {
-      tmpFile.deleteOnExit()
-    }
-    // get it's text into a string
-    return tmpFile.text
   }
 
 /**

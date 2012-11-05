@@ -193,7 +193,7 @@ public class DefaultJavaForkOptionsTest {
     }
 
     @Test
-    public void debugIsUpdatedWhenSetUsingJvmArgs() {
+    public void debugIsEnabledWhenSetUsingJvmArgs() {
         options.jvmArgs('-Xdebug', '-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005')
         assertTrue(options.debug)
         assertThat(options.jvmArgs, equalTo([]))
@@ -201,6 +201,7 @@ public class DefaultJavaForkOptionsTest {
         options.allJvmArgs = []
         assertFalse(options.debug)
 
+        options.debug = false
         options.jvmArgs = ['-Xdebug']
         assertFalse(options.debug)
         assertThat(options.jvmArgs, equalTo(['-Xdebug']))
@@ -213,6 +214,7 @@ public class DefaultJavaForkOptionsTest {
         assertTrue(options.debug)
         assertThat(options.jvmArgs, equalTo([]))
 
+        options.debug = false
         options.jvmArgs = ['-Xdebug', '-Xrunjdwp:transport=other']
         assertFalse(options.debug)
         assertThat(options.jvmArgs, equalTo(['-Xdebug', '-Xrunjdwp:transport=other']))

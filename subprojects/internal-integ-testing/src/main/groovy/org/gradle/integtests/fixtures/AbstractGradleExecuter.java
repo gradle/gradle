@@ -15,7 +15,11 @@
  */
 package org.gradle.integtests.fixtures;
 
+import groovy.lang.Closure;
+import org.gradle.api.Action;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.listener.ActionBroadcast;
 import org.gradle.util.TextUtil;
 
 import java.io.ByteArrayInputStream;
@@ -46,6 +50,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private Map<String, String> environmentVars = new HashMap<String, String>();
     private List<File> initScripts = new ArrayList<File>();
     private String executable;
+    private File gradleUserHomeDir;
     private File userHomeDir;
     private File javaHome;
     private File buildScript;
@@ -58,6 +63,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     //gradle opts make sense only for forking executer but having them here makes more sense
     protected final List<String> gradleOpts = new ArrayList<String>();
     protected boolean noDefaultJvmArgs;
+    private final ActionBroadcast<GradleExecuter> beforeExecute = new ActionBroadcast<GradleExecuter>();
 
     public GradleExecuter reset() {
         args.clear();
@@ -72,7 +78,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         dependencyList = false;
         searchUpwards = false;
         executable = null;
-        userHomeDir = null;
+        gradleUserHomeDir = null;
         javaHome = null;
         environmentVars.clear();
         stdin = null;
@@ -81,6 +87,14 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         daemonBaseDir = null;
         noDefaultJvmArgs = false;
         return this;
+    }
+
+    public void beforeExecute(Action<? super GradleExecuter> action) {
+        beforeExecute.add(action);
+    }
+
+    public void beforeExecute(Closure action) {
+        beforeExecute.add(new ClosureBackedAction<GradleExecuter>(action));
     }
 
     public GradleExecuter inDirectory(File directory) {
@@ -124,7 +138,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (dependencyList) {
             executer.withDependencyList();
         }
-        executer.withUserHomeDir(userHomeDir);
+        executer.withGradleUserHomeDir(gradleUserHomeDir);
+        if (userHomeDir != null) {
+            executer.withUserHomeDir(userHomeDir);
+        }
         if (stdin != null) {
             executer.withStdIn(stdin);
         }
@@ -160,6 +177,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     public GradleExecuter usingInitScript(File initScript) {
         initScripts.add(initScript);
+        return this;
+    }
+
+    public GradleExecuter withGradleUserHomeDir(File userHomeDir) {
+        this.gradleUserHomeDir = userHomeDir;
         return this;
     }
 
@@ -331,9 +353,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (!searchUpwards) {
             allArgs.add("--no-search-upward");
         }
-        if (userHomeDir != null) {
+        if (gradleUserHomeDir != null) {
             allArgs.add("--gradle-user-home");
-            allArgs.add(userHomeDir.getAbsolutePath());
+            allArgs.add(gradleUserHomeDir.getAbsolutePath());
         }
 
         // Prevent from running with the default idle timeout as it causes CI chaos
@@ -357,6 +379,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     public final GradleHandle start() {
+        fireBeforeExecute();
+        assertCanExecute();
         try {
             return doStart();
         } finally {
@@ -365,6 +389,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     public final ExecutionResult run() {
+        fireBeforeExecute();
+        assertCanExecute();
         try {
             return doRun();
         } finally {
@@ -373,11 +399,17 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     public final ExecutionFailure runWithFailure() {
+        fireBeforeExecute();
+        assertCanExecute();
         try {
             return doRunWithFailure();
         } finally {
             reset();
         }
+    }
+
+    private void fireBeforeExecute() {
+        beforeExecute.execute(this);
     }
 
     protected GradleHandle doStart() {
@@ -394,7 +426,5 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     public AbstractGradleExecuter withGradleOpts(String ... gradleOpts) {
         this.gradleOpts.addAll(asList(gradleOpts));
         return this;
-//        throw new UnsupportedOperationException("This executor: " + this.getClass().getSimpleName()
-//                + " does not support the gradle opts");
     }
 }

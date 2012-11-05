@@ -15,20 +15,18 @@
  */
 package org.gradle.integtests.resolve.ivy
 
-import org.gradle.integtests.fixtures.IvyModule
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
 
 class IvyDynamicRevisionRemoteResolveIntegrationTest extends AbstractDependencyResolutionTest {
 
     def "uses latest version from version range and latest status"() {
         server.start()
-        def repo = ivyRepo()
 
         given:
         buildFile << """
 repositories {
     ivy {
-        url "http://localhost:${server.port}"
+        url "${ivyHttpRepo.uri}"
     }
 }
 
@@ -50,13 +48,17 @@ task retrieve(type: Sync) {
 """
 
         when: "Version 1.1 is published"
-        def projectA1 = repo.module("group", "projectA", "1.1").publish()
-        repo.module("group", "projectA", "2.0").publish()
-        def projectB1 = repo.module("group", "projectB", "1.1").publish()
+        def projectA1 = ivyHttpRepo.module("group", "projectA", "1.1").publish()
+        ivyHttpRepo.module("group", "projectA", "2.0").publish()
+        def projectB1 = ivyHttpRepo.module("group", "projectB", "1.1").publish()
 
         and: "Server handles requests"
-        serveUpDynamicRevision(projectA1)
-        serveUpDynamicRevision(projectB1)
+        ivyHttpRepo.expectDirectoryListGet("group", "projectA")
+        projectA1.expectIvyGet()
+        projectA1.expectJarGet()
+        ivyHttpRepo.expectDirectoryListGet("group", "projectB")
+        projectB1.expectIvyGet()
+        projectB1.expectJarGet()
 
         and:
         run 'retrieve'
@@ -67,13 +69,17 @@ task retrieve(type: Sync) {
         file('libs/projectB-1.1.jar').assertIsCopyOf(projectB1.jarFile)
 
         when: "New versions are published"
-        def projectA2 = repo.module("group", "projectA", "1.2").publish()
-        def projectB2 = repo.module("group", "projectB", "2.2").publish()
+        def projectA2 = ivyHttpRepo.module("group", "projectA", "1.2").publish()
+        def projectB2 = ivyHttpRepo.module("group", "projectB", "2.2").publish()
 
         and: "Server handles requests"
         server.resetExpectations()
-        serveUpDynamicRevision(projectA2)
-        serveUpDynamicRevision(projectB2)
+        ivyHttpRepo.expectDirectoryListGet("group", "projectA")
+        projectA2.expectIvyGet()
+        projectA2.expectJarGet()
+        ivyHttpRepo.expectDirectoryListGet("group", "projectB")
+        projectB2.expectIvyGet()
+        projectB2.expectJarGet()
 
         and:
         run 'retrieve'
@@ -84,16 +90,14 @@ task retrieve(type: Sync) {
         file('libs/projectB-2.2.jar').assertIsCopyOf(projectB2.jarFile)
     }
 
-
     def "determines latest version with jar only"() {
         server.start()
-        def repo = ivyRepo()
 
         given:
         buildFile << """
 repositories {
   ivy {
-      url "http://localhost:${server.port}"
+      url "${ivyHttpRepo.uri}"
   }
 }
 
@@ -110,19 +114,19 @@ task retrieve(type: Sync) {
 """
 
         when: "Version 1.1 is published"
-        def projectA11 = repo.module("group", "projectA", "1.1").publish()
-        def projectA12 = repo.module("group", "projectA", "1.2").publish()
-        repo.module("group", "projectA", "2.0").publish()
+        def projectA11 = ivyHttpRepo.module("group", "projectA", "1.1").withNoMetaData().publish()
+        def projectA12 = ivyHttpRepo.module("group", "projectA", "1.2").withNoMetaData().publish()
+        ivyHttpRepo.module("group", "projectA", "2.0").withNoMetaData().publish()
 
         and: "Server handles requests"
-        server.expectGetDirectoryListing("/${projectA12.organisation}/${projectA12.module}/", projectA12.moduleDir.parentFile)
-        server.expectGetMissing("/${projectA12.organisation}/${projectA12.module}/${projectA12.revision}/ivy-${projectA12.revision}.xml")
-        server.expectGetMissing("/${projectA11.organisation}/${projectA11.module}/${projectA11.revision}/ivy-${projectA11.revision}.xml")
+        ivyHttpRepo.expectDirectoryListGet("group", "projectA")
+        projectA12.expectIvyGetMissing()
+        projectA11.expectIvyGetMissing()
 
-        // TODO:DAZ Should not list twice
-        server.expectGetDirectoryListing("/${projectA12.organisation}/${projectA12.module}/", projectA12.moduleDir.parentFile)
-        server.expectHead("/${projectA12.organisation}/${projectA12.module}/${projectA12.revision}/${projectA12.module}-${projectA12.revision}.jar", projectA12.jarFile)
-        server.expectGet("/${projectA12.organisation}/${projectA12.module}/${projectA12.revision}/${projectA12.module}-${projectA12.revision}.jar", projectA12.jarFile)
+        // TODO - Should not list twice
+        ivyHttpRepo.expectDirectoryListGet("group", "projectA")
+        projectA12.expectJarHead()
+        projectA12.expectJarGet()
 
         and:
         run 'retrieve'
@@ -133,13 +137,12 @@ task retrieve(type: Sync) {
 
     def "uses latest version with correct status for latest.release and latest.milestone"() {
         server.start()
-        def repo = ivyRepo()
 
         given:
         buildFile << """
 repositories {
     ivy {
-        url "http://localhost:${server.port}/repo"
+        url "${ivyHttpRepo.uri}"
     }
 }
 
@@ -148,16 +151,10 @@ configurations {
     milestone
 }
 
-configurations.all {
-    resolutionStrategy.cacheDynamicVersionsFor 0, 'seconds'
-}
-
 dependencies {
     release group: "group", name: "projectA", version: "latest.release"
     milestone group: "group", name: "projectA", version: "latest.milestone"
 }
-
-task retrieve(dependsOn: ['retrieveRelease', 'retrieveMilestone'])
 
 task retrieveRelease(type: Sync) {
     from configurations.release
@@ -171,36 +168,105 @@ task retrieveMilestone(type: Sync) {
 """
 
         when: "Versions are published"
-        repo.module("group", "projectA", "1.0").withStatus('release').publish()
-        repo.module('group', 'projectA', '1.1').withStatus('milestone').publish()
-        repo.module('group', 'projectA', '1.2').withStatus('integration').publish()
-        repo.module("group", "projectA", "2.0").withStatus('release').publish()
-        repo.module('group', 'projectA', '2.1').withStatus('milestone').publish()
-        repo.module('group', 'projectA', '2.2').withStatus('integration').publish()
+        ivyHttpRepo.module("group", "projectA", "1.0").withStatus('release').publish()
+        ivyHttpRepo.module('group', 'projectA', '1.1').withStatus('milestone').publish()
+        ivyHttpRepo.module('group', 'projectA', '1.2').withStatus('integration').publish()
+        def release = ivyHttpRepo.module("group", "projectA", "2.0").withStatus('release').publish()
+        def milestone = ivyHttpRepo.module('group', 'projectA', '2.1').withStatus('milestone').publish()
+        def integration = ivyHttpRepo.module('group', 'projectA', '2.2').withStatus('integration').publish()
 
         and: "Server handles requests"
-        server.allowGetOrHead('/repo', repo.rootDir)
+        ivyHttpRepo.expectDirectoryListGet("group", "projectA")
+        integration.expectIvyGet()
+        milestone.expectIvyGet()
+        release.expectIvyGet()
+        release.expectJarGet()
 
         and:
-        run 'retrieve'
+        run 'retrieveRelease'
 
         then:
         file('release').assertHasDescendants('projectA-2.0.jar')
+
+        when:
+        ivyHttpRepo.expectDirectoryListGet("group", "projectA")
+        integration.expectIvyHead()
+        milestone.expectIvyHead()
+        milestone.expectJarGet()
+
+        and:
+        run 'retrieveMilestone'
+
+        then:
         file('milestone').assertHasDescendants('projectA-2.1.jar')
+    }
+
+    def "can use latest version from different remote repositories"() {
+        server.start()
+        def repo1 = ivyHttpRepo("ivy1")
+        def repo2 = ivyHttpRepo("ivy2")
+
+        given:
+        buildFile << """
+    repositories {
+        ivy {
+            url "${repo1.uri}"
+        }
+        ivy {
+            url "${repo2.uri}"
+        }
+    }
+
+    configurations {
+        milestone
+    }
+
+    dependencies {
+        milestone group: "group", name: "projectA", version: "latest.milestone"
+    }
+
+    task retrieveMilestone(type: Sync) {
+        from configurations.milestone
+        into 'milestone'
+    }
+    """
+
+        when: "Versions are published"
+        def version11 = repo1.module('group', 'projectA', '1.1').withStatus('milestone').publish()
+        def version12 = repo2.module('group', 'projectA', '1.2').withStatus('integration').publish()
+
+        and: "Server handles requests"
+        repo1.expectDirectoryListGet("group", "projectA")
+        version11.expectIvyGet()
+        version11.expectJarGet()
+        repo2.expectDirectoryListGet("group", "projectA")
+        version12.expectIvyGet()
+        // TODO - shouldn't need this
+        repo2.expectDirectoryListGet("group", "projectA")
+        // TODO - shouldn't need this
+        version12.expectJarGet()
+
+        and:
+        run 'retrieveMilestone'
+
+        then:
+        file('milestone').assertHasDescendants('projectA-1.1.jar')
     }
 
     def "checks new repositories before returning any cached value"() {
         server.start()
+        def repo1 = ivyHttpRepo("repo1")
+        def repo2 = ivyHttpRepo("repo2")
 
         given:
         buildFile << """
 repositories {
-    ivy { url "http://localhost:${server.port}/repo1" }
+    ivy { url "${repo1.uri}" }
 }
 
 if (project.hasProperty('addRepo2')) {
     repositories {
-        ivy { url "http://localhost:${server.port}/repo2" }
+        ivy { url "${repo2.uri}" }
     }
 }
 
@@ -217,13 +283,13 @@ task retrieve(type: Sync) {
 """
 
         when:
-        def projectA11 = ivyRepo('repo1').module("group", "projectA", "1.1")
-        projectA11.publish()
-        def projectA12 = ivyRepo('repo2').module("group", "projectA", "1.2")
-        projectA12.publish()
+        def projectA11 = repo1.module("group", "projectA", "1.1").publish()
+        def projectA12 = repo2.module("group", "projectA", "1.2").publish()
 
         and: "Server handles requests"
-        serveUpDynamicRevision(projectA11, "/repo1")
+        repo1.expectDirectoryListGet("group", "projectA")
+        projectA11.expectIvyGet()
+        projectA11.expectJarGet()
 
         and: "Retrieve with only repo1"
         run 'retrieve'
@@ -233,7 +299,9 @@ task retrieve(type: Sync) {
 
         when: "Server handles requests"
         server.resetExpectations()
-        serveUpDynamicRevision(projectA12, "/repo2")
+        repo2.expectDirectoryListGet("group", "projectA")
+        projectA12.expectIvyGet()
+        projectA12.expectJarGet()
 
         and: "Retrieve with both repos"
         executer.withArguments("-PaddRepo2")
@@ -245,12 +313,14 @@ task retrieve(type: Sync) {
 
     def "does not cache information about broken modules"() {
         server.start()
+        def repo1 = ivyHttpRepo("repo1")
+        def repo2 = ivyHttpRepo("repo2")
 
         given:
         buildFile << """
     repositories {
-        ivy { url "http://localhost:${server.port}/repo1" }
-        ivy { url "http://localhost:${server.port}/repo2" }
+        ivy { url "${repo1.uri}" }
+        ivy { url "${repo2.uri}" }
     }
 
     configurations { compile }
@@ -266,14 +336,14 @@ task retrieve(type: Sync) {
     """
 
         when:
-        def projectA11 = ivyRepo('repo1').module("group", "projectA", "1.2")
-        projectA11.publish()
-        def projectA12 = ivyRepo('repo2').module("group", "projectA", "1.1")
-        projectA12.publish()
+        def projectA12 = repo1.module("group", "projectA", "1.2").publish()
+        def projectA11 = repo2.module("group", "projectA", "1.1").publish()
 
         and: "projectA is broken in repo1"
         server.addBroken("/repo1/group/projectA/")
-        serveUpDynamicRevision(projectA12, "/repo2")
+        repo2.expectDirectoryListGet("group", "projectA")
+        projectA11.expectIvyGet()
+        projectA11.expectJarGet()
 
         and: "Retrieve with only repo2"
         run 'retrieve'
@@ -283,7 +353,9 @@ task retrieve(type: Sync) {
 
         when: "Server handles requests"
         server.resetExpectations()
-        serveUpDynamicRevision(projectA11, "/repo1")
+        repo1.expectDirectoryListGet("group", "projectA")
+        projectA12.expectIvyGet()
+        projectA12.expectJarGet()
 
         and: "Retrieve with both repos"
         run 'retrieve'
@@ -294,13 +366,16 @@ task retrieve(type: Sync) {
 
     def "uses and caches latest of versions obtained from multiple HTTP repositories"() {
         server.start()
+        def repo1 = ivyHttpRepo("repo1")
+        def repo2 = ivyHttpRepo("repo2")
+        def repo3 = ivyHttpRepo("repo3")
 
         given:
         buildFile << """
 repositories {
-    ivy { url "http://localhost:${server.port}/repo1" }
-    ivy { url "http://localhost:${server.port}/repo2" }
-    ivy { url "http://localhost:${server.port}/repo3" }
+    ivy { url "${repo1.uri}" }
+    ivy { url "${repo2.uri}" }
+    ivy { url "${repo3.uri}" }
 }
 
 configurations { compile }
@@ -316,19 +391,19 @@ task retrieve(type: Sync) {
 """
 
         when: "Versions are published"
-        def projectA11 = ivyRepo('repo1').module("group", "projectA", "1.1")
-        projectA11.publish()
-        def projectA12 = ivyRepo('repo3').module("group", "projectA", "1.2")
-        projectA12.publish()
+        def projectA11 = repo1.module("group", "projectA", "1.1").publish()
+        def projectA12 = repo3.module("group", "projectA", "1.2").publish()
 
         and: "Server handles requests"
-        server.expectGetDirectoryListing("/repo1/group/projectA/", projectA11.moduleDir.parentFile)
+        repo1.expectDirectoryListGet("group", "projectA")
         // TODO Should not need to get this
-        server.expectGet("/repo1/group/projectA/1.1/ivy-1.1.xml", projectA11.ivyFile)
+        projectA11.expectIvyGet()
         // TODO Should only list missing directory once
-        server.expectGetMissing("/repo2/group/projectA/")
-        server.expectGetMissing("/repo2/group/projectA/")
-        serveUpDynamicRevision(projectA12, "/repo3")
+        repo2.expectDirectoryListGet("group", "projectA")
+        repo2.expectDirectoryListGet("group", "projectA")
+        repo3.expectDirectoryListGet("group", "projectA")
+        projectA12.expectIvyGet()
+        projectA12.expectJarGet()
 
         and:
         run 'retrieve'
@@ -344,15 +419,67 @@ task retrieve(type: Sync) {
         result.assertTaskSkipped(':retrieve')
     }
 
+    def "reuses cached artifacts that match multiple dynamic versions"() {
+        server.start()
+
+        given:
+        buildFile << """
+repositories {
+    ivy { url "${ivyHttpRepo.uri}" }
+}
+
+configurations { deps1; deps2 }
+
+dependencies {
+    deps1 group: "org.test", name: "projectA", version: "1.+"
+    deps2 group: "org.test", name: "projectA", version: "[1.0,2.0)"
+}
+
+task retrieve1(type: Sync) {
+    from configurations.deps1
+    into 'libs1'
+}
+task retrieve2(type: Sync) {
+    from configurations.deps2
+    into 'libs2'
+}
+"""
+
+        when:
+        ivyHttpRepo.module("org.test", "projectA", "1.1").publish()
+        def projectA12 = ivyHttpRepo.module("org.test", "projectA", "1.2").publish()
+
+        and:
+        ivyHttpRepo.expectDirectoryListGet("org.test", "projectA")
+        projectA12.expectIvyGet()
+        projectA12.expectJarGet()
+
+        and:
+        run 'retrieve1'
+
+        then:
+        file('libs1').assertHasDescendants('projectA-1.2.jar')
+
+        when:
+        server.resetExpectations()
+        ivyHttpRepo.expectDirectoryListGet("org.test", "projectA")
+        projectA12.expectIvyHead()
+
+        and:
+        run 'retrieve2'
+
+        then:
+        file('libs1').assertHasDescendants('projectA-1.2.jar')
+    }
+
     def "caches resolved revisions until cache expiry"() {
         server.start()
-        def repo = ivyRepo()
 
         given:
         buildFile << """
 repositories {
     ivy {
-        url "http://localhost:${server.port}"
+        url "${ivyHttpRepo.uri}"
     }
 }
 
@@ -375,11 +502,12 @@ task retrieve(type: Sync) {
 """
 
         when: "Version 1.1 is published"
-        def version1 = repo.module("group", "projectA", "1.1")
-        version1.publish()
+        def version1 = ivyHttpRepo.module("group", "projectA", "1.1").publish()
 
         and: "Server handles requests"
-        serveUpDynamicRevision(version1)
+        ivyHttpRepo.expectDirectoryListGet("group", "projectA")
+        version1.expectIvyGet()
+        version1.expectJarGet()
 
         and: "We request 1.+"
         run 'retrieve'
@@ -389,8 +517,7 @@ task retrieve(type: Sync) {
         file('libs/projectA-1.1.jar').assertIsCopyOf(version1.jarFile)
 
         when: "Version 1.2 is published"
-        def version2 = repo.module("group", "projectA", "1.2")
-        version2.publish()
+        def version2 = ivyHttpRepo.module("group", "projectA", "1.2").publish()
 
         and: "We request 1.+, with dynamic mappings cached. No server requests."
         run 'retrieve'
@@ -400,10 +527,12 @@ task retrieve(type: Sync) {
         file('libs/projectA-1.1.jar').assertIsCopyOf(version1.jarFile)
 
         when: "Server handles requests"
-        serveUpDynamicRevision(version2)
+        ivyHttpRepo.expectDirectoryListGet("group", "projectA")
+        version2.expectIvyGet()
+        version2.expectJarGet()
 
         and: "We request 1.+, with zero expiry for dynamic revision cache"
-        executer.withArguments("-d", "-PnoDynamicRevisionCache").withTasks('retrieve').run()
+        executer.withArguments("-PnoDynamicRevisionCache").withTasks('retrieve').run()
 
         then: "Version 1.2 is used"
         file('libs').assertHasDescendants('projectA-1.2.jar')
@@ -412,13 +541,12 @@ task retrieve(type: Sync) {
 
     def "uses and caches dynamic revisions for transitive dependencies"() {
         server.start()
-        def repo = ivyRepo()
 
         given:
         buildFile << """
 repositories {
     ivy {
-        url "http://localhost:${server.port}"
+        url "${ivyHttpRepo.uri}"
     }
 }
 
@@ -441,22 +569,24 @@ task retrieve(type: Sync) {
 """
 
         when: "Version is published"
-        def mainProject = repo.module("group", "main", "1.0")
+        def mainProject = ivyHttpRepo.module("group", "main", "1.0")
         mainProject.dependsOn("group", "projectA", "1.+")
         mainProject.dependsOn("group", "projectB", "latest.integration")
         mainProject.publish()
 
         and: "transitive dependencies have initial values"
-        def projectA1 = repo.module("group", "projectA", "1.1")
-        projectA1.publish()
-        def projectB1 = repo.module("group", "projectB", "1.1")
-        projectB1.publish()
+        def projectA1 = ivyHttpRepo.module("group", "projectA", "1.1").publish()
+        def projectB1 = ivyHttpRepo.module("group", "projectB", "1.1").publish()
 
         and: "Server handles requests"
-        server.expectGet("/group/main/1.0/ivy-1.0.xml", mainProject.ivyFile)
-        server.expectGet("/group/main/1.0/main-1.0.jar", mainProject.jarFile)
-        serveUpDynamicRevision(projectA1)
-        serveUpDynamicRevision(projectB1)
+        mainProject.expectIvyGet()
+        mainProject.expectJarGet()
+        ivyHttpRepo.expectDirectoryListGet("group", "projectA")
+        projectA1.expectIvyGet()
+        projectA1.expectJarGet()
+        ivyHttpRepo.expectDirectoryListGet("group", "projectB")
+        projectB1.expectIvyGet()
+        projectB1.expectJarGet()
 
         and:
         run 'retrieve'
@@ -467,10 +597,8 @@ task retrieve(type: Sync) {
         file('libs/projectB-1.1.jar').assertIsCopyOf(projectB1.jarFile)
 
         when: "New versions are published"
-        def projectA2 = repo.module("group", "projectA", "1.2")
-        projectA2.publish()
-        def projectB2 = repo.module("group", "projectB", "2.2")
-        projectB2.publish()
+        def projectA2 = ivyHttpRepo.module("group", "projectA", "1.2").publish()
+        def projectB2 = ivyHttpRepo.module("group", "projectB", "2.2").publish()
 
         and: "No server requests"
         server.resetExpectations()
@@ -485,8 +613,12 @@ task retrieve(type: Sync) {
 
         when: "Server handles requests"
         server.resetExpectations()
-        serveUpDynamicRevision(projectA2)
-        serveUpDynamicRevision(projectB2)
+        ivyHttpRepo.expectDirectoryListGet("group", "projectA")
+        projectA2.expectIvyGet()
+        projectA2.expectJarGet()
+        ivyHttpRepo.expectDirectoryListGet("group", "projectB")
+        projectB2.expectIvyGet()
+        projectB2.expectJarGet()
 
         and: "DynamicRevisionCache is bypassed"
         executer.withArguments("-PnoDynamicRevisionCache")
@@ -501,14 +633,14 @@ task retrieve(type: Sync) {
     public void "resolves dynamic version with 2 repositories where first repo results in 404 for directory listing"() {
         server.start()
         given:
-        def repo = ivyRepo()
+        def repo = ivyHttpRepo("repo2")
         def moduleA = repo.module('group', 'projectA').publish()
 
         and:
         buildFile << """
             repositories {
                 ivy { url "http://localhost:${server.port}/repo1" }
-                ivy { url "http://localhost:${server.port}/repo2" }
+                ivy { url "${repo.uri}" }
             }
             configurations { compile }
             dependencies {
@@ -521,10 +653,11 @@ task retrieve(type: Sync) {
 
         when:
         server.expectGetMissing('/repo1/group/projectA/')
+        // TODO - should only list versions once
         server.expectGetMissing('/repo1/group/projectA/')
-        server.expectGetDirectoryListing("/repo2/group/projectA/", moduleA.moduleDir.parentFile)
-        server.expectGet('/repo2/group/projectA/1.0/ivy-1.0.xml', moduleA.ivyFile)
-        server.expectGet('/repo2/group/projectA/1.0/projectA-1.0.jar', moduleA.jarFile)
+        repo.expectDirectoryListGet("group", "projectA")
+        moduleA.expectIvyGet()
+        moduleA.expectJarGet()
 
         then:
         succeeds('listJars')
@@ -536,9 +669,71 @@ task retrieve(type: Sync) {
         succeeds('listJars')
     }
 
-    private def serveUpDynamicRevision(IvyModule module, String prefix = "") {
-        server.expectGetDirectoryListing("${prefix}/${module.organisation}/${module.module}/", module.moduleDir.parentFile)
-        server.expectGet("${prefix}/${module.organisation}/${module.module}/${module.revision}/ivy-${module.revision}.xml", module.ivyFile)
-        server.expectGet("${prefix}/${module.organisation}/${module.module}/${module.revision}/${module.module}-${module.revision}.jar", module.jarFile)
+    def "reuses cached artifacts across repository types"() {
+        server.start()
+        def ivyRepo = ivyHttpRepo('repo1')
+        def mavenRepo = mavenHttpRepo('repo2')
+        def ivyModule = ivyRepo.module("org.test", "a", "1.1").publish()
+        def mavenModule = mavenRepo.module("org.test", "a", "1.1").publish()
+        assert ivyModule.jarFile.bytes == mavenModule.artifactFile.bytes
+
+        given:
+        buildFile.text = """
+repositories {
+    ivy { url '${ivyRepo.uri}' }
+}
+
+configurations { compile }
+
+dependencies {
+    compile 'org.test:a:1+'
+}
+
+task retrieve(type: Sync) {
+    into 'build'
+    from configurations.compile
+}
+"""
+
+        when:
+        ivyRepo.expectDirectoryListGet("org.test", "a")
+        ivyModule.expectIvyGet()
+        ivyModule.expectJarGet()
+
+        and:
+        run 'retrieve'
+
+        then:
+        file('build').assertHasDescendants('a-1.1.jar')
+
+        when:
+        buildFile.text = """
+repositories {
+    maven { url '${mavenRepo.uri}' }
+}
+
+configurations { compile }
+
+dependencies {
+    compile 'org.test:a:[1.0,2.0)'
+}
+
+task retrieve(type: Sync) {
+    into 'build'
+    from configurations.compile
+}
+"""
+
+        and:
+        mavenRepo.expectMetaDataGet("org.test", "a")
+        mavenModule.expectPomGet()
+        mavenModule.expectArtifactHead()
+        mavenModule.expectArtifactSha1Get()
+
+        and:
+        run 'retrieve'
+
+        then:
+        file('build').assertHasDescendants('a-1.1.jar')
     }
 }

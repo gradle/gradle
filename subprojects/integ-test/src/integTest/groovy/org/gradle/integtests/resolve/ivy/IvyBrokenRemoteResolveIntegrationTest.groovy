@@ -15,11 +15,11 @@
  */
 package org.gradle.integtests.resolve.ivy
 
-import org.hamcrest.Matchers
+import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
+import org.gradle.test.fixtures.ivy.IvyFileModule
 
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.startsWith
-import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
 
 class IvyBrokenRemoteResolveIntegrationTest extends AbstractDependencyResolutionTest {
 
@@ -33,9 +33,8 @@ class IvyBrokenRemoteResolveIntegrationTest extends AbstractDependencyResolution
 
         buildFile << """
 repositories {
-    ivy {
-        url "http://localhost:${server.port}"
-    }
+    ivy { url "http://localhost:${server.port}/repo1"}
+    ivy { url "http://localhost:${server.port}/repo2"}
 }
 configurations { missing }
 dependencies {
@@ -50,23 +49,16 @@ task showMissing << { println configurations.missing.files }
 """
 
         when:
-        server.expectGetMissing('/group/projectA/1.2/ivy-1.2.xml')
-        server.expectHeadMissing('/group/projectA/1.2/projectA-1.2.jar')
-        fails("showMissing")
+        expectMissingArtifact("repo1", module)
+        expectExistingArtifact("repo2", module)
 
         then:
-        failure.assertHasDescription('Execution failed for task \':showMissing\'.')
-        failure.assertHasCause('Could not resolve all dependencies for configuration \':missing\'.')
-        failure.assertThatCause(Matchers.containsString('Could not find group:group, module:projectA, version:1.2.'))
+        succeeds("showMissing")
 
         when:
-        server.resetExpectations() // Missing status is cached
-        fails('showMissing')
-
+        server.resetExpectations() // Missing status in repo1 is cached
         then:
-        failure.assertHasDescription('Execution failed for task \':showMissing\'.')
-        failure.assertHasCause('Could not resolve all dependencies for configuration \':missing\'.')
-        failure.assertThatCause(Matchers.containsString('Could not find group:group, module:projectA, version:1.2.'))
+        succeeds('showMissing')
     }
 
     public void "reports and recovers from broken module"() {
@@ -104,7 +96,7 @@ task showBroken << { println configurations.broken.files }
         server.resetExpectations()
         server.expectGet('/group/projectA/1.3/ivy-1.3.xml', module.ivyFile)
         server.expectGet('/group/projectA/1.3/projectA-1.3.jar', module.jarFile)
-        
+
         then:
         succeeds("showBroken")
     }
@@ -190,5 +182,15 @@ task retrieve(type: Sync) {
         then:
         succeeds "retrieve"
         file('libs').assertHasDescendants('projectA-1.2.jar')
+    }
+
+    def expectExistingArtifact(String repo, IvyFileModule module) {
+        server.expectGet("/${repo}/${module.getOrganisation()}/${module.getModule()}/${module.getRevision()}/ivy-${module.getRevision()}.xml", module.ivyFile)
+        server.expectGet("/${repo}/${module.getOrganisation()}/${module.getModule()}/${module.getRevision()}/${module.getModule()}-${module.getRevision()}.jar", module.jarFile)
+    }
+
+    def expectMissingArtifact(String repo, IvyFileModule module) {
+        server.expectGetMissing("/${repo}/${module.getOrganisation()}/${module.getModule()}/${module.getRevision()}/ivy-${module.getRevision()}.xml")
+        server.expectHeadMissing("/${repo}/${module.getOrganisation()}/${module.getModule()}/${module.getRevision()}/${module.getModule()}-${module.getRevision()}.jar")
     }
 }

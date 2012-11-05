@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.repositories.cachemanager;
 
-import org.apache.ivy.core.cache.ArtifactOrigin;
 import org.apache.ivy.core.cache.CacheDownloadOptions;
 import org.apache.ivy.core.cache.CacheMetadataOptions;
 import org.apache.ivy.core.cache.DownloadListener;
@@ -28,16 +27,20 @@ import org.apache.ivy.core.report.DownloadStatus;
 import org.apache.ivy.core.report.MetadataArtifactDownloadReport;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.plugins.repository.ArtifactResourceResolver;
+import org.apache.ivy.plugins.repository.Resource;
 import org.apache.ivy.plugins.repository.ResourceDownloader;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.apache.ivy.util.Message;
+import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactOriginWithMetaData;
-import org.gradle.api.internal.artifacts.repositories.EnhancedArtifactDownloadReport;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
+import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.filestore.FileStore;
+import org.gradle.api.internal.filestore.FileStoreEntry;
+import org.gradle.internal.Factory;
 
 import java.io.File;
 import java.io.IOException;
@@ -49,14 +52,19 @@ import java.text.ParseException;
 public class DownloadingRepositoryCacheManager extends AbstractRepositoryCacheManager {
     private final FileStore<ArtifactRevisionId> fileStore;
     private final CachedExternalResourceIndex<String> artifactUrlCachedResolutionIndex;
+    private final TemporaryFileProvider temporaryFileProvider;
+    private final CacheLockingManager cacheLockingManager;
 
-    public DownloadingRepositoryCacheManager(String name, FileStore<ArtifactRevisionId> fileStore, CachedExternalResourceIndex<String> artifactUrlCachedResolutionIndex) {
+    public DownloadingRepositoryCacheManager(String name, FileStore<ArtifactRevisionId> fileStore, CachedExternalResourceIndex<String> artifactUrlCachedResolutionIndex,
+                                             TemporaryFileProvider temporaryFileProvider, CacheLockingManager cacheLockingManager) {
         super(name);
         this.fileStore = fileStore;
         this.artifactUrlCachedResolutionIndex = artifactUrlCachedResolutionIndex;
+        this.temporaryFileProvider = temporaryFileProvider;
+        this.cacheLockingManager = cacheLockingManager;
     }
 
-    public ArtifactDownloadReport download(Artifact artifact, ArtifactResourceResolver resourceResolver,
+    public EnhancedArtifactDownloadReport download(Artifact artifact, ArtifactResourceResolver resourceResolver,
                                            ResourceDownloader resourceDownloader, CacheDownloadOptions options) {
         EnhancedArtifactDownloadReport adr = new EnhancedArtifactDownloadReport(artifact);
 
@@ -69,7 +77,7 @@ public class DownloadingRepositoryCacheManager extends AbstractRepositoryCacheMa
         try {
             ResolvedResource artifactRef = resourceResolver.resolve(artifact);
             if (artifactRef != null) {
-                ArtifactOrigin origin = new ArtifactOriginWithMetaData(artifact, artifactRef.getResource());
+                ArtifactOriginWithMetaData origin = new ArtifactOriginWithMetaData(artifact, artifactRef.getResource());
                 if (listener != null) {
                     listener.startArtifactDownload(this, artifactRef, artifact, origin);
                 }
@@ -96,19 +104,26 @@ public class DownloadingRepositoryCacheManager extends AbstractRepositoryCacheMa
         return adr;
     }
 
-    private File downloadArtifactFile(Artifact artifact, ResourceDownloader resourceDownloader, ResolvedResource artifactRef) throws IOException {
-        File tempFile = fileStore.getTempFile();
-        resourceDownloader.download(artifact, artifactRef.getResource(), tempFile);
-
-        File fileInFileStore = fileStore.move(artifact.getId(), tempFile).getFile();
-
-        if (artifactRef.getResource() instanceof ExternalResource) {
-            ExternalResource resource = (ExternalResource) artifactRef.getResource();
-            ExternalResourceMetaData metaData = resource.getMetaData();
-            artifactUrlCachedResolutionIndex.store(metaData.getLocation(), fileInFileStore, metaData);
+    private File downloadArtifactFile(final Artifact artifact, final ResourceDownloader resourceDownloader, final ResolvedResource artifactRef) throws IOException {
+        final Resource resource = artifactRef.getResource();
+        final File tmpFile = temporaryFileProvider.createTemporaryFile("gradle_download", "bin");
+        try {
+            resourceDownloader.download(artifact, resource, tmpFile);
+            return cacheLockingManager.useCache(String.format("Store %s", artifact), new Factory<File>() {
+                public File create() {
+                    FileStoreEntry fileStoreEntry = fileStore.move(artifact.getId(), tmpFile);
+                    File fileInFileStore = fileStoreEntry.getFile();
+                    if (resource instanceof ExternalResource) {
+                        ExternalResource externalResource = (ExternalResource) resource;
+                        ExternalResourceMetaData metaData = externalResource.getMetaData();
+                        artifactUrlCachedResolutionIndex.store(metaData.getLocation(), fileInFileStore, metaData);
+                    }
+                    return fileInFileStore;
+                }
+            });
+        } finally {
+            tmpFile.delete();
         }
-
-        return fileInFileStore;
     }
 
     public ResolvedModuleRevision cacheModuleDescriptor(DependencyResolver resolver, final ResolvedResource resolvedResource, DependencyDescriptor dd, Artifact moduleArtifact, ResourceDownloader downloader, CacheMetadataOptions options) throws ParseException {

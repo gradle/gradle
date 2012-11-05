@@ -29,6 +29,9 @@ import org.gradle.api.internal.filestore.AbstractFileStoreEntry
 import org.gradle.util.TestFile
 import org.gradle.tooling.model.internal.outcomes.GradleFileBuildOutcome
 import org.gradle.tooling.model.internal.outcomes.GradleBuildOutcome
+import org.gradle.api.Action
+import org.junit.Rule
+import org.gradle.util.TemporaryFolder
 
 class GradleBuildOutcomeSetTransformerTest extends Specification {
 
@@ -49,21 +52,22 @@ class GradleBuildOutcomeSetTransformerTest extends Specification {
             }
         }
 
-        File getTempFile() {
+        void moveFilestore(File destination) {
             throw new UnsupportedOperationException()
         }
 
-        void moveFilestore(File destination) {
+        FileStoreEntry add(String key, Action<File> addAction) {
             throw new UnsupportedOperationException()
         }
     }
 
     def transformer = new GradleBuildOutcomeSetTransformer(store, "things")
+    @Rule TemporaryFolder dir = new TemporaryFolder()
 
     def "can transform"() {
         given:
         ProjectOutcomesBuilder builder = new ProjectOutcomesBuilder()
-        ProjectOutcomes projectOutput = builder.build {
+        ProjectOutcomes projectOutput = builder.build(dir.dir) {
             createChild("a") {
                 addFile "a1", JAR_ARTIFACT.typeIdentifier
             }

@@ -16,14 +16,12 @@
 
 package org.gradle.api.tasks
 
-import org.gradle.internal.reflect.DirectInstantiator;
-
-import java.util.concurrent.atomic.AtomicBoolean
 import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.AbstractTask
+import org.gradle.api.internal.Actions
 import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.project.AbstractProject
 import org.gradle.api.internal.project.DefaultProject
@@ -33,12 +31,16 @@ import org.gradle.api.internal.project.taskfactory.TaskFactory
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.specs.Spec
+import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.util.GUtil
 import org.gradle.util.HelperUtil
 import org.gradle.util.Matchers
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
+
+import java.util.concurrent.atomic.AtomicBoolean
+
 import static org.junit.Assert.assertFalse
 
 /**
@@ -135,8 +137,8 @@ public abstract class AbstractSpockTaskTest extends Specification {
 
     def testDeleteAllActions() {
         when:
-        Action<Task> action1 = createTaskAction();
-        Action<Task> action2 = createTaskAction();
+        Action action1 = Actions.doNothing();
+        Action action2 = Actions.doNothing();
         getTask().doLast(action1);
         getTask().doLast(action2);
 
@@ -296,14 +298,6 @@ public abstract class AbstractSpockTaskTest extends Specification {
         expect:
         !getTask().dependsOnTaskDidWork()
         getTask().dependsOnTaskDidWork()
-    }
-
-    public static Action<Task> createTaskAction() {
-        return new Action<Task>() {
-            public void execute(Task task) {
-
-            }
-        };
     }
 
 }

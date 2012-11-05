@@ -19,7 +19,7 @@ dependencies {
 
     compile project(":core")
     compile project(":toolingApi")
-    compile project(":plugins") // reporting infrastructure
+    compile project(":reporting")
     compile project(":ide") // for FileOutcomeIdentifier enum
     compile libraries.guava
     compile libraries.slf4j_api

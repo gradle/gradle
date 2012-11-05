@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal;
 
+import org.gradle.util.GradleVersion;
+
 import java.io.File;
 
 /**
@@ -23,9 +25,15 @@ import java.io.File;
  */
 public class DocumentationRegistry {
     private final GradleDistributionLocator locator;
+    private final GradleVersion gradleVersion;
 
     public DocumentationRegistry(GradleDistributionLocator locator) {
+        this(locator, GradleVersion.current());
+    }
+
+    public DocumentationRegistry(GradleDistributionLocator locator, GradleVersion gradleVersion) {
         this.locator = locator;
+        this.gradleVersion = gradleVersion;
     }
 
     /**
@@ -45,6 +53,10 @@ public class DocumentationRegistry {
                 throw new IllegalArgumentException(String.format("User guide page '%s' not found.", userGuideLocation));
             }
         }
-        return String.format("http://gradle.org/docs/current/userguide/%s.html", id);
+        return String.format("http://gradle.org/docs/%s/userguide/%s.html", gradleVersion.getVersion(), id);
+    }
+
+    public String getFeatureLifecycle() {
+        return getDocumentationFor("feature_lifecycle");
     }
 }

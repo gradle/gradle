@@ -17,13 +17,15 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.HttpServer
-import org.gradle.integtests.fixtures.IvyRepository
-import org.gradle.integtests.fixtures.MavenRepository
+import org.gradle.integtests.fixtures.MavenFileRepository
+import org.gradle.integtests.fixtures.MavenHttpRepository
+import org.gradle.test.fixtures.ivy.IvyFileRepository
+import org.gradle.test.fixtures.ivy.IvyHttpRepository
+import org.gradle.test.fixtures.server.HttpServer
 import org.gradle.util.GradleVersion
 import org.junit.Rule
 
-import static org.gradle.integtests.fixtures.UserAgentMatcher.matchesNameAndVersion
+import static org.gradle.test.matchers.UserAgentMatcher.matchesNameAndVersion
 
 abstract class AbstractDependencyResolutionTest extends AbstractIntegrationSpec {
     @Rule public final HttpServer server = new HttpServer()
@@ -31,19 +33,35 @@ abstract class AbstractDependencyResolutionTest extends AbstractIntegrationSpec 
     def "setup"() {
         server.expectUserAgent(matchesNameAndVersion("Gradle", GradleVersion.current().getVersion()))
         requireOwnUserHomeDir()
-        writeOsSysPropsToGradleProperties()
     }
 
-    //needed atm, for tests on unknown os
-    void writeOsSysPropsToGradleProperties() {
-        file("gradle.properties") << System.properties.findAll {key, value -> key.startsWith("os.")}.collect {key, value -> "systemProp.${key}=$value"}.join("\n")
+    IvyFileRepository ivyRepo(def dir = 'ivy-repo') {
+        return ivy(dir)
     }
 
-    IvyRepository ivyRepo(def dir = 'ivy-repo') {
-        return new IvyRepository(distribution.testFile(dir))
+    IvyHttpRepository getIvyHttpRepo() {
+        return new IvyHttpRepository(server, "/repo", ivyRepo)
     }
 
-    MavenRepository mavenRepo(String name = "repo") {
-        return new MavenRepository(file(name))
+    IvyHttpRepository ivyHttpRepo(String name) {
+        assert !name.startsWith("/")
+        return new IvyHttpRepository(server, "/${name}", ivyRepo(name))
+    }
+
+    MavenFileRepository mavenRepo(String name = "repo") {
+        return maven(name)
+    }
+
+    MavenHttpRepository getMavenHttpRepo() {
+        return new MavenHttpRepository(server, "/repo", mavenRepo)
+    }
+
+    MavenHttpRepository mavenHttpRepo(String name) {
+        assert !name.startsWith("/")
+        return new MavenHttpRepository(server, "/${name}", mavenRepo(name))
+    }
+
+    MavenHttpRepository mavenHttpRepo(String contextPath, MavenFileRepository backingRepo) {
+        return new MavenHttpRepository(server, contextPath, backingRepo)
     }
 }

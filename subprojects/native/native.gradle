@@ -1,8 +1,6 @@
 /*
     This project contains various native operating system integration utilities.
 */
-apply from: "$rootDir/gradle/classycle.gradle"
-
 dependencies {
     groovy libraries.groovy
 
@@ -10,6 +8,7 @@ dependencies {
     compile libraries.commons_io
     compile libraries.slf4j_api
     compile libraries.jna
+    compile libraries.nativePlatform
     compile module('org.jruby.ext.posix:jna-posix:1.0.3') {
         dependency libraries.jna
     }
@@ -26,4 +25,5 @@ if (!javaVersion.java7) {
 }
 
 useTestFixtures()
+useClassycle()
 

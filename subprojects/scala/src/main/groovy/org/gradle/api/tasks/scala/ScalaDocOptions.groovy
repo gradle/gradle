@@ -83,19 +83,26 @@ public class ScalaDocOptions extends AbstractOptions {
     @Input @Optional
     List<String> additionalParameters
 
-
-    Map fieldName2AntMap() {
-        [
-                additionalParameters: 'addParams'
-        ]
+    @Override
+    protected String getAntPropertyName(String fieldName) {
+        if (fieldName == "additionalParameters") {
+            return "addParams"
+        }
+        return fieldName
     }
 
-    Map fieldValue2AntMap() {
-        [
-                deprecation: {toOnOffString(deprecation)},
-                unchecked: {toOnOffString(unchecked)},
-                additionalParameters: {additionalParameters.isEmpty() ? ' ' : additionalParameters.join(' ')},
-        ]
+    @Override
+    protected Object getAntPropertyValue(String fieldName, Object value) {
+        if (fieldName == "deprecation") {
+            return toOnOffString(deprecation)
+        }
+        if (fieldName == "unchecked") {
+            return toOnOffString(unchecked)
+        }
+        if (fieldName == "additionalParameters") {
+            return additionalParameters.isEmpty() ? ' ' : additionalParameters.join(' ')
+        }
+        return value
     }
 
     private String toOnOffString(value) {

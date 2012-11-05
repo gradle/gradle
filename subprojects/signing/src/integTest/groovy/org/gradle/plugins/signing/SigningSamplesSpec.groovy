@@ -16,9 +16,11 @@
 
 package org.gradle.plugins.signing
 
-import org.gradle.integtests.fixtures.*
-
-import org.junit.*
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.MavenRepository
+import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.UsesSample
+import org.junit.Rule
 
 class SigningSamplesSpec extends AbstractIntegrationSpec {
     @Rule public final Sample mavenSample = new Sample()
@@ -51,6 +53,6 @@ class SigningSamplesSpec extends AbstractIntegrationSpec {
     }
 
     MavenRepository getRepo() {
-        return new MavenRepository(mavenSample.dir.file("build/repo"))
+        return maven(mavenSample.dir.file("build/repo"))
     }
 }

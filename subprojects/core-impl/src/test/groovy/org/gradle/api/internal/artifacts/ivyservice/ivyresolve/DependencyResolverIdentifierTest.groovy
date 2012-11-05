@@ -19,7 +19,7 @@ import org.apache.ivy.plugins.resolver.DependencyResolver
 import spock.lang.Specification
 import org.apache.ivy.plugins.resolver.AbstractPatternsBasedResolver
 
-import org.gradle.api.internal.artifacts.repositories.ExternalResourceResolver
+import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver
 
 public class DependencyResolverIdentifierTest extends Specification {
     def "uses dependency resolver name"() {

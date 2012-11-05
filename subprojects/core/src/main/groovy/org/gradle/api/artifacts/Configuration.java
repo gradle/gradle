@@ -17,6 +17,7 @@ package org.gradle.api.artifacts;
 
 import groovy.lang.Closure;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.HasInternalProtocol;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
 
@@ -36,6 +37,7 @@ import java.util.Set;
  * Read more about declaring artifacts in the configuration in docs for {@link org.gradle.api.artifacts.dsl.ArtifactHandler}
  * <p>
  */
+@HasInternalProtocol
 public interface Configuration extends FileCollection {
 
     /**

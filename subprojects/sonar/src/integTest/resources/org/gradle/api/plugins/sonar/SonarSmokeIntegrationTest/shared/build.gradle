@@ -1,0 +1,14 @@
+apply plugin: "java"
+apply plugin:  "sonar"
+
+sonar {
+    server {
+        url serverUrl
+    }
+    database {
+        //url = "jdbc:h2:tcp://localhost:9092/sonar"
+        url databaseUrl
+        driverClassName = "org.h2.Driver"
+    }
+}
+

@@ -18,14 +18,19 @@ package org.gradle.api.internal.artifacts.repositories
 import org.apache.ivy.core.cache.RepositoryCacheManager
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.repositories.PasswordCredentials
+import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver
+import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
+import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository
 import org.gradle.api.internal.externalresource.transport.file.FileTransport
 import org.gradle.api.internal.externalresource.transport.http.HttpTransport
 import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.file.TemporaryFileProvider
 import spock.lang.Specification
 import org.gradle.logging.ProgressLoggerFactory
+import org.gradle.api.internal.artifacts.ArtifactPublisherFactory
 
 class DefaultIvyArtifactRepositoryTest extends Specification {
     final FileResolver fileResolver = Mock()
@@ -35,8 +40,10 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
     final LocallyAvailableResourceFinder locallyAvailableResourceFinder = Mock()
     final CachedExternalResourceIndex cachedExternalResourceIndex = Mock()
     final ProgressLoggerFactory progressLoggerFactory = Mock()
+    final ArtifactPublisherFactory artifactPublisherFactory = Mock()
+
     final DefaultIvyArtifactRepository repository = new DefaultIvyArtifactRepository(
-            fileResolver, credentials, transportFactory, locallyAvailableResourceFinder, cachedExternalResourceIndex
+            fileResolver, credentials, transportFactory, locallyAvailableResourceFinder, artifactPublisherFactory
     )
 
     def "cannot create a resolver for url with unknown scheme"() {
@@ -103,7 +110,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
         given:
         fileResolver.resolveUri('repo/') >> fileUri
-        transportFactory.createFileTransport('name') >> new FileTransport('name', cacheManager)
+        transportFactory.createFileTransport('name') >> new FileTransport('name', cacheManager, Mock(TemporaryFileProvider))
 
         when:
         def resolver = repository.createResolver()
@@ -234,7 +241,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
     }
 
     private HttpTransport createHttpTransport(String name, PasswordCredentials credentials) {
-        return new HttpTransport(name, credentials, cacheManager, progressLoggerFactory)
+        return new HttpTransport(name, credentials, cacheManager, progressLoggerFactory, Mock(TemporaryFileProvider), cachedExternalResourceIndex)
     }
 
 }

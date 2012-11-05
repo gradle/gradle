@@ -23,4 +23,10 @@
     <module name="RegexpHeader">
         <property name="headerFile" value="${checkstyleConfigDir}/required-header.txt"/>
     </module>
+    <module name="RegexpSingleline">
+        <property name="format" value="File \| Settings \| File Templates"/>
+    </module>
+    <module name="RegexpSingleline">
+        <property name="format" value="Created with IntelliJ IDEA"/>
+    </module>
 </module>

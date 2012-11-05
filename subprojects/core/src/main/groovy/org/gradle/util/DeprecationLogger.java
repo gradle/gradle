@@ -49,6 +49,7 @@ public class DeprecationLogger {
     };
 
     public static final String ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME = "org.gradle.deprecation.trace";
+    private static final String DEPRECATION_MESSAGE = "has been deprecated and is scheduled to be removed in Gradle 2.0";
 
     public static void reset() {
         PLUGINS.clear();
@@ -61,8 +62,8 @@ public class DeprecationLogger {
     public static void nagUserOfReplacedPlugin(String pluginName, String replacement) {
         if (isEnabled() && PLUGINS.add(pluginName)) {
             LOGGER.warn(String.format(
-                    "The %s plugin has been deprecated and will be removed in the next version of Gradle. Please use the %s plugin instead.",
-                    pluginName, replacement));
+                    "The %s plugin %S. Please use the %s plugin instead.",
+                    pluginName, DEPRECATION_MESSAGE, replacement));
             logTraceIfNecessary();
         }
     }
@@ -70,8 +71,8 @@ public class DeprecationLogger {
     public static void nagUserOfReplacedTaskType(String taskName, String replacement) {
         if (isEnabled() && TASKS.add(taskName)) {
             LOGGER.warn(String.format(
-                    "The %s task type has been deprecated and will be removed in the next version of Gradle. Please use the %s instead.",
-                    taskName, replacement));
+                    "The %s task type %s. Please use the %s instead.",
+                    taskName, DEPRECATION_MESSAGE, replacement));
             logTraceIfNecessary();
         }
     }
@@ -79,8 +80,8 @@ public class DeprecationLogger {
     public static void nagUserOfReplacedMethod(String methodName, String replacement) {
         if (isEnabled() && METHODS.add(methodName)) {
             LOGGER.warn(String.format(
-                    "The %s method has been deprecated and will be removed in the next version of Gradle. Please use the %s method instead.",
-                    methodName, replacement));
+                    "The %s method %s. Please use the %s method instead.",
+                    methodName, DEPRECATION_MESSAGE, replacement));
             logTraceIfNecessary();
         }
     }
@@ -88,24 +89,24 @@ public class DeprecationLogger {
     public static void nagUserOfReplacedProperty(String propertyName, String replacement) {
         if (isEnabled() && PROPERTIES.add(propertyName)) {
             LOGGER.warn(String.format(
-                    "The %s property has been deprecated and will be removed in the next version of Gradle. Please use the %s property instead.",
-                    propertyName, replacement));
+                    "The %s property %s. Please use the %s property instead.",
+                    propertyName, DEPRECATION_MESSAGE, replacement));
             logTraceIfNecessary();
         }
     }
 
     public static void nagUserOfDiscontinuedMethod(String methodName) {
         if (isEnabled() && METHODS.add(methodName)) {
-            LOGGER.warn(String.format("The %s method has been deprecated and will be removed in the next version of Gradle.",
-                    methodName));
+            LOGGER.warn(String.format("The %s method %s.",
+                    methodName, DEPRECATION_MESSAGE));
             logTraceIfNecessary();
         }
     }
 
     public static void nagUserOfDiscontinuedProperty(String propertyName, String advice) {
         if (isEnabled() && PROPERTIES.add(propertyName)) {
-            LOGGER.warn(String.format("The %s property has been deprecated and will be removed in the next version of Gradle. %s",
-                    propertyName, advice));
+            LOGGER.warn(String.format("The %s property %s. %s",
+                    propertyName, DEPRECATION_MESSAGE, advice));
             logTraceIfNecessary();
         }
     }
@@ -113,8 +114,8 @@ public class DeprecationLogger {
     public static void nagUserOfReplacedNamedParameter(String parameterName, String replacement) {
         if (isEnabled() && NAMED_PARAMETERS.add(parameterName)) {
             LOGGER.warn(String.format(
-                    "The %s named parameter has been deprecated and will be removed in the next version of Gradle. Please use the %s named parameter instead.",
-                    parameterName, replacement));
+                    "The %s named parameter %s. Please use the %s named parameter instead.",
+                    parameterName, DEPRECATION_MESSAGE, replacement));
             logTraceIfNecessary();
         }
     }
@@ -125,11 +126,24 @@ public class DeprecationLogger {
             logTraceIfNecessary();
         }
     }
-    
+
+    public static void nagUserOfDeprecated(String thing, String explanation) {
+        nagUserWith(String.format("%s %s. %s", thing, DEPRECATION_MESSAGE, explanation));
+    }
+
     public static <T> T whileDisabled(Factory<T> factory) {
         ENABLED.set(false);
         try {
             return factory.create();
+        } finally {
+            ENABLED.set(true);
+        }
+    }
+
+    public static void whileDisabled(Runnable action) {
+        ENABLED.set(false);
+        try {
+            action.run();
         } finally {
             ENABLED.set(true);
         }

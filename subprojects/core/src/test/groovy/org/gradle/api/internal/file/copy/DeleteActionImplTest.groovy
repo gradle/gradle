@@ -15,24 +15,18 @@
  */
 package org.gradle.api.internal.file.copy
 
-import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestFile
 import org.junit.Rule
 import spock.lang.Specification
-import org.gradle.api.internal.file.BaseDirFileResolver
-import org.gradle.internal.nativeplatform.filesystem.FileSystems
-
 /**
  * @author Hans Dockter
  */
 class DeleteActionImplTest extends Specification {
     @Rule
-    TemporaryFolder tmpDir = new TemporaryFolder();
-
-    FileResolver fileResolver = new BaseDirFileResolver(FileSystems.default, tmpDir.getDir())
-    
-    DeleteActionImpl delete = new DeleteActionImpl(fileResolver);
+    TemporaryFolder tmpDir = new TemporaryFolder()
+    DeleteActionImpl delete = new DeleteActionImpl(TestFiles.resolver(tmpDir.dir))
 
     def deletesDirectory() {
         TestFile dir = tmpDir.getDir();

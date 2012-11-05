@@ -101,7 +101,7 @@ class FindBugsPluginIntegrationTest extends WellBehavedPluginTest {
     def "can use optional arguments"() {
         given:
         buildFile << """
-            findbugsMain {
+            findbugs {
                 effort 'max'
                 reportLevel 'high'
                 includeFilter file('include.xml')

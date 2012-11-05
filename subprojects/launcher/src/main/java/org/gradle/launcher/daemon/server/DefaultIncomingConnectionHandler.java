@@ -111,12 +111,20 @@ public class DefaultIncomingConnectionHandler implements IncomingConnectionHandl
 
         public void run() {
             try {
+                receiveAndHandleCommand();
+            } finally {
+                onFinishHandling(connection);
+            }
+        }
+
+        private void receiveAndHandleCommand() {
+            try {
                 Command command = receiveCommand();
                 if (command != null) {
                     handleCommand(command);
                 }
             } finally {
-                onFinishHandling(connection);
+                connection.stop();
             }
         }
 

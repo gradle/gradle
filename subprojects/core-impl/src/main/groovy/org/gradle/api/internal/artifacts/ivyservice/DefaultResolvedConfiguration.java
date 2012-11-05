@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.artifacts.*;
-import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.specs.Spec;
 
 import java.io.File;
@@ -24,11 +23,9 @@ import java.util.Set;
 
 public class DefaultResolvedConfiguration implements ResolvedConfiguration {
     private final DefaultLenientConfiguration configuration;
-    private final ResolutionResult resolutionResult;
 
-    public DefaultResolvedConfiguration(DefaultLenientConfiguration configuration, ResolutionResult resolutionResult) {
+    public DefaultResolvedConfiguration(DefaultLenientConfiguration configuration) {
         this.configuration = configuration;
-        this.resolutionResult = resolutionResult;
     }
 
     public boolean hasError() {
@@ -61,9 +58,5 @@ public class DefaultResolvedConfiguration implements ResolvedConfiguration {
     public Set<ResolvedArtifact> getResolvedArtifacts() throws ResolveException {
         rethrowFailure();
         return configuration.getResolvedArtifacts();
-    }
-
-    public ResolutionResult getResolutionResult() {
-        return resolutionResult;
     }
 }

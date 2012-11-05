@@ -15,7 +15,6 @@
  */
 package org.gradle.integtests.fixtures;
 
-import org.gradle.internal.jvm.Jvm;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.TestFile;
 import org.gradle.util.TextUtil;
@@ -24,7 +23,6 @@ import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
 
 import java.io.File;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,17 +39,17 @@ import static org.gradle.util.Matchers.matchesRegexp;
  */
 public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter implements MethodRule {
     private static final String EXECUTER_SYS_PROP = "org.gradle.integtest.executer";
+    private static final String UNKNOWN_OS_SYS_PROP = "org.gradle.integtest.unknownos";
     private static final int DEFAULT_DAEMON_IDLE_TIMEOUT_SECS = 2 * 60;
 
     private GradleDistribution dist;
     private boolean workingDirSet;
-    private boolean userHomeSet;
+    private boolean gradleUserHomeDirSet;
     private boolean deprecationChecksOn = true;
     private boolean stackTraceChecksOn = true;
     private Executer executerType;
 
     private boolean allowExtraLogging = true;
-    private boolean mustFork;
 
     public enum Executer {
         embedded(false),
@@ -95,22 +93,11 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
         reset();
     }
 
-    public boolean isMustFork() {
-        return mustFork;
-    }
-
-    public void setMustFork(boolean mustFork) {
-        this.mustFork = mustFork;
-    }
-
-    public Executer getType() {
-        return executerType;
-    }
-
     public Statement apply(Statement base, final FrameworkMethod method, Object target) {
         if (dist == null) {
             dist = RuleHelper.getField(target, GradleDistribution.class);
         }
+        beforeExecute(new RedirectMavenCentral(dist.getTemporaryFolder()));
         return base;
     }
 
@@ -118,10 +105,9 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
     public GradleDistributionExecuter reset() {
         super.reset();
         workingDirSet = false;
-        userHomeSet = false;
+        gradleUserHomeDirSet = false;
         deprecationChecksOn = true;
         stackTraceChecksOn = true;
-        mustFork = false;
         DeprecationLogger.reset();
         return this;
     }
@@ -134,9 +120,9 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
     }
 
     @Override
-    public GradleDistributionExecuter withUserHomeDir(File userHomeDir) {
-        super.withUserHomeDir(userHomeDir);
-        userHomeSet = true;
+    public GradleDistributionExecuter withGradleUserHomeDir(File userHomeDir) {
+        super.withGradleUserHomeDir(userHomeDir);
+        gradleUserHomeDirSet = true;
         return this;
     }
 
@@ -156,11 +142,6 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
         if (!executerType.forks) {
             executerType = Executer.forking;
         }
-        return this;
-    }
-
-    public GradleDistributionExecuter withExecuter(Executer executerType) {
-        this.executerType = executerType;
         return this;
     }
 
@@ -237,8 +218,8 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
         if (!workingDirSet) {
             inDirectory(dist.getTestDir());
         }
-        if (!userHomeSet) {
-            withUserHomeDir(dist.getUserHomeDir());
+        if (!gradleUserHomeDirSet) {
+            withGradleUserHomeDir(dist.getUserHomeDir());
         }
         if (getDaemonIdleTimeoutSecs() == null) {
             if (dist.isUsingIsolatedDaemons() || getDaemonBaseDir() != null) {
@@ -256,52 +237,49 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
         }
 
         GradleExecuter gradleExecuter = createExecuter(executerType);
+        configureExecuter(gradleExecuter);
+        try {
+            gradleExecuter.assertCanExecute();
+        } catch (AssertionError assertionError) {
+            gradleExecuter = new ForkingGradleExecuter(dist.getGradleHomeDir());
+            configureExecuter(gradleExecuter);
+        }
+
+        return gradleExecuter;
+    }
+
+    private void configureExecuter(GradleExecuter gradleExecuter) {
         copyTo(gradleExecuter);
 
         configureTmpDir(gradleExecuter);
         configureForSettingsFile(gradleExecuter);
 
-        return gradleExecuter;
+        if (System.getProperty(UNKNOWN_OS_SYS_PROP) != null) {
+            gradleExecuter.withGradleOpts("-Dos.arch=unknown architecture", "-Dos.name=unknown operating system", "-Dos.version=unknown version");
+        }
     }
 
     private GradleExecuter createExecuter(Executer executerType) {
-        if (getExecutable() != null) {
-            return createForkingExecuter();
-        }
-
         switch (executerType) {
             case embeddedDaemon:
                 return new EmbeddedDaemonGradleExecuter();
             case embedded:
-                if (canExecuteInProcess()) {
-                    return new InProcessGradleExecuter();
-                }
-                return createForkingExecuter();
+                return new InProcessGradleExecuter();
             case daemon:
                 return new DaemonGradleExecuter(dist, !isQuiet() && allowExtraLogging, noDefaultJvmArgs);
             case parallel:
                 return new ParallelForkingGradleExecuter(dist.getGradleHomeDir());
             case forking:
-                return createForkingExecuter();
+                return new ForkingGradleExecuter(dist.getGradleHomeDir());
+            default:
+                throw new RuntimeException("Not a supported executer type: " + executerType);
         }
-        throw new RuntimeException("Not a supported executer type: " + executerType);
-    }
-
-    private boolean canExecuteInProcess() {
-        return getJavaHome().equals(Jvm.current().getJavaHome()) && getDefaultCharacterEncoding().equals(Charset.defaultCharset().name());
-    }
-
-    private GradleExecuter createForkingExecuter() {
-        return new ForkingGradleExecuter(dist.getGradleHomeDir());
     }
 
     private void configureTmpDir(GradleExecuter gradleExecuter) {
         TestFile tmpDir = getTmpDir();
-        tmpDir.deleteDir().createDir();
-
-        if (gradleExecuter instanceof ForkingGradleExecuter && !dist.shouldAvoidConfiguringTmpDir()) {
-            ((ForkingGradleExecuter) gradleExecuter).addGradleOpts(String.format("-Djava.io.tmpdir=%s", tmpDir));
-        }
+        tmpDir.createDir();
+        gradleExecuter.withGradleOpts(String.format("-Djava.io.tmpdir=%s", tmpDir));
     }
 
     private void configureForSettingsFile(GradleExecuter gradleExecuter) {

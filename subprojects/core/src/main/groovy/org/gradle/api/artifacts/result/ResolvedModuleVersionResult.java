@@ -36,9 +36,28 @@ public interface ResolvedModuleVersionResult {
     ModuleVersionIdentifier getId();
 
     /**
-     * The dependencies of the resolved module. See {@link ResolvedDependencyResult}
+     * The dependencies of the resolved module. See {@link DependencyResult}.
+     * Includes resolved and unresolved dependencies (if any).
      *
      * @return dependencies
      */
-    Set<? extends ResolvedDependencyResult> getDependencies();
+    Set<? extends DependencyResult> getDependencies();
+
+    /**
+     * The dependents of the resolved module. See {@link ResolvedDependencyResult}.
+     *
+     * @return dependents
+     */
+    Set<? extends ResolvedDependencyResult> getDependents();
+
+    /**
+     * Informs why this module version was selected.
+     * Useful information if during the dependency resolution multiple candidate versions were found
+     * and one of them was selected as a part of conflict resolution.
+     * Informs if a version was forced during the resolution process.
+     * See {@link ModuleVersionSelectionReason}
+     *
+     * @return information why this module version was selected.
+     */
+    ModuleVersionSelectionReason getSelectionReason();
 }

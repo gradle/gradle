@@ -16,13 +16,14 @@
 package org.gradle.testing.junit
 
 import org.gradle.util.TestFile
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.gradle.integtests.fixtures.*
+
 import static org.gradle.util.Matchers.containsLine
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
-import org.junit.Before
 
 public class JUnitIntegrationTest extends AbstractIntegrationTest {
     @Rule public final TestResources resources = new TestResources()
@@ -89,12 +90,16 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
 
         def result = new JUnitTestExecutionResult(testDir)
         result.assertTestClassesExecuted('org.gradle.Junit3Test', 'org.gradle.Junit4Test', 'org.gradle.IgnoredTest')
-        result.testClass('org.gradle.Junit3Test').assertTestsExecuted('testRenamesItself')
-        result.testClass('org.gradle.Junit3Test').assertTestPassed('testRenamesItself')
-        result.testClass('org.gradle.Junit4Test').assertTestsExecuted('ok')
-        result.testClass('org.gradle.Junit4Test').assertTestPassed('ok')
-        result.testClass('org.gradle.Junit4Test').assertTestsSkipped('broken')
-        result.testClass('org.gradle.IgnoredTest').assertTestsExecuted()
+        result.testClass('org.gradle.Junit3Test')
+                .assertTestCount(1, 0, 0)
+                .assertTestsExecuted('testRenamesItself')
+                .assertTestPassed('testRenamesItself')
+        result.testClass('org.gradle.Junit4Test')
+                .assertTestCount(2, 0, 0)
+                .assertTestsExecuted('ok')
+                .assertTestPassed('ok')
+                .assertTestsSkipped('broken')
+        result.testClass('org.gradle.IgnoredTest').assertTestCount(0, 0, 0).assertTestsExecuted()
     }
 
     @Test
@@ -145,8 +150,10 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
                 'org.gradle.BrokenException',
                 'org.gradle.Unloadable')
         result.testClass('org.gradle.ClassWithBrokenRunner').assertTestFailed('initializationError', equalTo('java.lang.UnsupportedOperationException: broken'))
-        result.testClass('org.gradle.BrokenTest').assertTestFailed('failure', equalTo('java.lang.AssertionError: failed'))
-        result.testClass('org.gradle.BrokenTest').assertTestFailed('broken', equalTo('java.lang.IllegalStateException'))
+        result.testClass('org.gradle.BrokenTest')
+                .assertTestCount(2, 2, 0)
+                .assertTestFailed('failure', equalTo('java.lang.AssertionError: failed'))
+                .assertTestFailed('broken', equalTo('java.lang.IllegalStateException'))
         result.testClass('org.gradle.BrokenBeforeClass').assertTestFailed('classMethod', equalTo('java.lang.AssertionError: failed'))
         result.testClass('org.gradle.BrokenAfterClass').assertTestFailed('classMethod', equalTo('java.lang.AssertionError: failed'))
         result.testClass('org.gradle.BrokenBefore').assertTestFailed('ok', equalTo('java.lang.AssertionError: failed'))

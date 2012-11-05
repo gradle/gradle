@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.fixtures
 
+import org.gradle.test.fixtures.ivy.IvyFileRepository
 import org.gradle.util.TestFile
 import org.junit.Rule
 import spock.lang.Specification
@@ -31,6 +32,8 @@ class AbstractIntegrationSpec extends Specification {
 
     ExecutionResult result
     ExecutionFailure failure
+    private MavenFileRepository mavenRepo
+    private IvyFileRepository ivyRepo
 
     protected TestFile getBuildFile() {
         testDir.file('build.gradle')
@@ -53,11 +56,15 @@ class AbstractIntegrationSpec extends Specification {
     }
 
     protected GradleExecuter inDirectory(String path) {
-        inDirectory(testDir.file(path))
+        inDirectory(file(path))
     }
 
     protected GradleExecuter inDirectory(File directory) {
         executer.inDirectory(directory);
+    }
+
+    protected GradleExecuter projectDir(path) {
+        executer.usingProjectDirectory(file(path))
     }
 
     protected GradleDistribution requireOwnUserHomeDir() {
@@ -72,14 +79,15 @@ class AbstractIntegrationSpec extends Specification {
         succeeds(*tasks)
     }
 
+    protected GradleExecuter args(String... args) {
+        executer.withArguments(args)
+    }
+
     protected GradleExecuter withDebugLogging() {
         executer.withArguments("-d")
     }
 
     protected ExecutionResult succeeds(String... tasks) {
-        if (settingsFile.exists()) {
-            executer.usingSettingsFile(settingsFile)
-        }
         result = executer.withTasks(*tasks).run()
     }
 
@@ -130,11 +138,40 @@ class AbstractIntegrationSpec extends Specification {
     }
 
     ArtifactBuilder artifactBuilder() {
-        def executer = new InProcessGradleExecuter()
-        executer.withUserHomeDir(distribution.getUserHomeDir())
+        def executer = distribution.executer()
+        executer.withGradleUserHomeDir(distribution.getUserHomeDir())
         return new GradleBackedArtifactBuilder(executer, getTestDir().file("artifacts"))
     }
 
+    public MavenFileRepository maven(TestFile repo) {
+        return new MavenFileRepository(repo)
+    }
+
+    public MavenFileRepository maven(Object repo) {
+        return new MavenFileRepository(file(repo))
+    }
+
+    public MavenFileRepository getMavenRepo() {
+        if (mavenRepo == null) {
+            mavenRepo = new MavenFileRepository(file("maven-repo"))
+        }
+        return mavenRepo
+    }
+
+    public IvyFileRepository ivy(TestFile repo) {
+        return new IvyFileRepository(repo)
+    }
+
+    public IvyFileRepository ivy(Object repo) {
+        return new IvyFileRepository(file(repo))
+    }
+
+    public IvyFileRepository getIvyRepo() {
+        if (ivyRepo == null) {
+            ivyRepo = new IvyFileRepository(file("ivy-repo"))
+        }
+        return ivyRepo
+    }
 
     def createZip(String name, Closure cl) {
         TestFile zipRoot = file("${name}.root")

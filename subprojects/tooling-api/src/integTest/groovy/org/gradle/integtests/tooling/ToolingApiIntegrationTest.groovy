@@ -51,6 +51,8 @@ class ToolingApiIntegrationTest extends Specification {
     }
 
     def "tooling api uses the wrapper properties to determine which version to use"() {
+        toolingApi.isEmbedded = false
+
         projectDir.file('build.gradle').text = """
 task wrapper(type: Wrapper) { distributionUrl = '${otherVersion.binDistribution.toURI()}' }
 task check << { assert gradle.gradleVersion == '${otherVersion.version}' }
@@ -68,6 +70,8 @@ task check << { assert gradle.gradleVersion == '${otherVersion.version}' }
     }
 
     def "tooling api searches up from the project directory to find the wrapper properties"() {
+        toolingApi.isEmbedded = false
+
         projectDir.file('settings.gradle') << "include 'child'"
         projectDir.file('build.gradle') << """
 task wrapper(type: Wrapper) { distributionUrl = '${otherVersion.binDistribution.toURI()}' }
@@ -91,6 +95,7 @@ allprojects {
     }
 
     def "can specify a gradle installation to use"() {
+        toolingApi.isEmbedded = false
         projectDir.file('build.gradle').text = "assert gradle.gradleVersion == '${otherVersion.version}'"
 
         when:
@@ -104,6 +109,7 @@ allprojects {
     }
 
     def "can specify a gradle distribution to use"() {
+        toolingApi.isEmbedded = false
         projectDir.file('build.gradle').text = "assert gradle.gradleVersion == '${otherVersion.version}'"
 
         when:
@@ -117,6 +123,7 @@ allprojects {
     }
 
     def "can specify a gradle version to use"() {
+        toolingApi.isEmbedded = false
         projectDir.file('build.gradle').text = "assert gradle.gradleVersion == '${otherVersion.version}'"
 
         when:

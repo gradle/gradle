@@ -15,6 +15,7 @@
  */
 package org.gradle.launcher.daemon
 
+import org.gradle.api.logging.LogLevel
 import org.gradle.configuration.GradleLauncherMetaData
 import org.gradle.launcher.daemon.client.DaemonClient
 import org.gradle.launcher.daemon.client.EmbeddedDaemonClientServices
@@ -24,7 +25,6 @@ import org.gradle.tooling.internal.provider.ExecuteBuildAction
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
-import org.gradle.api.logging.LogLevel
 
 /**
  * Exercises the basic mechanics using an embedded daemon.
@@ -37,7 +37,7 @@ class EmbeddedDaemonSmokeTest extends Specification {
     @Rule TemporaryFolder temp
 
     def daemonClientServices = new EmbeddedDaemonClientServices()
-    
+
     def "run build"() {
         given:
         def action = new ConfiguringBuildAction(projectDirectory: temp.dir, searchUpwards: false, tasks: ['echo'],

@@ -16,16 +16,18 @@
 package org.gradle.api.internal.artifacts.configurations.dynamicversion;
 
 
-import java.util.concurrent.TimeUnit
 import org.gradle.api.Action
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ResolvedModuleVersion
 import org.gradle.api.artifacts.cache.ArtifactResolutionControl
 import org.gradle.api.artifacts.cache.DependencyResolutionControl
 import org.gradle.api.artifacts.cache.ModuleResolutionControl
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
-import spock.lang.Specification
 import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
+import spock.lang.Specification
+
+import java.util.concurrent.TimeUnit
 
 public class DefaultCachePolicySpec extends Specification {
     private static final int SECOND = 1000;
@@ -128,7 +130,7 @@ public class DefaultCachePolicySpec extends Specification {
                 t.refresh()
             }
         })
-        cachePolicy.mustRefreshModule(moduleIdentifier('g', 'n', 'v'), moduleVersion('group', 'name', 'version'), 0)
+        cachePolicy.mustRefreshModule(moduleIdentifier('g', 'n', 'v'), moduleVersion('group', 'name', 'version'), null, 0)
     }
     
     def "provides details of cached changing module"() {
@@ -203,8 +205,8 @@ public class DefaultCachePolicySpec extends Specification {
 
     private def hasModuleTimeout(int timeout) {
         def module = moduleVersion('group', 'name', 'version')
-        assert !cachePolicy.mustRefreshModule(null, module, timeout);
-        assert !cachePolicy.mustRefreshModule(null, module, timeout - 1)
+        assert !cachePolicy.mustRefreshModule(null, module, null, timeout);
+        assert !cachePolicy.mustRefreshModule(null, module, null, timeout - 1)
         if (timeout == FOREVER) {
             return true
         }
@@ -212,9 +214,9 @@ public class DefaultCachePolicySpec extends Specification {
     }
 
     private def hasMissingModuleTimeout(int timeout) {
-        assert !cachePolicy.mustRefreshModule(null, null, timeout);
-        assert !cachePolicy.mustRefreshModule(null, null, timeout - 1)
-        cachePolicy.mustRefreshModule(null, null, timeout + 1)
+        assert !cachePolicy.mustRefreshModule(null, null, null, timeout);
+        assert !cachePolicy.mustRefreshModule(null, null, null, timeout - 1)
+        cachePolicy.mustRefreshModule(null, null, null, timeout + 1)
     }
 
     private def hasMissingArtifactTimeout(int timeout) {
@@ -230,7 +232,7 @@ public class DefaultCachePolicySpec extends Specification {
     }
     
     private def moduleSelector(String group, String name, String version) {
-        new DefaultModuleVersionIdentifier(group, name, version)
+        new DefaultModuleVersionSelector(group, name, version)
     }
 
     private def moduleIdentifier(String group, String name, String version) {

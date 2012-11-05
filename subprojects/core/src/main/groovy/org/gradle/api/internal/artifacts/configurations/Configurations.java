@@ -25,7 +25,7 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public class Configurations {
-    public static Set<String> getNames(Collection<Configuration> configurations, boolean includeExtended) {
+    public static Set<String> getNames(Collection<? extends Configuration> configurations, boolean includeExtended) {
         Set<Configuration> allConfigurations = new HashSet<Configuration>(configurations);
         if (includeExtended) {
             allConfigurations = createAllConfigurations(configurations);
@@ -41,7 +41,7 @@ public class Configurations {
         return getNames(configurations, false);
     }
 
-    private static Set<Configuration> createAllConfigurations(Collection<Configuration> configurations) {
+    private static Set<Configuration> createAllConfigurations(Collection<? extends Configuration> configurations) {
         Set<Configuration> allConfigurations = new HashSet<Configuration>();
         for (Configuration configuration : configurations) {
             allConfigurations.addAll(configuration.getHierarchy());

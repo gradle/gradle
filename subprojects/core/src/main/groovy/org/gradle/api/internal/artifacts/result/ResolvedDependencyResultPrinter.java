@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.result;
 
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 
 /**
  * Created: 17/08/2012
@@ -27,15 +26,11 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 public class ResolvedDependencyResultPrinter {
 
     public static String print(ResolvedDependencyResult result) {
-        if (!requestedEqualsSelected(result)) {
+        if (!result.getRequested().matchesStrictly(result.getSelected().getId())) {
             return requested(result) + " -> " + result.getSelected().getId().getVersion();
         } else {
             return requested(result);
         }
-    }
-
-    private static boolean requestedEqualsSelected(ResolvedDependencyResult dependency) {
-        return DefaultModuleVersionIdentifier.newId(dependency.getRequested()).equals(dependency.getSelected().getId());
     }
 
     private static String requested(ResolvedDependencyResult result) {

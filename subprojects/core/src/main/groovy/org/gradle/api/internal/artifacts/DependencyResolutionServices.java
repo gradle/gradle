@@ -32,5 +32,5 @@ public interface DependencyResolutionServices {
 
     Factory<ArtifactPublicationServices> getPublishServicesFactory();
 
-    ResolverFactory getResolverFactory();
+    BaseRepositoryFactory getBaseRepositoryFactory();
 }

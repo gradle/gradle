@@ -20,9 +20,9 @@ import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver;
 
 class DefaultIvyAdapter implements IvyAdapter {
     private final ResolveData resolveData;
-    private final UserResolverChain userResolver;
+    private final DependencyToModuleResolver userResolver;
 
-    public DefaultIvyAdapter(ResolveData resolveData, UserResolverChain userResolverChain) {
+    public DefaultIvyAdapter(ResolveData resolveData, DependencyToModuleResolver userResolverChain) {
         this.resolveData = resolveData;
         userResolver = userResolverChain;
     }

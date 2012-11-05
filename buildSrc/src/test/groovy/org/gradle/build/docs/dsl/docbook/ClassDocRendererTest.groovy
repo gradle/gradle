@@ -258,14 +258,14 @@ class ClassDocRendererTest extends XmlSpecification {
         <section id="prop1" role="detail">
             <title><classname>org.gradle.Type</classname> <literal>deprecatedProperty</literal> (read-only)</title>
             <caution>
-                <para>Note: This property is <link linkend="dsl-element-types">deprecated</link> and will be removed in the next major version of Gradle.</para>
+                <para>Note: This property is <ulink url="../userguide/feature_lifecycle.html">deprecated</ulink> and will be removed in the next major version of Gradle.</para>
             </caution>
             <para>prop1 comment</para>
         </section>
         <section id="prop2" role="detail">
             <title><classname>org.gradle.Type</classname> <literal>incubatingProperty</literal> (read-only)</title>
             <caution>
-                <para>Note: This property is <link linkend="dsl-element-types">incubating</link> and may change in a future version of Gradle.</para>
+                <para>Note: This property is <ulink url="../userguide/feature_lifecycle.html">incubating</ulink> and may change in a future version of Gradle.</para>
             </caution>
             <para>prop2 comment</para>
         </section>
@@ -465,14 +465,14 @@ class ClassDocRendererTest extends XmlSpecification {
         <section id="method1Id" role="detail">
             <title><classname>ReturnType1</classname> <literal>deprecated</literal>()</title>
             <caution>
-                <para>Note: This method is <link linkend="dsl-element-types">deprecated</link> and will be removed in the next major version of Gradle.</para>
+                <para>Note: This method is <ulink url="../userguide/feature_lifecycle.html">deprecated</ulink> and will be removed in the next major version of Gradle.</para>
             </caution>
             <para>method comment</para>
         </section>
         <section id="method2Id" role="detail">
             <title><classname>ReturnType2</classname> <literal>incubating</literal>(<classname>ParamType</classname> p)</title>
             <caution>
-                <para>Note: This method is <link linkend="dsl-element-types">incubating</link> and may change in a future version of Gradle.</para>
+                <para>Note: This method is <ulink url="../userguide/feature_lifecycle.html">incubating</ulink> and may change in a future version of Gradle.</para>
             </caution>
             <para>overloaded comment</para>
         </section>

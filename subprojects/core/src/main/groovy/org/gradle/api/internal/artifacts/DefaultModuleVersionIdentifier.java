@@ -17,9 +17,8 @@ package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ModuleVersionSelector;
 
-public class DefaultModuleVersionIdentifier implements ModuleVersionIdentifier, ModuleVersionSelector {
+public class DefaultModuleVersionIdentifier implements ModuleVersionIdentifier {
     private final String group;
     private final String name;
     private final String version;
@@ -78,10 +77,6 @@ public class DefaultModuleVersionIdentifier implements ModuleVersionIdentifier, 
 
     public static ModuleVersionIdentifier newId(Module module) {
         return new DefaultModuleVersionIdentifier(module.getGroup(), module.getName(), module.getVersion());
-    }
-
-    public static ModuleVersionIdentifier newId(ModuleVersionSelector selector) {
-        return new DefaultModuleVersionIdentifier(selector.getGroup(), selector.getName(), selector.getVersion());
     }
 
     public static ModuleVersionIdentifier newId(String group, String name, String version) {

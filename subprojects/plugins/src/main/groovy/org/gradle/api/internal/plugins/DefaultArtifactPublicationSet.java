@@ -19,7 +19,7 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishArtifactSet;
 
 /**
- * The policy for the artifacts should be published by default when none are explicitly declared.
+ * The policy for which artifacts should be published by default when none are explicitly declared.
  */
 public class DefaultArtifactPublicationSet {
     private final PublishArtifactSet artifacts;

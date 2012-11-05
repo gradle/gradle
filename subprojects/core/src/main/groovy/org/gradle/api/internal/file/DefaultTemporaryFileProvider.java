@@ -42,7 +42,7 @@ public class DefaultTemporaryFileProvider implements TemporaryFileProvider {
         try {
             return File.createTempFile(prefix, suffix, dir);
         } catch (IOException e) {
-            throw new UncheckedIOException(e.getMessage(), e);
+            throw new UncheckedIOException(e);
         }
     }
 
@@ -57,7 +57,7 @@ public class DefaultTemporaryFileProvider implements TemporaryFileProvider {
             tmpDir.mkdir();
             return tmpDir;
         } catch (IOException e) {
-            throw new UncheckedIOException(e.getMessage(), e);
+            throw new UncheckedIOException(e);
         }
     }
 }

@@ -15,25 +15,26 @@
  */
 package org.gradle.integtests.resolve.artifactreuse
 
-import org.gradle.integtests.fixtures.HttpServer
-import org.gradle.integtests.fixtures.MavenRepository
-import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
+import org.gradle.integtests.fixtures.MavenHttpRepository
+import org.gradle.integtests.fixtures.TargetVersions
+import org.gradle.test.fixtures.server.HttpServer
 import org.junit.Rule
 
 // TODO:DAZ Support for milestone-3 does not include POM reuse. We should probably ditch milestone-3 support after 1.0.
 @TargetVersions('1.0-milestone-3')
 class M3CacheReuseCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
     @Rule public final HttpServer server = new HttpServer()
+    final MavenHttpRepository remoteRepo = new MavenHttpRepository(server, mavenRepo)
 
     def "uses cached artifacts from previous Gradle version"() {
         given:
-        def projectB = new MavenRepository(file('repo')).module('org.name', 'projectB').publish()
+        def projectB = remoteRepo.module('org.name', 'projectB').publish()
 
         server.start()
         buildFile << """
 repositories {
-    mavenRepo(urls: ['http://localhost:${server.port}'])
+    mavenRepo(urls: ['${remoteRepo.uri}'])
 }
 configurations { compile }
 dependencies {
@@ -49,10 +50,10 @@ task retrieve(type: Sync) {
         def userHome = file('user-home')
 
         when:
-        server.allowGetOrHead("/org", file('repo/org'));
+        projectB.allowAll()
 
         and:
-        version previous withUserHomeDir userHome withTasks 'retrieve' withArguments '-i' run()
+        version previous withGradleUserHomeDir userHome withTasks 'retrieve' run()
 
         then:
         file('libs').assertHasDescendants('projectB-1.0.jar')
@@ -60,12 +61,12 @@ task retrieve(type: Sync) {
 
         when:
         server.resetExpectations()
-        server.expectGet("/org/name/projectB/1.0/projectB-1.0.pom", projectB.pomFile)
-        projectB.expectArtifactHead(server)
-        server.expectGet("/org/name/projectB/1.0/projectB-1.0.jar.sha1", projectB.sha1File(projectB.artifactFile))
+        projectB.expectPomGet()
+        projectB.expectArtifactHead()
+        projectB.expectArtifactSha1Get()
 
         and:
-        version current withUserHomeDir userHome withTasks 'retrieve' withArguments '-i' run()
+        version current withGradleUserHomeDir userHome withTasks 'retrieve' run()
 
         then:
         file('libs').assertHasDescendants('projectB-1.0.jar')

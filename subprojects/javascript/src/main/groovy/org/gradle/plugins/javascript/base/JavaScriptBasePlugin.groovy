@@ -33,6 +33,6 @@ class JavaScriptBasePlugin implements Plugin<Project> {
 
     void apply(Project project) {
         project.apply(plugin: BasePlugin)
-        project.extensions.create(JavaScriptExtension.NAME, JavaScriptExtension, dependencyResolutionServices.resolverFactory)
+        project.extensions.create(JavaScriptExtension.NAME, JavaScriptExtension, dependencyResolutionServices.baseRepositoryFactory)
     }
 }

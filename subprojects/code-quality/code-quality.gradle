@@ -20,6 +20,7 @@ dependencies {
 
     compile project(':core')
     compile project(':plugins')
+    compile project(':reporting')
 
     compile libraries.slf4j_api
 

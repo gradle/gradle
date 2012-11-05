@@ -17,8 +17,14 @@
 package org.gradle.peformance
 
 import org.gradle.peformance.fixture.PerformanceTestRunner
+import org.jscience.physics.amount.Amount
 import spock.lang.Specification
 import spock.lang.Unroll
+
+import javax.measure.quantity.DataAmount
+import javax.measure.quantity.Duration
+import javax.measure.unit.NonSI
+import javax.measure.unit.SI
 
 /**
  * by Szczepan Faber, created at: 2/9/12
@@ -29,18 +35,19 @@ class PerformanceTest extends Specification {
         expect:
         def result = new PerformanceTestRunner(testProject: testProject,
                 tasksToRun: ['clean', 'build'],
+                otherVersions: ['1.0'],
                 runs: runs,
                 warmUpRuns: 1,
-                accuracyMs: accuracyMs
+                maxExecutionTimeRegression: maxExecutionTimeRegression,
+                maxMemoryRegression: kbytes(1400)
         ).run()
-        result.assertCurrentReleaseIsNotSlower()
-        result.assertMemoryUsed(0.01)
+        result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject       | runs | accuracyMs
-        "small"           | 5    | 500
-        "multi"           | 5    | 1000
-        "lotDependencies" | 5    | 1000
+        testProject       | runs | maxExecutionTimeRegression
+        "small"           | 5    | millis(500)
+        "multi"           | 5    | millis(1000)
+        "lotDependencies" | 5    | millis(1000)
     }
 
     @Unroll("Project '#testProject' up-to-date build")
@@ -50,16 +57,16 @@ class PerformanceTest extends Specification {
                 tasksToRun: ['build'],
                 runs: runs,
                 warmUpRuns: 1,
-                accuracyMs: accuracyMs
+                maxExecutionTimeRegression: maxExecutionTimeRegression,
+                maxMemoryRegression: kbytes(1400)
         ).run()
-        result.assertCurrentReleaseIsNotSlower()
-        result.assertMemoryUsed(0.01)
+        result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject       | runs | accuracyMs
-        "small"           | 5    | 500
-        "multi"           | 5    | 1000
-        "lotDependencies" | 5    | 1000
+        testProject       | runs | maxExecutionTimeRegression
+        "small"           | 5    | millis(500)
+        "multi"           | 5    | millis(1000)
+        "lotDependencies" | 5    | millis(1000)
     }
 
     @Unroll("Project '#testProject' dependency report")
@@ -69,14 +76,14 @@ class PerformanceTest extends Specification {
                 tasksToRun: ['dependencyReport'],
                 runs: runs,
                 warmUpRuns: 1,
-                accuracyMs: accuracyMs
+                maxExecutionTimeRegression: maxExecutionTimeRegression,
+                maxMemoryRegression: kbytes(1400)
         ).run()
-        result.assertCurrentReleaseIsNotSlower()
-        result.assertMemoryUsed(0.05)
+        result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject       | runs | accuracyMs
-        "lotDependencies" | 3    | 3000
+        testProject       | runs | maxExecutionTimeRegression
+        "lotDependencies" | 5    | millis(1000)
     }
 
     @Unroll("Project '#testProject' eclipse")
@@ -86,16 +93,16 @@ class PerformanceTest extends Specification {
                 tasksToRun: ['eclipse'],
                 runs: runs,
                 warmUpRuns: 1,
-                accuracyMs: accuracyMs
+                maxExecutionTimeRegression: maxExecutionTimeRegression,
+                maxMemoryRegression: kbytes(1400)
         ).run()
-        result.assertCurrentReleaseIsNotSlower()
-        result.assertMemoryUsed(0.01)
+        result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject       | runs | accuracyMs
-        "small"           | 5    | 500
-        "multi"           | 5    | 1000
-//        "lotDependencies" | 5    | 1000
+        testProject       | runs | maxExecutionTimeRegression
+        "small"           | 5    | millis(500)
+        "multi"           | 5    | millis(1000)
+        "lotDependencies" | 5    | millis(1000)
     }
 
     @Unroll("Project '#testProject' idea")
@@ -105,15 +112,45 @@ class PerformanceTest extends Specification {
                 tasksToRun: ['idea'],
                 runs: runs,
                 warmUpRuns: 1,
-                accuracyMs: accuracyMs
+                maxExecutionTimeRegression: maxExecutionTimeRegression,
+                maxMemoryRegression: kbytes(1400)
         ).run()
-        result.assertCurrentReleaseIsNotSlower()
-        result.assertMemoryUsed(0.01)
+        result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject       | runs | accuracyMs
-        "small"           | 5    | 500
-        "multi"           | 5    | 1000
-//        "lotDependencies" | 5    | 1000
+        testProject       | runs | maxExecutionTimeRegression
+        "small"           | 5    | millis(500)
+        "multi"           | 5    | millis(1000)
+        "lotDependencies" | 5    | millis(1000)
     }
+
+    @Unroll("Project '#testProject'")
+    def "verbose tests with report"() {
+        when:
+        def result = new PerformanceTestRunner(testProject: testProject,
+                tasksToRun: ['cleanTest', 'test'],
+                args: ['-q'],
+                runs: runs,
+                warmUpRuns: 1,
+                maxExecutionTimeRegression: maxExecutionTimeRegression,
+                maxMemoryRegression: kbytes(1400)
+        ).run()
+
+        then:
+        result.assertCurrentVersionHasNotRegressed()
+
+        where:
+        testProject         | runs | maxExecutionTimeRegression
+        "withTestNG"        | 4    | millis(800)
+        "withVerboseJUnits" | 4    | millis(1200)
+    }
+
+    static Amount<Duration> millis(long value) {
+        return Amount.valueOf(value, SI.MILLI(SI.SECOND))
+    }
+
+    static Amount<DataAmount> kbytes(long value) {
+        return Amount.valueOf(value, NonSI.BYTE.times(1024))
+    }
+
 }

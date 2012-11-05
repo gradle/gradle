@@ -1,0 +1,45 @@
+allprojects {
+    apply plugin: 'java'
+}
+
+apply plugin: 'ivy-publish'
+
+version = '1.0'
+group = 'org.gradle.test'
+
+dependencies {
+   compile 'junit:junit:4.8.2', project(':subproject')
+}
+
+repositories {
+    mavenCentral()
+}
+
+task sourceJar(type: Jar) {
+    baseName = 'ivypublishSource'
+    from sourceSets.main.java
+    classifier = 'src'
+}
+
+artifacts {
+    archives sourceJar
+}
+
+File localPublicationsDir = file("$buildDir/repo")
+publishing {
+    repositories {
+        main {
+            ivyPattern localPublicationsDir.absolutePath + '/[module]/[revision]/ivy.xml'
+            artifactPattern localPublicationsDir.absolutePath + '/[module]/[revision]/[artifact](.[ext])'
+        }
+    }
+    publications {
+        main {
+            descriptor {
+                withXml {
+                    asNode().dependencies.dependency.find { it.@org == "junit" }.@rev = "4.10"
+                }
+            }
+        }
+    }
+}

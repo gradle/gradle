@@ -111,6 +111,18 @@ class DefaultDaemonConnectorTest extends Specification {
         connection && connection.connection.num < 12
     }
 
+    def "created connection removes from registry on failure"() {
+        given:
+        startIdleDaemon()
+
+        when:
+        def connection = connector.maybeConnect( { true } as ExplainingSpec)
+        connection.onFailure.run()
+
+        then:
+        registry.remove( _ as Address )
+    }
+
     def "maybeConnect() returns null when no daemon matches spec"() {
         given:
         startIdleDaemon()

@@ -27,7 +27,7 @@ import spock.lang.Specification
 class ProcessEnvironmentTest extends Specification {
     @Rule final TemporaryFolder tmpDir = new TemporaryFolder()
     @Rule final SetSystemProperties systemProperties = new SetSystemProperties()
-    final ProcessEnvironment env = new NativeServices().get(ProcessEnvironment)
+    final ProcessEnvironment env = NativeServices.getInstance().get(ProcessEnvironment)
 
     @Requires(TestPrecondition.SET_ENV_VARIABLE)
     def "can set and remove environment variable"() {

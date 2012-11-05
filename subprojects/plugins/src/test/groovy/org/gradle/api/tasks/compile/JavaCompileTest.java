@@ -45,8 +45,8 @@ public class JavaCompileTest extends AbstractCompileTest {
 
     private Mockery context = new JUnit4GroovyMockery();
 
-    @Before public void setUp()  {
-        super.setUp();
+    @Before
+    public void setUp()  {
         compile = createTask(JavaCompile.class);
         compilerMock = context.mock(Compiler.class);
         compile.setJavaCompiler(compilerMock);

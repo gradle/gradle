@@ -36,4 +36,14 @@ public interface ModuleVersionIdResolveResult {
      * Resolves the meta-data for this module version, if required. Failures are packaged up in the result.
      */
     ModuleVersionResolveResult resolve();
+
+    /**
+     * @return why given id was selected
+     */
+    IdSelectionReason getSelectionReason();
+
+    public static enum IdSelectionReason {
+        requested, forced
+        //TODO SF consider changing to an interface with isForced()
+    }
 }

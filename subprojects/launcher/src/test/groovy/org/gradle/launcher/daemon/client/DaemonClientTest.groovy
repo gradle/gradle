@@ -20,14 +20,12 @@ import org.gradle.internal.id.IdGenerator
 import org.gradle.launcher.daemon.context.DaemonCompatibilitySpec
 import org.gradle.launcher.exec.BuildActionParameters
 import org.gradle.logging.internal.OutputEventListener
-import org.gradle.messaging.remote.internal.Connection
 import org.gradle.util.ConcurrentSpecification
 import org.gradle.launcher.daemon.protocol.*
 
 class DaemonClientTest extends ConcurrentSpecification {
     final DaemonConnector connector = Mock()
-    final Connection<Object> connection = Mock()
-    final DaemonConnection daemonConnection = connection(connection, '1')
+    final DaemonClientConnection connection = Mock()
     final OutputEventListener outputEventListener = Mock()
     final DaemonCompatibilitySpec compatibilitySpec = Mock()
     final IdGenerator<?> idGenerator = {12} as IdGenerator
@@ -38,7 +36,8 @@ class DaemonClientTest extends ConcurrentSpecification {
         client.stop()
 
         then:
-        2 * connector.maybeConnect(compatibilitySpec) >>> [daemonConnection, null]
+        _ * connection.uid >> '1'
+        2 * connector.maybeConnect(compatibilitySpec) >>> [connection, null]
         1 * connection.dispatch({it instanceof Stop})
         1 * connection.receive() >> new Success(null)
         1 * connection.stop()
@@ -55,14 +54,15 @@ class DaemonClientTest extends ConcurrentSpecification {
     }
 
     def "stops all compatible daemons"() {
-        Connection connection2 = Mock()
-        def daemonConnection2 = connection(connection2, '2')
+        DaemonClientConnection connection2 = Mock()
 
         when:
         client.stop()
 
         then:
-        3 * connector.maybeConnect(compatibilitySpec) >>> [daemonConnection, daemonConnection2, null]
+        _ * connection.uid >> '1'
+        _ * connection2.uid >> '2'
+        3 * connector.maybeConnect(compatibilitySpec) >>> [connection, connection2, null]
         1 * connection.dispatch({it instanceof Stop})
         1 * connection.receive() >> new Success(null)
         1 * connection.stop()
@@ -77,7 +77,8 @@ class DaemonClientTest extends ConcurrentSpecification {
         client.stop()
 
         then:
-        3 * connector.maybeConnect(compatibilitySpec) >>> [daemonConnection, daemonConnection, null]
+        _ * connection.uid >> '1'
+        3 * connector.maybeConnect(compatibilitySpec) >>> [connection, connection, null]
         1 * connection.dispatch({it instanceof Stop})
         1 * connection.receive() >> new Success(null)
         2 * connection.stop()
@@ -90,7 +91,7 @@ class DaemonClientTest extends ConcurrentSpecification {
 
         then:
         result == '[result]'
-        1 * connector.connect(compatibilitySpec) >> daemonConnection
+        1 * connector.connect(compatibilitySpec) >> connection
         1 * connection.dispatch({it instanceof Build})
         2 * connection.receive() >>> [Mock(BuildStarted), new Success('[result]')]
         1 * connection.stop()
@@ -105,7 +106,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         then:
         RuntimeException e = thrown()
         e == failure
-        1 * connector.connect(compatibilitySpec) >> daemonConnection
+        1 * connector.connect(compatibilitySpec) >> connection
         1 * connection.dispatch({it instanceof Build})
         2 * connection.receive() >>> [Mock(BuildStarted), new CommandFailure(failure)]
         1 * connection.stop()
@@ -116,7 +117,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         client.execute(Mock(GradleLauncherAction), Mock(BuildActionParameters))
 
         then:
-        2 * connector.connect(compatibilitySpec) >> daemonConnection
+        2 * connector.connect(compatibilitySpec) >> connection
         connection.dispatch({it instanceof Build}) >> { throw new RuntimeException("Boo!")} >> { /* success */ }
         2 * connection.receive() >>> [Mock(BuildStarted), new Success('')]
     }
@@ -126,7 +127,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         client.execute(Mock(GradleLauncherAction), Mock(BuildActionParameters))
 
         then:
-        2 * connector.connect(compatibilitySpec) >> daemonConnection
+        2 * connector.connect(compatibilitySpec) >> connection
         connection.receive() >>> [Mock(DaemonUnavailable), Mock(BuildStarted), new Success('')]
     }
 
@@ -135,14 +136,14 @@ class DaemonClientTest extends ConcurrentSpecification {
         client.execute(Mock(GradleLauncherAction), Mock(BuildActionParameters))
 
         then:
-        3 * connector.connect(compatibilitySpec) >> daemonConnection
+        3 * connector.connect(compatibilitySpec) >> connection
         //first busy, then null, then build started...
         connection.receive() >>> [Mock(DaemonUnavailable), null, Mock(BuildStarted), new Success('')]
     }
 
     def "does not loop forever finding usable daemons"() {
         given:
-        connector.connect(compatibilitySpec) >> daemonConnection
+        connector.connect(compatibilitySpec) >> connection
         connection.receive() >> Mock(DaemonUnavailable)
         
         when:
@@ -150,9 +151,5 @@ class DaemonClientTest extends ConcurrentSpecification {
 
         then:
         thrown(NoUsableDaemonFoundException)
-    }
-
-    def connection(Connection connection, String uid) {
-        return new DaemonConnection(uid, connection, "password", null)
     }
 }

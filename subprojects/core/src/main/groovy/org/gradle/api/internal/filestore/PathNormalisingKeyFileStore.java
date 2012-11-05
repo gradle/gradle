@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.filestore;
 
+import org.gradle.api.Action;
+
 import java.io.File;
 import java.util.Set;
 
@@ -47,16 +49,15 @@ public class PathNormalisingKeyFileStore implements FileStore<String>, FileStore
         return path.replaceAll("[^\\d\\w\\.\\*/]", "_");
     }
 
-    public File getTempFile() {
-        return delegate.getTempFile();
-    }
-
     public void moveFilestore(File destination) {
         delegate.moveFilestore(destination);
+    }
+
+    public FileStoreEntry add(String key, Action<File> addAction) {
+        return delegate.add(normalizePath(key), addAction);
     }
 
     public Set<? extends FileStoreEntry> search(String key) {
         return delegate.search(normalizeSearchPath(key));
     }
-
 }

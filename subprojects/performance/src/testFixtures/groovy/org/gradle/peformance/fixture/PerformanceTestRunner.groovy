@@ -18,9 +18,13 @@ package org.gradle.peformance.fixture
 
 import org.gradle.api.logging.Logging
 import org.gradle.integtests.fixtures.*
+import org.jscience.physics.amount.Amount
+
+import javax.measure.quantity.DataAmount
+import javax.measure.quantity.Duration
 
 public class PerformanceTestRunner {
-    
+
     private final static LOGGER = Logging.getLogger(PerformanceTestRunner.class)
 
     def current = new GradleDistribution()
@@ -29,23 +33,28 @@ public class PerformanceTestRunner {
     String testProject
     int runs
     int warmUpRuns
-    int accuracyMs
-    List<String> gradleOpts
-    List<String> tasksToRun = ['clean', 'build']
+    Amount<Duration> maxExecutionTimeRegression
+    Amount<DataAmount> maxMemoryRegression
+    List<String> otherVersions = []
+    List<String> tasksToRun = []
     DataCollector dataCollector = new MemoryInfoCollector(outputFileName: "build/totalMemoryUsed.txt")
+    List<String> args = []
 
     PerformanceResults results
 
     PerformanceResults run() {
-        results = new PerformanceResults(accuracyMs: accuracyMs, displayName: "Results for test project '$testProject'")
-        LOGGER.lifecycle("Running performance tests for test project '{}', no. # runs: {}", testProject, runs)
+        results = new PerformanceResults(maxExecutionTimeRegression: maxExecutionTimeRegression, maxMemoryRegression: maxMemoryRegression, displayName: "Results for test project '$testProject' with tasks ${tasksToRun.join(', ')}")
+        results.previous.name = "Gradle ${previous.version}"
+        otherVersions.each { results.others[it] = new MeasuredOperationList(name: "Gradle $it") }
+
+        println "Running performance tests for test project '$testProject', no. of runs: $runs"
         warmUpRuns.times {
-            LOGGER.info("Executing warm-up run #${it+1}")
+            println "Executing warm-up run #${it + 1}"
             runOnce()
         }
         results.clear()
         runs.times {
-            LOGGER.info("Executing test run #${it+1}")
+            println "Executing test run #${it + 1}"
             runOnce()
         }
         results
@@ -53,32 +62,32 @@ public class PerformanceTestRunner {
 
     void runOnce() {
         File projectDir = new TestProjectLocator().findProjectDir(testProject)
-        def previousExecuter = executer(previous, projectDir)
-        def previousResult = MeasuredOperation.measure { MeasuredOperation operation ->
-            previousExecuter.run()
+        runOnce(previous, projectDir, results.previous)
+        otherVersions.each {
+            runOnce(current.previousVersion(it), projectDir, results.others[it])
         }
-        dataCollector.collect(projectDir, previousResult)
+        runOnce(current, projectDir, results.current)
+    }
 
-        def currentExecuter = executer(current, projectDir)
-        def currentResult = MeasuredOperation.measure { MeasuredOperation operation ->
-            currentExecuter.run()
+    void runOnce(BasicGradleDistribution dist, File projectDir, MeasuredOperationList results) {
+        def executer = this.executer(dist, projectDir)
+        def operation = MeasuredOperation.measure { MeasuredOperation operation ->
+            executer.run()
         }
-        dataCollector.collect(projectDir, currentResult)
-
-        results.addResult(previousResult, currentResult)
+        dataCollector.collect(projectDir, operation)
+        results.add(operation)
     }
 
     GradleExecuter executer(BasicGradleDistribution dist, File projectDir) {
         def executer
         if (dist instanceof GradleDistribution) {
             executer = new GradleDistributionExecuter(GradleDistributionExecuter.Executer.forking, dist)
+            executer.withDeprecationChecksDisabled()
+            executer.withStackTraceChecksDisabled()
         } else {
             executer = dist.executer()
         }
-        if (gradleOpts) {
-            executer.withGradleOpts(gradleOpts as String[])
-        }
-        executer.withUserHomeDir(current.userHomeDir)
-        return executer.withArguments('-u').inDirectory(projectDir).withTasks(tasksToRun)
+        executer.withGradleUserHomeDir(current.userHomeDir)
+        return executer.withArguments('-u').inDirectory(projectDir).withTasks(tasksToRun).withArguments(args)
     }
 }

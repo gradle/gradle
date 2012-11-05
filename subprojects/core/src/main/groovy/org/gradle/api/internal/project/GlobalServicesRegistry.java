@@ -47,12 +47,12 @@ import org.gradle.util.DefaultClassLoaderFactory;
  */
 public class GlobalServicesRegistry extends DefaultServiceRegistry {
     public GlobalServicesRegistry() {
-        this(LoggingServiceRegistry.newCommandLineProcessLogging());
+        this(LoggingServiceRegistry.newProcessLogging());
     }
 
     public GlobalServicesRegistry(ServiceRegistry loggingServices) {
         super(loggingServices);
-        add(new NativeServices());
+        add(NativeServices.getInstance());
     }
 
     protected CommandLineConverter<StartParameter> createCommandLine2StartParameterConverter() {
@@ -65,6 +65,10 @@ public class GlobalServicesRegistry extends DefaultServiceRegistry {
 
     protected DefaultModuleRegistry createModuleRegistry() {
         return new DefaultModuleRegistry();
+    }
+
+    protected DocumentationRegistry createDocumentationRegistry() {
+        return new DocumentationRegistry(get(GradleDistributionLocator.class));
     }
 
     protected PluginModuleRegistry createPluginModuleRegistry() {

@@ -25,7 +25,7 @@ class IvyChangingModuleRemoteResolveIntegrationTest extends AbstractDependencyRe
         given:
         buildFile << """
 repositories {
-    ivy { url "http://localhost:${server.port}/repo" }
+    ivy { url "${ivyHttpRepo.uri}" }
 }
 
 configurations { compile }
@@ -45,12 +45,11 @@ task retrieve(type: Copy) {
 """
 
         when: "Version 1.1 is published"
-        def module = ivyRepo().module("group", "projectA", "1.1")
-        module.publish()
+        def module = ivyHttpRepo.module("group", "projectA", "1.1").publish()
 
         and: "Server handles requests"
-        server.expectGet('/repo/group/projectA/1.1/ivy-1.1.xml', module.ivyFile)
-        server.expectGet('/repo/group/projectA/1.1/projectA-1.1.jar', module.jarFile)
+        module.expectIvyGet()
+        module.expectJarGet()
 
         and: "We request 1.1 (changing)"
         run 'retrieve'
@@ -62,19 +61,19 @@ task retrieve(type: Copy) {
         module.artifact([name: 'other'])
         module.dependsOn("group", "projectB", "2.0")
         module.publish()
-        def moduleB = ivyRepo().module("group", "projectB", "2.0")
-        moduleB.publish();
+        def moduleB = ivyHttpRepo.module("group", "projectB", "2.0").publish()
 
         and: "Server handles requests"
         server.resetExpectations()
         // Server will be hit to get updated versions
-        server.expectGet('/repo/group/projectA/1.1/ivy-1.1.xml.sha1', module.sha1File(module.ivyFile))
-        server.expectHeadThenGet('/repo/group/projectA/1.1/ivy-1.1.xml', module.ivyFile)
-        server.expectGet('/repo/group/projectA/1.1/projectA-1.1.jar.sha1', module.sha1File(module.jarFile))
-        server.expectHeadThenGet('/repo/group/projectA/1.1/projectA-1.1.jar', module.jarFile)
-        server.expectGet('/repo/group/projectA/1.1/other-1.1.jar', module.moduleDir.file('other-1.1.jar'))
-        server.expectGet('/repo/group/projectB/2.0/ivy-2.0.xml', moduleB.ivyFile)
-        server.expectGet('/repo/group/projectB/2.0/projectB-2.0.jar', moduleB.jarFile)
+        module.expectIvyHead()
+        module.expectIvySha1Get()
+        module.expectIvyGet()
+        module.expectJarHead()
+        module.expectJarSha1Get()
+        module.expectArtifactGet('other')
+        moduleB.expectIvyGet()
+        moduleB.expectJarGet()
 
         and: "We request 1.1 again"
         run 'retrieve'
@@ -90,7 +89,7 @@ task retrieve(type: Copy) {
         buildFile << """
 def isChanging = project.hasProperty('isChanging') ? true : false
 repositories {
-    ivy { url "http://localhost:${server.port}/repo" }
+    ivy { url "${ivyHttpRepo.uri}" }
 }
 
 configurations { compile }
@@ -106,9 +105,8 @@ task retrieve(type: Copy) {
 }
 """
         and:
-        def module = ivyRepo().module("group", "projectA", "1.1")
-        module.publish()
-        server.allowGetOrHead('/repo', ivyRepo().rootDir)
+        def module = ivyHttpRepo.module("group", "projectA", "1.1").publish()
+        module.allowAll()
 
         when: 'original retrieve'
         run 'retrieve'
@@ -117,7 +115,14 @@ task retrieve(type: Copy) {
         def jarSnapshot = file('build/projectA-1.1.jar').snapshot()
 
         when:
+        server.resetExpectations()
         module.publishWithChangedContent()
+        module.expectIvyHead()
+        module.expectIvySha1Get()
+        module.expectIvyGet()
+        module.expectJarHead()
+        module.expectJarSha1Get()
+        module.expectJarGet()
 
         and:
         executer.withArguments('-PisChanging')
@@ -133,7 +138,7 @@ task retrieve(type: Copy) {
         given:
         buildFile << """
 repositories {
-    ivy { url "http://localhost:${server.port}/repo" }
+    ivy { url "${ivyHttpRepo.uri}" }
 }
 
 configurations { compile }
@@ -153,11 +158,11 @@ task retrieve(type: Copy) {
 """
 
         and:
-        def module = ivyRepo().module("group", "projectA", "1.1").publish()
+        def module = ivyHttpRepo.module("group", "projectA", "1.1").publish()
 
         when:
-        server.expectGet('/repo/group/projectA/1.1/ivy-1.1.xml', module.ivyFile)
-        server.expectGet('/repo/group/projectA/1.1/projectA-1.1.jar', module.jarFile)
+        module.expectIvyGet()
+        module.expectJarGet()
 
         run 'retrieve'
 
@@ -171,12 +176,12 @@ task retrieve(type: Copy) {
 
         server.resetExpectations()
         // Server will be hit to get updated versions
-        module.expectIvyHead(server, '/repo')
-        module.expectIvySha1Get(server, '/repo')
-        module.expectIvyGet(server, '/repo')
-        module.expectArtifactHead(server, '/repo')
-        module.expectArtifactSha1Get(server, '/repo')
-        module.expectArtifactGet(server, '/repo')
+        module.expectIvyHead()
+        module.expectIvySha1Get()
+        module.expectIvyGet()
+        module.expectJarHead()
+        module.expectJarSha1Get()
+        module.expectJarGet()
 
         run 'retrieve'
 
@@ -192,7 +197,7 @@ task retrieve(type: Copy) {
         given:
         buildFile << """
 repositories {
-    ivy { url "http://localhost:${server.port}/repo" }
+    ivy { url "${ivyHttpRepo.uri}" }
 }
 
 configurations { compile }
@@ -215,11 +220,11 @@ task retrieve(type: Copy) {
 """
 
         when: "Version 1.1 is published"
-        def module = ivyRepo().module("group", "projectA", "1.1").publish()
+        def module = ivyHttpRepo.module("group", "projectA", "1.1").publish()
 
         and: "Server handles requests"
-        server.expectGet('/repo/group/projectA/1.1/ivy-1.1.xml', module.ivyFile)
-        server.expectGet('/repo/group/projectA/1.1/projectA-1.1.jar', module.jarFile)
+        module.expectIvyGet()
+        module.expectJarGet()
 
         and: "We request 1.1 (changing)"
         run 'retrieve'
@@ -231,6 +236,7 @@ task retrieve(type: Copy) {
         def snapshot = jarFile.snapshot()
 
         when: "Module meta-data is changed and artifacts are modified"
+        server.resetExpectations()
         module.artifact([name: 'other'])
         module.publishWithChangedContent()
 
@@ -244,11 +250,13 @@ task retrieve(type: Copy) {
         when: "Server handles requests"
         server.resetExpectations()
         // Server will be hit to get updated versions
-        server.expectGet('/repo/group/projectA/1.1/ivy-1.1.xml.sha1', module.sha1File(module.ivyFile))
-        server.expectHeadThenGet('/repo/group/projectA/1.1/ivy-1.1.xml', module.ivyFile)
-        server.expectGet('/repo/group/projectA/1.1/projectA-1.1.jar.sha1', module.sha1File(module.jarFile))
-        server.expectHeadThenGet('/repo/group/projectA/1.1/projectA-1.1.jar', module.jarFile)
-        server.expectGet('/repo/group/projectA/1.1/other-1.1.jar', module.moduleDir.file('other-1.1.jar'))
+        module.expectIvyHead()
+        module.expectIvySha1Get()
+        module.expectIvyGet()
+        module.expectJarHead()
+        module.expectJarSha1Get()
+        module.expectJarGet()
+        module.expectArtifactGet('other')
 
         and: "We request 1.1 (changing) again, with zero expiry for dynamic revision cache"
         executer.withArguments("-PdoNotCacheChangingModules")
@@ -266,7 +274,7 @@ task retrieve(type: Copy) {
         given:
         buildFile << """
 repositories {
-    ivy { url "http://localhost:${server.port}/repo" }
+    ivy { url "${ivyHttpRepo.uri}" }
 }
 
 configurations { compile }
@@ -299,11 +307,11 @@ task retrieve(type: Copy) {
 """
 
         when: "Version 1-CHANGING is published"
-        def module = ivyRepo().module("group", "projectA", "1-CHANGING").publish()
+        def module = ivyHttpRepo.module("group", "projectA", "1-CHANGING").publish()
 
         and: "Server handles requests"
-        server.expectGet('/repo/group/projectA/1-CHANGING/ivy-1-CHANGING.xml', module.ivyFile)
-        server.expectGet('/repo/group/projectA/1-CHANGING/projectA-1-CHANGING.jar', module.jarFile)
+        module.expectIvyGet()
+        module.expectJarGet()
 
         and: "We request 1-CHANGING"
         run 'retrieve'
@@ -321,11 +329,13 @@ task retrieve(type: Copy) {
         and: "Server handles requests"
         server.resetExpectations()
         // Server will be hit to get updated versions
-        server.expectGet('/repo/group/projectA/1-CHANGING/ivy-1-CHANGING.xml.sha1', module.sha1File(module.ivyFile))
-        server.expectHeadThenGet('/repo/group/projectA/1-CHANGING/ivy-1-CHANGING.xml', module.ivyFile)
-        server.expectGet('/repo/group/projectA/1-CHANGING/projectA-1-CHANGING.jar.sha1', module.sha1File(module.jarFile))
-        server.expectHeadThenGet('/repo/group/projectA/1-CHANGING/projectA-1-CHANGING.jar', module.jarFile)
-        server.expectGet('/repo/group/projectA/1-CHANGING/other-1-CHANGING.jar', module.moduleDir.file('other-1-CHANGING.jar'))
+        module.expectIvyHead()
+        module.expectIvySha1Get()
+        module.expectIvyGet()
+        module.expectJarHead()
+        module.expectJarSha1Get()
+        module.expectJarGet()
+        module.expectArtifactGet('other')
 
         and: "We request 1-CHANGING again"
         executer.withArguments()
@@ -343,7 +353,7 @@ task retrieve(type: Copy) {
         given:
         buildFile << """
             repositories {
-                ivy { url "http://localhost:${server.port}/repo" }
+                ivy { url "${ivyHttpRepo.uri}" }
             }
 
             configurations { compile }
@@ -363,28 +373,19 @@ task retrieve(type: Copy) {
         """
 
         and:
-        def module = ivyRepo().module("group", "projectA", "1.1").publish()
+        def module = ivyHttpRepo.module("group", "projectA", "1.1").publish()
         
-        // Set the last modified to something that's not going to be anything “else”.
-        // There are lots of dates floating around in a resolution and we want to make
-        // sure we use this.
-        module.jarFile.setLastModified(2000)
-        module.ivyFile.setLastModified(6000)
-
         def base = "/repo/group/projectA/1.1"
         def ivyPath = "$base/$module.ivyFile.name"
         def ivySha1Path = "${ivyPath}.sha1"
-        def originalIvyLastMod = module.ivyFile.lastModified()
-        def originalIvyContentLength = module.ivyFile.length()
         def jarPath = "$base/$module.jarFile.name"
         def jarSha1Path = "${jarPath}.sha1"
-        def originalJarLastMod = module.jarFile.lastModified()
-        def originalJarContentLength = module.jarFile.length()
 
         when:
-        server.expectGet(ivyPath, module.ivyFile)
-        server.expectGet(jarPath, module.jarFile)
+        module.expectIvyGet()
+        module.expectJarGet()
 
+        and:
         run 'retrieve'
 
         then:
@@ -392,27 +393,28 @@ task retrieve(type: Copy) {
         downloadedJar.assertIsCopyOf(module.jarFile)
         def snapshot = downloadedJar.snapshot()
 
-        // Do change the jar, so we can check that the new version wasn't downloaded
-        module.publishWithChangedContent()
-
         when:
         server.resetExpectations()
-        server.expectHead(ivyPath, module.ivyFile, originalIvyLastMod, originalIvyContentLength)
-        server.expectHead(jarPath, module.jarFile, originalJarLastMod, originalJarContentLength)
+        module.expectIvyHead()
+        module.expectJarHead()
 
+        and:
         run 'retrieve'
 
         then:
         downloadedJar.assertHasNotChangedSince(snapshot)
 
         when:
+        // Do change the jar, so we can check that the new version wasn't downloaded
+        module.publishWithChangedContent()
+
         server.resetExpectations()
-        server.expectGetMissing(ivySha1Path)
-        server.expectHead(ivyPath, module.ivyFile)
-        server.expectGet(ivyPath, module.ivyFile)
-        server.expectGetMissing(jarSha1Path)
-        server.expectHead(jarPath, module.jarFile)
-        server.expectGet(jarPath, module.jarFile)
+        module.expectIvyHead()
+        module.expectIvySha1GetMissing()
+        module.expectIvyGet()
+        module.expectJarHead()
+        module.expectJarSha1GetMissing()
+        module.expectJarGet()
 
         run 'retrieve'
 

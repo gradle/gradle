@@ -40,7 +40,7 @@ public class CppIntegrationTestRunner extends AbstractMultiTestRunner {
     }
 
     private static class CompilerExecution extends Execution {
-        private static final ProcessEnvironment PROCESS_ENVIRONMENT = new NativeServices().get(ProcessEnvironment.class);
+        private static final ProcessEnvironment PROCESS_ENVIRONMENT = NativeServices.getInstance().get(ProcessEnvironment.class);
         private final AvailableCompilers.CompilerCandidate compiler;
         private String originalPath;
         private final String pathVarName;

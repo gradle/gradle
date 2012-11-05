@@ -39,7 +39,8 @@ public class DaemonContextParser {
             String uid = matcher.group(1);
             String javaHome = matcher.group(2);
             String daemonRegistryDir = matcher.group(3);
-            Long pid = Long.parseLong(matcher.group(4));
+            String pidStr = matcher.group(4);
+            Long pid = pidStr.equals("null") ? null : Long.parseLong(pidStr);
             Integer idleTimeout = Integer.decode(matcher.group(5));
             List<String> jvmOpts = Lists.newArrayList(Splitter.on(',').split(matcher.group(6)));
             return new DefaultDaemonContext(uid, new File(javaHome), new File(daemonRegistryDir), pid, idleTimeout, jvmOpts);

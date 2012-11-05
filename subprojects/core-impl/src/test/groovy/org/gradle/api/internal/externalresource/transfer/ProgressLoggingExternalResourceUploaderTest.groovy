@@ -36,21 +36,17 @@ class ProgressLoggingExternalResourceUploaderTest extends Specification {
         startsProgress()
 
         when:
-        progressLoggerUploader.upload(inputStreamFactory(), 1024, "http://a/remote/path")
+        progressLoggerUploader.upload(inputStreamFactory(), 5 * 1024, "http://a/remote/path")
         then:
         1 * delegateFactory.create() >> inputStream
-        1 * uploader.upload(_, 1024, "http://a/remote/path") >> {factory, length, destination ->
+        1 * uploader.upload(_, 5 * 1024, "http://a/remote/path") >> {factory, length, destination ->
             def stream = factory.create();
-            assert stream.read(new byte[100], 0, 10) == 5
-            assert stream.read(new byte[100]) == 10
+            assert stream.read(new byte[1024]) == 1024
             assert stream.read() == 48
         }
-        1 * inputStream.read(_, 0, 10) >> 5
-        1 * inputStream.read(_, 0, 100) >> 10
+        1 * inputStream.read(_, 0, 1024) >> 1024
         1 * inputStream.read() >> 48
-        1 * progressLogger.progress("5 B/1 KB uploaded")
-        1 * progressLogger.progress("15 B/1 KB uploaded")
-        1 * progressLogger.progress("16 B/1 KB uploaded")
+        1 * progressLogger.progress(_)
         1 * progressLogger.completed()
     }
 
@@ -64,8 +60,8 @@ class ProgressLoggingExternalResourceUploaderTest extends Specification {
 
     def startsProgress() {
         1 * progressLoggerFactory.newOperation(ProgressLoggingExternalResourceUploader.class) >> progressLogger;
-        1 * progressLogger.setDescription("Upload to http://a/remote/path")
-        1 * progressLogger.setLoggingHeader("Upload to http://a/remote/path")
+        1 * progressLogger.setDescription("Upload http://a/remote/path")
+        1 * progressLogger.setLoggingHeader("Upload http://a/remote/path")
         1 * progressLogger.started()
     }
 }

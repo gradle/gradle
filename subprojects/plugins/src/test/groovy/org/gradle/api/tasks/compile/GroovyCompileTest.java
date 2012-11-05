@@ -60,7 +60,6 @@ public class GroovyCompileTest extends AbstractCompileTest {
 
     @Before
     public void setUp() {
-        super.setUp();
         testObj = createTask(GroovyCompile.class);
         groovyCompilerMock = context.mock(Compiler.class);
         testObj.setCompiler(groovyCompilerMock);

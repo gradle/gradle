@@ -13,7 +13,8 @@ libs - Builds the JAR
 
 Help tasks
 ----------
-dependencies - Displays the dependencies of root project 'projectReports'.
+dependencies - Displays all dependencies declared in root project 'projectReports'.
+dependencyInsight - Displays the insight into a specific dependency in root project 'projectReports'.
 help - Displays a help message
 projects - Displays the sub-projects of root project 'projectReports'.
 properties - Displays the properties of root project 'projectReports'.
