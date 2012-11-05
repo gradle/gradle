@@ -22,11 +22,10 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 
 public class DefaultBuildConfigurer implements BuildConfigurer {
-    private Action<? super Project> actions;
+    private Action<Project> actions;
 
     public DefaultBuildConfigurer(Action<? super ProjectInternal>... actions) {
-        //noinspection RedundantTypeArguments
-        this.actions = Actions.<ProjectInternal, Project>castBefore(ProjectInternal.class, Actions.<ProjectInternal>composite(actions));
+        this.actions = Actions.castBefore(ProjectInternal.class, Actions.<ProjectInternal>composite(actions));
     }
 
     public void configure(GradleInternal gradle) {

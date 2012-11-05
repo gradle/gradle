@@ -34,7 +34,7 @@ public abstract class Actions {
      *
      * @return An action object with an empty implementation
      */
-    public static <T> Action<? super T> doNothing() {
+    public static <T> Action<T> doNothing() {
         return new NullAction<T>();
     }
 
@@ -78,7 +78,7 @@ public abstract class Actions {
      * @param <I> The type of the original argument
      * @return An action that transforms an object of type I to type O to give to the given action
      */
-    public static <T, I> Action<? super I> transformBefore(final Action<? super T> action, final Transformer<? extends T, ? super I> transformer) {
+    public static <T, I> Action<I> transformBefore(final Action<? super T> action, final Transformer<? extends T, ? super I> transformer) {
         return new TransformingActionAdapter<T, I>(transformer, action);
     }
 
@@ -106,7 +106,7 @@ public abstract class Actions {
      * @param <I> The type before casting
      * @return An action that casts the object to the given type before giving it to the given action
      */
-    public static <T, I> Action<? super I> castBefore(final Class<T> actionType, final Action<? super T> action) {
+    public static <T, I> Action<I> castBefore(final Class<T> actionType, final Action<? super T> action) {
         return transformBefore(action, Transformers.<T, I>cast(actionType));
     }
 
