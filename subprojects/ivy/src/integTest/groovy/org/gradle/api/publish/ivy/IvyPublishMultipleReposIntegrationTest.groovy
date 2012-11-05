@@ -82,8 +82,8 @@ class IvyPublishMultipleReposIntegrationTest extends AbstractIntegrationSpec {
         repo2Module.jarFile.exists()
 
         and: // Modification applied to both
-        repo1Module.ivyXml.@rev == "10"
-        repo2Module.ivyXml.@rev == "11"
+        repo1Module.ivy.rev == "10"
+        repo2Module.ivy.rev == "11"
     }
 
 }

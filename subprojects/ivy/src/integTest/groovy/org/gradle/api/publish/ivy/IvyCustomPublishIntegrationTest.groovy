@@ -28,6 +28,7 @@ class IvyCustomPublishIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << 'rootProject.name = "publish"'
 
         buildFile << """
+            apply plugin: 'java'
             apply plugin: 'ivy-publish'
 
             version = '2'
@@ -55,8 +56,12 @@ class IvyCustomPublishIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         module.ivyFile.assertIsFile()
-        module.moduleDir.file("foo-2.txt")
-        module.ivyXml.configurations[0].conf*.@name == ["custom"]
+        module.assertArtifactsPublished("ivy-2.xml", "foo-2.txt", "publish-2.jar")
+        with(module.ivy.artifacts.foo) {
+            name == "foo"
+            ext == "txt"
+            "custom" in conf
+        }
     }
 
 }

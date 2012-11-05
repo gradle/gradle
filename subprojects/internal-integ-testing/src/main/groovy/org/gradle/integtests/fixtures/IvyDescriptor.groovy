@@ -21,6 +21,7 @@ import java.util.regex.Pattern
 class IvyDescriptor {
     final Map<String, IvyConfiguration> configurations = [:]
     Map<String, IvyArtifact> artifacts = [:]
+    String rev
 
     IvyDescriptor(File ivyFile) {
         def ivy = new XmlParser().parse(ivyFile)
@@ -41,6 +42,7 @@ class IvyDescriptor {
             def ivyArtifact = new IvyArtifact(name: artifact.@name, type: artifact.@type, ext: artifact.@ext, conf: artifact.@conf.split(",") as List)
             artifacts.put(ivyArtifact.name, ivyArtifact)
         }
+        rev = ivy.@rev
     }
 
     IvyArtifact expectArtifact(String name) {

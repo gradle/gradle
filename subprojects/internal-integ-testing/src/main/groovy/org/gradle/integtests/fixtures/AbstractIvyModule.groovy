@@ -16,12 +16,10 @@
 
 package org.gradle.integtests.fixtures
 
-import groovy.util.slurpersupport.GPathResult
-
 abstract class AbstractIvyModule implements IvyModule {
 
-    GPathResult getIvyXml() {
-        new XmlSlurper().parse(getIvyFile())
+    IvyDescriptor getIvy() {
+        return new IvyDescriptor(ivyFile)
     }
 
 }

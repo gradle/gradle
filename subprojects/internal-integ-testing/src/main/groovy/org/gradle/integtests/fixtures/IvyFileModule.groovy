@@ -175,9 +175,9 @@ class IvyFileModule extends AbstractIvyModule {
      * Asserts that exactly the given artifacts have been published.
      */
     void assertArtifactsPublished(String... names) {
-        Set allFileNames = [];
+        Set allFileNames = []
         for (name in names) {
-            allFileNames += [name, "${name}.sha1"]
+            allFileNames.addAll([name, "${name}.sha1"])
         }
         assert moduleDir.list() as Set == allFileNames
     }
@@ -192,7 +192,4 @@ class IvyFileModule extends AbstractIvyModule {
         return HashUtil.createHash(file, algorithm).asHexString()
     }
 
-    IvyDescriptor getIvy() {
-        return new IvyDescriptor(ivyFile)
-    }
 }
