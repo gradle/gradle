@@ -199,7 +199,7 @@ public class DefaultMavenPom implements MavenPom {
     }
 
     private void writeNonEffectivePom(final Writer pomWriter) {
-        withXmlActions.transform(pomWriter, new ErroringAction<Writer>() {
+        withXmlActions.transform(pomWriter, "UTF-8", new ErroringAction<Writer>() {
             protected void doExecute(Writer writer) throws IOException {
                 mavenProject.writeModel(writer);
             }

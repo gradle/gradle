@@ -276,7 +276,7 @@ class XmlTransformerTest extends Specification {
         transformer.transform(writer, generator)
 
         then:
-        writer.toString() == input
+        looksLike(input, writer.toString())
 
         when:
         writer.buffer.setLength(0)

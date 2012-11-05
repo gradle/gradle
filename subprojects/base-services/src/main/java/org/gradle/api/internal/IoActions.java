@@ -78,7 +78,7 @@ public abstract class IoActions {
                         throw new IOException(String.format("Unable to create directory '%s'", parentFile));
                     }
                 }
-                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), encoding));
+                BufferedWriter writer = new BufferedWriter(new PrintWriter(new OutputStreamWriter(new FileOutputStream(file), encoding)));
                 try {
                     action.execute(writer);
                 } finally {
