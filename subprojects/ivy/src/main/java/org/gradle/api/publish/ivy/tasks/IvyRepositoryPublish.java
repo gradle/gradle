@@ -37,12 +37,12 @@ import java.util.concurrent.Callable;
  * @since 1.3
  */
 @Incubating
-public class IvyPublish extends DefaultTask {
+public class IvyRepositoryPublish extends DefaultTask {
 
     private IvyPublicationInternal publication;
     private IvyArtifactRepositoryInternal repository;
 
-    public IvyPublish() {
+    public IvyRepositoryPublish() {
         // Allow the publication to participate in incremental build
         getInputs().files(new Callable<FileCollection>() {
             public FileCollection call() throws Exception {

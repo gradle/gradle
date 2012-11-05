@@ -16,10 +16,11 @@
 
 package org.gradle.integtests.fixtures
 
-class IvyArtifact {
+class IvyDescriptorConfiguration {
+
     String name
-    String type
-    String ext
-    List<String> conf
-    Map<String, String> m
+    String visibility
+    String description
+    Set<String> extend
+
 }

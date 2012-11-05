@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.fixtures
 
-class IvyConfiguration {
+class IvyDescriptorDependencyConfiguration {
     final dependencies = []
 
     void addDependency(String org, String module, String revision) {

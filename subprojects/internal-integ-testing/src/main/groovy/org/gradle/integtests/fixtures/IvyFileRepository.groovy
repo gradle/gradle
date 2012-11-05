@@ -15,6 +15,8 @@
  */
 package org.gradle.integtests.fixtures
 
+import org.apache.ivy.core.IvyPatternHelper
+import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.util.TestFile
 
 class IvyFileRepository implements IvyRepository {
@@ -36,17 +38,31 @@ class IvyFileRepository implements IvyRepository {
         return "${uri}/${baseArtifactPattern}"
     }
 
+    String getIvyFilePattern() {
+        "ivy-[revision].xml"
+    }
+
     String getBaseIvyPattern() {
-        return "[organisation]/[module]/[revision]/ivy-[revision].xml"
+        "$dirPattern/$ivyFilePattern"
+    }
+
+    String getArtifactFilePattern() {
+        "[artifact]-[revision](.[ext])"
     }
 
     String getBaseArtifactPattern() {
-        return "[organisation]/[module]/[revision]/[artifact]-[revision](.[ext])"
+        "$dirPattern/$artifactFilePattern"
+    }
+
+    String getDirPattern() {
+        "[organisation]/[module]/[revision]"
     }
 
     IvyFileModule module(String organisation, String module, Object revision = '1.0') {
-        def moduleDir = rootDir.file("$organisation/$module/$revision")
-        return new IvyFileModule(moduleDir, organisation, module, revision as String)
+        def revisionString = revision.toString()
+        def path = IvyPatternHelper.substitute(dirPattern, ModuleRevisionId.newInstance(organisation, module, revisionString))
+        def moduleDir = rootDir.file(path)
+        return new IvyFileModule(ivyFilePattern, artifactFilePattern, moduleDir, organisation, module, revisionString)
     }
 }
 

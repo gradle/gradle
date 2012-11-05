@@ -30,10 +30,10 @@ import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
 
-class IvyPublishTest extends Specification {
+class IvyRepositoryPublishTest extends Specification {
 
     Project project
-    IvyPublish publish
+    IvyRepositoryPublish publish
 
     def normalizedPublication = Mock(IvyNormalizedPublication)
 
@@ -136,8 +136,8 @@ class IvyPublishTest extends Specification {
         true
     }
 
-    IvyPublish createPublish(String name) {
-        project.tasks.add(name, IvyPublish)
+    IvyRepositoryPublish createPublish(String name) {
+        project.tasks.add(name, IvyRepositoryPublish)
     }
 
 }

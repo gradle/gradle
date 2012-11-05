@@ -15,27 +15,49 @@
  */
 package org.gradle.api.publish.ivy
 
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.IvyDescriptor
+import org.gradle.integtests.fixtures.IvyFileRepository
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.util.TestFile
 import org.junit.Rule
-import org.junit.Test
 
-/**
- * @author Hans Dockter
- */
-public class SamplesIvyPublishIntegrationTest {
-    @Rule
-    public final GradleDistribution dist = new GradleDistribution()
-    @Rule
-    public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
-    @Rule
-    public final Sample sample = new Sample("ivypublish-new")
+public class SamplesIvyPublishIntegrationTest extends AbstractIntegrationSpec {
 
-    @Test
-    public void testPublish() {
-        // the actual testing is done in the build script.
-        File projectDir = sample.dir
-        executer.inDirectory(projectDir).withTasks("publishToRepo").run()
+    @Rule Sample sample = new Sample("ivypublish-new")
+
+    def sample() {
+        given:
+        executer.inDirectory(sample.dir)
+
+        when:
+        succeeds "publishToRepo"
+
+        then:
+        def repo = new IvyFileRepository(new TestFile(sample.dir, "build/repo")) {
+            @Override
+            String getIvyFilePattern() {
+                'ivy.xml'
+            }
+
+            @Override
+            String getArtifactFilePattern() {
+                '[artifact](.[ext])'
+            }
+
+            @Override
+            String getDirPattern() {
+                "[module]/[revision]"
+            }
+        }
+
+        def module = repo.module("org.gradle.test", "ivypublish", "1.0")
+        module.assertArtifactsPublished("ivy.xml", "ivypublish.jar", "ivypublishSource.jar")
+
+        IvyDescriptor ivy = module.ivy
+        ivy.artifacts.ivypublishSource.m.classifier == "src"
+        ivy.configurations.keySet() == ['archives', 'compile', 'default', 'runtime', 'testCompile', 'testRuntime'] as Set
+        ivy.dependencies.compile.assertDependsOn('junit', 'junit', '4.10')
+        ivy.dependencies.compile.assertDependsOn('ivypublish', 'subproject', 'unspecified')
     }
 }

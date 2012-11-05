@@ -20,7 +20,7 @@ import org.gradle.api.publish.Publication
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.ivy.IvyPublication
 import org.gradle.api.publish.ivy.internal.IvyPublicationInternal
-import org.gradle.api.publish.ivy.tasks.IvyPublish
+import org.gradle.api.publish.ivy.tasks.IvyRepositoryPublish
 import org.gradle.api.publish.plugins.PublishingPlugin
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
@@ -55,7 +55,7 @@ class IvyPublishDynamicTaskCreatorTest extends Specification {
         then:
         ivyPublishTasks.size() == 1
         project.tasks["publishIvyToIvyRepo"] != null
-        IvyPublish task = project.tasks.publishIvyToIvyRepo
+        IvyRepositoryPublish task = project.tasks.publishIvyToIvyRepo
         task.group == "publishing"
         task.description != null
 
@@ -76,7 +76,7 @@ class IvyPublishDynamicTaskCreatorTest extends Specification {
     }
 
     def getIvyPublishTasks() {
-        project.tasks.withType(IvyPublish)
+        project.tasks.withType(IvyRepositoryPublish)
     }
 
     Publication publication(String name) {

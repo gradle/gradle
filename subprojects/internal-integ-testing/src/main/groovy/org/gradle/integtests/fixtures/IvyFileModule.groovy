@@ -15,10 +15,14 @@
  */
 package org.gradle.integtests.fixtures
 
+import org.apache.ivy.core.IvyPatternHelper
+import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.util.TestFile
 import org.gradle.util.hash.HashUtil
 
 class IvyFileModule extends AbstractIvyModule {
+    final String ivyPattern
+    final String artifactPattern
     final TestFile moduleDir
     final String organisation
     final String module
@@ -30,7 +34,9 @@ class IvyFileModule extends AbstractIvyModule {
     boolean noMetaData
     int publishCount = 1
 
-    IvyFileModule(TestFile moduleDir, String organisation, String module, String revision) {
+    IvyFileModule(String ivyPattern, String artifactPattern, TestFile moduleDir, String organisation, String module, String revision) {
+        this.ivyPattern = ivyPattern
+        this.artifactPattern = artifactPattern
         this.moduleDir = moduleDir
         this.organisation = organisation
         this.module = module
@@ -76,11 +82,13 @@ class IvyFileModule extends AbstractIvyModule {
     }
 
     TestFile getIvyFile() {
-        return moduleDir.file("ivy-${revision}.xml")
+        def path = IvyPatternHelper.substitute(ivyPattern, ModuleRevisionId.newInstance(organisation, module, revision))
+        return moduleDir.file(path)
     }
 
     TestFile getJarFile() {
-        return moduleDir.file("$module-${revision}.jar")
+        def path = IvyPatternHelper.substitute(ivyPattern, ModuleRevisionId.newInstance(organisation, module, revision), "jar", "jar", "jar")
+        return moduleDir.file(path)
     }
 
     TestFile sha1File(File file) {

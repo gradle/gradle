@@ -16,33 +16,51 @@
 
 package org.gradle.integtests.fixtures
 
+import groovy.xml.QName
+
 import java.util.regex.Pattern
 
 class IvyDescriptor {
-    final Map<String, IvyConfiguration> configurations = [:]
+    final Map<String, IvyDescriptorDependencyConfiguration> dependencies = [:]
     Map<String, IvyArtifact> artifacts = [:]
+    Map<String, IvyDescriptorConfiguration> configurations = [:]
     String rev
 
     IvyDescriptor(File ivyFile) {
         def ivy = new XmlParser().parse(ivyFile)
+        rev = ivy.@rev
+
+        ivy.configurations[0].conf.each {
+            configurations[it.@name] = new IvyDescriptorConfiguration(
+                    name: it.@name, visibility: it.@visibility, description: it.@description,
+                    extend: (it.@extends ?: "").split(",")*.trim()
+            )
+        }
+
         ivy.dependencies.dependency.each { dep ->
             def configName = dep.@conf ?: "default"
             def matcher = Pattern.compile("(\\w+)->\\w+").matcher(configName)
             if (matcher.matches()) {
                 configName = matcher.group(1)
             }
-            def config = configurations[configName]
+            def config = dependencies[configName]
             if (!config) {
-                config = new IvyConfiguration()
-                configurations[configName] = config
+                config = new IvyDescriptorDependencyConfiguration()
+                dependencies[configName] = config
             }
             config.addDependency(dep.@org, dep.@name, dep.@rev)
         }
+
         ivy.publications.artifact.each { artifact ->
-            def ivyArtifact = new IvyArtifact(name: artifact.@name, type: artifact.@type, ext: artifact.@ext, conf: artifact.@conf.split(",") as List)
+            def ivyArtifact = new IvyArtifact(
+                    name: artifact.@name, type: artifact.@type,
+                    ext: artifact.@ext, conf: artifact.@conf.split(",") as List,
+                    m: artifact.attributes().findAll { it.key instanceof QName && it.key.namespaceURI == "http://ant.apache.org/ivy/maven" }.collectEntries { [it.key.localPart, it.value] }
+            )
+
             artifacts.put(ivyArtifact.name, ivyArtifact)
         }
-        rev = ivy.@rev
+
     }
 
     IvyArtifact expectArtifact(String name) {
