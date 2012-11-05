@@ -24,11 +24,11 @@ import org.gradle.util.ConfigureUtil;
 
 public abstract class AbstractNamedDomainObjectContainer<T> extends DefaultNamedDomainObjectSet<T> implements NamedDomainObjectContainer<T> {
 
-    protected AbstractNamedDomainObjectContainer(Class<? extends T> type, Instantiator instantiator, Namer<? super T> namer) {
+    protected AbstractNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer) {
         super(type, instantiator, namer);
     }
 
-    protected AbstractNamedDomainObjectContainer(Class<? extends T> type, Instantiator instantiator) {
+    protected AbstractNamedDomainObjectContainer(Class<T> type, Instantiator instantiator) {
         super(type, instantiator, Named.Namer.forType(type));
     }
 

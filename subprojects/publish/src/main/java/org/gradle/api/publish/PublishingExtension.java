@@ -18,8 +18,7 @@ package org.gradle.api.publish;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.NamedDomainObjectContainer;
-import org.gradle.api.artifacts.repositories.ArtifactRepository;
+import org.gradle.api.artifacts.dsl.RepositoryHandler;
 
 /**
  * Provides access to the publications and repositories to publish to.
@@ -43,14 +42,14 @@ public interface PublishingExtension {
      *
      * @return The container of possible repositories to publish to.
      */
-    NamedDomainObjectContainer<ArtifactRepository> getRepositories();
+    RepositoryHandler getRepositories();
 
     /**
      * Configures the container of possible repositories to publish to.
      *
      * @param configure The action to configure the container of repositories with.
      */
-    void repositories(Action<? super NamedDomainObjectContainer<ArtifactRepository>> configure);
+    void repositories(Action<? super RepositoryHandler> configure);
 
     /**
      * The publications of this project.

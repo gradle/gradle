@@ -16,23 +16,19 @@
 
 package org.gradle.api.publish.ivy.plugins;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.internal.ConventionMapping;
-import org.gradle.api.internal.artifacts.BaseRepositoryFactory;
-import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.plugins.DslObject;
-import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.PublishingExtension;
-import org.gradle.api.publish.internal.DefaultPublishingExtension;
-import org.gradle.api.publish.internal.PublicationRepositoryContainer;
 import org.gradle.api.publish.ivy.IvyPublication;
 import org.gradle.api.publish.ivy.internal.DefaultIvyPublication;
-import org.gradle.api.publish.ivy.internal.IvyArtifactRepositoryFactory;
 import org.gradle.api.publish.ivy.internal.IvyModuleDescriptorInternal;
 import org.gradle.api.publish.ivy.tasks.internal.DefaultIvyPublishTaskNamer;
 import org.gradle.api.publish.ivy.tasks.internal.IvyPublishDynamicTaskCreator;
@@ -59,22 +55,19 @@ public class IvyPublishPlugin implements Plugin<Project> {
     private final Instantiator instantiator;
     private final DependencyMetaDataProvider dependencyMetaDataProvider;
     private final FileResolver fileResolver;
-    private final DependencyResolutionServices dependencyResolutionServices;
 
     @Inject
     public IvyPublishPlugin(
-            Instantiator instantiator, DependencyMetaDataProvider dependencyMetaDataProvider, FileResolver fileResolver,
-            DependencyResolutionServices dependencyResolutionServices
+            Instantiator instantiator, DependencyMetaDataProvider dependencyMetaDataProvider, FileResolver fileResolver
     ) {
         this.instantiator = instantiator;
         this.dependencyMetaDataProvider = dependencyMetaDataProvider;
         this.fileResolver = fileResolver;
-        this.dependencyResolutionServices = dependencyResolutionServices;
     }
 
     public void apply(Project project) {
         project.getPlugins().apply(PublishingPlugin.class);
-        DefaultPublishingExtension extension = (DefaultPublishingExtension) project.getExtensions().getByType(PublishingExtension.class);
+        PublishingExtension extension = project.getExtensions().getByType(PublishingExtension.class);
 
         Set<Configuration> visibleConfigurations = project.getConfigurations().matching(new Spec<Configuration>() {
             public boolean isSatisfiedBy(Configuration configuration) {
@@ -82,15 +75,15 @@ public class IvyPublishPlugin implements Plugin<Project> {
             }
         });
 
-        PublicationContainer publications = extension.getPublications();
-        publications.add(createPublication("main", project, visibleConfigurations));
-
-        final BaseRepositoryFactory baseRepositoryFactory = dependencyResolutionServices.getBaseRepositoryFactory();
-        PublicationRepositoryContainer repositories = extension.getRepositories();
-        repositories.setFactory(new IvyArtifactRepositoryFactory(baseRepositoryFactory));
+        extension.getPublications().add(createPublication("main", project, visibleConfigurations));
+        extension.getRepositories().ivy(new Action<IvyArtifactRepository>() {
+            public void execute(IvyArtifactRepository ivyArtifactRepository) {
+                ivyArtifactRepository.setName("main");
+            }
+        });
 
         // Create publish tasks automatically for any Ivy publication and repository combinations
-        new IvyPublishDynamicTaskCreator(project.getTasks(), new DefaultIvyPublishTaskNamer()).monitor(publications, repositories);
+        new IvyPublishDynamicTaskCreator(project.getTasks(), new DefaultIvyPublishTaskNamer()).monitor(extension.getPublications(), extension.getRepositories());
     }
 
     private IvyPublication createPublication(String name, final Project project, Set<? extends Configuration> configurations) {

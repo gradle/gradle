@@ -17,7 +17,7 @@
 package org.gradle.api.publish.ivy.tasks.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.NamedDomainObjectContainer;
+import org.gradle.api.artifacts.ArtifactRepositoryContainer;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.internal.artifacts.repositories.IvyArtifactRepositoryInternal;
 import org.gradle.api.publish.Publication;
@@ -39,7 +39,7 @@ public class IvyPublishDynamicTaskCreator {
         this.taskNamer = taskNamer;
     }
 
-    public void monitor(final PublicationContainer publications, final NamedDomainObjectContainer<ArtifactRepository> repositories) {
+    public void monitor(final PublicationContainer publications, final ArtifactRepositoryContainer repositories) {
         publications.all(new Action<Publication>() {
             public void execute(Publication publication) {
                 for (ArtifactRepository repository : repositories) {
