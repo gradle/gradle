@@ -53,7 +53,7 @@ if (version == "unspecified") {
 
     // Using 0.0 causes issues with the Tooling API. It's something to do with older versions of Gradle not
     // understanding the 0.0 version number scheme. For the time being, we are going to hardcode the version.
-    version = "1.3"
+    version = "1.4"
 
     ext.isSymbolicVersion = false
 } else {
