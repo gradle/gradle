@@ -60,8 +60,9 @@ public class ZipFileTree implements MinimalFileTree, FileSystemMirroringFileTree
 
     public void visit(FileVisitor visitor) {
         if (!zipFile.exists()) {
-            DeprecationLogger.nagUserWith(String.format("The specified zip file %s does not exist and will be silently ignored."
-                + " This behaviour has been deprecated and will cause an error in the next version of Gradle.", getDisplayName()));
+            DeprecationLogger.nagUserOfDeprecatedBehaviour(
+                    String.format("The specified zip file %s does not exist and will be silently ignored", getDisplayName())
+            );
             return;
         }
         if (!zipFile.isFile()) {

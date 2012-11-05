@@ -54,9 +54,11 @@ public class ChainedVersionLister implements VersionLister {
                         }
                     } catch (Exception e) {
                         if (versionListIterator.hasNext()) {
-                            String deprecationMessage = String.format("Error listing versions of %s using %s. Will attempt an alternate way to list versions. "
-                                    + "This behaviour is deprecated: in a future version of Gradle, this build will fail.", moduleRevisionId, list.getClass());
-                            DeprecationLogger.nagUserWith(deprecationMessage);
+                            String deprecationMessage = String.format(
+                                    "Error listing versions of %s using %s. Will attempt an alternate way to list versions",
+                                    moduleRevisionId, list.getClass()
+                            );
+                            DeprecationLogger.nagUserOfDeprecatedBehaviour(deprecationMessage);
                             LOGGER.debug(deprecationMessage, e);
                         } else {
                             throw new ResourceException(String.format("Failed to list versions for %s.", moduleRevisionId), e);

@@ -90,8 +90,10 @@ public class FileOrUriNotationParser<T extends Serializable> implements Notation
                 }
             }
         } else {
-            DeprecationLogger.nagUserWith(String.format("Converting class %s to File using toString() Method. "
-                    + " This has been deprecated and will be removed in the next version of Gradle. Please use java.io.File, java.lang.String, java.net.URL, or java.net.URI instead.", notation.getClass().getName()));
+            DeprecationLogger.nagUserOfDeprecated(
+                    String.format("Converting class %s to File using toString() method", notation.getClass().getName()),
+                    "Please use java.io.File, java.lang.String, java.net.URL, or java.net.URI instead"
+            );
         }
         return (T) new File(notation.toString());
     }

@@ -239,6 +239,19 @@ class GradleVersionTest extends Specification {
         "asdfasd"                 | null
     }
 
+    def "can get version major"() {
+        expect:
+        GradleVersion.version(v).major == major
+
+        where:
+        v                         | major
+        "1.0"                     | 1
+        "1.0-rc-1"                | 1
+        '0.9-20101220100000+1000' | 0
+        '0.9-20101220100000'      | 0
+        "asdfasd"                 | -1
+    }
+
     def prettyPrint() {
         String expectedText = """
 ------------------------------------------------------------

@@ -49,7 +49,27 @@ public class DeprecationLogger {
     };
 
     public static final String ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME = "org.gradle.deprecation.trace";
-    private static final String DEPRECATION_MESSAGE = "has been deprecated and is scheduled to be removed in Gradle 2.0";
+
+    private static String deprecationMessage;
+
+    private static String getDeprecationMessage() {
+        if (deprecationMessage == null) {
+            String messageBase = "has been deprecated and is scheduled to be removed in";
+            String when;
+
+            GradleVersion currentVersion = GradleVersion.current();
+            int versionMajor = currentVersion.getMajor();
+            if (versionMajor == -1) { // don't understand version number
+                when = "the next major version of Gradle";
+            } else {
+                when = String.format("Gradle %d.0", versionMajor + 1);
+            }
+
+            deprecationMessage = String.format("%s %s", messageBase, when);
+        }
+
+        return deprecationMessage;
+    }
 
     public static void reset() {
         PLUGINS.clear();
@@ -63,7 +83,7 @@ public class DeprecationLogger {
         if (isEnabled() && PLUGINS.add(pluginName)) {
             LOGGER.warn(String.format(
                     "The %s plugin %S. Please use the %s plugin instead.",
-                    pluginName, DEPRECATION_MESSAGE, replacement));
+                    pluginName, getDeprecationMessage(), replacement));
             logTraceIfNecessary();
         }
     }
@@ -72,7 +92,7 @@ public class DeprecationLogger {
         if (isEnabled() && TASKS.add(taskName)) {
             LOGGER.warn(String.format(
                     "The %s task type %s. Please use the %s instead.",
-                    taskName, DEPRECATION_MESSAGE, replacement));
+                    taskName, getDeprecationMessage(), replacement));
             logTraceIfNecessary();
         }
     }
@@ -81,7 +101,7 @@ public class DeprecationLogger {
         if (isEnabled() && METHODS.add(methodName)) {
             LOGGER.warn(String.format(
                     "The %s method %s. Please use the %s method instead.",
-                    methodName, DEPRECATION_MESSAGE, replacement));
+                    methodName, getDeprecationMessage(), replacement));
             logTraceIfNecessary();
         }
     }
@@ -90,7 +110,7 @@ public class DeprecationLogger {
         if (isEnabled() && PROPERTIES.add(propertyName)) {
             LOGGER.warn(String.format(
                     "The %s property %s. Please use the %s property instead.",
-                    propertyName, DEPRECATION_MESSAGE, replacement));
+                    propertyName, getDeprecationMessage(), replacement));
             logTraceIfNecessary();
         }
     }
@@ -98,7 +118,7 @@ public class DeprecationLogger {
     public static void nagUserOfDiscontinuedMethod(String methodName) {
         if (isEnabled() && METHODS.add(methodName)) {
             LOGGER.warn(String.format("The %s method %s.",
-                    methodName, DEPRECATION_MESSAGE));
+                    methodName, getDeprecationMessage()));
             logTraceIfNecessary();
         }
     }
@@ -106,7 +126,7 @@ public class DeprecationLogger {
     public static void nagUserOfDiscontinuedProperty(String propertyName, String advice) {
         if (isEnabled() && PROPERTIES.add(propertyName)) {
             LOGGER.warn(String.format("The %s property %s. %s",
-                    propertyName, DEPRECATION_MESSAGE, advice));
+                    propertyName, getDeprecationMessage(), advice));
             logTraceIfNecessary();
         }
     }
@@ -115,11 +135,14 @@ public class DeprecationLogger {
         if (isEnabled() && NAMED_PARAMETERS.add(parameterName)) {
             LOGGER.warn(String.format(
                     "The %s named parameter %s. Please use the %s named parameter instead.",
-                    parameterName, DEPRECATION_MESSAGE, replacement));
+                    parameterName, getDeprecationMessage(), replacement));
             logTraceIfNecessary();
         }
     }
 
+    /**
+     * Try to avoid using this nagging method. The other methods use a consistent wording for when things will be removed.
+     */
     public static void nagUserWith(String message) {
         if (isEnabled() && METHODS.add(message)) {
             LOGGER.warn(message);
@@ -127,8 +150,19 @@ public class DeprecationLogger {
         }
     }
 
+    /**
+     * Avoid using this method, use the variant with an explanation instead.
+     */
+    public static void nagUserOfDeprecated(String thing) {
+        nagUserWith(String.format("%s %s", thing, getDeprecationMessage()));
+    }
+
     public static void nagUserOfDeprecated(String thing, String explanation) {
-        nagUserWith(String.format("%s %s. %s", thing, DEPRECATION_MESSAGE, explanation));
+        nagUserWith(String.format("%s %s. %s.", thing, getDeprecationMessage(), explanation));
+    }
+
+    public static void nagUserOfDeprecatedBehaviour(String behaviour) {
+        nagUserOfDeprecated(String.format("%s. This behaviour", behaviour));
     }
 
     public static <T> T whileDisabled(Factory<T> factory) {
@@ -176,7 +210,7 @@ public class DeprecationLogger {
         if (!isEnabled()) {
             return;
         }
-        nagUserWith("Dynamic properties are deprecated: http://gradle.org/docs/current/dsl/org.gradle.api.plugins.ExtraPropertiesExtension.html");
+        nagUserOfDeprecated("Creating properties on demand (a.k.a. dynamic properties)", "Please read http://gradle.org/docs/current/dsl/org.gradle.api.plugins.ExtraPropertiesExtension.html for information on the replacement for dynamic properties");
 
         String propertyWithClass = target.getClass().getName() + "." + propertyName;
         if (DYNAMIC_PROPERTIES.add(propertyWithClass)) {

@@ -55,7 +55,7 @@ public class DefaultExcludeRule implements ExcludeRule {
     }
 
     public Map<String, String> getExcludeArgs() {
-        DeprecationLogger.nagUserWith("The getExcludeArgs method has been deprecated and will be removed in the next version of Gradle. Please use the getGroup() method or the getModule() method instead.");
+        DeprecationLogger.nagUserOfDeprecated("The getExcludeArgs method", "Please use the getGroup() method or the getModule() method instead");
         Map excludeArgsAsMap = new HashMap();
         excludeArgsAsMap.put(ExcludeRule.GROUP_KEY, group);
         excludeArgsAsMap.put(ExcludeRule.MODULE_KEY, module);

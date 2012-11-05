@@ -66,4 +66,18 @@ class DeprecationLoggerTest extends Specification {
         1 * action.run()
         0 * _._
     }
+
+    def "deprecation message has next major version"() {
+        given:
+        def major = GradleVersion.current().major
+
+        expect:
+        major != -1
+
+        when:
+        DeprecationLogger.nagUserOfDeprecated("foo", "bar")
+
+        then:
+        appender.toString() == "[WARN foo has been deprecated and is scheduled to be removed in Gradle ${major + 1}.0. bar.]"
+    }
 }
