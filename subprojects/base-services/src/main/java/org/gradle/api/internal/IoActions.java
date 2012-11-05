@@ -57,7 +57,7 @@ public abstract class IoActions {
      * @param encoding The character encoding to write with
      * @return An action that receives an action that performs the actual writing
      */
-    public static  Action<? super Action<? super BufferedWriter>> createFileWriteAction(File output, String encoding) {
+    public static Action<Action<? super BufferedWriter>> createFileWriteAction(File output, String encoding) {
         return new FileWriterIoAction(output, encoding);
     }
 
