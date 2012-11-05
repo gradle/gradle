@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.ivy.tasks.internal
 
+import org.gradle.api.Task
 import org.gradle.api.publish.Publication
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.ivy.IvyPublication
@@ -28,7 +29,8 @@ import spock.lang.Specification
 class IvyPublishDynamicTaskCreatorTest extends Specification {
 
     def project = HelperUtil.createRootProject()
-    def creator = new IvyPublishDynamicTaskCreator(project.tasks, new DefaultIvyPublishTaskNamer())
+    def lifecycleTask = project.task("pl")
+    def creator = new IvyPublishDynamicTaskCreator(project.tasks, new DefaultIvyPublishTaskNamer(), lifecycleTask)
 
     PublishingExtension publishing
 
@@ -48,6 +50,7 @@ class IvyPublishDynamicTaskCreatorTest extends Specification {
 
         then:
         ivyPublishTasks.size() == 0
+        lifecycleTaskDependencies.empty
 
         when:
         publishing.publications.add(ivyPublication("ivy"))
@@ -59,20 +62,28 @@ class IvyPublishDynamicTaskCreatorTest extends Specification {
         task.group == "publishing"
         task.description != null
 
+        lifecycleTaskDependencies == [task] as Set
+
         when:
         publishing.publications.add(ivyPublication("ivy2"))
 
         then:
         ivyPublishTasks.size() == 2
         project.tasks["publishIvy2ToIvyRepo"] != null
+        lifecycleTaskDependencies.size() == 2
 
         when:
         publishing.repositories.ivy {}
 
         then:
+        lifecycleTaskDependencies.size() == 4
         ivyPublishTasks.size() == 4
         project.tasks["publishIvyToIvy2Repo"] != null
         project.tasks["publishIvy2ToIvy2Repo"] != null
+    }
+
+    protected Set<? extends Task> getLifecycleTaskDependencies() {
+        lifecycleTask.taskDependencies.getDependencies(lifecycleTask)
     }
 
     def getIvyPublishTasks() {

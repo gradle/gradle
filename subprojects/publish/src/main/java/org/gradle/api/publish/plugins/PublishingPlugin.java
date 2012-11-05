@@ -38,6 +38,8 @@ import javax.inject.Inject;
 @Incubating
 public class PublishingPlugin implements Plugin<Project> {
 
+    public static final String PUBLISH_LIFECYCLE_TASK_NAME = "publish";
+
     private final Instantiator instantiator;
     private final Factory<ArtifactPublicationServices> artifactPublicationServicesFactory;
 
@@ -51,5 +53,7 @@ public class PublishingPlugin implements Plugin<Project> {
         RepositoryHandler repositories = artifactPublicationServicesFactory.create().getRepositoryHandler();
         PublicationContainer publications = instantiator.newInstance(DefaultPublicationContainer.class, instantiator);
         project.getExtensions().create(PublishingExtension.NAME, DefaultPublishingExtension.class, repositories, publications);
+
+        project.getTasks().add(PUBLISH_LIFECYCLE_TASK_NAME);
     }
 }

@@ -22,6 +22,7 @@ import org.gradle.test.fixtures.ivy.IvyFileRepository
 import org.gradle.test.fixtures.ivy.IvyModule
 import org.gradle.test.fixtures.server.HttpServer
 import org.junit.Rule
+import spock.lang.Unroll
 
 class IvyPublishMultipleReposIntegrationTest extends AbstractIntegrationSpec {
 
@@ -38,7 +39,7 @@ class IvyPublishMultipleReposIntegrationTest extends AbstractIntegrationSpec {
     IvyFileRepository repo2 = new IvyFileRepository(file("repo2"))
     IvyModule repo2Module = repo2.module(org, moduleName, rev)
 
-    def "can publish to different repositories"() {
+    @Unroll "can publish to different repositories using invocation #invocation"() {
         given:
         settingsFile << 'rootProject.name = "publish"'
         buildFile << """
@@ -55,8 +56,7 @@ class IvyPublishMultipleReposIntegrationTest extends AbstractIntegrationSpec {
                     }
                 }
                 repositories {
-                    ivy {
-                        name "repo1"
+                    main {
                         url "${repo1.uri}"
                     }
                     ivy {
@@ -68,7 +68,7 @@ class IvyPublishMultipleReposIntegrationTest extends AbstractIntegrationSpec {
 
             // Be nasty and delete the descriptor after the first publishing
             // to make sure it's regenerated for the second publish
-            publishToRepo1Repo {
+            publishToRepo {
                 doLast {
                     assert publication.descriptor.file.delete()
                     publication.descriptor.withXml { asNode().@rev = "11" }
@@ -77,9 +77,13 @@ class IvyPublishMultipleReposIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        succeeds("publishToRepo1Repo", "publishToRepo2Repo")
+        succeeds(*invocation)
 
         then:
+        ":publishToRepo" in executedTasks
+        ":publishToRepo2Repo" in executedTasks
+
+        and:
         repo1Module.ivyFile.exists()
         repo1Module.jarFile.exists()
         repo2Module.ivyFile.exists()
@@ -88,6 +92,12 @@ class IvyPublishMultipleReposIntegrationTest extends AbstractIntegrationSpec {
         and: // Modification applied to both
         repo1Module.ivy.rev == "10"
         repo2Module.ivy.rev == "11"
+
+        where:
+        invocation << [
+                ["publishToRepo", "publishToRepo2Repo"],
+                ["publish"]
+        ]
     }
 
 }

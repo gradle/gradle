@@ -22,7 +22,7 @@ class PublishingPluginIntegTest extends WellBehavedPluginTest {
 
     @Override
     String getMainTask() {
-        "tasks"
+        "publish"
     }
 
 }
