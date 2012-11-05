@@ -17,7 +17,6 @@ package org.gradle.configuration;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.plugins.UnknownPluginException;
 
 public class ImplicitTasksConfigurer implements Action<ProjectInternal> {
     public static final String HELP_GROUP = "help";
@@ -29,14 +28,6 @@ public class ImplicitTasksConfigurer implements Action<ProjectInternal> {
     public static final String DEPENDENCY_INSIGHT_TASK = "dependencyInsight";
 
     public void execute(ProjectInternal project) {
-        try {
-            project.getPlugins().apply("help-tasks");
-        } catch (UnknownPluginException e) {
-            //some of our in-process integrations tests live in a subproject
-            //which does not depend on the subproject 'help-tasks' lives.
-            //I couldn't figure out a better workaround.
-            //This should be still pretty safe as we have forking coverage to catch problems.
-            //This workaround should go away once we have the auto-apply plugins/tasks implementation.
-        }
+        project.getPlugins().apply("help-tasks");
     }
 }

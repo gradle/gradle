@@ -20,14 +20,14 @@ import org.gradle.util.HelperUtil
 import spock.lang.Specification
 
 class ImplicitTasksConfigurerTest extends Specification {
-    private final ImplicitTasksConfigurer configurer = Spy(ImplicitTasksConfigurer)
+    private final ImplicitTasksConfigurer configurer = new ImplicitTasksConfigurer()
     private final ProjectInternal project = HelperUtil.createRootProject()
 
-    def "configuring implicit tasks is safe"() {
+    def "applies help tasks"() {
         when:
         configurer.execute(project)
 
         then:
-        noExceptionThrown()
+        project.plugins.hasPlugin('help-tasks')
     }
 }
