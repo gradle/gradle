@@ -63,16 +63,32 @@ class IoActionsTest extends Specification {
     def "can write file"() {
         given:
         def file = tmp.file("foo.txt")
+        def enc = "utf-8"
 
         when:
-        writeFile(file, "UTF-8", new Action() {
+        writeFile(file, enc, new Action() {
             void execute(writer) {
-                writer.append("bar")
+                writer.append("bar⌘")
             }
         })
 
         then:
-        file.text == "bar"
+        file.getText(enc) == "bar⌘"
+    }
+
+    def "can write file with default encoding"() {
+        given:
+        def file = tmp.file("foo.txt")
+
+        when:
+        writeFile(file, new Action() {
+            void execute(writer) {
+                writer.append("bar⌘")
+            }
+        })
+
+        then:
+        file.text == "bar⌘"
     }
 
 }
