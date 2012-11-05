@@ -29,6 +29,10 @@ public class OrSpec<T> extends CompositeSpec<T> {
         super(specs);
     }
 
+    public OrSpec(Iterable<? extends Spec<? super T>> specs) {
+        super(specs);
+    }
+
     public boolean isSatisfiedBy(T object) {
         List<Spec<? super T>> specs = getSpecs();
         if (specs.isEmpty()) {
