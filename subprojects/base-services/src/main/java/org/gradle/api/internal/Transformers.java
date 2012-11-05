@@ -68,12 +68,12 @@ public abstract class Transformers {
         }
     }
 
-    public static Transformer<String, Object> asString() {
-        return new ToStringTransformer();
+    public static <T> Transformer<String, T> asString() {
+        return new ToStringTransformer<T>();
     }
 
-    private static class ToStringTransformer implements Transformer<String, Object> {
-        public String transform(Object original) {
+    private static class ToStringTransformer<T> implements Transformer<String, T> {
+        public String transform(T original) {
             return original == null ? null : original.toString();
         }
     }
