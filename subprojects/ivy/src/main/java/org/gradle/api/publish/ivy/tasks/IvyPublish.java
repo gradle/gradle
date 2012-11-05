@@ -110,7 +110,7 @@ public class IvyPublish extends DefaultTask {
      *
      * @return The repository to publish to
      */
-    public IvyArtifactRepository getTo() {
+    public IvyArtifactRepository getRepository() {
         return repository;
     }
 
@@ -119,12 +119,12 @@ public class IvyPublish extends DefaultTask {
      *
      * @param repository The repository to publish to
      */
-    public void setTo(IvyArtifactRepository repository) {
+    public void setRepository(IvyArtifactRepository repository) {
         this.repository = toRepositoryInternal(repository);
     }
 
     private IvyArtifactRepositoryInternal getRepositoryInternal() {
-        return toRepositoryInternal(getTo());
+        return toRepositoryInternal(getRepository());
     }
 
     private static IvyArtifactRepositoryInternal toRepositoryInternal(IvyArtifactRepository repository) {
