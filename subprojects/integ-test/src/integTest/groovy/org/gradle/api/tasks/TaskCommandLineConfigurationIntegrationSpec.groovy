@@ -153,6 +153,25 @@ class TaskCommandLineConfigurationIntegrationSpec extends AbstractIntegrationSpe
         result.assertTasksExecuted(":someTask", ":tasks")
     }
 
+    def "different tasks match name but only one accepts the option"() {
+        given:
+        file("settings.gradle") << "include 'other'"
+        file("build.gradle") << """
+            task someTask(type: SomeTask)
+            project(":other") {
+              task someTask
+            }
+
+            $someConfigurableTaskType
+"""
+
+        when:
+        def failure = runAndFail 'someTask', '--first'
+
+        then:
+        failure.assertHasDescription("Problem configuring task :other:someTask from command line. Unknown command-line option '--first'.")
+    }
+
     def "using an unknown option yields decent error message"() {
         given:
         file("build.gradle") << """
