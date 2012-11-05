@@ -149,7 +149,7 @@ class EclipsePlugin extends IdePlugin {
                     classpath.containers 'org.scala-ide.sdt.launching.SCALA_CONTAINER'
 
                     // exclude the dependencies already provided by SCALA_CONTAINER; prevents problems with Eclipse Scala plugin
-                    task.doFirst {
+                    project.gradle.projectsEvaluated {
                         def provided = ["scala-library", "scala-swing", "scala-dbc"]
                         def dependencies = classpath.plusConfigurations.collectMany { it.allDependencies }.findAll { it.name in provided }
                         if (!dependencies.empty) {
