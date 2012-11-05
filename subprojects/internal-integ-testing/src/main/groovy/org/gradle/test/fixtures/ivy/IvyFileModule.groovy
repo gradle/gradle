@@ -87,7 +87,7 @@ class IvyFileModule extends AbstractIvyModule {
     }
 
     TestFile getJarFile() {
-        def path = IvyPatternHelper.substitute(ivyPattern, ModuleRevisionId.newInstance(organisation, module, revision), "jar", "jar", "jar")
+        def path = IvyPatternHelper.substitute(artifactPattern, ModuleRevisionId.newInstance(organisation, module, revision), null, "jar", "jar")
         return moduleDir.file(path)
     }
 

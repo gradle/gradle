@@ -25,7 +25,32 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractDependencyResolut
     def ivyRepo2 = ivyHttpRepo("ivy2")
 
     def "setup"() {
-        init()
+        server.start()
+
+        buildFile << """
+            repositories {
+                if (project.hasProperty('mavenRepository1')) {
+                    maven { url '${mavenRepo1.uri}' }
+                } else if (project.hasProperty('mavenRepository2')) {
+                    maven { url '${mavenRepo2.uri}' }
+                } else if (project.hasProperty('ivyRepository1')) {
+                    ivy { url '${ivyRepo1.uri}' }
+                } else if (project.hasProperty('ivyRepository2')) {
+                    ivy { url '${ivyRepo2.uri}' }
+                } else if (project.hasProperty('fileRepository')) {
+                    maven { url '${mavenRepo.uri}' }
+                }
+            }
+            configurations { compile }
+            dependencies {
+                compile 'org.name:projectB:1.0'
+            }
+
+            task retrieve(type: Sync) {
+                into 'libs'
+                from configurations.compile
+            }
+        """
     }
 
     def "does not re-download maven artifact downloaded from a different maven repository when sha1 matches"() {
@@ -164,35 +189,6 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractDependencyResolut
 
         then:
         succeedsWith 'mavenRepository2'
-    }
-
-    private init() {
-        server.start()
-
-        buildFile << """
-repositories {
-    if (project.hasProperty('mavenRepository1')) {
-        maven { url '${mavenRepo1.uri}' }
-    } else if (project.hasProperty('mavenRepository2')) {
-        maven { url '${mavenRepo2.uri}' }
-    } else if (project.hasProperty('ivyRepository1')) {
-        ivy { url '${ivyRepo1.uri}' }
-    } else if (project.hasProperty('ivyRepository2')) {
-        ivy { url '${ivyRepo2.uri}' }
-    } else if (project.hasProperty('fileRepository')) {
-        maven { url '${mavenRepo.uri}' }
-    }
-}
-configurations { compile }
-dependencies {
-    compile 'org.name:projectB:1.0'
-}
-
-task retrieve(type: Sync) {
-    into 'libs'
-    from configurations.compile
-}
-"""
     }
 
     def succeedsWith(repository) {
