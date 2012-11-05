@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publish
+package org.gradle.api.publish.plugins
 
-import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Project
-import org.gradle.api.Transformer
-import org.gradle.api.artifacts.repositories.ArtifactRepository
-import org.gradle.api.publish.plugins.PublishingPlugin
+import org.gradle.api.artifacts.dsl.RepositoryHandler
+import org.gradle.api.publish.Publication
+import org.gradle.api.publish.PublicationContainer
+import org.gradle.api.publish.PublishingExtension
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
 
@@ -40,27 +40,17 @@ class PublishingPluginTest extends Specification {
         extension.publications instanceof PublicationContainer
 
         extension.repositories != null
-        extension.repositories instanceof NamedDomainObjectContainer
+        extension.repositories instanceof RepositoryHandler
     }
 
     def "can create repo"() {
-        given:
-        extension.repositories.factory = new Transformer() {
-            def transform(incomingName) {
-                new ArtifactRepository() {
-                    String name = incomingName
-                }
-            }
-        }
-
         when:
         extension.repositories {
-            foo
-            bar {}
+            mavenCentral()
         }
 
         then:
-        extension.repositories.size() == 2
+        extension.repositories.size() == 1
         project.repositories.size() == 0 // ensure we didn't somehow create a resolution repo
     }
 

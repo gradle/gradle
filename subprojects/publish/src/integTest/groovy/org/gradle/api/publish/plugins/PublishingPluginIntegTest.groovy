@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publish
+package org.gradle.api.publish.plugins
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 

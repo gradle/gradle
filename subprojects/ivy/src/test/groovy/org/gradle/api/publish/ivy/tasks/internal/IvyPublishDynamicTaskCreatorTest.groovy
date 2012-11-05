@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publish.ivy.internal
+package org.gradle.api.publish.ivy.tasks.internal
 
 import org.gradle.api.publish.Publication
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.ivy.IvyPublication
+import org.gradle.api.publish.ivy.internal.IvyPublicationInternal
 import org.gradle.api.publish.ivy.tasks.IvyPublish
-import org.gradle.api.publish.ivy.tasks.internal.DefaultIvyPublishTaskNamer
-import org.gradle.api.publish.ivy.tasks.internal.IvyPublishDynamicTaskCreator
 import org.gradle.api.publish.plugins.PublishingPlugin
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
