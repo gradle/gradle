@@ -50,16 +50,16 @@ public class PatternSetAntBuilderDelegate implements AntBuilderAware {
         return node;
     }
 
-    public static Object and(Object node, final Action<Object> withAndNode) {
-        return logical(node, "and", withAndNode);
+    public static Object and(Object node, Action<Object> withNode) {
+        return logical(node, "and", withNode);
     }
 
-    private static Object or(Object node, final Action<Object> withAndNode) {
-        return logical(node, "or", withAndNode);
+    private static Object or(Object node, Action<Object> withNode) {
+        return logical(node, "or", withNode);
     }
 
-    private static Object not(Object node, final Action<Object> withAndNode) {
-        return logical(node, "not", withAndNode);
+    private static Object not(Object node, Action<Object> withNode) {
+        return logical(node, "not", withNode);
     }
 
     private static Object addFilenames(Object node, Iterable<String> filenames, boolean caseSensitive) {
