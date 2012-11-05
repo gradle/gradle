@@ -16,9 +16,9 @@
 package org.gradle.integtests.resolve.custom
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.IvyRepository
 import org.gradle.integtests.fixtures.ProgressLoggingFixture
 import org.gradle.integtests.fixtures.SFTPServer
+import org.gradle.test.fixtures.ivy.IvyRepository
 import org.junit.Rule
 
 class IvySFtpResolverIntegrationTest extends AbstractIntegrationSpec {

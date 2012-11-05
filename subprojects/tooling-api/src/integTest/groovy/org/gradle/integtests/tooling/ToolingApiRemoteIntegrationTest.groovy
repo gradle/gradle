@@ -17,13 +17,13 @@
 package org.gradle.integtests.tooling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.HttpServer
 import org.gradle.integtests.tooling.fixture.ToolingApi
+import org.gradle.test.fixtures.server.HttpServer
 import org.gradle.tooling.BuildLauncher
 import org.gradle.util.GradleVersion
 import org.junit.Rule
 
-import static org.gradle.integtests.fixtures.UserAgentMatcher.matchesNameAndVersion
+import static org.gradle.test.matchers.UserAgentMatcher.matchesNameAndVersion
 import static org.hamcrest.Matchers.containsString
 import static org.junit.Assert.assertThat
 

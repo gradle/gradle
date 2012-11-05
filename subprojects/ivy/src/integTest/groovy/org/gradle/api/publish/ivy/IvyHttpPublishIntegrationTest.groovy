@@ -16,6 +16,11 @@
 
 package org.gradle.api.publish.ivy
 
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ProgressLoggingFixture
+import org.gradle.test.fixtures.ivy.IvyFileModule
+import org.gradle.test.fixtures.ivy.IvyModule
+import org.gradle.test.fixtures.server.HttpServer
 import org.gradle.util.GradleVersion
 import org.gradle.util.Jvm
 import org.gradle.util.TestFile
@@ -24,9 +29,8 @@ import org.hamcrest.Matchers
 import org.junit.Rule
 import org.mortbay.jetty.HttpStatus
 import spock.lang.Unroll
-import org.gradle.integtests.fixtures.*
 
-import static org.gradle.integtests.fixtures.UserAgentMatcher.matchesNameAndVersion
+import static org.gradle.test.matchers.UserAgentMatcher.matchesNameAndVersion
 
 public class IvyHttpPublishIntegrationTest extends AbstractIntegrationSpec {
     private static final String BAD_CREDENTIALS = '''

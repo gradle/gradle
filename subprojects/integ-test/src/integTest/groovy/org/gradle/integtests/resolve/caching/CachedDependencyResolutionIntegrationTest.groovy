@@ -16,10 +16,11 @@
 
 package org.gradle.integtests.resolve.caching
 
-import org.gradle.integtests.fixtures.HttpServer
-import org.gradle.integtests.fixtures.IvyHttpModule
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
+import org.gradle.test.fixtures.ivy.IvyHttpModule
+import org.gradle.test.fixtures.server.HttpServer
 import org.gradle.util.TestFile
+
 /**
  * We are using Ivy here, but the strategy is the same for any kind of repository.
  */

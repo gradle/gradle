@@ -16,6 +16,8 @@
 
 package org.gradle.integtests.fixtures
 
+import org.gradle.test.fixtures.server.HttpServer
+
 /**
  * A fixture for dealing with remote HTTP Maven repositories.
  */

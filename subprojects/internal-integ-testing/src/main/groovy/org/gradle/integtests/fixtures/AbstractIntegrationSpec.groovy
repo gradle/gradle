@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.fixtures
 
+import org.gradle.test.fixtures.ivy.IvyFileRepository
 import org.gradle.util.TestFile
 import org.junit.Rule
 import spock.lang.Specification

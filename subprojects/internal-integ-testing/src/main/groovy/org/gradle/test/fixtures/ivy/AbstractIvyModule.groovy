@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.fixtures
+package org.gradle.test.fixtures.ivy
 
-class IvyDescriptorConfiguration {
+abstract class AbstractIvyModule implements IvyModule {
 
-    String name
-    String visibility
-    String description
-    Set<String> extend
+    IvyDescriptor getIvy() {
+        return new IvyDescriptor(ivyFile)
+    }
 
 }

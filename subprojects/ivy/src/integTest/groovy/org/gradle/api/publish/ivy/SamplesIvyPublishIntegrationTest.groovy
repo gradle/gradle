@@ -16,9 +16,9 @@
 package org.gradle.api.publish.ivy
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.IvyDescriptor
-import org.gradle.integtests.fixtures.IvyFileRepository
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.test.fixtures.ivy.IvyDescriptor
+import org.gradle.test.fixtures.ivy.IvyFileRepository
 import org.gradle.util.TestFile
 import org.junit.Rule
 

@@ -16,14 +16,14 @@
 package org.gradle.integtests.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.HttpServer
+import org.gradle.test.fixtures.server.HttpServer
 import org.gradle.util.GradleVersion
 import org.junit.Rule
 import org.spockframework.util.TextUtil
 import spock.lang.Issue
 import spock.lang.Unroll
 
-import static org.gradle.integtests.fixtures.UserAgentMatcher.matchesNameAndVersion
+import static org.gradle.test.matchers.UserAgentMatcher.matchesNameAndVersion
 
 class MavenPublishIntegrationTest extends AbstractIntegrationSpec {
     @Rule public final HttpServer server = new HttpServer()

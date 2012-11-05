@@ -16,8 +16,12 @@
 
 package org.gradle.api.publish.ivy
 
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ProgressLoggingFixture
+import org.gradle.test.fixtures.ivy.IvyFileRepository
+import org.gradle.test.fixtures.ivy.IvyModule
+import org.gradle.test.fixtures.server.HttpServer
 import org.junit.Rule
-import org.gradle.integtests.fixtures.*
 
 class IvyPublishMultipleReposIntegrationTest extends AbstractIntegrationSpec {
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.fixtures
+package org.gradle.test.fixtures.ivy
 
 import groovy.xml.QName
 
@@ -22,7 +22,7 @@ import java.util.regex.Pattern
 
 class IvyDescriptor {
     final Map<String, IvyDescriptorDependencyConfiguration> dependencies = [:]
-    Map<String, IvyArtifact> artifacts = [:]
+    Map<String, IvyDescriptorArtifact> artifacts = [:]
     Map<String, IvyDescriptorConfiguration> configurations = [:]
     String rev
 
@@ -52,7 +52,7 @@ class IvyDescriptor {
         }
 
         ivy.publications.artifact.each { artifact ->
-            def ivyArtifact = new IvyArtifact(
+            def ivyArtifact = new IvyDescriptorArtifact(
                     name: artifact.@name, type: artifact.@type,
                     ext: artifact.@ext, conf: artifact.@conf.split(",") as List,
                     m: artifact.attributes().findAll { it.key instanceof QName && it.key.namespaceURI == "http://ant.apache.org/ivy/maven" }.collectEntries { [it.key.localPart, it.value] }
@@ -63,7 +63,7 @@ class IvyDescriptor {
 
     }
 
-    IvyArtifact expectArtifact(String name) {
+    IvyDescriptorArtifact expectArtifact(String name) {
         assert artifacts.containsKey(name)
         artifacts[name]
     }

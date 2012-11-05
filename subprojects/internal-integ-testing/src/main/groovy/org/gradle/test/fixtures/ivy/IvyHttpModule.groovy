@@ -14,45 +14,10 @@
  * limitations under the License.
  */
 
+package org.gradle.test.fixtures.ivy
 
-package org.gradle.integtests.fixtures
-
+import org.gradle.test.fixtures.server.HttpServer
 import org.gradle.util.TestFile
-
-class IvyHttpRepository implements IvyRepository {
-    private final HttpServer server
-    private final IvyFileRepository backingRepository
-    private final String contextPath
-
-    IvyHttpRepository(HttpServer server, String contextPath = "/repo", IvyFileRepository backingRepository) {
-        if (!contextPath.startsWith("/")) {
-            throw new IllegalArgumentException("Context path must start with '/'")
-        }
-        this.contextPath = contextPath
-        this.server = server
-        this.backingRepository = backingRepository
-    }
-
-    URI getUri() {
-        return new URI("http://localhost:${server.port}${contextPath}")
-    }
-
-    String getIvyPattern() {
-        return "$uri/${backingRepository.baseIvyPattern}"
-    }
-
-    String getArtifactPattern() {
-        return "$uri/${backingRepository.baseArtifactPattern}"
-    }
-
-    void expectDirectoryListGet(String organisation, String module) {
-        server.expectGetDirectoryListing("$contextPath/$organisation/$module/", backingRepository.module(organisation, module, "1.0").moduleDir.parentFile)
-    }
-
-    IvyHttpModule module(String organisation, String module, Object revision = "1.0") {
-        return new IvyHttpModule(server, "$contextPath/$organisation/$module/$revision", backingRepository.module(organisation, module, revision))
-    }
-}
 
 class IvyHttpModule extends AbstractIvyModule {
     private final IvyFileModule backingModule

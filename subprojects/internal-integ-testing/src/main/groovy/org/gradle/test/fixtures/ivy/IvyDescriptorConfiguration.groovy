@@ -14,19 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.fixtures
+package org.gradle.test.fixtures.ivy
 
-class IvyDescriptorDependencyConfiguration {
-    final dependencies = []
+class IvyDescriptorConfiguration {
 
-    void addDependency(String org, String module, String revision) {
-        dependencies << [org: org, module: module, revision: revision]
-    }
+    String name
+    String visibility
+    String description
+    Set<String> extend
 
-    void assertDependsOn(String org, String module, String revision) {
-        def dep = [org: org, module: module, revision: revision]
-        if (!dependencies.find { it == dep}) {
-            throw new AssertionError("Could not find expected dependency $dep. Actual: $dependencies")
-        }
-    }
 }

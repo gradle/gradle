@@ -15,8 +15,8 @@
  */
 package org.gradle.integtests.resolve.ivy
 
-import org.gradle.integtests.fixtures.IvyFileModule
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
+import org.gradle.test.fixtures.ivy.IvyFileModule
 
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.startsWith

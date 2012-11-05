@@ -16,11 +16,11 @@
 package org.gradle.integtests.resolve.http
 
 import org.gradle.integtests.fixtures.TestProxyServer
+import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
+import org.gradle.test.fixtures.server.HttpServer
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Unroll
-import org.gradle.integtests.fixtures.HttpServer
-import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
 
 class HttpProxyResolveIntegrationTest extends AbstractDependencyResolutionTest {
     @Rule TestProxyServer proxyServer = new TestProxyServer(server)

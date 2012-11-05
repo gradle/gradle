@@ -16,10 +16,10 @@
 
 package org.gradle.launcher.daemon
 
-import org.gradle.integtests.fixtures.HttpServer
 import org.gradle.integtests.fixtures.KillProcessAvailability
 import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.launcher.daemon.testing.DaemonLogsAnalyzer
+import org.gradle.test.fixtures.server.HttpServer
 import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Issue

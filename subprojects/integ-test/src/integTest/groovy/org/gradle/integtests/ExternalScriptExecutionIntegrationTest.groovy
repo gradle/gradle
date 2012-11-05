@@ -17,11 +17,15 @@
 
 package org.gradle.integtests
 
+import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.ArtifactBuilder
+import org.gradle.integtests.fixtures.ExecutionResult
+import org.gradle.test.fixtures.server.HttpServer
+import org.gradle.test.matchers.UserAgentMatcher
 import org.gradle.util.GradleVersion
 import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
-import org.gradle.integtests.fixtures.*
 
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.not

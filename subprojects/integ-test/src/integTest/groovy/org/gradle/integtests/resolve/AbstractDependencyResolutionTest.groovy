@@ -16,11 +16,16 @@
 
 package org.gradle.integtests.resolve
 
-import org.gradle.integtests.fixtures.*
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.MavenFileRepository
+import org.gradle.integtests.fixtures.MavenHttpRepository
+import org.gradle.test.fixtures.ivy.IvyFileRepository
+import org.gradle.test.fixtures.ivy.IvyHttpRepository
+import org.gradle.test.fixtures.server.HttpServer
 import org.gradle.util.GradleVersion
 import org.junit.Rule
 
-import static org.gradle.integtests.fixtures.UserAgentMatcher.matchesNameAndVersion
+import static org.gradle.test.matchers.UserAgentMatcher.matchesNameAndVersion
 
 abstract class AbstractDependencyResolutionTest extends AbstractIntegrationSpec {
     @Rule public final HttpServer server = new HttpServer()

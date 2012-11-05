@@ -15,11 +15,11 @@
  */
 package org.gradle.integtests.resolve.http
 
+import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
+import org.gradle.test.fixtures.server.HttpServer
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Issue
-import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.HttpServer
 
 class HttpRedirectResolveIntegrationTest extends AbstractDependencyResolutionTest {
     @Rule SetSystemProperties systemProperties = new SetSystemProperties()
