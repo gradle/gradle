@@ -67,10 +67,10 @@ class DefaultResolutionResultTest extends Specification {
         result.allModuleVersions { modules << it }
 
         then:
-        deps*.requested.group as Set == ['dep1', 'dep2', 'dep3', 'dep3'] as Set
+        deps*.requested.group == ['dep1', 'dep3', 'dep2', 'dep3']
 
         and:
-        modules*.id.group as Set == ['root', 'dep1', 'dep2', 'dep3'] as Set
+        modules*.id.group == ['root', 'dep1', 'dep3', 'dep2']
     }
 
     def "deals with dependency cycles"() {

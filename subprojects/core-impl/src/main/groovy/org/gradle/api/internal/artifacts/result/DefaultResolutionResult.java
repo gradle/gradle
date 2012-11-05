@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
 import org.gradle.api.internal.Actions;
 import org.gradle.api.internal.ClosureBackedAction;
 
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -55,8 +56,7 @@ public class DefaultResolutionResult implements ResolutionResult {
     }
 
     public void allDependencies(Action<? super DependencyResult> action) {
-        Set<ResolvedModuleVersionResult> visited = new LinkedHashSet<ResolvedModuleVersionResult>();
-        eachElement(root, Actions.doNothing(), action, visited);
+        eachElement(root, Actions.doNothing(), action, new HashSet<ResolvedModuleVersionResult>());
     }
 
     public void allDependencies(final Closure closure) {
@@ -85,7 +85,7 @@ public class DefaultResolutionResult implements ResolutionResult {
     }
 
     public void allModuleVersions(final Action<? super ResolvedModuleVersionResult> action) {
-        eachElement(root, action, Actions.doNothing(), new LinkedHashSet<ResolvedModuleVersionResult>());
+        eachElement(root, action, Actions.doNothing(), new HashSet<ResolvedModuleVersionResult>());
     }
 
     public void allModuleVersions(final Closure closure) {
