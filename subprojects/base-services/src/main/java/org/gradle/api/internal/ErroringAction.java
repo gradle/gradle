@@ -39,6 +39,6 @@ public abstract class ErroringAction<T> implements Action<T> {
         }
     }
 
-    public abstract void doExecute(T thing) throws Exception;
+    protected abstract void doExecute(T thing) throws Exception;
 
 }

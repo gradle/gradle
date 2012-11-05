@@ -42,7 +42,7 @@ public class JavadocOptionFileWriter {
     void write(File outputFile) throws IOException {
         IoActions.writeFile(outputFile, new ErroringAction<BufferedWriter>() {
             @Override
-            public void doExecute(BufferedWriter writer) throws Exception {
+            protected void doExecute(BufferedWriter writer) throws Exception {
                 final Map<String, JavadocOptionFileOption> options = new TreeMap<String, JavadocOptionFileOption>(optionFile.getOptions());
                 JavadocOptionFileWriterContext writerContext = new JavadocOptionFileWriterContext(writer);
 

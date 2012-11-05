@@ -33,7 +33,7 @@ public abstract class TextReportRenderer<T> {
     public void writeTo(final T model, File file) {
         IoActions.writeFile(file, "utf-8", new ErroringAction<Writer>() {
             @Override
-            public void doExecute(Writer writer) throws Exception {
+            protected void doExecute(Writer writer) throws Exception {
                 writeTo(model, writer);
             }
         });

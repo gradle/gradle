@@ -162,7 +162,7 @@ public class DefaultManifest implements org.gradle.api.java.archives.Manifest {
     public org.gradle.api.java.archives.Manifest writeTo(Object path) {
         IoActions.writeFile(fileResolver.resolve(path), new ErroringAction<Writer>() {
             @Override
-            public void doExecute(Writer writer) throws Exception {
+            protected void doExecute(Writer writer) throws Exception {
                 writeTo(writer);
             }
         });

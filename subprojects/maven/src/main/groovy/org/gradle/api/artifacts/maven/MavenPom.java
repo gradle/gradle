@@ -154,6 +154,8 @@ public interface MavenPom {
     /**
      * Writes the {@link #getEffectivePom()} xml to a writer while applying the {@link #withXml(org.gradle.api.Action)} actions.
      *
+     * The caller is responsible for closing the writer and any underlying streams.
+     *
      * @param writer The writer to write the pom xml.
      * @return this
      */

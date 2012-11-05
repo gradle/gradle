@@ -41,7 +41,7 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
 
     private static Action<Writer> createWriterAction(final ModuleDescriptor md) {
         return new ErroringAction<Writer>() {
-            public void doExecute(Writer writer) throws IOException {
+            protected void doExecute(Writer writer) throws IOException {
                 writer.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
                 writer.write(TextUtil.getPlatformLineSeparator());
                 StringBuffer xmlNamespace = new StringBuffer();
