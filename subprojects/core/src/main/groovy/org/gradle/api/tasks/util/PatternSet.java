@@ -25,6 +25,7 @@ import org.gradle.api.internal.file.RelativePathSpec;
 import org.gradle.api.internal.file.pattern.PatternMatcherFactory;
 import org.gradle.api.specs.*;
 import org.gradle.api.tasks.AntBuilderAware;
+import org.gradle.api.tasks.util.internal.PatternSetAntBuilderDelegate;
 import org.gradle.util.CollectionUtils;
 
 import java.util.*;
@@ -102,7 +103,7 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
         }
 
         public Object addToAntBuilder(Object node, String childNodeName) {
-            return PatternSetGroovyAntBuilderDelegate.and(node, new Action<Object>() {
+            return PatternSetAntBuilderDelegate.and(node, new Action<Object>() {
                 public void execute(Object andNode) {
                     IntersectionPatternSet.super.addToAntBuilder(andNode, null);
                     other.addToAntBuilder(andNode, null);
@@ -239,10 +240,11 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
     }
 
     public Object addToAntBuilder(Object node, String childNodeName) {
+
         if (!getIncludeSpecs().isEmpty() || !getExcludeSpecs().isEmpty()) {
             throw new UnsupportedOperationException("Cannot add include/exclude specs to Ant node. Only include/exclude patterns are currently supported.");
         }
 
-        return new PatternSetGroovyAntBuilderDelegate(getIncludes(), getExcludes(), isCaseSensitive()).addToAntBuilder(node, childNodeName);
+        return new PatternSetAntBuilderDelegate(getIncludes(), getExcludes(), isCaseSensitive()).addToAntBuilder(node, childNodeName);
     }
 }
