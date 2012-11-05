@@ -16,11 +16,12 @@
 
 package org.gradle.external.javadoc.internal;
 
+import org.gradle.api.internal.ErroringAction;
+import org.gradle.api.internal.IoActions;
 import org.gradle.external.javadoc.JavadocOptionFileOption;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Map;
 import java.util.TreeMap;
@@ -39,23 +40,23 @@ public class JavadocOptionFileWriter {
     }
 
     void write(File outputFile) throws IOException {
-        BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile));
-        try {
-            final Map<String, JavadocOptionFileOption> options = new TreeMap<String, JavadocOptionFileOption>(optionFile.getOptions());
-            JavadocOptionFileWriterContext writerContext = new JavadocOptionFileWriterContext(writer);
+        IoActions.writeFile(outputFile, new ErroringAction<BufferedWriter>() {
+            @Override
+            public void doExecute(BufferedWriter writer) throws Exception {
+                final Map<String, JavadocOptionFileOption> options = new TreeMap<String, JavadocOptionFileOption>(optionFile.getOptions());
+                JavadocOptionFileWriterContext writerContext = new JavadocOptionFileWriterContext(writer);
 
-            JavadocOptionFileOption localeOption = options.remove("locale");
-            if (localeOption != null) {
-                localeOption.write(writerContext);
+                JavadocOptionFileOption localeOption = options.remove("locale");
+                if (localeOption != null) {
+                    localeOption.write(writerContext);
+                }
+
+                for (final String option : options.keySet()) {
+                    options.get(option).write(writerContext);
+                }
+
+                optionFile.getSourceNames().write(writerContext);
             }
-
-            for (final String option : options.keySet()) {
-                options.get(option).write(writerContext);
-            }
-
-            optionFile.getSourceNames().write(writerContext);
-        } finally {
-            writer.close();
-        }
+        });
     }
 }

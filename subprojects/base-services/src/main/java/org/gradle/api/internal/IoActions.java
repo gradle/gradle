@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
 
 import java.io.*;
+import java.nio.charset.Charset;
 
 /**
  * Various utilities for dealing with IO actions.
@@ -33,8 +34,18 @@ public abstract class IoActions {
      * @param encoding The character encoding to write with
      * @param action The action to write the actual content
      */
-    public static void writeFile(File output, String encoding, Action<? super Writer> action) {
+    public static void writeFile(File output, String encoding, Action<? super BufferedWriter> action) {
         createFileWriteAction(output, encoding).execute(action);
+    }
+
+    /**
+     * Gives a writer (with the default file encoding) to the given write action, managing the streams.
+     *
+     * @param output The file to write to
+     * @param action The action to write the actual content
+     */
+    public static void writeFile(File output, Action<? super BufferedWriter> action) {
+        writeFile(output, Charset.defaultCharset().name(), action);
     }
 
     /**
@@ -46,11 +57,11 @@ public abstract class IoActions {
      * @param encoding The character encoding to write with
      * @return An action that receives an action that performs the actual writing
      */
-    public static  Action<? super Action<? super Writer>> createFileWriteAction(File output, String encoding) {
+    public static  Action<? super Action<? super BufferedWriter>> createFileWriteAction(File output, String encoding) {
         return new FileWriterIoAction(output, encoding);
     }
 
-    private static class FileWriterIoAction implements Action<Action<? super Writer>> {
+    private static class FileWriterIoAction implements Action<Action<? super BufferedWriter>> {
         private final File file;
         private final String encoding;
 
@@ -59,7 +70,7 @@ public abstract class IoActions {
             this.encoding = encoding;
         }
 
-        public void execute(Action<? super Writer> action) {
+        public void execute(Action<? super BufferedWriter> action) {
             try {
                 File parentFile = file.getParentFile();
                 if (parentFile != null) {
@@ -67,7 +78,7 @@ public abstract class IoActions {
                         throw new IOException(String.format("Unable to create directory '%s'", parentFile));
                     }
                 }
-                Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), encoding));
+                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), encoding));
                 try {
                     action.execute(writer);
                 } finally {

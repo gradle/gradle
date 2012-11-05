@@ -15,9 +15,11 @@
  */
 package org.gradle.reporting;
 
-import org.gradle.internal.UncheckedException;
+import org.gradle.api.internal.ErroringAction;
+import org.gradle.api.internal.IoActions;
 
-import java.io.*;
+import java.io.File;
+import java.io.Writer;
 
 public abstract class TextReportRenderer<T> {
     /**
@@ -28,17 +30,12 @@ public abstract class TextReportRenderer<T> {
     /**
      * Renders the report for the given model to a file.
      */
-    public void writeTo(T model, File file) {
-        try {
-            file.getParentFile().mkdirs();
-            Writer writer = new OutputStreamWriter(new BufferedOutputStream(new FileOutputStream(file)), "utf-8");
-            try {
+    public void writeTo(final T model, File file) {
+        IoActions.writeFile(file, "utf-8", new ErroringAction<Writer>() {
+            @Override
+            public void doExecute(Writer writer) throws Exception {
                 writeTo(model, writer);
-            } finally {
-                writer.close();
             }
-        } catch (Exception e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
+        });
     }
 }
