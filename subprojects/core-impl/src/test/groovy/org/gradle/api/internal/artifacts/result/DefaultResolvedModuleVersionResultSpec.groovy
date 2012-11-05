@@ -42,11 +42,13 @@ class DefaultResolvedModuleVersionResultSpec extends Specification {
 
         when:
         module.dependencies << newDependency("a", "y", "1")
-        module.dependents <<   newDependency("a", "y2", "1")
-
         then:
-        module.dependencies == [dependency] as Set
-        module.dependents   == [dependent] as Set
+        thrown(UnsupportedOperationException)
+
+        when:
+        module.dependents <<   newDependency("a", "y2", "1")
+        then:
+        thrown(UnsupportedOperationException)
     }
 
     def "includes unresolved dependencies"() {

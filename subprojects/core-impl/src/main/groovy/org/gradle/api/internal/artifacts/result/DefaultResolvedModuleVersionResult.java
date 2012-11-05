@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -52,11 +53,11 @@ public class DefaultResolvedModuleVersionResult implements ResolvedModuleVersion
     }
 
     public Set<DependencyResult> getDependencies() {
-        return new LinkedHashSet<DependencyResult>(dependencies);
+        return Collections.unmodifiableSet(dependencies);
     }
 
     public Set<ResolvedDependencyResult> getDependents() {
-        return new LinkedHashSet<ResolvedDependencyResult>(dependents);
+        return Collections.unmodifiableSet(dependents);
     }
 
     public DefaultResolvedModuleVersionResult addDependency(DependencyResult dependency) {
