@@ -16,10 +16,7 @@
 
 package org.gradle.external.javadoc.internal;
 
-import org.apache.commons.io.IOUtils;
-import org.gradle.api.specs.Spec;
 import org.gradle.external.javadoc.JavadocOptionFileOption;
-import org.gradle.util.CollectionUtils;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -42,30 +39,23 @@ public class JavadocOptionFileWriter {
     }
 
     void write(File outputFile) throws IOException {
-        BufferedWriter writer = null;
+        BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile));
         try {
-            final Map<String, JavadocOptionFileOption> options = optionFile.getOptions();
-            writer = new BufferedWriter(new FileWriter(outputFile));
+            final Map<String, JavadocOptionFileOption> options = new TreeMap<String, JavadocOptionFileOption>(optionFile.getOptions());
             JavadocOptionFileWriterContext writerContext = new JavadocOptionFileWriterContext(writer);
 
-            JavadocOptionFileOption localeOption = options.get("locale");
+            JavadocOptionFileOption localeOption = options.remove("locale");
             if (localeOption != null) {
                 localeOption.write(writerContext);
             }
 
-            final Map<String, JavadocOptionFileOption> optionsWithoutLocale = CollectionUtils.filter(options, new Spec<Map.Entry<String, JavadocOptionFileOption>>() {
-                public boolean isSatisfiedBy(Map.Entry<String, JavadocOptionFileOption> element) {
-                    return !"locale".equals(element.getKey());
-                }
-            });
-
-            for (final String option : new TreeMap<String, JavadocOptionFileOption>(optionsWithoutLocale).keySet()) {
+            for (final String option : options.keySet()) {
                 options.get(option).write(writerContext);
             }
 
             optionFile.getSourceNames().write(writerContext);
         } finally {
-            IOUtils.closeQuietly(writer);
+            writer.close();
         }
     }
 }
