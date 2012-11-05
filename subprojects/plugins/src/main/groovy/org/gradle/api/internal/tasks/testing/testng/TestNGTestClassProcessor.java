@@ -27,8 +27,8 @@ import org.gradle.api.tasks.testing.testng.TestNGOptions;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.logging.StandardOutputRedirector;
+import org.gradle.util.CollectionUtils;
 import org.gradle.util.GFileUtils;
-import org.gradle.util.GUtil;
 import org.gradle.util.ReflectionUtil;
 import org.testng.ITestListener;
 import org.testng.TestNG;
@@ -96,7 +96,7 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
             /* do nothing; method has been removed in TestNG 6.3 */
         }
         if (options.getJavadocAnnotations()) {
-            testNg.setSourcePath(GUtil.join(options.getTestResources(), File.pathSeparator));
+            testNg.setSourcePath(CollectionUtils.join(File.pathSeparator, options.getTestResources()));
         }
 
         //only use the default listeners flag when testReport is off
@@ -106,8 +106,8 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
 
         testNg.addListener((Object) adaptListener(testResultProcessor));
         testNg.setVerbose(0);
-        testNg.setGroups(GUtil.join(options.getIncludeGroups(), ","));
-        testNg.setExcludedGroups(GUtil.join(options.getExcludeGroups(), ","));
+        testNg.setGroups(CollectionUtils.join(",", options.getIncludeGroups()));
+        testNg.setExcludedGroups(CollectionUtils.join(",", options.getExcludeGroups()));
         for (String listenerClass : options.getListeners()) {
             try {
                 testNg.addListener(applicationClassLoader.loadClass(listenerClass).newInstance());

@@ -105,31 +105,8 @@ public class GUtil {
         return flatten(elements, new ArrayList());
     }
 
-    public static String join(Iterable self, String separator) {
-        StringBuilder buffer = new StringBuilder();
-        boolean first = true;
-
-        if (separator == null) {
-            separator = "";
-        }
-
-        for (Object value : self) {
-            if (first) {
-                first = false;
-            } else {
-                buffer.append(separator);
-            }
-            buffer.append(value.toString());
-        }
-        return buffer.toString();
-    }
-
-    public static String join(Object[] self, String separator) {
-        return join(asList(self), separator);
-    }
-
     public static String asPath(Iterable<?> collection) {
-        return join(collection, File.pathSeparator);
+        return CollectionUtils.join(File.pathSeparator, collection);
     }
 
     public static List<String> prefix(String prefix, Collection<String> strings) {

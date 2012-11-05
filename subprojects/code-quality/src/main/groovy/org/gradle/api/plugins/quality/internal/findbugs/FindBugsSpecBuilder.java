@@ -17,18 +17,17 @@
 package org.gradle.api.plugins.quality.internal.findbugs;
 
 import com.google.common.collect.ImmutableSet;
-
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.plugins.quality.FindBugsReports;
 import org.gradle.api.plugins.quality.internal.FindBugsReportsImpl;
 import org.gradle.api.specs.Spec;
-import org.gradle.util.GUtil;
+import org.gradle.util.CollectionUtils;
 
 import java.io.File;
-import java.util.Set;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Set;
 
 public class FindBugsSpecBuilder {
     private static final Set<String> VALID_EFFORTS = ImmutableSet.of("min", "default", "max");
@@ -172,12 +171,12 @@ public class FindBugsSpecBuilder {
 
         if (has(visitors)) {
             args.add("-visitors");
-            args.add(GUtil.join(visitors, ","));
+            args.add(CollectionUtils.join(",", visitors));
         }
 
         if (has(omitVisitors)) {
             args.add("-omitVisitors");
-            args.add(GUtil.join(omitVisitors, ","));
+            args.add(CollectionUtils.join(",", omitVisitors));
         }
 
         if (has(excludeFilter)) {

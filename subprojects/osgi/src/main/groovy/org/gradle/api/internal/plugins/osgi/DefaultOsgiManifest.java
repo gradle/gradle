@@ -25,7 +25,6 @@ import org.gradle.api.specs.Spec;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.CollectionUtils;
-import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
 
 import java.io.File;
@@ -311,7 +310,7 @@ public class DefaultOsgiManifest extends DefaultManifest implements OsgiManifest
     }
 
     private String createPropertyStringFromList(List<String> valueList) {
-        return valueList == null || valueList.isEmpty() ? null : GUtil.join(valueList, ",");
+        return valueList == null || valueList.isEmpty() ? null : CollectionUtils.join(",", valueList);
     }
 
     private List<String> createListFromPropertyString(String propertyString) {

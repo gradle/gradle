@@ -30,7 +30,7 @@ import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.util.Clock;
-import org.gradle.util.GUtil;
+import org.gradle.util.CollectionUtils;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
@@ -75,7 +75,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
 //        daemonArgs.add("-Xdebug");
 //        daemonArgs.add("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5006");
         daemonArgs.add("-cp");
-        daemonArgs.add(GUtil.join(bootstrapClasspath, File.pathSeparator));
+        daemonArgs.add(CollectionUtils.join(File.pathSeparator, bootstrapClasspath));
         daemonArgs.add(GradleDaemon.class.getName());
         daemonArgs.add(GradleVersion.current().getVersion());
         daemonArgs.add(daemonDir.getBaseDir().getAbsolutePath());

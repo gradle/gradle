@@ -189,6 +189,18 @@ class CollectionUtilsTest extends Specification {
         flattenToList(Number, 1, [2, 3]) == [1, 2, 3]
     }
 
+    def "joining"() {
+        expect:
+        join(",", [1,2,3]) == "1,2,3"
+        join(",", [1]) == "1"
+        join(",", []) == ""
+
+        and:
+        join(",", [1,2,3].toArray()) == "1,2,3"
+        join(",", [1].toArray()) == "1"
+        join(",", [].toArray()) == ""
+    }
+
     Spec<?> spec(Closure c) {
         Specs.convertClosureToSpec(c)
     }

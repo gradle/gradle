@@ -246,6 +246,10 @@ public abstract class CollectionUtils {
         return true;
     }
 
+    public static String join(String seperator, Object[] path) {
+        return join(seperator, Arrays.asList(path));
+    }
+
     /**
      * The result of diffing two sets.
      *
