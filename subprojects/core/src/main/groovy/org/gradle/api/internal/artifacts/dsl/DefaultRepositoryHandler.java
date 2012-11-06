@@ -68,8 +68,10 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
     public MavenArtifactRepository mavenCentral(Map<String, ?> args) {
         Map<String, Object> modifiedArgs = new HashMap<String, Object>(args);
         if (modifiedArgs.containsKey("urls")) {
-            DeprecationLogger.nagUserWith("The 'urls' property of the RepositoryHandler.mavenCentral() method is deprecated and will be removed in a future version of Gradle. "
-                    + "You should use the 'artifactUrls' property to define additional artifact locations.");
+            DeprecationLogger.nagUserOfDeprecated(
+                    "The 'urls' property of the RepositoryHandler.mavenCentral() method",
+                    "You should use the 'artifactUrls' property to define additional artifact locations"
+            );
             List<?> urls = flattenToList(modifiedArgs.remove("urls"));
             modifiedArgs.put("artifactUrls", urls);
         }
@@ -92,8 +94,10 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
         if (modifiedArgs.containsKey("urls")) {
             List<?> urls = flattenToList(modifiedArgs.remove("urls"));
             if (!urls.isEmpty()) {
-                DeprecationLogger.nagUserWith("The 'urls' property of the RepositoryHandler.mavenRepo() method is deprecated and will be removed in a future version of Gradle. "
-                        + "You should use the 'url' property to define the core maven repository & the 'artifactUrls' property to define any additional artifact locations.");
+                DeprecationLogger.nagUserOfDeprecated(
+                        "The 'urls' property of the RepositoryHandler.mavenRepo() method",
+                        "You should use the 'url' property to define the core maven repository & the 'artifactUrls' property to define any additional artifact locations"
+                );
                 modifiedArgs.put("url", urls.get(0));
                 List<?> extraUrls = urls.subList(1, urls.size());
                 modifiedArgs.put("artifactUrls", extraUrls);

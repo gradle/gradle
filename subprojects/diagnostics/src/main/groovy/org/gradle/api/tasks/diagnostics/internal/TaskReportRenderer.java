@@ -19,6 +19,7 @@ package org.gradle.api.tasks.diagnostics.internal;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Project;
 import org.gradle.api.Rule;
+import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 import org.gradle.util.Path;
 
@@ -66,7 +67,7 @@ public class TaskReportRenderer extends TextReportRenderer {
      */
     public void addDefaultTasks(List<String> defaultTaskNames) {
         if (defaultTaskNames.size() > 0) {
-            getTextOutput().formatln("Default tasks: %s", GUtil.join(defaultTaskNames, ", "));
+            getTextOutput().formatln("Default tasks: %s", CollectionUtils.join(", ", defaultTaskNames));
             hasContent = true;
         }
     }
@@ -107,7 +108,7 @@ public class TaskReportRenderer extends TextReportRenderer {
                 sortedDependencies.add(dependency.getPath());
             }
             if (sortedDependencies.size() > 0) {
-                getTextOutput().withStyle(Info).format(" [%s]", GUtil.join(sortedDependencies, ", "));
+                getTextOutput().withStyle(Info).format(" [%s]", CollectionUtils.join(", ", sortedDependencies));
             }
         }
         getTextOutput().println();

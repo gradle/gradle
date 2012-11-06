@@ -246,6 +246,25 @@ public abstract class CollectionUtils {
         return true;
     }
 
+    public static String join(String seperator, Object[] path) {
+        return join(seperator, Arrays.asList(path));
+    }
+
+    /**
+     * Utility for adding an iterable to a collection.
+     *
+     * @param t1 The collection to add to
+     * @param t2 The iterable to add each item of to the collection
+     * @param <T> The element type of t1
+     * @return t1
+     */
+    public static <T> Collection<T> addAll(Collection<T> t1, Iterable<? extends T> t2) {
+        for (T t : t2) {
+            t1.add(t);
+        }
+        return t1;
+    }
+
     /**
      * The result of diffing two sets.
      *

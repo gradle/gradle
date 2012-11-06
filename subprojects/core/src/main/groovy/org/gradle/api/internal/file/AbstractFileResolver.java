@@ -26,7 +26,7 @@ import org.gradle.api.resources.ReadableResource;
 import org.gradle.internal.Factory;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.util.GUtil;
+import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -86,7 +86,7 @@ public abstract class AbstractFileResolver implements FileResolver {
                 }
             }
 
-            String resolvedPath = GUtil.join(path, File.separator);
+            String resolvedPath = CollectionUtils.join(File.separator, path);
             boolean needLeadingSeparator = File.listRoots()[0].getPath().startsWith(File.separator);
             if (needLeadingSeparator) {
                 resolvedPath = File.separator + resolvedPath;
@@ -108,7 +108,7 @@ public abstract class AbstractFileResolver implements FileResolver {
             for (int pos = 0; pos < path.size(); pos++) {
                 File child = findChild(current, path.get(pos));
                 if (child == null) {
-                    current = new File(current, GUtil.join(path.subList(pos, path.size()), File.separator));
+                    current = new File(current, CollectionUtils.join(File.separator, path.subList(pos, path.size())));
                     break;
                 }
                 current = child;

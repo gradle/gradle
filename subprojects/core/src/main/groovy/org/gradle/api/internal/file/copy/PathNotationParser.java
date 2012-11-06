@@ -54,10 +54,10 @@ public class PathNotationParser<T extends String> implements NotationParser<T> {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
         }
-        DeprecationLogger.nagUserWith(String.format("Converting class %s to path using toString() Method. "
-                + "This has been deprecated and will be removed in the next version of Gradle. "
-                + "Please use java.io.File, java.lang.CharSequence, java.lang.Number, java.util.concurrent.Callable "
-                + "or groovy.lang.Closure.", notation.getClass().getName()));
+        DeprecationLogger.nagUserOfDeprecated(
+                String.format("Converting class %s to path using toString() method", notation.getClass().getName()),
+                "Please use java.io.File, java.lang.CharSequence, java.lang.Number, java.util.concurrent.Callable or groovy.lang.Closure"
+        );
         return (T) notation.toString();
     }
 }

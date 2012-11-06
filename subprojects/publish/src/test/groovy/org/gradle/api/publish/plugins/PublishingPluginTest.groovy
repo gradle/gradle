@@ -67,4 +67,9 @@ class PublishingPluginTest extends Specification {
         extension.publications.size() == 1
         extension.publications.toList().first().is(publication)
     }
+
+    def "lifecycle task created"() {
+        expect:
+        project.tasks[PublishingPlugin.PUBLISH_LIFECYCLE_TASK_NAME] != null
+    }
 }

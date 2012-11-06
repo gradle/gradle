@@ -20,23 +20,16 @@ import org.gradle.api.file.FileTreeElement
 import org.gradle.api.file.RelativePath
 import org.gradle.api.specs.Spec
 import org.junit.Test
-import static org.gradle.util.Matchers.*
+
+import static org.gradle.util.Matchers.strictlyEqual
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
-import org.junit.After
 
-/**
-* @author Hans Dockter
-*/
 class PatternSetTest extends AbstractTestForPatternSet {
     PatternSet patternSet = new PatternSet()
 
     PatternSet getPatternSet() {
         patternSet
-    }
-
-    @After public void resetExcludes() {
-        PatternSet.resetGlobalExcludes()
     }
 
     @Test public void testConstructionFromMap() {
@@ -221,19 +214,12 @@ class PatternSetTest extends AbstractTestForPatternSet {
         assertFalse(spec.isSatisfiedBy(element(true, '132')))
     }
 
-    @Test public void addsGlobalExcludesToExcludePatterns() {
+    @Test public void globalExcludes() {
         Spec<FileTreeElement> spec = patternSet.asSpec
 
         assertFalse(spec.isSatisfiedBy(element(false, '.svn')))
         assertFalse(spec.isSatisfiedBy(element(true, '.svn', 'abc')))
         assertFalse(spec.isSatisfiedBy(element(false, 'a', 'b', '.svn')))
         assertFalse(spec.isSatisfiedBy(element(true, 'a', 'b', '.svn', 'c')))
-
-        PatternSet.globalExcludes = ['*a*']
-
-        spec = patternSet.asSpec
-
-        assertTrue(spec.isSatisfiedBy(element(false, '.svn')))
-        assertFalse(spec.isSatisfiedBy(element(true, 'abc')))
     }
 }

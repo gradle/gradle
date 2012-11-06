@@ -23,9 +23,12 @@ import org.gradle.util.DeprecationLogger;
  */
 public class StatementLabelsDeprecationLogger {
     public static void log(String label, String sample) {
-        DeprecationLogger.nagUserWith(String.format("Usage of statement labels in build scripts has been deprecated "
-                + "and will no longer be supported in the next version of Gradle. In case you tried to configure a property "
-                + "named '%s', replace ':' with '=' or ' '. Otherwise it will not have the desired effect. \n\n%s",
-                label, sample));
+        DeprecationLogger.nagUserOfDeprecated(
+                "Usage of statement labels in build scripts",
+                String.format(
+                        "In case you tried to configure a property named '%s', replace ':' with '=' or ' '. Otherwise it will not have the desired effect. \n\n%s",
+                        label, sample
+                )
+        );
     }
 }

@@ -17,7 +17,7 @@
 package org.gradle.api.internal.classpath;
 
 import org.gradle.api.UncheckedIOException;
-import org.gradle.util.GUtil;
+import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -40,7 +40,7 @@ public class ManifestUtil {
             paths.add(path);
         }
 
-        return GUtil.join(paths, " ");
+        return CollectionUtils.join(" ", paths);
     }
 
     // TODO:DAZ The returned URI will only be relative if the file is contained in the jarfile directory. Otherwise, an absolute URI is returned.

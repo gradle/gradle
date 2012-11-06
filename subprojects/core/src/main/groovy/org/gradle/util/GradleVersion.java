@@ -174,6 +174,14 @@ public class GradleVersion implements Comparable<GradleVersion> {
         return versionPart;
     }
 
+    public int getMajor() {
+        if (isValid()) {
+            return Integer.valueOf(versionPart.split("\\.", 2)[0], 10);
+        } else {
+            return -1;
+        }
+    }
+
     private boolean isNonSymbolicNumber() {
         return versionPart.equals("0.0");
     }

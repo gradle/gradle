@@ -16,10 +16,7 @@
 
 package org.gradle.api.publish.ivy.plugins;
 
-import org.gradle.api.Action;
-import org.gradle.api.Incubating;
-import org.gradle.api.Plugin;
-import org.gradle.api.Project;
+import org.gradle.api.*;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.internal.ConventionMapping;
@@ -83,7 +80,9 @@ public class IvyPublishPlugin implements Plugin<Project> {
         });
 
         // Create publish tasks automatically for any Ivy publication and repository combinations
-        new IvyPublishDynamicTaskCreator(project.getTasks(), new DefaultIvyPublishTaskNamer()).monitor(extension.getPublications(), extension.getRepositories());
+        Task publishLifecycleTask = project.getTasks().getByName(PublishingPlugin.PUBLISH_LIFECYCLE_TASK_NAME);
+        IvyPublishDynamicTaskCreator publishTaskCreator = new IvyPublishDynamicTaskCreator(project.getTasks(), new DefaultIvyPublishTaskNamer(), publishLifecycleTask);
+        publishTaskCreator.monitor(extension.getPublications(), extension.getRepositories());
     }
 
     private IvyPublication createPublication(String name, final Project project, Set<? extends Configuration> configurations) {
