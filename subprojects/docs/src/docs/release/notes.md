@@ -140,10 +140,6 @@ More details:
 
 The reports are not yet turned on by default. They are @Incubating and we need more feedback before we make Gradle use them by default. The new report might exhibit increased heap usage for tests that eagerly log to the standard streams. In case your tests get hungry you can easily feed them: see the code samples [in the dsl reference](dsl/org.gradle.api.tasks.testing.Test.html). To enable the new test reports, please set the [test.testReport = true](dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:testReport).
 
-### Resolution result API
-
-The entry point to the ResolutionResult API has changed, you can get access to the instance of the ResolutionResult via [configuration.incoming.resolutionResult](dsl/org.gradle.api.artifacts.Configuration.html#org.gradle.api.artifacts.Configuration:incoming).
-
 ## Deprecations
 
 ### Ant-task based Java compiler integration
@@ -197,7 +193,12 @@ For example:
 
 A deprecation warning will be issued if a name change is attempted.
 
-## Potential breaking changes
+## Changes to the existing incubating features
+
+### Resolution result API
+
+The entry point to the ResolutionResult API has changed, you can get access to the instance of the ResolutionResult via [configuration.incoming.resolutionResult](dsl/org.gradle.api.artifacts.Configuration.html#org.gradle.api.artifacts.Configuration:incoming).
+New convenience methods were added to API. For more information please refer to the javadoc for (ResolutionResult)[docs/javadoc/org/gradle/api/artifacts/result/ResolutionResult.html].
 
 ### Incubating C++ `Compile` task type removed
 
@@ -206,6 +207,8 @@ This was replaced by `CppCompile` in Gradle 1.2. You should use the replacement 
 ### Incubating `GppCompileSpec` properties removed
 
 The deprecated `task` property was removed from `GppCompileSpec`.
+
+## Potential breaking changes
 
 ### Removed GraphvizReportRenderer (private API)
 
