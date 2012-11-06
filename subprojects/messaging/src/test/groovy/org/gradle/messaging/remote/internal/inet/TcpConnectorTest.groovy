@@ -82,5 +82,18 @@ class TcpConnectorTest extends ConcurrentSpecification {
         then:
         ConnectException e = thrown()
         e.message.startsWith "Could not connect to server ${address}."
+        e.cause instanceof java.net.ConnectException
+    }
+
+    def "the exception includes last failure when cannot connect"() {
+        def address = new MultiChoiceAddress("address", 12345, [InetAddress.getByName("localhost"), InetAddress.getByName("127.0.0.1")])
+
+        when:
+        outgoingConnector.connect(address)
+
+        then:
+        ConnectException e = thrown()
+        e.message.startsWith "Could not connect to server ${address}."
+        e.cause instanceof java.net.ConnectException
     }
 }

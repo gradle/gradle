@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.SocketException;
 import java.nio.channels.SocketChannel;
 import java.util.List;
 
@@ -50,32 +49,21 @@ public class TcpOutgoingConnector<T> implements OutgoingConnector<T> {
         List<InetAddress> candidateAddresses = address.getCandidates();
 
         // Now try each address
-        try {
-            Exception lastFailure = null;
-            for (InetAddress candidate : candidateAddresses) {
-                LOGGER.debug("Trying to connect to address {}.", candidate);
-                SocketChannel socketChannel;
-                try {
-                    socketChannel = SocketChannel.open(new InetSocketAddress(candidate, address.getPort()));
-                } catch (java.net.ConnectException e) {
-                    LOGGER.debug("Cannot connect to address {}, skipping.", candidate);
-                    lastFailure = e;
-                    continue;
-                } catch (SocketException e) {
-                    LOGGER.debug("Cannot connect to address {}, skipping.", candidate);
-                    lastFailure = new RuntimeException(String.format("Could not connect to address %s.", candidate), e);
-                    continue;
-                }
-                LOGGER.debug("Connected to address {}.", candidate);
-                return new SocketConnection<T>(socketChannel, serializer);
+        Exception lastFailure = null;
+        for (InetAddress candidate : candidateAddresses) {
+            LOGGER.debug("Trying to connect to address {}.", candidate);
+            SocketChannel socketChannel;
+            try {
+                socketChannel = SocketChannel.open(new InetSocketAddress(candidate, address.getPort()));
+            } catch (Exception e) {
+                LOGGER.debug("Cannot connect to address {}, skipping.", candidate);
+                lastFailure = e;
+                continue;
             }
-            throw lastFailure;
-        } catch (java.net.ConnectException e) {
-            throw new ConnectException(String.format("Could not connect to server %s. Tried addresses: %s.",
-                    destinationAddress, candidateAddresses), e);
-        } catch (Exception e) {
-            throw new RuntimeException(String.format("Could not connect to server %s. Tried addresses: %s.",
-                    destinationAddress, candidateAddresses), e);
+            LOGGER.debug("Connected to address {}.", candidate);
+            return new SocketConnection<T>(socketChannel, serializer);
         }
+        throw new ConnectException(String.format("Could not connect to server %s. Tried addresses: %s.",
+                destinationAddress, candidateAddresses), lastFailure);
     }
 }
