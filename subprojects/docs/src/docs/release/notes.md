@@ -228,7 +228,7 @@ This type was an early contribution. It is unlikely anyone uses it because it do
 This package contained some early experiments in a new publication model. It was incomplete and undocumented. It is superseded by the new `org.gradle.api.publish` (incubating) package
 introduced in Gradle 1.3 so has been removed.
 
-## External Contributions
+## Community contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
