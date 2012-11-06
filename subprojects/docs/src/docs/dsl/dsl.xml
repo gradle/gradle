@@ -181,6 +181,31 @@
     </section>
 
     <section>
+        <title>Help Task types</title>
+        <para>Below are the task types that are available for every Gradle project.
+            Those task types can also be declared and configured directly in the build script.
+        </para>
+        <table>
+            <title>Help Task types</title>
+            <tr>
+                <td>org.gradle.api.tasks.diagnostics.TaskReportTask</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.tasks.diagnostics.ProjectReportTask</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.tasks.diagnostics.DependencyReportTask</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.tasks.diagnostics.DependencyInsightReportTask</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.tasks.diagnostics.PropertyReportTask</td>
+            </tr>
+        </table>
+    </section>
+
+    <section>
         <title>Task types</title>
         <para>Listed below are the various task types which are available for use in your build script:</para>
         <table>
@@ -208,12 +233,6 @@
             </tr>
             <tr>
                 <td>org.gradle.api.tasks.Directory</td>
-            </tr>
-            <tr>
-                <td>org.gradle.api.tasks.diagnostics.DependencyReportTask</td>
-            </tr>
-            <tr>
-                <td>org.gradle.api.tasks.diagnostics.DependencyInsightReportTask</td>
             </tr>
             <tr>
                 <td>org.gradle.plugins.ear.Ear</td>
@@ -261,12 +280,6 @@
                 <td>org.gradle.api.plugins.quality.Pmd</td>
             </tr>
             <tr>
-                <td>org.gradle.api.tasks.diagnostics.PropertyReportTask</td>
-            </tr>
-            <tr>
-                <td>org.gradle.api.tasks.diagnostics.ProjectReportTask</td>
-            </tr>
-            <tr>
                 <td>org.gradle.api.tasks.scala.ScalaCompile</td>
             </tr>
             <tr>
@@ -283,9 +296,6 @@
             </tr>
             <tr>
                 <td>org.gradle.api.tasks.bundling.Tar</td>
-            </tr>
-            <tr>
-                <td>org.gradle.api.tasks.diagnostics.TaskReportTask</td>
             </tr>
             <tr>
                 <td>org.gradle.api.tasks.testing.Test</td>

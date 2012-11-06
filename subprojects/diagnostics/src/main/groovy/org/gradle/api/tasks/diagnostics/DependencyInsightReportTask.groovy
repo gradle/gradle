@@ -70,8 +70,6 @@ import static org.gradle.logging.StyledTextOutput.Style.Info
 @Incubating
 public class DependencyInsightReportTask extends DefaultTask {
 
-    //TODO SF create a group in the dsl reference for the help tasks. Document the dependencies report better if necessary.
-
     /**
      * Configuration to look the dependency in
      */
