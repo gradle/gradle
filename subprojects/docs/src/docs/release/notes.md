@@ -219,9 +219,9 @@ The reason we need to do it is because we have added a brand new TestNG reportin
 The new reporting is still @Incubating and hence in this release it is off by default.
 * For more information on how the testReport property is used by TestNG see the [dsl reference](dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:testReport).
 
-### Removed GraphvizReportRenderer (private API)
+### Removed GraphvizReportRenderer
 
-This type was an early contribution. It is unlikely anyone uses it because it does not work and it is an undocumented private type.
+This was an early contribution that did not work and was an undocumented private type.
 
 ### Removed `org.gradle.api.publication` package
 
