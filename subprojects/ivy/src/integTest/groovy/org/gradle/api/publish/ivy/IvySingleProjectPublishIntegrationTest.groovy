@@ -35,7 +35,7 @@ class IvySingleProjectPublishIntegrationTest extends AbstractIntegrationSpec {
             group = "org.gradle.test"
             version = 1.9
 
-            configurations { publish }
+            configurations { toPublish }
 
             task jar1(type: Jar) {
                 baseName = "jar1"
@@ -48,7 +48,7 @@ class IvySingleProjectPublishIntegrationTest extends AbstractIntegrationSpec {
             }
 
             artifacts {
-                publish jar1, jar2
+                toPublish jar1, jar2
             }
 
             publishing {
@@ -71,8 +71,8 @@ class IvySingleProjectPublishIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         def ivyDescriptor = ivyModule.ivy
-        ivyDescriptor.expectArtifact("jar1").conf == ["archives", "publish"]
-        ivyDescriptor.expectArtifact("jar2").conf == ["publish"]
+        ivyDescriptor.expectArtifact("jar1").conf == ["archives", "toPublish"]
+        ivyDescriptor.expectArtifact("jar2").conf == ["toPublish"]
     }
 
     @Ignore("We don't have a way to have separate publications right now")
