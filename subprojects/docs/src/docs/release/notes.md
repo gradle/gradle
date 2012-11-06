@@ -236,6 +236,6 @@ We would like to thank the following community members for making contributions 
 * Gerd Aschemann - fixes for `application` plugins generated shell scripts (GRADLE-2501)
 * Cruz Fernandez - fixes to the properties sample project
 * Fadeev Alexandr - fixes for Gradle Daemon on Win 7 when `PATH` env var is not set (GRADLE-2461)
-* Ben Manes - improved Scala IDE integration (https://github.com/gradle/gradle/pull/99)
+* Ben Manes - improved Scala IDE integration ([pull request #99](https://github.com/gradle/gradle/pull/99))
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
