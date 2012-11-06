@@ -211,7 +211,7 @@ task test << {
 
         executer.withDeprecationChecksDisabled()
         def result = inTestDirectory().withTasks('test').run()
-        assert result.output.contains('relying on packaging to define the extension of the main artifact is deprecated')
+        assert result.output.contains('Relying on packaging to define the extension of the main artifact has been deprecated')
     }
 
     @Test
@@ -351,7 +351,7 @@ task test << {
 """
         executer.withDeprecationChecksDisabled()
         def result = inTestDirectory().withTasks('test').run()
-        assert result.output.contains('relying on packaging to define the extension of the main artifact is deprecated')
+        assert result.output.contains('Relying on packaging to define the extension of the main artifact has been deprecated')
     }
 
     @Test
