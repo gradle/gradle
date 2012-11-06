@@ -17,6 +17,8 @@
 package org.gradle.process.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
 import org.gradle.messaging.remote.ConnectEvent;
 import org.gradle.messaging.remote.ObjectConnection;
@@ -29,6 +31,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class DefaultWorkerProcess implements WorkerProcess {
+    private final static Logger LOGGER = Logging.getLogger(DefaultWorkerProcess.class);
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
     private ObjectConnection connection;
@@ -64,6 +67,7 @@ public class DefaultWorkerProcess implements WorkerProcess {
     private void onConnect(ObjectConnection connection) {
         lock.lock();
         try {
+            LOGGER.debug("Received connection {} from {}", connection, execHandle);
             this.connection = connection;
             condition.signalAll();
         } finally {
@@ -114,7 +118,7 @@ public class DefaultWorkerProcess implements WorkerProcess {
             while (connection == null && running) {
                 try {
                     if (!condition.awaitUntil(connectExpiry)) {
-                        throw new ExecException(String.format("Timeout after waiting %.1f seconds for %s to connect.", ((double) connectTimeout) / 1000, execHandle));
+                        throw new ExecException(String.format("Timeout after waiting %.1f seconds for %s (%s, running: %s) to connect.", ((double) connectTimeout) / 1000, execHandle, execHandle.getState(), running));
                     }
                 } catch (InterruptedException e) {
                     throw UncheckedException.throwAsUncheckedException(e);

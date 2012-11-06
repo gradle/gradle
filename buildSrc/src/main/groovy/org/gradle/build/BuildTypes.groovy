@@ -27,6 +27,10 @@ class BuildTypes {
         this.project = project
     }
 
+    List<String> getActive() {
+        new LinkedList(activeNames)
+    }
+
     boolean isActive(String name) {
         name in activeNames
     }

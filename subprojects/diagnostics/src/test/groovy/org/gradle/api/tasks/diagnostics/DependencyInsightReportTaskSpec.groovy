@@ -19,6 +19,7 @@ package org.gradle.api.tasks.diagnostics
 import org.gradle.api.specs.Spec
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
+import org.gradle.api.InvalidUserDataException
 
 /**
  * by Szczepan Faber, created at: 9/20/12
@@ -45,6 +46,14 @@ class DependencyInsightReportTaskSpec extends Specification {
 
         then:
         thrown(ReportException)
+    }
+
+    def "fails if dependency to include is empty"() {
+        when:
+        task.setDependencySpec("")
+
+        then:
+        thrown(InvalidUserDataException)
     }
 
     def "can set spec and configuration directly"() {

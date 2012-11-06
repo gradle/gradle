@@ -16,12 +16,12 @@
 
 package org.gradle.api.tasks.diagnostics.internal.dsl
 
-import org.gradle.api.GradleException
 import org.gradle.api.artifacts.result.DependencyResult
 import org.gradle.api.internal.artifacts.result.ResolutionResultDataBuilder
 import org.gradle.api.internal.notations.api.NotationParser
 import org.gradle.api.specs.Spec
 import spock.lang.Specification
+import org.gradle.api.InvalidUserDataException
 
 /**
  * by Szczepan Faber, created at: 10/9/12
@@ -78,8 +78,20 @@ class DependencyResultSpecNotationParserSpec extends Specification {
         parser.parseNotation(['not supported'])
 
         then:
-        def ex = thrown(GradleException)
+        def ex = thrown(InvalidUserDataException)
         ex.message.contains 'not supported'
         ex.message.contains 'DependencyInsight.dependency'
+    }
+
+    def "does not accept empty Strings"() {
+        when:
+        parser.parseNotation('')
+        then:
+        thrown(InvalidUserDataException)
+
+        when:
+        parser.parseNotation(' ')
+        then:
+        thrown(InvalidUserDataException)
     }
 }
