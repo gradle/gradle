@@ -211,4 +211,12 @@ decorateReleaseNotes {
         body().prepend("<div class='text-container'/>")
         body().children()[0].html(bodyContent.outerHtml())
     }
+
+    // Turn Gradle issue numbers into issue links
+    transform {
+        def rewritten = body().html().replaceAll(~/GRADLE-\d+/) {
+            "<a href='http://issues.gradle.org/browse/${it}'>${it}</a>"
+        }
+        body().html(rewritten)
+    }
 }
