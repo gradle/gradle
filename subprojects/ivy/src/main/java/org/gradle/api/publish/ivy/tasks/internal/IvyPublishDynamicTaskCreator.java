@@ -27,18 +27,18 @@ import org.gradle.api.publish.ivy.internal.IvyPublicationInternal;
 import org.gradle.api.publish.ivy.tasks.IvyRepositoryPublish;
 import org.gradle.api.tasks.TaskContainer;
 
+import static org.apache.commons.lang.StringUtils.capitalize;
+
 /**
  * Dynamically creates tasks for each Ivy publication/repository pair in a publication set and repository set.
  */
 public class IvyPublishDynamicTaskCreator {
 
     final private TaskContainer tasks;
-    private final IvyPublishTaskNamer taskNamer;
     private final Task publishLifecycleTask;
 
-    public IvyPublishDynamicTaskCreator(TaskContainer tasks, IvyPublishTaskNamer taskNamer, Task publishLifecycleTask) {
+    public IvyPublishDynamicTaskCreator(TaskContainer tasks, Task publishLifecycleTask) {
         this.tasks = tasks;
-        this.taskNamer = taskNamer;
         this.publishLifecycleTask = publishLifecycleTask;
     }
 
@@ -75,15 +75,21 @@ public class IvyPublishDynamicTaskCreator {
         IvyPublicationInternal publicationInternal = (IvyPublicationInternal) publication;
         IvyArtifactRepositoryInternal repositoryInternal = (IvyArtifactRepositoryInternal) repository;
 
-        String taskName = taskNamer.name(publication.getName(), repository.getName());
+        String publicationName = publication.getName();
+        String repositoryName = repository.getName();
+        String taskName = calculatePublishTaskName(publicationName, repositoryName);
 
         IvyRepositoryPublish task = tasks.add(taskName, IvyRepositoryPublish.class);
         task.setPublication(publicationInternal);
         task.setRepository(repositoryInternal);
         task.setGroup("publishing");
-        task.setDescription(String.format("Publishes Ivy publication %s to Ivy repository %s", publication.getName(), repository.getName()));
+        task.setDescription(String.format("Publishes Ivy publication '%s' to Ivy repository '%s'", publicationName, repositoryName));
 
         publishLifecycleTask.dependsOn(task);
+    }
+
+    private String calculatePublishTaskName(String publicationName, String repositoryName) {
+        return String.format("publish%sPublicationTo%sRepository", capitalize(publicationName), capitalize(repositoryName));
     }
 
 }

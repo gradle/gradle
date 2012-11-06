@@ -30,7 +30,7 @@ class IvyPublishDynamicTaskCreatorTest extends Specification {
 
     def project = HelperUtil.createRootProject()
     def lifecycleTask = project.task("pl")
-    def creator = new IvyPublishDynamicTaskCreator(project.tasks, new DefaultIvyPublishTaskNamer(), lifecycleTask)
+    def creator = new IvyPublishDynamicTaskCreator(project.tasks, lifecycleTask)
 
     PublishingExtension publishing
 
@@ -57,8 +57,8 @@ class IvyPublishDynamicTaskCreatorTest extends Specification {
 
         then:
         ivyPublishTasks.size() == 1
-        project.tasks["publishIvyToIvyRepo"] != null
-        IvyRepositoryPublish task = project.tasks.publishIvyToIvyRepo
+        project.tasks["publishIvyPublicationToIvyRepository"] != null
+        IvyRepositoryPublish task = project.tasks.publishIvyPublicationToIvyRepository
         task.group == "publishing"
         task.description != null
 
@@ -69,7 +69,7 @@ class IvyPublishDynamicTaskCreatorTest extends Specification {
 
         then:
         ivyPublishTasks.size() == 2
-        project.tasks["publishIvy2ToIvyRepo"] != null
+        project.tasks["publishIvy2PublicationToIvyRepository"] != null
         lifecycleTaskDependencies.size() == 2
 
         when:
@@ -78,8 +78,8 @@ class IvyPublishDynamicTaskCreatorTest extends Specification {
         then:
         lifecycleTaskDependencies.size() == 4
         ivyPublishTasks.size() == 4
-        project.tasks["publishIvyToIvy2Repo"] != null
-        project.tasks["publishIvy2ToIvy2Repo"] != null
+        project.tasks["publishIvyPublicationToIvy2Repository"] != null
+        project.tasks["publishIvy2PublicationToIvy2Repository"] != null
     }
 
     protected Set<? extends Task> getLifecycleTaskDependencies() {

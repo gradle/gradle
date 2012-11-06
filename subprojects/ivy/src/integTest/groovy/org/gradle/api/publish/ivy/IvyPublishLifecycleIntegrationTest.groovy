@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+
+
 package org.gradle.api.publish.ivy
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -35,7 +37,7 @@ class IvyPublishLifecycleIntegrationTest extends AbstractIntegrationSpec {
 
             publishing {
                 repositories {
-                    main {
+                    ivy {
                         url "${ivyRepo.uri}"
                     }
                 }
@@ -46,7 +48,7 @@ class IvyPublishLifecycleIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'publish'
 
         then:
-        ":publishToRepo" in executedTasks
+        ":publishIvyPublicationToIvyRepository" in executedTasks
     }
 
 }

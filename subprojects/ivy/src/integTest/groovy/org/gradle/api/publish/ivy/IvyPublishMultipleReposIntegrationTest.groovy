@@ -51,12 +51,12 @@ class IvyPublishMultipleReposIntegrationTest extends AbstractIntegrationSpec {
 
             publishing {
                 publications {
-                    main.descriptor.withXml {
+                    ivy.descriptor.withXml {
                         asNode().@rev = 10
                     }
                 }
                 repositories {
-                    main {
+                    ivy {
                         url "${repo1.uri}"
                     }
                     ivy {
@@ -68,7 +68,7 @@ class IvyPublishMultipleReposIntegrationTest extends AbstractIntegrationSpec {
 
             // Be nasty and delete the descriptor after the first publishing
             // to make sure it's regenerated for the second publish
-            publishToRepo {
+            publishIvyPublicationToIvyRepository {
                 doLast {
                     assert publication.descriptor.file.delete()
                     publication.descriptor.withXml { asNode().@rev = "11" }
@@ -80,8 +80,8 @@ class IvyPublishMultipleReposIntegrationTest extends AbstractIntegrationSpec {
         succeeds(*invocation)
 
         then:
-        ":publishToRepo" in executedTasks
-        ":publishToRepo2Repo" in executedTasks
+        ":publishIvyPublicationToIvyRepository" in executedTasks
+        ":publishIvyPublicationToRepo2Repository" in executedTasks
 
         and:
         repo1Module.ivyFile.exists()
@@ -95,7 +95,7 @@ class IvyPublishMultipleReposIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         invocation << [
-                ["publishToRepo", "publishToRepo2Repo"],
+                ["publishIvyPublicationToIvyRepository", "publishIvyPublicationToRepo2Repository"],
                 ["publish"]
         ]
     }
