@@ -472,7 +472,7 @@ assert 'overridden value' == global
         executer.withDeprecationChecksDisabled()
         def result = executer.withTasks("run").run()
 
-        assert result.output.contains('Dynamic properties are deprecated: http://gradle.org/docs/current/dsl/org.gradle.api.plugins.ExtraPropertiesExtension.html')
+        assert result.output.contains('Creating properties on demand (a.k.a. dynamic properties) has been deprecated')
         assert result.output.contains('Deprecated dynamic property: "p1" on "root project ')
         assert result.output.contains('Deprecated dynamic property: "p2" on "task \':run\'", value: "2".')
     }
