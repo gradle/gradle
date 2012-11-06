@@ -113,7 +113,7 @@ The [Eclipse Plugin](http://gradle.org/docs/current/userguide/eclipse_plugin.htm
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to our backwards compatibility policy.
 
-## Fixed Issues
+## Fixed issues
 
 The list of issues fixed between 1.2 and 1.3 can be found [here](http://issues.gradle.org/sr/jira.issueviews:searchrequest-printable/temp/SearchRequest.html?jqlQuery=fixVersion+in+%28%221.3-rc-1%22%29+ORDER+BY+priority&tempMax=1000).
 
@@ -210,7 +210,7 @@ The deprecated `task` property was removed from `GppCompileSpec`.
 
 ## Potential breaking changes
 
-### The behavior of [Test.testReport](dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:testReport) property for TestNG.
+### The behavior of [Test.testReport](dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:testReport) property for TestNG
 
 * [Test.testReport](dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:testReport) default value has been changed to 'false' for TestNG.
 Previously, this property was ignored when running with TestNG - the html results were generated anyway.
