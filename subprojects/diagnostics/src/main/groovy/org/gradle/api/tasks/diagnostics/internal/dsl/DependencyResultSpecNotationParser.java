@@ -33,20 +33,16 @@ public class DependencyResultSpecNotationParser implements NotationParser<Spec<D
 
     public Spec<DependencyResult> parseNotation(final Object notation) throws UnsupportedNotationException {
         if (notation instanceof CharSequence) {
-            final String stringNotation = notation.toString();
-            return new Spec<DependencyResult>() {
-                public boolean isSatisfiedBy(DependencyResult candidate) {
-                    //TODO SF we need a better matching
-                    String candidateName = candidate.getRequested().getGroup() + ":" + candidate.getRequested().getName() + ":" + candidate.getRequested().getVersion();
-                    return candidateName.contains(stringNotation);
-                }
-            };
+            final String stringNotation = notation.toString().trim();
+            if (stringNotation.length() > 0) {
+                return new DependencyResultSpec(stringNotation);
+            }
         }
         throw new UnsupportedNotationException(notation);
     }
 
     public void describe(Collection<String> candidateFormats) {
-        candidateFormats.add("String value, e.g. 'some-lib' or 'org.libs:some-lib'.");
+        candidateFormats.add("Non-empty String value, e.g. 'some-lib' or 'org.libs:some-lib'.");
         candidateFormats.add("Closure that returns boolean and takes a single DependencyResult as parameter.");
     }
 
