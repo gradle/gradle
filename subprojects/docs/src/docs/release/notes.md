@@ -16,7 +16,7 @@ The report can be used to answer (very common) questions such as:
 
 The *selected* version of a dependency can be different to the *requested* (i.e. user declared) version due to dependency conflict resolution or by explicit dependency force rules. Similar to the standard gradle depenency report, the `dependencyInsight` report shows both versions. It also shows a requested dynamic version (e.g. "junit:junit:4.+") together with the actually selected version (e.g. "junit:junit:4.10"). Please keep in mind that Maven snapshot dependencies are not treated as dynamic versions but as changing modules, similar to what Maven does (for the difference see the [userguide](http://gradle.org/docs/nightly/userguide/dependency_management.html#sec:dependency_management_overview)). Maven snapshots might be treated as dynamic versions in a future version of Gradle which would provide nice insight into pom snapshot resolution.   
 
-The `dependencyInsight` report task is invaluable when investigating how and why a dependency is resolved, and it is available on all projects out of the box.
+The `dependencyInsight` report task is invaluable when investigating how and why a dependency is resolved, and it is available in all projects out of the box.
 
 #### Example usage
 
@@ -75,7 +75,7 @@ org.slf4j:slf4j-api:1.6.5 -> 1.6.6
 
 Here we see that while `slf4j-api:1.6.5` was *requested*, `slf4j-api:1.6.6` was *selected* due to the conflict resolution. We can also see which dependency pulled in the slf4j.
 
-In this case, we were interested in the `runtime` dependency configuration. The default configuration the report uses is 'compile'.
+In this case, we were interested in the `runtime` dependency configuration. The default configuration the report uses is `compile`.
 
 For more information, see the [DependencyInsightReportTask documentation](dsl/org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.html).
 
@@ -138,7 +138,7 @@ More details:
 * The html report is way, way easier to read and browse. Did I mention it contains the test output? Here is the [example](http://builds.gradle.org/repository/download/bt9/.lastSuccessful/reports/ide/integTest/index.html).
 * The reports neatly work with Gradle parallel testing ([test.maxParallelForks](dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:maxParallelForks)) and forking features ([test.forkEvery](dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:forkEvery)). Run your tests in parallel so that the build is faster!
 
-The reports are not yet turned on by default. They are @Incubating and we need more feedback before we make Gradle use them by default. The new report might exhibit increased heap usage for tests that eagerly log to the standard streams. In case your tests get hungry you can easily feed them: see the code samples [in the dsl reference](dsl/org.gradle.api.tasks.testing.Test.html). To enable the new test reports, please set the [test.testReport = true](dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:testReport).
+The reports are not yet turned on by default. They are @Incubating and we need more feedback before we make Gradle use them by default. The new report might exhibit increased heap usage for tests that eagerly log to the standard streams. In case your tests get hungry you can easily feed them: see the code samples [in the dsl reference](dsl/org.gradle.api.tasks.testing.Test.html). To enable the new TestNG test reports, please set the [test.testReport = true](dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:testReport).
 
 ## Deprecations
 
@@ -198,7 +198,7 @@ A deprecation warning will be issued if a name change is attempted.
 ### Resolution result API
 
 The entry point to the ResolutionResult API has changed, you can get access to the instance of the ResolutionResult via [configuration.incoming.resolutionResult](dsl/org.gradle.api.artifacts.Configuration.html#org.gradle.api.artifacts.Configuration:incoming).
-New convenience methods were added to API. For more information please refer to the javadoc for (ResolutionResult)[docs/javadoc/org/gradle/api/artifacts/result/ResolutionResult.html].
+New convenience methods were added to the API. For more information please refer to the javadoc for [ResolutionResult](javadoc/org/gradle/api/artifacts/result/ResolutionResult.html).
 
 ### Incubating C++ `Compile` task type removed
 
@@ -210,6 +210,15 @@ The deprecated `task` property was removed from `GppCompileSpec`.
 
 ## Potential breaking changes
 
+### The behavior of [Test.testReport](dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:testReport) property for TestNG.
+
+* [Test.testReport](dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:testReport) default value has been changed to 'false' for TestNG.
+Previously, this property was ignored when running with TestNG - the html results were generated anyway.
+Since the property was not really used we believe that it is safe to change its default value.
+The reason we need to do it is because we have added a brand new TestNG reporting (see the section above).
+The new reporting is still @Incubating and hence in this release it is off by default.
+* For more information on how the testReport property is used by TestNG see the [dsl reference](dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:testReport).
+
 ### Removed GraphvizReportRenderer (private API)
 
 This type was an early contribution. It is unlikely anyone uses it because it does not work and it is an undocumented private type.
@@ -218,15 +227,6 @@ This type was an early contribution. It is unlikely anyone uses it because it do
 
 This package contained some early experiments in a new publication model. It was incomplete and undocumented. It is superseded by the new `org.gradle.api.publish` (incubating) package
 introduced in Gradle 1.3 so has been removed.
-
-### The behavior of (Test.testReport)[dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:testReport] property for TestNG.
-
-* Test.testReport default value has been changed to 'false' for TestNG.
-This property was ignored when running with TestNG - the html results were generated anyway.
-Since the property was not really used we believe that it is safe to change its default value.
-The reason we need to do it is because we've added a brand new TestNG reporting (see the section above).
-The new reporting is still @Incubating so we would keep it off by default in this release.
-* For more information on how the testReport property is used by TestNG see the (dsl reference)[dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:testReport]
 
 ## External Contributions
 
