@@ -43,10 +43,10 @@ import static org.gradle.logging.StyledTextOutput.Style.Info
 /**
  * Generates a report that attempts to answer questions like:
  * <ul>
- *   <li>Why this dependency is in the dependency graph? What pulls this dependency into the graph?</li>
- *   <li>What are all the requested versions of this dependency?</li>
- *   <li>Why the dependency has this particular version selected?
- *   Is it because of the conflict resolution or perhaps this version was forced?</li>
+ *  <li>Why is this dependency in the dependency graph?</li>
+ *  <li>Exactly which dependencies are pulling this dependency into the graph?</li>
+ *  <li>What is the actual version (i.e. *selected* version) of the dependency that will be used? Is it the same as what was *requested*?</li>
+ *  <li>Why is the *selected* version of a dependency different to the *requested*?</li>
  * </ul>
  *
  * Use this task to get insight into a particular dependency (or dependencies)
@@ -54,10 +54,9 @@ import static org.gradle.logging.StyledTextOutput.Style.Info
  * If the dependency version was forced or selected by the conflict resolution
  * this information will be available in the report.
  * <p>
- * Compared to the gradle dependencies report ({@link DependencyReportTask}),
- * this report shows an 'inverted' dependency tree.
- * This means that the root of the tree is the dependency that matches the input specified by the user.
- * Then, the tree recurses into the dependents.
+ * While the regular dependencies report ({@link DependencyReportTask}) shows the path from the top level dependencies down through the transitive dependencies,
+ * the dependency insight report shows the path from a particular dependency to the dependencies that pulled it in.
+ * That is, it is an inverted view of the regular dependencies report.
  * <p>
  * The task requires setting the dependency spec and the configuration.
  * For more information on how to configure those please refer to docs for
