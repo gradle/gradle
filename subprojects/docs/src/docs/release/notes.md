@@ -149,7 +149,11 @@ The entry point to the ResolutionResult API has changed, you can get access to t
 ### Ant-task based Java compiler integration
 
 Gradle currently supports two different Java compiler integrations: A native Gradle integration that uses the compiler APIs directly, and an Ant-task
-based implementation that uses the `<javac>` Ant task. The native Gradle integration has been the default since Gradle 1.0-milestone-9.
+based implementation that uses the `<javac>` Ant task. The native Gradle integration has been the default since Gradle 1.0-milestone-9. Some of its advantages are:
+
+* Faster compilation
+* Can run in Gradle compiler daemon (external process that is reused between tasks)
+* More amenable to future enhancements
 
 The Ant-task based integration has now been deprecated and will be removed in Gradle 2.0. As a result, the following properties of `CompileOptions` are also
 deprecated and will be removed in Gradle 2.0:
@@ -161,7 +165,12 @@ deprecated and will be removed in Gradle 2.0:
 ### Ant-task based Groovy compiler integration
 
 Gradle currently supports two different Groovy compiler integrations: A native Gradle integration that uses the compiler APIs directly, and an Ant-task
-based implementation that uses the `<groovyc>` Ant task. The native Gradle integration has been the default since Gradle 1.0.
+based implementation that uses the `<groovyc>` Ant task. The native Gradle integration has been the default since Gradle 1.0. Some of its advantages are:
+
+* Faster compilation
+* Correct handling of AST transformations
+* Can run in Gradle compiler daemon (external process that is reused between tasks)
+* More amenable to future enhancements
 
 The Ant-task based integration has now been deprecated and will be removed in Gradle 2.0. As a result, the following properties of `GroovyCompileOptions` are also
 deprecated and will be removed in Gradle 2.0:
