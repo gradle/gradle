@@ -16,7 +16,7 @@
 
 package org.gradle.test.fixtures.ivy
 
-import org.gradle.test.fixtures.server.HttpServer
+import org.gradle.test.fixtures.server.http.HttpServer
 
 class IvyHttpRepository implements IvyRepository {
     private final HttpServer server

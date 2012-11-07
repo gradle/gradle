@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.test.fixtures.server
+package org.gradle.test.fixtures.server.http
 
 import ch.qos.logback.classic.Level
 import org.gradle.util.AvailablePortFinder

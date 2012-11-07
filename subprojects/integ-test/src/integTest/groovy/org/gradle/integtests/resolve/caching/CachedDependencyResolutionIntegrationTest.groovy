@@ -18,7 +18,7 @@ package org.gradle.integtests.resolve.caching
 
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
 import org.gradle.test.fixtures.ivy.IvyHttpModule
-import org.gradle.test.fixtures.server.HttpServer
+import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.TestFile
 
 /**

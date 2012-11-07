@@ -16,7 +16,7 @@
 
 
 
-package org.gradle.test.fixtures.server;
+package org.gradle.test.fixtures.server.http;
 
 
 import org.junit.rules.ExternalResource
