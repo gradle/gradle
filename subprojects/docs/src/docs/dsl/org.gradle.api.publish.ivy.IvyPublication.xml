@@ -20,6 +20,9 @@
                     <td>Name</td>
                 </tr>
             </thead>
+            <tr>
+                <td>descriptor</td>
+            </tr>
         </table>
     </section>
 </section>

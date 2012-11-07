@@ -61,8 +61,8 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         return descriptor;
     }
 
-    public void descriptor(Action<? super IvyModuleDescriptor> action) {
-        action.execute(descriptor);
+    public void descriptor(Action<? super IvyModuleDescriptor> configure) {
+        configure.execute(descriptor);
     }
 
     public FileCollection getPublishableFiles() {

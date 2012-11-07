@@ -25,9 +25,9 @@ import java.io.File;
 
 /**
  * The descriptor of any Ivy publication.
- *
+ * <p>
  * Corresponds to the <a href="http://ant.apache.org/ivy/history/latest-milestone/ivyfile.html">XML version of the Ivy Module Descriptor</a>.
- *
+ * <p>
  * The {@link #withXml(org.gradle.api.Action)} method can be used to modify the descriptor after it has been generated according to the publication data.
  *
  * @since 1.3
@@ -37,7 +37,7 @@ import java.io.File;
 public interface IvyModuleDescriptor {
 
     /**
-     * Allow configuration of the descriptor file, after it has been generated.
+     * Allow configuration of the descriptor, after it has been generated according to the input data.
      *
      * @param action The configuration action.
      * @see IvyPublication
@@ -49,8 +49,6 @@ public interface IvyModuleDescriptor {
      * The generated descriptor file.
      *
      * This file will only exist <b>after</b> the publishing task that publishing the publication this descriptor is part of.
-     *
-     * Defaults to {@code $buildDir/publications/«publication name»/ivy.xml} with {@code “ivy-publish”} plugin.
      *
      * @return The generated descriptor file
      */
