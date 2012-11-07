@@ -16,10 +16,14 @@
 package org.gradle.messaging.remote.internal.inet
 
 import org.gradle.api.Action
+import org.gradle.messaging.remote.ConnectEvent
 import org.gradle.messaging.remote.internal.ConnectException
+import org.gradle.messaging.remote.internal.Connection
 import org.gradle.messaging.remote.internal.DefaultMessageSerializer
 import org.gradle.util.ConcurrentSpecification
 import org.gradle.internal.id.UUIDGenerator
+
+import java.util.concurrent.CountDownLatch
 
 class TcpConnectorTest extends ConcurrentSpecification {
     final def serializer = new DefaultMessageSerializer<String>(getClass().classLoader)
@@ -82,5 +86,39 @@ class TcpConnectorTest extends ConcurrentSpecification {
         then:
         ConnectException e = thrown()
         e.message.startsWith "Could not connect to server ${address}."
+    }
+
+    def "can receive message from peer after peer has closed connection"() {
+        // This is a test to simulate the messaging that the daemon does on build completion, in order to validate some assumptions
+
+        def closed = new CountDownLatch(1)
+
+        when:
+        def address = incomingConnector.accept({ ConnectEvent<Connection<Object>> event ->
+            def connection = event.connection
+            println "[server] connected"
+            connection.dispatch("bye")
+            connection.stop()
+            closed.countDown()
+            println "[server] disconnected"
+        } as Action, false)
+
+        def connection = outgoingConnector.connect(address)
+        println "[client] connected"
+        closed.await()
+        println "[client] dispatching"
+        connection.dispatch("broken")
+        println "[client] receiving"
+        assert connection.receive() == "bye"
+        assert connection.receive() == null
+        connection.stop()
+        println "[client] disconnected"
+        incomingConnector.requestStop()
+
+        then:
+        finished()
+
+        cleanup:
+        incomingConnector.requestStop()
     }
 }
