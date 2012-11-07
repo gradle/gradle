@@ -52,7 +52,7 @@ class IvyCustomPublishIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        succeeds 'publishIvyPublicationToIvyRepository'
+        succeeds 'publish'
 
         then:
         module.ivyFile.assertIsFile()
