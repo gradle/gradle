@@ -16,10 +16,6 @@
 
 package org.gradle.peformance.fixture
 
-import org.jscience.physics.amount.Amount
-
-import javax.measure.unit.NonSI;
-
 /**
  * by Szczepan Faber, created at: 8/14/12
  */
@@ -33,6 +29,6 @@ public class MemoryInfoCollector implements DataCollector {
             throw new RuntimeException("Cannot find $file. Cannot collect memory information if the build hasn't produced one.")
         }
         long bytesConsumed = Long.parseLong(file.text)
-        operation.totalMemoryUsed = Amount.valueOf(bytesConsumed, NonSI.BYTE)
+        operation.totalMemoryUsed = DataAmount.bytes(bytesConsumed)
     }
 }

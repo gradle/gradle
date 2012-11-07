@@ -84,7 +84,7 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, S
             if (LOGGER.isDebugEnabled()) {
                 Setup.debug(setup, logger);
             }
-            return com.typesafe.zinc.Compiler.create(setup, logger);
+            return com.typesafe.zinc.Compiler.getOrCreate(setup, logger);
         }
     }
 

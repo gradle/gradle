@@ -14,16 +14,8 @@
  * limitations under the License.
  */
 
-
-
-
-
 package org.gradle.peformance.fixture
 
-import org.jscience.physics.amount.Amount
-
-import javax.measure.quantity.DataAmount
-import javax.measure.quantity.Duration
 /**
  * by Szczepan Faber, created at: 2/10/12
  */
@@ -32,7 +24,7 @@ public class MeasuredOperationList extends LinkedList<MeasuredOperation> {
 
     Amount<DataAmount> avgMemory() {
         def bytes = this.collect { it.totalMemoryUsed }
-        bytes.sum().divide(bytes.size())
+        bytes.sum() / bytes.size()
     }
 
     Amount<DataAmount> minMemory() {
@@ -45,7 +37,7 @@ public class MeasuredOperationList extends LinkedList<MeasuredOperation> {
 
     Amount<Duration> avgTime() {
         def currentTimes = this.collect { it.executionTime }
-        currentTimes.sum().divide(currentTimes.size())
+        currentTimes.sum() / currentTimes.size()
     }
 
     Amount<Duration> maxTime() {

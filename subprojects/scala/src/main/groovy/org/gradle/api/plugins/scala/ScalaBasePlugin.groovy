@@ -103,7 +103,7 @@ class ScalaBasePlugin implements Plugin<Project> {
                 def config = project.configurations[ZINC_CONFIGURATION_NAME]
                 if (!compile.scalaCompileOptions.useAnt && config.dependencies.empty) {
                     project.dependencies {
-                        zinc("com.typesafe.zinc:zinc:0.2.0-M3")
+                        zinc("com.typesafe.zinc:zinc:0.2.0")
                     }
                 }
                 config

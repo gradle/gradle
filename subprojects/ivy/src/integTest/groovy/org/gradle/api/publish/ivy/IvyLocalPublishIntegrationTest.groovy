@@ -37,7 +37,7 @@ public class IvyLocalPublishIntegrationTest extends AbstractIntegrationSpec {
 
             publishing {
                 repositories {
-                    main {
+                    ivy {
                         url "${ivyRepo.uri}"
                     }
                 }
@@ -45,7 +45,7 @@ public class IvyLocalPublishIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        succeeds 'publishToRepo'
+        succeeds 'publishIvyPublicationToIvyRepository'
 
         then:
         module.ivyFile.assertIsFile()
@@ -77,14 +77,14 @@ public class IvyLocalPublishIntegrationTest extends AbstractIntegrationSpec {
 
             publishing {
                 repositories {
-                    main {
+                    ivy {
                         url "${ivyRepo.uri}"
                     }
                 }
             }
         """
         when:
-        succeeds 'publishToRepo'
+        succeeds 'publishIvyPublicationToIvyRepository'
 
         then:
         def shaOneFile = module.moduleDir.file("testfile-2.bin.sha1")

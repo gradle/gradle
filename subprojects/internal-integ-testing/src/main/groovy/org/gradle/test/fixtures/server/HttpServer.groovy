@@ -16,7 +16,6 @@
 package org.gradle.test.fixtures.server
 
 import org.gradle.test.matchers.UserAgentMatcher
-import org.gradle.util.AvailablePortFinder
 import org.gradle.util.hash.HashUtil
 import org.hamcrest.Matcher
 import org.junit.rules.ExternalResource
@@ -103,8 +102,7 @@ class HttpServer extends ExternalResource {
     }
 
     void start() {
-        int port = AvailablePortFinder.createPrivate().nextAvailable
-        start(port)
+        start(0)
     }
 
     void start(int port) {

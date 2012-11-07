@@ -13,21 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.peformance.fixture
 
-package org.gradle.api.publish.ivy.tasks.internal;
+import spock.lang.Specification
 
-import org.apache.commons.lang.StringUtils;
+class UnitsTest extends Specification {
+    def "can compare units of same quantity"() {
+        def base = Units.base(Void.class, "base")
+        def units1 = base.times(12, "units1")
+        def units2 = base.times(33, "units2")
 
-public class DefaultIvyPublishTaskNamer implements IvyPublishTaskNamer {
-
-    public static final String MAIN = "main";
-
-    public String name(String publicationName, String repositoryName) {
-        return String.format("publish%sTo%sRepo", emptyIfMainOtherwiseCapitalised(publicationName), emptyIfMainOtherwiseCapitalised(repositoryName));
+        expect:
+        base < units1
+        base < units2
+        units1 > base
+        units1 < units2
+        units2 > base
+        units2 > units1
     }
-
-    private String emptyIfMainOtherwiseCapitalised(String string) {
-        return string.equals(MAIN) ? "" : StringUtils.capitalize(string);
-    }
-
 }

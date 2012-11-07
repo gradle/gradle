@@ -18,10 +18,6 @@ package org.gradle.peformance.fixture
 
 import org.gradle.api.logging.Logging
 import org.gradle.integtests.fixtures.*
-import org.jscience.physics.amount.Amount
-
-import javax.measure.quantity.DataAmount
-import javax.measure.quantity.Duration
 
 public class PerformanceTestRunner {
 

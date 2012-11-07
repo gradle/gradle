@@ -28,13 +28,13 @@ artifacts {
 File localPublicationsDir = file("$buildDir/repo")
 publishing {
     repositories {
-        main {
+        ivy {
             ivyPattern localPublicationsDir.absolutePath + '/[module]/[revision]/ivy.xml'
             artifactPattern localPublicationsDir.absolutePath + '/[module]/[revision]/[artifact](.[ext])'
         }
     }
     publications {
-        main {
+        ivy {
             descriptor {
                 withXml {
                     asNode().dependencies.dependency.find { it.@org == "junit" }.@rev = "4.10"

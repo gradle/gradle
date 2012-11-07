@@ -33,7 +33,7 @@ import org.gradle.api.publish.Publication;
  *
  * publishing {
  *   publications {
- *     main {
+ *     ivy {
  *       descriptor {
  *         withXml {
  *           asNode().dependencies.dependency.find { it.@org == "junit" }.@rev = "4.10"

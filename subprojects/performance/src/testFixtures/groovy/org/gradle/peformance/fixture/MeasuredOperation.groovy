@@ -17,11 +17,6 @@
 package org.gradle.peformance.fixture
 
 import org.gradle.util.Clock
-import org.jscience.physics.amount.Amount
-
-import javax.measure.quantity.DataAmount
-import javax.measure.quantity.Duration
-import javax.measure.unit.SI
 
 /**
  * by Szczepan Faber, created at: 2/10/12
@@ -40,7 +35,7 @@ public class MeasuredOperation {
         } catch (Exception e) {
             out.exception = e
         }
-        out.executionTime = Amount.valueOf(clock.timeInMs, SI.MILLI(SI.SECOND))
+        out.executionTime = Duration.millis(clock.timeInMs)
         return out
     }
 }
