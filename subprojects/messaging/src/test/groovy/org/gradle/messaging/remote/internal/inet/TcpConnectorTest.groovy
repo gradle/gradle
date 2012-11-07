@@ -16,12 +16,14 @@
 package org.gradle.messaging.remote.internal.inet
 
 import org.gradle.api.Action
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.messaging.remote.ConnectEvent
 import org.gradle.messaging.remote.internal.ConnectException
 import org.gradle.messaging.remote.internal.Connection
 import org.gradle.messaging.remote.internal.DefaultMessageSerializer
 import org.gradle.util.ConcurrentSpecification
 import org.gradle.internal.id.UUIDGenerator
+import spock.lang.IgnoreIf
 
 import java.util.concurrent.CountDownLatch
 
@@ -120,6 +122,7 @@ class TcpConnectorTest extends ConcurrentSpecification {
         incomingConnector.requestStop()
     }
 
+    @IgnoreIf({ OperatingSystem.current().windows })
     def "can receive message from peer when using connection after peer has closed connection"() {
         // This is a test to simulate the messaging that the daemon does on build completion, in order to validate some assumptions
 
