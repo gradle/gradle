@@ -49,6 +49,8 @@ public interface PublishingExtension {
      * Configures the container of possible repositories to publish to.
      *
      * <pre autoTested="true">
+     * apply plugin: 'publishing'
+     *
      * publishing {
      *   repositories {
      *     // Create an ivy publication destination named “releases”
@@ -91,23 +93,6 @@ public interface PublishingExtension {
      * <p>
      * Please see {@link org.gradle.api.publish.ivy.IvyPublication} for information on publishing in the Ivy format.
      * At this time it is not possible to publish in the Maven format with this mechanism.
-     * <p>
-     * From Groovy, this method can be called with a {@code Closure}. The publication container becomes the delegate (implicit receiver) during the closure.
-     * <pre autoTested="true">
-     * apply plugin: "ivy-publish" // applies 'publishing' plugin
-     *
-     * publishing {
-     *   publications {
-     *     ivy {
-     *       descriptor {
-     *         withXml { }
-     *       }
-     *     }
-     *   }
-     * }
-     * </pre>
-     *
-     * The above code snippet is an example of configuring the publication named “{@code ivy}” (that was added by the “{@code ivy-publish}” plugin).
      *
      * @param configure The action or closure to configure the publications with.
      */
