@@ -34,4 +34,15 @@ class JavadocIntegrationTest extends AbstractIntegrationSpec {
         // we can't currently control the order between tags and taglets (limitation on our side)
         javadoc.text =~ /(?ms)Custom Taglet.*custom taglet value/
     }
+
+    @Issue("GRADLE-2520")
+    def canCombineLocalOptionWithOtherOptions() {
+        when:
+        run("javadoc")
+
+        then:
+        def javadoc = testResources.dir.file("build/docs/javadoc/Person.html")
+        javadoc.text =~ /<html lang="de">/
+        javadoc.text =~ /(?ms)Serial no. is valid javadoc!/
+    }
 }
