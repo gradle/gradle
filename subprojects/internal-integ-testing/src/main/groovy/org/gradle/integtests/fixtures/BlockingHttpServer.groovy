@@ -23,10 +23,11 @@ import org.mortbay.jetty.Server
 import org.mortbay.jetty.handler.AbstractHandler
 import org.mortbay.jetty.handler.HandlerCollection
 
-import java.util.concurrent.CyclicBarrier
-import java.util.concurrent.TimeUnit
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
+import java.util.concurrent.locks.Condition
+import java.util.concurrent.locks.Lock
+import java.util.concurrent.locks.ReentrantLock
 
 public class BlockingHttpServer extends ExternalResource {
     private final Server server = new Server(0)
@@ -85,37 +86,46 @@ server state: ${server.dump()}
     }
 
     class CyclicBarrierRequestHandler extends AbstractHandler {
-        def expectedCalls = []
-        def collectedCalls = []
-        def cyclicBarrier
-        def complete
+        final Lock lock = new ReentrantLock()
+        final Condition condition = lock.newCondition()
+        final List<String> received = []
+        final Set<String> pending
 
         CyclicBarrierRequestHandler(String... calls) {
-            this.expectedCalls.addAll(calls)
-            cyclicBarrier = new CyclicBarrier(expectedCalls.size(), {
-                assert collectedCalls.toSet() == expectedCalls.toSet()
-                complete = true
-            } as Runnable)
+            pending = calls as Set
         }
 
         void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
-            if (request.handled || complete) {
+            if (request.handled) {
                 return
             }
-            recordPath(target)
-            cyclicBarrier.await(10, TimeUnit.SECONDS)
+
+            Date expiry = new Date(System.currentTimeMillis() + 30000)
+            lock.lock()
+            try {
+                def path = target.replaceFirst('/', '')
+                if (!pending.remove(path)) {
+                    // Unexpected call - let it travel on
+                    return
+                }
+                received.add(path)
+                condition.signalAll()
+                while (!pending.empty) {
+                    if (!condition.awaitUntil(expiry)) {
+                        throw new AssertionError("Timeout waiting for all concurrent requests. Waiting for $pending, received $received.")
+                    }
+                }
+            } finally {
+                lock.unlock()
+            }
+
             response.addHeader("RESPONSE", "target: done")
             request.handled = true
         }
 
-        private synchronized void recordPath(def target) {
-            def path = target.replaceFirst('/', '')
-            collectedCalls.add path
-        }
-
         void assertComplete() {
-            if (!complete) {
-                throw new AssertionError("BlockingHttpServer: did not receive simultaneous calls $expectedCalls")
+            if (!pending.empty) {
+                throw new AssertionError("BlockingHttpServer: did not receive expected concurrent requests. Waiting for $pending, received $received")
             }
         }
     }
