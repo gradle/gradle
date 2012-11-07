@@ -24,8 +24,6 @@ class IvyPublishLifecycleIntegrationTest extends AbstractIntegrationSpec {
 
     public void "can publish using publish lifecycle task"() {
         given:
-        def module = ivyRepo.module("org.gradle", "publish", "2")
-
         settingsFile << 'rootProject.name = "publish"'
 
         buildFile << """
