@@ -27,19 +27,19 @@ class PrettyCalculatorSpec extends Specification {
 
     def "knows percentage change"() {
         expect:
-        percentChange(1, 1) == 0
+        percentChange(Amount.valueOf(current, Duration.SECONDS), Amount.valueOf(prevous, Duration.SECONDS)) == percent
 
-        percentChange(3, 1) == 200
-        percentChange(1, 3) == -66.67
-
-        percentChange(2, 3) == -33.33
-        percentChange(5, 4) == 25
-
-        percentChange(2.2, 3.567) == -38.32
-        percentChange(12.00001, 10.23) == 17.30
-
+        where:
+        current  | prevous | percent
+        1        | 1       | 0
+        3        | 1       | 200
+        1        | 3       | -66.67
+        2        | 3       | -33.33
+        5        | 4       | 25
+        2.2      | 3.567   | -38.32
+        12.00001 | 10.23   | 17.30
         //not strictly true, but for our purposes should do:
-        percentChange(0,   3) == -100
-        percentChange(300, 0) == 100
+        0        | 3       | -100
+        300      | 0       | 100
     }
 }

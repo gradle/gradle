@@ -17,12 +17,6 @@
 package org.gradle.peformance.fixture
 
 import org.gradle.api.logging.Logging
-import org.jscience.physics.amount.Amount
-
-import javax.measure.quantity.DataAmount
-import javax.measure.quantity.Duration
-import javax.measure.unit.NonSI
-import javax.measure.unit.SI
 
 import static PrettyCalculator.prettyBytes
 import static PrettyCalculator.prettyTime
@@ -32,8 +26,8 @@ import static org.gradle.peformance.fixture.PrettyCalculator.toMillis
 public class PerformanceResults {
 
     String displayName
-    Amount<Duration> maxExecutionTimeRegression = Amount.valueOf(0, SI.SECOND)
-    Amount<DataAmount> maxMemoryRegression = Amount.valueOf(0, NonSI.BYTE)
+    Amount<Duration> maxExecutionTimeRegression = Duration.millis(0)
+    Amount<DataAmount> maxMemoryRegression = DataAmount.bytes(0)
 
     private final static LOGGER = Logging.getLogger(PerformanceTestRunner.class)
 
@@ -110,8 +104,8 @@ public class PerformanceResults {
         }
         result.append(memoryStats(current))
         def diff = current.avgMemory() - previous.avgMemory()
-        def desc = diff > Amount.ZERO ? "more" : "less"
-        result.append("Difference: ${prettyBytes(diff.abs())} $desc (${toBytes(diff.abs())} B), ${PrettyCalculator.percentChange(current.avgMemory(), previous.avgMemory())}%, max regression: ${prettyBytes(maxMemoryRegression)}")
+        def desc = diff > DataAmount.bytes(0) ? "more" : "less"
+        result.append("Difference: ${prettyBytes(diff.abs())} $desc (${toBytes(diff.abs())}), ${PrettyCalculator.percentChange(current.avgMemory(), previous.avgMemory())}%, max regression: ${prettyBytes(maxMemoryRegression)}")
         return result.toString()
     }
 
@@ -129,8 +123,8 @@ public class PerformanceResults {
         }
         result.append(speedStats(current))
         def diff = current.avgTime() - previous.avgTime()
-        def desc = diff > Amount.valueOf(0, SI.SECOND) ? "slower" : "faster"
-        result.append("Difference: ${prettyTime(diff.abs())} $desc (${toMillis(diff.abs())} ms), ${PrettyCalculator.percentChange(current.avgTime(), previous.avgTime())}%, max regression: ${prettyTime(maxExecutionTimeRegression)}")
+        def desc = diff > Duration.millis(0) ? "slower" : "faster"
+        result.append("Difference: ${prettyTime(diff.abs())} $desc (${toMillis(diff.abs())}), ${PrettyCalculator.percentChange(current.avgTime(), previous.avgTime())}%, max regression: ${prettyTime(maxExecutionTimeRegression)}")
         return result.toString()
     }
 

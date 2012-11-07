@@ -17,14 +17,11 @@
 package org.gradle.peformance
 
 import org.gradle.peformance.fixture.PerformanceTestRunner
-import org.jscience.physics.amount.Amount
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import javax.measure.quantity.DataAmount
-import javax.measure.quantity.Duration
-import javax.measure.unit.NonSI
-import javax.measure.unit.SI
+import static org.gradle.peformance.fixture.DataAmount.*
+import static org.gradle.peformance.fixture.Duration.*
 
 /**
  * by Szczepan Faber, created at: 2/9/12
@@ -144,13 +141,4 @@ class PerformanceTest extends Specification {
         "withTestNG"        | 4    | millis(800)
         "withVerboseJUnits" | 4    | millis(1200)
     }
-
-    static Amount<Duration> millis(long value) {
-        return Amount.valueOf(value, SI.MILLI(SI.SECOND))
-    }
-
-    static Amount<DataAmount> kbytes(long value) {
-        return Amount.valueOf(value, NonSI.BYTE.times(1024))
-    }
-
 }

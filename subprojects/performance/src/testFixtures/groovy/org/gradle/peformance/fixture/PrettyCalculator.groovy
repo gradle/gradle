@@ -14,18 +14,8 @@
  * limitations under the License.
  */
 
-
-
 package org.gradle.peformance.fixture
 
-import org.gradle.util.Clock
-import org.jscience.physics.amount.Amount
-
-import javax.measure.quantity.DataAmount
-import javax.measure.quantity.Duration
-import javax.measure.quantity.Quantity
-import javax.measure.unit.NonSI
-import javax.measure.unit.SI
 import java.math.RoundingMode
 
 /**
@@ -33,43 +23,27 @@ import java.math.RoundingMode
  */
 class PrettyCalculator {
 
-    //stolen from the web, TODO SF, replace with commons or something
-    static String prettyBytes(long bytes) {
-        int unit = 1024;
-        if (bytes < unit) {
-            return bytes + " B";
-        }
-        int exp = (int) (Math.log(bytes) / Math.log(unit));
-        String pre = "kMGTPE".charAt(exp - 1)
-        return String.format("%.3f %sB", bytes / Math.pow(unit, exp), pre);
-    }
-
     static String prettyBytes(Amount<DataAmount> bytes) {
-        return prettyBytes(bytes.longValue(NonSI.BYTE))
+        return bytes.format()
     }
 
     static String toBytes(Amount<DataAmount> bytes) {
-        return String.format("%.2f", bytes.doubleValue(NonSI.BYTE))
-    }
-
-    static Number percentChange(double current, double previous) {
-        if (previous == 0) {
-            return 100
-        }
-        BigDecimal result = (-1) * (100 * (previous - current) / previous)
-        return result.setScale(2, RoundingMode.HALF_UP)
+        return bytes.toUnits(DataAmount.BYTES).value.setScale(3, RoundingMode.HALF_UP).stripTrailingZeros().toString() + " B"
     }
 
     static String prettyTime(Amount<Duration> duration) {
-        return Clock.prettyTime(duration.longValue(SI.MILLI(SI.SECOND)))
+        return duration.format()
     }
 
     static String toMillis(Amount<Duration> duration) {
-        return String.format("%.2f", duration.doubleValue(SI.MILLI(SI.SECOND)))
+        return duration.toUnits(Duration.MILLI_SECONDS).value.setScale(3, RoundingMode.HALF_UP).stripTrailingZeros().toString() + " ms"
     }
 
-    static <T extends Quantity> String percentChange(Amount<T> current, Amount<T> previous) {
-        assert current.unit == previous.unit
-        return percentChange(current.doubleValue(current.unit), previous.doubleValue(previous.unit))
+    static <Q> Number percentChange(Amount<Q> current, Amount<Q> previous) {
+        if (previous == Amount.valueOf(0, previous.getUnits())) {
+            return 100
+        }
+        BigDecimal result = (current - previous) / previous * 100
+        return result.setScale(2, RoundingMode.HALF_UP)
     }
 }
