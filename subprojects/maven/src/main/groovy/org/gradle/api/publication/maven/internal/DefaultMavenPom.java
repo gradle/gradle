@@ -16,6 +16,7 @@
 package org.gradle.api.publication.maven.internal;
 
 import groovy.lang.Closure;
+import org.apache.commons.io.IOUtils;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
 import org.apache.maven.project.MavenProject;
@@ -31,6 +32,7 @@ import org.gradle.api.internal.XmlTransformer;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.listener.ActionBroadcast;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Collections;
@@ -69,7 +71,7 @@ public class DefaultMavenPom implements MavenPom {
         this.configurations = configurations;
         return this;
     }
-    
+
     public DefaultMavenPom setGroupId(String groupId) {
         getModel().setGroupId(groupId);
         return this;
@@ -189,9 +191,8 @@ public class DefaultMavenPom implements MavenPom {
     }
 
     public DefaultMavenPom writeTo(Object path) {
-        IoActions.writeFile(fileResolver.resolve(path), new ErroringAction<Writer>() {
-            @Override
-            protected void doExecute(Writer writer) throws Exception {
+        IoActions.writeFile(fileResolver.resolve(path), new Action<BufferedWriter>() {
+            public void execute(BufferedWriter writer) {
                 writeTo(writer);
             }
         });
@@ -199,11 +200,15 @@ public class DefaultMavenPom implements MavenPom {
     }
 
     private void writeNonEffectivePom(final Writer pomWriter) {
-        withXmlActions.transform(pomWriter, "UTF-8", new ErroringAction<Writer>() {
-            protected void doExecute(Writer writer) throws IOException {
-                mavenProject.writeModel(writer);
-            }
-        });
+        try {
+            withXmlActions.transform(pomWriter, "UTF-8", new ErroringAction<Writer>() {
+                protected void doExecute(Writer writer) throws IOException{
+                    mavenProject.writeModel(writer);
+                }
+            });
+        } finally {
+            IOUtils.closeQuietly(pomWriter);
+        }
     }
 
     public DefaultMavenPom whenConfigured(final Closure closure) {
