@@ -113,6 +113,9 @@
             <tr>
                 <td>subprojects</td>
             </tr>
+            <tr>
+                <td>publishing</td>
+            </tr>
         </table>
         <para>A build script is also a Groovy script, and so can contain those elements allowed in a Groovy script,
             such as method definitions and class definitions.
@@ -158,7 +161,16 @@
                 <td>org.gradle.api.plugins.ExtensionAware</td>
             </tr>
             <tr>
+                <td>org.gradle.api.publish.PublishingExtension</td>
+            </tr>
+            <tr>
                 <td>org.gradle.api.plugins.ExtraPropertiesExtension</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.publish.ivy.IvyPublication</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.publish.ivy.IvyModuleDescriptor</td>
             </tr>
         </table>
     </section>
@@ -176,6 +188,9 @@
             </tr>
             <tr>
                 <td>org.gradle.api.artifacts.dsl.ArtifactHandler</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.publish.PublicationContainer</td>
             </tr>
         </table>
     </section>

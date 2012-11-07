@@ -26,7 +26,7 @@ import java.io.File;
 /**
  * The descriptor of any Ivy publication.
  *
- * Corresponds to the {@see <a href="http://ant.apache.org/ivy/history/latest-milestone/ivyfile.html">XML version of the Ivy Module Descriptor</a>}.
+ * Corresponds to the <a href="http://ant.apache.org/ivy/history/latest-milestone/ivyfile.html">XML version of the Ivy Module Descriptor</a>.
  *
  * The {@link #withXml(org.gradle.api.Action)} method can be used to modify the descriptor after it has been generated according to the publication data.
  *

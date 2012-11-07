@@ -24,7 +24,7 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler;
  * Provides access to the publications and repositories to publish to.
  *
  * The {@code “publish”} plugin installs an instance of this extension to the {@link org.gradle.api.Project} with the name {@value #NAME}.
-
+ *
  * See the {@code “ivy-publish”} plugin documentation for example usage.
  *
  * @since 1.3

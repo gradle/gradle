@@ -7,6 +7,9 @@
     <plugin id="groovy" description="Groovy Plugin">
         <extends targetClass="org.gradle.api.tasks.SourceSet" mixinClass="org.gradle.api.tasks.GroovySourceSet"/>
     </plugin>
+    <plugin id="publishing" description="Publishing Plugin">
+        <extends targetClass="org.gradle.api.Project" id="publishing" extensionClass="org.gradle.api.publish.PublishingExtension"/>
+    </plugin>
     <plugin id="scala" description="Scala Plugin">
         <extends targetClass="org.gradle.api.tasks.SourceSet" mixinClass="org.gradle.api.tasks.ScalaSourceSet"/>
     </plugin>
