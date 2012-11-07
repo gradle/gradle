@@ -189,9 +189,6 @@
             <tr>
                 <td>org.gradle.api.artifacts.dsl.ArtifactHandler</td>
             </tr>
-            <tr>
-                <td>org.gradle.api.publish.PublicationContainer</td>
-            </tr>
         </table>
     </section>
 
