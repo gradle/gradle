@@ -246,10 +246,6 @@ public abstract class CollectionUtils {
         return true;
     }
 
-    public static String join(String seperator, Object[] path) {
-        return join(seperator, Arrays.asList(path));
-    }
-
     /**
      * Utility for adding an iterable to a collection.
      *
@@ -328,12 +324,55 @@ public abstract class CollectionUtils {
         return setDiff;
     }
 
-    public static String join(String seperator, Iterable<?> objects) {
+    /**
+     * Creates a string with {@code toString()} of each object with the given separator.
+     *
+     * <pre>
+     * expect:
+     * join(",", new Object[]{"a"}) == "a"
+     * join(",", new Object[]{"a", "b", "c"}) == "a,b,c"
+     * join(",", new Object[]{}) == ""
+     * </pre>
+     *
+     * The {@code separator} must not be null and {@code objects} must not be null.
+     *
+     * @param separator The string by which to join each string representation
+     * @param objects The objects to join the string representations of
+     * @return The joined string
+     */
+    public static String join(String separator, Object[] objects) {
+        return join(separator, objects == null ? null : Arrays.asList(objects));
+    }
+
+    /**
+     * Creates a string with {@code toString()} of each object with the given separator.
+     *
+     * <pre>
+     * expect:
+     * join(",", ["a"]) == "a"
+     * join(",", ["a", "b", "c"]) == "a,b,c"
+     * join(",", []) == ""
+     * </pre>
+     *
+     * The {@code separator} must not be null and {@code objects} must not be null.
+     *
+     * @param separator The string by which to join each string representation
+     * @param objects The objects to join the string representations of
+     * @return The joined string
+     */
+    public static String join(String separator, Iterable<?> objects) {
+        if (separator == null) {
+            throw new NullPointerException("The 'separator' cannot be null");
+        }
+        if (objects == null) {
+            throw new NullPointerException("The 'objects' cannot be null");
+        }
+
         boolean first = true;
         StringBuilder string = new StringBuilder();
         for (Object object : objects) {
             if (!first) {
-                string.append(seperator);
+                string.append(separator);
             }
             string.append(object.toString());
             first = false;

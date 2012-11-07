@@ -21,7 +21,6 @@ import groovy.util.Node;
 import groovy.util.XmlNodePrinter;
 import groovy.util.XmlParser;
 import org.apache.commons.lang.StringUtils;
-import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.XmlProvider;
@@ -56,7 +55,7 @@ public class XmlTransformer implements Transformer<String, String> {
     }
 
     public void addAction(Closure closure) {
-        actions.add((Action<XmlProvider>) DefaultGroovyMethods.asType(closure, Action.class));
+        actions.add(new ClosureBackedAction<XmlProvider>(closure));
     }
 
     public void transform(File destination, final String encoding, final Action<? super Writer> generator) {

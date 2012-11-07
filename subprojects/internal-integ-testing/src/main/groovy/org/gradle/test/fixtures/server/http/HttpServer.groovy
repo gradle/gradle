@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.test.fixtures.server
+package org.gradle.test.fixtures.server.http
 
 import org.gradle.test.matchers.UserAgentMatcher
 import org.gradle.util.hash.HashUtil

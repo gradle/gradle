@@ -16,18 +16,19 @@
 
 
 
-package org.gradle.integtests.fixtures;
+package org.gradle.test.fixtures.server.http;
+
 
 import org.junit.rules.ExternalResource
 import org.mortbay.jetty.Server
 import org.mortbay.jetty.handler.AbstractHandler
 import org.mortbay.jetty.handler.HandlerCollection
 
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
 import java.util.concurrent.locks.Condition
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 
 public class BlockingHttpServer extends ExternalResource {
     private final Server server = new Server(0)

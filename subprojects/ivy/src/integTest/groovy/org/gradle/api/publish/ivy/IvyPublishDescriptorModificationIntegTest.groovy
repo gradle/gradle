@@ -45,7 +45,7 @@ class IvyPublishDescriptorModificationIntegTest extends AbstractIntegrationSpec 
 
     def "can modify descriptor during publication"() {
         when:
-        succeeds 'publishIvyPublicationToIvyRepository'
+        succeeds 'publish'
 
         then:
         ":jar" in executedTasks
@@ -67,7 +67,7 @@ class IvyPublishDescriptorModificationIntegTest extends AbstractIntegrationSpec 
                 }
             }
         """
-        succeeds 'publishIvyPublicationToIvyRepository'
+        succeeds 'publish'
 
 
         then:

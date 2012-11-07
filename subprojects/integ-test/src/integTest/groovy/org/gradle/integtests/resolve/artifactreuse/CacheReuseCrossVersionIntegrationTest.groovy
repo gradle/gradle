@@ -19,7 +19,7 @@ import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.gradle.integtests.fixtures.MavenFileRepository
 import org.gradle.integtests.fixtures.MavenHttpRepository
 import org.gradle.integtests.fixtures.TargetVersions
-import org.gradle.test.fixtures.server.HttpServer
+import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
 
 @TargetVersions('1.0-milestone-6+')

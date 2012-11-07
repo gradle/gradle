@@ -20,9 +20,8 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ProgressLoggingFixture
 import org.gradle.test.fixtures.ivy.IvyFileRepository
 import org.gradle.test.fixtures.ivy.IvyModule
-import org.gradle.test.fixtures.server.HttpServer
+import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
-import spock.lang.Unroll
 
 class IvyPublishMultipleReposIntegrationTest extends AbstractIntegrationSpec {
 
@@ -39,7 +38,7 @@ class IvyPublishMultipleReposIntegrationTest extends AbstractIntegrationSpec {
     IvyFileRepository repo2 = new IvyFileRepository(file("repo2"))
     IvyModule repo2Module = repo2.module(org, moduleName, rev)
 
-    @Unroll "can publish to different repositories using invocation #invocation"() {
+    def "can publish to different repositories"() {
         given:
         settingsFile << 'rootProject.name = "publish"'
         buildFile << """
@@ -77,7 +76,7 @@ class IvyPublishMultipleReposIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        succeeds(*invocation)
+        succeeds "publish"
 
         then:
         ":publishIvyPublicationToIvyRepository" in executedTasks
@@ -92,12 +91,6 @@ class IvyPublishMultipleReposIntegrationTest extends AbstractIntegrationSpec {
         and: // Modification applied to both
         repo1Module.ivy.rev == "10"
         repo2Module.ivy.rev == "11"
-
-        where:
-        invocation << [
-                ["publishIvyPublicationToIvyRepository", "publishIvyPublicationToRepo2Repository"],
-                ["publish"]
-        ]
     }
 
 }

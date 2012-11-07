@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests.fixtures
+package org.gradle.test.fixtures.server.http
 
 import ch.qos.logback.classic.Level
-import org.gradle.test.fixtures.server.HttpServer
 import org.gradle.util.AvailablePortFinder
 import org.jboss.netty.handler.codec.http.HttpRequest
 import org.junit.rules.ExternalResource

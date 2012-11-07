@@ -19,7 +19,7 @@ package org.gradle.api.publish.ivy
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ProgressLoggingFixture
 import org.gradle.test.fixtures.ivy.IvyFileModule
-import org.gradle.test.fixtures.server.HttpServer
+import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.GradleVersion
 import org.gradle.util.Jvm
 import org.gradle.util.TestFile
@@ -76,7 +76,7 @@ credentials {
         expectUpload('/org.gradle/publish/2/ivy-2.xml', module, module.ivyFile, HttpStatus.ORDINAL_201_Created)
 
         and:
-        succeeds 'publishIvyPublicationToIvyRepository'
+        succeeds 'publish'
 
         then:
         module.ivyFile.assertIsFile()
@@ -122,7 +122,7 @@ credentials {
         expectUpload('/org.gradle/publish/2/ivy-2.xml', module, module.ivyFile, 'testuser', 'password')
 
         then:
-        succeeds 'publishIvyPublicationToIvyRepository'
+        succeeds 'publish'
 
         and:
         module.ivyFile.assertIsFile()
@@ -165,7 +165,7 @@ credentials {
         server.allowPut('/org.gradle/publish/2/publish-2.jar', 'testuser', 'password')
 
         then:
-        fails 'publishIvyPublicationToIvyRepository'
+        fails 'publish'
 
         and:
         failure.assertHasDescription('Execution failed for task \':publishIvyPublicationToIvyRepository\'.')
@@ -202,7 +202,7 @@ credentials {
         server.addBroken("/")
 
         then:
-        fails 'publishIvyPublicationToIvyRepository'
+        fails 'publish'
 
         and:
         failure.assertHasDescription('Execution failed for task \':publishIvyPublicationToIvyRepository\'.')
@@ -213,7 +213,7 @@ credentials {
         server.stop()
 
         then:
-        fails 'publishIvyPublicationToIvyRepository'
+        fails 'publish'
 
         and:
         failure.assertHasDescription('Execution failed for task \':publishIvyPublicationToIvyRepository\'.')
@@ -249,7 +249,7 @@ credentials {
         expectUpload('/primary-ivy/publish/ivy-2.xml', module, module.ivyFile)
 
         then:
-        succeeds 'publishIvyPublicationToIvyRepository'
+        succeeds 'publish'
 
         and:
         module.ivyFile.assertIsFile()
@@ -298,7 +298,7 @@ credentials {
         expectUpload('/org.gradle/publish/2/ivy-2.xml', module, module.ivyFile, 'testuser', 'password')
 
         then:
-        succeeds 'publishIvyPublicationToIvyRepository'
+        succeeds 'publish'
 
         and:
         module.ivyFile.assertIsFile()
@@ -330,7 +330,7 @@ credentials {
         server.expectPut("/org.gradle/publish/2/publish-2.jar", module.jarFile, HttpStatus.ORDINAL_500_Internal_Server_Error)
 
         then:
-        fails ':publishIvyPublicationToIvyRepository'
+        fails ':publish'
 
         and:
         module.jarFile.assertExists()

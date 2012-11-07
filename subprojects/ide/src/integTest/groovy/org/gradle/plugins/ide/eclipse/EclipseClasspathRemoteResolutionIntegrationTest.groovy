@@ -16,7 +16,7 @@
 package org.gradle.plugins.ide.eclipse
 
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.test.fixtures.server.HttpServer
+import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test

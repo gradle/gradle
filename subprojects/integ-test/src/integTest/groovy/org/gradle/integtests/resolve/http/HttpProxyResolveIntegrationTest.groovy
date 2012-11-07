@@ -15,9 +15,9 @@
  */
 package org.gradle.integtests.resolve.http
 
-import org.gradle.integtests.fixtures.TestProxyServer
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
-import org.gradle.test.fixtures.server.HttpServer
+import org.gradle.test.fixtures.server.http.HttpServer
+import org.gradle.test.fixtures.server.http.TestProxyServer
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Unroll

@@ -23,6 +23,7 @@ import spock.lang.Unroll
 
 import static org.gradle.util.CollectionUtils.*
 
+@Unroll
 class CollectionUtilsTest extends Specification {
 
     def "list filtering"() {
@@ -201,6 +202,30 @@ class CollectionUtilsTest extends Specification {
         join(",", [].toArray()) == ""
     }
 
+    def "joining with nulls"() {
+        when:
+        join(separator, objects)
+
+        then:
+        def e = thrown(NullPointerException)
+        e.message == "The '$param' cannot be null"
+
+        where:
+        separator | objects            | param
+        null      | [] as Object[]     | "separator"
+        ""        | null as Object[]   | "objects"
+        null      | []                 | "separator"
+        ""        | null as Collection | "objects"
+        null      | null as Collection | "separator"
+        null      | null as Object[]   | "separator"
+    }
+
+    def "addAll"() {
+        expect:
+        addAll([], [1, 2, 3] as Iterable) == [1, 2, 3]
+        addAll([] as Set, [1, 2, 3, 1] as Iterable) == [1, 2, 3] as Set
+    }
+
     Spec<?> spec(Closure c) {
         Specs.convertClosureToSpec(c)
     }
@@ -209,9 +234,4 @@ class CollectionUtilsTest extends Specification {
         c as Transformer
     }
 
-    def "addAll"() {
-        expect:
-        addAll([], [1, 2, 3] as Iterable) == [1, 2, 3]
-        addAll([] as Set, [1, 2, 3, 1] as Iterable) == [1, 2, 3] as Set
-    }
 }

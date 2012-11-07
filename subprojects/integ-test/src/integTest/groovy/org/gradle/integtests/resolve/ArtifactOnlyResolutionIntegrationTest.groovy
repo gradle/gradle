@@ -18,7 +18,7 @@ package org.gradle.integtests.resolve
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.MavenModule
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.test.fixtures.server.HttpServer
+import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
 
 class ArtifactOnlyResolutionIntegrationTest extends AbstractIntegrationSpec {

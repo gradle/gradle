@@ -20,7 +20,7 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.ArtifactBuilder
 import org.gradle.integtests.fixtures.ExecutionResult
-import org.gradle.test.fixtures.server.HttpServer
+import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.matchers.UserAgentMatcher
 import org.gradle.util.GradleVersion
 import org.gradle.util.TestFile

@@ -61,7 +61,7 @@ class IvySingleProjectPublishIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        run "publishIvyPublicationToIvyRepository"
+        run "publish"
 
         then:
         def ivyModule = ivyRepo.module("org.gradle.test", "publishTest", "1.9")

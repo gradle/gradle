@@ -13,17 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.specs.specs;
+package org.gradle.api.specs;
 
-import org.gradle.api.specs.Spec;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 
-/**
- * @author Hans Dockter
- */
 public class NotSpecTest {
     @Test
     public void testIsSatisfiedBy() {

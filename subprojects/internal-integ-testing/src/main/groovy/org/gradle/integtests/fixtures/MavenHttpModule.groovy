@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.fixtures
 
-import org.gradle.test.fixtures.server.HttpServer
+import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.TestFile
 
 class MavenHttpModule implements MavenModule {

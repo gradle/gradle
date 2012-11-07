@@ -19,7 +19,7 @@ package org.gradle.api.publish.ivy
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ProgressLoggingFixture
-import org.gradle.integtests.fixtures.SFTPServer
+import org.gradle.test.fixtures.server.sftp.SFTPServer
 import org.junit.Rule
 import spock.lang.Ignore
 

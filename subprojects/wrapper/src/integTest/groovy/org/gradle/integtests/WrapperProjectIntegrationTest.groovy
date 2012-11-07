@@ -16,13 +16,17 @@
 
 package org.gradle.integtests
 
-import org.gradle.test.fixtures.server.HttpServer
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ExecutionFailure
+import org.gradle.integtests.fixtures.ExecutionResult
+import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.gradle.test.fixtures.server.http.HttpServer
+import org.gradle.test.fixtures.server.http.TestProxyServer
 import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
-import org.gradle.integtests.fixtures.*
 
 import static org.gradle.test.matchers.UserAgentMatcher.matchesNameAndVersion
 import static org.hamcrest.Matchers.containsString

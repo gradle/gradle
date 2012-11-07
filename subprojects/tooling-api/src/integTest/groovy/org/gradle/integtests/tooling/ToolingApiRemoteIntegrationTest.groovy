@@ -18,7 +18,7 @@ package org.gradle.integtests.tooling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.tooling.fixture.ToolingApi
-import org.gradle.test.fixtures.server.HttpServer
+import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.tooling.BuildLauncher
 import org.gradle.util.GradleVersion
 import org.junit.Rule

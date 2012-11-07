@@ -31,7 +31,7 @@ public class SamplesIvyPublishIntegrationTest extends AbstractIntegrationSpec {
         executer.inDirectory(sample.dir)
 
         when:
-        succeeds "publishIvyPublicationToIvyRepository"
+        succeeds "publish"
 
         then:
         def repo = new IvyFileRepository(new TestFile(sample.dir, "build/repo")) {

@@ -48,7 +48,7 @@ class IvyPublishLifecycleIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'publish'
 
         then:
-        ":publishIvyPublicationToIvyRepository" in executedTasks
+        ":publish" in executedTasks
     }
 
 }
