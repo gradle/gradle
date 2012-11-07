@@ -13,17 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests.fixtures;
 
+package org.gradle.test.fixtures.server
 
 import com.jcraft.jsch.JSch
 import com.jcraft.jsch.UserInfo
-import java.security.PublicKey
 import org.apache.commons.io.FileUtils
 import org.apache.sshd.SshServer
 import org.apache.sshd.common.NamedFactory
 import org.apache.sshd.server.Command
-import org.apache.sshd.server.PasswordAuthenticator
 import org.apache.sshd.server.PublickeyAuthenticator
 import org.apache.sshd.server.command.ScpCommandFactory
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider
@@ -32,6 +30,8 @@ import org.apache.sshd.server.sftp.SftpSubsystem
 import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestFile
 import org.junit.rules.ExternalResource
+
+import java.security.PublicKey
 
 class SFTPServer extends ExternalResource {
     final String hostAddress;
@@ -135,18 +135,6 @@ class SFTPServer extends ExternalResource {
 
     public void clearRequests() {
         fileRequests.clear();
-    }
-}
-
-abstract class FileRequestLogger {
-    abstract void logRequest(String message);
-}
-
-public class DummyPasswordAuthenticator implements PasswordAuthenticator {
-
-    // every combination where username == password is accepted
-    boolean authenticate(String username, String password, org.apache.sshd.server.session.ServerSession session) {
-        return username && password && username == password;
     }
 }
 

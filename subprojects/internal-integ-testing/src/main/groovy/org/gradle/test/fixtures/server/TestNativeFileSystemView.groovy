@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.fixtures
+package org.gradle.test.fixtures.server
 
-import org.apache.sshd.common.Session
 import org.apache.sshd.server.FileSystemView
 import org.apache.sshd.server.SshFile
 import org.apache.sshd.server.filesystem.NativeFileSystemFactory
@@ -89,23 +88,3 @@ class TestNativeFileSystemView implements FileSystemView {
     }
 }
 
-class TestNativeFileSystemFactory extends NativeFileSystemFactory {
-
-    String rootPath
-
-    List<FileRequestLogger> logger
-
-    public TestNativeFileSystemFactory(String rootPath, FileRequestLogger... logger) {
-        this.rootPath = rootPath
-        this.logger = Arrays.asList(logger)
-    }
-
-    /**
-     * Create the appropriate user file system view.
-     */
-    public FileSystemView createFileSystemView(Session session) {
-        String userName = session.getUsername();
-        FileSystemView fsView = new TestNativeFileSystemView(rootPath, userName, logger, caseInsensitive);
-        return fsView;
-    }
-}

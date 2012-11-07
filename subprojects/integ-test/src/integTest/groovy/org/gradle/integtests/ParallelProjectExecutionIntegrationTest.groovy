@@ -17,7 +17,7 @@
 package org.gradle.integtests;
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.BlockingHttpServer
+import org.gradle.test.fixtures.server.BlockingHttpServer
 import org.junit.Rule
 
 public class ParallelProjectExecutionIntegrationTest extends AbstractIntegrationSpec {
