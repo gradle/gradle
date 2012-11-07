@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.specs.specs;
+package org.gradle.api.specs;
 
-import org.gradle.api.specs.Spec;
 import org.gradle.util.CollectionUtils;
 import org.junit.Assert;
 import org.junit.Before;
@@ -26,9 +25,6 @@ import java.util.List;
 
 import static org.junit.Assert.assertFalse;
 
-/**
- * @author Hans Dockter
- */
 abstract public class AbstractCompositeSpecTest {
     private Spec spec1;
     private Spec spec2;

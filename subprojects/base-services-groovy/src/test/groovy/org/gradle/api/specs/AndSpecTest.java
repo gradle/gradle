@@ -13,19 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.specs.specs;
+package org.gradle.api.specs;
 
-import org.gradle.api.specs.AndSpec;
-import org.gradle.api.specs.Spec;
 import org.gradle.util.HelperUtil;
 import org.junit.Test;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-/**
- * @author Hans Dockter
- */
 public class AndSpecTest extends AbstractCompositeSpecTest {
     public org.gradle.api.specs.CompositeSpec<Object> createCompositeSpec(Spec<Object>... specs) {
         return new AndSpec<Object>(specs);
