@@ -9,16 +9,15 @@ repositories {
 }
 
 dependencies {
-    // Libraries needed to run the scala tools
+    // Scala compiler and related tools
     scalaTools 'org.scala-lang:scala-compiler:2.9.2'
-    scalaTools 'org.scala-lang:scala-library:2.9.2'
 
-    // Libraries needed for scala api
+    // Scala standard library
     compile 'org.scala-lang:scala-library:2.9.2'
 }
 // END SNIPPET declare-scala-version
 
 dependencies {
-    compile group: 'commons-collections', name: 'commons-collections', version: '3.2'
-    testCompile group: 'junit', name: 'junit', version: '4.8.2'
+    compile 'commons-collections:commons-collections:3.2'
+    testCompile 'junit:junit:4.8.2'
 }
