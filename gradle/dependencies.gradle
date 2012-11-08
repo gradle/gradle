@@ -64,8 +64,8 @@ libraries.jetty = dependencies.module("org.mortbay.jetty:jetty:6.1.25") {
     dependency libraries.servlet_api
 }
 
-libraries.commons_httpclient = dependencies.module('org.apache.httpcomponents:httpclient:4.2.1') {
-    dependency "org.apache.httpcomponents:httpcore:4.2.1@jar"
+libraries.commons_httpclient = dependencies.module('org.apache.httpcomponents:httpclient:4.2.2') {
+    dependency "org.apache.httpcomponents:httpcore:4.2.2@jar"
     dependency libraries.jcl_to_slf4j
     dependency "commons-codec:commons-codec:1.6@jar"
     dependency "org.samba.jcifs:jcifs:1.3.17"
