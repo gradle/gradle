@@ -247,18 +247,19 @@ class DefaultDaemonConnectionTest extends ConcurrentSpecification {
 
     def "receive blocks until message available"() {
         def waiting = new CountDownLatch(1)
+        def received = new CountDownLatch(1)
         def result = null
 
         when:
         start {
             waiting.countDown()
             result = daemonConnection.receive(20, TimeUnit.SECONDS)
+            received.countDown()
         }
         waiting.await()
         Thread.sleep(500)
         connection.queueIncoming("incoming")
-        daemonConnection.stop()
-        finished()
+        received.await()
 
         then:
         result == "incoming"
