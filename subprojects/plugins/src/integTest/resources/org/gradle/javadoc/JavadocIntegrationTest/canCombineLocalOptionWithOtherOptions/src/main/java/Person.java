@@ -16,6 +16,8 @@
 
 /**
  * Serial no. is valid javadoc!
+ *
+ * @LOCALE_AWARE
  */
 public class Person {
 }

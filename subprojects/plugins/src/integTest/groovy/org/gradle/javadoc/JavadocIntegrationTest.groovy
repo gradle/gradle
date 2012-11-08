@@ -47,7 +47,7 @@ class JavadocIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         def javadoc = testResources.dir.file("build/docs/javadoc/Person.html")
-        javadoc.text =~ /<html lang="de">/
+        javadoc.text =~ /(?ms)USED LOCALE=de_DE/
         javadoc.text =~ /(?ms)Serial no. is valid javadoc!/
     }
 }

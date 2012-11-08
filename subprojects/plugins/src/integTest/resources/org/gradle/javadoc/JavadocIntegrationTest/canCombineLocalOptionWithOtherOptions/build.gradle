@@ -2,12 +2,20 @@ import org.gradle.internal.jvm.Jvm
 
 apply plugin: "java"
 
+sourceSets {
+    taglet
+}
+
+dependencies {
+    tagletCompile files(Jvm.current().toolsJar)
+}
+
 javadoc {
+    dependsOn tagletClasses
     options {
         locale = 'de_DE'
-        encoding = 'UTF-8'
         breakIterator = true
-        docFilesSubDirs = true
-        excludeDocFilesSubDir '.svn'
+        taglets 'LocaleAwareTaglet'
+        tagletPath sourceSets.taglet.output.classesDir
     }
 }
