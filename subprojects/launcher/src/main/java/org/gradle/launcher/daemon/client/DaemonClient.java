@@ -160,39 +160,41 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
     }
 
     protected Object executeBuild(Build build, DaemonClientConnection connection) throws DaemonInitialConnectException {
-        Object firstResult;
+        Object result;
         try {
             LOGGER.info("Connected to the daemon. Dispatching {} request.", build);
             connection.dispatch(build);
-            firstResult = connection.receive();
+            result = connection.receive();
         } catch (Exception e) {
             LOGGER.debug("Unable to perform initial dispatch/receive with the daemon.", e);
             //We might fail hard here on the assumption that something weird happened to the daemon.
             //However, since we haven't yet started running the build, we can recover by just trying again...
             throw new DaemonInitialConnectException("Problem when attempted to send and receive first result from the daemon.");
         }
-        if (firstResult == null) {
+        if (result == null) {
             throw new DaemonInitialConnectException("The first result from the daemon was empty. Most likely the process died immediately after connection.");
         }
 
-        try {
-            if (firstResult instanceof BuildStarted) {
-                DaemonDiagnostics diagnostics = ((BuildStarted) firstResult).getDiagnostics();
-                return monitorBuild(build, diagnostics, connection).getValue();
-            } else if (firstResult instanceof Failure) {
-                // Could potentially distinguish between CommandFailure and DaemonFailure here.
-                throw UncheckedException.throwAsUncheckedException(((Failure) firstResult).getValue());
-            } else if (firstResult instanceof DaemonUnavailable) {
-                throw new DaemonInitialConnectException("The daemon we connected to was unavailable: " + ((DaemonUnavailable) firstResult).getReason());
-            } else {
-                throw invalidResponse(firstResult, build);
-            }
-        } finally {
-            connection.dispatch(new Finished());
+        if (result instanceof BuildStarted) {
+            DaemonDiagnostics diagnostics = ((BuildStarted) result).getDiagnostics();
+            result = monitorBuild(build, diagnostics, connection);
+        }
+
+        connection.dispatch(new Finished());
+
+        if (result instanceof Failure) {
+            // Could potentially distinguish between CommandFailure and DaemonFailure here.
+            throw UncheckedException.throwAsUncheckedException(((Failure) result).getValue());
+        } else if (result instanceof DaemonUnavailable) {
+            throw new DaemonInitialConnectException("The daemon we connected to was unavailable: " + ((DaemonUnavailable) result).getReason());
+        } else if (result instanceof Result) {
+            return ((Result) result).getValue();
+        } else {
+            throw invalidResponse(result, build);
         }
     }
 
-    private Result monitorBuild(Build build, DaemonDiagnostics diagnostics, Connection<Object> connection) {
+    private Object monitorBuild(Build build, DaemonDiagnostics diagnostics, Connection<Object> connection) {
         DaemonClientInputForwarder inputForwarder = new DaemonClientInputForwarder(buildStandardInput, connection, executorFactory, idGenerator);
         try {
             inputForwarder.start();
@@ -204,15 +206,10 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
 
                 if (object == null) {
                     return handleDaemonDisappearance(build, diagnostics);
-                } else if (object instanceof Failure) {
-                    // Could potentially distinguish between CommandFailure and DaemonFailure here.
-                    throw UncheckedException.throwAsUncheckedException(((Failure) object).getValue());
                 } else if (object instanceof OutputEvent) {
                     outputEventListener.onOutput((OutputEvent) object);
-                } else if (object instanceof Result) {
-                    return (Result) object;
                 } else {
-                    throw invalidResponse(object, build);
+                    return object;
                 }
             }
         } finally {
