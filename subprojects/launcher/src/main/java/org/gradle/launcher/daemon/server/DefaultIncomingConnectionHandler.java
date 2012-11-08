@@ -27,11 +27,13 @@ import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.protocol.Command;
 import org.gradle.launcher.daemon.protocol.DaemonFailure;
 import org.gradle.launcher.daemon.server.exec.DaemonCommandExecuter;
+import org.gradle.launcher.daemon.server.exec.DaemonConnection;
 import org.gradle.launcher.daemon.server.exec.DaemonStateControl;
 import org.gradle.messaging.remote.internal.Connection;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -119,49 +121,52 @@ public class DefaultIncomingConnectionHandler implements IncomingConnectionHandl
 
         private void receiveAndHandleCommand() {
             try {
-                Command command = receiveCommand();
-                if (command != null) {
-                    handleCommand(command);
+                DefaultDaemonConnection daemonConnection = new DefaultDaemonConnection(connection, executorFactory);
+                try {
+                    Command command = receiveCommand(daemonConnection);
+                    if (command != null) {
+                        handleCommand(command, daemonConnection);
+                    }
+                } finally {
+                    daemonConnection.stop();
                 }
             } finally {
                 connection.stop();
             }
         }
 
-        private Command receiveCommand() {
+        private Command receiveCommand(DaemonConnection daemonConnection) {
             try {
-                Command command = (Command) connection.receive();
+                Command command = (Command) daemonConnection.receive(120, TimeUnit.SECONDS);
                 LOGGER.info("Received command: {}.", command);
                 return command;
             } catch (Throwable e) {
                 String message = String.format("Unable to receive command from connection: '%s'", connection);
                 LOGGER.warn(message + ". Dispatching the failure to the daemon client...", e);
-                connection.dispatch(new DaemonFailure(new RuntimeException(message, e)));
+                daemonConnection.completed(new DaemonFailure(new RuntimeException(message, e)));
                 //TODO SF exception handling / send typed exception / refactor / unit test and apply the same for below
                 return null;
             }
         }
 
-        private void handleCommand(Command command) {
+        private void handleCommand(Command command, DaemonConnection daemonConnection) {
             LOGGER.debug(DaemonMessages.STARTED_EXECUTING_COMMAND + command + " with connection: " + connection + ".");
-            DefaultDaemonConnection daemonConnection = new DefaultDaemonConnection(connection, executorFactory);
             try {
-                try {
-                    commandExecuter.executeCommand(daemonConnection, command, daemonContext, daemonStateControl, new Runnable() {
-                        public void run() {
-                            onFinishHandling(connection);
-                        }
-                    });
-                } catch (Throwable e) {
-                    String message = String.format("Uncaught exception when executing command: '%s' from connection: '%s'.", command, connection);
-                    LOGGER.warn(message + ". Dispatching the failure to the daemon client...", e);
-                    daemonConnection.completed(new DaemonFailure(new RuntimeException(message, e)));
-                } finally {
-                    LOGGER.debug(DaemonMessages.FINISHED_EXECUTING_COMMAND + command);
-                }
+                commandExecuter.executeCommand(daemonConnection, command, daemonContext, daemonStateControl, new Runnable() {
+                    public void run() {
+                        onFinishHandling(connection);
+                    }
+                });
+            } catch (Throwable e) {
+                String message = String.format("Uncaught exception when executing command: '%s' from connection: '%s'.", command, connection);
+                LOGGER.warn(message + ". Dispatching the failure to the daemon client...", e);
+                daemonConnection.completed(new DaemonFailure(new RuntimeException(message, e)));
             } finally {
-                daemonConnection.stop();
+                LOGGER.debug(DaemonMessages.FINISHED_EXECUTING_COMMAND + command);
             }
+
+            Object finished = daemonConnection.receive(60, TimeUnit.SECONDS);
+            LOGGER.debug("Received finished message: {}", finished);
         }
     }
 }

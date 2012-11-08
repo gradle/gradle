@@ -30,6 +30,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.LinkedList;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -40,36 +43,44 @@ public class DefaultDaemonConnection implements DaemonConnection {
     private final StoppableExecutor executor;
     private final StdinQueue stdinQueue;
     private final DisconnectQueue disconnectQueue;
+    private final ReceiveQueue receiveQueue;
 
     public DefaultDaemonConnection(final Connection<Object> connection, ExecutorFactory executorFactory) {
         this.connection = connection;
         stdinQueue = new StdinQueue(executorFactory);
         disconnectQueue = new DisconnectQueue();
+        receiveQueue = new ReceiveQueue();
         executor = executorFactory.create("Handler for " + connection.toString());
         executor.execute(new Runnable() {
             public void run() {
-                while (true) {
-                    Object message;
-                    try {
-                        message = connection.receive();
-                    } catch (Exception e) {
-                        LOGGER.warn("Could not receive message from client.", e);
-                        return;
-                    }
-                    if (message == null) {
-                        LOGGER.debug("Received end-of-input from client.");
-                        stdinQueue.disconnect();
-                        disconnectQueue.disconnect();
-                        return;
-                    }
+                Throwable failure = null;
+                try {
+                    while (true) {
+                        Object message;
+                        try {
+                            message = connection.receive();
+                        } catch (Exception e) {
+                            LOGGER.debug("Could not receive message from client.", e);
+                            failure = e;
+                            return;
+                        }
+                        if (message == null) {
+                            LOGGER.debug("Received end-of-input from client.");
+                            return;
+                        }
 
-                    if (!(message instanceof IoCommand)) {
-                        LOGGER.warn("Received unexpected message from client: {}", message);
-                        continue;
+                        if (!(message instanceof IoCommand)) {
+                            LOGGER.debug("Received non-IO message from client: {}", message);
+                            receiveQueue.add(message);
+                        } else {
+                            LOGGER.debug("Received IO message from client: {}", message);
+                            stdinQueue.add((IoCommand) message);
+                        }
                     }
-
-                    LOGGER.debug("Received IO message from client: {}", message);
-                    stdinQueue.add((IoCommand) message);
+                } finally {
+                    stdinQueue.disconnect();
+                    disconnectQueue.disconnect();
+                    receiveQueue.disconnect(failure);
                 }
             }
         });
@@ -81,6 +92,10 @@ public class DefaultDaemonConnection implements DaemonConnection {
 
     public void onDisconnect(Runnable handler) {
         disconnectQueue.useHandler(handler);
+    }
+
+    public Object receive(long timeoutValue, TimeUnit timeoutUnits) {
+        return receiveQueue.take(timeoutValue, timeoutUnits);
     }
 
     public void daemonUnavailable(DaemonUnavailable unavailable) {
@@ -102,9 +117,10 @@ public class DefaultDaemonConnection implements DaemonConnection {
     public void stop() {
         // 1. Stop handling disconnects. Blocks until the handler has finished.
         // 2. Stop the connection. This means that the thread receiving from the connection will receive a null and finish up.
-        // 3. Stop receiving incoming messages. Blocks until the receive thread has finished. This will notify the stdin queue to signal end of input.
-        // 4. Stop handling stdin. Blocks until the handler has finished. Discards any queued input.
-        CompositeStoppable.stoppable(disconnectQueue, connection, executor, stdinQueue).stop();
+        // 3. Stop receiving incoming messages. Blocks until the receive thread has finished. This will notify the stdin and receive queues to signal end of input.
+        // 4. Stop the receive queue, to unblock any threads blocked in receive().
+        // 5. Stop handling stdin. Blocks until the handler has finished. Discards any queued input.
+        CompositeStoppable.stoppable(disconnectQueue, connection, executor, receiveQueue, stdinQueue).stop();
     }
 
     private static class StdinQueue implements Stoppable {
@@ -310,6 +326,44 @@ public class DefaultDaemonConnection implements DaemonConnection {
             } finally {
                 lock.unlock();
             }
+        }
+    }
+
+    private static class ReceiveQueue implements Stoppable {
+        private static final Object END = new Object();
+        private final BlockingQueue<Object> queue = new LinkedBlockingQueue<Object>();
+
+        public void stop() {
+        }
+
+        public void disconnect(Throwable failure) {
+            queue.clear();
+            if (failure != null) {
+                add(failure);
+            }
+            add(END);
+        }
+
+        public void add(Object message) {
+            try {
+                queue.put(message);
+            } catch (InterruptedException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        }
+
+        public Object take(long timeoutValue, TimeUnit timeoutUnits) {
+            Object result;
+            try {
+                result = queue.poll(timeoutValue, timeoutUnits);
+            } catch (InterruptedException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+            if (result instanceof Throwable) {
+                Throwable failure = (Throwable) result;
+                throw UncheckedException.throwAsUncheckedException(failure);
+            }
+            return result == END ? null : result;
         }
     }
 }
