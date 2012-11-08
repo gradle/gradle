@@ -15,11 +15,9 @@
  */
 package org.gradle.javadoc
 
-import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 class JavadocIntegrationTest extends AbstractIntegrationSpec {
