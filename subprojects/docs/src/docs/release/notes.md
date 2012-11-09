@@ -113,6 +113,13 @@ The [Eclipse Plugin](http://gradle.org/docs/current/userguide/eclipse_plugin.htm
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to our backwards compatibility policy.
 
+### Improved test logging APIs
+
+[Gradle 1.1 introduced much improved test logging output](http://gradle.org/docs/1.1/release-notes#test-logging). The APIs that provided the ability to configure this logging
+were introduced in the incubating state. In this Gradle release, these APIs are being promoted and are no longer subject to change without notice.
+
+For more information on the test logging, see [this forum post](http://forums.gradle.org/gradle/topics/whats_new_in_gradle_1_1_test_logging) that introduced the feature.
+
 ## Fixed issues
 
 The list of issues fixed between 1.2 and 1.3 can be found [here](http://issues.gradle.org/sr/jira.issueviews:searchrequest-printable/temp/SearchRequest.html?jqlQuery=fixVersion+in+%28%221.3-rc-1%22%29+ORDER+BY+priority&tempMax=1000).
