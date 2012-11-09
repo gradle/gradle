@@ -48,6 +48,7 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
     private FileCollection testClasspath;
 
     protected AbstractTestFrameworkDetector(ClassFileExtractionManager classFileExtractionManager) {
+        assert classFileExtractionManager != null;
         this.classFileExtractionManager = classFileExtractionManager;
         this.superClasses = new HashMap<File, Boolean>();
         this.knownTestCaseClassNames = new ArrayList<String>();

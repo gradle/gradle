@@ -46,15 +46,19 @@ public class TestNGTestFramework implements TestFramework {
 
     private TestNGOptions options;
     private TestNGDetector detector;
-    private final Test testTask;
-    private TestReporter reporter;
+    final Test testTask;
+    final TestReporter reporter;
 
     public TestNGTestFramework(Test testTask) {
+        this(testTask, new DefaultTestReport());
+    }
+
+    public TestNGTestFramework(Test testTask, TestReporter reporter) {
         this.testTask = testTask;
+        this.reporter = reporter;
         options = new TestNGOptions(testTask.getProject().getProjectDir());
         options.setAnnotationsOnSourceCompatibility(JavaVersion.toVersion(testTask.getProject().property("sourceCompatibility")));
         detector = new TestNGDetector(new ClassFileExtractionManager(testTask.getTemporaryDirFactory()));
-        reporter = new DefaultTestReport();
     }
 
     public WorkerTestClassProcessorFactory getProcessorFactory() {
@@ -77,7 +81,7 @@ public class TestNGTestFramework implements TestFramework {
             LOG.info("Test report disabled, omitting generation of the html test report.");
             return;
         }
-        // TODO SF make the logging consistent in frameworks, add coverage and spockify the test
+        // TODO SF make the logging consistent in frameworks, sanitize JUnit coverage (it's jmock)
         LOG.info("Generating html test report...");
         reporter.setTestReportDir(testTask.getTestReportDir());
         reporter.setTestResultsDir(testTask.getTestResultsDir());

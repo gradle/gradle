@@ -102,7 +102,7 @@ public class TestNGOptions extends TestFrameworkOptions implements Serializable 
 
     transient StringWriter suiteXmlWriter = null
     transient MarkupBuilder suiteXmlBuilder = null
-    private File projectDir
+    private final File projectDir
 
     TestNGOptions(File projectDir) {
         this.projectDir = projectDir
