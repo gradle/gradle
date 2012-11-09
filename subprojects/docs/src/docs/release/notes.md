@@ -251,7 +251,8 @@ For example:
     // The following is now deprecated
     repositories.ivy.name = "changed-name"
 
-A deprecation warning will be issued if a name change is attempted.
+A deprecation warning will be issued if a name change is attempted. It has been deprecated because changing the name of a repository after it has been added to the 
+container can cause problems when tasks are automatically created for created repositories.
 
 ## Changes to the existing incubating features
 
