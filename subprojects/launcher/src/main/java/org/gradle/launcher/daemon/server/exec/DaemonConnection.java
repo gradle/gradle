@@ -23,6 +23,8 @@ import org.gradle.launcher.daemon.protocol.DaemonUnavailable;
 import org.gradle.launcher.daemon.protocol.Result;
 import org.gradle.logging.internal.OutputEvent;
 
+import java.util.concurrent.TimeUnit;
+
 public interface DaemonConnection extends Stoppable {
     /**
      * Registers a handler for incoming client stdin. The handler is notified from at most one thread at a time.
@@ -41,7 +43,7 @@ public interface DaemonConnection extends Stoppable {
     void onStdin(@Nullable StdinHandler handler);
 
     /**
-     * Registers a handler for when this connection is disconnected. The handler is notified at most once.
+     * Registers a handler for when this connection is disconnected unexpectedly.. The handler is notified at most once.
      *
      * The handler is not notified after any of the following occurs:
      * <ul>
@@ -75,7 +77,14 @@ public interface DaemonConnection extends Stoppable {
     void completed(Result result);
 
     /**
-     * Blocks until all handlers have been notified and any queued messages dispatched to the client.
+     * Receives a message from the client. Does not include any stdin messages. Blocks until a message is received or the connection is closed or the timeout is reached.
+     *
+     * @return null On end of connection or timeout.
+     */
+    Object receive(long timeoutValue, TimeUnit timeoutUnits);
+
+    /**
+     * Blocks until all handlers have been notified and any queued messages have been dispatched to the client.
      */
     void stop();
 }

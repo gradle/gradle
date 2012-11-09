@@ -7,9 +7,7 @@ repositories {
 }
 
 dependencies {
-    scalaTools 'org.scala-lang:scala-compiler:2.8.1'
-    scalaTools 'org.scala-lang:scala-library:2.8.1'
-
-    compile 'org.scala-lang:scala-library:2.8.1'
-    testCompile group: 'junit', name: 'junit', version: '4.8.2'
+    scalaTools 'org.scala-lang:scala-compiler:2.9.1'
+    compile 'org.scala-lang:scala-library:2.9.1'
+    testCompile 'junit:junit:4.8.2'
 }

@@ -49,9 +49,9 @@ class JreJavaHomeScalaIntegrationTest extends AbstractIntegrationSpec {
                     }
 
                     dependencies {
-                        scalaTools 'org.scala-lang:scala-compiler:2.8.1'
-                        scalaTools 'org.scala-lang:scala-library:2.8.1'
-                        compile    'org.scala-lang:scala-library:2.8.1'
+                        scalaTools 'org.scala-lang:scala-compiler:2.9.2'
+                        scalaTools 'org.scala-lang:scala-library:2.9.2'
+                        compile    'org.scala-lang:scala-library:2.9.2'
                     }
 
                     compileScala{
@@ -80,9 +80,9 @@ class JreJavaHomeScalaIntegrationTest extends AbstractIntegrationSpec {
                     }
 
                     dependencies {
-                        scalaTools 'org.scala-lang:scala-compiler:2.8.1'
-                        scalaTools 'org.scala-lang:scala-library:2.8.1'
-                        compile    'org.scala-lang:scala-library:2.8.1'
+                        scalaTools 'org.scala-lang:scala-compiler:2.9.2'
+                        scalaTools 'org.scala-lang:scala-library:2.9.2'
+                        compile    'org.scala-lang:scala-library:2.9.2'
                     }
                     """
         def envVars = System.getenv().findAll { it.key != 'JAVA_HOME' || it.key != 'Path'}

@@ -16,36 +16,23 @@
 package org.gradle.launcher.daemon.client;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.Nullable;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
 import org.gradle.messaging.remote.internal.Connection;
 
 /**
  * A simple wrapper for the connection to a daemon plus its password.
  */
 public class DaemonClientConnection implements Connection<Object> {
-
     final Connection<Object> connection;
     private final String uid;
-    private DaemonDiagnostics diagnostics;
     final Runnable onFailure;
     private final static Logger LOG = Logging.getLogger(DaemonClientConnection.class);
 
-    public DaemonClientConnection(Connection<Object> connection, String uid, DaemonDiagnostics diagnostics, Runnable onFailure) {
+    public DaemonClientConnection(Connection<Object> connection, String uid, Runnable onFailure) {
         this.connection = connection;
         this.uid = uid;
-        this.diagnostics = diagnostics;
         this.onFailure = onFailure;
-    }
-
-    /**
-     * @return diagnostics. Can be null - it means we don't have process diagnostics.
-     */
-    @Nullable
-    public DaemonDiagnostics getDaemonDiagnostics() {
-        return diagnostics;
     }
 
     public void requestStop() {

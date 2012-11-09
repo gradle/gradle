@@ -39,20 +39,33 @@ import java.util.Set;
 
 /**
  * The client piece of the build daemon.
- * <p>
- * Immediately upon forming a connection, the daemon may send {@link OutputEvent} messages back to the client and may do so
- * for as long as the connection is open.
- * <p>
- * The client is expected to send exactly one {@link Build} message as the first message it sends to the daemon. The daemon 
- * may either return {@link org.gradle.launcher.daemon.protocol.DaemonUnavailable} or {@link BuildStarted}. If the former is received, the client should not send any more
- * messages to this daemon. If the latter is received, the client can assume the daemon is performing the build. The client may then
- * send zero to many {@link ForwardInput} messages. If the client's stdin stream is closed before the connection to the
- * daemon is terminated, the client must send a {@link CloseInput} command to instruct the daemon that no more input is to be
- * expected.
- * <p>
- * After receiving the {@link Result} message (after a {@link BuildStarted} mesage), the client must send a {@link CloseInput}
- * command if it has not already done so due to the stdin stream being closed. At this point the client is expected to 
- * terminate the connection with the daemon.
+ *
+ * <p>To execute a build:</p>
+ *
+ * <ul>
+ * <li>The client creates a connection to daemon.</li>
+ * <li>The client sends exactly one {@link Build} message.</li>
+ * <li>The daemon sends exactly one {@link BuildStarted}, {@link Failure} or {@link DaemonUnavailable} message.</li>
+ * <li>If the build is started, the daemon may send zero or more {@link OutputEvent} messages.</li>
+ * <li>If the build is started, the client may send zero or more {@link ForwardInput} messages followed by exactly one {@link CloseInput} message.</li>
+ * <li>The daemon sends exactly one {@link Result} message. It may no longer send any messages.</li>
+ * <li>The client sends a {@link CloseInput} message, if not already sent. It may no longer send any {@link ForwardInput} messages.</li>
+ * <li>The client sends a {@link Finished} message. It may no longer messages.</li>
+ * <li>The client closes the connection.</li>
+ * <li>The daemon closes the connection.</li>
+ * </ul>
+ *
+ * <p>To stop a daemon:</p>
+ *
+ * <ul>
+ * <li>The client creates a connection to daemon.</li>
+ * <li>The client sends exactly one {@link Stop} message.</li>
+ * <li>The daemon sends exactly one {@link Result} message. It may no longer send any messages.</li>
+ * <li>The client sends a {@link Finished} message. It may no longer messages.</li>
+ * <li>The client closes the connection.</li>
+ * <li>The daemon closes the connection.</li>
+ * </ul>
+ *
  * <p>
  * If the daemon returns a {@code null} message before returning a {@link Result} object, it has terminated unexpectedly for some reason.
  */
@@ -132,12 +145,13 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
         int saneNumberOfAttempts = 100; //is it sane enough?
         for (int i = 1; i < saneNumberOfAttempts; i++) {
             DaemonClientConnection connection = connector.connect(compatibilitySpec);
-
             try {
                 return (T) executeBuild(build, connection);
             } catch (DaemonInitialConnectException e) {
                 //this exception means that we want to try again.
                 LOGGER.info(e.getMessage() + " Trying a different daemon...");
+            } finally {
+                connection.stop();
             }
         }
         //TODO SF if we want to keep below sanity it should include the errors that were accumulated above.
@@ -146,34 +160,41 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
     }
 
     protected Object executeBuild(Build build, DaemonClientConnection connection) throws DaemonInitialConnectException {
-        Object firstResult;
+        Object result;
         try {
             LOGGER.info("Connected to the daemon. Dispatching {} request.", build);
             connection.dispatch(build);
-            firstResult = connection.receive();
+            result = connection.receive();
         } catch (Exception e) {
             LOGGER.debug("Unable to perform initial dispatch/receive with the daemon.", e);
             //We might fail hard here on the assumption that something weird happened to the daemon.
             //However, since we haven't yet started running the build, we can recover by just trying again...
             throw new DaemonInitialConnectException("Problem when attempted to send and receive first result from the daemon.");
         }
-
-        if (firstResult instanceof BuildStarted) {
-            DaemonDiagnostics diagnostics = ((BuildStarted) firstResult).getDiagnostics();
-            return monitorBuild(build, diagnostics, connection).getValue();
-        } else if (firstResult instanceof Failure) {
-            // Could potentially distinguish between CommandFailure and DaemonFailure here.
-            throw UncheckedException.throwAsUncheckedException(((Failure) firstResult).getValue());
-        } else if (firstResult instanceof DaemonUnavailable) {
-            throw new DaemonInitialConnectException("The daemon we connected to was unavailable: " + ((DaemonUnavailable) firstResult).getReason());
-        } else if (firstResult == null) {
+        if (result == null) {
             throw new DaemonInitialConnectException("The first result from the daemon was empty. Most likely the process died immediately after connection.");
+        }
+
+        if (result instanceof BuildStarted) {
+            DaemonDiagnostics diagnostics = ((BuildStarted) result).getDiagnostics();
+            result = monitorBuild(build, diagnostics, connection);
+        }
+
+        connection.dispatch(new Finished());
+
+        if (result instanceof Failure) {
+            // Could potentially distinguish between CommandFailure and DaemonFailure here.
+            throw UncheckedException.throwAsUncheckedException(((Failure) result).getValue());
+        } else if (result instanceof DaemonUnavailable) {
+            throw new DaemonInitialConnectException("The daemon we connected to was unavailable: " + ((DaemonUnavailable) result).getReason());
+        } else if (result instanceof Result) {
+            return ((Result) result).getValue();
         } else {
-            throw invalidResponse(firstResult, build);
+            throw invalidResponse(result, build);
         }
     }
 
-    private Result monitorBuild(Build build, DaemonDiagnostics diagnostics, Connection<Object> connection) {
+    private Object monitorBuild(Build build, DaemonDiagnostics diagnostics, Connection<Object> connection) {
         DaemonClientInputForwarder inputForwarder = new DaemonClientInputForwarder(buildStandardInput, connection, executorFactory, idGenerator);
         try {
             inputForwarder.start();
@@ -185,20 +206,14 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
 
                 if (object == null) {
                     return handleDaemonDisappearance(build, diagnostics);
-                } else if (object instanceof Failure) {
-                    // Could potentially distinguish between CommandFailure and DaemonFailure here.
-                    throw UncheckedException.throwAsUncheckedException(((Failure) object).getValue());
                 } else if (object instanceof OutputEvent) {
                     outputEventListener.onOutput((OutputEvent) object);
-                } else if (object instanceof Result) {
-                    return (Result) object;
                 } else {
-                    throw invalidResponse(object, build);
+                    return object;
                 }
             }
         } finally {
             inputForwarder.stop();
-            connection.stop();
         }
     }
 

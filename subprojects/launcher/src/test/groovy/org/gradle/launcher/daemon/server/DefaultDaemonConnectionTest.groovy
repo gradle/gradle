@@ -23,6 +23,8 @@ import org.gradle.messaging.remote.internal.Connection
 import org.gradle.util.ConcurrentSpecification
 
 import java.util.concurrent.CountDownLatch
+import org.gradle.launcher.daemon.protocol.Stop
+import java.util.concurrent.TimeUnit
 
 class DefaultDaemonConnectionTest extends ConcurrentSpecification {
     final TestConnection connection = new TestConnection()
@@ -119,8 +121,9 @@ class DefaultDaemonConnectionTest extends ConcurrentSpecification {
         0 * handler._
     }
 
-    def "discards queued input events on stop"() {
+    def "discards queued messages on stop"() {
         when:
+        connection.queueIncoming("incoming")
         connection.queueIncoming(new ForwardInput(1, "hello".bytes))
         connection.disconnect()
         daemonConnection.stop()
@@ -227,6 +230,123 @@ class DefaultDaemonConnectionTest extends ConcurrentSpecification {
         0 * handler._
     }
 
+    def "receive queues incoming messages"() {
+        when:
+        connection.queueIncoming("incoming1")
+        connection.queueIncoming("incoming2")
+        connection.queueIncoming("incoming3")
+        def result = []
+        result << daemonConnection.receive(20, TimeUnit.SECONDS)
+        result << daemonConnection.receive(20, TimeUnit.SECONDS)
+        result << daemonConnection.receive(20, TimeUnit.SECONDS)
+        daemonConnection.stop()
+
+        then:
+        result == ["incoming1", "incoming2", "incoming3"]
+    }
+
+    def "receive blocks until message available"() {
+        def waiting = new CountDownLatch(1)
+        def received = new CountDownLatch(1)
+        def result = null
+
+        when:
+        start {
+            waiting.countDown()
+            result = daemonConnection.receive(20, TimeUnit.SECONDS)
+            received.countDown()
+        }
+        waiting.await()
+        Thread.sleep(500)
+        connection.queueIncoming("incoming")
+        received.await()
+
+        then:
+        result == "incoming"
+    }
+
+    def "receive blocks until connection stopped"() {
+        def waiting = new CountDownLatch(1)
+        def result = null
+
+        when:
+        start {
+            waiting.countDown()
+            result = daemonConnection.receive(20, TimeUnit.SECONDS)
+        }
+        waiting.await()
+        Thread.sleep(500)
+        daemonConnection.stop()
+        finished()
+
+        then:
+        result == null
+    }
+
+    def "receive blocks until connection disconnected"() {
+        def waiting = new CountDownLatch(1)
+        def result = null
+
+        when:
+        start {
+            waiting.countDown()
+            result = daemonConnection.receive(20, TimeUnit.SECONDS)
+        }
+        waiting.await()
+        Thread.sleep(500)
+        connection.disconnect()
+        finished()
+
+        then:
+        result == null
+    }
+
+    def "receive blocks until timeout"() {
+        when:
+        def result = daemonConnection.receive(100, TimeUnit.MILLISECONDS)
+
+        then:
+        result == null
+    }
+
+    def "receive rethrows failure to receive from connection"() {
+        def waiting = new CountDownLatch(1)
+        def failure = new RuntimeException()
+        def result = null
+
+        when:
+        start {
+            waiting.countDown()
+            try {
+                daemonConnection.receive(20, TimeUnit.SECONDS)
+            } catch (RuntimeException e) {
+                result = e
+            }
+        }
+        waiting.await()
+        Thread.sleep(500)
+        connection.queueBroken(failure)
+        finished()
+
+        then:
+        result == failure
+    }
+
+    def "receive ignores stdin messages"() {
+        when:
+        connection.queueIncoming("incoming1")
+        connection.queueIncoming(new ForwardInput(12, "yo".bytes))
+        connection.queueIncoming(new CloseInput(44))
+        connection.queueIncoming("incoming2")
+        def result = []
+        result << daemonConnection.receive(20, TimeUnit.SECONDS)
+        result << daemonConnection.receive(20, TimeUnit.SECONDS)
+        daemonConnection.stop()
+
+        then:
+        result == ["incoming1", "incoming2"]
+    }
+
     static class TestConnection implements Connection<Object> {
         final Object lock = new Object()
         final Object endInput = new Object()
@@ -245,8 +365,8 @@ class DefaultDaemonConnectionTest extends ConcurrentSpecification {
             }
         }
 
-        void queueBroken() {
-            queueIncoming(new RuntimeException())
+        void queueBroken(Throwable failure = new RuntimeException()) {
+            queueIncoming(failure)
         }
 
         Object receive() {
@@ -256,6 +376,7 @@ class DefaultDaemonConnectionTest extends ConcurrentSpecification {
                 }
                 def message = receiveQueue.removeFirst()
                 if (message instanceof Throwable) {
+                    message.fillInStackTrace()
                     throw message
                 }
                 return message == endInput ? null : message

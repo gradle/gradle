@@ -24,6 +24,8 @@ import org.slf4j.LoggerFactory;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class DeprecationLogger {
     private static final Logger LOGGER = LoggerFactory.getLogger(DeprecationLogger.class);
@@ -51,21 +53,29 @@ public class DeprecationLogger {
     public static final String ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME = "org.gradle.deprecation.trace";
 
     private static String deprecationMessage;
+    private static Lock deprecationMessageLock = new ReentrantLock();
 
     private static String getDeprecationMessage() {
         if (deprecationMessage == null) {
-            String messageBase = "has been deprecated and is scheduled to be removed in";
-            String when;
+            deprecationMessageLock.lock();
+            try {
+                if (deprecationMessage == null) {
+                    String messageBase = "has been deprecated and is scheduled to be removed in";
+                    String when;
 
-            GradleVersion currentVersion = GradleVersion.current();
-            int versionMajor = currentVersion.getMajor();
-            if (versionMajor == -1) { // don't understand version number
-                when = "the next major version of Gradle";
-            } else {
-                when = String.format("Gradle %d.0", versionMajor + 1);
+                    GradleVersion currentVersion = GradleVersion.current();
+                    int versionMajor = currentVersion.getMajor();
+                    if (versionMajor == -1) { // don't understand version number
+                        when = "the next major version of Gradle";
+                    } else {
+                        when = String.format("Gradle %d.0", versionMajor + 1);
+                    }
+
+                    deprecationMessage = String.format("%s %s", messageBase, when);
+                }
+            } finally {
+                deprecationMessageLock.unlock();
             }
-
-            deprecationMessage = String.format("%s %s", messageBase, when);
         }
 
         return deprecationMessage;
