@@ -21,15 +21,10 @@ import org.apache.tools.ant.util.DateUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
-import org.gradle.internal.UncheckedException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.*;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.Collection;
 import java.util.EnumMap;
 import java.util.Map;
@@ -50,18 +45,11 @@ public class XmlTestsuite {
     private long failedCount;
     private long testCount;
 
-    public XmlTestsuite(File testResultsDir, String className, long startTime) {
+    public XmlTestsuite(File testResultsDir, String className, long startTime, String hostname, Document document) {
         this.className = className;
         this.startTime = startTime;
-        this.hostname = getHostname();
-        DocumentBuilder documentBuilder;
-        try {
-            //TODO SF push to the factory so that we don't have to initialize all the time
-            documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-        } catch (Exception e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
-        testSuiteReport = documentBuilder.newDocument();
+        this.hostname = hostname;
+        testSuiteReport = document;
         rootElement = testSuiteReport.createElement("testsuite");
         testSuiteReport.appendChild(rootElement);
         // Add an empty properties element for compatibility
@@ -140,14 +128,6 @@ public class XmlTestsuite {
         } catch (Throwable t) {
             return String.format("Could not determine failure message for exception of type %s: %s",
                     throwable.getClass().getName(), t);
-        }
-    }
-
-    private String getHostname() {
-        try {
-            return InetAddress.getLocalHost().getHostName();
-        } catch (UnknownHostException e) {
-            return "localhost";
         }
     }
 

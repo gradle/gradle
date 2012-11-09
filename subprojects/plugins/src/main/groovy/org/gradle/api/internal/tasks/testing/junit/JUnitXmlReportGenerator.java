@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.testing.junit;
 
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
+import org.gradle.api.internal.tasks.testing.junit.result.XmlTestsuiteFactory;
 import org.gradle.api.internal.tasks.testing.junit.result.XmlTestsuite;
 import org.gradle.api.internal.tasks.testing.results.StateTrackingTestResultProcessor;
 import org.gradle.api.internal.tasks.testing.results.TestState;
@@ -27,8 +28,8 @@ import java.io.File;
 
 public class JUnitXmlReportGenerator extends StateTrackingTestResultProcessor {
     private final File testResultsDir;
+    private final XmlTestsuiteFactory testsuiteFactory = new XmlTestsuiteFactory();
     private TestState testSuite;
-
     private XmlTestsuite xmlTestsuite;
 
     public JUnitXmlReportGenerator(File testResultsDir) {
@@ -43,7 +44,7 @@ public class JUnitXmlReportGenerator extends StateTrackingTestResultProcessor {
     protected void started(TestState state) {
         TestDescriptorInternal test = state.test;
         if (test.getName().equals(test.getClassName())) {
-            xmlTestsuite = new XmlTestsuite(testResultsDir, test.getClassName(), state.getStartTime());
+            xmlTestsuite = testsuiteFactory.create(testResultsDir, test.getClassName(), state.getStartTime());
             testSuite = state;
         }
     }
