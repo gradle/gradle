@@ -17,8 +17,8 @@
 package org.gradle.api.internal.tasks.testing.junit;
 
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
-import org.gradle.api.internal.tasks.testing.junit.result.XmlTestsuiteFactory;
-import org.gradle.api.internal.tasks.testing.junit.result.XmlTestsuite;
+import org.gradle.api.internal.tasks.testing.junit.result.XmlTestSuiteFactory;
+import org.gradle.api.internal.tasks.testing.junit.result.XmlTestSuite;
 import org.gradle.api.internal.tasks.testing.results.StateTrackingTestResultProcessor;
 import org.gradle.api.internal.tasks.testing.results.TestState;
 import org.gradle.api.tasks.testing.TestDescriptor;
@@ -28,23 +28,23 @@ import java.io.File;
 
 public class JUnitXmlReportGenerator extends StateTrackingTestResultProcessor {
     private final File testResultsDir;
-    private final XmlTestsuiteFactory testsuiteFactory = new XmlTestsuiteFactory();
+    private final XmlTestSuiteFactory testSuiteFactory = new XmlTestSuiteFactory();
     private TestState testSuite;
-    private XmlTestsuite xmlTestsuite;
+    private XmlTestSuite xmlTestSuite;
 
     public JUnitXmlReportGenerator(File testResultsDir) {
         this.testResultsDir = testResultsDir;
     }
 
     public void output(TestDescriptor test, TestOutputEvent event) {
-        xmlTestsuite.addOutput(event.getDestination(), event.getMessage());
+        xmlTestSuite.addOutput(event.getDestination(), event.getMessage());
     }
 
     @Override
     protected void started(TestState state) {
         TestDescriptorInternal test = state.test;
         if (test.getName().equals(test.getClassName())) {
-            xmlTestsuite = testsuiteFactory.create(testResultsDir, test.getClassName(), state.getStartTime());
+            xmlTestSuite = testSuiteFactory.create(testResultsDir, test.getClassName(), state.getStartTime());
             testSuite = state;
         }
     }
@@ -52,9 +52,9 @@ public class JUnitXmlReportGenerator extends StateTrackingTestResultProcessor {
     @Override
     protected void completed(TestState state) {
         if (!state.equals(testSuite)) {
-            xmlTestsuite.addTestCase(state.test.getName(), state.resultType, state.getExecutionTime(), state.failures);
+            xmlTestSuite.addTestCase(state.test.getName(), state.resultType, state.getExecutionTime(), state.failures);
         } else {
-            xmlTestsuite.writeSuiteData(state.getExecutionTime());
+            xmlTestSuite.writeSuiteData(state.getExecutionTime());
             testSuite = null;
         }
     }

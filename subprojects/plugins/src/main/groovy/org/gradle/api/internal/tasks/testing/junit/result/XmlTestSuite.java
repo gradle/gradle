@@ -32,7 +32,7 @@ import java.util.Map;
 /**
  * by Szczepan Faber, created at: 10/3/12
  */
-public class XmlTestsuite {
+public class XmlTestSuite {
 
     private Document testSuiteReport;
     private Element rootElement;
@@ -45,7 +45,7 @@ public class XmlTestsuite {
     private long failedCount;
     private long testCount;
 
-    public XmlTestsuite(File testResultsDir, String className, long startTime, String hostname, Document document) {
+    public XmlTestSuite(File testResultsDir, String className, long startTime, String hostname, Document document) {
         this.className = className;
         this.startTime = startTime;
         this.hostname = hostname;

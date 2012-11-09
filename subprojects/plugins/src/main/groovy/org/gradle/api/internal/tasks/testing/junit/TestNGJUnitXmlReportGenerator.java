@@ -20,8 +20,8 @@ import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
-import org.gradle.api.internal.tasks.testing.junit.result.XmlTestsuite;
-import org.gradle.api.internal.tasks.testing.junit.result.XmlTestsuiteFactory;
+import org.gradle.api.internal.tasks.testing.junit.result.XmlTestSuite;
+import org.gradle.api.internal.tasks.testing.junit.result.XmlTestSuiteFactory;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.internal.TimeProvider;
 import org.gradle.internal.TrueTimeProvider;
@@ -35,10 +35,10 @@ public class TestNGJUnitXmlReportGenerator implements TestResultProcessor {
     //this one probably deserves some unit testing
 
     private final File testResultsDir;
-    private final XmlTestsuiteFactory testsuiteFactory = new XmlTestsuiteFactory();
+    private final XmlTestSuiteFactory testSuiteFactory = new XmlTestSuiteFactory();
 
     private Map<Object, TestInfo> tests = new HashMap<Object, TestInfo>();
-    private Map<String, XmlTestsuite> testSuites = new HashMap<String, XmlTestsuite>();
+    private Map<String, XmlTestSuite> testSuites = new HashMap<String, XmlTestSuite>();
     private Map<Object, Collection<Throwable>> failures = new HashMap<Object, Collection<Throwable>>();
 
     private TimeProvider timeProvider = new TrueTimeProvider();
@@ -61,7 +61,7 @@ public class TestNGJUnitXmlReportGenerator implements TestResultProcessor {
         tests.put(test.getId(), new TestInfo(test, event.getStartTime()));
         if (!test.isComposite()) { //test method
             if (!testSuites.containsKey(test.getClassName())) {
-                testSuites.put(test.getClassName(), testsuiteFactory.create(testResultsDir, test.getClassName(), timeProvider.getCurrentTime()));
+                testSuites.put(test.getClassName(), testSuiteFactory.create(testResultsDir, test.getClassName(), timeProvider.getCurrentTime()));
             }
         }
     }
@@ -69,12 +69,12 @@ public class TestNGJUnitXmlReportGenerator implements TestResultProcessor {
     public void completed(final Object testId, final TestCompleteEvent event) {
         final TestInfo testInfo = tests.remove(testId);
         if (!testInfo.test.isComposite()) { //test method
-            XmlTestsuite xmlTestsuite = testSuites.get(testInfo.test.getClassName());
+            XmlTestSuite xmlTestSuite = testSuites.get(testInfo.test.getClassName());
             Collection<Throwable> failures = this.failures.containsKey(testId) ? this.failures.remove(testId) : Collections.<Throwable>emptySet();
-            xmlTestsuite.addTestCase(testInfo.test.getName(), event.getResultType(), event.getEndTime() - testInfo.started, failures);
+            xmlTestSuite.addTestCase(testInfo.test.getName(), event.getResultType(), event.getEndTime() - testInfo.started, failures);
         } else if (testInfo.test.getParent() == null) {
-            for (XmlTestsuite xmlTestsuite : testSuites.values()) {
-                xmlTestsuite.writeSuiteData(0); //it's hard to reliably say when TestNG test class has finished.
+            for (XmlTestSuite xmlTestSuite : testSuites.values()) {
+                xmlTestSuite.writeSuiteData(0); //it's hard to reliably say when TestNG test class has finished.
             }
             testSuites.clear();
         }

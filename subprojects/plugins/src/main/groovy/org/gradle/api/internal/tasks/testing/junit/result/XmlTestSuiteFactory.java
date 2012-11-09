@@ -24,11 +24,11 @@ import java.io.File;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-public class XmlTestsuiteFactory {
+public class XmlTestSuiteFactory {
     private final String hostname;
     private final DocumentBuilder documentBuilder;
 
-    public XmlTestsuiteFactory() {
+    public XmlTestSuiteFactory() {
         hostname = getHostname();
         try {
             documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
@@ -37,8 +37,8 @@ public class XmlTestsuiteFactory {
         }
     }
 
-    public XmlTestsuite create(File testResultsDir, String className, long startTime) {
-        return new XmlTestsuite(testResultsDir, className, startTime, hostname, documentBuilder.newDocument());
+    public XmlTestSuite create(File testResultsDir, String className, long startTime) {
+        return new XmlTestSuite(testResultsDir, className, startTime, hostname, documentBuilder.newDocument());
     }
 
     private String getHostname() {
