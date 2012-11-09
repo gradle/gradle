@@ -15,7 +15,9 @@
  */
 package org.gradle.util
 
+import org.gradle.api.Action
 import org.gradle.api.Transformer
+import org.gradle.api.internal.ClosureBackedAction
 import org.gradle.api.specs.Spec
 import org.gradle.api.specs.Specs
 import spock.lang.Specification
@@ -226,6 +228,37 @@ class CollectionUtilsTest extends Specification {
         addAll([] as Set, [1, 2, 3, 1] as Iterable) == [1, 2, 3] as Set
     }
 
+    def "injection"() {
+        expect:
+        def target = []
+        def result = inject(target, [1, 2, 3], action { it.target.add(it.item.toString()) })
+        result.is(target)
+        result == ["1", "2", "3"]
+
+        inject([], [[1, 2], [3]], action { it.target.addAll(it.item) }) == [1, 2, 3]
+
+        when:
+        inject(null, [], action {})
+
+        then:
+        def e = thrown(NullPointerException)
+        e.message == "The 'target' cannot be null"
+
+        when:
+        inject([], null, action {})
+
+        then:
+        e = thrown(NullPointerException)
+        e.message == "The 'items' cannot be null"
+
+        when:
+        inject([], [], null)
+
+        then:
+        e = thrown(NullPointerException)
+        e.message == "The 'action' cannot be null"
+    }
+
     Spec<?> spec(Closure c) {
         Specs.convertClosureToSpec(c)
     }
@@ -234,4 +267,7 @@ class CollectionUtilsTest extends Specification {
         c as Transformer
     }
 
+    Action action(Closure c) {
+        new ClosureBackedAction(c)
+    }
 }
