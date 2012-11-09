@@ -111,7 +111,7 @@ The [Eclipse Plugin](http://gradle.org/docs/current/userguide/eclipse_plugin.htm
 
 ## Promoted features
 
-Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to our backwards compatibility policy.
+Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to the backwards compatibility policy.
 
 ### Improved test logging APIs
 
