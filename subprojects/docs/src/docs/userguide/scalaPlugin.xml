@@ -277,7 +277,7 @@
         <para>
             By default, the Scala compiler runs in the Gradle (client or daemon) JVM. This is a simple model but can potentially cause memory issues,
             for example when a compiler is leaking memory. When setting <literal>scalaCompileOptions.fork = true</literal>, compilation will take place
-            in an external process. (The Ant based compiler will fork a new process for every <literaL>ScalaCompile</literaL> task, whereas the Zinc based
+            in an external process. (The Ant based compiler will fork a new process for every <literal>ScalaCompile</literal> task, whereas the Zinc based
             compiler will leverage the Gradle compiler daemon.) <literal>scalaCompileOptions.forkOptions</literal> allows to adjust memory settings as needed.
         </para>
     </section>
