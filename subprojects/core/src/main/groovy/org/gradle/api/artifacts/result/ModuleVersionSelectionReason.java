@@ -38,4 +38,12 @@ public interface ModuleVersionSelectionReason {
      * about conflict resolution and includes means to configure it.
      */
     boolean isConflictResolution();
+
+    /**
+     * Describes this selection reason.
+     */
+    String getDescription();
+
+    //TODO At some point we want to provide information if version was requested in the graph.
+    //Perhaps a method like isRequested(). Not requested means that some particular version was forced but no dependency have requested this version.
 }

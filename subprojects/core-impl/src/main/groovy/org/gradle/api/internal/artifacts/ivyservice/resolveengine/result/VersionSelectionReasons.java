@@ -22,19 +22,22 @@ import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
  * by Szczepan Faber, created at: 10/1/12
  */
 public class VersionSelectionReasons {
-    public static final ModuleVersionSelectionReason REQUESTED = new DefaultModuleVersionSelectionReason(false, false);
-    public static final ModuleVersionSelectionReason ROOT = new DefaultModuleVersionSelectionReason(false, false);
-    public static final ModuleVersionSelectionReason FORCED = new DefaultModuleVersionSelectionReason(true, false);
-    public static final ModuleVersionSelectionReason CONFLICT_RESOLUTION = new DefaultModuleVersionSelectionReason(false, true);
+    public static final ModuleVersionSelectionReason REQUESTED = new DefaultModuleVersionSelectionReason(false, false, "requested");
+    public static final ModuleVersionSelectionReason ROOT = new DefaultModuleVersionSelectionReason(false, false, "root");
+    public static final ModuleVersionSelectionReason FORCED = new DefaultModuleVersionSelectionReason(true, false, "forced");
+    public static final ModuleVersionSelectionReason CONFLICT_RESOLUTION = new DefaultModuleVersionSelectionReason(false, true, "conflict resolution");
 
     private static class DefaultModuleVersionSelectionReason implements ModuleVersionSelectionReason {
 
         private final boolean forced;
         private final boolean conflictResolution;
+        private final String description;
 
-        private DefaultModuleVersionSelectionReason(boolean forced, boolean conflictResolution) {
+        private DefaultModuleVersionSelectionReason(boolean forced, boolean conflictResolution, String description) {
             this.forced = forced;
             this.conflictResolution = conflictResolution;
+            assert description != null;
+            this.description = description;
         }
 
         public boolean isForced() {
@@ -45,7 +48,8 @@ public class VersionSelectionReasons {
             return conflictResolution;
         }
 
-        //TODO At some point we want to provide information if version was requested in the graph.
-        //Perhaps a method like isRequested(). Not requested means that some particular version was forced but no dependency have requested this version.
+        public String getDescription() {
+            return description;
+        }
     }
 }

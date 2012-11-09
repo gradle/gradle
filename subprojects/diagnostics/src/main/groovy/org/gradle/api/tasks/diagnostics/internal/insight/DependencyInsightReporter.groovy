@@ -58,10 +58,8 @@ public class DependencyInsightReporter {
     }
 
     private String describeReason(ModuleVersionSelectionReason reason) {
-        if (reason.conflictResolution) {
-            return "conflict resolution"
-        } else if (reason.forced) {
-            return "forced"
+        if (reason.conflictResolution || reason.forced) {
+            return reason.description
         } else {
             return null
         }
