@@ -100,7 +100,6 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
         }
 
         //only use the default listeners flag when testReport is off
-        //TODO SF spockify the test, add unit test coverage and inform about 'incubating' nature of the new report
         //we should remove this complexity when new TestNG reports are turned on by default
         testNg.setUseDefaultListeners(!testReportOn && options.getUseDefaultListeners());
 
