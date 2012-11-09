@@ -127,6 +127,50 @@ We will iterate on the new feature based on your feedback, eventually releasing 
 Those of you who use new features before that point gain the competitive advantage of early access to new functionality in exchange for helping refine it over time.
 To learn more read our [forum posting on our release approach](http://forums.gradle.org/gradle/topics/the_gradle_release_approach).
 
+### New Ivy publishing mechanism
+
+This release introduces a new mechanism for publishing to Ivy repositories in the Ivy format. It also introduces some new general publishing constructs. This new publishing support is *incubating* and will co-exist with the [existing methods for publication](userguide/artifact_management.html) until the time where it supersedes it, at which point the old mechanism will 
+become deprecated. The functionality included in this release is the first step down the path of providing a better solution for sharing the artifacts built in your Gradle builds.
+
+In this release, we have focussed on laying the groundwork and providing the ability to modify the Ivy module descriptor that is published during a publish operation. It has long been possible
+to fully customise the `pom.xml` when publishing in the Maven format; it is now possible to do the same when publishing in the Ivy format.
+
+#### The new 'ivy-publish' plugin
+
+The new functionality is provided by the '`ivy-publish`' plugin. In the simplest case, publish using this plugin looks like…
+
+    apply plugin: "ivy-publish"
+    
+    // … declare dependencies and other config on how to build
+    
+    publishing {
+        repositories {
+            ivy {
+                url "http://mycompany.org/repo"
+            }
+        }
+    }
+
+To publish, you simply run the “`publish`” task.
+
+To modify the descriptor, you use a programmatic hook that modifies the descriptor content as XML. This is the same approach that you take in Gradle when modifying IDE metadata XML or Maven POM XML content.
+
+    publishing {
+        publications {
+            ivy {
+                descriptor {
+                    withXml {
+                        asNode().dependencies.dependency.find { it.@org == "junit" }.@rev = "4.10"
+                    }
+                }
+            }
+        }
+    }
+
+In this example we are modifying the version that is expressed of our `junit` dependency. With this hook, you can modify any aspect of the descriptor. Why might you want to modify the descriptor? In some cases, it can be useful to optimize the descriptor for consumption instead of having it be an accurate record of how the module was built. 
+
+For more information on the new publishing mechanism, see the [new User Guide chapter](userguide/publishing_ivy.html).
+
 ### Improved TestNG html report
 
 TestNG received a decent dose of love in Gradle 1.3. We are in the process of moving away from using native TestNG reporting provided by TestNG's 'default listeners'.
