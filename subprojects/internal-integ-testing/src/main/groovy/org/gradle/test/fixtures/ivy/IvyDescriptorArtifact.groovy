@@ -21,5 +21,5 @@ class IvyDescriptorArtifact {
     String type
     String ext
     List<String> conf
-    Map<String, String> m
+    Map<String, String> mavenAttributes
 }

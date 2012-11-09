@@ -55,7 +55,7 @@ public class SamplesIvyPublishIntegrationTest extends AbstractIntegrationSpec {
         module.assertArtifactsPublished("ivy.xml", "ivypublish.jar", "ivypublishSource.jar")
 
         IvyDescriptor ivy = module.ivy
-        ivy.artifacts.ivypublishSource.m.classifier == "src"
+        ivy.artifacts.ivypublishSource.mavenAttributes.classifier == "src"
         ivy.configurations.keySet() == ['archives', 'compile', 'default', 'runtime', 'testCompile', 'testRuntime'] as Set
         ivy.dependencies.compile.assertDependsOn('junit', 'junit', '4.10')
         ivy.dependencies.compile.assertDependsOn('ivypublish', 'subproject', 'unspecified')
