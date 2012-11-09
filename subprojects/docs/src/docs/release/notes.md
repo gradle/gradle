@@ -254,12 +254,12 @@ For example:
 A deprecation warning will be issued if a name change is attempted. It has been deprecated because changing the name of a repository after it has been added to the 
 container can cause problems when tasks are automatically created for created repositories.
 
-## Changes to the existing incubating features
+## Changes to existing incubating features
 
 ### Resolution result API
 
-The entry point to the ResolutionResult API has changed, you can get access to the instance of the ResolutionResult via [configuration.incoming.resolutionResult](dsl/org.gradle.api.artifacts.Configuration.html#org.gradle.api.artifacts.Configuration:incoming).
-New convenience methods were added to the API. For more information please refer to the javadoc for [ResolutionResult](javadoc/org/gradle/api/artifacts/result/ResolutionResult.html).
+The entry point to the ResolutionResult API has changed. You now access the ResolutionResult via [configuration.incoming.resolutionResult](dsl/org.gradle.api.artifacts.Configuration.html#org.gradle.api.artifacts.Configuration:incoming).
+New convenience methods were also added to the API. For more information please refer to the javadoc for [ResolutionResult](javadoc/org/gradle/api/artifacts/result/ResolutionResult.html).
 
 ### Incubating C++ `Compile` task type removed
 
