@@ -28,9 +28,10 @@ import org.gradle.api.publish.ivy.IvyModuleDescriptor;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.reflect.Instantiator;
 
+import java.util.HashSet;
 import java.util.Set;
 
-import static org.gradle.util.CollectionUtils.collect;
+import static org.gradle.util.CollectionUtils.*;
 
 public class DefaultIvyPublication implements IvyPublicationInternal {
 
@@ -70,7 +71,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
                 "publication artifacts", fileResolver, taskResolver,
                 collect(configurations, new Transformer<FileCollection, Configuration>() {
                     public FileCollection transform(Configuration configuration) {
-                        return configuration.getArtifacts().getFiles();
+                        return configuration.getAllArtifacts().getFiles();
                     }
                 }));
     }
@@ -80,11 +81,20 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     public IvyNormalizedPublication asNormalisedPublication() {
-        return new IvyNormalizedPublication(dependencyMetaDataProvider.getModule(), configurations, descriptor.getFile(), descriptor.getTransformer());
+        return new IvyNormalizedPublication(dependencyMetaDataProvider.getModule(), getFlattenedConfigurations(), descriptor.getFile(), descriptor.getTransformer());
     }
 
     public Class<IvyNormalizedPublication> getNormalisedPublicationType() {
         return IvyNormalizedPublication.class;
+    }
+
+    // Flattens each of the given configurations to include any parents, visible or not.
+    private Set<Configuration> getFlattenedConfigurations() {
+        return inject(new HashSet<Configuration>(), configurations, new Action<InjectionStep<Set<Configuration>, Configuration>>() {
+            public void execute(InjectionStep<Set<Configuration>, Configuration> step) {
+                step.getTarget().addAll(step.getItem().getHierarchy());
+            }
+        });
     }
 
 }
