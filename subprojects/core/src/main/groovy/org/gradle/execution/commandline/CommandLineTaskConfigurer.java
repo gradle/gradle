@@ -19,10 +19,7 @@ package org.gradle.execution.commandline;
 import org.gradle.api.GradleException;
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.CommandLineOption;
-import org.gradle.cli.CommandLineArgumentException;
-import org.gradle.cli.CommandLineParser;
-import org.gradle.cli.ParsedCommandLine;
-import org.gradle.cli.ParsedCommandLineOption;
+import org.gradle.cli.*;
 import org.gradle.util.JavaMethod;
 
 import java.lang.reflect.Method;
@@ -48,7 +45,7 @@ public class CommandLineTaskConfigurer {
         List<String> remainingArguments = null;
         for (Task task : tasks) {
             Map<String, JavaMethod<Object, ?>> options = new HashMap<String, JavaMethod<Object, ?>>();
-            CommandLineParser parser = new CommandLineParser();
+            CommandLineParser parser = new CommandLineParser().allowOnlyLongOptions();
             for (Class<?> type = task.getClass(); type != Object.class; type = type.getSuperclass()) {
                 for (Method method : type.getDeclaredMethods()) {
                     CommandLineOption commandLineOption = method.getAnnotation(CommandLineOption.class);
@@ -64,9 +61,12 @@ public class CommandLineTaskConfigurer {
                 }
             }
 
-            ParsedCommandLine parsed = null;
+            ParsedCommandLine parsed;
             try {
                 parsed = parser.parse(arguments);
+            } catch (UnsupportedShortOptionException e) {
+                throw new GradleException("Incorrect command line arguments: " + arguments
+                        + ". Task options must have long format (e.g. double dash), for example: 'gradle tasks --all'.", e);
             } catch (CommandLineArgumentException e) {
                 //we expect that all options must be applicable for each task
                 throw new GradleException("Problem configuring task " + task.getPath() + " from command line. " + e.getMessage(), e);
@@ -98,11 +98,6 @@ public class CommandLineTaskConfigurer {
     }
 
     private boolean shouldConfigureWith(List<String> arguments) {
-        for (String a : arguments) {
-            if (a.startsWith("--")) {
-                return true;
-            }
-        }
-        return false;
+        return !arguments.isEmpty() && arguments.iterator().next().startsWith("-");
     }
 }

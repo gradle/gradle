@@ -19,7 +19,6 @@ package org.gradle.execution.commandline;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.SetMultimap;
-import org.gradle.api.GradleException;
 import org.gradle.api.Task;
 import org.gradle.execution.TaskSelector;
 
@@ -35,7 +34,6 @@ public class CommandLineTaskParser {
     CommandLineTaskConfigurer taskConfigurer =  new CommandLineTaskConfigurer();
 
     public Multimap<String, Task> parseTasks(List<String> taskPaths, TaskSelector taskSelector) {
-        validateTaskPaths(taskPaths);
         SetMultimap<String, Task> out = LinkedHashMultimap.create();
         List<String> remainingPaths = new LinkedList<String>(taskPaths);
         while (!remainingPaths.isEmpty()) {
@@ -47,17 +45,5 @@ public class CommandLineTaskParser {
             out.putAll(selection.getTaskName(), tasks);
         }
         return out;
-    }
-
-    private void validateTaskPaths(List<String> taskPaths) {
-        List<String> invalidTasks = new LinkedList<String>();
-        for (String path : taskPaths) {
-            if (path.startsWith("-") && !path.startsWith("--")) {
-                invalidTasks.add(path);
-            }
-        }
-        if (!invalidTasks.isEmpty()) {
-            throw new GradleException("Incorrect command line arguments: " + invalidTasks + ". Task options require double dash, for example: 'gradle tasks --all'.");
-        }
     }
 }

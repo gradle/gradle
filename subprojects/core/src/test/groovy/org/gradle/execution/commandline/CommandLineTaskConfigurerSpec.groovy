@@ -141,6 +141,17 @@ class CommandLineTaskConfigurerSpec extends Specification {
         ex.message.contains('xxx')
     }
 
+    def "fails neatly when short option used"() {
+        def args = ['--someFlag', '-c']
+        when:
+        configurer.configureTasks([task], args)
+
+        then:
+        def ex = thrown(GradleException)
+        ex.message.contains('-c')
+        ex.message.contains('must have long format')
+    }
+
     public static class SomeTask extends DefaultTask {
         String content = 'default content'
         @CommandLineOption(options="content", description="Some content.") public void setContent(String content) {
