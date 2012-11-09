@@ -81,15 +81,14 @@ For more information, see the [DependencyInsightReportTask documentation](dsl/or
 
 ### Incremental Scala compilation
 
-By compiling only classes whose source code has changed since the previous compilation, and classes affected by these changes, incremental
-compilation can significantly reduce Scala compilation time. It is particularly effective when frequently compiling small code increments,
-as is often done at development time.
+The Scala plugin now supports incremental compilation by integrating with [Zinc](https://github.com/typesafehub/zinc), a standalone version of 
+[sbt](https://github.com/harrah/xsbt)'s incremental Scala compiler. By compiling only classes whose source code has changed since the previous 
+compilation, and classes affected by these changes, incremental compilation can significantly reduce Scala compilation time. It is particularly 
+effective when frequently compiling small code increments, as is often done at development time.
 
-The Scala plugin now supports incremental compilation by integrating with [Zinc](https://github.com/typesafehub/zinc),
-a standalone version of [sbt](https://github.com/harrah/xsbt)'s incremental Scala compiler. To switch the `ScalaCompile` task from the default
-Ant based compiler to the new Zinc based compiler, use `scalaCompileOptions.useAnt = false`. Except where noted in the
-[API documentation](http://gradle.org/docs/current/dsl/org.gradle.api.tasks.scala.ScalaCompile.html), the Zinc based compiler supports exactly
-the same configuration options as the Ant based compiler.
+To switch the `ScalaCompile` task from the default Ant based compiler to the new Zinc based compiler, use `scalaCompileOptions.useAnt = false`. 
+Except where noted in the [API documentation](http://gradle.org/docs/current/dsl/org.gradle.api.tasks.scala.ScalaCompile.html), the Zinc based 
+compiler supports exactly the same configuration options as the Ant based compiler.
 
 Just like the Ant based compiler, the Zinc based compiler supports joint compilation of Java and Scala code. By default, all Java and Scala code
 under `src/main/scala` will participate in joint compilation. With the Zinc based compiler, even Java code will be compiled incrementally.
@@ -98,8 +97,9 @@ To learn more about incremental Scala compilation, see the [Scala plugin](usergu
 
 ### Scala compilation in external process
 
-Scala compilation can now be performed outside the Gradle JVM in a dedicated compiler process, which can help to deal with memory issues. External
-compilation is supported both for the existing Ant-based and the new Zinc-based Scala compiler. The API is very similar to that for Java and
+Scala compilation can now be performed outside the Gradle JVM in a dedicated compiler process, which can help to deal with memory issues. 
+
+External compilation is supported both for the existing Ant-based and the new Zinc-based Scala compiler. The API is very similar to that for Java and
 Groovy: [`ScalaCompile.fork = true`](dsl/org.gradle.api.tasks.scala.ScalaCompile.html#org.gradle.api.tasks.scala.ScalaCompile:fork)
 activates external compilation, and [`ScalaCompile.forkOptions`](dsl/org.gradle.api.tasks.scala.ScalaCompile.html#org.gradle.api.tasks.scala.ScalaCompile:forkOptions)
 allows to adjust memory settings.
@@ -118,7 +118,7 @@ Promoted features are features that were incubating in previous versions of Grad
 [Gradle 1.1 introduced much improved test logging output](http://gradle.org/docs/1.1/release-notes#test-logging). The APIs that provided the ability to configure this logging
 were introduced in the incubating state. In this Gradle release, these APIs are being promoted and are no longer subject to change without notice.
 
-For more information on the test logging, see [this forum post](http://forums.gradle.org/gradle/topics/whats_new_in_gradle_1_1_test_logging) that introduced the feature.
+For more information on the test logging functionality, see [this forum post](http://forums.gradle.org/gradle/topics/whats_new_in_gradle_1_1_test_logging) that introduced the feature.
 
 ## Fixed issues
 
