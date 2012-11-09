@@ -19,7 +19,7 @@ import org.gradle.build.docs.dsl.source.model.ClassMetaData;
 import org.gradle.build.docs.dsl.source.model.MethodMetaData;
 import org.gradle.build.docs.model.Attachable;
 import org.gradle.build.docs.model.ClassMetaDataRepository;
-import org.gradle.util.GUtil;
+import org.gradle.util.CollectionUtils;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -80,7 +80,7 @@ public class ClassLinkMetaData implements Serializable, Attachable<ClassLinkMeta
         }
         if (candidates.size() != 1) {
             String message = String.format("Found multiple methods called '%s' in class '%s'. Candidates: %s",
-                    method, className, GUtil.join(candidates, ", "));
+                    method, className, CollectionUtils.join(", ", candidates));
             message += "\nThis problem may happen when some apilink from docbook template xmls is incorrect. Example:"
                     +  "\nIncorrect: <apilink class=\"org.gradle.api.Project\" method=\"tarTree\"/>"
                     +  "\nCorrect:   <apilink class=\"org.gradle.api.Project\" method=\"tarTree(Object)\"/>";
