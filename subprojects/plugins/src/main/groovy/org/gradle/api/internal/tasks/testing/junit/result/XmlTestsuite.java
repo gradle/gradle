@@ -21,12 +21,9 @@ import org.apache.tools.ant.util.DateUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
-import org.gradle.internal.UncheckedException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -50,18 +47,11 @@ public class XmlTestsuite {
     private long failedCount;
     private long testCount;
 
-    public XmlTestsuite(File testResultsDir, String className, long startTime) {
+    XmlTestsuite(Document testSuiteReport, File testResultsDir, String className, long startTime) {
         this.className = className;
         this.startTime = startTime;
         this.hostname = getHostname();
-        DocumentBuilder documentBuilder;
-        try {
-            //TODO SF push to the factory so that we don't have to initialize all the time
-            documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-        } catch (Exception e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
-        testSuiteReport = documentBuilder.newDocument();
+        this.testSuiteReport = testSuiteReport;
         rootElement = testSuiteReport.createElement("testsuite");
         testSuiteReport.appendChild(rootElement);
         // Add an empty properties element for compatibility

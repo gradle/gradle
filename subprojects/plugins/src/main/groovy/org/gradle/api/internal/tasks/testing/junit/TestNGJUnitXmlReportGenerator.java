@@ -21,6 +21,7 @@ import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.internal.tasks.testing.junit.result.XmlTestsuite;
+import org.gradle.api.internal.tasks.testing.junit.result.XmlTestsuiteFactory;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.internal.TimeProvider;
 import org.gradle.internal.TrueTimeProvider;
@@ -34,6 +35,7 @@ public class TestNGJUnitXmlReportGenerator implements TestResultProcessor {
     //this one probably deserves some unit testing
 
     private final File testResultsDir;
+    private final XmlTestsuiteFactory xmlTestsuiteFactory = new XmlTestsuiteFactory();
 
     private Map<Object, TestInfo> tests = new HashMap<Object, TestInfo>();
     private Map<String, XmlTestsuite> testSuites = new HashMap<String, XmlTestsuite>();
@@ -59,7 +61,7 @@ public class TestNGJUnitXmlReportGenerator implements TestResultProcessor {
         tests.put(test.getId(), new TestInfo(test, event.getStartTime()));
         if (!test.isComposite()) { //test method
             if (!testSuites.containsKey(test.getClassName())) {
-                testSuites.put(test.getClassName(), new XmlTestsuite(testResultsDir, test.getClassName(), timeProvider.getCurrentTime()));
+                testSuites.put(test.getClassName(), xmlTestsuiteFactory.newSuite(testResultsDir, test.getClassName(), timeProvider.getCurrentTime()));
             }
         }
     }
