@@ -24,7 +24,7 @@ import org.gradle.api.internal.artifacts.repositories.IvyArtifactRepositoryInter
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.ivy.internal.IvyPublicationInternal;
-import org.gradle.api.publish.ivy.tasks.IvyRepositoryPublish;
+import org.gradle.api.publish.ivy.tasks.PublishToIvyRepository;
 import org.gradle.api.tasks.TaskContainer;
 
 import static org.apache.commons.lang.StringUtils.capitalize;
@@ -79,7 +79,7 @@ public class IvyPublishDynamicTaskCreator {
         String repositoryName = repository.getName();
         String taskName = calculatePublishTaskName(publicationName, repositoryName);
 
-        IvyRepositoryPublish task = tasks.add(taskName, IvyRepositoryPublish.class);
+        PublishToIvyRepository task = tasks.add(taskName, PublishToIvyRepository.class);
         task.setPublication(publicationInternal);
         task.setRepository(repositoryInternal);
         task.setGroup("publishing");
