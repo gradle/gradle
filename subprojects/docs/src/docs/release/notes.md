@@ -126,13 +126,18 @@ The list of issues fixed between 1.2 and 1.3 can be found [here](http://issues.g
 
 ## Incubating features
 
-We will typically introduce new features as _incubating_ at first, giving you a chance to test them out.
-Typically the implementation quality of the new features is already good but the API might still change with the next release based on the feedback we receive.
-For some very challenging engineering problems like the Gradle Daemon or parallel builds, it is impossible to get the implementation quality right from the beginning.
-So we need you here also as beta testers.
-We will iterate on the new feature based on your feedback, eventually releasing it as stable and production-ready.
-Those of you who use new features before that point gain the competitive advantage of early access to new functionality in exchange for helping refine it over time.
-To learn more read our [forum posting on our release approach](http://forums.gradle.org/gradle/topics/the_gradle_release_approach).
+New features as typically introduced as “_incubating_”. The key characteristic of an incubating feature is that it may change in an incompatible way in a future Gradle release.
+At some time in the future, after incorporating invaluable real-world feedback from Gradle users, the feature will be deemed stable and “_promoted_”. At this point it is no longer subject to
+incompatible change. That is, the feature is now subject to the backwards compatibility policy.
+
+Typically, the implementation quality of incubating features is sound. For some very challenging engineering problems, such as the Gradle Daemon or parallel task execution, it is 
+impossible to get the implementation quality right from the beginning as the feature needs real world exposure. The feedback from the incubation phase can be used to iteratively 
+improve the stability of the feature.
+
+By releasing features early in the incubating state, users gain a competitive advantage through early access to new functionality in exchange for helping refine it over time, 
+ultimately making Gradle a better tool.
+
+To learn more, see the [User Guide chapter on the Feature Lifecycle](userguide/feature_lifecycle.html).
 
 ### New Ivy publishing mechanism
 
