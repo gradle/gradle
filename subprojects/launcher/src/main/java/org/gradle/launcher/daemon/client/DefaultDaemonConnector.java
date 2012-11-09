@@ -38,7 +38,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
     private static final Logger LOGGER = Logging.getLogger(DefaultDaemonConnector.class);
     public static final int DEFAULT_CONNECT_TIMEOUT = 30000;
     private final DaemonRegistry daemonRegistry;
-    private final OutgoingConnector<Object> connector;
+    protected final OutgoingConnector<Object> connector;
     private final DaemonStarter daemonStarter;
     private long connectTimeout = DefaultDaemonConnector.DEFAULT_CONNECT_TIMEOUT;
 
@@ -146,7 +146,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
         Connection<Object> connection;
         try {
             connection = connector.connect(daemonInfo.getAddress());
-        } catch (ConnectException e) {
+        } catch (RuntimeException e) {
             onFailure.run();
             throw e;
         }

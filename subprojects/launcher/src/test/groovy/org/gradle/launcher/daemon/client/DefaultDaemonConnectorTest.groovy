@@ -33,14 +33,12 @@ class DefaultDaemonConnectorTest extends Specification {
     def connectTimeoutSecs = 1
     def daemonCounter = 0
 
-    def createOutgoingConnector() {
-        new OutgoingConnector() {
-            Connection connect(Address address) {
-                def connection = [:] as Connection
-                // unsure why I can't add this as property in the map-mock above
-                connection.metaClass.num = address.num
-                connection
-            }
+    class OutgoingConnectorStub implements OutgoingConnector {
+        Connection connect(Address address) {
+            def connection = [:] as Connection
+            // unsure why I can't add this as property in the map-mock above
+            connection.metaClass.num = address.num
+            connection
         }
     }
 
@@ -53,10 +51,10 @@ class DefaultDaemonConnectorTest extends Specification {
     }
 
     def createConnector() {
-        def connector = new DefaultDaemonConnector(
+        def connector = Spy(DefaultDaemonConnector, constructorArgs: [
                 new EmbeddedDaemonRegistry(),
-                createOutgoingConnector(),
-                { startBusyDaemon() } as DaemonStarter
+                Spy(OutgoingConnectorStub),
+                { startBusyDaemon() } as DaemonStarter]
         )
         connector.connectTimeout = connectTimeoutSecs * 1000
         connector
@@ -111,16 +109,21 @@ class DefaultDaemonConnectorTest extends Specification {
         connection && connection.connection.num < 12
     }
 
-    def "created connection removes from registry on failure"() {
+    def "suspect address is removed from the registry on connect failure"() {
         given:
         startIdleDaemon()
+        assert !registry.all.empty
+
+        connector.connector.connect(_ as Address) >> { throw new RuntimeException("Problem!") }
 
         when:
-        def connection = connector.maybeConnect( { true } as ExplainingSpec)
-        connection.onFailure.run()
+        connector.maybeConnect( { true } as ExplainingSpec)
 
         then:
-        registry.remove( _ as Address )
+        def ex = thrown(RuntimeException)
+        ex.message == "Problem!"
+
+        registry.all.empty
     }
 
     def "maybeConnect() returns null when no daemon matches spec"() {
