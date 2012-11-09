@@ -127,6 +127,8 @@
 
 .hl-annotation { color: #DDDD97; }
 
+.hl-directive { color: white !important; }
+
 a.link {
     white-space: nowrap;
 }

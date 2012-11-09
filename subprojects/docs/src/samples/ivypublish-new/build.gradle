@@ -1,8 +1,8 @@
-allprojects {
-    apply plugin: 'java'
-}
-
+// START SNIPPET input
+apply plugin: 'java'
+// START SNIPPET use-plugin
 apply plugin: 'ivy-publish'
+// END SNIPPET use-plugin
 
 version = '1.0'
 group = 'org.gradle.test'
@@ -25,14 +25,25 @@ artifacts {
     archives sourceJar
 }
 
-File localPublicationsDir = file("$buildDir/repo")
+// END SNIPPET input
+// START SNIPPET repositories
+// START SNIPPET input
+// START SNIPPET descriptor-mod
 publishing {
+// END SNIPPET descriptor-mod
+// END SNIPPET input
     repositories {
         ivy {
-            ivyPattern localPublicationsDir.absolutePath + '/[module]/[revision]/ivy.xml'
-            artifactPattern localPublicationsDir.absolutePath + '/[module]/[revision]/[artifact](.[ext])'
+            url "http://mycompany.com/repo" // change to point to your repo
+            credentials {
+                username "user1"
+                password "secret"
+            }
         }
     }
+// END SNIPPET repositories
+// START SNIPPET input
+// START SNIPPET descriptor-mod
     publications {
         ivy {
             descriptor {
@@ -42,4 +53,8 @@ publishing {
             }
         }
     }
+// START SNIPPET repositories
 }
+// END SNIPPET repositories
+// END SNIPPET descriptor-mod
+// END SNIPPET input
