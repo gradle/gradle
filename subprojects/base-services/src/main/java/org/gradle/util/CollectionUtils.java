@@ -22,7 +22,7 @@ import org.gradle.api.specs.Spec;
 import java.lang.reflect.Array;
 import java.util.*;
 
-import static org.gradle.api.internal.Transformers.cast;
+import static org.gradle.api.internal.Cast.cast;
 
 public abstract class CollectionUtils {
 
@@ -35,7 +35,7 @@ public abstract class CollectionUtils {
 
         return null;
     }
-    
+
     public static <T> Set<T> filter(Set<T> set, Spec<? super T> filter) {
         return filter(set, new LinkedHashSet<T>(), filter);
     }
@@ -46,11 +46,11 @@ public abstract class CollectionUtils {
 
     public static <T, C extends Collection<T>> C filter(Iterable<T> source, C destination, Spec<? super T> filter) {
         for (T item : source) {
-             if (filter.isSatisfiedBy(item)) {
-                 destination.add(item);
-             }
-         }
-         return destination;
+            if (filter.isSatisfiedBy(item)) {
+                destination.add(item);
+            }
+        }
+        return destination;
     }
 
     public static <K, V> Map<K, V> filter(Map<K, V> map, Spec<Map.Entry<K, V>> filter) {
@@ -184,7 +184,7 @@ public abstract class CollectionUtils {
         boolean foundAtLeastOneNull = false;
         List<E> compacted = null;
         int i = 0;
-        
+
         for (E element : list) {
             if (element == null) {
                 if (!foundAtLeastOneNull) {
@@ -225,7 +225,7 @@ public abstract class CollectionUtils {
     }
 
     public static <K, V> void collectMap(Map<K, V> destination, Iterable<? extends V> items, Transformer<? extends K, ? super V> keyGenerator) {
-        for (V item : items)  {
+        for (V item : items) {
             destination.put(keyGenerator.transform(item), item);
         }
     }
@@ -272,6 +272,7 @@ public abstract class CollectionUtils {
             public T left;
             public T right;
         }
+
         public Set<T> leftOnly = new HashSet<T>();
         public Set<Pair<T>> common = new HashSet<Pair<T>>();
         public Set<T> rightOnly = new HashSet<T>();
@@ -280,11 +281,9 @@ public abstract class CollectionUtils {
     /**
      * Provides a “diff report” of how the two sets are similar and how they are different, comparing the entries by some aspect.
      *
-     * The transformer is used to generate the value to use to compare the entries by. That is, the entries are not
-     * compared by equals by an attribute or characteristic.
+     * The transformer is used to generate the value to use to compare the entries by. That is, the entries are not compared by equals by an attribute or characteristic.
      *
-     * The transformer is expected to produce a unique value for each entry in a single set. Behaviour is undefined if
-     * this condition is not met.
+     * The transformer is expected to produce a unique value for each entry in a single set. Behaviour is undefined if this condition is not met.
      *
      * @param left The set on the “left” side of the comparison.
      * @param right The set on the “right” side of the comparison.

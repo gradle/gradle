@@ -34,7 +34,7 @@ import org.gradle.api.publish.Publication;
  *
  * <h3>Publishing the publication</h3>
  *
- * The “{@code ivy-publish}” plugin will automatically create a {@link org.gradle.api.publish.ivy.tasks.IvyRepositoryPublish} task
+ * The “{@code ivy-publish}” plugin will automatically create a {@link org.gradle.api.publish.ivy.tasks.PublishToIvyRepository} task
  * for each {@code IvyPublication} and {@link org.gradle.api.artifacts.repositories.IvyArtifactRepository} combination in
  * {@code publishing.publications} and {@code publishing.repositories} respectively.
  * <p>
@@ -60,13 +60,13 @@ import org.gradle.api.publish.Publication;
  * <li>{@code publishIvyPublicationToOtherRepository} - publishes to the second repository defined</li>
  * </ul>
  *
- * These tasks are of type {@link org.gradle.api.publish.ivy.tasks.IvyRepositoryPublish}. Executing the task will publish the publication
+ * These tasks are of type {@link org.gradle.api.publish.ivy.tasks.PublishToIvyRepository}. Executing the task will publish the publication
  * to the associated repository.
  *
  * <h4>The “{@code publish}” task</h4>
  *
  * The “{@code publish}” plugin (that the “{@code ivy-publish}” plugin implicitly applies) adds a lifecycle task named “{@code publish}”.
- * All {@link org.gradle.api.publish.ivy.tasks.IvyRepositoryPublish} tasks added by this plugin automatically become dependencies of this
+ * All {@link org.gradle.api.publish.ivy.tasks.PublishToIvyRepository} tasks added by this plugin automatically become dependencies of this
  * lifecycle task, which means that often the most convenient way to publish your project is to just run the “{@code publish}” task.
  *
  * @since 1.3

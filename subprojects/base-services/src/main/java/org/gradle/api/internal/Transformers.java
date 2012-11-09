@@ -37,19 +37,6 @@ public abstract class Transformers {
         return new CastingTransformer<O, I>(outputType);
     }
 
-    /**
-     * Immediately casts the input using a transformer returned by {@link #cast(Class)}.
-     *
-     * @param outputType The type to cast the input to
-     * @param input The object to be cast
-     * @param <O> The type of the transformed object
-     * @param <I> The type of the object to be transformed
-     * @return The input object, cast to the output type
-     */
-    public static <O, I> O cast(Class<O> outputType, I input) {
-        return cast(outputType).transform(input);
-    }
-
     private static class CastingTransformer<O, I> implements Transformer<O, I> {
         final Class<O> outputType;
 
@@ -58,13 +45,7 @@ public abstract class Transformers {
         }
 
         public O transform(I input) {
-            try {
-                return outputType.cast(input);
-            } catch (ClassCastException e) {
-                throw new ClassCastException(String.format(
-                   "Failed to cast object %s of type %s to target type %s", input, input.getClass().getName(), outputType.getName()
-                ));
-            }
+            return Cast.cast(outputType, input);
         }
     }
 

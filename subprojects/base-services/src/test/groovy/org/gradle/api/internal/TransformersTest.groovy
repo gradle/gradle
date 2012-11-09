@@ -29,14 +29,14 @@ class TransformersTest extends Specification {
         def arg = "1"
 
         when:
-        cast(Integer, arg)
+        cast(Integer).transform(arg)
 
         then:
         def e = thrown(ClassCastException)
         e.message == "Failed to cast object $arg of type ${arg.class.name} to target type ${Integer.name}"
 
         when:
-        def result = cast(CharSequence, arg)
+        def result = cast(CharSequence).transform(arg)
 
         then:
         notThrown(ClassCastException)

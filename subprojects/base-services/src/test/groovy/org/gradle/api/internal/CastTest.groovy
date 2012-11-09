@@ -14,12 +14,31 @@
  * limitations under the License.
  */
 
-package org.gradle.test.fixtures.ivy
+package org.gradle.api.internal
 
-class IvyDescriptorArtifact {
-    String name
-    String type
-    String ext
-    List<String> conf
-    Map<String, String> mavenAttributes
+import spock.lang.Specification
+
+import static org.gradle.api.internal.Cast.cast
+
+class CastTest extends Specification {
+
+    def "casting"() {
+        given:
+        def arg = "1"
+
+        when:
+        cast(Integer, arg)
+
+        then:
+        def e = thrown(ClassCastException)
+        e.message == "Failed to cast object $arg of type ${arg.class.name} to target type ${Integer.name}"
+
+        when:
+        def result = cast(CharSequence, arg)
+
+        then:
+        notThrown(ClassCastException)
+        result.is arg
+    }
+
 }
