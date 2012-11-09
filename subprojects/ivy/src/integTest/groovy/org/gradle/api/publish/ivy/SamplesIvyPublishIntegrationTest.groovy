@@ -23,6 +23,7 @@ import org.gradle.test.fixtures.ivy.IvyHttpRepository
 import org.gradle.test.fixtures.ivy.IvyModule
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.TestFile
+import org.gradle.util.TextUtil
 import org.junit.Rule
 
 public class SamplesIvyPublishIntegrationTest extends AbstractIntegrationSpec {
@@ -67,6 +68,6 @@ public class SamplesIvyPublishIntegrationTest extends AbstractIntegrationSpec {
     }
 
     String getExpectedIvyOutput() {
-        sample.dir.file("output-ivy.xml").text.readLines()[1..-1].join("\n").trim()
+        sample.dir.file("output-ivy.xml").readLines()[1..-1].join(TextUtil.getPlatformLineSeparator()).trim()
     }
 }
