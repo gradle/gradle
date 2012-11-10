@@ -71,7 +71,7 @@ public class JUnitTestClassProcessor implements TestClassProcessor {
     }
 
     public void processTestClass(TestClassRunInfo testClass) {
-        LOGGER.debug("Executing test {}", testClass.getTestClassName());
+        LOGGER.debug("Executing test class {}", testClass.getTestClassName());
         executer.execute(testClass.getTestClassName());
     }
 
