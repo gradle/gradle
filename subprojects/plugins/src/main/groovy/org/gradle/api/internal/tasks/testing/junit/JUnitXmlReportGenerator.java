@@ -17,8 +17,8 @@
 package org.gradle.api.internal.tasks.testing.junit;
 
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
-import org.gradle.api.internal.tasks.testing.junit.result.XmlTestsuite;
-import org.gradle.api.internal.tasks.testing.junit.result.XmlTestsuiteFactory;
+import org.gradle.api.internal.tasks.testing.junit.result.XmlTestSuite;
+import org.gradle.api.internal.tasks.testing.junit.result.XmlTestSuiteFactory;
 import org.gradle.api.internal.tasks.testing.results.StateTrackingTestResultProcessor;
 import org.gradle.api.internal.tasks.testing.results.TestState;
 import org.gradle.api.tasks.testing.TestDescriptor;
@@ -29,9 +29,9 @@ import java.io.File;
 public class JUnitXmlReportGenerator extends StateTrackingTestResultProcessor {
     private final File testResultsDir;
     private TestState testSuite;
-    private XmlTestsuiteFactory factory = new XmlTestsuiteFactory();
+    private XmlTestSuiteFactory factory = new XmlTestSuiteFactory();
 
-    private XmlTestsuite xmlTestsuite;
+    private XmlTestSuite xmlTestsuite;
 
     public JUnitXmlReportGenerator(File testResultsDir) {
         this.testResultsDir = testResultsDir;

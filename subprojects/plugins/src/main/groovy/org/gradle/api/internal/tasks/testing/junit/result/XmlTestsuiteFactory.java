@@ -21,15 +21,15 @@ import org.gradle.internal.UncheckedException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.File;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
-/**
- * by Szczepan Faber, created at: 10/3/12
- */
-public class XmlTestsuiteFactory {
+public class XmlTestSuiteFactory {
+    private final String hostname;
+    private final DocumentBuilder documentBuilder;
 
-    private DocumentBuilder documentBuilder;
-
-    public XmlTestsuiteFactory() {
+    public XmlTestSuiteFactory() {
+        hostname = getHostname();
         try {
             documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
         } catch (Exception e) {
@@ -37,7 +37,15 @@ public class XmlTestsuiteFactory {
         }
     }
 
-    public XmlTestsuite newSuite(File testResultsDir, String className, long startTime) {
-        return new XmlTestsuite(documentBuilder.newDocument(), testResultsDir, className, startTime);
+    public XmlTestSuite newSuite(File testResultsDir, String className, long startTime) {
+        return new XmlTestSuite(testResultsDir, className, startTime, hostname, documentBuilder.newDocument());
+    }
+
+    private String getHostname() {
+        try {
+            return InetAddress.getLocalHost().getHostName();
+        } catch (UnknownHostException e) {
+            return "localhost";
+        }
     }
 }
