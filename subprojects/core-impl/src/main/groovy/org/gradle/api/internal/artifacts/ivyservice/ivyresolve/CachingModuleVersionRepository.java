@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ForceChangeDependencyDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache;
@@ -39,7 +40,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
-public class CachingModuleVersionRepository implements ModuleVersionRepository {
+public class CachingModuleVersionRepository implements LocalAwareModuleVersionRepository {
     private static final Logger LOGGER = LoggerFactory.getLogger(CachingModuleVersionRepository.class);
 
     private final ModuleResolutionCache moduleResolutionCache;
@@ -77,6 +78,10 @@ public class CachingModuleVersionRepository implements ModuleVersionRepository {
 
     public boolean isLocal() {
         return delegate.isLocal();
+    }
+
+    public ModuleVersionDescriptor getLocalDependency(DependencyDescriptor dd) throws ModuleVersionResolveException {
+        throw new UnsupportedOperationException();
     }
 
     public ModuleVersionDescriptor getDependency(DependencyDescriptor dd) {

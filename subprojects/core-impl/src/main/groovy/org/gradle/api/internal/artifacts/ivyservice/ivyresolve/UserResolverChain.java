@@ -43,7 +43,7 @@ public class UserResolverChain implements DependencyToModuleResolver {
         this.settings = settings;
     }
 
-    public void add(ModuleVersionRepository repository) {
+    public void add(LocalAwareModuleVersionRepository repository) {
         moduleVersionRepositories.add(repository);
         moduleVersionRepositoryNames.add(repository.getName());
     }
