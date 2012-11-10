@@ -16,14 +16,15 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.latest.ArtifactInfo;
 import org.apache.ivy.plugins.latest.ComparatorLatestStrategy;
 import org.apache.ivy.plugins.resolver.ResolverSettings;
-import org.gradle.api.internal.artifacts.ivyservice.*;
+import org.gradle.api.internal.artifacts.ivyservice.BuildableModuleVersionResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver;
+import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,7 +56,7 @@ public class UserResolverChain implements DependencyToModuleResolver {
         if (latestResolved != null) {
             final ModuleVersionDescriptor downloadedModule = latestResolved.module;
             LOGGER.debug("Using module '{}' from repository '{}'", downloadedModule.getId(), latestResolved.repository.getName());
-            result.resolved(latestResolved.getId(), latestResolved.getDescriptor(), latestResolved.getArtifactResolver());
+            result.resolved(latestResolved.getId(), latestResolved.getDescriptor(), latestResolved.repository);
             return;
         }
         if (!errors.isEmpty()) {
@@ -137,10 +138,6 @@ public class UserResolverChain implements DependencyToModuleResolver {
             return module.getDescriptor();
         }
 
-        public ArtifactResolver getArtifactResolver() throws ModuleVersionResolveException {
-            return new ModuleVersionRepositoryBackedArtifactResolver(repository);
-        }
-
         public boolean isGeneratedModuleDescriptor() {
             return module.getDescriptor().isDefault();
         }
@@ -151,19 +148,6 @@ public class UserResolverChain implements DependencyToModuleResolver {
 
         public String getRevision() {
             return module.getId().getRevision();
-        }
-    }
-
-    private static final class ModuleVersionRepositoryBackedArtifactResolver implements ArtifactResolver {
-        private final ModuleVersionRepository repository;
-
-        private ModuleVersionRepositoryBackedArtifactResolver(ModuleVersionRepository repository) {
-            this.repository = repository;
-        }
-
-        public void resolve(Artifact artifact, BuildableArtifactResolveResult result) {
-            LOGGER.debug("Attempting to download {} using repository '{}'", artifact, repository.getName());
-            repository.download(artifact, result);
         }
     }
 }

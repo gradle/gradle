@@ -34,7 +34,7 @@ public class ExternalResourceResolverAdapter extends AbstractDependencyResolverA
         this.resolver = resolver;
     }
 
-    public void download(Artifact artifact, BuildableArtifactResolveResult result) {
+    public void resolve(Artifact artifact, BuildableArtifactResolveResult result) {
         EnhancedArtifactDownloadReport artifactDownloadReport = resolver.download(artifact);
         if (downloadFailed(artifactDownloadReport)) {
             result.failed(new ArtifactResolveException(artifactDownloadReport.getArtifact(), artifactDownloadReport.getFailure()));

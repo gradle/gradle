@@ -17,14 +17,15 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolver;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
 
 /**
  * A repository of module versions.
  *
- * The plan is to sync this with {@link org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver} and {@link org.gradle.api.internal.artifacts.ivyservice.ArtifactResolver} at some point.
+ * The plan is to sync this with {@link org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver}
  */
-public interface ModuleVersionRepository {
+public interface ModuleVersionRepository extends ArtifactResolver {
     String getId();
 
     String getName();
@@ -34,7 +35,7 @@ public interface ModuleVersionRepository {
     /**
      * Downloads the given artifact. Any failures are packaged up in the result.
      */
-    void download(Artifact artifact, BuildableArtifactResolveResult result);
+    void resolve(Artifact artifact, BuildableArtifactResolveResult result);
 
     // TODO - should be internal to the implementation of this (is only used to communicate IvyDependencyResolverAdapter -> CachingModuleVersionRepository)
     boolean isLocal();

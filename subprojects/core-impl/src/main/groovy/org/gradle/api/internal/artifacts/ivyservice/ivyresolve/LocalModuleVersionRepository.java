@@ -31,8 +31,8 @@ public class LocalModuleVersionRepository implements LocalAwareModuleVersionRepo
         return delegate.isLocal();
     }
 
-    public void download(Artifact artifact, BuildableArtifactResolveResult result) {
-        delegate.download(artifact, result);
+    public void resolve(Artifact artifact, BuildableArtifactResolveResult result) {
+        delegate.resolve(artifact, result);
     }
 
     public void getLocalDependency(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionDescriptor result) {

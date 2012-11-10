@@ -169,7 +169,7 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
         return downloadedModule.isChanging();
     }
 
-    public void download(Artifact artifact, BuildableArtifactResolveResult result) {
+    public void resolve(Artifact artifact, BuildableArtifactResolveResult result) {
         ArtifactAtRepositoryKey resolutionCacheIndexKey = new ArtifactAtRepositoryKey(delegate, artifact.getId());
 
         // Look in the cache for this resolver
@@ -194,7 +194,7 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
             }
         }
 
-        delegate.download(artifact, result);
+        delegate.resolve(artifact, result);
         LOGGER.debug("Downloaded artifact '{}' from resolver: {}", artifact.getId(), delegate);
 
         if (result.getFailure() instanceof ArtifactNotFoundException) {

@@ -56,13 +56,13 @@ class CachingModuleVersionRepositoryTest extends Specification {
         and:
         _ * realRepo.isLocal() >> false
         _ * artifactAtRepositoryCache.lookup(atRepositoryKey) >> null
-        _ * realRepo.download(artifact, result)
+        _ * realRepo.resolve(artifact, result)
         _ * result.file >> file
         _ * result.externalResourceMetaData >> externalResourceMetaData
         _ * artifact.getId() >> id
 
         when:
-        repo.download(artifact, result)
+        repo.resolve(artifact, result)
         
         then:
         1 * artifactAtRepositoryCache.store(atRepositoryKey, file, externalResourceMetaData)
