@@ -17,20 +17,15 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 
 public interface LocalAwareModuleVersionRepository extends ModuleVersionRepository {
     /**
      * Locates the given dependency, using only local resources.
-     *
-     * @return null if not found.
      */
-    ModuleVersionDescriptor getLocalDependency(DependencyDescriptor dd) throws ModuleVersionResolveException;
+    void getLocalDependency(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionDescriptor result);
 
     /**
-     * Locates the given dependency, using whichever resources are appropriate. Always called after {@link #getLocalDependency(org.apache.ivy.core.module.descriptor.DependencyDescriptor)}.
-     *
-     * @return null if not found.
+     * Locates the given dependency, using whichever resources are appropriate. Always called after {@link #getLocalDependency(org.apache.ivy.core.module.descriptor.DependencyDescriptor, BuildableModuleVersionDescriptor)}.
      */
-    ModuleVersionDescriptor getDependency(DependencyDescriptor dd) throws ModuleVersionResolveException;
+    void getDependency(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionDescriptor result);
 }

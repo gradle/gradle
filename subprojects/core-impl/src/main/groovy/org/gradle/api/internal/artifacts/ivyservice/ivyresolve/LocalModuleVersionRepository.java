@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
-import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 
 public class LocalModuleVersionRepository implements LocalAwareModuleVersionRepository {
     private final ModuleVersionRepository delegate;
@@ -36,12 +35,12 @@ public class LocalModuleVersionRepository implements LocalAwareModuleVersionRepo
         delegate.download(artifact, result);
     }
 
-    public ModuleVersionDescriptor getLocalDependency(DependencyDescriptor dd) throws ModuleVersionResolveException {
+    public void getLocalDependency(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionDescriptor result) {
         throw new UnsupportedOperationException();
     }
 
-    public ModuleVersionDescriptor getDependency(DependencyDescriptor dd) throws ModuleVersionResolveException {
-        return delegate.getDependency(dd);
+    public void getDependency(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionDescriptor result) {
+        delegate.getDependency(dependencyDescriptor, result);
     }
 
     public String getId() {

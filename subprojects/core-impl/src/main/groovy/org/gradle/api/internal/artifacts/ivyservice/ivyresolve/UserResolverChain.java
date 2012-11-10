@@ -70,17 +70,28 @@ public class UserResolverChain implements DependencyToModuleResolver {
         
         ModuleResolution best = null;
         for (ModuleVersionRepository repository : moduleVersionRepositories) {
+            BuildableModuleVersionDescriptor module = new DefaultBuildableModuleVersionDescriptor();
             try {
-                ModuleVersionDescriptor module = repository.getDependency(dependencyDescriptor);
-                if (module != null) {
+                repository.getDependency(dependencyDescriptor, module);
+            } catch (Throwable e) {
+                failures.add(e);
+            }
+            switch (module.getState()) {
+                case Missing:
+                case Unknown:
+                    break;
+                case Resolved:
                     ModuleResolution moduleResolution = new ModuleResolution(repository, module);
                     if (isStaticVersion && !moduleResolution.isGeneratedModuleDescriptor()) {
                         return moduleResolution;
                     }
                     best = chooseBest(best, moduleResolution);
-                }
-            } catch (Throwable e) {
-                failures.add(e);
+                    break;
+                case Failed:
+                    failures.add(module.getFailure());
+                    break;
+                default:
+                    throw new IllegalStateException("Unexpected state for resolution: " + module.getState());
             }
         }
 

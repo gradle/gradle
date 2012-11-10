@@ -27,7 +27,6 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
-import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ForceChangeDependencyDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache;
@@ -80,29 +79,17 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
         return delegate.isLocal();
     }
 
-    public ModuleVersionDescriptor getLocalDependency(DependencyDescriptor dd) throws ModuleVersionResolveException {
+    public void getLocalDependency(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionDescriptor result) {
         throw new UnsupportedOperationException();
     }
 
-    public ModuleVersionDescriptor getDependency(DependencyDescriptor dd) {
-        if (isLocal()) {
-            final ModuleVersionDescriptor module = delegate.getDependency(dd);
-            if (module != null) {
-                moduleDescriptorCache.cacheModuleDescriptor(delegate, module.getId(), module.getDescriptor(), true);
-                moduleResolutionCache.cacheModuleResolution(delegate, dd.getDependencyRevisionId(), module.getId());
-            }
-            return module;
+    public void getDependency(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionDescriptor result) {
+        DependencyDescriptor resolvedDependencyDescriptor = maybeUseCachedDynamicVersion(delegate, dependencyDescriptor);
+        lookupModuleInCache(delegate, resolvedDependencyDescriptor, result);
+        if (result.getState() != BuildableModuleVersionDescriptor.State.Unknown) {
+            return;
         }
-        return findModule(dd);
-    }
-
-    public ModuleVersionDescriptor findModule(DependencyDescriptor requestedDependencyDescriptor) {
-        DependencyDescriptor resolvedDependencyDescriptor = maybeUseCachedDynamicVersion(delegate, requestedDependencyDescriptor);
-        CachedModuleLookup lookup = lookupModuleInCache(delegate, resolvedDependencyDescriptor);
-        if (lookup.wasFound) {
-            return lookup.module;
-        }
-        return resolveModule(resolvedDependencyDescriptor, requestedDependencyDescriptor);
+        resolveModule(resolvedDependencyDescriptor, dependencyDescriptor, result);
     }
 
     private DependencyDescriptor maybeUseCachedDynamicVersion(ModuleVersionRepository repository, DependencyDescriptor original) {
@@ -123,39 +110,39 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
         return original;
     }
 
-    public CachedModuleLookup lookupModuleInCache(ModuleVersionRepository repository, DependencyDescriptor resolvedDependencyDescriptor) {
+    public void lookupModuleInCache(ModuleVersionRepository repository, DependencyDescriptor resolvedDependencyDescriptor, BuildableModuleVersionDescriptor result) {
         ModuleRevisionId resolvedModuleVersionId = resolvedDependencyDescriptor.getDependencyRevisionId();
         ModuleVersionIdentifier moduleVersionIdentifier = createModuleVersionIdentifier(resolvedModuleVersionId);
         ModuleDescriptorCache.CachedModuleDescriptor cachedModuleDescriptor = moduleDescriptorCache.getCachedModuleDescriptor(repository, resolvedModuleVersionId);
         if (cachedModuleDescriptor == null) {
-            return notFound();
+            return;
         }
         if (cachedModuleDescriptor.isMissing()) {
             if (cachePolicy.mustRefreshModule(moduleVersionIdentifier, null, resolvedModuleVersionId, cachedModuleDescriptor.getAgeMillis())) {
                 LOGGER.debug("Cached meta-data for missing module is expired: will perform fresh resolve of '{}' in '{}'", resolvedModuleVersionId, repository.getName());
-                return notFound();
+                return;
             }
             LOGGER.debug("Detected non-existence of module '{}' in resolver cache '{}'", resolvedModuleVersionId, repository.getName());
-            return found(null);
+            result.missing();
+            return;
         }
         if (cachedModuleDescriptor.isChangingModule() || resolvedDependencyDescriptor.isChanging()) {
             if (cachePolicy.mustRefreshChangingModule(moduleVersionIdentifier, cachedModuleDescriptor.getModuleVersion(), cachedModuleDescriptor.getAgeMillis())) {
                 expireArtifactsForChangingModule(repository, cachedModuleDescriptor.getModuleDescriptor());
                 LOGGER.debug("Cached meta-data for changing module is expired: will perform fresh resolve of '{}' in '{}'", resolvedModuleVersionId, repository.getName());
-                return notFound();
+                return;
             }
             LOGGER.debug("Found cached version of changing module '{}' in '{}'", resolvedModuleVersionId, repository.getName());
         } else {
             if (cachePolicy.mustRefreshModule(moduleVersionIdentifier, cachedModuleDescriptor.getModuleVersion(), null, cachedModuleDescriptor.getAgeMillis())) {
                 LOGGER.debug("Cached meta-data for module must be refreshed: will perform fresh resolve of '{}' in '{}'", resolvedModuleVersionId, repository.getName());
-                return notFound();
+                return;
             }
         }
 
         LOGGER.debug("Using cached module metadata for module '{}' in '{}'", resolvedModuleVersionId, repository.getName());
         // TODO:DAZ Could provide artifact metadata and file here from artifactFileStore (it's not needed currently)
-        ModuleVersionDescriptor cachedModule = new DefaultModuleVersionDescriptor(cachedModuleDescriptor.getModuleDescriptor(), cachedModuleDescriptor.isChangingModule());
-        return found(cachedModule);
+        result.resolved(cachedModuleDescriptor.getModuleDescriptor(), cachedModuleDescriptor.isChangingModule());
     }
 
     private void expireArtifactsForChangingModule(ModuleVersionRepository repository, ModuleDescriptor descriptor) {
@@ -164,16 +151,14 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
         }
     }
 
-    public ModuleVersionDescriptor resolveModule(DependencyDescriptor resolvedDependencyDescriptor, DependencyDescriptor requestedDependencyDescriptor) {
-        ModuleVersionDescriptor module = delegate.getDependency(ForceChangeDependencyDescriptor.forceChangingFlag(resolvedDependencyDescriptor, true));
-
-        if (module == null) {
+    public void resolveModule(DependencyDescriptor resolvedDependencyDescriptor, DependencyDescriptor requestedDependencyDescriptor, BuildableModuleVersionDescriptor result) {
+        delegate.getDependency(ForceChangeDependencyDescriptor.forceChangingFlag(resolvedDependencyDescriptor, true), result);
+        if (result.getState() == BuildableModuleVersionDescriptor.State.Missing) {
             moduleDescriptorCache.cacheModuleDescriptor(delegate, resolvedDependencyDescriptor.getDependencyRevisionId(), null, requestedDependencyDescriptor.isChanging());
-        } else {
-            moduleResolutionCache.cacheModuleResolution(delegate, requestedDependencyDescriptor.getDependencyRevisionId(), module.getId());
-            moduleDescriptorCache.cacheModuleDescriptor(delegate, module.getId(), module.getDescriptor(), isChangingDependency(requestedDependencyDescriptor, module));
+        } else if (result.getState() == BuildableModuleVersionDescriptor.State.Resolved) {
+            moduleResolutionCache.cacheModuleResolution(delegate, requestedDependencyDescriptor.getDependencyRevisionId(), result.getId());
+            moduleDescriptorCache.cacheModuleDescriptor(delegate, result.getId(), result.getDescriptor(), isChangingDependency(requestedDependencyDescriptor, result));
         }
-        return module;
     }
 
     private boolean isChangingDependency(DependencyDescriptor descriptor, ModuleVersionDescriptor downloadedModule) {
@@ -184,30 +169,7 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
         return downloadedModule.isChanging();
     }
 
-    private CachedModuleLookup notFound() {
-        return new CachedModuleLookup(false, null);
-    }
-
-    private CachedModuleLookup found(ModuleVersionDescriptor module) {
-        return new CachedModuleLookup(true, module);
-    }
-
-    private static class CachedModuleLookup {
-        public final boolean wasFound;
-        public final ModuleVersionDescriptor module;
-
-        private CachedModuleLookup(boolean wasFound, ModuleVersionDescriptor module) {
-            this.module = module;
-            this.wasFound = wasFound;
-        }
-    }
-
     public void download(Artifact artifact, BuildableArtifactResolveResult result) {
-        if (isLocal()) {
-            delegate.download(artifact, result);
-            return;
-        }
-
         ArtifactAtRepositoryKey resolutionCacheIndexKey = new ArtifactAtRepositoryKey(delegate, artifact.getId());
 
         // Look in the cache for this resolver
