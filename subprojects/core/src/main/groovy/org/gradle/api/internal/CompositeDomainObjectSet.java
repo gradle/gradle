@@ -73,11 +73,11 @@ public class CompositeDomainObjectSet<T> extends DefaultDomainObjectSet<T> {
     }
 
     public Action<? super T> whenObjectAdded(Action<? super T> action) {
-        return super.whenObjectAdded(Actions.filter(action, uniqueSpec));
+        return super.whenObjectAdded(Actions.<T>filter(action, uniqueSpec));
     }
 
     public Action<? super T> whenObjectRemoved(Action<? super T> action) {
-        return super.whenObjectRemoved(Actions.filter(action, notInSpec));
+        return super.whenObjectRemoved(Actions.<T>filter(action, notInSpec));
     }
     
     public void addCollection(DomainObjectCollection<? extends T> collection) {
