@@ -46,7 +46,6 @@ public class ResolveIvyFactory {
     private final CacheLockingManager cacheLockingManager;
     private final StartParameterResolutionOverride startParameterResolutionOverride;
     private final TimeProvider timeProvider;
-    private final RefreshWhenMissingInAllRepositoriesCachePolicy refreshWhenMissingInAllRepositoriesCachePolicy;
 
     public ResolveIvyFactory(IvyFactory ivyFactory, ResolverProvider resolverProvider, SettingsConverter settingsConverter,
                              ModuleResolutionCache moduleResolutionCache, ModuleDescriptorCache moduleDescriptorCache,
@@ -62,7 +61,6 @@ public class ResolveIvyFactory {
         this.cacheLockingManager = cacheLockingManager;
         this.startParameterResolutionOverride = startParameterResolutionOverride;
         this.timeProvider = timeProvider;
-        this.refreshWhenMissingInAllRepositoriesCachePolicy = new RefreshWhenMissingInAllRepositoriesCachePolicy(moduleResolutionCache, moduleDescriptorCache);
     }
 
     public IvyAdapter create(ConfigurationInternal configuration) {
@@ -86,7 +84,6 @@ public class ResolveIvyFactory {
             } else {
                 moduleVersionRepository = new IvyDependencyResolverAdapter(rawResolver);
             }
-            refreshWhenMissingInAllRepositoriesCachePolicy.registerRepository(moduleVersionRepository);
             moduleVersionRepository = new CacheLockingModuleVersionRepository(moduleVersionRepository, cacheLockingManager);
             moduleVersionRepository = startParameterResolutionOverride.overrideModuleVersionRepository(moduleVersionRepository);
             LocalAwareModuleVersionRepository cachingRepository;
@@ -94,7 +91,7 @@ public class ResolveIvyFactory {
                 cachingRepository = new LocalModuleVersionRepository(moduleVersionRepository);
             } else {
                 cachingRepository = new CachingModuleVersionRepository(moduleVersionRepository, moduleResolutionCache, moduleDescriptorCache, artifactAtRepositoryCachedResolutionIndex,
-                        new ChainedCachePolicy(configuration.getResolutionStrategy().getCachePolicy(), refreshWhenMissingInAllRepositoriesCachePolicy), timeProvider);
+                        configuration.getResolutionStrategy().getCachePolicy(), timeProvider);
             }
             LocalAwareModuleVersionRepository ivyContextualisedRepository = contextualiser.contextualise(LocalAwareModuleVersionRepository.class, cachingRepository);
             userResolverChain.add(ivyContextualisedRepository);

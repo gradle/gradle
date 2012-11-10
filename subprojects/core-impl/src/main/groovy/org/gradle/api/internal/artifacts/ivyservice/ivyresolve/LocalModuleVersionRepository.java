@@ -36,11 +36,11 @@ public class LocalModuleVersionRepository implements LocalAwareModuleVersionRepo
     }
 
     public void getLocalDependency(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionDescriptor result) {
-        throw new UnsupportedOperationException();
+        delegate.getDependency(dependencyDescriptor, result);
     }
 
     public void getDependency(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionDescriptor result) {
-        delegate.getDependency(dependencyDescriptor, result);
+        result.missing();
     }
 
     public String getId() {

@@ -28,15 +28,12 @@ import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveExceptio
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 public class UserResolverChain implements DependencyToModuleResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(UserResolverChain.class);
 
-    private final List<ModuleVersionRepository> moduleVersionRepositories = new ArrayList<ModuleVersionRepository>();
+    private final List<LocalAwareModuleVersionRepository> moduleVersionRepositories = new ArrayList<LocalAwareModuleVersionRepository>();
     private final List<String> moduleVersionRepositoryNames = new ArrayList<String>();
     private ResolverSettings settings;
 
@@ -67,32 +64,55 @@ public class UserResolverChain implements DependencyToModuleResolver {
     }
 
     private ModuleResolution findLatestModule(DependencyDescriptor dependencyDescriptor, Collection<Throwable> failures) {
+        LinkedList<RepositoryResolveState> queue = new LinkedList<RepositoryResolveState>();
+        for (LocalAwareModuleVersionRepository repository : moduleVersionRepositories) {
+            queue.add(new RepositoryResolveState(repository));
+        }
+        LinkedList<RepositoryResolveState> missing = new LinkedList<RepositoryResolveState>();
+
+        // A first pass to do local resolves only
+        ModuleResolution best = findLatestModule(dependencyDescriptor, queue, failures, missing);
+        if (best != null) {
+            return best;
+        }
+
+        // Nothing found - do a second pass
+        queue.addAll(missing);
+        missing.clear();
+        return findLatestModule(dependencyDescriptor, queue, failures, missing);
+    }
+
+    private ModuleResolution findLatestModule(DependencyDescriptor dependencyDescriptor, LinkedList<RepositoryResolveState> queue, Collection<Throwable> failures, Collection<RepositoryResolveState> missing) {
         boolean isStaticVersion = !settings.getVersionMatcher().isDynamic(dependencyDescriptor.getDependencyRevisionId());
-        
         ModuleResolution best = null;
-        for (ModuleVersionRepository repository : moduleVersionRepositories) {
-            BuildableModuleVersionDescriptor module = new DefaultBuildableModuleVersionDescriptor();
+        while (!queue.isEmpty()) {
+            RepositoryResolveState request = queue.removeFirst();
             try {
-                repository.getDependency(dependencyDescriptor, module);
-            } catch (Throwable e) {
-                failures.add(e);
+                request.resolve(dependencyDescriptor);
+            } catch (Throwable t) {
+                failures.add(t);
+                continue;
             }
-            switch (module.getState()) {
+            switch (request.descriptor.getState()) {
                 case Missing:
+                    if (request.canMakeFurtherAttempts()) {
+                        missing.add(request);
+                    }
+                    break;
                 case Unknown:
+                    if (request.canMakeFurtherAttempts()) {
+                        queue.addFirst(request);
+                    }
                     break;
                 case Resolved:
-                    ModuleResolution moduleResolution = new ModuleResolution(repository, module);
+                    ModuleResolution moduleResolution = new ModuleResolution(request.repository, request.descriptor);
                     if (isStaticVersion && !moduleResolution.isGeneratedModuleDescriptor()) {
                         return moduleResolution;
                     }
                     best = chooseBest(best, moduleResolution);
                     break;
-                case Failed:
-                    failures.add(module.getFailure());
-                    break;
                 default:
-                    throw new IllegalStateException("Unexpected state for resolution: " + module.getState());
+                    throw new IllegalStateException("Unexpected state for resolution: " + request.descriptor.getState());
             }
         }
 
@@ -119,6 +139,34 @@ public class UserResolverChain implements DependencyToModuleResolver {
         }
 
         return comparison < 0 ? two : one;
+    }
+
+    private static class RepositoryResolveState {
+        final LocalAwareModuleVersionRepository repository;
+        final DefaultBuildableModuleVersionDescriptor descriptor = new DefaultBuildableModuleVersionDescriptor();
+        boolean searchedLocally;
+        boolean searchedRemotely;
+
+        private RepositoryResolveState(LocalAwareModuleVersionRepository repository) {
+            this.repository = repository;
+        }
+
+        void resolve(DependencyDescriptor dependencyDescriptor) {
+            if (!searchedLocally) {
+                searchedLocally = true;
+                repository.getLocalDependency(dependencyDescriptor, descriptor);
+            } else {
+                searchedRemotely = true;
+                repository.getDependency(dependencyDescriptor, descriptor);
+            }
+            if (descriptor.getState() == BuildableModuleVersionDescriptor.State.Failed) {
+                throw descriptor.getFailure();
+            }
+        }
+
+        public boolean canMakeFurtherAttempts() {
+            return !searchedRemotely;
+        }
     }
 
     private static class ModuleResolution implements ArtifactInfo {
