@@ -63,11 +63,12 @@ ext {
     isCiServer = System.getenv().containsKey("TEAMCITY_VERSION")
     isWindows = org.gradle.internal.os.OperatingSystem.current().windows
 
-    if (project.hasProperty("maxParallelForks")) {
+    if (System.getenv("EC2")) {
+        ext.maxParallelForks = Runtime.runtime.availableProcessors()
+    } else if (project.hasProperty("maxParallelForks")) {
         project.maxParallelForks = Integer.valueOf(project.maxParallelForks, 10)
     } else {
-        ext.maxParallelForks = System.getenv("EC2") ? Runtime.runtime.availableProcessors() :
-            Math.max(2, (int) (Runtime.runtime.availableProcessors() / 2))
+        ext.maxParallelForks = Math.max(2, (int) (Runtime.runtime.availableProcessors() / 2))
     }
 
     if (project.hasProperty("useIncomingDistributions")) {
