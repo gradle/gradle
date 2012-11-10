@@ -30,6 +30,14 @@ import org.gradle.api.publish.Publication;
  * {@code publishing.publications} container. This publication is configured to publish all of the project's
  * <i>visible</i> configurations (i.e. {@link org.gradle.api.Project#getConfigurations()}).
  * <p>
+ * The Ivy module identifying attributes of the publication are mapped to:
+ * <ul>
+ * <li>{@code module} - {@code project.name}</li>
+ * <li>{@code organisation} - {@code project.group}</li>
+ * <li>{@code revision} - {@code project.version}</li>
+ * <li>{@code status} - {@code project.status}</li>
+ * </ul>
+ * <p>
  * The ability to add multiple publications and finely configure publications will be added in future Gradle versions.
  *
  * <h3>Publishing the publication</h3>
@@ -87,24 +95,6 @@ public interface IvyPublication extends Publication {
      * Configures the descriptor that will be published.
      * <p>
      * The descriptor XML can be modified by using the {@link IvyModuleDescriptor#withXml(org.gradle.api.Action)} method.
-     *
-     * <pre autoTested="">
-     * apply plugin: "ivy-publish"
-     *
-     * publishing {
-     *   publications {
-     *     ivy {
-     *       descriptor {
-     *         withXml {
-     *           asNode().dependencies.dependency.find { it.@org == "junit" }.@rev = "4.10"
-     *         }
-     *       }
-     *     }
-     *   }
-     * }
-     * </pre>
-     *
-     * See {@link IvyModuleDescriptor} for for information.
      *
      * @param configure The configuration action.
      */

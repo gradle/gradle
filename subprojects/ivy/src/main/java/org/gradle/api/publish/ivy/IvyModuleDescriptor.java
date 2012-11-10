@@ -39,6 +39,31 @@ public interface IvyModuleDescriptor {
     /**
      * Allow configuration of the descriptor, after it has been generated according to the input data.
      *
+     * <pre autoTested="">
+     * apply plugin: "ivy-publish"
+     *
+     * publishing {
+     *   publications {
+     *     ivy {
+     *       descriptor {
+     *         withXml {
+     *           asNode().dependencies.dependency.find { it.@org == "junit" }.@rev = "4.10"
+     *         }
+     *       }
+     *     }
+     *   }
+     * }
+     * </pre>
+     *
+     * Note that due to Gradle's internal type conversion system, you can pass a Groovy closure to this method and
+     * it will be automatically converted to an {@code Action}.
+     * <p>
+     * Each action/closure passed to this method will be stored as a callback, and executed when the publication
+     * that this descriptor is attached to is published.
+     * <p>
+     * For details on the structure of the XML to be modified, see <a href="http://ant.apache.org/ivy/history/latest-milestone/ivyfile.html">the
+     * Ivy Module Descriptor reference</a>.
+     *
      * @param action The configuration action.
      * @see IvyPublication
      * @see XmlProvider

@@ -84,6 +84,7 @@
     <xi:include href='gradleWrapper.xml'/>
     <xi:include href='embedding.xml'/>
     <xi:include href='comparingBuilds.xml'/>
+    <xi:include href='publishingIvy.xml'/>
     <!-- this is generated -->
     <xi:include href='../../../build/src/samplesList.xml'/>
     <xi:include href='potentialTraps.xml'/>

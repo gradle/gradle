@@ -25,8 +25,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import java.io.*;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.Collection;
 import java.util.EnumMap;
 import java.util.Map;
@@ -34,7 +32,7 @@ import java.util.Map;
 /**
  * by Szczepan Faber, created at: 10/3/12
  */
-public class XmlTestsuite {
+public class XmlTestSuite {
 
     private Document testSuiteReport;
     private Element rootElement;
@@ -47,11 +45,11 @@ public class XmlTestsuite {
     private long failedCount;
     private long testCount;
 
-    XmlTestsuite(Document testSuiteReport, File testResultsDir, String className, long startTime) {
+    public XmlTestSuite(File testResultsDir, String className, long startTime, String hostname, Document document) {
         this.className = className;
         this.startTime = startTime;
-        this.hostname = getHostname();
-        this.testSuiteReport = testSuiteReport;
+        this.hostname = hostname;
+        testSuiteReport = document;
         rootElement = testSuiteReport.createElement("testsuite");
         testSuiteReport.appendChild(rootElement);
         // Add an empty properties element for compatibility
@@ -130,14 +128,6 @@ public class XmlTestsuite {
         } catch (Throwable t) {
             return String.format("Could not determine failure message for exception of type %s: %s",
                     throwable.getClass().getName(), t);
-        }
-    }
-
-    private String getHostname() {
-        try {
-            return InetAddress.getLocalHost().getHostName();
-        } catch (UnknownHostException e) {
-            return "localhost";
         }
     }
 

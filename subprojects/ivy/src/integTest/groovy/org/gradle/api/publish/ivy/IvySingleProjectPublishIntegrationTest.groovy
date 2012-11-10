@@ -35,7 +35,10 @@ class IvySingleProjectPublishIntegrationTest extends AbstractIntegrationSpec {
             group = "org.gradle.test"
             version = 1.9
 
-            configurations { toPublish }
+            configurations {
+                toPublish.visible = false
+                archives.extendsFrom toPublish
+            }
 
             task jar1(type: Jar) {
                 baseName = "jar1"

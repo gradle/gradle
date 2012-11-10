@@ -19,45 +19,55 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.test.fixtures.ivy.IvyDescriptor
 import org.gradle.test.fixtures.ivy.IvyFileRepository
+import org.gradle.test.fixtures.ivy.IvyHttpRepository
+import org.gradle.test.fixtures.ivy.IvyModule
+import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.TestFile
+import org.gradle.util.TextUtil
 import org.junit.Rule
 
 public class SamplesIvyPublishIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule Sample sample = new Sample("ivypublish-new")
+    @Rule HttpServer httpServer
 
     def sample() {
         given:
+        httpServer.start()
         executer.inDirectory(sample.dir)
+
+        and:
+        def fileRepo = new IvyFileRepository(new TestFile(sample.dir, "repo"))
+        IvyHttpRepository httpRepo = new IvyHttpRepository(httpServer, fileRepo)
+        IvyModule ivyModule = httpRepo.module("org.gradle.test", "ivypublish", "1.0")
+        def uploads = file("uploads").createDir()
+        ivyModule.expectPut("user1", "secret", uploads,
+                "ivypublish-1.0.jar", "ivypublish-1.0.jar.sha1",
+                "ivypublishSource-1.0-src.jar", "ivypublishSource-1.0-src.jar.sha1",
+                "ivy-1.0.xml", "ivy-1.0.xml.sha1"
+        )
+
+        and:
+        sample.dir.file("build.gradle") << """
+            publishing.repositories.ivy.url = "${httpRepo.uri}"
+        """
 
         when:
         succeeds "publish"
 
         then:
-        def repo = new IvyFileRepository(new TestFile(sample.dir, "build/repo")) {
-            @Override
-            String getIvyFilePattern() {
-                'ivy.xml'
-            }
-
-            @Override
-            String getArtifactFilePattern() {
-                '[artifact](.[ext])'
-            }
-
-            @Override
-            String getDirPattern() {
-                "[module]/[revision]"
-            }
-        }
-
-        def module = repo.module("org.gradle.test", "ivypublish", "1.0")
-        module.assertArtifactsPublished("ivy.xml", "ivypublish.jar", "ivypublishSource.jar")
-
-        IvyDescriptor ivy = module.ivy
+        def uploadedDescriptor = uploads.file("ivy-1.0.xml")
+        IvyDescriptor ivy = new IvyDescriptor(uploadedDescriptor)
         ivy.artifacts.ivypublishSource.mavenAttributes.classifier == "src"
         ivy.configurations.keySet() == ['archives', 'compile', 'default', 'runtime', 'testCompile', 'testRuntime'] as Set
         ivy.dependencies.compile.assertDependsOn('junit', 'junit', '4.10')
         ivy.dependencies.compile.assertDependsOn('ivypublish', 'subproject', 'unspecified')
+
+        def actualIvyXmlText = uploadedDescriptor.text.replaceFirst('publication="\\d+"', 'publication="«PUBLICATION-TIME-STAMP»"').trim()
+        actualIvyXmlText == expectedIvyOutput
+    }
+
+    String getExpectedIvyOutput() {
+        sample.dir.file("output-ivy.xml").readLines()[1..-1].join(TextUtil.getPlatformLineSeparator()).trim()
     }
 }

@@ -120,6 +120,13 @@ class IvyHttpModule extends AbstractIvyModule {
         def artifactFile = backingModule.artifactFile(name)
         server.expectGet("$prefix/$artifactFile.name", artifactFile)
     }
+
+    void expectPut(String username, String password, File dir, String... artifactNames) {
+        artifactNames.each {
+            server.expectPut("$prefix/$it", username, password, new File(dir, it))
+        }
+    }
+
 }
 
 

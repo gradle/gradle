@@ -16,12 +16,9 @@
 
 package org.gradle.api.tasks.testing.logging;
 
-import org.gradle.api.Incubating;
-
 /**
  * Test events that can be logged.
  */
-@Incubating
 public enum TestLogEvent {
     /**
      * A test has started. This event gets fired both for atomic and composite tests.

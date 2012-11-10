@@ -17,7 +17,6 @@
 package org.gradle.api.tasks.testing.logging;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.logging.LogLevel;
 
 /**
@@ -45,7 +44,6 @@ import org.gradle.api.logging.LogLevel;
  * The defaults that are in place show progressively more information
  * on log levels LIFECYCLE, INFO, and DEBUG, respectively.
  */
-@Incubating
 public interface TestLoggingContainer extends TestLogging {
     /**
      * Returns logging options for debug level.

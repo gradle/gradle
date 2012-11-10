@@ -106,7 +106,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
 
     void waitForBuildToWait(buildNum = 0) {
         run {
-            poll { assert builds[buildNum].standardOutput.contains("waiting for stop file"); }
+            poll(20) { assert builds[buildNum].standardOutput.contains("waiting for stop file"); }
         }
     }
 

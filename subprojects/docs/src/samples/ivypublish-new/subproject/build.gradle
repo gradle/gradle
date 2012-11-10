@@ -14,8 +14,4 @@
  * limitations under the License.
  */
 
-/**
- * Types related to logging of test related information to the console.
- */
-package org.gradle.api.tasks.testing.logging;
-
+apply plugin: 'java'
