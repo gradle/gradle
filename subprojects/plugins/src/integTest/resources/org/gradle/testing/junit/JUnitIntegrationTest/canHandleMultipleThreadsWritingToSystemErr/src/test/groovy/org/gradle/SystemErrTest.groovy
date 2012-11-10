@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.testing.junit.JUnitIntegrationTest.canHandleMultipleThreadsWritingToSystemErr.src.test.groovy.org.gradle
+package org.gradle
 
 public class SystemErrTest {
     @org.junit.Test
