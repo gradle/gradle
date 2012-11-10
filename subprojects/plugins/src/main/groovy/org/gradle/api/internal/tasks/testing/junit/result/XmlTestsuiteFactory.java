@@ -37,7 +37,7 @@ public class XmlTestSuiteFactory {
         }
     }
 
-    public XmlTestSuite newSuite(File testResultsDir, String className, long startTime) {
+    public XmlTestSuite create(File testResultsDir, String className, long startTime) {
         return new XmlTestSuite(testResultsDir, className, startTime, hostname, documentBuilder.newDocument());
     }
 
