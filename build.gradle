@@ -66,7 +66,8 @@ ext {
     if (project.hasProperty("maxParallelForks")) {
         project.maxParallelForks = Integer.valueOf(project.maxParallelForks, 10)
     } else {
-        ext.maxParallelForks = Math.max(2, (int) (Runtime.runtime.availableProcessors() / 2))
+        ext.maxParallelForks = System.getenv("EC2") ? Runtime.runtime.availableProcessors() :
+            Math.max(2, (int) (Runtime.runtime.availableProcessors() / 2))
     }
 
     if (project.hasProperty("useIncomingDistributions")) {
