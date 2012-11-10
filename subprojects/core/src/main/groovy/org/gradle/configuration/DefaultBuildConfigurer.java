@@ -25,7 +25,7 @@ public class DefaultBuildConfigurer implements BuildConfigurer {
     private Action<Project> actions;
 
     public DefaultBuildConfigurer(Action<? super ProjectInternal>... actions) {
-        this.actions = Actions.castBefore(ProjectInternal.class, Actions.<ProjectInternal>composite(actions));
+        this.actions = Actions.castBefore(ProjectInternal.class, Actions.composite(actions));
     }
 
     public void configure(GradleInternal gradle) {

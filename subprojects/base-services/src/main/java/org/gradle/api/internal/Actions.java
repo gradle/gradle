@@ -49,7 +49,7 @@ public abstract class Actions {
      * @param <T> The type of the object that action is for
      * @return The composite action.
      */
-    public static <T> Action<? super T> composite(Action<? super T>... actions) {
+    public static <T> Action<T> composite(Action<? super T>... actions) {
         final List<Action<? super T>> actionsCopy = new ArrayList<Action<? super T>>(actions.length);
         Collections.addAll(actionsCopy, actions);
         return new CompositeAction<T>(actionsCopy);
@@ -107,7 +107,7 @@ public abstract class Actions {
      * @return An action that casts the object to the given type before giving it to the given action
      */
     public static <T, I> Action<I> castBefore(final Class<T> actionType, final Action<? super T> action) {
-        return transformBefore(action, Transformers.<T, I>cast(actionType));
+        return transformBefore(action, Transformers.cast(actionType));
     }
 
     /**
@@ -118,7 +118,7 @@ public abstract class Actions {
      * @param runnable The runnable to run for the action execution.
      * @return An action that runs the given runnable, ignoring the argument.
      */
-    public static <T> Action<? super T> toAction(Runnable runnable) {
+    public static <T> Action<T> toAction(Runnable runnable) {
         if (runnable == null) {
             return Actions.doNothing();
         } else {
@@ -151,7 +151,7 @@ public abstract class Actions {
      * @param <T> The type of item the action expects
      * @return A new action that only forwards arguments on to the given filter is they are satisfied by the given spec.
      */
-    public static <T> Action<? super T> filter(Action<? super T> action, Spec<? super T> filter) {
+    public static <T> Action<T> filter(Action<? super T> action, Spec<? super T> filter) {
         return new FilteredAction<T>(action, filter);
     }
 
