@@ -422,4 +422,22 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
         result.testClass('org.gradle.Test1').assertTestPassed('ok')
         result.testClass('org.gradle.Test2').assertTestPassed('ok')
     }
+
+    // primarily tests that we don't crash like we used to
+    @Test
+    void canHandleMultipleThreadsWritingToSystemOut() {
+        def result = executer.withTasks("test").run()
+        assert result.getOutput().contains("thread 0 out")
+        assert result.getOutput().contains("thread 1 out")
+        assert result.getOutput().contains("thread 2 out")
+    }
+
+    // primarily tests that we don't crash like we used to
+    @Test
+    void canHandleMultipleThreadsWritingToSystemErr() {
+        def result = executer.withTasks("test").run()
+        assert result.getOutput().contains("thread 0 out")
+        assert result.getOutput().contains("thread 1 out")
+        assert result.getOutput().contains("thread 2 out")
+    }
 }
