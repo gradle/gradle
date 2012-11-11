@@ -13,16 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
+package org.gradle
 
-// at some point, this is due to merge with ModuleVersionResolveResult
-public interface ModuleVersionDescriptor {
-    ModuleRevisionId getId();
-
-    ModuleDescriptor getDescriptor();
-
-    boolean isChanging();
+public class SystemErrTest {
+    @org.junit.Test
+    void test() {
+        System.err.println ("thread 0 out")
+        def thread1 = Thread.start {
+            System.err.println "thread 1 out"
+        }
+        def thread2 = Thread.start {
+            System.err.println "thread 2 out"
+        }
+        thread1.join()
+        thread2.join()
+    }
 }

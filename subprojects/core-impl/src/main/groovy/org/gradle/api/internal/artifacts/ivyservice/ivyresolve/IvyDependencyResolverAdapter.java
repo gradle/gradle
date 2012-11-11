@@ -36,7 +36,7 @@ public class IvyDependencyResolverAdapter extends AbstractDependencyResolverAdap
         super(resolver);
     }
 
-    public void download(Artifact artifact, BuildableArtifactResolveResult result) {
+    public void resolve(Artifact artifact, BuildableArtifactResolveResult result) {
         ArtifactDownloadReport artifactDownloadReport = resolver.download(new Artifact[]{artifact}, downloadOptions).getArtifactReport(artifact);
         if (downloadFailed(artifactDownloadReport)) {
             if (artifactDownloadReport instanceof EnhancedArtifactDownloadReport) {

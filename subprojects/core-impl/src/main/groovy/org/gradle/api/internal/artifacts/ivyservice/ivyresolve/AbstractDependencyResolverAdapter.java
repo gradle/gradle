@@ -61,16 +61,17 @@ public abstract class AbstractDependencyResolverAdapter implements ModuleVersion
                 && !artifactReport.getDownloadDetails().equals(ArtifactDownloadReport.MISSING_ARTIFACT);
     }
 
-    public ModuleVersionDescriptor getDependency(DependencyDescriptor dd) {
+    public void getDependency(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionDescriptor result) {
         ResolveData resolveData = IvyContextualiser.getIvyContext().getResolveData();
         try {
-            ResolvedModuleRevision revision = resolver.getDependency(dd, resolveData);
+            ResolvedModuleRevision revision = resolver.getDependency(dependencyDescriptor, resolveData);
             if (revision == null) {
-                LOGGER.debug("Performed resolved of module '{}' in repository '{}': not found", dd.getDependencyRevisionId(), getName());
-                return null;
+                LOGGER.debug("Performed resolved of module '{}' in repository '{}': not found", dependencyDescriptor.getDependencyRevisionId(), getName());
+                result.missing();
+            } else {
+                LOGGER.debug("Performed resolved of module '{}' in repository '{}': found", dependencyDescriptor.getDependencyRevisionId(), getName());
+                result.resolved(revision.getDescriptor(), isChanging(revision));
             }
-            LOGGER.debug("Performed resolved of module '{}' in repository '{}': found", dd.getDependencyRevisionId(), getName());
-            return new DefaultModuleVersionDescriptor(revision.getDescriptor(), isChanging(revision));
         } catch (ParseException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }

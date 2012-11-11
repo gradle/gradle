@@ -34,14 +34,14 @@ import java.util.Map;
  */
 public class XmlTestSuiteWriter {
 
-    private Document testSuiteReport;
-    private Element rootElement;
+    private final Document testSuiteReport;
+    private final Element rootElement;
     private final String hostname;
     private final String className;
     private final long startTime;
-    private Map<TestOutputEvent.Destination, StringBuilder> outputs
-            = new EnumMap<TestOutputEvent.Destination, StringBuilder>(TestOutputEvent.Destination.class);
-    private File reportFile;
+    private final Map<TestOutputEvent.Destination, StringBuffer> outputs
+            = new EnumMap<TestOutputEvent.Destination, StringBuffer>(TestOutputEvent.Destination.class);
+    private final File reportFile;
     private long failedCount;
     private long testCount;
 
@@ -55,8 +55,8 @@ public class XmlTestSuiteWriter {
         // Add an empty properties element for compatibility
         rootElement.appendChild(testSuiteReport.createElement("properties"));
 
-        outputs.put(TestOutputEvent.Destination.StdOut, new StringBuilder());
-        outputs.put(TestOutputEvent.Destination.StdErr, new StringBuilder());
+        outputs.put(TestOutputEvent.Destination.StdOut, new StringBuffer());
+        outputs.put(TestOutputEvent.Destination.StdErr, new StringBuffer());
 
         reportFile = new File(testResultsDir, "TEST-" + className + ".xml");
     }
