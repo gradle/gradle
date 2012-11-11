@@ -20,11 +20,13 @@ public class SystemErrTest {
     @org.junit.Test
     void test() {
         System.err.println ("thread 0 out")
-        Thread.start {
+        def thread1 = Thread.start {
             System.err.println "thread 1 out"
         }
-        Thread.start {
+        def thread2 = Thread.start {
             System.err.println "thread 2 out"
         }
+        thread1.join()
+        thread2.join()
     }
 }

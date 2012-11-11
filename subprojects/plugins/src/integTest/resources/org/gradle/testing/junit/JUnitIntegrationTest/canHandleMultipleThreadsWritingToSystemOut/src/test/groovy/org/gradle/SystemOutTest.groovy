@@ -20,11 +20,13 @@ public class SystemOutTest {
     @org.junit.Test
     void test() {
         println ("thread 0 out")
-        Thread.start {
+        def thread1 = Thread.start {
             println "thread 1 out"
         }
-        Thread.start {
+        def thread2 = Thread.start {
             println "thread 2 out"
         }
+        thread1.join()
+        thread2.join()
     }
 }
