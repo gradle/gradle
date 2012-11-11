@@ -20,9 +20,12 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 
+/**
+ * The result of attempting to resolve a dependency descriptor to the meta-data for a module version.
+ */
 public interface BuildableModuleVersionDescriptor extends ModuleVersionDescriptor {
     enum State {
-        Resolved, Missing, Failed, Unknown
+        Resolved, Missing, Failed, ProbablyMissing, Unknown
     }
 
     /**
@@ -44,8 +47,13 @@ public interface BuildableModuleVersionDescriptor extends ModuleVersionDescripto
     void failed(ModuleVersionResolveException failure);
 
     /**
-     * Marks the module version as missing.
+     * Marks the module version as definitely missing.
      */
     void missing();
+
+    /**
+     * Marks the module version as probably missing.
+     */
+    void probablyMissing();
 
 }

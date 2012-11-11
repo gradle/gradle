@@ -37,6 +37,15 @@ class DefaultBuildableModuleVersionDescriptorTest extends Specification {
         descriptor.failure == null
     }
 
+    def "can mark as probably missing"() {
+        when:
+        descriptor.probablyMissing()
+
+        then:
+        descriptor.state == BuildableModuleVersionDescriptor.State.ProbablyMissing
+        descriptor.failure == null
+    }
+
     def "can mark as failed"() {
         def failure = new ModuleVersionResolveException("broken")
 
@@ -91,6 +100,17 @@ class DefaultBuildableModuleVersionDescriptorTest extends Specification {
     def "cannot get result when missing"() {
         given:
         descriptor.missing()
+
+        when:
+        descriptor.descriptor
+
+        then:
+        thrown(IllegalStateException)
+    }
+
+    def "cannot get result when probably missing"() {
+        given:
+        descriptor.probablyMissing()
 
         when:
         descriptor.descriptor

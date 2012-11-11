@@ -25,31 +25,29 @@ public class DefaultBuildableModuleVersionDescriptor implements BuildableModuleV
     private State state = State.Unknown;
     private ModuleVersionResolveException failure;
 
-    public void reset() {
-        state = State.Unknown;
+    public void reset(State state) {
+        this.state = state;
         moduleDescriptor = null;
         changing = false;
         failure = null;
     }
 
     public void resolved(ModuleDescriptor descriptor, boolean changing) {
-        state = State.Resolved;
+        reset(State.Resolved);
         moduleDescriptor = descriptor;
         this.changing = changing;
-        failure = null;
     }
 
     public void missing() {
-        state = State.Missing;
-        moduleDescriptor = null;
-        changing = false;
-        failure = null;
+        reset(State.Missing);
+    }
+
+    public void probablyMissing() {
+        reset(State.ProbablyMissing);
     }
 
     public void failed(ModuleVersionResolveException failure) {
-        state = State.Failed;
-        moduleDescriptor = null;
-        changing = false;
+        reset(State.Failed);
         this.failure = failure;
     }
 

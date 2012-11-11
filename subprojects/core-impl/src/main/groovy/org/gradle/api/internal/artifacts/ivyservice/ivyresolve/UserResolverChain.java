@@ -95,11 +95,15 @@ public class UserResolverChain implements DependencyToModuleResolver {
             }
             switch (request.descriptor.getState()) {
                 case Missing:
+                    break;
+                case ProbablyMissing:
+                    // Queue this up for checking again later
                     if (request.canMakeFurtherAttempts()) {
                         missing.add(request);
                     }
                     break;
                 case Unknown:
+                    // Resolve again now
                     if (request.canMakeFurtherAttempts()) {
                         queue.addFirst(request);
                     }

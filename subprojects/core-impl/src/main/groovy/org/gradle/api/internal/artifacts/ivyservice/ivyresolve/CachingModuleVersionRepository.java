@@ -86,11 +86,18 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
 
     public void getDependency(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionDescriptor result) {
         delegate.getDependency(ForceChangeDependencyDescriptor.forceChangingFlag(dependencyDescriptor, true), result);
-        if (result.getState() == BuildableModuleVersionDescriptor.State.Missing) {
-            moduleDescriptorCache.cacheModuleDescriptor(delegate, dependencyDescriptor.getDependencyRevisionId(), null, dependencyDescriptor.isChanging());
-        } else if (result.getState() == BuildableModuleVersionDescriptor.State.Resolved) {
-            moduleResolutionCache.cacheModuleResolution(delegate, dependencyDescriptor.getDependencyRevisionId(), result.getId());
-            moduleDescriptorCache.cacheModuleDescriptor(delegate, result.getId(), result.getDescriptor(), isChangingDependency(dependencyDescriptor, result));
+        switch (result.getState()) {
+            case Missing:
+                moduleDescriptorCache.cacheModuleDescriptor(delegate, dependencyDescriptor.getDependencyRevisionId(), null, dependencyDescriptor.isChanging());
+                break;
+            case Resolved:
+                moduleResolutionCache.cacheModuleResolution(delegate, dependencyDescriptor.getDependencyRevisionId(), result.getId());
+                moduleDescriptorCache.cacheModuleDescriptor(delegate, result.getId(), result.getDescriptor(), isChangingDependency(dependencyDescriptor, result));
+                break;
+            case Failed:
+                break;
+            default:
+                throw new IllegalStateException("Unexpected resolve state: " + result.getState());
         }
     }
 
@@ -125,7 +132,13 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
                 return;
             }
             LOGGER.debug("Detected non-existence of module '{}' in resolver cache '{}'", resolvedModuleVersionId, repository.getName());
-            result.missing();
+            if (cachedModuleDescriptor.getAgeMillis() == 0) {
+                // Verified since the start of this build, assume still missing
+                result.missing();
+            } else {
+                // Was missing last time we checked
+                result.probablyMissing();
+            }
             return;
         }
         if (cachedModuleDescriptor.isChangingModule() || resolvedDependencyDescriptor.isChanging()) {
