@@ -53,6 +53,9 @@ public class UserResolverChain implements DependencyToModuleResolver {
         if (latestResolved != null) {
             final ModuleVersionDescriptor downloadedModule = latestResolved.module;
             LOGGER.debug("Using module '{}' from repository '{}'", downloadedModule.getId(), latestResolved.repository.getName());
+            for (Throwable error : errors) {
+                LOGGER.debug("Discarding resolve failure.", error);
+            }
             result.resolved(latestResolved.getId(), latestResolved.getDescriptor(), latestResolved.repository);
             return;
         }
