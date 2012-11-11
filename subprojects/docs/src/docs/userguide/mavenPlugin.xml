@@ -196,27 +196,23 @@
                 </thead>
                 <tr>
                     <td>http</td>
-                    <td>org.apache.maven.wagon:wagon-http:1.0-beta-2</td>
+                    <td>org.apache.maven.wagon:wagon-http:2.2</td>
                 </tr>
                 <tr>
                     <td>ssh</td>
-                    <td>org.apache.maven.wagon:wagon-ssh:1.0-beta-2</td>
+                    <td>org.apache.maven.wagon:wagon-ssh:2.2</td>
                 </tr>
                 <tr>
                     <td>ssh-external</td>
-                    <td>org.apache.maven.wagon:wagon-ssh-external:1.0-beta-2</td>
-                </tr>
-                <tr>
-                    <td>scp</td>
-                    <td>org.apache.maven.wagon:wagon-scp:1.0-beta-2</td>
+                    <td>org.apache.maven.wagon:wagon-ssh-external:2.2</td>
                 </tr>
                 <tr>
                     <td>ftp</td>
-                    <td>org.apache.maven.wagon:wagon-ftp:1.0-beta-2</td>
+                    <td>org.apache.maven.wagon:wagon-ftp:2.2</td>
                 </tr>
                 <tr>
                     <td>webdav</td>
-                    <td>org.apache.maven.wagon:wagon-webdav-jackrabbit:1.0-beta-6</td>
+                    <td>org.apache.maven.wagon:wagon-webdav-jackrabbit:2.2</td>
                 </tr>
                 <tr>
                     <td>file</td>

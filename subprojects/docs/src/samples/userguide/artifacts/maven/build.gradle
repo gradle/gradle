@@ -55,7 +55,7 @@ repositories {
 }
 
 dependencies {
-    deployerJars "org.apache.maven.wagon:wagon-ssh:1.0-beta-2"
+    deployerJars "org.apache.maven.wagon:wagon-ssh:2.2"
 }
 
 uploadArchives {
