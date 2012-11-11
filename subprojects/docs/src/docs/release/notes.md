@@ -109,6 +109,47 @@ allows to adjust memory settings.
 The [Eclipse Plugin](http://gradle.org/docs/current/userguide/eclipse_plugin.html) now automatically excludes dependencies already provided by the
  'Scala Library' class path container. This is necessary for [Scala IDE](http://scala-ide.org) to work correctly.
 
+### Dependency management improvements
+
+With this release of Gradle, we have continued to improve our dependency management implementation. The focus for these improvements in Gradle 1.3 is on
+stability and this release includes a number of important fixes.
+
+#### Artifact cache stability
+
+This release fixes a number of issues that resulted in corruption of the artifact cache. In particular, Gradle will be much more stable in the case
+where you have many concurrent builds running on a machine, such as a CI build server, and these builds have dependencies that change frequently, such
+as Maven snapshots, or are using a very short cache expiry time.
+
+* [GRADLE-2544](http://issues.gradle.org/browse/GRADLE-2544) - Potential corruption of artifact cache on concurrent access.
+* [GRADLE-2458](http://issues.gradle.org/browse/GRADLE-2458) - Failures to store meta-data are silently ignored.
+* [GRADLE-2457](http://issues.gradle.org/browse/GRADLE-2457) - Potential corruption of artifact cache after a crash.
+
+#### Smarter handling of missing modules
+
+Gradle caches the fact that a given module is missing from a given repository. It uses this information to avoid unnecessary network requests when you
+are using multiple repositories, and when resolving dynamic versions. Previous versions of Gradle were overly keen in using this information, leading
+to problems where a misconfiguration would cause Gradle to decide that a certain module is missing and will be missing forever. In this release, Gradle
+uses a more sensible strategy to decide when to verify that something that it considers to be missing is, in fact, missing.
+
+* [GRADLE-2455](http://issues.gradle.org/browse/GRADLE-2455) - Smarter handling of missing module versions.
+
+#### Ivy latest status improvements
+
+Previous Gradle releases had a number of issues resolving dynamic versions such as 'latest.integration' and we recently introduced some regressions in
+this area as we've attempted to fix these issues. We've reworked the implementation to simplify it internally and added many more integration tests,
+to avoid further regressions in the future.
+
+* [GRADLE-2502](http://issues.gradle.org/browse/GRADLE-2502) - Latest status resolution broken in Gradle 1.1.
+* [GRADLE-2504](http://issues.gradle.org/browse/GRADLE-2504) - NPE resolving dynamic versions from multiple repositories.
+
+#### Other fixes
+
+This release includes a number of other useful fixes:
+
+* [GRADLE-2547](http://issues.gradle.org/browse/GRADLE-2547) - Temporary files are left in $GRADLE_HOME/caches/artifacts-*/filestore.
+* [GRADLE-2543](http://issues.gradle.org/browse/GRADLE-2543) - Performance regression in local repository access.
+* [GRADLE-2486](http://issues.gradle.org/browse/GRADLE-2486) - Dependency resolution failures when running in parallel execution mode.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to the backwards compatibility policy.
