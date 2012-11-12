@@ -81,10 +81,11 @@ For more information, see the [DependencyInsightReportTask documentation](dsl/or
 
 ### Incremental Scala compilation
 
-The Scala plugin now supports incremental compilation by integrating with [Zinc](https://github.com/typesafehub/zinc), a standalone version of 
-[sbt](https://github.com/harrah/xsbt)'s incremental Scala compiler. By compiling only classes whose source code has changed since the previous 
-compilation, and classes affected by these changes, incremental compilation can significantly reduce Scala compilation time. It is particularly 
-effective when frequently compiling small code increments, as is often done at development time.
+Due to the sophistication of the language and type system, Scala programs can take a long time to compile. Gradle 1.3 addresses this problem by
+integrating with [Zinc](https://github.com/typesafehub/zinc), a standalone version of [sbt](https://github.com/harrah/xsbt)'s incremental Scala
+compiler. By compiling only classes whose source code has changed since the previous compilation, and classes affected by these changes,
+Zinc can significantly reduce Scala compilation time. It is particularly effective when frequently compiling small code
+increments, as is often done at development time.
 
 To switch the `ScalaCompile` task from the default Ant based compiler to the new Zinc based compiler, use `scalaCompileOptions.useAnt = false`. 
 Except where noted in the [API documentation](http://gradle.org/docs/current/dsl/org.gradle.api.tasks.scala.ScalaCompile.html), the Zinc based 
@@ -107,7 +108,8 @@ allows to adjust memory settings.
 ### Improved Scala IDE integration
 
 The [Eclipse Plugin](http://gradle.org/docs/current/userguide/eclipse_plugin.html) now automatically excludes dependencies already provided by the
- 'Scala Library' class path container. This is necessary for [Scala IDE](http://scala-ide.org) to work correctly.
+ 'Scala Library' class path container. This improvement is essential for [Scala IDE](http://scala-ide.org) to work correctly. It also takes effect
+ when using the [Eclipse Gradle Integration](https://github.com/SpringSource/eclipse-integration-gradle).
 
 ### Dependency management improvements
 
