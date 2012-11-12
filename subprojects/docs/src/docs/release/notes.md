@@ -1,4 +1,4 @@
-This is an important release that includes exciting new features and some very important stabilisation and optimisation, particularly in the area of dependency management.
+This is an important release that includes exciting new features and some very important stabilization and optimization, particularly in the area of dependency management.
 
 Our commitment to the Scala language as a first class citizen in the Gradle ecosystem is evident in this release through our hardwork to bring one of the most frequently requested 
 improvements from Scala developers to fruition: decreased compile times through [incremental compilation](#incremental-scala-compilation). The ability to 
