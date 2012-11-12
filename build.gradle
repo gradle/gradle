@@ -51,7 +51,7 @@ buildTypes {
     crossVersionTest "forkingIntegTest", crossVersionTestsOnly: "", testAllVersions: "", noDistTests: true, useIncomingDistributions: true
 
     // Used to build production distros and smoke test them
-    packageBuild "verifyIsProductionBuildEnvironment", "clean", "buildDists", "distributions:integTest"
+    packageBuild "verifyIsProductionBuildEnvironment", "clean", "docs:check", "buildDists", "distributions:integTest"
 
     // Used to build production distros and smoke test them
     promotionBuild "verifyIsProductionBuildEnvironment", "clean", "buildDists", "distributions:integTest", "uploadArchives"

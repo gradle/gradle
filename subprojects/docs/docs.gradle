@@ -377,7 +377,6 @@ task decorateReleaseNotes(type: Jsoup) {
     apply from: "release-notes-transform.gradle"
 }
 
-import org.apache.tools.ant.filters.*
 task releaseNotes(type: Copy) {
     group = "release notes"
     ext.fileName = "release-notes.html"
@@ -407,6 +406,10 @@ task checkReleaseNotes(type: CheckReleaseNotes, dependsOn: releaseNotes) {
             new NoDuplicateIdsReleaseNotesCheck(),
             new NoBrokenInternalLinksReleaseNotesCheck()
     )
+}
+
+task check {
+    dependsOn checkReleaseNotes
 }
 
 task docs {
