@@ -230,7 +230,7 @@ To modify the descriptor, you use a programmatic hook that modifies the descript
         }
     }
 
-In this example we are modifying the version that is expressed of our `junit` dependency. With this hook, you can modify any aspect of the descriptor. You could for example easily build a functionality similar to Ivy deliver on top of this in conjunction with the new Resolution Result API. In general it can be useful to optimize the descriptor for consumption instead of having it be an accurate record of how the module was built. 
+In this example we are modifying the version that is expressed of our `junit` dependency. With this hook, you can modify any aspect of the descriptor. You could for example easily build a functionality similar to Ivy deliver on top of this in conjunction with the new <a href="#resolution-result-api">Resolution Result API</a>. In general, it can be useful to optimize the descriptor for consumption instead of having it be an accurate record of how the module was built. 
 
 For more information on the new publishing mechanism, see the [new User Guide chapter](userguide/publishing_ivy.html).
 
