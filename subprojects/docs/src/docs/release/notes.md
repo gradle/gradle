@@ -4,7 +4,9 @@ Here are the new features introduced in Gradle 1.3.
 
 ### New dependencyInsight report task
 
-The new `dependencyInsight` report complements the `dependencies` report (that was [improved in Gradle 1.2](http://gradle.org/docs/1.2/release-notes#improved-dependency-report)). Where the `dependencies` report provides information on the whole dependency graph, the `dependencyInsight` report focusses on providing information on one (or more) dependencies within the graph.
+The new `dependencyInsight` report complements the `dependencies` report (that was [improved in Gradle 1.2](http://gradle.org/docs/1.2/release-notes#improved-dependency-report)). Where 
+the `dependencies` report provides information on the whole dependency graph, the `dependencyInsight` report focusses on providing information on one (or more) dependencies within 
+the graph.
 
 The report can be used to answer (very common) questions such as:
 
@@ -14,7 +16,11 @@ The report can be used to answer (very common) questions such as:
     * Is it the same as what was *requested*?
 * Why is the *selected* version of a dependency different to the *requested*?
 
-The *selected* version of a dependency can be different to the *requested* (i.e. user declared) version due to dependency conflict resolution or by explicit dependency force rules. Similar to the standard gradle depenency report, the `dependencyInsight` report shows both versions. It also shows a requested dynamic version (e.g. “`junit:junit:4.+`”) together with the actually selected version (e.g. “`junit:junit:4.10`”). Please keep in mind that Maven snapshot dependencies are not treated as dynamic versions but as changing modules, similar to what Maven does (for the difference see the [userguide](userguide/dependency_management.html#sec:dependency_management_overview)). Maven snapshots might be treated as dynamic versions in a future version of Gradle which would provide nice insight into pom snapshot resolution.
+The *selected* version of a dependency can be different to the *requested* (i.e. user declared) version due to dependency conflict resolution or by explicit dependency force rules. 
+Similar to the standard gradle depenency report, the `dependencyInsight` report shows both versions. It also shows a requested dynamic version (e.g. “`junit:junit:4.+`”) together 
+with the actually selected version (e.g. “`junit:junit:4.10`”). Please keep in mind that Maven snapshot dependencies are not treated as dynamic versions but as changing modules, 
+similar to what Maven does (for the difference see the [userguide](userguide/dependency_management.html#sec:dependency_management_overview)). Maven snapshots might be treated 
+as dynamic versions in a future version of Gradle which would provide nice insight into pom snapshot resolution.
 
 The `dependencyInsight` report task is invaluable when investigating how and why a dependency is resolved, and it is available in all projects out of the box.
 
@@ -46,9 +52,11 @@ org.gradle:gradle-messaging:1.2
 (*) - dependencies omitted (listed previously)</tt>
 </pre>
 
-Using this report, it is easy to see that the `gradle-messaging` dependency is being included transitively through `gradle-tooling-api` and `gradle-core` (which itself is a dependency of `gradle-tooling-api`).
+Using this report, it is easy to see that the `gradle-messaging` dependency is being included transitively through `gradle-tooling-api` and `gradle-core` (which itself is a 
+dependency of `gradle-tooling-api`).
 
-Whereas the `dependencies` report shows the path from the top level dependencies down through the transitive dependencies, the `dependencyInsight` report shows the path from a particular dependency to the dependencies that pulled it in. That is, it is an *inverted* view of the `dependencies` report.
+Whereas the `dependencies` report shows the path from the top level dependencies down through the transitive dependencies, the `dependencyInsight` report shows the path from 
+a particular dependency to the dependencies that pulled it in. That is, it is an *inverted* view of the `dependencies` report.
 
 The `dependencyInsight` report is also useful for understanding the difference between *requested* and *selected* versions.  
 
