@@ -20,6 +20,8 @@ import org.gradle.build.docs.AssembleSamplesDocTask
 import org.gradle.build.docs.Docbook2Xhtml
 import org.gradle.build.docs.dsl.docbook.AssembleDslDocTask
 import org.gradle.build.docs.dsl.source.ExtractDslMetaDataTask
+import org.gradle.build.docs.releasenotes.*
+import org.gradle.build.docs.releasenotes.checks.*
 
 apply plugin: 'base'
 apply plugin: 'pegdown'
@@ -393,6 +395,16 @@ task viewReleaseNotes(dependsOn: releaseNotes) {
     doLast {
         Class.forName("java.awt.Desktop").newInstance().browse(new File(releaseNotes.destinationDir, releaseNotes.fileName).toURI())
     }
+}
+
+task checkReleaseNotes(type: CheckReleaseNotes, dependsOn: releaseNotes) {
+    group = "release notes"
+    sourceFile = releaseNotesMarkdown.source.singleFile
+    renderedFile = file("${project.releaseNotes.destinationDir}/${project.releaseNotes.fileName}")
+    checks(
+            new MaxLineLengthReleaseNoteCheck(220),
+            new CssContentReleaseNotesCheck("h2#fixed-issues", 1, "needed as the placeholder for fixed issues automation")
+    )
 }
 
 task docs {
