@@ -1,8 +1,9 @@
-This is an important release that includes exciting new features and some very important stabilization and optimization, particularly in the area of dependency management.
+This is a significant release that includes exciting new features and some very important stabilization and optimization, particularly in the area of dependency management.
 
-Our commitment to the Scala language as a first class citizen in the Gradle ecosystem is evident in this release through our hardwork to bring one of the most frequently requested 
-improvements from Scala developers to fruition: decreased compile times through [incremental compilation](#incremental-scala-compilation). The ability to 
-[fork compilation](#scala-compilation-in-external-process) has also been added along with improvements to [Eclipse integration for Gradle Scala projects](#improved-scala-ide-integration).
+Our commitment to the Scala language as a first class citizen in the Gradle ecosystem is evident in this release. Through our hardwork, in cooperation with the folks from 
+[Typesafe](http://typesafe.com/), Gradle now ships with one of the most frequently requested improvements from Scala developers: decreased compile times through 
+[incremental compilation](#incremental-scala-compilation). The ability to [fork compilation](#scala-compilation-in-external-process) has also been added along with 
+improvements to [Eclipse integration for Gradle Scala projects](#improved-scala-ide-integration).
 
 As software becomes more and more modular and componentized, development teams are requiring more sophistication and more flexibility in how their built items are published for 
 downstream consumption. This release includes the [first step towards a richer and more powerful publication approach](#new-ivy-publishing-mechanism) within Gradle, that provides
