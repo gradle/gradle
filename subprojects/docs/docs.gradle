@@ -403,7 +403,8 @@ task checkReleaseNotes(type: CheckReleaseNotes, dependsOn: releaseNotes) {
     renderedFile = file("${project.releaseNotes.destinationDir}/${project.releaseNotes.fileName}")
     checks(
             new MaxLineLengthReleaseNoteCheck(220),
-            new CssContentReleaseNotesCheck("h2#fixed-issues", 1, "needed as the placeholder for fixed issues automation")
+            new CssContentReleaseNotesCheck("h2#fixed-issues", 1, "needed as the placeholder for fixed issues automation"),
+            new NoDuplicateIdsReleaseNotesCheck()
     )
 }
 
