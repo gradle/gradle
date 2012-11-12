@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.apache.ivy.Ivy;
 import org.apache.ivy.core.IvyPatternHelper;
 import org.apache.ivy.core.module.descriptor.*;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
@@ -33,13 +32,16 @@ import org.gradle.util.TextUtil;
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map;
 
 public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
 
-    private static Action<Writer> createWriterAction(final ModuleDescriptor md) {
+    public static final String IVY_DATE_PATTERN = "yyyyMMddHHmmss";
+
+    private Action<Writer> createWriterAction(final ModuleDescriptor md) {
         return new ErroringAction<Writer>() {
             protected void doExecute(Writer writer) throws IOException {
                 writer.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
@@ -460,8 +462,11 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
         }
         writer.write("\t\tstatus=\"" + XMLHelper.escape(md.getStatus()) + "\"");
         writer.write(TextUtil.getPlatformLineSeparator());
+
+        SimpleDateFormat ivyDateFormat = new SimpleDateFormat(IVY_DATE_PATTERN);
+
         writer.write("\t\tpublication=\""
-                + Ivy.DATE_FORMAT.format(md.getResolvedPublicationDate()) + "\"");
+                + ivyDateFormat.format(md.getResolvedPublicationDate()) + "\"");
         writer.write(TextUtil.getPlatformLineSeparator());
         if (md.isDefault()) {
             writer.write("\t\tdefault=\"true\"");
@@ -561,7 +566,6 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
 
     private static String getConfs(ModuleDescriptor md, Artifact artifact) {
         StringBuffer ret = new StringBuffer();
-
         String[] confs = md.getConfigurationsNames();
         for (int i = 0; i < confs.length; i++) {
             if (Arrays.asList(md.getArtifacts(confs[i])).contains(artifact)) {
