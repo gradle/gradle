@@ -21,11 +21,11 @@ import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.parser.ParserSettings;
-import org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorParser;
 import org.gradle.api.Action;
 import org.gradle.api.internal.artifacts.ivyservice.IvyModuleDescriptorWriter;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.IvyContextualiser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyXmlModuleDescriptorParser;
 import org.gradle.api.internal.filestore.FileStoreEntry;
 import org.gradle.api.internal.filestore.PathKeyFileStore;
 import org.gradle.internal.UncheckedException;
@@ -39,14 +39,14 @@ public class ModuleDescriptorStore {
     private static final String DESCRIPTOR_ARTIFACT_PATTERN =
             "module-metadata/[organisation]/[module](/[branch])/[revision]/[resolverId].ivy.xml";
 
-    private final XmlModuleDescriptorParser parser;
+    private final IvyXmlModuleDescriptorParser parser;
     private final PathKeyFileStore pathKeyFileStore;
     private final IvyModuleDescriptorWriter ivyModuleDescriptorWriter;
 
-    public ModuleDescriptorStore(PathKeyFileStore pathKeyFileStore, IvyModuleDescriptorWriter ivyModuleDescriptorWriter, XmlModuleDescriptorParser xmlModuleDescriptorParser) {
+    public ModuleDescriptorStore(PathKeyFileStore pathKeyFileStore, IvyModuleDescriptorWriter ivyModuleDescriptorWriter, IvyXmlModuleDescriptorParser ivyXmlModuleDescriptorParser) {
         this.pathKeyFileStore = pathKeyFileStore;
         this.ivyModuleDescriptorWriter = ivyModuleDescriptorWriter;
-        parser = xmlModuleDescriptorParser;
+        parser = ivyXmlModuleDescriptorParser;
     }
 
     public ModuleDescriptor getModuleDescriptor(ModuleVersionRepository repository, ModuleRevisionId moduleRevisionId) {
@@ -57,7 +57,6 @@ public class ModuleDescriptorStore {
         }
         return null;
     }
-
 
     public void putModuleDescriptor(ModuleVersionRepository repository, final ModuleDescriptor moduleDescriptor) {
         String filePath = getFilePath(repository, moduleDescriptor.getModuleRevisionId());

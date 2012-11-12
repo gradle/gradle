@@ -26,6 +26,7 @@ import org.gradle.api.internal.filestore.PathKeyFileStore
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyXmlModuleDescriptorParser
 
 class ModuleDescriptorStoreTest extends Specification {
 
@@ -37,10 +38,10 @@ class ModuleDescriptorStoreTest extends Specification {
     FileStoreEntry fileStoreEntry = Mock()
     ModuleDescriptor moduleDescriptor = Mock()
     IvyModuleDescriptorWriter ivyModuleDescriptorWriter = Mock()
-    XmlModuleDescriptorParser xmlModuleDescriptorParser = Mock()
+    IvyXmlModuleDescriptorParser ivyXmlModuleDescriptorParser = Mock()
 
     def setup() {
-        store = new ModuleDescriptorStore(pathKeyFileStore, ivyModuleDescriptorWriter, xmlModuleDescriptorParser);
+        store = new ModuleDescriptorStore(pathKeyFileStore, ivyModuleDescriptorWriter, ivyXmlModuleDescriptorParser);
         _ * repository.getId() >> "repositoryId"
         _ * moduleRevisionId.getOrganisation() >> "org.test"
         _ * moduleRevisionId.getName() >> "testArtifact"
