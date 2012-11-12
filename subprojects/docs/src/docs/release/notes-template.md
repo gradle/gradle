@@ -19,8 +19,6 @@ The following are the features that have been promoted in this Gradle release.
 
 ## Fixed issues
 
-The list of issues fixed in this Gradle release can be found [here](http://issues.gradle.org/sr/jira.issueviews:searchrequest-printable/temp/SearchRequest.html?jqlQuery=fixVersion+in+%28%22« FIRST RC VERSION »%22%29+ORDER+BY+priority&tempMax=1000).
-
 ## Incubating features
 
 Incubating features are intended to be used, but not yet guaranteed to be backwards compatible.

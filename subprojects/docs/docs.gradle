@@ -383,7 +383,7 @@ task releaseNotes(type: Copy) {
     from decorateReleaseNotes, {
         rename ".+", "release-notes.html"
         doFirst {
-            owner.filter(ReplaceTokens, tokens: [version: project.version.toString()])
+            owner.filter(ReplaceTokens, tokens: [version: project.version.toString(), versionBase: rootProject.versionBase])
         }
     }
 }
