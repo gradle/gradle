@@ -404,7 +404,8 @@ task checkReleaseNotes(type: CheckReleaseNotes, dependsOn: releaseNotes) {
     checks(
             new MaxLineLengthReleaseNoteCheck(220),
             new CssContentReleaseNotesCheck("h2#fixed-issues", 1, "needed as the placeholder for fixed issues automation"),
-            new NoDuplicateIdsReleaseNotesCheck()
+            new NoDuplicateIdsReleaseNotesCheck(),
+            new NoBrokenInternalLinksReleaseNotesCheck()
     )
 }
 

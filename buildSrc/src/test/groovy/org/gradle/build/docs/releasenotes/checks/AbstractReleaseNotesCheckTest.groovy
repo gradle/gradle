@@ -24,6 +24,14 @@ class AbstractReleaseNotesCheckTest extends Specification {
         errors
     }
 
+    List<ReleaseNotesError> checkRendered(String rendered, ReleaseNotesCheck... checks) {
+        check("", rendered, checks)
+    }
+
+    List<ReleaseNotesError> checkSource(String source, ReleaseNotesCheck... checks) {
+        check(source, "", checks)
+    }
+
     ReleaseNotes notes(source, rendered) {
         def encoding = "utf-8"
         def sourceFile = tmp.newFile("source.md")
