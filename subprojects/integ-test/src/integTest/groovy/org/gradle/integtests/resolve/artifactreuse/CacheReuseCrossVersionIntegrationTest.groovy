@@ -21,8 +21,10 @@ import org.gradle.integtests.fixtures.MavenHttpRepository
 import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
+import spock.lang.Ignore
 
 @TargetVersions('1.0-milestone-6+')
+@Ignore
 class CacheReuseCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
     @Rule public final HttpServer server = new HttpServer()
     final MavenHttpRepository httpRepo = new MavenHttpRepository(server, new MavenFileRepository(file("maven-repo")))
