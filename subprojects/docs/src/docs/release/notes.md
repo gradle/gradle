@@ -190,7 +190,7 @@ ultimately making Gradle a better tool.
 
 To learn more, see the [User Guide chapter on the Feature Lifecycle](userguide/feature_lifecycle.html).
 
-<h3 id="new-publish">New Ivy publishing mechanism</h3>
+### New Ivy publishing mechanism
 
 This release introduces a new mechanism for publishing to Ivy repositories in the Ivy format. It also introduces some new general publishing constructs. This new publishing support is *incubating* and will co-exist with the [existing methods for publication](userguide/artifact_management.html) until the time where it supersedes it, at which point the old mechanism will 
 become deprecated. The functionality included in this release is the first step down the path of providing a better solution for sharing the artifacts built in your Gradle builds.
@@ -334,7 +334,7 @@ This was an early contribution that did not work and was an undocumented private
 
 ### Removed `org.gradle.api.publication` package
 
-This package contained some early experiments in a new publication model. It was incomplete and undocumented. It is superseded by the new [publishing functionality introduced in this release](#new-publish), so has been removed.
+This package contained some early experiments in a new publication model. It was incomplete and undocumented. It is superseded by the new [publishing functionality introduced in this release](#new-ivy-publishing-mechanism), so has been removed.
 
 ## Community contributions
 
