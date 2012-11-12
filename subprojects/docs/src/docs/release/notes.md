@@ -14,7 +14,7 @@ The report can be used to answer (very common) questions such as:
     * Is it the same as what was *requested*?
 * Why is the *selected* version of a dependency different to the *requested*?
 
-The *selected* version of a dependency can be different to the *requested* (i.e. user declared) version due to dependency conflict resolution or by explicit dependency force rules. Similar to the standard gradle depenency report, the `dependencyInsight` report shows both versions. It also shows a requested dynamic version (e.g. "junit:junit:4.+") together with the actually selected version (e.g. "junit:junit:4.10"). Please keep in mind that Maven snapshot dependencies are not treated as dynamic versions but as changing modules, similar to what Maven does (for the difference see the [userguide](http://gradle.org/docs/nightly/userguide/dependency_management.html#sec:dependency_management_overview)). Maven snapshots might be treated as dynamic versions in a future version of Gradle which would provide nice insight into pom snapshot resolution.   
+The *selected* version of a dependency can be different to the *requested* (i.e. user declared) version due to dependency conflict resolution or by explicit dependency force rules. Similar to the standard gradle depenency report, the `dependencyInsight` report shows both versions. It also shows a requested dynamic version (e.g. "junit:junit:4.+") together with the actually selected version (e.g. "junit:junit:4.10"). Please keep in mind that Maven snapshot dependencies are not treated as dynamic versions but as changing modules, similar to what Maven does (for the difference see the [userguide](userguide/dependency_management.html#sec:dependency_management_overview)). Maven snapshots might be treated as dynamic versions in a future version of Gradle which would provide nice insight into pom snapshot resolution.
 
 The `dependencyInsight` report task is invaluable when investigating how and why a dependency is resolved, and it is available in all projects out of the box.
 
@@ -88,7 +88,7 @@ Zinc can significantly reduce Scala compilation time. It is particularly effecti
 increments, as is often done at development time.
 
 To switch the `ScalaCompile` task from the default Ant based compiler to the new Zinc based compiler, use `scalaCompileOptions.useAnt = false`. 
-Except where noted in the [API documentation](http://gradle.org/docs/current/dsl/org.gradle.api.tasks.scala.ScalaCompile.html), the Zinc based 
+Except where noted in the [API documentation](dsl/org.gradle.api.tasks.scala.ScalaCompile.html), the Zinc based
 compiler supports exactly the same configuration options as the Ant based compiler.
 
 Just like the Ant based compiler, the Zinc based compiler supports joint compilation of Java and Scala code. By default, all Java and Scala code
@@ -107,7 +107,7 @@ allows to adjust memory settings.
 
 ### Improved Scala IDE integration
 
-The [Eclipse Plugin](http://gradle.org/docs/current/userguide/eclipse_plugin.html) now automatically excludes dependencies already provided by the
+The [Eclipse Plugin](userguide/eclipse_plugin.html) now automatically excludes dependencies already provided by the
  'Scala Library' class path container. This improvement is essential for [Scala IDE](http://scala-ide.org) to work correctly. It also takes effect
  when using the [Eclipse Gradle Integration](https://github.com/SpringSource/eclipse-integration-gradle).
 
@@ -280,7 +280,7 @@ deprecated and will be removed in Gradle 2.0:
 
 ### Changing the name of a repository once added to a repository container
 
-The [`ArtifactRepository`](http://gradle.org/docs/current/javadoc/org/gradle/api/artifacts/repositories/ArtifactRepository.html) type has a `setName(String)` method that you
+The [`ArtifactRepository`](javadoc/org/gradle/api/artifacts/repositories/ArtifactRepository.html) type has a `setName(String)` method that you
 could use to change the repository name after it has been created. Doing so has been deprecated. The name of the repository should be specified at creation time via the DSL.
 
 For example:
