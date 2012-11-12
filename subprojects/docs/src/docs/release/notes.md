@@ -29,7 +29,7 @@ Given the following build script:
     }
 
     dependencies {
-		compile 'org.gradle:gradle-tooling-api:1.2'
+        compile 'org.gradle:gradle-tooling-api:1.2'
         compile 'org.slf4j:slf4j-api:1.6.5'
     }
 
