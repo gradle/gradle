@@ -261,6 +261,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public Task doFirst(Action<? super Task> action) {
+        assertNotExecuting();
         if (action == null) {
             throw new InvalidUserDataException("Action must not be null!");
         }
@@ -269,12 +270,20 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public Task doLast(Action<? super Task> action) {
+        assertNotExecuting();
         if (action == null) {
             throw new InvalidUserDataException("Action must not be null!");
         }
         actions.add(wrap(action));
         return this;
     }
+
+    private void assertNotExecuting() {
+        if (state.getExecuting()) {
+            throw new IllegalOperationAtExecutionTimeException(String.format("You cannot add a task action at execution time, please check the configuration of task %s.", this));
+        }
+    }
+
 
     public int compareTo(Task otherTask) {
         int depthCompare = project.compareTo(otherTask.getProject());
@@ -364,6 +373,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public Task doFirst(Closure action) {
+        assertNotExecuting();
         if (action == null) {
             throw new InvalidUserDataException("Action must not be null!");
         }
@@ -372,6 +382,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public Task doLast(Closure action) {
+        assertNotExecuting();
         if (action == null) {
             throw new InvalidUserDataException("Action must not be null!");
         }
@@ -401,7 +412,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
             }
         };
     }
-    
+
     public void addValidator(TaskValidator validator) {
         validators.add(validator);
     }

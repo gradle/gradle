@@ -17,10 +17,8 @@
 package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
-import org.gradle.api.Action;
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Project;
-import org.gradle.api.Task;
+import org.gradle.api.*;
+import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.Actions;
 import org.gradle.api.internal.AsmBackedClassGenerator;
@@ -32,6 +30,7 @@ import org.gradle.api.internal.project.taskfactory.AnnotationProcessingTaskFacto
 import org.gradle.api.internal.project.taskfactory.TaskFactory;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskStateInternal;
+import org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
@@ -163,7 +162,7 @@ public abstract class AbstractTaskTest {
         final TaskExecuter executer = context.mock(TaskExecuter.class);
         task.setExecuter(executer);
 
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             one(executer).execute(with(sameInstance(task)), with(notNullValue(TaskStateInternal.class)));
         }});
 
@@ -275,7 +274,8 @@ public abstract class AbstractTaskTest {
         final TaskDependency dependencyMock = context.mock(TaskDependency.class);
         getTask().dependsOn(dependencyMock);
         context.checking(new Expectations() {{
-            allowing(dependencyMock).getDependencies(getTask()); will(returnValue(WrapUtil.toSet(task1, task2)));
+            allowing(dependencyMock).getDependencies(getTask());
+            will(returnValue(WrapUtil.toSet(task1, task2)));
 
             exactly(2).of(task1).getDidWork();
             will(returnValue(false));
@@ -287,6 +287,53 @@ public abstract class AbstractTaskTest {
         assertFalse(getTask().dependsOnTaskDidWork());
 
         assertTrue(getTask().dependsOnTaskDidWork());
+    }
+
+    @Test
+    public void cannotAddDoFirstActionsWhenExecuting() {
+        final TaskActionListener taskListener = createTaskListener(context);
+        final Action<? super Task> action2 = Actions.<Task>doNothing();
+        final Action<? super Task> action1 = new Action<Task>() {
+            public void execute(Task task) {
+                task.doFirst(action2);
+            }
+        };
+        executeAndAssertNestedActionExecution(taskListener, action1);
+    }
+
+    @Test
+    public void cannotAddDoLastActionsWhenExecuting() {
+        final TaskActionListener taskListener = createTaskListener(context);
+        final Action<? super Task> action2 = Actions.<Task>doNothing();
+        final Action<? super Task> action1 = new Action<Task>() {
+            public void execute(Task task) {
+                task.doLast(action2);
+            }
+        };
+        executeAndAssertNestedActionExecution(taskListener, action1);
+    }
+
+    private void executeAndAssertNestedActionExecution(TaskActionListener taskListener, Action<? super Task> action1) {
+        try {
+            getTask().doFirst(action1);
+            getTask().setExecuter(new ExecuteActionsTaskExecuter(taskListener));
+            getTask().execute();
+            fail();
+        } catch (TaskExecutionException e) {
+            // compared to direct instantiation, instantiator (which we use to get any ctor args injected) wraps TaskInstantiationException, so unwrap
+            Throwable cause = e.getCause();
+            assertEquals(IllegalOperationAtExecutionTimeException.class, cause.getClass());
+            assertThat(cause.getMessage(), containsString("You cannot add a task action at execution time, please check the configuration of task task"));
+        }
+    }
+
+    private TaskActionListener createTaskListener(JUnit4GroovyMockery testContext) {
+        final TaskActionListener listener = testContext.mock(TaskActionListener.class);
+        testContext.checking(new Expectations() {{
+            allowing(listener).beforeActions(getTask());
+            allowing(listener).afterActions(getTask());
+        }});
+        return listener;
     }
 
     @Test
