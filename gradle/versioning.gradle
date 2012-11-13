@@ -43,18 +43,7 @@ if (version == "unspecified") {
     if (!isSnapshot) {
         throw new InvalidUserDataException("Cannot specify 'notSnapshot' without specifying 'version'")
     }
-
-    // 0.0 means the version is non symbolic.
-    // We have to use something that looks like a real version number because there are a few places
-    // where this value is validated, e.g. the wrapper stuff. We should fix this at some point so we can do
-    // things like use build numbers or commit IDs.
-    //
-    // version = "0.0"
-
-    // Using 0.0 causes issues with the Tooling API. It's something to do with older versions of Gradle not
-    // understanding the 0.0 version number scheme. For the time being, we are going to hardcode the version.
-    version = "1.4"
-
+    version = rootProject.file("version.txt").text
     ext.isSymbolicVersion = false
 } else {
     ext.isSymbolicVersion = true
