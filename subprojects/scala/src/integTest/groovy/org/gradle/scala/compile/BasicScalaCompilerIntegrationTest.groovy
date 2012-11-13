@@ -39,7 +39,6 @@ DeprecationLogger.whileDisabled {
         expect:
         succeeds("compileScala")
         output.contains(logStatement())
-        !errorOutput
         file("build/classes/main/compile/test/Person.class").exists()
     }
 
@@ -50,7 +49,7 @@ DeprecationLogger.whileDisabled {
         expect:
         fails("compileScala")
         output.contains(logStatement())
-        output.contains("type mismatch")
+        errorOutput.contains("type mismatch")
         file("build/classes/main").assertHasDescendants()
     }
 
@@ -67,7 +66,7 @@ compileScala.scalaCompileOptions.failOnError = false
         expect:
         succeeds("compileScala")
         output.contains(logStatement())
-        output.contains("type mismatch")
+        errorOutput.contains("type mismatch")
         file("build/classes/main").assertHasDescendants()
     }
 
