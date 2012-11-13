@@ -2,55 +2,48 @@ def timestampFormat = new java.text.SimpleDateFormat('yyyyMMddHHmmssZ')
 timestampFormat.timeZone = TimeZone.getTimeZone("UTC")
 
 if (incomingDistributionsBuildReceipt) {
-    def incomingVersion = incomingDistributionsBuildReceipt.versionNumber
-    def match = incomingVersion =~ /(.+)-(\d{14}[+-]\d{4})/
-    if (!match) {
-        throw new GradleException("Can't extract version number from incoming distribution build receipt version number: $incomingVersion")
-    }
-
-    version = match[0][1]
-    ext.buildTimestamp = match[0][2]
-}
-
-if (project.hasProperty("buildTimestamp")) {
-    ext.buildTime = timestampFormat.parse(buildTimestamp)
+    ext.versionBase = incomingDistributionsBuildReceipt.versionBase
+    ext.buildTimestamp = incomingDistributionsBuildReceipt.buildTimestamp
 } else {
-    File timestampFile = file("$buildDir/timestamp.txt")
-    if (timestampFile.isFile()) {
-        boolean uptodate = true
-        def modified = timestampFile.lastModified()
-        project(':core').fileTree('src/main').visit {fte ->
-            if (fte.file.isFile() && fte.lastModified > modified) {
-                uptodate = false
-                fte.stopVisiting()
-            }
-        }
-        if (!uptodate) {
-            timestampFile.setLastModified(new Date().time)
-        }
+    ext.versionBase = rootProject.file("version.txt").text
+
+    if (project.hasProperty("buildTimestamp")) {
+        ext.buildTime = timestampFormat.parse(buildTimestamp)
     } else {
-        timestampFile.parentFile.mkdirs()
-        timestampFile.createNewFile()
-    }
+        File timestampFile = file("$buildDir/timestamp.txt")
+        if (timestampFile.isFile()) {
+            boolean uptodate = true
+            def modified = timestampFile.lastModified()
+            project(':core').fileTree('src/main').visit {fte ->
+                if (fte.file.isFile() && fte.lastModified > modified) {
+                    uptodate = false
+                    fte.stopVisiting()
+                }
+            }
+            if (!uptodate) {
+                timestampFile.setLastModified(new Date().time)
+            }
+        } else {
+            timestampFile.parentFile.mkdirs()
+            timestampFile.createNewFile()
+        }
 
-    ext.buildTime = new Date(timestampFile.lastModified())
-    ext.buildTimestamp = timestampFormat.format(buildTime)
+        ext.buildTime = new Date(timestampFile.lastModified())
+        ext.buildTimestamp = timestampFormat.format(buildTime)
+    }
 }
 
-ext.isSnapshot = !project.hasProperty("notSnapshot")
-
-if (version == "unspecified") {
-    if (!isSnapshot) {
-        throw new InvalidUserDataException("Cannot specify 'notSnapshot' without specifying 'version'")
-    }
-    version = rootProject.file("version.txt").text
-    ext.isSymbolicVersion = false
-} else {
-    ext.isSymbolicVersion = true
+ext.rcNumber = project.hasProperty("rcNumber") ? project.rcNumber : null
+ext.finalRelease = project.hasProperty("finalRelease") ? project.finalRelease as boolean : false
+if (rcNumber != null && finalRelease) {
+    throw new InvalidUserDataException("Cannot set rcNumber and finalRelease at the same time")
 }
 
-ext.versionBase = version.replaceFirst(~/-rc-\d+/, "")
-
+version = versionBase
+if (rcNumber != null) {
+    version += "rc-$rcNumber"
+}
+ext.isSnapshot = finalRelease == false && rcNumber != null
 if (isSnapshot) {
-    version += "-$buildTimestamp"
+    version += "$buildTimestamp"
 }

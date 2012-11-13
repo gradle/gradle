@@ -109,6 +109,9 @@ task createBuildReceipt(dependsOn: determineCommitId) {
         def data = [
                 commitId:  determineCommitId.commitId,
                 versionNumber: version,
+                versionBase: versionBase,
+                isSnapshot: isSnapshot,
+                rcNumber: rcNumber == null ? "" : rcNumber,
                 buildTimestamp: buildTimestamp,
                 username: System.properties["user.name"],
                 hostname: hostName,
