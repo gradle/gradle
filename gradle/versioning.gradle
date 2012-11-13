@@ -43,7 +43,7 @@ version = versionBase
 if (rcNumber != null) {
     version += "rc-$rcNumber"
 }
-ext.isSnapshot = finalRelease == false && rcNumber != null
+ext.isSnapshot = finalRelease == false && rcNumber == null
 if (isSnapshot) {
     version += "$buildTimestamp"
 }
