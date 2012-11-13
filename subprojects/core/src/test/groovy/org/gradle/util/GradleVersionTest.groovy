@@ -213,19 +213,6 @@ class GradleVersionTest extends Specification {
         '0.9'                     | '0.9-20101220100000'
     }
 
-    def canCompareWithNonSymbolicVersions() {
-        expect:
-        GradleVersion.version(a) > GradleVersion.version(b)
-        GradleVersion.version(b) < GradleVersion.version(a)
-        GradleVersion.version(a) == GradleVersion.version(a)
-        GradleVersion.version(b) == GradleVersion.version(b)
-
-        where:
-        a                         | b
-        '0.0-20101220110000+0100' | '1.0'
-        '0.0'                     | '0.9.2'
-    }
-
     def "can get version base"() {
         expect:
         GradleVersion.version(v).versionBase == base
