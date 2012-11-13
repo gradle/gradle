@@ -62,8 +62,7 @@ import java.util.Map;
 
 /**
  * Copied from org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorParser into gradle codebase to make
- * it thread-safe
- * .
+ * it thread-safe.
  */
 public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser {
     static final String[] DEPENDENCY_REGULAR_ATTRIBUTES = new String[] {"org", "name", "branch",
