@@ -35,4 +35,8 @@ compileScala.scalaCompileOptions.with {
     String logStatement() {
         "Compiling with Ant scalac task"
     }
+
+    String getErrorOutput() {
+        return result.output
+    }
 }

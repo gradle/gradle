@@ -16,6 +16,9 @@
 
 package org.gradle.scala.compile.jdk6
 
+import spock.lang.Ignore
+
+@Ignore
 class ZincInProcessScalaCompilerJdk6IntegrationTest extends ZincScalaCompilerJdk6IntegrationTest {
     String compilerConfiguration() {
         """
