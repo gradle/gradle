@@ -292,14 +292,6 @@ class HttpServer extends ExternalResource {
     }
 
     /**
-     * Allows one HEAD request, then one GET request for the given URL. Reads the request content from the given file.
-     */
-    void expectHeadThenGet(String path, File srcFile, Long lastModified = null, Long contentLength = null) {
-        expectHead(path, srcFile, lastModified, contentLength)
-        expectGet(path, srcFile, lastModified, contentLength)
-    }
-
-    /**
      * Allows one GET request for the given URL, with the given credentials. Reads the request content from the given file.
      */
     void expectGet(String path, String username, String password, File srcFile) {

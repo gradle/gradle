@@ -82,12 +82,20 @@ class MavenHttpModule implements MavenModule {
         server.expectHead("$modulePath/$pomFile.name", pomFile)
     }
 
+    void allowPomHead() {
+        server.allowHead("$modulePath/$pomFile.name", pomFile)
+    }
+
     void expectPomGetMissing() {
         server.expectGetMissing("$modulePath/$missingPomName")
     }
 
     void expectPomSha1Get() {
         server.expectGet("$modulePath/${pomFile.name}.sha1", backingModule.sha1File(pomFile))
+    }
+
+    void allowPomSha1Get() {
+        server.allowGetOrHead("$modulePath/${pomFile.name}.sha1", backingModule.sha1File(pomFile))
     }
 
     void expectPomSha1GetMissing() {
@@ -110,6 +118,10 @@ class MavenHttpModule implements MavenModule {
         server.expectHead("$modulePath/$artifactFile.name", artifactFile)
     }
 
+    void allowArtifactHead() {
+        server.allowHead("$modulePath/$artifactFile.name", artifactFile)
+    }
+
     void expectArtifactGetMissing() {
         server.expectGetMissing("$modulePath/$missingArtifactName")
     }
@@ -120,6 +132,10 @@ class MavenHttpModule implements MavenModule {
 
     void expectArtifactSha1Get() {
         server.expectGet("$modulePath/${artifactFile.name}.sha1", backingModule.sha1File(artifactFile))
+    }
+
+    void allowArtifactSha1Get() {
+        server.allowGetOrHead("$modulePath/${artifactFile.name}.sha1", backingModule.sha1File(artifactFile))
     }
 
     void expectArtifactSha1GetMissing() {
