@@ -54,6 +54,11 @@ abstract class CrossVersionIntegrationSpec extends Specification {
         if (executer instanceof GradleDistributionExecuter) {
             executer.withDeprecationChecksDisabled()
         }
+        if (dist.multiProcessSafeCache) {
+            executer.withGradleUserHomeDir(current.userHomeDir)
+        } else {
+            executer.withGradleUserHomeDir(current.file("user-home/$dist.version"))
+        }
         executer.inDirectory(testDir)
         return executer;
     }

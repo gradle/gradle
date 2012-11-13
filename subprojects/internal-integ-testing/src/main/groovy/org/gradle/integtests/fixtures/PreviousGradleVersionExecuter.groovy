@@ -114,6 +114,10 @@ class PreviousGradleVersionExecuter extends AbstractDelegatingGradleExecuter imp
         return version >= GradleVersion.version('1.0-milestone-3')
     }
 
+    boolean isMultiProcessSafeCache() {
+        return version >= GradleVersion.version('1.0-milestone-5')
+    }
+
     boolean wrapperCanExecute(String version) {
         if (version == '0.8' || this.version == GradleVersion.version('0.8')) {
             // There was a breaking change after 0.8

@@ -72,6 +72,11 @@ public interface BasicGradleDistribution {
     boolean isOpenApiSupported();
 
     /**
+     * Returns true if the cache implementation in this distribution is multi-process safe.
+     */
+    boolean isMultiProcessSafeCache();
+
+    /**
      * Returns true if the wrapper from this distribution can execute a build using the specified version.
      */
     boolean wrapperCanExecute(String version);
