@@ -49,6 +49,8 @@ if (version == "unspecified") {
     ext.isSymbolicVersion = true
 }
 
+ext.versionBase = version.replaceFirst(~/-rc-\d+/, "")
+
 if (isSnapshot) {
     version += "-$buildTimestamp"
 }
