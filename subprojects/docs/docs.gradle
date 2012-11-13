@@ -377,6 +377,7 @@ task decorateReleaseNotes(type: Jsoup) {
     apply from: "release-notes-transform.gradle"
 }
 
+import org.apache.tools.ant.filters.ReplaceTokens
 task releaseNotes(type: Copy) {
     group = "release notes"
     ext.fileName = "release-notes.html"
