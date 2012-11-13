@@ -77,9 +77,13 @@ public class TestNGOptions extends TestFrameworkOptions implements Serializable 
     int threadCount = 1
 
     /**
-     * Whether the default listeners and reporters should be used.
+     * Whether the default listeners and reporters should be used. Defaults to true.
      *
-     * Defaults to true.
+     * Please refer to the documentation of your version of TestNG what are the default listeners.
+     * At the moment of writing this documentation, the default listeners are a set of reporters that generate:
+     * TestNG variant of html results, TestNG variant of xml results in JUnit format, emailable html test report,
+     * xml results in TestNG format.
+     *
      */
     boolean useDefaultListeners = true
 
