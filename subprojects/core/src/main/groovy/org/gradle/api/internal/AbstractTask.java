@@ -238,6 +238,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public void setEnabled(boolean enabled) {
+        nagIfTaskAlreadyExecuted("Task.setEnabled(boolean)");
         this.enabled = enabled;
     }
 
