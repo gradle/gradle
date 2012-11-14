@@ -90,13 +90,26 @@ class DefaultArtifactRepositoryContainerTest extends Specification {
 
     def testAddResolverWithClosure() {
         given:
-        def (repoNotation, repo, resolver, resolverRepo) = setupNotation(1)
+        def repo = Mock(ArtifactRepositoryInternal) { getName() >> "name" }
+        def resolver = new FileSystemResolver()
+        def resolverRepo = Spy(FixedResolverArtifactRepository, constructorArgs: [resolver])
+
+        interaction {
+            1 * baseRepositoryFactory.createRepository(resolver) >> repo
+            1 * baseRepositoryFactory.toResolver(repo) >> resolver
+            1 * baseRepositoryFactory.createResolverBackedRepository(resolver) >> resolverRepo
+            1 * resolverRepo.onAddToContainer(container)
+        }
 
         when:
-        container.addLast(repoNotation) { transactional = "foo" }
+        container.add(resolver) {
+            transactional = "foo"
+            name = "bar"
+        }
 
         then:
         resolver.transactional == "foo"
+        resolverRepo.name == "bar"
     }
 
     def testAddBefore() {

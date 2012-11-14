@@ -178,36 +178,31 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
     public void providesADefaultNameForIvyRepository() {
         given:
         def repo1 = Mock(TestIvyArtifactRepository)
+        def repo1Name = "ivy"
+        repo1.getName() >> { repo1Name }
+        repo1.setName(_) >> { repo1Name = it[0] }
+
         def repo2 = Mock(TestIvyArtifactRepository)
+        def repo2Name = "ivy"
+        repo2.getName() >> { repo2Name }
+        repo2.setName(_) >> { repo2Name = it[0] }
+
         def repo3 = Mock(TestIvyArtifactRepository)
+        def repo3Name = "ivy"
+        repo3.getName() >> { repo3Name }
+        repo3.setName(_) >> { repo3Name = it[0] }
+
+        repositoryFactory.ivy(_) >>> [repo1, repo2, repo3]
 
         when:
         handler.ivy { }
-
-        then:
-        1 * repositoryFactory.ivy(_) >> repo1
-        3 * repo1.getName() >> "ivy"
-        1 * repo1.setName("ivy")
-
-        when:
+        handler.ivy { }
         handler.ivy { }
 
         then:
-        repo1.getName() >> "ivy"
-        1 * repositoryFactory.ivy(_) >> repo2
-        3 * repo2.getName() >>> ["ivy", "ivy2"]
-        1 * repo2.setName("ivy2")
-
-        when:
-        handler.ivy { }
-
-        then:
-        repo1.getName() >> "ivy"
-        repo2.getName() >> "ivy2"
-
-        1 * repositoryFactory.ivy(_) >> repo3
-        1 * repo3.setName("ivy3")
-        3 * repo3.getName() >>> ["ivy", "ivy3"]
+        repo1Name == "ivy"
+        repo2Name == "ivy2"
+        repo3Name == "ivy3"
     }
 
     public void createMavenRepositoryUsingClosure() {
