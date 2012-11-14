@@ -290,7 +290,7 @@ public abstract class AbstractTaskTest {
     }
 
     @Test
-    public void cannotAddDoFirstActionsWhenExecuting() {
+    public void cannotAddDoFirstActionsAsActionWhenExecuting() {
         final TaskActionListener taskListener = createTaskListener(context);
         final Action<? super Task> action2 = Actions.<Task>doNothing();
         final Action<? super Task> action1 = new Action<Task>() {
@@ -302,12 +302,36 @@ public abstract class AbstractTaskTest {
     }
 
     @Test
-    public void cannotAddDoLastActionsWhenExecuting() {
+    public void cannotAddDoFirstActionsAsClosureWhenExecuting() {
+        final TaskActionListener taskListener = createTaskListener(context);
+        final Closure closureAction = context.mock(Closure.class);
+        final Action<? super Task> action1 = new Action<Task>() {
+            public void execute(Task task) {
+                task.doFirst(closureAction);
+            }
+        };
+        executeAndAssertNestedActionExecution(taskListener, action1);
+    }
+
+    @Test
+    public void cannotAddDoLastActionsAsActionWhenExecuting() {
         final TaskActionListener taskListener = createTaskListener(context);
         final Action<? super Task> action2 = Actions.<Task>doNothing();
         final Action<? super Task> action1 = new Action<Task>() {
             public void execute(Task task) {
                 task.doLast(action2);
+            }
+        };
+        executeAndAssertNestedActionExecution(taskListener, action1);
+    }
+
+    @Test
+    public void cannotAddDoLastActionsAsClosureWhenExecuting() {
+        final TaskActionListener taskListener = createTaskListener(context);
+        final Closure closureAction = context.mock(Closure.class);
+        final Action<? super Task> action1 = new Action<Task>() {
+            public void execute(Task task) {
+                task.doLast(closureAction);
             }
         };
         executeAndAssertNestedActionExecution(taskListener, action1);
