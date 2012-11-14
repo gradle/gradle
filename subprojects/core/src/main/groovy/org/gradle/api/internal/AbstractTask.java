@@ -22,10 +22,7 @@ import org.codehaus.groovy.runtime.InvokerInvocationException;
 import org.gradle.api.*;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.DefaultTaskDependency;
-import org.gradle.api.internal.tasks.TaskDependencyInternal;
-import org.gradle.api.internal.tasks.TaskExecuter;
-import org.gradle.api.internal.tasks.TaskStateInternal;
+import org.gradle.api.internal.tasks.*;
 import org.gradle.api.internal.tasks.execution.TaskValidator;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -115,8 +112,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         dependencies = new DefaultTaskDependency(project.getTasks());
         services = project.getServices().createFor(this);
         extensibleDynamicObject = new ExtensibleDynamicObject(this, getServices().get(Instantiator.class));
-        outputs = new StateAwareTaskOutputsInternal(services.get(TaskOutputsInternal.class), state, this);
-        inputs = new StateAwareTaskInputs(services.get(TaskInputs.class), state, this);
+        outputs = services.get(TaskOutputsInternal.class);
+        inputs = services.get(TaskInputs.class);
         executer = services.get(TaskExecuter.class);
         loggingManager = services.get(LoggingManagerInternal.class);
     }
@@ -366,10 +363,16 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public TaskInputs getInputs() {
+        if (state.getExecuted() || state.getExecuting()) {
+            return new WarningEmittedOnConfiguringTaskInputs(inputs, this);
+        }
         return inputs;
     }
 
     public TaskOutputsInternal getOutputs() {
+        if (state.getExecuted() || state.getExecuting()) {
+            return new WarningEmittedOnConfiguringTaskOutputsInternal(outputs, this);
+        }
         return outputs;
     }
 

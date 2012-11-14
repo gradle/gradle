@@ -14,31 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal;
+package org.gradle.api.internal.tasks;
 
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.tasks.TaskInputs;
 import org.gradle.util.DeprecationLogger;
 
 import java.util.Map;
 
-public class StateAwareTaskInputs implements TaskInputs {
+public class WarningEmittedOnConfiguringTaskInputs implements TaskInputs {
     private final TaskInputs delegate;
-    private final TaskStateInternal state;
     private final Task task;
 
-    public StateAwareTaskInputs(TaskInputs delegate, TaskStateInternal state, Task task) {
+    public WarningEmittedOnConfiguringTaskInputs(TaskInputs delegate, Task task) {
         this.delegate = delegate;
-        this.state = state;
         this.task = task;
     }
 
     private void nagUserIfTaskExecutionStarted(String method) {
-        if (state.getExecuting() || state.getExecuted()) {
-            DeprecationLogger.nagUserAboutDeprecatedWhenTaskExecuted(method, task.toString());
-        }
+        DeprecationLogger.nagUserAboutDeprecatedWhenTaskExecuted(method, task.toString());
     }
 
     public boolean getHasInputs() {

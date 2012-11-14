@@ -14,25 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal;
+package org.gradle.api.internal.tasks;
 
 import groovy.lang.Closure;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.tasks.TaskStateInternal;
+import org.gradle.api.internal.TaskExecutionHistory;
+import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskOutputs;
 import org.gradle.util.DeprecationLogger;
 
-public class StateAwareTaskOutputsInternal implements TaskOutputsInternal {
+public class WarningEmittedOnConfiguringTaskOutputsInternal implements TaskOutputsInternal {
 
     private final TaskOutputsInternal delegate;
-    private final TaskStateInternal state;
     private final Task task;
 
-    public StateAwareTaskOutputsInternal(TaskOutputsInternal delegate, TaskStateInternal state, Task task) {
+    public WarningEmittedOnConfiguringTaskOutputsInternal(TaskOutputsInternal delegate, Task task) {
         this.delegate = delegate;
-        this.state = state;
         this.task = task;
     }
 
@@ -82,8 +82,6 @@ public class StateAwareTaskOutputsInternal implements TaskOutputsInternal {
     }
 
     private void nagUserIfTaskExecutionStarted(String method) {
-        if (state.getExecuting() || state.getExecuted()) {
-            DeprecationLogger.nagUserAboutDeprecatedWhenTaskExecuted(method, task.toString());
-        }
+        DeprecationLogger.nagUserAboutDeprecatedWhenTaskExecuted(method, task.toString());
     }
 }
