@@ -164,14 +164,16 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         return new TaskStateAwareArrayList(actions);
     }
 
-    public void setActions(List<Action<? super Task>> actions) {
-        if (state.getExecuting() || state.getExecuted()) {
-            DeprecationLogger.nagUserAboutDeprecatedWhenTaskExecuted("Task.setActions(Actions<Task>)", this);
-        }
+    public void setActions(final List<Action<? super Task>> actions) {
+        nagIfTaskAlreadyExecuted("Task.setActions(Actions<Task>)");
         deleteAllActions();
-        for (Action<? super Task> action : actions) {
-            doLast(action);
-        }
+        DeprecationLogger.whileDisabled(new Runnable() {
+            public void run() {
+                for (Action<? super Task> action : actions) {
+                    doLast(action);
+                }
+            }
+        });
     }
 
     public TaskDependencyInternal getTaskDependencies() {
@@ -183,22 +185,27 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public void setDependsOn(Iterable<?> dependsOn) {
+        nagIfTaskAlreadyExecuted("Task.setDependsOn(Iterable)");
         dependencies.setValues(dependsOn);
     }
 
     public void onlyIf(Closure onlyIfClosure) {
+        nagIfTaskAlreadyExecuted("Task.onlyIf(Closure)");
         this.onlyIfSpec = this.onlyIfSpec.and(onlyIfClosure);
     }
 
     public void onlyIf(Spec<? super Task> onlyIfSpec) {
+        nagIfTaskAlreadyExecuted("Task.onlyIf(Spec)");
         this.onlyIfSpec = this.onlyIfSpec.and(onlyIfSpec);
     }
 
     public void setOnlyIf(Spec<? super Task> spec) {
+        nagIfTaskAlreadyExecuted("Task.setOnlyIf(Spec)");
         onlyIfSpec = createNewOnlyIfSpec().and(spec);
     }
 
     public void setOnlyIf(Closure onlyIfClosure) {
+        nagIfTaskAlreadyExecuted("Task.setOnlyIf(Closure)");
         onlyIfSpec = createNewOnlyIfSpec().and(onlyIfClosure);
     }
 
@@ -261,6 +268,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public Task dependsOn(Object... paths) {
+        nagIfTaskAlreadyExecuted("Task.dependsOn(Object...)");
         dependencies.add(paths);
         return this;
     }
@@ -398,8 +406,13 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         return this;
     }
 
-    public Task leftShift(Closure action) {
-        return doLast(action);
+    public Task leftShift(final Closure action) {
+        warnForActionAddedIfTaskExecuted("Task.leftShit(Closure)");
+        return DeprecationLogger.whileDisabled(new Factory<Task>() {
+            public Task create() {
+                return doLast(action);
+            }
+        });
     }
 
     private void warnForActionAddedIfTaskExecuted(String method) {
@@ -501,74 +514,75 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         }
     }
 
+    private void nagIfTaskAlreadyExecuted(String method) {
+        if (AbstractTask.this.state.getExecuting() || AbstractTask.this.state.getExecuted()) {
+            DeprecationLogger.nagUserAboutDeprecatedWhenTaskExecuted(method, AbstractTask.this);
+        }
+    }
+
     private class TaskStateAwareArrayList extends ArrayList<Action<? super Task>> {
         public TaskStateAwareArrayList(List<Action<? super Task>> actions) {
             super(actions);
         }
 
-        private void nagIfNecessary(String method) {
-            if (AbstractTask.this.state.getExecuting() || AbstractTask.this.state.getExecuted()) {
-                DeprecationLogger.nagUserAboutDeprecatedWhenTaskExecuted(method, AbstractTask.this);
-            }
-        }
 
         @Override
         public boolean add(Action<? super Task> e) {
-            nagIfNecessary("Task.getActions().add(Action)");
+            nagIfTaskAlreadyExecuted("Task.getActions().add(Action)");
             return super.add(e);
         }
 
         @Override
         public void add(int index, Action<? super Task> e) {
-            nagIfNecessary("Task.getActions().add(int, Action)");
+            nagIfTaskAlreadyExecuted("Task.getActions().add(int, Action)");
             super.add(index, e);
         }
 
         @Override
         public boolean addAll(Collection<? extends Action<? super Task>> c) {
-            nagIfNecessary("Task.getActions().addAll(Collection<? extends Action>");
+            nagIfTaskAlreadyExecuted("Task.getActions().addAll(Collection<? extends Action>");
             return super.addAll(c);
         }
 
         @Override
         public boolean addAll(int index, Collection<? extends Action<? super Task>> c) {
-            nagIfNecessary("Task.getActions().addAll(int, Collection<? extends Action>");
+            nagIfTaskAlreadyExecuted("Task.getActions().addAll(int, Collection<? extends Action>");
             return super.addAll(index, c);
         }
 
         @Override
         public boolean remove(Object o) {
-            nagIfNecessary("Task.getActions().remove(Object)");
+            nagIfTaskAlreadyExecuted("Task.getActions().remove(Object)");
             return super.remove(o);
         }
 
         @Override
         public Action<? super Task> remove(int index) {
-            nagIfNecessary("Task.getActions().remove(int)");
+            nagIfTaskAlreadyExecuted("Task.getActions().remove(int)");
             return super.remove(index);
         }
 
         @Override
         public boolean removeAll(Collection c) {
-            nagIfNecessary("Task.getActions().removeAll(Collection)");
+            nagIfTaskAlreadyExecuted("Task.getActions().removeAll(Collection)");
             return super.removeAll(c);
         }
 
         @Override
         public boolean retainAll(Collection c) {
-            nagIfNecessary("Task.getActions().retainAll(Collection)");
+            nagIfTaskAlreadyExecuted("Task.getActions().retainAll(Collection)");
             return super.retainAll(c);
         }
 
         @Override
         public void removeRange(int fromIndex, int toIndex) {
-            nagIfNecessary("Task.getActions().removeRange(int,int)");
+            nagIfTaskAlreadyExecuted("Task.getActions().removeRange(int,int)");
             super.removeRange(fromIndex, toIndex);
         }
 
         @Override
         public void clear() {
-            nagIfNecessary("Task.getActions().clear()");
+            nagIfTaskAlreadyExecuted("Task.getActions().clear()");
             super.clear();
         }
     }
