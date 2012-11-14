@@ -97,3 +97,16 @@ or does it also apply to sbt's incremental compiler?
 
 The incremental compiler stores some metadata on disk. When incremental compilation is flipped on and off on successive compilations, can this lead to
 incorrect compilation results, or does it, in the worst case, lead to more files being recompiled than necessary?
+
+# Potential next steps
+
+Gradle 1.3 integrates Zinc and makes it work with Gradle's compiler daemon. Potential next steps for improving our Scala support are:
+
+ * Make the (existing but unannounced) `scalaConsole` task usable by solving Gradle's issues with reading from and writing to the console.
+   At the very least, this would mean to have a way to disable the Gradle status line (which currently gets interspersed with REPL output). Going
+   further, we should make the REPL history (arrow up/down) work.
+
+ * Make the compiler daemon outlive a single build so that the Scala compiler can be cached across builds. This will further improve performance.
+
+ * Investigate whether popular Scala testing frameworks (ScalaTest, Specs2) work well when run via their JUnit runners, or whether it's desirable to
+   add special support for them.
