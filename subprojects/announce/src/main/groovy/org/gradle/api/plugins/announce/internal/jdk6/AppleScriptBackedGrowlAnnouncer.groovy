@@ -44,8 +44,7 @@ return isRunning
         }
 
         def icon = iconProvider.getIcon(48, 48)
-        def iconDef = icon ? "image from location \"${icon.absolutePath}\"" : ""
-
+        def iconDef = icon ? "image from location ((POSIX file \"${icon.absolutePath}\") as string) as alias" : ""
         def script = """
 tell application id "com.Growl.GrowlHelperApp"
 register as application "Gradle" all notifications {"Build Notification"} default notifications {"Build Notification"}
