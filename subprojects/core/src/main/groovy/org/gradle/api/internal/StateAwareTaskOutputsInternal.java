@@ -83,7 +83,7 @@ public class StateAwareTaskOutputsInternal implements TaskOutputsInternal {
 
     private void nagUserIfTaskExecutionStarted(String method) {
         if (state.getExecuting() || state.getExecuted()) {
-            DeprecationLogger.nagUserAboutDeprecatedWhenTaskExecuted(method, task);
+            DeprecationLogger.nagUserAboutDeprecatedWhenTaskExecuted(method, task.toString());
         }
     }
 }

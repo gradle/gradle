@@ -116,7 +116,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         services = project.getServices().createFor(this);
         extensibleDynamicObject = new ExtensibleDynamicObject(this, getServices().get(Instantiator.class));
         outputs = new StateAwareTaskOutputsInternal(services.get(TaskOutputsInternal.class), state, this);
-        inputs = services.get(TaskInputs.class);
+        inputs = new StateAwareTaskInputs(services.get(TaskInputs.class), state, this);
         executer = services.get(TaskExecuter.class);
         loggingManager = services.get(LoggingManagerInternal.class);
     }
@@ -418,7 +418,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private void warnForActionAddedIfTaskExecuted(String method) {
         if (state.getExecuted()) {
-            DeprecationLogger.nagUserAboutDeprecatedWhenTaskExecuted(method, this);
+            DeprecationLogger.nagUserAboutDeprecatedWhenTaskExecuted(method, toString());
         }
     }
 
@@ -517,7 +517,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private void nagIfTaskAlreadyExecuted(String method) {
         if (AbstractTask.this.state.getExecuting() || AbstractTask.this.state.getExecuted()) {
-            DeprecationLogger.nagUserAboutDeprecatedWhenTaskExecuted(method, AbstractTask.this);
+            DeprecationLogger.nagUserAboutDeprecatedWhenTaskExecuted(method, toString());
         }
     }
 
