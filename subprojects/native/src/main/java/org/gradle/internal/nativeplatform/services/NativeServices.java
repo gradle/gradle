@@ -20,6 +20,7 @@ import net.rubygrapefruit.platform.NativeException;
 import net.rubygrapefruit.platform.NativeIntegrationUnavailableException;
 import net.rubygrapefruit.platform.Terminals;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.nativeplatform.*;
 import org.gradle.internal.nativeplatform.console.ConsoleDetector;
 import org.gradle.internal.nativeplatform.console.NativePlatformConsoleDetector;
@@ -81,7 +82,16 @@ public class NativeServices extends DefaultServiceRegistry {
         return FileSystems.getDefault();
     }
 
+    protected Jvm createJvm() {
+        return Jvm.current();
+    }
+
     protected ProcessEnvironment createProcessEnvironment() {
+        Jvm jvm = get(Jvm.class);
+        if (jvm.isIbmJvm()) {
+            return new UnsupportedEnvironment();
+        }
+
         OperatingSystem operatingSystem = get(OperatingSystem.class);
         try {
             if (operatingSystem.isUnix()) {
