@@ -45,5 +45,5 @@ if (rcNumber != null) {
 }
 ext.isSnapshot = finalRelease == false && rcNumber == null
 if (isSnapshot) {
-    version += "$buildTimestamp"
+    version += "-$buildTimestamp"
 }
