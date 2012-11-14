@@ -17,6 +17,7 @@ package org.gradle.util;
 
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.runtime.StackTraceUtils;
+import org.gradle.api.Task;
 import org.gradle.internal.Factory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -230,5 +231,9 @@ public class DeprecationLogger {
         } else {
             nagUserWith(String.format("Deprecated dynamic property \"%s\" created in multiple locations.", propertyName));
         }
+    }
+
+    public static void nagUserAboutDeprecatedWhenTaskExecuted(String method, Task task){
+        nagUserWith(String.format("Calling %s after task execution has started %s Check the configuration of task %s. You may have misused '<<' at task declaration.", method, getDeprecationMessage(), task));
     }
 }

@@ -44,9 +44,11 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.StandardOutputCapture;
 import org.gradle.util.ConfigureUtil;
+import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -159,10 +161,13 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public List<Action<? super Task>> getActions() {
-        return actions;
+        return new TaskStateAwareArrayList(actions);
     }
 
     public void setActions(List<Action<? super Task>> actions) {
+        if (state.getExecuting() || state.getExecuted()) {
+            DeprecationLogger.nagUserAboutDeprecatedWhenTaskExecuted("Task.setActions(Actions<Task>)", this);
+        }
         deleteAllActions();
         for (Action<? super Task> action : actions) {
             doLast(action);
@@ -262,6 +267,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     public Task doFirst(Action<? super Task> action) {
         assertNotExecuting();
+        warnForActionAddedIfTaskExecuted("Task.doFirst(Action)");
         if (action == null) {
             throw new InvalidUserDataException("Action must not be null!");
         }
@@ -271,6 +277,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     public Task doLast(Action<? super Task> action) {
         assertNotExecuting();
+        warnForActionAddedIfTaskExecuted("Task.doLast(Action)");
         if (action == null) {
             throw new InvalidUserDataException("Action must not be null!");
         }
@@ -283,7 +290,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
             throw new IllegalOperationAtExecutionTimeException(String.format("You cannot add a task action at execution time, please check the configuration of task %s.", this));
         }
     }
-
 
     public int compareTo(Task otherTask) {
         int depthCompare = project.compareTo(otherTask.getProject());
@@ -374,6 +380,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     public Task doFirst(Closure action) {
         assertNotExecuting();
+        warnForActionAddedIfTaskExecuted("Task.doFirst(Closure)");
         if (action == null) {
             throw new InvalidUserDataException("Action must not be null!");
         }
@@ -383,6 +390,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     public Task doLast(Closure action) {
         assertNotExecuting();
+        warnForActionAddedIfTaskExecuted("Task.doLast(Closure)");
         if (action == null) {
             throw new InvalidUserDataException("Action must not be null!");
         }
@@ -392,6 +400,12 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     public Task leftShift(Closure action) {
         return doLast(action);
+    }
+
+    private void warnForActionAddedIfTaskExecuted(String method) {
+        if (state.getExecuted()) {
+            DeprecationLogger.nagUserAboutDeprecatedWhenTaskExecuted(method, this);
+        }
     }
 
     public Task configure(Closure closure) {
@@ -484,6 +498,78 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
             } finally {
                 Thread.currentThread().setContextClassLoader(original);
             }
+        }
+    }
+
+    private class TaskStateAwareArrayList extends ArrayList<Action<? super Task>> {
+        public TaskStateAwareArrayList(List<Action<? super Task>> actions) {
+            super(actions);
+        }
+
+        private void nagIfNecessary(String method) {
+            if (AbstractTask.this.state.getExecuting() || AbstractTask.this.state.getExecuted()) {
+                DeprecationLogger.nagUserAboutDeprecatedWhenTaskExecuted(method, AbstractTask.this);
+            }
+        }
+
+        @Override
+        public boolean add(Action<? super Task> e) {
+            nagIfNecessary("Task.getActions().add(Action)");
+            return super.add(e);
+        }
+
+        @Override
+        public void add(int index, Action<? super Task> e) {
+            nagIfNecessary("Task.getActions().add(int, Action)");
+            super.add(index, e);
+        }
+
+        @Override
+        public boolean addAll(Collection<? extends Action<? super Task>> c) {
+            nagIfNecessary("Task.getActions().addAll(Collection<? extends Action>");
+            return super.addAll(c);
+        }
+
+        @Override
+        public boolean addAll(int index, Collection<? extends Action<? super Task>> c) {
+            nagIfNecessary("Task.getActions().addAll(int, Collection<? extends Action>");
+            return super.addAll(index, c);
+        }
+
+        @Override
+        public boolean remove(Object o) {
+            nagIfNecessary("Task.getActions().remove(Object)");
+            return super.remove(o);
+        }
+
+        @Override
+        public Action<? super Task> remove(int index) {
+            nagIfNecessary("Task.getActions().remove(int)");
+            return super.remove(index);
+        }
+
+        @Override
+        public boolean removeAll(Collection c) {
+            nagIfNecessary("Task.getActions().removeAll(Collection)");
+            return super.removeAll(c);
+        }
+
+        @Override
+        public boolean retainAll(Collection c) {
+            nagIfNecessary("Task.getActions().retainAll(Collection)");
+            return super.retainAll(c);
+        }
+
+        @Override
+        public void removeRange(int fromIndex, int toIndex) {
+            nagIfNecessary("Task.getActions().removeRange(int,int)");
+            super.removeRange(fromIndex, toIndex);
+        }
+
+        @Override
+        public void clear() {
+            nagIfNecessary("Task.getActions().clear()");
+            super.clear();
         }
     }
 }
