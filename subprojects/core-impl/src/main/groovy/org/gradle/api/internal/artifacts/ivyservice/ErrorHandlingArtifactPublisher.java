@@ -19,7 +19,6 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.PublishException;
 import org.gradle.api.internal.Transformers;
-import org.gradle.api.internal.XmlTransformer;
 import org.gradle.api.internal.artifacts.ArtifactPublisher;
 
 import java.io.File;
@@ -36,9 +35,9 @@ public class ErrorHandlingArtifactPublisher implements ArtifactPublisher {
         this.artifactPublisher = artifactPublisher;
     }
 
-    public void publish(Module module, Set<? extends Configuration> configurations, File descriptorDestination, XmlTransformer descriptorModifier) {
+    public void publish(Module module, Set<? extends Configuration> configurations, File descriptor) {
         try {
-            artifactPublisher.publish(module, configurations, descriptorDestination, descriptorModifier);
+            artifactPublisher.publish(module, configurations, descriptor);
         } catch (Throwable e) {
             String message = String.format(
                     "Could not publish configuration%s: [%s]",

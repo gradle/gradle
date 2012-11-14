@@ -37,24 +37,28 @@ class DefaultIvyPublicationTest extends Specification {
     def "publishable files are the artifact files"() {
         when:
         def file1 = project.file("file1")
+        def descriptorFile1 = project.file("ivy1.xml")
         project.configurations { conf1 }
         project.artifacts { conf1 file1 }
         def p = publication(project.configurations.conf1)
+        p.descriptor.file = descriptorFile1
 
         then:
-        p.publishableFiles.singleFile == file1
+        p.publishableFiles.files == [file1, descriptorFile1] as Set
 
         when:
         def file2 = project.file("file2")
+        def descriptorFile2 = project.file("ivy2.xml")
         project.configurations { conf2 }
         project.artifacts { conf2 file2 }
         p = publication(project.configurations.conf1, project.configurations.conf2)
+        p.descriptor.file = descriptorFile2
 
         then:
-        p.publishableFiles.files == [file1, file2] as Set
+        p.publishableFiles.files == [file1, file2, descriptorFile2] as Set
     }
 
-    def "publication is built by what builds the artifacts"() {
+    def "publication is built by what builds the artifacts and descriptor"() {
         given:
         project.plugins.apply(JavaBasePlugin)
         Task dummyTask = project.task("dummyTask")
@@ -77,5 +81,24 @@ class DefaultIvyPublicationTest extends Specification {
 
         then:
         p.buildDependencies.getDependencies(dummyTask) == [task1, task2] as Set
+
+        when:
+        def task3 = project.tasks.add("task3")
+        p.descriptor.builtBy(task3)
+
+        then:
+        p.buildDependencies.getDependencies(dummyTask) == [task1, task2, task3] as Set
+    }
+
+    def "can get publishable files when no descriptor file set"() {
+        when:
+        def file1 = project.file("file1")
+        project.configurations { conf1 }
+        project.artifacts { conf1 file1 }
+        def p = publication(project.configurations.conf1)
+
+        then:
+        p.descriptor.file == null
+        p.publishableFiles.files == [file1] as Set
     }
 }

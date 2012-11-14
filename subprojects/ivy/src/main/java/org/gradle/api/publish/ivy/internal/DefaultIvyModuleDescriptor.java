@@ -18,17 +18,26 @@ package org.gradle.api.publish.ivy.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.XmlProvider;
-import org.gradle.api.internal.XmlTransformer;
+import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.internal.tasks.TaskResolver;
+import org.gradle.api.tasks.TaskDependency;
+import org.gradle.listener.ActionBroadcast;
 
 import java.io.File;
 
 public class DefaultIvyModuleDescriptor implements IvyModuleDescriptorInternal {
 
-    private final XmlTransformer transformer = new XmlTransformer();
+    private final ActionBroadcast<XmlProvider> xmlActions = new ActionBroadcast<XmlProvider>();
     private File file;
 
+    private final DefaultTaskDependency builtBy;
+
+    public DefaultIvyModuleDescriptor(TaskResolver taskResolver) {
+        builtBy = new DefaultTaskDependency(taskResolver);
+    }
+
     public void withXml(Action<XmlProvider> action) {
-        transformer.addAction(action);
+        xmlActions.add(action);
     }
 
     public File getFile() {
@@ -39,7 +48,15 @@ public class DefaultIvyModuleDescriptor implements IvyModuleDescriptorInternal {
         this.file = descriptorFile;
     }
 
-    public XmlTransformer getTransformer() {
-        return transformer;
+    public Action<XmlProvider> getXmlAction() {
+        return xmlActions;
+    }
+
+    public void builtBy(Object... tasks) {
+        builtBy.add(tasks);
+    }
+
+    public TaskDependency getBuildDependencies() {
+        return builtBy;
     }
 }

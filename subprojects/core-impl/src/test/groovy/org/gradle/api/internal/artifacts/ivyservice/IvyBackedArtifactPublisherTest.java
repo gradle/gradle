@@ -86,17 +86,15 @@ public class IvyBackedArtifactPublisherTest {
             allowing(ivyModuleDescriptorWriterMock).write(fileModuleDescriptorMock, someDescriptorDestination, null);
         }});
 
-        ivyService.publish(configuration.getModule(), configuration.getHierarchy(), someDescriptorDestination, null);
+        ivyService.publish(configuration.getModule(), configuration.getHierarchy(), someDescriptorDestination);
     }
 
     private IvyBackedArtifactPublisher createIvyService() {
         return new IvyBackedArtifactPublisher(resolverProvider,
                 settingsConverterStub,
                 publishModuleDescriptorConverter,
-                fileModuleDescriptorConverter,
                 ivyFactoryStub,
-                ivyDependencyPublisherMock,
-                ivyModuleDescriptorWriterMock);
+                ivyDependencyPublisherMock);
     }
 
     private List<DependencyResolver> createPublishResolversDummy() {

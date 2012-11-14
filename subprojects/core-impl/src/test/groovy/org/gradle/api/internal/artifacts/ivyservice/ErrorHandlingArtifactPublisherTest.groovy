@@ -45,22 +45,22 @@ public class ErrorHandlingArtifactPublisherTest {
     @Test
     public void publishDelegatesToBackingService() {
         context.checking {
-            one(artifactPublisherMock).publish(moduleMock, configurations, null, null)
+            one(artifactPublisherMock).publish(moduleMock, configurations, null)
         }
 
-        ivyService.publish(moduleMock, configurations, null, null)
+        ivyService.publish(moduleMock, configurations, null)
     }
 
     @Test
     public void wrapsPublishException() {
         context.checking {
             one(configurationMock).getName(); will(returnValue("name"))
-            one(artifactPublisherMock).publish(moduleMock, configurations, null, null)
+            one(artifactPublisherMock).publish(moduleMock, configurations, null)
             will(throwException(failure))
         }
 
         try {
-            ivyService.publish(moduleMock, configurations, null, null)
+            ivyService.publish(moduleMock, configurations, null)
             fail()
         }
         catch(PublishException e) {

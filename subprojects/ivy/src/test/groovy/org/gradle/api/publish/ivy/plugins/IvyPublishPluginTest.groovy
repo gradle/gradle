@@ -17,6 +17,7 @@
 package org.gradle.api.publish.ivy.plugins
 
 import org.gradle.api.Project
+import org.gradle.api.internal.XmlTransformer
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.ivy.IvyPublication
 import org.gradle.api.publish.ivy.internal.IvyNormalizedPublication
@@ -80,6 +81,8 @@ class IvyPublishPluginTest extends Specification {
         }
 
         then:
-        publication.descriptor.transformer.transform("<things/>").contains('things foo="bar"')
+        def transformer = new XmlTransformer()
+        transformer.addAction(publication.descriptor.xmlAction)
+        transformer.transform("<things/>").contains('things foo="bar"')
     }
 }

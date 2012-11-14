@@ -394,20 +394,17 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         }
 
         ArtifactPublisher createArtifactPublisher(ResolverProvider resolverProvider) {
-            PublishModuleDescriptorConverter fileModuleDescriptorConverter = new PublishModuleDescriptorConverter(
-                    get(ResolveModuleDescriptorConverter.class),
-                    new DefaultArtifactsToModuleDescriptorConverter(DefaultArtifactsToModuleDescriptorConverter.IVY_FILE_STRATEGY));
-
             return new ErrorHandlingArtifactPublisher(
                     new IvyBackedArtifactPublisher(
                             resolverProvider,
                             get(SettingsConverter.class),
                             get(PublishModuleDescriptorConverter.class),
-                            fileModuleDescriptorConverter,
                             get(IvyFactory.class),
-                            new DefaultIvyDependencyPublisher(),
-                            new IvyXmlModuleDescriptorWriter()));
+                            new DefaultIvyDependencyPublisher()
+                    )
+            );
         }
+
     }
 
     private static class DefaultArtifactPublicationServices implements ArtifactPublicationServices {
@@ -431,6 +428,16 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                 repositoryHandler = dependencyResolutionServices.createRepositoryHandler();
             }
             return repositoryHandler;
+        }
+
+        public ModuleDescriptorConverter getDescriptorFileModuleConverter() {
+            return new PublishModuleDescriptorConverter(
+                    dependencyResolutionServices.parent.get(ResolveModuleDescriptorConverter.class),
+                    new DefaultArtifactsToModuleDescriptorConverter(DefaultArtifactsToModuleDescriptorConverter.IVY_FILE_STRATEGY));
+        }
+
+        public IvyModuleDescriptorWriter getIvyModuleDescriptorWriter() {
+            return new IvyXmlModuleDescriptorWriter();
         }
     }
 }

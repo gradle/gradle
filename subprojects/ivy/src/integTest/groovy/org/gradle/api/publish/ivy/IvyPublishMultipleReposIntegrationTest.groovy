@@ -64,15 +64,6 @@ class IvyPublishMultipleReposIntegrationTest extends AbstractIntegrationSpec {
                     }
                 }
             }
-
-            // Be nasty and delete the descriptor after the first publishing
-            // to make sure it's regenerated for the second publish
-            publishIvyPublicationToIvyRepository {
-                doLast {
-                    assert publication.descriptor.file.delete()
-                    publication.descriptor.withXml { asNode().@rev = "11" }
-                }
-            }
         """
 
         when:
@@ -90,7 +81,7 @@ class IvyPublishMultipleReposIntegrationTest extends AbstractIntegrationSpec {
 
         and: // Modification applied to both
         repo1Module.ivy.rev == "10"
-        repo2Module.ivy.rev == "11"
+        repo2Module.ivy.rev == "10"
     }
 
 }

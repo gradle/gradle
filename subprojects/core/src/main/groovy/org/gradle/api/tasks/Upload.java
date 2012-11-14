@@ -17,22 +17,27 @@
 package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
 import org.gradle.api.internal.artifacts.ArtifactPublisher;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.artifacts.ivyservice.IvyModuleDescriptorWriter;
+import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
 import org.gradle.util.ConfigureUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.Set;
 
 /**
  * Uploads the artifacts of a {@link Configuration} to a set of repositories.
- * 
+ *
  * @author Hans Dockter
  */
 public class Upload extends ConventionTask {
@@ -51,21 +56,32 @@ public class Upload extends ConventionTask {
 
     private ArtifactPublisher artifactPublisher;
 
+    private ModuleDescriptorConverter moduleDescriptorConverter;
+    private IvyModuleDescriptorWriter ivyModuleDescriptorWriter;
+
     public Upload() {
         ArtifactPublicationServices publicationServices = getServices().getFactory(ArtifactPublicationServices.class).create();
         repositories = publicationServices.getRepositoryHandler();
         artifactPublisher = publicationServices.getArtifactPublisher();
+        moduleDescriptorConverter = publicationServices.getDescriptorFileModuleConverter();
+        ivyModuleDescriptorWriter = publicationServices.getIvyModuleDescriptorWriter();
     }
 
     @TaskAction
     protected void upload() {
         logger.info("Publishing configuration: " + configuration);
-        ConfigurationInternal configurationInternal = (ConfigurationInternal) configuration;
-        artifactPublisher.publish(
-                configurationInternal.getModule(), configuration.getHierarchy(),
-                isUploadDescriptor() ? getDescriptorDestination() : null,
-                null
-        );
+        Module module = ((ConfigurationInternal) configuration).getModule();
+        Set<Configuration> configurationsToPublish = configuration.getHierarchy();
+
+        if (isUploadDescriptor()) {
+            File descriptorDestination = getDescriptorDestination();
+            Set<Configuration> allConfigurations = configurationsToPublish.iterator().next().getAll();
+            ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convert(allConfigurations, module);
+            ivyModuleDescriptorWriter.write(moduleDescriptor, descriptorDestination);
+            artifactPublisher.publish(module, configurationsToPublish, descriptorDestination);
+        } else {
+            artifactPublisher.publish(module, configurationsToPublish, null);
+        }
     }
 
     /**
@@ -117,7 +133,7 @@ public class Upload extends ConventionTask {
 
     /**
      * Returns the artifacts which will be uploaded.
-     * 
+     *
      * @return the artifacts.
      */
     @InputFiles
@@ -134,4 +150,11 @@ public class Upload extends ConventionTask {
         this.artifactPublisher = artifactPublisher;
     }
 
+    void setModuleDescriptorConverter(ModuleDescriptorConverter moduleDescriptorConverter) {
+        this.moduleDescriptorConverter = moduleDescriptorConverter;
+    }
+
+    void setIvyModuleDescriptorWriter(IvyModuleDescriptorWriter ivyModuleDescriptorWriter) {
+        this.ivyModuleDescriptorWriter = ivyModuleDescriptorWriter;
+    }
 }

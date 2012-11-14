@@ -18,15 +18,14 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.apache.ivy.core.module.id.ModuleRevisionId
-import org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorParser
 import org.gradle.api.internal.artifacts.ivyservice.IvyModuleDescriptorWriter
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyXmlModuleDescriptorParser
 import org.gradle.api.internal.filestore.FileStoreEntry
 import org.gradle.api.internal.filestore.PathKeyFileStore
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyXmlModuleDescriptorParser
 
 class ModuleDescriptorStoreTest extends Specification {
 

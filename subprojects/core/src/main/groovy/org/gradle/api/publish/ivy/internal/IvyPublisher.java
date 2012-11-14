@@ -27,7 +27,7 @@ public class IvyPublisher {
     }
 
     public void publish(IvyNormalizedPublication publication) {
-        artifactPublisher.publish(publication.getModule(), publication.getConfigurations(), publication.getDescriptorFile(), publication.getDescriptorTransformer());
+        artifactPublisher.publish(publication.getModule(), publication.getConfigurations(), publication.getDescriptorFile());
     }
 
 }

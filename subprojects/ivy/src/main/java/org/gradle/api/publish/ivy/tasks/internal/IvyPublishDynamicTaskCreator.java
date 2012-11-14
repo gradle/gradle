@@ -72,24 +72,25 @@ public class IvyPublishDynamicTaskCreator {
             return;
         }
 
-        IvyPublicationInternal publicationInternal = (IvyPublicationInternal) publication;
-        IvyArtifactRepositoryInternal repositoryInternal = (IvyArtifactRepositoryInternal) repository;
+        final IvyPublicationInternal publicationInternal = (IvyPublicationInternal) publication;
+        final IvyArtifactRepositoryInternal repositoryInternal = (IvyArtifactRepositoryInternal) repository;
 
         String publicationName = publication.getName();
         String repositoryName = repository.getName();
-        String taskName = calculatePublishTaskName(publicationName, repositoryName);
 
-        PublishToIvyRepository task = tasks.add(taskName, PublishToIvyRepository.class);
-        task.setPublication(publicationInternal);
-        task.setRepository(repositoryInternal);
-        task.setGroup("publishing");
-        task.setDescription(String.format("Publishes Ivy publication '%s' to Ivy repository '%s'", publicationName, repositoryName));
+        String publishTaskName = calculatePublishTaskName(publicationName, repositoryName);
+        PublishToIvyRepository publishTask = tasks.add(publishTaskName, PublishToIvyRepository.class);
+        publishTask.setPublication(publicationInternal);
+        publishTask.setRepository(repositoryInternal);
+        publishTask.setGroup("publishing");
+        publishTask.setDescription(String.format("Publishes Ivy publication '%s' to Ivy repository '%s'", publicationName, repositoryName));
 
-        publishLifecycleTask.dependsOn(task);
+        publishLifecycleTask.dependsOn(publishTask);
     }
 
     private String calculatePublishTaskName(String publicationName, String repositoryName) {
         return String.format("publish%sPublicationTo%sRepository", capitalize(publicationName), capitalize(repositoryName));
     }
+
 
 }

@@ -17,6 +17,7 @@
 package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.PublishArtifactSet;
@@ -25,6 +26,8 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.artifacts.ArtifactPublisher;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.artifacts.ivyservice.IvyModuleDescriptorWriter;
+import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.HelperUtil;
 import org.jmock.Expectations;
@@ -38,6 +41,7 @@ import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.util.Collections;
+import java.util.Set;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
@@ -53,12 +57,16 @@ public class UploadTest extends AbstractTaskTest {
     private RepositoryHandler repositoriesMock;
     private ArtifactPublisher artifactPublisherMock;
     private ConfigurationInternal configurationMock;
+    private IvyModuleDescriptorWriter ivyModuleDescriptorWriterMock;
+    private ModuleDescriptorConverter moduleDescriptorConverterMock;
     private Module moduleMock;
 
     @Before public void setUp() {
         upload = createTask(Upload.class);
         repositoriesMock = context.mock(RepositoryHandler.class);
         artifactPublisherMock = context.mock(ArtifactPublisher.class);
+        ivyModuleDescriptorWriterMock = context.mock(IvyModuleDescriptorWriter.class);
+        moduleDescriptorConverterMock = context.mock(ModuleDescriptorConverter.class);
         moduleMock = context.mock(Module.class);
         configurationMock = context.mock(ConfigurationInternal.class);
     }
@@ -79,10 +87,22 @@ public class UploadTest extends AbstractTaskTest {
         upload.setDescriptorDestination(descriptorDestination);
         upload.setConfiguration(configurationMock);
         upload.setArtifactPublisher(artifactPublisherMock);
+        upload.setModuleDescriptorConverter(moduleDescriptorConverterMock);
+        upload.setIvyModuleDescriptorWriter(ivyModuleDescriptorWriterMock);
+
+        final ModuleDescriptor moduleDescriptorMock = context.mock(ModuleDescriptor.class);
+
         context.checking(new Expectations() {{
+            allowing(configurationMock).getExtendsFrom(); will(returnValue(Collections.emptySet()));
             one(configurationMock).getModule(); will(returnValue(moduleMock));
-            one(configurationMock).getHierarchy(); will(returnValue(Collections.emptySet()));
-            one(artifactPublisherMock).publish(moduleMock, Collections.<Configuration>emptySet(), descriptorDestination, null);
+
+            Set<ConfigurationInternal> singletonConfiguration = Collections.singleton(configurationMock);
+            one(configurationMock).getHierarchy(); will(returnValue(singletonConfiguration));
+            one(configurationMock).getAll(); will(returnValue(singletonConfiguration));
+
+            one(moduleDescriptorConverterMock).convert(singletonConfiguration, moduleMock); will(returnValue(moduleDescriptorMock));
+            one(ivyModuleDescriptorWriterMock).write(moduleDescriptorMock, upload.getDescriptorDestination());
+            one(artifactPublisherMock).publish(moduleMock, singletonConfiguration, descriptorDestination);
         }});
         upload.upload();
     }
@@ -95,7 +115,7 @@ public class UploadTest extends AbstractTaskTest {
         context.checking(new Expectations() {{
             one(configurationMock).getModule(); will(returnValue(moduleMock));
             one(configurationMock).getHierarchy(); will(returnValue(Collections.emptySet()));
-            one(artifactPublisherMock).publish(moduleMock, Collections.<Configuration>emptySet(), null, null);
+            one(artifactPublisherMock).publish(moduleMock, Collections.<Configuration>emptySet(), null);
         }});
         upload.upload();
     }

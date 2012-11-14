@@ -16,11 +16,14 @@
 
 package org.gradle.api.publish.ivy.internal;
 
-import org.gradle.api.internal.XmlTransformer;
+import org.gradle.api.Action;
+import org.gradle.api.XmlProvider;
 import org.gradle.api.publish.ivy.IvyModuleDescriptor;
 
 public interface IvyModuleDescriptorInternal extends IvyModuleDescriptor {
 
-    XmlTransformer getTransformer();
+    Action<XmlProvider> getXmlAction();
+
+    void builtBy(Object... tasks);
 
 }
