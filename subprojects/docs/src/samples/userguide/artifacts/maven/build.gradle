@@ -60,7 +60,6 @@ dependencies {
 
 uploadArchives {
     repositories.mavenDeployer {
-        name = 'sshDeployer' // optional
         configuration = configurations.deployerJars
         repository(url: "scp://repos.mycompany.com/releases") {
             authentication(userName: "me", password: "myPassword")
