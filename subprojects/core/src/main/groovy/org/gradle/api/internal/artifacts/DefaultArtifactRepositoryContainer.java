@@ -157,8 +157,7 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
         DependencyResolver resolver = baseRepositoryFactory.toResolver(repository);
         ConfigureUtil.configure(configureClosure, resolver);
         ArtifactRepository resolverRepository = baseRepositoryFactory.createResolverBackedRepository(resolver);
-        resolverRepository.setName("repository");
-        addRepository(resolverRepository, orderAction);
+        addRepository(resolverRepository, "repository", orderAction);
         return resolver;
     }
 
@@ -207,7 +206,7 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
         }
         assertCanAdd(repositoryName);
         action.execute(repository);
-
+        cast(ArtifactRepositoryInternal.class, repository).onAddToContainer(this);
         return repository;
     }
 
