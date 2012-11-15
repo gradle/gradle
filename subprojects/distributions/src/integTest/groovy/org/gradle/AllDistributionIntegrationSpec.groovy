@@ -23,9 +23,14 @@ import static org.hamcrest.Matchers.containsString
 
 class AllDistributionIntegrationSpec extends DistributionIntegrationSpec {
 
+    @Override
+    String getDistributionLabel() {
+        "all"
+    }
+
     def allZipContents() {
         given:
-        TestFile contentsDir = unpackDistribution("all")
+        TestFile contentsDir = unpackDistribution()
 
         expect:
         checkMinimalContents(contentsDir)

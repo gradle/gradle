@@ -24,10 +24,15 @@ import org.gradle.util.TestPrecondition
 
 class SrcDistributionIntegrationSpec extends DistributionIntegrationSpec {
 
+    @Override
+    String getDistributionLabel() {
+        "src"
+    }
+
     @Requires(TestPrecondition.NOT_WINDOWS)
     def sourceZipContents() {
         given:
-        TestFile contentsDir = unpackDistribution("src")
+        TestFile contentsDir = unpackDistribution()
 
         expect:
         !contentsDir.file(".git").exists()

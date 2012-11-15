@@ -20,9 +20,14 @@ import org.gradle.util.TestFile
 
 class BinDistributionIntegrationSpec extends DistributionIntegrationSpec {
 
+    @Override
+    String getDistributionLabel() {
+        "bin"
+    }
+
     def binZipContents() {
         given:
-        TestFile contentsDir = unpackDistribution("bin")
+        TestFile contentsDir = unpackDistribution()
 
         expect:
         checkMinimalContents(contentsDir)

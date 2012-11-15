@@ -25,10 +25,13 @@ import org.junit.Rule
 import spock.lang.Shared
 import spock.lang.Specification
 
+import java.util.zip.ZipEntry
+import java.util.zip.ZipFile
+
 import static org.hamcrest.Matchers.equalTo
 import static org.junit.Assert.assertThat
 
-class DistributionIntegrationSpec extends Specification {
+abstract class DistributionIntegrationSpec extends Specification {
 
     @Rule public final GradleDistribution dist = new GradleDistribution()
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
@@ -36,11 +39,31 @@ class DistributionIntegrationSpec extends Specification {
 
     @Shared String version = GradleVersion.current().version
 
-    protected TestFile unpackDistribution(type) {
-        TestFile srcZip = dist.distributionsDir.file("gradle-$version-${type}.zip")
-        srcZip.usingNativeTools().unzipTo(dist.testDir)
+    abstract String getDistributionLabel()
+
+    def "no duplicate entries"() {
+        given:
+        ZipFile zipFile = new ZipFile(zip)
+
+        when:
+        def entries = zipFile.entries().toList()
+        def entriesByPath = entries.groupBy { ZipEntry zipEntry -> zipEntry.name }
+        def dupes = entriesByPath.findAll() { it.value.size() > 1 }
+        def dupesWithCount = dupes.collectEntries { [it.key, it.value.size()]}
+
+        then:
+        dupesWithCount.isEmpty()
+    }
+
+    protected TestFile unpackDistribution(type = getDistributionLabel()) {
+        TestFile zip = getZip(type)
+        zip.usingNativeTools().unzipTo(dist.testDir)
         TestFile contentsDir = dist.testDir.file("gradle-$version")
         contentsDir
+    }
+
+    protected TestFile getZip(String type = getDistributionLabel()) {
+        dist.distributionsDir.file("gradle-$version-${type}.zip")
     }
 
     protected void checkMinimalContents(TestFile contentsDir) {
