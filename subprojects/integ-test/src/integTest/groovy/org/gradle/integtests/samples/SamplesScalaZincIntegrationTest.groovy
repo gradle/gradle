@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,31 +16,30 @@
 
 package org.gradle.integtests.samples
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.util.TestFile
-import org.junit.Before
 import org.junit.Rule
-import org.junit.Test
+import spock.lang.IgnoreIf
+import spock.lang.Specification
 
-class SamplesScalaZincIntegrationTest {
-    @Rule public final GradleDistribution dist = new GradleDistribution()
-    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
-    @Rule public final Sample sample = new Sample('scala/zinc')
+@IgnoreIf({!JavaVersion.current().java6Compatible})
+class SamplesScalaZincIntegrationTest extends Specification {
+    @Rule GradleDistribution dist = new GradleDistribution()
+    @Rule GradleDistributionExecuter executer = new GradleDistributionExecuter()
+    @Rule Sample sample = new Sample('scala/zinc')
 
-    private TestFile projectDir
+    def canBuildJar() {
+        given:
+        def projectDir = sample.dir
 
-    @Before
-    void setUp() {
-        projectDir = sample.dir
-    }
-
-    @Test
-    public void canBuildJar() {
+        when:
         // Build and test projects
         executer.inDirectory(projectDir).withTasks('clean', 'build').run()
 
+        then:
         // Check contents of Jar
         TestFile jarContents = dist.testDir.file('jar')
         projectDir.file("build/libs/zinc.jar").unzipTo(jarContents)
