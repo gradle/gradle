@@ -103,6 +103,13 @@ class ScalaCompileOptionsTest {
         assertThat(optionMap[antProperty] as String, equalTo('pickler,tailcalls' as String))
     }
 
+    @Test void disablingUseAntEnablesFork() {
+        assert !compileOptions.fork
+
+        compileOptions.useAnt = false
+        assert compileOptions.fork
+    }
+
     private assertBooleanValue(String fieldName, String antProperty, boolean defaultValue) {
         assertThat(compileOptions."$fieldName" as boolean, equalTo(defaultValue))
 
