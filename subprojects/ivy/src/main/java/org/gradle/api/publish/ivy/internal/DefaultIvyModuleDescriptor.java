@@ -36,7 +36,7 @@ public class DefaultIvyModuleDescriptor implements IvyModuleDescriptorInternal {
         builtBy = new DefaultTaskDependency(taskResolver);
     }
 
-    public void withXml(Action<XmlProvider> action) {
+    public void withXml(Action<? super XmlProvider> action) {
         xmlActions.add(action);
     }
 
