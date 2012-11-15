@@ -192,7 +192,7 @@ For more information on the test logging functionality, see [this forum post](ht
 
 ## Fixed issues
 
-The list of issues fixed between 1.2 and 1.3 can be found [here](http://issues.gradle.org/sr/jira.issueviews:searchrequest-printable/temp/SearchRequest.html?jqlQuery=fixVersion+in+%28%221.3-rc-1%22%29+ORDER+BY+priority&tempMax=1000).
+The list of issues fixed between 1.2 and 1.3 can be found [here](http://issues.gradle.org/sr/jira.issueviews:searchrequest-printable/temp/SearchRequest.html?jqlQuery=fixVersion+in+%28%221.3-rc-1%22%2C+%221.3-rc-2%22%29+and+resolution+is+not+null+ORDER+BY+priority&tempMax=1000).
 
 ## Incubating features
 
