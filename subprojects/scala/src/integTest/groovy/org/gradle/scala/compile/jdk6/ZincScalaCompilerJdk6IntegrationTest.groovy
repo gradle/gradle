@@ -22,8 +22,16 @@ import org.gradle.scala.compile.BasicScalaCompilerIntegrationTest
 import org.junit.Rule
 
 @TargetVersions(["2.8.2", "2.9.2", "2.10.0-RC1"])
-abstract class ZincScalaCompilerJdk6IntegrationTest extends BasicScalaCompilerIntegrationTest {
+class ZincScalaCompilerJdk6IntegrationTest extends BasicScalaCompilerIntegrationTest {
     @Rule TestResources testResources
+
+    String compilerConfiguration() {
+        """
+compileScala.scalaCompileOptions.with {
+    useAnt = false
+}
+        """
+    }
 
     String logStatement() {
         "Compiling with Zinc Scala compiler"
