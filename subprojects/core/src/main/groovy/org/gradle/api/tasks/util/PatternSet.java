@@ -31,7 +31,7 @@ import org.gradle.util.CollectionUtils;
 import java.util.*;
 
 /**
- * {@inheritDoc}
+ * Standalone implementation of {@link PatternFilterable}.
  */
 public class PatternSet implements AntBuilderAware, PatternFilterable {
 
