@@ -275,17 +275,10 @@
     <section>
         <title>Compiling in external process</title>
         <para>
-            When <literal>scalaCompileOptions.fork</literal> is set to <literal>true</literal>, compilation will take place
-            in an external process. The details of forking depend on which compiler is used. The Ant based compiler
-            (<literal>scalaCompileOptions.useAnt = true</literal>) will fork a new process for every <literal>ScalaCompile</literal> task,
-            and does not fork by default. The Zinc based compiler (<literal>scalaCompileOptions.useAnt = false</literal>) will leverage
-            the Gradle compiler daemon, and does so by default.
-        </para>
-        <para>Memory settings for the external process default to the JVM's defaults. To adjust memory settings,
-            configure <literal>scalaCompileOptions.forkOptions</literal> as needed:
-            <sample id="zinc" dir="scala/zinc" title="Adjusting memory settings">
-                <sourcefile file="build.gradle" snippet="adjust-memory"/>
-            </sample>
+            By default, the Scala compiler runs in the Gradle (client or daemon) JVM. This is a simple model but can potentially cause memory issues,
+            for example when a compiler is leaking memory. When setting <literal>scalaCompileOptions.fork = true</literal>, compilation will take place
+            in an external process. (The Ant based compiler will fork a new process for every <literal>ScalaCompile</literal> task, whereas the Zinc based
+            compiler will leverage the Gradle compiler daemon.) <literal>scalaCompileOptions.forkOptions</literal> allows to adjust memory settings as needed.
         </para>
     </section>
 
@@ -300,11 +293,8 @@
         <para>
             The Scala plugin now supports incremental compilation by integrating with <ulink url="https://github.com/typesafehub/zinc">Zinc</ulink>,
             a standalone version of <ulink url="https://github.com/harrah/xsbt">sbt</ulink>'s incremental Scala compiler. To switch the
-            <literal>ScalaCompile</literal> task from the default Ant based compiler to the new Zinc based compiler, set
-            <literal>scalaCompileOptions.useAnt</literal> to <literal>false</literal>:
-            <sample id="zinc" dir="scala/zinc" title="Activating the Zinc based compiler">
-                <sourcefile file="build.gradle" snippet="use-zinc"/>
-            </sample>
+            <literal>ScalaCompile</literal> task from the default Ant based compiler to the new Zinc based compiler, use
+            <literal>scalaCompileOptions.useAnt = false</literal>.
         </para>
 
         <para>
@@ -337,7 +327,7 @@
 
         <para>
             Due to the overhead of dependency analysis, a clean compilation or a compilation after a larger code change may take longer than with the Ant based compiler.
-            For CI builds and release builds, we currently recommend to use the Ant based compiler.
+            For CI builds and release builds, we recommend to use the more mature Ant based compiler.
         </para>
 
         <para>

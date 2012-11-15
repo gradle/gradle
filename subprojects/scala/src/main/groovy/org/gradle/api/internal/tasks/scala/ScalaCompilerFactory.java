@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.scala;
 
 import org.gradle.api.AntBuilder;
-import org.gradle.api.GradleException;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.AntJavaCompiler;
@@ -25,6 +24,7 @@ import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
+import org.gradle.api.internal.tasks.compile.daemon.InProcessCompilerDaemonFactory;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.scala.ScalaCompileOptions;
 import org.gradle.internal.Factory;
@@ -47,21 +47,19 @@ public class ScalaCompilerFactory {
             return new DefaultScalaJavaJointCompiler(scalaCompiler, javaCompiler);
         }
 
-        if (!scalaOptions.isFork()) {
-            throw new GradleException("The Zinc based Scala compiler ('scalaCompileOptions.useAnt=false') "
-                    + "requires forking ('scalaCompileOptions.fork=true'), but the latter is set to 'false'.");
-        }
-
-        // currently, we leave it to ZincScalaCompiler to also compile the Java code
+        // for now, we leave it to ZincScalaCompiler to also compile the Java code
         Compiler<ScalaJavaJointCompileSpec> scalaCompiler;
         try {
-            scalaCompiler = (Compiler<ScalaJavaJointCompileSpec>) getClass().getClassLoader()
-                    .loadClass("org.gradle.api.internal.tasks.scala.jdk6.ZincScalaCompiler").newInstance();
+            scalaCompiler = (Compiler<ScalaJavaJointCompileSpec>) getClass().getClassLoader().loadClass("org.gradle.api.internal.tasks.scala.jdk6.ZincScalaCompiler").newInstance();
         } catch (Exception e) {
-            throw new RuntimeException("Internal error: Failed to load org.gradle.api.internal.tasks.scala.jdk6.ZincScalaCompiler", e);
+            throw new RuntimeException("Failed to dynamically load ZincScalaCompiler", e);
         }
-
-        CompilerDaemonFactory daemonFactory = CompilerDaemonManager.getInstance();
+        CompilerDaemonFactory daemonFactory;
+        if (scalaOptions.isFork()) {
+            daemonFactory = CompilerDaemonManager.getInstance();
+        } else {
+            daemonFactory = InProcessCompilerDaemonFactory.getInstance();
+        }
         scalaCompiler = new DaemonScalaCompiler(project, scalaCompiler, daemonFactory);
         return new NormalizingScalaCompiler(scalaCompiler);
     }

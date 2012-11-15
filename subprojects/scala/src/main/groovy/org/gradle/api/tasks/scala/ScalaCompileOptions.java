@@ -260,9 +260,7 @@ public class ScalaCompileOptions extends AbstractOptions {
     }
 
     /**
-     * Whether to run the Scala compiler in a separate process. Defaults to {@code false}
-     * for the Ant based compiler ({@code useAnt = true}), and to {@code true} for the Zinc
-     * based compiler ({@code useAnt = false}).
+     * Whether to run the Scala compiler in a separate process. Defaults to {@code false}.
      */
     public boolean isFork() {
         return fork;
@@ -296,9 +294,6 @@ public class ScalaCompileOptions extends AbstractOptions {
 
     public void setUseAnt(boolean useAnt) {
         this.useAnt = useAnt;
-        if (!useAnt) {
-            setFork(true);
-        }
     }
 
     @Nested
