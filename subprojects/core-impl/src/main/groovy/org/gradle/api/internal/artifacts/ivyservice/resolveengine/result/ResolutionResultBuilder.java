@@ -48,14 +48,17 @@ public class ResolutionResultBuilder implements ResolvedConfigurationListener {
         return new DefaultResolutionResult(rootModule);
     }
 
+    public void resolvedModuleVersion(ModuleVersionSelection moduleVersion) {
+        createOrGet(moduleVersion.getSelectedId(), moduleVersion.getSelectionReason());
+    }
+
     public void resolvedConfiguration(ModuleVersionIdentifier id, Collection<? extends InternalDependencyResult> dependencies) {
         for (InternalDependencyResult d : dependencies) {
             DefaultResolvedModuleVersionResult from = modules.get(id);
-            assert from != null : "Something went wrong with building the dependency graph. Module [" + id + "] should have been visited.";
             if (d.getFailure() != null) {
                 from.addDependency(dependencyResultFactory.createUnresolvedDependency(d.getRequested(), from, d.getFailure()));
             } else {
-                DefaultResolvedModuleVersionResult selected = createOrGet(d.getSelected().getSelectedId(), d.getSelected().getSelectionReason());
+                DefaultResolvedModuleVersionResult selected = modules.get(d.getSelected().getSelectedId());
                 DependencyResult dependency = dependencyResultFactory.createResolvedDependency(d.getRequested(), from, selected);
                 from.addDependency(dependency);
                 selected.addDependent((ResolvedDependencyResult) dependency);

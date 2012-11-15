@@ -208,6 +208,13 @@ class ResolutionResultBuilderSpec extends Specification {
     }
 
     private void resolvedConf(String module, List<InternalDependencyResult> deps) {
+        def moduleVersion = new DummyModuleVersionSelection(selectedId: newId("x", module, "1"), selectionReason: VersionSelectionReasons.REQUESTED)
+        builder.resolvedModuleVersion(moduleVersion)
+        deps.each {
+            if (it.selected) {
+                builder.resolvedModuleVersion(it.selected)
+            }
+        }
         builder.resolvedConfiguration(confId(module), deps)
     }
 

@@ -17,6 +17,7 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.junit.Test
+import spock.lang.Issue
 
 import static org.hamcrest.Matchers.containsString
 
@@ -684,6 +685,128 @@ task checkDeps << {
 
         //expect
         executer.withTasks("checkDeps").withArguments('-s').run()
+    }
+
+    @Test
+    void "previously evicted nodes should contain correct target version"() {
+        /*
+        a1->b1
+        a2->b2->a1
+
+        resolution process:
+
+        1. stop resolution, resolve conflict a1 vs a2
+        2. select a2, restart resolution
+        3. stop, resolve b1 vs b2
+        4. select b2, restart
+        5. resolve b2 dependencies, a1 has been evicted previously but it should show correctly on the report
+           ('dependencies' report pre 1.2 would not show the a1 dependency leaf for this scenario)
+        */
+
+        ivyRepo.module("org", "b", '1.0').publish()
+        ivyRepo.module("org", "a", '1.0').dependsOn("org", "b", '1.0').publish()
+        ivyRepo.module("org", "b", '2.0').dependsOn("org", "a", "1.0").publish()
+        ivyRepo.module("org", "a", '2.0').dependsOn("org", "b", '2.0').publish()
+
+        file("build.gradle") << """
+            repositories {
+                ivy { url "${ivyRepo.uri}" }
+            }
+
+            configurations {
+                conf
+            }
+            dependencies {
+                conf 'org:a:1.0', 'org:a:2.0'
+            }
+            task checkDeps << {
+                assert configurations.conf*.name == ['a-2.0.jar', 'b-2.0.jar']
+                def result = configurations.conf.incoming.resolutionResult
+                assert result.allModuleVersions.size() == 3
+                def root = result.root
+                assert root.dependencies*.toString() == ['org:a:1.0 -> 2.0', 'org:a:2.0']
+                def a = result.allModuleVersions.find { it.id.name == 'a' }
+                assert a.dependencies*.toString() == ['org:b:2.0']
+                def b = result.allModuleVersions.find { it.id.name == 'b' }
+                assert b.dependencies*.toString() == ['org:a:1.0 -> 2.0']
+            }
+        """
+
+        executer.withTasks("checkDeps").run()
+    }
+
+    @Test
+    @Issue("GRADLE-2555")
+    void "can deal with transitive with parent in conflict"() {
+        /*
+            Graph looks like…
+
+            \--- org:a:1.0
+                 \--- org:in-conflict:1.0 -> 2.0
+                      \--- org:target:1.0
+                           \--- org:target-child:1.0
+            \--- org:b:1.0
+                 \--- org:b-child:1.0
+                      \--- org:in-conflict:2.0 (*)
+
+            This is the simplest structure I could boil it down to that produces the error.
+            - target *must* have a child
+            - Having "b" depend directly on "in-conflict" does not produce the error, needs to go through "b-child"
+         */
+
+        mavenRepo.module("org", "target-child", "1.0").
+                publish()
+
+        mavenRepo.module("org", "target", "1.0").
+                dependsOn("org", "target-child", "1.0").
+                publish()
+
+        mavenRepo.module("org", "in-conflict", "1.0").
+                dependsOn("org", "target", "1.0").
+                publish()
+
+        mavenRepo.module("org", "in-conflict", "2.0").
+                dependsOn("org", "target", "1.0").
+                publish()
+
+        mavenRepo.module("org", "a", '1.0').
+                dependsOn("org", "in-conflict", "1.0").
+                publish()
+
+        mavenRepo.module("org", "b-child", '1.0').
+                dependsOn("org", "in-conflict", "2.0").
+                publish()
+
+        mavenRepo.module("org", "b", '1.0').
+                dependsOn("org", "b-child", "1.0").
+                publish()
+
+        when:
+        file("build.gradle") << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+
+            configurations { conf }
+
+            dependencies {
+                conf "org:a:1.0", "org:b:1.0"
+            }
+
+        task checkDeps << {
+            assert configurations.conf*.name == ['a-1.0.jar', 'b-1.0.jar', 'target-child-1.0.jar', 'target-1.0.jar', 'in-conflict-2.0.jar', 'b-child-1.0.jar']
+            def result = configurations.conf.incoming.resolutionResult
+            assert result.allModuleVersions.size() == 7
+            def a = result.allModuleVersions.find { it.id.name == 'a' }
+            assert a.dependencies*.toString() == ['org:in-conflict:1.0 -> 2.0']
+            def bChild = result.allModuleVersions.find { it.id.name == 'b-child' }
+            assert bChild.dependencies*.toString() == ['org:in-conflict:2.0']
+            def target = result.allModuleVersions.find { it.id.name == 'target' }
+            assert target.dependents*.from*.toString() == ['org:in-conflict:2.0']
+        }
+        """
+
+        executer.withTasks("checkDeps").run()
     }
 
     def getRepo() {

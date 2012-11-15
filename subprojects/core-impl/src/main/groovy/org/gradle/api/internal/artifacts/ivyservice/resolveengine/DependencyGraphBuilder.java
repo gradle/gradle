@@ -151,10 +151,16 @@ public class DependencyGraphBuilder {
         listener.start(root);
 
         for (ConfigurationNode resolvedConfiguration : resolveState.getConfigurationNodes()) {
-            resolvedConfiguration.attachToParents(resolvedArtifactFactory, result);
-            resolvedConfiguration.collectFailures(failureState);
-
-            listener.resolvedConfiguration(resolvedConfiguration.toId(), resolvedConfiguration.outgoingEdges);
+            if (resolvedConfiguration.isSelected()) {
+                resolvedConfiguration.attachToParents(resolvedArtifactFactory, result);
+                resolvedConfiguration.collectFailures(failureState);
+                listener.resolvedModuleVersion(resolvedConfiguration.moduleRevision);
+            }
+        }
+        for (ConfigurationNode resolvedConfiguration : resolveState.getConfigurationNodes()) {
+            if (resolvedConfiguration.isSelected()) {
+                listener.resolvedConfiguration(resolvedConfiguration.toId(), resolvedConfiguration.outgoingEdges);
+            }
         }
         failureState.attachFailures(result);
     }
@@ -802,11 +808,11 @@ public class DependencyGraphBuilder {
             resolveState.onFewerSelected(this);
         }
 
+        public boolean isSelected() {
+            return moduleRevision.state == ModuleState.Selected;
+        }
+
         public void attachToParents(ResolvedArtifactFactory artifactFactory, ResolvedConfigurationBuilder result) {
-            if (moduleRevision.state != ModuleState.Selected) {
-                LOGGER.debug("Ignoring {} as it is not selected.", this);
-                return;
-            }
             LOGGER.debug("Attaching {} to its parents.", this);
             for (DependencyEdge dependency : incomingEdges) {
                 dependency.attachToParents(this, artifactFactory, result);
@@ -814,9 +820,6 @@ public class DependencyGraphBuilder {
         }
 
         public void collectFailures(FailureState failureState) {
-            if (moduleRevision.state != ModuleState.Selected) {
-                return;
-            }
             for (DependencyEdge dependency : outgoingEdges) {
                 dependency.collectFailures(failureState);
             }
