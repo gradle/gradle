@@ -18,6 +18,7 @@ package org.gradle.api.internal;
 
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.TaskExecuter;
+import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.execution.TaskValidator;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Factory;
@@ -46,6 +47,7 @@ public interface TaskInternal extends Task, Configurable<Task> {
 
     void addValidator(TaskValidator validator);
 
+    TaskStateInternal getStateInternal();
     /**
      * The returned factory is expected to return the same file each time.
      * <p>

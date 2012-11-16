@@ -134,6 +134,10 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         return state;
     }
 
+    public TaskStateInternal getStateInternal() {
+        return state;
+    }
+
     public AntBuilder getAnt() {
         return project.getAnt();
     }
@@ -361,9 +365,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public TaskOutputsInternal getOutputs() {
-        if (!state.isConfigurable()) {
-            return new WarningEmittedOnConfiguringTaskOutputsInternal(outputs, this);
-        }
         return outputs;
     }
 

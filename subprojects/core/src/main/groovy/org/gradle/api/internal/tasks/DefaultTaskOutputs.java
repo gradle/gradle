@@ -27,13 +27,20 @@ import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollectio
 import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskOutputs;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DefaultTaskOutputs implements TaskOutputsInternal {
     private final DefaultConfigurableFileCollection outputFiles;
     private AndSpec<TaskInternal> upToDateSpec = new AndSpec<TaskInternal>();
     private TaskExecutionHistory history;
+    private final TaskInternal task;
+
+    private final Logger logger = LoggerFactory.getLogger(getClass());
+    private boolean nagUser = true;
 
     public DefaultTaskOutputs(FileResolver resolver, TaskInternal task) {
+        this.task = task;
         outputFiles = new DefaultConfigurableFileCollection(String.format("%s output files", task), resolver, null);
         outputFiles.builtBy(task);
     }
@@ -43,10 +50,12 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     }
 
     public void upToDateWhen(Closure upToDateClosure) {
+        nagIfTaskNotInConfigurableState("TaskOutputs.upToDateWhen(Closure)");
         upToDateSpec = upToDateSpec.and(upToDateClosure);
     }
 
     public void upToDateWhen(Spec<? super Task> upToDateSpec) {
+        nagIfTaskNotInConfigurableState("TaskOutputs.upToDateWhen(Spec)");
         this.upToDateSpec = this.upToDateSpec.and(upToDateSpec);
     }
 
@@ -59,17 +68,22 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     }
 
     public TaskOutputs files(Object... paths) {
+        nagIfTaskNotInConfigurableState("TaskOutputs.files(Object...)");
         outputFiles.from(paths);
         return this;
     }
 
     public TaskOutputs file(Object path) {
+        nagIfTaskNotInConfigurableState("TaskOutputs.file(Object)");
         files(path);
         return this;
     }
 
     public TaskOutputs dir(Object path) {
+        nagIfTaskNotInConfigurableState("TaskOutputs.dir(Object)");
+        nagUser = false;
         files(path);
+        nagUser = true;
         return this;
     }
 
@@ -82,5 +96,11 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
 
     public void setHistory(TaskExecutionHistory history) {
         this.history = history;
+    }
+
+    private void nagIfTaskNotInConfigurableState(String method) {
+        if (!task.getStateInternal().isConfigurable() && nagUser) {
+            logger.warn(String.format("Calling %s after task execution has started has been deprecated and is scheduled to be removed in Gradle 2.0 Check the configuration of task task ':foo'. You may have misused '<<' at task declaration.", method, this));
+        }
     }
 }
