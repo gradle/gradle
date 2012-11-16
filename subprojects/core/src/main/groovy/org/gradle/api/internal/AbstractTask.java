@@ -353,14 +353,14 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public TaskInputs getInputs() {
-        if (state.getExecuted() || state.getExecuting()) {
+        if (!state.isConfigurable()) {
             return new WarningEmittedOnConfiguringTaskInputs(inputs, this);
         }
         return inputs;
     }
 
     public TaskOutputsInternal getOutputs() {
-        if (state.getExecuted() || state.getExecuting()) {
+        if (!state.isConfigurable()) {
             return new WarningEmittedOnConfiguringTaskOutputsInternal(outputs, this);
         }
         return outputs;
@@ -501,7 +501,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     private void nagIfTaskAlreadyExecuted(String method) {
-        if (AbstractTask.this.state.getExecuted() || AbstractTask.this.state.getExecuting()) {
+        if (!AbstractTask.this.state.isConfigurable()) {
             DeprecationLogger.nagUserAboutDeprecatedWhenTaskExecuted(method, toString());
         }
     }
