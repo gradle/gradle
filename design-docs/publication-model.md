@@ -167,6 +167,7 @@ at this point to start pulling descriptor generation up, so that it can eventual
 * A `withXml` action can be used to modify the generated `ivy.xml`.
 * Decent error message when the `withXml` action fails.
 * Decent error message when no repository has been specified for the `publishIvy` task.
+* Descriptor contains non-ascii characters.
 
 ## Customising Maven descriptor XML
 
@@ -258,8 +259,23 @@ It should be possible to implement this as an adapter over the existing MavenPom
 * Multi-project build with project dependencies that is published to a Maven repository can be successfully resolved by another build.
 * A `withXml` action can be used to modify the generated `pom.xml`.
 * Decent error message when the `withXml` action fails.
+* Descriptor contains non-ascii characters.
 
-## Customising the Maven and Ivy meta data
+## Allow Ivy module descriptor to be generated without publishing to a repository
+
+In this step, the meta-data file generation for an Ivy publication is moved out of the `publish` tasks and into a separate task.
+
+1. Add `GenerateIvyFile` task type. Takes a `IvyModuleDescriptor` as input and generates an `ivy.xml` from this.
+2. The `ivy-publish` task adds a rule to define a `generate${publication}MetaData` task for each publication of type `IvyPublication` added to the
+   publications container.
+
+Running `gradle generateIvyMetaData` would generate the `ivy.xml` for the default Ivy publication.
+
+### Test cases
+
+TBD
+
+## Customising the Maven and Ivy publication identifier
 
 This step will allow some basic customisation of the meta data model for each publication:
 
@@ -331,6 +347,16 @@ And:
     3. Assert that another build can resolve project-A from this Ivy repository.
     4. Publish both projects to a Maven repository.
     5. Assert that another build can resolve project-A from this Maven repository.
+
+## Allow Maven POM to be generated without publishing to a repository
+
+In this step, the POM generation for a publication is moved out of the `publish` tasks and into a separate task.
+
+1. Add `GeneratePomFile` task type. Takes a `Pom` as input and generated a `pom.xml` from this.
+2. The `maven-publish` task adds a rule to define a `generate${publication}MetaData` task for each publication of type `MavenPublication` that is added to
+   the publications container.
+
+Running `gradle generateMavenMetaData` would generate the `pom.xml` for the default Maven publication.
 
 ## Allow outgoing dependencies to be customised
 
@@ -472,21 +498,6 @@ Running `gradle publish` will build and upload both modules to the Ivy repositor
 
 TBD - Which publication does a project dependency refer to? The 'main' one? All of them?
 
-## Separate out meta-data file generation
-
-In this step, the meta-data file generation for a publication is moved out of the `publish` tasks and into a separate task.
-
-1. Add `GenerateIvyFile` task type. Takes a `IvyModuleDescriptor` as input and generates an `ivy.xml` from this.
-2. The `ivy-publish` task adds a rule to define a `generate${publication}MetaData` task for each publication of type `IvyPublication` added to the
-   publications container.
-3. Add `GeneratePomFile` task type. Takes a `Pom` as input and generated a `pom.xml` from this.
-4. The `maven-publish` task adds a rule to define a `generate${publication}MetaData` task for each publication of type `MavenPublication` that is added to
-   the publications container.
-
-Running `gradle generateIvyMetaData` would generate the `ivy.xml` for the default Ivy publication.
-
-Running `gradle generateMavenMetaData` would generate the `pom.xml` for the default Maven publication.
-
 ## Signing plugin supports signing a publication
 
 To sign an Ivy module when it is published to the remote repository:
@@ -501,6 +512,24 @@ Running `gradle release` will build, sign and upload the artifacts.
 Running `gradle publish` will build and upload the artifacts, but not sign them.
 Running `gradle publishMavenLocal` will build the artifact, but not sign them.
 
+## Add support for resolving and publishing via SFTP
+
+Add an SFTP resource transport and allow this to be used in an Ivy or Maven repository definition.
+
+## Add support for resolving and publishing via WebDAV
+
+Add a WebDAV resource transport and allow this to be used in an Ivy or Maven repository definition.
+
+## Port Maven publication from Maven 2 to Maven 3 classes
+
+1. Use Maven 3 classes to generate the POM.
+2. Expose a Maven 3 `Project` object via `MavenPom.model`.
+3. Use Maven 3 classes to update the `maven-metadata.xml` and wire this into `MavenResolver`.
+4. Use `MavenResolver` to publish a Maven publication.
+5. Change legacy `MavenDeployer` to use `MavenResolver`.
+6. Remove Maven 2 as a dependency.
+7. Remove jarjar hacks from Maven 3 classes.
+
 ## Remove old DSL
 
 These would be mixed in to various steps above (TBD), rather than as one change at the end. They are grouped together here for now:
@@ -514,6 +543,7 @@ These would be mixed in to various steps above (TBD), rather than as one change 
    `configurations.compile`
 7. Deprecate and later remove `ResolvedConfiguration` and related types.
 8. Deprecate and later remove `Configuration` and related types.
+9. Deprecate and later remove support for resolving or publishing using an Ivy DependencyResolver implementation.
 
 ## Add further meta-data customisations
 
@@ -555,7 +585,7 @@ TBD - consuming components.
 
 # Open issues
 
-* Which things are published?
+* Which things are published, say, when the 'java', 'war' and 'ejb' plugins are all applied to a project?
 * How do components fit into all this? What happens when a project produces multiple components?
 * How to get rid of `Configuration.artifacts`?
 * How to map a project dependency to Ivy publication or Maven publication when generating descriptor?
