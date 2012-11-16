@@ -16,10 +16,10 @@
 package org.gradle.api.internal.file.copy;
 
 import groovy.lang.Closure;
-import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.api.Action;
 import org.gradle.api.file.*;
 import org.gradle.api.internal.ChainingTransformer;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
@@ -369,7 +369,7 @@ public class CopySpecImpl implements CopySpec, ReadableCopySpec {
     }
 
     public CopySpec eachFile(Closure closure) {
-        actions.add((Action<? super FileCopyDetails>) DefaultGroovyMethods.asType(closure, Action.class));
+        actions.add(new ClosureBackedAction<FileCopyDetails>(closure));
         return this;
     }
 
