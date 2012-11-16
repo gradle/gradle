@@ -32,7 +32,7 @@ class DefaultMavenPomTest extends Specification {
     static final String EXPECTED_PACKAGING = "something";
     static final String EXPECTED_GROUP_ID = "someGroup";
     static final String EXPECTED_ARTIFACT_ID = "artifactId";
-    static final String EXPECTED_VERSION = "version";
+    static final String EXPECTED_VERSION = "vérsiøn"; // note the utf-8 chars
 
     @Rule
     TemporaryFolder tmpDir = new TemporaryFolder()
@@ -170,15 +170,15 @@ class DefaultMavenPomTest extends Specification {
         mavenPom.writeTo('file');
 
         then:
-        pomFile.text == TextUtil.toPlatformLineSeparators('''<?xml version="1.0" encoding="UTF-8"?>
+        pomFile.text == TextUtil.toPlatformLineSeparators("""<?xml version="1.0" encoding="UTF-8"?>
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>someGroup</groupId>
-  <artifactId>artifactId</artifactId>
-  <version>version</version>
-  <packaging>something</packaging>
+  <groupId>${EXPECTED_GROUP_ID}</groupId>
+  <artifactId>${EXPECTED_ARTIFACT_ID}</artifactId>
+  <version>${EXPECTED_VERSION}</version>
+  <packaging>${EXPECTED_PACKAGING}</packaging>
 </project>
-''')
+""")
     }
 }
