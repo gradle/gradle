@@ -24,7 +24,7 @@ import java.util.Set;
 /**
  * A repository layout that uses user-supplied patterns. Each pattern will be appended to the base URI for the repository.
  * At least one artifact pattern must be specified. If no Ivy patterns are specified, then the artifact patterns will be used.
- * Optionally supports a Maven 2 compatible layout, where any dots in the 'organisation' value are replaced with forward slashes.
+ * Optionally supports a Maven style layout for the 'organisation' part, replacing any dots with forward slashes.
  */
 public class PatternRepositoryLayout extends RepositoryLayout {
     private final Set<String> artifactPatterns = new LinkedHashSet<String>();
@@ -48,10 +48,10 @@ public class PatternRepositoryLayout extends RepositoryLayout {
     }
 
     /**
-     * Sets whether a Maven 2 compatible layout is to be used, where any dots in the 'organisation' value are replaced with forward slashes.
+     * Sets whether a Maven style layout is to be used for the 'organisation' part, replacing any dots with forward slashes.
      * Defaults to {@code false}.
      *
-     * @param m2compatible whether a Maven 2 compatible layout is to be used
+     * @param m2compatible whether a Maven style layout is to be used for the 'organisation' part
      */
     public void m2compatible(boolean m2compatible) {
         this.m2compatible = m2compatible;
