@@ -717,7 +717,7 @@
                     would then be represented as <literal>my/company</literal>.
                 </para>
                 <sample id="ivyRepository" dir="userguide/artifacts/defineRepository" title="Ivy repository with Maven compatible layout">
-                    <sourcefile file="build.gradle" snippet="ivy-repo-m2compatible"/>
+                    <sourcefile file="build.gradle" snippet="ivy-repo-with-m2compatible-layout"/>
                 </sample>
             </section>
             <section>
