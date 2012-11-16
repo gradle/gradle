@@ -330,7 +330,9 @@
             <tr>
                 <td>org.gradle.api.publish.ivy.tasks.PublishToIvyRepository</td>
             </tr>
-
+            <tr>
+                <td>org.gradle.api.publish.ivy.tasks.GenerateIvyDescriptor</td>
+            </tr>
         </table>
     </section>
 

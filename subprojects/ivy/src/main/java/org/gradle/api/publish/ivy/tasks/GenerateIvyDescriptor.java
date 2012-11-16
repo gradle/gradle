@@ -19,6 +19,7 @@ package org.gradle.api.publish.ivy.tasks;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.Incubating;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Module;
@@ -38,6 +39,7 @@ import java.util.Set;
 /**
  * Generates an Ivy XML Module Descriptor file.
  */
+@Incubating
 public class GenerateIvyDescriptor extends DefaultTask {
 
     private Module module;
@@ -62,6 +64,11 @@ public class GenerateIvyDescriptor extends DefaultTask {
         getOutputs().upToDateWhen(Specs.satisfyNone());
     }
 
+    /**
+     * The module the descriptor represents.
+     *
+     * @return The module the descriptor represents
+     */
     public Module getModule() {
         return module;
     }
@@ -70,6 +77,11 @@ public class GenerateIvyDescriptor extends DefaultTask {
         this.module = module;
     }
 
+    /**
+     * The configurations that are part of the descriptor.
+     *
+     * @return The configurations that are part of the descriptor
+     */
     public Set<? extends Configuration> getConfigurations() {
         return configurations;
     }
@@ -78,11 +90,23 @@ public class GenerateIvyDescriptor extends DefaultTask {
         this.configurations = configurations;
     }
 
+    /**
+     * The file the descriptor will be written to.
+     *
+     * @return The file the descriptor will be written to
+     */
     @OutputFile
     public File getDestination() {
         return destination == null ? null : fileResolver.resolve(destination);
     }
 
+    /**
+     * Sets the destination the descriptor will be written to.
+     *
+     * The value is resolved with {@link org.gradle.api.Project#file(Object)}
+     *
+     * @param destination The file the descriptor will be written to.
+     */
     public void setDestination(Object destination) {
         this.destination = destination;
     }
