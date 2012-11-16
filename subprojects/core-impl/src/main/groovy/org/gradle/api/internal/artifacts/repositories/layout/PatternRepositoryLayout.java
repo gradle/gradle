@@ -29,7 +29,7 @@ import java.util.Set;
 public class PatternRepositoryLayout extends RepositoryLayout {
     private final Set<String> artifactPatterns = new LinkedHashSet<String>();
     private final Set<String> ivyPatterns = new LinkedHashSet<String>();
-    private boolean m2compatible = false;
+    private boolean m2compatible;
 
     /**
      * Adds an Ivy artifact pattern to define where artifacts are located in this repository.
