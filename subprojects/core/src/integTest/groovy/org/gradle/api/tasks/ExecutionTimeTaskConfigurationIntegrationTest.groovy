@@ -20,31 +20,21 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class ExecutionTimeTaskConfigurationIntegrationTest extends AbstractIntegrationSpec {
 
-    def "throws decent exception when action is added to a task at execution time"() {
-        when:
-        buildFile.text = """
-            task foo1 << {
-                doLast { println 'foo1' }
-            }
-
-            task foo2 << {
-                doFirst { println 'foo2' }
-            }
-        """
-        then:
-        args("--continue")
-        fails("foo1", "foo2")
-        and:
-        failure.assertHasCause("You cannot add a task action at execution time, please check the configuration of task task ':foo1'.")
-        failure.assertHasCause("You cannot add a task action at execution time, please check the configuration of task task ':foo2'.")
-    }
-
     def "throws decent warnings when task is configured during execution time"() {
         when:
         buildFile.text = """
             task bar
 
             task foo << {
+                def anAction = new Action(){
+                                public void execute(Object object){
+                                }
+                            }
+                doFirst(anAction)
+                doLast(anAction)
+
+                doFirst{}
+                doLast{}
                 onlyIf{false}
                 setActions(new ArrayList())
                 dependsOn bar
@@ -81,7 +71,10 @@ class ExecutionTimeTaskConfigurationIntegrationTest extends AbstractIntegrationS
         executer.withDeprecationChecksDisabled()
         then:
         succeeds("foo")
-
+        output.contains("Calling Task.doFirst(Action) after task execution has started has been deprecated and is scheduled to be removed in Gradle 2.0 Check the configuration of task task ':foo'. You may have misused '<<' at task declaration.")
+        output.contains("Calling Task.doFirst(Closure) after task execution has started has been deprecated and is scheduled to be removed in Gradle 2.0 Check the configuration of task task ':foo'. You may have misused '<<' at task declaration.")
+        output.contains("Calling Task.doLast(Action) after task execution has started has been deprecated and is scheduled to be removed in Gradle 2.0 Check the configuration of task task ':foo'. You may have misused '<<' at task declaration.")
+        output.contains("Calling Task.doLast(Closure) after task execution has started has been deprecated and is scheduled to be removed in Gradle 2.0 Check the configuration of task task ':foo'. You may have misused '<<' at task declaration.")
         output.contains("Calling Task.onlyIf(Closure) after task execution has started has been deprecated and is scheduled to be removed in Gradle 2.0 Check the configuration of task task ':foo'. You may have misused '<<' at task declaration.")
         output.contains("Calling Task.setActions(Actions<Task>) after task execution has started has been deprecated and is scheduled to be removed in Gradle 2.0 Check the configuration of task task ':foo'. You may have misused '<<' at task declaration.")
         output.contains("Calling Task.dependsOn(Object...) after task execution has started has been deprecated and is scheduled to be removed in Gradle 2.0 Check the configuration of task task ':foo'. You may have misused '<<' at task declaration.")
