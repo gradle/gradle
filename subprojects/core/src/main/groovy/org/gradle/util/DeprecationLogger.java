@@ -231,8 +231,4 @@ public class DeprecationLogger {
             nagUserWith(String.format("Deprecated dynamic property \"%s\" created in multiple locations.", propertyName));
         }
     }
-
-    public static void nagUserAboutDeprecatedWhenTaskExecuted(String method, String taskPath){
-        nagUserWith(String.format("Calling %s after task execution has started %s Check the configuration of task %s. You may have misused '<<' at task declaration.", method, getDeprecationMessage(), taskPath));
-    }
 }

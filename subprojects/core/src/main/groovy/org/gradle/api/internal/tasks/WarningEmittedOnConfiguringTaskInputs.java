@@ -16,24 +16,58 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.TaskInputs;
-import org.gradle.util.DeprecationLogger;
 
 import java.util.Map;
 
 public class WarningEmittedOnConfiguringTaskInputs implements TaskInputs {
     private final TaskInputs delegate;
-    private final Task task;
+    private final TaskStatusNagger taskStatusNagger;
 
-    public WarningEmittedOnConfiguringTaskInputs(TaskInputs delegate, Task task) {
+    public WarningEmittedOnConfiguringTaskInputs(TaskInputs delegate, TaskStatusNagger taskStatusNagger) {
         this.delegate = delegate;
-        this.task = task;
+        this.taskStatusNagger = taskStatusNagger;
     }
 
-    private void nagUserIfTaskExecutionStarted(String method) {
-        DeprecationLogger.nagUserAboutDeprecatedWhenTaskExecuted(method, task.toString());
+    public TaskInputs files(Object... paths) {
+        taskStatusNagger.nagIfTaskNotInConfigurableState("TaskInputs.files(Object...)");
+        return delegate.files(paths);
+    }
+
+    public TaskInputs file(Object path) {
+        taskStatusNagger.nagIfTaskNotInConfigurableState("TaskInputs.file(Object)");
+        return delegate.file(path);
+    }
+
+    public TaskInputs dir(Object dirPath) {
+        taskStatusNagger.nagIfTaskNotInConfigurableState("TaskInputs.dir(Object)");
+        return delegate.dir(dirPath);
+    }
+
+    public TaskInputs source(Object... paths) {
+        taskStatusNagger.nagIfTaskNotInConfigurableState("TaskInputs.source(Object...)");
+        return delegate.source(paths);
+    }
+
+    public TaskInputs source(Object path) {
+        taskStatusNagger.nagIfTaskNotInConfigurableState("TaskInputs.source(Object)");
+        return delegate.source(path);
+    }
+
+    public TaskInputs sourceDir(Object path) {
+        taskStatusNagger.nagIfTaskNotInConfigurableState("TaskInputs.sourceDir(Object)");
+        return delegate.sourceDir(path);
+    }
+
+    public TaskInputs property(String name, Object value) {
+        taskStatusNagger.nagIfTaskNotInConfigurableState("TaskInputs.property(String, Object)");
+        return delegate.property(name, value);
+    }
+
+    public TaskInputs properties(Map<String, ?> properties) {
+        taskStatusNagger.nagIfTaskNotInConfigurableState("TaskInputs.properties(Map)");
+        return delegate.properties(properties);
     }
 
     public boolean getHasInputs() {
@@ -44,33 +78,8 @@ public class WarningEmittedOnConfiguringTaskInputs implements TaskInputs {
         return delegate.getFiles();
     }
 
-    public TaskInputs files(Object... paths) {
-        nagUserIfTaskExecutionStarted("TaskInputs.files(Object...)");
-        return delegate.files(paths);
-    }
-
-    public TaskInputs file(Object path) {
-        nagUserIfTaskExecutionStarted("TaskInputs.file(Object)");
-        return delegate.file(path);
-    }
-
-    public TaskInputs dir(Object dirPath) {
-        nagUserIfTaskExecutionStarted("TaskInputs.dir(Object)");
-        return delegate.dir(dirPath);
-    }
-
     public Map<String, Object> getProperties() {
         return delegate.getProperties();
-    }
-
-    public TaskInputs property(String name, Object value) {
-        nagUserIfTaskExecutionStarted("TaskInputs.property(String, Object)");
-        return delegate.property(name, value);
-    }
-
-    public TaskInputs properties(Map<String, ?> properties) {
-        nagUserIfTaskExecutionStarted("TaskInputs.properties(Map)");
-        return delegate.properties(properties);
     }
 
     public boolean getHasSourceFiles() {
@@ -79,20 +88,5 @@ public class WarningEmittedOnConfiguringTaskInputs implements TaskInputs {
 
     public FileCollection getSourceFiles() {
         return delegate.getSourceFiles();
-    }
-
-    public TaskInputs source(Object... paths) {
-        nagUserIfTaskExecutionStarted("TaskInputs.source(Object...)");
-        return delegate.source(paths);
-    }
-
-    public TaskInputs source(Object path) {
-        nagUserIfTaskExecutionStarted("TaskInputs.source(Object)");
-        return delegate.source(path);
-    }
-
-    public TaskInputs sourceDir(Object path) {
-        nagUserIfTaskExecutionStarted("TaskInputs.sourceDir(Object)");
-        return delegate.sourceDir(path);
     }
 }
