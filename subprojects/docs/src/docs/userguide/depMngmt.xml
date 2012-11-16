@@ -711,6 +711,16 @@
                 </sample>
             </section>
             <section>
+                <title>Ivy repository with Maven compatible layout</title>
+                <para>Optionally, a repository with pattern layout can have its 'organisation' part laid out in Maven style, with
+                    forward slashes replacing dots as separators. For example, the organisation <literal>my.company</literal>
+                    would then be represented as <literal>my/company</literal>.
+                </para>
+                <sample id="ivyRepository" dir="userguide/artifacts/defineRepository" title="Ivy repository with Maven compatible layout">
+                    <sourcefile file="build.gradle" snippet="ivy-repo-m2compatible"/>
+                </sample>
+            </section>
+            <section>
                 <title>Defining different artifact and ivy file locations for an Ivy repository</title>
                 <para>To define an Ivy repository which fetches ivy files and artifacts from different locations, you can explicitly define complete URL patterns
                       for artifacts and ivy files:
