@@ -273,7 +273,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     public Task doFirst(Action<? super Task> action) {
         assertNotExecuting();
-        warnForActionAddedIfTaskExecuted("Task.doFirst(Action)");
+        nagIfTaskAlreadyExecuted("Task.doFirst(Action)");
         if (action == null) {
             throw new InvalidUserDataException("Action must not be null!");
         }
@@ -283,7 +283,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     public Task doLast(Action<? super Task> action) {
         assertNotExecuting();
-        warnForActionAddedIfTaskExecuted("Task.doLast(Action)");
+        nagIfTaskAlreadyExecuted("Task.doLast(Action)");
         if (action == null) {
             throw new InvalidUserDataException("Action must not be null!");
         }
@@ -392,7 +392,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     public Task doFirst(Closure action) {
         assertNotExecuting();
-        warnForActionAddedIfTaskExecuted("Task.doFirst(Closure)");
+        nagIfTaskAlreadyExecuted("Task.doFirst(Closure)");
         if (action == null) {
             throw new InvalidUserDataException("Action must not be null!");
         }
@@ -402,7 +402,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     public Task doLast(Closure action) {
         assertNotExecuting();
-        warnForActionAddedIfTaskExecuted("Task.doLast(Closure)");
+        nagIfTaskAlreadyExecuted("Task.doLast(Closure)");
         if (action == null) {
             throw new InvalidUserDataException("Action must not be null!");
         }
@@ -411,18 +411,12 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public Task leftShift(final Closure action) {
-        warnForActionAddedIfTaskExecuted("Task.leftShit(Closure)");
+        nagIfTaskAlreadyExecuted("Task.leftShit(Closure)");
         return DeprecationLogger.whileDisabled(new Factory<Task>() {
             public Task create() {
                 return doLast(action);
             }
         });
-    }
-
-    private void warnForActionAddedIfTaskExecuted(String method) {
-        if (state.getExecuted()) {
-            DeprecationLogger.nagUserAboutDeprecatedWhenTaskExecuted(method, toString());
-        }
     }
 
     public Task configure(Closure closure) {
@@ -519,7 +513,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     private void nagIfTaskAlreadyExecuted(String method) {
-        if (AbstractTask.this.state.getExecuting() || AbstractTask.this.state.getExecuted()) {
+        if (AbstractTask.this.state.getExecuted() || AbstractTask.this.state.getExecuting()) {
             DeprecationLogger.nagUserAboutDeprecatedWhenTaskExecuted(method, toString());
         }
     }
