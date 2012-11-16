@@ -32,7 +32,7 @@ public class TaskStatusNagger {
 
     public void nagIfTaskNotInConfigurableState(String method) {
         if (!taskInternal.getStateInternal().isConfigurable() && nagUser) {
-            logger.warn(String.format("Calling %s after task execution has started has been deprecated and is scheduled to be removed in Gradle 2.0 Check the configuration of task %s. You may have misused '<<' at task declaration.", method, taskInternal));
+            logger.warn(String.format("Calling %s after task execution has started has been deprecated and is scheduled to be removed in Gradle 2.0. Check the configuration of %s. You may have misused '<<' at task declaration.", method, taskInternal));
         }
     }
 
