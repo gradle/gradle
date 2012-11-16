@@ -29,8 +29,10 @@ import org.gradle.logging.StandardOutputCapture;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.Expectations;
 import org.jmock.Sequence;
+import org.jmock.api.Invocation;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
+import org.jmock.lib.action.CustomAction;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -58,7 +60,7 @@ public class ExecuteActionsTaskExecuterTest {
 
     @Before
     public void setUp() {
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             ProjectInternal project = context.mock(ProjectInternal.class);
 
             allowing(task).getProject();
@@ -137,7 +139,7 @@ public class ExecuteActionsTaskExecuterTest {
 
             one(state).executed(null);
             inSequence(sequence);
-            
+
             one(state).setExecuting(false);
             inSequence(sequence);
 
@@ -147,6 +149,50 @@ public class ExecuteActionsTaskExecuterTest {
 
         executer.execute(task, state);
     }
+
+    @Test
+    public void executeDoesOperateOnNewActionListInstance() {
+        context.checking(new Expectations() {
+            {
+                allowing(task).getActions();
+                will(returnValue(toList(action1)));
+
+                one(listener).beforeActions(task);
+                inSequence(sequence);
+
+                one(state).setExecuting(true);
+                inSequence(sequence);
+
+                one(state).setDidWork(true);
+                inSequence(sequence);
+
+                one(standardOutputCapture).start();
+                inSequence(sequence);
+
+                one(action1).execute(task);
+                will(new CustomAction("Add action to actions list") {
+                    public Object invoke(Invocation invocation) throws Throwable {
+                        task.getActions().add(action2);
+                        return null;
+                    }
+                });
+
+                inSequence(sequence);
+
+                one(standardOutputCapture).stop();
+                one(state).executed(null);
+                inSequence(sequence);
+
+                one(state).setExecuting(false);
+                inSequence(sequence);
+
+                one(listener).afterActions(task);
+                inSequence(sequence);
+            }
+        });
+        executer.execute(task, state);
+    }
+
 
     @Test
     public void stopsAtFirstActionWhichThrowsException() {
