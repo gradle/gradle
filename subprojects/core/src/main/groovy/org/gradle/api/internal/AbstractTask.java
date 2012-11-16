@@ -163,9 +163,9 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     public void setActions(final List<Action<? super Task>> actions) {
         nagIfTaskAlreadyExecuted("Task.setActions(Actions<Task>)");
-        deleteAllActions();
         DeprecationLogger.whileDisabled(new Runnable() {
             public void run() {
+                deleteAllActions();
                 for (Action<? super Task> action : actions) {
                     doLast(action);
                 }
@@ -244,6 +244,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public Task deleteAllActions() {
+        nagIfTaskAlreadyExecuted("Task.deleteAllActions()");
         actions.clear();
         return this;
     }

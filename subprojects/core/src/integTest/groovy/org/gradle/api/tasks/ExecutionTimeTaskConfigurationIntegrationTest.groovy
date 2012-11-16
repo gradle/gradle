@@ -60,6 +60,7 @@ class ExecutionTimeTaskConfigurationIntegrationTest extends AbstractIntegrationS
                 setOnlyIf(spec)
                 onlyIf(spec)
                 enabled = false
+                deleteAllActions()
 
                 inputs.file("afile")
                 inputs.files("anotherfile")
@@ -89,6 +90,7 @@ class ExecutionTimeTaskConfigurationIntegrationTest extends AbstractIntegrationS
         output.contains("Calling Task.setOnlyIf(Spec) after task execution has started has been deprecated and is scheduled to be removed in Gradle 2.0 Check the configuration of task task ':foo'. You may have misused '<<' at task declaration.")
         output.contains("Calling Task.onlyIf(Spec) after task execution has started has been deprecated and is scheduled to be removed in Gradle 2.0 Check the configuration of task task ':foo'. You may have misused '<<' at task declaration.")
         output.contains("Calling Task.setEnabled(boolean) after task execution has started has been deprecated and is scheduled to be removed in Gradle 2.0 Check the configuration of task task ':foo'. You may have misused '<<' at task declaration.")
+        output.contains("Calling Task.deleteAllActions() after task execution has started has been deprecated and is scheduled to be removed in Gradle 2.0 Check the configuration of task task ':foo'. You may have misused '<<' at task declaration.")
         output.contains("Calling TaskInputs.dir(Object) after task execution has started has been deprecated and is scheduled to be removed in Gradle 2.0 Check the configuration of task task ':foo'. You may have misused '<<' at task declaration.")
         output.contains("Calling TaskInputs.files(Object...) after task execution has started has been deprecated and is scheduled to be removed in Gradle 2.0 Check the configuration of task task ':foo'. You may have misused '<<' at task declaration.")
         output.contains("Calling TaskInputs.file(Object) after task execution has started has been deprecated and is scheduled to be removed in Gradle 2.0 Check the configuration of task task ':foo'. You may have misused '<<' at task declaration.")
