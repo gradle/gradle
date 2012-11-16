@@ -327,6 +327,10 @@
             <tr>
                 <td>org.gradle.api.plugins.buildcomparison.gradle.CompareGradleBuilds</td>
             </tr>
+            <tr>
+                <td>org.gradle.api.publish.ivy.tasks.PublishToIvyRepository</td>
+            </tr>
+
         </table>
     </section>
 
