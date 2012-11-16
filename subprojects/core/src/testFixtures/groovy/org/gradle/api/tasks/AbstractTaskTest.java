@@ -17,8 +17,10 @@
 package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
-import org.gradle.api.*;
-import org.gradle.api.execution.TaskActionListener;
+import org.gradle.api.Action;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.Actions;
 import org.gradle.api.internal.AsmBackedClassGenerator;
@@ -30,7 +32,6 @@ import org.gradle.api.internal.project.taskfactory.AnnotationProcessingTaskFacto
 import org.gradle.api.internal.project.taskfactory.TaskFactory;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskStateInternal;
-import org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
@@ -288,6 +289,7 @@ public abstract class AbstractTaskTest {
 
         assertTrue(getTask().dependsOnTaskDidWork());
     }
+
     @Test
     @Issue("http://issues.gradle.org/browse/GRADLE-2022")
     public void testGoodErrorMessageWhenTaskInstantiatedDirectly() {

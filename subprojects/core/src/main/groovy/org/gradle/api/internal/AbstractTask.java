@@ -44,10 +44,7 @@ import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Callable;
 
 /**
@@ -158,7 +155,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public List<Action<? super Task>> getActions() {
-        return new TaskStateAwareArrayList(actions);
+        return new TaskStateAwareList(actions);
     }
 
     public void setActions(final List<Action<? super Task>> actions) {
@@ -509,70 +506,122 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         }
     }
 
-    private class TaskStateAwareArrayList extends ArrayList<Action<? super Task>> {
-        public TaskStateAwareArrayList(List<Action<? super Task>> actions) {
-            super(actions);
+    private class TaskStateAwareList implements List<Action<? super Task>> {
+        private final List<Action<? super Task>> delegate;
+
+        public TaskStateAwareList(List<Action<? super Task>> actions) {
+            this.delegate = actions;
         }
 
-
-        @Override
-        public boolean add(Action<? super Task> e) {
+        public boolean add(Action<? super Task> action) {
             nagIfTaskAlreadyExecuted("Task.getActions().add(Action)");
-            return super.add(e);
+            return delegate.add(action);
         }
 
-        @Override
-        public void add(int index, Action<? super Task> e) {
-            nagIfTaskAlreadyExecuted("Task.getActions().add(int, Action)");
-            super.add(index, e);
-        }
-
-        @Override
-        public boolean addAll(Collection<? extends Action<? super Task>> c) {
-            nagIfTaskAlreadyExecuted("Task.getActions().addAll(Collection<? extends Action>");
-            return super.addAll(c);
-        }
-
-        @Override
-        public boolean addAll(int index, Collection<? extends Action<? super Task>> c) {
-            nagIfTaskAlreadyExecuted("Task.getActions().addAll(int, Collection<? extends Action>");
-            return super.addAll(index, c);
-        }
-
-        @Override
         public boolean remove(Object o) {
             nagIfTaskAlreadyExecuted("Task.getActions().remove(Object)");
-            return super.remove(o);
+            return delegate.remove(o);
         }
 
-        @Override
-        public Action<? super Task> remove(int index) {
-            nagIfTaskAlreadyExecuted("Task.getActions().remove(int)");
-            return super.remove(index);
+        public boolean containsAll(Collection<?> c) {
+            return delegate.containsAll(c);
         }
 
-        @Override
-        public boolean removeAll(Collection c) {
+        public boolean addAll(Collection<? extends Action<? super Task>> c) {
+            nagIfTaskAlreadyExecuted("Task.getActions().addAll(Collection<? extends Action>");
+            return delegate.addAll(c);
+        }
+
+        public boolean addAll(int index, Collection<? extends Action<? super Task>> c) {
+            nagIfTaskAlreadyExecuted("Task.getActions().addAll(int, Collection<? extends Action>");
+            return delegate.addAll(index, c);
+        }
+
+        public boolean removeAll(Collection<?> c) {
             nagIfTaskAlreadyExecuted("Task.getActions().removeAll(Collection)");
-            return super.removeAll(c);
+            return delegate.removeAll(c);
         }
 
-        @Override
-        public boolean retainAll(Collection c) {
+        public boolean retainAll(Collection<?> c) {
             nagIfTaskAlreadyExecuted("Task.getActions().retainAll(Collection)");
-            return super.retainAll(c);
+            return delegate.retainAll(c);
         }
 
-        @Override
-        public void removeRange(int fromIndex, int toIndex) {
-            nagIfTaskAlreadyExecuted("Task.getActions().removeRange(int,int)");
-            super.removeRange(fromIndex, toIndex);
-        }
-
-        @Override
         public void clear() {
             nagIfTaskAlreadyExecuted("Task.getActions().clear()");
-            super.clear();
+            delegate.clear();
+        }
+
+        public void add(int index, Action<? super Task> element) {
+            nagIfTaskAlreadyExecuted("Task.getActions().add(int, Collection)");
+            delegate.add(index, element);
+        }
+
+        public Action<? super Task> remove(int index) {
+            nagIfTaskAlreadyExecuted("Task.getActions().remove(int)");
+            return delegate.remove(index);
+        }
+
+        public int size() {
+            return delegate.size();
+        }
+
+        public boolean isEmpty() {
+            return delegate.isEmpty();
+        }
+
+        public boolean contains(Object o) {
+            return delegate.contains(o);
+        }
+
+        public Iterator<Action<? super Task>> iterator() {
+            return delegate.iterator();
+        }
+
+        public Object[] toArray() {
+            return delegate.toArray();
+        }
+
+        public <T> T[] toArray(T[] a) {
+            return delegate.toArray(a);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            return delegate.equals(o);
+        }
+
+        @Override
+        public int hashCode() {
+            return delegate.hashCode();
+        }
+
+        public Action<? super Task> get(int index) {
+            return delegate.get(index);
+        }
+
+        public Action<? super Task> set(int index, Action<? super Task> element) {
+            return delegate.set(index, element);
+        }
+
+        public int indexOf(Object o) {
+            return delegate.indexOf(o);
+        }
+
+        public int lastIndexOf(Object o) {
+            return delegate.lastIndexOf(o);
+        }
+
+        public ListIterator<Action<? super Task>> listIterator() {
+            return delegate.listIterator();
+        }
+
+        public ListIterator<Action<? super Task>> listIterator(int index) {
+            return delegate.listIterator(index);
+        }
+
+        public List<Action<? super Task>> subList(int fromIndex, int toIndex) {
+            return delegate.subList(fromIndex, toIndex);
         }
     }
 }
