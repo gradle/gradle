@@ -56,7 +56,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private String name;
 
-    private List<Action<? super Task>> actions = new ArrayList<Action<? super Task>>();
+    private List<Action<? super Task>> actions = new TaskStateAwareList(new ArrayList<Action<? super Task>>());
 
     private String path;
 
@@ -161,7 +161,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public List<Action<? super Task>> getActions() {
-        return new TaskStateAwareList(actions);
+        return actions;
     }
 
     public void setActions(final List<Action<? super Task>> actions) {
