@@ -19,7 +19,6 @@ import org.apache.ivy.core.cache.RepositoryCacheManager
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver
-import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
 import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository
 import org.gradle.api.internal.externalresource.transport.file.FileTransport
@@ -93,11 +92,13 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         def resolver = repository.createResolver()
 
         then:
-        resolver instanceof ExternalResourceResolver
-        resolver.repository instanceof ExternalResourceRepository
-        resolver.name == 'name'
-        resolver.artifactPatterns == ['http://host/[organisation]/[artifact]-[revision].[ext]', 'http://other/[module]/[artifact]-[revision].[ext]'] as List
-        resolver.ivyPatterns == ['http://host/[module]/ivy-[revision].xml'] as List
+        with(resolver) {
+            it instanceof ExternalResourceResolver
+            repository instanceof ExternalResourceRepository
+            name == 'name'
+            artifactPatterns == ['http://host/[organisation]/[artifact]-[revision].[ext]', 'http://other/[module]/[artifact]-[revision].[ext]']
+            ivyPatterns == ['http://host/[module]/ivy-[revision].xml']
+        }
     }
 
     def "creates a resolver for file patterns"() {
@@ -116,11 +117,13 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         def resolver = repository.createResolver()
 
         then:
-        resolver instanceof ExternalResourceResolver
-        resolver.repository instanceof ExternalResourceRepository
-        resolver.name == 'name'
-        resolver.artifactPatterns == ["${file.absolutePath}/[organisation]/[artifact]-[revision].[ext]", "${file.absolutePath}/[organisation]/[module]/[artifact]-[revision].[ext]"] as List
-        resolver.ivyPatterns == ["${file.absolutePath}/[organisation]/[module]/ivy-[revision].xml"] as List
+        with(resolver) {
+            it instanceof ExternalResourceResolver
+            repository instanceof ExternalResourceRepository
+            name == 'name'
+            artifactPatterns == ["${file.absolutePath}/[organisation]/[artifact]-[revision].[ext]", "${file.absolutePath}/[organisation]/[module]/[artifact]-[revision].[ext]"]
+            ivyPatterns == ["${file.absolutePath}/[organisation]/[module]/ivy-[revision].xml"]
+        }
     }
 
     def "uses gradle patterns with specified url and default layout"() {
@@ -135,11 +138,13 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         def resolver = repository.createResolver()
 
         then:
-        resolver instanceof ExternalResourceResolver
-        resolver.repository instanceof ExternalResourceRepository
-        resolver.name == 'name'
-        resolver.artifactPatterns == ['http://host/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])'] as List
-        resolver.ivyPatterns == ["http://host/[organisation]/[module]/[revision]/ivy-[revision].xml"] as List
+        with(resolver) {
+            it instanceof ExternalResourceResolver
+            repository instanceof ExternalResourceRepository
+            name == 'name'
+            artifactPatterns == ['http://host/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])']
+            ivyPatterns == ["http://host/[organisation]/[module]/[revision]/ivy-[revision].xml"]
+        }
     }
 
     def "uses maven patterns with specified url and maven layout"() {
@@ -155,12 +160,14 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         def resolver = repository.createResolver()
 
         then:
-        resolver instanceof ExternalResourceResolver
-        resolver.repository instanceof ExternalResourceRepository
-        resolver.name == 'name'
-        resolver.artifactPatterns == ['http://host/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])'] as List
-        resolver.ivyPatterns == ["http://host/[organisation]/[module]/[revision]/ivy-[revision].xml"] as List
-        resolver.m2compatible
+        with(resolver) {
+            it instanceof ExternalResourceResolver
+            repository instanceof ExternalResourceRepository
+            name == 'name'
+            artifactPatterns == ['http://host/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])']
+            ivyPatterns == ["http://host/[organisation]/[module]/[revision]/ivy-[revision].xml"]
+            m2compatible
+        }
     }
 
     def "uses specified base url with configured pattern layout"() {
@@ -179,12 +186,14 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         def resolver = repository.createResolver()
 
         then:
-        resolver instanceof ExternalResourceResolver
-        resolver.repository instanceof ExternalResourceRepository
-        resolver.name == 'name'
-        resolver.artifactPatterns == ['http://host/[module]/[revision]/[artifact](.[ext])'] as List
-        resolver.ivyPatterns == ["http://host/[module]/[revision]/ivy.xml"] as List
-        !resolver.m2compatible
+        with(resolver) {
+            it instanceof ExternalResourceResolver
+            repository instanceof ExternalResourceRepository
+            name == 'name'
+            artifactPatterns == ['http://host/[module]/[revision]/[artifact](.[ext])']
+            ivyPatterns == ["http://host/[module]/[revision]/ivy.xml"]
+            !resolver.m2compatible
+        }
     }
 
     def "when requested uses maven patterns with configured pattern layout"() {
@@ -204,12 +213,14 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         def resolver = repository.createResolver()
 
         then:
-        resolver instanceof ExternalResourceResolver
-        resolver.repository instanceof ExternalResourceRepository
-        resolver.name == 'name'
-        resolver.artifactPatterns == ['http://host/[module]/[revision]/[artifact](.[ext])'] as List
-        resolver.ivyPatterns == ["http://host/[module]/[revision]/ivy.xml"] as List
-        resolver.m2compatible
+        with(resolver) {
+            it instanceof ExternalResourceResolver
+            repository instanceof ExternalResourceRepository
+            name == 'name'
+            artifactPatterns == ['http://host/[module]/[revision]/[artifact](.[ext])']
+            ivyPatterns == ["http://host/[module]/[revision]/ivy.xml"]
+            m2compatible
+        }
     }
 
     def "combines layout patterns with additionally specified patterns"() {
@@ -226,11 +237,13 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         def resolver = repository.createResolver()
 
         then:
-        resolver instanceof ExternalResourceResolver
-        resolver.repository instanceof ExternalResourceRepository
-        resolver.name == 'name'
-        resolver.artifactPatterns == ['http://host/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])', 'http://host/[other]/artifact'] as List
-        resolver.ivyPatterns == ["http://host/[organisation]/[module]/[revision]/ivy-[revision].xml", 'http://host/[other]/ivy'] as List
+        with(resolver) {
+            it instanceof ExternalResourceResolver
+            repository instanceof ExternalResourceRepository
+            name == 'name'
+            artifactPatterns == ['http://host/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])', 'http://host/[other]/artifact']
+            ivyPatterns == ["http://host/[organisation]/[module]/[revision]/ivy-[revision].xml", 'http://host/[other]/ivy']
+        }
     }
 
     def "uses artifact pattern for ivy files when no ivy pattern provided"() {
@@ -250,7 +263,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         def resolver = repository.createResolver()
 
         then:
-        resolver.artifactPatterns == ['http://host/[layoutPattern]', 'http://other/[additionalPattern]'] as List
+        resolver.artifactPatterns == ['http://host/[layoutPattern]', 'http://other/[additionalPattern]']
         resolver.ivyPatterns == resolver.artifactPatterns
     }
 
@@ -269,5 +282,4 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
     private HttpTransport createHttpTransport(String name, PasswordCredentials credentials) {
         return new HttpTransport(name, credentials, cacheManager, progressLoggerFactory, Mock(TemporaryFileProvider), cachedExternalResourceIndex)
     }
-
 }
