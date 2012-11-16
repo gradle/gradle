@@ -40,7 +40,7 @@ public class TaskInternalServiceRegistry extends DefaultServiceRegistry implemen
     }
 
     protected TaskInputs createTaskInputs() {
-        return new DefaultTaskInputs(project.getFileResolver(), taskInternal);
+        return new DefaultTaskInputs(project.getFileResolver(), taskInternal, new TaskStatusNagger(taskInternal));
     }
 
     protected TaskOutputsInternal createTaskOutputs() {
