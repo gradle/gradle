@@ -17,11 +17,11 @@
 package org.gradle.api.plugins.maven
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.JUnitTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
-import org.gradle.integtests.fixtures.JUnitTestExecutionResult
 
 /**
  * by Szczepan Faber, created at: 9/4/12
@@ -64,40 +64,40 @@ Root project 'webinar-parent'
     }
 
     def "flatmultimodule"() {
-            given:
-            file("webinar-parent/build.gradle") << "apply plugin: 'maven2Gradle'"
+        given:
+        file("webinar-parent/build.gradle") << "apply plugin: 'maven2Gradle'"
 
-            when:
-            executer.inDirectory(file("webinar-parent"))
-            run 'maven2Gradle'
+        when:
+        executer.inDirectory(file("webinar-parent"))
+        run 'maven2Gradle'
 
-            then:
-            file("webinar-parent/settings.gradle").exists()
+        then:
+        file("webinar-parent/settings.gradle").exists()
 
-            when:
-            executer.inDirectory(file("webinar-parent"))
-            run '-i', 'clean', 'build'
+        when:
+        executer.inDirectory(file("webinar-parent"))
+        run '-i', 'clean', 'build'
 
-            then: //smoke test the build artifacts
-            file("webinar-api/build/libs/webinar-api-1.0-SNAPSHOT.jar").exists()
-            file("webinar-impl/build/libs/webinar-impl-1.0-SNAPSHOT.jar").exists()
-            file("webinar-war/build/libs/webinar-war-1.0-SNAPSHOT.war").exists()
-            file('webinar-impl/build/reports/tests/index.html').exists()
+        then: //smoke test the build artifacts
+        file("webinar-api/build/libs/webinar-api-1.0-SNAPSHOT.jar").exists()
+        file("webinar-impl/build/libs/webinar-impl-1.0-SNAPSHOT.jar").exists()
+        file("webinar-war/build/libs/webinar-war-1.0-SNAPSHOT.war").exists()
+        file('webinar-impl/build/reports/tests/index.html').exists()
 
-            new JUnitTestExecutionResult(file("webinar-impl")).assertTestClassesExecuted('webinar.WebinarTest')
+        new JUnitTestExecutionResult(file("webinar-impl")).assertTestClassesExecuted('webinar.WebinarTest')
 
-            when:
-            executer.inDirectory(file("webinar-parent"))
-            run 'projects'
+        when:
+        executer.inDirectory(file("webinar-parent"))
+        run 'projects'
 
-            then:
-            output.contains(toPlatformLineSeparators("""
+        then:
+        output.contains(toPlatformLineSeparators("""
 Root project 'webinar-parent'
 +--- Project ':webinar-api' - Webinar APIs
 +--- Project ':webinar-impl' - Webinar implementation
 \\--- Project ':webinar-war' - Webinar web application
 """))
-        }
+    }
 
     def "singleModule"() {
         given:
@@ -135,5 +135,27 @@ Root project 'webinar-parent'
         then:
         file("build/libs/testjar-2.5.jar").exists()
         file("build/libs/testjar-2.5-tests.jar").exists()
+    }
+
+    def "enforcerplugin"() {
+        given:
+        file("build.gradle") << "apply plugin: 'maven2Gradle'"
+
+        when:
+        run 'maven2Gradle'
+
+        then:
+        noExceptionThrown()
+        and:
+        buildFile.text.contains("""configurations.all {
+it.exclude group: 'org.apache.maven'
+it.exclude group: 'org.apache.maven', module: 'badArtifact'
+it.exclude group: '*', module: 'badArtifact'
+}""")
+        when:
+        run 'clean', 'build'
+
+        then:
+        file("build/libs/enforcerExample-1.0.jar").exists()
     }
 }

@@ -211,7 +211,7 @@ ${globalExclusions(this.effectivePom)}
     def enforcerPlugin = plugin('maven-enforcer-plugin', project)
     def enforceGoal = pluginGoal('enforce', enforcerPlugin)
     if (enforceGoal) {
-      exclusions += 'configurations.allObjects {\n'
+      exclusions += 'configurations.all {\n'
       enforceGoal.configuration.rules.bannedDependencies.excludes.childNodes().each {
         def tokens = it.text().tokenize(':')
         exclusions += "it.exclude group: '${tokens[0]}'"
