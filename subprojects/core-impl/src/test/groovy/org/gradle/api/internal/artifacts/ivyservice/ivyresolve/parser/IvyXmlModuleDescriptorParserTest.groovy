@@ -51,7 +51,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
 
     def testEmptyDependencies() throws Exception {
         when:
-        ModuleDescriptor md = parser.parseDescriptor(settings, resources.getResource("test-empty-dependencies.xml").toURL(), true)
+        ModuleDescriptor md = parser.parseDescriptor(settings, resources.getResource("test-empty-dependencies.xml").toURI().toURL(), true)
         then:
         md != null
         "myorg" == md.getModuleRevisionId().getOrganisation()
@@ -70,7 +70,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
 
     public void testBadConfs() throws IOException {
         when:
-        parser.parseDescriptor(settings, resources.getResource("test-bad-confs.xml").toURL(), true)
+        parser.parseDescriptor(settings, resources.getResource("test-bad-confs.xml").toURI().toURL(), true)
         then:
         def e = thrown(ParseException)
         assertThat(e.message, Matchers.startsWith("unknown configuration 'invalidConf'"))
@@ -78,7 +78,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
 
     public void testCyclicConfs() throws IOException {
         when:
-        parser.parseDescriptor(settings, resources.getResource("test-cyclic-confs1.xml").toURL(), true)
+        parser.parseDescriptor(settings, resources.getResource("test-cyclic-confs1.xml").toURI().toURL(), true)
         then:
         def e = thrown(ParseException)
         assertThat(e.message, Matchers.startsWith("illegal cycle detected in configuration extension: A => B => A"))
@@ -86,7 +86,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
 
     public void testFull() throws Exception {
         when:
-        ModuleDescriptor md = parser.parseDescriptor(settings, resources.getResource("test-full.xml").toURL(), false)
+        ModuleDescriptor md = parser.parseDescriptor(settings, resources.getResource("test-full.xml").toURI().toURL(), false)
         then:
         assertNotNull(md)
         assertEquals("myorg", md.getModuleRevisionId().getOrganisation())
