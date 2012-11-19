@@ -32,9 +32,20 @@ class ExecutionTimeTaskConfigurationIntegrationTest extends AbstractIntegrationS
                             }
                 doFirst(anAction)
                 doLast(anAction)
-
                 doFirst{}
                 doLast{}
+
+                actions.set(0, anAction)
+                actions.add(anAction)
+                actions.addAll([anAction])
+
+                def iter = actions.iterator()
+                iter.next()
+                iter.remove()
+
+                actions.removeAll([anAction, anAction])
+                actions.clear()
+
                 onlyIf{false}
                 setActions(new ArrayList())
                 dependsOn bar
@@ -75,6 +86,12 @@ class ExecutionTimeTaskConfigurationIntegrationTest extends AbstractIntegrationS
         output.contains("Calling Task.doFirst(Closure) after task execution has started has been deprecated and is scheduled to be removed in Gradle 2.0. Check the configuration of task ':foo'. You may have misused '<<' at task declaration.")
         output.contains("Calling Task.doLast(Action) after task execution has started has been deprecated and is scheduled to be removed in Gradle 2.0. Check the configuration of task ':foo'. You may have misused '<<' at task declaration.")
         output.contains("Calling Task.doLast(Closure) after task execution has started has been deprecated and is scheduled to be removed in Gradle 2.0. Check the configuration of task ':foo'. You may have misused '<<' at task declaration.")
+        output.contains("Calling Task.getActions().add() after task execution has started has been deprecated and is scheduled to be removed in Gradle 2.0. Check the configuration of task ':foo'. You may have misused '<<' at task declaration.")
+        output.contains("Calling Task.getActions().addAll() after task execution has started has been deprecated and is scheduled to be removed in Gradle 2.0. Check the configuration of task ':foo'. You may have misused '<<' at task declaration.")
+        output.contains("Calling Task.getActions().set(int, Object) after task execution has started has been deprecated and is scheduled to be removed in Gradle 2.0. Check the configuration of task ':foo'. You may have misused '<<' at task declaration.")
+        output.contains("Calling Task.getActions().remove() after task execution has started has been deprecated and is scheduled to be removed in Gradle 2.0. Check the configuration of task ':foo'. You may have misused '<<' at task declaration.")
+        output.contains("Calling Task.getActions().removeAll() after task execution has started has been deprecated and is scheduled to be removed in Gradle 2.0. Check the configuration of task ':foo'. You may have misused '<<' at task declaration.")
+        output.contains("Calling Task.getActions().clear() after task execution has started has been deprecated and is scheduled to be removed in Gradle 2.0. Check the configuration of task ':foo'. You may have misused '<<' at task declaration.")
         output.contains("Calling Task.onlyIf(Closure) after task execution has started has been deprecated and is scheduled to be removed in Gradle 2.0. Check the configuration of task ':foo'. You may have misused '<<' at task declaration.")
         output.contains("Calling Task.setActions(Actions<Task>) after task execution has started has been deprecated and is scheduled to be removed in Gradle 2.0. Check the configuration of task ':foo'. You may have misused '<<' at task declaration.")
         output.contains("Calling Task.dependsOn(Object...) after task execution has started has been deprecated and is scheduled to be removed in Gradle 2.0. Check the configuration of task ':foo'. You may have misused '<<' at task declaration.")

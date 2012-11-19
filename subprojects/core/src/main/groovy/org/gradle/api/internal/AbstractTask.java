@@ -18,6 +18,7 @@ package org.gradle.api.internal;
 
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
+import groovy.util.ObservableList;
 import org.codehaus.groovy.runtime.InvokerInvocationException;
 import org.gradle.api.*;
 import org.gradle.api.internal.file.TemporaryFileProvider;
@@ -42,8 +43,12 @@ import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.StandardOutputCapture;
 import org.gradle.util.ConfigureUtil;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 /**
@@ -56,7 +61,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private String name;
 
-    private List<Action<? super Task>> actions = new TaskStateAwareList(new ArrayList<Action<? super Task>>());
+    private List<Action<? super Task>> actions = new ArrayList<Action<? super Task>>();
 
     private String path;
 
@@ -87,6 +92,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private List<TaskValidator> validators = new ArrayList<TaskValidator>();
 
     private final TaskStatusNagger taskStatusNagger;
+    private ObservableList observableActionList;
 
     protected AbstractTask() {
         this(taskInfo());
@@ -114,6 +120,13 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         outputs = services.get(TaskOutputsInternal.class);
         inputs = services.get(TaskInputs.class);
         executer = services.get(TaskExecuter.class);
+
+        observableActionList = new ObservableList(actions);
+        observableActionList.addPropertyChangeListener(new PropertyChangeListener() {
+            public void propertyChange(PropertyChangeEvent evt) {
+                taskStatusNagger.nagAboutMutatingListIfTaskNotInConfigurableState("Task.getActions()", evt);
+            }
+        });
         loggingManager = services.get(LoggingManagerInternal.class);
     }
 
@@ -161,7 +174,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public List<Action<? super Task>> getActions() {
-        return actions;
+        return observableActionList;
     }
 
     public void setActions(final List<Action<? super Task>> actions) {
@@ -498,125 +511,5 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
                 Thread.currentThread().setContextClassLoader(original);
             }
         }
-    }
-
-    private class TaskStateAwareList implements List<Action<? super Task>> {
-        private final List<Action<? super Task>> delegate;
-
-        public TaskStateAwareList(List<Action<? super Task>> actions) {
-            this.delegate = actions;
-        }
-
-        public boolean add(Action<? super Task> action) {
-            taskStatusNagger.nagIfTaskNotInConfigurableState("Task.getActions().add(Action)");
-            return delegate.add(action);
-        }
-
-        public boolean remove(Object o) {
-            taskStatusNagger.nagIfTaskNotInConfigurableState("Task.getActions().remove(Object)");
-            return delegate.remove(o);
-        }
-
-        public boolean containsAll(Collection<?> c) {
-            return delegate.containsAll(c);
-        }
-
-        public boolean addAll(Collection<? extends Action<? super Task>> c) {
-            taskStatusNagger.nagIfTaskNotInConfigurableState("Task.getActions().addAll(Collection<? extends Action>");
-            return delegate.addAll(c);
-        }
-
-        public boolean addAll(int index, Collection<? extends Action<? super Task>> c) {
-            taskStatusNagger.nagIfTaskNotInConfigurableState("Task.getActions().addAll(int, Collection<? extends Action>");
-            return delegate.addAll(index, c);
-        }
-
-        public boolean removeAll(Collection<?> c) {
-            taskStatusNagger.nagIfTaskNotInConfigurableState("Task.getActions().removeAll(Collection)");
-            return delegate.removeAll(c);
-        }
-
-        public boolean retainAll(Collection<?> c) {
-            taskStatusNagger.nagIfTaskNotInConfigurableState("Task.getActions().retainAll(Collection)");
-            return delegate.retainAll(c);
-        }
-
-        public void clear() {
-            taskStatusNagger.nagIfTaskNotInConfigurableState("Task.getActions().clear()");
-            delegate.clear();
-        }
-
-        public void add(int index, Action<? super Task> element) {
-            taskStatusNagger.nagIfTaskNotInConfigurableState("Task.getActions().add(int, Collection)");
-            delegate.add(index, element);
-        }
-
-        public Action<? super Task> remove(int index) {
-            taskStatusNagger.nagIfTaskNotInConfigurableState("Task.getActions().remove(int)");
-            return delegate.remove(index);
-        }
-
-        public int size() {
-            return delegate.size();
-        }
-
-        public boolean isEmpty() {
-            return delegate.isEmpty();
-        }
-
-        public boolean contains(Object o) {
-            return delegate.contains(o);
-        }
-
-        public Iterator<Action<? super Task>> iterator() {
-            return delegate.iterator();
-        }
-
-        public Object[] toArray() {
-            return delegate.toArray();
-        }
-
-        public <T> T[] toArray(T[] a) {
-            return delegate.toArray(a);
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            return delegate.equals(o);
-        }
-
-        @Override
-        public int hashCode() {
-            return delegate.hashCode();
-        }
-
-        public Action<? super Task> get(int index) {
-            return delegate.get(index);
-        }
-
-        public Action<? super Task> set(int index, Action<? super Task> element) {
-            return delegate.set(index, element);
-        }
-
-        public int indexOf(Object o) {
-            return delegate.indexOf(o);
-        }
-
-        public int lastIndexOf(Object o) {
-            return delegate.lastIndexOf(o);
-        }
-
-        public ListIterator<Action<? super Task>> listIterator() {
-            return delegate.listIterator();
-        }
-
-        public ListIterator<Action<? super Task>> listIterator(int index) {
-            return delegate.listIterator(index);
-        }
-
-        public List<Action<? super Task>> subList(int fromIndex, int toIndex) {
-            return delegate.subList(fromIndex, toIndex);
-        }
-
     }
 }
