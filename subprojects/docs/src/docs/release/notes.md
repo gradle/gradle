@@ -33,14 +33,31 @@ The following are the new incubating features or changes to existing incubating 
 
 ## Deprecations
 
-Features that have become superseded or irrelevant due to the natural evolution of Gradle become *deprecated*, and scheduled to be removed
-in the next major Gradle version (Gradle 2.0). See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
+### Task configuration after execution of task has been started.
 
-The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](http://forums.gradle.org).
+The configuration of a task, whose execution has already started, has been deprecated. This includes:
 
-<!--
-### Example deprecation
--->
+* Mutating Task.getActions()
+* Calling Task.setActions()
+* Calling Task.dependsOn()
+* Calling Task.setDependsOn()
+* Calling Task.onlyIf()
+* Calling Task.setOnlyIf()
+* Calling Task.doLast()
+* Calling Task.doFirst()
+* Calling Task.leftShift()
+* Calling Task.setEnabled()
+* Calling TaskInputs.files()
+* Calling TaskInputs.file()
+* Calling TaskInputs.dir()
+* Calling TaskInputs.property()
+* Calling TaskInputs.properties()
+* Calling TaskInputs.source()
+* Calling TaskInputs.sourceDir()
+* Calling TaskOutputs.upToDateWhen()
+* Calling TaskOutputs.files()
+* Calling TaskOutputs.file()
+* Calling TaskOutputs.dir()
 
 ## Potential breaking changes
 
