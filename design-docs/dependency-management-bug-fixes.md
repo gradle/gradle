@@ -323,22 +323,21 @@ This leads to a couple of issues:
 * Sometimes the module descriptor does not declare all of the artifacts that have been cached (eg source/javadoc artifacts). These are then not expired, and will never be updated (GRADLE-2175).
 * If we fail to resolve the changing module (eg broken repository) then we have already removed the module+artifacts from the cache, so they are not available for --offline builds. (GRADLE-2364)
 
-### Strategic solution
+### Implementation approach
 
-Once we've found a module in the cache, we should not need to search the cache for each artifact that is attached to that module. Instead, we could store a reference to each
-cached artifact with the cached module. Then when we are resolving the artifact file we would lookup the cached module and use that to locate the cached artifact file,
-instead of searching for the artifact file directly. When an artifact file is downloaded, the cache entry for that file would be attached to the cached module descriptor, rather
-than referencing the cached artifact as a separate entity.
+The goal is to never remove information from the meta-data stores, but instead to replace out-of-date information with its newer equivalent. To achieve
+this, we will introduce a synthetic version for changing modules.
 
-Doing this would allow a cached module to be managed as a single unit. Removing the cached module would automatically remove all cached artifact references, and it would be easy
-to delay this removal until the module was successfully resolved from a repository.
-
-Taking this a little further, if the ModuleDescriptor returned from the cache was able to hold some reference to it's cached entry, it could be used directly when resolving artifact
-files, rather than requiring that it be looked up again for each artifact. This would require we switch from using org.apache.ivy.ModuleDescriptor as our internal module representation,
-to use a richer module model that would allow us to retain cache references throughout the resolve process.
-
-As this change would require an update to the cache storage layout, this might be a good opportunity to separate the Gradle filestore (non-binary, stable) from the rest of the
-cache storage (binary, unstable).
+1. Increment the cache layout version in `DefaultCacheLockingManager`. Will need to update `LocallyAvailableResourceFinderFactory` for this change.
+2. Change `ModuleDescriptorCache.CachedModuleDescriptor` to add a `descriptorHash` property.
+3. Change `DefaultModuleDescriptorCache` to store the hash of the module descriptor from the `ModuleDescriptorStore` as part of the `ModuleDescriptorCacheEntry`.
+4. Change `CachedExternalResource` to add a `descriptorHash` property.
+5. Change `CachingModuleVersionRepository.resolve()` to use the owning module version's descriptorHash as the artifact's descriptorHash when storing.
+   The final implementation should avoid loading the module descriptor multiple times. It should be possible to attach the module version descriptorHash,
+   when resolving the module metadata, to the `Artifact that will later be passed to `resolve()`.
+6. Change `CachePolicy.mustRefreshArtifact()` to expire a cached artifact if its descriptorHash != its owning module version's descriptorHash, except
+   when offline.
+7. Change CachingModuleVersionRepository.lookupModuleInCache() so that it no longer calls expireArtifactsForChangingModule().
 
 ### User-visible changes and backward-compatibility issues
 
@@ -355,16 +354,6 @@ cache storage (binary, unstable).
     * Failure cases are authorization error (401), server error (500) and connection exception
     * Will re-attempt download on subsequent resolve and recover
     * Will use previously cached version if run with --offline after failure
-
-### Implementation approach
-
-* The goal is to have the current behaviour of ModuleDescriptorCache and ArtifactAtRepositoryCachedExternalResourceIndex operate atomically, so that removing/expiring a module from the cache automatically
-removes/expires all artifacts linked to that module. One option is to update the ModuleDescriptorCache so that it is able to return the full CacheExternalResource for any artifacts that have been
- previously resolved for a particular module. This would mean replacing/wrapping the ArtifactAtRepositoryCachedExternalResourceIndex with calls to the ModuleDescriptorCache.
- The key entry point method is CachingModuleVersionRepository.download(Artifact).
-* Split the filestore out of the artifacts-N directory: introduce metadata-1 and filestore-1 as the 2 versioned artifact storage directories. The metadata-N directory will store binary artifact files,
-and will require a new version whenever the binary storage format is changed. The filestore-N directory will store downloaded files in a pattern that encapsulates the artifact identifier and the SHA1 checksum
-of the downloaded artifact (same as current format).
 
 # Correct naming of resolved native binaries
 
