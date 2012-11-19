@@ -30,6 +30,9 @@ import java.util.List;
  * @author Hans Dockter
  */
 public interface MavenPom {
+
+    String POM_FILE_ENCODING = "UTF-8";
+
     /**
      * Returns the scope mappings used for generating this pom.
      */

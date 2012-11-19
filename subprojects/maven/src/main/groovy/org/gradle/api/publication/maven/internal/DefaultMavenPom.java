@@ -42,7 +42,7 @@ import java.util.List;
  * @author Hans Dockter
  */
 public class DefaultMavenPom implements MavenPom {
-    public static final String POM_ENCODING = "UTF-8";
+
     private PomDependenciesConverter pomDependenciesConverter;
     private FileResolver fileResolver;
     private MavenProject mavenProject = new MavenProject();
@@ -192,7 +192,7 @@ public class DefaultMavenPom implements MavenPom {
     }
 
     public DefaultMavenPom writeTo(Object path) {
-        IoActions.writeFile(fileResolver.resolve(path), POM_ENCODING, new Action<BufferedWriter>() {
+        IoActions.writeFile(fileResolver.resolve(path), POM_FILE_ENCODING, new Action<BufferedWriter>() {
             public void execute(BufferedWriter writer) {
                 writeTo(writer);
             }
@@ -202,7 +202,7 @@ public class DefaultMavenPom implements MavenPom {
 
     private void writeNonEffectivePom(final Writer pomWriter) {
         try {
-            withXmlActions.transform(pomWriter, POM_ENCODING, new ErroringAction<Writer>() {
+            withXmlActions.transform(pomWriter, POM_FILE_ENCODING, new ErroringAction<Writer>() {
                 protected void doExecute(Writer writer) throws IOException{
                     mavenProject.writeModel(writer);
                 }

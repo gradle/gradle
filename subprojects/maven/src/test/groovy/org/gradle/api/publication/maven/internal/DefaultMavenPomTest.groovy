@@ -28,11 +28,13 @@ import org.gradle.util.TextUtil
 import org.junit.Rule
 import spock.lang.Specification
 
+import static org.gradle.api.artifacts.maven.MavenPom.POM_FILE_ENCODING
+
 class DefaultMavenPomTest extends Specification {
     static final String EXPECTED_PACKAGING = "something";
     static final String EXPECTED_GROUP_ID = "someGroup";
     static final String EXPECTED_ARTIFACT_ID = "artifactId";
-    static final String EXPECTED_VERSION = "vérsiøn"; // note the utf-8 chars
+    static final String EXPECTED_VERSION = "v\u00E9rsi\u00F8n"; // note the utf-8 chars
 
     @Rule
     TemporaryFolder tmpDir = new TemporaryFolder()
@@ -170,7 +172,7 @@ class DefaultMavenPomTest extends Specification {
         mavenPom.writeTo('file');
 
         then:
-        pomFile.text == TextUtil.toPlatformLineSeparators("""<?xml version="1.0" encoding="UTF-8"?>
+        pomFile.getText(POM_FILE_ENCODING) == TextUtil.toPlatformLineSeparators("""<?xml version="1.0" encoding="${POM_FILE_ENCODING}"?>
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
