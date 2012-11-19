@@ -115,8 +115,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         state = new TaskStateInternal(toString());
         dependencies = new DefaultTaskDependency(project.getTasks());
         services = project.getServices().createFor(this);
-        taskStatusNagger = new TaskStatusNagger(this);
         extensibleDynamicObject = new ExtensibleDynamicObject(this, getServices().get(Instantiator.class));
+        taskStatusNagger = services.get(TaskStatusNagger.class);
         outputs = services.get(TaskOutputsInternal.class);
         inputs = services.get(TaskInputs.class);
         executer = services.get(TaskExecuter.class);

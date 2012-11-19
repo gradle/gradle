@@ -18,11 +18,11 @@ package org.gradle.api.internal.project;
 
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
-import org.gradle.api.internal.tasks.TaskStatusNagger;
-import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.api.internal.tasks.DefaultTaskInputs;
 import org.gradle.api.internal.tasks.DefaultTaskOutputs;
+import org.gradle.api.internal.tasks.TaskStatusNagger;
 import org.gradle.api.tasks.TaskInputs;
+import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
 
@@ -32,19 +32,25 @@ import org.gradle.logging.LoggingManagerInternal;
 public class TaskInternalServiceRegistry extends DefaultServiceRegistry implements ServiceRegistryFactory {
     private final ProjectInternal project;
     private final TaskInternal taskInternal;
+    private TaskStatusNagger taskStatusNagger;
 
     public TaskInternalServiceRegistry(ServiceRegistry parent, final ProjectInternal project, TaskInternal taskInternal) {
         super(parent);
         this.project = project;
         this.taskInternal = taskInternal;
+        this.taskStatusNagger = new TaskStatusNagger(taskInternal);
     }
 
     protected TaskInputs createTaskInputs() {
-        return new DefaultTaskInputs(project.getFileResolver(), taskInternal, new TaskStatusNagger(taskInternal));
+        return new DefaultTaskInputs(project.getFileResolver(), taskInternal, get(TaskStatusNagger.class));
     }
 
     protected TaskOutputsInternal createTaskOutputs() {
-        return new DefaultTaskOutputs(project.getFileResolver(), taskInternal, new TaskStatusNagger(taskInternal));
+        return new DefaultTaskOutputs(project.getFileResolver(), taskInternal, get(TaskStatusNagger.class));
+    }
+
+    protected TaskStatusNagger createTaskStatusNagger() {
+        return new TaskStatusNagger(taskInternal);
     }
 
     protected LoggingManagerInternal createLoggingManager() {

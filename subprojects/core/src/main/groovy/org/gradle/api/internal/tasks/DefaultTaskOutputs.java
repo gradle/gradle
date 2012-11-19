@@ -76,11 +76,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
 
     public TaskOutputs dir(final Object path) {
         taskStatusNagger.nagIfTaskNotInConfigurableState("TaskOutputs.dir(Object)");
-        taskStatusNagger.whileDisabled(new Runnable() {
-            public void run() {
-                files(path);
-            }
-        });
+        outputFiles.from(path);
         return this;
     }
 

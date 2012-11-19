@@ -16,14 +16,15 @@
 
 package org.gradle.api.internal.project;
 
-import org.gradle.internal.Factory;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.DefaultTaskInputs;
 import org.gradle.api.internal.tasks.DefaultTaskOutputs;
+import org.gradle.api.internal.tasks.TaskStatusNagger;
 import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.tasks.TaskInputs;
+import org.gradle.internal.Factory;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
 import org.jmock.Expectations;
@@ -33,6 +34,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static junit.framework.Assert.assertSame;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.assertThat;
@@ -64,13 +66,19 @@ public class TaskInternalServiceRegistryTest {
         TaskOutputsInternal outputs = registry.get(TaskOutputsInternal.class);
         assertThat(outputs, instanceOf(DefaultTaskOutputs.class));
     }
-    
+
+    @Test
+    public void createsATaskStatusNaggerInstance() {
+        TaskStatusNagger nagger = registry.get(TaskStatusNagger.class);
+        assertSame(nagger, registry.get(TaskStatusNagger.class));
+    }
+
     @Test
     public void createsALoggingManagerAndStdOutputCapture() {
         final Factory<LoggingManagerInternal> loggingManagerFactory = context.mock(Factory.class);
         final LoggingManager loggingManager = context.mock(LoggingManagerInternal.class);
 
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             allowing(parent).getFactory(LoggingManagerInternal.class);
             will(returnValue(loggingManagerFactory));
             one(loggingManagerFactory).create();
