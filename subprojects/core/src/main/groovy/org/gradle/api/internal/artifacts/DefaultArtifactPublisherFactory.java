@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
-import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;
 
 import java.util.Collections;
 import java.util.List;
@@ -35,10 +34,10 @@ public class DefaultArtifactPublisherFactory implements ArtifactPublisherFactory
         this.providerToPublisherTransformer = providerToPublisherTransformer;
     }
 
-    public ArtifactPublisher createArtifactPublisher(final ArtifactRepositoryInternal repository) {
+    public ArtifactPublisher createArtifactPublisher(final DependencyResolver resolver) {
         return providerToPublisherTransformer.transform(new ResolverProvider() {
             public List<DependencyResolver> getResolvers() {
-                return Collections.singletonList(repository.createResolver());
+                return Collections.singletonList(resolver);
             }
         });
     }

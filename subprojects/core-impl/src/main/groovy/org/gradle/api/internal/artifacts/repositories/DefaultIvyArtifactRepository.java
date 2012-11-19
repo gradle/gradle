@@ -155,8 +155,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     }
 
     public IvyPublisher createPublisher() {
-        return new IvyPublisher(artifactPublisherFactory.createArtifactPublisher(this));
+        return new IvyPublisher(artifactPublisherFactory.createArtifactPublisher(this.createResolver()));
     }
-
 
 }

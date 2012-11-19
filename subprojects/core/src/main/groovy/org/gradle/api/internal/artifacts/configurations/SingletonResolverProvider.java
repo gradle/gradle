@@ -14,12 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts;
+package org.gradle.api.internal.artifacts.configurations;
 
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 
-public interface ArtifactPublisherFactory {
+import java.util.Collections;
+import java.util.List;
 
-    ArtifactPublisher createArtifactPublisher(DependencyResolver dependencyResolver);
+public class SingletonResolverProvider implements ResolverProvider {
 
+    private final DependencyResolver dependencyResolver;
+
+    public SingletonResolverProvider(DependencyResolver dependencyResolver) {
+        this.dependencyResolver = dependencyResolver;
+    }
+
+    public List<DependencyResolver> getResolvers() {
+        return Collections.singletonList(dependencyResolver);
+    }
 }
